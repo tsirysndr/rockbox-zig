@@ -1143,6 +1143,57 @@ pub fn build(b: *std.Build) void {
     defineCMacros(aac_bsf);
     addIncludePaths(aac_bsf);
 
+    const libplugin = b.addStaticLibrary(.{
+        .name = "plugin",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(libplugin);
+
+    libplugin.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "apps/plugins/lib/sha1.c",
+            "apps/plugins/lib/gcc-support.c",
+            "apps/plugins/lib/pluginlib_actions.c",
+            "apps/plugins/lib/helper.c",
+            "apps/plugins/lib/icon_helper.c",
+            "apps/plugins/lib/arg_helper.c",
+            "apps/plugins/lib/md5.c",
+            "apps/plugins/lib/jhash.c",
+            "apps/plugins/lib/configfile.c",
+            "apps/plugins/lib/playback_control.c",
+            "apps/plugins/lib/rgb_hsv.c",
+            "apps/plugins/lib/highscore.c",
+            "apps/plugins/lib/simple_viewer.c",
+            "apps/plugins/lib/display_text.c",
+            "apps/plugins/lib/printcell_helper.c",
+            "apps/plugins/lib/strncpy.c",
+            "apps/plugins/lib/stdio_compat.c",
+            "apps/plugins/lib/overlay.c",
+            "apps/plugins/lib/pluginlib_jpeg_mem.c",
+            "apps/plugins/lib/pluginlib_resize.c",
+            "apps/plugins/lib/checkbox.c",
+            "apps/plugins/lib/osd.c",
+            "apps/plugins/lib/picture.c",
+            "apps/plugins/lib/xlcd_core.c",
+            "apps/plugins/lib/xlcd_draw.c",
+            "apps/plugins/lib/xlcd_scroll.c",
+            "apps/plugins/lib/pluginlib_bmp.c",
+            "apps/plugins/lib/read_image.c",
+            "apps/plugins/lib/bmp_smooth_scale.c",
+            "apps/plugins/lib/kbd_helper.c",
+            "apps/plugins/lib/pluginlib_touchscreen.c",
+            "apps/plugins/lib/id3.c",
+            "apps/plugins/lib/mul_id3.c",
+        },
+        .flags = &cflags,
+    });
+
+    libplugin.defineCMacro("PLUGIN", null);
+    defineCMacros(libplugin);
+    addPluginIncludePaths(libplugin);
+
     exe.linkLibrary(libfirmware);
     exe.linkLibrary(libspeex_voice);
     exe.linkLibrary(librbcodec);
@@ -1212,6 +1263,44 @@ fn addIncludePaths(c: *std.Build.Step.Compile) void {
     c.addIncludePath(.{ .cwd_relative = "./lib/rbcodec/codecs/libmusepack" });
     c.addIncludePath(.{ .cwd_relative = "./lib/rbcodec/codecs/libtta" });
     c.addIncludePath(.{ .cwd_relative = "./lib/rbcodec/codecs/libwmapro" });
+}
+
+fn addPluginIncludePaths(c: *std.Build.Step.Compile) void {
+    c.addIncludePath(.{ .cwd_relative = "/usr/include" });
+    c.addIncludePath(.{ .cwd_relative = "/usr/include/x86_64-linux-gnu" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/apps/plugins/lib" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/apps/plugins" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/build" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/build/lang" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/target/hosted/sdl/app" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/target/hosted/sdl" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/target/hosted" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/export" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/drivers" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/include" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/kernel/include" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/lib/skin_parser" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/lib/tlsf/src" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/lib/fixedpoint" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/apps" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/apps/recorder" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/apps/gui" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/apps/radio" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/lib/rbcodec" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/lib/rbcodec/codecs" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/lib/rbcodec/dsp" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/lib/rbcodec/metadata" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/uisimulator/bitmaps" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/uisimulator/common" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/uisimulator/buttonmap" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/include" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/export" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/target/hosted/sdl/app" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/target/hosted/sdl" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/firmware/target/hosted" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/build" });
+    c.addIncludePath(.{ .cwd_relative = "/home/coder/Documents/github/rockbox/apps" });
 }
 
 const libfirmware_sources = [_][]const u8{
