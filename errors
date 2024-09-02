@@ -1,0 +1,472 @@
+install
++- install opus
+   +- zig build-lib opus Debug native 178 errors
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pitch_lag.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pitch_lag.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pitch_lag.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pitch_lag.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pulses_per_block.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pulses_per_block.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pulses_per_block.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pulses_per_block.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_WB.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_WB.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_WB.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_WB.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:68:32: error: unknown type name 'spx_lsp_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:68:45: error: unknown type name 'spx_lsp_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:71:34: error: unknown type name 'spx_lsp_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:75:31: error: unknown type name 'spx_word16_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:75:47: error: unknown type name 'spx_word16_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:75:63: error: unknown type name 'spx_coef_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:75:77: error: unknown type name 'spx_coef_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:76:31: error: unknown type name 'spx_coef_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:76:45: error: unknown type name 'spx_sig_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:76:82: error: type specifier missing, defaults to 'int'; ISO C99 and later do not support implicit int
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:77:61: error: unknown type name 'spx_word16_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:77:77: error: unknown type name 'spx_word16_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:77:108: error: unknown type name 'spx_word32_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:80:34: error: unknown type name 'spx_word16_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:80:50: error: unknown type name 'spx_word32_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:80:76: error: type specifier missing, defaults to 'int'; ISO C99 and later do not support implicit int
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:81:34: error: unknown type name 'spx_word16_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:81:79: error: type specifier missing, defaults to 'int'; ISO C99 and later do not support implicit int
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:81:79: error: redefinition of parameter 'spx_word16_t'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c:44:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/modes.h:80:76: note: previous declaration is here
+:1:1: error: too many errors emitted, stopping now
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:41:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:41:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:41:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:41:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:138:69: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:153:16: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:221:29: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:221:62: error: unknown type name 'celt_sig'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:222:60: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:222:78: error: unknown type name 'celt_sig'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:224:18: error: unknown type name 'opus_val32'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:224:33: error: unknown type name 'opus_val32'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:225:7: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:225:22: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.h:226:13: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:89:3: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:102:9: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:135:44: error: unknown type name 'opus_val32'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:136:36: error: unknown type name 'opus_val32'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:137:34: error: unknown type name 'opus_val32'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_private.h:143:54: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c:33:
+:1:1: error: too many errors emitted, stopping now
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_other.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_other.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_other.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_other.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_NB_MB.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_NB_MB.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_NB_MB.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_NB_MB.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_LTP.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_LTP.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_LTP.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_LTP.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_gain.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_gain.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_gain.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_gain.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_MS_to_LR.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_MS_to_LR.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_MS_to_LR.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_MS_to_LR.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_decode_pred.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_decode_pred.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_decode_pred.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_decode_pred.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/shell_coder.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/shell_coder.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/shell_coder.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/shell_coder.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/sort.c:51:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/sort.c:99:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/sort.c:144:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/table_LSF_cos.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/table_LSF_cos.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/table_LSF_cos.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/table_LSF_cos.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_down_FIR.c:139:13: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_down_FIR.c:155:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_down_FIR.c:155:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_down_FIR.c:157:5: error: use of undeclared identifier 'SAVE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_down_FIR.c:193:5: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_IIR_FIR.c:75:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_IIR_FIR.c:75:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_IIR_FIR.c:76:5: error: use of undeclared identifier 'SAVE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_IIR_FIR.c:106:5: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_VQ_weights_laroia.c:51:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler.c:94:13: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler.c:101:13: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler.c:154:13: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler.c:184:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:174:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:174:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:176:5: error: use of undeclared identifier 'SAVE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:191:5: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:213:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:213:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:215:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:215:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:218:5: error: use of undeclared identifier 'SAVE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:294:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c:388:5: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:40:16: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:40:40: error: unknown type name 'opus_val32'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:43:16: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:44:16: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:45:10: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:55:21: error: unknown type name 'opus_val32'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:56:16: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:57:10: error: unknown type name 'opus_val32'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:60:10: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:63:26: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:63:41: error: unknown type name 'opus_val32'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.h:64:16: error: unknown type name 'opus_val16'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c:67:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_unpack.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_unpack.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_unpack.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_unpack.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_decode.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_decode.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_decode.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_decode.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF2A.c:39:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF2A.c:39:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF2A.c:39:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF2A.c:39:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables.h:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF2A.c:89:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/gain_quant.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/gain_quant.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/gain_quant.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/gain_quant.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/init_decoder.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/init_decoder.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/init_decoder.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/init_decoder.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_pitch.c:54:13: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_pitch.c:63:13: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_pulses.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_pulses.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_pulses.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_pulses.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_pulses.c:59:9: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decoder_set_fs.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decoder_set_fs.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decoder_set_fs.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decoder_set_fs.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decoder_set_fs.c:43:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_parameters.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_parameters.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_parameters.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_parameters.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_indices.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_indices.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_indices.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_indices.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_indices.c:82:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:49:36: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:49:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:51:5: error: use of undeclared identifier 'SAVE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:58:5: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:63:30: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:63:9: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c:128:5: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:48:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:48:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:49:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:49:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:52:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:52:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:53:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:53:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:54:5: error: use of undeclared identifier 'SAVE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:144:17: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:199:13: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c:236:5: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:95:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:95:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:96:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:96:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:97:26: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:97:5: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:105:5: error: use of undeclared identifier 'SAVE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:147:17: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:153:17: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:170:9: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:263:58: error: use of undeclared identifier 'ALLOC_NONE'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:321:59: error: use of undeclared identifier 'ALLOC_NONE'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:330:14: error: use of undeclared identifier 'ALLOC_NONE'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:333:8: error: call to undeclared function 'OPUS_COPY'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c:383:5: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/code_signs.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/code_signs.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/code_signs.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/code_signs.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:125:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.h:141:4: error: call to undeclared function 'celt_sig_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c:32:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c:32:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/main.h:33:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:10: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/structs.h:34:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:11: note: in file included from /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.h:31:
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c:90:5: error: use of undeclared identifier 'SAVE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c:126:30: error: too many arguments provided to function-like macro invocation
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex/stack_alloc.h:119:9: note: macro 'VARDECL' defined here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c:126:9: error: use of undeclared identifier 'VARDECL'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c:149:9: error: call to undeclared function 'celt_assert'; ISO C99 and later do not support implicit function declarations
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c:183:5: error: use of undeclared identifier 'RESTORE_STACK'
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_decoder.c:150:26: error: static declaration of 'opus_custom_decoder_get_size' follows non-static declaration
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_custom.h:249:55: note: previous declaration is here
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_decoder.c:189:26: error: static declaration of 'opus_custom_decoder_init' follows non-static declaration
+/home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_custom.h:266:31: note: previous declaration is here
+error: the following command failed with 178 compilation errors:
+/home/linuxbrew/.linuxbrew/Cellar/zig/0.13.0/bin/zig build-lib -cflags -W -Wall -Wextra -Os -Wstrict-prototypes -pipe -std=gnu11 -Wno-gnu -fPIC -fvisibility=hidden -Wno-pointer-to-int-cast -fno-delete-null-pointer-checks -fno-strict-overflow -fno-builtin -g -Wno-unused-result -Wno-pointer-sign -Wno-override-init -Wno-shift-negative-value -Wno-unused-const-variable -Wno-unused-variable -Wno-unused-but-set-variable -O2 -Wno-tautological-compare -Wno-expansion-to-defined -- /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/opus.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/codec_crt0.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/bands.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_decoder.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/celt_lpc.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/cwrs.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entcode.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entdec.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/entenc.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/kiss_fft.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/laplace.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/mathops.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/mdct.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/modes.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/pitch.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/quant_bands.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/rate.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt/vq.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/bwexpander_32.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/bwexpander.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/CNG.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/code_signs.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/dec_API.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_core.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_frame.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_indices.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_parameters.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_pitch.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decode_pulses.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/decoder_set_fs.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/gain_quant.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/init_decoder.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/lin2log.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/log2lin.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_analysis_filter.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_fit.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/LPC_inv_pred_gain.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF2A.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_decode.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_stabilize.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_unpack.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/NLSF_VQ_weights_laroia.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/pitch_est_tables.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/PLC.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_AR2.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_down_FIR.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_IIR_FIR.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_private_up2_HQ.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/resampler_rom.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/shell_coder.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/sort.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_decode_pred.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/stereo_MS_to_LR.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/sum_sqr_shift.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/table_LSF_cos.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_gain.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_LTP.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_NB_MB.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_NLSF_CB_WB.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_other.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pitch_lag.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk/tables_pulses_per_block.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_decoder.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/opus_header.c /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/ogg/framing.c -ODebug -I /usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/SDL -I /home/coder/Documents/github/rockbox/firmware/export -I /home/coder/Documents/github/rockbox/firmware/drivers -I /home/coder/Documents/github/rockbox/build -I /home/coder/Documents/github/rockbox/firmware/include -I /home/coder/Documents/github/rockbox/firmware/target/hosted/sdl -I /home/coder/Documents/github/rockbox/firmware/target/hosted -I /home/coder/Documents/github/rockbox/firmware/target/hosted/sdl/app -I /home/coder/Documents/github/rockbox/apps -I /home/coder/Documents/github/rockbox/apps/gui -I /home/coder/Documents/github/rockbox/apps/recorder -I /home/coder/Documents/github/rockbox/lib/rbcodec -I /home/coder/Documents/github/rockbox/lib/rbcodec/metadata -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libspeex -I /home/coder/Documents/github/rockbox/firmware/kernel/include -I /home/coder/Documents/github/rockbox/firmware -I /home/coder/Documents/github/rockbox/firmware/asm -I /home/coder/Documents/github/rockbox/lib/rbcodec/dsp -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs -I /home/coder/Documents/github/rockbox/lib/skin_parser -I /home/coder/Documents/github/rockbox/build/lang -I /home/coder/Documents/github/rockbox/lib/skin_parser -I /home/coder/Documents/github/rockbox/apps/gui/skin_engine -I /home/coder/Documents/github/rockbox/lib/fixedpoint -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/lib -I /home/coder/Documents/github/rockbox/lib/tlsf/src -I /home/coder/Documents/github/rockbox/apps/plugins -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libfaad -I /home/coder/Documents/github/rockbox/uisimulator/common -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/celt -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libopus/silk -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libtremor -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libm4a -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libcook -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libfaad -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libatrac -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libmusepack -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libtta -I /home/coder/Documents/github/rockbox/lib/rbcodec/codecs/libwmapro -DCODEC=1 -DHAVE_CONFIG_H=1 -DENABLE_ASSERTIONS=1 -DUSE_ALLOCA=1 -D_USE_MISC=1 -DROCKBOX=1 -DMEMORYSIZE=8 -DSDLAPP=1 -DTARGET_ID=73 -DTARGET_NAME="sdlapp" -DYEAR=2024 -DMONTH=09 -DDAY=01 -DOS_USE_BYTESWAP_H=1 -DAPPLICATION=1 -D_GNU_SOURCE=1 -D_REENTRANT=1 -Mroot --cache-dir /home/coder/Documents/github/rockbox/.zig-cache --global-cache-dir /home/coder/.cache/zig --name opus -static --listen=- 
+Build Summary: 98/101 steps succeeded; 1 failed (disable with --summary none)
+install transitive failure
++- install opus transitive failure
+   +- zig build-lib opus Debug native 178 errors
+error: the following build command failed with exit code 1:
+/home/coder/Documents/github/rockbox/.zig-cache/o/fc7f4dee7a9b4c4d27e1b18f110f70a1/build /home/linuxbrew/.linuxbrew/Cellar/zig/0.13.0/bin/zig /home/coder/Documents/github/rockbox /home/coder/Documents/github/rockbox/.zig-cache /home/coder/.cache/zig --seed 0x2b949b17 -Z91c8f689042194c1

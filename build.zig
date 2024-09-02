@@ -133,6 +133,9 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libspeex_voice.defineCMacro("HAVE_CONFIG_H", null);
+    libspeex_voice.defineCMacro("ROCKBOX_VOICE_CODEC", null);
+    libspeex_voice.defineCMacro("SPEEX_DISABLE_ENCODER", null);
     defineCMacros(libspeex_voice);
     addIncludePaths(libspeex_voice);
 
@@ -195,6 +198,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libuisimulator.defineCMacro("HAVE_CONFIG_H", null);
     defineCMacros(libuisimulator);
     addIncludePaths(libuisimulator);
 
@@ -232,6 +236,27 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libtlsf);
     addIncludePaths(libtlsf);
 
+    // const libopus = b.addStaticLibrary(.{
+    //   .name = "opus",
+    //    .target = target,
+    //    .optimize = optimize,
+    // });
+
+    // b.installArtifact(libopus);
+
+    // libopus.addCSourceFiles(.{
+    //      .files = &libopus_sources,
+    //      .flags = &cflags,
+    //  });
+
+    // libopus.defineCMacro("CODEC", null);
+    // libopus.defineCMacro("HAVE_CONFIG_H", null);
+    // libopus.defineCMacro("ENABLE_ASSERTIONS", null);
+    // libopus.defineCMacro("VAR_ARRAYS", null);
+    // libopus.defineCMacro("USE_ALLOCA", null);
+    // defineCMacros(libopus);
+    // addIncludePaths(libopus);
+
     const libmad = b.addStaticLibrary(.{
         .name = "mad",
         .target = target,
@@ -245,6 +270,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libmad.defineCMacro("CODEC", null);
     defineCMacros(libmad);
     addIncludePaths(libmad);
 
@@ -263,6 +289,8 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libasf.defineCMacro("CODEC", null);
+    libasf.defineCMacro("HAVE_CONFIG_H", null);
     defineCMacros(libasf);
     addIncludePaths(libasf);
 
@@ -283,6 +311,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    flac.defineCMacro("CODEC", null);
     defineCMacros(flac);
     addIncludePaths(flac);
 
@@ -312,6 +341,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    wav.defineCMacro("CODEC", null);
     defineCMacros(wav);
     addIncludePaths(wav);
 
@@ -335,6 +365,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    liba52.defineCMacro("CODEC", null);
     defineCMacros(liba52);
     addIncludePaths(liba52);
 
@@ -360,6 +391,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libwavpack.defineCMacro("CODEC", null);
     defineCMacros(libwavpack);
     addIncludePaths(libwavpack);
 
@@ -379,6 +411,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    alac.defineCMacro("CODEC", null);
     defineCMacros(alac);
     addIncludePaths(alac);
 
@@ -395,6 +428,7 @@ pub fn build(b: *std.Build) void {
         "lib/rbcodec/codecs/libm4a/demux.c",
     }, .flags = &cflags });
 
+    libm4a.defineCMacro("CODEC", null);
     defineCMacros(libm4a);
     addIncludePaths(libm4a);
 
@@ -411,6 +445,7 @@ pub fn build(b: *std.Build) void {
         "./lib/rbcodec/codecs/libcook/cook.c",
     }, .flags = &cflags });
 
+    libcook.defineCMacro("CODEC", null);
     defineCMacros(libcook);
     addIncludePaths(libcook);
 
@@ -453,6 +488,7 @@ pub fn build(b: *std.Build) void {
         "lib/rbcodec/codecs/libfaad/tns.c",
     }, .flags = &cflags });
 
+    libfaad.defineCMacro("CODEC", null);
     defineCMacros(libfaad);
     addIncludePaths(libfaad);
 
@@ -468,6 +504,7 @@ pub fn build(b: *std.Build) void {
         "lib/rbcodec/codecs/a52_rm.c",
     }, .flags = &cflags });
 
+    a52_rm.defineCMacro("CODEC", null);
     defineCMacros(a52_rm);
     addIncludePaths(a52_rm);
 
@@ -484,6 +521,7 @@ pub fn build(b: *std.Build) void {
         "lib/rbcodec/codecs/libatrac/atrac3.c",
     }, .flags = &cflags });
 
+    libatrac.defineCMacro("CODEC", null);
     defineCMacros(libatrac);
     addIncludePaths(libatrac);
 
@@ -499,6 +537,7 @@ pub fn build(b: *std.Build) void {
         "lib/rbcodec/codecs/atrac3_oma.c",
     }, .flags = &cflags });
 
+    atrac3_oma.defineCMacro("CODEC", null);
     defineCMacros(atrac3_oma);
     addIncludePaths(atrac3_oma);
 
@@ -522,6 +561,7 @@ pub fn build(b: *std.Build) void {
         "lib/rbcodec/codecs/libmusepack/synth_filter.c",
     }, .flags = &cflags });
 
+    musepack.defineCMacro("CODEC", null);
     defineCMacros(musepack);
     addIncludePaths(musepack);
 
@@ -539,6 +579,7 @@ pub fn build(b: *std.Build) void {
         "lib/rbcodec/codecs/libwma/wmafixed.c",
     }, .flags = &cflags });
 
+    wma.defineCMacro("CODEC", null);
     defineCMacros(wma);
     addIncludePaths(wma);
 
@@ -563,6 +604,7 @@ pub fn build(b: *std.Build) void {
         "lib/rbcodec/codecs/demac/libdemac/filter_64_11.c",
     }, .flags = &cflags });
 
+    libdemac.defineCMacro("CODEC", null);
     defineCMacros(libdemac);
     addIncludePaths(libdemac);
 
@@ -581,6 +623,7 @@ pub fn build(b: *std.Build) void {
         "lib/rbcodec/codecs/libasap/apokeysnd.c",
     }, .flags = &cflags });
 
+    libasap.defineCMacro("CODEC", null);
     defineCMacros(libasap);
     addIncludePaths(libasap);
 
@@ -597,6 +640,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    aac.defineCMacro("CODEC", null);
     defineCMacros(aac);
     addIncludePaths(aac);
 
@@ -619,6 +663,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libspc.defineCMacro("CODEC", null);
     defineCMacros(libspc);
     addIncludePaths(libspc);
 
@@ -637,6 +682,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    mod.defineCMacro("CODEC", null);
     defineCMacros(mod);
     addIncludePaths(mod);
 
@@ -655,6 +701,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    shorten.defineCMacro("CODEC", null);
     defineCMacros(shorten);
     addIncludePaths(shorten);
 
@@ -673,6 +720,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    aiff.defineCMacro("CODEC", null);
     defineCMacros(aiff);
     addIncludePaths(aiff);
 
@@ -688,6 +736,10 @@ pub fn build(b: *std.Build) void {
         .files = &libspeex_sources,
         .flags = &cflags,
     });
+
+    libspeex.defineCMacro("CODEC", null);
+    libspeex.defineCMacro("HAVE_CONFIG_H", null);
+    libspeex.defineCMacro("SPEEX_DISABLE_ENCODER", null);
 
     defineCMacros(libspeex);
     addIncludePaths(libspeex);
@@ -707,6 +759,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    adx.defineCMacro("CODEC", null);
     defineCMacros(adx);
     addIncludePaths(adx);
 
@@ -725,6 +778,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    smaf.defineCMacro("CODEC", null);
     defineCMacros(smaf);
     addIncludePaths(smaf);
 
@@ -743,6 +797,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    au.defineCMacro("CODEC", null);
     defineCMacros(au);
     addIncludePaths(au);
 
@@ -761,6 +816,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    vox.defineCMacro("CODEC", null);
     defineCMacros(vox);
     addIncludePaths(vox);
 
@@ -779,6 +835,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    wav64.defineCMacro("CODEC", null);
     defineCMacros(wav64);
     addIncludePaths(wav64);
 
@@ -798,6 +855,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    tta.defineCMacro("CODEC", null);
     defineCMacros(tta);
     addIncludePaths(tta);
 
@@ -819,6 +877,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    wmapro.defineCMacro("CODEC", null);
     defineCMacros(wmapro);
     addIncludePaths(wmapro);
 
@@ -844,6 +903,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libay.defineCMacro("CODEC", null);
     defineCMacros(libay);
     addIncludePaths(libay);
 
@@ -865,6 +925,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libayumi.defineCMacro("CODEC", null);
     defineCMacros(libayumi);
     addIncludePaths(libayumi);
 
@@ -889,6 +950,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libgbs.defineCMacro("CODEC", null);
     defineCMacros(libgbs);
     addIncludePaths(libgbs);
 
@@ -911,6 +973,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libhes.defineCMacro("CODEC", null);
     defineCMacros(libhes);
     addIncludePaths(libhes);
 
@@ -940,6 +1003,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libnsf.defineCMacro("CODEC", null);
     defineCMacros(libnsf);
     addIncludePaths(libnsf);
 
@@ -961,6 +1025,7 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libemu2413.defineCMacro("CODEC", null);
     defineCMacros(libemu2413);
     addIncludePaths(libemu2413);
 
@@ -981,20 +1046,109 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libsgc.defineCMacro("CODEC", null);
     defineCMacros(libsgc);
     addIncludePaths(libsgc);
+
+    const libvgm = b.addStaticLibrary(.{
+        .name = "vgm",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(libvgm);
+
+    libvgm.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/vgm.c",
+            "lib/rbcodec/codecs/libgme/resampler.c",
+            "lib/rbcodec/codecs/libgme/vgm_emu.c",
+            "lib/rbcodec/codecs/libgme/ym2612_emu.c",
+            "lib/rbcodec/codecs/libgme/inflate/bbfuncs.c",
+            "lib/rbcodec/codecs/libgme/inflate/inflate.c",
+            "lib/rbcodec/codecs/libgme/inflate/mallocer.c",
+            "lib/rbcodec/codecs/libgme/inflate/mbreader.c",
+        },
+        .flags = &cflags,
+    });
+
+    libvgm.defineCMacro("CODEC", null);
+    defineCMacros(libvgm);
+    addIncludePaths(libvgm);
+
+    //const sid = b.addStaticLibrary(.{
+    //    .name = "cRSID",
+    //    .target = target,
+    //       .optimize = optimize,
+    // });
+
+    // b.installArtifact(sid);
+
+    // sid.addCSourceFiles(.{
+    //     .files = &[_][]const u8{
+    //        "lib/rbcodec/codecs/sid.c",
+    //        "lib/rbcodec/codecs/cRSID/libcRSID.c",
+    //    },
+    //    .flags = &cflags,
+    //});
+
+    // sid.defineCMacro("CODEC", null);
+    // defineCMacros(sid);
+    // addIncludePaths(sid);
 
     defineCMacros(exe);
     addIncludePaths(exe);
 
+    const libkss = b.addStaticLibrary(.{
+        .name = "kss",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(libkss);
+
+    libkss.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/kss.c",
+            "lib/rbcodec/codecs/libgme/kss_cpu.c",
+            "lib/rbcodec/codecs/libgme/kss_emu.c",
+            "lib/rbcodec/codecs/libgme/kss_scc_apu.c",
+            "lib/rbcodec/codecs/libgme/opl_apu.c",
+            "lib/rbcodec/codecs/libgme/emu8950.c",
+            "lib/rbcodec/codecs/libgme/emuadpcm.c",
+        },
+        .flags = &cflags,
+    });
+
+    libkss.defineCMacro("CODEC", null);
+    defineCMacros(libkss);
+    addIncludePaths(libkss);
+
+    const aac_bsf = b.addStaticLibrary(.{
+        .name = "aac_bsf",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(aac_bsf);
+
+    aac_bsf.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/aac_bsf.c",
+        },
+        .flags = &cflags,
+    });
+
+    aac_bsf.defineCMacro("CODEC", null);
+    defineCMacros(aac_bsf);
+    addIncludePaths(aac_bsf);
+
     exe.linkLibrary(libfirmware);
+    exe.linkLibrary(libspeex_voice);
     exe.linkLibrary(librbcodec);
     exe.linkLibrary(libskinparser);
     exe.linkLibrary(libfixedpoint);
     exe.linkLibrary(libuisimulator);
-    exe.linkLibrary(libspeex_voice);
-    exe.linkLibrary(libcodec);
-    exe.linkLibrary(libtlsf);
     exe.linkSystemLibrary("SDL");
     exe.linkLibC();
 }
@@ -1013,7 +1167,6 @@ fn defineCMacros(c: *std.Build.Step.Compile) void {
     c.defineCMacro("APPLICATION", null);
     c.defineCMacro("_GNU_SOURCE", "1");
     c.defineCMacro("_REENTRANT", null);
-    c.defineCMacro("HAVE_CONFIG_H", null);
 }
 
 fn addIncludePaths(c: *std.Build.Step.Compile) void {

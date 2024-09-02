@@ -22,7 +22,7 @@
 #include "codeclib.h"
 #include "libasap/asap.h"
 
-// CODEC_HEADER
+CODEC_HEADER
 
 #define CHUNK_SIZE (1024*2)
 
@@ -48,7 +48,7 @@ enum codec_status codec_run(void)
     intptr_t param;
     
     if (codec_init()) {
-        // DEBUGF("codec init failed\n");
+        DEBUGF("codec init failed\n");
         return CODEC_ERROR;
     }
 
@@ -62,14 +62,14 @@ enum codec_status codec_run(void)
     module = ci->request_buffer(&filesize, ci->filesize);
     if (!module || (size_t)filesize < (size_t)ci->filesize) 
     {
-        // DEBUGF("loading error\n");
+        DEBUGF("loading error\n");
         return CODEC_ERROR;
     }
 
     /*Init ASAP */
     if (!ASAP_Load(&asap, ci->id3->path, module, filesize))
     {
-        // DEBUGF("%s: format not supported",ci->id3->path);
+        DEBUGF("%s: format not supported",ci->id3->path);
         return CODEC_ERROR;
     }  
     

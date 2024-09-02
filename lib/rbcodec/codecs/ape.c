@@ -22,14 +22,14 @@
 #include "codeclib.h"
 #include <codecs/demac/libdemac/demac.h>
 
-// CODEC_HEADER
+CODEC_HEADER
 
-#define BLOCKS_PER_LOOP 1024
-#define MAX_CHANNELS 2
-#define MAX_BYTESPERSAMPLE 3
+#define BLOCKS_PER_LOOP     1024
+#define MAX_CHANNELS        2
+#define MAX_BYTESPERSAMPLE  3
 
 /* Monkey's Audio files have one seekpoint per frame.  The framesize
-   varies between 73728 and 1179648 samples.
+   varies between 73728 and 1179648 samples.  
 
    At the smallest framesize, 30000 frames would be 50155 seconds of
    audio - almost 14 hours.  This should be enough for any file a user
@@ -40,10 +40,10 @@
    spare room in the codec buffer - the APE codec itself is small.
 */
 
-#define MAX_SEEKPOINTS 30000
+#define MAX_SEEKPOINTS      30000
 static uint32_t seektablebuf[MAX_SEEKPOINTS];
 
-#define INPUT_CHUNKSIZE (32 * 1024)
+#define INPUT_CHUNKSIZE     (32*1024)
 
 /* 1024*4 = 4096 bytes per channel */
 static int32_t decoded0[BLOCKS_PER_LOOP] IBSS_ATTR;
@@ -51,16 +51,17 @@ static int32_t decoded1[BLOCKS_PER_LOOP] IBSS_ATTR;
 
 #define MAX_SUPPORTED_SEEKTABLE_SIZE 5000
 
+
 /* Given an ape_ctx and a sample to seek to, return the file position
    to the frame containing that sample, and the number of samples to
    skip in that frame.
 */
 
-static bool ape_calc_seekpos(struct ape_ctx_t *ape_ctx,
+static bool ape_calc_seekpos(struct ape_ctx_t* ape_ctx,
                              uint32_t new_sample,
-                             uint32_t *newframe,
-                             uint32_t *filepos,
-                             uint32_t *samplestoskip)
+                             uint32_t* newframe,
+                             uint32_t* filepos,
+                             uint32_t* samplestoskip)
 {
     uint32_t n;
 
@@ -81,9 +82,9 @@ static bool ape_calc_seekpos(struct ape_ctx_t *ape_ctx,
 /* The resume offset is a value in bytes - we need to
    turn it into a frame number and samplestoskip value */
 
-static void ape_resume(struct ape_ctx_t *ape_ctx, size_t resume_offset,
-                       uint32_t *currentframe, uint32_t *samplesdone,
-                       uint32_t *samplestoskip, int *firstbyte)
+static void ape_resume(struct ape_ctx_t* ape_ctx, size_t resume_offset, 
+                       uint32_t* currentframe, uint32_t* samplesdone, 
+                       uint32_t* samplestoskip, int* firstbyte)
 {
     off_t newfilepos;
     int64_t framesize;
@@ -101,9 +102,8 @@ static void ape_resume(struct ape_ctx_t *ape_ctx, size_t resume_offset,
         *samplesdone += ape_ctx->blocksperframe;
     }
 
-    if ((*currentframe > 0) &&
-        (ape_ctx->seektable[*currentframe] > resume_offset))
-    {
+    if ((*currentframe > 0) && 
+        (ape_ctx->seektable[*currentframe] > resume_offset)) {
         --*currentframe;
         *samplesdone -= ape_ctx->blocksperframe;
     }
@@ -118,9 +118,8 @@ static void ape_resume(struct ape_ctx_t *ape_ctx, size_t resume_offset,
 
     /* We estimate where we were in the current frame, based on the
        byte offset */
-    if (*currentframe < (ape_ctx->totalframes - 1))
-    {
-        framesize = ape_ctx->seektable[*currentframe + 1] - ape_ctx->seektable[*currentframe];
+    if (*currentframe < (ape_ctx->totalframes - 1)) {
+        framesize = ape_ctx->seektable[*currentframe+1] - ape_ctx->seektable[*currentframe];
         offset = resume_offset - ape_ctx->seektable[*currentframe];
 
         *samplestoskip = (offset * ape_ctx->blocksperframe) / framesize;
@@ -130,10 +129,9 @@ static void ape_resume(struct ape_ctx_t *ape_ctx, size_t resume_offset,
 /* this is the codec entry point */
 enum codec_status codec_main(enum codec_entry_call_reason reason)
 {
-    if (reason == CODEC_LOAD)
-    {
+    if (reason == CODEC_LOAD) {
         /* Generic codec initialisation */
-        ci->configure(DSP_SET_SAMPLE_DEPTH, APE_OUTPUT_DEPTH - 1);
+        ci->configure(DSP_SET_SAMPLE_DEPTH, APE_OUTPUT_DEPTH-1);
     }
 
     return CODEC_OK;
@@ -152,7 +150,7 @@ enum codec_status codec_run(void)
     uint32_t samplestoskip;
     int nblocks;
     int bytesconsumed;
-    unsigned char *inbuffer;
+    unsigned char* inbuffer;
     uint32_t blockstodecode;
     int res;
     int firstbyte;
@@ -160,9 +158,8 @@ enum codec_status codec_run(void)
     long action;
     intptr_t param;
 
-    if (codec_init())
-    {
-        // LOGF("APE: Error initialising codec\n");
+    if (codec_init()) {
+        LOGF("APE: Error initialising codec\n");
         return CODEC_ERROR;
     }
 
@@ -178,15 +175,14 @@ enum codec_status codec_run(void)
     inbuffer = ci->request_buffer(&bytesleft, INPUT_CHUNKSIZE);
 
     /* Read the file headers to populate the ape_ctx struct */
-    if (ape_parseheaderbuf(inbuffer, &ape_ctx) < 0)
-    {
-        // LOGF("APE: Error reading header\n");
+    if (ape_parseheaderbuf(inbuffer,&ape_ctx) < 0) {
+        LOGF("APE: Error reading header\n");
         return CODEC_ERROR;
     }
 
     /* Initialise the seektable for this file */
     ape_ctx.seektable = seektablebuf;
-    ape_ctx.numseekpoints = MIN(MAX_SEEKPOINTS, ape_ctx.numseekpoints);
+    ape_ctx.numseekpoints = MIN(MAX_SEEKPOINTS,ape_ctx.numseekpoints);
 
     ci->advance_buffer(ape_ctx.seektablefilepos);
 
@@ -199,40 +195,38 @@ enum codec_status codec_run(void)
     {
         uint32_t i;
 
-        for (i = 0; i < ape_ctx.numseekpoints; i++)
+        for(i = 0; i < ape_ctx.numseekpoints; i++)
             ape_ctx.seektable[i] = swap32(ape_ctx.seektable[i]);
     }
 #endif
 
     /* Now advance the file position to the first frame */
-    ci->advance_buffer(ape_ctx.firstframe -
+    ci->advance_buffer(ape_ctx.firstframe - 
                        (ape_ctx.seektablefilepos +
                         ape_ctx.numseekpoints * sizeof(uint32_t)));
 
     ci->configure(DSP_SET_FREQUENCY, ape_ctx.samplerate);
-    ci->configure(DSP_SET_STEREO_MODE, ape_ctx.channels == 1 ? STEREO_MONO : STEREO_NONINTERLEAVED);
+    ci->configure(DSP_SET_STEREO_MODE, ape_ctx.channels == 1 ?
+                  STEREO_MONO : STEREO_NONINTERLEAVED);
     codec_set_replaygain(ci->id3);
 
     /* The main decoding loop */
 
-    if (resume_offset)
-    {
+    if (resume_offset) {
         /* The resume offset is a value in bytes - we need to
            turn it into a frame number and samplestoskip value */
 
-        ape_resume(&ape_ctx, resume_offset,
+        ape_resume(&ape_ctx, resume_offset, 
                    &currentframe, &samplesdone, &samplestoskip, &firstbyte);
-        elapsedtime = samplesdone * 1000LL / ape_ctx.samplerate;
+        elapsedtime = samplesdone*1000LL/ape_ctx.samplerate;
     }
-    else
-    {
+    else {
         currentframe = 0;
         samplesdone = 0;
         samplestoskip = 0;
-        firstbyte = 3; /* Take account of the little-endian 32-bit byte ordering */
+        firstbyte = 3;  /* Take account of the little-endian 32-bit byte ordering */
 
-        if (elapsedtime)
-        {
+        if (elapsedtime) {
             /* Resume by simulated seeking */
             param = elapsedtime;
             action = CODEC_ACTION_SEEK_TIME;
@@ -247,7 +241,7 @@ enum codec_status codec_run(void)
     /* The main decoding loop - we decode the frames a small chunk at a time */
     while (currentframe < ape_ctx.totalframes)
     {
-    frame_start:
+frame_start:
         /* Calculate how many blocks there are in this frame */
         if (currentframe == (ape_ctx.totalframes - 1))
             nblocks = ape_ctx.finalframeblocks;
@@ -268,8 +262,7 @@ enum codec_status codec_run(void)
             if (action == CODEC_ACTION_NULL)
                 action = ci->get_command(&param);
 
-            if (action != CODEC_ACTION_NULL)
-            {
+            if (action != CODEC_ACTION_NULL) {
                 if (action == CODEC_ACTION_HALT)
                     goto done;
 
@@ -277,10 +270,10 @@ enum codec_status codec_run(void)
                 if (action == CODEC_ACTION_SEEK_TIME)
                 {
                     if (ape_calc_seekpos(&ape_ctx,
-                                         (param / 10) * (ci->id3->frequency / 100),
-                                         &currentframe,
-                                         &newfilepos,
-                                         &samplestoskip))
+                        (param/10) * (ci->id3->frequency/100),
+                        &currentframe,
+                        &newfilepos,
+                        &samplestoskip))
                     {
                         samplesdone = currentframe * ape_ctx.blocksperframe;
 
@@ -292,11 +285,11 @@ enum codec_status codec_run(void)
                         inbuffer = ci->request_buffer(&bytesleft,
                                                       INPUT_CHUNKSIZE);
 
-                        elapsedtime = samplesdone * 1000LL / ape_ctx.samplerate;
+                        elapsedtime = samplesdone*1000LL/ape_ctx.samplerate;
                         ci->set_elapsed(elapsedtime);
                         ci->seek_complete();
                         action = CODEC_ACTION_NULL;
-                        goto frame_start; /* Sorry... */
+                        goto frame_start;  /* Sorry... */
                     }
 
                     ci->seek_complete();
@@ -313,37 +306,30 @@ enum codec_status codec_run(void)
                                     blockstodecode)) < 0)
             {
                 /* Frame decoding error, abort */
-                // LOGF("APE: Frame %lu, error %d\n", (unsigned long)currentframe, res);
+                LOGF("APE: Frame %lu, error %d\n",(unsigned long)currentframe,res);
                 return CODEC_ERROR;
             }
 
             ci->yield();
 
-            if (samplestoskip > 0)
-            {
-                if (samplestoskip < blockstodecode)
-                {
-                    ci->pcmbuf_insert(decoded0 + samplestoskip,
-                                      decoded1 + samplestoskip,
+            if (samplestoskip > 0) {
+                if (samplestoskip < blockstodecode) {
+                    ci->pcmbuf_insert(decoded0 + samplestoskip, 
+                                      decoded1 + samplestoskip, 
                                       blockstodecode - samplestoskip);
                     samplestoskip = 0;
-                }
-                else
-                {
+                } else {
                     samplestoskip -= blockstodecode;
                 }
-            }
-            else
-            {
+            } else {
                 ci->pcmbuf_insert(decoded0, decoded1, blockstodecode);
             }
-
+        
             samplesdone += blockstodecode;
 
-            if (!samplestoskip)
-            {
+            if (!samplestoskip) {
                 /* Update the elapsed-time indicator */
-                elapsedtime = samplesdone * 1000LL / ape_ctx.samplerate;
+                elapsedtime = samplesdone*1000LL/ape_ctx.samplerate;
                 ci->set_elapsed(elapsedtime);
             }
 
@@ -358,6 +344,6 @@ enum codec_status codec_run(void)
     }
 
 done:
-    // LOGF("APE: Decoded %lu samples\n", (unsigned long)samplesdone);
+    LOGF("APE: Decoded %lu samples\n",(unsigned long)samplesdone);
     return CODEC_OK;
 }

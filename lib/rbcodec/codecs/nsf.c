@@ -6,7 +6,7 @@
 #include <codecs/lib/codeclib.h>
 #include "libgme/nsf_emu.h" 
 
-// CODEC_HEADER
+CODEC_HEADER
 
 /* Maximum number of bytes to process in one iteration */
 #define CHUNK_SIZE (1024*2)
@@ -59,7 +59,7 @@ enum codec_status codec_run(void)
     elapsed_time = 0;
     param = ci->id3->elapsed;
 
-    // DEBUGF("NSF: next_track\n");
+    DEBUGF("NSF: next_track\n");
     if (codec_init()) {
         return CODEC_ERROR;
     }  
@@ -67,16 +67,16 @@ enum codec_status codec_run(void)
     codec_set_replaygain(ci->id3);
         
     /* Read the entire file */
-    // DEBUGF("NSF: request file\n");
+    DEBUGF("NSF: request file\n");
     ci->seek_buffer(0);
     buf = ci->request_buffer(&n, ci->filesize);
     if (!buf || n < (size_t)ci->filesize) {
-        // DEBUGF("NSF: file load failed\n");
+        DEBUGF("NSF: file load failed\n");
         return CODEC_ERROR;
     }
    
     if ((err = Nsf_load_mem(&nsf_emu, buf, ci->filesize))) {
-        // DEBUGF("NSF: Nsf_load_mem failed (%s)\n", err);
+        DEBUGF("NSF: Nsf_load_mem failed (%s)\n", err);
         return CODEC_ERROR;
     }
 

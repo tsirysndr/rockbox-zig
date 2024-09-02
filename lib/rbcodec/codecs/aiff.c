@@ -23,7 +23,7 @@
 #include "codeclib.h"
 #include "codecs/libpcm/support_formats.h"
 
-// CODEC_HEADER
+CODEC_HEADER
 
 #define FOURCC(c1, c2, c3, c4) \
 ((((uint32_t)c1)<<24)|(((uint32_t)c2)<<16)|(((uint32_t)c3)<<8)|((uint32_t)c4))
@@ -111,7 +111,7 @@ enum codec_status codec_run(void)
 
     if (memcmp(buf, "FORM", 4) != 0)
     {
-        // DEBUGF("CODEC_ERROR: does not aiff format %4.4s\n", (char*)&buf[0]);
+        DEBUGF("CODEC_ERROR: does not aiff format %4.4s\n", (char*)&buf[0]);
         return CODEC_ERROR;
     }
     if (memcmp(&buf[8], "AIFF", 4) == 0)
@@ -120,7 +120,7 @@ enum codec_status codec_run(void)
         is_aifc = true;
     else
     {
-        // DEBUGF("CODEC_ERROR: does not aiff format %4.4s\n", (char*)&buf[8]);
+        DEBUGF("CODEC_ERROR: does not aiff format %4.4s\n", (char*)&buf[8]);
         return CODEC_ERROR;
     }
 
@@ -142,8 +142,8 @@ enum codec_status codec_run(void)
         if (memcmp(buf, "COMM", 4) == 0) {
             if ((!is_aifc && size < 18) || (is_aifc && size < 22))
             {
-                //DEBUGF("CODEC_ERROR: 'COMM' chunk size=%lu < %d\n",
-                 //      (unsigned long)size, (is_aifc)?22:18);
+                DEBUGF("CODEC_ERROR: 'COMM' chunk size=%lu < %d\n",
+                       (unsigned long)size, (is_aifc)?22:18);
                 return CODEC_ERROR;
             }
             /* num_channels */
@@ -158,7 +158,7 @@ enum codec_status codec_run(void)
             format.bitspersample = ((buf[14]<<8)|buf[15]);
             /* sample_rate (don't use last 4 bytes, only integer fs) */
             if (buf[16] != 0x40) {
-               // DEBUGF("CODEC_ERROR: weird sampling rate (no @)\n");
+                DEBUGF("CODEC_ERROR: weird sampling rate (no @)\n");
                 return CODEC_ERROR;
             }
             format.samplespersec = ((buf[18]<<24)|(buf[19]<<16)|(buf[20]<<8)|buf[21])+1;
@@ -184,7 +184,7 @@ enum codec_status codec_run(void)
             format.avgbytespersec = format.samplespersec*format.channels*format.bitspersample/8;
         } else if (memcmp(buf, "SSND", 4)==0) {
             if (format.bitspersample == 0) {
-                // DEBUGF("CODEC_ERROR: unsupported chunk order\n");
+                DEBUGF("CODEC_ERROR: unsupported chunk order\n");
                 return CODEC_ERROR;
             }
             /* offset2snd */
@@ -203,34 +203,34 @@ enum codec_status codec_run(void)
             /* Text chunks containing only metadata */
             /* skip this chunk */
         } else {
-            // DEBUGF("unsupported AIFF chunk: '%c%c%c%c', size=%lu\n",
-            //       buf[0], buf[1], buf[2], buf[3], (unsigned long)size);
+            DEBUGF("unsupported AIFF chunk: '%c%c%c%c', size=%lu\n",
+                   buf[0], buf[1], buf[2], buf[3], (unsigned long)size);
         }
 
         size += 8 + (size & 0x01); /* odd chunk sizes must be padded */
 
         buf += size;
         if (n < size) {
-            // DEBUGF("CODEC_ERROR: AIFF header size > 1024\n");
+            DEBUGF("CODEC_ERROR: AIFF header size > 1024\n");
             return CODEC_ERROR;
         }
         n -= size;
     } /* while 'SSND' */
 
     if (format.channels == 0) {
-        // DEBUGF("CODEC_ERROR: 'COMM' chunk not found or 0-channels file\n");
+        DEBUGF("CODEC_ERROR: 'COMM' chunk not found or 0-channels file\n");
         return CODEC_ERROR;
     }
     if (format.numbytes == 0) {
-        // DEBUGF("CODEC_ERROR: 'SSND' chunk not found or has zero length\n");
+        DEBUGF("CODEC_ERROR: 'SSND' chunk not found or has zero length\n");
         return CODEC_ERROR;
     }
 
     codec = get_codec(format.formattag);
     if (codec == 0)
     {
-        // DEBUGF("CODEC_ERROR: AIFC does not support compressionType: 0x%x\n", 
-        //    (unsigned int)format.formattag);
+        DEBUGF("CODEC_ERROR: AIFC does not support compressionType: 0x%x\n", 
+            (unsigned int)format.formattag);
         return CODEC_ERROR;
     }
 
@@ -246,18 +246,18 @@ enum codec_status codec_run(void)
     } else if (format.channels == 1) {
         ci->configure(DSP_SET_STEREO_MODE, STEREO_MONO);
     } else {
-        // DEBUGF("CODEC_ERROR: more than 2 channels unsupported\n");
+        DEBUGF("CODEC_ERROR: more than 2 channels unsupported\n");
         return CODEC_ERROR;
     }
 
     if (format.samplesperblock == 0)
     {
-        // DEBUGF("CODEC_ERROR: samplesperblock is 0\n");
+        DEBUGF("CODEC_ERROR: samplesperblock is 0\n");
         return CODEC_ERROR;
     }
     if (format.blockalign == 0)
     {
-        // DEBUGF("CODEC_ERROR: blockalign is 0\n");
+        DEBUGF("CODEC_ERROR: blockalign is 0\n");
         return CODEC_ERROR;
     }
 
@@ -267,7 +267,7 @@ enum codec_status codec_run(void)
         format.chunksize = (PCM_SAMPLE_SIZE / format.blockalign) * format.blockalign;
     if (format.chunksize == 0)
     {
-        // DEBUGF("CODEC_ERROR: chunksize is 0\n");
+        DEBUGF("CODEC_ERROR: chunksize is 0\n");
         return CODEC_ERROR;
     }
 
@@ -346,7 +346,7 @@ enum codec_status codec_run(void)
 
         if (codec->decode(aifbuf, n, samples, &bufcount) == CODEC_ERROR)
         {
-            // DEBUGF("codec error\n");
+            DEBUGF("codec error\n");
             return CODEC_ERROR;
         }
 

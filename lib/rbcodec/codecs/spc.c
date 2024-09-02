@@ -30,7 +30,7 @@
 #include "libspc/spc_codec.h"
 #include "libspc/spc_profiler.h"
 
-// CODEC_HEADER
+CODEC_HEADER
 
 /**************** ID666 parsing ****************/
 
@@ -91,7 +91,7 @@ static int LoadID666(unsigned char *buf) {
     ID666.isBinary = isbinary;
   
     if(isbinary) {
-        // DEBUGF("binary tag detected\n");
+        DEBUGF("binary tag detected\n");
         ID666.year=*ib;
         ib++;
         ID666.year|=*ib<<8;
@@ -135,7 +135,7 @@ static int LoadID666(unsigned char *buf) {
         unsigned long tmp;
         char buf[64];
         
-        // DEBUGF("text tag detected\n");
+        DEBUGF("text tag detected\n");
         
         memcpy(buf, ib, 2);
         buf[2] = 0; 
@@ -460,9 +460,9 @@ static int play_track( void )
 
         if (action == CODEC_ACTION_SEEK_TIME) {
             int curtime = sampleswritten*1000LL/SAMPLE_RATE;
-            // DEBUGF("seek to %ld\ncurrently at %d\n", (long)param, curtime);
+            DEBUGF("seek to %ld\ncurrently at %d\n", (long)param, curtime);
             if (param < curtime) {
-                // DEBUGF("seek backwards = reset\n");
+                DEBUGF("seek backwards = reset\n");
                 ci->set_elapsed(0);
                 ci->seek_complete();
                 return 1;
@@ -544,28 +544,28 @@ enum codec_status codec_main(enum codec_entry_call_reason reason)
 /* this is called for each file to process */
 enum codec_status codec_run(void)
 {
-    // DEBUGF("SPC: next_track\n");
+    DEBUGF("SPC: next_track\n");
     if (codec_init())
         return CODEC_ERROR;
-    // DEBUGF("SPC: after init\n");
+    DEBUGF("SPC: after init\n");
 
     codec_set_replaygain(ci->id3);
 
     /* Read the entire file */
-    // DEBUGF("SPC: request initial buffer\n");
+    DEBUGF("SPC: request initial buffer\n");
     ci->seek_buffer(0);
     size_t buffersize;
     uint8_t* buffer = ci->request_buffer(&buffersize, ci->filesize);
     if (!buffer)
         return CODEC_ERROR;
 
-    // DEBUGF("SPC: read size = 0x%lx\n",(unsigned long)buffersize);
+    DEBUGF("SPC: read size = 0x%lx\n",(unsigned long)buffersize);
     ci->set_elapsed(0);
 
     do
     {
         if (load_spc_buffer(buffer, buffersize)) {
-           // DEBUGF("SPC load failure\n");
+            DEBUGF("SPC load failure\n");
             return CODEC_ERROR;
         }
 

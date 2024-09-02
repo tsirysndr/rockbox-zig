@@ -41,7 +41,8 @@ static struct libpcm_pcm_format *fmt;
 
 static const int16_t adaptation_table[] ICONST_ATTR = {
     230, 230, 230, 230, 307, 409, 512, 614,
-    768, 614, 512, 409, 307, 230, 230, 230};
+    768, 614, 512, 409, 307, 230, 230, 230
+};
 
 static bool set_format(struct libpcm_pcm_format *format)
 {
@@ -49,8 +50,8 @@ static bool set_format(struct libpcm_pcm_format *format)
 
     if (fmt->bitspersample != 4)
     {
-        // DEBUGF("CODEC_ERROR: microsoft adpcm must be 4 bitspersample: %d\n",
-        //                     fmt->bitspersample);
+        DEBUGF("CODEC_ERROR: microsoft adpcm must be 4 bitspersample: %d\n",
+                             fmt->bitspersample);
         return false;
     }
 
@@ -63,10 +64,13 @@ static struct pcm_pos *get_seek_pos(uint32_t seek_val, int seek_mode,
                                     uint8_t *(*read_buffer)(size_t *realsize))
 {
     static struct pcm_pos newpos;
-    uint32_t newblock = (seek_mode == PCM_SEEK_TIME) ? ((uint64_t)seek_val * ci->id3->frequency / 1000LL) / fmt->samplesperblock : seek_val / fmt->blockalign;
+    uint32_t newblock = (seek_mode == PCM_SEEK_TIME) ?
+                        ((uint64_t)seek_val * ci->id3->frequency / 1000LL)
+                                            / fmt->samplesperblock :
+                        seek_val / fmt->blockalign;
 
     (void)read_buffer;
-    newpos.pos = newblock * fmt->blockalign;
+    newpos.pos     = newblock * fmt->blockalign;
     newpos.samples = newblock * fmt->samplesperblock;
     return &newpos;
 }
@@ -76,12 +80,11 @@ static int16_t create_pcmdata(int ch, uint8_t nibble)
     int32_t pcmdata;
 
     pcmdata = (sample[ch][0] * dec_coeff[ch][0] +
-               sample[ch][1] * dec_coeff[ch][1]) /
-              256;
+               sample[ch][1] * dec_coeff[ch][1]) / 256;
     pcmdata += (delta[ch] * (nibble - ((nibble & 0x8) << 1)));
 
     CLIP(pcmdata, -32768, 32767);
-
+  
     sample[ch][1] = sample[ch][0];
     sample[ch][0] = pcmdata;
 
@@ -104,8 +107,8 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
     {
         if (*inbuf >= ADPCM_NUM_COEFF)
         {
-            // DEBUGF("CODEC_ERROR: microsoft adpcm illegal initial coeff=%d > 7\n",
-            //                     *inbuf);
+            DEBUGF("CODEC_ERROR: microsoft adpcm illegal initial coeff=%d > 7\n",
+                                 *inbuf);
             return CODEC_ERROR;
         }
         dec_coeff[ch][0] = fmt->coeffs[*inbuf][0];
@@ -136,7 +139,7 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
 
     while (size-- > 0)
     {
-        *outbuf++ = create_pcmdata(0, *inbuf >> 4) << (PCM_OUTPUT_DEPTH - 16);
+        *outbuf++ = create_pcmdata(0,  *inbuf >> 4 ) << (PCM_OUTPUT_DEPTH - 16);
         *outbuf++ = create_pcmdata(ch, *inbuf & 0xf) << (PCM_OUTPUT_DEPTH - 16);
         nsamples += 2;
 
@@ -154,10 +157,10 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
 }
 
 static const struct pcm_codec codec = {
-    set_format,
-    get_seek_pos,
-    decode,
-};
+                                          set_format,
+                                          get_seek_pos,
+                                          decode,
+                                      };
 
 const struct pcm_codec *get_ms_adpcm_codec(void)
 {

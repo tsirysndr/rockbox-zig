@@ -40,7 +40,7 @@
 #include <ctype.h>
 
 
-// CODEC_HEADER
+CODEC_HEADER
 
 #define CHUNK_SIZE (1024*2)
 

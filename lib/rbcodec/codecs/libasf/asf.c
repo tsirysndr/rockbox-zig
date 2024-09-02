@@ -27,17 +27,17 @@
 #include "asf.h"
 
 /* Read an unaligned 32-bit little endian long from buffer. */
-static unsigned long get_long_le(void *buf)
+static unsigned long get_long_le(void* buf)
 {
-    unsigned char *p = (unsigned char *)buf;
+    unsigned char* p = (unsigned char*) buf;
 
     return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
 }
 
 /* Read an unaligned 16-bit little endian short from buffer. */
-static unsigned short get_short_le(void *buf)
+static unsigned short get_short_le(void* buf)
 {
-    unsigned char *p = (unsigned char *)buf;
+    unsigned char* p = (unsigned char*) buf;
 
     return p[0] | (p[1] << 8);
 }
@@ -45,17 +45,18 @@ static unsigned short get_short_le(void *buf)
 #define GETLEN2b(bits) (((bits) == 0x03) ? 4 : bits)
 
 #define GETVALUE2b(bits, data) \
-    (((bits) != 0x03) ? ((bits) != 0x02) ? ((bits) != 0x01) ? 0 : *(data) : get_short_le(data) : get_long_le(data))
+        (((bits) != 0x03) ? ((bits) != 0x02) ? ((bits) != 0x01) ? \
+         0 : *(data) : get_short_le(data) : get_long_le(data))
 
-int asf_read_packet(uint8_t **audiobuf, int *audiobufsize, int *packetlength,
-                    asf_waveformatex_t *wfx)
+int asf_read_packet(uint8_t** audiobuf, int* audiobufsize, int* packetlength, 
+                    asf_waveformatex_t* wfx)
 {
     uint8_t tmp8, packet_flags, packet_property;
     int stream_id;
     int ec_length, opaque_data, ec_length_type;
     int datalen;
     uint8_t data[18];
-    uint8_t *datap;
+    uint8_t* datap;
     uint32_t length;
     uint32_t padding_length;
     /* rockbox: comment 'set but unused' variables
@@ -71,53 +72,42 @@ int asf_read_packet(uint8_t **audiobuf, int *audiobufsize, int *packetlength,
     int multiple;
     uint32_t replicated_length;
     uint32_t bytesread = 0;
-    uint8_t *buf;
+    uint8_t* buf;
     size_t bufsize;
     int i;
     /*DEBUGF("Reading new packet at %d bytes ", (int)ci->curpos);*/
 
-    if (ci->read_filebuf(&tmp8, 1) == 0)
-    {
+    if (ci->read_filebuf(&tmp8, 1) == 0) {
         return ASF_ERROR_EOF;
     }
     bytesread++;
 
     /* TODO: We need a better way to detect endofstream */
-    if (tmp8 != 0x82)
-    {
-        // DEBUGF("Read failed:  packet did not sync\n");
-        return -1;
+    if (tmp8 != 0x82) {
+    DEBUGF("Read failed:  packet did not sync\n");
+    return -1;
     }
 
-    if (tmp8 & 0x80)
-    {
-        ec_length = tmp8 & 0x0f;
-        opaque_data = (tmp8 >> 4) & 0x01;
-        ec_length_type = (tmp8 >> 5) & 0x03;
 
-        if (ec_length_type != 0x00 || opaque_data != 0 || ec_length != 0x02)
-        {
-            // DEBUGF("incorrect error correction flags\n");
+    if (tmp8 & 0x80) {
+       ec_length = tmp8 & 0x0f;
+       opaque_data = (tmp8 >> 4) & 0x01;
+       ec_length_type = (tmp8 >> 5) & 0x03;
+
+       if (ec_length_type != 0x00 || opaque_data != 0 || ec_length != 0x02) {
+            DEBUGF("incorrect error correction flags\n");
             return ASF_ERROR_INVALID_VALUE;
-        }
+       }
 
-        /* Skip ec_data */
-        ci->advance_buffer(ec_length);
-        bytesread += ec_length;
-    }
-    else
-    {
+       /* Skip ec_data */
+       ci->advance_buffer(ec_length);
+       bytesread += ec_length;
+    } else {
         ec_length = 0;
     }
 
-    if (ci->read_filebuf(&packet_flags, 1) == 0)
-    {
-        return ASF_ERROR_EOF;
-    }
-    if (ci->read_filebuf(&packet_property, 1) == 0)
-    {
-        return ASF_ERROR_EOF;
-    }
+    if (ci->read_filebuf(&packet_flags, 1) == 0) { return ASF_ERROR_EOF; }
+    if (ci->read_filebuf(&packet_property, 1) == 0) { return ASF_ERROR_EOF; }
     bytesread += 2;
 
     datalen = GETLEN2b((packet_flags >> 1) & 0x03) +
@@ -131,8 +121,7 @@ int asf_read_packet(uint8_t **audiobuf, int *audiobufsize, int *packetlength,
     }
 #endif
 
-    if (ci->read_filebuf(data, datalen) == 0)
-    {
+    if (ci->read_filebuf(data, datalen) == 0) {
         return ASF_ERROR_EOF;
     }
 
@@ -155,49 +144,42 @@ int asf_read_packet(uint8_t **audiobuf, int *audiobufsize, int *packetlength,
     /* this is really idiotic, packet length can (and often will) be
      * undefined and we just have to use the header packet size as the size
      * value */
-    if (!((packet_flags >> 5) & 0x03))
-    {
-        length = wfx->packet_size;
+    if (!((packet_flags >> 5) & 0x03)) {
+         length = wfx->packet_size;
     }
 
     /* this is also really idiotic, if packet length is smaller than packet
      * size, we need to manually add the additional bytes into padding length
      */
-    if (length < wfx->packet_size)
-    {
+    if (length < wfx->packet_size) {
         padding_length += wfx->packet_size - length;
         length = wfx->packet_size;
     }
 
-    if (length > wfx->packet_size)
-    {
-        // DEBUGF("packet with too big length value\n");
+    if (length > wfx->packet_size) {
+        DEBUGF("packet with too big length value\n");
         return ASF_ERROR_INVALID_LENGTH;
     }
 
     /* check if we have multiple payloads */
-    if (packet_flags & 0x01)
-    {
-        if (ci->read_filebuf(&tmp8, 1) == 0)
-        {
+    if (packet_flags & 0x01) {
+        if (ci->read_filebuf(&tmp8, 1) == 0) {
             return ASF_ERROR_EOF;
         }
         payload_count = tmp8 & 0x3f;
         payload_length_type = (tmp8 >> 6) & 0x03;
         bytesread++;
-    }
-    else
-    {
+    } else {
         payload_count = 1;
         payload_length_type = 0x02; /* not used */
     }
 
-    if (length < bytesread)
-    {
-        // DEBUGF("header exceeded packet size, invalid file - length=%d, bytesread=%d\n", (int)length, (int)bytesread);
+    if (length < bytesread) {
+        DEBUGF("header exceeded packet size, invalid file - length=%d, bytesread=%d\n",(int)length,(int)bytesread);
         /* FIXME: should this be checked earlier? */
         return ASF_ERROR_INVALID_LENGTH;
     }
+
 
     /* We now parse the individual payloads, and move all payloads
        belonging to our audio stream to a contiguous block, starting at
@@ -211,22 +193,20 @@ int asf_read_packet(uint8_t **audiobuf, int *audiobufsize, int *packetlength,
     buf = ci->request_buffer(&bufsize, length);
     datap = buf;
 
-#define ASF_MAX_REQUEST (1L << 15) /* 32KB */
-    if (bufsize != length && length >= ASF_MAX_REQUEST)
-    {
+#define ASF_MAX_REQUEST (1L<<15) /* 32KB */
+    if (bufsize != length && length >= ASF_MAX_REQUEST) {
         /* This should only happen with packets larger than 32KB (the
            guard buffer size).  All the streams I've seen have
            relatively small packets less than about 8KB), but I don't
            know what is expected.
         */
-        // DEBUGF("Could not read packet (requested %d bytes, received %d), curpos=%d, aborting\n",
-        //      (int)length, (int)bufsize, (int)ci->curpos);
+        DEBUGF("Could not read packet (requested %d bytes, received %d), curpos=%d, aborting\n",
+               (int)length,(int)bufsize,(int)ci->curpos);
         return -1;
     }
 
-    for (i = 0; i < payload_count; i++)
-    {
-        stream_id = datap[0] & 0x7f;
+    for (i=0; i<payload_count; i++) {
+        stream_id = datap[0]&0x7f;
         datap++;
         bytesread++;
 
@@ -234,16 +214,15 @@ int asf_read_packet(uint8_t **audiobuf, int *audiobufsize, int *packetlength,
                          GETLEN2b((packet_property >> 2) & 0x03) +
                          GETLEN2b((packet_property >> 4) & 0x03);
 
-        // DEBUGF("payload_hdrlen = %d\n",payload_hdrlen);
+        //DEBUGF("payload_hdrlen = %d\n",payload_hdrlen);
 #if 0
         /* TODO */
         if (payload_hdrlen > size) {
             return ASF_ERROR_INVALID_LENGTH;
         }
 #endif
-        if (payload_hdrlen > sizeof(data))
-        {
-            // DEBUGF("Unexpectedly long datalen in data - %d\n", datalen);
+        if (payload_hdrlen > sizeof(data)) {
+            DEBUGF("Unexpectedly long datalen in data - %d\n",datalen);
             return ASF_ERROR_OUTOFMEM;
         }
 
@@ -262,14 +241,13 @@ int asf_read_packet(uint8_t **audiobuf, int *audiobufsize, int *packetlength,
 
         multiple = packet_flags & 0x01;
 
-        if (multiple)
-        {
+
+        if (multiple) {
             int x;
 
             x = GETLEN2b(payload_length_type);
 
-            if (x != 2)
-            {
+            if (x != 2) {
                 /* in multiple payloads datalen should be a word */
                 return ASF_ERROR_INVALID_VALUE;
             }
@@ -283,25 +261,20 @@ int asf_read_packet(uint8_t **audiobuf, int *audiobufsize, int *packetlength,
             payload_datalen = GETVALUE2b(payload_length_type, datap);
             datap += x;
             bytesread += x;
-        }
-        else
-        {
+        } else {
             payload_datalen = length - bytesread - padding_length;
         }
 
-        if (replicated_length == 1)
+        if (replicated_length==1)
             datap++;
 
         if (stream_id == wfx->audiostream)
         {
-            if (*audiobuf == NULL)
-            {
+            if (*audiobuf == NULL) {
                 /* The first payload can stay where it is */
                 *audiobuf = datap;
                 *audiobufsize = payload_datalen;
-            }
-            else
-            {
+            } else {
                 /* The second and subsequent payloads in this packet
                    that belong to the audio stream need to be moved to be
                    contiguous with the first payload.
@@ -320,66 +293,60 @@ int asf_read_packet(uint8_t **audiobuf, int *audiobufsize, int *packetlength,
         return 0;
 }
 
+
 int asf_get_timestamp(int *duration)
 {
     uint8_t tmp8, packet_flags, packet_property;
     int ec_length, opaque_data, ec_length_type;
     int datalen;
     uint8_t data[18];
-    uint8_t *datap;
+    uint8_t* datap;
     /* rockbox: comment 'set but unused' variables
     uint32_t length;
     uint32_t padding_length;
     */
     uint32_t send_time;
-    // static int packet_count = 0;
+    static int packet_count = 0;
 
     uint32_t bytesread = 0;
-    // packet_count++;
-    if (ci->read_filebuf(&tmp8, 1) == 0)
-    {
-        // DEBUGF("ASF ERROR (EOF?)\n");
+    packet_count++;
+    if (ci->read_filebuf(&tmp8, 1) == 0) {
+        DEBUGF("ASF ERROR (EOF?)\n");
         return ASF_ERROR_EOF;
     }
     bytesread++;
 
     /* TODO: We need a better way to detect endofstream */
-    if (tmp8 != 0x82)
-    {
-        // DEBUGF("Get timestamp:  Detected end of stream\n");
+    if (tmp8 != 0x82) {
+        DEBUGF("Get timestamp:  Detected end of stream\n");
         return ASF_ERROR_EOF;
     }
 
-    if (tmp8 & 0x80)
-    {
+
+    if (tmp8 & 0x80) {
         ec_length = tmp8 & 0x0f;
         opaque_data = (tmp8 >> 4) & 0x01;
         ec_length_type = (tmp8 >> 5) & 0x03;
 
-        if (ec_length_type != 0x00 || opaque_data != 0 || ec_length != 0x02)
-        {
-            //  DEBUGF("incorrect error correction flags\n");
-            return ASF_ERROR_INVALID_VALUE;
+        if (ec_length_type != 0x00 || opaque_data != 0 || ec_length != 0x02) {
+             DEBUGF("incorrect error correction flags\n");
+             return ASF_ERROR_INVALID_VALUE;
         }
 
         /* Skip ec_data */
         ci->advance_buffer(ec_length);
         bytesread += ec_length;
-    }
-    else
-    {
+    } else {
         ec_length = 0;
     }
 
-    if (ci->read_filebuf(&packet_flags, 1) == 0)
-    {
-        // DEBUGF("Detected end of stream 2\n");
+    if (ci->read_filebuf(&packet_flags, 1) == 0) {
+        DEBUGF("Detected end of stream 2\n");
         return ASF_ERROR_EOF;
     }
 
-    if (ci->read_filebuf(&packet_property, 1) == 0)
-    {
-        // DEBUGF("Detected end of stream3\n");
+    if (ci->read_filebuf(&packet_property, 1) == 0) {
+        DEBUGF("Detected end of stream3\n");
         return ASF_ERROR_EOF;
     }
     bytesread += 2;
@@ -388,9 +355,8 @@ int asf_get_timestamp(int *duration)
               GETLEN2b((packet_flags >> 3) & 0x03) +
               GETLEN2b((packet_flags >> 5) & 0x03) + 6;
 
-    if (ci->read_filebuf(data, datalen) == 0)
-    {
-        // DEBUGF("Detected end of stream4\n");
+    if (ci->read_filebuf(data, datalen) == 0) {
+        DEBUGF("Detected end of stream4\n");
         return ASF_ERROR_EOF;
     }
 
@@ -411,37 +377,36 @@ int asf_get_timestamp(int *duration)
 
     /*the asf_get_timestamp function advances us 12-13 bytes past the packet start,
       need to undo this here so that we stay synced with the packet*/
-    ci->seek_buffer(ci->curpos - bytesread);
+    ci->seek_buffer(ci->curpos-bytesread);
 
     return send_time;
 }
 
 /*entry point for seeks*/
-int asf_seek(int ms, asf_waveformatex_t *wfx)
+int asf_seek(int ms, asf_waveformatex_t* wfx)
 {
-    int time, duration, delta, temp, count = 0;
-    int bitrate = ci->id3->bitrate * 1000 / 8;
+    int time, duration, delta, temp, count=0;
+    int bitrate = ci->id3->bitrate*1000/8;
 
     /*estimate packet number from bitrate*/
-    int initial_packet = ci->curpos / wfx->packet_size;
-    int packet_num = (((int64_t)ms) * (bitrate)) / wfx->packet_size / 1000;
+    int initial_packet = ci->curpos/wfx->packet_size;
+    int packet_num = (((int64_t)ms)*(bitrate))/wfx->packet_size/1000;
     /*subtract header size in case theres a lot of metadata*/
-    int last_packet = (ci->id3->filesize - ci->id3->first_frame_offset) / wfx->packet_size;
+    int last_packet = (ci->id3->filesize-ci->id3->first_frame_offset) / wfx->packet_size;
 
     /*
     DEBUGF("bitrate:  %d\n", bitrate);
     DEBUGF("attempting seek to: %d ms, initialp: %d, lastp: %d, estimating packet: %d, packet size:  %d\n", ms, initial_packet, last_packet, packet_num, wfx->packet_size);*/
 
-    if (packet_num > last_packet)
-    {
+    if (packet_num > last_packet) {
         packet_num = last_packet;
     }
 
     /*calculate byte address of the start of that packet*/
-    int packet_offset = packet_num * wfx->packet_size;
+    int packet_offset = packet_num*wfx->packet_size;
 
     /*seek to estimated packet*/
-    ci->seek_buffer(ci->id3->first_frame_offset + packet_offset);
+    ci->seek_buffer(ci->id3->first_frame_offset+packet_offset);
     temp = ms;
     while (1)
     {
@@ -452,29 +417,25 @@ int asf_seek(int ms, asf_waveformatex_t *wfx)
         time = asf_get_timestamp(&duration);
         /*DEBUGF("seeked to %d ms (%d) with duration %d\n", time,packet_num, duration);*/
 
-        if (time < 0)
-        {
+        if (time < 0) {
             /*unknown error, try to recover*/
-            // DEBUGF("UKNOWN SEEK ERROR\n");
-            ci->seek_buffer(ci->id3->first_frame_offset + initial_packet * wfx->packet_size);
+            DEBUGF("UKNOWN SEEK ERROR\n");
+            ci->seek_buffer(ci->id3->first_frame_offset+initial_packet*wfx->packet_size);
             /*seek failed so return time stamp of the initial packet*/
             return asf_get_timestamp(&duration);
         }
 
-        if ((time + duration >= ms && time <= ms) || count > 10)
-        {
+        if ((time+duration>=ms && time<=ms) || count > 10) {
             /*DEBUGF("Found our packet! Now at %d packet\n", packet_num);*/
             return time;
-        }
-        else
-        {
+        } else {
             /*seek again*/
-            delta = ms - time;
+            delta = ms-time;
             /*estimate new packet number from bitrate and our current position*/
             temp += delta;
-            packet_num = ((temp / 1000) * (bitrate) - (wfx->packet_size << 1)) / wfx->packet_size; // round down!
-            packet_offset = packet_num * wfx->packet_size;
-            ci->seek_buffer(ci->id3->first_frame_offset + packet_offset);
+            packet_num = ((temp/1000)*(bitrate) - (wfx->packet_size<<1))/wfx->packet_size;  //round down!
+            packet_offset = packet_num*wfx->packet_size;
+            ci->seek_buffer(ci->id3->first_frame_offset+packet_offset);
         }
     }
 }

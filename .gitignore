@@ -313,3 +313,5 @@ zig-out
 /utils/regtools/regtool
 /utils/regtools/swiss_knife
 /utils/regtools/tester_v1
+
+.vscode

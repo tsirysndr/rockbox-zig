@@ -26,7 +26,7 @@
 #include <codecs/lib/codeclib.h>
 #include "libayumi/ayumi_render.h" 
 
-// CODEC_HEADER
+CODEC_HEADER
 
 #define VTX_SAMPLE_RATE 44100
 
@@ -67,7 +67,7 @@ enum codec_status codec_run(void)
     elapsed_time = 0;
     param = ci->id3->elapsed;
 
-    // DEBUGF("VTX: next_track\n");
+    DEBUGF("VTX: next_track\n");
     if (codec_init()) {
         return CODEC_ERROR;
     }  
@@ -75,29 +75,29 @@ enum codec_status codec_run(void)
     codec_set_replaygain(ci->id3);
 
     /* Read the entire file */
-    // DEBUGF("VTX: request file\n");
+    DEBUGF("VTX: request file\n");
     ci->seek_buffer(0);
     buf = ci->request_buffer(&n, ci->filesize);
     if (!buf || n < (size_t)ci->filesize) {
-        // DEBUGF("VTX: file load failed\n");
+        DEBUGF("VTX: file load failed\n");
         return CODEC_ERROR;
     }
 
     res = AyumiRender_LoadFile((void *)buf, ci->filesize);
     if (!res) {
-        // DEBUGF("VTX: AyumiRender_LoadFile failed\n");
+        DEBUGF("VTX: AyumiRender_LoadFile failed\n");
         return CODEC_ERROR;
     }
 
     res = AyumiRender_AyInit(ay.info.chiptype, VTX_SAMPLE_RATE, ay.info.chipfreq, ay.info.playerfreq, 1);
     if (!res) {
-        // DEBUGF("VTX: AyumiRender_AyInit failed\n");
+        DEBUGF("VTX: AyumiRender_AyInit failed\n");
         return CODEC_ERROR;
     }
     
     res = AyumiRender_SetLayout(ay.info.layout, 0);
     if (!res) {
-        // DEBUGF("VTX: AyumiRender_SetLayout failed\n");
+        DEBUGF("VTX: AyumiRender_SetLayout failed\n");
         return CODEC_ERROR;
     }
 

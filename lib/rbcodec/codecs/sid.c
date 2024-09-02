@@ -27,7 +27,7 @@
 #include "codeclib.h"
 #include <inttypes.h>
 
-// CODEC_HEADER
+CODEC_HEADER
 
 /* bigger CHUNK_SIZE makes Clip sluggish when playing 2SIDs */
 #define CHUNK_SIZE 512

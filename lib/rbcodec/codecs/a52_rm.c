@@ -21,15 +21,15 @@
 
 #include "codeclib.h"
 #include <codecs/librm/rm.h>
-#include <inttypes.h> /* Needed by a52.h */
+#include <inttypes.h>  /* Needed by a52.h */
 #include <codecs/liba52/config-a52.h>
 #include <codecs/liba52/a52.h>
 
-// CODEC_HEADER
+CODEC_HEADER
 
 #define BUFFER_SIZE 4096
 
-#define A52_SAMPLESPERFRAME (6 * 256)
+#define A52_SAMPLESPERFRAME (6*256)
 
 static a52_state_t *state;
 static unsigned long samplesdone;
@@ -39,7 +39,7 @@ static RMPacket pkt;
 
 static void init_rm(RMContext *rmctx)
 {
-    memcpy(rmctx, (void *)(((intptr_t)ci->id3->id3v2buf + 3) & ~3), sizeof(RMContext));
+    memcpy(rmctx, (void*)(( (intptr_t)ci->id3->id3v2buf + 3 ) &~ 3), sizeof(RMContext));
 }
 
 /* used outside liba52 */
@@ -73,8 +73,7 @@ static size_t a52_decode_data(uint8_t *start, uint8_t *end)
     int len;
     size_t consumed = 0;
 
-    while (1)
-    {
+    while (1) {
         len = end - start;
         if (!len)
             break;
@@ -84,24 +83,19 @@ static size_t a52_decode_data(uint8_t *start, uint8_t *end)
         bufptr += len;
         start += len;
         consumed += len;
-        if (bufptr == bufpos)
-        {
-            if (bufpos == buf + 7)
-            {
+        if (bufptr == bufpos) {
+            if (bufpos == buf + 7) {
                 int length;
 
                 length = a52_syncinfo(buf, &flags, &sample_rate, &bit_rate);
-                if (!length)
-                {
-                    // DEBUGF("skip\n");
+                if (!length) {
+                    //DEBUGF("skip\n");
                     for (bufptr = buf; bufptr < buf + 6; bufptr++)
                         bufptr[0] = bufptr[1];
                     continue;
                 }
                 bufpos = buf + length;
-            }
-            else
-            {
+            } else {
                 /* Unity gain is 1 << 26, and we want to end up on 28 bits
                    of precision instead of the default 30.
                  */
@@ -119,23 +113,22 @@ static size_t a52_decode_data(uint8_t *start, uint8_t *end)
 
                 /* An A52 frame consists of 6 blocks of 256 samples
                    So we decode and output them one block at a time */
-                for (i = 0; i < 6; i++)
-                {
+                for (i = 0; i < 6; i++) {
                     if (a52_block(state))
                         goto error;
                     output_audio(a52_samples(state));
                     samplesdone += 256;
                 }
-                ci->set_elapsed(samplesdone / (frequency / 1000));
+                ci->set_elapsed(samplesdone/(frequency/1000));
                 bufptr = buf;
                 bufpos = buf + 7;
                 break;
             error:
-                // logf("Error decoding A52 stream\n");
+                //logf("Error decoding A52 stream\n");
                 bufptr = buf;
                 bufpos = buf + 7;
             }
-        }
+        }   
     }
     return consumed;
 }
@@ -143,16 +136,14 @@ static size_t a52_decode_data(uint8_t *start, uint8_t *end)
 /* this is the codec entry point */
 enum codec_status codec_main(enum codec_entry_call_reason reason)
 {
-    if (reason == CODEC_LOAD)
-    {
+    if (reason == CODEC_LOAD) {
         /* Generic codec initialisation */
         ci->configure(DSP_SET_STEREO_MODE, STEREO_NONINTERLEAVED);
         ci->configure(DSP_SET_SAMPLE_DEPTH, 28);
     }
-    else if (reason == CODEC_UNLOAD)
-    {
+    else if (reason == CODEC_UNLOAD) {
         if (state)
-            a52_free(state);
+            a52_free(state);        
     }
 
     return CODEC_OK;
@@ -171,8 +162,7 @@ enum codec_status codec_run(void)
     long action;
     intptr_t param;
 
-    if (codec_init())
-    {
+    if (codec_init()) {
         return CODEC_ERROR;
     }
 
@@ -187,50 +177,47 @@ enum codec_status codec_run(void)
 
     /* Initializations */
     state = a52_init(0);
-    ci->memset(&rmctx, 0, sizeof(RMContext));
-    ci->memset(&pkt, 0, sizeof(RMPacket));
+    ci->memset(&rmctx,0,sizeof(RMContext)); 
+    ci->memset(&pkt,0,sizeof(RMPacket));
     init_rm(&rmctx);
     data_offset = rmctx.data_offset +
-                  ((rmctx.flags & RM_RAW_DATASTREAM) ? 0 : DATA_HEADER_SIZE);
+      ((rmctx.flags & RM_RAW_DATASTREAM) ? 0 : DATA_HEADER_SIZE);
     packet_size = rmctx.block_align +
-                  ((rmctx.flags & RM_RAW_DATASTREAM) ? 0 : (PACKET_HEADER_SIZE + ((rmctx.flags & RM_PKT_V1) ? 1 : 0)));
+      ((rmctx.flags & RM_RAW_DATASTREAM) ?
+       0 :
+       (PACKET_HEADER_SIZE +
+        ((rmctx.flags & RM_PKT_V1) ? 1 : 0)));
 
     samplesdone = 0;
 
     /* check for a mid-track resume and force a seek time accordingly */
-    if (resume_offset)
-    {
+    if (resume_offset) {
         resume_offset -= MIN(resume_offset, data_offset);
         /* put number of subpackets to skip in resume_offset */
         resume_offset /= packet_size;
-        param = (int)resume_offset * ((rmctx.block_align * 8 * 1000) / rmctx.bit_rate);
+        param = (int)resume_offset * ((rmctx.block_align * 8 * 1000)/rmctx.bit_rate);
     }
 
-    if (param > 0)
-    {
+    if (param > 0) {
         action = CODEC_ACTION_SEEK_TIME;
     }
-    else
-    {
+    else {
         /* Seek to the first packet */
         ci->set_elapsed(0);
         ci->advance_buffer(data_offset);
     }
 
     /* The main decoding loop */
-    while ((rmctx.flags & RM_RAW_DATASTREAM) || (unsigned)rmctx.audio_pkt_cnt < rmctx.nb_packets)
-    {
+    while ((rmctx.flags & RM_RAW_DATASTREAM) || (unsigned)rmctx.audio_pkt_cnt < rmctx.nb_packets) {
         if (action == CODEC_ACTION_NULL)
             action = ci->get_command(&param);
 
         if (action == CODEC_ACTION_HALT)
             break;
 
-        if (action == CODEC_ACTION_SEEK_TIME)
-        {
+        if (action == CODEC_ACTION_SEEK_TIME) {
             /* Do not allow seeking beyond the file's length */
-            if ((unsigned)param > ci->id3->length)
-            {
+            if ((unsigned) param > ci->id3->length) {
                 ci->set_elapsed(ci->id3->length);
                 ci->seek_complete();
                 break;
@@ -238,11 +225,11 @@ enum codec_status codec_run(void)
 
             if (n)
                 rm_ac3_swap_bytes(filebuf, (rmctx.flags & RM_RAW_DATASTREAM) ? n : rmctx.block_align);
-            packet_offset = param / ((rmctx.block_align * 8 * 1000) / rmctx.bit_rate);
+            packet_offset = param / ((rmctx.block_align*8*1000)/rmctx.bit_rate);
             ci->seek_buffer(data_offset + packet_offset * packet_size);
             rmctx.audio_pkt_cnt = packet_offset;
             samplesdone = packet_offset * A52_SAMPLESPERFRAME;
-            ci->set_elapsed(samplesdone / (ci->id3->frequency / 1000));
+            ci->set_elapsed(samplesdone/(ci->id3->frequency/1000));
             ci->seek_complete();
             a52_decoder_reset();
             consumed = 0;
@@ -251,17 +238,13 @@ enum codec_status codec_run(void)
 
         action = CODEC_ACTION_NULL;
 
-        if (rmctx.flags & RM_RAW_DATASTREAM)
-        {
-            if (n > consumed)
-            {
+        if (rmctx.flags & RM_RAW_DATASTREAM) {
+            if (n > consumed) {
                 consumed += a52_decode_data(filebuf + consumed, filebuf + n);
                 ci->set_offset(ci->curpos + consumed);
             }
-            else
-            {
-                if (n)
-                {
+            else {
+                if (n) {
                     rm_ac3_swap_bytes(filebuf, n);
                     ci->advance_buffer(n);
                 }
@@ -272,23 +255,19 @@ enum codec_status codec_run(void)
                 consumed = 0;
             }
         }
-        else
-        {
+        else {
             filebuf = ci->request_buffer(&n, packet_size);
 
             if (n == 0)
                 break;
 
-            if (rm_get_packet(&filebuf, &rmctx, &pkt) < 0 && playback_on != 0)
-            {
-                if (playback_on == -1)
-                {
+            if (rm_get_packet(&filebuf, &rmctx, &pkt) < 0 && playback_on != 0) {
+                if(playback_on == -1) {
                     /* Error only if packet-parsing failed and playback hadn't started */
-                    // DEBUGF("rm_get_packet failed\n");
+                    DEBUGF("rm_get_packet failed\n");
                     return CODEC_ERROR;
                 }
-                else
-                {
+                else {
                     break;
                 }
             }

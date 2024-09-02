@@ -23,37 +23,38 @@
 #include "libasf/asf.h"
 #include "libwmavoice/wmavoice.h"
 
-// CODEC_HEADER
+CODEC_HEADER
 
 static AVCodecContext avctx;
 static AVPacket avpkt;
 
-#define MAX_FRAMES 3      /*maximum number of frames per superframe*/
-#define MAX_FRAMESIZE 160 /* maximum number of samples per frame */
-#define BUFSIZE MAX_FRAMES *MAX_FRAMESIZE
+#define MAX_FRAMES           3   /*maximum number of frames per superframe*/
+#define MAX_FRAMESIZE        160 /* maximum number of samples per frame */
+#define BUFSIZE              MAX_FRAMES*MAX_FRAMESIZE
 static int32_t decoded[BUFSIZE] IBSS_ATTR;
+
 
 /* This function initialises AVCodecContext with the data needed for the wmapro
  * decoder to work. The required data is taken from asf_waveformatex_t because that's
- * what the rockbox asf metadata parser fill/work with. In the future, when the
+ * what the rockbox asf metadata parser fill/work with. In the future, when the 
  * codec is being optimised for on-target playback this function should not be needed. */
 static void init_codec_ctx(AVCodecContext *avctx, asf_waveformatex_t *wfx)
 {
     /* Copy the extra-data */
     avctx->extradata_size = wfx->datalen;
-    avctx->extradata = (uint8_t *)malloc(wfx->datalen * sizeof(uint8_t));
-    memcpy(avctx->extradata, wfx->data, wfx->datalen * sizeof(uint8_t));
-
+    avctx->extradata = (uint8_t *)malloc(wfx->datalen*sizeof(uint8_t));
+    memcpy(avctx->extradata, wfx->data, wfx->datalen*sizeof(uint8_t));
+    
     avctx->block_align = wfx->blockalign;
     avctx->sample_rate = wfx->rate;
-    avctx->channels = wfx->channels;
+    avctx->channels    = wfx->channels;
+    
 }
 
 /* this is the codec entry point */
 enum codec_status codec_main(enum codec_entry_call_reason reason)
 {
-    if (reason == CODEC_LOAD)
-    {
+    if (reason == CODEC_LOAD) {
         /* Generic codec initialisation */
         ci->configure(DSP_SET_SAMPLE_DEPTH, 31);
     }
@@ -65,20 +66,19 @@ enum codec_status codec_main(enum codec_entry_call_reason reason)
 enum codec_status codec_run(void)
 {
     uint32_t elapsedtime;
-    asf_waveformatex_t wfx; /* Holds the stream properties */
-    int res;                /* Return values from asf_read_packet() and decode_packet() */
-    uint8_t *audiobuf;      /* Pointer to the payload of one wma pro packet */
-    int audiobufsize;       /* Payload size */
-    int packetlength = 0;   /* Logical packet size (minus the header size) */
-    int outlen = 0;         /* Number of bytes written to the output buffer */
-    int pktcnt = 0;         /* Count of the packets played */
+    asf_waveformatex_t wfx;     /* Holds the stream properties */
+    int res;                    /* Return values from asf_read_packet() and decode_packet() */
+    uint8_t* audiobuf;          /* Pointer to the payload of one wma pro packet */
+    int audiobufsize;           /* Payload size */
+    int packetlength = 0;       /* Logical packet size (minus the header size) */          
+    int outlen = 0;             /* Number of bytes written to the output buffer */
+    int pktcnt = 0;             /* Count of the packets played */
     intptr_t param;
 
     elapsedtime = ci->id3->elapsed;
 
 restart_track:
-    if (codec_init())
-    {
+    if (codec_init()) {
         LOGF("(WMA Voice) Error: Error initialising codec\n");
         return CODEC_ERROR;
     }
@@ -88,36 +88,34 @@ restart_track:
     memcpy(&wfx, ci->id3->toc, sizeof(wfx));
     memset(&avctx, 0, sizeof(AVCodecContext));
     memset(&avpkt, 0, sizeof(AVPacket));
-
+    
     ci->configure(DSP_SET_FREQUENCY, wfx.rate);
-    ci->configure(DSP_SET_STEREO_MODE, wfx.channels == 1 ? STEREO_MONO : STEREO_INTERLEAVED);
+    ci->configure(DSP_SET_STEREO_MODE, wfx.channels == 1 ?
+                  STEREO_MONO : STEREO_INTERLEAVED);
     codec_set_replaygain(ci->id3);
 
     ci->seek_buffer(0);
-
+    
     /* Initialise the AVCodecContext */
     init_codec_ctx(&avctx, &wfx);
 
-    if (wmavoice_decode_init(&avctx) < 0)
-    {
+    if (wmavoice_decode_init(&avctx) < 0) {
         LOGF("(WMA Voice) Error: Unsupported or corrupt file\n");
         return CODEC_ERROR;
     }
 
-    if (elapsedtime)
-    {
+    if (elapsedtime) {
         elapsedtime = asf_seek(elapsedtime, &wfx);
         if (elapsedtime < 1)
             return CODEC_OK;
     }
-    else
-    {
+    else {
         /* Now advance the file position to the first frame */
         ci->seek_buffer(ci->id3->first_frame_offset);
     }
 
     ci->set_elapsed(elapsedtime);
-
+    
     /* The main decoding loop */
 
     while (pktcnt < wfx.numpackets)
@@ -128,12 +126,10 @@ restart_track:
             break;
 
         /* Deal with any pending seek requests */
-        if (action == CODEC_ACTION_SEEK_TIME)
-        {
+        if (action == CODEC_ACTION_SEEK_TIME) {
             ci->set_elapsed(param);
 
-            if (param == 0)
-            {
+            if (param == 0) {
                 ci->set_elapsed(0);
                 ci->seek_complete();
                 elapsedtime = 0;
@@ -141,8 +137,7 @@ restart_track:
             }
 
             elapsedtime = asf_seek(param, &wfx);
-            if (elapsedtime < 1)
-            {
+            if (elapsedtime < 1){
                 ci->set_elapsed(0);
                 ci->seek_complete();
                 break;
@@ -151,54 +146,48 @@ restart_track:
             ci->set_elapsed(elapsedtime);
             ci->seek_complete();
         }
-
-    new_packet:
+        
+new_packet:
         res = asf_read_packet(&audiobuf, &audiobufsize, &packetlength, &wfx);
 
-        if (res < 0)
-        {
-            LOGF("(WMA Voice) read_packet error %d\n", res);
+        if (res < 0) {
+            LOGF("(WMA Voice) read_packet error %d\n",res);
             return CODEC_ERROR;
-        }
-        else
-        {
+        } else {
             avpkt.data = audiobuf;
             avpkt.size = audiobufsize;
             pktcnt++;
-
-            while (avpkt.size > 0)
+            
+            while(avpkt.size > 0)
             {
-                /* wmavoice_decode_packet checks for the output buffer size to
+                /* wmavoice_decode_packet checks for the output buffer size to 
                    avoid overflows */
-                outlen = BUFSIZE * sizeof(int32_t);
+                outlen = BUFSIZE*sizeof(int32_t);
 
                 res = wmavoice_decode_packet(&avctx, decoded, &outlen, &avpkt);
-                if (res < 0)
-                {
+                if(res < 0) {
                     LOGF("(WMA Voice) Error: decode_packet returned %d", res);
-                    if (res == ERROR_WMAPRO_IN_WMAVOICE)
-                    {
-                        /* Just skip this packet */
+                    if(res == ERROR_WMAPRO_IN_WMAVOICE){
+                    /* Just skip this packet */
                         ci->advance_buffer(packetlength);
-                        goto new_packet;
+                        goto new_packet;    
                     }
-                    else
-                    {
+                    else {
                         return CODEC_ERROR;
                     }
                 }
                 avpkt.data += res;
                 avpkt.size -= res;
-                if (outlen)
-                {
-                    ci->yield();
+                if(outlen) {
+                    ci->yield ();
                     outlen /= sizeof(int32_t);
                     ci->pcmbuf_insert(decoded, NULL, outlen);
-                    elapsedtime += outlen * 10 / (wfx.rate / 100);
+                    elapsedtime += outlen*10/(wfx.rate/100);
                     ci->set_elapsed(elapsedtime);
-                    ci->yield();
+                    ci->yield ();
                 }
             }
+
         }
 
         /* Advance to the next logical packet */
@@ -207,3 +196,4 @@ restart_track:
 
     return CODEC_OK;
 }
+

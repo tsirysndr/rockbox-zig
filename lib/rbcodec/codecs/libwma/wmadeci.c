@@ -1304,7 +1304,7 @@ static int wma_decode_frame(WMADecodeContext *s)
         if (ret < 0)
         {
 
-            // DEBUGF("wma_decode_block failed with code %d\n", ret);
+            DEBUGF("wma_decode_block failed with code %d\n", ret);
             return -1;
         }
         if (ret)
@@ -1377,7 +1377,7 @@ int wma_decode_superframe_frame(WMADecodeContext* s,
             if ((s->last_superframe_len + ((s->bit_offset + 7) >> 3)) >
                     MAX_CODED_SUPERFRAME_SIZE)
             {
-                // DEBUGF("superframe size too large error\n");
+                DEBUGF("superframe size too large error\n");
                 goto fail;
             }
             q = s->last_superframe + s->last_superframe_len;
@@ -1437,7 +1437,7 @@ int wma_decode_superframe_frame(WMADecodeContext* s,
         len = buf_size - pos;
         if (len > MAX_CODED_SUPERFRAME_SIZE || len < 0)
         {
-            // DEBUGF("superframe size too large error after decoding\n");
+            DEBUGF("superframe size too large error after decoding\n");
             goto fail;
         }
         s->last_superframe_len = len;

@@ -38,8 +38,8 @@
 #ifndef _mpcdec_math_h_
 #define _mpcdec_math_h_
 
+#include<assert.h>
 #include "mpc_types.h"
-#include <assert.h>
 
 #define MPC_FIXED_POINT_SHIFT 16
 

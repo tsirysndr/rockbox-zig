@@ -36,10 +36,7 @@
  * which is defined ima_adpcm_common.c.)
  */
 static const int index_table[4] ICONST_ATTR = {
-    -1,
-    -1,
-    2,
-    4,
+    -1, -1, 2, 4,
 };
 
 static int validity_bits = 8;
@@ -58,13 +55,14 @@ static bool set_format(struct libpcm_pcm_format *format)
 
     if (fmt->bitspersample < 2 || fmt->bitspersample > 5)
     {
-        // DEBUGF("CODEC_ERROR: swf adpcm must be 2, 3, 4 or 5 bitspersample: %d\n",
-        //                     fmt->bitspersample);
+        DEBUGF("CODEC_ERROR: swf adpcm must be 2, 3, 4 or 5 bitspersample: %d\n",
+                             fmt->bitspersample);
         return false;
     }
 
     if (fmt->samplesperblock == 0)
-        fmt->samplesperblock = (((fmt->blockalign << 3) - 2) / fmt->channels - 22) / fmt->bitspersample + 1;
+        fmt->samplesperblock = (((fmt->blockalign << 3) - 2) / fmt->channels - 22)
+                                                             / fmt->bitspersample + 1;
 
     blockbits = ((fmt->samplesperblock - 1) * fmt->bitspersample + 22) * fmt->channels;
 
@@ -80,20 +78,23 @@ static bool set_format(struct libpcm_pcm_format *format)
     else
         init_ima_adpcm_decoder(fmt->bitspersample, NULL);
 
-    return true;
+   return true;
 }
 
 static struct pcm_pos *get_seek_pos(uint32_t seek_val, int seek_mode,
                                     uint8_t *(*read_buffer)(size_t *realsize))
 {
     static struct pcm_pos newpos;
-    uint32_t chunkbits = blockbits;
-    uint32_t seekblocks = (seek_mode == PCM_SEEK_TIME) ? ((uint64_t)seek_val * ci->id3->frequency) / (1000LL * fmt->samplesperblock) : ((seek_val << 3) - 2) / blockbits;
-    uint32_t seekbits = seekblocks * blockbits + 2;
+    uint32_t chunkbits  = blockbits;
+    uint32_t seekblocks = (seek_mode == PCM_SEEK_TIME)?
+                          ((uint64_t)seek_val * ci->id3->frequency)
+                                              / (1000LL * fmt->samplesperblock) :
+                          ((seek_val << 3) - 2) / blockbits;
+    uint32_t seekbits   = seekblocks * blockbits + 2;
 
     (void)read_buffer;
 
-    newpos.pos = seekbits >> 3;
+    newpos.pos     = seekbits >> 3;
     newpos.samples = seekblocks * fmt->samplesperblock;
 
     if (newpos.pos == 0)
@@ -110,7 +111,8 @@ static struct pcm_pos *get_seek_pos(uint32_t seek_val, int seek_mode,
     }
 
     /* calculates next read bytes */
-    fmt->chunksize = (chunkbits >> 3) + (((chunkbits & 0x07) > 0) ? 1 : 0) + ((lastbytebits > 0) ? 1 : 0);
+    fmt->chunksize = (chunkbits >> 3) + (((chunkbits & 0x07) > 0)?1:0)
+                                      + ((lastbytebits > 0)?1:0);
 
     after_seek = true;
     return &newpos;
@@ -140,7 +142,8 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
 {
     int ch;
     int adpcm_code_size;
-    int count = ((size_t)fmt->chunksize == inbufsize) ? fmt->samplesperblock : GET_SAMPLE_COUNT(inbufsize);
+    int count = ((size_t)fmt->chunksize == inbufsize) ? fmt->samplesperblock :
+                                                        GET_SAMPLE_COUNT(inbufsize);
     int32_t init_pcmdata[2];
     int8_t init_index[2];
     static uint8_t lastbyte = 0;
@@ -155,8 +158,8 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
         adpcm_code_size = get_data(&inbuf, 2) + 2;
         if (fmt->bitspersample != adpcm_code_size)
         {
-            // DEBUGF("CODEC_ERROR: swf adpcm different adpcm code size=%d != %d\n",
-            //                      adpcm_code_size, fmt->bitspersample);
+            DEBUGF("CODEC_ERROR: swf adpcm different adpcm code size=%d != %d\n",
+                                 adpcm_code_size, fmt->bitspersample);
             return CODEC_ERROR;
         }
         init_pcmdata[0] = (get_data(&inbuf, 8) << 8) | get_data(&inbuf, 8);
@@ -173,9 +176,8 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
         }
         if (lastbytebits > 0)
             init_pcmdata[0] = ((lastbyte << (8 + lastbytebits)) |
-                               (get_data(&inbuf, 8) << lastbytebits) |
-                               get_data(&inbuf, lastbytebits)) &
-                              65535;
+                              (get_data(&inbuf, 8) << lastbytebits) |
+                              get_data(&inbuf, lastbytebits)) & 65535;
         else
             init_pcmdata[0] = (get_data(&inbuf, 8) << 8) | get_data(&inbuf, 8);
     }
@@ -203,10 +205,10 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
     while (--count > 0)
     {
         *outbuf++ = create_pcmdata(0, get_data(&inbuf, fmt->bitspersample))
-                    << IMA_ADPCM_INC_DEPTH;
+                        << IMA_ADPCM_INC_DEPTH;
         if (ch > 0)
             *outbuf++ = create_pcmdata(ch, get_data(&inbuf, fmt->bitspersample))
-                        << IMA_ADPCM_INC_DEPTH;
+                            << IMA_ADPCM_INC_DEPTH;
     }
 
     lastbyte = *inbuf;
@@ -219,10 +221,10 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
 }
 
 static const struct pcm_codec codec = {
-    set_format,
-    get_seek_pos,
-    decode,
-};
+                                          set_format,
+                                          get_seek_pos,
+                                          decode,
+                                      };
 
 const struct pcm_codec *get_swf_adpcm_codec(void)
 {
