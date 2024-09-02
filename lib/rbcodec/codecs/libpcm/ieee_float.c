@@ -34,14 +34,14 @@ static bool set_format(struct libpcm_pcm_format *format)
 
     if (fmt->channels == 0)
     {
-        DEBUGF("CODEC_ERROR: channels is 0\n");
+        // DEBUGF("CODEC_ERROR: channels is 0\n");
         return false;
     }
 
     if (fmt->bitspersample != 16 && fmt->bitspersample != 32 && fmt->bitspersample != 64)
     {
-        DEBUGF("CODEC_ERROR: ieee float must be 32 or 64 bitspersample: %d\n",
-                             fmt->bitspersample);
+        // DEBUGF("CODEC_ERROR: ieee float must be 32 or 64 bitspersample: %d\n",
+        //                    fmt->bitspersample);
         return false;
     }
 
@@ -53,8 +53,7 @@ static bool set_format(struct libpcm_pcm_format *format)
     fmt->samplesperblock = fmt->blockalign / (fmt->bytespersample * fmt->channels);
 
     /* chunksize = about 1/50[sec] data */
-    fmt->chunksize = (ci->id3->frequency / (50 * fmt->samplesperblock))
-                                         * fmt->blockalign;
+    fmt->chunksize = (ci->id3->frequency / (50 * fmt->samplesperblock)) * fmt->blockalign;
 
     return true;
 }
@@ -63,13 +62,10 @@ static struct pcm_pos *get_seek_pos(uint32_t seek_val, int seek_mode,
                                     uint8_t *(*read_buffer)(size_t *realsize))
 {
     static struct pcm_pos newpos;
-    uint32_t newblock = (seek_mode == PCM_SEEK_TIME) ?
-                        ((uint64_t)seek_val * ci->id3->frequency / 1000LL)
-                                            / fmt->samplesperblock :
-                        seek_val / fmt->blockalign;
+    uint32_t newblock = (seek_mode == PCM_SEEK_TIME) ? ((uint64_t)seek_val * ci->id3->frequency / 1000LL) / fmt->samplesperblock : seek_val / fmt->blockalign;
 
     (void)read_buffer;
-    newpos.pos     = newblock * fmt->blockalign;
+    newpos.pos = newblock * fmt->blockalign;
     newpos.samples = newblock * fmt->samplesperblock;
     return &newpos;
 }
@@ -88,14 +84,14 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
         {
             if (fmt->is_little_endian)
             {
-                pcm = (inbuf[0]<<5)|(inbuf[1]<<13)|((inbuf[2]|0x80)<<21);
-                exp = ((inbuf[2]>>7)|((inbuf[3]&0x7f)<<1)) - 127;
+                pcm = (inbuf[0] << 5) | (inbuf[1] << 13) | ((inbuf[2] | 0x80) << 21);
+                exp = ((inbuf[2] >> 7) | ((inbuf[3] & 0x7f) << 1)) - 127;
                 sgn = inbuf[3] & 0x80;
             }
             else
             {
-                pcm = (inbuf[3]<<5)|(inbuf[2]<<13)|((inbuf[1]|0x80)<<21);
-                exp = ((inbuf[1]>>7)|((inbuf[0]&0x7f)<<1)) - 127;
+                pcm = (inbuf[3] << 5) | (inbuf[2] << 13) | ((inbuf[1] | 0x80) << 21);
+                exp = ((inbuf[1] >> 7) | ((inbuf[0] & 0x7f) << 1)) - 127;
                 sgn = inbuf[0] & 0x80;
             }
             if (exp > -29 && exp < 0)
@@ -107,9 +103,9 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
             else if (exp < -28)
                 pcm = 0;
             else
-                pcm = (sgn)?-(1<<28):(1<<28)-1;
+                pcm = (sgn) ? -(1 << 28) : (1 << 28) - 1;
 
-            outbuf[i/4] = pcm;
+            outbuf[i / 4] = pcm;
             inbuf += 4;
         }
         *outbufsize = inbufsize >> 2;
@@ -117,27 +113,27 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
     else if (fmt->bitspersample == 16)
     {
         for (i = 0; i < inbufsize; i += 2)
-        { 
-            pcm = inbuf[0]|((inbuf[1]&0x03)<<8);
-            exp = ((inbuf[1]&0x7c)>>2)-15;
-            sgn = (inbuf[1] & 0x80)>>7;
-      
-	    if(exp == -15)
-	         pcm =0;
-	    else
-	    {
-	        pcm+=1<<10;
-	        exp+=2; /*shift by 2 for rockbox fixed format*/
-	        if(exp>=0)
-	            pcm <<= (exp); 
-            else
-	            pcm >>= (-exp);             
+        {
+            pcm = inbuf[0] | ((inbuf[1] & 0x03) << 8);
+            exp = ((inbuf[1] & 0x7c) >> 2) - 15;
+            sgn = (inbuf[1] & 0x80) >> 7;
 
-        	if (sgn)
-        	    pcm = -pcm;
-		}
-        outbuf[i/2] = pcm;
-        inbuf += 2;
+            if (exp == -15)
+                pcm = 0;
+            else
+            {
+                pcm += 1 << 10;
+                exp += 2; /*shift by 2 for rockbox fixed format*/
+                if (exp >= 0)
+                    pcm <<= (exp);
+                else
+                    pcm >>= (-exp);
+
+                if (sgn)
+                    pcm = -pcm;
+            }
+            outbuf[i / 2] = pcm;
+            inbuf += 2;
         }
         *outbufsize = inbufsize >> 1;
     }
@@ -147,14 +143,14 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
         {
             if (fmt->is_little_endian)
             {
-                pcm = inbuf[3]|(inbuf[4]<<8)|(inbuf[5]<<16)|(((inbuf[6]&0x0f)|0x10)<<24);
-                exp = (((inbuf[6]&0xf0)>>4)|((inbuf[7]&0x7f)<<4)) - 1023;
+                pcm = inbuf[3] | (inbuf[4] << 8) | (inbuf[5] << 16) | (((inbuf[6] & 0x0f) | 0x10) << 24);
+                exp = (((inbuf[6] & 0xf0) >> 4) | ((inbuf[7] & 0x7f) << 4)) - 1023;
                 sgn = inbuf[7] & 0x80;
             }
             else
             {
-                pcm = inbuf[4]|(inbuf[3]<<8)|(inbuf[2]<<16)|(((inbuf[1]&0x0f)|0x10)<<24);
-                exp = (((inbuf[1]&0xf0)>>4)|((inbuf[0]&0x7f)<<4)) - 1023;
+                pcm = inbuf[4] | (inbuf[3] << 8) | (inbuf[2] << 16) | (((inbuf[1] & 0x0f) | 0x10) << 24);
+                exp = (((inbuf[1] & 0xf0) >> 4) | ((inbuf[0] & 0x7f) << 4)) - 1023;
                 sgn = inbuf[0] & 0x80;
             }
             if (exp > -29 && exp < 0)
@@ -166,9 +162,9 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
             else if (exp < -28)
                 pcm = 0;
             else
-                pcm = (sgn)?-(1<<28):(1<<28)-1;
+                pcm = (sgn) ? -(1 << 28) : (1 << 28) - 1;
 
-            outbuf[i/8] = pcm;
+            outbuf[i / 8] = pcm;
             inbuf += 8;
         }
         *outbufsize = inbufsize >> 3;
@@ -181,10 +177,10 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
 }
 
 static const struct pcm_codec codec = {
-                                          set_format,
-                                          get_seek_pos,
-                                          decode,
-                                      };
+    set_format,
+    get_seek_pos,
+    decode,
+};
 
 const struct pcm_codec *get_ieee_float_codec(void)
 {

@@ -4,7 +4,7 @@
 #include "codeclib.h"
 #include "libgme/hes_emu.h"
  
-CODEC_HEADER
+// CODEC_HEADER
 
 /* Maximum number of bytes to process in one iteration */
 #define CHUNK_SIZE (1024*2)
@@ -51,7 +51,7 @@ enum codec_status codec_run(void)
     intptr_t param;
     int track = 0;
     
-    DEBUGF("HES: next_track\n");
+    // DEBUGF("HES: next_track\n");
     if (codec_init()) {
         return CODEC_ERROR;
     }  
@@ -59,16 +59,16 @@ enum codec_status codec_run(void)
     codec_set_replaygain(ci->id3);
 
     /* Read the entire file */
-    DEBUGF("HES: request file\n");
+    // DEBUGF("HES: request file\n");
     ci->seek_buffer(0);
     buf = ci->request_buffer(&n, ci->filesize);
     if (!buf || n < (size_t)ci->filesize) {
-        DEBUGF("HES: file load failed\n");
+        // DEBUGF("HES: file load failed\n");
         return CODEC_ERROR;
     }
 
     if ((err = Hes_load_mem(&hes_emu, buf, ci->filesize))) {
-        DEBUGF("HES: Hes_load_mem failed (%s)\n", err);
+        // DEBUGF("HES: Hes_load_mem failed (%s)\n", err);
         return CODEC_ERROR;
     }
 

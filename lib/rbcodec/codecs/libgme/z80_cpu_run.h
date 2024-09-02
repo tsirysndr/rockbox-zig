@@ -1279,7 +1279,7 @@ loop:
 		
 		case 0x4F: // LD R,A
 			SET_R( r.b.a );
-			dprintf( "LD R,A not supported\n" );
+			// dprintf( "LD R,A not supported\n" );
 			warning = true;
 			goto loop;
 		
@@ -1289,7 +1289,7 @@ loop:
 		
 		case 0x5F: // LD A,R
 			r.b.a = GET_R();
-			dprintf( "LD A,R not supported\n" );
+			// dprintf( "LD A,R not supported\n" );
 			warning = true;
 		ld_ai_common:
 			flags = (flags & C01) + SZ28( r.b.a ) + (R.iff2 << 2 & V04);
@@ -1312,7 +1312,7 @@ loop:
 			goto loop;
 		
 		default:
-			dprintf( "Opcode $ED $%02X not supported\n", data );
+			// dprintf( "Opcode $ED $%02X not supported\n", data );
 			warning = true;
 			goto loop;
 		}
@@ -1572,7 +1572,7 @@ loop:
 			}
 			
 			default:
-				dprintf( "Opcode $%02X $CB $%02X not supported\n", opcode, data2 );
+				// dprintf( "Opcode $%02X $CB $%02X not supported\n", opcode, data2 );
 				warning = true;
 				goto loop;
 			}
@@ -1661,7 +1661,7 @@ loop:
 		}
 		
 		default:
-			dprintf( "Unnecessary DD/FD prefix encountered\n" );
+			// dprintf( "Unnecessary DD/FD prefix encountered\n" );
 			warning = true;
 			pc--;
 			goto loop;
@@ -1670,7 +1670,7 @@ loop:
 	}
 	
 	}
-	dprintf( "Unhandled main opcode: $%02X\n", opcode );
+	// dprintf( "Unhandled main opcode: $%02X\n", opcode );
 	assert( false );
 	
 #ifdef IDLE_ADDR

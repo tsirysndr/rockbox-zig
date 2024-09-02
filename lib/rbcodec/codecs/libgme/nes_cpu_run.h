@@ -974,7 +974,7 @@ imm##op:
 		
 		// TODO: implement
 	delayed_cli:
-		dprintf( "Delayed CLI not emulated\n" );
+		// dprintf( "Delayed CLI not emulated\n" );
 		goto loop;
 	}
 	
@@ -990,7 +990,7 @@ imm##op:
 		if ( s_time < 0 )
 			goto loop;
 		
-		dprintf( "Delayed SEI not emulated\n" );
+		// dprintf( "Delayed SEI not emulated\n" );
 		goto loop;
 	}
 	

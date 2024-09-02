@@ -22,7 +22,7 @@
 #include "codeclib.h"
 #include "codecs/libpcm/support_formats.h"
 
-CODEC_HEADER
+// CODEC_HEADER
 
 /*
  * SMAF (Synthetic music Mobile Application Format)
@@ -31,35 +31,37 @@ CODEC_HEADER
  * [1] YAMAHA Corporation, Synthetic music Mobile Application Format Ver.3.05, 2002
  */
 
-enum {
+enum
+{
     SMAF_AUDIO_TRACK_CHUNK = 0, /* PCM Audio Track */
     SMAF_SCORE_TRACK_CHUNK,     /* Score Track */
 };
 
 /* SMAF supported codec formats */
-enum {
-    SMAF_FORMAT_UNSUPPORT = 0,  /* unsupported format */
-    SMAF_FORMAT_SIGNED_PCM,     /* 2's complement PCM */
-    SMAF_FORMAT_UNSIGNED_PCM,   /* Offset Binary PCM */
-    SMAF_FORMAT_ADPCM,          /* YAMAHA ADPCM */
+enum
+{
+    SMAF_FORMAT_UNSUPPORT = 0, /* unsupported format */
+    SMAF_FORMAT_SIGNED_PCM,    /* 2's complement PCM */
+    SMAF_FORMAT_UNSIGNED_PCM,  /* Offset Binary PCM */
+    SMAF_FORMAT_ADPCM,         /* YAMAHA ADPCM */
 };
 
 static const int support_formats[2][3] = {
-    {SMAF_FORMAT_SIGNED_PCM, SMAF_FORMAT_ADPCM,        SMAF_FORMAT_UNSUPPORT },
-    {SMAF_FORMAT_SIGNED_PCM, SMAF_FORMAT_UNSIGNED_PCM, SMAF_FORMAT_ADPCM     },
+    {SMAF_FORMAT_SIGNED_PCM, SMAF_FORMAT_ADPCM, SMAF_FORMAT_UNSUPPORT},
+    {SMAF_FORMAT_SIGNED_PCM, SMAF_FORMAT_UNSIGNED_PCM, SMAF_FORMAT_ADPCM},
 };
 
 static const struct pcm_entry pcm_codecs[] = {
-    { SMAF_FORMAT_SIGNED_PCM,   get_linear_pcm_codec   },
-    { SMAF_FORMAT_UNSIGNED_PCM, get_linear_pcm_codec   },
-    { SMAF_FORMAT_ADPCM,        get_yamaha_adpcm_codec },
+    {SMAF_FORMAT_SIGNED_PCM, get_linear_pcm_codec},
+    {SMAF_FORMAT_UNSIGNED_PCM, get_linear_pcm_codec},
+    {SMAF_FORMAT_ADPCM, get_yamaha_adpcm_codec},
 };
 
 #define NUM_FORMATS 3
 
-static const int basebits[4] = { 4, 8, 12, 16 };
+static const int basebits[4] = {4, 8, 12, 16};
 
-#define PCM_SAMPLE_SIZE (2048*2)
+#define PCM_SAMPLE_SIZE (2048 * 2)
 
 static int32_t samples[PCM_SAMPLE_SIZE] IBSS_ATTR;
 
@@ -96,7 +98,7 @@ static int convert_smaf_audio_format(unsigned int chunk, unsigned int audio_form
     if (idx < 3)
         return support_formats[chunk][idx];
 
-    DEBUGF("CODEC_ERROR: unsupport audio format: %d\n", audio_format);
+    // DEBUGF("CODEC_ERROR: unsupport audio format: %d\n", audio_format);
     return SMAF_FORMAT_UNSUPPORT;
 }
 
@@ -105,7 +107,7 @@ static int convert_smaf_audio_basebit(unsigned int basebit)
     if (basebit < 4)
         return basebits[basebit];
 
-    DEBUGF("CODEC_ERROR: illegal basebit: %d\n", basebit);
+    // DEBUGF("CODEC_ERROR: illegal basebit: %d\n", basebit);
     return 0;
 }
 
@@ -130,7 +132,7 @@ static unsigned int search_chunk(const unsigned char *name, int nlen, off_t *pos
         ci->advance_buffer(chunksize);
         *pos += chunksize;
     }
-    DEBUGF("CODEC_ERROR: missing '%s' chunk\n", name);
+    // DEBUGF("CODEC_ERROR: missing '%s' chunk\n", name);
     return 0;
 }
 
@@ -144,7 +146,7 @@ static bool parse_audio_track(struct libpcm_pcm_format *fmt, unsigned int chunks
     *pos += chunksize;
     if (search_chunk("ATR", 3, pos) == 0)
     {
-        DEBUGF("CODEC_ERROR: missing PCM Audio Track Chunk\n");
+        // DEBUGF("CODEC_ERROR: missing PCM Audio Track Chunk\n");
         return false;
     }
 
@@ -164,12 +166,12 @@ static bool parse_audio_track(struct libpcm_pcm_format *fmt, unsigned int chunks
     buf = ci->request_buffer(&size, 6);
     if (size < 6)
     {
-        DEBUGF("CODEC_ERROR: smaf is too small\n");
+        // DEBUGF("CODEC_ERROR: smaf is too small\n");
         return false;
     }
 
-    fmt->formattag     = convert_smaf_audio_format(SMAF_AUDIO_TRACK_CHUNK, buf[2]);
-    fmt->channels      = convert_smaf_channels(buf[2]);
+    fmt->formattag = convert_smaf_audio_format(SMAF_AUDIO_TRACK_CHUNK, buf[2]);
+    fmt->channels = convert_smaf_channels(buf[2]);
     fmt->bitspersample = convert_smaf_audio_basebit(buf[3] >> 4);
 
     /* search Wave Data Chunk */
@@ -178,7 +180,7 @@ static bool parse_audio_track(struct libpcm_pcm_format *fmt, unsigned int chunks
     fmt->numbytes = search_chunk("Awa", 3, pos);
     if (fmt->numbytes == 0)
     {
-        DEBUGF("CODEC_ERROR: missing Wave Data Chunk\n");
+        // DEBUGF("CODEC_ERROR: missing Wave Data Chunk\n");
         return false;
     }
 
@@ -195,13 +197,13 @@ static bool parse_score_track(struct libpcm_pcm_format *fmt, off_t *pos)
     buf = ci->request_buffer(&size, 13);
     if (size < 13)
     {
-        DEBUGF("CODEC_ERROR: smaf is too small\n");
+        // DEBUGF("CODEC_ERROR: smaf is too small\n");
         return false;
     }
 
     if (memcmp(buf + 5, "OPDA", 4) != 0)
     {
-        DEBUGF("CODEC_ERROR: missing Optional Data Chunk\n");
+        // DEBUGF("CODEC_ERROR: missing Optional Data Chunk\n");
         return false;
     }
 
@@ -213,7 +215,7 @@ static bool parse_score_track(struct libpcm_pcm_format *fmt, off_t *pos)
     *pos += (13 + chunksize);
     if (search_chunk("MTR", 3, pos) == 0)
     {
-        DEBUGF("CODEC_ERROR: missing Score Track Chunk\n");
+        // DEBUGF("CODEC_ERROR: missing Score Track Chunk\n");
         return false;
     }
 
@@ -224,7 +226,7 @@ static bool parse_score_track(struct libpcm_pcm_format *fmt, off_t *pos)
     buf = ci->request_buffer(&size, 40);
     if (size < 40)
     {
-        DEBUGF("CODEC_ERROR: smaf is too small\n");
+        // DEBUGF("CODEC_ERROR: smaf is too small\n");
         return false;
     }
 
@@ -234,7 +236,7 @@ static bool parse_score_track(struct libpcm_pcm_format *fmt, off_t *pos)
 
     if (size >= 40)
     {
-        DEBUGF("CODEC_ERROR: missing Score Track Stream PCM Data Chunk");
+        // DEBUGF("CODEC_ERROR: missing Score Track Stream PCM Data Chunk");
         return false;
     }
 
@@ -243,7 +245,7 @@ static bool parse_score_track(struct libpcm_pcm_format *fmt, off_t *pos)
     *pos += size;
     if (search_chunk("Mtsp", 4, pos) == 0)
     {
-        DEBUGF("CODEC_ERROR: missing Score Track Stream PCM Data Chunk\n");
+        // DEBUGF("CODEC_ERROR: missing Score Track Stream PCM Data Chunk\n");
         return false;
     }
 
@@ -258,20 +260,20 @@ static bool parse_score_track(struct libpcm_pcm_format *fmt, off_t *pos)
     buf = ci->request_buffer(&size, 9);
     if (size < 9)
     {
-        DEBUGF("CODEC_ERROR: smaf is too small\n");
+        // DEBUGF("CODEC_ERROR: smaf is too small\n");
         return false;
     }
 
     if (memcmp(buf, "Mwa", 3) != 0)
     {
-        DEBUGF("CODEC_ERROR: missing Score Track Stream Wave Data Chunk\n");
+        // DEBUGF("CODEC_ERROR: missing Score Track Stream Wave Data Chunk\n");
         return false;
     }
 
-    fmt->formattag     = convert_smaf_audio_format(SMAF_SCORE_TRACK_CHUNK, buf[8]);
-    fmt->channels      = convert_smaf_channels(buf[8]);
+    fmt->formattag = convert_smaf_audio_format(SMAF_SCORE_TRACK_CHUNK, buf[8]);
+    fmt->channels = convert_smaf_channels(buf[8]);
     fmt->bitspersample = convert_smaf_audio_basebit(buf[8] & 0xf);
-    fmt->numbytes      = get_be32(buf + 4) - 3;
+    fmt->numbytes = get_be32(buf + 4) - 3;
 
     *pos += 11;
     return true;
@@ -289,13 +291,13 @@ static bool parse_header(struct libpcm_pcm_format *fmt, off_t *pos)
     buf = ci->request_buffer(&size, 16);
     if (size < 16)
     {
-        DEBUGF("CODEC_ERROR: smaf is too small\n");
+        // DEBUGF("CODEC_ERROR: smaf is too small\n");
         return false;
     }
 
     if ((memcmp(buf, "MMMD", 4) != 0) || (memcmp(buf + 8, "CNTI", 4) != 0))
     {
-        DEBUGF("CODEC_ERROR: does not smaf format\n");
+        // DEBUGF("CODEC_ERROR: does not smaf format\n");
         return false;
     }
 
@@ -335,9 +337,10 @@ static uint8_t *read_buffer(size_t *realsize)
 /* this is the codec entry point */
 enum codec_status codec_main(enum codec_entry_call_reason reason)
 {
-    if (reason == CODEC_LOAD) {
+    if (reason == CODEC_LOAD)
+    {
         /* Generic codec initialisation */
-        ci->configure(DSP_SET_SAMPLE_DEPTH, PCM_OUTPUT_DEPTH-1);
+        ci->configure(DSP_SET_SAMPLE_DEPTH, PCM_OUTPUT_DEPTH - 1);
     }
 
     return CODEC_OK;
@@ -351,10 +354,10 @@ enum codec_status codec_run(void)
     int bufcount;
     int endofstream;
     uint8_t *smafbuf;
-    off_t firstblockposn;     /* position of the first block in file */
+    off_t firstblockposn; /* position of the first block in file */
     const struct pcm_codec *codec;
     intptr_t param;
-  
+
     if (codec_init())
         return CODEC_ERROR;
 
@@ -376,7 +379,7 @@ enum codec_status codec_run(void)
     codec = get_codec(format.formattag);
     if (codec == 0)
     {
-        DEBUGF("CODEC_ERROR: unsupport audio format: 0x%x\n", (int)format.formattag);
+        // DEBUGF("CODEC_ERROR: unsupport audio format: 0x%x\n", (int)format.formattag);
         return CODEC_ERROR;
     }
 
@@ -386,37 +389,45 @@ enum codec_status codec_run(void)
     }
 
     /* check chunksize */
-    if ((format.chunksize / format.blockalign) * format.samplesperblock * format.channels
-           > PCM_SAMPLE_SIZE)
+    if ((format.chunksize / format.blockalign) * format.samplesperblock * format.channels > PCM_SAMPLE_SIZE)
         format.chunksize = (PCM_SAMPLE_SIZE / format.blockalign) * format.blockalign;
     if (format.chunksize == 0)
     {
-        DEBUGF("CODEC_ERROR: chunksize is 0\n");
+        // DEBUGF("CODEC_ERROR: chunksize is 0\n");
         return CODEC_ERROR;
     }
 
     ci->configure(DSP_SET_FREQUENCY, ci->id3->frequency);
 
-    if (format.channels == 2) {
+    if (format.channels == 2)
+    {
         ci->configure(DSP_SET_STEREO_MODE, STEREO_INTERLEAVED);
-    } else if (format.channels == 1) {
+    }
+    else if (format.channels == 1)
+    {
         ci->configure(DSP_SET_STEREO_MODE, STEREO_MONO);
-    } else {
-        DEBUGF("CODEC_ERROR: more than 2 channels unsupported\n");
+    }
+    else
+    {
+        // DEBUGF("CODEC_ERROR: more than 2 channels unsupported\n");
         return CODEC_ERROR;
     }
 
     ci->seek_buffer(firstblockposn);
 
     /* make sure we're at the correct offset */
-    if (bytesdone > (uint32_t) firstblockposn || param) {
+    if (bytesdone > (uint32_t)firstblockposn || param)
+    {
         uint32_t seek_val;
         int seek_mode;
 
-        if (bytesdone) {
-            seek_val = bytesdone - MIN((uint32_t) firstblockposn, bytesdone);
+        if (bytesdone)
+        {
+            seek_val = bytesdone - MIN((uint32_t)firstblockposn, bytesdone);
             seek_mode = PCM_SEEK_POS;
-        } else {
+        }
+        else
+        {
             seek_val = param;
             seek_mode = PCM_SEEK_TIME;
         }
@@ -430,7 +441,7 @@ enum codec_status codec_run(void)
 
         if (ci->seek_buffer(firstblockposn + newpos->pos))
         {
-            bytesdone      = newpos->pos;
+            bytesdone = newpos->pos;
             decodedsamples = newpos->samples;
         }
     }
@@ -440,18 +451,20 @@ enum codec_status codec_run(void)
         bytesdone = 0;
     }
 
-    ci->set_elapsed(decodedsamples*1000LL/ci->id3->frequency);
+    ci->set_elapsed(decodedsamples * 1000LL / ci->id3->frequency);
 
     /* The main decoder loop */
     endofstream = 0;
 
-    while (!endofstream) {
+    while (!endofstream)
+    {
         long action = ci->get_command(&param);
 
         if (action == CODEC_ACTION_HALT)
             break;
 
-        if (action == CODEC_ACTION_SEEK_TIME) {
+        if (action == CODEC_ACTION_SEEK_TIME)
+        {
             struct pcm_pos *newpos = codec->get_seek_pos(param, PCM_SEEK_TIME,
                                                          &read_buffer);
 
@@ -464,11 +477,11 @@ enum codec_status codec_run(void)
 
             if (ci->seek_buffer(firstblockposn + newpos->pos))
             {
-                bytesdone      = newpos->pos;
+                bytesdone = newpos->pos;
                 decodedsamples = newpos->samples;
             }
 
-            ci->set_elapsed(decodedsamples*1000LL/ci->id3->frequency);
+            ci->set_elapsed(decodedsamples * 1000LL / ci->id3->frequency);
             ci->seek_complete();
         }
 
@@ -477,14 +490,15 @@ enum codec_status codec_run(void)
         if (n == 0)
             break; /* End of stream */
 
-        if (bytesdone + n > format.numbytes) {
+        if (bytesdone + n > format.numbytes)
+        {
             n = format.numbytes - bytesdone;
             endofstream = 1;
         }
 
         if (codec->decode(smafbuf, n, samples, &bufcount) == CODEC_ERROR)
         {
-            DEBUGF("codec error\n");
+            // DEBUGF("codec error\n");
             return CODEC_ERROR;
         }
 
@@ -496,7 +510,7 @@ enum codec_status codec_run(void)
         if (bytesdone >= format.numbytes)
             endofstream = 1;
 
-        ci->set_elapsed(decodedsamples*1000LL/ci->id3->frequency);
+        ci->set_elapsed(decodedsamples * 1000LL / ci->id3->frequency);
     }
 
     return CODEC_OK;

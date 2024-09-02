@@ -41,8 +41,8 @@ static bool set_format(struct libpcm_pcm_format *format)
 
     if (fmt->bitspersample != 4)
     {
-        DEBUGF("CODEC_ERROR: quicktime ima adpcm must be 4 bitspersample: %d\n",
-                             fmt->bitspersample);
+        // DEBUGF("CODEC_ERROR: quicktime ima adpcm must be 4 bitspersample: %d\n",
+        //                     fmt->bitspersample);
         return false;
     }
 
@@ -50,8 +50,7 @@ static bool set_format(struct libpcm_pcm_format *format)
     fmt->samplesperblock = 64;
 
     /* chunksize = about 1/50[s] data */
-    fmt->chunksize = (ci->id3->frequency / (50 * fmt->samplesperblock))
-                                         * fmt->blockalign;
+    fmt->chunksize = (ci->id3->frequency / (50 * fmt->samplesperblock)) * fmt->blockalign;
 
     init_ima_adpcm_decoder(4, NULL);
     return true;
@@ -61,13 +60,10 @@ static struct pcm_pos *get_seek_pos(uint32_t seek_val, int seek_mode,
                                     uint8_t *(*read_buffer)(size_t *realsize))
 {
     static struct pcm_pos newpos;
-    uint32_t newblock = (seek_mode == PCM_SEEK_TIME) ?
-                        ((uint64_t)seek_val * ci->id3->frequency / 1000LL)
-                                            / fmt->samplesperblock :
-                        seek_val / fmt->blockalign;
+    uint32_t newblock = (seek_mode == PCM_SEEK_TIME) ? ((uint64_t)seek_val * ci->id3->frequency / 1000LL) / fmt->samplesperblock : seek_val / fmt->blockalign;
 
     (void)read_buffer;
-    newpos.pos     = newblock * fmt->blockalign;
+    newpos.pos = newblock * fmt->blockalign;
     newpos.samples = newblock * fmt->samplesperblock;
     return &newpos;
 }
@@ -87,15 +83,15 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
         for (ch = 0; ch < fmt->channels; ch++)
         {
             /* read block header */
-            init_pcmdata = (inbuf[0] << 8)|(inbuf[1] & 0x80);
+            init_pcmdata = (inbuf[0] << 8) | (inbuf[1] & 0x80);
             if (init_pcmdata > 32767)
                 init_pcmdata -= 65536;
 
             init_index = inbuf[1] & 0x7f;
             if (init_index > 88)
             {
-                DEBUGF("CODEC_ERROR: quicktime ima adpcm illegal step index=%d > 88\n",
-                                     init_index);
+                // DEBUGF("CODEC_ERROR: quicktime ima adpcm illegal step index=%d > 88\n",
+                //                     init_index);
                 return CODEC_ERROR;
             }
 
@@ -108,7 +104,7 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
             pcmbuf = outbuf + ch;
             for (block_size = 32; block_size > 0 && inbufsize > 0; block_size--, inbufsize--)
             {
-                *pcmbuf = create_pcmdata_size4(ch, *inbuf     ) << IMA_ADPCM_INC_DEPTH;
+                *pcmbuf = create_pcmdata_size4(ch, *inbuf) << IMA_ADPCM_INC_DEPTH;
                 pcmbuf += fmt->channels;
                 *pcmbuf = create_pcmdata_size4(ch, *inbuf >> 4) << IMA_ADPCM_INC_DEPTH;
                 pcmbuf += fmt->channels;
@@ -127,10 +123,10 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
 }
 
 static const struct pcm_codec codec = {
-                                          set_format,
-                                          get_seek_pos,
-                                          decode,
-                                      };
+    set_format,
+    get_seek_pos,
+    decode,
+};
 
 const struct pcm_codec *get_qt_ima_adpcm_codec(void)
 {

@@ -22,7 +22,7 @@
 #include "codeclib.h"
 #include "codecs/libpcm/support_formats.h"
 
-CODEC_HEADER
+// CODEC_HEADER
 
 /* Sun Audio file (Au file format) codec
  *
@@ -132,7 +132,7 @@ enum codec_status codec_run(void)
     intptr_t param;
  
     if (codec_init()) {
-        DEBUGF("codec_init() error\n");
+        // DEBUGF("codec_init() error\n");
         return CODEC_ERROR;
     }
 
@@ -172,7 +172,7 @@ enum codec_status codec_run(void)
         offset = get_be32(buf + 4);
         if (offset < 24)
         {
-            DEBUGF("CODEC_ERROR: sun audio offset size is small: %d\n", offset);
+            // DEBUGF("CODEC_ERROR: sun audio offset size is small: %d\n", offset);
             return CODEC_ERROR;
         }
         /* data size */
@@ -183,7 +183,7 @@ enum codec_status codec_run(void)
         format.formattag = convert_au_format(get_be32(buf + 12), &format);
         if (format.formattag == AU_FORMAT_UNSUPPORT)
         {
-            DEBUGF("CODEC_ERROR: sun audio unsupport format: %d\n", get_be32(buf + 12));
+            // DEBUGF("CODEC_ERROR: sun audio unsupport format: %d\n", get_be32(buf + 12));
             return CODEC_ERROR;
         }
         /* skip sample rate */
@@ -202,7 +202,7 @@ enum codec_status codec_run(void)
     codec = get_au_codec(format.formattag);
     if (!codec)
     {
-        DEBUGF("CODEC_ERROR: unsupport sun audio format: %x\n", (int)format.formattag);
+        // DEBUGF("CODEC_ERROR: unsupport sun audio format: %x\n", (int)format.formattag);
         return CODEC_ERROR;
     }
 
@@ -212,7 +212,7 @@ enum codec_status codec_run(void)
     }
 
     if (format.numbytes == 0) {
-        DEBUGF("CODEC_ERROR: data size is 0\n");
+        // DEBUGF("CODEC_ERROR: data size is 0\n");
         return CODEC_ERROR;
     }
 
@@ -222,7 +222,7 @@ enum codec_status codec_run(void)
         format.chunksize = (PCM_SAMPLE_SIZE / format.blockalign) * format.blockalign;
     if (format.chunksize == 0)
     {
-        DEBUGF("CODEC_ERROR: chunksize is 0\n");
+        // DEBUGF("CODEC_ERROR: chunksize is 0\n");
         return CODEC_ERROR;
     }
 
@@ -232,7 +232,7 @@ enum codec_status codec_run(void)
     } else if (format.channels == 1) {
         ci->configure(DSP_SET_STEREO_MODE, STEREO_MONO);
     } else {
-        DEBUGF("CODEC_ERROR: more than 2 channels\n");
+        // DEBUGF("CODEC_ERROR: more than 2 channels\n");
         return CODEC_ERROR;
     }
 
@@ -306,7 +306,7 @@ enum codec_status codec_run(void)
 
         if (codec->decode(aubuf, n, samples, &bufcount) == CODEC_ERROR)
         {
-            DEBUGF("codec error\n");
+           // DEBUGF("codec error\n");
             return CODEC_ERROR;
         }
 

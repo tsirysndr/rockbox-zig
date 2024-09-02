@@ -23,7 +23,7 @@
 #include "libasf/asf.h"
 #include "libwma/wmadec.h"
 
-CODEC_HEADER
+// CODEC_HEADER
 
 /* NOTE: WMADecodeContext is 120152 bytes (on x86) */
 static WMADecodeContext wmadec;
@@ -67,7 +67,7 @@ restart_track:
     memset(&wmadec, 0, sizeof(wmadec));
 
     if (codec_init()) {
-        LOGF("WMA: Error initialising codec\n");
+        // LOGF("WMA: Error initialising codec\n");
         return CODEC_ERROR;
     }
 
@@ -77,7 +77,7 @@ restart_track:
 
     ci->seek_buffer(ci->id3->first_frame_offset);
     if (wma_decode_init(&wmadec,&wfx) < 0) {
-        LOGF("WMA: Unsupported or corrupt file\n");
+        // LOGF("WMA: Unsupported or corrupt file\n");
         return CODEC_ERROR;
     }
 
@@ -171,7 +171,7 @@ new_packet:
             }
 
             errcount++;
-            DEBUGF("read_packet error %d, errcount %d\n",wmares, errcount);
+            // DEBUGF("read_packet error %d, errcount %d\n",wmares, errcount);
             if (errcount > 5) {
                 return CODEC_ERROR;
             } else {
@@ -191,7 +191,7 @@ new_packet:
                 if (wmares < 0) {
                     /* Do the above, but for errors in decode. */
                     errcount++;
-                    DEBUGF("WMA decode error %d, errcount %d\n",wmares, errcount);
+                    // DEBUGF("WMA decode error %d, errcount %d\n",wmares, errcount);
                     if (errcount > 5) {
                         return CODEC_ERROR;
                     } else {

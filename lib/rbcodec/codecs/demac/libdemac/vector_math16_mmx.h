@@ -98,8 +98,8 @@ REPEAT_MB(SP_ADD_BLOCK)
         [res]"=r"(res),
         [t]  "=r"(t)
         : /* inputs */
-        [v1]"2"(v1),
-        [f2]"3"(f2)
+        [v1]"2"((int)v1),
+        [f2]"3"((int)f2)
 #else
         [res]"=r"(res),
         [t]  "=r"(t)
@@ -162,8 +162,8 @@ REPEAT_MB(SP_SUB_BLOCK)
         [res]"=r"(res),
         [t]  "=r"(t)
         : /* inputs */
-        [v1]"2"(v1),
-        [f2]"3"(f2)
+        [v1]"2"((int)v1),
+        [f2]"3"((int)f2)
 #else
         [res]"=r"(res),
         [t]  "=r"(t)
@@ -218,8 +218,8 @@ REPEAT_MB(SP_BLOCK)
         [res]"=r"(res),
         [t]  "=r"(t)
         : /* inputs */
-        [v1]"1"(v1),
-        [v2]"2"(v2)
+        [v1]"1"((int)v1),
+        [v2]"2"((int)v2)
 #else
         [res]"=r"(res),
         [t]  "=r"(t)

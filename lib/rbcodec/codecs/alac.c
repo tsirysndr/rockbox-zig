@@ -23,7 +23,7 @@
 #include "libm4a/m4a.h"
 #include "libalac/decomp.h"
 
-CODEC_HEADER
+// CODEC_HEADER
 
 /* The maximum buffer size handled. This amount of bytes is buffered for each
  * frame. */
@@ -40,10 +40,11 @@ static void set_elapsed_samples(uint32_t samplesdone)
 /* this is the codec entry point */
 enum codec_status codec_main(enum codec_entry_call_reason reason)
 {
-    if (reason == CODEC_LOAD) {
+    if (reason == CODEC_LOAD)
+    {
         /* Generic codec initialisation */
         ci->configure(DSP_SET_STEREO_MODE, STEREO_NONINTERLEAVED);
-        ci->configure(DSP_SET_SAMPLE_DEPTH, ALAC_OUTPUT_DEPTH-1);
+        ci->configure(DSP_SET_SAMPLE_DEPTH, ALAC_OUTPUT_DEPTH - 1);
     }
 
     return CODEC_OK;
@@ -58,7 +59,7 @@ enum codec_status codec_run(void)
     uint64_t samplesdone;
     int samplesdecoded;
     uint32_t i;
-    unsigned char* buffer;
+    unsigned char *buffer;
     alac_file alac;
     intptr_t param;
     unsigned long resume_time;
@@ -67,9 +68,10 @@ enum codec_status codec_run(void)
     uint32_t lookup_table_idx = 0;
 
     /* Clean and initialize decoder structures */
-    memset(&demux_res , 0, sizeof(demux_res));
-    if (codec_init()) {
-        LOGF("ALAC: Error initialising codec\n");
+    memset(&demux_res, 0, sizeof(demux_res));
+    if (codec_init())
+    {
+        // LOGF("ALAC: Error initialising codec\n");
         return CODEC_ERROR;
     }
 
@@ -78,7 +80,7 @@ enum codec_status codec_run(void)
 
     ci->seek_buffer(0);
 
-    stream_create(&input_stream,ci);
+    stream_create(&input_stream, ci);
 
     /* Save resume info because qtmovie_read() can modify it. */
     resume_time = ci->id3->elapsed;
@@ -86,8 +88,9 @@ enum codec_status codec_run(void)
 
     /* if qtmovie_read returns successfully, the stream is up to
      * the movie data, which can be used directly by the decoder */
-    if (!qtmovie_read(&input_stream, &demux_res)) {
-        LOGF("ALAC: Error initialising file\n");
+    if (!qtmovie_read(&input_stream, &demux_res))
+    {
+        // LOGF("ALAC: Error initialising file\n");
         return CODEC_ERROR;
     }
 
@@ -105,7 +108,8 @@ enum codec_status codec_run(void)
         did_resume = 0;
 
     /* Start from the beginning if we did not resume. */
-    if (!did_resume) {
+    if (!did_resume)
+    {
         i = 0;
         samplesdone = 0;
     }
@@ -113,14 +117,16 @@ enum codec_status codec_run(void)
     set_elapsed_samples(samplesdone);
 
     /* The main decoding loop */
-    while (i < demux_res.num_sample_byte_sizes) {
+    while (i < demux_res.num_sample_byte_sizes)
+    {
         long action = ci->get_command(&param);
 
         if (action == CODEC_ACTION_HALT)
             break;
 
         /* Deal with any pending seek requests */
-        if (action == CODEC_ACTION_SEEK_TIME) {
+        if (action == CODEC_ACTION_SEEK_TIME)
+        {
             if (m4a_seek(&demux_res, &input_stream,
                          (uint64_t)param * ci->id3->frequency / 1000ULL,
                          &samplesdone, &i, &lookup_table_idx))
@@ -132,10 +138,10 @@ enum codec_status codec_run(void)
         }
 
         /* Request the required number of bytes from the input buffer */
-        buffer=ci->request_buffer(&n, ALAC_BYTE_BUFFER_SIZE);
+        buffer = ci->request_buffer(&n, ALAC_BYTE_BUFFER_SIZE);
 
         /* Decode one block - returned samples will be host-endian */
-        samplesdecoded=alac_decode_frame(&alac, buffer, outputbuffer, ci->yield);
+        samplesdecoded = alac_decode_frame(&alac, buffer, outputbuffer, ci->yield);
         ci->yield();
 
         /* Advance codec buffer by amount of consumed bytes */
@@ -145,12 +151,12 @@ enum codec_status codec_run(void)
         ci->pcmbuf_insert(outputbuffer[0], outputbuffer[1], samplesdecoded);
 
         /* Update the elapsed-time indicator */
-        samplesdone+=samplesdecoded;
+        samplesdone += samplesdecoded;
         set_elapsed_samples(samplesdone);
 
         i++;
     }
 
-    LOGF("ALAC: Decoded %lu samples\n",(unsigned long)samplesdone);
+    // LOGF("ALAC: Decoded %lu samples\n", (unsigned long)samplesdone);
     return CODEC_OK;
 }

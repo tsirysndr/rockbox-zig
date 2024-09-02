@@ -25,7 +25,7 @@
 #include "libfaad/structs.h"
 #include "libfaad/decoder.h"
 
-CODEC_HEADER
+// CODEC_HEADER
 
 /* The maximum buffer size handled by faad. 12 bytes are required by libfaad
  * as headroom (see libfaad/bits.c). FAAD_BYTE_BUFFER_SIZE bytes are buffered
@@ -79,7 +79,7 @@ enum codec_status codec_run(void)
     /* Clean and initialize decoder structures */
     memset(&demux_res , 0, sizeof(demux_res));
     if (codec_init()) {
-        LOGF("FAAD: Codec init error\n");
+        // LOGF("FAAD: Codec init error\n");
         return CODEC_ERROR;
     }
 
@@ -97,7 +97,7 @@ enum codec_status codec_run(void)
     /* if qtmovie_read returns successfully, the stream is up to
      * the movie data, which can be used directly by the decoder */
     if (!qtmovie_read(&input_stream, &demux_res)) {
-        LOGF("FAAD: File init error\n");
+        // LOGF("FAAD: File init error\n");
         return CODEC_ERROR;
     }
 
@@ -105,7 +105,7 @@ enum codec_status codec_run(void)
     decoder = NeAACDecOpen();
 
     if (!decoder) {
-        LOGF("FAAD: Decode open error\n");
+        // LOGF("FAAD: Decode open error\n");
         return CODEC_ERROR;
     }
 
@@ -115,7 +115,7 @@ enum codec_status codec_run(void)
 
     err = NeAACDecInit2(decoder, demux_res.codecdata, demux_res.codecdata_len, &s, &c);
     if (err) {
-        LOGF("FAAD: DecInit: %d, %d\n", err, decoder->object_type);
+        // LOGF("FAAD: DecInit: %d, %d\n", err, decoder->object_type);
         return CODEC_ERROR;
     }
 
@@ -213,7 +213,7 @@ enum codec_status codec_run(void)
 
         /* NeAACDecDecode may sometimes return NULL without setting error. */
         if (ret == NULL || frame_info.error > 0) {
-            LOGF("FAAD: decode error '%s'\n", NeAACDecGetErrorMessage(frame_info.error));
+            // LOGF("FAAD: decode error '%s'\n", NeAACDecGetErrorMessage(frame_info.error));
 
             // In files with gaps between chunks and reduced lookup_table we can't properly detect all gaps
             // in m4a_check_sample_offset.  So just ignore decode errors till next chunk present in lookup_table 
@@ -303,6 +303,6 @@ enum codec_status codec_run(void)
         ++i;
     }
 
-    LOGF("AAC: Decoded %lu samples\n", (unsigned long)sound_samples_done);
+    // LOGF("AAC: Decoded %lu samples\n", (unsigned long)sound_samples_done);
     return CODEC_OK;
 }

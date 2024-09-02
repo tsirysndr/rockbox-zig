@@ -26,12 +26,12 @@
 #include "libfaad/structs.h"
 #include "libfaad/decoder.h"
 
-CODEC_HEADER
+// CODEC_HEADER
 
 /* The maximum buffer size handled by faad. 12 bytes are required by libfaad
  * as headroom (see libfaad/bits.c). FAAD_BYTE_BUFFER_SIZE bytes are buffered
  * for each frame. */
-#define FAAD_BYTE_BUFFER_SIZE (2048-12)
+#define FAAD_BYTE_BUFFER_SIZE (2048 - 12)
 
 static void update_playing_time(void)
 {
@@ -41,7 +41,8 @@ static void update_playing_time(void)
 /* this is the codec entry point */
 enum codec_status codec_main(enum codec_entry_call_reason reason)
 {
-    if (reason == CODEC_LOAD) {
+    if (reason == CODEC_LOAD)
+    {
         /* Generic codec initialisation */
         ci->configure(DSP_SET_STEREO_MODE, STEREO_NONINTERLEAVED);
         ci->configure(DSP_SET_SAMPLE_DEPTH, 29);
@@ -60,13 +61,14 @@ enum codec_status codec_run(void)
     unsigned char c = 0;
     long action = CODEC_ACTION_NULL;
     intptr_t param;
-    unsigned char* buffer;
+    unsigned char *buffer;
     NeAACDecFrameInfo frame_info;
     NeAACDecHandle decoder;
     NeAACDecConfigurationPtr conf;
 
     /* Clean and initialize decoder structures */
-    if (codec_init()) {
+    if (codec_init())
+    {
         LOGF("FAAD: Codec init error\n");
         return CODEC_ERROR;
     }
@@ -79,7 +81,8 @@ enum codec_status codec_run(void)
     /* initialise the sound converter */
     decoder = NeAACDecOpen();
 
-    if (!decoder) {
+    if (!decoder)
+    {
         LOGF("FAAD: Decode open error\n");
         return CODEC_ERROR;
     }
@@ -88,29 +91,36 @@ enum codec_status codec_run(void)
     conf->outputFormat = FAAD_FMT_24BIT; /* irrelevant, we don't convert */
     NeAACDecSetConfiguration(decoder, conf);
 
-    buffer=ci->request_buffer(&n, FAAD_BYTE_BUFFER_SIZE);
+    buffer = ci->request_buffer(&n, FAAD_BYTE_BUFFER_SIZE);
     bread = NeAACDecInit(decoder, buffer, n, &s, &c);
-    if (bread < 0) {
+    if (bread < 0)
+    {
         LOGF("FAAD: DecInit: %ld, %d\n", (long int)bread, decoder->object_type);
         return CODEC_ERROR;
     }
     ci->advance_buffer(bread);
 
-    if (ci->id3->offset > ci->id3->first_frame_offset) {
+    if (ci->id3->offset > ci->id3->first_frame_offset)
+    {
         /* Resume the desired (byte) position. */
         ci->seek_buffer(ci->id3->offset);
         NeAACDecPostSeekReset(decoder, 0);
         update_playing_time();
-    } else if (ci->id3->elapsed) {
+    }
+    else if (ci->id3->elapsed)
+    {
         action = CODEC_ACTION_SEEK_TIME;
         param = ci->id3->elapsed;
-    } else {
+    }
+    else
+    {
         ci->set_elapsed(0);
         ci->set_offset(ci->id3->first_frame_offset);
     }
 
     /* The main decoding loop */
-    while (1) {
+    while (1)
+    {
         if (action == CODEC_ACTION_NULL)
             action = ci->get_command(&param);
 
@@ -118,7 +128,8 @@ enum codec_status codec_run(void)
             break;
 
         /* Deal with any pending seek requests */
-        if (action == CODEC_ACTION_SEEK_TIME) {
+        if (action == CODEC_ACTION_SEEK_TIME)
+        {
             /* Seek to the desired time position. */
             ci->seek_buffer(ci->id3->first_frame_offset + (uint32_t)((uint64_t)param * ci->id3->bitrate / 8));
             ci->set_elapsed((unsigned long)param);
@@ -129,13 +140,14 @@ enum codec_status codec_run(void)
         action = CODEC_ACTION_NULL;
 
         /* Request the required number of bytes from the input buffer */
-        buffer=ci->request_buffer(&n, FAAD_BYTE_BUFFER_SIZE);
+        buffer = ci->request_buffer(&n, FAAD_BYTE_BUFFER_SIZE);
 
         if (n == 0) /* End of Stream */
             break;
 
         /* Decode one block - returned samples will be host-endian */
-        if (NeAACDecDecode(decoder, &frame_info, buffer, n) == NULL || frame_info.error > 0) {
+        if (NeAACDecDecode(decoder, &frame_info, buffer, n) == NULL || frame_info.error > 0)
+        {
             LOGF("FAAD: decode error '%s'\n", NeAACDecGetErrorMessage(frame_info.error));
             return CODEC_ERROR;
         }

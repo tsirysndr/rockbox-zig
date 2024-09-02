@@ -1120,7 +1120,7 @@ loop:
 		
 		// TODO: implement
 	delayed_cli:
-		dprintf( "Delayed CLI not supported\n" );
+		// dprintf( "Delayed CLI not supported\n" );
 		goto loop;
 	}
 	
@@ -1136,7 +1136,7 @@ loop:
 		if ( s_time < 0 )
 			goto loop;
 		
-		dprintf( "Delayed SEI not supported\n" );
+		// dprintf( "Delayed SEI not supported\n" );
 		goto loop;
 	}
 	
@@ -1181,7 +1181,7 @@ loop:
 		goto loop;
 
 	case 0x54: // CSL
-		dprintf( "CSL not supported\n" );
+		// dprintf( "CSL not supported\n" );
 		illegal_encountered = true;
 		goto loop;
 	
@@ -1190,7 +1190,7 @@ loop:
 	
 	case 0xF4: { // SET
 		//int operand = GET_MSB();
-		dprintf( "SET not handled\n" );
+		// dprintf( "SET not handled\n" );
 		//switch ( data )
 		//{
 		//}
@@ -1269,7 +1269,7 @@ loop:
 
 	default:
 		check( (unsigned) opcode <= 0xFF );
-		dprintf( "Illegal opcode $%02X at $%04X\n", (int) opcode, (int) pc - 1 );
+		// dprintf( "Illegal opcode $%02X at $%04X\n", (int) opcode, (int) pc - 1 );
 		illegal_encountered = true;
 		goto loop;
 	}

@@ -33,15 +33,59 @@
  */
 
 static const uint16_t step_table[] ICONST_ATTR = {
-    16,  17,   19,   21,   23,   25,   28,  31,  34,  37,  41,  45,  50,  55,
-    60,  66,   73,   80,   88,   97,  107, 118, 130, 143, 157, 173, 190, 209,
-   230, 253,  279,  307,  337,  371,  408, 449, 494, 544, 598, 658, 724, 796,
-   876, 963, 1060, 1166, 1282, 1411, 1552,
+    16,
+    17,
+    19,
+    21,
+    23,
+    25,
+    28,
+    31,
+    34,
+    37,
+    41,
+    45,
+    50,
+    55,
+    60,
+    66,
+    73,
+    80,
+    88,
+    97,
+    107,
+    118,
+    130,
+    143,
+    157,
+    173,
+    190,
+    209,
+    230,
+    253,
+    279,
+    307,
+    337,
+    371,
+    408,
+    449,
+    494,
+    544,
+    598,
+    658,
+    724,
+    796,
+    876,
+    963,
+    1060,
+    1166,
+    1282,
+    1411,
+    1552,
 };
 
 static const int index_table[] ICONST_ATTR = {
-    -1, -1, -1, -1, 2, 4, 6, 8
-};
+    -1, -1, -1, -1, 2, 4, 6, 8};
 
 static struct adpcm_data cur_data;
 static int blocksperchunk;
@@ -56,14 +100,14 @@ static bool set_format(struct libpcm_pcm_format *format)
 
     if (fmt->bitspersample != 4)
     {
-        DEBUGF("CODEC_ERROR: dialogic oki adpcm must be 4 bitspersample: %d\n",
-                             fmt->bitspersample);
+        // DEBUGF("CODEC_ERROR: dialogic oki adpcm must be 4 bitspersample: %d\n",
+        //                    fmt->bitspersample);
         return false;
     }
 
     if (fmt->channels != 1)
     {
-        DEBUGF("CODEC_ERROR: dialogic oki adpcm must be monaural\n");
+        // DEBUGF("CODEC_ERROR: dialogic oki adpcm must be monaural\n");
         return false;
     }
 
@@ -75,8 +119,7 @@ static bool set_format(struct libpcm_pcm_format *format)
     blocksperchunk = ci->id3->frequency >> 6;
     fmt->chunksize = blocksperchunk * fmt->blockalign;
 
-    max_chunk_count = (uint64_t)ci->id3->length * ci->id3->frequency
-                                         / (2000LL * fmt->chunksize);
+    max_chunk_count = (uint64_t)ci->id3->length * ci->id3->frequency / (2000LL * fmt->chunksize);
 
     /* initialize seek table */
     init_seek_table(max_chunk_count);
@@ -93,9 +136,12 @@ static int16_t create_pcmdata(uint8_t nibble)
     int16_t step = step_table[index];
 
     delta = (step >> 3);
-    if (nibble & 4) delta += step;
-    if (nibble & 2) delta += (step >> 1);
-    if (nibble & 1) delta += (step >> 2);
+    if (nibble & 4)
+        delta += step;
+    if (nibble & 2)
+        delta += (step >> 1);
+    if (nibble & 1)
+        delta += (step >> 2);
 
     if (nibble & 0x08)
         cur_data.pcmdata[0] -= delta;
@@ -119,7 +165,7 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
     while (inbufsize)
     {
         *outbuf++ = create_pcmdata(*inbuf >> 4) << (PCM_OUTPUT_DEPTH - 12);
-        *outbuf++ = create_pcmdata(*inbuf     ) << (PCM_OUTPUT_DEPTH - 12);
+        *outbuf++ = create_pcmdata(*inbuf) << (PCM_OUTPUT_DEPTH - 12);
         nsamples += 2;
 
         inbuf++;
@@ -137,7 +183,7 @@ static int decode_for_seek(const uint8_t *inbuf, size_t inbufsize)
     while (inbufsize)
     {
         create_pcmdata(*inbuf >> 4);
-        create_pcmdata(*inbuf     );
+        create_pcmdata(*inbuf);
 
         inbuf++;
         inbufsize--;
@@ -152,22 +198,19 @@ static struct pcm_pos *get_seek_pos(uint32_t seek_val, int seek_mode,
                                     uint8_t *(*read_buffer)(size_t *realsize))
 {
     static struct pcm_pos newpos;
-    uint32_t seek_count = (seek_mode == PCM_SEEK_TIME)?
-                          ((uint64_t)seek_val * ci->id3->frequency / 1000LL)
-                                              / (blocksperchunk * fmt->samplesperblock) :
-                          seek_val / (unsigned long)fmt->chunksize;
-    uint32_t new_count  = seek(seek_count, &cur_data, read_buffer, &decode_for_seek);
+    uint32_t seek_count = (seek_mode == PCM_SEEK_TIME) ? ((uint64_t)seek_val * ci->id3->frequency / 1000LL) / (blocksperchunk * fmt->samplesperblock) : seek_val / (unsigned long)fmt->chunksize;
+    uint32_t new_count = seek(seek_count, &cur_data, read_buffer, &decode_for_seek);
 
-    newpos.pos     = new_count * fmt->chunksize;
+    newpos.pos = new_count * fmt->chunksize;
     newpos.samples = new_count * blocksperchunk * fmt->samplesperblock;
     return &newpos;
 }
 
 static const struct pcm_codec codec = {
-                                          set_format,
-                                          get_seek_pos,
-                                          decode,
-                                      };
+    set_format,
+    get_seek_pos,
+    decode,
+};
 
 const struct pcm_codec *get_dialogic_oki_adpcm_codec(void)
 {
@@ -177,7 +220,7 @@ const struct pcm_codec *get_dialogic_oki_adpcm_codec(void)
      * pcmdata[1], step[1] do not use.
      */
     cur_data.pcmdata[0] = 0;
-    cur_data.step[0]    = 0;
+    cur_data.step[0] = 0;
 
     return &codec;
 }

@@ -26,7 +26,7 @@
 #include <tlsf.h>
 #endif
 
-CODEC_HEADER
+// CODEC_HEADER
 
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
 #include <setjmp.h>
@@ -188,7 +188,7 @@ enum codec_status codec_run(void)
          vf.ready_state = OPENED;
          vf.links = 1;
     } else {
-         DEBUGF("Vorbis: ov_open failed: %d\n", error);
+         // DEBUGF("Vorbis: ov_open failed: %d\n", error);
          goto done;
     }
 
@@ -235,7 +235,7 @@ enum codec_status codec_run(void)
         if (n == 0) {
             break;
         } else if (n < 0) {
-            DEBUGF("Vorbis: Error decoding frame\n");
+            // DEBUGF("Vorbis: Error decoding frame\n");
         } else {
             ci->pcmbuf_insert(pcm[0], pcm[1], n);
             ci->set_offset(ov_raw_tell(&vf));

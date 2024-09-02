@@ -261,7 +261,7 @@ int set_tta_info (tta_info *info)
 
     /* check for TTA3 signature */
     if (ENDSWAP_INT32(ttahdr.TTAid) != TTA1_SIGN) {
-        DEBUGF("ID error: %x\n", ENDSWAP_INT32(ttahdr.TTAid));
+        // DEBUGF("ID error: %x\n", ENDSWAP_INT32(ttahdr.TTAid));
         info->STATE = FORMAT_ERROR;
         return -1;
     }
@@ -270,7 +270,7 @@ int set_tta_info (tta_info *info)
     checksum = crc32((unsigned char *) &ttahdr,
     sizeof(tta_hdr) - sizeof(int));
     if (checksum != ttahdr.CRC32) {
-        DEBUGF("CRC error: %x != %x\n", ttahdr.CRC32, checksum);
+        // DEBUGF("CRC error: %x != %x\n", ttahdr.CRC32, checksum);
         info->STATE = FILE_ERROR;
         return -1;
     }
@@ -295,8 +295,8 @@ int set_tta_info (tta_info *info)
         ttahdr.SampleRate != 88200 &&
         ttahdr.SampleRate != 96000)) {
         info->STATE = FORMAT_ERROR;
-        DEBUGF("illegal audio format: %d channels: %d samplerate: %d\n",
-               ttahdr.AudioFormat, ttahdr.NumChannels, ttahdr.SampleRate);
+        //DEBUGF("illegal audio format: %d channels: %d samplerate: %d\n",
+        //       ttahdr.AudioFormat, ttahdr.NumChannels, ttahdr.SampleRate);
         return -1;
     }
 
@@ -415,7 +415,7 @@ int player_init (tta_info *info) {
      */
     if (fframes > MAX_SEEK_TABLE_SIZE)
     {
-        LOGF("frame is too many: %d > %d", fframes, MAX_SEEK_TABLE_SIZE);
+        // LOGF("frame is too many: %d > %d", fframes, MAX_SEEK_TABLE_SIZE);
         return -1;
     }
 

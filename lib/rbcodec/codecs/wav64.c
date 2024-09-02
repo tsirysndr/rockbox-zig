@@ -22,7 +22,7 @@
 #include "codeclib.h"
 #include "codecs/libpcm/support_formats.h"
 
-CODEC_HEADER
+// CODEC_HEADER
 
 /* Wave64 codec
  *
@@ -30,50 +30,50 @@ CODEC_HEADER
  * [1] VCS Aktiengesellschaft, Sony Wave64, Informations_about_Sony_Wave64.pdf
  */
 
-#define PCM_SAMPLE_SIZE (4096*2)
+#define PCM_SAMPLE_SIZE (4096 * 2)
 
 static int32_t samples[PCM_SAMPLE_SIZE] IBSS_ATTR;
 
 /* Wave64 GUIDs */
 #define WAVE64_GUID_RIFF "riff\x2e\x91\xcf\x11\xa5\xd6\x28\xdb\x04\xc1\x00\x00"
 #define WAVE64_GUID_WAVE "wave\xf3\xac\xd3\x11\x8c\xd1\x00\xc0\x4f\x8e\xdb\x8a"
-#define WAVE64_GUID_FMT  "fmt \xf3\xac\xd3\x11\x8c\xd1\x00\xc0\x4f\x8e\xdb\x8a"
+#define WAVE64_GUID_FMT "fmt \xf3\xac\xd3\x11\x8c\xd1\x00\xc0\x4f\x8e\xdb\x8a"
 #define WAVE64_GUID_FACT "fact\xf3\xac\xd3\x11\x8c\xd1\x00\xc0\x4f\x8e\xdb\x8a"
 #define WAVE64_GUID_DATA "data\xf3\xac\xd3\x11\x8c\xd1\x00\xc0\x4f\x8e\xdb\x8a"
 
 /* This codec support WAVE files with the following formats: */
 enum
 {
-    WAVE_FORMAT_UNKNOWN = 0x0000, /* Microsoft Unknown Wave Format */
-    WAVE_FORMAT_PCM = 0x0001,   /* Microsoft PCM Format */
-    WAVE_FORMAT_ADPCM = 0x0002, /* Microsoft ADPCM Format */
-    WAVE_FORMAT_IEEE_FLOAT = 0x0003, /* IEEE Float */
-    WAVE_FORMAT_ALAW = 0x0006,  /* Microsoft ALAW */
-    WAVE_FORMAT_MULAW = 0x0007, /* Microsoft MULAW */
-    WAVE_FORMAT_DVI_ADPCM = 0x0011, /* Intel's DVI ADPCM */
+    WAVE_FORMAT_UNKNOWN = 0x0000,            /* Microsoft Unknown Wave Format */
+    WAVE_FORMAT_PCM = 0x0001,                /* Microsoft PCM Format */
+    WAVE_FORMAT_ADPCM = 0x0002,              /* Microsoft ADPCM Format */
+    WAVE_FORMAT_IEEE_FLOAT = 0x0003,         /* IEEE Float */
+    WAVE_FORMAT_ALAW = 0x0006,               /* Microsoft ALAW */
+    WAVE_FORMAT_MULAW = 0x0007,              /* Microsoft MULAW */
+    WAVE_FORMAT_DVI_ADPCM = 0x0011,          /* Intel's DVI ADPCM */
     WAVE_FORMAT_DIALOGIC_OKI_ADPCM = 0x0017, /* Dialogic OKI ADPCM */
-    WAVE_FORMAT_YAMAHA_ADPCM = 0x0020, /* Yamaha ADPCM */
-    WAVE_FORMAT_XBOX_ADPCM = 0x0069, /* XBOX ADPCM */
-    IBM_FORMAT_MULAW = 0x0101,  /* same as WAVE_FORMAT_MULAW */
-    IBM_FORMAT_ALAW = 0x0102,   /* same as WAVE_FORMAT_ALAW */
-    WAVE_FORMAT_SWF_ADPCM = 0x5346, /* Adobe SWF ADPCM */
+    WAVE_FORMAT_YAMAHA_ADPCM = 0x0020,       /* Yamaha ADPCM */
+    WAVE_FORMAT_XBOX_ADPCM = 0x0069,         /* XBOX ADPCM */
+    IBM_FORMAT_MULAW = 0x0101,               /* same as WAVE_FORMAT_MULAW */
+    IBM_FORMAT_ALAW = 0x0102,                /* same as WAVE_FORMAT_ALAW */
+    WAVE_FORMAT_SWF_ADPCM = 0x5346,          /* Adobe SWF ADPCM */
     WAVE_FORMAT_EXTENSIBLE = 0xFFFE
 };
 
 static const struct pcm_entry wave_codecs[] = {
-    { WAVE_FORMAT_UNKNOWN,            0                            },
-    { WAVE_FORMAT_PCM,                get_linear_pcm_codec         },
-    { WAVE_FORMAT_ADPCM,              get_ms_adpcm_codec           },
-    { WAVE_FORMAT_IEEE_FLOAT,         get_ieee_float_codec         },
-    { WAVE_FORMAT_ALAW,               get_itut_g711_alaw_codec     },
-    { WAVE_FORMAT_MULAW,              get_itut_g711_mulaw_codec    },
-    { WAVE_FORMAT_DVI_ADPCM,          get_dvi_adpcm_codec          },
-    { WAVE_FORMAT_DIALOGIC_OKI_ADPCM, get_dialogic_oki_adpcm_codec },
-    { WAVE_FORMAT_YAMAHA_ADPCM,       get_yamaha_adpcm_codec       },
-    { WAVE_FORMAT_XBOX_ADPCM,         get_dvi_adpcm_codec          },
-    { IBM_FORMAT_MULAW,               get_itut_g711_mulaw_codec    },
-    { IBM_FORMAT_ALAW,                get_itut_g711_alaw_codec     },
-    { WAVE_FORMAT_SWF_ADPCM,          get_swf_adpcm_codec          },
+    {WAVE_FORMAT_UNKNOWN, 0},
+    {WAVE_FORMAT_PCM, get_linear_pcm_codec},
+    {WAVE_FORMAT_ADPCM, get_ms_adpcm_codec},
+    {WAVE_FORMAT_IEEE_FLOAT, get_ieee_float_codec},
+    {WAVE_FORMAT_ALAW, get_itut_g711_alaw_codec},
+    {WAVE_FORMAT_MULAW, get_itut_g711_mulaw_codec},
+    {WAVE_FORMAT_DVI_ADPCM, get_dvi_adpcm_codec},
+    {WAVE_FORMAT_DIALOGIC_OKI_ADPCM, get_dialogic_oki_adpcm_codec},
+    {WAVE_FORMAT_YAMAHA_ADPCM, get_yamaha_adpcm_codec},
+    {WAVE_FORMAT_XBOX_ADPCM, get_dvi_adpcm_codec},
+    {IBM_FORMAT_MULAW, get_itut_g711_mulaw_codec},
+    {IBM_FORMAT_ALAW, get_itut_g711_alaw_codec},
+    {WAVE_FORMAT_SWF_ADPCM, get_swf_adpcm_codec},
 };
 
 #define NUM_FORMATS 13
@@ -98,12 +98,12 @@ static struct libpcm_pcm_format format;
 static uint32_t bytesdone;
 
 /* Read an unaligned 64-bit little endian unsigned integer from buffer. */
-static uint64_t get_uint64_le(void* buf)
+static uint64_t get_uint64_le(void *buf)
 {
-    unsigned char* p = (unsigned char*) buf;
+    unsigned char *p = (unsigned char *)buf;
 
-    return p[0] | (p[1] << 8)  | (p[2] << 16) | (p[3] << 24) | ((uint64_t)p[4] << 32) |
-                  ((uint64_t)p[5] << 40) | ((uint64_t)p[6] << 48) | ((uint64_t)p[7] << 56);
+    return p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24) | ((uint64_t)p[4] << 32) |
+           ((uint64_t)p[5] << 40) | ((uint64_t)p[6] << 48) | ((uint64_t)p[7] << 56);
 }
 
 static bool set_msadpcm_coeffs(unsigned char *buf)
@@ -116,7 +116,7 @@ static bool set_msadpcm_coeffs(unsigned char *buf)
     size = get_uint64_le(buf);
     if (size < 50)
     {
-        DEBUGF("CODEC_ERROR: microsoft adpcm 'fmt ' chunk size=%d < 50\n", (int)size);
+        // DEBUGF("CODEC_ERROR: microsoft adpcm 'fmt ' chunk size=%d < 50\n", (int)size);
         return false;
     }
 
@@ -132,7 +132,7 @@ static bool set_msadpcm_coeffs(unsigned char *buf)
      */
     if (num != MSADPCM_NUM_COEFF)
     {
-        DEBUGF("CODEC_ERROR: microsoft adpcm nNumCoef=%d != 7\n", num);
+        // DEBUGF("CODEC_ERROR: microsoft adpcm nNumCoef=%d != 7\n", num);
         return false;
     }
 
@@ -161,9 +161,10 @@ static uint8_t *read_buffer(size_t *realsize)
 /* this is the codec entry point */
 enum codec_status codec_main(enum codec_entry_call_reason reason)
 {
-    if (reason == CODEC_LOAD) {
+    if (reason == CODEC_LOAD)
+    {
         /* Generic codec initialisation */
-        ci->configure(DSP_SET_SAMPLE_DEPTH, PCM_OUTPUT_DEPTH-1);
+        ci->configure(DSP_SET_SAMPLE_DEPTH, PCM_OUTPUT_DEPTH - 1);
     }
 
     return CODEC_OK;
@@ -178,18 +179,19 @@ enum codec_status codec_run(void)
     int endofstream;
     unsigned char *buf;
     uint8_t *wavbuf;
-    off_t firstblockposn;     /* position of the first block in file */
+    off_t firstblockposn; /* position of the first block in file */
     const struct pcm_codec *codec;
     uint64_t size;
     intptr_t param;
 
-    if (codec_init()) {
-        DEBUGF("codec_init() error\n");
+    if (codec_init())
+    {
+        // DEBUGF("codec_init() error\n");
         return CODEC_ERROR;
     }
 
     codec_set_replaygain(ci->id3);
-    
+
     /* Need to save offset for later use (cleared indirectly by advance_buffer) */
     param = ci->id3->elapsed;
     bytesdone = ci->id3->offset;
@@ -197,12 +199,13 @@ enum codec_status codec_run(void)
     /* get RIFF chunk header */
     ci->seek_buffer(0);
     buf = ci->request_buffer(&n, 40);
-    if (n < 40) {
-        DEBUGF("request_buffer error\n");
+    if (n < 40)
+    {
+        // DEBUGF("request_buffer error\n");
         return CODEC_ERROR;
     }
-    if ((memcmp(buf   , WAVE64_GUID_RIFF, 16) != 0) ||
-        (memcmp(buf+24, WAVE64_GUID_WAVE, 16) != 0))
+    if ((memcmp(buf, WAVE64_GUID_RIFF, 16) != 0) ||
+        (memcmp(buf + 24, WAVE64_GUID_WAVE, 16) != 0))
     {
         return CODEC_ERROR;
     }
@@ -219,56 +222,64 @@ enum codec_status codec_run(void)
     codec = 0;
 
     /* iterate over WAVE chunks until the 'data' chunk, which should be after the 'fmt ' chunk */
-    while (true) {
+    while (true)
+    {
         /* get WAVE chunk header */
         buf = ci->request_buffer(&n, 1024);
-        if (n < 8) {
-            DEBUGF("data chunk request_buffer error\n");
+        if (n < 8)
+        {
+            // DEBUGF("data chunk request_buffer error\n");
             /* no more chunks, 'data' chunk must not have been found */
             return CODEC_ERROR;
         }
 
         /* chunkSize */
-        size = get_uint64_le(buf+16) - 24;
-        if (memcmp(buf, WAVE64_GUID_FMT, 16) == 0) {
-            if (size < 16) {
-                DEBUGF("CODEC_ERROR: 'fmt ' chunk size=%d < 16\n", (int)size);
+        size = get_uint64_le(buf + 16) - 24;
+        if (memcmp(buf, WAVE64_GUID_FMT, 16) == 0)
+        {
+            if (size < 16)
+            {
+                // DEBUGF("CODEC_ERROR: 'fmt ' chunk size=%d < 16\n", (int)size);
                 return CODEC_ERROR;
             }
             /* wFormatTag */
-            format.formattag=buf[24]|(buf[25]<<8);
+            format.formattag = buf[24] | (buf[25] << 8);
             /* wChannels */
-            format.channels=buf[26]|(buf[27]<<8);
+            format.channels = buf[26] | (buf[27] << 8);
             /* skipping dwSamplesPerSec */
             /* skipping dwAvgBytesPerSec */
             /* wBlockAlign */
-            format.blockalign=buf[36]|(buf[37]<<8);
+            format.blockalign = buf[36] | (buf[37] << 8);
             /* wBitsPerSample */
-            format.bitspersample=buf[38]|(buf[39]<<8);
-            if (format.formattag != WAVE_FORMAT_PCM) {
-                if (size < 18) {
+            format.bitspersample = buf[38] | (buf[39] << 8);
+            if (format.formattag != WAVE_FORMAT_PCM)
+            {
+                if (size < 18)
+                {
                     /* this is not a fatal error with some formats,
                      * we'll see later if we can't decode it */
-                    DEBUGF("CODEC_WARNING: non-PCM WAVE (formattag=0x%x) "
-                           "doesn't have ext. fmt descr (chunksize=%d<18).\n",
-                           (unsigned int)format.formattag, (int)size);
+                    // DEBUGF("CODEC_WARNING: non-PCM WAVE (formattag=0x%x) "
+                    //        "doesn't have ext. fmt descr (chunksize=%d<18).\n",
+                    //        (unsigned int)format.formattag, (int)size);
                 }
                 else
                 {
                     if (format.formattag != WAVE_FORMAT_EXTENSIBLE)
-                        format.samplesperblock = buf[42]|(buf[43]<<8);
-                    else {
-                        format.size = buf[40]|(buf[41]<<8);
-                        if (format.size < 22) {
-                            DEBUGF("CODEC_ERROR: WAVE_FORMAT_EXTENSIBLE is "
-                                   "missing extension\n");
+                        format.samplesperblock = buf[42] | (buf[43] << 8);
+                    else
+                    {
+                        format.size = buf[40] | (buf[41] << 8);
+                        if (format.size < 22)
+                        {
+                            // DEBUGF("CODEC_ERROR: WAVE_FORMAT_EXTENSIBLE is "
+                            //        "missing extension\n");
                             return CODEC_ERROR;
                         }
                         /* wValidBitsPerSample */
-                        format.bitspersample = buf[42]|(buf[43]<<8);
+                        format.bitspersample = buf[42] | (buf[43] << 8);
                         /* skipping dwChannelMask (4bytes) */
                         /* SubFormat (only get the first two bytes) */
-                        format.formattag = buf[48]|(buf[49]<<8);
+                        format.formattag = buf[48] | (buf[49] << 8);
                     }
                 }
             }
@@ -284,8 +295,8 @@ enum codec_status codec_run(void)
             codec = get_wave_codec(format.formattag);
             if (!codec)
             {
-                DEBUGF("CODEC_ERROR: unsupported wave format 0x%x\n", 
-                    (unsigned int) format.formattag);
+                // DEBUGF("CODEC_ERROR: unsupported wave format 0x%x\n",
+                //        (unsigned int)format.formattag);
                 return CODEC_ERROR;
             }
 
@@ -296,19 +307,25 @@ enum codec_status codec_run(void)
             /* check format, and calculate chunk size */
             if (!codec->set_format(&format))
                 return CODEC_ERROR;
-        } else if (memcmp(buf, WAVE64_GUID_DATA, 16) == 0) {
+        }
+        else if (memcmp(buf, WAVE64_GUID_DATA, 16) == 0)
+        {
             format.numbytes = size;
             /* advance to start of data */
             ci->advance_buffer(24);
             firstblockposn += 24;
             break;
-        } else if (memcmp(buf, WAVE64_GUID_FACT, 16) == 0) {
+        }
+        else if (memcmp(buf, WAVE64_GUID_FACT, 16) == 0)
+        {
             /* skip 'fact' chunk */
-        } else {
-            DEBUGF("unknown Wave64 chunk: "
-                   "'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x'\n",
-                   buf[0], buf[1], buf[ 2], buf[ 3], buf[ 4], buf[ 5], buf[ 6], buf[ 7],
-                   buf[8], buf[9], buf[10], buf[11], buf[12], buf[13], buf[14], buf[15]);
+        }
+        else
+        {
+            // DEBUGF("unknown Wave64 chunk: "
+            //        "'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x'\n",
+            //        buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7],
+            //        buf[8], buf[9], buf[10], buf[11], buf[12], buf[13], buf[14], buf[15]);
         }
 
         /* go to next chunk (8byte bound) */
@@ -320,59 +337,70 @@ enum codec_status codec_run(void)
 
     if (!codec)
     {
-        DEBUGF("CODEC_ERROR: 'fmt ' chunk not found\n");
+        // DEBUGF("CODEC_ERROR: 'fmt ' chunk not found\n");
         return CODEC_ERROR;
     }
 
     /* common format check */
-    if (format.channels == 0) {
-        DEBUGF("CODEC_ERROR: 'fmt ' chunk not found or 0-channels file\n");
+    if (format.channels == 0)
+    {
+        // DEBUGF("CODEC_ERROR: 'fmt ' chunk not found or 0-channels file\n");
         return CODEC_ERROR;
     }
-    if (format.samplesperblock == 0) {
-        DEBUGF("CODEC_ERROR: 'fmt ' chunk not found or 0-wSamplesPerBlock file\n");
+    if (format.samplesperblock == 0)
+    {
+        // DEBUGF("CODEC_ERROR: 'fmt ' chunk not found or 0-wSamplesPerBlock file\n");
         return CODEC_ERROR;
     }
     if (format.blockalign == 0)
     {
-        DEBUGF("CODEC_ERROR: 'fmt ' chunk not found or 0-blockalign file\n");
+        // DEBUGF("CODEC_ERROR: 'fmt ' chunk not found or 0-blockalign file\n");
         return CODEC_ERROR;
     }
-    if (format.numbytes == 0) {
-        DEBUGF("CODEC_ERROR: 'data' chunk not found or has zero-length\n");
+    if (format.numbytes == 0)
+    {
+        // DEBUGF("CODEC_ERROR: 'data' chunk not found or has zero-length\n");
         return CODEC_ERROR;
     }
 
     /* check chunksize */
-    if ((format.chunksize / format.blockalign) * format.samplesperblock * format.channels
-           > PCM_SAMPLE_SIZE)
+    if ((format.chunksize / format.blockalign) * format.samplesperblock * format.channels > PCM_SAMPLE_SIZE)
         format.chunksize = (PCM_SAMPLE_SIZE / format.blockalign) * format.blockalign;
     if (format.chunksize == 0)
     {
-        DEBUGF("CODEC_ERROR: chunksize is 0\n");
+        // DEBUGF("CODEC_ERROR: chunksize is 0\n");
         return CODEC_ERROR;
     }
 
     ci->configure(DSP_SET_FREQUENCY, ci->id3->frequency);
-    if (format.channels == 2) {
+    if (format.channels == 2)
+    {
         ci->configure(DSP_SET_STEREO_MODE, STEREO_INTERLEAVED);
-    } else if (format.channels == 1) {
+    }
+    else if (format.channels == 1)
+    {
         ci->configure(DSP_SET_STEREO_MODE, STEREO_MONO);
-    } else {
-        DEBUGF("CODEC_ERROR: more than 2 channels\n");
+    }
+    else
+    {
+        // DEBUGF("CODEC_ERROR: more than 2 channels\n");
         return CODEC_ERROR;
     }
 
     /* make sure we're at the correct offset */
-    if (bytesdone > (uint32_t) firstblockposn || param) {
+    if (bytesdone > (uint32_t)firstblockposn || param)
+    {
         uint32_t seek_val;
         int seek_mode;
 
         /* we prefer offset resume */
-        if (bytesdone > (uint32_t) firstblockposn) {
+        if (bytesdone > (uint32_t)firstblockposn)
+        {
             seek_val = bytesdone - firstblockposn;
             seek_mode = PCM_SEEK_POS;
-        } else {
+        }
+        else
+        {
             seek_val = param;
             seek_mode = PCM_SEEK_TIME;
         }
@@ -381,31 +409,36 @@ enum codec_status codec_run(void)
         struct pcm_pos *newpos = codec->get_seek_pos(seek_val, seek_mode,
                                                      &read_buffer);
 
-        if (newpos->pos > format.numbytes) {
+        if (newpos->pos > format.numbytes)
+        {
             return CODEC_OK;
         }
         if (ci->seek_buffer(firstblockposn + newpos->pos))
         {
-            bytesdone      = newpos->pos;
+            bytesdone = newpos->pos;
             decodedsamples = newpos->samples;
         }
-    } else {
+    }
+    else
+    {
         /* already where we need to be */
         bytesdone = 0;
     }
 
-    ci->set_elapsed(decodedsamples*1000LL/ci->id3->frequency);
+    ci->set_elapsed(decodedsamples * 1000LL / ci->id3->frequency);
 
     /* The main decoder loop */
     endofstream = 0;
 
-    while (!endofstream) {
+    while (!endofstream)
+    {
         long action = ci->get_command(&param);
 
         if (action == CODEC_ACTION_HALT)
             break;
 
-        if (action == CODEC_ACTION_SEEK_TIME) {
+        if (action == CODEC_ACTION_SEEK_TIME)
+        {
             struct pcm_pos *newpos = codec->get_seek_pos(param, PCM_SEEK_TIME,
                                                          &read_buffer);
 
@@ -418,25 +451,26 @@ enum codec_status codec_run(void)
 
             if (ci->seek_buffer(firstblockposn + newpos->pos))
             {
-                bytesdone      = newpos->pos;
+                bytesdone = newpos->pos;
                 decodedsamples = newpos->samples;
             }
 
-            ci->set_elapsed(decodedsamples*1000LL/ci->id3->frequency);
+            ci->set_elapsed(decodedsamples * 1000LL / ci->id3->frequency);
             ci->seek_complete();
         }
 
         wavbuf = (uint8_t *)ci->request_buffer(&n, format.chunksize);
         if (n == 0)
             break; /* End of stream */
-        if (bytesdone + n > format.numbytes) {
+        if (bytesdone + n > format.numbytes)
+        {
             n = format.numbytes - bytesdone;
             endofstream = 1;
         }
 
         if (codec->decode(wavbuf, n, samples, &bufcount) == CODEC_ERROR)
         {
-            DEBUGF("codec error\n");
+            // DEBUGF("codec error\n");
             return CODEC_ERROR;
         }
 
@@ -447,7 +481,7 @@ enum codec_status codec_run(void)
 
         if (bytesdone >= format.numbytes)
             endofstream = 1;
-        ci->set_elapsed(decodedsamples*1000LL/ci->id3->frequency);
+        ci->set_elapsed(decodedsamples * 1000LL / ci->id3->frequency);
     }
 
     return CODEC_OK;

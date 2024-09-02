@@ -22,7 +22,7 @@
 #include "codeclib.h"
 #include "codecs/libtta/ttalib.h"
 
-CODEC_HEADER
+// CODEC_HEADER
 
 /*
  * TTA (True Audio) codec:
@@ -36,7 +36,8 @@ static int32_t samples[PCM_BUFFER_LENGTH * 2] IBSS_ATTR;
 /* this is the codec entry point */
 enum codec_status codec_main(enum codec_entry_call_reason reason)
 {
-    if (reason == CODEC_LOAD) {
+    if (reason == CODEC_LOAD)
+    {
         /* Generic codec initialisation */
         ci->configure(DSP_SET_SAMPLE_DEPTH, TTA_OUTPUT_DEPTH - 1);
     }
@@ -53,10 +54,10 @@ enum codec_status codec_run(void)
     int new_pos = 0;
     int sample_count;
     intptr_t param;
-  
+
     if (codec_init())
     {
-        DEBUGF("codec_init() error\n");
+        // DEBUGF("codec_init() error\n");
         return CODEC_ERROR;
     }
 
@@ -68,12 +69,17 @@ enum codec_status codec_run(void)
     codec_set_replaygain(ci->id3);
 
     ci->configure(DSP_SET_FREQUENCY, ci->id3->frequency);
-    if (info.NCH == 2) {
+    if (info.NCH == 2)
+    {
         ci->configure(DSP_SET_STEREO_MODE, STEREO_INTERLEAVED);
-    } else if (info.NCH == 1) {
+    }
+    else if (info.NCH == 1)
+    {
         ci->configure(DSP_SET_STEREO_MODE, STEREO_MONO);
-    } else {
-        DEBUGF("CODEC_ERROR: more than 2 channels\n");
+    }
+    else
+    {
+        // DEBUGF("CODEC_ERROR: more than 2 channels\n");
         player_stop();
         return CODEC_ERROR;
     }
@@ -89,7 +95,8 @@ enum codec_status codec_run(void)
         unsigned int pos = ci->id3->offset;
         enum tta_seek_type type = TTA_SEEK_POS;
 
-        if (!pos) {
+        if (!pos)
+        {
             pos = ci->id3->elapsed / SEEK_STEP;
             type = TTA_SEEK_TIME;
         }
@@ -124,7 +131,7 @@ enum codec_status codec_run(void)
         sample_count = get_samples(samples);
         if (sample_count < 0)
             break;
- 
+
         ci->pcmbuf_insert(samples, NULL, sample_count);
         decodedsamples += sample_count;
         if (decodedsamples >= info.DATALENGTH)

@@ -68,8 +68,7 @@
  */
 
 static const int32_t amplification_table[] ICONST_ATTR = {
-    230, 230, 230, 230, 307, 409, 512, 614, 230, 230, 230, 230, 307, 409, 512, 614
-};
+    230, 230, 230, 230, 307, 409, 512, 614, 230, 230, 230, 230, 307, 409, 512, 614};
 
 static bool has_block_header = false;
 
@@ -84,14 +83,14 @@ static bool set_format(struct libpcm_pcm_format *format)
 
     if (fmt->channels == 0)
     {
-        DEBUGF("CODEC_ERROR: channels is 0\n");
+        // DEBUGF("CODEC_ERROR: channels is 0\n");
         return false;
     }
 
     if (fmt->bitspersample != 4)
     {
-        DEBUGF("CODEC_ERROR: yamaha adpcm must be 4 bitspersample: %d\n",
-                             fmt->bitspersample);
+        // DEBUGF("CODEC_ERROR: yamaha adpcm must be 4 bitspersample: %d\n",
+        //                     fmt->bitspersample);
         return false;
     }
 
@@ -118,8 +117,7 @@ static bool set_format(struct libpcm_pcm_format *format)
         blocksperchunk = ci->id3->frequency >> 6;
         fmt->chunksize = blocksperchunk * fmt->blockalign;
 
-        max_chunk_count = (uint64_t)ci->id3->length * ci->id3->frequency
-                                      / (2000LL * fmt->chunksize / fmt->channels);
+        max_chunk_count = (uint64_t)ci->id3->length * ci->id3->frequency / (2000LL * fmt->chunksize / fmt->channels);
 
         /* initialize seek table */
         init_seek_table(max_chunk_count);
@@ -133,12 +131,15 @@ static bool set_format(struct libpcm_pcm_format *format)
 static int16_t create_pcmdata(int ch, uint8_t nibble)
 {
     int32_t tmp_pcmdata = cur_data.pcmdata[ch];
-    int32_t step        = cur_data.step[ch];
-    int32_t delta       = step >> 3;
+    int32_t step = cur_data.step[ch];
+    int32_t delta = step >> 3;
 
-    if (nibble & 4) delta += step;
-    if (nibble & 2) delta += (step >> 1);
-    if (nibble & 1) delta += (step >> 2);
+    if (nibble & 4)
+        delta += step;
+    if (nibble & 2)
+        delta += (step >> 1);
+    if (nibble & 1)
+        delta += (step >> 2);
 
     if (nibble & 0x08)
         tmp_pcmdata -= delta;
@@ -167,7 +168,7 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
         for (ch = 0; ch < fmt->channels; ch++)
         {
             cur_data.pcmdata[ch] = inbuf[0] | (SE(inbuf[1]) << 8);
-            cur_data.step[ch]    = inbuf[2] | (inbuf[3] << 8);
+            cur_data.step[ch] = inbuf[2] | (inbuf[3] << 8);
 
             inbuf += 4;
             inbufsize -= 4;
@@ -178,7 +179,7 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
     ch = fmt->channels - 1;
     while (inbufsize)
     {
-        *outbuf++ = create_pcmdata(0,  *inbuf     ) << (PCM_OUTPUT_DEPTH - 16);
+        *outbuf++ = create_pcmdata(0, *inbuf) << (PCM_OUTPUT_DEPTH - 16);
         *outbuf++ = create_pcmdata(ch, *inbuf >> 4) << (PCM_OUTPUT_DEPTH - 16);
         nsamples += 2;
 
@@ -202,7 +203,7 @@ static int decode_for_seek(const uint8_t *inbuf, size_t inbufsize)
 
     while (inbufsize)
     {
-        create_pcmdata(0,  *inbuf     );
+        create_pcmdata(0, *inbuf);
         create_pcmdata(ch, *inbuf >> 4);
 
         inbuf++;
@@ -218,33 +219,30 @@ static struct pcm_pos *get_seek_pos(uint32_t seek_val, int seek_mode,
                                     uint8_t *(*read_buffer)(size_t *realsize))
 {
     static struct pcm_pos newpos;
-    uint32_t new_count = (seek_mode == PCM_SEEK_TIME)?
-                         ((uint64_t)seek_val * ci->id3->frequency / 1000LL)
-                                             / (blocksperchunk * fmt->samplesperblock) :
-                         seek_val / (unsigned long)fmt->chunksize;
+    uint32_t new_count = (seek_mode == PCM_SEEK_TIME) ? ((uint64_t)seek_val * ci->id3->frequency / 1000LL) / (blocksperchunk * fmt->samplesperblock) : seek_val / (unsigned long)fmt->chunksize;
 
     if (!has_block_header)
     {
         new_count = seek(new_count, &cur_data, read_buffer, &decode_for_seek);
     }
-    newpos.pos     = new_count * fmt->chunksize;
+    newpos.pos = new_count * fmt->chunksize;
     newpos.samples = new_count * blocksperchunk * fmt->samplesperblock;
     return &newpos;
 }
 
 static struct pcm_codec codec = {
-                                    set_format,
-                                    get_seek_pos,
-                                    decode,
-                                };
+    set_format,
+    get_seek_pos,
+    decode,
+};
 
 const struct pcm_codec *get_yamaha_adpcm_codec(void)
 {
     /* initialize first step, pcm data */
     cur_data.pcmdata[0] = 0;
     cur_data.pcmdata[1] = 0;
-    cur_data.step[0]    = 127;
-    cur_data.step[1]    = 127;
+    cur_data.step[0] = 127;
+    cur_data.step[1] = 127;
 
     return &codec;
 }

@@ -43,8 +43,8 @@ static bool set_format(struct libpcm_pcm_format *format)
 
     if (fmt->bitspersample < 2 || fmt->bitspersample > 5)
     {
-        DEBUGF("CODEC_ERROR: dvi adpcm must be 2, 3, 4 or 5 bitspersample: %d\n",
-                             fmt->bitspersample);
+        // DEBUGF("CODEC_ERROR: dvi adpcm must be 2, 3, 4 or 5 bitspersample: %d\n",
+        //                     fmt->bitspersample);
         return false;
     }
 
@@ -58,13 +58,10 @@ static struct pcm_pos *get_seek_pos(uint32_t seek_val, int seek_mode,
                                     uint8_t *(*read_buffer)(size_t *realsize))
 {
     static struct pcm_pos newpos;
-    uint32_t newblock = (seek_mode == PCM_SEEK_TIME) ?
-                        ((uint64_t)seek_val * ci->id3->frequency / 1000LL)
-                                            / fmt->samplesperblock :
-                        seek_val / fmt->blockalign;
+    uint32_t newblock = (seek_mode == PCM_SEEK_TIME) ? ((uint64_t)seek_val * ci->id3->frequency / 1000LL) / fmt->samplesperblock : seek_val / fmt->blockalign;
 
     (void)read_buffer;
-    newpos.pos     = newblock * fmt->blockalign;
+    newpos.pos = newblock * fmt->blockalign;
     newpos.samples = newblock * fmt->samplesperblock;
     return &newpos;
 }
@@ -86,7 +83,7 @@ static inline void decode_2bit(const uint8_t **inbuf, size_t inbufsize,
             pcmbuf = *outbuf + ch;
             for (i = 0; i < 4; i++)
             {
-                *pcmbuf = create_pcmdata(ch, **inbuf     ) << IMA_ADPCM_INC_DEPTH;
+                *pcmbuf = create_pcmdata(ch, **inbuf) << IMA_ADPCM_INC_DEPTH;
                 pcmbuf += fmt->channels;
                 *pcmbuf = create_pcmdata(ch, **inbuf >> 2) << IMA_ADPCM_INC_DEPTH;
                 pcmbuf += fmt->channels;
@@ -176,7 +173,7 @@ static inline void decode_4bit(const uint8_t **inbuf, size_t inbufsize,
             pcmbuf = *outbuf + ch;
             for (i = 0; i < 4; i++)
             {
-                *pcmbuf = create_pcmdata_size4(ch, **inbuf     ) << IMA_ADPCM_INC_DEPTH;
+                *pcmbuf = create_pcmdata_size4(ch, **inbuf) << IMA_ADPCM_INC_DEPTH;
                 pcmbuf += fmt->channels;
                 *pcmbuf = create_pcmdata_size4(ch, **inbuf >> 4) << IMA_ADPCM_INC_DEPTH;
                 pcmbuf += fmt->channels;
@@ -272,8 +269,8 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
         init_index[ch] = inbuf[2];
         if (init_index[ch] > 88 || init_index[ch] < 0)
         {
-            DEBUGF("CODEC_ERROR: dvi adpcm illegal step index=%d > 88\n",
-                                 init_index[ch]);
+            // DEBUGF("CODEC_ERROR: dvi adpcm illegal step index=%d > 88\n",
+            //                     init_index[ch]);
             return CODEC_ERROR;
         }
         inbuf += 4;
@@ -297,10 +294,10 @@ static int decode(const uint8_t *inbuf, size_t inbufsize,
 }
 
 static const struct pcm_codec codec = {
-                                          set_format,
-                                          get_seek_pos,
-                                          decode,
-                                      };
+    set_format,
+    get_seek_pos,
+    decode,
+};
 
 const struct pcm_codec *get_dvi_adpcm_codec(void)
 {

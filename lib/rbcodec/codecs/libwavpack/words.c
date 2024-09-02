@@ -29,7 +29,7 @@
 
 //////////////////////////////// local macros /////////////////////////////////
 
-#define LIMIT_ONES 16   // maximum consecutive 1s sent for "div" data
+#define LIMIT_ONES 16 // maximum consecutive 1s sent for "div" data
 
 // these control the time constant "slow_level" which is used for hybrid mode
 // that controls bitrate as a function of residual level (HYBRID_BITRATE).
@@ -37,55 +37,50 @@
 #define SLO ((1 << (SLS - 1)))
 
 // these control the time constant of the 3 median level breakpoints
-#define DIV0 128        // 5/7 of samples
-#define DIV1 64         // 10/49 of samples
-#define DIV2 32         // 20/343 of samples
+#define DIV0 128 // 5/7 of samples
+#define DIV1 64  // 10/49 of samples
+#define DIV2 32  // 20/343 of samples
 
 // this macro retrieves the specified median breakpoint (without frac; min = 1)
-#define GET_MED(med) (((c->median [med]) >> 4) + 1)
+#define GET_MED(med) (((c->median[med]) >> 4) + 1)
 
 // These macros update the specified median breakpoints. Note that the median
 // is incremented when the sample is higher than the median, else decremented.
 // They are designed so that the median will never drop below 1 and the value
 // is essentially stationary if there are 2 increments for every 5 decrements.
 
-#define INC_MED0() (c->median [0] += ((c->median [0] + DIV0) / DIV0) * 5)
-#define DEC_MED0() (c->median [0] -= ((c->median [0] + (DIV0-2)) / DIV0) * 2)
-#define INC_MED1() (c->median [1] += ((c->median [1] + DIV1) / DIV1) * 5)
-#define DEC_MED1() (c->median [1] -= ((c->median [1] + (DIV1-2)) / DIV1) * 2)
-#define INC_MED2() (c->median [2] += ((c->median [2] + DIV2) / DIV2) * 5)
-#define DEC_MED2() (c->median [2] -= ((c->median [2] + (DIV2-2)) / DIV2) * 2)
+#define INC_MED0() (c->median[0] += ((c->median[0] + DIV0) / DIV0) * 5)
+#define DEC_MED0() (c->median[0] -= ((c->median[0] + (DIV0 - 2)) / DIV0) * 2)
+#define INC_MED1() (c->median[1] += ((c->median[1] + DIV1) / DIV1) * 5)
+#define DEC_MED1() (c->median[1] -= ((c->median[1] + (DIV1 - 2)) / DIV1) * 2)
+#define INC_MED2() (c->median[2] += ((c->median[2] + DIV2) / DIV2) * 5)
+#define DEC_MED2() (c->median[2] -= ((c->median[2] + (DIV2 - 2)) / DIV2) * 2)
 
 #define count_bits(av) ( \
- (av) < (1 << 8) ? nbits_table [av] : \
-  ( \
-   (av) < (1L << 16) ? nbits_table [(av) >> 8] + 8 : \
-   ((av) < (1L << 24) ? nbits_table [(av) >> 16] + 16 : nbits_table [(av) >> 24] + 24) \
-  ) \
-)
+    (av) < (1 << 8) ? nbits_table[av] : ((av) < (1L << 16) ? nbits_table[(av) >> 8] + 8 : ((av) < (1L << 24) ? nbits_table[(av) >> 16] + 16 : nbits_table[(av) >> 24] + 24)))
 
 ///////////////////////////// local table storage ////////////////////////////
 
-static const char nbits_table [] ICONST_ATTR = {
-    0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,     // 0 - 15
-    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,     // 16 - 31
-    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,     // 32 - 47
-    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,     // 48 - 63
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,     // 64 - 79
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,     // 80 - 95
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,     // 96 - 111
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,     // 112 - 127
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,     // 128 - 143
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,     // 144 - 159
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,     // 160 - 175
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,     // 176 - 191
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,     // 192 - 207
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,     // 208 - 223
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,     // 224 - 239
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8      // 240 - 255
+static const char nbits_table[] = {
+    0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, // 0 - 15
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, // 16 - 31
+    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, // 32 - 47
+    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, // 48 - 63
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, // 64 - 79
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, // 80 - 95
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, // 96 - 111
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, // 112 - 127
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, // 128 - 143
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, // 144 - 159
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, // 160 - 175
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, // 176 - 191
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, // 192 - 207
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, // 208 - 223
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, // 224 - 239
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8  // 240 - 255
 };
 
-static const uchar log2_table [] = {
+static const uchar log2_table[] = {
     0x00, 0x01, 0x03, 0x04, 0x06, 0x07, 0x09, 0x0a, 0x0b, 0x0d, 0x0e, 0x10, 0x11, 0x12, 0x14, 0x15,
     0x16, 0x18, 0x19, 0x1a, 0x1c, 0x1d, 0x1e, 0x20, 0x21, 0x22, 0x24, 0x25, 0x26, 0x28, 0x29, 0x2a,
     0x2c, 0x2d, 0x2e, 0x2f, 0x31, 0x32, 0x33, 0x34, 0x36, 0x37, 0x38, 0x39, 0x3b, 0x3c, 0x3d, 0x3e,
@@ -101,10 +96,9 @@ static const uchar log2_table [] = {
     0xcf, 0xd0, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd8, 0xd9, 0xda, 0xdb,
     0xdc, 0xdc, 0xdd, 0xde, 0xdf, 0xe0, 0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe4, 0xe5, 0xe6, 0xe7, 0xe7,
     0xe8, 0xe9, 0xea, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xee, 0xef, 0xf0, 0xf1, 0xf1, 0xf2, 0xf3, 0xf4,
-    0xf4, 0xf5, 0xf6, 0xf7, 0xf7, 0xf8, 0xf9, 0xf9, 0xfa, 0xfb, 0xfc, 0xfc, 0xfd, 0xfe, 0xff, 0xff
-};
+    0xf4, 0xf5, 0xf6, 0xf7, 0xf7, 0xf8, 0xf9, 0xf9, 0xfa, 0xfb, 0xfc, 0xfc, 0xfd, 0xfe, 0xff, 0xff};
 
-static const uchar exp2_table [] ICONST_ATTR = {
+static const uchar exp2_table[] = {
     0x00, 0x01, 0x01, 0x02, 0x03, 0x03, 0x04, 0x05, 0x06, 0x06, 0x07, 0x08, 0x08, 0x09, 0x0a, 0x0b,
     0x0b, 0x0c, 0x0d, 0x0e, 0x0e, 0x0f, 0x10, 0x10, 0x11, 0x12, 0x13, 0x13, 0x14, 0x15, 0x16, 0x16,
     0x17, 0x18, 0x19, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1d, 0x1e, 0x1f, 0x20, 0x20, 0x21, 0x22, 0x23,
@@ -120,48 +114,47 @@ static const uchar exp2_table [] ICONST_ATTR = {
     0xaf, 0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xbc, 0xbd, 0xbe, 0xbf, 0xc0,
     0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc8, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf, 0xd0, 0xd2, 0xd3, 0xd4,
     0xd6, 0xd7, 0xd8, 0xd9, 0xdb, 0xdc, 0xdd, 0xde, 0xe0, 0xe1, 0xe2, 0xe4, 0xe5, 0xe6, 0xe8, 0xe9,
-    0xea, 0xec, 0xed, 0xee, 0xf0, 0xf1, 0xf2, 0xf4, 0xf5, 0xf6, 0xf8, 0xf9, 0xfa, 0xfc, 0xfd, 0xff
-};
+    0xea, 0xec, 0xed, 0xee, 0xf0, 0xf1, 0xf2, 0xf4, 0xf5, 0xf6, 0xf8, 0xf9, 0xfa, 0xfc, 0xfd, 0xff};
 
-static const char ones_count_table [] ICONST_ATTR = {
-    0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,5,
-    0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,6,
-    0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,5,
-    0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,7,
-    0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,5,
-    0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,6,
-    0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,5,
-    0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,8
-};
+static const char ones_count_table[] = {
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5,
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 6,
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5,
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 7,
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5,
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 6,
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 5,
+    0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, 0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 8};
 
 ///////////////////////////// executable code ////////////////////////////////
 
-void init_words (WavpackStream *wps)
+void init_words(WavpackStream *wps)
 {
-    CLEAR (wps->w);
+    CLEAR(wps->w);
 }
 
-static int mylog2 (uint32_t avalue);
+static int mylog2(uint32_t avalue);
 
 // Read the median log2 values from the specifed metadata structure, convert
 // them back to 32-bit unsigned values and store them. If length is not
 // exactly correct then we flag and return an error.
 
-int read_entropy_vars (WavpackStream *wps, WavpackMetadata *wpmd)
+int read_entropy_vars(WavpackStream *wps, WavpackMetadata *wpmd)
 {
     uchar *byteptr = wpmd->data;
 
     if (wpmd->byte_length != ((wps->wphdr.flags & MONO_DATA) ? 6 : 12))
         return FALSE;
 
-    wps->w.c [0].median [0] = exp2s (byteptr [0] + (byteptr [1] << 8));
-    wps->w.c [0].median [1] = exp2s (byteptr [2] + (byteptr [3] << 8));
-    wps->w.c [0].median [2] = exp2s (byteptr [4] + (byteptr [5] << 8));
+    wps->w.c[0].median[0] = exp2s(byteptr[0] + (byteptr[1] << 8));
+    wps->w.c[0].median[1] = exp2s(byteptr[2] + (byteptr[3] << 8));
+    wps->w.c[0].median[2] = exp2s(byteptr[4] + (byteptr[5] << 8));
 
-    if (!(wps->wphdr.flags & MONO_DATA)) {
-        wps->w.c [1].median [0] = exp2s (byteptr [6] + (byteptr [7] << 8));
-        wps->w.c [1].median [1] = exp2s (byteptr [8] + (byteptr [9] << 8));
-        wps->w.c [1].median [2] = exp2s (byteptr [10] + (byteptr [11] << 8));
+    if (!(wps->wphdr.flags & MONO_DATA))
+    {
+        wps->w.c[1].median[0] = exp2s(byteptr[6] + (byteptr[7] << 8));
+        wps->w.c[1].median[1] = exp2s(byteptr[8] + (byteptr[9] << 8));
+        wps->w.c[1].median[2] = exp2s(byteptr[10] + (byteptr[11] << 8));
     }
 
     return TRUE;
@@ -173,7 +166,7 @@ int read_entropy_vars (WavpackStream *wps, WavpackMetadata *wpmd)
 // to read the values back because we must compensate for the loss through
 // the log function.
 
-void write_entropy_vars (WavpackStream *wps, WavpackMetadata *wpmd)
+void write_entropy_vars(WavpackStream *wps, WavpackMetadata *wpmd)
 {
     uchar *byteptr;
     int temp;
@@ -181,24 +174,25 @@ void write_entropy_vars (WavpackStream *wps, WavpackMetadata *wpmd)
     byteptr = wpmd->data = wpmd->temp_data;
     wpmd->id = ID_ENTROPY_VARS;
 
-    *byteptr++ = temp = mylog2 (wps->w.c [0].median [0]);
+    *byteptr++ = temp = mylog2(wps->w.c[0].median[0]);
     *byteptr++ = temp >> 8;
-    *byteptr++ = temp = mylog2 (wps->w.c [0].median [1]);
+    *byteptr++ = temp = mylog2(wps->w.c[0].median[1]);
     *byteptr++ = temp >> 8;
-    *byteptr++ = temp = mylog2 (wps->w.c [0].median [2]);
+    *byteptr++ = temp = mylog2(wps->w.c[0].median[2]);
     *byteptr++ = temp >> 8;
 
-    if (!(wps->wphdr.flags & MONO_FLAG)) {
-        *byteptr++ = temp = mylog2 (wps->w.c [1].median [0]);
+    if (!(wps->wphdr.flags & MONO_FLAG))
+    {
+        *byteptr++ = temp = mylog2(wps->w.c[1].median[0]);
         *byteptr++ = temp >> 8;
-        *byteptr++ = temp = mylog2 (wps->w.c [1].median [1]);
+        *byteptr++ = temp = mylog2(wps->w.c[1].median[1]);
         *byteptr++ = temp >> 8;
-        *byteptr++ = temp = mylog2 (wps->w.c [1].median [2]);
+        *byteptr++ = temp = mylog2(wps->w.c[1].median[2]);
         *byteptr++ = temp >> 8;
     }
 
-    wpmd->byte_length = byteptr - (uchar *) wpmd->data;
-    read_entropy_vars (wps, wpmd);
+    wpmd->byte_length = byteptr - (uchar *)wpmd->data;
+    read_entropy_vars(wps, wpmd);
 }
 
 // Read the hybrid related values from the specifed metadata structure, convert
@@ -206,35 +200,40 @@ void write_entropy_vars (WavpackStream *wps, WavpackMetadata *wpmd)
 // stuff is not implemented yet, so return an error if we get more data than
 // we know what to do with.
 
-int read_hybrid_profile (WavpackStream *wps, WavpackMetadata *wpmd)
+int read_hybrid_profile(WavpackStream *wps, WavpackMetadata *wpmd)
 {
     uchar *byteptr = wpmd->data;
     uchar *endptr = byteptr + wpmd->byte_length;
 
-    if (wps->wphdr.flags & HYBRID_BITRATE) {
-        wps->w.c [0].slow_level = exp2s (byteptr [0] + (byteptr [1] << 8));
+    if (wps->wphdr.flags & HYBRID_BITRATE)
+    {
+        wps->w.c[0].slow_level = exp2s(byteptr[0] + (byteptr[1] << 8));
         byteptr += 2;
 
-        if (!(wps->wphdr.flags & MONO_DATA)) {
-            wps->w.c [1].slow_level = exp2s (byteptr [0] + (byteptr [1] << 8));
+        if (!(wps->wphdr.flags & MONO_DATA))
+        {
+            wps->w.c[1].slow_level = exp2s(byteptr[0] + (byteptr[1] << 8));
             byteptr += 2;
         }
     }
 
-    wps->w.bitrate_acc [0] = (int32_t)(byteptr [0] + (byteptr [1] << 8)) << 16;
+    wps->w.bitrate_acc[0] = (int32_t)(byteptr[0] + (byteptr[1] << 8)) << 16;
     byteptr += 2;
 
-    if (!(wps->wphdr.flags & MONO_DATA)) {
-        wps->w.bitrate_acc [1] = (int32_t)(byteptr [0] + (byteptr [1] << 8)) << 16;
+    if (!(wps->wphdr.flags & MONO_DATA))
+    {
+        wps->w.bitrate_acc[1] = (int32_t)(byteptr[0] + (byteptr[1] << 8)) << 16;
         byteptr += 2;
     }
 
-    if (byteptr < endptr) {
-        wps->w.bitrate_delta [0] = exp2s ((short)(byteptr [0] + (byteptr [1] << 8)));
+    if (byteptr < endptr)
+    {
+        wps->w.bitrate_delta[0] = exp2s((short)(byteptr[0] + (byteptr[1] << 8)));
         byteptr += 2;
 
-        if (!(wps->wphdr.flags & MONO_DATA)) {
-            wps->w.bitrate_delta [1] = exp2s ((short)(byteptr [0] + (byteptr [1] << 8)));
+        if (!(wps->wphdr.flags & MONO_DATA))
+        {
+            wps->w.bitrate_delta[1] = exp2s((short)(byteptr[0] + (byteptr[1] << 8)));
             byteptr += 2;
         }
 
@@ -242,7 +241,7 @@ int read_hybrid_profile (WavpackStream *wps, WavpackMetadata *wpmd)
             return FALSE;
     }
     else
-        wps->w.bitrate_delta [0] = wps->w.bitrate_delta [1] = 0;
+        wps->w.bitrate_delta[0] = wps->w.bitrate_delta[1] = 0;
 
     return TRUE;
 }
@@ -253,64 +252,73 @@ int read_hybrid_profile (WavpackStream *wps, WavpackMetadata *wpmd)
 // currently implemented) this is calculated from the slow_level values and the
 // bitrate accumulators. Note that the bitrate accumulators can be changing.
 
-static void update_error_limit (struct words_data *w, uint32_t flags)
+static void update_error_limit(struct words_data *w, uint32_t flags)
 {
-    int bitrate_0 = (w->bitrate_acc [0] += w->bitrate_delta [0]) >> 16;
+    int bitrate_0 = (w->bitrate_acc[0] += w->bitrate_delta[0]) >> 16;
 
-    if (flags & MONO_DATA) {
-        if (flags & HYBRID_BITRATE) {
-            int slow_log_0 = (w->c [0].slow_level + SLO) >> SLS;
+    if (flags & MONO_DATA)
+    {
+        if (flags & HYBRID_BITRATE)
+        {
+            int slow_log_0 = (w->c[0].slow_level + SLO) >> SLS;
 
             if (slow_log_0 - bitrate_0 > -0x100)
-                w->c [0].error_limit = exp2s (slow_log_0 - bitrate_0 + 0x100);
+                w->c[0].error_limit = exp2s(slow_log_0 - bitrate_0 + 0x100);
             else
-                w->c [0].error_limit = 0;
+                w->c[0].error_limit = 0;
         }
         else
-            w->c [0].error_limit = exp2s (bitrate_0);
+            w->c[0].error_limit = exp2s(bitrate_0);
     }
-    else {
-        int bitrate_1 = (w->bitrate_acc [1] += w->bitrate_delta [1]) >> 16;
+    else
+    {
+        int bitrate_1 = (w->bitrate_acc[1] += w->bitrate_delta[1]) >> 16;
 
-        if (flags & HYBRID_BITRATE) {
-            int slow_log_0 = (w->c [0].slow_level + SLO) >> SLS;
-            int slow_log_1 = (w->c [1].slow_level + SLO) >> SLS;
+        if (flags & HYBRID_BITRATE)
+        {
+            int slow_log_0 = (w->c[0].slow_level + SLO) >> SLS;
+            int slow_log_1 = (w->c[1].slow_level + SLO) >> SLS;
 
-            if (flags & HYBRID_BALANCE) {
+            if (flags & HYBRID_BALANCE)
+            {
                 int balance = (slow_log_1 - slow_log_0 + bitrate_1 + 1) >> 1;
 
-                if (balance > bitrate_0) {
+                if (balance > bitrate_0)
+                {
                     bitrate_1 = bitrate_0 * 2;
                     bitrate_0 = 0;
                 }
-                else if (-balance > bitrate_0) {
+                else if (-balance > bitrate_0)
+                {
                     bitrate_0 = bitrate_0 * 2;
                     bitrate_1 = 0;
                 }
-                else {
+                else
+                {
                     bitrate_1 = bitrate_0 + balance;
                     bitrate_0 = bitrate_0 - balance;
                 }
             }
 
             if (slow_log_0 - bitrate_0 > -0x100)
-                w->c [0].error_limit = exp2s (slow_log_0 - bitrate_0 + 0x100);
+                w->c[0].error_limit = exp2s(slow_log_0 - bitrate_0 + 0x100);
             else
-                w->c [0].error_limit = 0;
+                w->c[0].error_limit = 0;
 
             if (slow_log_1 - bitrate_1 > -0x100)
-                w->c [1].error_limit = exp2s (slow_log_1 - bitrate_1 + 0x100);
+                w->c[1].error_limit = exp2s(slow_log_1 - bitrate_1 + 0x100);
             else
-                w->c [1].error_limit = 0;
+                w->c[1].error_limit = 0;
         }
-        else {
-            w->c [0].error_limit = exp2s (bitrate_0);
-            w->c [1].error_limit = exp2s (bitrate_1);
+        else
+        {
+            w->c[0].error_limit = exp2s(bitrate_0);
+            w->c[1].error_limit = exp2s(bitrate_1);
         }
     }
 }
 
-static uint32_t read_code (Bitstream *bs, uint32_t maxcode);
+static uint32_t read_code(Bitstream *bs, uint32_t maxcode);
 
 // Read the next word from the bitstream "wvbits" and return the value. This
 // function can be used for hybrid or lossless streams, but since an
@@ -320,8 +328,8 @@ static uint32_t read_code (Bitstream *bs, uint32_t maxcode);
 // of WORD_EOF indicates that the end of the bitstream was reached (all 1s) or
 // some other error occurred.
 
-int32_t get_words (int32_t *buffer, int nsamples, uint32_t flags,
-                struct words_data *w, Bitstream *bs)
+int32_t get_words(int32_t *buffer, int nsamples, uint32_t flags,
+                  struct words_data *w, Bitstream *bs)
 {
     register struct entropy_data *c = w->c;
     int csamples;
@@ -329,43 +337,51 @@ int32_t get_words (int32_t *buffer, int nsamples, uint32_t flags,
     if (!(flags & MONO_DATA))
         nsamples *= 2;
 
-    for (csamples = 0; csamples < nsamples; ++csamples) {
+    for (csamples = 0; csamples < nsamples; ++csamples)
+    {
         uint32_t ones_count, low, mid, high;
 
         if (!(flags & MONO_DATA))
             c = w->c + (csamples & 1);
 
-        if (!(w->c [0].median [0] & ~1) && !w->holding_zero && !w->holding_one && !(w->c [1].median [0] & ~1)) {
+        if (!(w->c[0].median[0] & ~1) && !w->holding_zero && !w->holding_one && !(w->c[1].median[0] & ~1))
+        {
             uint32_t mask;
             int cbits;
 
-            if (w->zeros_acc) {
-                if (--w->zeros_acc) {
+            if (w->zeros_acc)
+            {
+                if (--w->zeros_acc)
+                {
                     c->slow_level -= (c->slow_level + SLO) >> SLS;
                     *buffer++ = 0;
                     continue;
                 }
             }
-            else {
-                for (cbits = 0; cbits < 33 && getbit (bs); ++cbits);
+            else
+            {
+                for (cbits = 0; cbits < 33 && getbit(bs); ++cbits)
+                    ;
 
                 if (cbits == 33)
                     break;
 
                 if (cbits < 2)
                     w->zeros_acc = cbits;
-                else {
+                else
+                {
                     for (mask = 1, w->zeros_acc = 0; --cbits; mask <<= 1)
-                        if (getbit (bs))
+                        if (getbit(bs))
                             w->zeros_acc |= mask;
 
                     w->zeros_acc |= mask;
                 }
 
-                if (w->zeros_acc) {
+                if (w->zeros_acc)
+                {
                     c->slow_level -= (c->slow_level + SLO) >> SLS;
-                    CLEAR (w->c [0].median);
-                    CLEAR (w->c [1].median);
+                    CLEAR(w->c[0].median);
+                    CLEAR(w->c[1].median);
                     *buffer++ = 0;
                     continue;
                 }
@@ -374,12 +390,14 @@ int32_t get_words (int32_t *buffer, int nsamples, uint32_t flags,
 
         if (w->holding_zero)
             ones_count = w->holding_zero = 0;
-        else {
+        else
+        {
             int next8;
 
-            if (bs->bc < 8) {
+            if (bs->bc < 8)
+            {
                 if (++(bs->ptr) == bs->end)
-                    bs->wrap (bs);
+                    bs->wrap(bs);
 
                 next8 = (bs->sr |= *(bs->ptr) << bs->bc) & 0xff;
                 bs->bc += 8;
@@ -387,29 +405,34 @@ int32_t get_words (int32_t *buffer, int nsamples, uint32_t flags,
             else
                 next8 = bs->sr & 0xff;
 
-            if (next8 == 0xff) {
+            if (next8 == 0xff)
+            {
                 bs->bc -= 8;
                 bs->sr >>= 8;
 
-                for (ones_count = 8; ones_count < (LIMIT_ONES + 1) && getbit (bs); ++ones_count);
+                for (ones_count = 8; ones_count < (LIMIT_ONES + 1) && getbit(bs); ++ones_count)
+                    ;
 
                 if (ones_count == (LIMIT_ONES + 1))
                     break;
 
-                if (ones_count == LIMIT_ONES) {
+                if (ones_count == LIMIT_ONES)
+                {
                     uint32_t mask;
                     int cbits;
 
-                    for (cbits = 0; cbits < 33 && getbit (bs); ++cbits);
+                    for (cbits = 0; cbits < 33 && getbit(bs); ++cbits)
+                        ;
 
                     if (cbits == 33)
                         break;
 
                     if (cbits < 2)
                         ones_count = cbits;
-                    else {
+                    else
+                    {
                         for (mask = 1, ones_count = 0; --cbits; mask <<= 1)
-                            if (getbit (bs))
+                            if (getbit(bs))
                                 ones_count |= mask;
 
                         ones_count |= mask;
@@ -418,16 +441,19 @@ int32_t get_words (int32_t *buffer, int nsamples, uint32_t flags,
                     ones_count += LIMIT_ONES;
                 }
             }
-            else {
-                bs->bc -= (ones_count = ones_count_table [next8]) + 1;
+            else
+            {
+                bs->bc -= (ones_count = ones_count_table[next8]) + 1;
                 bs->sr >>= ones_count + 1;
             }
 
-            if (w->holding_one) {
+            if (w->holding_one)
+            {
                 w->holding_one = ones_count & 1;
                 ones_count = (ones_count >> 1) + 1;
             }
-            else {
+            else
+            {
                 w->holding_one = ones_count & 1;
                 ones_count >>= 1;
             }
@@ -436,33 +462,39 @@ int32_t get_words (int32_t *buffer, int nsamples, uint32_t flags,
         }
 
         if ((flags & HYBRID_FLAG) && ((flags & MONO_DATA) || !(csamples & 1)))
-            update_error_limit (w, flags);
+            update_error_limit(w, flags);
 
-        if (ones_count == 0) {
+        if (ones_count == 0)
+        {
             low = 0;
-            high = GET_MED (0) - 1;
-            DEC_MED0 ();
+            high = GET_MED(0) - 1;
+            DEC_MED0();
         }
-        else {
-            low = GET_MED (0);
-            INC_MED0 ();
+        else
+        {
+            low = GET_MED(0);
+            INC_MED0();
 
-            if (ones_count == 1) {
-                high = low + GET_MED (1) - 1;
-                DEC_MED1 ();
+            if (ones_count == 1)
+            {
+                high = low + GET_MED(1) - 1;
+                DEC_MED1();
             }
-            else {
-                low += GET_MED (1);
-                INC_MED1 ();
+            else
+            {
+                low += GET_MED(1);
+                INC_MED1();
 
-                if (ones_count == 2) {
-                    high = low + GET_MED (2) - 1;
-                    DEC_MED2 ();
+                if (ones_count == 2)
+                {
+                    high = low + GET_MED(2) - 1;
+                    DEC_MED2();
                 }
-                else {
-                    low += (ones_count - 2) * GET_MED (2);
-                    high = low + GET_MED (2) - 1;
-                    INC_MED2 ();
+                else
+                {
+                    low += (ones_count - 2) * GET_MED(2);
+                    high = low + GET_MED(2) - 1;
+                    INC_MED2();
                 }
             }
         }
@@ -470,18 +502,20 @@ int32_t get_words (int32_t *buffer, int nsamples, uint32_t flags,
         mid = (high + low + 1) >> 1;
 
         if (!c->error_limit)
-            mid = read_code (bs, high - low) + low;
-        else while (high - low > c->error_limit) {
-            if (getbit (bs))
-                mid = (high + (low = mid) + 1) >> 1;
-            else
-                mid = ((high = mid - 1) + low + 1) >> 1;
-        }
+            mid = read_code(bs, high - low) + low;
+        else
+            while (high - low > c->error_limit)
+            {
+                if (getbit(bs))
+                    mid = (high + (low = mid) + 1) >> 1;
+                else
+                    mid = ((high = mid - 1) + low + 1) >> 1;
+            }
 
-        *buffer++ = getbit (bs) ? ~mid : mid;
+        *buffer++ = getbit(bs) ? ~mid : mid;
 
         if (flags & HYBRID_BITRATE)
-            c->slow_level = c->slow_level - ((c->slow_level + SLO) >> SLS) + mylog2 (mid);
+            c->slow_level = c->slow_level - ((c->slow_level + SLO) >> SLS) + mylog2(mid);
     }
 
     return (flags & MONO_DATA) ? csamples : (csamples / 2);
@@ -493,36 +527,38 @@ int32_t get_words (int32_t *buffer, int nsamples, uint32_t flags,
 // minimum number of bits and then determines whether another bit is needed
 // to define the code.
 
-static uint32_t read_code (Bitstream *bs, uint32_t maxcode)
+static uint32_t read_code(Bitstream *bs, uint32_t maxcode)
 {
-    int bitcount = count_bits (maxcode);
+    int bitcount = count_bits(maxcode);
     uint32_t extras = (1L << bitcount) - maxcode - 1, code;
 
     if (!bitcount)
         return 0;
 
-    getbits (&code, bitcount - 1, bs);
+    getbits(&code, bitcount - 1, bs);
     code &= (1L << (bitcount - 1)) - 1;
 
-    if (code >= extras) {
+    if (code >= extras)
+    {
         code = (code << 1) - extras;
 
-        if (getbit (bs))
+        if (getbit(bs))
             ++code;
     }
 
     return code;
 }
 
-void send_words (int32_t *buffer, int nsamples, uint32_t flags,
-                 struct words_data *w, Bitstream *bs)
+void send_words(int32_t *buffer, int nsamples, uint32_t flags,
+                struct words_data *w, Bitstream *bs)
 {
     register struct entropy_data *c = w->c;
 
     if (!(flags & MONO_FLAG))
         nsamples *= 2;
 
-    while (nsamples--) {
+    while (nsamples--)
+    {
         int32_t value = *buffer++;
         int sign = (value < 0) ? 1 : 0;
         uint32_t ones_count, low, high;
@@ -530,21 +566,26 @@ void send_words (int32_t *buffer, int nsamples, uint32_t flags,
         if (!(flags & MONO_FLAG))
             c = w->c + (~nsamples & 1);
 
-        if (!(w->c [0].median [0] & ~1) && !w->holding_zero && !(w->c [1].median [0] & ~1)) {
-            if (w->zeros_acc) {
+        if (!(w->c[0].median[0] & ~1) && !w->holding_zero && !(w->c[1].median[0] & ~1))
+        {
+            if (w->zeros_acc)
+            {
                 if (value)
-                    flush_word (w, bs);
-                else {
+                    flush_word(w, bs);
+                else
+                {
                     w->zeros_acc++;
                     continue;
                 }
             }
-            else if (value) {
-                putbit_0 (bs);
+            else if (value)
+            {
+                putbit_0(bs);
             }
-            else {
-                CLEAR (w->c [0].median);
-                CLEAR (w->c [1].median);
+            else
+            {
+                CLEAR(w->c[0].median);
+                CLEAR(w->c[1].median);
                 w->zeros_acc = 1;
                 continue;
             }
@@ -553,45 +594,53 @@ void send_words (int32_t *buffer, int nsamples, uint32_t flags,
         if (sign)
             value = ~value;
 
-        if ((uint32_t) value < GET_MED (0)) {
+        if ((uint32_t)value < GET_MED(0))
+        {
             ones_count = low = 0;
-            high = GET_MED (0) - 1;
-            DEC_MED0 ();
+            high = GET_MED(0) - 1;
+            DEC_MED0();
         }
-        else {
-            low = GET_MED (0);
-            INC_MED0 ();
+        else
+        {
+            low = GET_MED(0);
+            INC_MED0();
 
-            if (value - low < GET_MED (1)) {
+            if (value - low < GET_MED(1))
+            {
                 ones_count = 1;
-                high = low + GET_MED (1) - 1;
-                DEC_MED1 ();
+                high = low + GET_MED(1) - 1;
+                DEC_MED1();
             }
-            else {
-                low += GET_MED (1);
-                INC_MED1 ();
+            else
+            {
+                low += GET_MED(1);
+                INC_MED1();
 
-                if (value - low < GET_MED (2)) {
+                if (value - low < GET_MED(2))
+                {
                     ones_count = 2;
-                    high = low + GET_MED (2) - 1;
-                    DEC_MED2 ();
+                    high = low + GET_MED(2) - 1;
+                    DEC_MED2();
                 }
-                else {
-                    ones_count = 2 + (value - low) / GET_MED (2);
-                    low += (ones_count - 2) * GET_MED (2);
-                    high = low + GET_MED (2) - 1;
-                    INC_MED2 ();
+                else
+                {
+                    ones_count = 2 + (value - low) / GET_MED(2);
+                    low += (ones_count - 2) * GET_MED(2);
+                    high = low + GET_MED(2) - 1;
+                    INC_MED2();
                 }
             }
         }
 
-        if (w->holding_zero) {
+        if (w->holding_zero)
+        {
             if (ones_count)
                 w->holding_one++;
 
-            flush_word (w, bs);
+            flush_word(w, bs);
 
-            if (ones_count) {
+            if (ones_count)
+            {
                 w->holding_zero = 1;
                 ones_count--;
             }
@@ -603,26 +652,29 @@ void send_words (int32_t *buffer, int nsamples, uint32_t flags,
 
         w->holding_one = ones_count * 2;
 
-        if (high != low) {  
+        if (high != low)
+        {
             uint32_t maxcode = high - low, code = value - low;
-            int bitcount = count_bits (maxcode);
+            int bitcount = count_bits(maxcode);
             uint32_t extras = (1L << bitcount) - maxcode - 1;
 
-            if (code < extras) {
+            if (code < extras)
+            {
                 w->pend_data |= code << w->pend_count;
                 w->pend_count += bitcount - 1;
             }
-            else {
+            else
+            {
                 w->pend_data |= ((code + extras) >> 1) << w->pend_count;
                 w->pend_count += bitcount - 1;
                 w->pend_data |= ((code + extras) & 1) << w->pend_count++;
             }
         }
 
-        w->pend_data |= ((int32_t) sign << w->pend_count++);
+        w->pend_data |= ((int32_t)sign << w->pend_count++);
 
         if (!w->holding_zero)
-            flush_word (w, bs);
+            flush_word(w, bs);
     }
 }
 
@@ -630,66 +682,76 @@ void send_words (int32_t *buffer, int nsamples, uint32_t flags,
 // accumulated data onto the bitstream. This is also called directly from
 // clients when all words have been sent.
 
-void flush_word (struct words_data *w, Bitstream *bs)
+void flush_word(struct words_data *w, Bitstream *bs)
 {
     int cbits;
 
-    if (w->zeros_acc) {
-        cbits = count_bits (w->zeros_acc);
+    if (w->zeros_acc)
+    {
+        cbits = count_bits(w->zeros_acc);
 
-        while (cbits--) {
-            putbit_1 (bs);
+        while (cbits--)
+        {
+            putbit_1(bs);
         }
 
-        putbit_0 (bs);
+        putbit_0(bs);
 
-        while (w->zeros_acc > 1) {
-            putbit (w->zeros_acc & 1, bs);
+        while (w->zeros_acc > 1)
+        {
+            putbit(w->zeros_acc & 1, bs);
             w->zeros_acc >>= 1;
         }
 
         w->zeros_acc = 0;
     }
 
-    if (w->holding_one) {
-        if (w->holding_one >= LIMIT_ONES) {
-            putbits ((1L << LIMIT_ONES) - 1, LIMIT_ONES + 1, bs);
+    if (w->holding_one)
+    {
+        if (w->holding_one >= LIMIT_ONES)
+        {
+            putbits((1L << LIMIT_ONES) - 1, LIMIT_ONES + 1, bs);
             w->holding_one -= LIMIT_ONES;
-            cbits = count_bits (w->holding_one);
+            cbits = count_bits(w->holding_one);
 
-            while (cbits--) {
-                putbit_1 (bs);
+            while (cbits--)
+            {
+                putbit_1(bs);
             }
 
-            putbit_0 (bs);
+            putbit_0(bs);
 
-            while (w->holding_one > 1) {
-                putbit (w->holding_one & 1, bs);
+            while (w->holding_one > 1)
+            {
+                putbit(w->holding_one & 1, bs);
                 w->holding_one >>= 1;
             }
 
             w->holding_zero = 0;
         }
         else
-            putbits ((1L << w->holding_one) - 1, w->holding_one, bs);
+            putbits((1L << w->holding_one) - 1, w->holding_one, bs);
 
         w->holding_one = 0;
     }
 
-    if (w->holding_zero) {
-        putbit_0 (bs);
+    if (w->holding_zero)
+    {
+        putbit_0(bs);
         w->holding_zero = 0;
     }
 
-    if (w->pend_count) {
+    if (w->pend_count)
+    {
 
-        while (w->pend_count > 24) {
-            putbit (w->pend_data & 1, bs);
+        while (w->pend_count > 24)
+        {
+            putbit(w->pend_data & 1, bs);
             w->pend_data >>= 1;
             w->pend_count--;
         }
 
-        putbits (w->pend_data, w->pend_count, bs);
+        putbits(w->pend_data, w->pend_count, bs);
         w->pend_data = w->pend_count = 0;
     }
 }
@@ -705,27 +767,28 @@ void flush_word (struct words_data *w, Bitstream *bs)
 // of precision and in "roundtrip" conversions the total error never exceeds 1
 // part in 225 except for the cases of +/-115 and +/-195 (which error by 1).
 
-
 // This function returns the log2 for the specified 32-bit unsigned value.
 // The maximum value allowed is about 0xff800000 and returns 8447.
 
-static int mylog2 (uint32_t avalue)
+static int mylog2(uint32_t avalue)
 {
     int dbits;
 
-    if ((avalue += avalue >> 9) < (1 << 8)) {
-        dbits = nbits_table [avalue];
-        return (dbits << 8) + log2_table [(avalue << (9 - dbits)) & 0xff];
+    if ((avalue += avalue >> 9) < (1 << 8))
+    {
+        dbits = nbits_table[avalue];
+        return (dbits << 8) + log2_table[(avalue << (9 - dbits)) & 0xff];
     }
-    else {
+    else
+    {
         if (avalue < (1L << 16))
-            dbits = nbits_table [avalue >> 8] + 8;
+            dbits = nbits_table[avalue >> 8] + 8;
         else if (avalue < (1L << 24))
-            dbits = nbits_table [avalue >> 16] + 16;
+            dbits = nbits_table[avalue >> 16] + 16;
         else
-            dbits = nbits_table [avalue >> 24] + 24;
+            dbits = nbits_table[avalue >> 24] + 24;
 
-        return (dbits << 8) + log2_table [(avalue >> (dbits - 9)) & 0xff];
+        return (dbits << 8) + log2_table[(avalue >> (dbits - 9)) & 0xff];
     }
 }
 
@@ -733,9 +796,9 @@ static int mylog2 (uint32_t avalue)
 // All input values are valid and the return values are in the range of
 // +/- 8192.
 
-int log2s (int32_t value)
+int log2s(int32_t value)
 {
-    return (value < 0) ? -mylog2 (-value) : mylog2 (value);
+    return (value < 0) ? -mylog2(-value) : mylog2(value);
 }
 
 // This function returns the original integer represented by the supplied
@@ -743,14 +806,14 @@ int log2s (int32_t value)
 // but since a full 32-bit value is returned this can be used for unsigned
 // conversions as well (i.e. the input range is -8192 to +8447).
 
-int32_t exp2s (int log)
+int32_t exp2s(int log)
 {
     uint32_t value;
 
     if (log < 0)
-        return -exp2s (-log);
+        return -exp2s(-log);
 
-    value = exp2_table [log & 0xff] | 0x100;
+    value = exp2_table[log & 0xff] | 0x100;
 
     if ((log >>= 8) <= 9)
         return value >> (9 - log);
@@ -762,7 +825,7 @@ int32_t exp2s (int log)
 // to and from an 8-bit signed character version for storage in metadata. The
 // weights are clipped here in the case that they are outside that range.
 
-signed char store_weight (int weight)
+signed char store_weight(int weight)
 {
     if (weight > 1024)
         weight = 1024;
@@ -775,11 +838,11 @@ signed char store_weight (int weight)
     return (weight + 4) >> 3;
 }
 
-int restore_weight (signed char weight)
+int restore_weight(signed char weight)
 {
     int result;
 
-    if ((result = (int) weight << 3) > 0)
+    if ((result = (int)weight << 3) > 0)
         result += (result + 64) >> 7;
 
     return result;

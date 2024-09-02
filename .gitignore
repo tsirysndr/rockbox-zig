@@ -10,6 +10,17 @@
 *~
 __pycache__
 
+# Don't exclude zig files
+!build.zig
+!build.zig.zon
+
+!*/build.zig
+!*/build.zig.zon
+
+# Zig build artifacts
+.zig-cache
+zig-out
+
 # Intermediate language files
 /apps/lang/*.update
 /apps/lang/*.new

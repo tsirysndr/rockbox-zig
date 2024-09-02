@@ -350,7 +350,7 @@ void Apu_write_data( struct Hes_Apu* this, blip_time_t time, int addr, int data 
 		 
 		 case 0x809:
 		 	if ( !(data & 0x80) && (data & 0x03) != 0 ) {
-		 		dprintf( "HES LFO not supported\n" );
+		 		// dprintf( "HES LFO not supported\n" );
 			}
 		}
 	}
