@@ -1194,6 +1194,113 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libplugin);
     addPluginIncludePaths(libplugin);
 
+    const libpluginbitmaps = b.addStaticLibrary(.{
+        .name = "pluginbitmaps",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(libpluginbitmaps);
+
+    libpluginbitmaps.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "build/apps/plugins/bitmaps/mono/invadrox_fire.8x8x1.c",
+            "build/apps/plugins/bitmaps/mono/mpegplayer_status_icons_8x8x1.c",
+            "build/apps/plugins/bitmaps/mono/mpegplayer_status_icons_12x12x1.c",
+            "build/apps/plugins/bitmaps/mono/mpegplayer_status_icons_16x16x1.c",
+            "build/apps/plugins/bitmaps/native/_2048_tiles.48x48x24.c",
+            "build/apps/plugins/bitmaps/native/_2048_background.224x224x24.c",
+            "build/apps/plugins/bitmaps/native/amaze_tiles_9.9x9x16.c",
+            "build/apps/plugins/bitmaps/native/amaze_tiles_7.7x7x16.c",
+            "build/apps/plugins/bitmaps/native/brickmania_gameover.112x54x16.c",
+            "build/apps/plugins/bitmaps/native/brickmania_ball.5x5x16.c",
+            "build/apps/plugins/bitmaps/native/brickmania_bricks.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/brickmania_pads.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/brickmania_short_pads.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/brickmania_long_pads.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/brickmania_break.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/brickmania_powerups.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/jackpot_slots.30x420x1.c",
+            "build/apps/plugins/bitmaps/native/bubbles_emblem.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/bubbles_background.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/chessbox_pieces.240x240x16.c",
+            "build/apps/plugins/bitmaps/native/clock_binary.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/clock_digits.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/clock_smalldigits.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/clock_segments.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/clock_smallsegments.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/clock_logo.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/clock_messages.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/fft_colors.16.c",
+            "build/apps/plugins/bitmaps/native/flipit_cursor.56x56x16.c",
+            "build/apps/plugins/bitmaps/native/flipit_tokens.56x112x16.c",
+            "build/apps/plugins/bitmaps/native/invadrox_aliens.24x24x16.c",
+            "build/apps/plugins/bitmaps/native/invadrox_alien_explode.13x7x16.c",
+            "build/apps/plugins/bitmaps/native/invadrox_ships.16x24x16.c",
+            "build/apps/plugins/bitmaps/native/invadrox_bombs.9x42x16.c",
+            "build/apps/plugins/bitmaps/native/invadrox_shield.22x16x16.c",
+            "build/apps/plugins/bitmaps/native/invadrox_ufo.16x7x16.c",
+            "build/apps/plugins/bitmaps/native/invadrox_ufo_explode.21x8x16.c",
+            "build/apps/plugins/bitmaps/native/invadrox_numbers.50x7x16.c",
+            "build/apps/plugins/bitmaps/native/invadrox_background.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/minesweeper_tiles.16x16x24.c",
+            "build/apps/plugins/bitmaps/native/pegbox_pieces.24x24x16.c",
+            "build/apps/plugins/bitmaps/native/pegbox_header.320x40x16.c",
+            "build/apps/plugins/bitmaps/native/puzzles_cursor.11x16x24.c",
+            "build/apps/plugins/bitmaps/native/rockblox_background.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/rockpaint.8x8x24.c",
+            "build/apps/plugins/bitmaps/native/rockpaint_hsvrgb.8x10x24.c",
+            "build/apps/plugins/bitmaps/native/snake2_header1.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/snake2_header2.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/snake2_left.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/snake2_right.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/snake2_bottom.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/sokoban_tiles.14x14x16.c",
+            "build/apps/plugins/bitmaps/native/card_back.37x49x16.c",
+            "build/apps/plugins/bitmaps/native/card_deck.481x196x16.c",
+            "build/apps/plugins/bitmaps/native/solitaire_suitsi.37x196x16.c",
+            "build/apps/plugins/bitmaps/native/star_tiles.20x20.c",
+            "build/apps/plugins/bitmaps/native/sudoku_start.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/sudoku_normal.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/sudoku_inverse.320x240x16.c",
+            "build/apps/plugins/bitmaps/native/matrix_bold.c",
+            "build/apps/plugins/bitmaps/native/matrix_normal.c",
+            "build/apps/plugins/bitmaps/native/sliding_puzzle.360x360x16.c",
+            "build/apps/plugins/bitmaps/native/rockboxlogo.220x68x16.c",
+            "build/apps/plugins/bitmaps/native/creditslogo.320x98x16.c",
+            "build/apps/plugins/bitmaps/native/resistor.320x240x16.c",
+        },
+        .flags = &cflags,
+    });
+
+    libpluginbitmaps.defineCMacro("PLUGIN", null);
+    defineCMacros(libpluginbitmaps);
+    addPluginIncludePaths(libpluginbitmaps);
+
+    const chopper = b.addSharedLibrary(.{
+        .name = "chopper",
+        .target = target,
+        .optimize = optimize,
+        .strip = true,
+    });
+
+    b.installArtifact(chopper);
+
+    chopper.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "apps/plugins/chopper.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    chopper.defineCMacro("PLUGIN", null);
+    defineCMacros(chopper);
+    addPluginIncludePaths(chopper);
+
+    chopper.linkLibrary(libplugin);
+    chopper.linkLibrary(libpluginbitmaps);
+
     exe.linkLibrary(libfirmware);
     exe.linkLibrary(libspeex_voice);
     exe.linkLibrary(librbcodec);
