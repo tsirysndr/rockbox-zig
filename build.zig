@@ -8,6 +8,8 @@ pub const BuildOptions = struct {
     optimize: std.builtin.OptimizeMode,
     macros: []const []const u8 = &[_][]const u8{"CODEC"},
     cflags: []const []const u8 = &cflags,
+    is_fft_plugin: bool = false,
+    is_mikmod_plugin: bool = false,
 };
 
 // Although this function looks imperative, note that its job is to
@@ -1495,6 +1497,274 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    build_plugin(b, .{
+        .name = "properties",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/properties.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "random_folder_advance_config",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/random_folder_advance_config.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "search",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/search.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "sort",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/sort.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "theme_remove",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/theme_remove.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "vbrfix",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/vbrfix.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "lua",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/lua/lauxlib.c",
+            "apps/plugins/lua/lapi.c",
+            "apps/plugins/lua/lbaselib.c",
+            "apps/plugins/lua/lbitlib.c",
+            "apps/plugins/lua/lcode.c",
+            "apps/plugins/lua/ldebug.c",
+            "apps/plugins/lua/ldo.c",
+            "apps/plugins/lua/ldump.c",
+            "apps/plugins/lua/lfunc.c",
+            "apps/plugins/lua/lgc.c",
+            "apps/plugins/lua/liolib.c",
+            "apps/plugins/lua/llex.c",
+            "apps/plugins/lua/lmathlib.c",
+            "apps/plugins/lua/lmem.c",
+            "apps/plugins/lua/loadlib.c",
+            "apps/plugins/lua/lobject.c",
+            "apps/plugins/lua/lopcodes.c",
+            "apps/plugins/lua/loslib.c",
+            "apps/plugins/lua/lparser.c",
+            "apps/plugins/lua/lstate.c",
+            "apps/plugins/lua/lstring.c",
+            "apps/plugins/lua/lstrlib.c",
+            "apps/plugins/lua/ltable.c",
+            "apps/plugins/lua/ltablib.c",
+            "apps/plugins/lua/ltm.c",
+            "apps/plugins/lua/lundump.c",
+            "apps/plugins/lua/lua_user.c",
+            "apps/plugins/lua/lvm.c",
+            "apps/plugins/lua/lzio.c",
+            "apps/plugins/lua/rockaux.c",
+            "apps/plugins/lua/rocklib.c",
+            "apps/plugins/lua/rocklib_img.c",
+            "apps/plugins/lua/tlsf_helper.c",
+            "apps/plugins/lua/strftime.c",
+            "apps/plugins/lua/strpbrk.c",
+            "apps/plugins/lua/strtoul.c",
+            "apps/plugins/lua/strtol.c",
+            "apps/plugins/lua/strstr.c",
+            "apps/plugins/lua/rocklua.c",
+            "apps/plugins/lua/luadir.c",
+            "apps/plugins/lua/rocklib_events.c",
+            "build/apps/plugins/lua/rocklib_aux.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+            libtlsf,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "fft",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/fft/const.c",
+            "apps/plugins/fft/kiss_fft.c",
+            "apps/plugins/fft/kiss_fftr.c",
+            "apps/plugins/fft/fft.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+        .is_fft_plugin = true,
+    });
+
+    build_plugin(b, .{
+        .name = "reversi",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/reversi/reversi-game.c",
+            "apps/plugins/reversi/reversi-gui.c",
+            "apps/plugins/reversi/reversi-strategy.c",
+            "apps/plugins/reversi/reversi-strategy-naive.c",
+            "apps/plugins/reversi/reversi-strategy-simple.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "pictureflow",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/pictureflow/pictureflow.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "db_commit",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/tagcache/tagcache.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+
+    build_plugin(b, .{
+        .name = "mikmod",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/mikmod/drv_nos.c",
+            "apps/plugins/mikmod/load_669.c",
+            "apps/plugins/mikmod/load_amf.c",
+            "apps/plugins/mikmod/load_asy.c",
+            "apps/plugins/mikmod/load_dsm.c",
+            "apps/plugins/mikmod/load_far.c",
+            "apps/plugins/mikmod/load_gdm.c",
+            "apps/plugins/mikmod/load_imf.c",
+            "apps/plugins/mikmod/load_it.c",
+            "apps/plugins/mikmod/load_m15.c",
+            "apps/plugins/mikmod/load_med.c",
+            "apps/plugins/mikmod/load_mod.c",
+            "apps/plugins/mikmod/load_mtm.c",
+            "apps/plugins/mikmod/load_okt.c",
+            "apps/plugins/mikmod/load_s3m.c",
+            "apps/plugins/mikmod/load_stm.c",
+            "apps/plugins/mikmod/load_stx.c",
+            "apps/plugins/mikmod/load_ult.c",
+            "apps/plugins/mikmod/load_umx.c",
+            "apps/plugins/mikmod/load_uni.c",
+            "apps/plugins/mikmod/load_xm.c",
+            "apps/plugins/mikmod/mdreg.c",
+            "apps/plugins/mikmod/mdriver.c",
+            "apps/plugins/mikmod/mloader.c",
+            "apps/plugins/mikmod/mlreg.c",
+            "apps/plugins/mikmod/mlutil.c",
+            "apps/plugins/mikmod/mmalloc.c",
+            "apps/plugins/mikmod/mmerror.c",
+            "apps/plugins/mikmod/mmio.c",
+            "apps/plugins/mikmod/mplayer.c",
+            "apps/plugins/mikmod/munitrk.c",
+            "apps/plugins/mikmod/npertab.c",
+            "apps/plugins/mikmod/sloader.c",
+            "apps/plugins/mikmod/strdup.c",
+            "apps/plugins/mikmod/strstr.c",
+            "apps/plugins/mikmod/virtch.c",
+            "apps/plugins/mikmod/virtch2.c",
+            "apps/plugins/mikmod/virtch_common.c",
+            "apps/plugins/mikmod/mikmod.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+        .is_mikmod_plugin = true,
+    });
+
     defineCMacros(exe);
     addIncludePaths(exe);
 
@@ -1572,6 +1842,15 @@ fn build_plugin(b: *std.Build, options: BuildOptions) void {
     });
 
     plugin.defineCMacro("PLUGIN", null);
+
+    if (options.is_fft_plugin) {
+        plugin.defineCMacro("FIXED_POINT", "16");
+    }
+
+    if (options.is_mikmod_plugin) {
+        plugin.defineCMacro("MIKMOD_STATIC", null);
+    }
+
     defineCMacros(plugin);
     addPluginIncludePaths(plugin);
 
@@ -1670,6 +1949,7 @@ fn addPluginIncludePaths(c: *std.Build.Step.Compile) void {
     c.addIncludePath(.{ .cwd_relative = "/usr/include/x86_64-linux-gnu" });
     c.addIncludePath(.{ .cwd_relative = "./apps/plugins/lib" });
     c.addIncludePath(.{ .cwd_relative = "./apps/plugins" });
+    c.addIncludePath(.{ .cwd_relative = "./apps/plugins/lua" });
     c.addIncludePath(.{ .cwd_relative = "./build" });
     c.addIncludePath(.{ .cwd_relative = "./build/lang" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/target/hosted/sdl/app" });
