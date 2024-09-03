@@ -38,6 +38,10 @@ CODEC_HEADER
 
 #define SEEK_REWIND 3840    /* 80 ms @ 48 kHz */
 
+#ifndef MIN
+#define MIN(a,b) ((a)<(b) ? (a):(b))
+#endif
+
 /* the opus pseudo stack pointer */
 extern char *global_stack;
 
