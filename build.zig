@@ -294,6 +294,30 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libasf);
     addIncludePaths(libasf);
 
+    const mpa_codec = b.addSharedLibrary(.{
+        .name = "mpa",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(mpa_codec);
+
+    mpa_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    mpa_codec.defineCMacro("CODEC", null);
+    defineCMacros(mpa_codec);
+    addIncludePaths(mpa_codec);
+
+    mpa_codec.linkLibrary(libcodec);
+    mpa_codec.linkLibrary(libmad);
+    mpa_codec.linkLibrary(libasf);
+    mpa_codec.linkLibrary(libfixedpoint);
+
     const flac = b.addStaticLibrary(.{
         .name = "flac",
         .target = target,
@@ -315,17 +339,39 @@ pub fn build(b: *std.Build) void {
     defineCMacros(flac);
     addIncludePaths(flac);
 
-    const wav = b.addStaticLibrary(.{
-        .name = "wav",
+    const flac_codec = b.addSharedLibrary(.{
+        .name = "flac",
         .target = target,
         .optimize = optimize,
     });
 
-    b.installArtifact(wav);
+    b.installArtifact(flac_codec);
 
-    wav.addCSourceFiles(.{
+    flac_codec.addCSourceFiles(.{
         .files = &[_][]const u8{
-            "lib/rbcodec/codecs/wav.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    flac_codec.defineCMacro("CODEC", null);
+    defineCMacros(flac_codec);
+    addIncludePaths(flac_codec);
+
+    flac_codec.linkLibrary(libcodec);
+    flac_codec.linkLibrary(flac);
+    flac_codec.linkLibrary(libfixedpoint);
+
+    const libpcm = b.addStaticLibrary(.{
+        .name = "pcm",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(libpcm);
+
+    libpcm.addCSourceFiles(.{
+        .files = &[_][]const u8{
             "lib/rbcodec/codecs/libpcm/linear_pcm.c",
             "lib/rbcodec/codecs/libpcm/itut_g711.c",
             "lib/rbcodec/codecs/libpcm/dvi_adpcm.c",
@@ -341,9 +387,66 @@ pub fn build(b: *std.Build) void {
         .flags = &cflags,
     });
 
+    libpcm.defineCMacro("CODEC", null);
+    defineCMacros(libpcm);
+    addIncludePaths(libpcm);
+
+    const wav = b.addStaticLibrary(.{
+        .name = "wav",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(wav);
+
+    wav.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/wav.c",
+        },
+        .flags = &cflags,
+    });
+
     wav.defineCMacro("CODEC", null);
     defineCMacros(wav);
     addIncludePaths(wav);
+
+    const wav_codec = b.addSharedLibrary(.{
+        .name = "wav",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(wav_codec);
+    defineCMacros(wav_codec);
+    addIncludePaths(wav_codec);
+
+    wav_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    wav_codec.linkLibrary(libcodec);
+    wav_codec.linkLibrary(wav);
+    wav_codec.linkLibrary(libfixedpoint);
+    wav_codec.linkLibrary(libpcm);
+
+    const librm = b.addStaticLibrary(.{
+        .name = "rm",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(librm);
+
+    librm.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/librm/rm.c",
+    }, .flags = &cflags });
+
+    librm.defineCMacro("CODEC", null);
+    defineCMacros(librm);
+    addIncludePaths(librm);
 
     const liba52 = b.addStaticLibrary(.{
         .name = "a52",
@@ -369,13 +472,37 @@ pub fn build(b: *std.Build) void {
     defineCMacros(liba52);
     addIncludePaths(liba52);
 
+    const a52_codec = b.addSharedLibrary(.{
+        .name = "a52",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(a52_codec);
+
+    a52_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    a52_codec.defineCMacro("CODEC", null);
+    defineCMacros(a52_codec);
+    addIncludePaths(a52_codec);
+
+    a52_codec.linkLibrary(libcodec);
+    a52_codec.linkLibrary(liba52);
+    a52_codec.linkLibrary(libfixedpoint);
+    a52_codec.linkLibrary(librm);
+
     const libwavpack = b.addStaticLibrary(.{
         .name = "wavpack",
         .target = target,
         .optimize = optimize,
     });
 
-    // b.installArtifact(libwavpack);
+    b.installArtifact(libwavpack);
 
     libwavpack.addCSourceFiles(.{
         .files = &[_][]const u8{
@@ -394,6 +521,29 @@ pub fn build(b: *std.Build) void {
     libwavpack.defineCMacro("CODEC", null);
     defineCMacros(libwavpack);
     addIncludePaths(libwavpack);
+
+    const wavpack_codec = b.addSharedLibrary(.{
+        .name = "wavpack",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(wavpack_codec);
+
+    wavpack_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    wavpack_codec.defineCMacro("CODEC", null);
+    defineCMacros(wavpack_codec);
+    addIncludePaths(wavpack_codec);
+
+    wavpack_codec.linkLibrary(libcodec);
+    wavpack_codec.linkLibrary(libwavpack);
+    wavpack_codec.linkLibrary(libfixedpoint);
 
     const alac = b.addStaticLibrary(.{
         .name = "alac",
@@ -415,6 +565,29 @@ pub fn build(b: *std.Build) void {
     defineCMacros(alac);
     addIncludePaths(alac);
 
+    const alac_codec = b.addSharedLibrary(.{
+        .name = "alac",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(alac_codec);
+
+    alac_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    alac_codec.defineCMacro("CODEC", null);
+    defineCMacros(alac_codec);
+    addIncludePaths(alac_codec);
+
+    alac_codec.linkLibrary(libcodec);
+    alac_codec.linkLibrary(alac);
+    alac_codec.linkLibrary(libfixedpoint);
+
     const libm4a = b.addStaticLibrary(.{
         .name = "m4a",
         .target = target,
@@ -432,6 +605,26 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libm4a);
     addIncludePaths(libm4a);
 
+    const m4a_codec = b.addSharedLibrary(.{
+        .name = "m4a",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(m4a_codec);
+
+    m4a_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    m4a_codec.defineCMacro("CODEC", null);
+    defineCMacros(m4a_codec);
+    addIncludePaths(m4a_codec);
+
+    m4a_codec.linkLibrary(libcodec);
+    m4a_codec.linkLibrary(libm4a);
+    m4a_codec.linkLibrary(libfixedpoint);
+
     const libcook = b.addStaticLibrary(.{
         .name = "cook",
         .target = target,
@@ -448,6 +641,27 @@ pub fn build(b: *std.Build) void {
     libcook.defineCMacro("CODEC", null);
     defineCMacros(libcook);
     addIncludePaths(libcook);
+
+    const cook_codec = b.addSharedLibrary(.{
+        .name = "cook",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(cook_codec);
+
+    cook_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    cook_codec.defineCMacro("CODEC", null);
+    defineCMacros(cook_codec);
+    addIncludePaths(cook_codec);
+
+    cook_codec.linkLibrary(libcodec);
+    cook_codec.linkLibrary(libcook);
+    cook_codec.linkLibrary(libfixedpoint);
+    cook_codec.linkLibrary(librm);
 
     const libfaad = b.addStaticLibrary(.{
         .name = "faad",
@@ -492,6 +706,65 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libfaad);
     addIncludePaths(libfaad);
 
+    const faad_codec = b.addSharedLibrary(.{
+        .name = "faad",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(faad_codec);
+
+    faad_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    faad_codec.defineCMacro("CODEC", null);
+    defineCMacros(faad_codec);
+    addIncludePaths(faad_codec);
+
+    faad_codec.linkLibrary(libcodec);
+    faad_codec.linkLibrary(libfaad);
+    faad_codec.linkLibrary(libfixedpoint);
+    faad_codec.linkLibrary(librm);
+
+    const raac = b.addStaticLibrary(.{
+        .name = "raac",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(raac);
+
+    raac.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/raac.c",
+    }, .flags = &cflags });
+
+    raac.defineCMacro("CODEC", null);
+    defineCMacros(raac);
+    addIncludePaths(raac);
+
+    const raac_codec = b.addSharedLibrary(.{
+        .name = "raac",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(raac_codec);
+
+    raac_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    raac_codec.defineCMacro("CODEC", null);
+    defineCMacros(raac_codec);
+    addIncludePaths(raac_codec);
+
+    raac_codec.linkLibrary(libcodec);
+    raac_codec.linkLibrary(raac);
+    raac_codec.linkLibrary(libfixedpoint);
+    raac_codec.linkLibrary(librm);
+    raac_codec.linkLibrary(libfaad);
+
     const a52_rm = b.addStaticLibrary(.{
         .name = "a52_rm",
         .target = target,
@@ -507,6 +780,27 @@ pub fn build(b: *std.Build) void {
     a52_rm.defineCMacro("CODEC", null);
     defineCMacros(a52_rm);
     addIncludePaths(a52_rm);
+
+    const a52_rm_codec = b.addSharedLibrary(.{
+        .name = "a52_rm",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(a52_rm_codec);
+
+    a52_rm_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    a52_rm_codec.defineCMacro("CODEC", null);
+    defineCMacros(a52_rm_codec);
+    addIncludePaths(a52_rm_codec);
+
+    a52_rm_codec.linkLibrary(libcodec);
+    a52_rm_codec.linkLibrary(a52_rm);
+    a52_rm_codec.linkLibrary(libfixedpoint);
+    a52_rm_codec.linkLibrary(librm);
 
     const libatrac = b.addStaticLibrary(.{
         .name = "atrac",
@@ -525,6 +819,27 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libatrac);
     addIncludePaths(libatrac);
 
+    const atrac_codec = b.addSharedLibrary(.{
+        .name = "atrac",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(atrac_codec);
+
+    atrac_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    atrac_codec.defineCMacro("CODEC", null);
+    defineCMacros(atrac_codec);
+    addIncludePaths(atrac_codec);
+
+    atrac_codec.linkLibrary(libcodec);
+    atrac_codec.linkLibrary(libatrac);
+    atrac_codec.linkLibrary(libfixedpoint);
+    atrac_codec.linkLibrary(librm);
+
     const atrac3_oma = b.addStaticLibrary(.{
         .name = "atrac3_oma",
         .target = target,
@@ -540,6 +855,26 @@ pub fn build(b: *std.Build) void {
     atrac3_oma.defineCMacro("CODEC", null);
     defineCMacros(atrac3_oma);
     addIncludePaths(atrac3_oma);
+
+    const atrac3_oma_codec = b.addSharedLibrary(.{
+        .name = "atrac3_oma",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(atrac3_oma_codec);
+
+    atrac3_oma_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    atrac3_oma_codec.defineCMacro("CODEC", null);
+    defineCMacros(atrac3_oma_codec);
+    addIncludePaths(atrac3_oma_codec);
+
+    atrac3_oma_codec.linkLibrary(libcodec);
+    atrac3_oma_codec.linkLibrary(atrac3_oma);
+    atrac3_oma_codec.linkLibrary(libfixedpoint);
 
     const musepack = b.addStaticLibrary(.{
         .name = "musepack",
@@ -565,6 +900,26 @@ pub fn build(b: *std.Build) void {
     defineCMacros(musepack);
     addIncludePaths(musepack);
 
+    const mpc_codec = b.addSharedLibrary(.{
+        .name = "mpc",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(mpc_codec);
+
+    mpc_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    mpc_codec.defineCMacro("CODEC", null);
+    defineCMacros(mpc_codec);
+    addIncludePaths(mpc_codec);
+
+    mpc_codec.linkLibrary(libcodec);
+    mpc_codec.linkLibrary(musepack);
+    mpc_codec.linkLibrary(libfixedpoint);
+
     const wma = b.addStaticLibrary(.{
         .name = "wma",
         .target = target,
@@ -583,6 +938,26 @@ pub fn build(b: *std.Build) void {
     defineCMacros(wma);
     addIncludePaths(wma);
 
+    const wma_codec = b.addSharedLibrary(.{
+        .name = "wma",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(wma_codec);
+
+    wma_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    wma_codec.defineCMacro("CODEC", null);
+    defineCMacros(wma_codec);
+    addIncludePaths(wma_codec);
+
+    wma_codec.linkLibrary(libcodec);
+    wma_codec.linkLibrary(wma);
+    wma_codec.linkLibrary(libfixedpoint);
+
     const libdemac = b.addStaticLibrary(.{
         .name = "demac",
         .target = target,
@@ -590,6 +965,42 @@ pub fn build(b: *std.Build) void {
     });
 
     b.installArtifact(libdemac);
+
+    const ape = b.addStaticLibrary(.{
+        .name = "ape",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(ape);
+
+    ape.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/ape.c",
+    }, .flags = &cflags });
+
+    ape.defineCMacro("CODEC", null);
+    defineCMacros(ape);
+    addIncludePaths(ape);
+
+    const ape_codec = b.addSharedLibrary(.{
+        .name = "ape",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(ape_codec);
+
+    ape_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    ape_codec.defineCMacro("CODEC", null);
+    defineCMacros(ape_codec);
+    addIncludePaths(ape_codec);
+
+    ape_codec.linkLibrary(libcodec);
+    ape_codec.linkLibrary(ape);
+    ape_codec.linkLibrary(libfixedpoint);
 
     libdemac.addCSourceFiles(.{ .files = &[_][]const u8{
         "lib/rbcodec/codecs/ape.c",
@@ -627,6 +1038,26 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libasap);
     addIncludePaths(libasap);
 
+    const asap_codec = b.addSharedLibrary(.{
+        .name = "asap",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(asap_codec);
+
+    asap_codec.addCSourceFiles(.{ .files = &[_][]const u8{
+        "lib/rbcodec/codecs/codec_crt0.c",
+    }, .flags = &cflags });
+
+    asap_codec.defineCMacro("CODEC", null);
+    defineCMacros(asap_codec);
+    addIncludePaths(asap_codec);
+
+    asap_codec.linkLibrary(libcodec);
+    asap_codec.linkLibrary(libasap);
+    asap_codec.linkLibrary(libfixedpoint);
+
     const aac = b.addStaticLibrary(.{
         .name = "aac",
         .target = target,
@@ -643,6 +1074,29 @@ pub fn build(b: *std.Build) void {
     aac.defineCMacro("CODEC", null);
     defineCMacros(aac);
     addIncludePaths(aac);
+
+    const aac_codec = b.addSharedLibrary(.{
+        .name = "aac",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(aac_codec);
+
+    aac_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    aac_codec.defineCMacro("CODEC", null);
+    defineCMacros(aac_codec);
+    addIncludePaths(aac_codec);
+
+    aac_codec.linkLibrary(libcodec);
+    aac_codec.linkLibrary(aac);
+    aac_codec.linkLibrary(libfixedpoint);
 
     const libspc = b.addStaticLibrary(.{
         .name = "spc",
@@ -667,6 +1121,29 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libspc);
     addIncludePaths(libspc);
 
+    const spc_codec = b.addSharedLibrary(.{
+        .name = "spc",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(spc_codec);
+
+    spc_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    spc_codec.defineCMacro("CODEC", null);
+    defineCMacros(spc_codec);
+    addIncludePaths(spc_codec);
+
+    spc_codec.linkLibrary(libcodec);
+    spc_codec.linkLibrary(libspc);
+    spc_codec.linkLibrary(libfixedpoint);
+
     const mod = b.addStaticLibrary(.{
         .name = "mod",
         .target = target,
@@ -685,6 +1162,29 @@ pub fn build(b: *std.Build) void {
     mod.defineCMacro("CODEC", null);
     defineCMacros(mod);
     addIncludePaths(mod);
+
+    const mod_codec = b.addSharedLibrary(.{
+        .name = "mod",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(mod_codec);
+
+    mod_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    mod_codec.defineCMacro("CODEC", null);
+    defineCMacros(mod_codec);
+    addIncludePaths(mod_codec);
+
+    mod_codec.linkLibrary(libcodec);
+    mod_codec.linkLibrary(mod);
+    mod_codec.linkLibrary(libfixedpoint);
 
     const shorten = b.addStaticLibrary(.{
         .name = "shorten",
@@ -705,6 +1205,31 @@ pub fn build(b: *std.Build) void {
     defineCMacros(shorten);
     addIncludePaths(shorten);
 
+    const shorten_codec = b.addSharedLibrary(.{
+        .name = "shorten",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(shorten_codec);
+
+    shorten_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+            "lib/rbcodec/codecs/libffmpegFLAC/decoder.c",
+            "lib/rbcodec/codecs/libffmpegFLAC/shndec.c",
+        },
+        .flags = &cflags,
+    });
+
+    shorten_codec.defineCMacro("CODEC", null);
+    defineCMacros(shorten_codec);
+    addIncludePaths(shorten_codec);
+
+    shorten_codec.linkLibrary(libcodec);
+    shorten_codec.linkLibrary(shorten);
+    shorten_codec.linkLibrary(libfixedpoint);
+
     const aiff = b.addStaticLibrary(.{
         .name = "aiff",
         .target = target,
@@ -723,6 +1248,30 @@ pub fn build(b: *std.Build) void {
     aiff.defineCMacro("CODEC", null);
     defineCMacros(aiff);
     addIncludePaths(aiff);
+
+    const aiff_codec = b.addSharedLibrary(.{
+        .name = "aiff",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(aiff_codec);
+
+    aiff_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    aiff_codec.defineCMacro("CODEC", null);
+    defineCMacros(aiff_codec);
+    addIncludePaths(aiff_codec);
+
+    aiff_codec.linkLibrary(libcodec);
+    aiff_codec.linkLibrary(aiff);
+    aiff_codec.linkLibrary(libfixedpoint);
+    aiff_codec.linkLibrary(libpcm);
 
     const libspeex = b.addStaticLibrary(.{
         .name = "speex",
@@ -744,6 +1293,31 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libspeex);
     addIncludePaths(libspeex);
 
+    const speex_codec = b.addSharedLibrary(.{
+        .name = "speex",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(speex_codec);
+
+    speex_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    speex_codec.defineCMacro("CODEC", null);
+    speex_codec.defineCMacro("HAVE_CONFIG_H", null);
+    speex_codec.defineCMacro("SPEEX_DISABLE_ENCODER", null);
+    defineCMacros(speex_codec);
+    addIncludePaths(speex_codec);
+
+    speex_codec.linkLibrary(libcodec);
+    speex_codec.linkLibrary(libspeex);
+    speex_codec.linkLibrary(libfixedpoint);
+
     const adx = b.addStaticLibrary(.{
         .name = "adx",
         .target = target,
@@ -762,6 +1336,29 @@ pub fn build(b: *std.Build) void {
     adx.defineCMacro("CODEC", null);
     defineCMacros(adx);
     addIncludePaths(adx);
+
+    const adx_codec = b.addSharedLibrary(.{
+        .name = "adx",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(adx_codec);
+
+    adx_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    adx_codec.defineCMacro("CODEC", null);
+    defineCMacros(adx_codec);
+    addIncludePaths(adx_codec);
+
+    adx_codec.linkLibrary(libcodec);
+    adx_codec.linkLibrary(adx);
+    adx_codec.linkLibrary(libfixedpoint);
 
     const smaf = b.addStaticLibrary(.{
         .name = "smaf",
@@ -782,6 +1379,30 @@ pub fn build(b: *std.Build) void {
     defineCMacros(smaf);
     addIncludePaths(smaf);
 
+    const smaf_codec = b.addSharedLibrary(.{
+        .name = "smaf",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(smaf_codec);
+
+    smaf_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    smaf_codec.defineCMacro("CODEC", null);
+    defineCMacros(smaf_codec);
+    addIncludePaths(smaf_codec);
+
+    smaf_codec.linkLibrary(libcodec);
+    smaf_codec.linkLibrary(smaf);
+    smaf_codec.linkLibrary(libfixedpoint);
+    smaf_codec.linkLibrary(libpcm);
+
     const au = b.addStaticLibrary(.{
         .name = "au",
         .target = target,
@@ -800,6 +1421,30 @@ pub fn build(b: *std.Build) void {
     au.defineCMacro("CODEC", null);
     defineCMacros(au);
     addIncludePaths(au);
+
+    const au_codec = b.addSharedLibrary(.{
+        .name = "au",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(au_codec);
+
+    au_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    au_codec.defineCMacro("CODEC", null);
+    defineCMacros(au_codec);
+    addIncludePaths(au_codec);
+
+    au_codec.linkLibrary(libcodec);
+    au_codec.linkLibrary(au);
+    au_codec.linkLibrary(libfixedpoint);
+    au_codec.linkLibrary(libpcm);
 
     const vox = b.addStaticLibrary(.{
         .name = "vox",
@@ -820,6 +1465,30 @@ pub fn build(b: *std.Build) void {
     defineCMacros(vox);
     addIncludePaths(vox);
 
+    const vox_codec = b.addSharedLibrary(.{
+        .name = "vox",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(vox_codec);
+
+    vox_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    vox_codec.defineCMacro("CODEC", null);
+    defineCMacros(vox_codec);
+    addIncludePaths(vox_codec);
+
+    vox_codec.linkLibrary(libcodec);
+    vox_codec.linkLibrary(vox);
+    vox_codec.linkLibrary(libfixedpoint);
+    vox_codec.linkLibrary(libpcm);
+
     const wav64 = b.addStaticLibrary(.{
         .name = "wav64",
         .target = target,
@@ -838,6 +1507,30 @@ pub fn build(b: *std.Build) void {
     wav64.defineCMacro("CODEC", null);
     defineCMacros(wav64);
     addIncludePaths(wav64);
+
+    const wav64_codec = b.addSharedLibrary(.{
+        .name = "wav64",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(wav64_codec);
+
+    wav64_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    wav64_codec.defineCMacro("CODEC", null);
+    defineCMacros(wav64_codec);
+    addIncludePaths(wav64_codec);
+
+    wav64_codec.linkLibrary(libcodec);
+    wav64_codec.linkLibrary(wav64);
+    wav64_codec.linkLibrary(libfixedpoint);
+    wav64_codec.linkLibrary(libpcm);
 
     const tta = b.addStaticLibrary(.{
         .name = "tta",
@@ -858,6 +1551,29 @@ pub fn build(b: *std.Build) void {
     tta.defineCMacro("CODEC", null);
     defineCMacros(tta);
     addIncludePaths(tta);
+
+    const tta_codec = b.addSharedLibrary(.{
+        .name = "tta",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(tta_codec);
+
+    tta_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    tta_codec.defineCMacro("CODEC", null);
+    defineCMacros(tta_codec);
+    addIncludePaths(tta_codec);
+
+    tta_codec.linkLibrary(libcodec);
+    tta_codec.linkLibrary(tta);
+    tta_codec.linkLibrary(libfixedpoint);
 
     const wmapro = b.addStaticLibrary(.{
         .name = "wmapro",
@@ -880,6 +1596,29 @@ pub fn build(b: *std.Build) void {
     wmapro.defineCMacro("CODEC", null);
     defineCMacros(wmapro);
     addIncludePaths(wmapro);
+
+    const wmapro_codec = b.addSharedLibrary(.{
+        .name = "wmapro",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(wmapro_codec);
+
+    wmapro_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    wmapro_codec.defineCMacro("CODEC", null);
+    defineCMacros(wmapro_codec);
+    addIncludePaths(wmapro_codec);
+
+    wmapro_codec.linkLibrary(libcodec);
+    wmapro_codec.linkLibrary(wmapro);
+    wmapro_codec.linkLibrary(libfixedpoint);
 
     const libay = b.addStaticLibrary(.{
         .name = "ay",
@@ -907,6 +1646,29 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libay);
     addIncludePaths(libay);
 
+    const ay_codec = b.addSharedLibrary(.{
+        .name = "ay",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(ay_codec);
+
+    ay_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    ay_codec.defineCMacro("CODEC", null);
+    defineCMacros(ay_codec);
+    addIncludePaths(ay_codec);
+
+    ay_codec.linkLibrary(libcodec);
+    ay_codec.linkLibrary(libay);
+    ay_codec.linkLibrary(libfixedpoint);
+
     const libayumi = b.addStaticLibrary(.{
         .name = "ayumi",
         .target = target,
@@ -928,6 +1690,29 @@ pub fn build(b: *std.Build) void {
     libayumi.defineCMacro("CODEC", null);
     defineCMacros(libayumi);
     addIncludePaths(libayumi);
+
+    const vtx_codec = b.addSharedLibrary(.{
+        .name = "vtx",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(vtx_codec);
+
+    vtx_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    vtx_codec.defineCMacro("CODEC", null);
+    defineCMacros(vtx_codec);
+    addIncludePaths(vtx_codec);
+
+    vtx_codec.linkLibrary(libcodec);
+    vtx_codec.linkLibrary(libayumi);
+    vtx_codec.linkLibrary(libfixedpoint);
 
     const libgbs = b.addStaticLibrary(.{
         .name = "gbs",
@@ -954,6 +1739,29 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libgbs);
     addIncludePaths(libgbs);
 
+    const gbs_codec = b.addSharedLibrary(.{
+        .name = "gbs",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(gbs_codec);
+
+    gbs_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    gbs_codec.defineCMacro("CODEC", null);
+    defineCMacros(gbs_codec);
+    addIncludePaths(gbs_codec);
+
+    gbs_codec.linkLibrary(libcodec);
+    gbs_codec.linkLibrary(libgbs);
+    gbs_codec.linkLibrary(libfixedpoint);
+
     const libhes = b.addStaticLibrary(.{
         .name = "hes",
         .target = target,
@@ -976,6 +1784,29 @@ pub fn build(b: *std.Build) void {
     libhes.defineCMacro("CODEC", null);
     defineCMacros(libhes);
     addIncludePaths(libhes);
+
+    const hes_codec = b.addSharedLibrary(.{
+        .name = "hes",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(hes_codec);
+
+    hes_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    hes_codec.defineCMacro("CODEC", null);
+    defineCMacros(hes_codec);
+    addIncludePaths(hes_codec);
+
+    hes_codec.linkLibrary(libcodec);
+    hes_codec.linkLibrary(libhes);
+    hes_codec.linkLibrary(libfixedpoint);
 
     const libnsf = b.addStaticLibrary(.{
         .name = "nsf",
@@ -1029,6 +1860,30 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libemu2413);
     addIncludePaths(libemu2413);
 
+    const nsf_codec = b.addSharedLibrary(.{
+        .name = "nsf",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(nsf_codec);
+
+    nsf_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    nsf_codec.defineCMacro("CODEC", null);
+    defineCMacros(nsf_codec);
+    addIncludePaths(nsf_codec);
+
+    nsf_codec.linkLibrary(libcodec);
+    nsf_codec.linkLibrary(libnsf);
+    nsf_codec.linkLibrary(libfixedpoint);
+    nsf_codec.linkLibrary(libemu2413);
+
     const libsgc = b.addStaticLibrary(.{
         .name = "sgc",
         .target = target,
@@ -1049,6 +1904,29 @@ pub fn build(b: *std.Build) void {
     libsgc.defineCMacro("CODEC", null);
     defineCMacros(libsgc);
     addIncludePaths(libsgc);
+
+    const sgc_codec = b.addSharedLibrary(.{
+        .name = "sgc",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(sgc_codec);
+
+    sgc_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    sgc_codec.defineCMacro("CODEC", null);
+    defineCMacros(sgc_codec);
+    addIncludePaths(sgc_codec);
+
+    sgc_codec.linkLibrary(libcodec);
+    sgc_codec.linkLibrary(libsgc);
+    sgc_codec.linkLibrary(libfixedpoint);
 
     const libvgm = b.addStaticLibrary(.{
         .name = "vgm",
@@ -1075,6 +1953,29 @@ pub fn build(b: *std.Build) void {
     libvgm.defineCMacro("CODEC", null);
     defineCMacros(libvgm);
     addIncludePaths(libvgm);
+
+    const vgm_codec = b.addSharedLibrary(.{
+        .name = "vgm",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(vgm_codec);
+
+    vgm_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    vgm_codec.defineCMacro("CODEC", null);
+    defineCMacros(vgm_codec);
+    addIncludePaths(vgm_codec);
+
+    vgm_codec.linkLibrary(libcodec);
+    vgm_codec.linkLibrary(libvgm);
+    vgm_codec.linkLibrary(libfixedpoint);
 
     //const sid = b.addStaticLibrary(.{
     //    .name = "cRSID",
@@ -1124,6 +2025,29 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libkss);
     addIncludePaths(libkss);
 
+    const kss_codec = b.addSharedLibrary(.{
+        .name = "kss",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(kss_codec);
+
+    kss_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    kss_codec.defineCMacro("CODEC", null);
+    defineCMacros(kss_codec);
+    addIncludePaths(kss_codec);
+
+    kss_codec.linkLibrary(libcodec);
+    kss_codec.linkLibrary(libkss);
+    kss_codec.linkLibrary(libfixedpoint);
+
     const aac_bsf = b.addStaticLibrary(.{
         .name = "aac_bsf",
         .target = target,
@@ -1142,6 +2066,29 @@ pub fn build(b: *std.Build) void {
     aac_bsf.defineCMacro("CODEC", null);
     defineCMacros(aac_bsf);
     addIncludePaths(aac_bsf);
+
+    const aac_bsf_codec = b.addSharedLibrary(.{
+        .name = "aac_bsf",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(aac_bsf_codec);
+
+    aac_bsf_codec.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    aac_bsf_codec.defineCMacro("CODEC", null);
+    defineCMacros(aac_bsf_codec);
+    addIncludePaths(aac_bsf_codec);
+
+    aac_bsf_codec.linkLibrary(libcodec);
+    aac_bsf_codec.linkLibrary(aac_bsf);
+    aac_bsf_codec.linkLibrary(libfixedpoint);
 
     const libplugin = b.addStaticLibrary(.{
         .name = "plugin",
@@ -1300,6 +2247,57 @@ pub fn build(b: *std.Build) void {
 
     chopper.linkLibrary(libplugin);
     chopper.linkLibrary(libpluginbitmaps);
+    chopper.linkLibrary(libfixedpoint);
+
+    const clix = b.addSharedLibrary(.{
+        .name = "clix",
+        .target = target,
+        .optimize = optimize,
+        .strip = true,
+    });
+
+    b.installArtifact(clix);
+
+    clix.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "apps/plugins/clix.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    clix.defineCMacro("PLUGIN", null);
+    defineCMacros(clix);
+    addPluginIncludePaths(clix);
+
+    clix.linkLibrary(libplugin);
+    clix.linkLibrary(libpluginbitmaps);
+    clix.linkLibrary(libfixedpoint);
+
+    const credits = b.addSharedLibrary(.{
+        .name = "credits",
+        .target = target,
+        .optimize = optimize,
+        .strip = true,
+    });
+
+    b.installArtifact(credits);
+
+    credits.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "apps/plugins/credits.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .flags = &cflags,
+    });
+
+    credits.defineCMacro("PLUGIN", null);
+    defineCMacros(credits);
+    addPluginIncludePaths(credits);
+
+    credits.linkLibrary(libplugin);
+    credits.linkLibrary(libpluginbitmaps);
+    credits.linkLibrary(libfixedpoint);
 
     exe.linkLibrary(libfirmware);
     exe.linkLibrary(libspeex_voice);
