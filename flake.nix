@@ -84,6 +84,8 @@
       devShells.default = pkgs.mkShell {
          buildInputs = [
           pkgs.zig
+          pkgs.perl
+          pkgs.gnumake
          ];
          shellHook = ''
            readonly YELLOW="$(tput setaf 3 2>/dev/null)"
