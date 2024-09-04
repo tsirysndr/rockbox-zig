@@ -4,6 +4,9 @@
 #
 # THIS FILE IS GENERATED; DO NOT MODIFY
 
+readonly YELLOW="$(tput setaf 3 2>/dev/null || echo '')"
+readonly NO_COLOR="$(tput sgr0 2>/dev/null || echo '')"
+
 if [ "${BASH_SOURCE-}" = "$0" ]; then
   echo "You must source this script: \$ source $0" >&2
   exit 33
@@ -17,5 +20,17 @@ if "${BIN_DIR}/hermit" noop > /dev/null; then
       hash -r 2>/dev/null
     fi
 
-    echo "Hermit environment $("${HERMIT_ENV}"/bin/hermit env HERMIT_ENV) activated"
+    cat <<EOF
+    ${YELLOW}
+                __________               __   ___.
+      Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
+      Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
+      Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
+      Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \\
+                        \/            \/     \/    \/            \/
+    ${NO_COLOR}
+EOF
+ echo Zig $(zig version)
+ echo $(which zig) 
+ echo "Hermit environment $("${HERMIT_ENV}"/bin/hermit env HERMIT_ENV) activated"
 fi

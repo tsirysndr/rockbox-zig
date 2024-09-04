@@ -22,9 +22,20 @@
           pkgs.zig
          ];
          shellHook = ''
-           echo 'Zig version:'
-           zig version
-           echo 'Welcome to Zig shell!'
+           readonly YELLOW="$(tput setaf 3 2>/dev/null)"
+           readonly NO_COLOR="$(tput sgr0 2>/dev/null)"
+           echo $YELLOW
+           cat <<EOF
+               __________               __   ___.
+     Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
+     Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
+     Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
+     Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \\
+                       \/            \/     \/    \/            \/
+EOF
+           echo $NO_COLOR
+           echo 'Zig' $(which zig)
+           echo 'Welcome to Rockbox development shell!'
           '';
       };
     });
