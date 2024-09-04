@@ -414,6 +414,8 @@ symlinkinstall: simext1
 	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m "$(MODELNAME)" -i "$(TARGET_ID)" $(INSTALL) -z "zip -r0" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" -f 2 $(TARGET) $(BINARY) -l
 endif
 
+zig: $(BUILDDIR)/lang/lang.h $(BUILDDIR)/lang_enum.h $(BUILDDIR)/lang/lang_core.c $(BUILDDIR)/lang/max_language_size.h $(BUILDDIR)/sysfont.o $(BUILDDIR)/rbversion.h $(PBMPHFILES) $(LUA_BUILDDIR)/actions.lua $(LUA_BUILDDIR)/settings.lua $(LUA_BUILDDIR)/buttons.lua $(LUA_BUILDDIR)/rb_defines.lua $(LUA_BUILDDIR)/sound_defines.lua $(LUA_BUILDDIR)/rocklib_aux.c $(BUILDDIR)/credits.raw credits.raw
+	cd .. && zig build
 help:
 	@echo "A few helpful make targets"
 	@echo ""
