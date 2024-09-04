@@ -1875,35 +1875,6 @@ fn defineCMacros(c: *std.Build.Step.Compile) void {
     c.defineCMacro("_REENTRANT", null);
 }
 
-fn addOpusIncludePaths(c: *std.Build.Step.Compile) void {
-    c.addIncludePath(.{ .cwd_relative = "/usr/include" });
-    c.addIncludePath(.{ .cwd_relative = "/usr/include/x86_64-linux-gnu" });
-    c.addIncludePath(.{ .cwd_relative = "./firmware/export" });
-    c.addIncludePath(.{ .cwd_relative = "./firmware/drivers" });
-    c.addIncludePath(.{ .cwd_relative = "./build" });
-    c.addIncludePath(.{ .cwd_relative = "./firmware/include" });
-    c.addIncludePath(.{ .cwd_relative = "./firmware/target/hosted/sdl" });
-    c.addIncludePath(.{ .cwd_relative = "./firmware/target/hosted" });
-    c.addIncludePath(.{ .cwd_relative = "./firmware/target/hosted/sdl/app" });
-    c.addIncludePath(.{ .cwd_relative = "./apps" });
-    c.addIncludePath(.{ .cwd_relative = "./apps/gui" });
-    c.addIncludePath(.{ .cwd_relative = "./apps/recorder" });
-    c.addIncludePath(.{ .cwd_relative = "./lib/rbcodec" });
-    c.addIncludePath(.{ .cwd_relative = "./lib/rbcodec/metadata" });
-    c.addIncludePath(.{ .cwd_relative = "./firmware/kernel/include" });
-    c.addIncludePath(.{ .cwd_relative = "./firmware" });
-    c.addIncludePath(.{ .cwd_relative = "./firmware/asm" });
-    c.addIncludePath(.{ .cwd_relative = "./lib/rbcodec/dsp" });
-    c.addIncludePath(.{ .cwd_relative = "./lib/rbcodec/codecs" });
-    c.addIncludePath(.{ .cwd_relative = "./lib/skin_parser" });
-    c.addIncludePath(.{ .cwd_relative = "./build/lang" });
-    c.addIncludePath(.{ .cwd_relative = "./lib/skin_parser" });
-    c.addIncludePath(.{ .cwd_relative = "./apps/gui/skin_engine" });
-    c.addIncludePath(.{ .cwd_relative = "./lib/fixedpoint" });
-    c.addIncludePath(.{ .cwd_relative = "./lib/rbcodec/codecs/lib" });
-    c.addIncludePath(.{ .cwd_relative = "./lib/rbcodec/codecs/libopus" });
-}
-
 fn addIncludePaths(c: *std.Build.Step.Compile) void {
     c.addIncludePath(.{ .cwd_relative = "/usr/include" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/x86_64-linux-gnu" });
