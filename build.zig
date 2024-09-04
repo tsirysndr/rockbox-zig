@@ -106,6 +106,8 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
 
+    build_tools(b, target, optimize);
+
     exe.addCSourceFiles(.{
         // .files = &[_][]const u8{},
         .files = &all_sources,
@@ -1776,6 +1778,429 @@ pub fn build(b: *std.Build) void {
     exe.linkLibrary(libuisimulator);
     exe.linkSystemLibrary("SDL");
     exe.linkLibC();
+}
+
+fn build_tools(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    build_scramble(b, target, optimize);
+    build_descramble(b, target, optimize);
+    build_bmp2rb(b, target, optimize);
+    build_rdf2binary(b, target, optimize);
+    build_mkboot(b, target, optimize);
+    build_mkzenboot(b, target, optimize);
+    build_convbdf(b, target, optimize);
+    build_codepages(b, target, optimize);
+    build_voicefont(b, target, optimize);
+    build_usb_benchmark(b, target, optimize);
+    build_convttf(b, target, optimize);
+    build_mk500boot(b, target, optimize);
+}
+
+fn build_scramble(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const scramble = b.addExecutable(.{
+        .name = "scramble",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(scramble);
+
+    scramble.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/scramble.c",
+            "tools/iriver.c",
+            "tools/mi4.c",
+            "tools/gigabeat.c",
+            "tools/gigabeats.c",
+            "tools/telechips.c",
+            "tools/iaudio_bl_flash.c",
+            "tools/creative.c",
+            "tools/hmac-sha1.c",
+            "tools/rkw.c",
+        },
+        .flags = &flags,
+    });
+    scramble.linkLibC();
+}
+
+fn build_descramble(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const descramble = b.addExecutable(.{
+        .name = "decsramble",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(descramble);
+
+    descramble.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/descramble.c",
+            "tools/iriver.c",
+            "tools/gigabeat.c",
+        },
+        .flags = &flags,
+    });
+
+    descramble.linkLibC();
+}
+
+fn build_bmp2rb(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const bmp2rb = b.addExecutable(.{
+        .name = "bmp2rb",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(bmp2rb);
+
+    bmp2rb.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/bmp2rb.c",
+        },
+        .flags = &flags,
+    });
+
+    bmp2rb.linkLibC();
+}
+
+fn build_rdf2binary(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const rdf2binary = b.addExecutable(.{
+        .name = "rdf2binary",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(rdf2binary);
+
+    rdf2binary.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/rdf2binary.c",
+        },
+        .flags = &flags,
+    });
+
+    rdf2binary.linkLibC();
+}
+
+fn build_mkboot(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const mkboot = b.addExecutable(.{
+        .name = "mkboot",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(mkboot);
+
+    mkboot.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/mkboot.c",
+        },
+        .flags = &flags,
+    });
+
+    mkboot.linkLibC();
+}
+
+fn build_mkzenboot(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const mkzenboot = b.addExecutable(.{
+        .name = "mkzenboot",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(mkzenboot);
+
+    mkzenboot.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/mkzenboot.c",
+            "tools/hmac-sha1.c",
+        },
+        .flags = &[_][]const u8{
+            "-O",
+            "-g",
+            "-W",
+            "-Wall",
+            "-Wshadow",
+            "-pedantic",
+            "-I./tools",
+            "-I./build",
+            "-I/usr/include",
+            "-I/usr/include/x86_64-linux-gnu",
+            "-DSTANDALONE",
+        },
+    });
+
+    mkzenboot.linkLibC();
+    mkzenboot.linkSystemLibrary("z");
+}
+
+fn build_convbdf(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const convbdf = b.addExecutable(.{
+        .name = "convbdf",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(convbdf);
+
+    convbdf.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/convbdf.c",
+        },
+        .flags = &flags,
+    });
+
+    convbdf.linkLibC();
+}
+
+fn build_codepages(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const codepages = b.addExecutable(.{
+        .name = "codepages",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(codepages);
+
+    codepages.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/codepages.c",
+            "tools/codepage_tables.c",
+        },
+        .flags = &flags,
+    });
+
+    codepages.linkLibC();
+}
+
+fn build_voicefont(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const voicefont = b.addExecutable(.{
+        .name = "voicefont",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(voicefont);
+
+    voicefont.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/voicefont.c",
+        },
+        .flags = &flags,
+    });
+
+    voicefont.linkLibC();
+}
+
+fn build_usb_benchmark(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const usb_benchmark = b.addExecutable(.{
+        .name = "usb_benchmark",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(usb_benchmark);
+
+    usb_benchmark.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/usb_benchmark.c",
+        },
+        .flags = &flags,
+    });
+
+    usb_benchmark.linkSystemLibrary("usb");
+    usb_benchmark.linkLibC();
+}
+
+fn build_convttf(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const convttf = b.addExecutable(.{
+        .name = "convttf",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(convttf);
+
+    convttf.addCSourceFiles(.{ .files = &[_][]const u8{
+        "tools/convttf.c",
+    }, .flags = &[_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-std=c99",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/freetype2",
+        "-I/usr/include/libpng16",
+    } });
+
+    convttf.linkSystemLibrary("m");
+    convttf.linkSystemLibrary("freetype");
+    convttf.linkLibC();
+}
+
+fn build_mk500boot(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const flags = [_][]const u8{
+        "-O",
+        "-g",
+        "-W",
+        "-Wall",
+        "-Wshadow",
+        "-pedantic",
+        "-I./tools",
+        "-I./build",
+        "-I/usr/include",
+        "-I/usr/include/x86_64-linux-gnu",
+        "-DAPPLICATION_NAME",
+    };
+
+    const mk500boot = b.addExecutable(.{
+        .name = "mk500boot",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(mk500boot);
+
+    mk500boot.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "tools/mk500boot.c",
+            "tools/mr500.c",
+        },
+        .flags = &flags,
+    });
+
+    mk500boot.linkLibC();
 }
 
 fn build_codec(b: *std.Build, options: BuildOptions) void {
