@@ -13,8 +13,7 @@ Run the following commands to build the project:
 
 ```sh
 . ./bin/activate-hermit
-mkdir -p build && \
-cd build && \
-../tools/configure && \
+mkdir -p build && cd build
+../tools/configure
 make zig
 ```
