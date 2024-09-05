@@ -1,4 +1,7 @@
-![Rockbox Zig](https://www.rockbox.org/rockbox400.png)
+<div>
+  <img src="https://www.rockbox.org/rockbox400.png" />
+  <img src="https://ziglang.org/ziggy.svg" height="150"/>
+</div>
 
 # Rockbox Zig 🎵 ⚡
 
