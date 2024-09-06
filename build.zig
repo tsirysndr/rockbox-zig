@@ -3442,7 +3442,6 @@ fn install_codecs(b: *std.Build, install: *std.Build.Step) !void {
     install.dependOn(try install_codec(b, "au"));
     install.dependOn(try install_codec(b, "ay"));
     install.dependOn(try install_codec(b, "cook"));
-    install.dependOn(try install_codec(b, "faad"));
     install.dependOn(try install_codec(b, "gbs"));
     install.dependOn(try install_codec(b, "hes"));
     install.dependOn(try install_codec(b, "kss"));
