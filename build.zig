@@ -398,6 +398,26 @@ pub fn build(b: *std.Build) !void {
     defineCMacros(libmad);
     addIncludePaths(libmad);
 
+    const libm4a = b.addStaticLibrary(.{
+        .name = "m4a",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(libm4a);
+
+    libm4a.addCSourceFiles(.{
+        .files = &[_][]const u8{
+            "lib/rbcodec/codecs/libm4a/m4a.c",
+            "lib/rbcodec/codecs/libm4a/demux.c",
+        },
+        .flags = &cflags,
+    });
+
+    libm4a.defineCMacro("CODEC", null);
+    defineCMacros(libm4a);
+    addIncludePaths(libm4a);
+
     const libasf = b.addStaticLibrary(.{
         .name = "asf",
         .target = target,
@@ -587,25 +607,10 @@ pub fn build(b: *std.Build) !void {
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
             libfixedpoint,
+            libm4a,
         },
     });
     codecs.dependOn(alac);
-
-    const m4a = try build_codec(b, .{
-        .name = "m4a",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "lib/rbcodec/codecs/codec_crt0.c",
-            "lib/rbcodec/codecs/libm4a/m4a.c",
-            "lib/rbcodec/codecs/libm4a/demux.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libcodec,
-            libfixedpoint,
-        },
-    });
-    codecs.dependOn(m4a);
 
     const cook = try build_codec(b, .{
         .name = "cook",
@@ -970,6 +975,8 @@ pub fn build(b: *std.Build) !void {
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
             libfixedpoint,
+            libm4a,
+            libfaad,
         },
     });
     codecs.dependOn(aac);
@@ -4083,7 +4090,6 @@ const vorbis_sources = [_][]const u8{
 };
 
 const libmad_sources = [_][]const u8{
-    "lib/rbcodec/codecs/mpa.c",
     "lib/rbcodec/codecs/libmad/bit.c",
     "lib/rbcodec/codecs/libmad/frame.c",
     "lib/rbcodec/codecs/libmad/huffman.c",
