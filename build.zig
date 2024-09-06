@@ -98,8 +98,10 @@ pub fn build(b: *std.Build) !void {
     all.dependOn(codecs);
     all.dependOn(rocks);
 
-    const install = b.step("install-rockbox", "Install codecs and plugins");
+    const install = b.step("install-rockbox", "Install rockbox, codecs and plugins");
     install.dependOn(all);
+    const copy_rockbox = try install_rockbox(b);
+    install.dependOn(copy_rockbox);
     try install_codecs(b, install);
     try install_rocks(b, install);
 
@@ -3307,6 +3309,41 @@ fn build_mk500boot(b: *std.Build, target: std.Build.ResolvedTarget, optimize: st
     mk500boot.linkLibC();
 }
 
+fn install_rockbox(b: *std.Build) !*std.Build.Step {
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    var to = String.init(arena.allocator());
+    defer to.deinit();
+
+    const env_map = try arena.allocator().create(std.process.EnvMap);
+    env_map.* = try std.process.getEnvMap(arena.allocator());
+    defer env_map.deinit();
+
+    const prefix = env_map.get("PREFIX") orelse "/usr/local";
+    try to.concat(prefix);
+    try to.concat("/bin/");
+
+    const info = b.addSystemCommand(&[_][]const u8{
+        "echo",
+        "Installing",
+        "rockbox",
+        "binary",
+        "...",
+    });
+    const mkdir = b.addSystemCommand(&[_][]const u8{
+        "mkdir", "-p", to.str(),
+    });
+    const cp = b.addSystemCommand(&[_][]const u8{
+        "cp", "zig-out/bin/rockbox", to.str(),
+    });
+    mkdir.step.dependOn(b.getInstallStep());
+    cp.step.dependOn(&mkdir.step);
+    cp.step.dependOn(&info.step);
+
+    return &cp.step;
+}
+
 fn install_codec(b: *std.Build, name: []const u8) !*std.Build.Step {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
@@ -3405,7 +3442,7 @@ fn install_rock(b: *std.Build, name: []const u8, category: []const u8) !*std.Bui
 
     const prefix = env_map.get("PREFIX") orelse "/usr/local";
     try to.concat(prefix);
-    try to.concat("/lib/rockbox/");
+    try to.concat("/lib/rockbox/rocks/");
     try to.concat(category);
 
     const info = b.addSystemCommand(&[_][]const u8{
