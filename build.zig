@@ -452,6 +452,7 @@ pub fn build(b: *std.Build) !void {
             libmad,
             libasf,
         },
+        .cflags = &codec_cflags,
     });
     codecs.dependOn(mpa);
 
@@ -978,6 +979,7 @@ pub fn build(b: *std.Build) !void {
             libm4a,
             libfaad,
         },
+        .cflags = &codec_cflags,
     });
     codecs.dependOn(aac);
 
@@ -3591,7 +3593,6 @@ fn build_codec(b: *std.Build, options: BuildOptions) !*std.Build.Step {
         .target = options.target,
         .optimize = options.optimize,
         .strip = true,
-        .link_libc = true,
     });
 
     b.installArtifact(codec);
@@ -4221,6 +4222,45 @@ const all_sources = [_][]const u8{
     "apps/keymaps/keymap-touchscreen.c",
     "apps/keymaps/keymap-sdl.c",
     "build/lang/lang_core.c",
+};
+
+const codec_cflags = [_][]const u8{
+    "-DROCKBOX",
+    "-DMEMORYSIZE=8",
+    "-DSDLAPP -DTARGET_ID=73",
+    "-DTARGET_NAME=\"sdlapp\"",
+    "-DYEAR=2024",
+    "-DMONTH=09",
+    "-DDAY=02",
+    "-DOS_USE_BYTESWAP_H",
+    "-DAPPLICATION",
+    "-W",
+    "-Wall",
+    "-Wextra",
+    "-Os",
+    "-Wstrict-prototypes",
+    "-pipe",
+    "-std=gnu99",
+    "-funit-at-a-time",
+    "-fno-delete-null-pointer-checks",
+    "-fno-strict-overflow",
+    "-fno-builtin",
+    "-g",
+    "-Wno-unused-result",
+    "-D_GNU_SOURCE=1",
+    "-D_REENTRANT",
+    "-I/home/coder/Documents/github/rockbox/uisimulator/sdl",
+    "-Wno-pointer-sign",
+    "-Wno-override-init",
+    "-Wno-shift-negative-value",
+    "-Wno-unused-const-variable",
+    "-Wno-nonnull-compare",
+    "-Wno-tautological-compare",
+    "-Wno-expansion-to-defined",
+    "-fstrict-aliasing",
+    "-DCODEC",
+    "-fPIC",
+    "-fvisibility=hidden",
 };
 
 const cflags = [_][]const u8{
