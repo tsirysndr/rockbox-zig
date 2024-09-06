@@ -356,6 +356,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/vorbis.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libtremor/bitwise.c",
             "lib/rbcodec/codecs/libtremor/block.c",
             "lib/rbcodec/codecs/libtremor/codebook.c",
@@ -423,6 +424,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/mpa.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -459,6 +461,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/flac.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -503,6 +506,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/wav.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -534,6 +538,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/a52.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/liba52/bit_allocate.c",
             "lib/rbcodec/codecs/liba52/bitstream.c",
             "lib/rbcodec/codecs/liba52/downmix.c",
@@ -554,6 +559,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/wavpack.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libwavpack/bits.c",
             "lib/rbcodec/codecs/libwavpack/float.c",
             "lib/rbcodec/codecs/libwavpack/metadata.c",
@@ -575,6 +581,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/alac.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libalac/alac.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
@@ -589,6 +596,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .sources = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libm4a/m4a.c",
             "lib/rbcodec/codecs/libm4a/demux.c",
         },
@@ -604,6 +612,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .sources = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/cook.c",
             "lib/rbcodec/codecs/libcook/cook.c",
         },
@@ -693,6 +702,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .sources = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/raac.c",
             "lib/rbcodec/codecs/libfaad/bits.c",
             "lib/rbcodec/codecs/libfaad/common.c",
@@ -764,6 +774,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/raac.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -807,6 +818,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .sources = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/a52_rm.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
@@ -822,6 +834,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .sources = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/atrac3_rm.c",
             "lib/rbcodec/codecs/libatrac/atrac3.c",
         },
@@ -838,6 +851,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .sources = &[_][]const u8{
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/atrac3_oma.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
@@ -853,6 +867,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/mpc.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libmusepack/crc32.c",
             "lib/rbcodec/codecs/libmusepack/huffman.c",
             "lib/rbcodec/codecs/libmusepack/mpc_bits_reader.c",
@@ -875,6 +890,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/wma.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libwma/wmadeci.c",
             "lib/rbcodec/codecs/libwma/wmafixed.c",
         },
@@ -916,6 +932,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/ape.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -930,6 +947,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/asap.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libasap/acpu.c",
             "lib/rbcodec/codecs/libasap/asap.c",
             "lib/rbcodec/codecs/libasap/apokeysnd.c",
@@ -947,6 +965,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/aac.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -961,6 +980,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/spc.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libspc/spc_cpu.c",
             "lib/rbcodec/codecs/libspc/spc_dsp.c",
             "lib/rbcodec/codecs/libspc/spc_emu.c",
@@ -979,6 +999,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/mod.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -993,6 +1014,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/shorten.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1008,6 +1030,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/aiff.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1068,6 +1091,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/adx.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1082,6 +1106,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/smaf.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1097,6 +1122,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/au.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1112,6 +1138,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/vox.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1127,6 +1154,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/wav64.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1142,6 +1170,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/tta.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libtta/ttadec.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
@@ -1157,6 +1186,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/wmapro.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libwmapro/wmaprodec.c",
             "lib/rbcodec/codecs/libwmapro/wma.c",
             "lib/rbcodec/codecs/libwmapro/mdct_tables.c",
@@ -1174,6 +1204,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/ay.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libgme/ay_apu.c",
             "lib/rbcodec/codecs/libgme/ay_cpu.c",
             "lib/rbcodec/codecs/libgme/ay_emu.c",
@@ -1195,6 +1226,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/vtx.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libayumi/ayumi_render.c",
             "lib/rbcodec/codecs/libayumi/ayumi.c",
             "lib/rbcodec/codecs/libayumi/lzh.c",
@@ -1212,6 +1244,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/gbs.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libgme/gb_apu.c",
             "lib/rbcodec/codecs/libgme/gb_cpu.c",
             "lib/rbcodec/codecs/libgme/gbs_cpu.c",
@@ -1232,6 +1265,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/hes.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libgme/hes_apu.c",
             "lib/rbcodec/codecs/libgme/hes_apu_adpcm.c",
             "lib/rbcodec/codecs/libgme/hes_cpu.c",
@@ -1272,6 +1306,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/nsf.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libgme/nes_apu.c",
             "lib/rbcodec/codecs/libgme/nes_cpu.c",
             "lib/rbcodec/codecs/libgme/nes_fds_apu.c",
@@ -1285,8 +1320,6 @@ pub fn build(b: *std.Build) !void {
             "lib/rbcodec/codecs/libgme/nsfe_info.c",
             "lib/rbcodec/codecs/libgme/sms_apu.c",
             "lib/rbcodec/codecs/libgme/sms_fm_apu.c",
-            "lib/rbcodec/codecs/libgme/emu2413.c",
-            "lib/rbcodec/codecs/libgme/ym2413_emu.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1302,6 +1335,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/sgc.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libgme/sgc_cpu.c",
             "lib/rbcodec/codecs/libgme/sgc_emu.c",
         },
@@ -1318,6 +1352,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/vgm.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libgme/resampler.c",
             "lib/rbcodec/codecs/libgme/vgm_emu.c",
             "lib/rbcodec/codecs/libgme/ym2612_emu.c",
@@ -1359,6 +1394,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/kss.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libgme/kss_cpu.c",
             "lib/rbcodec/codecs/libgme/kss_emu.c",
             "lib/rbcodec/codecs/libgme/kss_scc_apu.c",
@@ -1379,6 +1415,7 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/aac_bsf.c",
+            "lib/rbcodec/codecs/codec_crt0.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -3543,51 +3580,31 @@ fn install_rocks(b: *std.Build, install: *std.Build.Step) !void {
 }
 
 fn build_codec(b: *std.Build, options: BuildOptions) !*std.Build.Step {
-    const codec_lib = b.addStaticLibrary(.{
-        .name = options.name,
-        .target = options.target,
-        .optimize = options.optimize,
-    });
-
-    b.installArtifact(codec_lib);
-
-    codec_lib.addCSourceFiles(.{
-        .files = options.sources,
-        .flags = options.cflags,
-    });
-
-    for (options.macros) |macro| {
-        codec_lib.defineCMacro(macro, null);
-    }
-
-    defineCMacros(codec_lib);
-    addIncludePaths(codec_lib);
-
     const codec = b.addSharedLibrary(.{
         .name = options.name,
         .target = options.target,
         .optimize = options.optimize,
+        .strip = true,
+        .link_libc = true,
     });
 
     b.installArtifact(codec);
 
     codec.addCSourceFiles(.{
-        .files = &[_][]const u8{
-            "lib/rbcodec/codecs/codec_crt0.c",
-        },
+        .files = options.sources,
         .flags = options.cflags,
     });
 
     for (options.macros) |macro| {
         codec.defineCMacro(macro, null);
     }
+
     defineCMacros(codec);
     addIncludePaths(codec);
 
     for (options.link_libraries) |lib| {
         codec.linkLibrary(lib);
     }
-    codec.linkLibrary(codec_lib);
 
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
@@ -3623,6 +3640,7 @@ fn build_plugin(b: *std.Build, options: BuildOptions) !*std.Build.Step {
         .target = options.target,
         .optimize = options.optimize,
         .strip = true,
+        .link_libc = true,
     });
 
     b.installArtifact(plugin);
@@ -4045,6 +4063,7 @@ const libopus_sources = [_][]const u8{
 
 const vorbis_sources = [_][]const u8{
     "lib/rbcodec/codecs/vorbis.c",
+    "lib/rbcodec/codecs/codec_crt0.c",
     "lib/rbcodec/codecs/libtremor/bitwise.c",
     "lib/rbcodec/codecs/libtremor/block.c",
     "lib/rbcodec/codecs/libtremor/codebook.c",
@@ -4076,6 +4095,7 @@ const libmad_sources = [_][]const u8{
 
 const libspeex_sources = [_][]const u8{
     "lib/rbcodec/codecs/speex.c",
+    "lib/rbcodec/codecs/codec_crt0.c",
     "lib/rbcodec/codecs/libspeex/bits.c",
     "lib/rbcodec/codecs/libspeex/cb_search.c",
     "lib/rbcodec/codecs/libspeex/exc_10_16_table.c",
