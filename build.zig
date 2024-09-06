@@ -3443,7 +3443,6 @@ fn install_codecs(b: *std.Build, install: *std.Build.Step) !void {
     install.dependOn(try install_codec(b, "gbs"));
     install.dependOn(try install_codec(b, "hes"));
     install.dependOn(try install_codec(b, "kss"));
-    install.dependOn(try install_codec(b, "m4a"));
     install.dependOn(try install_codec(b, "mod"));
     install.dependOn(try install_codec(b, "mpa"));
     install.dependOn(try install_codec(b, "mpc"));
