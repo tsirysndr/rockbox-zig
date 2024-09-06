@@ -447,17 +447,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
-#   define MINESWP_LEFT       BUTTON_LEFT
-#   define MINESWP_RIGHT      BUTTON_RIGHT
-#   define MINESWP_UP         BUTTON_UP
-#   define MINESWP_DOWN       BUTTON_DOWN
-#   define MINESWP_NEXT       BUTTON_SCROLL_FWD
-#   define MINESWP_PREV       BUTTON_SCROLL_BACK
-#   define MINESWP_QUIT       (BUTTON_SELECT | BUTTON_MENU)
-#   define MINESWP_TOGGLE_PRE BUTTON_SELECT
-#   define MINESWP_TOGGLE     (BUTTON_SELECT | BUTTON_LEFT)
-#   define MINESWP_DISCOVER   (BUTTON_SELECT | BUTTON_RIGHT)
-#   define MINESWP_INFO       (BUTTON_SELECT | BUTTON_UP)
+/* use touchscreen */
 
 #else
 #error No keymap defined!

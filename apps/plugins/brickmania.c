@@ -366,12 +366,12 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define QUIT        BUTTON_POWER
 
 #elif CONFIG_KEYPAD == SDL_PAD
-#define QUIT        BUTTON_BACK
-#define LEFT        BUTTON_LEFT
-#define RIGHT       BUTTON_RIGHT
-#define SELECT      BUTTON_SELECT
-#define UP          BUTTON_UP
-#define DOWN        BUTTON_DOWN
+#define QUIT        BUTTON_TOPLEFT
+#define LEFT        BUTTON_MIDLEFT
+#define RIGHT       BUTTON_MIDRIGHT
+#define SELECT      BUTTON_CENTER
+#define UP          BUTTON_TOPMIDDLE
+#define DOWN        BUTTON_BOTTOMMIDDLE
 
 #else
 #error No keymap defined!
@@ -388,11 +388,11 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #else
 #define RIGHT     BUTTON_BOTTOMRIGHT
 #endif
-#ifdef SELECT
-#define ALTSELECT BUTTON_CENTER
-#else
+// #ifdef SELECT
+// #define ALTSELECT BUTTON_CENTER
+// #else
 #define SELECT    BUTTON_CENTER
-#endif
+//#endif
 #ifndef UP
 #define UP        BUTTON_TOPMIDDLE
 #endif

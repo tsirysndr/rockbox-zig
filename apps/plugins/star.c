@@ -674,18 +674,17 @@
 
 
 #elif CONFIG_KEYPAD == SDL_PAD
-#define STAR_QUIT           BUTTON_BACK
-#define STAR_QUIT_NAME      "POWER"
+/* use touch screen */
 
 #else
 #error No keymap defined!
 #endif
 
 #ifdef HAVE_TOUCHSCREEN
-//#ifndef STAR_QUIT
-//#define STAR_QUIT           BUTTON_TOPLEFT
-//#define STAR_QUIT_NAME           "TOPLEFT"
-//#endif
+#ifndef STAR_QUIT
+#define STAR_QUIT           BUTTON_TOPLEFT | BUTTON_CENTER
+#define STAR_QUIT_NAME           "TOPLEFT"
+#endif
 #ifndef STAR_LEFT
 #define STAR_LEFT           BUTTON_MIDLEFT
 #endif

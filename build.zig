@@ -13,6 +13,12 @@ pub const BuildOptions = struct {
     is_mikmod_plugin: bool = false,
 };
 
+pub const APPS: []const u8 = "/apps";
+pub const DEMOS: []const u8 = "/demos";
+pub const GAMES: []const u8 = "/games";
+pub const VIEWERS: []const u8 = "/viewers";
+pub const CODECS: []const u8 = "/codecs";
+
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
@@ -91,6 +97,11 @@ pub fn build(b: *std.Build) !void {
     const all = b.step("all", "Build codecs and plugins");
     all.dependOn(codecs);
     all.dependOn(rocks);
+
+    const install = b.step("install-rockbox", "Install codecs and plugins");
+    install.dependOn(all);
+    try install_codecs(b, install);
+    try install_rocks(b, install);
 
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
@@ -2588,22 +2599,6 @@ pub fn build(b: *std.Build) !void {
     });
     rocks.dependOn(bubbles);
 
-    const calculator = try build_plugin(b, .{
-        .name = "calculator",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "apps/plugins/calculator.c",
-            "apps/plugins/plugin_crt0.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libplugin,
-            libpluginbitmaps,
-            libfixedpoint,
-        },
-    });
-    rocks.dependOn(calculator);
-
     const chip8 = try build_plugin(b, .{
         .name = "chip8",
         .target = target,
@@ -3310,6 +3305,204 @@ fn build_mk500boot(b: *std.Build, target: std.Build.ResolvedTarget, optimize: st
     });
 
     mk500boot.linkLibC();
+}
+
+fn install_codec(b: *std.Build, name: []const u8) !*std.Build.Step {
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    var from = String.init(arena.allocator());
+    defer from.deinit();
+    try from.concat("zig-out/lib/");
+    try from.concat(name);
+    try from.concat(".codec");
+
+    var to = String.init(arena.allocator());
+    defer to.deinit();
+
+    const env_map = try arena.allocator().create(std.process.EnvMap);
+    env_map.* = try std.process.getEnvMap(arena.allocator());
+    defer env_map.deinit();
+
+    const prefix = env_map.get("PREFIX") orelse "/usr/local";
+    try to.concat(prefix);
+    try to.concat("/lib/rockbox/codecs/");
+
+    const info = b.addSystemCommand(&[_][]const u8{
+        "echo", "Installing", name, "codec",
+    });
+    const mkdir = b.addSystemCommand(&[_][]const u8{
+        "mkdir", "-p", to.str(),
+    });
+    const codec_file = b.addSystemCommand(&[_][]const u8{
+        "cp", from.str(), to.str(),
+    });
+    mkdir.step.dependOn(b.getInstallStep());
+    codec_file.step.dependOn(&mkdir.step);
+    codec_file.step.dependOn(&info.step);
+
+    return &codec_file.step;
+}
+
+fn install_codecs(b: *std.Build, install: *std.Build.Step) !void {
+    install.dependOn(try install_codec(b, "a52"));
+    install.dependOn(try install_codec(b, "a52_rm"));
+    install.dependOn(try install_codec(b, "aac"));
+    install.dependOn(try install_codec(b, "aac_bsf"));
+    install.dependOn(try install_codec(b, "adx"));
+    install.dependOn(try install_codec(b, "alac"));
+    install.dependOn(try install_codec(b, "ape"));
+    install.dependOn(try install_codec(b, "asap"));
+    install.dependOn(try install_codec(b, "atrac3_oma"));
+    install.dependOn(try install_codec(b, "atrac3_rm"));
+    install.dependOn(try install_codec(b, "au"));
+    install.dependOn(try install_codec(b, "ay"));
+    install.dependOn(try install_codec(b, "cook"));
+    install.dependOn(try install_codec(b, "faad"));
+    install.dependOn(try install_codec(b, "gbs"));
+    install.dependOn(try install_codec(b, "hes"));
+    install.dependOn(try install_codec(b, "kss"));
+    install.dependOn(try install_codec(b, "m4a"));
+    install.dependOn(try install_codec(b, "mod"));
+    install.dependOn(try install_codec(b, "mpa"));
+    install.dependOn(try install_codec(b, "mpc"));
+    install.dependOn(try install_codec(b, "nsf"));
+    install.dependOn(try install_codec(b, "opus"));
+    install.dependOn(try install_codec(b, "raac"));
+    install.dependOn(try install_codec(b, "sgc"));
+    install.dependOn(try install_codec(b, "shorten"));
+    install.dependOn(try install_codec(b, "smaf"));
+    install.dependOn(try install_codec(b, "spc"));
+    install.dependOn(try install_codec(b, "speex"));
+    install.dependOn(try install_codec(b, "tta"));
+    install.dependOn(try install_codec(b, "vgm"));
+    install.dependOn(try install_codec(b, "vorbis"));
+    install.dependOn(try install_codec(b, "vox"));
+    install.dependOn(try install_codec(b, "vtx"));
+    install.dependOn(try install_codec(b, "wav"));
+    install.dependOn(try install_codec(b, "wav64"));
+    install.dependOn(try install_codec(b, "wavpack"));
+    install.dependOn(try install_codec(b, "wma"));
+    install.dependOn(try install_codec(b, "wmapro"));
+}
+
+fn install_rock(b: *std.Build, name: []const u8, category: []const u8) !*std.Build.Step {
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    var from = String.init(arena.allocator());
+    defer from.deinit();
+    try from.concat("zig-out/lib/");
+    try from.concat(name);
+    try from.concat(".rock");
+
+    var to = String.init(arena.allocator());
+    defer to.deinit();
+
+    const env_map = try arena.allocator().create(std.process.EnvMap);
+    env_map.* = try std.process.getEnvMap(arena.allocator());
+    defer env_map.deinit();
+
+    const prefix = env_map.get("PREFIX") orelse "/usr/local";
+    try to.concat(prefix);
+    try to.concat("/lib/rockbox/");
+    try to.concat(category);
+
+    const info = b.addSystemCommand(&[_][]const u8{
+        "echo", "Installing", name, "plugin",
+    });
+    const mkdir = b.addSystemCommand(&[_][]const u8{
+        "mkdir", "-p", to.str(),
+    });
+    const install = b.addSystemCommand(&[_][]const u8{
+        "cp", from.str(), to.str(),
+    });
+    mkdir.step.dependOn(b.getInstallStep());
+    install.step.dependOn(&mkdir.step);
+    install.step.dependOn(&info.step);
+
+    return &install.step;
+}
+
+fn install_rocks(b: *std.Build, install: *std.Build.Step) !void {
+    install.dependOn(try install_rock(b, "2048", "games"));
+    install.dependOn(try install_rock(b, "amaze", "games"));
+    install.dependOn(try install_rock(b, "bounce", "demos"));
+    install.dependOn(try install_rock(b, "brickmania", "games"));
+    install.dependOn(try install_rock(b, "bubbles", "games"));
+    install.dependOn(try install_rock(b, "calendar", "apps"));
+    install.dependOn(try install_rock(b, "chessbox", "games"));
+    install.dependOn(try install_rock(b, "chessclock", "apps"));
+    install.dependOn(try install_rock(b, "chip8", "viewers"));
+    install.dependOn(try install_rock(b, "chopper", "games"));
+    install.dependOn(try install_rock(b, "clix", "games"));
+    install.dependOn(try install_rock(b, "credits", "viewers"));
+    install.dependOn(try install_rock(b, "cube", "demos"));
+    install.dependOn(try install_rock(b, "cue_playlist", "viewers"));
+    install.dependOn(try install_rock(b, "dart_scorer", "apps"));
+    install.dependOn(try install_rock(b, "db_commit", "apps"));
+    install.dependOn(try install_rock(b, "demystify", "demos"));
+    install.dependOn(try install_rock(b, "dice", "games"));
+    install.dependOn(try install_rock(b, "dict", "apps"));
+    install.dependOn(try install_rock(b, "disktidy", "apps"));
+    install.dependOn(try install_rock(b, "fft", "demos"));
+    install.dependOn(try install_rock(b, "file_picker", "viewers"));
+    install.dependOn(try install_rock(b, "flipit", "games"));
+    install.dependOn(try install_rock(b, "goban", "games"));
+    install.dependOn(try install_rock(b, "jackpot", "games"));
+    install.dependOn(try install_rock(b, "jewels", "games"));
+    install.dependOn(try install_rock(b, "keybox", "apps"));
+    install.dependOn(try install_rock(b, "keyremap", "apps"));
+    install.dependOn(try install_rock(b, "lastfm_scrobbler", "apps"));
+    install.dependOn(try install_rock(b, "lastfm_scrobbler_viewer", "viewers"));
+    install.dependOn(try install_rock(b, "logo", "demos"));
+    install.dependOn(try install_rock(b, "lrcplayer", "apps"));
+    install.dependOn(try install_rock(b, "lua", "viewers"));
+    install.dependOn(try install_rock(b, "main_menu_config", "apps"));
+    install.dependOn(try install_rock(b, "mazezam", "games"));
+    install.dependOn(try install_rock(b, "md5sum", "apps"));
+    install.dependOn(try install_rock(b, "metronome", "apps"));
+    install.dependOn(try install_rock(b, "mikmod", "viewers"));
+    install.dependOn(try install_rock(b, "minesweeper", "games"));
+    install.dependOn(try install_rock(b, "mosaique", "demos"));
+    install.dependOn(try install_rock(b, "mp3_encoder", "apps"));
+    install.dependOn(try install_rock(b, "open_plugins", "viewers"));
+    install.dependOn(try install_rock(b, "oscilloscope", "demos"));
+    install.dependOn(try install_rock(b, "otp", "apps"));
+    install.dependOn(try install_rock(b, "pegbox", "games"));
+    install.dependOn(try install_rock(b, "periodic_table", "apps"));
+    install.dependOn(try install_rock(b, "pictureflow", "demos"));
+    install.dependOn(try install_rock(b, "playing_time", "apps"));
+    install.dependOn(try install_rock(b, "pong", "games"));
+    install.dependOn(try install_rock(b, "properties", "viewers"));
+    install.dependOn(try install_rock(b, "random_folder_advance_config", "apps"));
+    install.dependOn(try install_rock(b, "rb_info", "demos"));
+    install.dependOn(try install_rock(b, "resistor", "apps"));
+    install.dependOn(try install_rock(b, "reversi", "games"));
+    install.dependOn(try install_rock(b, "robotfindskitten", "games"));
+    install.dependOn(try install_rock(b, "rockblox", "games"));
+    install.dependOn(try install_rock(b, "rockblox1d", "games"));
+    install.dependOn(try install_rock(b, "search", "viewers"));
+    install.dependOn(try install_rock(b, "settings_dumper", "apps"));
+    install.dependOn(try install_rock(b, "shopper", "games"));
+    install.dependOn(try install_rock(b, "sliding_puzzle", "games"));
+    install.dependOn(try install_rock(b, "snake", "games"));
+    install.dependOn(try install_rock(b, "snake2", "games"));
+    install.dependOn(try install_rock(b, "snow", "demos"));
+    install.dependOn(try install_rock(b, "sokoban", "games"));
+    install.dependOn(try install_rock(b, "solitaire", "games"));
+    install.dependOn(try install_rock(b, "sort", "viewers"));
+    install.dependOn(try install_rock(b, "spacerocks", "games"));
+    install.dependOn(try install_rock(b, "star", "games"));
+    install.dependOn(try install_rock(b, "stats", "apps"));
+    install.dependOn(try install_rock(b, "stopwatch", "apps"));
+    install.dependOn(try install_rock(b, "theme_remove", "viewers"));
+    install.dependOn(try install_rock(b, "vbrfix", "viewers"));
+    install.dependOn(try install_rock(b, "vu_meter", "demos"));
+    install.dependOn(try install_rock(b, "wav2wv", "viewers"));
+    install.dependOn(try install_rock(b, "wormlet", "games"));
+    install.dependOn(try install_rock(b, "xobox", "games"));
+    install.dependOn(try install_rock(b, "zxbox", "games"));
 }
 
 fn build_codec(b: *std.Build, options: BuildOptions) !*std.Build.Step {
