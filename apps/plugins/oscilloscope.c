@@ -553,6 +553,15 @@
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 /* use touchscreen */
 
+#elif CONFIG_KEYPAD == SDL_PAD
+#define OSCILLOSCOPE_QUIT            BUTTON_BACK
+#define OSCILLOSCOPE_ADVMODE         BUTTON_MENU
+#define OSCILLOSCOPE_PAUSE           BUTTON_SELECT
+#define OSCILLOSCOPE_SPEED_UP        BUTTON_RIGHT
+#define OSCILLOSCOPE_SPEED_DOWN      BUTTON_LEFT
+#define OSCILLOSCOPE_VOL_UP          BUTTON_UP
+#define OSCILLOSCOPE_VOL_DOWN        BUTTON_DOWN
+
 #else
 #error No keymap defined!
 #endif

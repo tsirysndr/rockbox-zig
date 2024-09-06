@@ -160,11 +160,15 @@ static void init(void);
  * be INIT_ATTR. These functions must not be called after the final call
  * to root_menu() at the end of main()
  * see definition of INIT_ATTR in config.h */
-#ifdef HAVE_ARGV_MAIN
+#if defined(HAVE_ARGV_MAIN) && !defined(ZIG_APP)
 int main(int argc, char *argv[]) INIT_ATTR MAIN_NORETURN_ATTR ;
 int main(int argc, char *argv[])
 {
     sys_handle_argv(argc, argv);
+#elif defined(ZIG_APP)
+int main_c(void) INIT_ATTR MAIN_NORETURN_ATTR;
+int main_c(void)
+{
 #else
 int main(void) INIT_ATTR MAIN_NORETURN_ATTR;
 int main(void)

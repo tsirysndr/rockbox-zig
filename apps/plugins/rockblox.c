@@ -469,6 +469,16 @@
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 /* use touchscreen */
 
+#elif CONFIG_KEYPAD == SDL_PAD
+#define ROCKBLOX_OFF            BUTTON_MENU
+#define ROCKBLOX_ROTATE_CCW     BUTTON_UP
+#define ROCKBLOX_ROTATE_CW      BUTTON_DOWN
+#define ROCKBLOX_DOWN           BUTTON_SELECT
+#define ROCKBLOX_LEFT           BUTTON_LEFT
+#define ROCKBLOX_RIGHT          BUTTON_RIGHT
+#define ROCKBLOX_DROP           (BUTTON_MENU | BUTTON_DOWN)
+#define ROCKBLOX_RESTART        BUTTON_BACK
+
 #else
 #error No keymap defined!
 #endif

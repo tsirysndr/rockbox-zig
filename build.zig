@@ -1,4 +1,5 @@
 const std = @import("std");
+const String = @import("./string.zig").String;
 
 pub const BuildOptions = struct {
     name: []const u8,
@@ -15,7 +16,7 @@ pub const BuildOptions = struct {
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -48,7 +49,7 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "rockbox",
-        // .root_source_file = b.path("src/main.zig"),
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -81,6 +82,16 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
+    const codecs = b.step("codecs", "Build rockbox codecs");
+    codecs.dependOn(b.getInstallStep());
+
+    const rocks = b.step("rocks", "Build rockbox plugins");
+    rocks.dependOn(b.getInstallStep());
+
+    const all = b.step("all", "Build codecs and plugins");
+    all.dependOn(codecs);
+    all.dependOn(rocks);
+
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
     const lib_unit_tests = b.addTest(.{
@@ -99,7 +110,7 @@ pub fn build(b: *std.Build) void {
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
-    // Similar to creating the run step earlier, this exposes a `test` step to
+    // Similar to Generating the run step earlier, this exposes a `test` step to
     // the `zig build --help` menu, providing a way for the user to request
     // running the unit tests.
     const test_step = b.step("test", "Run unit tests");
@@ -109,13 +120,13 @@ pub fn build(b: *std.Build) void {
     build_tools(b, target, optimize);
 
     exe.addCSourceFiles(.{
-        // .files = &[_][]const u8{},
         .files = &all_sources,
         .flags = &cflags,
     });
 
+    exe.defineCMacro("ZIG_APP", null);
+
     lib.addCSourceFiles(.{
-        //.files = &all_sources,
         .files = &[_][]const u8{},
         .flags = &cflags,
     });
@@ -279,7 +290,7 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libtlsf);
     addIncludePaths(libtlsf);
 
-    build_codec(b, .{
+    const opus = try build_codec(b, .{
         .name = "opus",
         .target = target,
         .optimize = optimize,
@@ -324,8 +335,9 @@ pub fn build(b: *std.Build) void {
             "./lib/rbcodec/codecs/libopus/config.h",
         },
     });
+    codecs.dependOn(opus);
 
-    build_codec(b, .{
+    const vorbis = try build_codec(b, .{
         .name = "vorbis",
         .target = target,
         .optimize = optimize,
@@ -353,6 +365,7 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(vorbis);
 
     const libmad = b.addStaticLibrary(.{
         .name = "mad",
@@ -391,7 +404,7 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libasf);
     addIncludePaths(libasf);
 
-    build_codec(b, .{
+    const mpa = try build_codec(b, .{
         .name = "mpa",
         .target = target,
         .optimize = optimize,
@@ -405,6 +418,7 @@ pub fn build(b: *std.Build) void {
             libasf,
         },
     });
+    codecs.dependOn(mpa);
 
     const libffmpegFLAC = b.addStaticLibrary(.{
         .name = "ffmpegFLAC",
@@ -426,7 +440,7 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libffmpegFLAC);
     addIncludePaths(libffmpegFLAC);
 
-    build_codec(b, .{
+    const flac = try build_codec(b, .{
         .name = "flac",
         .target = target,
         .optimize = optimize,
@@ -439,6 +453,7 @@ pub fn build(b: *std.Build) void {
             libffmpegFLAC,
         },
     });
+    codecs.dependOn(flac);
 
     const libpcm = b.addStaticLibrary(.{
         .name = "pcm",
@@ -469,7 +484,7 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libpcm);
     addIncludePaths(libpcm);
 
-    build_codec(b, .{
+    const wav = try build_codec(b, .{
         .name = "wav",
         .target = target,
         .optimize = optimize,
@@ -482,6 +497,7 @@ pub fn build(b: *std.Build) void {
             libpcm,
         },
     });
+    codecs.dependOn(wav);
 
     const librm = b.addStaticLibrary(.{
         .name = "rm",
@@ -499,7 +515,7 @@ pub fn build(b: *std.Build) void {
     defineCMacros(librm);
     addIncludePaths(librm);
 
-    build_codec(b, .{
+    const a52 = try build_codec(b, .{
         .name = "a52",
         .target = target,
         .optimize = optimize,
@@ -517,8 +533,9 @@ pub fn build(b: *std.Build) void {
             librm,
         },
     });
+    codecs.dependOn(a52);
 
-    build_codec(b, .{
+    const wavpack = try build_codec(b, .{
         .name = "wavpack",
         .target = target,
         .optimize = optimize,
@@ -537,8 +554,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(wavpack);
 
-    build_codec(b, .{
+    const alac = try build_codec(b, .{
         .name = "alac",
         .target = target,
         .optimize = optimize,
@@ -551,8 +569,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(alac);
 
-    build_codec(b, .{
+    const m4a = try build_codec(b, .{
         .name = "m4a",
         .target = target,
         .optimize = optimize,
@@ -565,8 +584,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(m4a);
 
-    build_codec(b, .{
+    const cook = try build_codec(b, .{
         .name = "cook",
         .target = target,
         .optimize = optimize,
@@ -580,6 +600,7 @@ pub fn build(b: *std.Build) void {
             librm,
         },
     });
+    codecs.dependOn(cook);
 
     const libfaad = b.addStaticLibrary(.{
         .name = "faad",
@@ -654,7 +675,7 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libfaad);
     addIncludePaths(libfaad);
 
-    build_codec(b, .{
+    const faad = try build_codec(b, .{
         .name = "faad",
         .target = target,
         .optimize = optimize,
@@ -722,8 +743,9 @@ pub fn build(b: *std.Build) void {
             "-I./lib/rbcodec/codecs/libfaad",
         },
     });
+    codecs.dependOn(faad);
 
-    build_codec(b, .{
+    const raac = try build_codec(b, .{
         .name = "raac",
         .target = target,
         .optimize = optimize,
@@ -765,8 +787,9 @@ pub fn build(b: *std.Build) void {
             "-I./lib/rbcodec/codecs/libfaad",
         },
     });
+    codecs.dependOn(raac);
 
-    build_codec(b, .{
+    const a52_rm = try build_codec(b, .{
         .name = "a52_rm",
         .target = target,
         .optimize = optimize,
@@ -779,8 +802,9 @@ pub fn build(b: *std.Build) void {
             librm,
         },
     });
+    codecs.dependOn(a52_rm);
 
-    build_codec(b, .{
+    const atrac3_rm = try build_codec(b, .{
         .name = "atrac3_rm",
         .target = target,
         .optimize = optimize,
@@ -794,8 +818,9 @@ pub fn build(b: *std.Build) void {
             librm,
         },
     });
+    codecs.dependOn(atrac3_rm);
 
-    build_codec(b, .{
+    const atrac3_oma = try build_codec(b, .{
         .name = "atrac3_oma",
         .target = target,
         .optimize = optimize,
@@ -807,8 +832,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(atrac3_oma);
 
-    build_codec(b, .{
+    const mpc = try build_codec(b, .{
         .name = "mpc",
         .target = target,
         .optimize = optimize,
@@ -828,8 +854,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(mpc);
 
-    build_codec(b, .{
+    const wma = try build_codec(b, .{
         .name = "wma",
         .target = target,
         .optimize = optimize,
@@ -843,6 +870,7 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(wma);
 
     const libdemac = b.addStaticLibrary(.{
         .name = "demac",
@@ -869,7 +897,7 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libdemac);
     addIncludePaths(libdemac);
 
-    build_codec(b, .{
+    const ape = try build_codec(b, .{
         .name = "ape",
         .target = target,
         .optimize = optimize,
@@ -881,8 +909,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(ape);
 
-    build_codec(b, .{
+    const asap = try build_codec(b, .{
         .name = "asap",
         .target = target,
         .optimize = optimize,
@@ -897,8 +926,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(asap);
 
-    build_codec(b, .{
+    const aac = try build_codec(b, .{
         .name = "aac",
         .target = target,
         .optimize = optimize,
@@ -910,8 +940,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(aac);
 
-    build_codec(b, .{
+    const spc = try build_codec(b, .{
         .name = "spc",
         .target = target,
         .optimize = optimize,
@@ -927,8 +958,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(spc);
 
-    build_codec(b, .{
+    const mod = try build_codec(b, .{
         .name = "mod",
         .target = target,
         .optimize = optimize,
@@ -940,8 +972,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(mod);
 
-    build_codec(b, .{
+    const shorten = try build_codec(b, .{
         .name = "shorten",
         .target = target,
         .optimize = optimize,
@@ -954,8 +987,9 @@ pub fn build(b: *std.Build) void {
             libffmpegFLAC,
         },
     });
+    codecs.dependOn(shorten);
 
-    build_codec(b, .{
+    const aiff = try build_codec(b, .{
         .name = "aiff",
         .target = target,
         .optimize = optimize,
@@ -968,8 +1002,9 @@ pub fn build(b: *std.Build) void {
             libpcm,
         },
     });
+    codecs.dependOn(aiff);
 
-    build_codec(b, .{
+    const speex = try build_codec(b, .{
         .name = "speex",
         .target = target,
         .optimize = optimize,
@@ -1012,8 +1047,9 @@ pub fn build(b: *std.Build) void {
             "-I./lib/rbcodec/codecs/libspeex",
         },
     });
+    codecs.dependOn(speex);
 
-    build_codec(b, .{
+    const adx = try build_codec(b, .{
         .name = "adx",
         .target = target,
         .optimize = optimize,
@@ -1025,8 +1061,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(adx);
 
-    build_codec(b, .{
+    const smaf = try build_codec(b, .{
         .name = "smaf",
         .target = target,
         .optimize = optimize,
@@ -1039,8 +1076,9 @@ pub fn build(b: *std.Build) void {
             libpcm,
         },
     });
+    codecs.dependOn(smaf);
 
-    build_codec(b, .{
+    const au = try build_codec(b, .{
         .name = "au",
         .target = target,
         .optimize = optimize,
@@ -1053,8 +1091,9 @@ pub fn build(b: *std.Build) void {
             libpcm,
         },
     });
+    codecs.dependOn(au);
 
-    build_codec(b, .{
+    const vox = try build_codec(b, .{
         .name = "vox",
         .target = target,
         .optimize = optimize,
@@ -1067,8 +1106,9 @@ pub fn build(b: *std.Build) void {
             libpcm,
         },
     });
+    codecs.dependOn(vox);
 
-    build_codec(b, .{
+    const wav64 = try build_codec(b, .{
         .name = "wav64",
         .target = target,
         .optimize = optimize,
@@ -1081,8 +1121,9 @@ pub fn build(b: *std.Build) void {
             libpcm,
         },
     });
+    codecs.dependOn(wav64);
 
-    build_codec(b, .{
+    const tta = try build_codec(b, .{
         .name = "tta",
         .target = target,
         .optimize = optimize,
@@ -1095,8 +1136,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(tta);
 
-    build_codec(b, .{
+    const wmapro = try build_codec(b, .{
         .name = "wmapro",
         .target = target,
         .optimize = optimize,
@@ -1111,8 +1153,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(wmapro);
 
-    build_codec(b, .{
+    const ay = try build_codec(b, .{
         .name = "ay",
         .target = target,
         .optimize = optimize,
@@ -1131,8 +1174,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(ay);
 
-    build_codec(b, .{
+    const vtx = try build_codec(b, .{
         .name = "vtx",
         .target = target,
         .optimize = optimize,
@@ -1147,8 +1191,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(vtx);
 
-    build_codec(b, .{
+    const gbs = try build_codec(b, .{
         .name = "gbs",
         .target = target,
         .optimize = optimize,
@@ -1166,8 +1211,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(gbs);
 
-    build_codec(b, .{
+    const hes = try build_codec(b, .{
         .name = "hes",
         .target = target,
         .optimize = optimize,
@@ -1183,6 +1229,7 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(hes);
 
     const libemu2413 = b.addStaticLibrary(.{
         .name = "emu2413",
@@ -1206,7 +1253,7 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libemu2413);
     addIncludePaths(libemu2413);
 
-    build_codec(b, .{
+    const nsf = try build_codec(b, .{
         .name = "nsf",
         .target = target,
         .optimize = optimize,
@@ -1234,8 +1281,9 @@ pub fn build(b: *std.Build) void {
             libemu2413,
         },
     });
+    codecs.dependOn(nsf);
 
-    build_codec(b, .{
+    const sgc = try build_codec(b, .{
         .name = "sgc",
         .target = target,
         .optimize = optimize,
@@ -1249,8 +1297,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(sgc);
 
-    build_codec(b, .{
+    const vgm = try build_codec(b, .{
         .name = "vgm",
         .target = target,
         .optimize = optimize,
@@ -1269,6 +1318,7 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(vgm);
 
     //const sid = b.addStaticLibrary(.{
     //    .name = "cRSID",
@@ -1290,7 +1340,7 @@ pub fn build(b: *std.Build) void {
     // defineCMacros(sid);
     // addIncludePaths(sid);
 
-    build_codec(b, .{
+    const kss = try build_codec(b, .{
         .name = "kss",
         .target = target,
         .optimize = optimize,
@@ -1308,8 +1358,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(kss);
 
-    build_codec(b, .{
+    const aac_bsf = try build_codec(b, .{
         .name = "aac_bsf",
         .target = target,
         .optimize = optimize,
@@ -1321,6 +1372,7 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    codecs.dependOn(aac_bsf);
 
     const libplugin = b.addStaticLibrary(.{
         .name = "plugin",
@@ -1444,7 +1496,7 @@ pub fn build(b: *std.Build) void {
             "build/apps/plugins/bitmaps/native/sudoku_inverse.320x240x16.c",
             "build/apps/plugins/bitmaps/native/matrix_bold.c",
             "build/apps/plugins/bitmaps/native/matrix_normal.c",
-            "build/apps/plugins/bitmaps/native/sliding_puzzle.360x360x16.c",
+            "build/apps/plugins/bitmaps/native/sliding_puzzle.240x240x16.c",
             "build/apps/plugins/bitmaps/native/rockboxlogo.220x68x16.c",
             "build/apps/plugins/bitmaps/native/creditslogo.320x98x16.c",
             "build/apps/plugins/bitmaps/native/resistor.320x240x16.c",
@@ -1456,7 +1508,7 @@ pub fn build(b: *std.Build) void {
     defineCMacros(libpluginbitmaps);
     addPluginIncludePaths(libpluginbitmaps);
 
-    build_plugin(b, .{
+    const chopper = try build_plugin(b, .{
         .name = "chopper",
         .target = target,
         .optimize = optimize,
@@ -1470,8 +1522,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(chopper);
 
-    build_plugin(b, .{
+    const clix = try build_plugin(b, .{
         .name = "clix",
         .target = target,
         .optimize = optimize,
@@ -1485,8 +1538,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(clix);
 
-    build_plugin(b, .{
+    const credits = try build_plugin(b, .{
         .name = "credits",
         .target = target,
         .optimize = optimize,
@@ -1500,38 +1554,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(credits);
 
-    build_plugin(b, .{
-        .name = "properties",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "apps/plugins/properties.c",
-            "apps/plugins/plugin_crt0.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libplugin,
-            libpluginbitmaps,
-            libfixedpoint,
-        },
-    });
-
-    build_plugin(b, .{
-        .name = "random_folder_advance_config",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "apps/plugins/random_folder_advance_config.c",
-            "apps/plugins/plugin_crt0.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libplugin,
-            libpluginbitmaps,
-            libfixedpoint,
-        },
-    });
-
-    build_plugin(b, .{
+    const search = try build_plugin(b, .{
         .name = "search",
         .target = target,
         .optimize = optimize,
@@ -1545,8 +1570,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(search);
 
-    build_plugin(b, .{
+    const sort = try build_plugin(b, .{
         .name = "sort",
         .target = target,
         .optimize = optimize,
@@ -1560,8 +1586,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(sort);
 
-    build_plugin(b, .{
+    const theme_remove = try build_plugin(b, .{
         .name = "theme_remove",
         .target = target,
         .optimize = optimize,
@@ -1575,8 +1602,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(theme_remove);
 
-    build_plugin(b, .{
+    const vbrfix = try build_plugin(b, .{
         .name = "vbrfix",
         .target = target,
         .optimize = optimize,
@@ -1590,8 +1618,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(vbrfix);
 
-    build_plugin(b, .{
+    const lua = try build_plugin(b, .{
         .name = "lua",
         .target = target,
         .optimize = optimize,
@@ -1646,8 +1675,9 @@ pub fn build(b: *std.Build) void {
             libtlsf,
         },
     });
+    rocks.dependOn(lua);
 
-    build_plugin(b, .{
+    const fft = try build_plugin(b, .{
         .name = "fft",
         .target = target,
         .optimize = optimize,
@@ -1665,8 +1695,9 @@ pub fn build(b: *std.Build) void {
         },
         .is_fft_plugin = true,
     });
+    rocks.dependOn(fft);
 
-    build_plugin(b, .{
+    const reversi = try build_plugin(b, .{
         .name = "reversi",
         .target = target,
         .optimize = optimize,
@@ -1684,8 +1715,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(reversi);
 
-    build_plugin(b, .{
+    const pictureflow = try build_plugin(b, .{
         .name = "pictureflow",
         .target = target,
         .optimize = optimize,
@@ -1699,8 +1731,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(pictureflow);
 
-    build_plugin(b, .{
+    const db_commit = try build_plugin(b, .{
         .name = "db_commit",
         .target = target,
         .optimize = optimize,
@@ -1714,8 +1747,9 @@ pub fn build(b: *std.Build) void {
             libfixedpoint,
         },
     });
+    rocks.dependOn(db_commit);
 
-    build_plugin(b, .{
+    const mikmod = try build_plugin(b, .{
         .name = "mikmod",
         .target = target,
         .optimize = optimize,
@@ -1768,6 +1802,1079 @@ pub fn build(b: *std.Build) void {
         },
         .is_mikmod_plugin = true,
     });
+    rocks.dependOn(mikmod);
+
+    const chessclock = try build_plugin(b, .{
+        .name = "chessclock",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/chessclock.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(chessclock);
+
+    const cube = try build_plugin(b, .{
+        .name = "cube",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/cube.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(cube);
+
+    const cue_playlist = try build_plugin(b, .{
+        .name = "cue_playlist",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/cue_playlist.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(cue_playlist);
+
+    const dart_scorer = try build_plugin(b, .{
+        .name = "dart_scorer",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/dart_scorer.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(dart_scorer);
+
+    const dict = try build_plugin(b, .{
+        .name = "dict",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/dict.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(dict);
+
+    const file_picker = try build_plugin(b, .{
+        .name = "file_picker",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/file_picker.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(file_picker);
+
+    const jackpot = try build_plugin(b, .{
+        .name = "jackpot",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/jackpot.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(jackpot);
+
+    const keybox = try build_plugin(b, .{
+        .name = "keybox",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/keybox.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(keybox);
+
+    const keyremap = try build_plugin(b, .{
+        .name = "keyremap",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/keyremap.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(keyremap);
+
+    const lastfm_scrobbler = try build_plugin(b, .{
+        .name = "lastfm_scrobbler",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/lastfm_scrobbler.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(lastfm_scrobbler);
+
+    const lastfm_scrobbler_viewer = try build_plugin(b, .{
+        .name = "lastfm_scrobbler_viewer",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/lastfm_scrobbler_viewer.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(lastfm_scrobbler_viewer);
+
+    const logo = try build_plugin(b, .{
+        .name = "logo",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/logo.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(logo);
+
+    const lrcplayer = try build_plugin(b, .{
+        .name = "lrcplayer",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/lrcplayer.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(lrcplayer);
+
+    const mosaique = try build_plugin(b, .{
+        .name = "mosaique",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/mosaique.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(mosaique);
+
+    const main_menu_config = try build_plugin(b, .{
+        .name = "main_menu_config",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/main_menu_config.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(main_menu_config);
+
+    const playing_time = try build_plugin(b, .{
+        .name = "playing_time",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/playing_time.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(playing_time);
+
+    const properties = try build_plugin(b, .{
+        .name = "properties",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/properties.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(properties);
+
+    const random_folder_advance_config = try build_plugin(b, .{
+        .name = "random_folder_advance_config",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/random_folder_advance_config.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(random_folder_advance_config);
+
+    const rb_info = try build_plugin(b, .{
+        .name = "rb_info",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/rb_info.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(rb_info);
+
+    const rockblox = try build_plugin(b, .{
+        .name = "rockblox",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/rockblox.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(rockblox);
+
+    const settings_dumper = try build_plugin(b, .{
+        .name = "settings_dumper",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/settings_dumper.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(settings_dumper);
+
+    const snow = try build_plugin(b, .{
+        .name = "snow",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/snow.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(snow);
+
+    const stats = try build_plugin(b, .{
+        .name = "stats",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/stats.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(stats);
+
+    const stopwatch = try build_plugin(b, .{
+        .name = "stopwatch",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/stopwatch.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(stopwatch);
+
+    const md5sum = try build_plugin(b, .{
+        .name = "md5sum",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/md5sum.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(md5sum);
+
+    const dice = try build_plugin(b, .{
+        .name = "dice",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/dice.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(dice);
+
+    const disktidy = try build_plugin(b, .{
+        .name = "disktidy",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/disktidy.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(disktidy);
+
+    const flipit = try build_plugin(b, .{
+        .name = "flipit",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/flipit.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(flipit);
+
+    const shopper = try build_plugin(b, .{
+        .name = "shopper",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/shopper.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(shopper);
+
+    const resistor = try build_plugin(b, .{
+        .name = "resistor",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/resistor.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(resistor);
+
+    const otp = try build_plugin(b, .{
+        .name = "otp",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/otp.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(otp);
+
+    const mp3_encoder = try build_plugin(b, .{
+        .name = "mp3_encoder",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/mp3_encoder.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(mp3_encoder);
+
+    const wav2wv = try build_plugin(b, .{
+        .name = "wav2wv",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/wav2wv.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(wav2wv);
+
+    const zxbox = try build_plugin(b, .{
+        .name = "zxbox",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/zxbox.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(zxbox);
+
+    const chessbox = try build_plugin(b, .{
+        .name = "chessbox",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/chessbox.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(chessbox);
+
+    const goban = try build_plugin(b, .{
+        .name = "goban",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/goban.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(goban);
+
+    const metronome = try build_plugin(b, .{
+        .name = "metronome",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/metronome.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(metronome);
+
+    const _2048 = try build_plugin(b, .{
+        .name = "2048",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/2048.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(_2048);
+
+    const amaze = try build_plugin(b, .{
+        .name = "amaze",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/amaze.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(amaze);
+
+    const rockblox1d = try build_plugin(b, .{
+        .name = "rockblox1d",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/rockblox1d.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(rockblox1d);
+
+    const brickmania = try build_plugin(b, .{
+        .name = "brickmania",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/brickmania.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(brickmania);
+
+    const calendar = try build_plugin(b, .{
+        .name = "calendar",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/calendar.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(calendar);
+
+    const mazezam = try build_plugin(b, .{
+        .name = "mazezam",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/mazezam.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(mazezam);
+
+    const wavview = try build_plugin(b, .{
+        .name = "wavview",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/wavview.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(wavview);
+
+    const robotfindskitten = try build_plugin(b, .{
+        .name = "robotfindskitten",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/robotfindskitten.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(robotfindskitten);
+
+    const xobox = try build_plugin(b, .{
+        .name = "xobox",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/xobox.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(xobox);
+
+    const spacerocks = try build_plugin(b, .{
+        .name = "spacerocks",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/spacerocks.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(spacerocks);
+
+    const bounce = try build_plugin(b, .{
+        .name = "bounce",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/bounce.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(bounce);
+
+    const bubbles = try build_plugin(b, .{
+        .name = "bubbles",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/bubbles.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(bubbles);
+
+    const calculator = try build_plugin(b, .{
+        .name = "calculator",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/calculator.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(calculator);
+
+    const chip8 = try build_plugin(b, .{
+        .name = "chip8",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/chip8.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(chip8);
+
+    const demystify = try build_plugin(b, .{
+        .name = "demystify",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/demystify.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(demystify);
+
+    const jewels = try build_plugin(b, .{
+        .name = "jewels",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/jewels.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(jewels);
+
+    const minesweeper = try build_plugin(b, .{
+        .name = "minesweeper",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/minesweeper.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(minesweeper);
+
+    const open_plugins = try build_plugin(b, .{
+        .name = "open_plugins",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/open_plugins.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(open_plugins);
+
+    const oscilloscope = try build_plugin(b, .{
+        .name = "oscilloscope",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/oscilloscope.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(oscilloscope);
+
+    const pegbox = try build_plugin(b, .{
+        .name = "pegbox",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/pegbox.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(pegbox);
+
+    const periodic_table = try build_plugin(b, .{
+        .name = "periodic_table",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/periodic_table.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(periodic_table);
+
+    const pong = try build_plugin(b, .{
+        .name = "pong",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/pong.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(pong);
+
+    const sliding_puzzle = try build_plugin(b, .{
+        .name = "sliding_puzzle",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/sliding_puzzle.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(sliding_puzzle);
+
+    const snake = try build_plugin(b, .{
+        .name = "snake",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/snake.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(snake);
+
+    const snake2 = try build_plugin(b, .{
+        .name = "snake2",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/snake2.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(snake2);
+
+    const solitaire = try build_plugin(b, .{
+        .name = "solitaire",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/solitaire.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(solitaire);
+
+    const sokoban = try build_plugin(b, .{
+        .name = "sokoban",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/sokoban.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(sokoban);
+
+    const star = try build_plugin(b, .{
+        .name = "star",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/star.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(star);
+
+    const vu_meter = try build_plugin(b, .{
+        .name = "vu_meter",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/vu_meter.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(vu_meter);
+
+    const wormlet = try build_plugin(b, .{
+        .name = "wormlet",
+        .target = target,
+        .optimize = optimize,
+        .sources = &[_][]const u8{
+            "apps/plugins/wormlet.c",
+            "apps/plugins/plugin_crt0.c",
+        },
+        .link_libraries = &[_]*std.Build.Step.Compile{
+            libplugin,
+            libpluginbitmaps,
+            libfixedpoint,
+        },
+    });
+    rocks.dependOn(wormlet);
 
     defineCMacros(exe);
     addIncludePaths(exe);
@@ -2205,7 +3312,7 @@ fn build_mk500boot(b: *std.Build, target: std.Build.ResolvedTarget, optimize: st
     mk500boot.linkLibC();
 }
 
-fn build_codec(b: *std.Build, options: BuildOptions) void {
+fn build_codec(b: *std.Build, options: BuildOptions) !*std.Build.Step {
     const codec_lib = b.addStaticLibrary(.{
         .name = options.name,
         .target = options.target,
@@ -2251,9 +3358,36 @@ fn build_codec(b: *std.Build, options: BuildOptions) void {
         codec.linkLibrary(lib);
     }
     codec.linkLibrary(codec_lib);
+
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    var from = String.init(arena.allocator());
+    defer from.deinit();
+    try from.concat("zig-out/lib/lib");
+    try from.concat(options.name);
+    try from.concat(".so");
+
+    var to = String.init(arena.allocator());
+    defer to.deinit();
+    try to.concat("zig-out/lib/");
+    try to.concat(options.name);
+    try to.concat(".codec");
+
+    const info = b.addSystemCommand(&[_][]const u8{
+        "echo", "Generating", options.name, "codec",
+    });
+    const codec_file = b.addSystemCommand(&[_][]const u8{
+        "mv", "-f", from.str(), to.str(),
+    });
+    codec_file.step.dependOn(b.getInstallStep());
+    info.step.dependOn(&codec.step);
+    codec_file.step.dependOn(&info.step);
+
+    return &codec_file.step;
 }
 
-fn build_plugin(b: *std.Build, options: BuildOptions) void {
+fn build_plugin(b: *std.Build, options: BuildOptions) !*std.Build.Step {
     const plugin = b.addSharedLibrary(.{
         .name = options.name,
         .target = options.target,
@@ -2284,6 +3418,33 @@ fn build_plugin(b: *std.Build, options: BuildOptions) void {
     for (options.link_libraries) |lib| {
         plugin.linkLibrary(lib);
     }
+
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    var from = String.init(arena.allocator());
+    defer from.deinit();
+    try from.concat("zig-out/lib/lib");
+    try from.concat(options.name);
+    try from.concat(".so");
+
+    var to = String.init(arena.allocator());
+    defer to.deinit();
+    try to.concat("zig-out/lib/");
+    try to.concat(options.name);
+    try to.concat(".rock");
+
+    const info = b.addSystemCommand(&[_][]const u8{
+        "echo", "Generating", options.name, "rock", "file",
+    });
+    const rock_file = b.addSystemCommand(&[_][]const u8{
+        "mv", "-f", from.str(), to.str(),
+    });
+    rock_file.step.dependOn(b.getInstallStep());
+    info.step.dependOn(&plugin.step);
+    rock_file.step.dependOn(&info.step);
+
+    return &rock_file.step;
 }
 
 fn defineCMacros(c: *std.Build.Step.Compile) void {
