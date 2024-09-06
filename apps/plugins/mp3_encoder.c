@@ -2583,6 +2583,12 @@ CONFIG_KEYPAD == MROBE500_PAD
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 /* use touchscreen */
 
+#elif CONFIG_KEYPAD == SDL_PAD
+#define MP3ENC_PREV     BUTTON_LEFT
+#define MP3ENC_NEXT     BUTTON_RIGHT
+#define MP3ENC_DONE     BUTTON_BACK
+#define MP3ENC_SELECT   BUTTON_SELECT
+
 #else
 #error No keymap defined!
 #endif

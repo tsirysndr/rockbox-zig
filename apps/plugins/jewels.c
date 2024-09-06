@@ -380,6 +380,16 @@ CONFIG_KEYPAD == MROBE500_PAD
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 /* use touchscreen */
 
+#elif CONFIG_KEYPAD == SDL_PAD
+#define JEWELS_UP       BUTTON_UP
+#define JEWELS_DOWN     BUTTON_DOWN
+#define JEWELS_LEFT     BUTTON_LEFT
+#define JEWELS_RIGHT    BUTTON_RIGHT
+#define JEWELS_SELECT   BUTTON_SELECT
+#define JEWELS_CANCEL   BUTTON_BACK
+#define HK_SELECT "SELECT"
+#define HK_CANCEL "BACK"
+
 #else
 #error No keymap defined!
 #endif

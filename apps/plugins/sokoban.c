@@ -699,6 +699,14 @@
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 /* use touchscreen */
 
+#elif CONFIG_KEYPAD == SDL_PAD
+#define SOKOBAN_LEFT        BUTTON_LEFT
+#define SOKOBAN_RIGHT       BUTTON_RIGHT
+#define SOKOBAN_UP          BUTTON_UP
+#define SOKOBAN_DOWN        BUTTON_DOWN
+#define BUTTON_SAVE         BUTTON_SELECT
+#define BUTTON_SAVE_NAME    "SELECT"
+
 #else
 #error No keymap defined!
 #endif

@@ -744,6 +744,24 @@ CONFIG_KEYPAD == MROBE500_PAD
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 #   define SOL_QUIT         BUTTON_POWER
 
+#elif CONFIG_PAD == SDL_APP
+#   define SOL_QUIT         (BUTTON_SELECT | BUTTON_MENU)
+#   define SOL_UP           BUTTON_UP
+#   define SOL_DOWN         BUTTON_DOWN
+#   define SOL_LEFT_PRE     BUTTON_LEFT
+#   define SOL_LEFT         (BUTTON_LEFT | BUTTON_SELECT)
+#   define SOL_RIGHT_PRE    BUTTON_RIGHT
+#   define SOL_RIGHT        (BUTTON_RIGHT | BUTTON_SELECT)
+#   define SOL_MOVE_PRE     BUTTON_SELECT
+#   define SOL_MOVE         (BUTTON_SELECT | BUTTON_UP)
+#   define SOL_DRAW_PRE     BUTTON_MENU
+#   define HK_UD           "SCROLL U/D"
+#   define HK_MOVE         "SELECT"
+#   define HK_DRAW         "MENU"
+#   define HK_REM2CUR      "PLAY"
+#   define HK_CUR2STACK    "MENU.."
+#   define HK_REM2STACK    "RIGHT.."
+
 #else
 #error No keymap defined!
 #endif

@@ -672,6 +672,11 @@
 #define STAR_QUIT           BUTTON_POWER
 #define STAR_QUIT_NAME      "POWER"
 
+
+#elif CONFIG_KEYPAD == SDL_PAD
+#define STAR_QUIT           BUTTON_BACK
+#define STAR_QUIT_NAME      "POWER"
+
 #else
 #error No keymap defined!
 #endif

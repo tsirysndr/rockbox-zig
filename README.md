@@ -17,6 +17,6 @@ Run the following commands to build the project:
 ```sh
 . ./bin/activate-hermit
 mkdir -p build && cd build
-../tools/configure
+../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240
 make zig
 ```

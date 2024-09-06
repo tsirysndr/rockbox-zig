@@ -233,6 +233,7 @@ clean::
 		make.dep rombox.elf rombox.map rombox.bin romstart.txt \
 		$(BINARY) $(FLASHFILE) uisimulator bootloader flash $(BOOTLINK) \
 		rockbox.apk lang_enum.h rbversion.h
+	$(SILENT)rm -rf ../.zig-cache ../zig-out
 
 #### linking the binaries: ####
 
@@ -415,40 +416,41 @@ symlinkinstall: simext1
 endif
 
 zig: $(BUILDDIR)/lang/lang.h $(BUILDDIR)/lang_enum.h $(BUILDDIR)/lang/lang_core.c $(BUILDDIR)/lang/max_language_size.h $(BUILDDIR)/sysfont.o $(BUILDDIR)/rbversion.h $(PBMPHFILES) $(LUA_BUILDDIR)/actions.lua $(LUA_BUILDDIR)/settings.lua $(LUA_BUILDDIR)/buttons.lua $(LUA_BUILDDIR)/rb_defines.lua $(LUA_BUILDDIR)/sound_defines.lua $(LUA_BUILDDIR)/rocklib_aux.c $(BUILDDIR)/credits.raw credits.raw
-	cd .. && zig build
+	cd .. && zig build all
 help:
 	@echo "A few helpful make targets"
 	@echo ""
-	@echo "all            - builds a full Rockbox (default), including tools"
-	@echo "bin            - builds only the Rockbox.<target name> file"
-	@echo "rocks          - builds only plugins"
-	@echo "codecs         - builds only codecs"
-	@echo "dep            - regenerates make dependency database"
-	@echo "clean          - cleans a build directory (not tools)"
-	@echo "veryclean      - cleans the build and tools directories"
-	@echo "manual         - builds a manual (pdf)"
-	@echo "manual-html    - HTML manual"
-	@echo "manual-zip     - HTML manual (zipped)"
-	@echo "manual-txt     - txt manual"
-	@echo "fullzip        - creates a rockbox.zip of your build with fonts"
-	@echo "zip            - creates a rockbox.zip of your build (no fonts)"
-	@echo "gzip           - creates a rockbox.tar.gz of your build (no fonts)"
-	@echo "bzip2          - creates a rockbox.tar.bz2 of your build (no fonts)"
-	@echo "xz             - creates a rockbox.tar.xz of your build (no fonts)"
-	@echo "7zip           - creates a rockbox.7z of your build (no fonts)"
-	@echo "fontzip        - creates rockbox-fonts.zip"
-	@echo "mapzip         - creates rockbox-maps.zip with all .map files"
-	@echo "elfzip         - creates rockbox-elfs.zip with all .elf files"
-	@echo "pnd            - creates rockbox.pnd archive (Pandora builds only)"
-	@echo "tools          - builds the tools only"
-	@echo "voice          - creates the voice clips (voice builds only)"
-	@echo "voicetools     - builds the voice tools only"
-	@echo "talkclips      - builds talkclips for everything under TALKDIR, skipping existing clips"
+	@echo "all             - builds a full Rockbox (default), including tools"
+	@echo "zig             - builds Rockbox with Zig"
+	@echo "bin             - builds only the Rockbox.<target name> file"
+	@echo "rocks           - builds only plugins"
+	@echo "codecs          - builds only codecs"
+	@echo "dep             - regenerates make dependency database"
+	@echo "clean           - cleans a build directory (not tools)"
+	@echo "veryclean       - cleans the build and tools directories"
+	@echo "manual          - builds a manual (pdf)"
+	@echo "manual-html     - HTML manual"
+	@echo "manual-zip      - HTML manual (zipped)"
+	@echo "manual-txt      - txt manual"
+	@echo "fullzip         - creates a rockbox.zip of your build with fonts"
+	@echo "zip             - creates a rockbox.zip of your build (no fonts)"
+	@echo "gzip            - creates a rockbox.tar.gz of your build (no fonts)"
+	@echo "bzip2           - creates a rockbox.tar.bz2 of your build (no fonts)"
+	@echo "xz              - creates a rockbox.tar.xz of your build (no fonts)"
+	@echo "7zip            - creates a rockbox.7z of your build (no fonts)"
+	@echo "fontzip         - creates rockbox-fonts.zip"
+	@echo "mapzip          - creates rockbox-maps.zip with all .map files"
+	@echo "elfzip          - creates rockbox-elfs.zip with all .elf files"
+	@echo "pnd             - creates rockbox.pnd archive (Pandora builds only)"
+	@echo "tools           - builds the tools only"
+	@echo "voice           - creates the voice clips (voice builds only)"
+	@echo "voicetools      - builds the voice tools only"
+	@echo "talkclips       - builds talkclips for everything under TALKDIR, skipping existing clips"
 	@echo "talkclips-force - builds talkclips for everything under TALKDIR, overwriting all existing clips"
-	@echo "install        - installs your build (at PREFIX, defaults to simdisk/ for simulators (no fonts))"
-	@echo "fullinstall    - installs your build (like install, but with fonts)"
-	@echo "symlinkinstall - like fullinstall, but with links instead of copying files. (Good for developing on simulator)"
-	@echo "reconf         - rerun configure with the same selection"
+	@echo "install         - installs your build (at PREFIX, defaults to simdisk/ for simulators (no fonts))"
+	@echo "fullinstall     - installs your build (like install, but with fonts)"
+	@echo "symlinkinstall  - like fullinstall, but with links instead of copying files. (Good for developing on simulator)"
+	@echo "reconf          - rerun configure with the same selection"
 
 ### general compile rules:
 
