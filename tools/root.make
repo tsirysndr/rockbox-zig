@@ -410,6 +410,10 @@ fullinstall: simext1
 	@echo "Installing a full setup in your '$(RBPREFIX)' dir"
 	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m "$(MODELNAME)" -i "$(TARGET_ID)" $(INSTALL) -z "zip -r0" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" -f 2 $(TARGET) $(BINARY)
 
+ziginstall: zig
+	@echo "Installing your build in your '$(RBPREFIX)' dir"
+	cd .. && zig build install-rockbox
+
 symlinkinstall: simext1
 	@echo "Installing a full setup with links in your '$(RBPREFIX)' dir"
 	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m "$(MODELNAME)" -i "$(TARGET_ID)" $(INSTALL) -z "zip -r0" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" -f 2 $(TARGET) $(BINARY) -l

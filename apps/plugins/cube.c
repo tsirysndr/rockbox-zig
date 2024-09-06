@@ -407,14 +407,7 @@
 
 
 #elif CONFIG_KEYPAD == SDL_PAD
-#define CUBE_QUIT           BUTTON_BACK | BUTTON_LEFT
-#define CUBE_NEXT           BUTTON_RIGHT
-#define CUBE_PREV           BUTTON_LEFT
-#define CUBE_INC            BUTTON_UP
-#define CUBE_DEC            BUTTON_DOWN
-#define CUBE_MODE           BUTTON_MENU
-#define CUBE_PAUSE          BUTTON_SELECT
-#define CUBE_HIGHSPEED      BUTTON_BACK
+/* use touchscreen */
 
 #else
 #error No keymap defined!

@@ -458,8 +458,7 @@
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
-#define VUMETER_QUIT    BUTTON_BACK
-#define LABEL_QUIT      "BACK"
+/* use touchscreen */
 
 #else
 #error No keymap defined!

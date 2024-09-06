@@ -715,15 +715,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
-#define PEGBOX_SELECT   BUTTON_SELECT
-#define PEGBOX_QUIT     BUTTON_BACK
-#define PEGBOX_RESTART  (BUTTON_SELECT | BUTTON_MENU)
-#define PEGBOX_LVL_UP   (BUTTON_UP | BUTTON_SELECT)
-#define PEGBOX_LVL_DOWN (BUTTON_DOWN | BUTTON_SELECT)
-#define PEGBOX_UP       BUTTON_UP
-#define PEGBOX_DOWN     BUTTON_DOWN
-#define PEGBOX_RIGHT    BUTTON_RIGHT
-#define PEGBOX_LEFT     BUTTON_LEFT
+/* use touchscreen */
 
 #else
 #error "Unsupported keymap!"

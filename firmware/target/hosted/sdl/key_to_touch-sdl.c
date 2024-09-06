@@ -51,6 +51,15 @@ int key_to_touch(int keyboard_button, unsigned int mouse_coords)
                 }
             }
             break;
+        case SDLK_BACKSPACE:
+        case SDLK_ESCAPE:
+            new_btn = BUTTON_TOPLEFT;
+            break;
+        case SDLK_KP_ENTER:
+        case SDLK_RETURN:
+        case SDLK_SPACE:
+            new_btn = BUTTON_CENTER;
+            break;
 #ifndef APPLICATION
         case SDLK_KP7:
         case SDLK_7:

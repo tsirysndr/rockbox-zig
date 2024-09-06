@@ -399,20 +399,16 @@
 #define CHC_QUIT            BUTTON_POWER
 
 #elif CONFIG_KEYPAD == SDL_PAD
-#define CHC_QUIT            BUTTON_BACK
-#define CHC_STARTSTOP       BUTTON_SELECT
-#define CHC_RESET           BUTTON_LEFT
-#define CHC_MENU            BUTTON_MENU
-#define CHC_SETTINGS_INC    BUTTON_UP
-#define CHC_SETTINGS_DEC    BUTTON_DOWN
-#define CHC_SETTINGS_OK     BUTTON_SELECT
-#define CHC_SETTINGS_CANCEL BUTTON_BACK
+/* use touchscreen */
 
 #else
 #error No keymap defined!
 #endif
 
 #ifdef HAVE_TOUCHSCREEN
+#ifndef CHC_QUIT
+#define CHC_QUIT         (BUTTON_TOPLEFT | BUTTON_CENTER)
+#endif
 #ifndef CHC_SETTINGS_OK
 #define CHC_SETTINGS_OK  BUTTON_CENTER
 #endif

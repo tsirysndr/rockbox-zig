@@ -52,6 +52,7 @@ static const struct button_mapping button_context_standard[]  = {
     { ACTION_STD_OK,          BUTTON_RIGHT|BUTTON_REL,   BUTTON_RIGHT },
     { ACTION_STD_CANCEL,      BUTTON_LEFT,                    BUTTON_NONE },
     { ACTION_STD_CANCEL,      BUTTON_LEFT|BUTTON_REL,    BUTTON_LEFT },
+    { ACTION_STD_CANCEL,          BUTTON_TOPMIDDLE|BUTTON_BOTTOMMIDDLE,   BUTTON_NONE },
 
     { ACTION_STD_CONTEXT,     BUTTON_MENU,                    BUTTON_NONE },
 
