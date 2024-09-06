@@ -95,7 +95,7 @@ pub fn build(b: *std.Build) !void {
     rocks.dependOn(b.getInstallStep());
 
     const all = b.step("all", "Build codecs and plugins");
-    all.dependOn(codecs);
+    // all.dependOn(codecs);
     all.dependOn(rocks);
 
     const install = b.step("install-rockbox", "Install rockbox, codecs and plugins");
@@ -3396,7 +3396,8 @@ fn install_codec(b: *std.Build, name: []const u8) !*std.Build.Step {
 
     var from = String.init(arena.allocator());
     defer from.deinit();
-    try from.concat("zig-out/lib/");
+    // try from.concat("zig-out/lib/");
+    try from.concat("build/lib/rbcodec/codecs/");
     try from.concat(name);
     try from.concat(".codec");
 
