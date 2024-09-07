@@ -159,8 +159,6 @@ pub fn build(b: *std.Build) !void {
     defineCMacros(libfirmware);
     addIncludePaths(libfirmware);
 
-    libfirmware.linkSystemLibrary("usb");
-
     const libspeex_voice = b.addStaticLibrary(.{
         .name = "speex-voice",
         .target = target,
@@ -2942,8 +2940,8 @@ fn build_tools(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.bu
     build_convbdf(b, target, optimize);
     build_codepages(b, target, optimize);
     build_voicefont(b, target, optimize);
-    build_usb_benchmark(b, target, optimize);
-    build_convttf(b, target, optimize);
+    // build_usb_benchmark(b, target, optimize);
+    // build_convttf(b, target, optimize);
     build_mk500boot(b, target, optimize);
 }
 
