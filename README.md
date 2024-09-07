@@ -21,3 +21,11 @@ mkdir -p build && cd build
 ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=$HOME/.local
 make zig
 ```
+
+Or with Nix:
+```sh
+nix develop
+mkdir -p build && cd build
+../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=$HOME/.local
+make zig
+```
