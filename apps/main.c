@@ -155,6 +155,8 @@
 
 /*#define AUTOROCK*/ /* define this to check for "autostart.rock" on boot */
 
+extern void start_server(void);
+
 static void init(void);
 /* main(), and various functions called by main() and init() may be
  * be INIT_ATTR. These functions must not be called after the final call
@@ -193,6 +195,8 @@ int main(void)
     /* All threads should be created and public queues registered by now */
     usb_start_monitoring();
 #endif
+
+start_server();
 
 #if !defined(DISABLE_ACTION_REMAP) && defined(CORE_KEYREMAP_FILE)
     if (file_exists(CORE_KEYREMAP_FILE))

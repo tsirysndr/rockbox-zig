@@ -34,6 +34,8 @@
           pkgs.pkg-config
           pkgs.gcc
           pkgs.zlib
+          pkgs.cargo
+          pkgs.rustc
         ];
 
         # Smaller binaries and avoids shipping glibc.
@@ -100,6 +102,8 @@
           pkgs.pkg-config
           pkgs.gcc
           pkgs.zlib
+          pkgs.cargo
+          pkgs.rustc
         ];
       };
     }));

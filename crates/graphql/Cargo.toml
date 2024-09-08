@@ -1,0 +1,7 @@
+[package]
+edition = "2021"
+name = "rockbox-graphql"
+version = "0.1.0"
+
+[dependencies]
+rockbox-sys = {path = "../sys"}

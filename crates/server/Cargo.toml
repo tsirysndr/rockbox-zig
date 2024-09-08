@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name = "rockbox-server"
+version = "0.1.0"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+rockbox-graphql = {path = "../graphql"}
+rockbox-rpc = {path = "../rpc"}
+rockbox-sys = {path = "../sys"}

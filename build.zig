@@ -2920,6 +2920,11 @@ pub fn build(b: *std.Build) !void {
     defineCMacros(exe);
     addIncludePaths(exe);
 
+    exe.addLibraryPath(.{
+        .cwd_relative = "./target/release",
+    });
+    exe.linkSystemLibrary("rockbox_server");
+    exe.linkSystemLibrary("libunwind");
     exe.linkLibrary(libfirmware);
     exe.linkLibrary(libspeex_voice);
     exe.linkLibrary(librbcodec);
