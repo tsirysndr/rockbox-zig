@@ -53,28 +53,6 @@ pub fn build(b: *std.Build) !void {
     // running `zig build`).
     b.installArtifact(lib);
 
-    const hello_world = b.addSharedLibrary(.{
-        .name = "hello_world",
-        // In this case the main source file is merely a path, however, in more
-        // complicated build scripts, this could be a generated file.
-        .root_source_file = b.path("src/hello_world.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-
-    b.installArtifact(hello_world);
-    hello_world.addCSourceFiles(.{
-        .files = &[_][]const u8{
-            "apps/plugins/helloworldzig.c",
-            "apps/plugins/plugin_crt0.c",
-        },
-        .flags = &cflags,
-    });
-
-    hello_world.defineCMacro("PLUGIN", null);
-    defineCMacros(hello_world);
-    addIncludePaths(hello_world);
-
     const exe = b.addExecutable(.{
         .name = "rockbox",
         .root_source_file = b.path("src/main.zig"),
@@ -86,6 +64,18 @@ pub fn build(b: *std.Build) !void {
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
     b.installArtifact(exe);
+
+    const hello = b.addStaticLibrary(.{
+        .name = "hello",
+        .root_source_file = b.path("src/hello_world.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(hello);
+    defineCMacros(hello);
+    addIncludePaths(hello);
+    hello.linkLibC();
 
     // This *creates* a Run step in the build graph, to be executed when another
     // step is evaluated that depends on it. The next line below will establish
@@ -1589,10 +1579,6 @@ pub fn build(b: *std.Build) !void {
 
     defineCMacros(lib);
     addIncludePaths(lib);
-    lib.linkLibrary(libplugin);
-
-    hello_world.linkLibrary(lib);
-    hello_world.linkLibrary(libplugin);
 
     const chopper = try build_plugin(b, .{
         .name = "chopper",
@@ -2949,6 +2935,7 @@ pub fn build(b: *std.Build) !void {
     defineCMacros(exe);
     addIncludePaths(exe);
 
+    exe.linkLibrary(hello);
     exe.linkLibrary(libfirmware);
     exe.linkLibrary(libspeex_voice);
     exe.linkLibrary(librbcodec);

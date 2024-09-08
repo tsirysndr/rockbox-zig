@@ -1,8 +1,10 @@
+const std = @import("std");
 const rockbox = @import("./root.zig");
 
-extern const HZ: i32;
-
-export fn hello() i32 {
-    rockbox.lcd.splash(HZ * 2, "Hello, World!");
+export fn hello(x: i32) i32 {
+    _ = rockbox.playback.audioNextTrack();
+    _ = rockbox.playback.audioCurrentTrack();
+    const status = rockbox.playback.audioStatus();
+    std.debug.print("Hello, World! {} {}\n", .{ x, status });
     return 0;
 }

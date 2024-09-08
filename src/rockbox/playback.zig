@@ -1,20 +1,52 @@
-pub fn audioPlay() void {}
+const c = @cImport(
+    @cInclude("metadata.h"),
+);
 
-pub fn audioPause() void {}
+extern fn audio_pause() void;
+extern fn audio_play(elapsed: u64, offset: u64) void;
+extern fn audio_resume() void;
+extern fn audio_next() void;
+extern fn audio_prev() void;
+extern fn audio_ff_rewind(newtime: i64) void;
+extern fn audio_next_track() *c.mp3entry;
+extern fn audio_status() i32;
+extern fn audio_current_track() *c.mp3entry;
 
-pub fn audioResume() void {}
+pub fn audioPlay(elapsed: u64, offset: u64) void {
+    audio_play(elapsed, offset);
+}
 
-pub fn audioNext() void {}
+pub fn audioPause() void {
+    audio_pause();
+}
 
-pub fn audioPrev() void {}
+pub fn audioResume() void {
+    audio_resume();
+}
 
-pub fn audioFfRewind() void {}
+pub fn audioNext() void {
+    audio_next();
+}
 
-pub fn audioNextTrack() void {}
+pub fn audioPrev() void {
+    audio_prev();
+}
 
-pub fn audioStatus() void {}
+pub fn audioFfRewind(newtime: i64) void {
+    audio_ff_rewind(newtime);
+}
 
-pub fn audioCurrentTrack() void {}
+pub fn audioNextTrack() *c.mp3entry {
+    return audio_next_track();
+}
+
+pub fn audioStatus() i32 {
+    return audio_status();
+}
+
+pub fn audioCurrentTrack() *c.mp3entry {
+    return audio_current_track();
+}
 
 pub fn audioFlushAndReloadTracks() void {}
 
