@@ -65,6 +65,18 @@ pub fn build(b: *std.Build) !void {
     // step when running `zig build`).
     b.installArtifact(exe);
 
+    const hello = b.addStaticLibrary(.{
+        .name = "hello",
+        .root_source_file = b.path("src/hello_world.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(hello);
+    defineCMacros(hello);
+    addIncludePaths(hello);
+    hello.linkLibC();
+
     // This *creates* a Run step in the build graph, to be executed when another
     // step is evaluated that depends on it. The next line below will establish
     // such a dependency.
@@ -1565,6 +1577,9 @@ pub fn build(b: *std.Build) !void {
     defineCMacros(libpluginbitmaps);
     addPluginIncludePaths(libpluginbitmaps);
 
+    defineCMacros(lib);
+    addIncludePaths(lib);
+
     const chopper = try build_plugin(b, .{
         .name = "chopper",
         .target = target,
@@ -2920,6 +2935,7 @@ pub fn build(b: *std.Build) !void {
     defineCMacros(exe);
     addIncludePaths(exe);
 
+    exe.linkLibrary(hello);
     exe.linkLibrary(libfirmware);
     exe.linkLibrary(libspeex_voice);
     exe.linkLibrary(librbcodec);
