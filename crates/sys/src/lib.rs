@@ -3,9 +3,12 @@ use std::ffi::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong, c_void};
 pub mod browse;
 pub mod dir;
 pub mod file;
+pub mod menu;
 pub mod metadata;
+pub mod misc;
 pub mod playback;
 pub mod playlist;
+pub mod plugin;
 pub mod settings;
 pub mod sound;
 pub mod system;
@@ -294,7 +297,6 @@ extern "C" {
     fn sound_max();
     fn sound_unit();
     fn sound_val2phys();
-    fn sound_enum_hw_eq_band_setting();
     fn sound_get_pitch();
     fn sound_set_pitch();
     fn audio_master_sampr_list();
@@ -312,7 +314,7 @@ extern "C" {
     fn dsp_get_timestretch();
     fn dsp_set_timestretch();
     fn dsp_timestretch_enable();
-    fn dsp_timestrech_available();
+    fn dsp_timestretch_available();
     fn dsp_configure();
     fn dsp_get_config();
     fn dsp_process();
@@ -358,12 +360,11 @@ extern "C" {
     ) -> c_uchar;
 
     // Directory
-    fn open_dir();
-    fn close_dir();
+    fn opendir();
+    fn closedir();
     fn readdir();
     fn mkdir();
     fn rmdir();
-    fn dir_exists();
     fn dir_get_info();
 
     // File
@@ -377,16 +378,11 @@ extern "C" {
     fn remove();
     fn rename();
     fn ftruncate();
-    fn filesize();
     fn fdprintf();
     fn read_line();
     fn settings_parseline();
-    fn storage_sleep();
-    fn storage_spin();
-    fn storage_spindown();
     fn reload_directory();
     fn create_numbered_filename();
-    fn file_exists();
     fn strip_extension();
     fn crc_32();
     fn crc_32r();
@@ -405,8 +401,6 @@ extern "C" {
     fn tagcache_get_numeric();
     fn tagcache_get_stat();
     fn tagcache_commit_finalize();
-    fn tagcache_is_in_ram();
-    fn tagcache_fill_tags();
     fn tagtree_subentries_do_action();
     fn search_albumart_files();
 
@@ -421,7 +415,7 @@ extern "C" {
     fn thread_wait();
     fn thread_thaw();
     fn thread_set_priority(thread_id: c_uint, priority: c_int);
-    fn mutext_init();
+    fn mutex_init();
     fn mutex_lock();
     fn mutex_unlock();
     fn semaphore_init();
@@ -430,9 +424,6 @@ extern "C" {
     fn reset_poweroff_timer();
     fn set_sleeptimer_duration();
     fn get_sleep_timer();
-    fn commit_dcache();
-    fn commit_discard_dcache();
-    fn commit_discard_idcache();
 
     // Menu
     fn root_menu_get_options();
@@ -443,7 +434,7 @@ extern "C" {
 
     // Settings
     fn get_settings_list(count: *mut c_int);
-    fn find_settings();
+    fn find_setting();
     fn settings_save();
     fn option_screen();
     fn set_option();
@@ -465,8 +456,6 @@ extern "C" {
     // Plugin
     fn plugin_open();
     fn plugin_get_buffer();
-    fn plugin_get_audio_buffer();
-    fn plugin_release_audio_buffer();
     fn plugin_get_current_filename();
     fn plugin_reserve_buffer();
 }

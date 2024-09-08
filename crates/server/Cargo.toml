@@ -7,6 +7,7 @@ version = "0.1.0"
 crate-type = ["staticlib"]
 
 [dependencies]
+owo-colors = "4.0.0"
 rockbox-graphql = {path = "../graphql"}
 rockbox-rpc = {path = "../rpc"}
 rockbox-sys = {path = "../sys"}

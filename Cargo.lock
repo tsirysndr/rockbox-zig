@@ -3,6 +3,12 @@
 version = 3
 
 [[package]]
+name = "owo-colors"
+version = "4.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "caff54706df99d2a78a5a4e3455ff45448d81ef1bb63c22cd14052ca0e993a3f"
+
+[[package]]
 name = "rockbox-graphql"
 version = "0.1.0"
 dependencies = [
@@ -20,6 +26,7 @@ dependencies = [
 name = "rockbox-server"
 version = "0.1.0"
 dependencies = [
+ "owo-colors",
  "rockbox-graphql",
  "rockbox-rpc",
  "rockbox-sys",
