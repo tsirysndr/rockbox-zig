@@ -1,14 +1,18 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub mod browse;
+pub mod metadata;
+pub mod playback;
+pub mod playlist;
+pub mod server;
+pub mod settings;
+pub mod sound;
+pub mod tagcache;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod api {
+    #[path = ""]
+    pub mod rockbox {
+        #[path = "rockbox.v1alpha1.rs"]
+        pub mod v1alpha1;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        pub(crate) const FILE_DESCRIPTOR_SET: &[u8] = include_bytes!("api/rockbox_descriptor.bin");
     }
 }

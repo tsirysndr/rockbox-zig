@@ -16,6 +16,8 @@ pub mod tagcache;
 
 const MAX_PATH: usize = 260;
 const ID3V2_BUF_SIZE: usize = 1800;
+const MAX_PATHNAME: usize = 80;
+const NB_SCREENS: usize = 2;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -215,6 +217,8 @@ pub struct Entry {
 
 pub type PlaylistInsertCb = Option<extern "C" fn()>;
 pub type AddToPlCallback = Option<extern "C" fn()>;
+pub type ProgressFunc = Option<extern "C" fn(x: c_int)>;
+pub type ActionCb = Option<extern "C" fn(file_name: *const c_char) -> c_uchar>;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -230,6 +234,372 @@ pub struct Tm {
     pub tm_isdst: c_int,        // DST. [-1/0/1]
     pub tm_gmtoff: c_long,      // Seconds east of UTC
     pub tm_zone: *const c_char, // Timezone abbreviation
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct Dir {}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct dirent {}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct Dirent {
+    pub attribute: c_uint,
+    pub d_name: [c_char; MAX_PATH],
+}
+
+const TAG_COUNT: usize = 32;
+const SEEK_LIST_SIZE: usize = 32;
+const TAGCACHE_MAX_FILTERS: usize = 4;
+const TAGCACHE_MAX_CLAUSES: usize = 32;
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct TagcacheSearch {
+    /* For internal use only. */
+    fd: c_int,
+    masterfd: c_int,
+    idxfd: [c_int; TAG_COUNT],
+    seeklist: [TagcacheSeeklistEntry; SEEK_LIST_SIZE],
+    seek_list_count: c_int,
+    filter_tag: [i32; TAGCACHE_MAX_FILTERS],
+    filter_seek: [i32; TAGCACHE_MAX_FILTERS],
+    filter_count: c_int,
+    clause: [*mut TagcacheSearchClause; TAGCACHE_MAX_CLAUSES],
+    clause_count: c_int,
+    list_position: c_int,
+    seek_pos: c_int,
+    position: c_long,
+    entry_count: c_int,
+    valid: bool,
+    initialized: bool,
+    unique_list: *mut u32,
+    unique_list_capacity: c_int,
+    unique_list_count: c_int,
+
+    /* Exported variables. */
+    ramsearch: bool,     /* Is ram copy of the tagcache being used. */
+    ramresult: bool,     /* False if result is not static, and must be copied. */
+    r#type: c_int,       /* The tag type to be searched. */
+    result: *mut c_char, /* The result data for all tags. */
+    result_len: c_int,   /* Length of the result including \0 */
+    result_seek: i32,    /* Current position in the tag data. */
+    idx_id: i32,         /* Entry number in the master index. */
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct TagcacheSeeklistEntry {
+    seek: i32,
+    flag: i32,
+    idx_id: i32,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct TagcacheSearchClause {
+    tag: c_int,
+    r#type: c_int,
+    numeric: bool,
+    source: c_int,
+    numeric_data: c_long,
+    str: *mut c_char,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct TagcacheStat {
+    db_path: [c_char; MAX_PATHNAME + 1], // Path to DB root directory
+
+    initialized: bool,       // Is tagcache currently busy?
+    readyvalid: bool,        // Has tagcache ready status been ascertained?
+    ready: bool,             // Is tagcache ready to be used?
+    ramcache: bool,          // Is tagcache loaded in RAM?
+    commit_delayed: bool,    // Has commit been delayed until next reboot?
+    econ: bool,              // Is endianess correction enabled?
+    syncscreen: bool,        // Synchronous operation with debug screen?
+    curentry: *const c_char, // Path of the current entry being scanned
+
+    commit_step: c_int,        // Commit progress
+    ramcache_allocated: c_int, // Has RAM been allocated for ramcache?
+    ramcache_used: c_int,      // How much RAM has been really used?
+    progress: c_int,           // Current progress of disk scan
+    processed_entries: c_int,  // Scanned disk entries so far
+    total_entries: c_int,      // Total entries in tagcache
+    queue_length: c_int,       // Command queue length
+}
+
+#[repr(C)]
+pub union StorageType {
+    int_val: c_int, // assuming it's an integer type, adjust according to the actual definition
+                    // other possible types if storage_type is a union of different types
+}
+
+#[repr(C)]
+pub struct SoundSetting {}
+
+#[repr(C)]
+pub struct BoolSetting {}
+
+#[repr(C)]
+pub struct FilenameSetting {}
+
+#[repr(C)]
+pub struct IntSetting {}
+
+#[repr(C)]
+pub struct ChoiceSetting {}
+
+#[repr(C)]
+pub struct TableSetting {}
+
+#[repr(C)]
+pub struct CustomSetting {}
+
+#[repr(C)]
+pub struct SettingsList {
+    pub flags: c_uint,            // uint32_t -> c_uint
+    pub setting: *mut c_void,     // pointer to void
+    pub lang_id: c_int,           // int
+    pub default_val: StorageType, // union storage_type
+    pub cfg_name: *const c_char,  // const char*
+    pub cfg_vals: *const c_char,  // const char*
+
+    // union with different possible struct types
+    pub setting_type: SettingsTypeUnion,
+}
+
+#[repr(C)]
+pub union SettingsTypeUnion {
+    pub RESERVED: *const c_void, // void pointer for the reserved field
+    pub sound_setting: *const SoundSetting, // pointer to SoundSetting struct
+    pub bool_setting: *const BoolSetting, // pointer to BoolSetting struct
+    pub filename_setting: *const FilenameSetting, // pointer to FilenameSetting struct
+    pub int_setting: *const IntSetting, // pointer to IntSetting struct
+    pub choice_setting: *const ChoiceSetting, // pointer to ChoiceSetting struct
+    pub table_setting: *const TableSetting, // pointer to TableSetting struct
+    pub custom_setting: *const CustomSetting, // pointer to CustomSetting struct
+}
+
+#[repr(C)]
+pub union FrameBufferData {
+    pub data: *mut c_void,   // void* in C
+    pub ch_ptr: *mut c_char, // char* in C
+    pub fb_ptr: *mut c_char,
+}
+
+#[repr(C)]
+pub struct FrameBuffer {
+    pub buffer_data: FrameBufferData, // union data
+    pub get_address_fn: Option<extern "C" fn(x: c_int, y: c_int) -> *mut c_void>, // Function pointer
+    pub stride: isize,                                                            // ptrdiff_t in C
+    pub elems: usize,                                                             // size_t in C
+}
+
+#[repr(C)]
+pub struct Viewport {
+    pub x: c_int,                 // int in C
+    pub y: c_int,                 // int in C
+    pub width: c_int,             // int in C
+    pub height: c_int,            // int in C
+    pub flags: c_int,             // int in C
+    pub font: c_int,              // int in C
+    pub drawmode: c_int,          // int in C
+    pub buffer: *mut FrameBuffer, // pointer to FrameBuffer struct
+    pub fg_pattern: c_uint,       // unsigned int in C
+    pub bg_pattern: c_uint,       // unsigned int in C
+}
+
+#[repr(C)]
+pub enum OptionType {
+    RbInt = 0,
+    RbBool = 1,
+}
+
+#[repr(C)]
+pub struct OptItems {
+    pub string: *const c_uchar, // const unsigned char*
+    pub voice_id: c_int,        // int32_t
+}
+
+pub type PcmPlayCallbackType =
+    Option<extern "C" fn(start: *const *const c_void, size: *mut c_ulong)>;
+
+#[repr(C)]
+pub enum PcmDmaStatus {
+    PcmDmaStatusErrDma = -1, // PCM_DMAST_ERR_DMA in C
+    PcmDmaStatusOk = 0,      // PCM_DMAST_OK in C
+    PcmDmaStatusStarted = 1, // PCM_DMAST_STARTED in C
+}
+
+pub type PcmStatusCallbackType = Option<extern "C" fn(status: PcmDmaStatus) -> PcmDmaStatus>;
+
+#[repr(C)]
+pub struct SampleFormat {
+    pub version: u8,
+    pub num_channels: u8,
+    pub frac_bits: u8,
+    pub output_scale: u8,
+    pub frequency: i32,
+    pub codec_frequency: i32,
+}
+
+#[repr(C)]
+pub struct DspBuffer {
+    pub remcount: i32, // Samples in buffer (In, Int, Out)
+
+    // Union for channel pointers
+    pub pin: [*const c_void; 2], // Channel pointers (In)
+    pub p32: [*mut i32; 2],      // Channel pointers (Int)
+    pub p16out: *mut i16,        // DSP output buffer (Out)
+
+    // Union for buffer count and proc_mask
+    pub proc_mask: u32, // In-place effects already applied
+    pub bufcount: i32,  // Buffer length/dest buffer remaining
+
+    pub format: SampleFormat, // Buffer format data
+}
+
+impl DspBuffer {
+    pub fn new() -> Self {
+        Self {
+            remcount: 0,
+            pin: [std::ptr::null(); 2],
+            p32: [std::ptr::null_mut(); 2],
+            p16out: std::ptr::null_mut(),
+            proc_mask: 0,
+            bufcount: 0,
+            format: SampleFormat {
+                version: 0,
+                num_channels: 0,
+                frac_bits: 0,
+                output_scale: 0,
+                frequency: 0,
+                codec_frequency: 0,
+            },
+        }
+    }
+}
+
+pub type SampleInputFnType = unsafe extern "C" fn(samples: *const u8, size: usize);
+
+pub type SampleOutputFnType = unsafe extern "C" fn(samples: *const u8, size: usize);
+
+#[repr(C)]
+pub struct DspProcEntry {
+    pub data: isize, // intptr_t in C
+    pub process: Option<extern "C" fn(*mut DspProcEntry, *mut *mut DspBuffer)>,
+}
+
+impl DspProcEntry {
+    pub fn new() -> Self {
+        Self {
+            data: 0,
+            process: None,
+        }
+    }
+}
+
+#[repr(C)]
+pub struct DspProcSlot {
+    pub proc_entry: DspProcEntry, // Adjust the type if necessary
+    pub next: *mut DspProcSlot,
+    pub mask: u32,
+    pub version: u8,
+    pub db_index: u8,
+}
+
+#[repr(C)]
+pub struct SampleIoData {
+    pub outcount: i32,
+    pub format: SampleFormat, // Replace with actual type
+    pub sample_depth: i32,
+    pub stereo_mode: i32,
+    pub input_samples: SampleInputFnType,
+    pub sample_buf: DspBuffer, // Replace with actual type
+    pub sample_buf_p: [*mut i32; 2],
+    pub output_samples: SampleOutputFnType,
+    pub output_sampr: u32,
+    pub format_dirty: u8,
+    pub output_version: u8,
+}
+
+#[repr(C)]
+pub struct DspConfig {
+    pub io_data: SampleIoData, // Adjust the type if necessary
+    pub slot_free_mask: u32,
+    pub proc_mask_enabled: u32,
+    pub proc_mask_active: u32,
+    pub proc_slots: *mut DspProcSlot,
+}
+
+#[repr(C)]
+pub enum PcmMixerChannel {
+    Playback = 0,
+    Voice,
+    NumChannels,
+}
+
+impl PcmMixerChannel {
+    // Optionally, add methods for convenience
+    pub fn as_u32(self) -> u32 {
+        self as u32
+    }
+
+    pub fn from_u32(value: u32) -> Option<Self> {
+        match value {
+            0 => Some(PcmMixerChannel::Playback),
+            1 => Some(PcmMixerChannel::Voice),
+            // Include this if HAVE_HARDWARE_BEEP is not defined
+            // 2 => Some(PcmMixerChannel::Beep),
+            _ => None,
+        }
+    }
+}
+
+#[repr(C)]
+pub enum ChannelStatus {
+    Stopped = 0,
+    Playing,
+    Paused,
+}
+
+impl ChannelStatus {
+    // Optionally, add methods for convenience
+    pub fn as_u32(self) -> u32 {
+        self as u32
+    }
+
+    pub fn from_u32(value: u32) -> Option<Self> {
+        match value {
+            0 => Some(ChannelStatus::Stopped),
+            1 => Some(ChannelStatus::Playing),
+            2 => Some(ChannelStatus::Paused),
+            _ => None,
+        }
+    }
+}
+
+#[repr(C)]
+pub struct PcmPeaks {
+    pub left: u32,   // Left peak value
+    pub right: u32,  // Right peak value
+    pub period: i64, // For tracking calling period
+    pub tick: i64,   // Last tick called
+}
+
+pub type ChanBufferHookFnType = extern "C" fn(start: *const c_void, size: usize);
+
+#[repr(C)]
+pub enum SystemSound {
+    KeyClick = 0,
+    TrackSkip,
+    TrackNoMore,
+    ListEdgeBeepWrap,
+    ListEdgeBeepNoWrap,
 }
 
 extern "C" {
@@ -289,50 +659,59 @@ extern "C" {
     fn warn_on_pl_erase() -> c_uchar;
 
     // Sound
-    fn adjust_volume();
-    fn sound_set();
-    fn sound_current();
-    fn sound_default();
-    fn sound_min();
-    fn sound_max();
-    fn sound_unit();
-    fn sound_val2phys();
-    fn sound_get_pitch();
-    fn sound_set_pitch();
-    fn audio_master_sampr_list();
+    fn adjust_volume(steps: c_int);
+    fn sound_set(setting: c_int, value: c_int);
+    fn sound_current(setting: c_int) -> c_int;
+    fn sound_default(setting: c_int) -> c_int;
+    fn sound_min(setting: c_int) -> c_int;
+    fn sound_max(setting: c_int) -> c_int;
+    fn sound_unit(setting: c_int) -> *const c_char;
+    fn sound_val2phys(setting: c_int, value: c_int) -> c_int;
+    fn sound_get_pitch() -> c_int;
+    fn sound_set_pitch(pitch: c_int);
     fn pcm_apply_settings();
-    fn pcm_play_data();
+    fn pcm_play_data(
+        get_more: PcmPlayCallbackType,
+        status_cb: PcmStatusCallbackType,
+        start: *const *const c_void,
+        size: usize,
+    );
     fn pcm_play_stop();
-    fn pcm_set_frequency();
-    fn pcm_is_playing();
+    fn pcm_set_frequency(frequency: c_uint);
+    fn pcm_is_playing() -> c_uchar;
     fn pcm_play_lock();
     fn pcm_play_unlock();
-    fn beep_play();
-    fn dsp_set_crossfeed_type();
-    fn dsp_eq_enable();
-    fn dsp_dither_enable();
-    fn dsp_get_timestretch();
-    fn dsp_set_timestretch();
-    fn dsp_timestretch_enable();
-    fn dsp_timestretch_available();
-    fn dsp_configure();
-    fn dsp_get_config();
-    fn dsp_process();
-    fn mixer_channel_status();
-    fn mixer_channel_get_buffer();
-    fn mixer_channel_calculate_peaks();
-    fn mixer_channel_play_data();
-    fn mixer_channel_play_pause();
-    fn mixer_channel_stop();
-    fn mixer_channel_set_amplitude();
-    fn mixer_channel_get_bytes_waiting();
-    fn mixer_channel_set_buffer_hook();
-    fn mixer_set_frequency();
-    fn mixer_get_frequency();
-    fn pcmbuf_fade();
-    fn pcmbuf_set_low_latency();
-    fn system_sound_play();
-    fn keyclick_click();
+    fn beep_play(frequency: c_uint, duration: c_uint, amplitude: c_uint);
+    fn dsp_set_crossfeed_type(r#type: c_int);
+    fn dsp_eq_enable(enable: c_uchar);
+    fn dsp_dither_enable(enable: c_uchar);
+    fn dsp_get_timestretch() -> c_int;
+    fn dsp_set_timestretch(percent: c_int);
+    fn dsp_timestretch_enable(enabled: c_uchar);
+    fn dsp_timestretch_available() -> c_uchar;
+    fn dsp_configure(dsp: *mut DspConfig, setting: c_uint, value: c_long) -> c_long;
+    fn dsp_get_config(dsp_id: c_int) -> *mut DspConfig;
+    fn dsp_process(dsp: *mut DspConfig, src: *mut DspBuffer, dst: *mut *mut DspBuffer);
+    fn mixer_channel_status(channel: PcmMixerChannel) -> ChannelStatus;
+    fn mixer_channel_get_buffer(channel: PcmMixerChannel, count: *mut c_int) -> *mut c_void;
+    fn mixer_channel_calculate_peaks(channel: PcmMixerChannel, peaks: *mut PcmPeaks);
+    fn mixer_channel_play_data(
+        channel: PcmMixerChannel,
+        get_more: PcmPlayCallbackType,
+        start: *const *const c_void,
+        size: usize,
+    );
+    fn mixer_channel_play_pause(channel: PcmMixerChannel, play: c_uchar);
+    fn mixer_channel_stop(channel: PcmMixerChannel);
+    fn mixer_channel_set_amplitude(channel: PcmMixerChannel, amplitude: c_uint);
+    fn mixer_channel_get_bytes_waiting(channel: PcmMixerChannel) -> usize;
+    fn mixer_channel_set_buffer_hook(channel: PcmMixerChannel, r#fn: ChanBufferHookFnType);
+    fn mixer_set_frequency(samplerate: c_uint);
+    fn mixer_get_frequency() -> c_uint;
+    fn pcmbuf_fade(fade: c_int, r#in: c_uchar);
+    fn pcmbuf_set_low_latency(state: c_uchar);
+    fn system_sound_play(sound: SystemSound);
+    fn keyclick_click(rawbutton: c_uchar, action: c_int);
 
     // Browsing
     fn rockbox_browse(browse: *mut BrowseContext) -> c_int;
@@ -360,12 +739,12 @@ extern "C" {
     ) -> c_uchar;
 
     // Directory
-    fn opendir();
-    fn closedir();
-    fn readdir();
-    fn mkdir();
-    fn rmdir();
-    fn dir_get_info();
+    fn opendir(dirname: *const c_char) -> *mut Dir;
+    fn closedir(dirp: *mut Dir) -> c_int;
+    fn readdir(dirp: *mut Dir) -> *mut dirent;
+    fn mkdir(path: *const c_char) -> c_int;
+    fn rmdir(path: *const c_char) -> c_int;
+    fn dir_get_info(dirp: *mut Dir, entry: *mut dirent) -> *mut Dirent;
 
     // File
     fn open_utf8();
@@ -390,19 +769,45 @@ extern "C" {
     fn filetype_get_plugin();
 
     // Metadata
-    fn get_metadata();
-    fn get_codec_string();
-    fn count_mp3_frames();
-    fn create_xing_header();
-    fn tagcache_search();
-    fn tagcache_search_set_uniqbuf();
-    fn tagcache_search_add_filter();
-    fn tagcache_get_next();
-    fn tagcache_get_numeric();
-    fn tagcache_get_stat();
+    fn get_metadata(id3: *mut Mp3Entry, fd: c_int, trackname: *const c_char) -> c_uchar;
+    fn get_codec_string(codectype: c_int) -> *const c_char;
+    fn count_mp3_frames(
+        fd: c_int,
+        startpos: c_int,
+        filesize: c_int,
+        progressfunc: ProgressFunc,
+        buf: *mut c_uchar,
+        buflen: usize,
+    ) -> c_int;
+    fn create_xing_header(
+        fd: c_int,
+        startpos: c_long,
+        filesize: c_long,
+        buf: *mut c_uchar,
+        num_frames: c_ulong,
+        rec_time: c_ulong,
+        header_template: c_ulong,
+        progressfunc: ProgressFunc,
+        generate_toc: c_uchar,
+        tempbuf: *mut c_uchar,
+        tembuf_len: usize,
+    ) -> c_int;
+    fn tagcache_search(tcs: *mut TagcacheSearch, tag: c_int) -> c_uchar;
+    fn tagcache_search_set_uniqbuf(tcs: *mut TagcacheSearch, buffer: *mut c_void, length: c_long);
+    fn tagcache_search_add_filter(tcs: *mut TagcacheSearch, tag: c_int, seek: c_int) -> c_uchar;
+    fn tagcache_get_next(tcs: *mut TagcacheSearch, buf: *mut c_char, size: c_long) -> c_uchar;
+    // fn tagcahe_retrieve(tcs: *mut TagcacheSearch, idxid: c_int, tag: c_int) -> c_uchar;
+    // fn tagcache_search_finish(tcs: *mut TagcacheSearch);
+    fn tagcache_get_numeric(tcs: *mut TagcacheSearch, tag: c_int) -> c_long;
+    fn tagcache_get_stat() -> *mut TagcacheStat;
     fn tagcache_commit_finalize();
-    fn tagtree_subentries_do_action();
-    fn search_albumart_files();
+    fn tagtree_subentries_do_action(cb: ActionCb) -> c_uchar;
+    fn search_albumart_files(
+        id3: *mut Mp3Entry,
+        size_string: *const c_char,
+        buf: *mut c_char,
+        buflen: c_int,
+    ) -> c_uchar;
 
     // Kernel / System
     fn sleep(ticks: c_uint);
@@ -433,16 +838,52 @@ extern "C" {
     fn root_menu_load_from_cfg();
 
     // Settings
-    fn get_settings_list(count: *mut c_int);
-    fn find_setting();
-    fn settings_save();
-    fn option_screen();
-    fn set_option();
-    fn set_bool_options();
-    fn set_int();
-    fn set_int_ex();
-    fn set_bool();
-    fn set_color();
+    fn get_settings_list(count: *mut c_int) -> *mut SettingsList;
+    fn find_setting(variable: *const c_void) -> *mut SettingsList;
+    fn settings_save() -> c_int;
+    fn option_screen(
+        setting: *mut SettingsList,
+        parent: [Viewport; NB_SCREENS],
+        use_temp_var: c_uchar,
+        option_title: *mut c_uchar,
+    ) -> c_uchar;
+    fn set_option(
+        string: *const c_char,
+        options: *const OptItems,
+        numoptions: c_int,
+        function: Option<extern "C" fn(x: c_int) -> c_uchar>,
+    ) -> c_uchar;
+    fn set_bool_options(
+        string: *const c_char,
+        variable: *const c_uchar,
+        yes_str: *const c_char,
+        yes_voice: c_int,
+        no_str: *const c_char,
+        no_voice: c_int,
+        function: Option<extern "C" fn(x: c_int) -> c_uchar>,
+    );
+    fn set_int(
+        unit: *const c_char,
+        voice_unit: c_int,
+        variable: *const c_int,
+        function: Option<extern "C" fn(c_int)>,
+        step: c_int,
+        min: c_int,
+        max: c_int,
+        formatter: Option<extern "C" fn(*mut c_char, usize, c_int, *const c_char) -> *const c_char>,
+    );
+    fn set_int_ex(
+        unit: *const c_char,
+        voice_unit: c_int,
+        variable: *const c_int,
+        function: Option<extern "C" fn(c_int)>,
+        step: c_int,
+        min: c_int,
+        max: c_int,
+        formatter: Option<extern "C" fn(*mut c_char, usize, c_int, *const c_char) -> *const c_char>,
+        get_talk_id: Option<extern "C" fn(c_int, c_int) -> c_int>,
+    );
+    fn set_bool(string: *const c_char, variable: *const c_uchar) -> c_uchar;
 
     // Misc
     fn codec_load_file();

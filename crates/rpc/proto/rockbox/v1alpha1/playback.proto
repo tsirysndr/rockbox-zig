@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message PlayRequest {
+  int64 elapsed = 1;
+  int64 offset = 2;
+}
+
+message PlayResponse {
+}
+
+message PauseRequest {
+}
+
+message PauseResponse {
+}
+
+message ResumeRequest {
+}
+
+message ResumeResponse {
+}
+
+message NextRequest {
+}
+
+message NextResponse {
+}
+
+message PreviousRequest {
+}
+
+message PreviousResponse {
+}
+
+message FastForwardRewindRequest {
+  int32 new_time = 1;
+}
+
+message FastForwardRewindResponse {
+}
+
+message StatusRequest {
+}
+
+message StatusResponse {
+}
+
+message CurrentTrackRequest {
+}
+
+message CurrentTrackResponse {
+}
+
+message FlushAndReloadTracksRequest {
+}
+
+message FlushAndReloadTracksResponse {
+}
+
+message GetFilePositionRequest {
+}
+
+message GetFilePositionResponse {
+  int32 position = 1;
+}
+
+message HardStopRequest {
+}
+
+message HardStopResponse {
+}
+
+service PlaybackService {
+  rpc Play(PlayRequest) returns (PlayResponse) {} 
+  rpc Pause(PauseRequest) returns (PauseResponse) {}
+  rpc Resume(ResumeRequest) returns (ResumeResponse) {}
+  rpc Next(NextRequest) returns (NextResponse) {}
+  rpc Previous(PreviousRequest) returns (PreviousResponse) {}
+  rpc FastForwardRewind(FastForwardRewindRequest) returns (FastForwardRewindResponse) {}
+  rpc Status(StatusRequest) returns (StatusResponse) {}
+  rpc CurrentTrack(CurrentTrackRequest) returns (CurrentTrackResponse) {}
+  rpc FlushAndReloadTracks(FlushAndReloadTracksRequest) returns (FlushAndReloadTracksResponse) {}
+  rpc GetFilePosition(GetFilePositionRequest) returns (GetFilePositionResponse) {}
+  rpc HardStop(HardStopRequest) returns (HardStopResponse) {}
+}

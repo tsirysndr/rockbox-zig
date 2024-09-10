@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message GetCurrentRequest {
+}
+
+message GetCurrentResponse {
+}
+
+message GetResumeInfoRequest {
+}
+
+message GetResumeInfoResponse {
+}
+
+message GetTrackInfoRequest {
+}
+
+message GetTrackInfoResponse {
+}
+
+message GetFirstIndexRequest {
+}
+
+message GetFirstIndexResponse {
+}
+
+message GetDisplayIndexRequest {
+}
+
+message GetDisplayIndexResponse {
+}
+
+message AmountRequest {
+}
+
+message AmountResponse {
+}
+
+message PlaylistResumeRequest {
+}
+
+message PlaylistResumeResponse {
+}
+
+message ResumeTrackRequest {
+}
+
+message ResumeTrackResponse {
+}
+
+message SetModifiedRequest {
+}
+
+message SetModifiedResponse {
+}
+
+message StartRequest {
+}
+
+message StartResponse {
+}
+
+message SyncRequest {
+}
+
+message SyncResponse {
+}
+
+message RemoveAllTracksRequest {
+}
+
+message RemoveAllTracksResponse {
+}
+
+message CreatePlaylistRequest {
+}
+
+message CreatePlaylistResponse {
+}
+
+message InsertTrackRequest {
+}
+
+message InsertTrackResponse {
+}
+
+message InsertDirectoryRequest {
+}
+
+message InsertDirectoryResponse {
+}
+
+message InsertPlaylistRequest {
+}
+
+message InsertPlaylistResponse {
+}
+
+message ShufflePlaylistRequest {
+}
+
+message ShufflePlaylistResponse {
+}
+
+message WarnOnPlaylistEraseRequest {
+}
+
+message WarnOnPlaylistEraseResponse {
+}
+
+
+service PlaylistService {
+  rpc GetCurrent(GetCurrentRequest) returns (GetCurrentResponse) {}
+  rpc GetResumeInfo(GetResumeInfoRequest) returns (GetResumeInfoResponse) {}
+  rpc GetTrackInfo(GetTrackInfoRequest) returns (GetTrackInfoResponse) {}
+  rpc GetFirstIndex(GetFirstIndexRequest) returns (GetFirstIndexResponse) {}
+  rpc GetDisplayIndex(GetDisplayIndexRequest) returns (GetDisplayIndexResponse) {}
+  rpc Amount(AmountRequest) returns (AmountResponse) {}
+  rpc PlaylistResume(PlaylistResumeRequest) returns (PlaylistResumeResponse) {}
+  rpc ResumeTrack(ResumeTrackRequest) returns (ResumeTrackResponse) {}
+  rpc SetModified(SetModifiedRequest) returns (SetModifiedResponse) {}
+  rpc Start(StartRequest) returns (StartResponse) {}
+  rpc Sync(SyncRequest) returns (SyncResponse) {}
+  rpc RemoveAllTracks(RemoveAllTracksRequest) returns (RemoveAllTracksResponse) {}
+  rpc CreatePlaylist(CreatePlaylistRequest) returns (CreatePlaylistResponse) {}
+  rpc InsertTrack(InsertTrackRequest) returns (InsertTrackResponse) {}
+  rpc InsertDirectory(InsertDirectoryRequest) returns (InsertDirectoryResponse) {}
+  rpc InsertPlaylist(InsertPlaylistRequest) returns (InsertPlaylistResponse) {}
+  rpc ShufflePlaylist(ShufflePlaylistRequest) returns (ShufflePlaylistResponse) {}
+  rpc WarnOnPlaylistErase(WarnOnPlaylistEraseRequest) returns (WarnOnPlaylistEraseResponse) {}
+}

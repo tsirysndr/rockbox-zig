@@ -11,3 +11,4 @@ owo-colors = "4.0.0"
 rockbox-graphql = {path = "../graphql"}
 rockbox-rpc = {path = "../rpc"}
 rockbox-sys = {path = "../sys"}
+tokio = {version = "1.40.0", features = ["full"]}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message GetSettingsListRequest {
+  int32 count = 1;
+}
+
+message GetSettingsListResponse {
+}
+
+service SettingsService {
+  rpc GetSettingsList(GetSettingsListRequest) returns (GetSettingsListResponse);
+}
