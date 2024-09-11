@@ -863,11 +863,55 @@ pub struct FastForwardRewindResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct StatusRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct StatusResponse {}
+pub struct StatusResponse {
+    #[prost(int32, tag = "1")]
+    pub status: i32,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct CurrentTrackRequest {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct CurrentTrackResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CurrentTrackResponse {
+    #[prost(string, tag = "1")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub artist: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub album: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub genre: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub disc: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub track_string: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub year_string: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub composer: ::prost::alloc::string::String,
+    #[prost(string, tag = "9")]
+    pub comment: ::prost::alloc::string::String,
+    #[prost(string, tag = "10")]
+    pub album_artist: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
+    pub grouping: ::prost::alloc::string::String,
+    #[prost(int32, tag = "12")]
+    pub discnum: i32,
+    #[prost(int32, tag = "13")]
+    pub tracknum: i32,
+    #[prost(int32, tag = "14")]
+    pub layer: i32,
+    #[prost(int32, tag = "15")]
+    pub year: i32,
+    #[prost(uint32, tag = "16")]
+    pub bitrate: u32,
+    #[prost(uint64, tag = "17")]
+    pub frequency: u64,
+    #[prost(uint64, tag = "18")]
+    pub filesize: u64,
+    #[prost(uint64, tag = "19")]
+    pub length: u64,
+    #[prost(uint64, tag = "20")]
+    pub elapsed: u64,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct FlushAndReloadTracksRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]

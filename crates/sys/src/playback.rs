@@ -24,16 +24,18 @@ pub fn ff_rewind(newtime: i32) {
     unsafe { crate::audio_ff_rewind(newtime) }
 }
 
-pub fn next_track() -> *mut Mp3Entry {
-    unsafe { crate::audio_next_track() }
+pub fn next_track() -> Mp3Entry {
+    let track = unsafe { crate::audio_next_track().as_ref().unwrap() };
+    *track
 }
 
 pub fn status() -> i32 {
     unsafe { crate::audio_status() }
 }
 
-pub fn current_track() -> *mut Mp3Entry {
-    unsafe { crate::audio_current_track() }
+pub fn current_track() -> Mp3Entry {
+    let track = unsafe { crate::audio_current_track().as_ref().unwrap() };
+    *track
 }
 
 pub fn flush_and_reload_tracks() {

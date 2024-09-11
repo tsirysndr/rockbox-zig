@@ -6,6 +6,7 @@ use sound::{SoundMutation, SoundQuery};
 
 pub mod browse;
 pub mod metadata;
+pub mod objects;
 pub mod playback;
 pub mod playlist;
 pub mod settings;

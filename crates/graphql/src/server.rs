@@ -54,9 +54,9 @@ pub async fn start() -> std::io::Result<()> {
     let addr = format!("{}:{}", "0.0.0.0", graphql_port);
 
     println!(
-        "{} server running on {}",
+        "{} server is running on {}",
         "Rockbox GraphQL".bright_purple(),
-        format!("http://{}", addr).bright_green()
+        addr.bright_green()
     );
 
     HttpServer::new(move || {

@@ -1,7 +1,5 @@
-use std::thread;
-
 use owo_colors::OwoColorize;
-use rockbox_sys::playback;
+use std::thread;
 
 #[no_mangle]
 pub extern "C" fn start_server() {
@@ -16,13 +14,6 @@ pub extern "C" fn start_server() {
 
     // Start the server
     println!("{}", BANNER.yellow());
-    let status = playback::status();
-    let track = playback::current_track();
-
-    println!("Current Track: {:?}", track);
-
-    println!("Status: {}", status);
-    playback::pause();
 
     thread::spawn(|| {
         let runtime = tokio::runtime::Builder::new_multi_thread()

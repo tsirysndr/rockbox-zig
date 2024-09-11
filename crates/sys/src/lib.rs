@@ -20,7 +20,7 @@ const MAX_PATHNAME: usize = 80;
 const NB_SCREENS: usize = 2;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Mp3Entry {
     pub path: [c_char; MAX_PATH],           // char path[MAX_PATH]
     pub title: *mut c_char,                 // char* title
