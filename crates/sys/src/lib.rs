@@ -2,6 +2,7 @@ use std::ffi::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong, c_void};
 
 pub mod browse;
 pub mod dir;
+pub mod events;
 pub mod file;
 pub mod menu;
 pub mod metadata;
@@ -604,18 +605,18 @@ pub enum SystemSound {
 
 extern "C" {
     // Playback control
-    fn audio_pause();
-    fn audio_play(elapsed: c_long, offset: c_long);
-    fn audio_resume();
-    fn audio_next();
-    fn audio_prev();
-    fn audio_ff_rewind(newtime: c_int);
+    fn audio_pause() -> c_void;
+    fn audio_play(elapsed: c_long, offset: c_long) -> c_void;
+    fn audio_resume() -> c_void;
+    fn audio_next() -> c_void;
+    fn audio_prev() -> c_void;
+    fn audio_ff_rewind(newtime: c_int) -> c_void;
     fn audio_next_track() -> *mut Mp3Entry;
     fn audio_status() -> c_int;
     fn audio_current_track() -> *mut Mp3Entry;
-    fn audio_flush_and_reload_tracks();
+    fn audio_flush_and_reload_tracks() -> c_void;
     fn audio_get_file_pos() -> c_int;
-    fn audio_hard_stop();
+    fn audio_hard_stop() -> c_void;
 
     // Playlist control
     fn playlist_get_current() -> *mut PlaylistInfo;

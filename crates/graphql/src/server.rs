@@ -1,3 +1,5 @@
+use std::sync::{mpsc::Sender, Arc, Mutex};
+
 use actix_cors::Cors;
 use actix_web::{
     http::header::HOST,
@@ -7,6 +9,7 @@ use actix_web::{
 use async_graphql::{http::GraphiQLSource, EmptySubscription, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use owo_colors::OwoColorize;
+use rockbox_sys::events::RockboxCommand;
 
 use crate::{
     schema::{Mutation, Query},
@@ -43,12 +46,13 @@ async fn index_graphiql(req: HttpRequest) -> Result<HttpResponse> {
         ))
 }
 
-pub async fn start() -> std::io::Result<()> {
+pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> std::io::Result<()> {
     let schema = Schema::build(
         Query::default(),
         Mutation::default(),
         EmptySubscription::default(),
     )
+    .data(cmd_tx)
     .finish();
     let graphql_port = std::env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string());
     let addr = format!("{}:{}", "0.0.0.0", graphql_port);

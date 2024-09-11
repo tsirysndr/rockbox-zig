@@ -1,7 +1,18 @@
+use std::sync::{mpsc::Sender, Arc, Mutex};
+
+use rockbox_sys::events::RockboxCommand;
+
 use crate::api::rockbox::v1alpha1::{playlist_service_server::PlaylistService, *};
 
-#[derive(Default)]
-pub struct Playlist;
+pub struct Playlist {
+    cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
+}
+
+impl Playlist {
+    pub fn new(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Self {
+        Self { cmd_tx }
+    }
+}
 
 #[tonic::async_trait]
 impl PlaylistService for Playlist {

@@ -1,5 +1,7 @@
+use std::sync::{mpsc::Sender, Arc, Mutex};
+
 use async_graphql::*;
-use rockbox_sys as rb;
+use rockbox_sys::{self as rb, events::RockboxCommand};
 
 use crate::schema::objects::track::Track;
 
@@ -28,43 +30,74 @@ pub struct PlaybackMutation;
 
 #[Object]
 impl PlaybackMutation {
-    async fn play(&self, _ctx: &Context<'_>, elapsed: i64, offset: i64) -> String {
-        rb::playback::play(elapsed, offset);
-        "play".to_string()
+    async fn play(&self, ctx: &Context<'_>, elapsed: i64, offset: i64) -> Result<String, Error> {
+        let cmd = ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>().unwrap();
+        cmd.lock()
+            .unwrap()
+            .send(RockboxCommand::Play(elapsed, offset))?;
+        Ok("play".to_string())
     }
 
-    async fn pause(&self) -> String {
-        rb::playback::pause();
-        "pause".to_string()
+    async fn pause(&self, ctx: &Context<'_>) -> Result<String, Error> {
+        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::Pause)?;
+        Ok("pause".to_string())
     }
 
-    async fn resume(&self) -> String {
-        rb::playback::resume();
-        "resume".to_string()
+    async fn resume(&self, ctx: &Context<'_>) -> Result<String, Error> {
+        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::Resume)?;
+        Ok("resume".to_string())
     }
 
-    async fn next(&self) -> String {
-        rb::playback::next();
-        "next".to_string()
+    async fn next(&self, ctx: &Context<'_>) -> Result<String, Error> {
+        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::Next)?;
+        Ok("next".to_string())
     }
 
-    async fn previous(&self) -> String {
-        rb::playback::prev();
-        "previous".to_string()
+    async fn previous(&self, ctx: &Context<'_>) -> Result<String, Error> {
+        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::Prev)?;
+        Ok("previous".to_string())
     }
 
-    async fn fast_forward_rewind(&self, _ctx: &Context<'_>, new_time: i32) -> String {
-        rb::playback::ff_rewind(new_time);
-        "fast_forward_rewind".to_string()
+    async fn fast_forward_rewind(&self, ctx: &Context<'_>, new_time: i32) -> Result<String, Error> {
+        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::FfRewind(new_time))?;
+        Ok("fast_forward_rewind".to_string())
     }
 
-    async fn flush_and_reload_tracks(&self) -> String {
-        rb::playback::flush_and_reload_tracks();
-        "flush_and_reload_tracks".to_string()
+    async fn flush_and_reload_tracks(&self, ctx: &Context<'_>) -> Result<String, Error> {
+        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::FlushAndReloadTracks)?;
+        Ok("flush_and_reload_tracks".to_string())
     }
 
-    async fn hard_stop(&self) -> String {
-        rb::playback::hard_stop();
-        "hard_stop".to_string()
+    async fn hard_stop(&self, ctx: &Context<'_>) -> Result<String, Error> {
+        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::Stop)?;
+        Ok("hard_stop".to_string())
     }
 }
