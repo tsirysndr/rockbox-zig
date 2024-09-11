@@ -61,7 +61,11 @@ pub async fn start() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let cors = Cors::permissive();
-        App::new().app_data(Data::new(schema.clone())).wrap(cors)
+        App::new()
+            .app_data(Data::new(schema.clone()))
+            .wrap(cors)
+            .service(index_graphql)
+            .service(index_graphiql)
     })
     .bind(addr)?
     .run()

@@ -1,4 +1,5 @@
 use owo_colors::OwoColorize;
+use rockbox_sys as rb;
 use std::thread;
 
 #[no_mangle]
@@ -15,8 +16,9 @@ pub extern "C" fn start_server() {
     // Start the server
     println!("{}", BANNER.yellow());
 
-    thread::spawn(|| {
-        let runtime = tokio::runtime::Builder::new_multi_thread()
+    thread::spawn(move || {
+        rb::playback::pause();
+        let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
             .unwrap();
@@ -29,7 +31,7 @@ pub extern "C" fn start_server() {
     });
 
     thread::spawn(|| {
-        let runtime = tokio::runtime::Builder::new_multi_thread()
+        let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
             .unwrap();

@@ -159,6 +159,8 @@ pub fn build(b: *std.Build) !void {
     defineCMacros(libfirmware);
     addIncludePaths(libfirmware);
 
+    libfirmware.linkSystemLibrary("usb");
+
     const libspeex_voice = b.addStaticLibrary(.{
         .name = "speex-voice",
         .target = target,
@@ -2932,7 +2934,6 @@ pub fn build(b: *std.Build) !void {
     exe.linkLibrary(libfixedpoint);
     exe.linkLibrary(libuisimulator);
     exe.linkSystemLibrary("SDL");
-    exe.linkSystemLibrary("usb");
     exe.linkLibC();
 }
 
