@@ -156,7 +156,6 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libfirmware.defineCMacro("USB_NONE", null);
     defineCMacros(libfirmware);
     addIncludePaths(libfirmware);
 
@@ -2933,6 +2932,7 @@ pub fn build(b: *std.Build) !void {
     exe.linkLibrary(libfixedpoint);
     exe.linkLibrary(libuisimulator);
     exe.linkSystemLibrary("SDL");
+    exe.linkSystemLibrary("usb");
     exe.linkLibC();
 }
 
