@@ -4226,6 +4226,7 @@ const all_sources = [_][]const u8{
     "apps/tagcache.c",
     "apps/keymaps/keymap-touchscreen.c",
     "apps/keymaps/keymap-sdl.c",
+    "apps/server_thread.c",
     "build/lang/lang_core.c",
 };
 

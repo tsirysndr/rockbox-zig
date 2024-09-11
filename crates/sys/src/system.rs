@@ -1,4 +1,4 @@
-pub fn sleep(ticks: u32) {
+pub fn sleep(ticks: f32) {
     unsafe {
         crate::sleep(ticks);
     }
