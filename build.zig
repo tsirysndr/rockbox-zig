@@ -156,6 +156,7 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
+    libfirmware.defineCMacro("USB_NONE", null);
     defineCMacros(libfirmware);
     addIncludePaths(libfirmware);
 
