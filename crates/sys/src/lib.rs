@@ -257,6 +257,9 @@ const TAG_COUNT: usize = 32;
 const SEEK_LIST_SIZE: usize = 32;
 const TAGCACHE_MAX_FILTERS: usize = 4;
 const TAGCACHE_MAX_CLAUSES: usize = 32;
+const EQ_NUM_BANDS: usize = 10;
+const QUICKSCREEN_ITEM_COUNT: usize = 4;
+const MAX_FILENAME: usize = 32;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -605,6 +608,296 @@ pub enum SystemSound {
 }
 
 #[repr(C)]
+pub struct UserSettings {
+    // Audio settings
+    pub volume: c_int,
+    pub balance: c_int,
+    pub bass: c_int,
+    pub treble: c_int,
+    pub channel_config: c_int,
+    pub stereo_width: c_int,
+
+    pub bass_cutoff: c_int,
+    pub treble_cutoff: c_int,
+
+    pub crossfade: c_int,
+    pub crossfade_fade_in_delay: c_int,
+    pub crossfade_fade_out_delay: c_int,
+    pub crossfade_fade_in_duration: c_int,
+    pub crossfade_fade_out_duration: c_int,
+    pub crossfade_fade_out_mixmode: c_int,
+
+    // Replaygain
+    pub replaygain_settings: ReplaygainSettings,
+
+    // Crossfeed
+    pub crossfeed: c_int,
+    pub crossfeed_direct_gain: c_uint,
+    pub crossfeed_cross_gain: c_uint,
+    pub crossfeed_hf_attenuation: c_uint,
+    pub crossfeed_hf_cutoff: c_uint,
+
+    // EQ
+    pub eq_enabled: c_uchar,
+    pub eq_precut: c_uint,
+    pub eq_band_settings: [EqBandSetting; EQ_NUM_BANDS],
+
+    // Misc. swcodec
+    pub beep: c_int,
+    pub keyclick: c_int,
+    pub keyclick_repeats: c_int,
+    pub dithering_enabled: c_uchar,
+    pub timestretch_enabled: c_uchar,
+
+    // Misc options
+    pub list_accel_start_delay: c_int,
+    pub list_accel_wait: c_int,
+
+    pub touchpad_sensitivity: c_int,
+    pub touchpad_deadzone: c_int,
+
+    pub pause_rewind: c_int,
+    pub unplug_mode: c_int,
+    pub unplug_autoresume: c_uchar,
+
+    pub qs_items: [*const SettingsList; QUICKSCREEN_ITEM_COUNT],
+
+    pub timeformat: c_int,
+    pub disk_spindown: c_int,
+    pub buffer_margin: c_int,
+
+    pub dirfilter: c_int,
+    pub show_filename_ext: c_int,
+    pub default_codepage: c_int,
+    pub hold_lr_for_scroll_in_list: c_uchar,
+    pub play_selected: c_uchar,
+    pub single_mode: c_int,
+    pub party_mode: c_uchar,
+    pub cuesheet: c_uchar,
+    pub car_adapter_mode: c_uchar,
+    pub car_adapter_mode_delay: c_int,
+    pub start_in_screen: c_int,
+    pub ff_rewind_min_step: c_int,
+    pub ff_rewind_accel: c_int,
+
+    pub peak_meter_release: c_int,
+    pub peak_meter_hold: c_int,
+    pub peak_meter_clip_hold: c_int,
+    pub peak_meter_dbfs: c_uchar,
+    pub peak_meter_min: c_int,
+    pub peak_meter_max: c_int,
+
+    pub wps_file: [c_uchar; MAX_FILENAME + 1],
+    pub sbs_file: [c_uchar; MAX_FILENAME + 1],
+    pub lang_file: [c_uchar; MAX_FILENAME + 1],
+    pub playlist_catalog_dir: [c_uchar; MAX_PATHNAME + 1],
+    pub skip_length: c_int,
+    pub max_files_in_dir: c_int,
+    pub max_files_in_playlist: c_int,
+    pub volume_type: c_int,
+    pub battery_display: c_int,
+    pub show_icons: c_uchar,
+    pub statusbar: c_int,
+
+    pub scrollbar: c_int,
+    pub scrollbar_width: c_int,
+
+    pub list_line_padding: c_int,
+    pub list_separator_height: c_int,
+    pub list_separator_color: c_int,
+
+    pub browse_current: c_uchar,
+    pub scroll_paginated: c_uchar,
+    pub list_wraparound: c_uchar,
+    pub list_order: c_int,
+    pub scroll_speed: c_int,
+    pub bidir_limit: c_int,
+    pub scroll_delay: c_int,
+    pub scroll_step: c_int,
+
+    pub autoloadbookmark: c_int,
+    pub autocreatebookmark: c_int,
+    pub autoupdatebookmark: c_uchar,
+    pub usemrb: c_int,
+
+    pub dircache: c_uchar,
+    pub tagcache_ram: c_int,
+    pub tagcache_autoupdate: c_uchar,
+    pub autoresume_enable: c_uchar,
+    pub autoresume_automatic: c_int,
+    pub autoresume_paths: [c_uchar; MAX_PATHNAME + 1],
+    pub runtimedb: c_uchar,
+    pub tagcache_scan_paths: [c_uchar; MAX_PATHNAME + 1],
+    pub tagcache_db_path: [c_uchar; MAX_PATHNAME + 1],
+    pub backdrop_file: [c_uchar; MAX_PATHNAME + 1],
+
+    pub bg_color: c_int,
+    pub fg_color: c_int,
+    pub lss_color: c_int,
+    pub lse_color: c_int,
+    pub lst_color: c_int,
+    pub colors_file: [c_uchar; MAX_FILENAME + 1],
+
+    pub browser_default: c_int,
+
+    pub repeat_mode: c_int,
+    pub next_folder: c_int,
+    pub constrain_next_folder: c_uchar,
+    pub recursive_dir_insert: c_int,
+    pub fade_on_stop: c_uchar,
+    pub playlist_shuffle: c_uchar,
+    pub warnon_erase_dynplaylist: c_uchar,
+    pub keep_current_track_on_replace_playlist: c_uchar,
+    pub show_shuffled_adding_options: c_uchar,
+    pub show_queue_options: c_int,
+    pub album_art: c_int,
+    pub rewind_across_tracks: c_uchar,
+
+    pub playlist_viewer_icons: c_uchar,
+    pub playlist_viewer_indices: c_uchar,
+    pub playlist_viewer_track_display: c_int,
+
+    pub talk_menu: c_uchar,
+    pub talk_dir: c_int,
+    pub talk_dir_clip: c_uchar,
+    pub talk_file: c_int,
+    pub talk_file_clip: c_uchar,
+    pub talk_filetype: c_uchar,
+    pub talk_battery_level: c_uchar,
+    pub talk_mixer_amp: c_int,
+
+    pub sort_case: c_uchar,
+    pub sort_dir: c_int,
+    pub sort_file: c_int,
+    pub interpret_numbers: c_int,
+
+    pub poweroff: c_int,
+    pub battery_capacity: c_int,
+    pub battery_type: c_int,
+    pub spdif_enable: c_uchar,
+    pub usb_charging: c_int,
+
+    pub contrast: c_int,
+    pub invert: c_uchar,
+    pub flip_display: c_uchar,
+    pub cursor_style: c_int,
+    pub screen_scroll_step: c_int,
+    pub show_path_in_browser: c_int,
+    pub offset_out_of_view: c_uchar,
+    pub disable_mainmenu_scrolling: c_uchar,
+    pub icon_file: [c_uchar; MAX_FILENAME + 1],
+    pub viewers_icon_file: [c_uchar; MAX_FILENAME + 1],
+    pub font_file: [c_uchar; MAX_FILENAME + 1],
+    pub glyphs_to_cache: c_int,
+    pub kbd_file: [c_uchar; MAX_FILENAME + 1],
+    pub backlight_timeout: c_int,
+    pub caption_backlight: c_uchar,
+    pub bl_filter_first_keypress: c_uchar,
+    pub backlight_timeout_plugged: c_int,
+    pub bt_selective_softlock_actions: c_uchar,
+    pub bt_selective_softlock_actions_mask: c_int,
+    pub bl_selective_actions: c_uchar,
+    pub bl_selective_actions_mask: c_int,
+    pub backlight_on_button_hold: c_int,
+    pub lcd_sleep_after_backlight_off: c_int,
+    pub brightness: c_int,
+
+    pub speaker_mode: c_int,
+    pub prevent_skip: c_uchar,
+
+    pub touch_mode: c_int,
+    pub ts_calibration_data: TouchscreenParameter,
+
+    pub pitch_mode_semitone: c_uchar,
+    pub pitch_mode_timestretch: c_uchar,
+
+    pub usb_hid: c_uchar,
+    pub usb_keypad_mode: c_int,
+
+    pub usb_skip_first_drive: c_uchar,
+
+    pub ui_vp_config: [c_uchar; 64],
+    pub player_name: [c_char; 64],
+
+    pub compressor_settings: CompressorSettings,
+
+    pub sleeptimer_duration: c_int,
+    pub sleeptimer_on_startup: c_uchar,
+    pub keypress_restarts_sleeptimer: c_uchar,
+
+    pub show_shutdown_message: c_uchar,
+
+    pub hotkey_wps: c_int,
+    pub hotkey_tree: c_int,
+
+    pub resume_rewind: c_int,
+
+    pub depth_3d: c_int,
+
+    pub roll_off: c_int,
+
+    pub power_mode: c_int,
+
+    pub keyclick_hardware: c_uchar,
+
+    pub start_directory: [c_char; MAX_PATHNAME + 1],
+    pub root_menu_customized: c_uchar,
+    pub shortcuts_replaces_qs: c_uchar,
+
+    pub play_frequency: c_int,
+    pub volume_limit: c_int,
+
+    pub volume_adjust_mode: c_int,
+    pub volume_adjust_norm_steps: c_int,
+
+    pub surround_enabled: c_int,
+    pub surround_balance: c_int,
+    pub surround_fx1: c_int,
+    pub surround_fx2: c_uchar,
+    pub surround_method2: c_uchar,
+    pub surround_mix: c_int,
+
+    pub pbe: c_int,
+    pub pbe_precut: c_int,
+
+    pub afr_enabled: c_int,
+
+    pub governor: c_int,
+    pub stereosw_mode: c_int,
+}
+
+// Define other structs used in UserSettings
+#[repr(C)]
+pub struct ReplaygainSettings {
+    // Add fields here
+}
+
+#[repr(C)]
+pub struct EqBandSetting {
+    // Add fields here
+}
+
+#[repr(C)]
+pub struct TouchscreenParameter {
+    // Add fields here
+}
+
+#[repr(C)]
+pub struct CompressorSettings {
+    // Add fields here
+}
+
+#[repr(C)]
+pub struct HwEqBand {
+    pub gain: c_int,
+    pub frequency: c_int,
+    pub width: c_int,
+}
+
+#[repr(C)]
+pub struct CbmpBitmapInfoEntry {}
+
+#[repr(C)]
 #[derive(Debug)]
 pub struct SystemStatus {
     pub resume_index: i32,
@@ -621,7 +914,11 @@ pub struct SystemStatus {
 }
 
 extern "C" {
+    pub static rbversion: *const c_char;
+    pub static global_settings: UserSettings;
     pub static global_status: SystemStatus;
+    pub static language_strings: *mut *mut c_char;
+    pub static core_bitmaps: CbmpBitmapInfoEntry;
 
     // Playback control
     fn audio_pause() -> c_void;
