@@ -2922,6 +2922,10 @@ pub fn build(b: *std.Build) !void {
     defineCMacros(exe);
     addIncludePaths(exe);
 
+    exe.addObjectFile(.{
+        .cwd_relative = "./build/apps/recorder/jpeg_load.o",
+    });
+
     exe.addLibraryPath(.{
         .cwd_relative = "./target/release",
     });
@@ -4214,7 +4218,6 @@ const all_sources = [_][]const u8{
     "apps/recorder/keyboard.c",
     "apps/recorder/peakmeter.c",
     "apps/recorder/resize.c",
-    "apps/recorder/jpeg_load.c",
     "apps/recorder/albumart.c",
     "apps/gui/color_picker.c",
     "apps/audio_thread.c",
