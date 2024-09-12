@@ -7,4 +7,5 @@ pub enum RockboxCommand {
     FfRewind(i32),
     FlushAndReloadTracks,
     Stop,
+    PlaylistResume,
 }

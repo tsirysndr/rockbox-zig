@@ -34,7 +34,7 @@ pub extern "C" fn start_server() {
     listener.set_nonblocking(true).unwrap();
 
     println!(
-        "{} server is listening on {}",
+        "{} server is running on {}",
         "Rockbox TCP".bright_purple(),
         addr.bright_green()
     );
@@ -90,6 +90,9 @@ fn handle_connection(mut stream: TcpStream) {
         }
         "/stop" => {
             rb::playback::hard_stop();
+        }
+        "/playlist_resume" => {
+            rb::playlist::resume();
         }
         _ => {
             if path.starts_with("/play") {
@@ -162,6 +165,9 @@ pub extern "C" fn start_servers() {
                 }
                 RockboxCommand::Stop => {
                     reqwest::blocking::get(&format!("{}/stop", url)).unwrap();
+                }
+                RockboxCommand::PlaylistResume => {
+                    reqwest::blocking::get(&format!("{}/playlist_resume", url)).unwrap();
                 }
             }
         }

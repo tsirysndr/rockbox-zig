@@ -1,4 +1,7 @@
+use std::sync::{mpsc::Sender, Arc, Mutex};
+
 use async_graphql::*;
+use rockbox_sys::events::RockboxCommand;
 
 #[derive(Default)]
 pub struct PlaylistQuery;
@@ -35,8 +38,13 @@ pub struct PlaylistMutation;
 
 #[Object]
 impl PlaylistMutation {
-    async fn playlist_resume(&self) -> String {
-        "playlist resume".to_string()
+    async fn playlist_resume(&self, ctx: &Context<'_>) -> Result<String, Error> {
+        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::PlaylistResume)?;
+        Ok("playlist resume".to_string())
     }
 
     async fn resume_track(&self) -> String {
