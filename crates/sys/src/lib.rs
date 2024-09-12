@@ -344,25 +344,72 @@ pub union StorageType {
 }
 
 #[repr(C)]
-pub struct SoundSetting {}
+#[derive(Debug)]
+pub struct SoundSetting {
+    pub setting: c_int, // from the enum in firmware/sound.h
+}
 
 #[repr(C)]
-pub struct BoolSetting {}
+#[derive(Debug)]
+pub struct BoolSetting {
+    pub option_callback: Option<extern "C" fn(bool)>,
+    pub lang_yes: c_int,
+    pub lang_no: c_int,
+}
 
 #[repr(C)]
-pub struct FilenameSetting {}
+#[derive(Debug)]
+pub struct FilenameSetting {
+    pub prefix: *const c_char,
+    pub suffix: *const c_char,
+    pub max_len: c_int,
+}
 
 #[repr(C)]
-pub struct IntSetting {}
+pub struct IntSetting {
+    pub option_callback: Option<extern "C" fn(c_int)>,
+    pub unit: c_int,
+    pub step: c_int,
+    pub min: c_int,
+    pub max: c_int,
+    pub formatter: Option<extern "C" fn(*mut c_char, usize, c_int, *const c_char) -> *const c_char>,
+    pub get_talk_id: Option<extern "C" fn(c_int, c_int) -> c_int>,
+}
 
 #[repr(C)]
-pub struct ChoiceSetting {}
+pub struct ChoiceSetting {
+    pub option_callback: Option<extern "C" fn(c_int)>,
+    pub count: c_int,
+    pub data: ChoiceSettingData,
+}
 
 #[repr(C)]
-pub struct TableSetting {}
+pub union ChoiceSettingData {
+    pub desc: *const *const c_uchar,
+    pub talks: *const c_int,
+}
 
 #[repr(C)]
-pub struct CustomSetting {}
+#[derive(Debug)]
+pub struct TableSetting {
+    pub option_callback: Option<extern "C" fn(c_int)>,
+    pub formatter: Option<extern "C" fn(*mut c_char, usize, c_int, *const c_char) -> *const c_char>,
+    pub get_talk_id: Option<extern "C" fn(c_int, c_int) -> c_int>,
+    pub unit: c_int,
+    pub count: c_int,
+    pub values: *const c_int,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CustomSetting {
+    pub option_callback: Option<extern "C" fn(c_int)>,
+    pub formatter: Option<extern "C" fn(*mut c_char, usize, c_int, *const c_char) -> *const c_char>,
+    pub get_talk_id: Option<extern "C" fn(c_int, c_int) -> c_int>,
+    pub unit: c_int,
+    pub count: c_int,
+    pub values: *const c_int,
+}
 
 #[repr(C)]
 pub struct SettingsList {
@@ -608,6 +655,7 @@ pub enum SystemSound {
 }
 
 #[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct UserSettings {
     // Audio settings
     pub volume: c_int,
@@ -868,26 +916,46 @@ pub struct UserSettings {
 
 // Define other structs used in UserSettings
 #[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct ReplaygainSettings {
-    // Add fields here
+    pub noclip: c_uchar, // scale to prevent clips
+    pub r#type: c_int, // 0=track gain, 1=album gain, 2=track gain if shuffle is on, album gain otherwise, 4=off
+    pub preamp: c_int, // scale replaygained tracks by this
 }
 
 #[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct EqBandSetting {
-    // Add fields here
+    pub cutoff: c_int, // Hz
+    pub q: c_int,
+    pub gain: c_int, // +/- dB
 }
 
 #[repr(C)]
+#[derive(Debug, Clone, Copy)]
 pub struct TouchscreenParameter {
-    // Add fields here
+    pub A: c_int,
+    pub B: c_int,
+    pub C: c_int,
+    pub D: c_int,
+    pub E: c_int,
+    pub F: c_int,
+    pub divider: c_int,
 }
 
 #[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct CompressorSettings {
-    // Add fields here
+    pub threshold: c_int,
+    pub makeup_gain: c_int,
+    pub ratio: c_int,
+    pub knee: c_int,
+    pub release_time: c_int,
+    pub attack_time: c_int,
 }
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct HwEqBand {
     pub gain: c_int,
     pub frequency: c_int,
@@ -895,10 +963,16 @@ pub struct HwEqBand {
 }
 
 #[repr(C)]
-pub struct CbmpBitmapInfoEntry {}
+#[derive(Debug)]
+pub struct CbmpBitmapInfoEntry {
+    pub pbmp: *const c_uchar,
+    pub width: c_uchar,
+    pub height: c_uchar, // !ASSUMES MULTIPLES OF 8!
+    pub count: c_uchar,
+}
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct SystemStatus {
     pub resume_index: i32,
     pub resume_crc32: u32,

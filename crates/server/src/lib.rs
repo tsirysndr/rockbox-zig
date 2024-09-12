@@ -95,7 +95,7 @@ fn handle_connection(mut stream: TcpStream) {
             rb::playlist::resume();
         }
         "/playlist_resume_track" => {
-            let status = unsafe { &rb::global_status };
+            let status = rb::system::get_global_status();
             rb::playlist::resume_track(
                 status.resume_index,
                 status.resume_crc32,
