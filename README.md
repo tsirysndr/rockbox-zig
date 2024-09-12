@@ -18,7 +18,6 @@ Run the following commands to build the project:
 
 ```sh
 sudo apt-get install libusb-dev libsdl1.2-dev libfreetype6-dev
-. ./bin/activate-hermit
 mkdir -p build && cd build
 ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=$HOME/.local
 make zig
