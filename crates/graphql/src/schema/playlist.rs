@@ -47,8 +47,13 @@ impl PlaylistMutation {
         Ok("playlist resume".to_string())
     }
 
-    async fn resume_track(&self) -> String {
-        "resume track".to_string()
+    async fn resume_track(&self, ctx: &Context<'_>) -> Result<String, Error> {
+        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::PlaylistResumeTrack)?;
+        Ok("resume track".to_string())
     }
 
     async fn playlist_set_modified(&self) -> String {

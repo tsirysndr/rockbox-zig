@@ -2000,7 +2000,16 @@ pub struct PlaylistResumeRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PlaylistResumeResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct ResumeTrackRequest {}
+pub struct ResumeTrackRequest {
+    #[prost(int32, tag = "1")]
+    pub start_index: i32,
+    #[prost(uint32, tag = "2")]
+    pub crc: u32,
+    #[prost(uint64, tag = "3")]
+    pub elapsed: u64,
+    #[prost(uint64, tag = "4")]
+    pub offset: u64,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ResumeTrackResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]

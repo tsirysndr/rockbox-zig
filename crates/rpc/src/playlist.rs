@@ -74,6 +74,12 @@ impl PlaylistService for Playlist {
         &self,
         request: tonic::Request<ResumeTrackRequest>,
     ) -> Result<tonic::Response<ResumeTrackResponse>, tonic::Status> {
+        let params = request.into_inner();
+        self.cmd_tx
+            .lock()
+            .unwrap()
+            .send(RockboxCommand::PlaylistResumeTrack)
+            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
         Ok(tonic::Response::new(ResumeTrackResponse::default()))
     }
 

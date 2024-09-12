@@ -94,6 +94,15 @@ fn handle_connection(mut stream: TcpStream) {
         "/playlist_resume" => {
             rb::playlist::resume();
         }
+        "/playlist_resume_track" => {
+            let status = unsafe { &rb::global_status };
+            rb::playlist::resume_track(
+                status.resume_index,
+                status.resume_crc32,
+                status.resume_elapsed.into(),
+                status.resume_offset.into(),
+            );
+        }
         _ => {
             if path.starts_with("/play") {
                 let params: Vec<_> = path.split('?').collect();
@@ -168,6 +177,9 @@ pub extern "C" fn start_servers() {
                 }
                 RockboxCommand::PlaylistResume => {
                     reqwest::blocking::get(&format!("{}/playlist_resume", url)).unwrap();
+                }
+                RockboxCommand::PlaylistResumeTrack => {
+                    reqwest::blocking::get(&format!("{}/playlist_resume_track", url)).unwrap();
                 }
             }
         }

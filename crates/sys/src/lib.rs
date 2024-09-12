@@ -604,7 +604,25 @@ pub enum SystemSound {
     ListEdgeBeepNoWrap,
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct SystemStatus {
+    pub resume_index: i32,
+    pub resume_crc32: u32,
+    pub resume_elapsed: u32,
+    pub resume_offset: u32,
+    pub runtime: i32,
+    pub topruntime: i32,
+    pub dircache_size: i32,
+    pub last_screen: i8,
+    pub viewer_icon_count: i32,
+    pub last_volume_change: i32,
+    pub font_id: [i32; NB_SCREENS],
+}
+
 extern "C" {
+    pub static global_status: SystemStatus;
+
     // Playback control
     fn audio_pause() -> c_void;
     fn audio_play(elapsed: c_long, offset: c_long) -> c_void;

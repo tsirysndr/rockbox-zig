@@ -8,4 +8,5 @@ pub enum RockboxCommand {
     FlushAndReloadTracks,
     Stop,
     PlaylistResume,
+    PlaylistResumeTrack,
 }

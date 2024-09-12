@@ -45,6 +45,10 @@ message PlaylistResumeResponse {
 }
 
 message ResumeTrackRequest {
+  int32 start_index = 1;
+  uint32 crc = 2;
+  uint64 elapsed = 3;
+  uint64 offset = 4;
 }
 
 message ResumeTrackResponse {
