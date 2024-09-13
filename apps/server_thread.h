@@ -7,7 +7,9 @@
  *                     \/            \/     \/    \/            \/
  * $Id$
  *
- * Copyright (C) 2010 by Frank Gevaerts
+ * Copyright (C) 2005-2007 Miika Pekkarinen
+ * Copyright (C) 2007-2008 Nicolas Pennequin
+ * Copyright (C) 2011-2013 Michael Sevakis
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,11 +20,13 @@
  * KIND, either express or implied.
  *
  ****************************************************************************/
+#ifndef SERVER_THREAD_H
+#define SERVER_THREAD_H
 
-#include "rbversion.h"
-const char rbversion[] = RBVERSION;
 
-const char *get_version(void)
-{
-    return rbversion;
-}
+/* (*) If you change these, you must check audio_clear_track_notifications
+       in playback.c for correctness */
+
+void server_init(void);
+
+#endif /* SERVER_THREAD_H */

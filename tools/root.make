@@ -412,15 +412,19 @@ fullinstall: simext1
 
 ziginstall: zig
 	@echo "Installing your build in your '$(RBPREFIX)' dir"
-	cd .. && zig build install-rockbox
+	cd .. && cargo build -p rockbox-server --release && zig build install-rockbox
 
 symlinkinstall: simext1
 	@echo "Installing a full setup with links in your '$(RBPREFIX)' dir"
 	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m "$(MODELNAME)" -i "$(TARGET_ID)" $(INSTALL) -z "zip -r0" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" -f 2 $(TARGET) $(BINARY) -l
 endif
 
-zig: $(BUILDDIR)/lang/lang.h $(BUILDDIR)/lang_enum.h $(BUILDDIR)/lang/lang_core.c $(BUILDDIR)/lang/max_language_size.h $(BUILDDIR)/sysfont.o $(BUILDDIR)/rbversion.h $(PBMPHFILES) $(LUA_BUILDDIR)/actions.lua $(LUA_BUILDDIR)/settings.lua $(LUA_BUILDDIR)/buttons.lua $(LUA_BUILDDIR)/rb_defines.lua $(LUA_BUILDDIR)/sound_defines.lua $(LUA_BUILDDIR)/rocklib_aux.c $(BUILDDIR)/credits.raw credits.raw $(DEPFILE) $(TOOLS) $(CODECS)
-	cd .. && zig build all
+$(BUILDDIR)/apps/recorder/jpeg_load.o: $(ROOTDIR)/apps/recorder/jpeg_load.c
+	mkdir -p $(BUILDDIR)/apps/recorder
+	$(SILENT)$(CC) $(CFLAGS) -c -o $(BUILDDIR)/apps/recorder/jpeg_load.o $(ROOTDIR)/apps/recorder/jpeg_load.c
+
+zig: $(BUILDDIR)/apps/recorder/jpeg_load.o $(BUILDDIR)/lang/lang.h $(BUILDDIR)/lang_enum.h $(BUILDDIR)/lang/lang_core.c $(BUILDDIR)/lang/max_language_size.h $(BUILDDIR)/sysfont.o $(BUILDDIR)/rbversion.h $(PBMPHFILES) $(LUA_BUILDDIR)/actions.lua $(LUA_BUILDDIR)/settings.lua $(LUA_BUILDDIR)/buttons.lua $(LUA_BUILDDIR)/rb_defines.lua $(LUA_BUILDDIR)/sound_defines.lua $(LUA_BUILDDIR)/rocklib_aux.c $(BUILDDIR)/credits.raw credits.raw $(DEPFILE) $(TOOLS) $(CODECS)
+	cd .. && cargo build -p rockbox-server --release && zig build all
 help:
 	@echo "A few helpful make targets"
 	@echo ""

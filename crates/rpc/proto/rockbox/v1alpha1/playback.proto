@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message PlayRequest {
+  int64 elapsed = 1;
+  int64 offset = 2;
+}
+
+message PlayResponse {
+}
+
+message PauseRequest {
+}
+
+message PauseResponse {
+}
+
+message ResumeRequest {
+}
+
+message ResumeResponse {
+}
+
+message NextRequest {
+}
+
+message NextResponse {
+}
+
+message PreviousRequest {
+}
+
+message PreviousResponse {
+}
+
+message FastForwardRewindRequest {
+  int32 new_time = 1;
+}
+
+message FastForwardRewindResponse {
+}
+
+message StatusRequest {
+}
+
+message StatusResponse {
+  int32 status = 1;
+}
+
+message CurrentTrackRequest {
+}
+
+message CurrentTrackResponse {
+  string title = 1;
+  string artist = 2;
+  string album = 3;
+  string genre = 4;
+  string disc = 5;
+  string track_string = 6;
+  string year_string = 7;
+  string composer = 8;
+  string comment = 9;
+  string album_artist = 10;
+  string grouping = 11;
+  int32 discnum = 12;
+  int32 tracknum = 13;
+  int32 layer = 14;
+  int32 year = 15;
+  uint32 bitrate = 16;
+  uint64 frequency = 17;
+  uint64 filesize = 18;
+  uint64 length = 19;
+  uint64 elapsed = 20;
+}
+
+message FlushAndReloadTracksRequest {
+}
+
+message FlushAndReloadTracksResponse {
+}
+
+message GetFilePositionRequest {
+}
+
+message GetFilePositionResponse {
+  int32 position = 1;
+}
+
+message HardStopRequest {
+}
+
+message HardStopResponse {
+}
+
+service PlaybackService {
+  rpc Play(PlayRequest) returns (PlayResponse) {} 
+  rpc Pause(PauseRequest) returns (PauseResponse) {}
+  rpc Resume(ResumeRequest) returns (ResumeResponse) {}
+  rpc Next(NextRequest) returns (NextResponse) {}
+  rpc Previous(PreviousRequest) returns (PreviousResponse) {}
+  rpc FastForwardRewind(FastForwardRewindRequest) returns (FastForwardRewindResponse) {}
+  rpc Status(StatusRequest) returns (StatusResponse) {}
+  rpc CurrentTrack(CurrentTrackRequest) returns (CurrentTrackResponse) {}
+  rpc FlushAndReloadTracks(FlushAndReloadTracksRequest) returns (FlushAndReloadTracksResponse) {}
+  rpc GetFilePosition(GetFilePositionRequest) returns (GetFilePositionResponse) {}
+  rpc HardStop(HardStopRequest) returns (HardStopResponse) {}
+}

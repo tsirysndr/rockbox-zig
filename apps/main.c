@@ -94,6 +94,7 @@
 #include "audio_thread.h"
 #include "playback.h"
 #include "tdspeed.h"
+#include "server_thread.h"
 #if defined(HAVE_RECORDING) && !defined(SIMULATOR)
 #include "pcm_record.h"
 #endif
@@ -449,6 +450,10 @@ static void init(void)
 #ifndef USB_NONE
     usb_init();
     usb_start_monitoring();
+#endif
+
+#ifdef ROCKBOX_SERVER
+    server_init();
 #endif
 }
 

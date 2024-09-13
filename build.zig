@@ -138,6 +138,7 @@ pub fn build(b: *std.Build) !void {
     });
 
     exe.defineCMacro("ZIG_APP", null);
+    exe.defineCMacro("ROCKBOX_SERVER", null);
 
     lib.addCSourceFiles(.{
         .files = &[_][]const u8{},
@@ -158,6 +159,8 @@ pub fn build(b: *std.Build) !void {
 
     defineCMacros(libfirmware);
     addIncludePaths(libfirmware);
+
+    libfirmware.linkSystemLibrary("usb");
 
     const libspeex_voice = b.addStaticLibrary(.{
         .name = "speex-voice",
@@ -2920,6 +2923,15 @@ pub fn build(b: *std.Build) !void {
     defineCMacros(exe);
     addIncludePaths(exe);
 
+    exe.addObjectFile(.{
+        .cwd_relative = "./build/apps/recorder/jpeg_load.o",
+    });
+
+    exe.addLibraryPath(.{
+        .cwd_relative = "./target/release",
+    });
+    exe.linkSystemLibrary("rockbox_server");
+    exe.linkSystemLibrary("libunwind");
     exe.linkLibrary(libfirmware);
     exe.linkLibrary(libspeex_voice);
     exe.linkLibrary(librbcodec);
@@ -4207,7 +4219,6 @@ const all_sources = [_][]const u8{
     "apps/recorder/keyboard.c",
     "apps/recorder/peakmeter.c",
     "apps/recorder/resize.c",
-    "apps/recorder/jpeg_load.c",
     "apps/recorder/albumart.c",
     "apps/gui/color_picker.c",
     "apps/audio_thread.c",
@@ -4219,6 +4230,7 @@ const all_sources = [_][]const u8{
     "apps/tagcache.c",
     "apps/keymaps/keymap-touchscreen.c",
     "apps/keymaps/keymap-sdl.c",
+    "apps/server_thread.c",
     "build/lang/lang_core.c",
 };
 

@@ -1,0 +1,16 @@
+[package]
+edition = "2021"
+name = "rockbox-graphql"
+version = "0.1.0"
+
+[dependencies]
+actix-cors = "0.7.0"
+actix-web = "4.9.0"
+anyhow = "1.0.87"
+async-graphql = "7.0.9"
+async-graphql-actix-web = "7.0.9"
+owo-colors = "4.1.0"
+reqwest = {version = "0.12.7", features = ["rustls-tls", "json"], default-features = false}
+rockbox-sys = {path = "../sys"}
+serde = "1.0.210"
+tokio = {version = "1.40.0", features = ["full"]}

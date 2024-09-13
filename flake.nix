@@ -34,6 +34,11 @@
           pkgs.pkg-config
           pkgs.gcc
           pkgs.zlib
+          pkgs.cargo
+          pkgs.rustc
+          pkgs.protobuf
+          pkgs.buf
+          pkgs.libunwind
         ];
 
         # Smaller binaries and avoids shipping glibc.
@@ -100,6 +105,13 @@
           pkgs.pkg-config
           pkgs.gcc
           pkgs.zlib
+          pkgs.cargo
+          pkgs.rustc
+          pkgs.protobuf
+          pkgs.buf
+          pkgs.libunwind
+          pkgs.evans
+          pkgs.grpcurl
         ];
       };
     }));

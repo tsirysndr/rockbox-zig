@@ -21,6 +21,9 @@ __pycache__
 .zig-cache
 zig-out
 
+# Rust build artifacts
+target
+
 # Intermediate language files
 /apps/lang/*.update
 /apps/lang/*.new

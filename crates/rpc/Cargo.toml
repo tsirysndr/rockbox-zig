@@ -1,0 +1,18 @@
+[package]
+edition = "2021"
+name = "rockbox-rpc"
+version = "0.1.0"
+
+[dependencies]
+owo-colors = "5.0.0"
+prost = "0.13.2"
+reqwest = {version = "0.12.7", features = ["rustls-tls", "json"], default-features = false}
+rockbox-sys = {path = "../sys"}
+serde = "1.0.210"
+tokio = {version = "1.40.0", features = ["full"]}
+tonic = "0.12.2"
+tonic-reflection = "0.12.2"
+tonic-web = "0.12.2"
+
+[build-dependencies]
+tonic-build = "0.12.2"
