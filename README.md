@@ -44,4 +44,8 @@ make zig
 - [ ] Upnp Player
 - [ ] Airplay
 - [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
+
+## Architecture
+
+![architecture](./docs/rockbox-server-architecture.jpg)
   
