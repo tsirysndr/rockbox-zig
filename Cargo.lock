@@ -1837,6 +1837,7 @@ dependencies = [
  "async-graphql",
  "async-graphql-actix-web",
  "owo-colors 4.1.0",
+ "reqwest",
  "rockbox-sys",
  "serde",
  "tokio",
@@ -1848,6 +1849,7 @@ version = "0.1.0"
 dependencies = [
  "owo-colors 5.0.0",
  "prost",
+ "reqwest",
  "rockbox-sys",
  "serde",
  "tokio",
@@ -1866,12 +1868,16 @@ dependencies = [
  "rockbox-graphql",
  "rockbox-rpc",
  "rockbox-sys",
+ "serde_json",
  "tokio",
 ]
 
 [[package]]
 name = "rockbox-sys"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "rustc-demangle"

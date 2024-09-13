@@ -1,15 +1,18 @@
-use crate::SystemStatus;
+use crate::types::{system_status::SystemStatus, RockboxVersion};
 
-pub fn get_rockbox_version() -> String {
-    unsafe {
-        std::ffi::CStr::from_ptr(crate::rbversion)
-            .to_string_lossy()
+pub fn get_rockbox_version() -> RockboxVersion {
+    let version = unsafe {
+        let version = crate::get_version();
+        std::ffi::CStr::from_ptr(version)
+            .to_str()
+            .unwrap()
             .to_string()
-    }
+    };
+    RockboxVersion { version }
 }
 
 pub fn get_global_status() -> SystemStatus {
-    unsafe { crate::global_status }
+    unsafe { crate::global_status }.into()
 }
 
 pub fn sleep(ticks: f32) {

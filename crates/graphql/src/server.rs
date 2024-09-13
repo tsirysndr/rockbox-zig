@@ -47,12 +47,14 @@ async fn index_graphiql(req: HttpRequest) -> Result<HttpResponse> {
 }
 
 pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> std::io::Result<()> {
+    let client = reqwest::Client::new();
     let schema = Schema::build(
         Query::default(),
         Mutation::default(),
         EmptySubscription::default(),
     )
     .data(cmd_tx)
+    .data(client)
     .finish();
     let graphql_port = std::env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string());
     let addr = format!("{}:{}", "0.0.0.0", graphql_port);

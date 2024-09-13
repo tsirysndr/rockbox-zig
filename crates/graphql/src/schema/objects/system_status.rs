@@ -1,7 +1,7 @@
 use async_graphql::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Default, Clone, Serialize)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct SystemStatus {
     pub resume_index: i32,
     pub resume_crc32: u32,

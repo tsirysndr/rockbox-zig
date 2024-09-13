@@ -3691,6 +3691,417 @@ pub struct GetSettingsListRequest {
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GetSettingsListResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetGlobalSettingsRequest {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ReplaygainSettings {
+    #[prost(bool, tag = "1")]
+    pub noclip: bool,
+    #[prost(int32, tag = "2")]
+    pub r#type: i32,
+    #[prost(int32, tag = "3")]
+    pub preamp: i32,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct EqBandSetting {
+    #[prost(int32, tag = "1")]
+    pub cutoff: i32,
+    #[prost(int32, tag = "2")]
+    pub q: i32,
+    #[prost(int32, tag = "3")]
+    pub gain: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SettingsList {
+    #[prost(uint32, tag = "1")]
+    pub flags: u32,
+    #[prost(int32, tag = "2")]
+    pub lang_id: i32,
+    #[prost(string, tag = "3")]
+    pub cfg_name: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub cfg_vals: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct CompressorSettings {
+    #[prost(int32, tag = "1")]
+    pub threshold: i32,
+    #[prost(int32, tag = "2")]
+    pub makeup_gain: i32,
+    #[prost(int32, tag = "3")]
+    pub ratio: i32,
+    #[prost(int32, tag = "4")]
+    pub knee: i32,
+    #[prost(int32, tag = "5")]
+    pub release_time: i32,
+    #[prost(int32, tag = "6")]
+    pub attack_time: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGlobalSettingsResponse {
+    #[prost(int32, tag = "1")]
+    pub volume: i32,
+    #[prost(int32, tag = "2")]
+    pub balance: i32,
+    #[prost(int32, tag = "3")]
+    pub bass: i32,
+    #[prost(int32, tag = "4")]
+    pub treble: i32,
+    #[prost(int32, tag = "5")]
+    pub channel_config: i32,
+    #[prost(int32, tag = "6")]
+    pub stereo_width: i32,
+    #[prost(int32, tag = "7")]
+    pub bass_cutoff: i32,
+    #[prost(int32, tag = "8")]
+    pub treble_cutoff: i32,
+    #[prost(int32, tag = "9")]
+    pub crossfade: i32,
+    #[prost(int32, tag = "10")]
+    pub crossfade_fade_in_delay: i32,
+    #[prost(int32, tag = "11")]
+    pub crossfade_fade_out_delay: i32,
+    #[prost(int32, tag = "12")]
+    pub crossfade_fade_in_duration: i32,
+    #[prost(int32, tag = "13")]
+    pub crossfade_fade_out_duration: i32,
+    #[prost(int32, tag = "14")]
+    pub crossfade_fade_out_mixmode: i32,
+    #[prost(message, optional, tag = "15")]
+    pub replaygain_settings: ::core::option::Option<ReplaygainSettings>,
+    #[prost(int32, tag = "16")]
+    pub crossfeed: i32,
+    #[prost(uint32, tag = "17")]
+    pub crossfeed_direct_gain: u32,
+    #[prost(uint32, tag = "18")]
+    pub crossfeed_cross_gain: u32,
+    #[prost(uint32, tag = "19")]
+    pub crossfeed_hf_attenuation: u32,
+    #[prost(uint32, tag = "20")]
+    pub crossfeed_hf_cutoff: u32,
+    #[prost(bool, tag = "21")]
+    pub eq_enabled: bool,
+    #[prost(uint32, tag = "22")]
+    pub eq_precut: u32,
+    #[prost(message, repeated, tag = "23")]
+    pub eq_band_settings: ::prost::alloc::vec::Vec<EqBandSetting>,
+    #[prost(int32, tag = "24")]
+    pub beep: i32,
+    #[prost(int32, tag = "25")]
+    pub keyclick: i32,
+    #[prost(int32, tag = "26")]
+    pub keyclick_repeats: i32,
+    #[prost(bool, tag = "27")]
+    pub dithering_enabled: bool,
+    #[prost(bool, tag = "28")]
+    pub timestretch_enabled: bool,
+    #[prost(int32, tag = "29")]
+    pub list_accel_start_delay: i32,
+    #[prost(int32, tag = "30")]
+    pub list_accel_wait: i32,
+    #[prost(int32, tag = "31")]
+    pub touchpad_sensitivity: i32,
+    #[prost(int32, tag = "32")]
+    pub touchpad_deadzone: i32,
+    #[prost(int32, tag = "33")]
+    pub pause_rewind: i32,
+    #[prost(int32, tag = "34")]
+    pub unplug_mode: i32,
+    #[prost(bool, tag = "35")]
+    pub unplug_autoresume: bool,
+    #[prost(int32, tag = "37")]
+    pub timeformat: i32,
+    #[prost(int32, tag = "38")]
+    pub disk_spindown: i32,
+    #[prost(int32, tag = "39")]
+    pub buffer_margin: i32,
+    #[prost(int32, tag = "40")]
+    pub dirfilter: i32,
+    #[prost(int32, tag = "41")]
+    pub show_filename_ext: i32,
+    #[prost(int32, tag = "42")]
+    pub default_codepage: i32,
+    #[prost(bool, tag = "43")]
+    pub hold_lr_for_scroll_in_list: bool,
+    #[prost(bool, tag = "44")]
+    pub play_selected: bool,
+    #[prost(int32, tag = "45")]
+    pub single_mode: i32,
+    #[prost(bool, tag = "46")]
+    pub party_mode: bool,
+    #[prost(bool, tag = "48")]
+    pub car_adapter_mode: bool,
+    #[prost(int32, tag = "49")]
+    pub car_adapter_mode_delay: i32,
+    #[prost(int32, tag = "50")]
+    pub start_in_screen: i32,
+    #[prost(int32, tag = "51")]
+    pub ff_rewind_min_step: i32,
+    #[prost(int32, tag = "52")]
+    pub ff_rewind_accel: i32,
+    #[prost(int32, tag = "53")]
+    pub peak_meter_release: i32,
+    #[prost(int32, tag = "54")]
+    pub peak_meter_hold: i32,
+    #[prost(int32, tag = "55")]
+    pub peak_meter_clip_hold: i32,
+    #[prost(bool, tag = "56")]
+    pub peak_meter_dbfs: bool,
+    #[prost(int32, tag = "57")]
+    pub peak_meter_min: i32,
+    #[prost(int32, tag = "58")]
+    pub peak_meter_max: i32,
+    #[prost(string, tag = "59")]
+    pub wps_file: ::prost::alloc::string::String,
+    #[prost(string, tag = "60")]
+    pub sbs_file: ::prost::alloc::string::String,
+    #[prost(string, tag = "61")]
+    pub lang_file: ::prost::alloc::string::String,
+    #[prost(string, tag = "62")]
+    pub playlist_catalog_dir: ::prost::alloc::string::String,
+    #[prost(int32, tag = "63")]
+    pub skip_length: i32,
+    #[prost(int32, tag = "64")]
+    pub max_files_in_dir: i32,
+    #[prost(int32, tag = "65")]
+    pub max_files_in_playlist: i32,
+    #[prost(int32, tag = "66")]
+    pub volume_type: i32,
+    #[prost(int32, tag = "67")]
+    pub battery_display: i32,
+    #[prost(bool, tag = "68")]
+    pub show_icons: bool,
+    #[prost(int32, tag = "69")]
+    pub statusbar: i32,
+    #[prost(int32, tag = "70")]
+    pub scrollbar: i32,
+    #[prost(int32, tag = "71")]
+    pub scrollbar_width: i32,
+    #[prost(int32, tag = "72")]
+    pub list_line_padding: i32,
+    #[prost(int32, tag = "73")]
+    pub list_separator_color: i32,
+    #[prost(bool, tag = "74")]
+    pub browse_current: bool,
+    #[prost(bool, tag = "75")]
+    pub scroll_paginated: bool,
+    #[prost(bool, tag = "76")]
+    pub list_wraparound: bool,
+    #[prost(int32, tag = "77")]
+    pub list_order: i32,
+    #[prost(int32, tag = "78")]
+    pub scroll_speed: i32,
+    #[prost(int32, tag = "79")]
+    pub bidir_limit: i32,
+    #[prost(int32, tag = "80")]
+    pub scroll_delay: i32,
+    #[prost(int32, tag = "81")]
+    pub scroll_step: i32,
+    #[prost(int32, tag = "82")]
+    pub autoloadbookmark: i32,
+    #[prost(int32, tag = "83")]
+    pub autocreatebookmark: i32,
+    #[prost(bool, tag = "84")]
+    pub autoupdatebookmark: bool,
+    #[prost(int32, tag = "85")]
+    pub usemrb: i32,
+    #[prost(bool, tag = "86")]
+    pub dircache: bool,
+    #[prost(int32, tag = "87")]
+    pub tagcache_ram: i32,
+    #[prost(bool, tag = "88")]
+    pub tagcache_autoupdate: bool,
+    #[prost(bool, tag = "89")]
+    pub autoresume_enable: bool,
+    #[prost(int32, tag = "90")]
+    pub autoresume_automatic: i32,
+    #[prost(string, tag = "91")]
+    pub autoresume_paths: ::prost::alloc::string::String,
+    #[prost(bool, tag = "92")]
+    pub runtimedb: bool,
+    #[prost(string, tag = "93")]
+    pub tagcache_scan_paths: ::prost::alloc::string::String,
+    #[prost(string, tag = "94")]
+    pub tagcache_db_path: ::prost::alloc::string::String,
+    #[prost(string, tag = "95")]
+    pub backdrop_file: ::prost::alloc::string::String,
+    #[prost(int32, tag = "96")]
+    pub bg_color: i32,
+    #[prost(int32, tag = "97")]
+    pub fg_color: i32,
+    #[prost(int32, tag = "98")]
+    pub lss_color: i32,
+    #[prost(int32, tag = "99")]
+    pub lse_color: i32,
+    #[prost(int32, tag = "100")]
+    pub lst_color: i32,
+    #[prost(string, tag = "101")]
+    pub colors_file: ::prost::alloc::string::String,
+    #[prost(int32, tag = "102")]
+    pub browser_default: i32,
+    #[prost(int32, tag = "103")]
+    pub repeat_mode: i32,
+    #[prost(int32, tag = "104")]
+    pub next_folder: i32,
+    #[prost(bool, tag = "105")]
+    pub constrain_next_folder: bool,
+    #[prost(int32, tag = "106")]
+    pub recursive_dir_insert: i32,
+    #[prost(bool, tag = "107")]
+    pub fade_on_stop: bool,
+    #[prost(bool, tag = "108")]
+    pub playlist_shuffle: bool,
+    #[prost(bool, tag = "109")]
+    pub warnon_erase_dynplaylist: bool,
+    #[prost(bool, tag = "110")]
+    pub keep_current_track_on_replace_playlist: bool,
+    #[prost(bool, tag = "111")]
+    pub show_shuffled_adding_options: bool,
+    #[prost(int32, tag = "112")]
+    pub show_queue_options: i32,
+    #[prost(int32, tag = "113")]
+    pub album_art: i32,
+    #[prost(bool, tag = "114")]
+    pub rewind_across_tracks: bool,
+    #[prost(bool, tag = "115")]
+    pub playlist_viewer_icons: bool,
+    #[prost(bool, tag = "116")]
+    pub playlist_viewer_indices: bool,
+    #[prost(int32, tag = "117")]
+    pub playlist_viewer_track_display: i32,
+    #[prost(bool, tag = "118")]
+    pub sort_case: bool,
+    #[prost(int32, tag = "119")]
+    pub sort_dir: i32,
+    #[prost(int32, tag = "120")]
+    pub sort_file: i32,
+    #[prost(int32, tag = "121")]
+    pub interpret_numbers: i32,
+    #[prost(int32, tag = "122")]
+    pub poweroff: i32,
+    #[prost(bool, tag = "123")]
+    pub spdif_enable: bool,
+    #[prost(int32, tag = "124")]
+    pub contrast: i32,
+    #[prost(bool, tag = "125")]
+    pub invert: bool,
+    #[prost(bool, tag = "126")]
+    pub flip_display: bool,
+    #[prost(int32, tag = "127")]
+    pub cursor_style: i32,
+    #[prost(int32, tag = "128")]
+    pub screen_scroll_step: i32,
+    #[prost(int32, tag = "129")]
+    pub show_path_in_browser: i32,
+    #[prost(bool, tag = "130")]
+    pub offset_out_of_view: bool,
+    #[prost(bool, tag = "131")]
+    pub disable_mainmenu_scrolling: bool,
+    #[prost(string, tag = "132")]
+    pub icon_file: ::prost::alloc::string::String,
+    #[prost(string, tag = "133")]
+    pub viewers_icon_file: ::prost::alloc::string::String,
+    #[prost(string, tag = "134")]
+    pub font_file: ::prost::alloc::string::String,
+    #[prost(int32, tag = "135")]
+    pub glyphs_to_cache: i32,
+    #[prost(string, tag = "136")]
+    pub kbd_file: ::prost::alloc::string::String,
+    #[prost(int32, tag = "137")]
+    pub backlight_timeout: i32,
+    #[prost(bool, tag = "138")]
+    pub caption_backlight: bool,
+    #[prost(bool, tag = "139")]
+    pub bl_filter_first_keypress: bool,
+    #[prost(int32, tag = "140")]
+    pub backlight_timeout_plugged: i32,
+    #[prost(bool, tag = "141")]
+    pub bt_selective_softlock_actions: bool,
+    #[prost(int32, tag = "142")]
+    pub bt_selective_softlock_actions_mask: i32,
+    #[prost(bool, tag = "143")]
+    pub bl_selective_actions: bool,
+    #[prost(int32, tag = "144")]
+    pub bl_selective_actions_mask: i32,
+    #[prost(int32, tag = "145")]
+    pub backlight_on_button_hold: i32,
+    #[prost(int32, tag = "146")]
+    pub lcd_sleep_after_backlight_off: i32,
+    #[prost(int32, tag = "147")]
+    pub brightness: i32,
+    #[prost(int32, tag = "148")]
+    pub speaker_mode: i32,
+    #[prost(bool, tag = "149")]
+    pub prevent_skip: bool,
+    #[prost(int32, tag = "150")]
+    pub touch_mode: i32,
+    #[prost(bool, tag = "151")]
+    pub pitch_mode_semitone: bool,
+    #[prost(bool, tag = "152")]
+    pub pitch_mode_timestretch: bool,
+    #[prost(string, tag = "153")]
+    pub player_name: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "154")]
+    pub compressor_settings: ::core::option::Option<CompressorSettings>,
+    #[prost(int32, tag = "155")]
+    pub sleeptimer_duration: i32,
+    #[prost(bool, tag = "156")]
+    pub sleeptimer_on_startup: bool,
+    #[prost(bool, tag = "157")]
+    pub keypress_restarts_sleeptimer: bool,
+    #[prost(bool, tag = "158")]
+    pub show_shutdown_message: bool,
+    #[prost(int32, tag = "159")]
+    pub hotkey_wps: i32,
+    #[prost(int32, tag = "160")]
+    pub hotkey_tree: i32,
+    #[prost(int32, tag = "161")]
+    pub resume_rewind: i32,
+    #[prost(int32, tag = "162")]
+    pub depth_3d: i32,
+    #[prost(int32, tag = "163")]
+    pub roll_off: i32,
+    #[prost(int32, tag = "164")]
+    pub power_mode: i32,
+    #[prost(bool, tag = "165")]
+    pub keyclick_hardware: bool,
+    #[prost(string, tag = "166")]
+    pub start_directory: ::prost::alloc::string::String,
+    #[prost(bool, tag = "167")]
+    pub root_menu_customized: bool,
+    #[prost(bool, tag = "168")]
+    pub shortcuts_replaces_qs: bool,
+    #[prost(int32, tag = "169")]
+    pub play_frequency: i32,
+    #[prost(int32, tag = "170")]
+    pub volume_limit: i32,
+    #[prost(int32, tag = "171")]
+    pub volume_adjust_mode: i32,
+    #[prost(int32, tag = "172")]
+    pub volume_adjust_norm_steps: i32,
+    #[prost(int32, tag = "173")]
+    pub surround_enabled: i32,
+    #[prost(int32, tag = "174")]
+    pub surround_balance: i32,
+    #[prost(int32, tag = "175")]
+    pub surround_fx1: i32,
+    #[prost(bool, tag = "176")]
+    pub surround_fx2: bool,
+    #[prost(bool, tag = "177")]
+    pub surround_method2: bool,
+    #[prost(int32, tag = "178")]
+    pub surround_mix: i32,
+    #[prost(int32, tag = "179")]
+    pub pbe: i32,
+    #[prost(int32, tag = "180")]
+    pub pbe_precut: i32,
+    #[prost(int32, tag = "181")]
+    pub afr_enabled: i32,
+    #[prost(int32, tag = "182")]
+    pub governor: i32,
+    #[prost(int32, tag = "183")]
+    pub stereosw_mode: i32,
+}
 /// Generated client implementations.
 pub mod settings_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
@@ -3806,6 +4217,36 @@ pub mod settings_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        pub async fn get_global_settings(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetGlobalSettingsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGlobalSettingsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.SettingsService/GetGlobalSettings",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "rockbox.v1alpha1.SettingsService",
+                        "GetGlobalSettings",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -3820,6 +4261,13 @@ pub mod settings_service_server {
             request: tonic::Request<super::GetSettingsListRequest>,
         ) -> std::result::Result<
             tonic::Response<super::GetSettingsListResponse>,
+            tonic::Status,
+        >;
+        async fn get_global_settings(
+            &self,
+            request: tonic::Request<super::GetGlobalSettingsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGlobalSettingsResponse>,
             tonic::Status,
         >;
     }
@@ -3930,6 +4378,52 @@ pub mod settings_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetSettingsListSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.SettingsService/GetGlobalSettings" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetGlobalSettingsSvc<T: SettingsService>(pub Arc<T>);
+                    impl<
+                        T: SettingsService,
+                    > tonic::server::UnaryService<super::GetGlobalSettingsRequest>
+                    for GetGlobalSettingsSvc<T> {
+                        type Response = super::GetGlobalSettingsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetGlobalSettingsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SettingsService>::get_global_settings(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetGlobalSettingsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -5488,6 +5982,408 @@ pub mod sound_service_server {
     /// Generated gRPC service name
     pub const SERVICE_NAME: &str = "rockbox.v1alpha1.SoundService";
     impl<T> tonic::server::NamedService for SoundServiceServer<T> {
+        const NAME: &'static str = SERVICE_NAME;
+    }
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetRockboxVersionRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetRockboxVersionResponse {
+    #[prost(string, tag = "1")]
+    pub version: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetGlobalStatusRequest {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetGlobalStatusResponse {
+    #[prost(int32, tag = "1")]
+    pub resume_index: i32,
+    #[prost(uint32, tag = "2")]
+    pub resume_crc32: u32,
+    #[prost(uint32, tag = "3")]
+    pub resume_elapsed: u32,
+    #[prost(uint32, tag = "4")]
+    pub resume_offset: u32,
+    #[prost(int32, tag = "5")]
+    pub runtime: i32,
+    #[prost(int32, tag = "6")]
+    pub topruntime: i32,
+    #[prost(int32, tag = "7")]
+    pub dircache_size: i32,
+    #[prost(int32, tag = "8")]
+    pub last_screen: i32,
+    #[prost(int32, tag = "9")]
+    pub viewer_icon_count: i32,
+    #[prost(int32, tag = "10")]
+    pub last_volume_change: i32,
+}
+/// Generated client implementations.
+pub mod system_service_client {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    #[derive(Debug, Clone)]
+    pub struct SystemServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl SystemServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> SystemServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> SystemServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            SystemServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        pub async fn get_rockbox_version(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetRockboxVersionRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetRockboxVersionResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.SystemService/GetRockboxVersion",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "rockbox.v1alpha1.SystemService",
+                        "GetRockboxVersion",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_global_status(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetGlobalStatusRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGlobalStatusResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.SystemService/GetGlobalStatus",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.SystemService", "GetGlobalStatus"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Generated server implementations.
+pub mod system_service_server {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::*;
+    /// Generated trait containing gRPC methods that should be implemented for use with SystemServiceServer.
+    #[async_trait]
+    pub trait SystemService: std::marker::Send + std::marker::Sync + 'static {
+        async fn get_rockbox_version(
+            &self,
+            request: tonic::Request<super::GetRockboxVersionRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetRockboxVersionResponse>,
+            tonic::Status,
+        >;
+        async fn get_global_status(
+            &self,
+            request: tonic::Request<super::GetGlobalStatusRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGlobalStatusResponse>,
+            tonic::Status,
+        >;
+    }
+    #[derive(Debug)]
+    pub struct SystemServiceServer<T> {
+        inner: Arc<T>,
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
+    }
+    impl<T> SystemServiceServer<T> {
+        pub fn new(inner: T) -> Self {
+            Self::from_arc(Arc::new(inner))
+        }
+        pub fn from_arc(inner: Arc<T>) -> Self {
+            Self {
+                inner,
+                accept_compression_encodings: Default::default(),
+                send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
+            }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> InterceptedService<Self, F>
+        where
+            F: tonic::service::Interceptor,
+        {
+            InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
+    }
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for SystemServiceServer<T>
+    where
+        T: SystemService,
+        B: Body + std::marker::Send + 'static,
+        B::Error: Into<StdError> + std::marker::Send + 'static,
+    {
+        type Response = http::Response<tonic::body::BoxBody>;
+        type Error = std::convert::Infallible;
+        type Future = BoxFuture<Self::Response, Self::Error>;
+        fn poll_ready(
+            &mut self,
+            _cx: &mut Context<'_>,
+        ) -> Poll<std::result::Result<(), Self::Error>> {
+            Poll::Ready(Ok(()))
+        }
+        fn call(&mut self, req: http::Request<B>) -> Self::Future {
+            match req.uri().path() {
+                "/rockbox.v1alpha1.SystemService/GetRockboxVersion" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetRockboxVersionSvc<T: SystemService>(pub Arc<T>);
+                    impl<
+                        T: SystemService,
+                    > tonic::server::UnaryService<super::GetRockboxVersionRequest>
+                    for GetRockboxVersionSvc<T> {
+                        type Response = super::GetRockboxVersionResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetRockboxVersionRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SystemService>::get_rockbox_version(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetRockboxVersionSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.SystemService/GetGlobalStatus" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetGlobalStatusSvc<T: SystemService>(pub Arc<T>);
+                    impl<
+                        T: SystemService,
+                    > tonic::server::UnaryService<super::GetGlobalStatusRequest>
+                    for GetGlobalStatusSvc<T> {
+                        type Response = super::GetGlobalStatusResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetGlobalStatusRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SystemService>::get_global_status(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetGlobalStatusSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                _ => {
+                    Box::pin(async move {
+                        Ok(
+                            http::Response::builder()
+                                .status(200)
+                                .header("grpc-status", tonic::Code::Unimplemented as i32)
+                                .header(
+                                    http::header::CONTENT_TYPE,
+                                    tonic::metadata::GRPC_CONTENT_TYPE,
+                                )
+                                .body(empty_body())
+                                .unwrap(),
+                        )
+                    })
+                }
+            }
+        }
+    }
+    impl<T> Clone for SystemServiceServer<T> {
+        fn clone(&self) -> Self {
+            let inner = self.inner.clone();
+            Self {
+                inner,
+                accept_compression_encodings: self.accept_compression_encodings,
+                send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
+            }
+        }
+    }
+    /// Generated gRPC service name
+    pub const SERVICE_NAME: &str = "rockbox.v1alpha1.SystemService";
+    impl<T> tonic::server::NamedService for SystemServiceServer<T> {
         const NAME: &'static str = SERVICE_NAME;
     }
 }

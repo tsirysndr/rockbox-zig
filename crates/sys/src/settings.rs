@@ -1,9 +1,9 @@
 use std::ffi::{c_char, c_int, c_uchar, c_void, CString};
 
-use crate::{OptItems, SettingsList, UserSettings, Viewport, NB_SCREENS};
+use crate::{types::user_settings::UserSettings, OptItems, SettingsList, Viewport, NB_SCREENS};
 
 pub fn get_global_settings() -> UserSettings {
-    unsafe { crate::global_settings }
+    unsafe { crate::global_settings }.into()
 }
 
 pub fn get_settings_list(mut count: i32) -> *mut SettingsList {

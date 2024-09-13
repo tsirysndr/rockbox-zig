@@ -420,6 +420,7 @@ symlinkinstall: simext1
 endif
 
 $(BUILDDIR)/apps/recorder/jpeg_load.o: $(ROOTDIR)/apps/recorder/jpeg_load.c
+	mkdir -p $(BUILDDIR)/apps/recorder
 	$(SILENT)$(CC) $(CFLAGS) -c -o $(BUILDDIR)/apps/recorder/jpeg_load.o $(ROOTDIR)/apps/recorder/jpeg_load.c
 
 zig: $(BUILDDIR)/apps/recorder/jpeg_load.o $(BUILDDIR)/lang/lang.h $(BUILDDIR)/lang_enum.h $(BUILDDIR)/lang/lang_core.c $(BUILDDIR)/lang/max_language_size.h $(BUILDDIR)/sysfont.o $(BUILDDIR)/rbversion.h $(PBMPHFILES) $(LUA_BUILDDIR)/actions.lua $(LUA_BUILDDIR)/settings.lua $(LUA_BUILDDIR)/buttons.lua $(LUA_BUILDDIR)/rb_defines.lua $(LUA_BUILDDIR)/sound_defines.lua $(LUA_BUILDDIR)/rocklib_aux.c $(BUILDDIR)/credits.raw credits.raw $(DEPFILE) $(TOOLS) $(CODECS)

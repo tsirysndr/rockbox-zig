@@ -14,6 +14,7 @@ pub mod settings;
 pub mod sound;
 pub mod system;
 pub mod tagcache;
+pub mod types;
 
 const MAX_PATH: usize = 260;
 const ID3V2_BUF_SIZE: usize = 1800;
@@ -24,66 +25,66 @@ pub const HZ: f32 = 100.0;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct Mp3Entry {
-    pub path: [c_char; MAX_PATH],           // char path[MAX_PATH]
-    pub title: *mut c_char,                 // char* title
-    pub artist: *mut c_char,                // char* artist
-    pub album: *mut c_char,                 // char* album
-    pub genre_string: *mut c_char,          // char* genre_string
-    pub disc_string: *mut c_char,           // char* disc_string
-    pub track_string: *mut c_char,          // char* track_string
-    pub year_string: *mut c_char,           // char* year_string
-    pub composer: *mut c_char,              // char* composer
-    pub comment: *mut c_char,               // char* comment
-    pub albumartist: *mut c_char,           // char* albumartist
-    pub grouping: *mut c_char,              // char* grouping
-    pub discnum: c_int,                     // int discnum
-    pub tracknum: c_int,                    // int tracknum
-    pub layer: c_int,                       // int layer
-    pub year: c_int,                        // int year
-    pub id3version: c_uchar,                // unsigned char id3version
-    pub codectype: c_uint,                  // unsigned int codectype
-    pub bitrate: c_uint,                    // unsigned int bitrate
-    pub frequency: c_ulong,                 // unsigned long frequency
-    pub id3v2len: c_ulong,                  // unsigned long id3v2len
-    pub id3v1len: c_ulong,                  // unsigned long id3v1len
-    pub first_frame_offset: c_ulong,        // unsigned long first_frame_offset
-    pub filesize: c_ulong,                  // unsigned long filesize
-    pub length: c_ulong,                    // unsigned long length
-    pub elapsed: c_ulong,                   // unsigned long elapsed
-    pub lead_trim: c_int,                   // int lead_trim
-    pub tail_trim: c_int,                   // int tail_trim
-    pub samples: u64,                       // uint64_t samples
-    pub frame_count: c_ulong,               // unsigned long frame_count
-    pub bytesperframe: c_ulong,             // unsigned long bytesperframe
-    pub vbr: bool,                          // bool vbr
-    pub has_toc: bool,                      // bool has_toc
-    pub toc: [c_uchar; 100],                // unsigned char toc[100]
-    pub needs_upsampling_correction: bool,  // bool needs_upsampling_correction
-    pub id3v2buf: [c_char; ID3V2_BUF_SIZE], // char id3v2buf[ID3V2_BUF_SIZE]
-    pub id3v1buf: [[c_char; 92]; 4],        // char id3v1buf[4][92]
-    pub offset: c_ulong,                    // unsigned long offset
-    pub index: c_int,                       // int index
-    pub skip_resume_adjustments: bool,      // bool skip_resume_adjustments
-    pub autoresumable: c_uchar,             // unsigned char autoresumable
-    pub tagcache_idx: c_long,               // long tagcache_idx
-    pub rating: c_int,                      // int rating
-    pub score: c_int,                       // int score
-    pub playcount: c_long,                  // long playcount
-    pub lastplayed: c_long,                 // long lastplayed
-    pub playtime: c_long,                   // long playtime
-    pub track_level: c_long,                // long track_level
-    pub album_level: c_long,                // long album_level
-    pub track_gain: c_long,                 // long track_gain
-    pub album_gain: c_long,                 // long album_gain
-    pub track_peak: c_long,                 // long track_peak
-    pub album_peak: c_long,                 // long album_peak
-    pub has_embedded_albumart: bool,        // bool has_embedded_albumart
-    pub albumart: *mut c_void,              // struct mp3_albumart albumart
-    pub has_embedded_cuesheet: bool,        // bool has_embedded_cuesheet
-    pub embedded_cuesheet: *mut c_void,     // struct embedded_cuesheet embedded_cuesheet
-    pub cuesheet: *mut c_void,              // struct cuesheet* cuesheet
-    pub mb_track_id: *mut c_char,           // char* mb_track_id
-    pub is_asf_stream: bool,                // bool is_asf_stream
+    pub path: [c_uchar; MAX_PATH],           // char path[MAX_PATH]
+    pub title: *mut c_char,                  // char* title
+    pub artist: *mut c_char,                 // char* artist
+    pub album: *mut c_char,                  // char* album
+    pub genre_string: *mut c_char,           // char* genre_string
+    pub disc_string: *mut c_char,            // char* disc_string
+    pub track_string: *mut c_char,           // char* track_string
+    pub year_string: *mut c_char,            // char* year_string
+    pub composer: *mut c_char,               // char* composer
+    pub comment: *mut c_char,                // char* comment
+    pub albumartist: *mut c_char,            // char* albumartist
+    pub grouping: *mut c_char,               // char* grouping
+    pub discnum: c_int,                      // int discnum
+    pub tracknum: c_int,                     // int tracknum
+    pub layer: c_int,                        // int layer
+    pub year: c_int,                         // int year
+    pub id3version: c_uchar,                 // unsigned char id3version
+    pub codectype: c_uint,                   // unsigned int codectype
+    pub bitrate: c_uint,                     // unsigned int bitrate
+    pub frequency: c_ulong,                  // unsigned long frequency
+    pub id3v2len: c_ulong,                   // unsigned long id3v2len
+    pub id3v1len: c_ulong,                   // unsigned long id3v1len
+    pub first_frame_offset: c_ulong,         // unsigned long first_frame_offset
+    pub filesize: c_ulong,                   // unsigned long filesize
+    pub length: c_ulong,                     // unsigned long length
+    pub elapsed: c_ulong,                    // unsigned long elapsed
+    pub lead_trim: c_int,                    // int lead_trim
+    pub tail_trim: c_int,                    // int tail_trim
+    pub samples: u64,                        // uint64_t samples
+    pub frame_count: c_ulong,                // unsigned long frame_count
+    pub bytesperframe: c_ulong,              // unsigned long bytesperframe
+    pub vbr: bool,                           // bool vbr
+    pub has_toc: bool,                       // bool has_toc
+    pub toc: [c_uchar; 100],                 // unsigned char toc[100]
+    pub needs_upsampling_correction: bool,   // bool needs_upsampling_correction
+    pub id3v2buf: [c_uchar; ID3V2_BUF_SIZE], // char id3v2buf[ID3V2_BUF_SIZE]
+    pub id3v1buf: [[c_uchar; 92]; 4],        // char id3v1buf[4][92]
+    pub offset: c_ulong,                     // unsigned long offset
+    pub index: c_int,                        // int index
+    pub skip_resume_adjustments: bool,       // bool skip_resume_adjustments
+    pub autoresumable: c_uchar,              // unsigned char autoresumable
+    pub tagcache_idx: c_long,                // long tagcache_idx
+    pub rating: c_int,                       // int rating
+    pub score: c_int,                        // int score
+    pub playcount: c_long,                   // long playcount
+    pub lastplayed: c_long,                  // long lastplayed
+    pub playtime: c_long,                    // long playtime
+    pub track_level: c_long,                 // long track_level
+    pub album_level: c_long,                 // long album_level
+    pub track_gain: c_long,                  // long track_gain
+    pub album_gain: c_long,                  // long album_gain
+    pub track_peak: c_long,                  // long track_peak
+    pub album_peak: c_long,                  // long album_peak
+    pub has_embedded_albumart: bool,         // bool has_embedded_albumart
+    pub albumart: *mut c_void,               // struct mp3_albumart albumart
+    pub has_embedded_cuesheet: bool,         // bool has_embedded_cuesheet
+    pub embedded_cuesheet: *mut c_void,      // struct embedded_cuesheet embedded_cuesheet
+    pub cuesheet: *mut c_void,               // struct cuesheet* cuesheet
+    pub mb_track_id: *mut c_char,            // char* mb_track_id
+    pub is_asf_stream: bool,                 // bool is_asf_stream
 }
 
 const PLAYLIST_CONTROL_FILE: &str = "./config/rockbox.org/.playlist_control";
@@ -92,32 +93,32 @@ const MAX_DIR_LEVELS: usize = 10;
 #[repr(C)]
 #[derive(Debug)]
 pub struct PlaylistInfo {
-    pub utf8: bool,                   // bool utf8
-    pub control_created: bool,        // bool control_created
-    pub flags: c_uint,                // unsigned int flags
-    pub fd: c_int,                    // int fd
-    pub control_fd: c_int,            // int control_fd
-    pub max_playlist_size: c_int,     // int max_playlist_size
-    pub indices: *mut c_ulong,        // unsigned long* indices
-    pub index: c_int,                 // int index
-    pub first_index: c_int,           // int first_index
-    pub amount: c_int,                // int amount
-    pub last_insert_pos: c_int,       // int last_insert_pos
-    pub started: bool,                // bool started
-    pub last_shuffled_start: c_int,   // int last_shuffled_start
-    pub seed: c_int,                  // int seed
-    pub mutex: *mut c_void,           // struct mutex (convert to a void pointer for FFI)
-    pub dirlen: c_int,                // int dirlen
-    pub filename: [c_char; MAX_PATH], // char filename[MAX_PATH]
+    pub utf8: bool,                    // bool utf8
+    pub control_created: bool,         // bool control_created
+    pub flags: c_uint,                 // unsigned int flags
+    pub fd: c_int,                     // int fd
+    pub control_fd: c_int,             // int control_fd
+    pub max_playlist_size: c_int,      // int max_playlist_size
+    pub indices: *mut c_ulong,         // unsigned long* indices
+    pub index: c_int,                  // int index
+    pub first_index: c_int,            // int first_index
+    pub amount: c_int,                 // int amount
+    pub last_insert_pos: c_int,        // int last_insert_pos
+    pub started: bool,                 // bool started
+    pub last_shuffled_start: c_int,    // int last_shuffled_start
+    pub seed: c_int,                   // int seed
+    pub mutex: *mut c_void,            // struct mutex (convert to a void pointer for FFI)
+    pub dirlen: c_int,                 // int dirlen
+    pub filename: [c_uchar; MAX_PATH], // char filename[MAX_PATH]
     pub control_filename:
-        [c_char; std::mem::size_of::<[u8; PLAYLIST_CONTROL_FILE.len() + 100 + 8]>()], // char control_filename[sizeof(PLAYLIST_CONTROL_FILE) + 8]
+        [c_uchar; std::mem::size_of::<[u8; PLAYLIST_CONTROL_FILE.len() + 100 + 8]>()], // char control_filename[sizeof(PLAYLIST_CONTROL_FILE) + 8]
     pub dcfrefs_handle: c_int, // int dcfrefs_handle
 }
 
 #[repr(C)]
 #[derive(Debug)]
 pub struct PlaylistTrackInfo {
-    pub filename: [c_char; MAX_PATH], // char filename[MAX_PATH]
+    pub filename: [c_uchar; MAX_PATH], // char filename[MAX_PATH]
     pub attr: c_int,
     pub index: c_int,
     pub display_index: c_int,
@@ -175,22 +176,22 @@ pub struct TreeCache {
 #[repr(C)]
 #[derive(Debug)]
 pub struct TreeContext {
-    pub currdir: [c_char; MAX_PATH], // char currdir[MAX_PATH]
-    pub dirlevel: c_int,             // int dirlevel
-    pub selected_item: c_int,        // int selected_item
+    pub currdir: [c_uchar; MAX_PATH], // char currdir[MAX_PATH]
+    pub dirlevel: c_int,              // int dirlevel
+    pub selected_item: c_int,         // int selected_item
     pub selected_item_history: [c_int; MAX_DIR_LEVELS], // int selected_item_history[MAX_DIR_LEVELS]
-    pub dirfilter: *mut c_int,       // int* dirfilter
-    pub filesindir: c_int,           // int filesindir
-    pub dirsindir: c_int,            // int dirsindir
-    pub dirlength: c_int,            // int dirlength
-    pub currtable: c_int,            // int currtable (db use)
-    pub currextra: c_int,            // int currextra (db use)
-    pub sort_dir: c_int,             // int sort_dir
-    pub out_of_tree: c_int,          // int out_of_tree
-    pub cache: TreeCache,            // struct tree_cache cache
-    pub dirfull: bool,               // bool dirfull
-    pub is_browsing: bool,           // bool is_browsing
-    pub browse: *mut BrowseContext,  // struct browse_context* browse
+    pub dirfilter: *mut c_int,        // int* dirfilter
+    pub filesindir: c_int,            // int filesindir
+    pub dirsindir: c_int,             // int dirsindir
+    pub dirlength: c_int,             // int dirlength
+    pub currtable: c_int,             // int currtable (db use)
+    pub currextra: c_int,             // int currextra (db use)
+    pub sort_dir: c_int,              // int sort_dir
+    pub out_of_tree: c_int,           // int out_of_tree
+    pub cache: TreeCache,             // struct tree_cache cache
+    pub dirfull: bool,                // bool dirfull
+    pub is_browsing: bool,            // bool is_browsing
+    pub browse: *mut BrowseContext,   // struct browse_context* browse
 }
 
 #[repr(C)]
@@ -250,7 +251,7 @@ pub struct dirent {}
 #[derive(Debug)]
 pub struct Dirent {
     pub attribute: c_uint,
-    pub d_name: [c_char; MAX_PATH],
+    pub d_name: [c_uchar; MAX_PATH],
 }
 
 const TAG_COUNT: usize = 32;
@@ -317,7 +318,7 @@ pub struct TagcacheSearchClause {
 #[repr(C)]
 #[derive(Debug)]
 pub struct TagcacheStat {
-    db_path: [c_char; MAX_PATHNAME + 1], // Path to DB root directory
+    db_path: [c_uchar; MAX_PATHNAME + 1], // Path to DB root directory
 
     initialized: bool,       // Is tagcache currently busy?
     readyvalid: bool,        // Has tagcache ready status been ascertained?
@@ -865,7 +866,7 @@ pub struct UserSettings {
     pub usb_skip_first_drive: c_uchar,
 
     pub ui_vp_config: [c_uchar; 64],
-    pub player_name: [c_char; 64],
+    pub player_name: [c_uchar; 64],
 
     pub compressor_settings: CompressorSettings,
 
@@ -888,7 +889,7 @@ pub struct UserSettings {
 
     pub keyclick_hardware: c_uchar,
 
-    pub start_directory: [c_char; MAX_PATHNAME + 1],
+    pub start_directory: [c_uchar; MAX_PATHNAME + 1],
     pub root_menu_customized: c_uchar,
     pub shortcuts_replaces_qs: c_uchar,
 
@@ -988,11 +989,12 @@ pub struct SystemStatus {
 }
 
 extern "C" {
-    pub static rbversion: *const c_char;
     pub static global_settings: UserSettings;
     pub static global_status: SystemStatus;
     pub static language_strings: *mut *mut c_char;
     pub static core_bitmaps: CbmpBitmapInfoEntry;
+
+    fn get_version() -> *const c_char;
 
     // Playback control
     fn audio_pause() -> c_void;

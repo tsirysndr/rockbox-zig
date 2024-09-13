@@ -12,4 +12,5 @@ reqwest = {version = "0.12.7", features = ["blocking", "rustls-tls"], default-fe
 rockbox-graphql = {path = "../graphql"}
 rockbox-rpc = {path = "../rpc"}
 rockbox-sys = {path = "../sys"}
+serde_json = "1.0.128"
 tokio = {version = "1.40.0", features = ["full"]}

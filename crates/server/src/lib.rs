@@ -103,6 +103,33 @@ fn handle_connection(mut stream: TcpStream) {
                 status.resume_offset.into(),
             );
         }
+        "/version" => {
+            let version = rb::system::get_rockbox_version();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&version).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/status" => {
+            let status = rb::system::get_global_status();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&status).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/settings" => {
+            let settings = rb::settings::get_global_settings();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&settings).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
         _ => {
             if path.starts_with("/play") {
                 let params: Vec<_> = path.split('?').collect();

@@ -21,3 +21,8 @@
 
 #include "rbversion.h"
 const char rbversion[] = RBVERSION;
+
+const char *get_version(void)
+{
+    return rbversion;
+}

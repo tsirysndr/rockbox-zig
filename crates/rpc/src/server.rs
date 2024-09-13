@@ -5,12 +5,15 @@ use std::sync::{Arc, Mutex};
 use crate::api::rockbox::v1alpha1::browse_service_server::BrowseServiceServer;
 use crate::api::rockbox::v1alpha1::playback_service_server::PlaybackServiceServer;
 use crate::api::rockbox::v1alpha1::playlist_service_server::PlaylistServiceServer;
+use crate::api::rockbox::v1alpha1::settings_service_server::SettingsServiceServer;
 use crate::api::rockbox::v1alpha1::sound_service_server::SoundServiceServer;
 use crate::api::rockbox::FILE_DESCRIPTOR_SET;
 use crate::browse::Browse;
 use crate::playback::Playback;
 use crate::playlist::Playlist;
+use crate::settings::Settings;
 use crate::sound::Sound;
+use crate::system::System;
 use owo_colors::OwoColorize;
 use rockbox_sys::events::RockboxCommand;
 use tonic::transport::Server;
@@ -33,6 +36,8 @@ pub async fn start(
         host_and_port.bright_green()
     );
 
+    let client = reqwest::Client::new();
+
     Server::builder()
         .accept_http1(true)
         .add_service(
@@ -50,6 +55,14 @@ pub async fn start(
             Browse::default(),
         )))
         .add_service(tonic_web::enable(SoundServiceServer::new(Sound::default())))
+        .add_service(tonic_web::enable(SettingsServiceServer::new(
+            Settings::new(client.clone()),
+        )))
+        .add_service(tonic_web::enable(
+            crate::api::rockbox::v1alpha1::system_service_server::SystemServiceServer::new(
+                System::new(client.clone()),
+            ),
+        ))
         .serve(addr)
         .await?;
     Ok(())

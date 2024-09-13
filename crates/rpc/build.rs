@@ -10,6 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "proto/rockbox/v1alpha1/playlist.proto",
                 "proto/rockbox/v1alpha1/settings.proto",
                 "proto/rockbox/v1alpha1/sound.proto",
+                "proto/rockbox/v1alpha1/system.proto",
                 "proto/rockbox/v1alpha1/tagcache.proto",
             ],
             &["proto"],

@@ -138,6 +138,7 @@ pub fn build(b: *std.Build) !void {
     });
 
     exe.defineCMacro("ZIG_APP", null);
+    exe.defineCMacro("ROCKBOX_SERVER", null);
 
     lib.addCSourceFiles(.{
         .files = &[_][]const u8{},

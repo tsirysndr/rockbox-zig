@@ -452,7 +452,9 @@ static void init(void)
     usb_start_monitoring();
 #endif
 
+#ifdef ROCKBOX_SERVER
     server_init();
+#endif
 }
 
 #else /* ! (CONFIG_PLATFORM & PLATFORM_HOSTED) */
