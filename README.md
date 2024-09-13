@@ -45,7 +45,7 @@ make zig
 - [ ] Airplay
 - [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
 
-## Architecture
+## 🏗️ Architecture
 
 ![architecture](./docs/rockbox-server-architecture.jpg)
   
