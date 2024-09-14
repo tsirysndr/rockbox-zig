@@ -93,7 +93,6 @@ pub fn build_cloud(args: String) -> FnResult<String> {
         ])?
         .with_exec(vec!["docker", "buildx", "version"])?
         .with_exec(vec!["docker", "-v"])?
-        .with_exec(vec!["docker", "buildx", "inspect", "--bootstrap"])?
         .with_exec(vec![&format!(
             "docker buildx create --driver cloud {} || true",
             &builder
