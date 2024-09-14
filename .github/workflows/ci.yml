@@ -39,5 +39,6 @@ jobs:
 
       - name: Publish to Github Container Registry
         run: |
+          docker pull tsiry/rockbox:latest
           docker tag tsiry/rockbox:latest ghcr.io/tsirysndr/rockbox:latest
           docker push ghcr.io/tsirysndr/rockbox:latest

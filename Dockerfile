@@ -40,4 +40,8 @@ COPY --from=builder /root/.local/bin/rockbox /usr/bin/rockbox
 
 ENV SDL_VIDEODRIVER=dummy
 
+EXPOSE 6061
+EXPOSE 6062
+EXPOSE 6063
+
 CMD ["rockbox"]
