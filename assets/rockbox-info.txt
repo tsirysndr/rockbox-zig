@@ -1,0 +1,17 @@
+Target: sdlapp
+Target id: 73
+Target define: -DSDLAPP
+Memory: 8
+CPU: hosted
+Manufacturer: sdl
+Version: 154f10c2d2-231107
+Binary: rockbox
+Binary size: 828144
+Voice format: 400
+Actual size: 828144
+RAM usage: 11066296
+Features: crossfade:hotkey:lcd_bitmap:lcd_non-mono:lcd_color:pitchscreen:quickscreen:rtc:swcodec:tagcache:touchscreen:large_plugin_buffer:ab_repeat_buttons:albumart:scrollwheel:perceptual_volume
+gcc: gcc (tea GCC 13.2.0) 13.2.0
+ld: GNU ld (GNU Binutils for Debian) 2.40
+Host gcc: gcc (tea GCC 13.2.0) 13.2.0
+Host system: Linux
