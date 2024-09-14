@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - master
+env:
+  REGISTRY: ghcr.io
 
 jobs:
   publish:
@@ -12,13 +14,17 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v3
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and Publish image
         uses: fluentci-io/setup-fluentci@v5
         with:
-          dagger-version: 0.13.0
-          plugin: .
-          args: publish
+          wasm: true
+          plugin: buildx
+          args: build --platform linux/amd64,linux/arm64 -t ghcr.io/tsirysndr/rockbox:latest . --push
         env:
-          GITHUB_USERNAME: tsirysndr
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DAGGER_CLOUD_TOKEN: ${{ secrets.DAGGER_CLOUD_TOKEN }}
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
