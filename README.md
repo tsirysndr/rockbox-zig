@@ -5,6 +5,9 @@
 
 # Rockbox Zig 🎵 ⚡
 
+[![GPL-2.0 licensed](https://img.shields.io/badge/License-GPL-blue.svg)](./LICENSE)
+[![ci](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml/badge.svg)](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml)
+
 Rockbox Zig is an incremental enhancement of the [Rockbox](https://www.rockbox.org) firmware for portable audio players in Zig and Rust.
 
 > [!NOTE]
@@ -17,7 +20,7 @@ Rockbox Zig is an incremental enhancement of the [Rockbox](https://www.rockbox.o
 Run the following commands to build the project:
 
 ```sh
-sudo apt-get install libusb-dev libsdl1.2-dev libfreetype6-dev
+sudo apt-get install libusb-dev libsdl1.2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler
 mkdir -p build && cd build
 ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=$HOME/.local
 make zig
