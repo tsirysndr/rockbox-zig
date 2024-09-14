@@ -406,22 +406,22 @@ impl From<crate::UserSettings> for UserSettings {
             peak_meter_min: settings.peak_meter_min,
             peak_meter_max: settings.peak_meter_max,
             wps_file: unsafe {
-                CStr::from_ptr(settings.wps_file.as_ptr() as *const i8)
+                CStr::from_ptr(settings.wps_file.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
             sbs_file: unsafe {
-                CStr::from_ptr(settings.sbs_file.as_ptr() as *const i8)
+                CStr::from_ptr(settings.sbs_file.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
             lang_file: unsafe {
-                CStr::from_ptr(settings.lang_file.as_ptr() as *const i8)
+                CStr::from_ptr(settings.lang_file.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
             playlist_catalog_dir: unsafe {
-                CStr::from_ptr(settings.playlist_catalog_dir.as_ptr() as *const i8)
+                CStr::from_ptr(settings.playlist_catalog_dir.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
@@ -455,23 +455,23 @@ impl From<crate::UserSettings> for UserSettings {
             autoresume_enable: settings.autoresume_enable != 0,
             autoresume_automatic: settings.autoresume_automatic,
             autoresume_paths: unsafe {
-                CStr::from_ptr(settings.autoresume_paths.as_ptr() as *const i8)
+                CStr::from_ptr(settings.autoresume_paths.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
             runtimedb: settings.runtimedb != 0,
             tagcache_scan_paths: unsafe {
-                CStr::from_ptr(settings.tagcache_scan_paths.as_ptr() as *const i8)
+                CStr::from_ptr(settings.tagcache_scan_paths.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
             tagcache_db_path: unsafe {
-                CStr::from_ptr(settings.tagcache_db_path.as_ptr() as *const i8)
+                CStr::from_ptr(settings.tagcache_db_path.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
             backdrop_file: unsafe {
-                CStr::from_ptr(settings.backdrop_file.as_ptr() as *const i8)
+                CStr::from_ptr(settings.backdrop_file.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
@@ -481,7 +481,7 @@ impl From<crate::UserSettings> for UserSettings {
             lse_color: settings.lse_color,
             lst_color: settings.lst_color,
             colors_file: unsafe {
-                CStr::from_ptr(settings.colors_file.as_ptr() as *const i8)
+                CStr::from_ptr(settings.colors_file.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
@@ -528,23 +528,23 @@ impl From<crate::UserSettings> for UserSettings {
             offset_out_of_view: settings.offset_out_of_view != 0,
             disable_mainmenu_scrolling: settings.disable_mainmenu_scrolling != 0,
             icon_file: unsafe {
-                CStr::from_ptr(settings.icon_file.as_ptr() as *const i8)
+                CStr::from_ptr(settings.icon_file.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
             viewers_icon_file: unsafe {
-                CStr::from_ptr(settings.viewers_icon_file.as_ptr() as *const i8)
+                CStr::from_ptr(settings.viewers_icon_file.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
             font_file: unsafe {
-                CStr::from_ptr(settings.font_file.as_ptr() as *const i8)
+                CStr::from_ptr(settings.font_file.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
             glyphs_to_cache: settings.glyphs_to_cache,
             kbd_file: unsafe {
-                CStr::from_ptr(settings.kbd_file.as_ptr() as *const i8)
+                CStr::from_ptr(settings.kbd_file.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
@@ -569,7 +569,7 @@ impl From<crate::UserSettings> for UserSettings {
             usb_keypad_mode: settings.usb_keypad_mode,
             usb_skip_first_drive: settings.usb_skip_first_drive != 0,
             player_name: unsafe {
-                CStr::from_ptr(settings.player_name.as_ptr() as *const i8)
+                CStr::from_ptr(settings.player_name.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
@@ -586,7 +586,7 @@ impl From<crate::UserSettings> for UserSettings {
             power_mode: settings.power_mode,
             keyclick_hardware: settings.keyclick_hardware != 0,
             start_directory: unsafe {
-                CStr::from_ptr(settings.start_directory.as_ptr() as *const i8)
+                CStr::from_ptr(settings.start_directory.as_ptr() as *const u8 as *const i8)
                     .to_string_lossy()
                     .into_owned()
             },
