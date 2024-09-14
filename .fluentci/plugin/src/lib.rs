@@ -72,6 +72,7 @@ pub fn build_cloud(args: String) -> FnResult<String> {
     );
 
     let buildx_plugin = format!("buildx-{}.{}-{}", version, os, arch);
+    let builder_name = format!("cloud-{}", builder.replace("/", "-"));
     let stdout = dag()
         .pipeline("build")?
         .pkgx()?
@@ -88,16 +89,20 @@ pub fn build_cloud(args: String) -> FnResult<String> {
             buildx_download_url, buildx_plugin, buildx_plugin
         )])?
         .with_exec(vec!["docker buildx rm builder || true"])?
-        .with_exec(vec![
-            "docker", "buildx", "create", "--name", "builder", "--use",
-        ])?
         .with_exec(vec!["docker", "buildx", "version"])?
         .with_exec(vec!["docker", "-v"])?
         .with_exec(vec![&format!(
             "docker buildx create --driver cloud {} || true",
             &builder
         )])?
-        .with_exec(vec!["docker", "buildx", "build", &args])?
+        .with_exec(vec![
+            "docker",
+            "buildx",
+            "build",
+            "--builder",
+            &builder_name,
+            &args,
+        ])?
         .stdout()?;
     Ok(stdout)
 }
