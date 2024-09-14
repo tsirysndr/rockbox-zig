@@ -22,6 +22,21 @@ const MAX_PATHNAME: usize = 80;
 const NB_SCREENS: usize = 2;
 pub const HZ: f32 = 100.0;
 
+#[macro_export]
+macro_rules! cast_ptr {
+    ($ptr:expr) => {{
+        #[cfg(target_arch = "aarch64")]
+        {
+            $ptr as *const u8
+        }
+
+        #[cfg(not(target_arch = "aarch64"))]
+        {
+            $ptr as *const i8
+        }
+    }};
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct Mp3Entry {

@@ -1,3 +1,4 @@
+use crate::cast_ptr;
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -139,7 +140,7 @@ impl From<crate::Mp3Entry> for Mp3Entry {
             vbr: entry.vbr,
             has_toc: entry.has_toc,
             toc: unsafe {
-                std::ffi::CStr::from_ptr(entry.toc.as_ptr() as *const u8 as *const i8)
+                std::ffi::CStr::from_ptr(cast_ptr!(entry.toc.as_ptr()))
                     .to_string_lossy()
                     .into_owned()
             },

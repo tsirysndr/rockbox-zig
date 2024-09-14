@@ -1,0 +1,12 @@
+build
+.zig-cache
+target
+zig-out
+.git
+tools/bmp2rb
+tools/codepages
+tools/convbdf
+tools/mkboot
+tools/rdfbinary
+tools/uclpack
+tools/scramble

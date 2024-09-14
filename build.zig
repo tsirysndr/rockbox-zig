@@ -2969,6 +2969,7 @@ fn build_scramble(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3010,6 +3011,7 @@ fn build_descramble(b: *std.Build, target: std.Build.ResolvedTarget, optimize: s
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3045,6 +3047,7 @@ fn build_bmp2rb(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.b
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3078,6 +3081,7 @@ fn build_rdf2binary(b: *std.Build, target: std.Build.ResolvedTarget, optimize: s
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3111,6 +3115,7 @@ fn build_mkboot(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.b
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3157,6 +3162,7 @@ fn build_mkzenboot(b: *std.Build, target: std.Build.ResolvedTarget, optimize: st
             "-I./build",
             "-I/usr/include",
             "-I/usr/include/x86_64-linux-gnu",
+            "-I/usr/include/aarch64-linux-gnu",
             "-DSTANDALONE",
         },
     });
@@ -3177,6 +3183,7 @@ fn build_convbdf(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3210,6 +3217,7 @@ fn build_codepages(b: *std.Build, target: std.Build.ResolvedTarget, optimize: st
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3244,6 +3252,7 @@ fn build_voicefont(b: *std.Build, target: std.Build.ResolvedTarget, optimize: st
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3277,6 +3286,7 @@ fn build_usb_benchmark(b: *std.Build, target: std.Build.ResolvedTarget, optimize
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3322,6 +3332,7 @@ fn build_convttf(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-I/usr/include/freetype2",
         "-I/usr/include/libpng16",
     } });
@@ -3343,6 +3354,7 @@ fn build_mk500boot(b: *std.Build, target: std.Build.ResolvedTarget, optimize: st
         "-I./build",
         "-I/usr/include",
         "-I/usr/include/x86_64-linux-gnu",
+        "-I/usr/include/aarch64-linux-gnu",
         "-DAPPLICATION_NAME",
     };
 
@@ -3731,6 +3743,7 @@ fn defineCMacros(c: *std.Build.Step.Compile) void {
 fn addIncludePaths(c: *std.Build.Step.Compile) void {
     c.addIncludePath(.{ .cwd_relative = "/usr/include" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/x86_64-linux-gnu" });
+    c.addIncludePath(.{ .cwd_relative = "/usr/include/aarch64-linux-gnu" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/SDL" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/export" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/drivers" });
@@ -3771,6 +3784,7 @@ fn addIncludePaths(c: *std.Build.Step.Compile) void {
 fn addPluginIncludePaths(c: *std.Build.Step.Compile) void {
     c.addIncludePath(.{ .cwd_relative = "/usr/include" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/x86_64-linux-gnu" });
+    c.addIncludePath(.{ .cwd_relative = "/usr/include/aarch64-linux-gnu" });
     c.addIncludePath(.{ .cwd_relative = "./apps/plugins/lib" });
     c.addIncludePath(.{ .cwd_relative = "./apps/plugins" });
     c.addIncludePath(.{ .cwd_relative = "./apps/plugins/lua" });
