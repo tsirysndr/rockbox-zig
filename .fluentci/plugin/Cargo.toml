@@ -3,6 +3,8 @@ edition = "2021"
 name = "base"
 version = "0.10.1"
 
+[workspace]
+
 [lib]
 crate-type = ["cdylib"]
 
