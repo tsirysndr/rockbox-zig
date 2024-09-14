@@ -1,4 +1,5 @@
 use async_graphql::*;
+use rockbox_sys as rb;
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -57,8 +58,6 @@ pub struct UserSettings {
     pub pause_rewind: i32,
     pub unplug_mode: i32,
     pub unplug_autoresume: bool,
-
-    pub qs_items: Vec<SettingsList>,
 
     pub timeformat: i32,
     pub disk_spindown: i32,
@@ -213,7 +212,6 @@ pub struct UserSettings {
 
     pub usb_skip_first_drive: bool,
 
-    pub ui_vp_config: String,
     pub player_name: String,
 
     pub compressor_settings: CompressorSettings,
@@ -403,10 +401,6 @@ impl UserSettings {
 
     async fn unplug_autoresume(&self) -> bool {
         self.unplug_autoresume
-    }
-
-    async fn qs_items(&self) -> Vec<SettingsList> {
-        self.qs_items.clone()
     }
 
     async fn timeformat(&self) -> i32 {
@@ -933,10 +927,6 @@ impl UserSettings {
         self.usb_skip_first_drive
     }
 
-    async fn ui_vp_config(&self) -> &str {
-        &self.ui_vp_config
-    }
-
     async fn player_name(&self) -> &str {
         &self.player_name
     }
@@ -1059,5 +1049,213 @@ impl UserSettings {
 
     async fn stereosw_mode(&self) -> i32 {
         self.stereosw_mode
+    }
+}
+
+impl From<rb::types::user_settings::UserSettings> for UserSettings {
+    fn from(settings: rb::types::user_settings::UserSettings) -> Self {
+        Self {
+            volume: settings.volume,
+            balance: settings.balance,
+            bass: settings.bass,
+            treble: settings.treble,
+            channel_config: settings.channel_config,
+            stereo_width: settings.stereo_width,
+            bass_cutoff: settings.bass_cutoff,
+            treble_cutoff: settings.treble_cutoff,
+            crossfade: settings.crossfade,
+            crossfade_fade_in_delay: settings.crossfade_fade_in_delay,
+            crossfade_fade_out_delay: settings.crossfade_fade_out_delay,
+            crossfade_fade_in_duration: settings.crossfade_fade_in_duration,
+            crossfade_fade_out_duration: settings.crossfade_fade_out_duration,
+            crossfade_fade_out_mixmode: settings.crossfade_fade_out_mixmode,
+            replaygain_settings: ReplaygainSettings::from(settings.replaygain_settings),
+            crossfeed: settings.crossfeed,
+            crossfeed_direct_gain: settings.crossfeed_direct_gain,
+            crossfeed_cross_gain: settings.crossfeed_cross_gain,
+            crossfeed_hf_attenuation: settings.crossfeed_hf_attenuation,
+            crossfeed_hf_cutoff: settings.crossfeed_hf_cutoff,
+            eq_enabled: settings.eq_enabled,
+            eq_precut: settings.eq_precut,
+            eq_band_settings: settings
+                .eq_band_settings
+                .into_iter()
+                .map(|band| band.into())
+                .collect(),
+            beep: settings.beep,
+            keyclick: settings.keyclick,
+            keyclick_repeats: settings.keyclick_repeats,
+            dithering_enabled: settings.dithering_enabled,
+            timestretch_enabled: settings.timestretch_enabled,
+            list_accel_start_delay: settings.list_accel_start_delay,
+            list_accel_wait: settings.list_accel_wait,
+            touchpad_sensitivity: settings.touchpad_sensitivity,
+            touchpad_deadzone: settings.touchpad_deadzone,
+            pause_rewind: settings.pause_rewind,
+            unplug_mode: settings.unplug_mode,
+            unplug_autoresume: settings.unplug_autoresume,
+            timeformat: settings.timeformat,
+            disk_spindown: settings.disk_spindown,
+            buffer_margin: settings.buffer_margin,
+            dirfilter: settings.dirfilter,
+            show_filename_ext: settings.show_filename_ext,
+            default_codepage: settings.default_codepage,
+            hold_lr_for_scroll_in_list: settings.hold_lr_for_scroll_in_list,
+            play_selected: settings.play_selected,
+            single_mode: settings.single_mode,
+            party_mode: settings.party_mode,
+            cuesheet: settings.cuesheet,
+            car_adapter_mode: settings.car_adapter_mode,
+            car_adapter_mode_delay: settings.car_adapter_mode_delay,
+            start_in_screen: settings.start_in_screen,
+            ff_rewind_min_step: settings.ff_rewind_min_step,
+            ff_rewind_accel: settings.ff_rewind_accel,
+            peak_meter_release: settings.peak_meter_release,
+            peak_meter_hold: settings.peak_meter_hold,
+            peak_meter_clip_hold: settings.peak_meter_clip_hold,
+            peak_meter_dbfs: settings.peak_meter_dbfs,
+            peak_meter_min: settings.peak_meter_min,
+            peak_meter_max: settings.peak_meter_max,
+            wps_file: settings.wps_file,
+            sbs_file: settings.sbs_file,
+            lang_file: settings.lang_file,
+            playlist_catalog_dir: settings.playlist_catalog_dir,
+            skip_length: settings.skip_length,
+            max_files_in_dir: settings.max_files_in_dir,
+            max_files_in_playlist: settings.max_files_in_playlist,
+            volume_type: settings.volume_type,
+            battery_display: settings.battery_display,
+            show_icons: settings.show_icons,
+            statusbar: settings.statusbar,
+            scrollbar: settings.scrollbar,
+            scrollbar_width: settings.scrollbar_width,
+            list_line_padding: settings.list_line_padding,
+            list_separator_height: settings.list_separator_height,
+            list_separator_color: settings.list_separator_color,
+            browse_current: settings.browse_current,
+            scroll_paginated: settings.scroll_paginated,
+            list_wraparound: settings.list_wraparound,
+            list_order: settings.list_order,
+            scroll_speed: settings.scroll_speed,
+            bidir_limit: settings.bidir_limit,
+            scroll_delay: settings.scroll_delay,
+            scroll_step: settings.scroll_step,
+            autoloadbookmark: settings.autoloadbookmark,
+            autocreatebookmark: settings.autocreatebookmark,
+            autoupdatebookmark: settings.autoupdatebookmark,
+            usemrb: settings.usemrb,
+            dircache: settings.dircache,
+            tagcache_ram: settings.tagcache_ram,
+            tagcache_autoupdate: settings.tagcache_autoupdate,
+            autoresume_enable: settings.autoresume_enable,
+            autoresume_automatic: settings.autoresume_automatic,
+            autoresume_paths: settings.autoresume_paths,
+            runtimedb: settings.runtimedb,
+            tagcache_scan_paths: settings.tagcache_scan_paths,
+            tagcache_db_path: settings.tagcache_db_path,
+            backdrop_file: settings.backdrop_file,
+            bg_color: settings.bg_color,
+            fg_color: settings.fg_color,
+            lss_color: settings.lss_color,
+            lse_color: settings.lse_color,
+            lst_color: settings.lst_color,
+            colors_file: settings.colors_file,
+            browser_default: settings.browser_default,
+            repeat_mode: settings.repeat_mode,
+            next_folder: settings.next_folder,
+            constrain_next_folder: settings.constrain_next_folder,
+            recursive_dir_insert: settings.recursive_dir_insert,
+            fade_on_stop: settings.fade_on_stop,
+            playlist_shuffle: settings.playlist_shuffle,
+            warnon_erase_dynplaylist: settings.warnon_erase_dynplaylist,
+            keep_current_track_on_replace_playlist: settings.keep_current_track_on_replace_playlist,
+            show_shuffled_adding_options: settings.show_shuffled_adding_options,
+            show_queue_options: settings.show_queue_options,
+            album_art: settings.album_art,
+            rewind_across_tracks: settings.rewind_across_tracks,
+            playlist_viewer_icons: settings.playlist_viewer_icons,
+            playlist_viewer_indices: settings.playlist_viewer_indices,
+            playlist_viewer_track_display: settings.playlist_viewer_track_display,
+            talk_menu: settings.talk_menu,
+            talk_dir: settings.talk_dir,
+            talk_dir_clip: settings.talk_dir_clip,
+            talk_file: settings.talk_file,
+            talk_file_clip: settings.talk_file_clip,
+            talk_filetype: settings.talk_filetype,
+            talk_battery_level: settings.talk_battery_level,
+            talk_mixer_amp: settings.talk_mixer_amp,
+            sort_case: settings.sort_case,
+            sort_dir: settings.sort_dir,
+            sort_file: settings.sort_file,
+            interpret_numbers: settings.interpret_numbers,
+            poweroff: settings.poweroff,
+            battery_capacity: settings.battery_capacity,
+            battery_type: settings.battery_type,
+            spdif_enable: settings.spdif_enable,
+            usb_charging: settings.usb_charging,
+            contrast: settings.contrast,
+            invert: settings.invert,
+            flip_display: settings.flip_display,
+            cursor_style: settings.cursor_style,
+            screen_scroll_step: settings.screen_scroll_step,
+            show_path_in_browser: settings.show_path_in_browser,
+            offset_out_of_view: settings.offset_out_of_view,
+            disable_mainmenu_scrolling: settings.disable_mainmenu_scrolling,
+            icon_file: settings.icon_file,
+            viewers_icon_file: settings.viewers_icon_file,
+            font_file: settings.font_file,
+            glyphs_to_cache: settings.glyphs_to_cache,
+            kbd_file: settings.kbd_file,
+            backlight_timeout: settings.backlight_timeout,
+            caption_backlight: settings.caption_backlight,
+            bl_filter_first_keypress: settings.bl_filter_first_keypress,
+            backlight_timeout_plugged: settings.backlight_timeout_plugged,
+            bt_selective_softlock_actions: settings.bt_selective_softlock_actions,
+            bt_selective_softlock_actions_mask: settings.bt_selective_softlock_actions_mask,
+            bl_selective_actions: settings.bl_selective_actions,
+            bl_selective_actions_mask: settings.bl_selective_actions_mask,
+            backlight_on_button_hold: settings.backlight_on_button_hold,
+            lcd_sleep_after_backlight_off: settings.lcd_sleep_after_backlight_off,
+            brightness: settings.brightness,
+            speaker_mode: settings.speaker_mode,
+            prevent_skip: settings.prevent_skip,
+            touch_mode: settings.touch_mode,
+            pitch_mode_semitone: settings.pitch_mode_semitone,
+            pitch_mode_timestretch: settings.pitch_mode_timestretch,
+            usb_hid: settings.usb_hid,
+            usb_keypad_mode: settings.usb_keypad_mode,
+            usb_skip_first_drive: settings.usb_skip_first_drive,
+            player_name: settings.player_name,
+            compressor_settings: CompressorSettings::from(settings.compressor_settings),
+            sleeptimer_duration: settings.sleeptimer_duration,
+            sleeptimer_on_startup: settings.sleeptimer_on_startup,
+            keypress_restarts_sleeptimer: settings.keypress_restarts_sleeptimer,
+            show_shutdown_message: settings.show_shutdown_message,
+            hotkey_wps: settings.hotkey_wps,
+            hotkey_tree: settings.hotkey_tree,
+            resume_rewind: settings.resume_rewind,
+            depth_3d: settings.depth_3d,
+            roll_off: settings.roll_off,
+            power_mode: settings.power_mode,
+            keyclick_hardware: settings.keyclick_hardware,
+            start_directory: settings.start_directory,
+            root_menu_customized: settings.root_menu_customized,
+            shortcuts_replaces_qs: settings.shortcuts_replaces_qs,
+            play_frequency: settings.play_frequency,
+            volume_limit: settings.volume_limit,
+            volume_adjust_mode: settings.volume_adjust_mode,
+            volume_adjust_norm_steps: settings.volume_adjust_norm_steps,
+            surround_enabled: settings.surround_enabled,
+            surround_balance: settings.surround_balance,
+            surround_fx1: settings.surround_fx1,
+            surround_fx2: settings.surround_fx2,
+            surround_method2: settings.surround_method2,
+            surround_mix: settings.surround_mix,
+            pbe: settings.pbe,
+            pbe_precut: settings.pbe_precut,
+            afr_enabled: settings.afr_enabled,
+            governor: settings.governor,
+            stereosw_mode: settings.stereosw_mode,
+        }
     }
 }

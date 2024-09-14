@@ -1,4 +1,5 @@
 use async_graphql::*;
+use rockbox_sys as rb;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -35,5 +36,18 @@ impl CompressorSettings {
 
     async fn attack_time(&self) -> i32 {
         self.attack_time
+    }
+}
+
+impl From<rb::types::user_settings::CompressorSettings> for CompressorSettings {
+    fn from(settings: rb::types::user_settings::CompressorSettings) -> Self {
+        Self {
+            threshold: settings.threshold,
+            makeup_gain: settings.makeup_gain,
+            ratio: settings.ratio,
+            knee: settings.knee,
+            release_time: settings.release_time,
+            attack_time: settings.attack_time,
+        }
     }
 }

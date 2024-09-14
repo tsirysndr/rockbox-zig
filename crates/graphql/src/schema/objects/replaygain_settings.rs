@@ -1,4 +1,5 @@
 use async_graphql::*;
+use rockbox_sys as rb;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -20,5 +21,15 @@ impl ReplaygainSettings {
 
     async fn preamp(&self) -> i32 {
         self.preamp
+    }
+}
+
+impl From<rb::types::user_settings::ReplaygainSettings> for ReplaygainSettings {
+    fn from(settings: rb::types::user_settings::ReplaygainSettings) -> Self {
+        Self {
+            noclip: settings.noclip,
+            r#type: settings.r#type,
+            preamp: settings.preamp,
+        }
     }
 }
