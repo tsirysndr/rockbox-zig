@@ -23,7 +23,7 @@ jobs:
         uses: fluentci-io/setup-fluentci@v5
         with:
           wasm: true
-          plugin: .
+          plugin: buildx
           args: |
             build_cloud --platform linux/amd64,linux/arm64 -t tsiry/rockbox:latest . --push
         env:
