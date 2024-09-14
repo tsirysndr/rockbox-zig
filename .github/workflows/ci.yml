@@ -20,11 +20,22 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ github.ref }}-
+            ${{ runner.os }}-buildx-
+
       - name: Build and Publish image
         uses: fluentci-io/setup-fluentci@v5
         with:
           wasm: true
           plugin: buildx
-          args: build --platform linux/amd64,linux/arm64 -t ghcr.io/tsirysndr/rockbox:latest . --push
+          args: |
+            build --platform linux/amd64,linux/arm64 --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max -t ghcr.io/tsirysndr/rockbox:latest . --push
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
