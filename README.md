@@ -17,6 +17,15 @@ Rockbox Zig is an incremental enhancement of the [Rockbox](https://www.rockbox.o
 
 ## 🚀 Quickstart
 
+To quickly get started, you can run the following docker command:
+```sh
+docker run \
+    --device /dev/snd \
+    --privileged \
+    -p 6061:6061 -p 6062:6062 -p 6063:6063 \
+    tsiry/rockbox:latest
+```
+
 Run the following commands to build the project:
 
 ```sh
