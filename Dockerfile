@@ -32,7 +32,10 @@ RUN apt-get update && apt-get install -y \
   libusb-dev \
   libsdl1.2-dev \
   libfreetype6-dev \
-  libunwind-dev
+  libunwind-dev \
+  alsa-utils \
+  libasound2 \
+  pulseaudio
 
 COPY --from=builder /root/.local /root/.local
 
