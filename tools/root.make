@@ -412,7 +412,7 @@ fullinstall: simext1
 
 ziginstall: zig
 	@echo "Installing your build in your '$(RBPREFIX)' dir"
-	cd .. && cargo build -p rockbox-server --release && zig build install-rockbox && mkdir -p $(RBPREFIX)/bin $(RBPREFIX)/share/rockbox && cp zig-out/bin/rockbox $(RBPREFIX)/bin && cp -r assets/* $(RBPREFIX)/share/rockbox
+	cd .. && cargo build -p rockbox-cli --release && cargo build -p rockbox-server --release && zig build install-rockbox && mkdir -p $(RBPREFIX)/bin $(RBPREFIX)/share/rockbox && cp zig-out/bin/rockbox $(RBPREFIX)/bin && cp -r assets/* $(RBPREFIX)/share/rockbox
 
 symlinkinstall: simext1
 	@echo "Installing a full setup with links in your '$(RBPREFIX)' dir"
