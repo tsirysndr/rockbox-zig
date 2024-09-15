@@ -10,6 +10,12 @@ pub fn main() !void {
     var argv: [10][*]const u8 = undefined;
 
     var argc: usize = 0;
+
+    if (args.len > 10) {
+        std.debug.print("Too many arguments, max 10", .{});
+        std.process.exit(1);
+    }
+
     for (args) |arg| {
         argv[argc] = @ptrCast(arg.ptr);
         argc += 1;
