@@ -1,0 +1,11 @@
+[package]
+edition = "2021"
+name = "rockbox-cli"
+version = "0.1.0"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+clap = "4.5.17"
+owo-colors = "4.1.0"
