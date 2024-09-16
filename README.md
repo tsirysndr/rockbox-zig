@@ -8,7 +8,12 @@
 [![GPL-2.0 licensed](https://img.shields.io/badge/License-GPL-blue.svg)](./LICENSE)
 [![ci](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml/badge.svg)](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml)
 
-Rockbox Zig is an incremental enhancement of the [Rockbox](https://www.rockbox.org) firmware for portable audio players in Zig and Rust.
+A modern take on the [Rockbox](https://www.rockbox.org) open-source firmware with enhancements in Zig and Rust. This project offers:
+
+- gRPC & GraphQL APIs for seamless interaction and control
+- TypeScript support for building powerful extensions
+
+Take advantage of modern tooling while preserving the core functionality of Rockbox.
 
 > [!NOTE]
 **🐲 It is a work in progress and is not yet ready for use. 🏗️🚧**
