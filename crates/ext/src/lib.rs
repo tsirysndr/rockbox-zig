@@ -1,8 +1,10 @@
 use std::{env, rc::Rc};
 
+use ::deno_fetch::FetchPermissions;
 use browse::rb_browse;
 use deno_ast::{MediaType, ParseParams};
 use deno_core::{error::AnyError, ModuleLoadResponse, ModuleSourceCode};
+use deno_net::NetPermissions;
 use playback::rb_playback;
 use playlist::rb_playlist;
 use settings::rb_settings;
@@ -10,7 +12,6 @@ use sound::rb_sound;
 use system::rb_system;
 
 pub mod browse;
-pub mod console;
 pub mod dir;
 pub mod playback;
 pub mod playlist;
@@ -18,6 +19,65 @@ pub mod settings;
 pub mod sound;
 pub mod system;
 pub mod tagcache;
+
+#[derive(Clone)]
+struct Permissions;
+
+impl deno_websocket::WebSocketPermissions for Permissions {
+    fn check_net_url(
+        &mut self,
+        _url: &deno_core::url::Url,
+        _api_name: &str,
+    ) -> Result<(), deno_core::error::AnyError> {
+        unreachable!("to be implemented!")
+    }
+}
+
+impl deno_web::TimersPermission for Permissions {
+    fn allow_hrtime(&mut self) -> bool {
+        unreachable!("to be implemented!")
+    }
+}
+
+impl FetchPermissions for Permissions {
+    fn check_net_url(
+        &mut self,
+        _url: &deno_core::url::Url,
+        _api_name: &str,
+    ) -> Result<(), deno_core::error::AnyError> {
+        unreachable!("to be implemented!")
+    }
+
+    fn check_read(&mut self, _path: &std::path::Path, _api_name: &str) -> Result<(), AnyError> {
+        unreachable!("to be implemented!")
+    }
+}
+
+impl NetPermissions for Permissions {
+    fn check_read(
+        &mut self,
+        _p: &std::path::Path,
+        _api_name: &str,
+    ) -> Result<(), deno_core::error::AnyError> {
+        Ok(())
+    }
+
+    fn check_write(
+        &mut self,
+        _p: &std::path::Path,
+        _api_name: &str,
+    ) -> Result<(), deno_core::error::AnyError> {
+        Ok(())
+    }
+
+    fn check_net<T: AsRef<str>>(
+        &mut self,
+        _host: &(T, Option<u16>),
+        _api_name: &str,
+    ) -> Result<(), deno_core::error::AnyError> {
+        Ok(())
+    }
+}
 
 pub struct TsModuleLoader;
 
@@ -106,6 +166,12 @@ pub async fn run_js(file_path: &str) -> Result<(), AnyError> {
             rb_settings::init_ops(),
             rb_sound::init_ops(),
             rb_system::init_ops(),
+            deno_webidl::deno_webidl::init_ops(),
+            deno_console::deno_console::init_ops(),
+            deno_url::deno_url::init_ops(),
+            deno_web::deno_web::init_ops::<Permissions>(Default::default(), Default::default()),
+            deno_fetch::deno_fetch::init_ops::<Permissions>(Default::default()),
+            deno_net::deno_net::init_ops::<Permissions>(None, None),
         ],
         ..Default::default()
     });
