@@ -1,6 +1,8 @@
+const { ops } = Deno.core;
+
 const settings = {
   getGlobalSettings: () => {
-    return ops.op_rockbox_browse();
+    return ops.op_get_global_settings();
   },
 };
 

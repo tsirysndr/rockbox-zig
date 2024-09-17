@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
-use deno_core::{extension, op2};
+use deno_core::{error::AnyError, extension, op2};
+use rockbox_sys::types::{system_status::SystemStatus, RockboxVersion};
+
+use crate::rockbox_url;
 
 extension!(
     rb_system,
@@ -13,7 +16,20 @@ pub fn get_declaration() -> PathBuf {
 }
 
 #[op2(async)]
-pub async fn op_get_global_status() {}
+#[serde]
+pub async fn op_get_global_status() -> Result<SystemStatus, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/status", rockbox_url());
+    let response = client.get(&url).send().await?;
+    let status = response.json::<SystemStatus>().await?;
+    Ok(status)
+}
 
 #[op2(async)]
-pub async fn op_get_rockbox_version() {}
+#[string]
+pub async fn op_get_rockbox_version() -> Result<String, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/version", rockbox_url());
+    let response = client.get(&url).send().await?;
+    Ok(response.json::<RockboxVersion>().await?.version)
+}

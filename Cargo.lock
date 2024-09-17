@@ -5339,6 +5339,7 @@ dependencies = [
  "deno_webidl",
  "deno_websocket",
  "reqwest",
+ "rockbox-sys",
  "tokio",
 ]
 

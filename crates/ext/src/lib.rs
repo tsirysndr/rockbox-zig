@@ -181,3 +181,8 @@ pub async fn run_js(file_path: &str) -> Result<(), AnyError> {
     js_runtime.run_event_loop(Default::default()).await?;
     result.await
 }
+
+pub fn rockbox_url() -> String {
+    let port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".to_string());
+    format!("http://127.0.0.1:{}", port)
+}

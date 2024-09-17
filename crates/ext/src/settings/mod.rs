@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
-use deno_core::{extension, op2};
+use deno_core::{error::AnyError, extension, op2};
+use rockbox_sys::types::user_settings::UserSettings;
+
+use crate::rockbox_url;
 
 extension!(
     rb_settings,
@@ -13,4 +16,11 @@ pub fn get_declaration() -> PathBuf {
 }
 
 #[op2(async)]
-pub async fn op_get_global_settings() {}
+#[serde]
+pub async fn op_get_global_settings() -> Result<UserSettings, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/settings", rockbox_url());
+    let response = client.get(&url).send().await?;
+    let settings = response.json::<UserSettings>().await?;
+    Ok(settings)
+}

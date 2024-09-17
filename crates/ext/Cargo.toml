@@ -15,7 +15,8 @@ deno_url = "0.168.0"
 deno_web = "0.199.0"
 deno_webidl = "0.168.0"
 deno_websocket = "0.173.0"
-reqwest = {version = "0.12.7", features = ["rustls-tls"], default-features = false}
+reqwest = {version = "0.12.7", features = ["rustls-tls", "json"], default-features = false}
+rockbox-sys = {path = "../sys"}
 tokio = {version = "1.36.0", features = ["full"]}
 
 [build-dependencies]

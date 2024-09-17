@@ -4,7 +4,7 @@
 /// <reference lib="esnext" />
 
 declare interface Playback {
-  play(): Promise<void>;
+  play(elapsed: number, offset: number): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
   next(): Promise<void>;
@@ -12,7 +12,7 @@ declare interface Playback {
   fastForwardRewind(): Promise<void>;
   status(): Promise<void>;
   currentTrack(): Promise<void>;
-  flushAndReload(): Promise<void>;
+  flushAndReloadTracks(): Promise<void>;
   getFilePosition(): Promise<void>;
   hardStop(): Promise<void>;
 }

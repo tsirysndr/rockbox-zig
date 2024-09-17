@@ -1,5 +1,4 @@
-const { core } = Deno;
-const { ops } = core;
+const { ops } = Deno.core;
 
 const browse = {
   rockboxBrowse: () => {
