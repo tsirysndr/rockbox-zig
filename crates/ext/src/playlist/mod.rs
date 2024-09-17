@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use deno_core::{extension, op2};
+use deno_core::{error::AnyError, extension, op2};
+
+use crate::rockbox_url;
 
 extension!(
     rb_playlist,
@@ -12,7 +14,7 @@ extension!(
         op_get_display_index,
         op_amount,
         op_playlist_resume,
-        op_resume_track,
+        op_playlist_resume_track,
         op_set_modified,
         op_start,
         op_sync,
@@ -50,10 +52,20 @@ pub async fn op_get_display_index() {}
 pub async fn op_amount() {}
 
 #[op2(async)]
-pub async fn op_playlist_resume() {}
+pub async fn op_playlist_resume() -> Result<(), AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlist_resume", rockbox_url());
+    client.get(&url).send().await?;
+    Ok(())
+}
 
 #[op2(async)]
-pub async fn op_resume_track() {}
+pub async fn op_playlist_resume_track() -> Result<(), AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlist_resume_track", rockbox_url());
+    client.get(&url).send().await?;
+    Ok(())
+}
 
 #[op2(async)]
 pub async fn op_set_modified() {}
