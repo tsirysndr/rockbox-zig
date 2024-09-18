@@ -1,19 +1,20 @@
-use crate::{PlaylistInfo, PlaylistTrackInfo};
+use crate::{types::playlist_info::PlaylistInfo, PlaylistTrackInfo};
 use std::ffi::{c_int, CString};
 
 pub fn get_current() -> PlaylistInfo {
-    unsafe { crate::playlist_get_current() }
+    let playlist = unsafe { crate::playlist_get_current() };
+    playlist.into()
 }
 
 pub fn get_resume_info(mut resume_index: i32) -> i32 {
     unsafe { crate::playlist_get_resume_info(&mut resume_index as *mut i32 as *mut c_int) }
 }
 
-pub fn get_track_info(playlist: PlaylistInfo, index: i32, info: PlaylistTrackInfo) -> i32 {
+pub fn get_track_info(playlist: crate::PlaylistInfo, index: i32, info: PlaylistTrackInfo) -> i32 {
     unsafe { crate::playlist_get_track_info(playlist, index, info) }
 }
 
-pub fn get_first_index(info: *mut PlaylistInfo) -> i32 {
+pub fn get_first_index(info: *mut crate::PlaylistInfo) -> i32 {
     unsafe { crate::playlist_get_first_index(info) }
 }
 
@@ -33,7 +34,7 @@ pub fn resume_track(start_index: i32, crc: u32, elapsed: u64, offset: u64) {
     unsafe { crate::playlist_resume_track(start_index, crc, elapsed, offset) }
 }
 
-pub fn set_modified(playlist: *mut PlaylistInfo, modified: bool) {
+pub fn set_modified(playlist: *mut crate::PlaylistInfo, modified: bool) {
     unsafe { crate::playlist_set_modified(playlist, modified as u8) }
 }
 
@@ -41,11 +42,11 @@ pub fn start(start_index: i32, elapsed: u64, offset: u64) {
     unsafe { crate::playlist_start(start_index, elapsed, offset) }
 }
 
-pub fn sync(playlist: *mut PlaylistInfo) {
+pub fn sync(playlist: *mut crate::PlaylistInfo) {
     unsafe { crate::playlist_sync(playlist) }
 }
 
-pub fn remove_all_tracks(playlist: *mut PlaylistInfo) -> i32 {
+pub fn remove_all_tracks(playlist: *mut crate::PlaylistInfo) -> i32 {
     unsafe { crate::playlist_remove_all_tracks(playlist) }
 }
 
@@ -56,7 +57,7 @@ pub fn create(dir: &str, file: &str) -> i32 {
 }
 
 pub fn insert_track(
-    playlist: *mut PlaylistInfo,
+    playlist: *mut crate::PlaylistInfo,
     filename: &str,
     position: i32,
     queue: bool,
@@ -75,7 +76,7 @@ pub fn insert_track(
 }
 
 pub fn insert_directory(
-    playlist: *mut PlaylistInfo,
+    playlist: *mut crate::PlaylistInfo,
     dir: &str,
     position: i32,
     queue: bool,
@@ -94,7 +95,7 @@ pub fn insert_directory(
 }
 
 pub fn insert_playlist(
-    playlist: *mut PlaylistInfo,
+    playlist: *mut crate::PlaylistInfo,
     filename: &str,
     position: i32,
     queue: bool,

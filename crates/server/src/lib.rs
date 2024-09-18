@@ -93,6 +93,15 @@ fn handle_connection(mut stream: TcpStream) {
         "/stop" => {
             rb::playback::hard_stop();
         }
+        "/current_playlist" => {
+            let playlist = rb::playlist::get_current();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&playlist).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
         "/playlist_resume" => {
             rb::playlist::resume();
         }
