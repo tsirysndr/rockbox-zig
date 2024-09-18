@@ -46,7 +46,7 @@ pub extern "C" fn start_server() {
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No incoming connection, just sleep and retry
-                rb::system::sleep(rb::HZ / 2 as f32);
+                rb::system::sleep(rb::HZ);
             }
             Err(e) => {
                 eprintln!("Error accepting connection: {}", e);
@@ -68,6 +68,8 @@ fn handle_connection(mut stream: TcpStream) {
     let request = http_request[0].split_whitespace().collect::<Vec<_>>();
     let method = request[0];
     let path = request[1];
+
+    println!("{} {}", method.bright_cyan(), path);
 
     if method != "GET" {
         let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
@@ -126,6 +128,46 @@ fn handle_connection(mut stream: TcpStream) {
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
                 serde_json::to_string(&settings).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/flush_and_reload_tracks" => {
+            rb::playback::flush_and_reload_tracks();
+            return;
+        }
+        "/next_track" => {
+            let track = rb::playback::next_track();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&track).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/current_track" => {
+            let track = rb::playback::current_track();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&track).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/audio_status" => {
+            let status = rb::playback::status();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&status).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/file_position" => {
+            let position = rb::playback::get_file_pos();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&position).unwrap()
             );
             stream.write_all(response.as_bytes()).unwrap();
             return;

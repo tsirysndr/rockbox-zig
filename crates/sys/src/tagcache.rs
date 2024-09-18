@@ -25,7 +25,7 @@ pub fn get_numeric(tcs: *mut TagcacheSearch, tag: i32) -> i64 {
     unsafe { crate::tagcache_get_numeric(tcs, tag) }
 }
 
-pub fn get_stat() -> *mut TagcacheStat {
+pub fn get_stat() -> TagcacheStat {
     unsafe { crate::tagcache_get_stat() }
 }
 

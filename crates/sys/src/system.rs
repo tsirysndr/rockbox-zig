@@ -15,7 +15,7 @@ pub fn get_global_status() -> SystemStatus {
     unsafe { crate::global_status }.into()
 }
 
-pub fn sleep(ticks: f32) {
+pub fn sleep(ticks: i32) {
     unsafe {
         crate::sleep(ticks);
     }

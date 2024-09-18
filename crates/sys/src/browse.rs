@@ -6,15 +6,15 @@ pub fn rockbox_browse(ctx: *mut BrowseContext) -> i32 {
     unsafe { crate::rockbox_browse(ctx) }
 }
 
-pub fn tree_get_context() -> *mut TreeContext {
+pub fn tree_get_context() -> TreeContext {
     unsafe { crate::tree_get_context() }
 }
 
-pub fn tree_get_entries(ctx: *mut TreeContext) -> *mut Entry {
+pub fn tree_get_entries(ctx: *mut TreeContext) -> Entry {
     unsafe { crate::tree_get_entries(ctx) }
 }
 
-pub fn tree_get_entry_at(ctx: *mut TreeContext, index: i32) -> *mut Entry {
+pub fn tree_get_entry_at(ctx: *mut TreeContext, index: i32) -> Entry {
     unsafe { crate::tree_get_entry_at(ctx, index) }
 }
 

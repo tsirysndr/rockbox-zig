@@ -36,7 +36,7 @@ pub fn configure(dsp: *mut DspConfig, setting: u32, value: i64) -> i64 {
     unsafe { crate::dsp_configure(dsp, setting, value) }
 }
 
-pub fn get_config(dsp_id: i32) -> *mut DspConfig {
+pub fn get_config(dsp_id: i32) -> DspConfig {
     unsafe { crate::dsp_get_config(dsp_id) }
 }
 

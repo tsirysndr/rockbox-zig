@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_float, c_int, c_long, c_uchar, c_uint, c_ulong, c_void};
+use std::ffi::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong, c_void};
 
 pub mod browse;
 pub mod dir;
@@ -20,7 +20,7 @@ const MAX_PATH: usize = 260;
 const ID3V2_BUF_SIZE: usize = 1800;
 const MAX_PATHNAME: usize = 80;
 const NB_SCREENS: usize = 2;
-pub const HZ: f32 = 100.0;
+pub const HZ: i32 = 100;
 
 #[macro_export]
 macro_rules! cast_ptr {
@@ -35,6 +35,20 @@ macro_rules! cast_ptr {
             $ptr as *const i8
         }
     }};
+}
+
+#[macro_export]
+macro_rules! get_string_from_ptr {
+    ($ptr:expr) => {
+        unsafe {
+            match $ptr.is_null() {
+                true => String::new(),
+                false => std::ffi::CStr::from_ptr($ptr)
+                    .to_string_lossy()
+                    .into_owned(),
+            }
+        }
+    };
 }
 
 #[repr(C)]
@@ -96,10 +110,10 @@ pub struct Mp3Entry {
     pub has_embedded_albumart: bool,         // bool has_embedded_albumart
     pub albumart: *mut c_void,               // struct mp3_albumart albumart
     pub has_embedded_cuesheet: bool,         // bool has_embedded_cuesheet
-    pub embedded_cuesheet: *mut c_void,      // struct embedded_cuesheet embedded_cuesheet
-    pub cuesheet: *mut c_void,               // struct cuesheet* cuesheet
-    pub mb_track_id: *mut c_char,            // char* mb_track_id
-    pub is_asf_stream: bool,                 // bool is_asf_stream
+    // pub embedded_cuesheet: *mut c_void,      // struct embedded_cuesheet embedded_cuesheet
+    // pub cuesheet: *mut c_void,               // struct cuesheet* cuesheet
+    pub mb_track_id: *mut c_char, // char* mb_track_id
+    pub is_asf_stream: bool,      // bool is_asf_stream
 }
 
 const PLAYLIST_CONTROL_FILE: &str = "./config/rockbox.org/.playlist_control";
@@ -1026,12 +1040,12 @@ extern "C" {
     fn audio_hard_stop() -> c_void;
 
     // Playlist control
-    fn playlist_get_current() -> *mut PlaylistInfo;
+    fn playlist_get_current() -> PlaylistInfo;
     fn playlist_get_resume_info(resume_index: *mut c_int) -> c_int;
     fn playlist_get_track_info(
-        playlist: *mut PlaylistInfo,
+        playlist: PlaylistInfo,
         index: c_int,
-        info: *mut PlaylistTrackInfo,
+        info: PlaylistTrackInfo,
     ) -> c_int;
     fn playlist_get_first_index(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_get_display_index() -> c_int;
@@ -1098,7 +1112,7 @@ extern "C" {
     fn dsp_timestretch_enable(enabled: c_uchar);
     fn dsp_timestretch_available() -> c_uchar;
     fn dsp_configure(dsp: *mut DspConfig, setting: c_uint, value: c_long) -> c_long;
-    fn dsp_get_config(dsp_id: c_int) -> *mut DspConfig;
+    fn dsp_get_config(dsp_id: c_int) -> DspConfig;
     fn dsp_process(dsp: *mut DspConfig, src: *mut DspBuffer, dst: *mut *mut DspBuffer);
     fn mixer_channel_status(channel: PcmMixerChannel) -> ChannelStatus;
     fn mixer_channel_get_buffer(channel: PcmMixerChannel, count: *mut c_int) -> *mut c_void;
@@ -1123,9 +1137,9 @@ extern "C" {
 
     // Browsing
     fn rockbox_browse(browse: *mut BrowseContext) -> c_int;
-    fn tree_get_context() -> *mut TreeContext;
-    fn tree_get_entries(t: *mut TreeContext) -> *mut Entry;
-    fn tree_get_entry_at(t: *mut TreeContext, index: c_int) -> *mut Entry;
+    fn tree_get_context() -> TreeContext;
+    fn tree_get_entries(t: *mut TreeContext) -> Entry;
+    fn tree_get_entry_at(t: *mut TreeContext, index: c_int) -> Entry;
     fn set_current_file(path: *const c_char);
     fn set_dirfilter(l_dirfilter: c_int);
     fn onplay_show_playlist_menu(
@@ -1147,12 +1161,12 @@ extern "C" {
     ) -> c_uchar;
 
     // Directory
-    fn opendir(dirname: *const c_char) -> *mut Dir;
+    fn opendir(dirname: *const c_char) -> Dir;
     fn closedir(dirp: *mut Dir) -> c_int;
-    fn readdir(dirp: *mut Dir) -> *mut dirent;
+    fn readdir(dirp: *mut Dir) -> dirent;
     fn mkdir(path: *const c_char) -> c_int;
     fn rmdir(path: *const c_char) -> c_int;
-    fn dir_get_info(dirp: *mut Dir, entry: *mut dirent) -> *mut Dirent;
+    fn dir_get_info(dirp: *mut Dir, entry: *mut dirent) -> Dirent;
 
     // File
     fn open_utf8();
@@ -1207,7 +1221,7 @@ extern "C" {
     // fn tagcahe_retrieve(tcs: *mut TagcacheSearch, idxid: c_int, tag: c_int) -> c_uchar;
     // fn tagcache_search_finish(tcs: *mut TagcacheSearch);
     fn tagcache_get_numeric(tcs: *mut TagcacheSearch, tag: c_int) -> c_long;
-    fn tagcache_get_stat() -> *mut TagcacheStat;
+    fn tagcache_get_stat() -> TagcacheStat;
     fn tagcache_commit_finalize();
     fn tagtree_subentries_do_action(cb: ActionCb) -> c_uchar;
     fn search_albumart_files(
@@ -1218,7 +1232,7 @@ extern "C" {
     ) -> c_uchar;
 
     // Kernel / System
-    fn sleep(ticks: c_float);
+    fn sleep(ticks: c_int);
     fn r#yield();
     fn current_tick();
     fn default_event_handler(event: c_long);
@@ -1246,8 +1260,8 @@ extern "C" {
     fn root_menu_load_from_cfg();
 
     // Settings
-    fn get_settings_list(count: *mut c_int) -> *mut SettingsList;
-    fn find_setting(variable: *const c_void) -> *mut SettingsList;
+    fn get_settings_list(count: *mut c_int) -> SettingsList;
+    fn find_setting(variable: *const c_void) -> SettingsList;
     fn settings_save() -> c_int;
     fn option_screen(
         setting: *mut SettingsList,

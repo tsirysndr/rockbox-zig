@@ -16,7 +16,10 @@ pub mod api {
             system_status::SystemStatus,
             user_settings::{CompressorSettings, EqBandSetting, ReplaygainSettings, UserSettings},
         };
-        use v1alpha1::{CurrentTrackResponse, GetGlobalSettingsResponse, GetGlobalStatusResponse};
+        use v1alpha1::{
+            CurrentTrackResponse, GetGlobalSettingsResponse, GetGlobalStatusResponse,
+            NextTrackResponse,
+        };
 
         #[path = "rockbox.v1alpha1.rs"]
         pub mod v1alpha1;
@@ -45,6 +48,7 @@ pub mod api {
                 let filesize = mp3entry.filesize;
                 let length = mp3entry.length;
                 let elapsed = mp3entry.elapsed;
+                let path = mp3entry.path;
 
                 CurrentTrackResponse {
                     title,
@@ -67,6 +71,119 @@ pub mod api {
                     filesize,
                     length,
                     elapsed,
+                    path,
+                }
+            }
+        }
+
+        impl From<Option<Mp3Entry>> for CurrentTrackResponse {
+            fn from(mp3entry: Option<Mp3Entry>) -> Self {
+                match mp3entry {
+                    Some(mp3entry) => mp3entry.into(),
+                    None => CurrentTrackResponse {
+                        title: "".to_string(),
+                        artist: "".to_string(),
+                        album: "".to_string(),
+                        genre: "".to_string(),
+                        disc: "".to_string(),
+                        track_string: "".to_string(),
+                        year_string: "".to_string(),
+                        composer: "".to_string(),
+                        album_artist: "".to_string(),
+                        comment: "".to_string(),
+                        grouping: "".to_string(),
+                        discnum: 0,
+                        tracknum: 0,
+                        layer: 0,
+                        year: 0,
+                        bitrate: 0,
+                        frequency: 0,
+                        filesize: 0,
+                        length: 0,
+                        elapsed: 0,
+                        path: "".to_string(),
+                    },
+                }
+            }
+        }
+
+        impl From<Mp3Entry> for NextTrackResponse {
+            fn from(mp3entry: Mp3Entry) -> Self {
+                let title = mp3entry.title;
+                let artist = mp3entry.artist;
+                let album = mp3entry.album;
+                let genre = mp3entry.genre_string;
+                let disc = mp3entry.disc_string;
+                let track_string = mp3entry.track_string;
+                let year_string = mp3entry.year_string;
+                let composer = mp3entry.composer;
+                let album_artist = mp3entry.albumartist;
+                let comment = mp3entry.comment;
+                let grouping = mp3entry.grouping;
+                let discnum = mp3entry.discnum;
+                let tracknum = mp3entry.tracknum;
+                let layer = mp3entry.layer;
+                let year = mp3entry.year;
+                let bitrate = mp3entry.bitrate;
+                let frequency = mp3entry.frequency;
+                let filesize = mp3entry.filesize;
+                let length = mp3entry.length;
+                let elapsed = mp3entry.elapsed;
+                let path = mp3entry.path;
+
+                NextTrackResponse {
+                    title,
+                    artist,
+                    album,
+                    genre,
+                    disc,
+                    track_string,
+                    year_string,
+                    composer,
+                    album_artist,
+                    comment,
+                    grouping,
+                    discnum,
+                    tracknum,
+                    layer,
+                    year,
+                    bitrate,
+                    frequency,
+                    filesize,
+                    length,
+                    elapsed,
+                    path,
+                }
+            }
+        }
+
+        impl From<Option<Mp3Entry>> for NextTrackResponse {
+            fn from(mp3entry: Option<Mp3Entry>) -> Self {
+                match mp3entry {
+                    Some(mp3entry) => mp3entry.into(),
+                    None => NextTrackResponse {
+                        title: "".to_string(),
+                        artist: "".to_string(),
+                        album: "".to_string(),
+                        genre: "".to_string(),
+                        disc: "".to_string(),
+                        track_string: "".to_string(),
+                        year_string: "".to_string(),
+                        composer: "".to_string(),
+                        album_artist: "".to_string(),
+                        comment: "".to_string(),
+                        grouping: "".to_string(),
+                        discnum: 0,
+                        tracknum: 0,
+                        layer: 0,
+                        year: 0,
+                        bitrate: 0,
+                        frequency: 0,
+                        filesize: 0,
+                        length: 0,
+                        elapsed: 0,
+                        path: "".to_string(),
+                    },
                 }
             }
         }

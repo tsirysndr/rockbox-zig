@@ -1,4 +1,4 @@
-use crate::types::mp3_entry::Mp3Entry;
+use crate::types::{audio_status::AudioStatus, file_position::FilePosition, mp3_entry::Mp3Entry};
 
 pub fn pause() {
     unsafe {
@@ -36,18 +36,39 @@ pub fn ff_rewind(newtime: i32) {
     }
 }
 
-pub fn next_track() -> Mp3Entry {
-    let track = unsafe { crate::audio_next_track().as_ref().unwrap() };
-    (*track).into()
+pub fn next_track() -> Option<Mp3Entry> {
+    let track = unsafe { crate::audio_next_track() };
+
+    if track.is_null() {
+        return None;
+    }
+
+    let track = unsafe { track.as_ref() };
+
+    match track {
+        Some(track) => Some((*track).into()),
+        None => None,
+    }
 }
 
-pub fn status() -> i32 {
-    unsafe { crate::audio_status() }
+pub fn status() -> AudioStatus {
+    let status = unsafe { crate::audio_status() };
+    return AudioStatus { status };
 }
 
-pub fn current_track() -> Mp3Entry {
-    let track = unsafe { crate::audio_current_track().as_ref().unwrap() };
-    (*track).into()
+pub fn current_track() -> Option<Mp3Entry> {
+    let track = unsafe { crate::audio_current_track() };
+
+    if track.is_null() {
+        return None;
+    }
+
+    let track = unsafe { track.as_ref() };
+
+    match track {
+        Some(track) => Some((*track).into()),
+        None => None,
+    }
 }
 
 pub fn flush_and_reload_tracks() {
@@ -56,8 +77,9 @@ pub fn flush_and_reload_tracks() {
     }
 }
 
-pub fn get_file_pos() -> i32 {
-    unsafe { crate::audio_get_file_pos() }
+pub fn get_file_pos() -> FilePosition {
+    let position = unsafe { crate::audio_get_file_pos() };
+    FilePosition { position }
 }
 
 pub fn hard_stop() {

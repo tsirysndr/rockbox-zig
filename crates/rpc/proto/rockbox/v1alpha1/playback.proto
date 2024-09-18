@@ -7,49 +7,37 @@ message PlayRequest {
   int64 offset = 2;
 }
 
-message PlayResponse {
-}
+message PlayResponse {}
 
-message PauseRequest {
-}
+message PauseRequest {}
 
-message PauseResponse {
-}
+message PauseResponse {}
 
-message ResumeRequest {
-}
+message ResumeRequest {}
 
-message ResumeResponse {
-}
+message ResumeResponse {}
 
-message NextRequest {
-}
+message NextRequest {}
 
-message NextResponse {
-}
+message NextResponse {}
 
-message PreviousRequest {
-}
+message PreviousRequest {}
 
-message PreviousResponse {
-}
+message PreviousResponse {}
 
 message FastForwardRewindRequest {
   int32 new_time = 1;
 }
 
-message FastForwardRewindResponse {
-}
+message FastForwardRewindResponse {}
 
-message StatusRequest {
-}
+message StatusRequest {}
 
 message StatusResponse {
   int32 status = 1;
 }
 
-message CurrentTrackRequest {
-}
+message CurrentTrackRequest {}
 
 message CurrentTrackResponse {
   string title = 1;
@@ -72,29 +60,51 @@ message CurrentTrackResponse {
   uint64 filesize = 18;
   uint64 length = 19;
   uint64 elapsed = 20;
+  string path = 21;
 }
 
-message FlushAndReloadTracksRequest {
+message NextTrackRequest {}
+
+message NextTrackResponse {
+  string title = 1;
+  string artist = 2;
+  string album = 3;
+  string genre = 4;
+  string disc = 5;
+  string track_string = 6;
+  string year_string = 7;
+  string composer = 8;
+  string comment = 9;
+  string album_artist = 10;
+  string grouping = 11;
+  int32 discnum = 12;
+  int32 tracknum = 13;
+  int32 layer = 14;
+  int32 year = 15;
+  uint32 bitrate = 16;
+  uint64 frequency = 17;
+  uint64 filesize = 18;
+  uint64 length = 19;
+  uint64 elapsed = 20;
+  string path = 21;
 }
 
-message FlushAndReloadTracksResponse {
-}
+message FlushAndReloadTracksRequest {}
 
-message GetFilePositionRequest {
-}
+message FlushAndReloadTracksResponse {}
+
+message GetFilePositionRequest {}
 
 message GetFilePositionResponse {
   int32 position = 1;
 }
 
-message HardStopRequest {
-}
+message HardStopRequest {}
 
-message HardStopResponse {
-}
+message HardStopResponse {}
 
 service PlaybackService {
-  rpc Play(PlayRequest) returns (PlayResponse) {} 
+  rpc Play(PlayRequest) returns (PlayResponse) {}
   rpc Pause(PauseRequest) returns (PauseResponse) {}
   rpc Resume(ResumeRequest) returns (ResumeResponse) {}
   rpc Next(NextRequest) returns (NextResponse) {}
@@ -102,6 +112,7 @@ service PlaybackService {
   rpc FastForwardRewind(FastForwardRewindRequest) returns (FastForwardRewindResponse) {}
   rpc Status(StatusRequest) returns (StatusResponse) {}
   rpc CurrentTrack(CurrentTrackRequest) returns (CurrentTrackResponse) {}
+  rpc NextTrack(NextTrackRequest) returns (NextTrackResponse) {}
   rpc FlushAndReloadTracks(FlushAndReloadTracksRequest) returns (FlushAndReloadTracksResponse) {}
   rpc GetFilePosition(GetFilePositionRequest) returns (GetFilePositionResponse) {}
   rpc HardStop(HardStopRequest) returns (HardStopResponse) {}
