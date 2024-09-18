@@ -33,9 +33,7 @@ impl From<crate::PlaylistInfo> for PlaylistInfo {
             fd: info.fd,
             control_fd: info.control_fd,
             max_playlist_size: info.max_playlist_size,
-            indices: unsafe {
-                Vec::from_raw_parts(info.indices, info.amount as usize, info.amount as usize)
-            },
+            indices: vec![],
             index: info.index,
             first_index: info.first_index,
             amount: info.amount,

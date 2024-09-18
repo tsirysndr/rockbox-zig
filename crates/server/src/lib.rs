@@ -95,6 +95,15 @@ fn handle_connection(mut stream: TcpStream) {
         }
         "/current_playlist" => {
             let playlist = rb::playlist::get_current();
+            let info = rb::playlist::get_track_info(0);
+            println!("info: {:?}", info);
+            let info = rb::playlist::get_track_info(1);
+            println!("info: {:?}", info);
+            let info = rb::playlist::get_track_info(2);
+            println!("info: {:?}", info);
+            let amount = rb::playlist::amount();
+            println!("amount: {}", amount);
+
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
                 serde_json::to_string(&playlist).unwrap()

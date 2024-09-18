@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong, c_void};
+use std::ffi::{c_char, c_int, c_long, c_short, c_uchar, c_uint, c_ulong, c_void};
 
 pub mod browse;
 pub mod dir;
@@ -16,7 +16,7 @@ pub mod system;
 pub mod tagcache;
 pub mod types;
 
-const MAX_PATH: usize = 260;
+pub const MAX_PATH: usize = 260;
 const ID3V2_BUF_SIZE: usize = 1800;
 const MAX_PATHNAME: usize = 80;
 const NB_SCREENS: usize = 2;
@@ -128,7 +128,7 @@ pub struct PlaylistInfo {
     pub fd: c_int,                     // int fd
     pub control_fd: c_int,             // int control_fd
     pub max_playlist_size: c_int,      // int max_playlist_size
-    pub indices: *mut c_ulong,         // unsigned long* indices
+    pub indices: [c_ulong; 200],       // unsigned long* indices
     pub index: c_int,                  // int index
     pub first_index: c_int,            // int first_index
     pub amount: c_int,                 // int amount
@@ -1045,8 +1045,10 @@ extern "C" {
     fn playlist_get_track_info(
         playlist: PlaylistInfo,
         index: c_int,
-        info: PlaylistTrackInfo,
+        info: *mut PlaylistTrackInfo,
     ) -> c_int;
+    fn get_track_info_from_current_playlist(index: i32) -> PlaylistTrackInfo;
+    fn get_current_playlist_amount() -> i32;
     fn playlist_get_first_index(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_get_display_index() -> c_int;
     fn playlist_amount() -> c_int;

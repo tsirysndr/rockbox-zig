@@ -1,4 +1,4 @@
-use crate::{types::playlist_info::PlaylistInfo, PlaylistTrackInfo};
+use crate::types::{playlist_info::PlaylistInfo, playlist_track_info::PlaylistTrackInfo};
 use std::ffi::{c_int, CString};
 
 pub fn get_current() -> PlaylistInfo {
@@ -10,8 +10,9 @@ pub fn get_resume_info(mut resume_index: i32) -> i32 {
     unsafe { crate::playlist_get_resume_info(&mut resume_index as *mut i32 as *mut c_int) }
 }
 
-pub fn get_track_info(playlist: crate::PlaylistInfo, index: i32, info: PlaylistTrackInfo) -> i32 {
-    unsafe { crate::playlist_get_track_info(playlist, index, info) }
+pub fn get_track_info(index: i32) -> PlaylistTrackInfo {
+    let track_info = unsafe { crate::get_track_info_from_current_playlist(index) };
+    track_info.into()
 }
 
 pub fn get_first_index(info: *mut crate::PlaylistInfo) -> i32 {
