@@ -1,4 +1,5 @@
 use crate::cast_ptr;
+use crate::get_string_from_ptr;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -67,85 +68,17 @@ impl From<crate::Mp3Entry> for Mp3Entry {
                     .to_string_lossy()
                     .into_owned()
             },
-            title: unsafe {
-                std::ffi::CStr::from_ptr(entry.title)
-                    .to_string_lossy()
-                    .into_owned()
-            },
-            artist: unsafe {
-                std::ffi::CStr::from_ptr(entry.artist)
-                    .to_string_lossy()
-                    .into_owned()
-            },
-            album: unsafe {
-                std::ffi::CStr::from_ptr(entry.album)
-                    .to_string_lossy()
-                    .into_owned()
-            },
-            genre_string: unsafe {
-                match entry.genre_string.is_null() {
-                    true => String::new(),
-                    false => std::ffi::CStr::from_ptr(entry.genre_string)
-                        .to_string_lossy()
-                        .into_owned(),
-                }
-            },
-            disc_string: unsafe {
-                match entry.disc_string.is_null() {
-                    true => String::new(),
-                    false => std::ffi::CStr::from_ptr(entry.disc_string)
-                        .to_string_lossy()
-                        .into_owned(),
-                }
-            },
-            track_string: unsafe {
-                match entry.track_string.is_null() {
-                    true => String::new(),
-                    false => std::ffi::CStr::from_ptr(entry.track_string)
-                        .to_string_lossy()
-                        .into_owned(),
-                }
-            },
-            year_string: unsafe {
-                match entry.year_string.is_null() {
-                    true => String::new(),
-                    false => std::ffi::CStr::from_ptr(entry.year_string)
-                        .to_string_lossy()
-                        .into_owned(),
-                }
-            },
-            composer: unsafe {
-                match entry.composer.is_null() {
-                    true => String::new(),
-                    false => std::ffi::CStr::from_ptr(entry.composer)
-                        .to_string_lossy()
-                        .into_owned(),
-                }
-            },
-            comment: unsafe {
-                match entry.comment.is_null() {
-                    true => String::new(),
-                    false => std::ffi::CStr::from_ptr(entry.comment)
-                        .to_string_lossy()
-                        .into_owned(),
-                }
-            },
-            albumartist: unsafe {
-                match entry.albumartist.is_null() {
-                    true => String::new(),
-                    false => std::ffi::CStr::from_ptr(entry.albumartist)
-                        .to_string_lossy()
-                        .into_owned(),
-                }
-            },
-            grouping: unsafe {
-                match entry.grouping.is_null() {
-                    true => String::new(),
-                    false => std::ffi::CStr::from_ptr(entry.grouping)
-                        .to_string_lossy()
-                        .into_owned(),
-                }
-            },
+            title: get_string_from_ptr!(entry.title),
+            artist: get_string_from_ptr!(entry.artist),
+            album: get_string_from_ptr!(entry.album),
+            genre_string: get_string_from_ptr!(entry.genre_string),
+            disc_string: get_string_from_ptr!(entry.disc_string),
+            track_string: get_string_from_ptr!(entry.track_string),
+            year_string: get_string_from_ptr!(entry.year_string),
+            composer: get_string_from_ptr!(entry.composer),
+            comment: get_string_from_ptr!(entry.comment),
+            albumartist: get_string_from_ptr!(entry.albumartist),
+            grouping: get_string_from_ptr!(entry.grouping),
             discnum: entry.discnum,
             tracknum: entry.tracknum,
             layer: entry.layer,
@@ -190,14 +123,7 @@ impl From<crate::Mp3Entry> for Mp3Entry {
             track_peak: entry.track_peak,
             album_peak: entry.album_peak,
             has_embedded_albumart: entry.has_embedded_albumart,
-            mb_track_id: unsafe {
-                match entry.mb_track_id.is_null() {
-                    true => String::new(),
-                    false => std::ffi::CStr::from_ptr(entry.mb_track_id)
-                        .to_string_lossy()
-                        .into_owned(),
-                }
-            },
+            mb_track_id: get_string_from_ptr!(entry.mb_track_id),
             is_asf_stream: entry.is_asf_stream,
         }
     }

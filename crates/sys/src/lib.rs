@@ -37,6 +37,20 @@ macro_rules! cast_ptr {
     }};
 }
 
+#[macro_export]
+macro_rules! get_string_from_ptr {
+    ($ptr:expr) => {
+        unsafe {
+            match $ptr.is_null() {
+                true => String::new(),
+                false => std::ffi::CStr::from_ptr($ptr)
+                    .to_string_lossy()
+                    .into_owned(),
+            }
+        }
+    };
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct Mp3Entry {
