@@ -62,7 +62,11 @@ pub struct Mp3Entry {
 impl From<crate::Mp3Entry> for Mp3Entry {
     fn from(entry: crate::Mp3Entry) -> Self {
         Self {
-            path: String::from_utf8_lossy(&entry.path).to_string(),
+            path: unsafe {
+                std::ffi::CStr::from_ptr(cast_ptr!(entry.path.as_ptr()))
+                    .to_string_lossy()
+                    .into_owned()
+            },
             title: unsafe {
                 std::ffi::CStr::from_ptr(entry.title)
                     .to_string_lossy()
