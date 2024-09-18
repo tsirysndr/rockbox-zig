@@ -46,7 +46,7 @@ pub extern "C" fn start_server() {
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No incoming connection, just sleep and retry
-                rb::system::sleep(rb::HZ / 4 as f32);
+                rb::system::sleep(rb::HZ / 2 as f32);
             }
             Err(e) => {
                 eprintln!("Error accepting connection: {}", e);
@@ -68,6 +68,8 @@ fn handle_connection(mut stream: TcpStream) {
     let request = http_request[0].split_whitespace().collect::<Vec<_>>();
     let method = request[0];
     let path = request[1];
+
+    println!("{} {}", method.bright_cyan(), path);
 
     if method != "GET" {
         let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
