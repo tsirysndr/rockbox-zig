@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_float, c_int, c_long, c_uchar, c_uint, c_ulong, c_void};
+use std::ffi::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong, c_void};
 
 pub mod browse;
 pub mod dir;
@@ -20,7 +20,7 @@ const MAX_PATH: usize = 260;
 const ID3V2_BUF_SIZE: usize = 1800;
 const MAX_PATHNAME: usize = 80;
 const NB_SCREENS: usize = 2;
-pub const HZ: f32 = 100.0;
+pub const HZ: i32 = 100;
 
 #[macro_export]
 macro_rules! cast_ptr {
@@ -1232,7 +1232,7 @@ extern "C" {
     ) -> c_uchar;
 
     // Kernel / System
-    fn sleep(ticks: c_float);
+    fn sleep(ticks: c_int);
     fn r#yield();
     fn current_tick();
     fn default_event_handler(event: c_long);

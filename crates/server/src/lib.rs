@@ -46,7 +46,7 @@ pub extern "C" fn start_server() {
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No incoming connection, just sleep and retry
-                rb::system::sleep(rb::HZ / 2 as f32);
+                rb::system::sleep(rb::HZ);
             }
             Err(e) => {
                 eprintln!("Error accepting connection: {}", e);

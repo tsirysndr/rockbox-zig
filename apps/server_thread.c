@@ -43,7 +43,6 @@ extern void start_servers(void);
 extern void debugfn(const char *fmt);
 
 static void server_thread(void) {
-    start_servers();
     start_server();
 }
 
@@ -65,12 +64,14 @@ void INIT_ATTR server_init(void)
        to send messages. Thread creation will be delayed however so nothing
        starts running until ready if something yields such as talk_init. */
     // queue_init(&server_queue, true);
-
-    /* This thread does buffer, so match its priority */
     server_thread_id = create_thread(server_thread, server_stack,
                   sizeof(server_stack), 0, server_thread_name
                   IF_PRIO(,  PRIORITY_USER_INTERFACE)
                   IF_COP(, CPU));
+
+    sleep(HZ); /* Give it a chance to start */
+    
+    start_servers();
 
    /* Probably safe to say */
     server_is_initialized = true;
