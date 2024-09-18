@@ -1,27 +1,48 @@
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
 use async_graphql::*;
-use rockbox_sys::{self as rb, events::RockboxCommand};
+use rockbox_sys::{
+    events::RockboxCommand,
+    types::{audio_status::AudioStatus, file_position::FilePosition, mp3_entry::Mp3Entry},
+};
 
-use crate::schema::objects::track::Track;
+use crate::{rockbox_url, schema::objects::track::Track};
 
 #[derive(Default)]
 pub struct PlaybackQuery;
 
 #[Object]
 impl PlaybackQuery {
-    async fn status(&self) -> String {
-        rb::playback::status();
-        "status".to_string()
+    async fn status(&self) -> Result<i32, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/audio_status", rockbox_url());
+        let response = client.get(&url).send().await?;
+        let response = response.json::<AudioStatus>().await?;
+        Ok(response.status)
     }
 
-    async fn current_track(&self) -> Option<Track> {
-        let mp3entry = rb::playback::current_track();
-        Some(mp3entry.into())
+    async fn current_track(&self, ctx: &Context<'_>) -> Result<Option<Track>, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/current_track", rockbox_url());
+        let response = client.get(&url).send().await?;
+        let track = response.json::<Option<Mp3Entry>>().await?;
+        Ok(track.map(|t| t.into()))
     }
 
-    async fn get_file_position(&self) -> i32 {
-        rb::playback::get_file_pos()
+    async fn next_track(&self, ctx: &Context<'_>) -> Result<Option<Track>, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/next_track", rockbox_url());
+        let response = client.get(&url).send().await?;
+        let track = response.json::<Option<Mp3Entry>>().await?;
+        Ok(track.map(|t| t.into()))
+    }
+
+    async fn get_file_position(&self, ctx: &Context<'_>) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/file_position", rockbox_url());
+        let response = client.get(&url).send().await?;
+        let response = response.json::<FilePosition>().await?;
+        Ok(response.position)
     }
 }
 

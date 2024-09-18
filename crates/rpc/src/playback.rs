@@ -1,15 +1,19 @@
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
-use crate::api::rockbox::v1alpha1::{playback_service_server::PlaybackService, *};
-use rockbox_sys::{self as rb, events::RockboxCommand};
+use crate::{
+    api::rockbox::v1alpha1::{playback_service_server::PlaybackService, *},
+    rockbox_url,
+};
+use rockbox_sys::{self as rb, events::RockboxCommand, types::audio_status::AudioStatus};
 
 pub struct Playback {
     cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
+    client: reqwest::Client,
 }
 
 impl Playback {
-    pub fn new(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Self {
-        Self { cmd_tx }
+    pub fn new(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>, client: reqwest::Client) -> Self {
+        Self { cmd_tx, client }
     }
 }
 
@@ -30,7 +34,7 @@ impl PlaybackService for Playback {
 
     async fn pause(
         &self,
-        request: tonic::Request<PauseRequest>,
+        _request: tonic::Request<PauseRequest>,
     ) -> Result<tonic::Response<PauseResponse>, tonic::Status> {
         self.cmd_tx
             .lock()
@@ -42,7 +46,7 @@ impl PlaybackService for Playback {
 
     async fn resume(
         &self,
-        request: tonic::Request<ResumeRequest>,
+        _request: tonic::Request<ResumeRequest>,
     ) -> Result<tonic::Response<ResumeResponse>, tonic::Status> {
         self.cmd_tx
             .lock()
@@ -54,7 +58,7 @@ impl PlaybackService for Playback {
 
     async fn next(
         &self,
-        request: tonic::Request<NextRequest>,
+        _request: tonic::Request<NextRequest>,
     ) -> Result<tonic::Response<NextResponse>, tonic::Status> {
         self.cmd_tx
             .lock()
@@ -66,7 +70,7 @@ impl PlaybackService for Playback {
 
     async fn previous(
         &self,
-        request: tonic::Request<PreviousRequest>,
+        _request: tonic::Request<PreviousRequest>,
     ) -> Result<tonic::Response<PreviousResponse>, tonic::Status> {
         self.cmd_tx
             .lock()
@@ -91,23 +95,57 @@ impl PlaybackService for Playback {
 
     async fn status(
         &self,
-        request: tonic::Request<StatusRequest>,
+        _request: tonic::Request<StatusRequest>,
     ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
-        let status = rb::playback::status();
-        Ok(tonic::Response::new(StatusResponse::default()))
+        let response = self
+            .client
+            .get(&format!("{}/audio_status", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .json::<AudioStatus>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(StatusResponse {
+            status: response.status,
+        }))
     }
 
     async fn current_track(
         &self,
-        request: tonic::Request<CurrentTrackRequest>,
+        _request: tonic::Request<CurrentTrackRequest>,
     ) -> Result<tonic::Response<CurrentTrackResponse>, tonic::Status> {
-        let track = rb::playback::current_track();
+        let track = self
+            .client
+            .get(&format!("{}/current_track", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .json::<Option<rb::types::mp3_entry::Mp3Entry>>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(track.into()))
+    }
+
+    async fn next_track(
+        &self,
+        _request: tonic::Request<NextTrackRequest>,
+    ) -> Result<tonic::Response<NextTrackResponse>, tonic::Status> {
+        let track = self
+            .client
+            .get(&format!("{}/next_track", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .json::<Option<rb::types::mp3_entry::Mp3Entry>>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(track.into()))
     }
 
     async fn flush_and_reload_tracks(
         &self,
-        request: tonic::Request<FlushAndReloadTracksRequest>,
+        _request: tonic::Request<FlushAndReloadTracksRequest>,
     ) -> Result<tonic::Response<FlushAndReloadTracksResponse>, tonic::Status> {
         self.cmd_tx
             .lock()
@@ -119,15 +157,24 @@ impl PlaybackService for Playback {
 
     async fn get_file_position(
         &self,
-        request: tonic::Request<GetFilePositionRequest>,
+        _request: tonic::Request<GetFilePositionRequest>,
     ) -> Result<tonic::Response<GetFilePositionResponse>, tonic::Status> {
-        let position = rb::playback::get_file_pos();
+        let position = self
+            .client
+            .get(&format!("{}/file_position", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .json::<rb::types::file_position::FilePosition>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .position;
         Ok(tonic::Response::new(GetFilePositionResponse { position }))
     }
 
     async fn hard_stop(
         &self,
-        request: tonic::Request<HardStopRequest>,
+        _request: tonic::Request<HardStopRequest>,
     ) -> Result<tonic::Response<HardStopResponse>, tonic::Status> {
         self.cmd_tx
             .lock()

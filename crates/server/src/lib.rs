@@ -130,6 +130,46 @@ fn handle_connection(mut stream: TcpStream) {
             stream.write_all(response.as_bytes()).unwrap();
             return;
         }
+        "/flush_and_reload_tracks" => {
+            rb::playback::flush_and_reload_tracks();
+            return;
+        }
+        "/next_track" => {
+            let track = rb::playback::next_track();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&track).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/current_track" => {
+            let track = rb::playback::current_track();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&track).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/audio_status" => {
+            let status = rb::playback::status();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&status).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/file_position" => {
+            let position = rb::playback::get_file_pos();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&position).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
         _ => {
             if path.starts_with("/play") {
                 let params: Vec<_> = path.split('?').collect();

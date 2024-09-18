@@ -49,7 +49,7 @@ pub async fn start(
             Playlist::new(cmd_tx.clone()),
         )))
         .add_service(tonic_web::enable(PlaybackServiceServer::new(
-            Playback::new(cmd_tx.clone()),
+            Playback::new(cmd_tx.clone(), client.clone()),
         )))
         .add_service(tonic_web::enable(BrowseServiceServer::new(
             Browse::default(),

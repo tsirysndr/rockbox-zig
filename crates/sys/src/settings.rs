@@ -6,11 +6,11 @@ pub fn get_global_settings() -> UserSettings {
     unsafe { crate::global_settings }.into()
 }
 
-pub fn get_settings_list(mut count: i32) -> *mut SettingsList {
+pub fn get_settings_list(mut count: i32) -> SettingsList {
     unsafe { crate::get_settings_list(&mut count as *mut i32 as *mut c_int) }
 }
 
-pub fn find_setting(variable: *const c_void) -> *mut SettingsList {
+pub fn find_setting(variable: *const c_void) -> SettingsList {
     unsafe { crate::find_setting(variable) }
 }
 

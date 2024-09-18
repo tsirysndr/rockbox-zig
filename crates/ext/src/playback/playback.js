@@ -9,6 +9,7 @@ const playback = {
   fastForwardRewind: () => ops.op_fast_forward_rewind(),
   status: () => ops.op_status(),
   currentTrack: () => ops.op_current_track(),
+  nextTrack: () => ops.op_next_track(),
   flushAndReloadTracks: () => ops.op_flush_and_reload_tracks(),
   getFilePosition: () => ops.op_get_file_position(),
   hardStop: () => ops.op_hard_stop(),

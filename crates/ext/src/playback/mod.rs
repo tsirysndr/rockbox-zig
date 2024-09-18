@@ -1,6 +1,10 @@
 use std::path::PathBuf;
 
-use deno_core::{extension, op2};
+use deno_ast::swc::codegen::Result;
+use deno_core::{error::AnyError, extension, op2};
+use rockbox_sys::types::{
+    audio_status::AudioStatus, file_position::FilePosition, mp3_entry::Mp3Entry,
+};
 
 use crate::rockbox_url;
 
@@ -27,7 +31,7 @@ pub fn get_declaration() -> PathBuf {
 }
 
 #[op2(async)]
-pub async fn op_play(elapsed: i32, offset: i32) {
+pub async fn op_play(elapsed: i32, offset: i32) -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!(
         "{}/play?elapsed={}&offset={}",
@@ -35,63 +39,99 @@ pub async fn op_play(elapsed: i32, offset: i32) {
         elapsed,
         offset
     );
-    client.get(&url).send().await.unwrap();
+    client.get(&url).send().await?;
+    Ok(())
 }
 
 #[op2(async)]
-pub async fn op_pause() {
+pub async fn op_pause() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!("{}/pause", rockbox_url());
-    client.get(&url).send().await.unwrap();
+    client.get(&url).send().await?;
+    Ok(())
 }
 
 #[op2(async)]
-pub async fn op_resume() {
+pub async fn op_resume() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!("{}/resume", rockbox_url());
-    client.get(&url).send().await.unwrap();
+    client.get(&url).send().await?;
+    Ok(())
 }
 
 #[op2(async)]
-pub async fn op_next() {
+pub async fn op_next() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!("{}/next", rockbox_url());
-    client.get(&url).send().await.unwrap();
+    client.get(&url).send().await?;
+    Ok(())
 }
 
 #[op2(async)]
-pub async fn op_previous() {
+pub async fn op_previous() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!("{}/prev", rockbox_url());
-    client.get(&url).send().await.unwrap();
+    client.get(&url).send().await?;
+    Ok(())
 }
 
 #[op2(async)]
-pub async fn op_fast_forward_rewind() {
+pub async fn op_fast_forward_rewind() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!("{}/ff_rewind", rockbox_url());
-    client.get(&url).send().await.unwrap();
+    client.get(&url).send().await?;
+    Ok(())
 }
 
 #[op2(async)]
-pub async fn op_status() {}
+pub async fn op_status() -> Result<i32, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/audio_status", rockbox_url());
+    let response = client.get(&url).send().await?;
+    let response = response.json::<AudioStatus>().await?;
+    Ok(response.status)
+}
 
 #[op2(async)]
-pub async fn op_current_track() {}
+#[serde]
+pub async fn op_current_track() -> Result<Option<Mp3Entry>, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/current_track", rockbox_url());
+    let response = client.get(&url).send().await?;
+    let track = response.json::<Option<Mp3Entry>>().await?;
+    Ok(track)
+}
 
 #[op2(async)]
-pub async fn op_flush_and_reload_tracks() {
+#[serde]
+pub async fn op_next_track() -> Result<Option<Mp3Entry>, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/next_track", rockbox_url());
+    let response = client.get(&url).send().await?;
+    let track = response.json::<Option<Mp3Entry>>().await?;
+    Ok(track)
+}
+
+#[op2(async)]
+pub async fn op_flush_and_reload_tracks() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!("{}/flush_and_reload_tracks", rockbox_url());
-    client.get(&url).send().await.unwrap();
+    client.get(&url).send().await?;
 }
 
 #[op2(async)]
-pub async fn op_get_file_position() {}
+pub async fn op_get_file_position() -> Result<i32, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/file_position", rockbox_url());
+    let response = client.get(&url).send().await?;
+    let response = response.json::<FilePosition>().await?;
+    Ok(response.position)
+}
 
 #[op2(async)]
-pub async fn op_hard_stop() {
+pub async fn op_hard_stop() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!("{}/stop", rockbox_url());
-    client.get(&url).send().await.unwrap();
+    client.get(&url).send().await?;
+    Ok(())
 }

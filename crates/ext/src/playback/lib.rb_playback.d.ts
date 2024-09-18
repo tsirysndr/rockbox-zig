@@ -3,6 +3,8 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="esnext" />
 
+type Mp3Entry = {};
+
 declare interface Playback {
   play(elapsed: number, offset: number): Promise<void>;
   pause(): Promise<void>;
@@ -10,9 +12,10 @@ declare interface Playback {
   next(): Promise<void>;
   previous(): Promise<void>;
   fastForwardRewind(): Promise<void>;
-  status(): Promise<void>;
-  currentTrack(): Promise<void>;
+  status(): Promise<number>;
+  currentTrack(): Promise<Mp3Entry | null>;
+  nextTrack(): Promise<Mp3Entry | null>;
   flushAndReloadTracks(): Promise<void>;
-  getFilePosition(): Promise<void>;
+  getFilePosition(): Promise<number>;
   hardStop(): Promise<void>;
 }

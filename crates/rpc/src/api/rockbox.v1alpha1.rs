@@ -913,6 +913,51 @@ pub struct CurrentTrackResponse {
     pub elapsed: u64,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct NextTrackRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NextTrackResponse {
+    #[prost(string, tag = "1")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub artist: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub album: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub genre: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub disc: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub track_string: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub year_string: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub composer: ::prost::alloc::string::String,
+    #[prost(string, tag = "9")]
+    pub comment: ::prost::alloc::string::String,
+    #[prost(string, tag = "10")]
+    pub album_artist: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
+    pub grouping: ::prost::alloc::string::String,
+    #[prost(int32, tag = "12")]
+    pub discnum: i32,
+    #[prost(int32, tag = "13")]
+    pub tracknum: i32,
+    #[prost(int32, tag = "14")]
+    pub layer: i32,
+    #[prost(int32, tag = "15")]
+    pub year: i32,
+    #[prost(uint32, tag = "16")]
+    pub bitrate: u32,
+    #[prost(uint64, tag = "17")]
+    pub frequency: u64,
+    #[prost(uint64, tag = "18")]
+    pub filesize: u64,
+    #[prost(uint64, tag = "19")]
+    pub length: u64,
+    #[prost(uint64, tag = "20")]
+    pub elapsed: u64,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct FlushAndReloadTracksRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct FlushAndReloadTracksResponse {}
@@ -1204,6 +1249,33 @@ pub mod playback_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        pub async fn next_track(
+            &mut self,
+            request: impl tonic::IntoRequest<super::NextTrackRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::NextTrackResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.PlaybackService/NextTrack",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "NextTrack"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         pub async fn flush_and_reload_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::FlushAndReloadTracksRequest>,
@@ -1337,6 +1409,13 @@ pub mod playback_service_server {
             request: tonic::Request<super::CurrentTrackRequest>,
         ) -> std::result::Result<
             tonic::Response<super::CurrentTrackResponse>,
+            tonic::Status,
+        >;
+        async fn next_track(
+            &self,
+            request: tonic::Request<super::NextTrackRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::NextTrackResponse>,
             tonic::Status,
         >;
         async fn flush_and_reload_tracks(
@@ -1780,6 +1859,51 @@ pub mod playback_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CurrentTrackSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.PlaybackService/NextTrack" => {
+                    #[allow(non_camel_case_types)]
+                    struct NextTrackSvc<T: PlaybackService>(pub Arc<T>);
+                    impl<
+                        T: PlaybackService,
+                    > tonic::server::UnaryService<super::NextTrackRequest>
+                    for NextTrackSvc<T> {
+                        type Response = super::NextTrackResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::NextTrackRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PlaybackService>::next_track(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = NextTrackSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

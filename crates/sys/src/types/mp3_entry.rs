@@ -1,7 +1,7 @@
 use crate::cast_ptr;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Mp3Entry {
     pub path: String,
     pub title: String,                     // char* title
