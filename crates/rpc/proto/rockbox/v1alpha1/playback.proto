@@ -7,49 +7,37 @@ message PlayRequest {
   int64 offset = 2;
 }
 
-message PlayResponse {
-}
+message PlayResponse {}
 
-message PauseRequest {
-}
+message PauseRequest {}
 
-message PauseResponse {
-}
+message PauseResponse {}
 
-message ResumeRequest {
-}
+message ResumeRequest {}
 
-message ResumeResponse {
-}
+message ResumeResponse {}
 
-message NextRequest {
-}
+message NextRequest {}
 
-message NextResponse {
-}
+message NextResponse {}
 
-message PreviousRequest {
-}
+message PreviousRequest {}
 
-message PreviousResponse {
-}
+message PreviousResponse {}
 
 message FastForwardRewindRequest {
   int32 new_time = 1;
 }
 
-message FastForwardRewindResponse {
-}
+message FastForwardRewindResponse {}
 
-message StatusRequest {
-}
+message StatusRequest {}
 
 message StatusResponse {
   int32 status = 1;
 }
 
-message CurrentTrackRequest {
-}
+message CurrentTrackRequest {}
 
 message CurrentTrackResponse {
   string title = 1;
@@ -72,10 +60,10 @@ message CurrentTrackResponse {
   uint64 filesize = 18;
   uint64 length = 19;
   uint64 elapsed = 20;
+  string path = 21;
 }
 
-message NextTrackRequest {
-}
+message NextTrackRequest {}
 
 message NextTrackResponse {
   string title = 1;
@@ -98,29 +86,25 @@ message NextTrackResponse {
   uint64 filesize = 18;
   uint64 length = 19;
   uint64 elapsed = 20;
+  string path = 21;
 }
 
-message FlushAndReloadTracksRequest {
-}
+message FlushAndReloadTracksRequest {}
 
-message FlushAndReloadTracksResponse {
-}
+message FlushAndReloadTracksResponse {}
 
-message GetFilePositionRequest {
-}
+message GetFilePositionRequest {}
 
 message GetFilePositionResponse {
   int32 position = 1;
 }
 
-message HardStopRequest {
-}
+message HardStopRequest {}
 
-message HardStopResponse {
-}
+message HardStopResponse {}
 
 service PlaybackService {
-  rpc Play(PlayRequest) returns (PlayResponse) {} 
+  rpc Play(PlayRequest) returns (PlayResponse) {}
   rpc Pause(PauseRequest) returns (PauseResponse) {}
   rpc Resume(ResumeRequest) returns (ResumeResponse) {}
   rpc Next(NextRequest) returns (NextResponse) {}

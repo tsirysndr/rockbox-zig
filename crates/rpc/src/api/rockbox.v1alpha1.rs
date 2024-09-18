@@ -911,6 +911,8 @@ pub struct CurrentTrackResponse {
     pub length: u64,
     #[prost(uint64, tag = "20")]
     pub elapsed: u64,
+    #[prost(string, tag = "21")]
+    pub path: ::prost::alloc::string::String,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct NextTrackRequest {}
@@ -956,6 +958,8 @@ pub struct NextTrackResponse {
     pub length: u64,
     #[prost(uint64, tag = "20")]
     pub elapsed: u64,
+    #[prost(string, tag = "21")]
+    pub path: ::prost::alloc::string::String,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct FlushAndReloadTracksRequest {}

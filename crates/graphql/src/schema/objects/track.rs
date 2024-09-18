@@ -24,6 +24,7 @@ pub struct Track {
     pub filesize: u64,
     pub length: u64,
     pub elapsed: u64,
+    pub path: String,
 }
 
 #[Object]
@@ -107,6 +108,10 @@ impl Track {
     async fn elapsed(&self) -> u64 {
         self.elapsed
     }
+
+    async fn path(&self) -> &str {
+        &self.path
+    }
 }
 
 impl From<Mp3Entry> for Track {
@@ -131,6 +136,7 @@ impl From<Mp3Entry> for Track {
         let filesize = mp3entry.filesize;
         let length = mp3entry.length;
         let elapsed = mp3entry.elapsed;
+        let path = mp3entry.path;
 
         Track {
             title,
@@ -153,6 +159,7 @@ impl From<Mp3Entry> for Track {
             filesize,
             length,
             elapsed,
+            path,
         }
     }
 }

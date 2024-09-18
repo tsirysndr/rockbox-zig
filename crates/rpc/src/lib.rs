@@ -16,7 +16,10 @@ pub mod api {
             system_status::SystemStatus,
             user_settings::{CompressorSettings, EqBandSetting, ReplaygainSettings, UserSettings},
         };
-        use v1alpha1::{CurrentTrackResponse, NextTrackResponse, GetGlobalSettingsResponse, GetGlobalStatusResponse};
+        use v1alpha1::{
+            CurrentTrackResponse, GetGlobalSettingsResponse, GetGlobalStatusResponse,
+            NextTrackResponse,
+        };
 
         #[path = "rockbox.v1alpha1.rs"]
         pub mod v1alpha1;
@@ -45,6 +48,7 @@ pub mod api {
                 let filesize = mp3entry.filesize;
                 let length = mp3entry.length;
                 let elapsed = mp3entry.elapsed;
+                let path = mp3entry.path;
 
                 CurrentTrackResponse {
                     title,
@@ -67,6 +71,7 @@ pub mod api {
                     filesize,
                     length,
                     elapsed,
+                    path,
                 }
             }
         }
@@ -96,6 +101,7 @@ pub mod api {
                         filesize: 0,
                         length: 0,
                         elapsed: 0,
+                        path: "".to_string(),
                     },
                 }
             }
@@ -123,6 +129,7 @@ pub mod api {
                 let filesize = mp3entry.filesize;
                 let length = mp3entry.length;
                 let elapsed = mp3entry.elapsed;
+                let path = mp3entry.path;
 
                 NextTrackResponse {
                     title,
@@ -145,6 +152,7 @@ pub mod api {
                     filesize,
                     length,
                     elapsed,
+                    path,
                 }
             }
         }
@@ -174,6 +182,7 @@ pub mod api {
                         filesize: 0,
                         length: 0,
                         elapsed: 0,
+                        path: "".to_string(),
                     },
                 }
             }
