@@ -59,7 +59,10 @@ pub fn status() -> AudioStatus {
 pub fn current_track() -> Option<Mp3Entry> {
     let track = unsafe { crate::audio_current_track() };
 
-    println!("current_track: {:?}", track);
+    unsafe {
+        println!("current_track: {:?}", track);
+        println!("current_track: {:?}", *track);
+    }
 
     if track.is_null() {
         return None;
