@@ -123,7 +123,8 @@ impl From<crate::Mp3Entry> for Mp3Entry {
             track_peak: entry.track_peak,
             album_peak: entry.album_peak,
             has_embedded_albumart: entry.has_embedded_albumart,
-            mb_track_id: get_string_from_ptr!(entry.mb_track_id),
+            // mb_track_id: get_string_from_ptr!(entry.mb_track_id),
+            mb_track_id: "".to_string(),
             is_asf_stream: entry.is_asf_stream,
         }
     }

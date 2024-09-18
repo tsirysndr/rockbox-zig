@@ -43,6 +43,7 @@ extern void start_servers(void);
 extern void debugfn(const char *fmt);
 
 static void server_thread(void) {
+    start_servers();
     start_server();
 }
 
@@ -70,10 +71,6 @@ void INIT_ATTR server_init(void)
                   sizeof(server_stack), 0, server_thread_name
                   IF_PRIO(,  PRIORITY_USER_INTERFACE)
                   IF_COP(, CPU));
-    
-    sleep(HZ);
-    
-    start_servers();
 
    /* Probably safe to say */
     server_is_initialized = true;

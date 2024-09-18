@@ -110,10 +110,10 @@ pub struct Mp3Entry {
     pub has_embedded_albumart: bool,         // bool has_embedded_albumart
     pub albumart: *mut c_void,               // struct mp3_albumart albumart
     pub has_embedded_cuesheet: bool,         // bool has_embedded_cuesheet
-    pub embedded_cuesheet: *mut c_void,      // struct embedded_cuesheet embedded_cuesheet
-    pub cuesheet: *mut c_void,               // struct cuesheet* cuesheet
-    pub mb_track_id: *mut c_char,            // char* mb_track_id
-    pub is_asf_stream: bool,                 // bool is_asf_stream
+    // pub embedded_cuesheet: *mut c_void,      // struct embedded_cuesheet embedded_cuesheet
+    // pub cuesheet: *mut c_void,               // struct cuesheet* cuesheet
+    pub mb_track_id: *mut c_char, // char* mb_track_id
+    pub is_asf_stream: bool,      // bool is_asf_stream
 }
 
 const PLAYLIST_CONTROL_FILE: &str = "./config/rockbox.org/.playlist_control";
