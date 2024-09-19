@@ -1,11 +1,11 @@
 use std::ffi::{c_uchar, CStr, CString};
 
-use crate::{Mp3Entry, ProgressFunc};
+use crate::{types::mp3_entry::Mp3Entry, ProgressFunc};
 
-pub fn get_metadata(id3: *mut Mp3Entry, fd: i32, trackname: &str) -> bool {
+pub fn get_metadata(fd: i32, trackname: &str) -> Mp3Entry {
     let trackname = CString::new(trackname).unwrap();
-    let ret = unsafe { crate::get_metadata(id3, fd, trackname.as_ptr()) };
-    ret != 0
+    let id3 = unsafe { crate::_get_metadata(fd, trackname.as_ptr()) };
+    id3.into()
 }
 
 pub fn get_codec_string(codectype: i32) -> String {

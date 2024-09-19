@@ -13,12 +13,12 @@ const playlist = {
   start: () => ops.op_playlist_start(),
   sync: () => ops.op_playlist_sync(),
   removeAllTracks: () => ops.op_playlist_remove_all_tracks(),
-  createPlaylist: () => ops.op_playlist_create_playlist(),
+  createPlaylist: () => ops.op_create_playlist(),
   insertTrack: () => ops.op_playlist_insert_track(),
   insertDirectory: () => ops.op_playlist_insert_directory(),
-  insertPlaylist: () => ops.op_playlist_insert_playlist(),
-  shufflePlaylist: () => ops.op_playlist_shuffle_playlist(),
-  warnOnPlaylistErase: () => ops.op_playlist_warn_on_playlist_erase(),
+  insertPlaylist: () => ops.op_insert_playlist(),
+  shufflePlaylist: () => ops.op_shuffle_playlist(),
+  warnOnPlaylistErase: () => ops.op_warn_on_playlist_erase(),
 };
 
 globalThis.rb = { ...globalThis.rb, playlist };

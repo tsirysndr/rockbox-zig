@@ -1,27 +1,28 @@
 use std::path::PathBuf;
 
 use deno_core::{error::AnyError, extension, op2};
+use rockbox_sys::types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo};
 
 use crate::rockbox_url;
 
 extension!(
     rb_playlist,
     ops = [
-        op_get_current,
-        op_get_resume_info,
-        op_get_track_info,
-        op_get_first_index,
-        op_get_display_index,
-        op_amount,
+        op_playlist_get_current,
+        op_playlist_get_resume_info,
+        op_playlist_get_track_info,
+        op_playlist_get_first_index,
+        op_playlist_get_display_index,
+        op_playlist_amount,
         op_playlist_resume,
         op_playlist_resume_track,
-        op_set_modified,
-        op_start,
-        op_sync,
-        op_remove_all_tracks,
+        op_playlist_set_modified,
+        op_playlist_start,
+        op_playlist_sync,
+        op_playlist_remove_all_tracks,
         op_create_playlist,
-        op_insert_track,
-        op_insert_directory,
+        op_playlist_insert_track,
+        op_playlist_insert_directory,
         op_insert_playlist,
         op_shuffle_playlist,
         op_warn_on_playlist_erase,
@@ -34,22 +35,35 @@ pub fn get_declaration() -> PathBuf {
 }
 
 #[op2(async)]
-pub async fn op_get_current() {}
+#[serde]
+pub async fn op_playlist_get_current() -> Result<PlaylistInfo, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/current_playlist", rockbox_url());
+    let res = client.get(&url).send().await?;
+    let info = res.json::<PlaylistInfo>().await?;
+    Ok(info)
+}
 
 #[op2(async)]
-pub async fn op_get_resume_info() {}
+pub async fn op_playlist_get_resume_info() {}
 
 #[op2(async)]
-pub async fn op_get_track_info() {}
+pub async fn op_playlist_get_track_info() {}
 
 #[op2(async)]
-pub async fn op_get_first_index() {}
+pub async fn op_playlist_get_first_index() {}
 
 #[op2(async)]
-pub async fn op_get_display_index() {}
+pub async fn op_playlist_get_display_index() {}
 
 #[op2(async)]
-pub async fn op_amount() {}
+pub async fn op_playlist_amount() -> Result<i32, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlist_amount", rockbox_url());
+    let res = client.get(&url).send().await?;
+    let data = res.json::<PlaylistAmount>().await?;
+    Ok(data.amount)
+}
 
 #[op2(async)]
 pub async fn op_playlist_resume() -> Result<(), AnyError> {
@@ -68,25 +82,25 @@ pub async fn op_playlist_resume_track() -> Result<(), AnyError> {
 }
 
 #[op2(async)]
-pub async fn op_set_modified() {}
+pub async fn op_playlist_set_modified() {}
 
 #[op2(async)]
-pub async fn op_start() {}
+pub async fn op_playlist_start() {}
 
 #[op2(async)]
-pub async fn op_sync() {}
+pub async fn op_playlist_sync() {}
 
 #[op2(async)]
-pub async fn op_remove_all_tracks() {}
+pub async fn op_playlist_remove_all_tracks() {}
 
 #[op2(async)]
 pub async fn op_create_playlist() {}
 
 #[op2(async)]
-pub async fn op_insert_track() {}
+pub async fn op_playlist_insert_track() {}
 
 #[op2(async)]
-pub async fn op_insert_directory() {}
+pub async fn op_playlist_insert_directory() {}
 
 #[op2(async)]
 pub async fn op_insert_playlist() {}

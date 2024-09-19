@@ -1,15 +1,26 @@
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
 use async_graphql::*;
-use rockbox_sys::events::RockboxCommand;
+use rockbox_sys::{
+    events::RockboxCommand,
+    types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
+};
+
+use crate::{rockbox_url, schema::objects::playlist::Playlist};
 
 #[derive(Default)]
 pub struct PlaylistQuery;
 
 #[Object]
 impl PlaylistQuery {
-    async fn playlist_get_current(&self) -> String {
-        "playlist get current".to_string()
+    async fn playlist_get_current(&self, _ctx: &Context<'_>) -> Result<Playlist, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/current_playlist", rockbox_url());
+        let response = client.get(&url).send().await?;
+        let response = response.json::<PlaylistInfo>().await?;
+        Ok(Playlist {
+            tracks: response.entries.into_iter().map(|t| t.into()).collect(),
+        })
     }
 
     async fn get_resume_info(&self) -> String {
@@ -28,8 +39,12 @@ impl PlaylistQuery {
         "get display index".to_string()
     }
 
-    async fn playlist_amount(&self) -> String {
-        "playlist amount".to_string()
+    async fn playlist_amount(&self, _ctx: &Context<'_>) -> Result<i32, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/playlist_amount", rockbox_url());
+        let response = client.get(&url).send().await?;
+        let response = response.json::<PlaylistAmount>().await?;
+        Ok(response.amount)
     }
 }
 

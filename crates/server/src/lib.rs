@@ -1,5 +1,5 @@
 use owo_colors::OwoColorize;
-use rockbox_sys::{self as rb, events::RockboxCommand};
+use rockbox_sys::{self as rb, events::RockboxCommand, types::playlist_amount::PlaylistAmount};
 use std::{
     ffi::c_char,
     io::{BufRead, BufReader, Write},
@@ -93,6 +93,36 @@ fn handle_connection(mut stream: TcpStream) {
         "/stop" => {
             rb::playback::hard_stop();
         }
+        "/playlist_amount" => {
+            let amount = rb::playlist::amount();
+            let json = PlaylistAmount { amount };
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&json).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/current_playlist" => {
+            let mut playlist = rb::playlist::get_current();
+            let mut entries = vec![];
+            let amount = rb::playlist::amount();
+
+            for i in 0..amount {
+                let info = rb::playlist::get_track_info(i);
+                let entry = rb::metadata::get_metadata(-1, &info.filename);
+                entries.push(entry);
+            }
+
+            playlist.entries = entries;
+
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&playlist).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
         "/playlist_resume" => {
             rb::playlist::resume();
         }
@@ -173,7 +203,7 @@ fn handle_connection(mut stream: TcpStream) {
             return;
         }
         _ => {
-            if path.starts_with("/play") {
+            if path.starts_with("/play?") {
                 let params: Vec<_> = path.split('?').collect();
                 let params: Vec<_> = params[1].split('&').collect();
                 let elapsed = params[0].split('=').collect::<Vec<_>>()[1].parse().unwrap();

@@ -2101,8 +2101,11 @@ pub mod playback_service_server {
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GetCurrentRequest {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct GetCurrentResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetCurrentResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub tracks: ::prost::alloc::vec::Vec<CurrentTrackResponse>,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GetResumeInfoRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -2122,7 +2125,10 @@ pub struct GetDisplayIndexResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct AmountRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct AmountResponse {}
+pub struct AmountResponse {
+    #[prost(int32, tag = "1")]
+    pub amount: i32,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PlaylistResumeRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]

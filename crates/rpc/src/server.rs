@@ -46,7 +46,7 @@ pub async fn start(
                 .build_v1alpha()?,
         )
         .add_service(tonic_web::enable(PlaylistServiceServer::new(
-            Playlist::new(cmd_tx.clone()),
+            Playlist::new(cmd_tx.clone(), client.clone()),
         )))
         .add_service(tonic_web::enable(PlaybackServiceServer::new(
             Playback::new(cmd_tx.clone(), client.clone()),
