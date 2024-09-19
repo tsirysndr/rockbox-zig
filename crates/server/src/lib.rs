@@ -94,17 +94,17 @@ fn handle_connection(mut stream: TcpStream) {
             rb::playback::hard_stop();
         }
         "/current_playlist" => {
-            let playlist = rb::playlist::get_current();
-            let info = rb::playlist::get_track_info(0);
-            println!("info: {:?}", info);
-            let info = rb::playlist::get_track_info(1);
-            println!("info: {:?}", info);
-            let info = rb::playlist::get_track_info(2);
-            println!("info: {:?}", info);
+            let mut playlist = rb::playlist::get_current();
+            let mut entries = vec![];
             let amount = rb::playlist::amount();
-            println!("amount: {}", amount);
-            let entry = rb::metadata::get_metadata(-1, &info.filename);
-            println!("entry: {:?}", entry);
+
+            for i in 0..amount {
+                let info = rb::playlist::get_track_info(i);
+                let entry = rb::metadata::get_metadata(-1, &info.filename);
+                entries.push(entry);
+            }
+
+            playlist.entries = entries;
 
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",

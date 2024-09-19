@@ -1,3 +1,4 @@
+use crate::types::mp3_entry::Mp3Entry;
 use serde::{Deserialize, Serialize};
 
 use crate::cast_ptr;
@@ -22,6 +23,7 @@ pub struct PlaylistInfo {
     pub filename: String,         // char filename[MAX_PATH]
     pub control_filename: String, // char control_filename[sizeof(PLAYLIST_CONTROL_FILE) + 8]
     pub dcfrefs_handle: i32,      // int dcfrefs_handle
+    pub entries: Vec<Mp3Entry>,
 }
 
 impl From<crate::PlaylistInfo> for PlaylistInfo {
@@ -53,6 +55,7 @@ impl From<crate::PlaylistInfo> for PlaylistInfo {
                     .into_owned()
             },
             dcfrefs_handle: info.dcfrefs_handle,
+            entries: vec![],
         }
     }
 }
