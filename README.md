@@ -44,7 +44,7 @@ make zig
 
 - [x] Zig Build System
 - [x] Rockbox API FFI for Rust
-- [x] gRPC API
+- [x] [gRPC API](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
 - [x] GraphQL API
 - [ ] Web Client (React)
 - [ ] Desktop Client (Electron/Gtk)
