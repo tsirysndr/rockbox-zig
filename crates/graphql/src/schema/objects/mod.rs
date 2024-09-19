@@ -1,5 +1,6 @@
 pub mod compressor_settings;
 pub mod eq_band_setting;
+pub mod playlist;
 pub mod replaygain_settings;
 pub mod settings_list;
 pub mod system_status;

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use deno_core::{error::AnyError, extension, op2};
-use rockbox_sys::types::playlist_info::PlaylistInfo;
+use rockbox_sys::types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo};
 
 use crate::rockbox_url;
 
@@ -57,7 +57,13 @@ pub async fn op_playlist_get_first_index() {}
 pub async fn op_playlist_get_display_index() {}
 
 #[op2(async)]
-pub async fn op_playlist_amount() {}
+pub async fn op_playlist_amount() -> Result<i32, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlist_amount", rockbox_url());
+    let res = client.get(&url).send().await?;
+    let data = res.json::<PlaylistAmount>().await?;
+    Ok(data.amount)
+}
 
 #[op2(async)]
 pub async fn op_playlist_resume() -> Result<(), AnyError> {

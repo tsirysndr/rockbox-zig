@@ -1,5 +1,5 @@
 use owo_colors::OwoColorize;
-use rockbox_sys::{self as rb, events::RockboxCommand};
+use rockbox_sys::{self as rb, events::RockboxCommand, types::playlist_amount::PlaylistAmount};
 use std::{
     ffi::c_char,
     io::{BufRead, BufReader, Write},
@@ -92,6 +92,16 @@ fn handle_connection(mut stream: TcpStream) {
         }
         "/stop" => {
             rb::playback::hard_stop();
+        }
+        "/playlist_amount" => {
+            let amount = rb::playlist::amount();
+            let json = PlaylistAmount { amount };
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&json).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
         }
         "/current_playlist" => {
             let mut playlist = rb::playlist::get_current();

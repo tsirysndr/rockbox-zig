@@ -2,10 +2,13 @@ syntax = "proto3";
 
 package rockbox.v1alpha1;
 
+import "rockbox/v1alpha1/playback.proto";
+
 message GetCurrentRequest {
 }
 
 message GetCurrentResponse {
+  repeated rockbox.v1alpha1.CurrentTrackResponse tracks = 1;
 }
 
 message GetResumeInfoRequest {
@@ -36,6 +39,7 @@ message AmountRequest {
 }
 
 message AmountResponse {
+  int32 amount = 1;
 }
 
 message PlaylistResumeRequest {

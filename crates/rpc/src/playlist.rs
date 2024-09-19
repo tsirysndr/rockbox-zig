@@ -1,16 +1,23 @@
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
-use rockbox_sys::events::RockboxCommand;
+use rockbox_sys::{
+    events::RockboxCommand,
+    types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
+};
 
-use crate::api::rockbox::v1alpha1::{playlist_service_server::PlaylistService, *};
+use crate::{
+    api::rockbox::v1alpha1::{playlist_service_server::PlaylistService, *},
+    rockbox_url,
+};
 
 pub struct Playlist {
     cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
+    client: reqwest::Client,
 }
 
 impl Playlist {
-    pub fn new(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Self {
-        Self { cmd_tx }
+    pub fn new(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>, client: reqwest::Client) -> Self {
+        Self { cmd_tx, client }
     }
 }
 
@@ -20,7 +27,23 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<GetCurrentRequest>,
     ) -> Result<tonic::Response<GetCurrentResponse>, tonic::Status> {
-        Ok(tonic::Response::new(GetCurrentResponse::default()))
+        let url = format!("{}/current_playlist", rockbox_url());
+        let response = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let data = response
+            .json::<PlaylistInfo>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks = data
+            .entries
+            .iter()
+            .map(|track| CurrentTrackResponse::from(track.clone()))
+            .collect::<Vec<CurrentTrackResponse>>();
+        Ok(tonic::Response::new(GetCurrentResponse { tracks }))
     }
 
     async fn get_resume_info(
@@ -55,7 +78,20 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<AmountRequest>,
     ) -> Result<tonic::Response<AmountResponse>, tonic::Status> {
-        Ok(tonic::Response::new(AmountResponse::default()))
+        let url = format!("{}/playlist_amount", rockbox_url());
+        let response = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let data = response
+            .json::<PlaylistAmount>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(AmountResponse {
+            amount: data.amount,
+        }))
     }
 
     async fn playlist_resume(
