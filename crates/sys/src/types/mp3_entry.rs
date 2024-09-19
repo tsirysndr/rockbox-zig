@@ -2,7 +2,7 @@ use crate::cast_ptr;
 use crate::get_string_from_ptr;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Mp3Entry {
     pub path: String,
     pub title: String,                     // char* title

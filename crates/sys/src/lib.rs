@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_int, c_long, c_short, c_uchar, c_uint, c_ulong, c_void};
+use std::ffi::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong, c_void};
 
 pub mod browse;
 pub mod dir;
@@ -1042,13 +1042,7 @@ extern "C" {
     // Playlist control
     fn playlist_get_current() -> PlaylistInfo;
     fn playlist_get_resume_info(resume_index: *mut c_int) -> c_int;
-    fn playlist_get_track_info(
-        playlist: PlaylistInfo,
-        index: c_int,
-        info: *mut PlaylistTrackInfo,
-    ) -> c_int;
-    fn get_track_info_from_current_playlist(index: i32) -> PlaylistTrackInfo;
-    fn get_current_playlist_amount() -> i32;
+    fn _get_track_info_from_current_playlist(index: i32) -> PlaylistTrackInfo;
     fn playlist_get_first_index(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_get_display_index() -> c_int;
     fn playlist_amount() -> c_int;
@@ -1193,7 +1187,7 @@ extern "C" {
     fn filetype_get_plugin();
 
     // Metadata
-    fn get_metadata(id3: *mut Mp3Entry, fd: c_int, trackname: *const c_char) -> c_uchar;
+    fn _get_metadata(fd: i32, trackname: *const c_char) -> Mp3Entry;
     fn get_codec_string(codectype: c_int) -> *const c_char;
     fn count_mp3_frames(
         fd: c_int,

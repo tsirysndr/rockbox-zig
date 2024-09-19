@@ -103,6 +103,8 @@ fn handle_connection(mut stream: TcpStream) {
             println!("info: {:?}", info);
             let amount = rb::playlist::amount();
             println!("amount: {}", amount);
+            let entry = rb::metadata::get_metadata(-1, &info.filename);
+            println!("entry: {:?}", entry);
 
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
