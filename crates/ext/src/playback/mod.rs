@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use deno_ast::swc::codegen::Result;
 use deno_core::{error::AnyError, extension, op2};
 use rockbox_sys::types::{
     audio_status::AudioStatus, file_position::FilePosition, mp3_entry::Mp3Entry,
@@ -117,6 +116,7 @@ pub async fn op_flush_and_reload_tracks() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!("{}/flush_and_reload_tracks", rockbox_url());
     client.get(&url).send().await?;
+    Ok(())
 }
 
 #[op2(async)]

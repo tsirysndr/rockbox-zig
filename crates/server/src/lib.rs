@@ -193,7 +193,7 @@ fn handle_connection(mut stream: TcpStream) {
             return;
         }
         _ => {
-            if path.starts_with("/play") {
+            if path.starts_with("/play?") {
                 let params: Vec<_> = path.split('?').collect();
                 let params: Vec<_> = params[1].split('&').collect();
                 let elapsed = params[0].split('=').collect::<Vec<_>>()[1].parse().unwrap();
