@@ -1,6 +1,7 @@
 const std = @import("std");
 const playlist = @import("rockbox/playlist.zig");
 const metadata = @import("rockbox/metadata.zig");
+const tree = @import("rockbox/tree.zig");
 
 extern fn main_c() c_int;
 extern fn parse_args(argc: usize, argv: [*]const [*]const u8) c_int;
@@ -27,10 +28,29 @@ pub fn main() !void {
     _ = main_c();
 }
 
-export fn _get_track_info_from_current_playlist(index: c_int) playlist.PlaylistTrackInfo {
+// playlist functions
+export fn rb_get_track_info_from_current_playlist(index: c_int) playlist.PlaylistTrackInfo {
     return playlist._get_track_info_from_current_playlist(index);
 }
 
-export fn _get_metadata(fd: c_int, trackname: [*]const u8) metadata.mp3entry {
+// metadata functions
+export fn rb_get_metadata(fd: c_int, trackname: [*]const u8) metadata.mp3entry {
     return metadata._get_metadata(fd, trackname);
+}
+
+// browsing functions
+export fn rb_rockbox_browse() c_int {
+    return tree._rockbox_browse();
+}
+
+export fn rb_tree_get_context() tree.tree_context {
+    return tree._tree_get_context();
+}
+
+export fn rb_tree_get_entries() *tree.entry {
+    return tree._tree_get_entries();
+}
+
+export fn rb_tree_get_entry_at(index: c_int) *tree.entry {
+    return tree._tree_get_entry_at(index);
 }

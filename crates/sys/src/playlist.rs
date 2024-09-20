@@ -11,7 +11,7 @@ pub fn get_resume_info(mut resume_index: i32) -> i32 {
 }
 
 pub fn get_track_info(index: i32) -> PlaylistTrackInfo {
-    let track_info = unsafe { crate::_get_track_info_from_current_playlist(index) };
+    let track_info = unsafe { crate::rb_get_track_info_from_current_playlist(index) };
     track_info.into()
 }
 

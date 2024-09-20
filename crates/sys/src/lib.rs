@@ -51,6 +51,30 @@ macro_rules! get_string_from_ptr {
     };
 }
 
+#[macro_export]
+macro_rules! convert_ptr_to_vec {
+    ($ptr:expr, $len:expr) => {{
+        if $ptr.is_null() {
+            Vec::new()
+        } else {
+            // Safety: Ensure that the pointer is valid for $len elements,
+            // and that the memory was allocated in a way that is compatible with Rust's Vec.
+            unsafe { Vec::from_raw_parts($ptr, $len, $len) }
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! ptr_to_option {
+    ($ptr:expr) => {
+        if $ptr.is_null() {
+            None
+        } else {
+            unsafe { Some(*$ptr) }
+        }
+    };
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct Mp3Entry {
@@ -224,7 +248,7 @@ pub struct TreeContext {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct BrowseContext {
     pub dirfilter: c_int, // int dirfilter
     pub flags: c_uint,    // unsigned flags
@@ -1042,7 +1066,7 @@ extern "C" {
     // Playlist control
     fn playlist_get_current() -> PlaylistInfo;
     fn playlist_get_resume_info(resume_index: *mut c_int) -> c_int;
-    fn _get_track_info_from_current_playlist(index: i32) -> PlaylistTrackInfo;
+    fn rb_get_track_info_from_current_playlist(index: i32) -> PlaylistTrackInfo;
     fn playlist_get_first_index(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_get_display_index() -> c_int;
     fn playlist_amount() -> c_int;
@@ -1132,10 +1156,11 @@ extern "C" {
     fn keyclick_click(rawbutton: c_uchar, action: c_int);
 
     // Browsing
-    fn rockbox_browse(browse: *mut BrowseContext) -> c_int;
-    fn tree_get_context() -> TreeContext;
-    fn tree_get_entries(t: *mut TreeContext) -> Entry;
-    fn tree_get_entry_at(t: *mut TreeContext, index: c_int) -> Entry;
+    fn rockbox_browse_at(path: *const c_char) -> c_int;
+    fn rb_rockbox_browse() -> c_int;
+    fn rb_tree_get_context() -> TreeContext;
+    fn rb_tree_get_entries() -> Entry;
+    fn rb_tree_get_entry_at(index: c_int) -> Entry;
     fn set_current_file(path: *const c_char);
     fn set_dirfilter(l_dirfilter: c_int);
     fn onplay_show_playlist_menu(
@@ -1187,7 +1212,7 @@ extern "C" {
     fn filetype_get_plugin();
 
     // Metadata
-    fn _get_metadata(fd: i32, trackname: *const c_char) -> Mp3Entry;
+    fn rb_get_metadata(fd: i32, trackname: *const c_char) -> Mp3Entry;
     fn get_codec_string(codectype: c_int) -> *const c_char;
     fn count_mp3_frames(
         fd: c_int,

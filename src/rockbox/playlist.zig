@@ -1,5 +1,3 @@
-const std = @import("std");
-
 const MAX_PATH = 260;
 const PLAYLIST_CONTROL_FILE_SIZE = 256;
 

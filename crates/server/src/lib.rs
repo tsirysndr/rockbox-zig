@@ -202,6 +202,15 @@ fn handle_connection(mut stream: TcpStream) {
             stream.write_all(response.as_bytes()).unwrap();
             return;
         }
+        "/tree_context" => {
+            let context = rb::browse::tree_get_context();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&context).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
         _ => {
             if path.starts_with("/play?") {
                 let params: Vec<_> = path.split('?').collect();

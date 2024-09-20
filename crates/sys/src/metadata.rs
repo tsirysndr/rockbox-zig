@@ -4,7 +4,7 @@ use crate::{types::mp3_entry::Mp3Entry, ProgressFunc};
 
 pub fn get_metadata(fd: i32, trackname: &str) -> Mp3Entry {
     let trackname = CString::new(trackname).unwrap();
-    let id3 = unsafe { crate::_get_metadata(fd, trackname.as_ptr()) };
+    let id3 = unsafe { crate::rb_get_metadata(fd, trackname.as_ptr()) };
     id3.into()
 }
 

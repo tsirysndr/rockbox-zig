@@ -1,21 +1,32 @@
 use std::ffi::CString;
 
-use crate::{AddToPlCallback, BrowseContext, Entry, Mp3Entry, PlaylistInsertCb, Tm, TreeContext};
+use crate::{
+    types::tree::{Entry, TreeContext},
+    AddToPlCallback, Mp3Entry, PlaylistInsertCb, Tm,
+};
 
-pub fn rockbox_browse(ctx: *mut BrowseContext) -> i32 {
-    unsafe { crate::rockbox_browse(ctx) }
+pub fn rockbox_browse_at(path: &str) -> i32 {
+    let path = CString::new(path).unwrap();
+    unsafe { crate::rockbox_browse_at(path.as_ptr()) }
+}
+
+pub fn rockbox_browse() -> i32 {
+    unsafe { crate::rb_rockbox_browse() }
 }
 
 pub fn tree_get_context() -> TreeContext {
-    unsafe { crate::tree_get_context() }
+    let tc = unsafe { crate::rb_tree_get_context() };
+    tc.into()
 }
 
-pub fn tree_get_entries(ctx: *mut TreeContext) -> Entry {
-    unsafe { crate::tree_get_entries(ctx) }
+pub fn tree_get_entries() -> Entry {
+    let entry = unsafe { crate::rb_tree_get_entries() };
+    entry.into()
 }
 
-pub fn tree_get_entry_at(ctx: *mut TreeContext, index: i32) -> Entry {
-    unsafe { crate::tree_get_entry_at(ctx, index) }
+pub fn tree_get_entry_at(index: i32) -> Entry {
+    let entry = unsafe { crate::rb_tree_get_entry_at(index) };
+    entry.into()
 }
 
 pub fn set_current_file(path: &str) {

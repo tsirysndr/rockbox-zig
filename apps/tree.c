@@ -621,6 +621,7 @@ static void set_current_file_ex(const char *path, const char *filename)
         /* gets the directory's name and put it into tc.currdir */
         filename = strrchr(path+1,'/');
         size_t endpos = filename - path;
+        printf("%s | %s | %d\n", filename, path, endpos);
         if (filename && endpos < MAX_PATH - 1)
         {
             strmemccpy(tc.currdir, path, endpos + 1);
@@ -955,6 +956,7 @@ static int dirbrowse(void)
 #endif
 
             default:
+                // return GO_TO_ROOT;
                 if (default_event_handler(button) == SYS_USB_CONNECTED)
                 {
                     if(*tc.dirfilter > NUM_FILTER_MODES)
@@ -1123,6 +1125,18 @@ int rockbox_browse(struct browse_context *browse)
         tc = backups[backup_count];
 
     return ret_val;
+}
+
+int rockbox_browse_at(const char* path)
+{
+    struct browse_context browse = {
+        .dirfilter = SHOW_SUPPORTED,
+        .icon = Icon_NOICON,
+        .root = path,
+    };
+    strcpy(tc.currdir, path);
+
+    return rockbox_browse(&browse);
 }
 
 static int move_callback(int handle, void* current, void* new)

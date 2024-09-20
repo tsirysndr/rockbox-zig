@@ -114,6 +114,7 @@ char* get_current_file(char* buffer, size_t buffer_len);
 void set_dirfilter(int l_dirfilter);
 void set_current_file(const char *path);
 int rockbox_browse(struct browse_context *browse);
+int rockbox_browse_root();
 int create_playlist(void);
 void resume_directory(const char *dir);
 
