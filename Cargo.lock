@@ -5024,6 +5024,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "queryst"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1cbeb75ac695daf201ca2d66d9c684f873b135f28af4f2c79952478cab3b9d9"
+dependencies = [
+ "lazy_static",
+ "percent-encoding",
+ "regex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "quick-error"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5380,6 +5393,7 @@ name = "rockbox-server"
 version = "0.1.0"
 dependencies = [
  "owo-colors 4.1.0",
+ "queryst",
  "reqwest",
  "rockbox-graphql",
  "rockbox-rpc",

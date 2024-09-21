@@ -8,6 +8,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 owo-colors = "4.0.0"
+queryst = "3.0.0"
 reqwest = {version = "0.12.7", features = ["blocking", "rustls-tls"], default-features = false}
 rockbox-graphql = {path = "../graphql"}
 rockbox-rpc = {path = "../rpc"}

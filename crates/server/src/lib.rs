@@ -234,9 +234,9 @@ fn handle_connection(mut stream: TcpStream) {
 
             if path.starts_with("/tree_entries?") {
                 let params: Vec<_> = path.split('?').collect();
-                let params: Vec<_> = params[1].split('&').collect();
-                let q = params[0].split('=').collect::<Vec<_>>()[1];
-                rb::browse::rockbox_browse_at(q);
+                let params = queryst::parse(params[1]).unwrap_or_default();
+                println!("{}", params);
+                rb::browse::rockbox_browse_at(params["q"].as_str().unwrap_or("/"));
                 let mut entries = vec![];
                 let context = rb::browse::tree_get_context();
 
