@@ -232,6 +232,27 @@ fn handle_connection(mut stream: TcpStream) {
                 return;
             }
 
+            if path.starts_with("/tree_entries?") {
+                let params: Vec<_> = path.split('?').collect();
+                let params: Vec<_> = params[1].split('&').collect();
+                let q = params[0].split('=').collect::<Vec<_>>()[1];
+                rb::browse::rockbox_browse_at(q);
+                let mut entries = vec![];
+                let context = rb::browse::tree_get_context();
+
+                for i in 0..context.filesindir {
+                    let entry = rb::browse::tree_get_entry_at(i);
+                    entries.push(entry);
+                }
+
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                    serde_json::to_string(&entries).unwrap()
+                );
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
+
             let response = "HTTP/1.1 404 Not Found\r\n\r\n";
             stream.write_all(response.as_bytes()).unwrap();
             return;

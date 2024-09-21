@@ -621,7 +621,6 @@ static void set_current_file_ex(const char *path, const char *filename)
         /* gets the directory's name and put it into tc.currdir */
         filename = strrchr(path+1,'/');
         size_t endpos = filename - path;
-        printf("%s | %s | %d\n", filename, path, endpos);
         if (filename && endpos < MAX_PATH - 1)
         {
             strmemccpy(tc.currdir, path, endpos + 1);
@@ -629,8 +628,11 @@ static void set_current_file_ex(const char *path, const char *filename)
         }
         else
         {
-            strcpy(tc.currdir, "/");
-            filename = path+1;
+            if (strlen(tc.currdir) <= 1)
+            {
+                strcpy(tc.currdir, "/");
+            }
+                filename = path+1;
         }
     }
     else /* path and filename came in separate ensure an ending '/' */
@@ -956,13 +958,15 @@ static int dirbrowse(void)
 #endif
 
             default:
-                // return GO_TO_ROOT;
+                if (tc.browse->disable_gui == true) {
+                    return GO_TO_ROOT;
+                }
                 if (default_event_handler(button) == SYS_USB_CONNECTED)
                 {
                     if(*tc.dirfilter > NUM_FILTER_MODES)
                         /* leave sub-browsers after usb, doing otherwise
                            might be confusing to the user */
-                        exit_func = true;
+                      exit_func = true;
                     else
                         reload_dir = true;
                 }
@@ -1133,6 +1137,7 @@ int rockbox_browse_at(const char* path)
         .dirfilter = SHOW_SUPPORTED,
         .icon = Icon_NOICON,
         .root = path,
+        .disable_gui = true,
     };
     strcpy(tc.currdir, path);
 

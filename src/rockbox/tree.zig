@@ -111,11 +111,7 @@ pub fn _rockbox_browse() c_int {
 }
 
 pub fn _tree_get_context() tree_context {
-    const ret = rockbox_browse_at("/home");
-    std.debug.print("rockbox_browse_root: {}\n", .{ret});
     const tc = tree_get_context();
-    const e = tree_get_entries(tc);
-    std.debug.print("tree_get_context: {}\n{}\n", .{ tc, e });
     return tc.*;
 }
 
@@ -124,7 +120,8 @@ pub fn _tree_get_entries() *entry {
     return tree_get_entries(tc);
 }
 
-pub fn _tree_get_entry_at(index: c_int) *entry {
+pub fn _tree_get_entry_at(index: c_int) entry {
     const tc = tree_get_context();
-    return tree_get_entry_at(tc, index);
+    const e = tree_get_entry_at(tc, index);
+    return e.*;
 }

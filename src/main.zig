@@ -51,6 +51,6 @@ export fn rb_tree_get_entries() *tree.entry {
     return tree._tree_get_entries();
 }
 
-export fn rb_tree_get_entry_at(index: c_int) *tree.entry {
+export fn rb_tree_get_entry_at(index: c_int) tree.entry {
     return tree._tree_get_entry_at(index);
 }

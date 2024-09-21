@@ -71,6 +71,7 @@ struct browse_context {
     const char *selected;       /* name of selected file in the root */
     char *buf;                  /* buffer to store selected file */
     size_t bufsize;             /* size of the buffer */
+    bool disable_gui;          /* disable gui for this browse */
 };
 
 /* browser context for file or db */
