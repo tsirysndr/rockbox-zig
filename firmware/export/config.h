@@ -635,6 +635,12 @@ Lyre prototype 1 */
 #endif
 #endif
 
+#if defined(__PCTOOL__) || defined(SIMULATOR)
+#ifndef CONFIG_PLATFORM
+#define CONFIG_PLATFORM PLATFORM_HOSTED
+#endif
+#endif
+
 #ifndef CONFIG_PLATFORM
 #define CONFIG_PLATFORM PLATFORM_NATIVE
 #endif
@@ -1256,6 +1262,12 @@ Lyre prototype 1 */
 #ifndef SIMULATOR
 #if defined(HAVE_USBSTACK) || (CONFIG_STORAGE & STORAGE_NAND) || (CONFIG_STORAGE & STORAGE_RAMDISK)
 #define STORAGE_GET_INFO
+#endif
+#endif
+
+#if defined(HAVE_SIGALTSTACK_THREADS)
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 600   /* For sigaltstack */
 #endif
 #endif
 
