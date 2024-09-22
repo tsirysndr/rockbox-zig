@@ -1,13 +1,29 @@
-use std::ffi::CString;
+use anyhow::Error;
+use std::{ffi::CString, fs};
 
 use crate::{
     types::tree::{Entry, TreeContext},
     AddToPlCallback, Mp3Entry, PlaylistInsertCb, Tm,
 };
 
-pub fn rockbox_browse_at(path: &str) -> i32 {
+pub fn rockbox_browse_at(path: &str) -> Result<i32, Error> {
+    if fs::metadata(path)?.is_file() {
+        let path = CString::new(path).unwrap();
+        return Ok(unsafe { crate::rockbox_browse_at(path.as_ptr()) });
+    }
+
+    if !fs::metadata(path)?.is_dir() {
+        return Err(anyhow::anyhow!("Path is not a file or directory"));
+    }
+
+    if !path.ends_with("/") {
+        let path = format!("{}/", path);
+        let path = CString::new(path).unwrap();
+        return Ok(unsafe { crate::rockbox_browse_at(path.as_ptr()) })
+    }
+
     let path = CString::new(path).unwrap();
-    unsafe { crate::rockbox_browse_at(path.as_ptr()) }
+    Ok(unsafe { crate::rockbox_browse_at(path.as_ptr()) })
 }
 
 pub fn rockbox_browse() -> i32 {

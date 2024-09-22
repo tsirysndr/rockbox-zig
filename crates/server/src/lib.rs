@@ -235,8 +235,19 @@ fn handle_connection(mut stream: TcpStream) {
             if path.starts_with("/tree_entries?") {
                 let params: Vec<_> = path.split('?').collect();
                 let params = queryst::parse(params[1]).unwrap_or_default();
-                println!("{}", params);
-                rb::browse::rockbox_browse_at(params["q"].as_str().unwrap_or("/"));
+                let path = params.get("q").unwrap().as_str().unwrap();
+
+                if let Err(e) = rb::browse::rockbox_browse_at(path) {
+                    if e.to_string().starts_with("No such file or directory") {
+                        let response = "HTTP/1.1 404 Not Found\r\n\r\n";
+                        stream.write_all(response.as_bytes()).unwrap();
+                        return;
+                    }
+                    let response = format!("HTTP/1.1 500 Internal Server Error\r\n\r\n{}", e);
+                    stream.write_all(response.as_bytes()).unwrap();
+                    return;
+                }
+
                 let mut entries = vec![];
                 let context = rb::browse::tree_get_context();
 
