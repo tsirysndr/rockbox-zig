@@ -59,7 +59,7 @@ macro_rules! convert_ptr_to_vec {
         } else {
             // Safety: Ensure that the pointer is valid for $len elements,
             // and that the memory was allocated in a way that is compatible with Rust's Vec.
-            unsafe { Vec::from_raw_parts($ptr, $len, $len) }
+            unsafe { Vec::from_raw_parts($ptr as *mut i8, $len, $len) }
         }
     }};
 }

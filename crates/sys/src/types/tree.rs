@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{cast_ptr, convert_ptr_to_vec, get_string_from_ptr, ptr_to_option};
+use crate::{cast_ptr, convert_ptr_to_vec, get_string_from_ptr};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TreeCache {
