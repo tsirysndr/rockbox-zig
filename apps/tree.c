@@ -959,6 +959,26 @@ static int dirbrowse(void)
 
             default:
                 if (tc.browse->disable_gui == true) {
+    #ifdef HAVE_TAGCACHE
+                    switch (id3db ? tagtree_enter(&tc, true) : ft_enter(&tc))
+    #else
+                    switch (ft_enter(&tc))
+    #endif
+                    {
+                        case GO_TO_FILEBROWSER: reload_dir = true; break;
+                        case GO_TO_PLUGIN:
+                            return GO_TO_PLUGIN;
+                        case GO_TO_WPS:
+                            return GO_TO_WPS;
+    #if CONFIG_TUNER
+                        case GO_TO_FM:
+                            return GO_TO_FM;
+    #endif
+                        case GO_TO_ROOT: exit_func = true; break;
+                        default:
+                            break;
+                    }
+                    restore = do_restore_display;
                     return GO_TO_ROOT;
                 }
                 if (default_event_handler(button) == SYS_USB_CONNECTED)
