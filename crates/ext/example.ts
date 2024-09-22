@@ -6,3 +6,4 @@ console.log(await rb.playlist.playlistResume());
 console.log(await rb.playlist.resumeTrack());
 console.log(await rb.playlist.getCurrent());
 console.log(await rb.playlist.amount());
+console.log(await rb.browse.tree.getEntries("/"));

@@ -1,4 +1,5 @@
 pub mod compressor_settings;
+pub mod entry;
 pub mod eq_band_setting;
 pub mod playlist;
 pub mod replaygain_settings;

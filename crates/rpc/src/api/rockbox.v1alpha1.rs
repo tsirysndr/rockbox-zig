@@ -7,10 +7,27 @@ pub struct RockboxBrowseResponse {}
 pub struct TreeGetContextRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct TreeGetContextResponse {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct TreeGetEntriesRequest {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct TreeGetEntriesResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TreeGetEntriesRequest {
+    #[prost(string, tag = "1")]
+    pub path: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Entry {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(int32, tag = "2")]
+    pub attr: i32,
+    #[prost(uint32, tag = "3")]
+    pub time_write: u32,
+    #[prost(int32, tag = "4")]
+    pub customaction: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TreeGetEntriesResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub entries: ::prost::alloc::vec::Vec<Entry>,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct TreeGetEntryAtRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]

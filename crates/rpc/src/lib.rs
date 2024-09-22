@@ -17,7 +17,7 @@ pub mod api {
             user_settings::{CompressorSettings, EqBandSetting, ReplaygainSettings, UserSettings},
         };
         use v1alpha1::{
-            CurrentTrackResponse, GetGlobalSettingsResponse, GetGlobalStatusResponse,
+            CurrentTrackResponse, Entry, GetGlobalSettingsResponse, GetGlobalStatusResponse,
             NextTrackResponse,
         };
 
@@ -634,6 +634,22 @@ pub mod api {
                     last_screen,
                     viewer_icon_count,
                     last_volume_change,
+                }
+            }
+        }
+
+        impl From<rockbox_sys::types::tree::Entry> for Entry {
+            fn from(entry: rockbox_sys::types::tree::Entry) -> Self {
+                let name = entry.name;
+                let attr = entry.attr;
+                let time_write = entry.time_write;
+                let customaction = entry.customaction;
+
+                Entry {
+                    name,
+                    attr,
+                    time_write,
+                    customaction,
                 }
             }
         }
