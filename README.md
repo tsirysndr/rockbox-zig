@@ -63,6 +63,7 @@ make zig
 - [ ] Upnp Player
 - [ ] Airplay
 - [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
+- [ ] Wasm extensions
 
 ## 🧑‍🔬 Architecture
 
