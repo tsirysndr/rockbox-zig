@@ -1,0 +1,93 @@
+-- Add migration script here
+CREATE TABLE IF NOT EXISTS album (
+    id VARCHAR(255) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    artist VARCHAR(255) NOT NULL,
+    year INT,
+    year_string VARCHAR(255),
+    album_art VARCHAR(255),
+    md5 VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS track (
+    id VARCHAR(255) PRIMARY KEY,
+    path VARCHAR(255) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    artist VARCHAR(255) NOT NULL,
+    album VARCHAR(255) NOT NULL,
+    album_artist VARCHAR(255) NOT NULL,
+    bitrate INT NOT NULL,
+    composer VARCHAR(255) NOT NULL,
+    disc_number INT NOT NULL,
+    filesize INT NOT NULL,
+    frequency INT NOT NULL,
+    length INT NOT NULL,
+    track_number INT,
+    year INT,
+    year_string VARCHAR(255),
+    genre VARCHAR(255),
+    md5 VARCHAR(255) NOT NULL UNIQUE,
+    album_art VARCHAR(255),
+    artist_id VARCHAR(255) NOT NULL,
+    album_id VARCHAR(255) NOT NULL,
+    genre_id VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS artist (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    bio TEXT,
+    image VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS genre (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS playlist (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    image VARCHAR(255),
+    folder_id VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS playlist_tracks (
+    id VARCHAR(255) PRIMARY KEY,
+    playlist_id VARCHAR(255) NOT NULL,
+    track_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS folder (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    parent_id VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS favourites (
+    id VARCHAR(255) PRIMARY KEY,
+    track_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS artist_tracks (
+    id VARCHAR(255) PRIMARY KEY,
+    artist_id VARCHAR(255) NOT NULL,
+    track_id VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS album_tracks (
+    id VARCHAR(255) PRIMARY KEY,
+    album_id VARCHAR(255) NOT NULL,
+    track_id VARCHAR(255) NOT NULL
+);
