@@ -2,8 +2,8 @@ use clap::Command;
 use owo_colors::OwoColorize;
 use rockbox_library::audio_scan::scan_audio_files;
 use rockbox_library::create_connection_pool;
-use std::thread;
 use std::{env, ffi::CStr};
+use std::{fs, thread};
 
 #[macro_export]
 macro_rules! cast_ptr {
@@ -52,6 +52,14 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
 
     thread::spawn(move || {
         let home = env::var("HOME").unwrap();
+
+        match fs::create_dir_all(format!("{}/Music", home)) {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("Failed to create Music directory: {}", e);
+            }
+        }
+
         let path = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
