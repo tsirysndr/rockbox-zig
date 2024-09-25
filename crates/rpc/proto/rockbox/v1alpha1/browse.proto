@@ -2,17 +2,13 @@ syntax = "proto3";
 
 package rockbox.v1alpha1;
 
-message RockboxBrowseRequest {
-}
+message RockboxBrowseRequest {}
 
-message RockboxBrowseResponse {
-}
+message RockboxBrowseResponse {}
 
-message TreeGetContextRequest {
-}
+message TreeGetContextRequest {}
 
-message TreeGetContextResponse {
-}
+message TreeGetContextResponse {}
 
 message TreeGetEntriesRequest {
   string path = 1;
@@ -29,25 +25,14 @@ message TreeGetEntriesResponse {
   repeated Entry entries = 1;
 }
 
+message TreeGetEntryAtRequest {}
 
-message TreeGetEntryAtRequest {
-}
+message TreeGetEntryAtResponse {}
 
-message TreeGetEntryAtResponse {
-}
+message BrowseId3Request {}
 
-message BrowseId3Request {
-
-}
-
-message BrowseId3Response {
-
-}
+message BrowseId3Response {}
 
 service BrowseService {
-  rpc RockboxBrowse(RockboxBrowseRequest) returns (RockboxBrowseResponse);
-  rpc TreeGetContext(TreeGetContextRequest) returns (TreeGetContextResponse);
   rpc TreeGetEntries(TreeGetEntriesRequest) returns (TreeGetEntriesResponse);
-  rpc TreeGetEntryAt(TreeGetEntryAtRequest) returns (TreeGetEntryAtResponse);
-  rpc BrowseId3(BrowseId3Request) returns (BrowseId3Response);
 }

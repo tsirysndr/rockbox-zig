@@ -1,5 +1,6 @@
 use async_graphql::MergedObject;
 use browse::BrowseQuery;
+use library::LibraryQuery;
 use playback::{PlaybackMutation, PlaybackQuery};
 use playlist::{PlaylistMutation, PlaylistQuery};
 use settings::SettingsQuery;
@@ -7,6 +8,7 @@ use sound::{SoundMutation, SoundQuery};
 use system::SystemQuery;
 
 pub mod browse;
+pub mod library;
 pub mod metadata;
 pub mod objects;
 pub mod playback;
@@ -19,6 +21,7 @@ pub mod tagcache;
 #[derive(MergedObject, Default)]
 pub struct Query(
     BrowseQuery,
+    LibraryQuery,
     PlaybackQuery,
     PlaylistQuery,
     SoundQuery,

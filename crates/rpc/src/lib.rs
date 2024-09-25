@@ -1,4 +1,5 @@
 pub mod browse;
+pub mod library;
 pub mod metadata;
 pub mod playback;
 pub mod playlist;
@@ -17,8 +18,8 @@ pub mod api {
             user_settings::{CompressorSettings, EqBandSetting, ReplaygainSettings, UserSettings},
         };
         use v1alpha1::{
-            CurrentTrackResponse, Entry, GetGlobalSettingsResponse, GetGlobalStatusResponse,
-            NextTrackResponse,
+            Album, Artist, CurrentTrackResponse, Entry, GetGlobalSettingsResponse,
+            GetGlobalStatusResponse, NextTrackResponse, Track,
         };
 
         #[path = "rockbox.v1alpha1.rs"]
@@ -650,6 +651,61 @@ pub mod api {
                     attr,
                     time_write,
                     customaction,
+                }
+            }
+        }
+
+        impl From<rockbox_library::entity::artist::Artist> for Artist {
+            fn from(artist: rockbox_library::entity::artist::Artist) -> Self {
+                Self {
+                    id: artist.id,
+                    name: artist.name,
+                    bio: artist.bio,
+                    image: artist.image,
+                }
+            }
+        }
+
+        impl From<rockbox_library::entity::album::Album> for Album {
+            fn from(album: rockbox_library::entity::album::Album) -> Self {
+                Self {
+                    id: album.id,
+                    title: album.title,
+                    artist: album.artist,
+                    year: album.year,
+                    year_string: album.year_string,
+                    album_art: album.album_art,
+                    md5: album.md5,
+                }
+            }
+        }
+
+        impl From<rockbox_library::entity::track::Track> for Track {
+            fn from(track: rockbox_library::entity::track::Track) -> Self {
+                Self {
+                    id: track.id,
+                    path: track.path,
+                    title: track.title,
+                    artist: track.artist,
+                    album: track.album,
+                    album_artist: track.album_artist,
+                    bitrate: track.bitrate,
+                    composer: track.composer,
+                    disc_number: track.disc_number,
+                    filesize: track.filesize,
+                    frequency: track.frequency,
+                    length: track.length,
+                    track_number: track.track_number.unwrap_or_default(),
+                    year: track.year.unwrap_or_default(),
+                    year_string: track.year_string.unwrap_or_default(),
+                    genre: track.genre.unwrap_or_default(),
+                    md5: track.md5,
+                    album_art: track.album_art,
+                    artist_id: Some(track.artist_id),
+                    album_id: Some(track.album_id),
+                    genre_id: Some(track.genre_id),
+                    created_at: track.created_at.to_rfc3339(),
+                    updated_at: track.updated_at.to_rfc3339(),
                 }
             }
         }

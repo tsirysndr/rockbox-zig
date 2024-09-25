@@ -5,6 +5,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .compile(
             &[
                 "proto/rockbox/v1alpha1/browse.proto",
+                "proto/rockbox/v1alpha1/library.proto",
                 "proto/rockbox/v1alpha1/metadata.proto",
                 "proto/rockbox/v1alpha1/playback.proto",
                 "proto/rockbox/v1alpha1/playlist.proto",

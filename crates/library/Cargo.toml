@@ -1,17 +1,16 @@
 [package]
 edition = "2021"
-name = "rockbox-graphql"
+name = "rockbox-library"
 version = "0.1.0"
 
 [dependencies]
-actix-cors = "0.7.0"
-actix-web = "4.9.0"
-anyhow = "1.0.87"
-async-graphql = "7.0.9"
-async-graphql-actix-web = "7.0.9"
+anyhow = "1.0.89"
+chrono = {version = "0.4.38", features = ["serde"]}
+cuid = "1.3.3"
+futures = "0.3.30"
+lofty = "0.21.1"
+md5 = "0.7.0"
 owo-colors = "4.1.0"
-reqwest = {version = "0.12.7", features = ["rustls-tls", "json"], default-features = false}
-rockbox-library = {path = "../library"}
 rockbox-sys = {path = "../sys"}
 serde = "1.0.210"
 sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}

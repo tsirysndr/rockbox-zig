@@ -9,3 +9,5 @@ crate-type = ["staticlib"]
 [dependencies]
 clap = "4.5.17"
 owo-colors = "4.1.0"
+rockbox-library = {path = "../library"}
+tokio = {version = "1.36.0", features = ["full"]}

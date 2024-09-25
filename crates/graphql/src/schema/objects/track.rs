@@ -4,6 +4,7 @@ use serde::Serialize;
 
 #[derive(Default, Clone, Serialize)]
 pub struct Track {
+    pub id: Option<String>,
     pub title: String,
     pub artist: String,
     pub album: String,
@@ -25,10 +26,17 @@ pub struct Track {
     pub length: u64,
     pub elapsed: u64,
     pub path: String,
+    pub album_id: Option<String>,
+    pub artist_id: Option<String>,
+    pub genre_id: Option<String>,
 }
 
 #[Object]
 impl Track {
+    async fn id(&self) -> Option<&str> {
+        self.id.as_deref()
+    }
+
     async fn title(&self) -> &str {
         &self.title
     }
@@ -112,6 +120,18 @@ impl Track {
     async fn path(&self) -> &str {
         &self.path
     }
+
+    async fn album_id(&self) -> Option<&str> {
+        self.album_id.as_deref()
+    }
+
+    async fn artist_id(&self) -> Option<&str> {
+        self.artist_id.as_deref()
+    }
+
+    async fn genre_id(&self) -> Option<&str> {
+        self.genre_id.as_deref()
+    }
 }
 
 impl From<Mp3Entry> for Track {
@@ -160,6 +180,34 @@ impl From<Mp3Entry> for Track {
             length,
             elapsed,
             path,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<rockbox_library::entity::track::Track> for Track {
+    fn from(track: rockbox_library::entity::track::Track) -> Self {
+        Self {
+            id: Some(track.id),
+            title: track.title,
+            artist: track.artist,
+            album: track.album,
+            genre: track.genre.unwrap_or_default(),
+            year_string: track.year_string.unwrap_or_default(),
+            composer: track.composer,
+            album_artist: track.album_artist,
+            discnum: track.disc_number as i32,
+            tracknum: track.track_number.unwrap_or_default() as i32,
+            year: track.year.unwrap_or_default() as i32,
+            bitrate: track.bitrate,
+            frequency: track.frequency as u64,
+            filesize: track.filesize as u64,
+            length: track.length as u64,
+            artist_id: Some(track.artist_id),
+            album_id: Some(track.album_id),
+            genre_id: Some(track.genre_id),
+            path: track.path,
+            ..Default::default()
         }
     }
 }

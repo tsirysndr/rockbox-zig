@@ -5,6 +5,7 @@ use browse::rb_browse;
 use deno_ast::{MediaType, ParseParams};
 use deno_core::{error::AnyError, ModuleLoadResponse, ModuleSourceCode};
 use deno_net::NetPermissions;
+use library::rb_library;
 use playback::rb_playback;
 use playlist::rb_playlist;
 use settings::rb_settings;
@@ -13,6 +14,7 @@ use system::rb_system;
 
 pub mod browse;
 pub mod dir;
+pub mod library;
 pub mod playback;
 pub mod playlist;
 pub mod settings;
@@ -161,6 +163,7 @@ pub async fn run_js(file_path: &str) -> Result<(), AnyError> {
         startup_snapshot: Some(RUNTIME_SNAPSHOT),
         extensions: vec![
             rb_browse::init_ops(),
+            rb_library::init_ops(),
             rb_playback::init_ops(),
             rb_playlist::init_ops(),
             rb_settings::init_ops(),

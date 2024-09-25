@@ -81,6 +81,7 @@ fn main() {
         esm_entry_point = "ext:rockbox/src/bootstrap.js",
         esm = [
             "src/browse/browse.js",
+            "src/library/library.js",
             "src/playback/playback.js",
             "src/playlist/playlist.js",
             "src/settings/settings.js",

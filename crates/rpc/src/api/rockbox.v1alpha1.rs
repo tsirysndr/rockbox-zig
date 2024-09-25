@@ -121,60 +121,6 @@ pub mod browse_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        pub async fn rockbox_browse(
-            &mut self,
-            request: impl tonic::IntoRequest<super::RockboxBrowseRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::RockboxBrowseResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.BrowseService/RockboxBrowse",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.BrowseService", "RockboxBrowse"),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        pub async fn tree_get_context(
-            &mut self,
-            request: impl tonic::IntoRequest<super::TreeGetContextRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::TreeGetContextResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.BrowseService/TreeGetContext",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.BrowseService", "TreeGetContext"),
-                );
-            self.inner.unary(req, path, codec).await
-        }
         pub async fn tree_get_entries(
             &mut self,
             request: impl tonic::IntoRequest<super::TreeGetEntriesRequest>,
@@ -202,58 +148,6 @@ pub mod browse_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        pub async fn tree_get_entry_at(
-            &mut self,
-            request: impl tonic::IntoRequest<super::TreeGetEntryAtRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::TreeGetEntryAtResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.BrowseService/TreeGetEntryAt",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.BrowseService", "TreeGetEntryAt"),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        pub async fn browse_id3(
-            &mut self,
-            request: impl tonic::IntoRequest<super::BrowseId3Request>,
-        ) -> std::result::Result<
-            tonic::Response<super::BrowseId3Response>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.BrowseService/BrowseId3",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.BrowseService", "BrowseId3"));
-            self.inner.unary(req, path, codec).await
-        }
     }
 }
 /// Generated server implementations.
@@ -263,39 +157,11 @@ pub mod browse_service_server {
     /// Generated trait containing gRPC methods that should be implemented for use with BrowseServiceServer.
     #[async_trait]
     pub trait BrowseService: std::marker::Send + std::marker::Sync + 'static {
-        async fn rockbox_browse(
-            &self,
-            request: tonic::Request<super::RockboxBrowseRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::RockboxBrowseResponse>,
-            tonic::Status,
-        >;
-        async fn tree_get_context(
-            &self,
-            request: tonic::Request<super::TreeGetContextRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::TreeGetContextResponse>,
-            tonic::Status,
-        >;
         async fn tree_get_entries(
             &self,
             request: tonic::Request<super::TreeGetEntriesRequest>,
         ) -> std::result::Result<
             tonic::Response<super::TreeGetEntriesResponse>,
-            tonic::Status,
-        >;
-        async fn tree_get_entry_at(
-            &self,
-            request: tonic::Request<super::TreeGetEntryAtRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::TreeGetEntryAtResponse>,
-            tonic::Status,
-        >;
-        async fn browse_id3(
-            &self,
-            request: tonic::Request<super::BrowseId3Request>,
-        ) -> std::result::Result<
-            tonic::Response<super::BrowseId3Response>,
             tonic::Status,
         >;
     }
@@ -375,97 +241,6 @@ pub mod browse_service_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
-                "/rockbox.v1alpha1.BrowseService/RockboxBrowse" => {
-                    #[allow(non_camel_case_types)]
-                    struct RockboxBrowseSvc<T: BrowseService>(pub Arc<T>);
-                    impl<
-                        T: BrowseService,
-                    > tonic::server::UnaryService<super::RockboxBrowseRequest>
-                    for RockboxBrowseSvc<T> {
-                        type Response = super::RockboxBrowseResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::RockboxBrowseRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as BrowseService>::rockbox_browse(&inner, request).await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = RockboxBrowseSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/rockbox.v1alpha1.BrowseService/TreeGetContext" => {
-                    #[allow(non_camel_case_types)]
-                    struct TreeGetContextSvc<T: BrowseService>(pub Arc<T>);
-                    impl<
-                        T: BrowseService,
-                    > tonic::server::UnaryService<super::TreeGetContextRequest>
-                    for TreeGetContextSvc<T> {
-                        type Response = super::TreeGetContextResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::TreeGetContextRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as BrowseService>::tree_get_context(&inner, request)
-                                    .await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = TreeGetContextSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
                 "/rockbox.v1alpha1.BrowseService/TreeGetEntries" => {
                     #[allow(non_camel_case_types)]
                     struct TreeGetEntriesSvc<T: BrowseService>(pub Arc<T>);
@@ -497,97 +272,6 @@ pub mod browse_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = TreeGetEntriesSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/rockbox.v1alpha1.BrowseService/TreeGetEntryAt" => {
-                    #[allow(non_camel_case_types)]
-                    struct TreeGetEntryAtSvc<T: BrowseService>(pub Arc<T>);
-                    impl<
-                        T: BrowseService,
-                    > tonic::server::UnaryService<super::TreeGetEntryAtRequest>
-                    for TreeGetEntryAtSvc<T> {
-                        type Response = super::TreeGetEntryAtResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::TreeGetEntryAtRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as BrowseService>::tree_get_entry_at(&inner, request)
-                                    .await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = TreeGetEntryAtSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/rockbox.v1alpha1.BrowseService/BrowseId3" => {
-                    #[allow(non_camel_case_types)]
-                    struct BrowseId3Svc<T: BrowseService>(pub Arc<T>);
-                    impl<
-                        T: BrowseService,
-                    > tonic::server::UnaryService<super::BrowseId3Request>
-                    for BrowseId3Svc<T> {
-                        type Response = super::BrowseId3Response;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::BrowseId3Request>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as BrowseService>::browse_id3(&inner, request).await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = BrowseId3Svc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -636,6 +320,805 @@ pub mod browse_service_server {
     /// Generated gRPC service name
     pub const SERVICE_NAME: &str = "rockbox.v1alpha1.BrowseService";
     impl<T> tonic::server::NamedService for BrowseServiceServer<T> {
+        const NAME: &'static str = SERVICE_NAME;
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Track {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub artist: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub album: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub album_artist: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "7")]
+    pub bitrate: u32,
+    #[prost(string, tag = "8")]
+    pub composer: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "9")]
+    pub disc_number: u32,
+    #[prost(uint32, tag = "10")]
+    pub filesize: u32,
+    #[prost(uint32, tag = "11")]
+    pub frequency: u32,
+    #[prost(uint32, tag = "12")]
+    pub length: u32,
+    #[prost(uint32, tag = "13")]
+    pub track_number: u32,
+    #[prost(uint32, tag = "14")]
+    pub year: u32,
+    #[prost(string, tag = "15")]
+    pub year_string: ::prost::alloc::string::String,
+    #[prost(string, tag = "16")]
+    pub genre: ::prost::alloc::string::String,
+    #[prost(string, tag = "17")]
+    pub md5: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "18")]
+    pub album_art: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "19")]
+    pub artist_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "20")]
+    pub album_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "21")]
+    pub genre_id: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, tag = "22")]
+    pub created_at: ::prost::alloc::string::String,
+    #[prost(string, tag = "23")]
+    pub updated_at: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Artist {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "3")]
+    pub bio: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "4")]
+    pub image: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Album {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub title: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub artist: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "4")]
+    pub year: u32,
+    #[prost(string, tag = "5")]
+    pub year_string: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "6")]
+    pub album_art: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, tag = "7")]
+    pub md5: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetAlbumRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetAlbumResponse {
+    #[prost(message, optional, tag = "1")]
+    pub album: ::core::option::Option<Album>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetArtistRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetArtistResponse {
+    #[prost(message, optional, tag = "1")]
+    pub artist: ::core::option::Option<Artist>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetTrackRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetTrackResponse {
+    #[prost(message, optional, tag = "1")]
+    pub track: ::core::option::Option<Track>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetAlbumsRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetAlbumsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub albums: ::prost::alloc::vec::Vec<Album>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetArtistsRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetArtistsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub artists: ::prost::alloc::vec::Vec<Artist>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetTracksRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetTracksResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub tracks: ::prost::alloc::vec::Vec<Track>,
+}
+/// Generated client implementations.
+pub mod library_service_client {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    #[derive(Debug, Clone)]
+    pub struct LibraryServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl LibraryServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> LibraryServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> LibraryServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            LibraryServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        pub async fn get_albums(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetAlbumsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetAlbumsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/GetAlbums",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetAlbums"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_artists(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetArtistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetArtistsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/GetArtists",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetArtists"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_tracks(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetTracksResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/GetTracks",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetTracks"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_album(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetAlbumRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetAlbumResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/GetAlbum",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetAlbum"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_artist(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetArtistRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetArtistResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/GetArtist",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetArtist"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_track(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetTrackRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetTrackResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/GetTrack",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetTrack"));
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Generated server implementations.
+pub mod library_service_server {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::*;
+    /// Generated trait containing gRPC methods that should be implemented for use with LibraryServiceServer.
+    #[async_trait]
+    pub trait LibraryService: std::marker::Send + std::marker::Sync + 'static {
+        async fn get_albums(
+            &self,
+            request: tonic::Request<super::GetAlbumsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetAlbumsResponse>,
+            tonic::Status,
+        >;
+        async fn get_artists(
+            &self,
+            request: tonic::Request<super::GetArtistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetArtistsResponse>,
+            tonic::Status,
+        >;
+        async fn get_tracks(
+            &self,
+            request: tonic::Request<super::GetTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetTracksResponse>,
+            tonic::Status,
+        >;
+        async fn get_album(
+            &self,
+            request: tonic::Request<super::GetAlbumRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetAlbumResponse>,
+            tonic::Status,
+        >;
+        async fn get_artist(
+            &self,
+            request: tonic::Request<super::GetArtistRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetArtistResponse>,
+            tonic::Status,
+        >;
+        async fn get_track(
+            &self,
+            request: tonic::Request<super::GetTrackRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetTrackResponse>,
+            tonic::Status,
+        >;
+    }
+    #[derive(Debug)]
+    pub struct LibraryServiceServer<T> {
+        inner: Arc<T>,
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
+    }
+    impl<T> LibraryServiceServer<T> {
+        pub fn new(inner: T) -> Self {
+            Self::from_arc(Arc::new(inner))
+        }
+        pub fn from_arc(inner: Arc<T>) -> Self {
+            Self {
+                inner,
+                accept_compression_encodings: Default::default(),
+                send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
+            }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> InterceptedService<Self, F>
+        where
+            F: tonic::service::Interceptor,
+        {
+            InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
+    }
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for LibraryServiceServer<T>
+    where
+        T: LibraryService,
+        B: Body + std::marker::Send + 'static,
+        B::Error: Into<StdError> + std::marker::Send + 'static,
+    {
+        type Response = http::Response<tonic::body::BoxBody>;
+        type Error = std::convert::Infallible;
+        type Future = BoxFuture<Self::Response, Self::Error>;
+        fn poll_ready(
+            &mut self,
+            _cx: &mut Context<'_>,
+        ) -> Poll<std::result::Result<(), Self::Error>> {
+            Poll::Ready(Ok(()))
+        }
+        fn call(&mut self, req: http::Request<B>) -> Self::Future {
+            match req.uri().path() {
+                "/rockbox.v1alpha1.LibraryService/GetAlbums" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetAlbumsSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::GetAlbumsRequest>
+                    for GetAlbumsSvc<T> {
+                        type Response = super::GetAlbumsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetAlbumsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::get_albums(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetAlbumsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/GetArtists" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetArtistsSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::GetArtistsRequest>
+                    for GetArtistsSvc<T> {
+                        type Response = super::GetArtistsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetArtistsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::get_artists(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetArtistsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/GetTracks" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetTracksSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::GetTracksRequest>
+                    for GetTracksSvc<T> {
+                        type Response = super::GetTracksResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetTracksRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::get_tracks(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetTracksSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/GetAlbum" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetAlbumSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::GetAlbumRequest>
+                    for GetAlbumSvc<T> {
+                        type Response = super::GetAlbumResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetAlbumRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::get_album(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetAlbumSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/GetArtist" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetArtistSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::GetArtistRequest>
+                    for GetArtistSvc<T> {
+                        type Response = super::GetArtistResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetArtistRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::get_artist(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetArtistSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/GetTrack" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetTrackSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::GetTrackRequest>
+                    for GetTrackSvc<T> {
+                        type Response = super::GetTrackResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetTrackRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::get_track(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetTrackSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                _ => {
+                    Box::pin(async move {
+                        Ok(
+                            http::Response::builder()
+                                .status(200)
+                                .header("grpc-status", tonic::Code::Unimplemented as i32)
+                                .header(
+                                    http::header::CONTENT_TYPE,
+                                    tonic::metadata::GRPC_CONTENT_TYPE,
+                                )
+                                .body(empty_body())
+                                .unwrap(),
+                        )
+                    })
+                }
+            }
+        }
+    }
+    impl<T> Clone for LibraryServiceServer<T> {
+        fn clone(&self) -> Self {
+            let inner = self.inner.clone();
+            Self {
+                inner,
+                accept_compression_encodings: self.accept_compression_encodings,
+                send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
+            }
+        }
+    }
+    /// Generated gRPC service name
+    pub const SERVICE_NAME: &str = "rockbox.v1alpha1.LibraryService";
+    impl<T> tonic::server::NamedService for LibraryServiceServer<T> {
         const NAME: &'static str = SERVICE_NAME;
     }
 }

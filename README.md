@@ -69,3 +69,20 @@ make zig
 
 ![architecture](./docs/rockbox-server-architecture.jpg)
   
+## 📚 GraphQL API
+
+Open [http://localhost:6062/graphiql](http://localhost:6062/graphiql) in your browser.
+
+<p style="margin-top: 20px; margin-bottom: 20px;">
+ <img src="./docs/graphql.png" width="100%" />
+</p>
+
+## 📚 gRPC API
+
+[https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
+
+Try Rockbox gRPC API using [Buf Studio](https://buf.build/studio/tsiry/rockboxapis/rockbox.v1alpha1.LibraryService/GetAlbums?target=http%3A%2F%2Flocalhost%3A6061&selectedProtocol=grpc-web).
+
+<p style="margin-top: 20px; margin-bottom: 20px;">
+ <img src="./docs/grpc.png" width="100%" />
+</p>

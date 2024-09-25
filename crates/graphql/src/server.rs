@@ -6,9 +6,11 @@ use actix_web::{
     web::{self, Data},
     App, HttpRequest, HttpResponse, HttpServer, Result,
 };
+use anyhow::Error;
 use async_graphql::{http::GraphiQLSource, EmptySubscription, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use owo_colors::OwoColorize;
+use rockbox_library::create_connection_pool;
 use rockbox_sys::events::RockboxCommand;
 
 use crate::{
@@ -46,8 +48,9 @@ async fn index_graphiql(req: HttpRequest) -> Result<HttpResponse> {
         ))
 }
 
-pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> std::io::Result<()> {
+pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Error> {
     let client = reqwest::Client::new();
+    let pool = create_connection_pool().await?;
     let schema = Schema::build(
         Query::default(),
         Mutation::default(),
@@ -55,6 +58,7 @@ pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> std::io::Resul
     )
     .data(cmd_tx)
     .data(client)
+    .data(pool)
     .finish();
     let graphql_port = std::env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string());
     let addr = format!("{}:{}", "0.0.0.0", graphql_port);
@@ -76,4 +80,5 @@ pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> std::io::Resul
     .bind(addr)?
     .run()
     .await
+    .map_err(Error::new)
 }
