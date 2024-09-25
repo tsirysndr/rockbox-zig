@@ -6,7 +6,9 @@ use std::{
     net::{TcpListener, TcpStream},
     sync::{Arc, Mutex},
     thread,
+    time::Duration,
 };
+use threadpool::ThreadPool;
 
 #[no_mangle]
 pub extern "C" fn debugfn(args: *const c_char) {
@@ -39,10 +41,24 @@ pub extern "C" fn start_server() {
         addr.bright_green()
     );
 
+    let pool = ThreadPool::new(4);
+    let active_connections = Arc::new(Mutex::new(0));
+
     loop {
         match listener.accept() {
             Ok((stream, _)) => {
-                handle_connection(stream);
+                let active_connections = Arc::clone(&active_connections);
+                {
+                    let mut active_connections = active_connections.lock().unwrap();
+                    *active_connections += 1;
+                }
+                pool.execute(move || {
+                    handle_connection(stream);
+                    {
+                        let mut active_connections = active_connections.lock().unwrap();
+                        *active_connections -= 1;
+                    }
+                });
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No incoming connection, just sleep and retry
@@ -53,6 +69,15 @@ pub extern "C" fn start_server() {
                 break;
             }
         }
+
+        // Check if there are no active connections (idle state)
+        let active = *active_connections.lock().unwrap();
+        if active == 0 {
+            rb::system::sleep(rb::HZ);
+        }
+
+        // Add a small sleep to avoid tight looping when idle
+        thread::sleep(Duration::from_millis(100));
     }
 }
 
