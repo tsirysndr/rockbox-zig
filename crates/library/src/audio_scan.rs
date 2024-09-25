@@ -57,7 +57,9 @@ pub fn scan_audio_files(
                 let album_id = cuid::cuid1()?;
                 let album_md5 = format!(
                     "{:x}",
-                    md5::compute(format!("{}{}", entry.albumartist, entry.album).as_bytes())
+                    md5::compute(
+                        format!("{}{}{}", entry.albumartist, entry.album, entry.year).as_bytes()
+                    )
                 );
 
                 repo::track::save(
@@ -98,7 +100,10 @@ pub fn scan_audio_files(
                     Album {
                         id: album_id,
                         title: entry.album,
-                        artist: entry.albumartist.clone(),
+                        artist: match entry.albumartist.is_empty() {
+                            true => entry.artist.clone(),
+                            false => entry.albumartist.clone(),
+                        },
                         year: entry.year as u32,
                         year_string: entry.year_string,
                         album_art,
@@ -111,7 +116,10 @@ pub fn scan_audio_files(
                     pool.clone(),
                     Artist {
                         id: artist_id,
-                        name: entry.albumartist.clone(),
+                        name: match entry.albumartist.is_empty() {
+                            true => entry.artist.clone(),
+                            false => entry.albumartist.clone(),
+                        },
                         bio: None,
                         image: None,
                     },
