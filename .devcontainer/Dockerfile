@@ -1,6 +1,7 @@
 FROM rust:1.81-bookworm
 
-RUN apt-get update && apt-get install -y build-essential \
+RUN apt-get update && apt-get install -y apt-utils && \
+  apt-get install -y build-essential \
   libusb-dev \
   libsdl1.2-dev \
   libfreetype6-dev \
@@ -9,7 +10,11 @@ RUN apt-get update && apt-get install -y build-essential \
   zip \
   unzip \
   git \
-  protobuf-compiler
+  protobuf-compiler \
+  locales \
+  vim
+
+RUN locale-gen en_US.UTF-8
 
 RUN curl -Ssf https://pkgx.sh | sh
 
@@ -24,3 +29,7 @@ RUN echo 'eval "$(oh-my-posh init bash --config ~/.cache/oh-my-posh/themes/tokyo
 RUN curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh | bash
 
 ENV BASH_ENV=/root/.bashrc
+
+ENV LANG=en_US.UTF-8
+
+ENV LANGUAGE=en_US.UTF-8
