@@ -1,7 +1,9 @@
+use crate::album_art::extract_and_save_album_cover;
 use crate::entity::album::Album;
 use crate::entity::artist::Artist;
 use crate::{entity::track::Track, repo};
 use anyhow::Error;
+use chrono::Utc;
 use futures::future::BoxFuture;
 use futures::stream::{FuturesUnordered, StreamExt};
 use owo_colors::OwoColorize;
@@ -50,11 +52,11 @@ pub fn scan_audio_files(
                 );
                 let entry = rb::metadata::get_metadata(-1, path);
 
-                let track_hash = format!("{:?}", md5::compute(entry.path.as_bytes()));
+                let track_hash = format!("{:x}", md5::compute(entry.path.as_bytes()));
                 let artist_id = cuid::cuid1()?;
                 let album_id = cuid::cuid1()?;
                 let album_md5 = format!(
-                    "{:?}",
+                    "{:x}",
                     md5::compute(format!("{}{}", entry.albumartist, entry.album).as_bytes())
                 );
 
@@ -62,7 +64,7 @@ pub fn scan_audio_files(
                     pool.clone(),
                     Track {
                         id: cuid::cuid1()?,
-                        path: entry.path,
+                        path: entry.path.clone(),
                         title: entry.title,
                         artist: entry.artist.clone(),
                         album: entry.album.clone(),
@@ -81,8 +83,8 @@ pub fn scan_audio_files(
                         filesize: entry.filesize as u32,
                         length: entry.length as u32,
                         md5: track_hash,
-                        created_at: chrono::Utc::now().timestamp_nanos_opt().unwrap() as i32,
-                        updated_at: chrono::Utc::now().timestamp_nanos_opt().unwrap() as i32,
+                        created_at: Utc::now(),
+                        updated_at: Utc::now(),
                         artist_id: artist_id.clone(),
                         album_id: album_id.clone(),
                         ..Default::default()
@@ -90,6 +92,7 @@ pub fn scan_audio_files(
                 )
                 .await?;
 
+                let album_art = extract_and_save_album_cover(&entry.path)?;
                 repo::album::save(
                     pool.clone(),
                     Album {
@@ -98,7 +101,7 @@ pub fn scan_audio_files(
                         artist: entry.albumartist.clone(),
                         year: entry.year as u32,
                         year_string: entry.year_string,
-                        album_art: None,
+                        album_art,
                         md5: album_md5,
                     },
                 )

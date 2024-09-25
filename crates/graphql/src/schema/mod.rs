@@ -7,6 +7,7 @@ use sound::{SoundMutation, SoundQuery};
 use system::SystemQuery;
 
 pub mod browse;
+pub mod library;
 pub mod metadata;
 pub mod objects;
 pub mod playback;

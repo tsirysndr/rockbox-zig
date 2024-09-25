@@ -2,6 +2,7 @@ use std::env;
 
 use sqlx::{sqlite::SqliteConnectOptions, Error, Executor, Pool, Sqlite, SqlitePool};
 
+pub mod album_art;
 pub mod audio_scan;
 pub mod entity;
 pub mod repo;

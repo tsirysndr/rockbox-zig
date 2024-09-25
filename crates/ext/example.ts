@@ -7,3 +7,6 @@ console.log(await rb.playlist.resumeTrack());
 console.log(await rb.playlist.getCurrent());
 console.log(await rb.playlist.amount());
 console.log(await rb.browse.tree.getEntries("/"));
+console.log(await rb.library.album.getAlbums());
+console.log(await rb.library.artist.getArtists());
+console.log(await rb.library.track.getTracks());

@@ -1,4 +1,7 @@
-#[derive(sqlx::FromRow, Default)]
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+#[derive(sqlx::FromRow, Default, Serialize, Deserialize)]
 pub struct Track {
     pub id: String,
     pub path: String,
@@ -21,6 +24,8 @@ pub struct Track {
     pub artist_id: String,
     pub album_id: String,
     pub genre_id: String,
-    pub created_at: i32,
-    pub updated_at: i32,
+    #[serde(with = "chrono::serde::ts_seconds")]
+    pub created_at: DateTime<Utc>,
+    #[serde(with = "chrono::serde::ts_seconds")]
+    pub updated_at: DateTime<Utc>,
 }
