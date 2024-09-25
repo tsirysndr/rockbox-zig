@@ -14,4 +14,5 @@ rockbox-graphql = {path = "../graphql"}
 rockbox-rpc = {path = "../rpc"}
 rockbox-sys = {path = "../sys"}
 serde_json = "1.0.128"
+threadpool = "1.8.1"
 tokio = {version = "1.36.0", features = ["full"]}
