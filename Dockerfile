@@ -1,4 +1,4 @@
-FROM rust:1.81-bookworm as builder
+FROM rust:1.81-bookworm AS builder
 
 RUN apt-get update && apt-get install -y build-essential \
   libusb-dev \
