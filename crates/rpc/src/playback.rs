@@ -117,7 +117,7 @@ impl PlaybackService for Playback {
     ) -> Result<tonic::Response<CurrentTrackResponse>, tonic::Status> {
         let track = self
             .client
-            .get(&format!("{}/current_track", rockbox_url()))
+            .get(&format!("{}/player/current-track", rockbox_url()))
             .send()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?
@@ -133,7 +133,7 @@ impl PlaybackService for Playback {
     ) -> Result<tonic::Response<NextTrackResponse>, tonic::Status> {
         let track = self
             .client
-            .get(&format!("{}/next_track", rockbox_url()))
+            .get(&format!("{}/player/next-track", rockbox_url()))
             .send()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?
@@ -161,7 +161,7 @@ impl PlaybackService for Playback {
     ) -> Result<tonic::Response<GetFilePositionResponse>, tonic::Status> {
         let position = self
             .client
-            .get(&format!("{}/file_position", rockbox_url()))
+            .get(&format!("{}/player/file-position", rockbox_url()))
             .send()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?

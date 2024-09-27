@@ -15,11 +15,16 @@ pub struct Track {
     pub filesize: u32,
     pub frequency: u32,
     pub length: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub track_number: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub year: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub year_string: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub genre: Option<String>,
     pub md5: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub album_art: Option<String>,
     pub artist_id: String,
     pub album_id: String,

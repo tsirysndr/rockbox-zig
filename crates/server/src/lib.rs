@@ -1,5 +1,7 @@
 use owo_colors::OwoColorize;
+use rockbox_library::repo;
 use rockbox_sys::{self as rb, events::RockboxCommand, types::playlist_amount::PlaylistAmount};
+use sqlx::Sqlite;
 use std::{
     ffi::c_char,
     io::{BufRead, BufReader, Write},
@@ -31,7 +33,7 @@ pub extern "C" fn start_server() {
     println!("{}", BANNER.yellow());
 
     let port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".to_string());
-    let addr = format!("127.0.0.1:{}", port);
+    let addr = format!("0.0.0.0:{}", port);
     let listener = TcpListener::bind(&addr).unwrap();
     listener.set_nonblocking(true).unwrap();
 
@@ -43,17 +45,22 @@ pub extern "C" fn start_server() {
 
     let pool = ThreadPool::new(4);
     let active_connections = Arc::new(Mutex::new(0));
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let db_pool = rt
+        .block_on(rockbox_library::create_connection_pool())
+        .unwrap();
 
     loop {
         match listener.accept() {
             Ok((stream, _)) => {
+                let db_pool = db_pool.clone();
                 let active_connections = Arc::clone(&active_connections);
                 {
                     let mut active_connections = active_connections.lock().unwrap();
                     *active_connections += 1;
                 }
                 pool.execute(move || {
-                    handle_connection(stream);
+                    handle_connection(stream, db_pool);
                     {
                         let mut active_connections = active_connections.lock().unwrap();
                         *active_connections -= 1;
@@ -81,7 +88,8 @@ pub extern "C" fn start_server() {
     }
 }
 
-fn handle_connection(mut stream: TcpStream) {
+fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
+    let rt = tokio::runtime::Runtime::new().unwrap();
     let buf_reader = BufReader::new(&mut stream);
     let http_request: Vec<_> = buf_reader
         .lines()
@@ -96,26 +104,26 @@ fn handle_connection(mut stream: TcpStream) {
 
     println!("{} {}", method.bright_cyan(), path);
 
-    if method != "GET" {
+    if method != "GET" && method != "PUT" {
         let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
         stream.write_all(response.as_bytes()).unwrap();
         return;
     }
 
     match path {
-        "/pause" => {
+        "/player/pause" => {
             rb::playback::pause();
         }
-        "/resume" => {
+        "/player/resume" => {
             rb::playback::resume();
         }
-        "/next" => {
+        "/player/next" => {
             rb::playback::next();
         }
-        "/prev" => {
+        "/player/prev" => {
             rb::playback::prev();
         }
-        "/stop" => {
+        "/player/stop" => {
             rb::playback::hard_stop();
         }
         "/playlist_amount" => {
@@ -187,11 +195,11 @@ fn handle_connection(mut stream: TcpStream) {
             stream.write_all(response.as_bytes()).unwrap();
             return;
         }
-        "/flush_and_reload_tracks" => {
+        "/player/flush-and-reload-tracks" => {
             rb::playback::flush_and_reload_tracks();
             return;
         }
-        "/next_track" => {
+        "/player/next-track" => {
             let track = rb::playback::next_track();
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
@@ -200,7 +208,7 @@ fn handle_connection(mut stream: TcpStream) {
             stream.write_all(response.as_bytes()).unwrap();
             return;
         }
-        "/current_track" => {
+        "/player/current-track" => {
             let track = rb::playback::current_track();
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
@@ -218,7 +226,7 @@ fn handle_connection(mut stream: TcpStream) {
             stream.write_all(response.as_bytes()).unwrap();
             return;
         }
-        "/file_position" => {
+        "/player/file-position" => {
             let position = rb::playback::get_file_pos();
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
@@ -236,28 +244,92 @@ fn handle_connection(mut stream: TcpStream) {
             stream.write_all(response.as_bytes()).unwrap();
             return;
         }
+        "/albums" => {
+            let albums = rt.block_on(repo::album::all(pool)).unwrap();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&albums).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/artists" => {
+            let artists = rt.block_on(repo::artist::all(pool)).unwrap();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&artists).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/tracks" => {
+            let tracks = rt.block_on(repo::track::all(pool)).unwrap();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                serde_json::to_string(&tracks).unwrap()
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/openapi.json" => {
+            let spec = include_str!("../openapi.json");
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                spec
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+            return;
+        }
+        "/" => {
+            let index = include_str!("../docs/index.html");
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{}",
+                index
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+        }
         _ => {
-            if path.starts_with("/play?") {
+            if path.starts_with("/operations/") || path.starts_with("/schemas/") {
+                let index = include_str!("../docs/index.html");
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{}",
+                    index
+                );
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
+
+            if path.starts_with("/artists/") && path.ends_with("/tracks") {
+                todo!("to be implemented");
+            }
+
+            if path.starts_with("/albums/") && path.ends_with("/tracks") {
+                todo!("to be implemented");
+            }
+
+            if path.starts_with("/player/play?") {
                 let params: Vec<_> = path.split('?').collect();
-                let params: Vec<_> = params[1].split('&').collect();
-                let elapsed = params[0].split('=').collect::<Vec<_>>()[1].parse().unwrap();
-                let offset = params[1].split('=').collect::<Vec<_>>()[1].parse().unwrap();
+                let params = queryst::parse(params[1]).unwrap();
+                let elapsed = params.get("elapsed").unwrap().as_i64().unwrap();
+                let offset = params.get("offset").unwrap().as_i64().unwrap();
                 rb::playback::play(elapsed, offset);
                 let response = "HTTP/1.1 200 OK\r\n\r\n";
                 stream.write_all(response.as_bytes()).unwrap();
                 return;
             }
 
-            if path.starts_with("/ff_rewind") {
+            if path.starts_with("/player/ff_rewind") {
                 let params: Vec<_> = path.split('?').collect();
-                let newtime = params[1].split('=').collect::<Vec<_>>()[1].parse().unwrap();
+                let params = queryst::parse(params[1]).unwrap();
+                let newtime = params.get("newtime").unwrap().as_str().unwrap();
+                let newtime = newtime.parse().unwrap();
                 rb::playback::ff_rewind(newtime);
                 let response = "HTTP/1.1 200 OK\r\n\r\n";
                 stream.write_all(response.as_bytes()).unwrap();
                 return;
             }
 
-            if path.starts_with("/tree_entries?") {
+            if path.starts_with("/browse/tree-entries?") {
                 let params: Vec<_> = path.split('?').collect();
                 let params = queryst::parse(params[1]).unwrap_or_default();
                 let path = params.get("q").unwrap().as_str().unwrap();
@@ -289,6 +361,60 @@ fn handle_connection(mut stream: TcpStream) {
                 return;
             }
 
+            if path.starts_with("/albums/") {
+                let album_id = path.split('/').collect::<Vec<_>>()[2];
+                let album = rt.block_on(repo::album::find(pool, album_id)).unwrap();
+
+                if album.is_none() {
+                    let response = "HTTP/1.1 404 Not Found\r\n\r\n";
+                    stream.write_all(response.as_bytes()).unwrap();
+                    return;
+                }
+
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                    serde_json::to_string(&album).unwrap()
+                );
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
+
+            if path.starts_with("/artists/") {
+                let artist_id = path.split('/').collect::<Vec<_>>()[2];
+                let artist = rt.block_on(repo::artist::find(pool, artist_id)).unwrap();
+
+                if artist.is_none() {
+                    let response = "HTTP/1.1 404 Not Found\r\n\r\n";
+                    stream.write_all(response.as_bytes()).unwrap();
+                    return;
+                }
+
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                    serde_json::to_string(&artist).unwrap()
+                );
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
+
+            if path.starts_with("/tracks/") {
+                let track_id = path.split('/').collect::<Vec<_>>()[2];
+                let track = rt.block_on(repo::track::find(pool, track_id)).unwrap();
+
+                if track.is_none() {
+                    let response = "HTTP/1.1 404 Not Found\r\n\r\n";
+                    stream.write_all(response.as_bytes()).unwrap();
+                    return;
+                }
+
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                    serde_json::to_string(&track).unwrap()
+                );
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
+
             let response = "HTTP/1.1 404 Not Found\r\n\r\n";
             stream.write_all(response.as_bytes()).unwrap();
             return;
@@ -308,43 +434,60 @@ pub extern "C" fn start_servers() {
     thread::spawn(move || {
         let port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".to_string());
         let url = format!("http://127.0.0.1:{}", port);
+        let client = reqwest::blocking::Client::new();
 
         while let Ok(event) = cmd_rx.recv() {
             match event {
                 RockboxCommand::Play(elapsed, offset) => {
-                    reqwest::blocking::get(&format!(
-                        "{}/play?elapsed={}&offset={}",
-                        url, elapsed, offset
-                    ))
-                    .unwrap();
+                    client
+                        .put(&format!(
+                            "{}/player/play?elapsed={}&offset={}",
+                            url, elapsed, offset
+                        ))
+                        .send()
+                        .unwrap();
                 }
                 RockboxCommand::Pause => {
-                    reqwest::blocking::get(&format!("{}/pause", url)).unwrap();
+                    client.put(&format!("{}/player/pause", url)).send().unwrap();
                 }
                 RockboxCommand::Resume => {
-                    reqwest::blocking::get(&format!("{}/resume", url)).unwrap();
+                    client
+                        .put(&format!("{}/player/resume", url))
+                        .send()
+                        .unwrap();
                 }
                 RockboxCommand::Next => {
-                    reqwest::blocking::get(&format!("{}/next", url)).unwrap();
+                    client.put(&format!("{}/player/next", url)).send().unwrap();
                 }
                 RockboxCommand::Prev => {
-                    reqwest::blocking::get(&format!("{}/prev", url)).unwrap();
+                    client.put(&format!("{}/player/prev", url)).send().unwrap();
                 }
                 RockboxCommand::FfRewind(newtime) => {
-                    reqwest::blocking::get(&format!("{}/ff_rewind?newtime={}", url, newtime))
+                    client
+                        .put(&format!("{}/player/ff-rewind?newtime={}", url, newtime))
+                        .send()
                         .unwrap();
                 }
                 RockboxCommand::FlushAndReloadTracks => {
-                    reqwest::blocking::get(&format!("{}/flush_and_reload_tracks", url)).unwrap();
+                    client
+                        .put(&format!("{}/player/flush-and-reload-tracks", url))
+                        .send()
+                        .unwrap();
                 }
                 RockboxCommand::Stop => {
-                    reqwest::blocking::get(&format!("{}/stop", url)).unwrap();
+                    client.put(&format!("{}/player/stop", url)).send().unwrap();
                 }
                 RockboxCommand::PlaylistResume => {
-                    reqwest::blocking::get(&format!("{}/playlist_resume", url)).unwrap();
+                    client
+                        .put(&format!("{}/playlists/resume", url))
+                        .send()
+                        .unwrap();
                 }
                 RockboxCommand::PlaylistResumeTrack => {
-                    reqwest::blocking::get(&format!("{}/playlist_resume_track", url)).unwrap();
+                    client
+                        .put(&format!("{}/playlists/resume-track", url))
+                        .send()
+                        .unwrap();
                 }
             }
         }

@@ -23,7 +23,7 @@ impl PlaybackQuery {
 
     async fn current_track(&self, ctx: &Context<'_>) -> Result<Option<Track>, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
-        let url = format!("{}/current_track", rockbox_url());
+        let url = format!("{}/player/current-track", rockbox_url());
         let response = client.get(&url).send().await?;
         let track = response.json::<Option<Mp3Entry>>().await?;
         Ok(track.map(|t| t.into()))
@@ -31,7 +31,7 @@ impl PlaybackQuery {
 
     async fn next_track(&self, ctx: &Context<'_>) -> Result<Option<Track>, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
-        let url = format!("{}/next_track", rockbox_url());
+        let url = format!("{}/player/next-track", rockbox_url());
         let response = client.get(&url).send().await?;
         let track = response.json::<Option<Mp3Entry>>().await?;
         Ok(track.map(|t| t.into()))
@@ -39,7 +39,7 @@ impl PlaybackQuery {
 
     async fn get_file_position(&self, ctx: &Context<'_>) -> Result<i32, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
-        let url = format!("{}/file_position", rockbox_url());
+        let url = format!("{}/player/file-position", rockbox_url());
         let response = client.get(&url).send().await?;
         let response = response.json::<FilePosition>().await?;
         Ok(response.position)

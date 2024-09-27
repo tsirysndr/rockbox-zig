@@ -22,7 +22,7 @@ impl BrowseService for Browse {
         request: tonic::Request<TreeGetEntriesRequest>,
     ) -> Result<tonic::Response<TreeGetEntriesResponse>, tonic::Status> {
         let path = request.into_inner().path;
-        let url = format!("{}/tree_entries?q={}", rockbox_url(), path);
+        let url = format!("{}/browse/tree-entries?q={}", rockbox_url(), path);
         let response = self
             .client
             .get(url)
