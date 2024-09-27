@@ -1,0 +1,2159 @@
+{
+  "openapi": "3.1.0",
+  "x-stoplight": {
+    "id": "pekyaa98hprrk"
+  },
+  "info": {
+    "title": "Rockbox API v1",
+    "version": "1.0",
+    "contact": {
+      "name": "Tsiry Sandratraina",
+      "email": "tsiry.sndr@fluentci.io"
+    },
+    "summary": "Retrieve metadata from Rockbox Library, control playback.",
+    "description": "",
+    "x-logo": {
+      "url": "https://avatars.githubusercontent.com/u/1327269?s=200&v=4"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:6063"
+    }
+  ],
+  "paths": {
+    "/albums": {
+      "get": {
+        "summary": "Get Several Albums",
+        "tags": [
+          "Albums"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Album.v1",
+                    "x-stoplight": {
+                      "id": "g3x93ebnemzva"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-albums",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "The maximum number of items to return. Default: 20. Minimum: 1. Maximum: 50."
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "The index of the first item to return. Default: 0 (the first item). Use with limit to get the next set of items."
+          }
+        ]
+      }
+    },
+    "/albums/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Get Album",
+        "tags": [
+          "Albums"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Album.v1"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "operationId": "get-albums-id"
+      }
+    },
+    "/albums/{id}/tracks": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Get Album Tracks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Track.v1",
+                    "x-stoplight": {
+                      "id": "hi439roy03b8p"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-albums-id-tracks",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "The maximum number of items to return. Default: 20. Minimum: 1. Maximum: 50."
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "The index of the first item to return. Default: 0 (the first item). Use with limit to get the next set of items."
+          }
+        ],
+        "tags": [
+          "Albums"
+        ]
+      }
+    },
+    "/artists": {
+      "get": {
+        "summary": "Get Several Artists",
+        "tags": [
+          "Artists"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Artist.v1",
+                    "x-stoplight": {
+                      "id": "03rsibvu1zlxz"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-artists",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "The maximum number of items to return. Default: 20. Minimum: 1. Maximum: 50."
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "The index of the first item to return. Default: 0 (the first item). Use with limit to get the next set of items."
+          }
+        ]
+      }
+    },
+    "/artists/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Get Artist",
+        "tags": [
+          "Artists"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Artist.v1",
+                    "x-stoplight": {
+                      "id": "mq2z0jvupvbjs"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "operationId": "get-artists-id"
+      }
+    },
+    "/tracks": {
+      "get": {
+        "summary": "Get Several Tracks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Track.v1",
+                    "x-stoplight": {
+                      "id": "1onvs6nmuxc8z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-tracks",
+        "requestBody": {
+          "content": {},
+          "description": ""
+        },
+        "x-internal": false,
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "The maximum number of items to return. Default: 20. Minimum: 1. Maximum: 50."
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "The index of the first item to return. Default: 0 (the first item). Use with limit to get the next set of items."
+          }
+        ],
+        "tags": [
+          "Tracks"
+        ]
+      }
+    },
+    "/tracks/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Get Track",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track.v1"
+                },
+                "examples": {
+                  "Track": {
+                    "value": {
+                      "album": "2014 Forest Hills Drive",
+                      "album_artist": "J. Cole",
+                      "album_id": "cm1ibibnn00043fj7ppakq9w9",
+                      "artist": "J. Cole",
+                      "artist_id": "cm1ibibnn00033fj7hy019na5",
+                      "bitrate": 96,
+                      "composer": "Roy Hammond, Jermaine Cole, CHARLES SIMMONS",
+                      "created_at": 1727296114,
+                      "disc_number": 1,
+                      "filesize": 2872773,
+                      "frequency": 44100,
+                      "genre_id": "",
+                      "id": "cm1ibibnn00053fj79ghe6b2d",
+                      "length": 239381,
+                      "md5": "b5a0d86e156e6d02c90f647bf5cc6fc2",
+                      "path": "/home/coder/Music/03 - J. Cole - Wet Dreamz(Explicit).m4a",
+                      "title": "Wet Dreamz",
+                      "track_number": 3,
+                      "updated_at": 1727296114,
+                      "year": 2014,
+                      "year_string": "2014-12-09"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "operationId": "get-tracks-trackid",
+        "tags": [
+          "Tracks"
+        ]
+      }
+    },
+    "/artists/{id}/albums": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Get Artist's Albums",
+        "tags": [
+          "artists"
+        ],
+        "responses": {},
+        "operationId": "get-artists-id-albums",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "The maximum number of items to return. Default: 20. Minimum: 1. Maximum: 50."
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "The index of the first item to return. Default: 0 (the first item). Use with limit to get the next set of items."
+          }
+        ]
+      }
+    },
+    "/browse/tree-entries": {
+      "get": {
+        "summary": "Get Entries",
+        "tags": [
+          "Browse"
+        ],
+        "responses": {},
+        "operationId": "get-tree_entries"
+      },
+      "parameters": []
+    },
+    "/player/play": {
+      "parameters": [],
+      "put": {
+        "summary": "Play",
+        "operationId": "put-player-play",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Player"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "elapsed"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ]
+      }
+    },
+    "/player/ff-rewind": {
+      "put": {
+        "summary": "Fast Forward Rewind",
+        "operationId": "put-player-ff_rewind",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Player"
+        ]
+      },
+      "parameters": []
+    },
+    "/player/status": {
+      "get": {
+        "summary": "Get Playback Status",
+        "tags": [
+          "Player"
+        ],
+        "responses": {},
+        "operationId": "get-player-status"
+      }
+    },
+    "/player/current-track": {
+      "get": {
+        "summary": "Get Currently Playing Track",
+        "tags": [
+          "Player"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track.v1"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-player-current-track",
+        "description": "Get the object currently being played "
+      }
+    },
+    "/player/next-track": {
+      "get": {
+        "summary": "Get Next Track",
+        "tags": [
+          "Player"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track.v1"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-player-next-track",
+        "description": "Get the next track"
+      }
+    },
+    "/player/flush-and-reload-tracks": {
+      "put": {
+        "summary": "Flush And Reload Tracks",
+        "operationId": "put-player-flush-and-reload-tracks",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Player"
+        ]
+      }
+    },
+    "/settings": {
+      "get": {
+        "summary": "Get Global Settings",
+        "tags": [
+          "Settings"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings.v1"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-settings"
+      }
+    },
+    "/status": {
+      "get": {
+        "summary": "Get System Status",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "dircache_size": {
+                      "type": "integer"
+                    },
+                    "last_screen": {
+                      "type": "integer"
+                    },
+                    "last_volume_change": {
+                      "type": "integer"
+                    },
+                    "resume_crc32": {
+                      "type": "integer"
+                    },
+                    "resume_elapsed": {
+                      "type": "integer"
+                    },
+                    "resume_index": {
+                      "type": "integer"
+                    },
+                    "resume_offset": {
+                      "type": "integer"
+                    },
+                    "runtime": {
+                      "type": "integer"
+                    },
+                    "topruntime": {
+                      "type": "integer"
+                    },
+                    "viewer_icon_count": {
+                      "type": "integer"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "dircache_size": -1,
+                      "last_screen": 0,
+                      "last_volume_change": -1,
+                      "resume_crc32": 4294967295,
+                      "resume_elapsed": 4294967295,
+                      "resume_index": -1,
+                      "resume_offset": 4294967295,
+                      "runtime": 40599,
+                      "topruntime": 40599,
+                      "viewer_icon_count": 0
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "dircache_size": -1,
+                      "last_screen": 0,
+                      "last_volume_change": -1,
+                      "resume_crc32": 4294967295,
+                      "resume_elapsed": 4294967295,
+                      "resume_index": -1,
+                      "resume_offset": 4294967295,
+                      "runtime": 40599,
+                      "topruntime": 40599,
+                      "viewer_icon_count": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-status"
+      }
+    },
+    "/version": {
+      "get": {
+        "summary": "Get Rockbox Version",
+        "tags": [
+          "System"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "version": "7ca0a9895d-240918"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "version": "7ca0a9895d-240918"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-version"
+      }
+    },
+    "/player/resume": {
+      "put": {
+        "summary": "Resume Playback",
+        "operationId": "put-player-resume",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Player"
+        ]
+      }
+    },
+    "/player/pause": {
+      "put": {
+        "summary": "Pause Playback",
+        "operationId": "put-player-pause",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Player"
+        ]
+      }
+    },
+    "/player/next": {
+      "put": {
+        "summary": "Play Next Track",
+        "operationId": "put-player-next",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Player"
+        ]
+      }
+    },
+    "/player/prev": {
+      "parameters": [],
+      "put": {
+        "summary": "Play Previous Track",
+        "operationId": "put-player-prev",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Player"
+        ]
+      }
+    },
+    "/player/stop": {
+      "put": {
+        "summary": "Stop Playback",
+        "operationId": "put-player-stop",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Player"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Album.v1": {
+        "type": "object",
+        "properties": {
+          "album_art": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "md5": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          },
+          "year_string": {
+            "type": "string"
+          }
+        },
+        "x-examples": {
+          "Example 1": {
+            "album_art": "216ccc791352fbbffc11268b984db19a.jpg",
+            "artist": "J. Cole",
+            "id": "cm1ibibn600013fj7d96nsaeh",
+            "md5": "d55c5a429200828bc798d9f10253c1af",
+            "title": "2014 Forest Hills Drive",
+            "year": 2014,
+            "year_string": "2014-12-09"
+          }
+        },
+        "examples": [
+          {
+            "album_art": "216ccc791352fbbffc11268b984db19a.jpg",
+            "artist": "J. Cole",
+            "id": "cm1ibibn600013fj7d96nsaeh",
+            "md5": "d55c5a429200828bc798d9f10253c1af",
+            "title": "2014 Forest Hills Drive",
+            "year": 2014,
+            "year_string": "2014-12-09"
+          }
+        ],
+        "title": "Album"
+      },
+      "Artist.v1": {
+        "x-stoplight": {
+          "id": "03rsibvu1zlxz"
+        },
+        "type": "object",
+        "x-examples": {
+          "Example 1": {
+            "id": "cm1ibibn600003fj70egpmcbc",
+            "name": "J. Cole"
+          }
+        },
+        "examples": [
+          {
+            "id": "cm1ibibn600003fj70egpmcbc",
+            "name": "J. Cole"
+          }
+        ],
+        "title": "Artist",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "f2du13h4su3yn"
+            }
+          },
+          "image": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "69j27eohqstp7"
+            }
+          }
+        }
+      },
+      "Settings.v1": {
+        "type": "object",
+        "properties": {
+          "afr_enabled": {
+            "type": "integer"
+          },
+          "album_art": {
+            "type": "integer"
+          },
+          "autocreatebookmark": {
+            "type": "integer"
+          },
+          "autoloadbookmark": {
+            "type": "integer"
+          },
+          "autoresume_automatic": {
+            "type": "integer"
+          },
+          "autoresume_enable": {
+            "type": "boolean"
+          },
+          "autoresume_paths": {
+            "type": "string"
+          },
+          "autoupdatebookmark": {
+            "type": "boolean"
+          },
+          "backdrop_file": {
+            "type": "string"
+          },
+          "backlight_on_button_hold": {
+            "type": "integer"
+          },
+          "backlight_timeout": {
+            "type": "integer"
+          },
+          "backlight_timeout_plugged": {
+            "type": "integer"
+          },
+          "balance": {
+            "type": "integer"
+          },
+          "bass": {
+            "type": "integer"
+          },
+          "bass_cutoff": {
+            "type": "integer"
+          },
+          "battery_capacity": {
+            "type": "integer"
+          },
+          "battery_display": {
+            "type": "integer"
+          },
+          "battery_type": {
+            "type": "integer"
+          },
+          "beep": {
+            "type": "integer"
+          },
+          "bg_color": {
+            "type": "integer"
+          },
+          "bidir_limit": {
+            "type": "integer"
+          },
+          "bl_filter_first_keypress": {
+            "type": "boolean"
+          },
+          "bl_selective_actions": {
+            "type": "boolean"
+          },
+          "bl_selective_actions_mask": {
+            "type": "integer"
+          },
+          "brightness": {
+            "type": "integer"
+          },
+          "browse_current": {
+            "type": "boolean"
+          },
+          "browser_default": {
+            "type": "integer"
+          },
+          "bt_selective_softlock_actions": {
+            "type": "boolean"
+          },
+          "bt_selective_softlock_actions_mask": {
+            "type": "integer"
+          },
+          "buffer_margin": {
+            "type": "integer"
+          },
+          "caption_backlight": {
+            "type": "boolean"
+          },
+          "car_adapter_mode": {
+            "type": "boolean"
+          },
+          "car_adapter_mode_delay": {
+            "type": "integer"
+          },
+          "channel_config": {
+            "type": "integer"
+          },
+          "colors_file": {
+            "type": "string"
+          },
+          "compressor_settings": {
+            "type": "object",
+            "properties": {
+              "attack_time": {
+                "type": "integer"
+              },
+              "knee": {
+                "type": "integer"
+              },
+              "makeup_gain": {
+                "type": "integer"
+              },
+              "ratio": {
+                "type": "integer"
+              },
+              "release_time": {
+                "type": "integer"
+              },
+              "threshold": {
+                "type": "integer"
+              }
+            }
+          },
+          "constrain_next_folder": {
+            "type": "boolean"
+          },
+          "contrast": {
+            "type": "integer"
+          },
+          "crossfade": {
+            "type": "integer"
+          },
+          "crossfade_fade_in_delay": {
+            "type": "integer"
+          },
+          "crossfade_fade_in_duration": {
+            "type": "integer"
+          },
+          "crossfade_fade_out_delay": {
+            "type": "integer"
+          },
+          "crossfade_fade_out_duration": {
+            "type": "integer"
+          },
+          "crossfade_fade_out_mixmode": {
+            "type": "integer"
+          },
+          "crossfeed": {
+            "type": "integer"
+          },
+          "crossfeed_cross_gain": {
+            "type": "integer"
+          },
+          "crossfeed_direct_gain": {
+            "type": "integer"
+          },
+          "crossfeed_hf_attenuation": {
+            "type": "integer"
+          },
+          "crossfeed_hf_cutoff": {
+            "type": "integer"
+          },
+          "cuesheet": {
+            "type": "boolean"
+          },
+          "cursor_style": {
+            "type": "integer"
+          },
+          "default_codepage": {
+            "type": "integer"
+          },
+          "depth_3d": {
+            "type": "integer"
+          },
+          "dircache": {
+            "type": "boolean"
+          },
+          "dirfilter": {
+            "type": "integer"
+          },
+          "disable_mainmenu_scrolling": {
+            "type": "boolean"
+          },
+          "disk_spindown": {
+            "type": "integer"
+          },
+          "dithering_enabled": {
+            "type": "boolean"
+          },
+          "eq_band_settings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "cutoff": {
+                  "type": "integer"
+                },
+                "gain": {
+                  "type": "integer"
+                },
+                "q": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "eq_enabled": {
+            "type": "boolean"
+          },
+          "eq_precut": {
+            "type": "integer"
+          },
+          "fade_on_stop": {
+            "type": "boolean"
+          },
+          "ff_rewind_accel": {
+            "type": "integer"
+          },
+          "ff_rewind_min_step": {
+            "type": "integer"
+          },
+          "fg_color": {
+            "type": "integer"
+          },
+          "flip_display": {
+            "type": "boolean"
+          },
+          "font_file": {
+            "type": "string"
+          },
+          "glyphs_to_cache": {
+            "type": "integer"
+          },
+          "governor": {
+            "type": "integer"
+          },
+          "hold_lr_for_scroll_in_list": {
+            "type": "boolean"
+          },
+          "hotkey_tree": {
+            "type": "integer"
+          },
+          "hotkey_wps": {
+            "type": "integer"
+          },
+          "icon_file": {
+            "type": "string"
+          },
+          "interpret_numbers": {
+            "type": "integer"
+          },
+          "invert": {
+            "type": "boolean"
+          },
+          "kbd_file": {
+            "type": "string"
+          },
+          "keep_current_track_on_replace_playlist": {
+            "type": "boolean"
+          },
+          "keyclick": {
+            "type": "integer"
+          },
+          "keyclick_hardware": {
+            "type": "boolean"
+          },
+          "keyclick_repeats": {
+            "type": "integer"
+          },
+          "keypress_restarts_sleeptimer": {
+            "type": "boolean"
+          },
+          "lang_file": {
+            "type": "string"
+          },
+          "lcd_sleep_after_backlight_off": {
+            "type": "integer"
+          },
+          "list_accel_start_delay": {
+            "type": "integer"
+          },
+          "list_accel_wait": {
+            "type": "integer"
+          },
+          "list_line_padding": {
+            "type": "integer"
+          },
+          "list_order": {
+            "type": "integer"
+          },
+          "list_separator_color": {
+            "type": "integer"
+          },
+          "list_separator_height": {
+            "type": "integer"
+          },
+          "list_wraparound": {
+            "type": "boolean"
+          },
+          "lse_color": {
+            "type": "integer"
+          },
+          "lss_color": {
+            "type": "integer"
+          },
+          "lst_color": {
+            "type": "integer"
+          },
+          "max_files_in_dir": {
+            "type": "integer"
+          },
+          "max_files_in_playlist": {
+            "type": "integer"
+          },
+          "next_folder": {
+            "type": "integer"
+          },
+          "offset_out_of_view": {
+            "type": "boolean"
+          },
+          "party_mode": {
+            "type": "boolean"
+          },
+          "pause_rewind": {
+            "type": "integer"
+          },
+          "pbe": {
+            "type": "integer"
+          },
+          "pbe_precut": {
+            "type": "integer"
+          },
+          "peak_meter_clip_hold": {
+            "type": "integer"
+          },
+          "peak_meter_dbfs": {
+            "type": "boolean"
+          },
+          "peak_meter_hold": {
+            "type": "integer"
+          },
+          "peak_meter_max": {
+            "type": "integer"
+          },
+          "peak_meter_min": {
+            "type": "integer"
+          },
+          "peak_meter_release": {
+            "type": "integer"
+          },
+          "pitch_mode_semitone": {
+            "type": "boolean"
+          },
+          "pitch_mode_timestretch": {
+            "type": "boolean"
+          },
+          "play_frequency": {
+            "type": "integer"
+          },
+          "play_selected": {
+            "type": "boolean"
+          },
+          "player_name": {
+            "type": "string"
+          },
+          "playlist_catalog_dir": {
+            "type": "string"
+          },
+          "playlist_shuffle": {
+            "type": "boolean"
+          },
+          "playlist_viewer_icons": {
+            "type": "boolean"
+          },
+          "playlist_viewer_indices": {
+            "type": "boolean"
+          },
+          "playlist_viewer_track_display": {
+            "type": "integer"
+          },
+          "power_mode": {
+            "type": "integer"
+          },
+          "poweroff": {
+            "type": "integer"
+          },
+          "prevent_skip": {
+            "type": "boolean"
+          },
+          "recursive_dir_insert": {
+            "type": "integer"
+          },
+          "repeat_mode": {
+            "type": "integer"
+          },
+          "replaygain_settings": {
+            "type": "object",
+            "properties": {
+              "noclip": {
+                "type": "boolean"
+              },
+              "preamp": {
+                "type": "integer"
+              },
+              "type": {
+                "type": "integer"
+              }
+            }
+          },
+          "resume_rewind": {
+            "type": "integer"
+          },
+          "rewind_across_tracks": {
+            "type": "boolean"
+          },
+          "roll_off": {
+            "type": "integer"
+          },
+          "root_menu_customized": {
+            "type": "boolean"
+          },
+          "runtimedb": {
+            "type": "boolean"
+          },
+          "sbs_file": {
+            "type": "string"
+          },
+          "screen_scroll_step": {
+            "type": "integer"
+          },
+          "scroll_delay": {
+            "type": "integer"
+          },
+          "scroll_paginated": {
+            "type": "boolean"
+          },
+          "scroll_speed": {
+            "type": "integer"
+          },
+          "scroll_step": {
+            "type": "integer"
+          },
+          "scrollbar": {
+            "type": "integer"
+          },
+          "scrollbar_width": {
+            "type": "integer"
+          },
+          "shortcuts_replaces_qs": {
+            "type": "boolean"
+          },
+          "show_filename_ext": {
+            "type": "integer"
+          },
+          "show_icons": {
+            "type": "boolean"
+          },
+          "show_path_in_browser": {
+            "type": "integer"
+          },
+          "show_queue_options": {
+            "type": "integer"
+          },
+          "show_shuffled_adding_options": {
+            "type": "boolean"
+          },
+          "show_shutdown_message": {
+            "type": "boolean"
+          },
+          "single_mode": {
+            "type": "integer"
+          },
+          "skip_length": {
+            "type": "integer"
+          },
+          "sleeptimer_duration": {
+            "type": "integer"
+          },
+          "sleeptimer_on_startup": {
+            "type": "boolean"
+          },
+          "sort_case": {
+            "type": "boolean"
+          },
+          "sort_dir": {
+            "type": "integer"
+          },
+          "sort_file": {
+            "type": "integer"
+          },
+          "spdif_enable": {
+            "type": "boolean"
+          },
+          "speaker_mode": {
+            "type": "integer"
+          },
+          "start_directory": {
+            "type": "string"
+          },
+          "start_in_screen": {
+            "type": "integer"
+          },
+          "statusbar": {
+            "type": "integer"
+          },
+          "stereo_width": {
+            "type": "integer"
+          },
+          "stereosw_mode": {
+            "type": "integer"
+          },
+          "surround_balance": {
+            "type": "integer"
+          },
+          "surround_enabled": {
+            "type": "integer"
+          },
+          "surround_fx1": {
+            "type": "integer"
+          },
+          "surround_fx2": {
+            "type": "boolean"
+          },
+          "surround_method2": {
+            "type": "boolean"
+          },
+          "surround_mix": {
+            "type": "integer"
+          },
+          "tagcache_autoupdate": {
+            "type": "boolean"
+          },
+          "tagcache_db_path": {
+            "type": "string"
+          },
+          "tagcache_ram": {
+            "type": "integer"
+          },
+          "tagcache_scan_paths": {
+            "type": "string"
+          },
+          "talk_battery_level": {
+            "type": "boolean"
+          },
+          "talk_dir": {
+            "type": "integer"
+          },
+          "talk_dir_clip": {
+            "type": "boolean"
+          },
+          "talk_file": {
+            "type": "integer"
+          },
+          "talk_file_clip": {
+            "type": "boolean"
+          },
+          "talk_filetype": {
+            "type": "boolean"
+          },
+          "talk_menu": {
+            "type": "boolean"
+          },
+          "talk_mixer_amp": {
+            "type": "integer"
+          },
+          "timeformat": {
+            "type": "integer"
+          },
+          "timestretch_enabled": {
+            "type": "boolean"
+          },
+          "touch_mode": {
+            "type": "integer"
+          },
+          "touchpad_deadzone": {
+            "type": "integer"
+          },
+          "touchpad_sensitivity": {
+            "type": "integer"
+          },
+          "treble": {
+            "type": "integer"
+          },
+          "treble_cutoff": {
+            "type": "integer"
+          },
+          "ts_calibration_data": {
+            "type": "object",
+            "properties": {
+              "A": {
+                "type": "integer"
+              },
+              "B": {
+                "type": "integer"
+              },
+              "C": {
+                "type": "integer"
+              },
+              "D": {
+                "type": "integer"
+              },
+              "E": {
+                "type": "integer"
+              },
+              "F": {
+                "type": "integer"
+              },
+              "divider": {
+                "type": "integer"
+              }
+            }
+          },
+          "unplug_autoresume": {
+            "type": "boolean"
+          },
+          "unplug_mode": {
+            "type": "integer"
+          },
+          "usb_charging": {
+            "type": "integer"
+          },
+          "usb_hid": {
+            "type": "boolean"
+          },
+          "usb_keypad_mode": {
+            "type": "integer"
+          },
+          "usb_skip_first_drive": {
+            "type": "boolean"
+          },
+          "usemrb": {
+            "type": "integer"
+          },
+          "viewers_icon_file": {
+            "type": "string"
+          },
+          "volume": {
+            "type": "integer"
+          },
+          "volume_adjust_mode": {
+            "type": "integer"
+          },
+          "volume_adjust_norm_steps": {
+            "type": "integer"
+          },
+          "volume_limit": {
+            "type": "integer"
+          },
+          "volume_type": {
+            "type": "integer"
+          },
+          "warnon_erase_dynplaylist": {
+            "type": "boolean"
+          },
+          "wps_file": {
+            "type": "string"
+          }
+        },
+        "x-examples": {
+          "Example 1": {
+            "afr_enabled": 0,
+            "album_art": 0,
+            "autocreatebookmark": 1935762276,
+            "autoloadbookmark": 1869623098,
+            "autoresume_automatic": 0,
+            "autoresume_enable": false,
+            "autoresume_paths": "",
+            "autoupdatebookmark": true,
+            "backdrop_file": "",
+            "backlight_on_button_hold": 0,
+            "backlight_timeout": 0,
+            "backlight_timeout_plugged": 0,
+            "balance": 0,
+            "bass": 0,
+            "bass_cutoff": 0,
+            "battery_capacity": 0,
+            "battery_display": 65536,
+            "battery_type": 1946157056,
+            "beep": 0,
+            "bg_color": 0,
+            "bidir_limit": 0,
+            "bl_filter_first_keypress": false,
+            "bl_selective_actions": false,
+            "bl_selective_actions_mask": 0,
+            "brightness": 0,
+            "browse_current": false,
+            "browser_default": 0,
+            "bt_selective_softlock_actions": false,
+            "bt_selective_softlock_actions_mask": 0,
+            "buffer_margin": 1,
+            "caption_backlight": false,
+            "car_adapter_mode": false,
+            "car_adapter_mode_delay": 60,
+            "channel_config": 0,
+            "colors_file": "",
+            "compressor_settings": {
+              "attack_time": 0,
+              "knee": 0,
+              "makeup_gain": 0,
+              "ratio": 0,
+              "release_time": 0,
+              "threshold": 0
+            },
+            "constrain_next_folder": false,
+            "contrast": 1985966958,
+            "crossfade": 0,
+            "crossfade_fade_in_delay": 2,
+            "crossfade_fade_in_duration": 0,
+            "crossfade_fade_out_delay": 2,
+            "crossfade_fade_out_duration": 0,
+            "crossfade_fade_out_mixmode": 2,
+            "crossfeed": -60,
+            "crossfeed_cross_gain": 700,
+            "crossfeed_direct_gain": 4294967136,
+            "crossfeed_hf_attenuation": 0,
+            "crossfeed_hf_cutoff": 0,
+            "cuesheet": false,
+            "cursor_style": 825127794,
+            "default_codepage": 8,
+            "depth_3d": 3400,
+            "dircache": false,
+            "dirfilter": 1,
+            "disable_mainmenu_scrolling": false,
+            "disk_spindown": 0,
+            "dithering_enabled": true,
+            "eq_band_settings": [
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 64
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 125
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 250
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 500
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 1000
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 2000
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 4000
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 8000
+              },
+              {
+                "cutoff": 0,
+                "gain": 7,
+                "q": 16000
+              },
+              {
+                "cutoff": 0,
+                "gain": 0,
+                "q": 0
+              }
+            ],
+            "eq_enabled": true,
+            "eq_precut": 7,
+            "fade_on_stop": false,
+            "ff_rewind_accel": 846620009,
+            "ff_rewind_min_step": 1650614627,
+            "fg_color": 0,
+            "flip_display": true,
+            "font_file": "",
+            "glyphs_to_cache": 0,
+            "governor": 0,
+            "hold_lr_for_scroll_in_list": true,
+            "hotkey_tree": 0,
+            "hotkey_wps": 50,
+            "icon_file": "",
+            "interpret_numbers": 0,
+            "invert": true,
+            "kbd_file": "",
+            "keep_current_track_on_replace_playlist": false,
+            "keyclick": 0,
+            "keyclick_hardware": true,
+            "keyclick_repeats": 2,
+            "keypress_restarts_sleeptimer": false,
+            "lang_file": "",
+            "lcd_sleep_after_backlight_off": 0,
+            "list_accel_start_delay": 0,
+            "list_accel_wait": 0,
+            "list_line_padding": 6,
+            "list_order": 0,
+            "list_separator_color": 0,
+            "list_separator_height": 0,
+            "list_wraparound": false,
+            "lse_color": 0,
+            "lss_color": 0,
+            "lst_color": 0,
+            "max_files_in_dir": -1,
+            "max_files_in_playlist": 0,
+            "next_folder": 0,
+            "offset_out_of_view": false,
+            "party_mode": true,
+            "pause_rewind": 54710920,
+            "pbe": 0,
+            "pbe_precut": 0,
+            "peak_meter_clip_hold": 0,
+            "peak_meter_dbfs": false,
+            "peak_meter_hold": 0,
+            "peak_meter_max": 0,
+            "peak_meter_min": 0,
+            "peak_meter_release": 0,
+            "pitch_mode_semitone": false,
+            "pitch_mode_timestretch": false,
+            "play_frequency": 0,
+            "play_selected": true,
+            "player_name": "",
+            "playlist_catalog_dir": "",
+            "playlist_shuffle": false,
+            "playlist_viewer_icons": false,
+            "playlist_viewer_indices": false,
+            "playlist_viewer_track_display": 1,
+            "power_mode": 0,
+            "poweroff": 0,
+            "prevent_skip": false,
+            "recursive_dir_insert": 0,
+            "repeat_mode": 1,
+            "replaygain_settings": {
+              "noclip": false,
+              "preamp": -15,
+              "type": 0
+            },
+            "resume_rewind": 35,
+            "rewind_across_tracks": false,
+            "roll_off": 320,
+            "root_menu_customized": false,
+            "runtimedb": false,
+            "sbs_file": "",
+            "screen_scroll_step": 909211702,
+            "scroll_delay": 1685024815,
+            "scroll_paginated": false,
+            "scroll_speed": 0,
+            "scroll_step": 1953718627,
+            "scrollbar": 50,
+            "scrollbar_width": 1000,
+            "shortcuts_replaces_qs": false,
+            "show_filename_ext": 2,
+            "show_icons": true,
+            "show_path_in_browser": 0,
+            "show_queue_options": 0,
+            "show_shuffled_adding_options": true,
+            "show_shutdown_message": false,
+            "single_mode": 60,
+            "skip_length": 6,
+            "sleeptimer_duration": 0,
+            "sleeptimer_on_startup": false,
+            "sort_case": true,
+            "sort_dir": 909192819,
+            "sort_file": 3551608,
+            "spdif_enable": true,
+            "speaker_mode": 0,
+            "start_directory": "",
+            "start_in_screen": 0,
+            "statusbar": 9,
+            "stereo_width": 100,
+            "stereosw_mode": 0,
+            "surround_balance": 0,
+            "surround_enabled": 0,
+            "surround_fx1": 0,
+            "surround_fx2": false,
+            "surround_method2": false,
+            "surround_mix": 1,
+            "tagcache_autoupdate": false,
+            "tagcache_db_path": "",
+            "tagcache_ram": 0,
+            "tagcache_scan_paths": "",
+            "talk_battery_level": true,
+            "talk_dir": 3,
+            "talk_dir_clip": true,
+            "talk_file": 1,
+            "talk_file_clip": false,
+            "talk_filetype": false,
+            "talk_menu": true,
+            "talk_mixer_amp": 1601136494,
+            "timeformat": 0,
+            "timestretch_enabled": false,
+            "touch_mode": 0,
+            "touchpad_deadzone": 0,
+            "touchpad_sensitivity": 0,
+            "treble": 0,
+            "treble_cutoff": 0,
+            "ts_calibration_data": {
+              "A": 0,
+              "B": 0,
+              "C": 0,
+              "D": 0,
+              "E": 0,
+              "F": 0,
+              "divider": 0
+            },
+            "unplug_autoresume": true,
+            "unplug_mode": 0,
+            "usb_charging": 1868786015,
+            "usb_hid": false,
+            "usb_keypad_mode": 0,
+            "usb_skip_first_drive": false,
+            "usemrb": 0,
+            "viewers_icon_file": "",
+            "volume": 0,
+            "volume_adjust_mode": 0,
+            "volume_adjust_norm_steps": 0,
+            "volume_limit": 32,
+            "volume_type": 8421504,
+            "warnon_erase_dynplaylist": false,
+            "wps_file": ""
+          }
+        },
+        "examples": [
+          {
+            "afr_enabled": 0,
+            "album_art": 0,
+            "autocreatebookmark": 1935762276,
+            "autoloadbookmark": 1869623098,
+            "autoresume_automatic": 0,
+            "autoresume_enable": false,
+            "autoresume_paths": "",
+            "autoupdatebookmark": true,
+            "backdrop_file": "",
+            "backlight_on_button_hold": 0,
+            "backlight_timeout": 0,
+            "backlight_timeout_plugged": 0,
+            "balance": 0,
+            "bass": 0,
+            "bass_cutoff": 0,
+            "battery_capacity": 0,
+            "battery_display": 65536,
+            "battery_type": 1946157056,
+            "beep": 0,
+            "bg_color": 0,
+            "bidir_limit": 0,
+            "bl_filter_first_keypress": false,
+            "bl_selective_actions": false,
+            "bl_selective_actions_mask": 0,
+            "brightness": 0,
+            "browse_current": false,
+            "browser_default": 0,
+            "bt_selective_softlock_actions": false,
+            "bt_selective_softlock_actions_mask": 0,
+            "buffer_margin": 1,
+            "caption_backlight": false,
+            "car_adapter_mode": false,
+            "car_adapter_mode_delay": 60,
+            "channel_config": 0,
+            "colors_file": "",
+            "compressor_settings": {
+              "attack_time": 0,
+              "knee": 0,
+              "makeup_gain": 0,
+              "ratio": 0,
+              "release_time": 0,
+              "threshold": 0
+            },
+            "constrain_next_folder": false,
+            "contrast": 1985966958,
+            "crossfade": 0,
+            "crossfade_fade_in_delay": 2,
+            "crossfade_fade_in_duration": 0,
+            "crossfade_fade_out_delay": 2,
+            "crossfade_fade_out_duration": 0,
+            "crossfade_fade_out_mixmode": 2,
+            "crossfeed": -60,
+            "crossfeed_cross_gain": 700,
+            "crossfeed_direct_gain": 4294967136,
+            "crossfeed_hf_attenuation": 0,
+            "crossfeed_hf_cutoff": 0,
+            "cuesheet": false,
+            "cursor_style": 825127794,
+            "default_codepage": 8,
+            "depth_3d": 3400,
+            "dircache": false,
+            "dirfilter": 1,
+            "disable_mainmenu_scrolling": false,
+            "disk_spindown": 0,
+            "dithering_enabled": true,
+            "eq_band_settings": [
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 64
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 125
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 250
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 500
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 1000
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 2000
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 4000
+              },
+              {
+                "cutoff": 0,
+                "gain": 10,
+                "q": 8000
+              },
+              {
+                "cutoff": 0,
+                "gain": 7,
+                "q": 16000
+              },
+              {
+                "cutoff": 0,
+                "gain": 0,
+                "q": 0
+              }
+            ],
+            "eq_enabled": true,
+            "eq_precut": 7,
+            "fade_on_stop": false,
+            "ff_rewind_accel": 846620009,
+            "ff_rewind_min_step": 1650614627,
+            "fg_color": 0,
+            "flip_display": true,
+            "font_file": "",
+            "glyphs_to_cache": 0,
+            "governor": 0,
+            "hold_lr_for_scroll_in_list": true,
+            "hotkey_tree": 0,
+            "hotkey_wps": 50,
+            "icon_file": "",
+            "interpret_numbers": 0,
+            "invert": true,
+            "kbd_file": "",
+            "keep_current_track_on_replace_playlist": false,
+            "keyclick": 0,
+            "keyclick_hardware": true,
+            "keyclick_repeats": 2,
+            "keypress_restarts_sleeptimer": false,
+            "lang_file": "",
+            "lcd_sleep_after_backlight_off": 0,
+            "list_accel_start_delay": 0,
+            "list_accel_wait": 0,
+            "list_line_padding": 6,
+            "list_order": 0,
+            "list_separator_color": 0,
+            "list_separator_height": 0,
+            "list_wraparound": false,
+            "lse_color": 0,
+            "lss_color": 0,
+            "lst_color": 0,
+            "max_files_in_dir": -1,
+            "max_files_in_playlist": 0,
+            "next_folder": 0,
+            "offset_out_of_view": false,
+            "party_mode": true,
+            "pause_rewind": 54710920,
+            "pbe": 0,
+            "pbe_precut": 0,
+            "peak_meter_clip_hold": 0,
+            "peak_meter_dbfs": false,
+            "peak_meter_hold": 0,
+            "peak_meter_max": 0,
+            "peak_meter_min": 0,
+            "peak_meter_release": 0,
+            "pitch_mode_semitone": false,
+            "pitch_mode_timestretch": false,
+            "play_frequency": 0,
+            "play_selected": true,
+            "player_name": "",
+            "playlist_catalog_dir": "",
+            "playlist_shuffle": false,
+            "playlist_viewer_icons": false,
+            "playlist_viewer_indices": false,
+            "playlist_viewer_track_display": 1,
+            "power_mode": 0,
+            "poweroff": 0,
+            "prevent_skip": false,
+            "recursive_dir_insert": 0,
+            "repeat_mode": 1,
+            "replaygain_settings": {
+              "noclip": false,
+              "preamp": -15,
+              "type": 0
+            },
+            "resume_rewind": 35,
+            "rewind_across_tracks": false,
+            "roll_off": 320,
+            "root_menu_customized": false,
+            "runtimedb": false,
+            "sbs_file": "",
+            "screen_scroll_step": 909211702,
+            "scroll_delay": 1685024815,
+            "scroll_paginated": false,
+            "scroll_speed": 0,
+            "scroll_step": 1953718627,
+            "scrollbar": 50,
+            "scrollbar_width": 1000,
+            "shortcuts_replaces_qs": false,
+            "show_filename_ext": 2,
+            "show_icons": true,
+            "show_path_in_browser": 0,
+            "show_queue_options": 0,
+            "show_shuffled_adding_options": true,
+            "show_shutdown_message": false,
+            "single_mode": 60,
+            "skip_length": 6,
+            "sleeptimer_duration": 0,
+            "sleeptimer_on_startup": false,
+            "sort_case": true,
+            "sort_dir": 909192819,
+            "sort_file": 3551608,
+            "spdif_enable": true,
+            "speaker_mode": 0,
+            "start_directory": "",
+            "start_in_screen": 0,
+            "statusbar": 9,
+            "stereo_width": 100,
+            "stereosw_mode": 0,
+            "surround_balance": 0,
+            "surround_enabled": 0,
+            "surround_fx1": 0,
+            "surround_fx2": false,
+            "surround_method2": false,
+            "surround_mix": 1,
+            "tagcache_autoupdate": false,
+            "tagcache_db_path": "",
+            "tagcache_ram": 0,
+            "tagcache_scan_paths": "",
+            "talk_battery_level": true,
+            "talk_dir": 3,
+            "talk_dir_clip": true,
+            "talk_file": 1,
+            "talk_file_clip": false,
+            "talk_filetype": false,
+            "talk_menu": true,
+            "talk_mixer_amp": 1601136494,
+            "timeformat": 0,
+            "timestretch_enabled": false,
+            "touch_mode": 0,
+            "touchpad_deadzone": 0,
+            "touchpad_sensitivity": 0,
+            "treble": 0,
+            "treble_cutoff": 0,
+            "ts_calibration_data": {
+              "A": 0,
+              "B": 0,
+              "C": 0,
+              "D": 0,
+              "E": 0,
+              "F": 0,
+              "divider": 0
+            },
+            "unplug_autoresume": true,
+            "unplug_mode": 0,
+            "usb_charging": 1868786015,
+            "usb_hid": false,
+            "usb_keypad_mode": 0,
+            "usb_skip_first_drive": false,
+            "usemrb": 0,
+            "viewers_icon_file": "",
+            "volume": 0,
+            "volume_adjust_mode": 0,
+            "volume_adjust_norm_steps": 0,
+            "volume_limit": 32,
+            "volume_type": 8421504,
+            "warnon_erase_dynplaylist": false,
+            "wps_file": ""
+          }
+        ],
+        "title": "Settings"
+      },
+      "Track.v1": {
+        "type": "object",
+        "properties": {
+          "album": {
+            "type": "string"
+          },
+          "album_artist": {
+            "type": "string"
+          },
+          "album_id": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "artist_id": {
+            "type": "string"
+          },
+          "bitrate": {
+            "type": "integer"
+          },
+          "composer": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "integer"
+          },
+          "disc_number": {
+            "type": "integer"
+          },
+          "filesize": {
+            "type": "integer"
+          },
+          "frequency": {
+            "type": "integer"
+          },
+          "genre_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "length": {
+            "type": "integer"
+          },
+          "md5": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "track_number": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": "integer"
+          },
+          "year": {
+            "type": "integer"
+          },
+          "year_string": {
+            "type": "string"
+          }
+        },
+        "x-examples": {
+          "Example 1": {
+            "album": "2014 Forest Hills Drive",
+            "album_artist": "J. Cole",
+            "album_id": "cm1ibibnn00043fj7ppakq9w9",
+            "artist": "J. Cole",
+            "artist_id": "cm1ibibnn00033fj7hy019na5",
+            "bitrate": 96,
+            "composer": "Roy Hammond, Jermaine Cole, CHARLES SIMMONS",
+            "created_at": 1727296114,
+            "disc_number": 1,
+            "filesize": 2872773,
+            "frequency": 44100,
+            "genre_id": "",
+            "id": "cm1ibibnn00053fj79ghe6b2d",
+            "length": 239381,
+            "md5": "b5a0d86e156e6d02c90f647bf5cc6fc2",
+            "path": "/home/coder/Music/03 - J. Cole - Wet Dreamz(Explicit).m4a",
+            "title": "Wet Dreamz",
+            "track_number": 3,
+            "updated_at": 1727296114,
+            "year": 2014,
+            "year_string": "2014-12-09"
+          }
+        },
+        "examples": [
+          {
+            "album": "2014 Forest Hills Drive",
+            "album_artist": "J. Cole",
+            "album_id": "cm1ibibnn00043fj7ppakq9w9",
+            "artist": "J. Cole",
+            "artist_id": "cm1ibibnn00033fj7hy019na5",
+            "bitrate": 96,
+            "composer": "Roy Hammond, Jermaine Cole, CHARLES SIMMONS",
+            "created_at": 1727296114,
+            "disc_number": 1,
+            "filesize": 2872773,
+            "frequency": 44100,
+            "genre_id": "",
+            "id": "cm1ibibnn00053fj79ghe6b2d",
+            "length": 239381,
+            "md5": "b5a0d86e156e6d02c90f647bf5cc6fc2",
+            "path": "/home/coder/Music/03 - J. Cole - Wet Dreamz(Explicit).m4a",
+            "title": "Wet Dreamz",
+            "track_number": 3,
+            "updated_at": 1727296114,
+            "year": 2014,
+            "year_string": "2014-12-09"
+          }
+        ],
+        "description": "",
+        "title": "Track"
+      }
+    }
+  },
+  "x-internal": true
+}

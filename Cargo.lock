@@ -5729,9 +5729,11 @@ dependencies = [
  "queryst",
  "reqwest",
  "rockbox-graphql",
+ "rockbox-library",
  "rockbox-rpc",
  "rockbox-sys",
  "serde_json",
+ "sqlx",
  "threadpool",
  "tokio",
 ]
