@@ -48,6 +48,7 @@ make zig
 - [x] Rockbox API FFI for Rust
 - [x] [gRPC API](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
 - [x] GraphQL API
+- [x] HTTP API
 - [ ] Web Client (React)
 - [ ] Desktop Client (Electron/Gtk)
 - [ ] Terminal Client (TUI)
@@ -75,6 +76,14 @@ Open [http://localhost:6062/graphiql](http://localhost:6062/graphiql) in your br
 
 <p style="margin-top: 20px; margin-bottom: 20px;">
  <img src="./docs/graphql.png" width="100%" />
+</p>
+  
+## 📚 HTTP API
+
+Open [http://localhost:6063](http://localhost:6063) in your browser.
+
+<p style="margin-top: 20px; margin-bottom: 20px;">
+ <img src="./docs/http-api.png" width="100%" />
 </p>
 
 ## 📚 gRPC API
