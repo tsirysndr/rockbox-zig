@@ -1067,6 +1067,7 @@ extern "C" {
     fn playlist_get_current() -> PlaylistInfo;
     fn playlist_get_resume_info(resume_index: *mut c_int) -> c_int;
     fn rb_get_track_info_from_current_playlist(index: i32) -> PlaylistTrackInfo;
+    fn rb_build_playlist(files: *const *const u8, start_index: i32, size: i32) -> i32;
     fn playlist_get_first_index(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_get_display_index() -> c_int;
     fn playlist_amount() -> c_int;

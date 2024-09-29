@@ -11,6 +11,9 @@ use std::{
     time::Duration,
 };
 use threadpool::ThreadPool;
+use types::NewPlaylist;
+
+pub mod types;
 
 #[no_mangle]
 pub extern "C" fn debugfn(args: *const c_char) {
@@ -91,11 +94,36 @@ pub extern "C" fn start_server() {
 fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
     let rt = tokio::runtime::Runtime::new().unwrap();
     let buf_reader = BufReader::new(&mut stream);
-    let http_request: Vec<_> = buf_reader
-        .lines()
-        .map(|result| result.unwrap())
-        .take_while(|line| !line.is_empty())
-        .collect();
+
+    let mut http_request: Vec<String> = Vec::new();
+    let mut req_body = String::new();
+    let mut content_length = 0;
+    let mut should_read_body = false;
+
+    for line in buf_reader.lines() {
+        if let Ok(line) = line {
+            if line.starts_with("Content-Length") {
+                let parts: Vec<_> = line.split(":").collect();
+                content_length = parts[1].trim().parse().unwrap();
+            }
+
+            if line.is_empty() {
+                if content_length == 0 {
+                    break;
+                }
+                should_read_body = true;
+            }
+
+            if should_read_body {
+                req_body.push_str(format!("{}\n", line).as_str());
+                if req_body.len() >= content_length {
+                    break;
+                }
+            }
+
+            http_request.push(line.clone());
+        }
+    }
 
     // parse request
     let request = http_request[0].split_whitespace().collect::<Vec<_>>();
@@ -104,7 +132,7 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
 
     println!("{} {}", method.bright_cyan(), path);
 
-    if method != "GET" && method != "PUT" {
+    if method != "GET" && method != "PUT" && method != "POST" {
         let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
         stream.write_all(response.as_bytes()).unwrap();
         return;
@@ -126,7 +154,61 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
         "/player/stop" => {
             rb::playback::hard_stop();
         }
-        "/playlist_amount" => {
+        "/playlists" => {
+            if method == "POST" {
+                let new_playslist: NewPlaylist = serde_json::from_str(&req_body).unwrap();
+                if new_playslist.tracks.is_empty() {
+                    return;
+                }
+                let dir = new_playslist.tracks[0].clone();
+                let dir_parts: Vec<_> = dir.split('/').collect();
+                let dir = dir_parts[0..dir_parts.len() - 1].join("/");
+                let res = rb::playlist::create(&dir, None);
+                if res == -1 {
+                    let response = "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+                    let response = format!("{}{}", response, "Failed to create playlist");
+                    stream.write_all(response.as_bytes()).unwrap();
+                    return;
+                }
+                let start_index = 0;
+                let start_index = rb::playlist::build_playlist(
+                    new_playslist.tracks.iter().map(|t| t.as_str()).collect(),
+                    start_index,
+                    new_playslist.tracks.len() as i32,
+                );
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                    start_index
+                );
+                stream.write_all(response.as_bytes()).unwrap();
+            }
+            return;
+        }
+        "/playlists/start" => {
+            if method == "PUT" {
+                let mut start_index: i32 = 0;
+                let mut elapsed: u64 = 0;
+                let mut offset: u64 = 0;
+
+                let params = path.split('?').collect::<Vec<_>>();
+                if params.len() > 1 {
+                    let params = queryst::parse(params[1]).unwrap();
+                    start_index = params
+                        .get("start_index")
+                        .unwrap()
+                        .as_str()
+                        .unwrap()
+                        .parse()
+                        .unwrap_or_default();
+                    elapsed = params.get("elapsed").unwrap().as_u64().unwrap_or_default();
+                    offset = params.get("offset").unwrap().as_u64().unwrap_or_default();
+                }
+
+                rb::playlist::start(start_index, elapsed, offset);
+            }
+            return;
+        }
+        "/playlists/amount" => {
             let amount = rb::playlist::amount();
             let json = PlaylistAmount { amount };
             let response = format!(
@@ -136,7 +218,7 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
             stream.write_all(response.as_bytes()).unwrap();
             return;
         }
-        "/current_playlist" => {
+        "/playlists/current" => {
             let mut playlist = rb::playlist::get_current();
             let mut entries = vec![];
             let amount = rb::playlist::amount();
@@ -156,10 +238,10 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
             stream.write_all(response.as_bytes()).unwrap();
             return;
         }
-        "/playlist_resume" => {
+        "/playlists/resume" => {
             rb::playlist::resume();
         }
-        "/playlist_resume_track" => {
+        "/playlists/resume-track" => {
             let status = rb::system::get_global_status();
             rb::playlist::resume_track(
                 status.resume_index,

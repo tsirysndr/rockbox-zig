@@ -38,7 +38,7 @@ pub fn get_declaration() -> PathBuf {
 #[serde]
 pub async fn op_playlist_get_current() -> Result<PlaylistInfo, AnyError> {
     let client = reqwest::Client::new();
-    let url = format!("{}/current_playlist", rockbox_url());
+    let url = format!("{}/playlists/current", rockbox_url());
     let res = client.get(&url).send().await?;
     let info = res.json::<PlaylistInfo>().await?;
     Ok(info)
@@ -59,7 +59,7 @@ pub async fn op_playlist_get_display_index() {}
 #[op2(async)]
 pub async fn op_playlist_amount() -> Result<i32, AnyError> {
     let client = reqwest::Client::new();
-    let url = format!("{}/playlist_amount", rockbox_url());
+    let url = format!("{}/playlists/amount", rockbox_url());
     let res = client.get(&url).send().await?;
     let data = res.json::<PlaylistAmount>().await?;
     Ok(data.amount)
@@ -68,7 +68,7 @@ pub async fn op_playlist_amount() -> Result<i32, AnyError> {
 #[op2(async)]
 pub async fn op_playlist_resume() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
-    let url = format!("{}/playlist_resume", rockbox_url());
+    let url = format!("{}/playlists/resume", rockbox_url());
     client.get(&url).send().await?;
     Ok(())
 }
@@ -76,7 +76,7 @@ pub async fn op_playlist_resume() -> Result<(), AnyError> {
 #[op2(async)]
 pub async fn op_playlist_resume_track() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
-    let url = format!("{}/playlist_resume_track", rockbox_url());
+    let url = format!("{}/playlist/resume-track", rockbox_url());
     client.get(&url).send().await?;
     Ok(())
 }

@@ -1,5 +1,8 @@
 use crate::types::{playlist_info::PlaylistInfo, playlist_track_info::PlaylistTrackInfo};
-use std::ffi::{c_int, CString};
+use std::{
+    ffi::{c_int, CString},
+    ptr,
+};
 
 pub fn get_current() -> PlaylistInfo {
     let playlist = unsafe { crate::playlist_get_current() };
@@ -51,10 +54,18 @@ pub fn remove_all_tracks(playlist: *mut crate::PlaylistInfo) -> i32 {
     unsafe { crate::playlist_remove_all_tracks(playlist) }
 }
 
-pub fn create(dir: &str, file: &str) -> i32 {
+pub fn create(dir: &str, file: Option<&str>) -> i32 {
     let dir = CString::new(dir).unwrap();
-    let file = CString::new(file).unwrap();
-    unsafe { crate::playlist_create(dir.as_ptr(), file.as_ptr()) }
+    let file = file.map(|file| CString::new(file).unwrap());
+    unsafe {
+        crate::playlist_create(
+            dir.as_ptr(),
+            match file {
+                Some(file) => file.as_ptr(),
+                None => ptr::null(),
+            },
+        )
+    }
 }
 
 pub fn insert_track(
@@ -112,4 +123,20 @@ pub fn shuffle(random_sed: i32, start_index: i32) -> i32 {
 pub fn warn_on_pl_erase() -> bool {
     let ret = unsafe { crate::warn_on_pl_erase() };
     ret != 0
+}
+
+pub fn build_playlist(files: Vec<&str>, start_index: i32, size: i32) -> i32 {
+    let mut c_strings: Vec<CString> = Vec::with_capacity(files.len());
+    let mut pointers: Vec<*const u8> = Vec::with_capacity(files.len());
+
+    for file in files {
+        let c_string = CString::new(file).expect("CString::new failed");
+        pointers.push(c_string.as_ptr() as *const u8);
+        c_strings.push(c_string);
+    }
+
+    // Create a raw pointer to the vector of pointers
+    let files = pointers.as_ptr();
+
+    unsafe { crate::rb_build_playlist(files, start_index, size) }
 }

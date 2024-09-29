@@ -5732,6 +5732,7 @@ dependencies = [
  "rockbox-library",
  "rockbox-rpc",
  "rockbox-sys",
+ "serde",
  "serde_json",
  "sqlx",
  "threadpool",

@@ -11,10 +11,11 @@ owo-colors = "4.0.0"
 queryst = "3.0.0"
 reqwest = {version = "0.12.7", features = ["blocking", "rustls-tls"], default-features = false}
 rockbox-graphql = {path = "../graphql"}
+rockbox-library = {path = "../library"}
 rockbox-rpc = {path = "../rpc"}
 rockbox-sys = {path = "../sys"}
+serde = {version = "1.0.210", features = ["derive"]}
 serde_json = "1.0.128"
+sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
 threadpool = "1.8.1"
 tokio = {version = "1.36.0", features = ["full"]}
-sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
-rockbox-library = {path = "../library"}

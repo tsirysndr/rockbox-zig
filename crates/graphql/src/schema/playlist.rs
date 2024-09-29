@@ -15,7 +15,7 @@ pub struct PlaylistQuery;
 impl PlaylistQuery {
     async fn playlist_get_current(&self, _ctx: &Context<'_>) -> Result<Playlist, Error> {
         let client = reqwest::Client::new();
-        let url = format!("{}/current_playlist", rockbox_url());
+        let url = format!("{}/playlists/current", rockbox_url());
         let response = client.get(&url).send().await?;
         let response = response.json::<PlaylistInfo>().await?;
         Ok(Playlist {
@@ -41,7 +41,7 @@ impl PlaylistQuery {
 
     async fn playlist_amount(&self, _ctx: &Context<'_>) -> Result<i32, Error> {
         let client = reqwest::Client::new();
-        let url = format!("{}/playlist_amount", rockbox_url());
+        let url = format!("{}/playlists/amount", rockbox_url());
         let response = client.get(&url).send().await?;
         let response = response.json::<PlaylistAmount>().await?;
         Ok(response.amount)

@@ -27,7 +27,7 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<GetCurrentRequest>,
     ) -> Result<tonic::Response<GetCurrentResponse>, tonic::Status> {
-        let url = format!("{}/current_playlist", rockbox_url());
+        let url = format!("{}/playlists/current", rockbox_url());
         let response = self
             .client
             .get(url)
@@ -78,7 +78,7 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<AmountRequest>,
     ) -> Result<tonic::Response<AmountResponse>, tonic::Status> {
-        let url = format!("{}/playlist_amount", rockbox_url());
+        let url = format!("{}/playlists/amount", rockbox_url());
         let response = self
             .client
             .get(url)

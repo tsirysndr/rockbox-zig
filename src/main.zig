@@ -54,3 +54,7 @@ export fn rb_tree_get_entries() *tree.entry {
 export fn rb_tree_get_entry_at(index: c_int) tree.entry {
     return tree._tree_get_entry_at(index);
 }
+
+export fn rb_build_playlist(files: [*]const [*]const u8, start_index: c_int, size: c_int) c_int {
+    return playlist.build_playlist(files, start_index, size);
+}
