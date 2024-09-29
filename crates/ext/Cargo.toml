@@ -18,6 +18,7 @@ deno_websocket = "0.173.0"
 reqwest = {version = "0.12.7", features = ["rustls-tls", "json"], default-features = false}
 rockbox-library = {path = "../library"}
 rockbox-sys = {path = "../sys"}
+serde = {version = "1.0.210", features = ["derive"]}
 sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
 tokio = {version = "1.36.0", features = ["full"]}
 

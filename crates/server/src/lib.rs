@@ -185,30 +185,62 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
             return;
         }
         "/playlists/start" => {
-            if method == "PUT" {
-                let mut start_index: i32 = 0;
-                let mut elapsed: u64 = 0;
-                let mut offset: u64 = 0;
-
-                let params = path.split('?').collect::<Vec<_>>();
-                if params.len() > 1 {
-                    let params = queryst::parse(params[1]).unwrap();
-                    start_index = params
-                        .get("start_index")
-                        .unwrap()
-                        .as_str()
-                        .unwrap()
-                        .parse()
-                        .unwrap_or_default();
-                    elapsed = params.get("elapsed").unwrap().as_u64().unwrap_or_default();
-                    offset = params.get("offset").unwrap().as_u64().unwrap_or_default();
-                }
-
-                rb::playlist::start(start_index, elapsed, offset);
+            if method != "PUT" {
+                let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
             }
+            let mut start_index: i32 = 0;
+            let mut elapsed: u64 = 0;
+            let mut offset: u64 = 0;
+
+            let params = path.split('?').collect::<Vec<_>>();
+            if params.len() > 1 {
+                let params = queryst::parse(params[1]).unwrap();
+                start_index = params
+                    .get("start_index")
+                    .unwrap()
+                    .as_str()
+                    .unwrap()
+                    .parse()
+                    .unwrap_or_default();
+                elapsed = params.get("elapsed").unwrap().as_u64().unwrap_or_default();
+                offset = params.get("offset").unwrap().as_u64().unwrap_or_default();
+            }
+
+            rb::playlist::start(start_index, elapsed, offset);
+            stream
+                .write_all("HTTP/1.1 200 OK\r\n\r\n".as_bytes())
+                .unwrap();
             return;
         }
+        "/playlists/shuffle" => {
+            if method != "PUT" {
+                let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
+            let params = path.split('?').collect::<Vec<_>>();
+            let params = queryst::parse(params[1]).unwrap();
+            let start_index = params
+                .get("start_index")
+                .unwrap()
+                .as_i64()
+                .unwrap_or_default();
+            let seed = rb::system::current_tick();
+            let ret = rb::playlist::shuffle(seed as i32, start_index as i32);
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                ret
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+        }
         "/playlists/amount" => {
+            if method != "GET" {
+                let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
             let amount = rb::playlist::amount();
             let json = PlaylistAmount { amount };
             let response = format!(
@@ -219,6 +251,11 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
             return;
         }
         "/playlists/current" => {
+            if method != "GET" {
+                let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
             let mut playlist = rb::playlist::get_current();
             let mut entries = vec![];
             let amount = rb::playlist::amount();
@@ -239,9 +276,19 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
             return;
         }
         "/playlists/resume" => {
+            if method != "PUT" {
+                let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
             rb::playlist::resume();
         }
         "/playlists/resume-track" => {
+            if method != "PUT" {
+                let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
             let status = rb::system::get_global_status();
             rb::playlist::resume_track(
                 status.resume_index,
@@ -251,6 +298,11 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
             );
         }
         "/version" => {
+            if method != "GET" {
+                let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+                stream.write_all(response.as_bytes()).unwrap();
+                return;
+            }
             let version = rb::system::get_rockbox_version();
             let response = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",

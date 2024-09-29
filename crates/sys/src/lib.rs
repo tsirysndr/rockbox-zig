@@ -1256,7 +1256,7 @@ extern "C" {
     // Kernel / System
     fn sleep(ticks: c_int);
     fn r#yield();
-    fn current_tick();
+    fn current_tick() -> *mut c_long;
     fn default_event_handler(event: c_long);
     fn create_thread();
     fn thread_self();

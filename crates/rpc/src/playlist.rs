@@ -129,6 +129,13 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<StartRequest>,
     ) -> Result<tonic::Response<StartResponse>, tonic::Status> {
+        let url = format!("{}/playlists/start", rockbox_url());
+        self
+            .client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(StartResponse::default()))
     }
 
@@ -148,9 +155,29 @@ impl PlaylistService for Playlist {
 
     async fn create_playlist(
         &self,
-        _request: tonic::Request<CreatePlaylistRequest>,
+        request: tonic::Request<CreatePlaylistRequest>,
     ) -> Result<tonic::Response<CreatePlaylistResponse>, tonic::Status> {
-        Ok(tonic::Response::new(CreatePlaylistResponse::default()))
+        let request = request.into_inner();
+        let body = serde_json::json!({
+            "name": request.name,
+            "tracks": request.tracks,
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        let response = self
+            .client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let start_index = response
+            .text()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .parse()
+            .unwrap_or(-1);
+        Ok(tonic::Response::new(CreatePlaylistResponse { start_index }))
     }
 
     async fn insert_track(
@@ -176,8 +203,19 @@ impl PlaylistService for Playlist {
 
     async fn shuffle_playlist(
         &self,
-        _request: tonic::Request<ShufflePlaylistRequest>,
+        request: tonic::Request<ShufflePlaylistRequest>,
     ) -> Result<tonic::Response<ShufflePlaylistResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!(
+            "{}/playlists/shuffle?start_index={}",
+            rockbox_url(),
+            request.start_index
+        );
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(ShufflePlaylistResponse::default()))
     }
 

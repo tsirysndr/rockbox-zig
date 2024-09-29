@@ -2662,10 +2662,18 @@ pub struct SyncResponse {}
 pub struct RemoveAllTracksRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct RemoveAllTracksResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreatePlaylistRequest {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "2")]
+    pub tracks: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct CreatePlaylistRequest {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct CreatePlaylistResponse {}
+pub struct CreatePlaylistResponse {
+    #[prost(int32, tag = "1")]
+    pub start_index: i32,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct InsertTrackRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -2679,7 +2687,10 @@ pub struct InsertPlaylistRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct InsertPlaylistResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct ShufflePlaylistRequest {}
+pub struct ShufflePlaylistRequest {
+    #[prost(int32, tag = "1")]
+    pub start_index: i32,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ShufflePlaylistResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]

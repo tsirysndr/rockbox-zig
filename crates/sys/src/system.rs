@@ -27,9 +27,13 @@ pub fn r#yield() {
     }
 }
 
-pub fn current_tick() {
+pub fn current_tick() -> i64 {
     unsafe {
-        crate::current_tick();
+        let tick_ptr = crate::current_tick();
+        match tick_ptr.is_null() {
+            true => 0,
+            false => std::ptr::read_volatile(tick_ptr),
+        }
     }
 }
 

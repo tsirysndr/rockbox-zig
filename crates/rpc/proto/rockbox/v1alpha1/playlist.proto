@@ -83,9 +83,12 @@ message RemoveAllTracksResponse {
 }
 
 message CreatePlaylistRequest {
+  string name = 1;
+  repeated string tracks = 2;
 }
 
 message CreatePlaylistResponse {
+  int32 start_index = 1;
 }
 
 message InsertTrackRequest {
@@ -107,6 +110,7 @@ message InsertPlaylistResponse {
 }
 
 message ShufflePlaylistRequest {
+  int32 start_index = 1;
 }
 
 message ShufflePlaylistResponse {

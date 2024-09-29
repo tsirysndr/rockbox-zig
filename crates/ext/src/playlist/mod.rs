@@ -1,9 +1,19 @@
 use std::path::PathBuf;
 
-use deno_core::{error::AnyError, extension, op2};
+use deno_core::{
+    error::AnyError,
+    extension, op2,
+    serde::{Deserialize, Serialize},
+};
 use rockbox_sys::types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo};
 
 use crate::rockbox_url;
+
+#[derive(Serialize, Deserialize)]
+pub struct NewPlaylist {
+    pub name: String,
+    pub tracks: Vec<String>,
+}
 
 extension!(
     rb_playlist,
@@ -69,15 +79,15 @@ pub async fn op_playlist_amount() -> Result<i32, AnyError> {
 pub async fn op_playlist_resume() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
     let url = format!("{}/playlists/resume", rockbox_url());
-    client.get(&url).send().await?;
+    client.put(&url).send().await?;
     Ok(())
 }
 
 #[op2(async)]
 pub async fn op_playlist_resume_track() -> Result<(), AnyError> {
     let client = reqwest::Client::new();
-    let url = format!("{}/playlist/resume-track", rockbox_url());
-    client.get(&url).send().await?;
+    let url = format!("{}/playlists/resume-track", rockbox_url());
+    client.put(&url).send().await?;
     Ok(())
 }
 
@@ -85,7 +95,12 @@ pub async fn op_playlist_resume_track() -> Result<(), AnyError> {
 pub async fn op_playlist_set_modified() {}
 
 #[op2(async)]
-pub async fn op_playlist_start() {}
+pub async fn op_playlist_start() -> Result<(), AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlists/start", rockbox_url());
+    client.put(&url).send().await?;
+    Ok(())
+}
 
 #[op2(async)]
 pub async fn op_playlist_sync() {}
@@ -94,7 +109,7 @@ pub async fn op_playlist_sync() {}
 pub async fn op_playlist_remove_all_tracks() {}
 
 #[op2(async)]
-pub async fn op_create_playlist() {}
+pub async fn op_create_playlist(#[serde] _params: NewPlaylist) {}
 
 #[op2(async)]
 pub async fn op_playlist_insert_track() {}
@@ -106,7 +121,16 @@ pub async fn op_playlist_insert_directory() {}
 pub async fn op_insert_playlist() {}
 
 #[op2(async)]
-pub async fn op_shuffle_playlist() {}
+pub async fn op_shuffle_playlist(start_index: i32) -> Result<(), AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!(
+        "{}/playlists/shuffle?start_index={}",
+        rockbox_url(),
+        start_index
+    );
+    client.put(&url).send().await?;
+    Ok(())
+}
 
 #[op2(async)]
 pub async fn op_warn_on_playlist_erase() {}

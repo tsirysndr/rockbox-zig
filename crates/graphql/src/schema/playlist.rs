@@ -75,8 +75,11 @@ impl PlaylistMutation {
         "set modified".to_string()
     }
 
-    async fn playlist_start(&self) -> String {
-        "playlist start".to_string()
+    async fn playlist_start(&self, ctx: &Context<'_>) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/playlists/start", rockbox_url());
+        client.put(&url).send().await?;
+        Ok(0)
     }
 
     async fn playlist_sync(&self) -> String {
@@ -87,8 +90,22 @@ impl PlaylistMutation {
         "playlist remove all tracks".to_string()
     }
 
-    async fn playlist_create(&self) -> String {
-        "playlist create".to_string()
+    async fn playlist_create(
+        &self,
+        ctx: &Context<'_>,
+        name: String,
+        tracks: Vec<String>,
+    ) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "name": name,
+            "tracks": tracks,
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        let response = client.post(&url).json(&body).send().await?;
+        let start_index = response.text().await?.parse()?;
+        Ok(start_index)
     }
 
     async fn playlist_insert_track(&self) -> String {
@@ -99,8 +116,12 @@ impl PlaylistMutation {
         "playlist insert directory".to_string()
     }
 
-    async fn shuffle_playlist(&self) -> String {
-        "shuffle playlist".to_string()
+    async fn shuffle_playlist(&self, ctx: &Context<'_>) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/playlists/shuffle", rockbox_url());
+        let response = client.put(&url).send().await?;
+        let ret = response.text().await?.parse()?;
+        Ok(ret)
     }
 
     async fn warn_on_playlist_erase(&self) -> String {
