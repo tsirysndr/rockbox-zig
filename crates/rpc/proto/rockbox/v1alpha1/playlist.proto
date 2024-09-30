@@ -91,19 +91,25 @@ message CreatePlaylistResponse {
   int32 start_index = 1;
 }
 
-message InsertTrackRequest {
+message InsertTracksRequest {
+  int32 position = 1;
+  repeated string tracks = 2;
 }
 
-message InsertTrackResponse {
+message InsertTracksResponse {
 }
 
 message InsertDirectoryRequest {
+  int32 position = 1;
+  string directory = 2;
 }
 
 message InsertDirectoryResponse {
 }
 
 message InsertPlaylistRequest {
+  int32 position = 1;
+  string playlist_id = 2;
 }
 
 message InsertPlaylistResponse {
@@ -115,13 +121,6 @@ message ShufflePlaylistRequest {
 
 message ShufflePlaylistResponse {
 }
-
-message WarnOnPlaylistEraseRequest {
-}
-
-message WarnOnPlaylistEraseResponse {
-}
-
 
 service PlaylistService {
   rpc GetCurrent(GetCurrentRequest) returns (GetCurrentResponse) {}
@@ -137,9 +136,8 @@ service PlaylistService {
   rpc Sync(SyncRequest) returns (SyncResponse) {}
   rpc RemoveAllTracks(RemoveAllTracksRequest) returns (RemoveAllTracksResponse) {}
   rpc CreatePlaylist(CreatePlaylistRequest) returns (CreatePlaylistResponse) {}
-  rpc InsertTrack(InsertTrackRequest) returns (InsertTrackResponse) {}
+  rpc InsertTracks(InsertTracksRequest) returns (InsertTracksResponse) {}
   rpc InsertDirectory(InsertDirectoryRequest) returns (InsertDirectoryResponse) {}
   rpc InsertPlaylist(InsertPlaylistRequest) returns (InsertPlaylistResponse) {}
   rpc ShufflePlaylist(ShufflePlaylistRequest) returns (ShufflePlaylistResponse) {}
-  rpc WarnOnPlaylistErase(WarnOnPlaylistEraseRequest) returns (WarnOnPlaylistEraseResponse) {}
 }

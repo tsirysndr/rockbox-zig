@@ -2674,16 +2674,31 @@ pub struct CreatePlaylistResponse {
     #[prost(int32, tag = "1")]
     pub start_index: i32,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InsertTracksRequest {
+    #[prost(int32, tag = "1")]
+    pub position: i32,
+    #[prost(string, repeated, tag = "2")]
+    pub tracks: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct InsertTrackRequest {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct InsertTrackResponse {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct InsertDirectoryRequest {}
+pub struct InsertTracksResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InsertDirectoryRequest {
+    #[prost(int32, tag = "1")]
+    pub position: i32,
+    #[prost(string, tag = "2")]
+    pub directory: ::prost::alloc::string::String,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct InsertDirectoryResponse {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct InsertPlaylistRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InsertPlaylistRequest {
+    #[prost(int32, tag = "1")]
+    pub position: i32,
+    #[prost(string, tag = "2")]
+    pub playlist_id: ::prost::alloc::string::String,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct InsertPlaylistResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -2693,10 +2708,6 @@ pub struct ShufflePlaylistRequest {
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ShufflePlaylistResponse {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct WarnOnPlaylistEraseRequest {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct WarnOnPlaylistEraseResponse {}
 /// Generated client implementations.
 pub mod playlist_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
@@ -3124,11 +3135,11 @@ pub mod playlist_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        pub async fn insert_track(
+        pub async fn insert_tracks(
             &mut self,
-            request: impl tonic::IntoRequest<super::InsertTrackRequest>,
+            request: impl tonic::IntoRequest<super::InsertTracksRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::InsertTrackResponse>,
+            tonic::Response<super::InsertTracksResponse>,
             tonic::Status,
         > {
             self.inner
@@ -3142,12 +3153,12 @@ pub mod playlist_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaylistService/InsertTrack",
+                "/rockbox.v1alpha1.PlaylistService/InsertTracks",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "InsertTrack"),
+                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "InsertTracks"),
                 );
             self.inner.unary(req, path, codec).await
         }
@@ -3234,36 +3245,6 @@ pub mod playlist_service_client {
                     GrpcMethod::new(
                         "rockbox.v1alpha1.PlaylistService",
                         "ShufflePlaylist",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        pub async fn warn_on_playlist_erase(
-            &mut self,
-            request: impl tonic::IntoRequest<super::WarnOnPlaylistEraseRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::WarnOnPlaylistEraseResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaylistService/WarnOnPlaylistErase",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaylistService",
-                        "WarnOnPlaylistErase",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -3359,11 +3340,11 @@ pub mod playlist_service_server {
             tonic::Response<super::CreatePlaylistResponse>,
             tonic::Status,
         >;
-        async fn insert_track(
+        async fn insert_tracks(
             &self,
-            request: tonic::Request<super::InsertTrackRequest>,
+            request: tonic::Request<super::InsertTracksRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::InsertTrackResponse>,
+            tonic::Response<super::InsertTracksResponse>,
             tonic::Status,
         >;
         async fn insert_directory(
@@ -3385,13 +3366,6 @@ pub mod playlist_service_server {
             request: tonic::Request<super::ShufflePlaylistRequest>,
         ) -> std::result::Result<
             tonic::Response<super::ShufflePlaylistResponse>,
-            tonic::Status,
-        >;
-        async fn warn_on_playlist_erase(
-            &self,
-            request: tonic::Request<super::WarnOnPlaylistEraseRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::WarnOnPlaylistEraseResponse>,
             tonic::Status,
         >;
     }
@@ -4061,25 +4035,25 @@ pub mod playlist_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/rockbox.v1alpha1.PlaylistService/InsertTrack" => {
+                "/rockbox.v1alpha1.PlaylistService/InsertTracks" => {
                     #[allow(non_camel_case_types)]
-                    struct InsertTrackSvc<T: PlaylistService>(pub Arc<T>);
+                    struct InsertTracksSvc<T: PlaylistService>(pub Arc<T>);
                     impl<
                         T: PlaylistService,
-                    > tonic::server::UnaryService<super::InsertTrackRequest>
-                    for InsertTrackSvc<T> {
-                        type Response = super::InsertTrackResponse;
+                    > tonic::server::UnaryService<super::InsertTracksRequest>
+                    for InsertTracksSvc<T> {
+                        type Response = super::InsertTracksResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::InsertTrackRequest>,
+                            request: tonic::Request<super::InsertTracksRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::insert_track(&inner, request).await
+                                <T as PlaylistService>::insert_tracks(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -4090,7 +4064,7 @@ pub mod playlist_service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let method = InsertTrackSvc(inner);
+                        let method = InsertTracksSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -4229,55 +4203,6 @@ pub mod playlist_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ShufflePlaylistSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/rockbox.v1alpha1.PlaylistService/WarnOnPlaylistErase" => {
-                    #[allow(non_camel_case_types)]
-                    struct WarnOnPlaylistEraseSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::WarnOnPlaylistEraseRequest>
-                    for WarnOnPlaylistEraseSvc<T> {
-                        type Response = super::WarnOnPlaylistEraseResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::WarnOnPlaylistEraseRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as PlaylistService>::warn_on_playlist_erase(
-                                        &inner,
-                                        request,
-                                    )
-                                    .await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = WarnOnPlaylistEraseSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

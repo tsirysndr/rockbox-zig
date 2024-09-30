@@ -180,10 +180,9 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
                     stream.write_all(response.as_bytes()).unwrap();
                     return;
                 }
-                let start_index = 0;
                 let start_index = rb::playlist::build_playlist(
                     new_playslist.tracks.iter().map(|t| t.as_str()).collect(),
-                    start_index,
+                    0,
                     new_playslist.tracks.len() as i32,
                 );
                 let response = format!(

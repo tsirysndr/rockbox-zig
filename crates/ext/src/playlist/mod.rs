@@ -15,6 +15,18 @@ pub struct NewPlaylist {
     pub tracks: Vec<String>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct InsertTracks {
+    pub position: i32,
+    pub tracks: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct InsertDirectory {
+    pub position: i32,
+    pub directory: String,
+}
+
 extension!(
     rb_playlist,
     ops = [
@@ -31,7 +43,7 @@ extension!(
         op_playlist_sync,
         op_playlist_remove_all_tracks,
         op_create_playlist,
-        op_playlist_insert_track,
+        op_playlist_insert_tracks,
         op_playlist_insert_directory,
         op_insert_playlist,
         op_shuffle_playlist,
@@ -109,13 +121,33 @@ pub async fn op_playlist_sync() {}
 pub async fn op_playlist_remove_all_tracks() {}
 
 #[op2(async)]
-pub async fn op_create_playlist(#[serde] _params: NewPlaylist) {}
+pub async fn op_create_playlist(#[serde] params: NewPlaylist) -> Result<i32, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlists", rockbox_url());
+    let response = client.post(&url).json(&params).send().await?;
+    let start_index = response.text().await?.parse()?;
+    Ok(start_index)
+}
 
 #[op2(async)]
-pub async fn op_playlist_insert_track() {}
+pub async fn op_playlist_insert_tracks(#[serde] params: InsertTracks) -> Result<i32, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlists/current/tracks", rockbox_url());
+    let response = client.post(&url).json(&params).send().await?;
+    let start_index = response.text().await?.parse()?;
+    Ok(start_index)
+}
 
 #[op2(async)]
-pub async fn op_playlist_insert_directory() {}
+pub async fn op_playlist_insert_directory(
+    #[serde] params: InsertDirectory,
+) -> Result<i32, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlists/current/tracks", rockbox_url());
+    let response = client.post(&url).json(&params).send().await?;
+    let start_index = response.text().await?.parse()?;
+    Ok(start_index)
+}
 
 #[op2(async)]
 pub async fn op_insert_playlist() {}

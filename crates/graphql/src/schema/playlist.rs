@@ -59,7 +59,7 @@ impl PlaylistMutation {
             .lock()
             .unwrap()
             .send(RockboxCommand::PlaylistResume)?;
-        Ok("playlist resume".to_string())
+        Ok("".to_string())
     }
 
     async fn resume_track(&self, ctx: &Context<'_>) -> Result<String, Error> {
@@ -68,7 +68,7 @@ impl PlaylistMutation {
             .lock()
             .unwrap()
             .send(RockboxCommand::PlaylistResumeTrack)?;
-        Ok("resume track".to_string())
+        Ok("".to_string())
     }
 
     async fn playlist_set_modified(&self) -> String {
@@ -108,12 +108,48 @@ impl PlaylistMutation {
         Ok(start_index)
     }
 
-    async fn playlist_insert_track(&self) -> String {
-        "playlist insert track".to_string()
+    async fn playlist_insert_tracks(
+        &self,
+        ctx: &Context<'_>,
+        position: i32,
+        tracks: Vec<String>,
+    ) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "position": position,
+            "tracks": tracks,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let response = client.post(&url).json(&body).send().await?;
+        let start_index = response.text().await?.parse()?;
+        Ok(start_index)
     }
 
-    async fn playlist_insert_directory(&self) -> String {
-        "playlist insert directory".to_string()
+    async fn playlist_insert_directory(
+        &self,
+        ctx: &Context<'_>,
+        position: i32,
+        directory: String,
+    ) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "position": position,
+            "tracks": [],
+            "directory": directory,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let response = client.post(&url).json(&body).send().await?;
+        let start_index = response.text().await?.parse()?;
+        Ok(start_index)
+    }
+
+    async fn insert_playlist(
+        &self,
+        _ctx: &Context<'_>,
+        _position: i32,
+        _playlist_id: String,
+    ) -> String {
+        "playlist insert playlist".to_string()
     }
 
     async fn shuffle_playlist(&self, ctx: &Context<'_>) -> Result<i32, Error> {
@@ -122,9 +158,5 @@ impl PlaylistMutation {
         let response = client.put(&url).send().await?;
         let ret = response.text().await?.parse()?;
         Ok(ret)
-    }
-
-    async fn warn_on_playlist_erase(&self) -> String {
-        "warn on playlist erase".to_string()
     }
 }

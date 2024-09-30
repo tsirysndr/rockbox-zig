@@ -130,8 +130,7 @@ impl PlaylistService for Playlist {
         _request: tonic::Request<StartRequest>,
     ) -> Result<tonic::Response<StartResponse>, tonic::Status> {
         let url = format!("{}/playlists/start", rockbox_url());
-        self
-            .client
+        self.client
             .put(&url)
             .send()
             .await
@@ -180,17 +179,42 @@ impl PlaylistService for Playlist {
         Ok(tonic::Response::new(CreatePlaylistResponse { start_index }))
     }
 
-    async fn insert_track(
+    async fn insert_tracks(
         &self,
-        _request: tonic::Request<InsertTrackRequest>,
-    ) -> Result<tonic::Response<InsertTrackResponse>, tonic::Status> {
-        Ok(tonic::Response::new(InsertTrackResponse::default()))
+        request: tonic::Request<InsertTracksRequest>,
+    ) -> Result<tonic::Response<InsertTracksResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let body = serde_json::json!({
+            "position": request.position,
+            "tracks": request.tracks,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(InsertTracksResponse::default()))
     }
 
     async fn insert_directory(
         &self,
-        _request: tonic::Request<InsertDirectoryRequest>,
+        request: tonic::Request<InsertDirectoryRequest>,
     ) -> Result<tonic::Response<InsertDirectoryResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let body = serde_json::json!({
+            "position": request.position,
+            "tracks": [],
+            "directory": request.directory,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(InsertDirectoryResponse::default()))
     }
 
@@ -217,12 +241,5 @@ impl PlaylistService for Playlist {
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(ShufflePlaylistResponse::default()))
-    }
-
-    async fn warn_on_playlist_erase(
-        &self,
-        _request: tonic::Request<WarnOnPlaylistEraseRequest>,
-    ) -> Result<tonic::Response<WarnOnPlaylistEraseResponse>, tonic::Status> {
-        Ok(tonic::Response::new(WarnOnPlaylistEraseResponse::default()))
     }
 }
