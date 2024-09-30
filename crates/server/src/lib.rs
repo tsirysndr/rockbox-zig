@@ -4,7 +4,7 @@ use rockbox_sys::{self as rb, events::RockboxCommand, types::playlist_amount::Pl
 use sqlx::Sqlite;
 use std::{
     ffi::c_char,
-    io::{BufRead, BufReader, Write},
+    io::{BufRead, BufReader, Read, Write},
     net::{TcpListener, TcpStream},
     sync::{Arc, Mutex},
     thread,
@@ -93,37 +93,42 @@ pub extern "C" fn start_server() {
 
 fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
     let rt = tokio::runtime::Runtime::new().unwrap();
-    let buf_reader = BufReader::new(&mut stream);
+    let mut buf_reader = BufReader::new(&mut stream);
 
     let mut http_request: Vec<String> = Vec::new();
-    let mut req_body = String::new();
     let mut content_length = 0;
-    let mut should_read_body = false;
 
-    for line in buf_reader.lines() {
-        if let Ok(line) = line {
-            if line.starts_with("Content-Length") {
+    loop {
+        let mut line = Default::default();
+        let res = buf_reader.read_line(&mut line);
+        if res.is_ok() {
+            if line.starts_with("Content-Length") || line.starts_with("content-length") {
                 let parts: Vec<_> = line.split(":").collect();
                 content_length = parts[1].trim().parse().unwrap();
             }
 
-            if line.is_empty() {
-                if content_length == 0 {
-                    break;
-                }
-                should_read_body = true;
-            }
-
-            if should_read_body {
-                req_body.push_str(format!("{}\n", line).as_str());
-                if req_body.len() >= content_length {
-                    break;
-                }
+            if line.as_str() == "\r\n" || line == "\n" {
+                break;
             }
 
             http_request.push(line.clone());
+        } else {
+            break;
         }
     }
+
+    let mut body: Vec<u8> = vec![0; content_length];
+    let mut total_read: usize = 0;
+
+    while total_read < content_length {
+        let read_size = buf_reader.read(&mut body[total_read..]).unwrap();
+        if read_size == 0 {
+            break;
+        }
+        total_read += read_size;
+    }
+
+    let req_body = String::from_utf8_lossy(&body).to_string();
 
     // parse request
     let request = http_request[0].split_whitespace().collect::<Vec<_>>();
@@ -158,6 +163,11 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
             if method == "POST" {
                 let new_playslist: NewPlaylist = serde_json::from_str(&req_body).unwrap();
                 if new_playslist.tracks.is_empty() {
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                        0
+                    );
+                    stream.write_all(response.as_bytes()).unwrap();
                     return;
                 }
                 let dir = new_playslist.tracks[0].clone();
