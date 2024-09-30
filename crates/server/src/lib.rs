@@ -459,6 +459,22 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
 
                 if method == "POST" {
                     let tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
+                    let amount = rb::playlist::amount();
+
+                    if let Some(dir) = &tracklist.directory {
+                        if amount == 0 {
+                            let res = rb::playlist::create(dir, None);
+                            if res == -1 {
+                                let response = "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+                                let response =
+                                    format!("{}{}", response, "Failed to create playlist");
+                                stream.write_all(response.as_bytes()).unwrap();
+                                return;
+                            }
+                        }
+                        rb::playlist::insert_directory(dir, tracklist.position, true, false);
+                    }
+
                     if tracklist.tracks.is_empty() {
                         let response = format!(
                             "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
@@ -467,7 +483,6 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
                         stream.write_all(response.as_bytes()).unwrap();
                         return;
                     }
-                    let amount = rb::playlist::amount();
 
                     if amount == 0 {
                         let dir = tracklist.tracks[0].clone();

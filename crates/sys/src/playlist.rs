@@ -70,9 +70,7 @@ pub fn create(dir: &str, file: Option<&str>) -> i32 {
 
 pub fn insert_directory(dir: &str, position: i32, queue: bool, recurse: bool) -> i32 {
     let dir = CString::new(dir).unwrap();
-    unsafe {
-        crate::rb_playlist_insert_directory(dir.as_ptr(), position, queue as u8, recurse as u8)
-    }
+    unsafe { crate::rb_playlist_insert_directory(dir.as_ptr(), position, queue, recurse) }
 }
 
 pub fn shuffle(random_sed: i32, start_index: i32) -> i32 {

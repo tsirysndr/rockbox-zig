@@ -10,6 +10,7 @@ pub struct NewPlaylist {
 pub struct InsertTracks {
     pub position: i32,
     pub tracks: Vec<String>,
+    pub directory: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

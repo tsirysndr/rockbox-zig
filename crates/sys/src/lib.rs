@@ -1073,10 +1073,10 @@ extern "C" {
     fn rb_playlist_delete_track(index: i32) -> i32;
     fn rb_playlist_insert_directory(
         dir: *const c_char,
-        position: c_int,
-        queue: c_uchar,
-        recurse: c_uchar,
-    ) -> c_int;
+        position: i32,
+        queue: bool,
+        recurse: bool,
+    ) -> i32;
     fn playlist_get_first_index(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_get_display_index() -> c_int;
     fn playlist_amount() -> c_int;
