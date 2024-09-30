@@ -54,6 +54,9 @@ extern fn playlist_create(dir: [*]const u8, file: [*]const u8) c_int;
 extern fn playlist_insert_context_create(playlist: *PlaylistInfo, context: *PlaylistInsertContext, position: c_int, queue: bool, progress: bool) c_int;
 extern fn playlist_insert_context_release(context: *PlaylistInsertContext) void;
 extern fn playlist_insert_context_add(context: *PlaylistInsertContext, filename: [*]const u8) c_int;
+extern fn playlist_delete(playlist: *PlaylistInfo, index: c_int) c_int;
+extern fn playlist_insert_track(playlist: *PlaylistInfo, filename: [*]const u8, position: c_int, queue: bool, sync: bool) c_int;
+extern fn playlist_insert_directory(playlist: *PlaylistInfo, dir: [*]const u8, position: c_int, queue: bool, recurse: bool) c_int;
 
 pub fn _get_track_info_from_current_playlist(index: c_int) PlaylistTrackInfo {
     const playlist = playlist_get_current();
@@ -80,4 +83,19 @@ pub fn build_playlist(files: [*]const [*]const u8, start_index: c_int, size: c_i
 
     playlist_insert_context_release(&context);
     return start;
+}
+
+pub fn insert_track(filename: [*]const u8, position: c_int, queue: bool, sync: bool) c_int {
+    const playlist = playlist_get_current();
+    return playlist_insert_track(playlist, filename, position, queue, sync);
+}
+
+pub fn delete_track(index: c_int) c_int {
+    const playlist = playlist_get_current();
+    return playlist_delete(playlist, index);
+}
+
+pub fn insert_directory(dir: [*]const u8, position: c_int, queue: bool, recurse: bool) c_int {
+    const playlist = playlist_get_current();
+    return playlist_insert_directory(playlist, dir, position, queue, recurse);
 }

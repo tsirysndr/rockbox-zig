@@ -68,52 +68,11 @@ pub fn create(dir: &str, file: Option<&str>) -> i32 {
     }
 }
 
-pub fn insert_track(
-    playlist: *mut crate::PlaylistInfo,
-    filename: &str,
-    position: i32,
-    queue: bool,
-    sync: bool,
-) -> i32 {
-    let filename = CString::new(filename).unwrap();
-    unsafe {
-        crate::playlist_insert_track(
-            playlist,
-            filename.as_ptr(),
-            position,
-            queue as u8,
-            sync as u8,
-        )
-    }
-}
-
-pub fn insert_directory(
-    playlist: *mut crate::PlaylistInfo,
-    dir: &str,
-    position: i32,
-    queue: bool,
-    recurse: bool,
-) -> i32 {
+pub fn insert_directory(dir: &str, position: i32, queue: bool, recurse: bool) -> i32 {
     let dir = CString::new(dir).unwrap();
     unsafe {
-        crate::playlist_insert_directory(
-            playlist,
-            dir.as_ptr(),
-            position,
-            queue as u8,
-            recurse as u8,
-        )
+        crate::rb_playlist_insert_directory(dir.as_ptr(), position, queue as u8, recurse as u8)
     }
-}
-
-pub fn insert_playlist(
-    playlist: *mut crate::PlaylistInfo,
-    filename: &str,
-    position: i32,
-    queue: bool,
-) -> i32 {
-    let filename = CString::new(filename).unwrap();
-    unsafe { crate::playlist_insert_playlist(playlist, filename.as_ptr(), position, queue as u8) }
 }
 
 pub fn shuffle(random_sed: i32, start_index: i32) -> i32 {
@@ -139,4 +98,15 @@ pub fn build_playlist(files: Vec<&str>, start_index: i32, size: i32) -> i32 {
     let files = pointers.as_ptr();
 
     unsafe { crate::rb_build_playlist(files, start_index, size) }
+}
+
+pub fn insert_track(filename: &str, position: i32, queue: bool, sync: bool) -> i32 {
+    let filename = CString::new(filename).unwrap();
+    unsafe {
+        crate::rb_playlist_insert_track(filename.as_ptr() as *const u8, position, queue, sync)
+    }
+}
+
+pub fn delete_track(index: i32) -> i32 {
+    unsafe { crate::rb_playlist_delete_track(index) }
 }

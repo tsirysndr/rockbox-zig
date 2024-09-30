@@ -1068,6 +1068,15 @@ extern "C" {
     fn playlist_get_resume_info(resume_index: *mut c_int) -> c_int;
     fn rb_get_track_info_from_current_playlist(index: i32) -> PlaylistTrackInfo;
     fn rb_build_playlist(files: *const *const u8, start_index: i32, size: i32) -> i32;
+    fn rb_playlist_insert_track(filename: *const u8, position: i32, queue: bool, sync: bool)
+        -> i32;
+    fn rb_playlist_delete_track(index: i32) -> i32;
+    fn rb_playlist_insert_directory(
+        dir: *const c_char,
+        position: c_int,
+        queue: c_uchar,
+        recurse: c_uchar,
+    ) -> c_int;
     fn playlist_get_first_index(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_get_display_index() -> c_int;
     fn playlist_amount() -> c_int;
@@ -1078,20 +1087,6 @@ extern "C" {
     fn playlist_sync(playlist: *mut PlaylistInfo);
     fn playlist_remove_all_tracks(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_create(dir: *const c_char, file: *const c_char) -> c_int;
-    fn playlist_insert_track(
-        playlist: *mut PlaylistInfo,
-        filename: *const c_char,
-        position: c_int,
-        queue: c_uchar,
-        sync: c_uchar,
-    ) -> c_int;
-    fn playlist_insert_directory(
-        playlist: *mut PlaylistInfo,
-        dir: *const c_char,
-        position: c_int,
-        queue: c_uchar,
-        recurse: c_uchar,
-    ) -> c_int;
     fn playlist_insert_playlist(
         playlist: *mut PlaylistInfo,
         filename: *const c_char,

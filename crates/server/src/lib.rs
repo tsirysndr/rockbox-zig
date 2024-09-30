@@ -11,7 +11,7 @@ use std::{
     time::Duration,
 };
 use threadpool::ThreadPool;
-use types::NewPlaylist;
+use types::{DeleteTracks, InsertTracks, NewPlaylist};
 
 pub mod types;
 
@@ -137,7 +137,7 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
 
     println!("{} {}", method.bright_cyan(), path);
 
-    if method != "GET" && method != "PUT" && method != "POST" {
+    if method != "GET" && method != "PUT" && method != "POST" && method != "DELETE" {
         let response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
         stream.write_all(response.as_bytes()).unwrap();
         return;
@@ -444,11 +444,101 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
             }
 
             if path.starts_with("/artists/") && path.ends_with("/tracks") {
+                let _artist_id = path.split('/').collect::<Vec<_>>()[2];
                 todo!("to be implemented");
             }
 
             if path.starts_with("/albums/") && path.ends_with("/tracks") {
+                let _album_id = path.split('/').collect::<Vec<_>>()[2];
                 todo!("to be implemented");
+            }
+
+            if path.starts_with("/playlists/") && path.ends_with("/tracks") {
+                // parse playlist id from /playlists/{id}/tracks
+                let _playlist_id = path.split('/').collect::<Vec<_>>()[2];
+
+                if method == "POST" {
+                    let tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
+                    if tracklist.tracks.is_empty() {
+                        let response = format!(
+                            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                            0
+                        );
+                        stream.write_all(response.as_bytes()).unwrap();
+                        return;
+                    }
+                    let amount = rb::playlist::amount();
+
+                    if amount == 0 {
+                        let dir = tracklist.tracks[0].clone();
+                        let dir_parts: Vec<_> = dir.split('/').collect();
+                        let dir = dir_parts[0..dir_parts.len() - 1].join("/");
+                        let res = rb::playlist::create(&dir, None);
+                        if res == -1 {
+                            let response = "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+                            let response = format!("{}{}", response, "Failed to create playlist");
+                            stream.write_all(response.as_bytes()).unwrap();
+                            return;
+                        }
+                        let start_index = 0;
+                        let start_index = rb::playlist::build_playlist(
+                            tracklist.tracks.iter().map(|t| t.as_str()).collect(),
+                            start_index,
+                            tracklist.tracks.len() as i32,
+                        );
+                        let response = format!(
+                            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                            start_index
+                        );
+                        stream.write_all(response.as_bytes()).unwrap();
+                        return;
+                    }
+
+                    for (_, track) in tracklist.tracks.iter().enumerate() {
+                        rb::playlist::insert_track(track, tracklist.position, true, false);
+                    }
+
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                        tracklist.position
+                    );
+                    stream.write_all(response.as_bytes()).unwrap();
+                    return;
+                }
+
+                if method == "DELETE" {
+                    let params = serde_json::from_str::<DeleteTracks>(&req_body).unwrap();
+                    let mut ret = 0;
+
+                    for position in params.positions {
+                        ret = rb::playlist::delete_track(position);
+                    }
+
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                        ret
+                    );
+                    stream.write_all(response.as_bytes()).unwrap();
+                    return;
+                }
+
+                if method == "GET" {
+                    let mut entries = vec![];
+                    let amount = rb::playlist::amount();
+
+                    for i in 0..amount {
+                        let info = rb::playlist::get_track_info(i);
+                        let entry = rb::metadata::get_metadata(-1, &info.filename);
+                        entries.push(entry);
+                    }
+
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                        serde_json::to_string(&entries).unwrap()
+                    );
+                    stream.write_all(response.as_bytes()).unwrap();
+                    return;
+                }
             }
 
             if path.starts_with("/player/play?") {
