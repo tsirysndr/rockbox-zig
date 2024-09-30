@@ -7,7 +7,6 @@ pub mod server;
 pub mod settings;
 pub mod sound;
 pub mod system;
-pub mod tagcache;
 
 pub mod api {
     #[path = ""]
