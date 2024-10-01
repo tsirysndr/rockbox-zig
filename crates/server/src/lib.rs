@@ -229,13 +229,24 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
                 stream.write_all(response.as_bytes()).unwrap();
                 return;
             }
+            let mut start_index = 0;
             let params = path.split('?').collect::<Vec<_>>();
-            let params = queryst::parse(params[1]).unwrap();
-            let start_index = params
-                .get("start_index")
-                .unwrap()
-                .as_i64()
-                .unwrap_or_default();
+            match params.len() {
+                1 => {}
+                2 => {
+                    let params = queryst::parse(params[1]).unwrap();
+                    start_index = params
+                        .get("start_index")
+                        .unwrap()
+                        .as_i64()
+                        .unwrap_or_default();
+                }
+                _ => {
+                    let response = "HTTP/1.1 400 Bad Request\r\n\r\n";
+                    stream.write_all(response.as_bytes()).unwrap();
+                    return;
+                }
+            }
             let seed = rb::system::current_tick();
             let ret = rb::playlist::shuffle(seed as i32, start_index as i32);
             let response = format!(
