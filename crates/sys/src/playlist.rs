@@ -73,8 +73,8 @@ pub fn insert_directory(dir: &str, position: i32, queue: bool, recurse: bool) ->
     unsafe { crate::rb_playlist_insert_directory(dir.as_ptr(), position, queue, recurse) }
 }
 
-pub fn shuffle(random_sed: i32, start_index: i32) -> i32 {
-    unsafe { crate::playlist_shuffle(random_sed, start_index) }
+pub fn shuffle(random_seed: i32, start_index: i32) -> i32 {
+    unsafe { crate::playlist_shuffle(random_seed, start_index) }
 }
 
 pub fn warn_on_pl_erase() -> bool {

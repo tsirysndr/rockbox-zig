@@ -11,6 +11,7 @@ pub struct InsertTracks {
     pub position: i32,
     pub tracks: Vec<String>,
     pub directory: Option<String>,
+    pub shuffle: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

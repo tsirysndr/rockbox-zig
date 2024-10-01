@@ -1094,7 +1094,7 @@ extern "C" {
         position: c_int,
         queue: c_uchar,
     ) -> c_int;
-    fn playlist_shuffle(random_sed: c_int, start_index: c_int) -> c_int;
+    fn playlist_shuffle(random_seed: c_int, start_index: c_int) -> c_int;
     fn warn_on_pl_erase() -> c_uchar;
 
     // Sound
