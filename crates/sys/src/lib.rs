@@ -1252,7 +1252,7 @@ extern "C" {
     // Kernel / System
     fn sleep(ticks: c_int);
     fn r#yield();
-    fn current_tick() -> *mut c_long;
+    pub static mut current_tick: std::ffi::c_long;
     fn default_event_handler(event: c_long);
     fn create_thread();
     fn thread_self();
