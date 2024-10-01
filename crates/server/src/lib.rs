@@ -471,7 +471,7 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
                                 return;
                             }
                         }
-                        rb::playlist::insert_directory(dir, tracklist.position, true, false);
+                        rb::playlist::insert_directory(dir, tracklist.position, true, true);
                     }
 
                     if tracklist.tracks.is_empty() {
