@@ -5664,6 +5664,7 @@ dependencies = [
  "rockbox-library",
  "rockbox-sys",
  "serde",
+ "serde_json",
  "sqlx",
  "tokio",
 ]

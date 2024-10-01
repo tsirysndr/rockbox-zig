@@ -50,8 +50,8 @@ pub fn sync(playlist: *mut crate::PlaylistInfo) {
     unsafe { crate::playlist_sync(playlist) }
 }
 
-pub fn remove_all_tracks(playlist: *mut crate::PlaylistInfo) -> i32 {
-    unsafe { crate::playlist_remove_all_tracks(playlist) }
+pub fn remove_all_tracks() -> i32 {
+    unsafe { crate::rb_playlist_remove_all_tracks() }
 }
 
 pub fn create(dir: &str, file: Option<&str>) -> i32 {

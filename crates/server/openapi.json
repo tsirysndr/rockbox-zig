@@ -729,6 +729,275 @@
           "Player"
         ]
       }
+    },
+    "/playlists": {
+      "post": {
+        "summary": "Create New Playlist",
+        "operationId": "post-playlists",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {}
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "74lnjkz6fpkw3"
+                    }
+                  },
+                  "tracks": {
+                    "type": "array",
+                    "x-stoplight": {
+                      "id": "vbmd8a6gj0bh1"
+                    },
+                    "items": {
+                      "x-stoplight": {
+                        "id": "ydqsysvo8ulzo"
+                      },
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "name": "demo",
+                    "tracks": [
+                      "/home/coder/Music/03 - J. Cole - Wet Dreamz(Explicit).m4a"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Playlists"
+        ]
+      }
+    },
+    "/playlists/start": {
+      "put": {
+        "summary": "Start Playlist",
+        "operationId": "put-playlists-start",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Playlists"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "start_index"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "elapsed"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ]
+      }
+    },
+    "/playlists/shuffle": {
+      "put": {
+        "summary": "Shuffle Playlist",
+        "operationId": "put-playlists-shuffle",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Playlists"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "start_index"
+          }
+        ]
+      }
+    },
+    "/playlists/amount": {
+      "get": {
+        "summary": "Get Playlist Size",
+        "operationId": "get-playlists-amount",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Playlists"
+        ]
+      }
+    },
+    "/playlists/resume": {
+      "put": {
+        "summary": "Resume Playlist",
+        "operationId": "put-playlists-resume",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Playlists"
+        ]
+      }
+    },
+    "/playlists/resume-track": {
+      "put": {
+        "summary": "Resume Playlist Track",
+        "operationId": "put-playlists-resume-track",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Playlists"
+        ]
+      }
+    },
+    "/playlists/current/tracks": {
+      "get": {
+        "summary": "Get Playlist Tracks",
+        "tags": [
+          "Playlists"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Track.v1",
+                    "x-stoplight": {
+                      "id": "gz6dzxyv1j0ws"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-playlists-current-tracks",
+        "description": "",
+        "requestBody": {
+          "content": {}
+        }
+      },
+      "post": {
+        "summary": "Insert Tracks",
+        "operationId": "post-playlists-current-tracks",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Tracks"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "position": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "rfwihwha8u2y9"
+                    }
+                  },
+                  "tracks": {
+                    "type": "array",
+                    "x-stoplight": {
+                      "id": "b083o1we9o941"
+                    },
+                    "items": {
+                      "x-stoplight": {
+                        "id": "wcnusekrv3lsu"
+                      },
+                      "type": "string"
+                    }
+                  },
+                  "directory": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "fef5euvkoab63"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove Tracks from Playlist",
+        "operationId": "delete-playlists-current-tracks",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "positions": {
+                    "type": "array",
+                    "x-stoplight": {
+                      "id": "3hrf3tf7wjttc"
+                    },
+                    "items": {
+                      "x-stoplight": {
+                        "id": "udk6yl9ngivci"
+                      },
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Playlists"
+        ]
+      }
     }
   },
   "components": {

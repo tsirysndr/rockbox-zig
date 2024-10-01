@@ -86,8 +86,15 @@ impl PlaylistMutation {
         "playlist sync".to_string()
     }
 
-    async fn playlist_remove_all_tracks(&self) -> String {
-        "playlist remove all tracks".to_string()
+    async fn playlist_remove_all_tracks(&self, ctx: &Context<'_>) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "positions": [],
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let response = client.delete(&url).json(&body).send().await?;
+        let start_index = response.text().await?.parse()?;
+        Ok(start_index)
     }
 
     async fn playlist_create(

@@ -524,8 +524,18 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
                     let params = serde_json::from_str::<DeleteTracks>(&req_body).unwrap();
                     let mut ret = 0;
 
-                    for position in params.positions {
-                        ret = rb::playlist::delete_track(position);
+                    for position in &params.positions {
+                        ret = rb::playlist::delete_track(position.clone());
+                    }
+
+                    if params.positions.is_empty() {
+                        ret = rb::playlist::remove_all_tracks();
+                        let response = format!(
+                            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{}",
+                            ret
+                        );
+                        stream.write_all(response.as_bytes()).unwrap();
+                        return;
                     }
 
                     let response = format!(

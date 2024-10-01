@@ -1077,6 +1077,7 @@ extern "C" {
         queue: bool,
         recurse: bool,
     ) -> i32;
+    fn rb_playlist_remove_all_tracks() -> c_int;
     fn playlist_get_first_index(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_get_display_index() -> c_int;
     fn playlist_amount() -> c_int;

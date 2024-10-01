@@ -70,3 +70,7 @@ export fn rb_playlist_delete_track(index: c_int) c_int {
 export fn rb_playlist_insert_directory(dir: [*]const u8, position: c_int, queue: bool, recurse: bool) c_int {
     return playlist.insert_directory(dir, position, queue, recurse);
 }
+
+export fn rb_playlist_remove_all_tracks() c_int {
+    return playlist.remove_all_tracks();
+}

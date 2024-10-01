@@ -149,7 +149,35 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<RemoveAllTracksRequest>,
     ) -> Result<tonic::Response<RemoveAllTracksResponse>, tonic::Status> {
+        let body = serde_json::json!({
+            "positions": [],
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .delete(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(RemoveAllTracksResponse::default()))
+    }
+
+    async fn remove_tracks(
+        &self,
+        request: tonic::Request<RemoveTracksRequest>,
+    ) -> Result<tonic::Response<RemoveTracksResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let body = serde_json::json!({
+            "positions": request.positions,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .delete(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(RemoveTracksResponse::default()))
     }
 
     async fn create_playlist(

@@ -2658,10 +2658,20 @@ pub struct StartResponse {}
 pub struct SyncRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SyncResponse {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct RemoveAllTracksRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RemoveAllTracksRequest {
+    #[prost(int32, repeated, tag = "1")]
+    pub positions: ::prost::alloc::vec::Vec<i32>,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct RemoveAllTracksResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RemoveTracksRequest {
+    #[prost(int32, repeated, tag = "1")]
+    pub positions: ::prost::alloc::vec::Vec<i32>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct RemoveTracksResponse {}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreatePlaylistRequest {
     #[prost(string, tag = "1")]
@@ -3108,6 +3118,33 @@ pub mod playlist_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        pub async fn remove_tracks(
+            &mut self,
+            request: impl tonic::IntoRequest<super::RemoveTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RemoveTracksResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.PlaylistService/RemoveTracks",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "RemoveTracks"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         pub async fn create_playlist(
             &mut self,
             request: impl tonic::IntoRequest<super::CreatePlaylistRequest>,
@@ -3331,6 +3368,13 @@ pub mod playlist_service_server {
             request: tonic::Request<super::RemoveAllTracksRequest>,
         ) -> std::result::Result<
             tonic::Response<super::RemoveAllTracksResponse>,
+            tonic::Status,
+        >;
+        async fn remove_tracks(
+            &self,
+            request: tonic::Request<super::RemoveTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::RemoveTracksResponse>,
             tonic::Status,
         >;
         async fn create_playlist(
@@ -3974,6 +4018,51 @@ pub mod playlist_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = RemoveAllTracksSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.PlaylistService/RemoveTracks" => {
+                    #[allow(non_camel_case_types)]
+                    struct RemoveTracksSvc<T: PlaylistService>(pub Arc<T>);
+                    impl<
+                        T: PlaylistService,
+                    > tonic::server::UnaryService<super::RemoveTracksRequest>
+                    for RemoveTracksSvc<T> {
+                        type Response = super::RemoveTracksResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::RemoveTracksRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PlaylistService>::remove_tracks(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = RemoveTracksSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

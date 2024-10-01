@@ -22,6 +22,11 @@ pub struct InsertTracks {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct RemoveTracks {
+    pub positions: Vec<i32>,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct InsertDirectory {
     pub position: i32,
     pub directory: String,
@@ -42,12 +47,12 @@ extension!(
         op_playlist_start,
         op_playlist_sync,
         op_playlist_remove_all_tracks,
+        op_playlist_remove_tracks,
         op_create_playlist,
         op_playlist_insert_tracks,
         op_playlist_insert_directory,
         op_insert_playlist,
         op_shuffle_playlist,
-        op_warn_on_playlist_erase,
     ],
     esm = ["src/playlist/playlist.js"],
 );
@@ -118,7 +123,24 @@ pub async fn op_playlist_start() -> Result<(), AnyError> {
 pub async fn op_playlist_sync() {}
 
 #[op2(async)]
-pub async fn op_playlist_remove_all_tracks() {}
+pub async fn op_playlist_remove_all_tracks() -> Result<i32, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlists/current/tracks", rockbox_url());
+    let body = serde_json::json!({ "positions": [] });
+    let response = client.delete(&url).json(&body).send().await?;
+    let start_index = response.text().await?.parse()?;
+    Ok(start_index)
+}
+
+#[op2(async)]
+pub async fn op_playlist_remove_tracks(#[serde] params: RemoveTracks) -> Result<i32, AnyError> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/playlists/current/tracks", rockbox_url());
+    let body = serde_json::json!({ "positions": params.positions });
+    let response = client.delete(&url).json(&body).send().await?;
+    let start_index = response.text().await?.parse()?;
+    Ok(start_index)
+}
 
 #[op2(async)]
 pub async fn op_create_playlist(#[serde] params: NewPlaylist) -> Result<i32, AnyError> {
@@ -163,6 +185,3 @@ pub async fn op_shuffle_playlist(start_index: i32) -> Result<(), AnyError> {
     client.put(&url).send().await?;
     Ok(())
 }
-
-#[op2(async)]
-pub async fn op_warn_on_playlist_erase() {}

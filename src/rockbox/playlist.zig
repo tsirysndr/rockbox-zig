@@ -57,6 +57,7 @@ extern fn playlist_insert_context_add(context: *PlaylistInsertContext, filename:
 extern fn playlist_delete(playlist: *PlaylistInfo, index: c_int) c_int;
 extern fn playlist_insert_track(playlist: *PlaylistInfo, filename: [*]const u8, position: c_int, queue: bool, sync: bool) c_int;
 extern fn playlist_insert_directory(playlist: *PlaylistInfo, dir: [*]const u8, position: c_int, queue: bool, recurse: bool) c_int;
+extern fn playlist_remove_all_tracks(playlist: *PlaylistInfo) c_int;
 
 pub fn _get_track_info_from_current_playlist(index: c_int) PlaylistTrackInfo {
     const playlist = playlist_get_current();
@@ -98,4 +99,9 @@ pub fn delete_track(index: c_int) c_int {
 pub fn insert_directory(dir: [*]const u8, position: c_int, queue: bool, recurse: bool) c_int {
     const playlist = playlist_get_current();
     return playlist_insert_directory(playlist, dir, position, queue, recurse);
+}
+
+pub fn remove_all_tracks() c_int {
+    const playlist = playlist_get_current();
+    return playlist_remove_all_tracks(playlist);
 }
