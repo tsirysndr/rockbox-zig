@@ -482,7 +482,7 @@ fn handle_connection(mut stream: TcpStream, pool: sqlx::Pool<Sqlite>) {
                                 return;
                             }
 
-                            if let Some(shuffle) = tracklist.shuffle {
+                            if tracklist.shuffle.unwrap_or(false) {
                                 let random_seed = rb::system::current_tick() as i32;
                                 rb::playlist::shuffle(random_seed, 0);
                             }
