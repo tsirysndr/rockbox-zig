@@ -5663,6 +5663,8 @@ dependencies = [
  "reqwest",
  "rockbox-library",
  "rockbox-sys",
+ "serde",
+ "serde_json",
  "sqlx",
  "tokio",
 ]
@@ -5682,6 +5684,7 @@ dependencies = [
  "rockbox-library",
  "rockbox-sys",
  "serde",
+ "serde_json",
  "sqlx",
  "tokio",
 ]
@@ -5713,6 +5716,7 @@ dependencies = [
  "rockbox-library",
  "rockbox-sys",
  "serde",
+ "serde_json",
  "sqlx",
  "tokio",
  "tonic",
@@ -5732,6 +5736,7 @@ dependencies = [
  "rockbox-library",
  "rockbox-rpc",
  "rockbox-sys",
+ "serde",
  "serde_json",
  "sqlx",
  "threadpool",

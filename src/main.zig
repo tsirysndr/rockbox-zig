@@ -28,11 +28,6 @@ pub fn main() !void {
     _ = main_c();
 }
 
-// playlist functions
-export fn rb_get_track_info_from_current_playlist(index: c_int) playlist.PlaylistTrackInfo {
-    return playlist._get_track_info_from_current_playlist(index);
-}
-
 // metadata functions
 export fn rb_get_metadata(fd: c_int, trackname: [*]const u8) metadata.mp3entry {
     return metadata._get_metadata(fd, trackname);
@@ -53,4 +48,29 @@ export fn rb_tree_get_entries() *tree.entry {
 
 export fn rb_tree_get_entry_at(index: c_int) tree.entry {
     return tree._tree_get_entry_at(index);
+}
+
+// playlist functions
+export fn rb_get_track_info_from_current_playlist(index: c_int) playlist.PlaylistTrackInfo {
+    return playlist._get_track_info_from_current_playlist(index);
+}
+
+export fn rb_build_playlist(files: [*]const [*]const u8, start_index: c_int, size: c_int) c_int {
+    return playlist.build_playlist(files, start_index, size);
+}
+
+export fn rb_playlist_insert_track(filename: [*]const u8, position: c_int, queue: bool, sync: bool) c_int {
+    return playlist.insert_track(filename, position, queue, sync);
+}
+
+export fn rb_playlist_delete_track(index: c_int) c_int {
+    return playlist.delete_track(index);
+}
+
+export fn rb_playlist_insert_directory(dir: [*]const u8, position: c_int, queue: bool, recurse: bool) c_int {
+    return playlist.insert_directory(dir, position, queue, recurse);
+}
+
+export fn rb_playlist_remove_all_tracks() c_int {
+    return playlist.remove_all_tracks();
 }

@@ -4,49 +4,37 @@ package rockbox.v1alpha1;
 
 import "rockbox/v1alpha1/playback.proto";
 
-message GetCurrentRequest {
-}
+message GetCurrentRequest {}
 
 message GetCurrentResponse {
   repeated rockbox.v1alpha1.CurrentTrackResponse tracks = 1;
 }
 
-message GetResumeInfoRequest {
-}
+message GetResumeInfoRequest {}
 
-message GetResumeInfoResponse {
-}
+message GetResumeInfoResponse {}
 
-message GetTrackInfoRequest {
-}
+message GetTrackInfoRequest {}
 
-message GetTrackInfoResponse {
-}
+message GetTrackInfoResponse {}
 
-message GetFirstIndexRequest {
-}
+message GetFirstIndexRequest {}
 
-message GetFirstIndexResponse {
-}
+message GetFirstIndexResponse {}
 
-message GetDisplayIndexRequest {
-}
+message GetDisplayIndexRequest {}
 
-message GetDisplayIndexResponse {
-}
+message GetDisplayIndexResponse {}
 
-message AmountRequest {
-}
+message AmountRequest {}
 
 message AmountResponse {
   int32 amount = 1;
 }
 
-message PlaylistResumeRequest {
-}
+message PlaylistResumeRequest {}
 
-message PlaylistResumeResponse {
-}
+message PlaylistResumeResponse {}
 
 message ResumeTrackRequest {
   int32 start_index = 1;
@@ -55,69 +43,67 @@ message ResumeTrackRequest {
   uint64 offset = 4;
 }
 
-message ResumeTrackResponse {
-}
+message ResumeTrackResponse {}
 
-message SetModifiedRequest {
-}
+message SetModifiedRequest {}
 
-message SetModifiedResponse {
-}
+message SetModifiedResponse {}
 
-message StartRequest {
-}
+message StartRequest {}
 
-message StartResponse {
-}
+message StartResponse {}
 
-message SyncRequest {
-}
+message SyncRequest {}
 
-message SyncResponse {
-}
+message SyncResponse {}
 
 message RemoveAllTracksRequest {
+  repeated int32 positions = 1;
 }
 
-message RemoveAllTracksResponse {
+message RemoveAllTracksResponse {}
+
+message RemoveTracksRequest {
+  repeated int32 positions = 1;
 }
+
+message RemoveTracksResponse {}
 
 message CreatePlaylistRequest {
+  string name = 1;
+  repeated string tracks = 2;
 }
 
 message CreatePlaylistResponse {
+  int32 start_index = 1;
 }
 
-message InsertTrackRequest {
+message InsertTracksRequest {
+  int32 position = 1;
+  repeated string tracks = 2;
 }
 
-message InsertTrackResponse {
-}
+message InsertTracksResponse {}
 
 message InsertDirectoryRequest {
+  int32 position = 1;
+  string directory = 2;
 }
 
-message InsertDirectoryResponse {
-}
+message InsertDirectoryResponse {}
 
 message InsertPlaylistRequest {
+  int32 position = 1;
+  string playlist_id = 2;
 }
 
-message InsertPlaylistResponse {
-}
+message InsertPlaylistResponse {}
 
 message ShufflePlaylistRequest {
+  int32 start_index = 1;
 }
 
-message ShufflePlaylistResponse {
-}
-
-message WarnOnPlaylistEraseRequest {
-}
-
-message WarnOnPlaylistEraseResponse {
-}
-
+message ShufflePlaylistResponse {}
 
 service PlaylistService {
   rpc GetCurrent(GetCurrentRequest) returns (GetCurrentResponse) {}
@@ -132,10 +118,10 @@ service PlaylistService {
   rpc Start(StartRequest) returns (StartResponse) {}
   rpc Sync(SyncRequest) returns (SyncResponse) {}
   rpc RemoveAllTracks(RemoveAllTracksRequest) returns (RemoveAllTracksResponse) {}
+  rpc RemoveTracks(RemoveTracksRequest) returns (RemoveTracksResponse) {}
   rpc CreatePlaylist(CreatePlaylistRequest) returns (CreatePlaylistResponse) {}
-  rpc InsertTrack(InsertTrackRequest) returns (InsertTrackResponse) {}
+  rpc InsertTracks(InsertTracksRequest) returns (InsertTracksResponse) {}
   rpc InsertDirectory(InsertDirectoryRequest) returns (InsertDirectoryResponse) {}
   rpc InsertPlaylist(InsertPlaylistRequest) returns (InsertPlaylistResponse) {}
   rpc ShufflePlaylist(ShufflePlaylistRequest) returns (ShufflePlaylistResponse) {}
-  rpc WarnOnPlaylistErase(WarnOnPlaylistEraseRequest) returns (WarnOnPlaylistEraseResponse) {}
 }

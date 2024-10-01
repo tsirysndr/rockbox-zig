@@ -16,7 +16,6 @@ pub mod playlist;
 pub mod settings;
 pub mod sound;
 pub mod system;
-pub mod tagcache;
 
 #[derive(MergedObject, Default)]
 pub struct Query(

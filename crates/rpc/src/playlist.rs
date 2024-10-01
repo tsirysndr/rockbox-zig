@@ -27,7 +27,7 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<GetCurrentRequest>,
     ) -> Result<tonic::Response<GetCurrentResponse>, tonic::Status> {
-        let url = format!("{}/current_playlist", rockbox_url());
+        let url = format!("{}/playlists/current", rockbox_url());
         let response = self
             .client
             .get(url)
@@ -78,7 +78,7 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<AmountRequest>,
     ) -> Result<tonic::Response<AmountResponse>, tonic::Status> {
-        let url = format!("{}/playlist_amount", rockbox_url());
+        let url = format!("{}/playlists/amount", rockbox_url());
         let response = self
             .client
             .get(url)
@@ -129,6 +129,12 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<StartRequest>,
     ) -> Result<tonic::Response<StartResponse>, tonic::Status> {
+        let url = format!("{}/playlists/start", rockbox_url());
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(StartResponse::default()))
     }
 
@@ -143,27 +149,100 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<RemoveAllTracksRequest>,
     ) -> Result<tonic::Response<RemoveAllTracksResponse>, tonic::Status> {
+        let body = serde_json::json!({
+            "positions": [],
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .delete(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(RemoveAllTracksResponse::default()))
+    }
+
+    async fn remove_tracks(
+        &self,
+        request: tonic::Request<RemoveTracksRequest>,
+    ) -> Result<tonic::Response<RemoveTracksResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let body = serde_json::json!({
+            "positions": request.positions,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .delete(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(RemoveTracksResponse::default()))
     }
 
     async fn create_playlist(
         &self,
-        _request: tonic::Request<CreatePlaylistRequest>,
+        request: tonic::Request<CreatePlaylistRequest>,
     ) -> Result<tonic::Response<CreatePlaylistResponse>, tonic::Status> {
-        Ok(tonic::Response::new(CreatePlaylistResponse::default()))
+        let request = request.into_inner();
+        let body = serde_json::json!({
+            "name": request.name,
+            "tracks": request.tracks,
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        let response = self
+            .client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let start_index = response
+            .text()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .parse()
+            .unwrap_or(-1);
+        Ok(tonic::Response::new(CreatePlaylistResponse { start_index }))
     }
 
-    async fn insert_track(
+    async fn insert_tracks(
         &self,
-        _request: tonic::Request<InsertTrackRequest>,
-    ) -> Result<tonic::Response<InsertTrackResponse>, tonic::Status> {
-        Ok(tonic::Response::new(InsertTrackResponse::default()))
+        request: tonic::Request<InsertTracksRequest>,
+    ) -> Result<tonic::Response<InsertTracksResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let body = serde_json::json!({
+            "position": request.position,
+            "tracks": request.tracks,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(InsertTracksResponse::default()))
     }
 
     async fn insert_directory(
         &self,
-        _request: tonic::Request<InsertDirectoryRequest>,
+        request: tonic::Request<InsertDirectoryRequest>,
     ) -> Result<tonic::Response<InsertDirectoryResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let body = serde_json::json!({
+            "position": request.position,
+            "tracks": [],
+            "directory": request.directory,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(InsertDirectoryResponse::default()))
     }
 
@@ -176,15 +255,19 @@ impl PlaylistService for Playlist {
 
     async fn shuffle_playlist(
         &self,
-        _request: tonic::Request<ShufflePlaylistRequest>,
+        request: tonic::Request<ShufflePlaylistRequest>,
     ) -> Result<tonic::Response<ShufflePlaylistResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!(
+            "{}/playlists/shuffle?start_index={}",
+            rockbox_url(),
+            request.start_index
+        );
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(ShufflePlaylistResponse::default()))
-    }
-
-    async fn warn_on_playlist_erase(
-        &self,
-        _request: tonic::Request<WarnOnPlaylistEraseRequest>,
-    ) -> Result<tonic::Response<WarnOnPlaylistEraseResponse>, tonic::Status> {
-        Ok(tonic::Response::new(WarnOnPlaylistEraseResponse::default()))
     }
 }
