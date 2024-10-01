@@ -924,9 +924,6 @@
             "description": "OK"
           }
         },
-        "tags": [
-          "Tracks"
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -961,7 +958,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Playlists"
+        ]
       },
       "delete": {
         "summary": "Remove Tracks from Playlist",
