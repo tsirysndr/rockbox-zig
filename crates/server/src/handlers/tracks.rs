@@ -9,7 +9,8 @@ pub async fn get_tracks(ctx: &Context, _req: &Request, res: &mut Response) -> Re
     Ok(())
 }
 
-pub async fn get_track(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    res.text("get_track");
+pub async fn get_track(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let track = repo::track::find(ctx.pool.clone(), &req.params[0]).await?;
+    res.json(&track);
     Ok(())
 }

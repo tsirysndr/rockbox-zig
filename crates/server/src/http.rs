@@ -16,7 +16,7 @@ use std::{
 };
 use threadpool::ThreadPool;
 
-type Handler = fn(&Context, &Request, &mut Response);
+type Handler = fn(&Context, &Request, &mut Response) -> Result<(), Error>;
 
 pub struct Context {
     pub pool: sqlx::Pool<Sqlite>,
@@ -375,8 +375,17 @@ impl RockboxHttpServer {
                     query_params,
                     body,
                 };
-                handler(&context, &request, &mut response);
-                response.send(&mut stream);
+                match handler(&context, &request, &mut response) {
+                    Ok(_) => {
+                        response.send(&mut stream);
+                    }
+                    Err(e) => {
+                        let mut response = Response::new();
+                        response.set_status(500);
+                        response.set_body(&format!("Internal Server Error: {:?}", e));
+                        response.send(&mut stream);
+                    }
+                }
             }
             None => {
                 let mut response = Response::new();

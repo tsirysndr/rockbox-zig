@@ -8,14 +8,18 @@ pub mod system;
 pub mod tracks;
 
 use crate::http::{Context, Request, Response};
+use anyhow::Error;
 
 macro_rules! async_handler {
     ($module:ident, $handler:ident) => {
-        pub fn $handler(context: &Context, request: &Request, response: &mut Response) {
+        pub fn $handler(
+            context: &Context,
+            request: &Request,
+            response: &mut Response,
+        ) -> Result<(), Error> {
             let rt = tokio::runtime::Runtime::new().unwrap();
-            rt.block_on(async {
-                $module::$handler(context, request, response).await.unwrap();
-            });
+            rt.block_on($module::$handler(context, request, response))?;
+            Ok(())
         }
     };
 }
