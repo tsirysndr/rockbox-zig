@@ -5729,6 +5729,7 @@ dependencies = [
 name = "rockbox-server"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "owo-colors 4.1.0",
  "queryst",
  "reqwest",

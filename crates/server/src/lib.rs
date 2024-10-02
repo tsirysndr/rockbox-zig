@@ -1,3 +1,7 @@
+use anyhow::Error;
+use handlers::*;
+
+use http::RockboxHttpServer;
 use owo_colors::OwoColorize;
 use rockbox_library::repo;
 use rockbox_sys::{self as rb, events::RockboxCommand, types::playlist_amount::PlaylistAmount};
@@ -13,6 +17,8 @@ use std::{
 use threadpool::ThreadPool;
 use types::{DeleteTracks, InsertTracks, NewPlaylist};
 
+pub mod handlers;
+pub mod http;
 pub mod types;
 
 #[no_mangle]
@@ -24,70 +30,52 @@ pub extern "C" fn debugfn(args: *const c_char) {
 
 #[no_mangle]
 pub extern "C" fn start_server() {
-    const BANNER: &str = r#"
-              __________               __   ___.
-    Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
-    Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
-    Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
-    Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
-                      \/            \/     \/    \/            \/
-    "#;
+    let mut app = RockboxHttpServer::new();
 
-    println!("{}", BANNER.yellow());
+    app.get("/albums", get_albums);
+    app.get("/albums/:id", get_album);
+    app.get("/albums/:id/tracks", get_album_tracks);
 
-    let port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".to_string());
-    let addr = format!("0.0.0.0:{}", port);
-    let listener = TcpListener::bind(&addr).unwrap();
-    listener.set_nonblocking(true).unwrap();
+    app.get("/artists", get_artists);
+    app.get("/artists/:id", get_artist);
+    app.get("/artists/:id/albums", get_artist_albums);
 
-    println!(
-        "{} server is running on {}",
-        "Rockbox TCP".bright_purple(),
-        addr.bright_green()
-    );
+    app.get("/browse/tree-entries", get_tree_entries);
 
-    let pool = ThreadPool::new(4);
-    let active_connections = Arc::new(Mutex::new(0));
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    let db_pool = rt
-        .block_on(rockbox_library::create_connection_pool())
-        .unwrap();
+    app.put("/player/play", play);
+    app.put("/player/pause", pause);
+    app.put("/player/resume", resume);
+    app.put("/player/ff-rewind", ff_rewind);
+    app.get("/player/status", status);
+    app.get("/player/current-track", current_track);
+    app.get("/player/next-track", next_track);
+    app.put("/player/flush-and-reload-tracks", flush_and_reload_tracks);
+    app.put("/player/next", next);
+    app.put("/player/previous", previous);
+    app.put("/player/stop", stop);
 
-    loop {
-        match listener.accept() {
-            Ok((stream, _)) => {
-                let db_pool = db_pool.clone();
-                let active_connections = Arc::clone(&active_connections);
-                {
-                    let mut active_connections = active_connections.lock().unwrap();
-                    *active_connections += 1;
-                }
-                pool.execute(move || {
-                    handle_connection(stream, db_pool);
-                    {
-                        let mut active_connections = active_connections.lock().unwrap();
-                        *active_connections -= 1;
-                    }
-                });
-            }
-            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                // No incoming connection, just sleep and retry
-                rb::system::sleep(rb::HZ);
-            }
-            Err(e) => {
-                eprintln!("Error accepting connection: {}", e);
-                break;
-            }
+    app.post("/playlists", create_playlist);
+    app.put("/playlists/start", start_playlist);
+    app.put("/playlists/shuffle", shuffle_playlist);
+    app.get("/playlists/amount", get_playlist_amount);
+    app.put("/playlists/resume", resume_playlist);
+    app.put("/playlists/resume-track", resume_track);
+    app.get("/playlists/:id/tracks", get_playlist_tracks);
+    app.post("/playlists/:id/tracks", insert_tracks);
+    app.delete("/playlists/:id/tracks", remove_tracks);
+
+    app.get("/tracks", get_tracks);
+    app.get("/tracks/:id", get_track);
+
+    app.get("/version", get_rockbox_version);
+    app.get("/status", get_status);
+    app.get("/settings", get_global_settings);
+
+    match app.listen() {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("Error starting server: {}", e);
         }
-
-        // Check if there are no active connections (idle state)
-        let active = *active_connections.lock().unwrap();
-        if active == 0 {
-            rb::system::sleep(rb::HZ);
-        }
-
-        // Add a small sleep to avoid tight looping when idle
-        thread::sleep(Duration::from_millis(100));
     }
 }
 
