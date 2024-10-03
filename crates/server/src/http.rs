@@ -6,10 +6,8 @@ use serde_json::Value;
 use sqlx::Sqlite;
 use std::{
     collections::HashMap,
-    future::Future,
     io::{BufRead, BufReader, Read, Write},
     net::{TcpListener, TcpStream},
-    pin::Pin,
     sync::{Arc, Mutex},
     thread,
     time::Duration,

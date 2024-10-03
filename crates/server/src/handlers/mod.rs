@@ -1,6 +1,7 @@
 pub mod albums;
 pub mod artists;
 pub mod browse;
+pub mod docs;
 pub mod player;
 pub mod playlists;
 pub mod settings;
@@ -56,3 +57,5 @@ async_handler!(tracks, get_track);
 async_handler!(system, get_rockbox_version);
 async_handler!(system, get_status);
 async_handler!(settings, get_global_settings);
+async_handler!(docs, get_openapi);
+async_handler!(docs, index);

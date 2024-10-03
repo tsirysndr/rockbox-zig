@@ -3,7 +3,7 @@ use rockbox_library::repo;
 
 use crate::http::{Context, Request, Response};
 
-pub async fn get_albums(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn get_albums(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
     let albums = repo::album::all(ctx.pool.clone()).await?;
     res.json(&albums);
     Ok(())

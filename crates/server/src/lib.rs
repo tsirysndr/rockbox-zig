@@ -1,21 +1,12 @@
-use anyhow::Error;
 use handlers::*;
 
 use http::RockboxHttpServer;
-use owo_colors::OwoColorize;
-use rockbox_library::repo;
-use rockbox_sys::{self as rb, events::RockboxCommand, types::playlist_amount::PlaylistAmount};
-use sqlx::Sqlite;
+use rockbox_sys::events::RockboxCommand;
 use std::{
     ffi::c_char,
-    io::{BufRead, BufReader, Read, Write},
-    net::{TcpListener, TcpStream},
     sync::{Arc, Mutex},
     thread,
-    time::Duration,
 };
-use threadpool::ThreadPool;
-use types::{DeleteTracks, InsertTracks, NewPlaylist};
 
 pub mod handlers;
 pub mod http;
@@ -70,6 +61,11 @@ pub extern "C" fn start_server() {
     app.get("/version", get_rockbox_version);
     app.get("/status", get_status);
     app.get("/settings", get_global_settings);
+
+    app.get("/", index);
+    app.get("/operations/:id", index);
+    app.get("/schemas/:id", index);
+    app.get("/openapi.json", get_openapi);
 
     match app.listen() {
         Ok(_) => {}

@@ -24,7 +24,7 @@ pub async fn pause(_ctx: &Context, _req: &Request, _res: &mut Response) -> Resul
     Ok(())
 }
 
-pub async fn ff_rewind(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn ff_rewind(_ctx: &Context, req: &Request, _res: &mut Response) -> Result<(), Error> {
     let newtime = req
         .query_params
         .get("newtime")
@@ -41,7 +41,7 @@ pub async fn status(_ctx: &Context, _req: &Request, res: &mut Response) -> Resul
     Ok(())
 }
 
-pub async fn current_track(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn current_track(_ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
     let track = rb::playback::current_track();
     res.json(&track);
     Ok(())
