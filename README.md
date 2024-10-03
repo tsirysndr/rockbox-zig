@@ -30,6 +30,7 @@ docker run \
     --device /dev/snd \
     --privileged \
     -p 6061:6061 -p 6062:6062 -p 6063:6063 \
+    -v $HOME/Music:/root/Music \
     tsiry/rockbox:latest
 ```
 
