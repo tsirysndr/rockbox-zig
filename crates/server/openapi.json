@@ -399,7 +399,24 @@
           "Browse"
         ],
         "responses": {},
-        "operationId": "get-tree_entries"
+        "operationId": "get-tree_entries",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "q",
+            "description": "path"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "show_hidden"
+          }
+        ]
       },
       "parameters": []
     },
