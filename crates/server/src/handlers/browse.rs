@@ -18,7 +18,10 @@ pub async fn get_tree_entries(
         Some(path) => path.as_str().unwrap_or("/"),
         None => "/",
     };
-    let show_hidden = req.query_params.get("show_hidden").is_some();
+    let show_hidden = match req.query_params.get("show_hidden") {
+        Some(show_hidden) => show_hidden.as_str().unwrap_or("false") == "true",
+        None => false,
+    };
 
     if !fs::metadata(path)?.is_dir() {
         res.set_status(500);
