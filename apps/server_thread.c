@@ -33,7 +33,7 @@ bool server_is_initialized = false;
 // static struct queue_sender_list server_queue_sender_list SHAREDBSS_ATTR;
 
 /* Server thread */
-static long server_stack[(DEFAULT_STACK_SIZE + 0x1000)/sizeof(long)];
+static long server_stack[(DEFAULT_STACK_SIZE * 4)/sizeof(long)];
 static const char server_thread_name[] = "server";
 unsigned int server_thread_id = 0;
 
