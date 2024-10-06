@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test": "vitest"
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
@@ -17,6 +18,8 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@styled-icons/bootstrap": "^10.47.0",
+    "@styled-icons/boxicons-regular": "^10.47.0",
+    "@styled-icons/entypo": "^10.46.0",
     "@styled-icons/evaicons-outline": "^10.46.0",
     "@styled-icons/evil": "^10.46.0",
     "@styled-icons/feather": "^10.47.0",
@@ -25,6 +28,10 @@
     "@styled-icons/ionicons-sharp": "^10.46.0",
     "@styled-icons/remix-fill": "^10.46.0",
     "@styled-icons/simple-icons": "^10.46.0",
+    "@styled-icons/zondicons": "^10.46.0",
+    "@tanstack/react-query": "^5.59.0",
+    "@tanstack/react-table": "^8.20.5",
+    "@tanstack/react-virtual": "^3.10.8",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
@@ -32,6 +39,7 @@
     "@types/node": "^22.7.4",
     "baseui": "12.2.0",
     "graphql": "15.7.2",
+    "jsdom": "^25.0.1",
     "lodash": "^4.17.21",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -40,10 +48,12 @@
     "react-lazy-load-image-component": "1.5.6",
     "react-window": "^1.8.10",
     "react-window-infinite-loader": "^1.0.9",
+    "recoil": "^0.7.7",
     "styled-components": "^6.1.13",
     "styletron-engine-atomic": "^1.6.2",
     "styletron-react": "^6.1.1",
-    "subscriptions-transport-ws": "^0.11.0"
+    "subscriptions-transport-ws": "^0.11.0",
+    "vitest": "^2.1.2"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^1.9.0",

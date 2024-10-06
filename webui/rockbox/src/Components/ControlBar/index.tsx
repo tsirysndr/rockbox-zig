@@ -1,3 +1,3 @@
-import ControlBar from "./ControlBar";
+import ControlBar from "./ControlBarWithData";
 
 export default ControlBar;
