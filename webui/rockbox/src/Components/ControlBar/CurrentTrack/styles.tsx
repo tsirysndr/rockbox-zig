@@ -61,6 +61,20 @@ export const ArtistAlbum = styled.div`
   text-align: center;
   color: rgba(0, 0, 0, 0.54);
   font-family: RockfordSansLight;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: calc(100% - 125px);
+`;
+
+export const Title = styled.div`
+  text-align: center;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: calc(100% - 20px);
+  margin-left: 10px;
+  margin-right: 10px;
 `;
 
 export const styles = {

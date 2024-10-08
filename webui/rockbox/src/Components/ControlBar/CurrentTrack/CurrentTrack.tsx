@@ -9,6 +9,7 @@ import {
   Separator,
   styles,
   Time,
+  Title,
   TrackInfo,
 } from "./styles";
 import Track from "../../Icons/Track";
@@ -47,7 +48,7 @@ const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
         )}
         {nowPlaying && (
           <>
-            <div style={{ textAlign: "center" }}>{nowPlaying.title}</div>
+            <Title>{nowPlaying.title}</Title>
             <div
               style={{
                 display: "flex",

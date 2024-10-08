@@ -13,3 +13,9 @@ export const MainView = styled.div`
   flex-direction: column;
   padding: 20px;
 `;
+
+export const Title = styled.div`
+  font-size: 24px;
+  font-family: RockfordSansMedium;
+  margin-bottom: 20px;
+`;

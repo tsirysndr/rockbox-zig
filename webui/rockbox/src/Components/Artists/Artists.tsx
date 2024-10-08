@@ -1,14 +1,52 @@
 import { FC } from "react";
+import { Cell, Grid } from "baseui/layout-grid";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
-import { Container, MainView } from "./styles";
+import {
+  ArtistCover,
+  ArtistName,
+  Container,
+  MainView,
+  NoArtistCover,
+  Scrollable,
+  Title,
+} from "./styles";
+import Artist from "../Icons/Artist";
 
-const Artists: FC = () => {
+export type ArtistsProps = {
+  artists: any[];
+  onClickArtist: (artist: any) => void;
+  onFilter: (filter: string) => void;
+};
+
+const Artists: FC<ArtistsProps> = (props) => {
+  const { onClickArtist, artists } = props;
   return (
     <Container>
       <Sidebar active="artists" />
       <MainView>
         <ControlBar />
+        <Scrollable>
+          <Title>Artists</Title>
+          <Grid gridColumns={[2, 3, 4]} gridMargins={[8, 16, 18]}>
+            {artists.map((item) => (
+              <Cell key={item.id}>
+                {item.cover && (
+                  <ArtistCover
+                    src={item.cover}
+                    onClick={() => onClickArtist(item)}
+                  />
+                )}
+                {!item.cover && (
+                  <NoArtistCover onClick={() => onClickArtist(item)}>
+                    <Artist width={75} height={75} color="#a4a3a3" />
+                  </NoArtistCover>
+                )}
+                <ArtistName>{item.name}</ArtistName>
+              </Cell>
+            ))}
+          </Grid>
+        </Scrollable>
       </MainView>
     </Container>
   );
