@@ -3,6 +3,8 @@
   <img src="https://ziglang.org/ziggy.svg" height="150"/>
 </div>
 
+![Rockbox UI](./docs/rockbox-ui.png)
+
 # Rockbox Zig 🎵 ⚡
 
 [![GPL-2.0 licensed](https://img.shields.io/badge/License-GPL-blue.svg)](./LICENSE)
