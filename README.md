@@ -3,7 +3,6 @@
   <img src="https://ziglang.org/ziggy.svg" height="150"/>
 </div>
 
-![Rockbox UI](./docs/rockbox-ui.png)
 
 # Rockbox Zig 🎵 ⚡
 
@@ -11,6 +10,8 @@
 [![ci](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml/badge.svg)](https://github.com/tsirysndr/rockbox-zig/actions/workflows/ci.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/tsiry/rockbox)](https://hub.docker.com/r/tsiry/rockbox)
 
+
+![Rockbox UI](./docs/rockbox-ui.png)
 
 A modern take on the [Rockbox](https://www.rockbox.org) open-source firmware with enhancements in Zig and Rust. This project offers:
 
