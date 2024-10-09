@@ -152,3 +152,19 @@ export const AlbumFooterMenu = styled.div`
   justify-content: space-between;
   width: calc(100% - 20px);
 `;
+
+export const FloatingButton = styled.button`
+  height: 40px;
+  width: 40px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  background-color: transparent;
+
+  &:hover {
+    background-color: #434242b5;
+  }
+`;

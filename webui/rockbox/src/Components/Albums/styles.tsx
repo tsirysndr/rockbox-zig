@@ -102,3 +102,19 @@ export const Hover = styled.button`
     opacity: 1 !important;
   }
 `;
+
+export const FloatingButton = styled.button`
+  height: 40px;
+  width: 40px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  background-color: transparent;
+
+  &:hover {
+    background-color: #434242b5;
+  }
+`;

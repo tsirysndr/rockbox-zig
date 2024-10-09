@@ -11,6 +11,7 @@ import {
   Artist,
   Container,
   FilterContainer,
+  FloatingButton,
   Hover,
   MainView,
   Scrollable,
@@ -68,31 +69,12 @@ const Albums: FC<AlbumsProps> = (props) => {
                         >
                           <Play small color="#000" />
                         </div>
-                        <div
-                          style={{
-                            height: 40,
-                            width: 40,
-                            borderRadius: 20,
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}
-                        >
+                        <FloatingButton>
                           <EllipsisHorizontal size={24} color="#fff" />
-                        </div>
-                        <div
-                          style={{
-                            height: 40,
-                            width: 40,
-                            borderRadius: 20,
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}
-                          onClick={() => props.onLike(item)}
-                        >
+                        </FloatingButton>
+                        <FloatingButton onClick={() => props.onLike(item)}>
                           <HeartOutline color="#fff" />
-                        </div>
+                        </FloatingButton>
                       </AlbumFooterMenu>
                     </Hover>
                     <AlbumCover
