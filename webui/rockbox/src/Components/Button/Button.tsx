@@ -13,12 +13,12 @@ export type ButtonProps = {
 
 const Button: FC<ButtonProps> = ({
   children,
-  kind,
-  width,
-  height,
-  borderRadius,
+  kind = KIND.primary,
+  width = "141px",
+  height = "40px",
+  borderRadius = "20px",
   onClick,
-  disabled,
+  disabled = false,
 }) => {
   return (
     <BaseButton
@@ -44,14 +44,6 @@ const Button: FC<ButtonProps> = ({
       {children}
     </BaseButton>
   );
-};
-
-Button.defaultProps = {
-  kind: KIND.primary,
-  width: "141px",
-  height: "40px",
-  borderRadius: "20px",
-  disabled: false,
 };
 
 export default Button;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Theme, useTheme } from "@emotion/react";
 import { Input } from "baseui/input";
 import { FC, useEffect } from "react";
@@ -9,7 +10,7 @@ export type FilterProps = {
   onChange: (value: string) => void;
 };
 
-const Filter: FC<FilterProps> = ({ placeholder, onChange }) => {
+const Filter: FC<FilterProps> = ({ placeholder = "Filter", onChange }) => {
   const theme = useTheme();
   const { control, watch } = useForm({
     defaultValues: {
@@ -88,10 +89,6 @@ const styles = {
       },
     },
   }),
-};
-
-Filter.defaultProps = {
-  placeholder: "Filter",
 };
 
 export default Filter;

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import AlbumDetails from "./AlbumDetails";
 import { fn } from "@storybook/test";
+import { tracks } from "./mocks";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -23,5 +24,6 @@ export const Default: Story = {
     onShuffleAll: fn(),
     onLike: fn(),
     onUnlike: fn(),
+    tracks,
   },
 };

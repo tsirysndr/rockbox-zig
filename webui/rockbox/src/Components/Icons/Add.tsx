@@ -5,11 +5,11 @@ export type AddProps = {
   color?: string;
 };
 
-const Add: React.FC<AddProps> = (props) => (
+const Add: React.FC<AddProps> = ({ size = 17, color = "#000", ...props }) => (
   <svg
-    width={props.size}
+    width={size}
     xmlns="http://www.w3.org/2000/svg"
-    height={props.size}
+    height={size}
     style={{
       WebkitPrintColorAdjust: "exact",
     }}
@@ -19,7 +19,7 @@ const Add: React.FC<AddProps> = (props) => (
     <g
       className="ionicon"
       style={{
-        fill: props.color,
+        fill: color,
       }}
     >
       <path
@@ -40,17 +40,12 @@ const Add: React.FC<AddProps> = (props) => (
         style={{
           fill: "none",
           strokeWidth: 2,
-          stroke: props.color,
+          stroke: color,
         }}
         className="stroke-shape"
       />
     </g>
   </svg>
 );
-
-Add.defaultProps = {
-  size: 17,
-  color: "#000",
-};
 
 export default Add;

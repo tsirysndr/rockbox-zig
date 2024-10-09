@@ -38,6 +38,7 @@
     "@types/jest": "^29.5.13",
     "@types/node": "^22.7.4",
     "@types/react-lazy-load-image-component": "^1.6.4",
+    "@vitest/ui": "^2.1.2",
     "baseui": "12.2.0",
     "graphql": "15.7.2",
     "jsdom": "^25.0.1",

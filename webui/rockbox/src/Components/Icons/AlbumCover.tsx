@@ -4,11 +4,11 @@ export type AlbumCoverProps = {
   size?: number;
 };
 
-const AlbumCover: React.FC<AlbumCoverProps> = (props) => (
+const AlbumCover: React.FC<AlbumCoverProps> = ({ size = 150, ...props }) => (
   <svg
-    height={props.size!}
+    height={size}
     viewBox="0 0 128 128"
-    width={props.size!}
+    width={size}
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
@@ -29,9 +29,5 @@ const AlbumCover: React.FC<AlbumCoverProps> = (props) => (
     />
   </svg>
 );
-
-AlbumCover.defaultProps = {
-  size: 150,
-};
 
 export default AlbumCover;

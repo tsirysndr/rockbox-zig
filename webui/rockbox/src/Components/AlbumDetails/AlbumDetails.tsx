@@ -30,7 +30,6 @@ import Add from "../Icons/Add";
 import Play from "../Icons/Play";
 import Shuffle from "../Icons/Shuffle";
 import Table from "../Table";
-import { tracks } from "./mocks";
 import { Track } from "../../Types/track";
 
 const columnHelper = createColumnHelper<Track>();
@@ -41,6 +40,7 @@ export type AlbumDetailsProps = {
   onGoBack: () => void;
   onLike: (track: string) => void;
   onUnlike: (track: string) => void;
+  tracks: Track[];
 };
 
 const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
@@ -162,7 +162,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
                 </ButtonGroup>
               </AlbumInfos>
             </Header>
-            <Table columns={columns as any} tracks={tracks} />
+            <Table columns={columns as any} tracks={props.tracks} />
           </div>
         </ContentWrapper>
       </MainView>

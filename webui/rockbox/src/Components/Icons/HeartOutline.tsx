@@ -7,11 +7,15 @@ export type HeartOutlineProps = {
   height?: number;
 };
 
-const HeartOutline: React.FC<HeartOutlineProps> = (props) => (
+const HeartOutline: React.FC<HeartOutlineProps> = ({
+  size = 24,
+  color = "#000",
+  ...props
+}) => (
   <svg
-    width={20}
+    width={size}
     xmlns="http://www.w3.org/2000/svg"
-    height={20}
+    height={size}
     style={{
       WebkitPrintColorAdjust: "exact",
       paddingTop: 1,
@@ -22,7 +26,7 @@ const HeartOutline: React.FC<HeartOutlineProps> = (props) => (
     <g
       className="ionicon"
       style={{
-        fill: props.color,
+        fill: color,
       }}
     >
       <path
@@ -43,7 +47,7 @@ const HeartOutline: React.FC<HeartOutlineProps> = (props) => (
         style={{
           fill: "none",
           strokeWidth: 2,
-          stroke: props.color,
+          stroke: color,
           strokeOpacity: 1,
         }}
         className="stroke-shape"
@@ -51,10 +55,5 @@ const HeartOutline: React.FC<HeartOutlineProps> = (props) => (
     </g>
   </svg>
 );
-
-HeartOutline.defaultProps = {
-  size: 24,
-  color: "#000",
-};
 
 export default HeartOutline;
