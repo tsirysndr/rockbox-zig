@@ -1,20 +1,21 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
 import { Cell, Grid } from "baseui/layout-grid";
-// import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
-import AlbumIcon from "../Icons/AlbumCover";
+import AlbumArt from "../../Assets/albumart.png";
 import {
   AlbumCover,
   AlbumTitle,
   Artist,
   Container,
+  FilterContainer,
   MainView,
-  NoAlbumCover,
   Scrollable,
   Title,
   Year,
 } from "./styles";
+import Filter from "../Filter";
 
 export type AlbumsProps = {
   albums: any[];
@@ -31,21 +32,18 @@ const Albums: FC<AlbumsProps> = (props) => {
         <ControlBar />
         <Scrollable>
           <Title>Albums</Title>
+          <FilterContainer>
+            <Filter placeholder="Search albums" onChange={() => {}} />
+          </FilterContainer>
           <div style={{ marginBottom: 100 }}>
-            <Grid gridColumns={[2, 4, 5]} gridMargins={[8, 16, 18]}>
+            <Grid gridColumns={[2, 4, 5]} gridMargins={[8, 10, 12]}>
               {albums.map((item) => (
                 <Cell key={item.id}>
-                  {item.cover && (
-                    <AlbumCover
-                      src={item.cover}
-                      onClick={() => onClickAlbum(item)}
-                    />
-                  )}
-                  {!item.cover && (
-                    <NoAlbumCover onClick={() => onClickAlbum(item)}>
-                      <AlbumIcon />
-                    </NoAlbumCover>
-                  )}
+                  <AlbumCover
+                    src={item.cover ? item.cover : AlbumArt}
+                    onClick={() => onClickAlbum(item)}
+                    effect="opacity"
+                  />
                   <AlbumTitle onClick={() => onClickAlbum(item)}>
                     {item.title}
                   </AlbumTitle>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
@@ -7,6 +8,7 @@ import {
   ButtonGroup,
   Container,
   ContentWrapper,
+  FilterContainer,
   Hover,
   IconButton,
   MainView,
@@ -18,15 +20,18 @@ import HeartOutline from "../Icons/HeartOutline";
 import { Track } from "../../Types/track";
 import Table from "../VirtualizedTable";
 import { tracks } from "./mocks";
+import Filter from "../Filter";
 
 const columnHelper = createColumnHelper<Track>();
 const columns = [
   columnHelper.accessor("trackNumber", {
     header: "#",
+    size: 20,
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("albumArt", {
     header: "Title",
+    size: 54,
     cell: (info) => <AlbumCover src={info.getValue()} alt="album art" />,
   }),
   columnHelper.accessor("title", {
@@ -47,6 +52,7 @@ const columns = [
   }),
   columnHelper.accessor("id", {
     header: "",
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     cell: (_info) => (
       <ButtonGroup style={{ justifyContent: "flex-end", alignItems: "center" }}>
         <IconButton>
@@ -73,6 +79,9 @@ const Tracks: FC = () => {
         <ControlBar />
         <ContentWrapper>
           <Title>Songs</Title>
+          <FilterContainer>
+            <Filter placeholder="Search song" onChange={() => {}} />
+          </FilterContainer>
           <Table columns={columns as any} tracks={tracks} />
         </ContentWrapper>
       </MainView>

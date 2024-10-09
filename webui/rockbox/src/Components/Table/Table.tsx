@@ -32,7 +32,10 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
             style={{ height: 36, color: "rgba(0, 0, 0, 0.54)" }}
           >
             {headerGroup.headers.map((header) => (
-              <th key={header.id} style={{ textAlign: "left" }}>
+              <th
+                key={header.id}
+                style={{ textAlign: "left", width: header.getSize() }}
+              >
                 {header.isPlaceholder
                   ? null
                   : flexRender(
@@ -48,7 +51,12 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
         {table.getRowModel().rows.map((row) => (
           <tr key={row.id} style={{ height: 48 }}>
             {row.getVisibleCells().map((cell) => (
-              <td key={cell.id}>
+              <td
+                key={cell.id}
+                style={{
+                  width: cell.column.getSize(),
+                }}
+              >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </td>
             ))}

@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
 export const Container = styled.div`
   display: flex;
@@ -39,20 +40,21 @@ export const Title = styled.div`
   }
 `;
 
-export const AlbumCover = styled.img`
+export const AlbumCover = styled(LazyLoadImage)`
   width: 100%;
   border-radius: 3px;
   cursor: pointer;
 `;
 
 export const NoAlbumCover = styled.div`
-  width: 100%;
   border-radius: 3px;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: #ddaefb14;
+  // padding: 20px;
+  margin-bottom: 5px;
 `;
 
 export const Artist = styled.div`
@@ -83,4 +85,27 @@ export const AlbumTitle = styled.div`
 export const Scrollable = styled.div`
   height: calc(100vh - 60px);
   overflow-y: auto;
+`;
+
+export const FilterContainer = styled.div`
+  margin-top: 30px;
+  margin-bottom: 40px;
+  padding-left: 20px;
+  padding-right: 20px;
+
+  @media (min-width: 1300px) {
+    max-width: 97%;
+  }
+
+  @media (min-width: 1600px) {
+    max-width: 97%;
+  }
+
+  @media (min-width: 1700px) {
+    max-width: 88%;
+  }
+
+  @media (min-width: 1800px) {
+    max-width: 84%;
+  }
 `;

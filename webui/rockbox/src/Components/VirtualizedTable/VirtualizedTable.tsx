@@ -8,16 +8,17 @@ import {
 import { FC, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Track } from "../../Types/track";
+import { File } from "../../Types/file";
 
 export type TableProps = {
   columns: (AccessorKeyColumnDefBase<Track, string | undefined> &
     Partial<IdIdentifier<Track, string | undefined>>)[];
-  tracks: Track[];
+  tracks: Track[] | File[];
 };
 
 const Table: FC<TableProps> = ({ columns, tracks }) => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [data, _setData] = useState<Track[]>(() => [...tracks]);
+  const [data, _setData] = useState<Track[] | File[]>(() => [...tracks]);
 
   const table = useReactTable({
     data,
@@ -48,7 +49,7 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
         height: "600px", //should be a fixed height
       }}
     >
-      <table style={{ width: "100%", marginTop: 31 }}>
+      <table style={{ width: "100%" }}>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
@@ -56,7 +57,10 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
               style={{ height: 36, color: "rgba(0, 0, 0, 0.54)" }}
             >
               {headerGroup.headers.map((header) => (
-                <th key={header.id} style={{ textAlign: "left" }}>
+                <th
+                  key={header.id}
+                  style={{ textAlign: "left", width: header.getSize() }}
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(

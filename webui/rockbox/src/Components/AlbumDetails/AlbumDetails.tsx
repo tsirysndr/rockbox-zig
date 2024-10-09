@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
@@ -51,6 +52,7 @@ const columns = [
   }),
   columnHelper.accessor("id", {
     header: "",
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     cell: (_info) => (
       <ButtonGroup style={{ justifyContent: "flex-end", alignItems: "center" }}>
         <IconButton>

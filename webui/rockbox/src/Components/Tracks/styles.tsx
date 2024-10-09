@@ -52,8 +52,6 @@ export const ButtonGroup = styled.div`
 `;
 
 export const ContentWrapper = styled.div`
-  padding-left: 30px;
-  padding-right: 30px;
   overflow-y: auto;
   height: calc(100vh - 60px);
 `;
@@ -61,4 +59,25 @@ export const ContentWrapper = styled.div`
 export const AlbumCover = styled.img`
   height: 48px;
   width: 48px;
+`;
+
+export const FilterContainer = styled.div`
+  margin-top: 30px;
+  margin-bottom: 40px;
+`;
+
+export const BackButton = styled.button`
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  width: 30px;
+  border-radius: 15px;
+  background-color: #f7f7f8;
+  margin-top: 26px;
+  margin-bottom: 46px;
+  position: absolute;
+  z-index: 1;
 `;

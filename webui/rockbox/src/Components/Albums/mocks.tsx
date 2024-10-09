@@ -319,4 +319,45 @@ export const albums = [
       "https://resources.tidal.com/images/e2a0c659/2348/4dd6/97e3/14d64ea454c1/1280x1280.jpg",
     year: 2021,
   },
+  {
+    id: "38",
+    title: "Stay Trippy (Deluxe)",
+    artist: "Juicy J",
+    cover:
+      "https://resources.tidal.com/images/ea976806/cb9e/438d/9486/21fd62adafcd/320x320.jpg",
+    year: 2013,
+  },
+  {
+    id: "39",
+    title: "Rich Slave",
+    artist: "Young Dolph",
+    cover:
+      "https://resources.tidal.com/images/7e1638f6/5603/4658/88ad/392d128b3c8f/320x320.jpg",
+    year: 2020,
+  },
+  {
+    id: "40",
+    title: "THE HUSTLE CONTINUES",
+    artist: "Juicy J",
+    cover:
+      "https://resources.tidal.com/images/daac4d70/b857/4ea8/ab04/a2dc79930c39/320x320.jpg",
+    year: 2020,
+  },
+
+  {
+    id: "41",
+    title: "Three Ringz (Thr33 Ringz) (Expanded Edition)",
+    artist: "T-Pain",
+    cover:
+      "https://resources.tidal.com/images/f8ed9e9b/9958/4285/b302/aef0159c0b34/320x320.jpg",
+    year: 2008,
+  },
+  {
+    id: "42",
+    title: "Slumafia",
+    artist: "Yelawolf, DJ Paul",
+    cover:
+      "https://resources.tidal.com/images/76beb088/def7/4533/bd81/beba2d5a25fb/640x640.jpg",
+    year: 2021,
+  },
 ];
