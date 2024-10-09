@@ -11,7 +11,7 @@ export const MainView = styled.div`
   display: flex;
   flex: 1;
   flex-direction: column;
-  padding: 20px;
+  position: relative;
 `;
 
 export const Title = styled.div`
@@ -54,6 +54,8 @@ export const ButtonGroup = styled.div`
 export const ContentWrapper = styled.div`
   overflow-y: auto;
   height: calc(100vh - 60px);
+  padding-left: 20px;
+  padding-right: 20px;
 `;
 
 export const AlbumCover = styled.img`
@@ -78,6 +80,7 @@ export const BackButton = styled.button`
   justify-content: center;
   height: 30px;
   width: 30px;
+  left: 20px;
   border-radius: 15px;
   background-color: #f7f7f8;
   margin-top: 45px;
