@@ -15,6 +15,7 @@ export type TableProps = {
 };
 
 const Table: FC<TableProps> = ({ columns, tracks }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, _setData] = useState<Track[]>(() => [...tracks]);
 
   const table = useReactTable({

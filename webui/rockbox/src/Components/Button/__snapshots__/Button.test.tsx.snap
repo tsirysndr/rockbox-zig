@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Button > should render 1`] = `
+<div>
+  <div
+    class=""
+  >
+    <button
+      class="ae af ag ah ai aj ak al am an ao ap aq ar as at au av aw ax ay az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi bj bk bl bm bn"
+      data-baseweb="button"
+    >
+      Click me
+    </button>
+  </div>
+  <div
+    class=""
+  />
+</div>
+`;

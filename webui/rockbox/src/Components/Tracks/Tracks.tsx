@@ -20,7 +20,6 @@ import Add from "../Icons/Add";
 import HeartOutline from "../Icons/HeartOutline";
 import { Track } from "../../Types/track";
 import Table from "../VirtualizedTable";
-import { tracks } from "./mocks";
 import Filter from "../Filter";
 import "./styles.css";
 
@@ -130,7 +129,11 @@ const columns = [
   }),
 ];
 
-const Tracks: FC = () => {
+export type TracksProps = {
+  tracks: Track[];
+};
+
+const Tracks: FC<TracksProps> = (props) => {
   return (
     <Container>
       <Sidebar active="songs" />
@@ -141,7 +144,7 @@ const Tracks: FC = () => {
           <FilterContainer>
             <Filter placeholder="Search song" onChange={() => {}} />
           </FilterContainer>
-          <Table columns={columns as any} tracks={tracks} />
+          <Table columns={columns as any} tracks={props.tracks} />
         </ContentWrapper>
       </MainView>
     </Container>
