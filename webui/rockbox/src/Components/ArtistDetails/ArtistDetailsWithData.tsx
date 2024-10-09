@@ -12,6 +12,11 @@ const ArtistDetailsWithData: FC = () => {
       onClickAlbum={(_album) => {}}
       onPlayAll={() => {}}
       onShuffleAll={() => {}}
+      onPlayAlbum={() => {}}
+      onLikeAlbum={() => {}}
+      onUnLikeAlbum={() => {}}
+      onLikeTrack={() => {}}
+      onUnlikeTrack={() => {}}
     />
   );
 };

@@ -21,6 +21,9 @@ export const Default: Story = {
   args: {
     onClickAlbum: fn(),
     onFilter: fn(),
+    onPlay: fn(),
+    onLike: fn(),
+    onUnLike: fn(),
     albums,
   },
 };

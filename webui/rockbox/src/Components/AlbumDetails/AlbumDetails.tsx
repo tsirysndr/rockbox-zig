@@ -34,84 +34,89 @@ import { tracks } from "./mocks";
 import { Track } from "../../Types/track";
 
 const columnHelper = createColumnHelper<Track>();
-const columns = [
-  columnHelper.accessor("trackNumber", {
-    header: "#",
-    size: 20,
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("title", {
-    header: "Title",
-    cell: (info) => (
-      <div
-        style={{
-          minWidth: 150,
-          width: "calc(100% - 20px)",
-          fontSize: 14,
-          textOverflow: "ellipsis",
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-          cursor: "pointer",
-          color: "#000",
-        }}
-      >
-        {info.getValue()}
-      </div>
-    ),
-  }),
-  columnHelper.accessor("artist", {
-    header: "Artist",
-    cell: (info) => (
-      <div
-        style={{
-          minWidth: 150,
-          width: "calc(100% - 20px)",
-          fontSize: 14,
-          textOverflow: "ellipsis",
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-          cursor: "pointer",
-          color: "#000",
-        }}
-      >
-        <Link href="#">{info.getValue()}</Link>
-      </div>
-    ),
-  }),
-  columnHelper.accessor("time", {
-    header: "Time",
-    size: 50,
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("id", {
-    header: "",
-    size: 100,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    cell: (_info) => (
-      <ButtonGroup style={{ justifyContent: "flex-end", alignItems: "center" }}>
-        <IconButton>
-          <Hover>
-            <EllipsisHorizontal size={24} />
-          </Hover>
-        </IconButton>
-        <IconButton>
-          <Add color="#000" size={24} />
-        </IconButton>
-        <IconButton>
-          <HeartOutline color="#000" />
-        </IconButton>
-      </ButtonGroup>
-    ),
-  }),
-];
 
 export type AlbumDetailsProps = {
   onPlayAll: () => void;
   onShuffleAll: () => void;
   onGoBack: () => void;
+  onLike: (track: string) => void;
+  onUnlike: (track: string) => void;
 };
 
 const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
+  const columns = [
+    columnHelper.accessor("trackNumber", {
+      header: "#",
+      size: 20,
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor("title", {
+      header: "Title",
+      cell: (info) => (
+        <div
+          style={{
+            minWidth: 150,
+            width: "calc(100% - 20px)",
+            fontSize: 14,
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            cursor: "pointer",
+            color: "#000",
+          }}
+        >
+          {info.getValue()}
+        </div>
+      ),
+    }),
+    columnHelper.accessor("artist", {
+      header: "Artist",
+      cell: (info) => (
+        <div
+          style={{
+            minWidth: 150,
+            width: "calc(100% - 20px)",
+            fontSize: 14,
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            cursor: "pointer",
+            color: "#000",
+          }}
+        >
+          <Link href="#">{info.getValue()}</Link>
+        </div>
+      ),
+    }),
+    columnHelper.accessor("time", {
+      header: "Time",
+      size: 50,
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor("id", {
+      header: "",
+      size: 100,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      cell: (info) => (
+        <ButtonGroup
+          style={{ justifyContent: "flex-end", alignItems: "center" }}
+        >
+          <IconButton>
+            <Hover>
+              <EllipsisHorizontal size={24} />
+            </Hover>
+          </IconButton>
+          <IconButton>
+            <Add color="#000" size={24} />
+          </IconButton>
+          <IconButton onClick={() => props.onLike(info.row.original.id)}>
+            <HeartOutline color="#000" />
+          </IconButton>
+        </ButtonGroup>
+      ),
+    }),
+  ];
+
   return (
     <Container>
       <Sidebar active="albums" />

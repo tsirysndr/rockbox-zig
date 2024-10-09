@@ -136,6 +136,11 @@ export type ArtistDetailsProps = {
   onClickAlbum: (album: any) => void;
   onPlayAll: () => void;
   onShuffleAll: () => void;
+  onPlayAlbum: (album: any) => void;
+  onLikeAlbum: (album: any) => void;
+  onUnLikeAlbum: (album: any) => void;
+  onLikeTrack: (track: any) => void;
+  onUnlikeTrack: (track: any) => void;
 };
 
 const ArtistDetails: FC<ArtistDetailsProps> = (props) => {

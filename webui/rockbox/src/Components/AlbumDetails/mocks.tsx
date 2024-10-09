@@ -79,7 +79,7 @@ export const tracks = [
   {
     id: "12",
     trackNumber: 12,
-    title: "Plastci Man (Live)",
+    title: "Plastic Man (Live)",
     artist: "Seether",
     time: "3:34",
   },

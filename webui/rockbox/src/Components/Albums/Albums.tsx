@@ -64,6 +64,7 @@ const Albums: FC<AlbumsProps> = (props) => {
                             justifyContent: "center",
                             alignItems: "center",
                           }}
+                          onClick={() => props.onPlay(item)}
                         >
                           <Play small color="#000" />
                         </div>
@@ -88,6 +89,7 @@ const Albums: FC<AlbumsProps> = (props) => {
                             justifyContent: "center",
                             alignItems: "center",
                           }}
+                          onClick={() => props.onLike(item)}
                         >
                           <HeartOutline color="#fff" />
                         </div>
