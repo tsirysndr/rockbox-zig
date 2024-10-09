@@ -76,7 +76,7 @@ export const Hover = styled.button`
   color: transparent;
   background-color: transparent;
   border: none;
-  opacity: 1 !important;
+  opacity: 0 !important;
   cursor: pointer;
   &:hover,
   &:focus {
@@ -130,4 +130,25 @@ export const AlbumCover = styled(LazyLoadImage)`
   width: 100%;
   border-radius: 3px;
   cursor: pointer;
+`;
+
+export const Link = styled.a`
+  color: #000;
+  text-decoration: none;
+  font-family: RockfordSansRegular;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+export const AlbumFooterMenu = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 10px;
+  height: 60px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - 20px);
 `;

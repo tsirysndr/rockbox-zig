@@ -22,22 +22,6 @@ export const Title = styled.div`
   margin-bottom: 20px;
   padding-left: 20px;
   padding-right: 20px;
-
-  @media (min-width: 1300px) {
-    max-width: 97%;
-  }
-
-  @media (min-width: 1600px) {
-    max-width: 97%;
-  }
-
-  @media (min-width: 1700px) {
-    max-width: 88%;
-  }
-
-  @media (min-width: 1800px) {
-    max-width: 84%;
-  }
 `;
 
 export const AlbumCover = styled(LazyLoadImage)`
@@ -92,20 +76,29 @@ export const FilterContainer = styled.div`
   margin-bottom: 40px;
   padding-left: 20px;
   padding-right: 20px;
+`;
 
-  @media (min-width: 1300px) {
-    max-width: 97%;
-  }
+export const AlbumFooterMenu = styled.div`
+  position: absolute;
+  bottom: 60px;
+  left: 10px;
+  height: 60px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - 20px);
+`;
 
-  @media (min-width: 1600px) {
-    max-width: 97%;
-  }
-
-  @media (min-width: 1700px) {
-    max-width: 88%;
-  }
-
-  @media (min-width: 1800px) {
-    max-width: 84%;
+export const Hover = styled.button`
+  color: transparent;
+  background-color: transparent;
+  border: none;
+  opacity: 0 !important;
+  cursor: pointer;
+  &:hover,
+  &:focus {
+    color: #000;
+    opacity: 1 !important;
   }
 `;

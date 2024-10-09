@@ -19,6 +19,8 @@ import {
   Title,
   Year,
   AlbumCover,
+  Link,
+  AlbumFooterMenu,
 } from "./styles";
 import ArrowBack from "../Icons/ArrowBack";
 import Shuffle from "../Icons/Shuffle";
@@ -32,6 +34,7 @@ import Add from "../Icons/Add";
 import Table from "../Table";
 import AlbumArt from "../../Assets/albumart.png";
 import { Cell, Grid } from "baseui/layout-grid";
+import "./styles.css";
 
 const columnHelper = createColumnHelper<Track>();
 const columns = [
@@ -44,15 +47,60 @@ const columns = [
   }),
   columnHelper.accessor("title", {
     header: "",
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div
+        style={{
+          minWidth: 150,
+          width: "calc(100% - 20px)",
+          fontSize: 14,
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          cursor: "pointer",
+          color: "#000",
+        }}
+      >
+        {info.getValue()}
+      </div>
+    ),
   }),
   columnHelper.accessor("artist", {
     header: "Artist",
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div
+        style={{
+          minWidth: 150,
+          width: "calc(100% - 20px)",
+          fontSize: 14,
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          cursor: "pointer",
+          color: "#000",
+        }}
+      >
+        <Link href="#">{info.getValue()}</Link>
+      </div>
+    ),
   }),
   columnHelper.accessor("album", {
     header: "Album",
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div
+        style={{
+          minWidth: 150,
+          width: "calc(100% - 20px)",
+          fontSize: 14,
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          cursor: "pointer",
+          color: "#000",
+        }}
+      >
+        <Link href="#">{info.getValue()}</Link>
+      </div>
+    ),
   }),
   columnHelper.accessor("time", {
     header: "Time",
@@ -61,6 +109,7 @@ const columns = [
   }),
   columnHelper.accessor("id", {
     header: "",
+    size: 100,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     cell: (_info) => (
       <ButtonGroup style={{ justifyContent: "flex-end", alignItems: "center" }}>
@@ -85,6 +134,8 @@ export type ArtistDetailsProps = {
   tracks: Track[];
   albums: any[];
   onClickAlbum: (album: any) => void;
+  onPlayAll: () => void;
+  onShuffleAll: () => void;
 };
 
 const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
@@ -119,14 +170,62 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
           <Table columns={columns as any} tracks={props.tracks} />
           <Title style={{ marginBottom: 20, marginTop: 50 }}>Albums</Title>
           <div style={{ marginBottom: 100 }}>
-            <Grid gridColumns={[2, 4, 5]} gridMargins={[8, 10, 12]}>
+            <Grid
+              gridColumns={[2, 4, 5]}
+              gridMargins={[0, 0, 0]}
+              gridGutters={[20, 20, 20]}
+            >
               {props.albums.map((item) => (
                 <Cell key={item.id}>
-                  <AlbumCover
-                    src={item.cover ? item.cover : AlbumArt}
-                    onClick={() => props.onClickAlbum(item)}
-                    effect="opacity"
-                  />
+                  <div style={{ position: "relative", width: "100%" }}>
+                    <Hover>
+                      <AlbumFooterMenu>
+                        <div
+                          style={{
+                            backgroundColor: "#ffffffbc",
+                            height: 40,
+                            width: 40,
+                            borderRadius: 20,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Play small color="#000" />
+                        </div>
+                        <div
+                          style={{
+                            height: 40,
+                            width: 40,
+                            borderRadius: 20,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <EllipsisHorizontal size={24} color="#fff" />
+                        </div>
+                        <div
+                          style={{
+                            height: 40,
+                            width: 40,
+                            borderRadius: 20,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <HeartOutline color="#fff" />
+                        </div>
+                      </AlbumFooterMenu>
+                    </Hover>
+                    <AlbumCover
+                      src={item.cover ? item.cover : AlbumArt}
+                      onClick={() => props.onClickAlbum(item)}
+                      effect="opacity"
+                    />
+                  </div>
+
                   <AlbumTitle onClick={() => props.onClickAlbum(item)}>
                     {item.title}
                   </AlbumTitle>

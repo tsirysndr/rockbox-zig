@@ -81,3 +81,12 @@ export const BackButton = styled.button`
   position: absolute;
   z-index: 1;
 `;
+
+export const Link = styled.a`
+  color: #000;
+  text-decoration: none;
+  font-family: RockfordSansRegular;
+  &:hover {
+    text-decoration: underline;
+  }
+`;

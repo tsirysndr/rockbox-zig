@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import ArtistDetails from "./ArtistDetails";
 import { tracks, albums } from "./mocks";
+import { fn } from "@storybook/test";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -21,5 +22,8 @@ export const Default: Story = {
     name: "Daft Punk",
     tracks,
     albums,
+    onPlayAll: fn,
+    onShuffleAll: fn,
+    onClickAlbum: fn,
   },
 };

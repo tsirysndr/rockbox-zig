@@ -11,6 +11,7 @@ import {
   FilterContainer,
   Hover,
   IconButton,
+  Link,
   MainView,
   Title,
 } from "./styles";
@@ -21,13 +22,24 @@ import { Track } from "../../Types/track";
 import Table from "../VirtualizedTable";
 import { tracks } from "./mocks";
 import Filter from "../Filter";
+import "./styles.css";
 
 const columnHelper = createColumnHelper<Track>();
 const columns = [
   columnHelper.accessor("trackNumber", {
     header: "#",
     size: 20,
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {info.getValue()}
+      </div>
+    ),
   }),
   columnHelper.accessor("albumArt", {
     header: "Title",
@@ -36,22 +48,69 @@ const columns = [
   }),
   columnHelper.accessor("title", {
     header: "",
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div
+        style={{
+          minWidth: 150,
+          width: "calc(100% - 20px)",
+          fontSize: 14,
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          cursor: "pointer",
+          color: "#000",
+        }}
+      >
+        {info.getValue()}
+      </div>
+    ),
   }),
   columnHelper.accessor("artist", {
     header: "Artist",
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div
+        style={{
+          minWidth: 150,
+          width: "calc(100% - 20px)",
+          fontSize: 14,
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          cursor: "pointer",
+          color: "#000",
+        }}
+      >
+        <Link href="#">{info.getValue()}</Link>
+      </div>
+    ),
   }),
   columnHelper.accessor("album", {
     header: "Album",
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div
+        style={{
+          minWidth: 150,
+          width: "calc(100% - 20px)",
+          fontSize: 14,
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          cursor: "pointer",
+          color: "#000",
+        }}
+      >
+        <Link href="#">{info.getValue()}</Link>
+      </div>
+    ),
   }),
   columnHelper.accessor("time", {
     header: "Time",
+    size: 50,
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("id", {
     header: "",
+    size: 100,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     cell: (_info) => (
       <ButtonGroup style={{ justifyContent: "flex-end", alignItems: "center" }}>

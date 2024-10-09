@@ -20,22 +20,6 @@ export const Title = styled.div`
   margin-bottom: 20px;
   padding-left: 20px;
   padding-right: 20px;
-
-  @media (min-width: 1300px) {
-    max-width: 97%;
-  }
-
-  @media (min-width: 1600px) {
-    max-width: 97%;
-  }
-
-  @media (min-width: 1700px) {
-    max-width: 88%;
-  }
-
-  @media (min-width: 1800px) {
-    max-width: 80%;
-  }
 `;
 
 export const Scrollable = styled.div`

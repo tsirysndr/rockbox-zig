@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
 import { Cell, Grid } from "baseui/layout-grid";
 import Sidebar from "../Sidebar";
@@ -28,24 +29,30 @@ const Artists: FC<ArtistsProps> = (props) => {
         <ControlBar />
         <Scrollable>
           <Title>Artists</Title>
-          <Grid gridColumns={[2, 3, 4]} gridMargins={[8, 16, 18]}>
-            {artists.map((item) => (
-              <Cell key={item.id}>
-                {item.cover && (
-                  <ArtistCover
-                    src={item.cover}
-                    onClick={() => onClickArtist(item)}
-                  />
-                )}
-                {!item.cover && (
-                  <NoArtistCover onClick={() => onClickArtist(item)}>
-                    <Artist width={75} height={75} color="#a4a3a3" />
-                  </NoArtistCover>
-                )}
-                <ArtistName>{item.name}</ArtistName>
-              </Cell>
-            ))}
-          </Grid>
+          <div style={{ marginBottom: 100 }}>
+            <Grid
+              gridColumns={[2, 3, 4]}
+              gridMargins={[18, 18, 18]}
+              gridGutters={[10, 10, 10]}
+            >
+              {artists.map((item) => (
+                <Cell key={item.id} align={"center"}>
+                  {item.cover && (
+                    <ArtistCover
+                      src={item.cover}
+                      onClick={() => onClickArtist(item)}
+                    />
+                  )}
+                  {!item.cover && (
+                    <NoArtistCover onClick={() => onClickArtist(item)}>
+                      <Artist width={75} height={75} color="#a4a3a3" />
+                    </NoArtistCover>
+                  )}
+                  <ArtistName>{item.name}</ArtistName>
+                </Cell>
+              ))}
+            </Grid>
+          </div>
         </Scrollable>
       </MainView>
     </Container>

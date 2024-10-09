@@ -20,6 +20,7 @@ import {
   IconButton,
   Hover,
   Label,
+  Link,
 } from "./styles";
 import Button from "../Button";
 import ArrowBack from "../Icons/ArrowBack";
@@ -36,22 +37,55 @@ const columnHelper = createColumnHelper<Track>();
 const columns = [
   columnHelper.accessor("trackNumber", {
     header: "#",
+    size: 20,
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("title", {
     header: "Title",
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div
+        style={{
+          minWidth: 150,
+          width: "calc(100% - 20px)",
+          fontSize: 14,
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          cursor: "pointer",
+          color: "#000",
+        }}
+      >
+        {info.getValue()}
+      </div>
+    ),
   }),
   columnHelper.accessor("artist", {
     header: "Artist",
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div
+        style={{
+          minWidth: 150,
+          width: "calc(100% - 20px)",
+          fontSize: 14,
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          cursor: "pointer",
+          color: "#000",
+        }}
+      >
+        <Link href="#">{info.getValue()}</Link>
+      </div>
+    ),
   }),
   columnHelper.accessor("time", {
     header: "Time",
+    size: 50,
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor("id", {
     header: "",
+    size: 100,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     cell: (_info) => (
       <ButtonGroup style={{ justifyContent: "flex-end", alignItems: "center" }}>
@@ -71,52 +105,60 @@ const columns = [
   }),
 ];
 
-const AlbumDetails: FC = () => {
+export type AlbumDetailsProps = {
+  onPlayAll: () => void;
+  onShuffleAll: () => void;
+  onGoBack: () => void;
+};
+
+const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
   return (
     <Container>
       <Sidebar active="albums" />
       <MainView>
         <ControlBar />
         <ContentWrapper>
-          <BackButton onClick={() => {}}>
+          <BackButton onClick={() => props.onGoBack()}>
             <div style={{ marginTop: 2 }}>
               <ArrowBack color={"#000"} />
             </div>
           </BackButton>
-          <Header>
-            <AlbumCover src="https://resources.tidal.com/images/f6f5f0a6/dc95/4561/9ca6/6ba1e0f6a062/320x320.jpg" />
-            <AlbumInfos>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  height: "calc(240px - 12px)",
-                }}
-              >
-                <AlbumTitle>One Cold Night (Live)</AlbumTitle>
-                <Artist>Seether</Artist>
-                <Tracks>13 TRACKS</Tracks>
-                <Year>2006</Year>
-              </div>
-              <ButtonGroup>
-                <Button onClick={() => {}} kind="primary">
-                  <Label>
-                    <Play small color="#fff" />
-                    <div style={{ marginLeft: 7 }}>Play</div>
-                  </Label>
-                </Button>
-                <Separator />
-                <Button onClick={() => {}} kind="secondary">
-                  <Label>
-                    <Shuffle color="#fe099c" />
-                    <div style={{ marginLeft: 7 }}>Shuffle</div>
-                  </Label>
-                </Button>
-              </ButtonGroup>
-            </AlbumInfos>
-          </Header>
-          <Table columns={columns as any} tracks={tracks} />
+          <div style={{ marginBottom: 100 }}>
+            <Header>
+              <AlbumCover src="https://resources.tidal.com/images/f6f5f0a6/dc95/4561/9ca6/6ba1e0f6a062/320x320.jpg" />
+              <AlbumInfos>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    height: "calc(240px - 12px)",
+                  }}
+                >
+                  <AlbumTitle>One Cold Night (Live)</AlbumTitle>
+                  <Artist href="#">Seether</Artist>
+                  <Tracks>13 TRACKS</Tracks>
+                  <Year>2006</Year>
+                </div>
+                <ButtonGroup>
+                  <Button onClick={() => props.onPlayAll()} kind="primary">
+                    <Label>
+                      <Play small color="#fff" />
+                      <div style={{ marginLeft: 7 }}>Play</div>
+                    </Label>
+                  </Button>
+                  <Separator />
+                  <Button onClick={() => props.onShuffleAll()} kind="secondary">
+                    <Label>
+                      <Shuffle color="#fe099c" />
+                      <div style={{ marginLeft: 7 }}>Shuffle</div>
+                    </Label>
+                  </Button>
+                </ButtonGroup>
+              </AlbumInfos>
+            </Header>
+            <Table columns={columns as any} tracks={tracks} />
+          </div>
         </ContentWrapper>
       </MainView>
     </Container>

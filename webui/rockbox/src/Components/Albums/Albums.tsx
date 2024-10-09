@@ -6,21 +6,29 @@ import ControlBar from "../ControlBar";
 import AlbumArt from "../../Assets/albumart.png";
 import {
   AlbumCover,
+  AlbumFooterMenu,
   AlbumTitle,
   Artist,
   Container,
   FilterContainer,
+  Hover,
   MainView,
   Scrollable,
   Title,
   Year,
 } from "./styles";
 import Filter from "../Filter";
+import Play from "../Icons/Play";
+import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
+import HeartOutline from "../Icons/HeartOutline";
 
 export type AlbumsProps = {
   albums: any[];
   onClickAlbum: (album: any) => void;
   onFilter: (filter: string) => void;
+  onPlay: (album: any) => void;
+  onLike: (album: any) => void;
+  onUnLike: (album: any) => void;
 };
 
 const Albums: FC<AlbumsProps> = (props) => {
@@ -36,19 +44,66 @@ const Albums: FC<AlbumsProps> = (props) => {
             <Filter placeholder="Search albums" onChange={() => {}} />
           </FilterContainer>
           <div style={{ marginBottom: 100 }}>
-            <Grid gridColumns={[2, 4, 5]} gridMargins={[8, 10, 12]}>
+            <Grid
+              gridColumns={[2, 4, 5]}
+              gridMargins={[20, 20, 20]}
+              gridGutters={[25, 25, 25]}
+            >
               {albums.map((item) => (
                 <Cell key={item.id}>
-                  <AlbumCover
-                    src={item.cover ? item.cover : AlbumArt}
-                    onClick={() => onClickAlbum(item)}
-                    effect="opacity"
-                  />
-                  <AlbumTitle onClick={() => onClickAlbum(item)}>
-                    {item.title}
-                  </AlbumTitle>
-                  <Artist>{item.artist}</Artist>
-                  <Year>{item.year}</Year>
+                  <div style={{ position: "relative", width: "100%" }}>
+                    <Hover>
+                      <AlbumFooterMenu>
+                        <div
+                          style={{
+                            backgroundColor: "#ffffffda",
+                            height: 40,
+                            width: 40,
+                            borderRadius: 20,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Play small color="#000" />
+                        </div>
+                        <div
+                          style={{
+                            height: 40,
+                            width: 40,
+                            borderRadius: 20,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <EllipsisHorizontal size={24} color="#fff" />
+                        </div>
+                        <div
+                          style={{
+                            height: 40,
+                            width: 40,
+                            borderRadius: 20,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <HeartOutline color="#fff" />
+                        </div>
+                      </AlbumFooterMenu>
+                    </Hover>
+                    <AlbumCover
+                      src={item.cover ? item.cover : AlbumArt}
+                      onClick={() => onClickAlbum(item)}
+                      effect="opacity"
+                    />
+                    <AlbumTitle onClick={() => onClickAlbum(item)}>
+                      {item.title}
+                    </AlbumTitle>
+                    <Artist>{item.artist}</Artist>
+                    <Year>{item.year}</Year>
+                  </div>
                 </Cell>
               ))}
             </Grid>

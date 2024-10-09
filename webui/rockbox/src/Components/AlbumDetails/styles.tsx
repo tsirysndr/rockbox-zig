@@ -31,10 +31,15 @@ export const AlbumTitle = styled.div`
   font-family: RockfordSansBold;
 `;
 
-export const Artist = styled.div`
+export const Artist = styled.a`
+  color: #000;
+  text-decoration: none;
   font-family: RockfordSansMedium;
   font-size: 14px;
   margin-top: 8px;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 export const Tracks = styled.div`
@@ -120,4 +125,13 @@ export const Label = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+`;
+
+export const Link = styled.a`
+  color: #000;
+  text-decoration: none;
+  font-family: RockfordSansRegular;
+  &:hover {
+    text-decoration: underline;
+  }
 `;

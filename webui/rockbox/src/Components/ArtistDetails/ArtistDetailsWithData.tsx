@@ -10,6 +10,8 @@ const ArtistDetailsWithData: FC = () => {
       albums={albums}
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       onClickAlbum={(_album) => {}}
+      onPlayAll={() => {}}
+      onShuffleAll={() => {}}
     />
   );
 };
