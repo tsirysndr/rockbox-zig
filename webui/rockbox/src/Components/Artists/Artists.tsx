@@ -13,6 +13,7 @@ import {
   Title,
 } from "./styles";
 import Artist from "../Icons/Artist";
+import { Link } from "react-router-dom";
 
 export type ArtistsProps = {
   artists: any[];
@@ -37,18 +38,23 @@ const Artists: FC<ArtistsProps> = (props) => {
             >
               {artists.map((item) => (
                 <Cell key={item.id} align={"center"}>
-                  {item.cover && (
-                    <ArtistCover
-                      src={item.cover}
-                      onClick={() => onClickArtist(item)}
-                    />
-                  )}
-                  {!item.cover && (
-                    <NoArtistCover onClick={() => onClickArtist(item)}>
-                      <Artist width={75} height={75} color="#a4a3a3" />
-                    </NoArtistCover>
-                  )}
-                  <ArtistName>{item.name}</ArtistName>
+                  <Link
+                    to={`/artists/${item.id}`}
+                    style={{ textDecoration: "none" }}
+                  >
+                    {item.cover && (
+                      <ArtistCover
+                        src={item.cover}
+                        onClick={() => onClickArtist(item)}
+                      />
+                    )}
+                    {!item.cover && (
+                      <NoArtistCover onClick={() => onClickArtist(item)}>
+                        <Artist width={75} height={75} color="#a4a3a3" />
+                      </NoArtistCover>
+                    )}
+                    <ArtistName>{item.name}</ArtistName>
+                  </Link>
                 </Cell>
               ))}
             </Grid>

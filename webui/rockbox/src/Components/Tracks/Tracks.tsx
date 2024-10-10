@@ -79,7 +79,9 @@ const columns = [
           color: "#000",
         }}
       >
-        <Link href="#">{info.getValue()}</Link>
+        <Link to={`/artists/${info.row.original.artistId}`}>
+          {info.getValue()}
+        </Link>
       </div>
     ),
   }),
@@ -98,7 +100,9 @@ const columns = [
           color: "#000",
         }}
       >
-        <Link href="#">{info.getValue()}</Link>
+        <Link to={`/albums/${info.row.original.albumId}`}>
+          {info.getValue()}
+        </Link>
       </div>
     ),
   }),

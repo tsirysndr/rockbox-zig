@@ -8,7 +8,6 @@ import { MemoryRouter } from "react-router-dom";
 describe("Albums", () => {
   it("should render", () => {
     const onPlay = vi.fn();
-    const onClickAlbum = vi.fn();
     const onFilter = vi.fn();
     const onUnLike = vi.fn();
     const onLike = vi.fn();
@@ -18,7 +17,6 @@ describe("Albums", () => {
           <Albums
             albums={albums}
             onPlay={onPlay}
-            onClickAlbum={onClickAlbum}
             onFilter={onFilter}
             onUnLike={onUnLike}
             onLike={onLike}

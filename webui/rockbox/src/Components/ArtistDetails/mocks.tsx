@@ -8,6 +8,8 @@ export const tracks = [
     cover:
       "https://resources.tidal.com/images/09b59e6e/717e/43e3/b2e2/d2a153c24775/320x320.jpg",
     time: "6:10",
+    artistId: "1",
+    albumId: "1",
   },
   {
     id: "2",
@@ -18,6 +20,8 @@ export const tracks = [
     cover:
       "https://resources.tidal.com/images/09b59e6e/717e/43e3/b2e2/d2a153c24775/320x320.jpg",
     time: "5:38",
+    artistId: "1",
+    albumId: "2",
   },
   {
     id: "3",
@@ -28,6 +32,8 @@ export const tracks = [
     cover:
       "https://resources.tidal.com/images/f853861c/0c5f/4e73/b608/eeb00618fe6f/320x320.jpg",
     time: "7:10",
+    artistId: "1",
+    albumId: "3",
   },
 ];
 

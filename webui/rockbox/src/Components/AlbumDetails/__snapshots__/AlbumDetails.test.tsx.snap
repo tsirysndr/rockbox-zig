@@ -510,7 +510,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/1"
                     >
                       Seether
                     </a>
@@ -655,7 +655,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/2"
                     >
                       Seether
                     </a>
@@ -800,7 +800,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/3"
                     >
                       Seether
                     </a>
@@ -945,7 +945,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/4"
                     >
                       Seether
                     </a>
@@ -1090,7 +1090,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/5"
                     >
                       Seether
                     </a>
@@ -1235,7 +1235,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/6"
                     >
                       Seether
                     </a>
@@ -1380,7 +1380,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/7"
                     >
                       Seether
                     </a>
@@ -1525,7 +1525,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/8"
                     >
                       Seether
                     </a>
@@ -1670,7 +1670,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/9"
                     >
                       Seether
                     </a>
@@ -1815,7 +1815,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/10"
                     >
                       Seether
                     </a>
@@ -1960,7 +1960,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/11"
                     >
                       Seether
                     </a>
@@ -2105,7 +2105,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/12"
                     >
                       Seether
                     </a>
@@ -2250,7 +2250,7 @@ exports[`AlbumDetails > should render 1`] = `
                   >
                     <a
                       class="css-i74fgx"
-                      href="#"
+                      href="/artists/13"
                     >
                       Seether
                     </a>

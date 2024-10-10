@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import { Link as RouterLink } from "react-router-dom";
 
 export const Container = styled.div`
   display: flex;
@@ -101,13 +102,14 @@ export const Scrollable = styled.div`
   overflow-y: auto;
 `;
 
-export const AlbumTitle = styled.div`
+export const AlbumTitle = styled(RouterLink)`
   font-size: 14px;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
   cursor: pointer;
   color: #000;
+  text-decoration: none;
 `;
 
 export const Artist = styled.div`
@@ -132,7 +134,7 @@ export const AlbumCover = styled(LazyLoadImage)`
   cursor: pointer;
 `;
 
-export const Link = styled.a`
+export const Link = styled(RouterLink)`
   color: #000;
   text-decoration: none;
   font-family: RockfordSansRegular;

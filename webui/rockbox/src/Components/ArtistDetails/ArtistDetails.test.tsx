@@ -22,6 +22,7 @@ describe("ArtistDetails", () => {
             onUnLikeAlbum={vi.fn()}
             onLikeTrack={vi.fn()}
             onUnlikeTrack={vi.fn()}
+            onGoBack={vi.fn()}
           />
         </Providers>
       </MemoryRouter>

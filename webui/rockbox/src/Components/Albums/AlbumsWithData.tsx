@@ -5,7 +5,6 @@ import { albums } from "./mocks";
 const AlbumsWithData: FC = () => {
   return (
     <Albums
-      onClickAlbum={() => {}}
       onFilter={() => {}}
       albums={albums}
       onLike={() => {}}

@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { Link as RouterLink } from "react-router-dom";
 
 export const Container = styled.div`
   display: flex;
@@ -127,7 +128,7 @@ export const Label = styled.div`
   align-items: center;
 `;
 
-export const Link = styled.a`
+export const Link = styled(RouterLink)`
   color: #000;
   text-decoration: none;
   font-family: RockfordSansRegular;

@@ -35,6 +35,7 @@ import Add from "../Icons/Add";
 import Table from "../Table";
 import AlbumArt from "../../Assets/albumart.png";
 import { Cell, Grid } from "baseui/layout-grid";
+import { Link as RouterLink } from "react-router-dom";
 import "./styles.css";
 
 const columnHelper = createColumnHelper<Track>();
@@ -80,7 +81,9 @@ const columns = [
           color: "#000",
         }}
       >
-        <Link href="#">{info.getValue()}</Link>
+        <Link to={`/artists/${info.row.original.artistId}`}>
+          {info.getValue()}
+        </Link>
       </div>
     ),
   }),
@@ -99,7 +102,9 @@ const columns = [
           color: "#000",
         }}
       >
-        <Link href="#">{info.getValue()}</Link>
+        <Link to={`/albums/${info.row.original.albumId}`}>
+          {info.getValue()}
+        </Link>
       </div>
     ),
   }),
@@ -142,6 +147,7 @@ export type ArtistDetailsProps = {
   onUnLikeAlbum: (album: any) => void;
   onLikeTrack: (track: any) => void;
   onUnlikeTrack: (track: any) => void;
+  onGoBack: () => void;
 };
 
 const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
@@ -151,7 +157,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
       <MainView>
         <ControlBar />
         <ContentWrapper>
-          <BackButton onClick={() => {}}>
+          <BackButton onClick={() => props.onGoBack()}>
             <div style={{ marginTop: 2 }}>
               <ArrowBack color={"#000"} />
             </div>
@@ -199,24 +205,23 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
                         >
                           <Play small color="#000" />
                         </div>
-                        <FloatingButton
-                        >
+                        <FloatingButton>
                           <EllipsisHorizontal size={24} color="#fff" />
                         </FloatingButton>
-                        <FloatingButton
-                        >
+                        <FloatingButton>
                           <HeartOutline color="#fff" />
                         </FloatingButton>
                       </AlbumFooterMenu>
                     </Hover>
-                    <AlbumCover
-                      src={item.cover ? item.cover : AlbumArt}
-                      onClick={() => props.onClickAlbum(item)}
-                      effect="opacity"
-                    />
+                    <RouterLink to={`/albums/${item.id}`}>
+                      <AlbumCover
+                        src={item.cover ? item.cover : AlbumArt}
+                        onClick={() => props.onClickAlbum(item)}
+                        effect="opacity"
+                      />
+                    </RouterLink>
                   </div>
-
-                  <AlbumTitle onClick={() => props.onClickAlbum(item)}>
+                  <AlbumTitle to={`/albums/${item.id}`}>
                     {item.title}
                   </AlbumTitle>
                   <Artist>{item.artist}</Artist>
