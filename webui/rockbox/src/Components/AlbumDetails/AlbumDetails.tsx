@@ -84,7 +84,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
             color: "#000",
           }}
         >
-          <Link href="#">{info.getValue()}</Link>
+          <Link to={`/artists/${info.row.original.id}`}>{info.getValue()}</Link>
         </div>
       ),
     }),

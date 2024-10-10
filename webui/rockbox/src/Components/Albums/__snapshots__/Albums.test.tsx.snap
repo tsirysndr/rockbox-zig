@@ -392,7 +392,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -476,25 +476,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/1"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/b80f3852/73e5/43d6/90ea/021d1fad2bbe/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      The End, So Far
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/b80f3852/73e5/43d6/90ea/021d1fad2bbe/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        The End, So Far
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/1"
                     >
                       Slipknot
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -512,7 +518,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -596,25 +602,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/2"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/f6f5f0a6/dc95/4561/9ca6/6ba1e0f6a062/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      One Cold Night (Live)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/f6f5f0a6/dc95/4561/9ca6/6ba1e0f6a062/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        One Cold Night (Live)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/2"
                     >
                       Seether
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -632,7 +644,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -716,25 +728,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/3"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/3d58ba7f/8e6d/4a2e/a2e4/793495b8916a/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      4Eva N A Day
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/3d58ba7f/8e6d/4a2e/a2e4/793495b8916a/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        4Eva N A Day
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/3"
                     >
                       Big K.R.I.T.
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -752,7 +770,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -836,25 +854,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/4"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/fe6787d5/4ba5/4d3e/8576/48943ee6a768/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Pluto x Baby Pluto (Deluxe)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/fe6787d5/4ba5/4d3e/8576/48943ee6a768/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Pluto x Baby Pluto (Deluxe)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/4"
                     >
                       Future, Lil Uzi Vert
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -872,7 +896,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -956,25 +980,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/5"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/06a15286/8b80/40a5/bd40/187e99e2e80d/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      The Acoustic Sessions, Vol. 2
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/06a15286/8b80/40a5/bd40/187e99e2e80d/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        The Acoustic Sessions, Vol. 2
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/5"
                     >
                       Smile Empty Soul
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -992,7 +1022,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -1076,25 +1106,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/6"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/0bb1f23f/94a3/4211/8b6a/be57904ea709/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Black Summer
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/0bb1f23f/94a3/4211/8b6a/be57904ea709/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Black Summer
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/6"
                     >
                       Red Hot Chilli Peppers
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -1112,7 +1148,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -1196,25 +1232,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/7"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/543575fc/ad02/419b/ae61/671558dc019d/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Californication (Deluxe Edition)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/543575fc/ad02/419b/ae61/671558dc019d/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Californication (Deluxe Edition)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/7"
                     >
                       Red Hot Chilli Peppers
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -1232,7 +1274,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -1316,25 +1358,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/8"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/f2d921e6/6723/4a7c/a3c0/f630c9ce94eb/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Ghetto Lenny's Love Songs
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/f2d921e6/6723/4a7c/a3c0/f630c9ce94eb/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Ghetto Lenny's Love Songs
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/8"
                     >
                       SAINt JHN
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -1352,7 +1400,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -1436,25 +1484,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/9"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/982470d8/9c3e/476d/ae2d/ecac2c555d09/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Memphis Zoo
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/982470d8/9c3e/476d/ae2d/ecac2c555d09/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Memphis Zoo
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/9"
                     >
                       Juicy J, Xavier Wulf
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -1472,7 +1526,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -1556,25 +1610,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/10"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/e4469204/8f6d/47ca/b98a/04388ec47fdc/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Mental Trillness 2
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/e4469204/8f6d/47ca/b98a/04388ec47fdc/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Mental Trillness 2
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/10"
                     >
                       Juicy J
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -1592,7 +1652,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -1676,25 +1736,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/11"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/2f78cf3f/79c8/4ad6/9d12/f03678768a31/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Live From The Underground
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/2f78cf3f/79c8/4ad6/9d12/f03678768a31/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Live From The Underground
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/11"
                     >
                       Big K.R.I.T.
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -1712,7 +1778,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -1796,25 +1862,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/12"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/4052a2df/fc79/4b9b/9d1c/0507e2c270bf/1280x1280.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      One Foot Out The Door
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/4052a2df/fc79/4b9b/9d1c/0507e2c270bf/1280x1280.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        One Foot Out The Door
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/12"
                     >
                       Mike Posner
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -1832,7 +1904,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -1916,25 +1988,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/13"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/e9bd1318/b327/4c69/abc4/5bcb33ec5a31/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Rockstar Mentality
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/e9bd1318/b327/4c69/abc4/5bcb33ec5a31/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Rockstar Mentality
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/13"
                     >
                       Shop Boyz
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -1952,7 +2030,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -2036,25 +2114,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/14"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/5d6aa2b6/622d/4df2/82d2/d80d26f49f1d/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      The L.I.B.R.A.
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/5d6aa2b6/622d/4df2/82d2/d80d26f49f1d/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        The L.I.B.R.A.
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/14"
                     >
                       T.I.
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -2072,7 +2156,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -2156,25 +2240,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/15"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="	https://resources.tidal.com/images/67d5a152/c200/42a2/9332/bf3b301daa38/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Young and Turnt
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="	https://resources.tidal.com/images/67d5a152/c200/42a2/9332/bf3b301daa38/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Young and Turnt
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/15"
                     >
                       42 Dugg
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -2192,7 +2282,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -2276,25 +2366,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/16"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/159d4317/1d58/45f3/97a0/44595b498f69/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      4eva Us Neva Them
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/159d4317/1d58/45f3/97a0/44595b498f69/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        4eva Us Neva Them
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/16"
                     >
                       42 Dugg
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -2312,7 +2408,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -2396,25 +2492,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/17"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/6d86e202/63f5/487b/9f38/0113afef3912/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Post Traumatic
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/6d86e202/63f5/487b/9f38/0113afef3912/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Post Traumatic
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/undefined"
                     >
                       Tee Grizzley
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -2432,7 +2534,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -2516,25 +2618,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/17"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/636be449/9e78/4adc/92a0/84f11cbc658a/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      King
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/636be449/9e78/4adc/92a0/84f11cbc658a/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        King
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/17"
                     >
                       T.I.
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -2552,7 +2660,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -2636,25 +2744,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/18"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/ac1e1f54/4f1c/491e/a373/369352f887e8/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Meteora 20th Anniversary Edition
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/ac1e1f54/4f1c/491e/a373/369352f887e8/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Meteora 20th Anniversary Edition
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/18"
                     >
                       Linkin Park
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -2672,7 +2786,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -2756,25 +2870,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/19"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/0a30cfd9/5b9b/4fd4/b172/a4c625ce1dbb/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      The Surface Seems So Far
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/0a30cfd9/5b9b/4fd4/b172/a4c625ce1dbb/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        The Surface Seems So Far
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/19"
                     >
                       Seether
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -2792,7 +2912,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -2876,25 +2996,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/20"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/8a3da74c/4e05/4ded/afb1/a6bb19855952/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Karma and Effect
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/8a3da74c/4e05/4ded/afb1/a6bb19855952/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Karma and Effect
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/20"
                     >
                       Seether
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -2912,7 +3038,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -2996,25 +3122,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/21"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/33ac8699/ee88/46ac/8156/f508757d0128/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Disclaimer
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/33ac8699/ee88/46ac/8156/f508757d0128/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Disclaimer
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/21"
                     >
                       Seether
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -3032,7 +3164,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -3116,25 +3248,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/22"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/f3f10be8/d97d/4ace/acb5/c7460d9727e6/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Disclaimer II
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/f3f10be8/d97d/4ace/acb5/c7460d9727e6/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Disclaimer II
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/22"
                     >
                       Seether
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -3152,7 +3290,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -3236,25 +3374,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/23"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/898cc800/6c0a/4c7b/82f6/6b3be9527e7b/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Fallen (Deluxe Edition / Remastered 2023)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/898cc800/6c0a/4c7b/82f6/6b3be9527e7b/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Fallen (Deluxe Edition / Remastered 2023)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/23"
                     >
                       Evanesence
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -3272,7 +3416,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -3356,25 +3500,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/24"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/00ac69d0/79db/446e/991c/72436c74a460/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Finding Beauty In Negative Spaces (Bonus Track Version)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/00ac69d0/79db/446e/991c/72436c74a460/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Finding Beauty In Negative Spaces (Bonus Track Version)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/24"
                     >
                       Seether
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -3392,7 +3542,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -3476,25 +3626,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/25"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/06bc5258/a07e/480a/b83a/1c5b4857b622/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Meteora (Bonus Edition)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/06bc5258/a07e/480a/b83a/1c5b4857b622/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Meteora (Bonus Edition)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/25"
                     >
                       Linkin Park
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -3512,7 +3668,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -3596,25 +3752,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/26"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/2384f908/261a/46a6/a100/165353b2fb63/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Hybrid Theory (Deluxe Edition)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/2384f908/261a/46a6/a100/165353b2fb63/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Hybrid Theory (Deluxe Edition)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/26"
                     >
                       Linkin Park
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -3632,7 +3794,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -3716,25 +3878,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/26"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/fa5b761e/996f/4fef/8a9b/2eff914925f5/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      T.I. vs T.I.P.
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/fa5b761e/996f/4fef/8a9b/2eff914925f5/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        T.I. vs T.I.P.
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/26"
                     >
                       T.I.
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -3752,7 +3920,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -3836,25 +4004,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/27"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/3388ff3c/e69a/4d3b/94f0/e9f36d0adb0c/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Paper Trail
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/3388ff3c/e69a/4d3b/94f0/e9f36d0adb0c/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Paper Trail
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/27"
                     >
                       T.I.
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -3872,7 +4046,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -3956,25 +4130,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/28"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/d0cec70c/a52e/4545/872f/aa6a0d0dd4e1/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      No Mercy
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/d0cec70c/a52e/4545/872f/aa6a0d0dd4e1/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        No Mercy
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/28"
                     >
                       T.I.
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -3992,7 +4172,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -4076,25 +4256,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/29"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/603de40f/ac1d/4d5f/be74/9ff06f8eb9f5/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Paperwork (Explicit)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/603de40f/ac1d/4d5f/be74/9ff06f8eb9f5/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Paperwork (Explicit)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/29"
                     >
                       T.I.
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -4112,7 +4298,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -4196,25 +4382,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/30"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/e6e44784/1117/4e80/9233/0a13488e3b0c/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Paperwork (Deluxe Explicit)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/e6e44784/1117/4e80/9233/0a13488e3b0c/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Paperwork (Deluxe Explicit)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/30"
                     >
                       T.I.
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -4232,7 +4424,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -4316,25 +4508,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/31"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/5d2e6bed/c2c1/48e6/8aa5/cf12d7c0ba52/1280x1280.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      The Bluez Brothaz
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/5d2e6bed/c2c1/48e6/8aa5/cf12d7c0ba52/1280x1280.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        The Bluez Brothaz
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/31"
                     >
                       Bluez Brothaz, T-Pain, Young Cash
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -4352,7 +4550,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -4436,25 +4634,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/32"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/ea2f9c73/6bfc/4dd5/be15/163062d66dea/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Pimpalation (Limited Edition)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/ea2f9c73/6bfc/4dd5/be15/163062d66dea/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Pimpalation (Limited Edition)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/32"
                     >
                       Pimp C
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -4472,7 +4676,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -4556,25 +4760,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/33"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/3818842b/a19f/4aa7/8568/23f7bdab718a/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Long Live The Pimp
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/3818842b/a19f/4aa7/8568/23f7bdab718a/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Long Live The Pimp
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/33"
                     >
                       Pimp C
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -4592,7 +4802,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -4676,25 +4886,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/34"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/c85170de/f63c/4f5f/a006/3a1e34369f55/1280x1280.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      The Naked Soul of Sweet Jones
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/c85170de/f63c/4f5f/a006/3a1e34369f55/1280x1280.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        The Naked Soul of Sweet Jones
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/34"
                     >
                       Pimp C
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -4712,7 +4928,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -4796,25 +5012,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/35"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/64688543/db20/444b/a0a8/607a7b36f3fa/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Epiphany (Expanded Edition)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/64688543/db20/444b/a0a8/607a7b36f3fa/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Epiphany (Expanded Edition)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/35"
                     >
                       T-Pain
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -4832,7 +5054,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -4916,25 +5138,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/36"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/625de685/5ec5/434b/bdd7/10d66e9aadec/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Mental Trillness
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/625de685/5ec5/434b/bdd7/10d66e9aadec/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Mental Trillness
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/36"
                     >
                       Juicy J
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -4952,7 +5180,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -5036,25 +5264,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/37"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/056940dc/3f1a/4c39/8bda/290c82f9e1e4/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Class In Session: The Boyfriend/Girlfriend EP
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/056940dc/3f1a/4c39/8bda/290c82f9e1e4/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Class In Session: The Boyfriend/Girlfriend EP
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/37"
                     >
                       C-Side
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -5072,7 +5306,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -5156,25 +5390,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/38"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/e2a0c659/2348/4dd6/97e3/14d64ea454c1/1280x1280.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      TURQUOiSE TORNADO
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/e2a0c659/2348/4dd6/97e3/14d64ea454c1/1280x1280.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        TURQUOiSE TORNADO
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/38"
                     >
                       Riff Raff, Yelawolf
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -5192,7 +5432,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -5276,25 +5516,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/39"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/ea976806/cb9e/438d/9486/21fd62adafcd/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Stay Trippy (Deluxe)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/ea976806/cb9e/438d/9486/21fd62adafcd/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Stay Trippy (Deluxe)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/39"
                     >
                       Juicy J
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -5312,7 +5558,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -5396,25 +5642,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/39"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/7e1638f6/5603/4658/88ad/392d128b3c8f/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Rich Slave
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/7e1638f6/5603/4658/88ad/392d128b3c8f/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Rich Slave
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/39"
                     >
                       Young Dolph
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -5432,7 +5684,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -5516,25 +5768,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/40"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/daac4d70/b857/4ea8/ab04/a2dc79930c39/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      THE HUSTLE CONTINUES
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/daac4d70/b857/4ea8/ab04/a2dc79930c39/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        THE HUSTLE CONTINUES
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/40"
                     >
                       Juicy J
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -5552,7 +5810,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -5636,25 +5894,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/41"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/f8ed9e9b/9958/4285/b302/aef0159c0b34/320x320.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Three Ringz (Thr33 Ringz) (Expanded Edition)
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/f8ed9e9b/9958/4285/b302/aef0159c0b34/320x320.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Three Ringz (Thr33 Ringz) (Expanded Edition)
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/41"
                     >
                       T-Pain
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >
@@ -5672,7 +5936,7 @@ exports[`Albums > should render 1`] = `
                       class="css-12ezcoy"
                     >
                       <div
-                        class="css-2brt3f"
+                        class="css-15yrfky"
                       >
                         <div
                           style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
@@ -5756,25 +6020,31 @@ exports[`Albums > should render 1`] = `
                         </button>
                       </div>
                     </button>
-                    <span
-                      class=" lazy-load-image-background opacity"
-                      style="color: transparent; display: inline-block;"
+                    <a
+                      class="css-11g9kr1"
+                      href="/albums/42"
                     >
-                      <img
-                        class="css-1g7adp4"
-                        src="https://resources.tidal.com/images/76beb088/def7/4533/bd81/beba2d5a25fb/640x640.jpg"
-                      />
-                    </span>
-                    <div
-                      class="css-e68bk5"
-                    >
-                      Slumafia
-                    </div>
-                    <div
-                      class="css-8g9w67"
+                      <span
+                        class=" lazy-load-image-background opacity"
+                        style="color: transparent; display: inline-block;"
+                      >
+                        <img
+                          class="css-1g7adp4"
+                          src="https://resources.tidal.com/images/76beb088/def7/4533/bd81/beba2d5a25fb/640x640.jpg"
+                        />
+                      </span>
+                      <div
+                        class="css-e68bk5"
+                      >
+                        Slumafia
+                      </div>
+                    </a>
+                    <a
+                      class="css-9sbfuc"
+                      href="/artists/42"
                     >
                       Yelawolf, DJ Paul
-                    </div>
+                    </a>
                     <div
                       class="css-1q570sn"
                     >

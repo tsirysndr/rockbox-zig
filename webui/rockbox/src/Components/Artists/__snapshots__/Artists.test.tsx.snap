@@ -342,78 +342,103 @@ exports[`Artists > should render 1`] = `
                 <div
                   class="ay ae bg bh bi bj bk bl bm bn bo bp bq br bs bt bu bv bw bx by bz c0 c1 c2 c3 c4 c5"
                 >
-                  <img
-                    class="css-xfzo3c"
-                    src="https://resources.tidal.com/images/9be9e74c/1b06/479a/a79e/5c62733d74ac/320x320.jpg"
-                  />
-                  <div
-                    class="css-165pfvn"
+                  <a
+                    href="/artists/1"
+                    style="text-decoration: none;"
                   >
-                    Red Hot Chilli Peppers
-                  </div>
-                </div>
-                <div
-                  class="ay ae bg bh bi bj bk bl bm bn bo bp bq br bs bt bu bv bw bx by bz c0 c1 c2 c3 c4 c5"
-                >
-                  <img
-                    class="css-xfzo3c"
-                    src="https://resources.tidal.com/images/f87d9afc/075e/43f4/bbbc/7770b46cb8aa/320x320.jpg"
-                  />
-                  <div
-                    class="css-165pfvn"
-                  >
-                    Daft Punk
-                  </div>
-                </div>
-                <div
-                  class="ay ae bg bh bi bj bk bl bm bn bo bp bq br bs bt bu bv bw bx by bz c0 c1 c2 c3 c4 c5"
-                >
-                  <img
-                    class="css-xfzo3c"
-                    src="https://resources.tidal.com/images/c3672adf/ca16/4db3/a375/64904d1f7d39/320x320.jpg"
-                  />
-                  <div
-                    class="css-165pfvn"
-                  >
-                    Slipknot
-                  </div>
-                </div>
-                <div
-                  class="ay ae bg bh bi bj bk bl bm bn bo bp bq br bs bt bu bv bw bx by bz c0 c1 c2 c3 c4 c5"
-                >
-                  <img
-                    class="css-xfzo3c"
-                    src="https://resources.tidal.com/images/2021e89d/f4bd/4d41/9af7/da47dc7564e8/320x320.jpg"
-                  />
-                  <div
-                    class="css-165pfvn"
-                  >
-                    Big K.R.I.T.
-                  </div>
-                </div>
-                <div
-                  class="ay ae bg bh bi bj bk bl bm bn bo bp bq br bs bt bu bv bw bx by bz c0 c1 c2 c3 c4 c5"
-                >
-                  <div
-                    class="css-qsoif3"
-                  >
-                    <svg
-                      height="75"
-                      viewBox="0 0 24 24"
-                      width="75"
-                      xmlns="http://www.w3.org/2000/svg"
+                    <img
+                      class="css-xfzo3c"
+                      src="https://resources.tidal.com/images/9be9e74c/1b06/479a/a79e/5c62733d74ac/320x320.jpg"
+                    />
+                    <div
+                      class="css-165pfvn"
                     >
-                      <path
-                        d="M20 4.22a5.67 5.67 0 0 0-9.68 4.57l-8 9.79 3.3 3.3 9.79-8c.18 0 .36.05.55.05a5.7 5.7 0 0 0 4-9.73ZM5.74 19.86l-1.38-1.38 6.44-7.89a5.48 5.48 0 0 0 2.83 2.84Zm13.21-8.65a4.2 4.2 0 1 1 0-5.94 4.17 4.17 0 0 1 0 5.95Z"
-                        fill="#a4a3a3"
-                      />
-                    </svg>
-                  </div>
-                  <div
-                    class="css-165pfvn"
+                      Red Hot Chilli Peppers
+                    </div>
+                  </a>
+                </div>
+                <div
+                  class="ay ae bg bh bi bj bk bl bm bn bo bp bq br bs bt bu bv bw bx by bz c0 c1 c2 c3 c4 c5"
+                >
+                  <a
+                    href="/artists/2"
+                    style="text-decoration: none;"
                   >
-                    Oasis
-                  </div>
+                    <img
+                      class="css-xfzo3c"
+                      src="https://resources.tidal.com/images/f87d9afc/075e/43f4/bbbc/7770b46cb8aa/320x320.jpg"
+                    />
+                    <div
+                      class="css-165pfvn"
+                    >
+                      Daft Punk
+                    </div>
+                  </a>
+                </div>
+                <div
+                  class="ay ae bg bh bi bj bk bl bm bn bo bp bq br bs bt bu bv bw bx by bz c0 c1 c2 c3 c4 c5"
+                >
+                  <a
+                    href="/artists/3"
+                    style="text-decoration: none;"
+                  >
+                    <img
+                      class="css-xfzo3c"
+                      src="https://resources.tidal.com/images/c3672adf/ca16/4db3/a375/64904d1f7d39/320x320.jpg"
+                    />
+                    <div
+                      class="css-165pfvn"
+                    >
+                      Slipknot
+                    </div>
+                  </a>
+                </div>
+                <div
+                  class="ay ae bg bh bi bj bk bl bm bn bo bp bq br bs bt bu bv bw bx by bz c0 c1 c2 c3 c4 c5"
+                >
+                  <a
+                    href="/artists/4"
+                    style="text-decoration: none;"
+                  >
+                    <img
+                      class="css-xfzo3c"
+                      src="https://resources.tidal.com/images/2021e89d/f4bd/4d41/9af7/da47dc7564e8/320x320.jpg"
+                    />
+                    <div
+                      class="css-165pfvn"
+                    >
+                      Big K.R.I.T.
+                    </div>
+                  </a>
+                </div>
+                <div
+                  class="ay ae bg bh bi bj bk bl bm bn bo bp bq br bs bt bu bv bw bx by bz c0 c1 c2 c3 c4 c5"
+                >
+                  <a
+                    href="/artists/4"
+                    style="text-decoration: none;"
+                  >
+                    <div
+                      class="css-qsoif3"
+                    >
+                      <svg
+                        height="75"
+                        viewBox="0 0 24 24"
+                        width="75"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M20 4.22a5.67 5.67 0 0 0-9.68 4.57l-8 9.79 3.3 3.3 9.79-8c.18 0 .36.05.55.05a5.7 5.7 0 0 0 4-9.73ZM5.74 19.86l-1.38-1.38 6.44-7.89a5.48 5.48 0 0 0 2.83 2.84Zm13.21-8.65a4.2 4.2 0 1 1 0-5.94 4.17 4.17 0 0 1 0 5.95Z"
+                          fill="#a4a3a3"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="css-165pfvn"
+                    >
+                      Oasis
+                    </div>
+                  </a>
                 </div>
               </div>
             </div>

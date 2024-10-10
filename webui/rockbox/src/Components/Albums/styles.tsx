@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import { Link as RouterLink } from "react-router-dom";
 
 export const Container = styled.div`
   display: flex;
@@ -41,13 +42,14 @@ export const NoAlbumCover = styled.div`
   margin-bottom: 5px;
 `;
 
-export const Artist = styled.div`
+export const Artist = styled(RouterLink)`
   color: #828282;
   font-size: 14px;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
   cursor: pointer;
+  text-decoration: none;
 `;
 
 export const Year = styled.div`
@@ -88,6 +90,7 @@ export const AlbumFooterMenu = styled.div`
   align-items: center;
   justify-content: space-between;
   width: calc(100% - 20px);
+  z-index: 1;
 `;
 
 export const Hover = styled.button`
@@ -117,4 +120,8 @@ export const FloatingButton = styled.button`
   &:hover {
     background-color: #434242b5;
   }
+`;
+
+export const Link = styled(RouterLink)`
+  text-decoration: none;
 `;

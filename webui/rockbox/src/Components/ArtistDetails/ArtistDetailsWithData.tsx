@@ -1,8 +1,10 @@
 import { FC } from "react";
 import ArtistDetails from "./ArtistDetails";
 import { tracks, albums } from "./mocks";
+import { useNavigate } from "react-router-dom";
 
 const ArtistDetailsWithData: FC = () => {
+  const navigate = useNavigate();
   return (
     <ArtistDetails
       name={"Daft Punk"}
@@ -17,6 +19,7 @@ const ArtistDetailsWithData: FC = () => {
       onUnLikeAlbum={() => {}}
       onLikeTrack={() => {}}
       onUnlikeTrack={() => {}}
+      onGoBack={() => navigate(-1)}
     />
   );
 };

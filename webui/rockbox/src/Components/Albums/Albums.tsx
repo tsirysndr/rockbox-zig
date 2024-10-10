@@ -17,6 +17,7 @@ import {
   Scrollable,
   Title,
   Year,
+  Link,
 } from "./styles";
 import Filter from "../Filter";
 import Play from "../Icons/Play";
@@ -25,7 +26,6 @@ import HeartOutline from "../Icons/HeartOutline";
 
 export type AlbumsProps = {
   albums: any[];
-  onClickAlbum: (album: any) => void;
   onFilter: (filter: string) => void;
   onPlay: (album: any) => void;
   onLike: (album: any) => void;
@@ -33,7 +33,7 @@ export type AlbumsProps = {
 };
 
 const Albums: FC<AlbumsProps> = (props) => {
-  const { albums, onClickAlbum } = props;
+  const { albums } = props;
   return (
     <Container>
       <Sidebar active="albums" />
@@ -77,15 +77,16 @@ const Albums: FC<AlbumsProps> = (props) => {
                         </FloatingButton>
                       </AlbumFooterMenu>
                     </Hover>
-                    <AlbumCover
-                      src={item.cover ? item.cover : AlbumArt}
-                      onClick={() => onClickAlbum(item)}
-                      effect="opacity"
-                    />
-                    <AlbumTitle onClick={() => onClickAlbum(item)}>
-                      {item.title}
-                    </AlbumTitle>
-                    <Artist>{item.artist}</Artist>
+                    <Link to={`/albums/${item.id}`}>
+                      <AlbumCover
+                        src={item.cover ? item.cover : AlbumArt}
+                        effect="opacity"
+                      />
+                      <AlbumTitle>{item.title}</AlbumTitle>
+                    </Link>
+                    <Artist to={`/artists/${item.artistId}`}>
+                      {item.artist}
+                    </Artist>
                     <Year>{item.year}</Year>
                   </div>
                 </Cell>

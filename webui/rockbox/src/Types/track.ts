@@ -7,4 +7,6 @@ export type Track = {
   time: string;
   albumArt?: string;
   cover?: string;
+  albumId?: string;
+  artistId?: string;
 };

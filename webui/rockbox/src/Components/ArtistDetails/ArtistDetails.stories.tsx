@@ -30,5 +30,6 @@ export const Default: Story = {
     onUnLikeAlbum: fn(),
     onLikeTrack: fn(),
     onUnlikeTrack: fn(),
+    onGoBack: fn(),
   },
 };
