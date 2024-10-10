@@ -30,6 +30,12 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh | bash
 
 ENV BASH_ENV=/root/.bashrc
 
+RUN curl -fsSL https://bun.sh/install | bash
+
+ENV PATH=/root/.bun/bin:$PATH
+
+RUN pkgx install node
+
 ENV LANG=en_US.UTF-8
 
 ENV LANGUAGE=en_US.UTF-8

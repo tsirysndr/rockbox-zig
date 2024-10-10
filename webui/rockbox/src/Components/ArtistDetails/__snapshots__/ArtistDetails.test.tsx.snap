@@ -1,0 +1,1341 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ArtistDetails > should render 1`] = `
+<div>
+  <div
+    class=""
+  >
+    <div
+      class="css-e1989k"
+    >
+      <div
+        class="css-1fkc5kv"
+      >
+        <a
+          class="css-tujm8o"
+          color="initial"
+          href="/albums"
+        >
+          <svg
+            aria-hidden="true"
+            class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+            color="initial"
+            fill="currentColor"
+            focusable="false"
+            height="20"
+            style="margin-right: 6px;"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"
+            />
+            <path
+              d="M12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"
+            />
+          </svg>
+          <div>
+            Albums
+          </div>
+        </a>
+        <a
+          class="css-8v05qj"
+          color="#fe099c"
+          href="/artists"
+        >
+          <svg
+            height="20"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20 4.22a5.67 5.67 0 0 0-9.68 4.57l-8 9.79 3.3 3.3 9.79-8c.18 0 .36.05.55.05a5.7 5.7 0 0 0 4-9.73ZM5.74 19.86l-1.38-1.38 6.44-7.89a5.48 5.48 0 0 0 2.83 2.84Zm13.21-8.65a4.2 4.2 0 1 1 0-5.94 4.17 4.17 0 0 1 0 5.95Z"
+              fill="#fe099c"
+            />
+          </svg>
+          <div
+            style="margin-left: 6px;"
+          >
+            Artists
+          </div>
+        </a>
+        <a
+          class="css-tujm8o"
+          color="initial"
+          href="/tracks"
+        >
+          <svg
+            height="20"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8.1 4.65v11.26a3.45 3.45 0 1 0 1.5 2.84V5.85l10.2-2.36v10.62A3.45 3.45 0 1 0 21.3 17V1.61Zm-2 16a2 2 0 1 1 2-2 2 2 0 0 1-1.95 2.05Zm11.7-1.8a1.95 1.95 0 1 1 2-1.85 2 2 0 0 1-1.95 1.9Z"
+              fill="initial"
+            />
+          </svg>
+          <div
+            style="margin-left: 6px;"
+          >
+            Songs
+          </div>
+        </a>
+        <a
+          class="css-tujm8o"
+          color="initial"
+          href="/files"
+        >
+          <svg
+            aria-hidden="true"
+            class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+            color="initial"
+            fill="none"
+            focusable="false"
+            height="19"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            style="margin-right: 6px;"
+            viewBox="0 0 24 24"
+            width="19"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <line
+              x1="22"
+              x2="2"
+              y1="12"
+              y2="12"
+            />
+            <path
+              d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+            />
+            <line
+              x1="6"
+              x2="6.01"
+              y1="16"
+              y2="16"
+            />
+            <line
+              x1="10"
+              x2="10.01"
+              y1="16"
+              y2="16"
+            />
+          </svg>
+          <div>
+            Files
+          </div>
+        </a>
+      </div>
+      <div
+        class="css-1qxls6i"
+      >
+        <div
+          class="css-1dlrxtg"
+        >
+          <div
+            class="css-1h69jy4"
+          >
+            <div
+              class="css-1ytum11"
+            >
+              <button
+                class="css-10asy2d"
+              >
+                <svg
+                  data-test="icon-PlaybackShuffle"
+                  fill="none"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    clip-rule="evenodd"
+                    d="M16.2 7h2.85l-1.3 1.3c-.4.4-.4 1 0 1.4.25.2.5.3.75.3s.5-.1.7-.3l3-3 .15-.15.05-.05c0-.025.013-.037.025-.05.012-.013.025-.025.025-.05 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056.05-.15.05-.25 0-.4 0-.05 0-.05-.05-.1 0-.021 0-.033-.004-.044-.005-.015-.017-.027-.046-.056 0-.025-.012-.037-.025-.05-.012-.013-.025-.025-.025-.05 0 0 0-.05-.05-.05l-.15-.15-3-3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4L19.1 5h-2.85c-1.75 0-3.3.9-4.25 2.35L6.85 15.6c-.55.9-1.5 1.4-2.55 1.4H2.5c-.55 0-1 .45-1 1s.45 1 1 1h1.8c1.75 0 3.3-.9 4.25-2.35L13.7 8.4c.5-.85 1.5-1.4 2.5-1.4ZM2.5 7h1.8c1.05 0 2 .5 2.55 1.4l.45.75 1.2-1.9C7.55 5.8 6 4.95 4.3 4.95H2.5c-.55 0-1 .45-1 1 0 .6.45 1.05 1 1.05Zm19.95 11.2v.05c0 .05 0 .1-.05.1v.05c-.05.1-.1.2-.2.3l-3 3c-.2.2-.45.3-.7.3-.25 0-.5-.1-.75-.3-.4-.4-.4-1 0-1.4l1.3-1.3H16.2c-1.7 0-3.25-.85-4.2-2.3l1.25-1.9.45.75c.55.9 1.5 1.4 2.55 1.4h2.85l-1.3-1.3c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l3 3c.1.1.15.2.2.3v.05c.05.05.05.1.05.15v.05c.05.15.05.25 0 .4Z"
+                    fill="#000"
+                    fill-rule="evenodd"
+                  />
+                </svg>
+              </button>
+              <button
+                class="css-10asy2d"
+              >
+                <svg
+                  fill="none"
+                  height="18"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    class="ionicon"
+                    d="M3.55 2c.304 0 .55.243.55.542V7.16l8.001-4.716a1.224 1.224 0 0 1 1.23-.015c.413.23.669.677.669 1.162v9.818c0 .486-.256.932-.669 1.162-.382.216-.853.21-1.23-.015L4.1 9.84v4.618a.546.546 0 0 1-.55.542.546.546 0 0 1-.55-.542V2.542C3 2.243 3.246 2 3.55 2Z"
+                    style="fill: #000;"
+                  />
+                </svg>
+              </button>
+              <button
+                class="css-10asy2d"
+              >
+                <svg
+                  height="32"
+                  viewBox="0 0 512 512"
+                  width="32"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <title>
+                    Pause
+                  </title>
+                  <path
+                    d="M208 432h-48a16 16 0 0 1-16-16V96a16 16 0 0 1 16-16h48a16 16 0 0 1 16 16v320a16 16 0 0 1-16 16zm144 0h-48a16 16 0 0 1-16-16V96a16 16 0 0 1 16-16h48a16 16 0 0 1 16 16v320a16 16 0 0 1-16 16z"
+                    style="fill: #000;"
+                  />
+                </svg>
+              </button>
+              <button
+                class="css-10asy2d"
+              >
+                <svg
+                  fill="none"
+                  height="18"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    class="ionicon"
+                    d="M14.45 2a.546.546 0 0 0-.55.542V7.16L5.899 2.444a1.224 1.224 0 0 0-1.23-.015C4.256 2.659 4 3.105 4 3.591v9.818c0 .486.256.932.669 1.162.382.216.853.21 1.23-.015L13.9 9.84v4.618c0 .299.246.542.55.542.304 0 .55-.243.55-.542V2.542A.546.546 0 0 0 14.45 2Z"
+                    style="fill: #000;"
+                  />
+                </svg>
+              </button>
+              <button
+                class="css-10asy2d"
+              >
+                <svg
+                  data-test="icon-PlaybackInactiveRepeat"
+                  fill="none"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    clip-rule="evenodd"
+                    d="M16.293 1.293a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1 0 1.414l-3 3a1 1 0 1 1-1.414-1.414L17.586 6H8.5c-3.298 0-6 2.702-6 6a1 1 0 1 1-2 0c0-4.402 3.598-8 8-8h9.086l-1.293-1.293a1 1 0 0 1 0-1.414ZM23.5 12a1 1 0 1 0-2 0c0 3.298-2.702 6-6 6H6.414l1.293-1.293a1 1 0 1 0-1.414-1.414l-3 3a1 1 0 0 0 0 1.414l3 3a1 1 0 0 0 1.414-1.414L6.414 20H15.5c4.402 0 8-3.598 8-8Z"
+                    fill="#000"
+                    fill-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div
+            class="css-frud38"
+          >
+            <img
+              alt="Album cover"
+              class="css-31cka"
+              src="https://resources.tidal.com/images/fe6787d5/4ba5/4d3e/8576/48943ee6a768/320x320.jpg"
+            />
+            <div
+              class="css-rbpzuh"
+            >
+              <div
+                class="css-1cojt9j"
+              >
+                Drankin N Smokin
+              </div>
+              <div
+                style="display: flex; flex-direction: row; align-items: center; justify-content: space-between;"
+              >
+                <div
+                  class="css-1jnbdma"
+                >
+                  02:03
+                </div>
+                <div
+                  class="css-bdl275"
+                >
+                  Future, Lil Uzi Vert
+                  <span
+                    class="css-c9cgcr"
+                  >
+                    -
+                  </span>
+                  Pluto x Baby Pluto (Deluxe)
+                </div>
+                <div
+                  class="css-1jnbdma"
+                >
+                  04:15
+                </div>
+              </div>
+              <div
+                class="css-1n7uud4"
+              >
+                <div
+                  aria-label="48% Loaded"
+                  aria-valuemax="100"
+                  aria-valuemin="0"
+                  aria-valuenow="48.3219508605943"
+                  class="ae"
+                  data-baseweb="progress-bar"
+                  role="progressbar"
+                >
+                  <div
+                    class="af ag ah ai aj"
+                  >
+                    <div
+                      class="ak al am an ao ap aq ar"
+                    >
+                      <div
+                        class="ak al am an as at ae au av"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="css-nb4c1y"
+          >
+            <button
+              class="css-10asy2d"
+            >
+              <svg
+                aria-hidden="true"
+                class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                fill="currentColor"
+                focusable="false"
+                height="21"
+                viewBox="0 0 20 20"
+                width="21"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14.4 9H8.6c-.552 0-.6.447-.6 1s.048 1 .6 1h5.8c.552 0 .6-.447.6-1s-.048-1-.6-1zm2 5H8.6c-.552 0-.6.447-.6 1s.048 1 .6 1h7.8c.552 0 .6-.447.6-1s-.048-1-.6-1zM8.6 6h7.8c.552 0 .6-.447.6-1s-.048-1-.6-1H8.6c-.552 0-.6.447-.6 1s.048 1 .6 1zM5.4 9H3.6c-.552 0-.6.447-.6 1s.048 1 .6 1h1.8c.552 0 .6-.447.6-1s-.048-1-.6-1zm0 5H3.6c-.552 0-.6.447-.6 1s.048 1 .6 1h1.8c.552 0 .6-.447.6-1s-.048-1-.6-1zm0-10H3.6c-.552 0-.6.447-.6 1s.048 1 .6 1h1.8c.552 0 .6-.447.6-1s-.048-1-.6-1z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div
+          class="css-1w99uby"
+        >
+          <button
+            class="css-12583pf"
+          >
+            <div
+              style="margin-top: 2px;"
+            >
+              <svg
+                fill="none"
+                height="20"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <g
+                  style="fill: #000;"
+                >
+                  <path
+                    d="M0 0h20v20H0Z"
+                    fill="none"
+                    style="fill: none;"
+                  />
+                  <path
+                    d="M16 9.25H6.873l4.192-4.193L10 4l-6 6 6 6 1.058-1.058-4.185-4.192H16v-1.5Z"
+                    style="fill: #000;"
+                  />
+                </g>
+              </svg>
+            </div>
+          </button>
+          <div
+            class="css-tdwo6g"
+          >
+            Daft Punk
+          </div>
+          <div
+            class="css-14zx4vh"
+          >
+            <button
+              class="aw ax ay az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi ag bj ah bk bl bm bn bo bp bq br bs bt bu bv bw bx as by bz c0 c1 c2"
+              data-baseweb="button"
+            >
+              <div
+                class="css-14zx4vh"
+              >
+                <svg
+                  fill="none"
+                  height="20"
+                  width="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    class="ionicon"
+                    d="M7.386 16c-.23 0-.456-.057-.656-.165-.45-.24-.73-.706-.73-1.213V4.378a1.387 1.387 0 0 1 2.071-1.197l9.296 5.241c.394.232.633.64.633 1.077 0 .438-.239.845-.633 1.078L8.07 15.819a1.39 1.39 0 0 1-.684.181Z"
+                    style="fill: #fff;"
+                  />
+                </svg>
+                <div
+                  style="margin-left: 7px;"
+                >
+                  Play
+                </div>
+              </div>
+            </button>
+            <div
+              class="css-wa9s5g"
+            />
+            <button
+              class="aw ax ay az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi ag bj ah bk bl bm bn bo bp bq br bs bt bu bv bw c3 c4 c5 c6 c0 c1 c2"
+              data-baseweb="button"
+            >
+              <div
+                class="css-14zx4vh"
+              >
+                <svg
+                  data-test="icon-PlaybackShuffle"
+                  fill="none"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    clip-rule="evenodd"
+                    d="M16.2 7h2.85l-1.3 1.3c-.4.4-.4 1 0 1.4.25.2.5.3.75.3s.5-.1.7-.3l3-3 .15-.15.05-.05c0-.025.013-.037.025-.05.012-.013.025-.025.025-.05 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056.05-.15.05-.25 0-.4 0-.05 0-.05-.05-.1 0-.021 0-.033-.004-.044-.005-.015-.017-.027-.046-.056 0-.025-.012-.037-.025-.05-.012-.013-.025-.025-.025-.05 0 0 0-.05-.05-.05l-.15-.15-3-3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4L19.1 5h-2.85c-1.75 0-3.3.9-4.25 2.35L6.85 15.6c-.55.9-1.5 1.4-2.55 1.4H2.5c-.55 0-1 .45-1 1s.45 1 1 1h1.8c1.75 0 3.3-.9 4.25-2.35L13.7 8.4c.5-.85 1.5-1.4 2.5-1.4ZM2.5 7h1.8c1.05 0 2 .5 2.55 1.4l.45.75 1.2-1.9C7.55 5.8 6 4.95 4.3 4.95H2.5c-.55 0-1 .45-1 1 0 .6.45 1.05 1 1.05Zm19.95 11.2v.05c0 .05 0 .1-.05.1v.05c-.05.1-.1.2-.2.3l-3 3c-.2.2-.45.3-.7.3-.25 0-.5-.1-.75-.3-.4-.4-.4-1 0-1.4l1.3-1.3H16.2c-1.7 0-3.25-.85-4.2-2.3l1.25-1.9.45.75c.55.9 1.5 1.4 2.55 1.4h2.85l-1.3-1.3c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l3 3c.1.1.15.2.2.3v.05c.05.05.05.1.05.15v.05c.05.15.05.25 0 .4Z"
+                    fill="#fe099c"
+                    fill-rule="evenodd"
+                  />
+                </svg>
+                <div
+                  style="margin-left: 7px;"
+                >
+                  Shuffle
+                </div>
+              </div>
+            </button>
+          </div>
+          <div
+            class="css-1jqyuzd"
+          >
+            Tracks
+          </div>
+          <table
+            style="width: 100%; margin-top: 31px;"
+          >
+            <thead>
+              <tr
+                style="height: 36px; color: rgba(0, 0, 0, 0.54);"
+              >
+                <th
+                  style="text-align: left; width: 48px;"
+                >
+                  Title
+                </th>
+                <th
+                  style="text-align: left; width: 150px;"
+                />
+                <th
+                  style="text-align: left; width: 150px;"
+                >
+                  Artist
+                </th>
+                <th
+                  style="text-align: left; width: 150px;"
+                >
+                  Album
+                </th>
+                <th
+                  style="text-align: left; width: 50px;"
+                >
+                  Time
+                </th>
+                <th
+                  style="text-align: left; width: 100px;"
+                />
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                style="height: 48px;"
+              >
+                <td
+                  style="width: 48px;"
+                >
+                  <img
+                    alt="album art"
+                    class="css-16tu1q9"
+                    src="https://resources.tidal.com/images/09b59e6e/717e/43e3/b2e2/d2a153c24775/320x320.jpg"
+                  />
+                </td>
+                <td
+                  style="width: 150px;"
+                >
+                  <div
+                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                  >
+                    Get Lucky
+                  </div>
+                </td>
+                <td
+                  style="width: 150px;"
+                >
+                  <div
+                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                  >
+                    <a
+                      class="css-i74fgx"
+                      href="#"
+                    >
+                      Daft Punk
+                    </a>
+                  </div>
+                </td>
+                <td
+                  style="width: 150px;"
+                >
+                  <div
+                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                  >
+                    <a
+                      class="css-i74fgx"
+                      href="#"
+                    >
+                      Random Access Memories
+                    </a>
+                  </div>
+                </td>
+                <td
+                  style="width: 50px;"
+                >
+                  6:10
+                </td>
+                <td
+                  style="width: 100px;"
+                >
+                  <div
+                    class="css-14zx4vh"
+                    style="justify-content: flex-end; align-items: center;"
+                  >
+                    <button
+                      class="css-10asy2d"
+                    >
+                      <button
+                        class="css-12ezcoy"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                          fill="currentColor"
+                          focusable="false"
+                          height="24"
+                          viewBox="0 0 512 512"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            cx="256"
+                            cy="256"
+                            r="48"
+                          />
+                          <circle
+                            cx="416"
+                            cy="256"
+                            r="48"
+                          />
+                          <circle
+                            cx="96"
+                            cy="256"
+                            r="48"
+                          />
+                        </svg>
+                      </button>
+                    </button>
+                    <button
+                      class="css-10asy2d"
+                    >
+                      <svg
+                        fill="none"
+                        height="24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          class="ionicon"
+                          style="fill: #000;"
+                        >
+                          <path
+                            d="M11 5v12m6-6H5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none;"
+                          />
+                          <path
+                            class="stroke-shape"
+                            d="M11 5v12m6-6H5"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none; stroke-width: 2; stroke: #000;"
+                          />
+                        </g>
+                      </svg>
+                    </button>
+                    <button
+                      class="css-10asy2d"
+                    >
+                      <svg
+                        fill="none"
+                        height="20"
+                        style="padding-top: 1px;"
+                        width="20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          class="ionicon"
+                          style="fill: #000;"
+                        >
+                          <path
+                            d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none;"
+                          />
+                          <path
+                            class="stroke-shape"
+                            d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none; stroke-width: 2; stroke: #000; stroke-opacity: 1;"
+                          />
+                        </g>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr
+                style="height: 48px;"
+              >
+                <td
+                  style="width: 48px;"
+                >
+                  <img
+                    alt="album art"
+                    class="css-16tu1q9"
+                    src="https://resources.tidal.com/images/09b59e6e/717e/43e3/b2e2/d2a153c24775/320x320.jpg"
+                  />
+                </td>
+                <td
+                  style="width: 150px;"
+                >
+                  <div
+                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                  >
+                    Instant Crush
+                  </div>
+                </td>
+                <td
+                  style="width: 150px;"
+                >
+                  <div
+                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                  >
+                    <a
+                      class="css-i74fgx"
+                      href="#"
+                    >
+                      Daft Punk
+                    </a>
+                  </div>
+                </td>
+                <td
+                  style="width: 150px;"
+                >
+                  <div
+                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                  >
+                    <a
+                      class="css-i74fgx"
+                      href="#"
+                    >
+                      Random Access Memories
+                    </a>
+                  </div>
+                </td>
+                <td
+                  style="width: 50px;"
+                >
+                  5:38
+                </td>
+                <td
+                  style="width: 100px;"
+                >
+                  <div
+                    class="css-14zx4vh"
+                    style="justify-content: flex-end; align-items: center;"
+                  >
+                    <button
+                      class="css-10asy2d"
+                    >
+                      <button
+                        class="css-12ezcoy"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                          fill="currentColor"
+                          focusable="false"
+                          height="24"
+                          viewBox="0 0 512 512"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            cx="256"
+                            cy="256"
+                            r="48"
+                          />
+                          <circle
+                            cx="416"
+                            cy="256"
+                            r="48"
+                          />
+                          <circle
+                            cx="96"
+                            cy="256"
+                            r="48"
+                          />
+                        </svg>
+                      </button>
+                    </button>
+                    <button
+                      class="css-10asy2d"
+                    >
+                      <svg
+                        fill="none"
+                        height="24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          class="ionicon"
+                          style="fill: #000;"
+                        >
+                          <path
+                            d="M11 5v12m6-6H5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none;"
+                          />
+                          <path
+                            class="stroke-shape"
+                            d="M11 5v12m6-6H5"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none; stroke-width: 2; stroke: #000;"
+                          />
+                        </g>
+                      </svg>
+                    </button>
+                    <button
+                      class="css-10asy2d"
+                    >
+                      <svg
+                        fill="none"
+                        height="20"
+                        style="padding-top: 1px;"
+                        width="20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          class="ionicon"
+                          style="fill: #000;"
+                        >
+                          <path
+                            d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none;"
+                          />
+                          <path
+                            class="stroke-shape"
+                            d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none; stroke-width: 2; stroke: #000; stroke-opacity: 1;"
+                          />
+                        </g>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr
+                style="height: 48px;"
+              >
+                <td
+                  style="width: 48px;"
+                >
+                  <img
+                    alt="album art"
+                    class="css-16tu1q9"
+                    src="https://resources.tidal.com/images/f853861c/0c5f/4e73/b608/eeb00618fe6f/320x320.jpg"
+                  />
+                </td>
+                <td
+                  style="width: 150px;"
+                >
+                  <div
+                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                  >
+                    Arround the World
+                  </div>
+                </td>
+                <td
+                  style="width: 150px;"
+                >
+                  <div
+                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                  >
+                    <a
+                      class="css-i74fgx"
+                      href="#"
+                    >
+                      Daft Punk
+                    </a>
+                  </div>
+                </td>
+                <td
+                  style="width: 150px;"
+                >
+                  <div
+                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                  >
+                    <a
+                      class="css-i74fgx"
+                      href="#"
+                    >
+                      Homework
+                    </a>
+                  </div>
+                </td>
+                <td
+                  style="width: 50px;"
+                >
+                  7:10
+                </td>
+                <td
+                  style="width: 100px;"
+                >
+                  <div
+                    class="css-14zx4vh"
+                    style="justify-content: flex-end; align-items: center;"
+                  >
+                    <button
+                      class="css-10asy2d"
+                    >
+                      <button
+                        class="css-12ezcoy"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                          fill="currentColor"
+                          focusable="false"
+                          height="24"
+                          viewBox="0 0 512 512"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            cx="256"
+                            cy="256"
+                            r="48"
+                          />
+                          <circle
+                            cx="416"
+                            cy="256"
+                            r="48"
+                          />
+                          <circle
+                            cx="96"
+                            cy="256"
+                            r="48"
+                          />
+                        </svg>
+                      </button>
+                    </button>
+                    <button
+                      class="css-10asy2d"
+                    >
+                      <svg
+                        fill="none"
+                        height="24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          class="ionicon"
+                          style="fill: #000;"
+                        >
+                          <path
+                            d="M11 5v12m6-6H5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none;"
+                          />
+                          <path
+                            class="stroke-shape"
+                            d="M11 5v12m6-6H5"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none; stroke-width: 2; stroke: #000;"
+                          />
+                        </g>
+                      </svg>
+                    </button>
+                    <button
+                      class="css-10asy2d"
+                    >
+                      <svg
+                        fill="none"
+                        height="20"
+                        style="padding-top: 1px;"
+                        width="20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g
+                          class="ionicon"
+                          style="fill: #000;"
+                        >
+                          <path
+                            d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none;"
+                          />
+                          <path
+                            class="stroke-shape"
+                            d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            style="fill: none; stroke-width: 2; stroke: #000; stroke-opacity: 1;"
+                          />
+                        </g>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            class="css-1jqyuzd"
+            style="margin-bottom: 20px; margin-top: 50px;"
+          >
+            Albums
+          </div>
+          <div
+            style="margin-bottom: 100px;"
+          >
+            <div
+              class="c7 c8"
+            >
+              <div
+                class="c9 af ca c8 cb cc cd ce cf cg ch ci cj ck cl cm cn co cp cq"
+              >
+                <div
+                  class="c9 ae cr cs ct cu cv cw cx cy cz d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da db dc"
+                >
+                  <div
+                    style="position: relative; width: 100%;"
+                  >
+                    <button
+                      class="css-12ezcoy"
+                    >
+                      <div
+                        class="css-1jrgpod"
+                      >
+                        <div
+                          style="background-color: rgba(255, 255, 255, 0.737); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
+                        >
+                          <svg
+                            fill="none"
+                            height="20"
+                            width="20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              class="ionicon"
+                              d="M7.386 16c-.23 0-.456-.057-.656-.165-.45-.24-.73-.706-.73-1.213V4.378a1.387 1.387 0 0 1 2.071-1.197l9.296 5.241c.394.232.633.64.633 1.077 0 .438-.239.845-.633 1.078L8.07 15.819a1.39 1.39 0 0 1-.684.181Z"
+                              style="fill: #000;"
+                            />
+                          </svg>
+                        </div>
+                        <button
+                          class="css-10n9a0h"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                            color="#fff"
+                            fill="currentColor"
+                            focusable="false"
+                            height="24"
+                            viewBox="0 0 512 512"
+                            width="24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              cx="256"
+                              cy="256"
+                              r="48"
+                            />
+                            <circle
+                              cx="416"
+                              cy="256"
+                              r="48"
+                            />
+                            <circle
+                              cx="96"
+                              cy="256"
+                              r="48"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          class="css-10n9a0h"
+                        >
+                          <svg
+                            fill="none"
+                            height="20"
+                            style="padding-top: 1px;"
+                            width="20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g
+                              class="ionicon"
+                              style="fill: #fff;"
+                            >
+                              <path
+                                d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                style="fill: none;"
+                              />
+                              <path
+                                class="stroke-shape"
+                                d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                style="fill: none; stroke-width: 2; stroke: #fff; stroke-opacity: 1;"
+                              />
+                            </g>
+                          </svg>
+                        </button>
+                      </div>
+                    </button>
+                    <span
+                      class=" lazy-load-image-background opacity"
+                      style="color: transparent; display: inline-block;"
+                    >
+                      <img
+                        class="css-1g7adp4"
+                        src="https://resources.tidal.com/images/09b59e6e/717e/43e3/b2e2/d2a153c24775/320x320.jpg"
+                      />
+                    </span>
+                  </div>
+                  <div
+                    class="css-e68bk5"
+                  >
+                    Random Access Memories
+                  </div>
+                  <div
+                    class="css-8g9w67"
+                  >
+                    Daft Punk
+                  </div>
+                  <div
+                    class="css-1q570sn"
+                  >
+                    2013
+                  </div>
+                </div>
+                <div
+                  class="c9 ae cr cs ct cu cv cw cx cy cz d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da db dc"
+                >
+                  <div
+                    style="position: relative; width: 100%;"
+                  >
+                    <button
+                      class="css-12ezcoy"
+                    >
+                      <div
+                        class="css-1jrgpod"
+                      >
+                        <div
+                          style="background-color: rgba(255, 255, 255, 0.737); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
+                        >
+                          <svg
+                            fill="none"
+                            height="20"
+                            width="20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              class="ionicon"
+                              d="M7.386 16c-.23 0-.456-.057-.656-.165-.45-.24-.73-.706-.73-1.213V4.378a1.387 1.387 0 0 1 2.071-1.197l9.296 5.241c.394.232.633.64.633 1.077 0 .438-.239.845-.633 1.078L8.07 15.819a1.39 1.39 0 0 1-.684.181Z"
+                              style="fill: #000;"
+                            />
+                          </svg>
+                        </div>
+                        <button
+                          class="css-10n9a0h"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                            color="#fff"
+                            fill="currentColor"
+                            focusable="false"
+                            height="24"
+                            viewBox="0 0 512 512"
+                            width="24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              cx="256"
+                              cy="256"
+                              r="48"
+                            />
+                            <circle
+                              cx="416"
+                              cy="256"
+                              r="48"
+                            />
+                            <circle
+                              cx="96"
+                              cy="256"
+                              r="48"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          class="css-10n9a0h"
+                        >
+                          <svg
+                            fill="none"
+                            height="20"
+                            style="padding-top: 1px;"
+                            width="20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g
+                              class="ionicon"
+                              style="fill: #fff;"
+                            >
+                              <path
+                                d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                style="fill: none;"
+                              />
+                              <path
+                                class="stroke-shape"
+                                d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                style="fill: none; stroke-width: 2; stroke: #fff; stroke-opacity: 1;"
+                              />
+                            </g>
+                          </svg>
+                        </button>
+                      </div>
+                    </button>
+                    <span
+                      class=" lazy-load-image-background opacity"
+                      style="color: transparent; display: inline-block;"
+                    >
+                      <img
+                        class="css-1g7adp4"
+                        src="https://resources.tidal.com/images/866bb671/5ec8/4b45/8a60/50e51f5dbf10/320x320.jpg"
+                      />
+                    </span>
+                  </div>
+                  <div
+                    class="css-e68bk5"
+                  >
+                    Tron: Legacy
+                  </div>
+                  <div
+                    class="css-8g9w67"
+                  >
+                    Daft Punk
+                  </div>
+                  <div
+                    class="css-1q570sn"
+                  >
+                    2010
+                  </div>
+                </div>
+                <div
+                  class="c9 ae cr cs ct cu cv cw cx cy cz d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da db dc"
+                >
+                  <div
+                    style="position: relative; width: 100%;"
+                  >
+                    <button
+                      class="css-12ezcoy"
+                    >
+                      <div
+                        class="css-1jrgpod"
+                      >
+                        <div
+                          style="background-color: rgba(255, 255, 255, 0.737); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
+                        >
+                          <svg
+                            fill="none"
+                            height="20"
+                            width="20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              class="ionicon"
+                              d="M7.386 16c-.23 0-.456-.057-.656-.165-.45-.24-.73-.706-.73-1.213V4.378a1.387 1.387 0 0 1 2.071-1.197l9.296 5.241c.394.232.633.64.633 1.077 0 .438-.239.845-.633 1.078L8.07 15.819a1.39 1.39 0 0 1-.684.181Z"
+                              style="fill: #000;"
+                            />
+                          </svg>
+                        </div>
+                        <button
+                          class="css-10n9a0h"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                            color="#fff"
+                            fill="currentColor"
+                            focusable="false"
+                            height="24"
+                            viewBox="0 0 512 512"
+                            width="24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              cx="256"
+                              cy="256"
+                              r="48"
+                            />
+                            <circle
+                              cx="416"
+                              cy="256"
+                              r="48"
+                            />
+                            <circle
+                              cx="96"
+                              cy="256"
+                              r="48"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          class="css-10n9a0h"
+                        >
+                          <svg
+                            fill="none"
+                            height="20"
+                            style="padding-top: 1px;"
+                            width="20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g
+                              class="ionicon"
+                              style="fill: #fff;"
+                            >
+                              <path
+                                d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                style="fill: none;"
+                              />
+                              <path
+                                class="stroke-shape"
+                                d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                style="fill: none; stroke-width: 2; stroke: #fff; stroke-opacity: 1;"
+                              />
+                            </g>
+                          </svg>
+                        </button>
+                      </div>
+                    </button>
+                    <span
+                      class=" lazy-load-image-background opacity"
+                      style="color: transparent; display: inline-block;"
+                    >
+                      <img
+                        class="css-1g7adp4"
+                        src="https://resources.tidal.com/images/f853861c/0c5f/4e73/b608/eeb00618fe6f/320x320.jpg"
+                      />
+                    </span>
+                  </div>
+                  <div
+                    class="css-e68bk5"
+                  >
+                    Homework
+                  </div>
+                  <div
+                    class="css-8g9w67"
+                  >
+                    Daft Punk
+                  </div>
+                  <div
+                    class="css-1q570sn"
+                  >
+                    2001
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class=""
+  />
+</div>
+`;

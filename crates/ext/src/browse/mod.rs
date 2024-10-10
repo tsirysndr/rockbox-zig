@@ -24,7 +24,7 @@ pub async fn op_rockbox_browse() {
 #[serde]
 pub async fn op_tree_get_entries(#[string] path: String) -> Result<Vec<Entry>, AnyError> {
     let client = reqwest::Client::new();
-    let url = format!("{}/tree_entries?q={}", rockbox_url(), path);
+    let url = format!("{}/browse/tree-entries?q={}", rockbox_url(), path);
     let response = client.get(&url).send().await?;
     let entries = response.json::<Vec<Entry>>().await?;
     Ok(entries)

@@ -1,0 +1,7 @@
+tbody > tr:hover {
+  background-color: #f9f9f9;
+}
+
+table {
+  border-spacing: 0;
+}

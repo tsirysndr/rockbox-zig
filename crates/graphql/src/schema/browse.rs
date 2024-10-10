@@ -9,7 +9,7 @@ pub struct BrowseQuery;
 impl BrowseQuery {
     async fn tree_get_entries(&self, ctx: &Context<'_>, path: String) -> Result<Vec<Entry>, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
-        let url = format!("{}/tree_entries?q={}", rockbox_url(), path);
+        let url = format!("{}/browse/tree-entries?q={}", rockbox_url(), path);
         let response = client.get(&url).send().await?;
         let response = response.json::<Vec<Entry>>().await?;
         Ok(response)
