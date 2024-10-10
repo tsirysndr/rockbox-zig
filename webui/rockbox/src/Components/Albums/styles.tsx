@@ -31,15 +31,10 @@ export const AlbumCover = styled(LazyLoadImage)`
   cursor: pointer;
 `;
 
-export const NoAlbumCover = styled.div`
+export const NoAlbumCover = styled.img`
+  width: 100%;
   border-radius: 3px;
   cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #ddaefb14;
-  // padding: 20px;
-  margin-bottom: 5px;
 `;
 
 export const Artist = styled(RouterLink)`

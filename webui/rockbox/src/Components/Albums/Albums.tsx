@@ -3,7 +3,7 @@ import { FC } from "react";
 import { Cell, Grid } from "baseui/layout-grid";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
-import AlbumArt from "../../Assets/albumart.png";
+import AlbumArt from "../../Assets/albumart.svg";
 import {
   AlbumCover,
   AlbumFooterMenu,
@@ -18,6 +18,7 @@ import {
   Title,
   Year,
   Link,
+  NoAlbumCover,
 } from "./styles";
 import Filter from "../Filter";
 import Play from "../Icons/Play";
@@ -78,10 +79,10 @@ const Albums: FC<AlbumsProps> = (props) => {
                       </AlbumFooterMenu>
                     </Hover>
                     <Link to={`/albums/${item.id}`}>
-                      <AlbumCover
-                        src={item.cover ? item.cover : AlbumArt}
-                        effect="opacity"
-                      />
+                      {item.cover && (
+                        <AlbumCover src={item.cover} effect="opacity" />
+                      )}
+                      {!item.cover && <NoAlbumCover src={AlbumArt} />}
                       <AlbumTitle>{item.title}</AlbumTitle>
                     </Link>
                     <Artist to={`/artists/${item.artistId}`}>
