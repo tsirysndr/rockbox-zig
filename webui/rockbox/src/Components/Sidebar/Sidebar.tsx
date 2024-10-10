@@ -12,7 +12,10 @@ export type SidebarProps = {
 const Sidebar: FC<SidebarProps> = ({ active }) => {
   return (
     <SidebarContainer>
-      <MenuItem color={active === "albums" ? "#fe099c" : "initial"}>
+      <MenuItem
+        color={active === "albums" ? "#fe099c" : "initial"}
+        to="/albums"
+      >
         <Disc
           size={20}
           style={{ marginRight: 6 }}
@@ -20,7 +23,10 @@ const Sidebar: FC<SidebarProps> = ({ active }) => {
         />
         <div>Albums</div>
       </MenuItem>
-      <MenuItem color={active === "artists" ? "#fe099c" : "initial"}>
+      <MenuItem
+        color={active === "artists" ? "#fe099c" : "initial"}
+        to="/artists"
+      >
         <Artist
           width={20}
           height={20}
@@ -28,11 +34,11 @@ const Sidebar: FC<SidebarProps> = ({ active }) => {
         />
         <div style={{ marginLeft: 6 }}>Artists</div>
       </MenuItem>
-      <MenuItem color={active === "songs" ? "#fe099c" : "initial"}>
+      <MenuItem color={active === "songs" ? "#fe099c" : "initial"} to="/tracks">
         <Track height={20} color={active === "songs" ? "#fe099c" : "initial"} />
         <div style={{ marginLeft: 6 }}>Songs</div>
       </MenuItem>
-      <MenuItem color={active === "files" ? "#fe099c" : "initial"}>
+      <MenuItem color={active === "files" ? "#fe099c" : "initial"} to="/files">
         <HardDrive
           size={19}
           style={{ marginRight: 6 }}

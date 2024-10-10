@@ -2,6 +2,7 @@ import { render } from "@testing-library/react";
 import { vi } from "vitest";
 import AlbumDetails from "./AlbumDetails";
 import { tracks } from "./mocks";
+import { MemoryRouter } from "react-router-dom";
 
 describe("AlbumDetails", () => {
   it("should render", () => {
@@ -11,14 +12,16 @@ describe("AlbumDetails", () => {
     const onShuffleAll = vi.fn();
     const onUnlike = vi.fn();
     const { container } = render(
-      <AlbumDetails
-        onGoBack={onGoBack}
-        onLike={onLike}
-        onPlayAll={onPlayAll}
-        onShuffleAll={onShuffleAll}
-        onUnlike={onUnlike}
-        tracks={tracks}
-      />
+      <MemoryRouter initialEntries={["/"]}>
+        <AlbumDetails
+          onGoBack={onGoBack}
+          onLike={onLike}
+          onPlayAll={onPlayAll}
+          onShuffleAll={onShuffleAll}
+          onUnlike={onUnlike}
+          tracks={tracks}
+        />
+      </MemoryRouter>
     );
     expect(container).toMatchSnapshot();
   });

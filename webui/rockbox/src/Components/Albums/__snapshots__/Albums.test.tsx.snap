@@ -12,8 +12,9 @@ exports[`Albums > should render 1`] = `
         class="css-1fkc5kv"
       >
         <a
-          class="css-1cgrhjh"
+          class="css-8v05qj"
           color="#fe099c"
+          href="/albums"
         >
           <svg
             aria-hidden="true"
@@ -39,8 +40,9 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-p0de18"
+          class="css-tujm8o"
           color="initial"
+          href="/artists"
         >
           <svg
             height="20"
@@ -60,8 +62,9 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-p0de18"
+          class="css-tujm8o"
           color="initial"
+          href="/tracks"
         >
           <svg
             height="20"
@@ -80,8 +83,9 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-p0de18"
+          class="css-tujm8o"
           color="initial"
+          href="/files"
         >
           <svg
             aria-hidden="true"
@@ -442,9 +446,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -562,9 +566,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -682,9 +686,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -802,9 +806,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -922,9 +926,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -1042,9 +1046,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -1162,9 +1166,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -1282,9 +1286,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -1402,9 +1406,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -1522,9 +1526,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -1642,9 +1646,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -1762,9 +1766,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -1882,9 +1886,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -2002,9 +2006,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -2122,9 +2126,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -2242,9 +2246,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -2362,9 +2366,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -2482,9 +2486,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -2602,9 +2606,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -2722,9 +2726,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -2842,9 +2846,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -2962,9 +2966,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -3082,9 +3086,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -3202,9 +3206,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -3322,9 +3326,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -3442,9 +3446,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -3562,9 +3566,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -3682,9 +3686,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -3802,9 +3806,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -3922,9 +3926,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -4042,9 +4046,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -4162,9 +4166,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -4282,9 +4286,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -4402,9 +4406,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -4522,9 +4526,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -4642,9 +4646,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -4762,9 +4766,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -4882,9 +4886,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -5002,9 +5006,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -5122,9 +5126,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -5242,9 +5246,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -5362,9 +5366,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -5482,9 +5486,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -5602,9 +5606,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g
@@ -5722,9 +5726,9 @@ exports[`Albums > should render 1`] = `
                         >
                           <svg
                             fill="none"
-                            height="24"
+                            height="20"
                             style="padding-top: 1px;"
-                            width="24"
+                            width="20"
                             xmlns="http://www.w3.org/2000/svg"
                           >
                             <g

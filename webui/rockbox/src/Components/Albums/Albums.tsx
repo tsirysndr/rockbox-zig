@@ -73,7 +73,7 @@ const Albums: FC<AlbumsProps> = (props) => {
                           <EllipsisHorizontal size={24} color="#fff" />
                         </FloatingButton>
                         <FloatingButton onClick={() => props.onLike(item)}>
-                          <HeartOutline color="#fff" />
+                          <HeartOutline color="#fff" size={20} />
                         </FloatingButton>
                       </AlbumFooterMenu>
                     </Hover>

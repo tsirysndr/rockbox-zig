@@ -1,5 +1,6 @@
-import styled from '@emotion/styled';
-import { css } from '@emotion/react';
+import styled from "@emotion/styled";
+import { css } from "@emotion/react";
+import { Link } from "react-router-dom";
 
 export const SidebarContainer = styled.div`
   display: flex;
@@ -10,7 +11,7 @@ export const SidebarContainer = styled.div`
   padding: 20px;
 `;
 
-export const MenuItem = styled.a<{ color?: string }>`
+export const MenuItem = styled(Link)<{ color?: string }>`
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -19,7 +20,9 @@ export const MenuItem = styled.a<{ color?: string }>`
   cursor: pointer;
   font-size: 14px;
   text-decoration: none;
-  ${({ color }) => color && css`
-    color: ${color};
-  `}
+  ${({ color }) =>
+    color &&
+    css`
+      color: ${color};
+    `}
 `;

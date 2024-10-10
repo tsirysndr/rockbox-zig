@@ -8,7 +8,7 @@ export type HeartOutlineProps = {
 };
 
 const HeartOutline: React.FC<HeartOutlineProps> = ({
-  size = 24,
+  size = 20,
   color = "#000",
   ...props
 }) => (
