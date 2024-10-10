@@ -33,7 +33,7 @@ import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
 import HeartOutline from "../Icons/HeartOutline";
 import Add from "../Icons/Add";
 import Table from "../Table";
-import AlbumArt from "../../Assets/albumart.png";
+import AlbumArt from "../../Assets/albumart.svg";
 import { Cell, Grid } from "baseui/layout-grid";
 import { Link as RouterLink } from "react-router-dom";
 import "./styles.css";
