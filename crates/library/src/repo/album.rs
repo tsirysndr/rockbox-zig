@@ -55,6 +55,27 @@ pub async fn find_by_md5(pool: Pool<Sqlite>, md5: &str) -> Result<Option<Album>,
     }
 }
 
+pub async fn find_by_artist(
+    pool: Pool<Sqlite>,
+    artist_id: &str,
+) -> Result<Vec<Album>, sqlx::Error> {
+    match sqlx::query_as::<_, Album>(
+        r#"
+        SELECT * FROM album WHERE artist_id = $1 ORDER BY title ASC
+        "#,
+    )
+    .bind(artist_id)
+    .fetch_all(&pool)
+    .await
+    {
+        Ok(albums) => Ok(albums),
+        Err(e) => {
+            eprintln!("Error finding albums: {:?}", e);
+            Err(e)
+        }
+    }
+}
+
 pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Album>, sqlx::Error> {
     match sqlx::query_as::<_, Album>(
         r#"

@@ -32,7 +32,12 @@ impl LibraryQuery {
     async fn album(&self, ctx: &Context<'_>, id: String) -> Result<Option<Album>, Error> {
         let pool = ctx.data::<Pool<Sqlite>>()?;
         let results = repo::album::find(pool.clone(), &id).await?;
-        Ok(results.map(Into::into))
+        let tracks = repo::album_tracks::find_by_album(pool.clone(), &id).await?;
+        let mut album: Option<Album> = results.map(Into::into);
+        if let Some(album) = album.as_mut() {
+            album.tracks = tracks.into_iter().map(Into::into).collect();
+        }
+        Ok(album)
     }
 
     async fn artist(&self, ctx: &Context<'_>, id: String) -> Result<Option<Artist>, Error> {

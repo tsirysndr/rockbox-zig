@@ -32,7 +32,7 @@ export const AlbumTitle = styled.div`
   font-family: RockfordSansBold;
 `;
 
-export const Artist = styled.a`
+export const Artist = styled(RouterLink)`
   color: #000;
   text-decoration: none;
   font-family: RockfordSansMedium;
@@ -50,9 +50,10 @@ export const Tracks = styled.div`
 `;
 
 export const Year = styled.div`
-  margin-top: 25px;
+  margin-top: 15px;
   font-weight: 400;
   font-size: 14px;
+  margin-bottom: 10px;
 `;
 
 export const Header = styled.div`

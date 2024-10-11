@@ -5,7 +5,7 @@ import {
   IdIdentifier,
   useReactTable,
 } from "@tanstack/react-table";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Track } from "../../Types/track";
 
 export type TableProps = {
@@ -15,8 +15,11 @@ export type TableProps = {
 };
 
 const Table: FC<TableProps> = ({ columns, tracks }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [data, _setData] = useState<Track[]>(() => [...tracks]);
+  const [data, setData] = useState<Track[]>(() => [...tracks]);
+
+  useEffect(() => {
+    setData([...tracks]);
+  }, [tracks]);
 
   const table = useReactTable({
     data,

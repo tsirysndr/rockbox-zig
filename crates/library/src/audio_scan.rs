@@ -1,6 +1,8 @@
 use crate::album_art::extract_and_save_album_cover;
 use crate::entity::album::Album;
+use crate::entity::album_tracks::AlbumTracks;
 use crate::entity::artist::Artist;
+use crate::entity::artist_tracks::ArtistTracks;
 use crate::{entity::track::Track, repo};
 use anyhow::Error;
 use chrono::Utc;
@@ -95,7 +97,7 @@ pub fn scan_audio_files(
                 )
                 .await?;
 
-                repo::track::save(
+                let track_id = repo::track::save(
                     pool.clone(),
                     Track {
                         id: cuid::cuid1()?,
@@ -123,6 +125,26 @@ pub fn scan_audio_files(
                         artist_id: artist_id.clone(),
                         album_id: album_id.clone(),
                         ..Default::default()
+                    },
+                )
+                .await?;
+
+                repo::album_tracks::save(
+                    pool.clone(),
+                    AlbumTracks {
+                        id: cuid::cuid1()?,
+                        album_id,
+                        track_id: track_id.clone(),
+                    },
+                )
+                .await?;
+
+                repo::artist_tracks::save(
+                    pool.clone(),
+                    ArtistTracks {
+                        id: cuid::cuid1()?,
+                        artist_id,
+                        track_id,
                     },
                 )
                 .await?;

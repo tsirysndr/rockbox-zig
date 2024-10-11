@@ -1,7 +1,7 @@
 use crate::entity::track::Track;
 use sqlx::{Error, Pool, Sqlite};
 
-pub async fn save(pool: Pool<Sqlite>, track: Track) -> Result<(), Error> {
+pub async fn save(pool: Pool<Sqlite>, track: Track) -> Result<String, Error> {
     match sqlx::query(
         r#"
         INSERT INTO track (
@@ -53,12 +53,13 @@ pub async fn save(pool: Pool<Sqlite>, track: Track) -> Result<(), Error> {
     .bind(&track.album_id)
     .execute(&pool)
     .await {
-        Ok(_) => {}
+        Ok(_) => Ok(track.id.clone()),
         Err(_e) => {
             // eprintln!("Error saving track: {:?}", e);
+            let track = find_by_md5(pool.clone(), &track.md5).await?;
+            Ok(track.unwrap().id)
         }
     }
-    Ok(())
 }
 
 pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Track>, Error> {
