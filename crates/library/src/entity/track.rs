@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(sqlx::FromRow, Default, Serialize, Deserialize)]
+#[derive(sqlx::FromRow, Default, Debug, Serialize, Deserialize)]
 pub struct Track {
     pub id: String,
     pub path: String,

@@ -31,6 +31,8 @@ import Play from "../Icons/Play";
 import Shuffle from "../Icons/Shuffle";
 import Table from "../Table";
 import { Track } from "../../Types/track";
+import { Album } from "../../Hooks/GraphQL";
+import AlbumArt from "../../Assets/albumart.svg";
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -41,6 +43,7 @@ export type AlbumDetailsProps = {
   onLike: (track: string) => void;
   onUnlike: (track: string) => void;
   tracks: Track[];
+  album?: Album | null;
 };
 
 const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
@@ -96,7 +99,6 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
     columnHelper.accessor("id", {
       header: "",
       size: 100,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       cell: (info) => (
         <ButtonGroup
           style={{ justifyContent: "flex-end", alignItems: "center" }}
@@ -130,7 +132,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
           </BackButton>
           <div style={{ marginBottom: 100 }}>
             <Header>
-              <AlbumCover src="https://resources.tidal.com/images/f6f5f0a6/dc95/4561/9ca6/6ba1e0f6a062/320x320.jpg" />
+              <AlbumCover src={props.album?.albumArt || AlbumArt} />
               <AlbumInfos>
                 <div
                   style={{
@@ -140,10 +142,12 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
                     height: "calc(240px - 12px)",
                   }}
                 >
-                  <AlbumTitle>One Cold Night (Live)</AlbumTitle>
-                  <Artist href="#">Seether</Artist>
-                  <Tracks>13 TRACKS</Tracks>
-                  <Year>2006</Year>
+                  <AlbumTitle>{props.album?.title}</AlbumTitle>
+                  <Artist to={`/artists/${props.album?.artistId}`}>
+                    {props.album?.artist}
+                  </Artist>
+                  <Tracks>{props.tracks.length} TRACKS</Tracks>
+                  <Year>{props.album?.year}</Year>
                 </div>
                 <ButtonGroup>
                   <Button onClick={() => props.onPlayAll()} kind="primary">

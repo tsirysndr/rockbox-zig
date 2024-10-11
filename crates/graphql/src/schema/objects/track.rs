@@ -1,8 +1,8 @@
 use async_graphql::*;
 use rockbox_sys::types::mp3_entry::Mp3Entry;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Default, Clone, Serialize)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct Track {
     pub id: Option<String>,
     pub title: String,

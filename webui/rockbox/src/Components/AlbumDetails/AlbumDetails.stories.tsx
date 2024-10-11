@@ -25,5 +25,17 @@ export const Default: Story = {
     onLike: fn(),
     onUnlike: fn(),
     tracks,
+    album: {
+      id: "1",
+      title: "One Cold Night (Live)",
+      artist: "Seether",
+      year: 2006,
+      albumArt:
+        "https://resources.tidal.com/images/f6f5f0a6/dc95/4561/9ca6/6ba1e0f6a062/320x320.jpg",
+      artistId: "1",
+      md5: "md5",
+      yearString: "2006",
+      tracks: [],
+    },
   },
 };

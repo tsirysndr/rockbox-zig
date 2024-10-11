@@ -25,6 +25,7 @@ export type Album = {
   id: Scalars['String']['output'];
   md5: Scalars['String']['output'];
   title: Scalars['String']['output'];
+  tracks: Array<Track>;
   year: Scalars['Int']['output'];
   yearString: Scalars['String']['output'];
 };
@@ -446,7 +447,7 @@ export type GetEntriesQuery = { __typename?: 'Query', treeGetEntries: Array<{ __
 export type GetAlbumsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAlbumsQuery = { __typename?: 'Query', albums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string }> };
+export type GetAlbumsQuery = { __typename?: 'Query', albums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> }> };
 
 export type GetArtistsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -456,7 +457,14 @@ export type GetArtistsQuery = { __typename?: 'Query', artists: Array<{ __typenam
 export type TracksQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TracksQuery = { __typename?: 'Query', tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, albumArtist: string, album: string, path: string, bitrate: number, frequency: number, filesize: number, length: number }> };
+export type TracksQuery = { __typename?: 'Query', tracks: Array<{ __typename?: 'Track', id?: string | null, tracknum: number, title: string, artist: string, album: string, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> };
+
+export type GetAlbumQueryVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type GetAlbumQuery = { __typename?: 'Query', album?: { __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, tracknum: number, artist: string, album: string, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
 
 export type GetRockboxVersionQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -515,6 +523,18 @@ export const GetAlbumsDocument = gql`
     year
     yearString
     artistId
+    md5
+    tracks {
+      id
+      title
+      artist
+      album
+      albumArtist
+      artistId
+      albumId
+      path
+      length
+    }
   }
 }
     `;
@@ -594,14 +614,14 @@ export const TracksDocument = gql`
     query Tracks {
   tracks {
     id
+    tracknum
     title
     artist
-    albumArtist
     album
+    albumArtist
+    artistId
+    albumId
     path
-    bitrate
-    frequency
-    filesize
     length
   }
 }
@@ -638,6 +658,65 @@ export type TracksQueryHookResult = ReturnType<typeof useTracksQuery>;
 export type TracksLazyQueryHookResult = ReturnType<typeof useTracksLazyQuery>;
 export type TracksSuspenseQueryHookResult = ReturnType<typeof useTracksSuspenseQuery>;
 export type TracksQueryResult = Apollo.QueryResult<TracksQuery, TracksQueryVariables>;
+export const GetAlbumDocument = gql`
+    query GetAlbum($id: String!) {
+  album(id: $id) {
+    id
+    title
+    artist
+    albumArt
+    year
+    yearString
+    artistId
+    md5
+    tracks {
+      id
+      title
+      tracknum
+      artist
+      album
+      albumArtist
+      artistId
+      albumId
+      path
+      length
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAlbumQuery__
+ *
+ * To run a query within a React component, call `useGetAlbumQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAlbumQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAlbumQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetAlbumQuery(baseOptions: Apollo.QueryHookOptions<GetAlbumQuery, GetAlbumQueryVariables> & ({ variables: GetAlbumQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAlbumQuery, GetAlbumQueryVariables>(GetAlbumDocument, options);
+      }
+export function useGetAlbumLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAlbumQuery, GetAlbumQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAlbumQuery, GetAlbumQueryVariables>(GetAlbumDocument, options);
+        }
+export function useGetAlbumSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAlbumQuery, GetAlbumQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAlbumQuery, GetAlbumQueryVariables>(GetAlbumDocument, options);
+        }
+export type GetAlbumQueryHookResult = ReturnType<typeof useGetAlbumQuery>;
+export type GetAlbumLazyQueryHookResult = ReturnType<typeof useGetAlbumLazyQuery>;
+export type GetAlbumSuspenseQueryHookResult = ReturnType<typeof useGetAlbumSuspenseQuery>;
+export type GetAlbumQueryResult = Apollo.QueryResult<GetAlbumQuery, GetAlbumQueryVariables>;
 export const GetRockboxVersionDocument = gql`
     query GetRockboxVersion {
   rockboxVersion

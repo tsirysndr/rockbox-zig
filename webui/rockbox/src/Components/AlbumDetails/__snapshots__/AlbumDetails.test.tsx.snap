@@ -373,7 +373,7 @@ exports[`AlbumDetails > should render 1`] = `
                 </div>
                 <a
                   class="css-5ta7nt"
-                  href="#"
+                  href="/artists/1"
                 >
                   Seether
                 </a>
@@ -383,7 +383,7 @@ exports[`AlbumDetails > should render 1`] = `
                   13 TRACKS
                 </div>
                 <div
-                  class="css-24o0m5"
+                  class="css-ac0euz"
                 >
                   2006
                 </div>

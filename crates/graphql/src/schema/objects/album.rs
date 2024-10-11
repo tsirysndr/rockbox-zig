@@ -1,6 +1,8 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
+use super::track::Track;
+
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct Album {
     pub id: String,
@@ -11,6 +13,7 @@ pub struct Album {
     pub album_art: Option<String>,
     pub md5: String,
     pub artist_id: String,
+    pub tracks: Vec<Track>,
 }
 
 #[Object]
@@ -46,6 +49,10 @@ impl Album {
     async fn artist_id(&self) -> &str {
         &self.artist_id
     }
+
+    async fn tracks(&self) -> Vec<Track> {
+        self.tracks.clone()
+    }
 }
 
 impl From<rockbox_library::entity::album::Album> for Album {
@@ -59,6 +66,7 @@ impl From<rockbox_library::entity::album::Album> for Album {
             album_art: album.album_art,
             md5: album.md5,
             artist_id: album.artist_id,
+            tracks: vec![],
         }
     }
 }
