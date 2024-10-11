@@ -21,6 +21,7 @@ export type Album = {
   __typename?: 'Album';
   albumArt?: Maybe<Scalars['String']['output']>;
   artist: Scalars['String']['output'];
+  artistId: Scalars['String']['output'];
   id: Scalars['String']['output'];
   md5: Scalars['String']['output'];
   title: Scalars['String']['output'];
@@ -445,7 +446,7 @@ export type GetEntriesQuery = { __typename?: 'Query', treeGetEntries: Array<{ __
 export type GetAlbumsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAlbumsQuery = { __typename?: 'Query', albums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string }> };
+export type GetAlbumsQuery = { __typename?: 'Query', albums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string }> };
 
 export type GetArtistsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -513,6 +514,7 @@ export const GetAlbumsDocument = gql`
     albumArt
     year
     yearString
+    artistId
   }
 }
     `;

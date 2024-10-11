@@ -9,6 +9,7 @@ export const GET_ALBUMS = gql`
       albumArt
       year
       yearString
+      artistId
     }
   }
 `;

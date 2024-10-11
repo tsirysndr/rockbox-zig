@@ -675,6 +675,7 @@ pub mod api {
                     year_string: album.year_string,
                     album_art: album.album_art,
                     md5: album.md5,
+                    artist_id: album.artist_id,
                 }
             }
         }

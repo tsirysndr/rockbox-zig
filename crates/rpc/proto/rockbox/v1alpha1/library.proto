@@ -43,6 +43,7 @@ message Album {
   string year_string = 5;
   optional string album_art = 6;
   string md5 = 7;
+  string artist_id = 8;
 }
 
 message GetAlbumRequest {

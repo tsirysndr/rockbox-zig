@@ -49,7 +49,7 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Artist>, Error>
 pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Artist>, Error> {
     match sqlx::query_as::<_, Artist>(
         r#"
-        SELECT * FROM artist
+        SELECT * FROM artist ORDER BY name ASC
         "#,
     )
     .fetch_all(&pool)
