@@ -380,7 +380,8 @@ exports[`AlbumDetails > should render 1`] = `
                 <div
                   class="css-24o0m5"
                 >
-                  13 TRACKS
+                  13
+                   TRACKS
                 </div>
                 <div
                   class="css-ac0euz"
