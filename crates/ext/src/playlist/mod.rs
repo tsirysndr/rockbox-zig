@@ -35,7 +35,6 @@ pub struct InsertDirectory {
 extension!(
     rb_playlist,
     ops = [
-        op_playlist_get_current,
         op_playlist_get_resume_info,
         op_playlist_get_track_info,
         op_playlist_get_first_index,
@@ -59,16 +58,6 @@ extension!(
 
 pub fn get_declaration() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/playlist/lib.rb_playlist.d.ts")
-}
-
-#[op2(async)]
-#[serde]
-pub async fn op_playlist_get_current() -> Result<PlaylistInfo, AnyError> {
-    let client = reqwest::Client::new();
-    let url = format!("{}/playlists/current", rockbox_url());
-    let res = client.get(&url).send().await?;
-    let info = res.json::<PlaylistInfo>().await?;
-    Ok(info)
 }
 
 #[op2(async)]

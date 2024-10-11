@@ -4,7 +4,6 @@
 /// <reference lib="esnext" />
 
 declare interface Playlist {
-  getCurrent(): Promise<void>;
   getResumeInfo(): Promise<void>;
   getTrackInfo(): Promise<void>;
   getFirstIndex(): Promise<void>;

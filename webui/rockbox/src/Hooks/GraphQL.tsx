@@ -32,10 +32,12 @@ export type Album = {
 
 export type Artist = {
   __typename?: 'Artist';
+  albums: Array<Album>;
   bio?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   image?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
+  tracks: Array<Track>;
 };
 
 export type CompressorSettings = {
@@ -454,6 +456,13 @@ export type GetArtistsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetArtistsQuery = { __typename?: 'Query', artists: Array<{ __typename?: 'Artist', id: string, name: string }> };
 
+export type GetArtistQueryVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type GetArtistQuery = { __typename?: 'Query', artist?: { __typename?: 'Artist', id: string, name: string, albums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string }>, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
+
 export type TracksQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -610,6 +619,68 @@ export type GetArtistsQueryHookResult = ReturnType<typeof useGetArtistsQuery>;
 export type GetArtistsLazyQueryHookResult = ReturnType<typeof useGetArtistsLazyQuery>;
 export type GetArtistsSuspenseQueryHookResult = ReturnType<typeof useGetArtistsSuspenseQuery>;
 export type GetArtistsQueryResult = Apollo.QueryResult<GetArtistsQuery, GetArtistsQueryVariables>;
+export const GetArtistDocument = gql`
+    query GetArtist($id: String!) {
+  artist(id: $id) {
+    id
+    name
+    albums {
+      id
+      title
+      artist
+      albumArt
+      year
+      yearString
+      artistId
+      md5
+    }
+    tracks {
+      id
+      title
+      artist
+      album
+      albumArtist
+      artistId
+      albumId
+      path
+      length
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetArtistQuery__
+ *
+ * To run a query within a React component, call `useGetArtistQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetArtistQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetArtistQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetArtistQuery(baseOptions: Apollo.QueryHookOptions<GetArtistQuery, GetArtistQueryVariables> & ({ variables: GetArtistQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetArtistQuery, GetArtistQueryVariables>(GetArtistDocument, options);
+      }
+export function useGetArtistLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetArtistQuery, GetArtistQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetArtistQuery, GetArtistQueryVariables>(GetArtistDocument, options);
+        }
+export function useGetArtistSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetArtistQuery, GetArtistQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetArtistQuery, GetArtistQueryVariables>(GetArtistDocument, options);
+        }
+export type GetArtistQueryHookResult = ReturnType<typeof useGetArtistQuery>;
+export type GetArtistLazyQueryHookResult = ReturnType<typeof useGetArtistLazyQuery>;
+export type GetArtistSuspenseQueryHookResult = ReturnType<typeof useGetArtistSuspenseQuery>;
+export type GetArtistQueryResult = Apollo.QueryResult<GetArtistQuery, GetArtistQueryVariables>;
 export const TracksDocument = gql`
     query Tracks {
   tracks {

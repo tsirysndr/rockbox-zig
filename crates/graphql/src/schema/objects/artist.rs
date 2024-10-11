@@ -1,12 +1,16 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
+use super::{album::Album, track::Track};
+
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct Artist {
     pub id: String,
     pub name: String,
     pub bio: Option<String>,
     pub image: Option<String>,
+    pub tracks: Vec<Track>,
+    pub albums: Vec<Album>,
 }
 
 #[Object]
@@ -26,6 +30,14 @@ impl Artist {
     async fn image(&self) -> Option<&str> {
         self.image.as_deref()
     }
+
+    async fn tracks(&self) -> Vec<Track> {
+        self.tracks.clone()
+    }
+
+    async fn albums(&self) -> Vec<Album> {
+        self.albums.clone()
+    }
 }
 
 impl From<rockbox_library::entity::artist::Artist> for Artist {
@@ -35,6 +47,8 @@ impl From<rockbox_library::entity::artist::Artist> for Artist {
             name: artist.name,
             bio: artist.bio,
             image: artist.image,
+            tracks: vec![],
+            albums: vec![],
         }
     }
 }

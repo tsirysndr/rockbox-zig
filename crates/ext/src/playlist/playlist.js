@@ -1,7 +1,6 @@
 const { ops } = Deno.core;
 
 const playlist = {
-  getCurrent: () => ops.op_playlist_get_current(),
   getResumeInfo: () => ops.op_playlist_get_resume_info(),
   getTrackInfo: () => ops.op_playlist_get_track_info(),
   getFirstIndex: () => ops.op_playlist_get_first_index(),
