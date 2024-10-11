@@ -44,6 +44,7 @@ export type AlbumDetailsProps = {
   onUnlike: (track: string) => void;
   tracks: Track[];
   album?: Album | null;
+  volumes: Track[][];
 };
 
 const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
@@ -166,7 +167,23 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
                 </ButtonGroup>
               </AlbumInfos>
             </Header>
-            <Table columns={columns as any} tracks={props.tracks} />
+            {props.volumes.length === 0 && props.tracks.length > 0 && (
+              <Table columns={columns as any} tracks={props.tracks} />
+            )}
+            {props.volumes.length > 0 && (
+              <div>
+                {props.volumes.map((volume, index) => (
+                  <div key={index}>
+                    <div
+                      style={{ fontSize: 18, fontWeight: 500, marginTop: 20 }}
+                    >
+                      Volume {index + 1}
+                    </div>
+                    <Table columns={columns as any} tracks={volume} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </ContentWrapper>
       </MainView>

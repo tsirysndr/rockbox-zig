@@ -6,6 +6,7 @@ import { useTimeFormat } from "../../Hooks/useFormat";
 import { Track } from "../../Types/track";
 
 const AlbumDetailsWithData: FC = () => {
+  const [volumes, setVolumes] = useState<Track[][]>([]);
   const [tracks, setTracks] = useState<Track[]>([]);
   const { formatTime } = useTimeFormat();
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const AlbumDetailsWithData: FC = () => {
         title: x.title,
         artist: x.artist,
         time: formatTime(x.length),
+        discnum: x.discnum,
       })) || []
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,6 +45,26 @@ const AlbumDetailsWithData: FC = () => {
     refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    if (loading || !tracks.length) {
+      return;
+    }
+    getVolumes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tracks, loading]);
+
+  function getVolumes() {
+    let volume = 1;
+    while (tracks.some((track) => track.discnum === volume)) {
+      volumes.push(tracks.filter((track) => track.discnum === volume));
+      setVolumes(volumes);
+      volume++;
+    }
+    if (volumes.length > 1) {
+      setTracks([]);
+    }
+  }
 
   return (
     <AlbumDetails
@@ -55,6 +77,7 @@ const AlbumDetailsWithData: FC = () => {
       tracks={tracks as any[]}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       album={album as any}
+      volumes={volumes}
     />
   );
 };

@@ -43,6 +43,7 @@ export const GET_TRACKS = gql`
       title
       artist
       album
+      discnum
       albumArtist
       artistId
       albumId
@@ -69,6 +70,7 @@ export const GET_ALBUM = gql`
         tracknum
         artist
         album
+        discnum
         albumArtist
         artistId
         albumId
