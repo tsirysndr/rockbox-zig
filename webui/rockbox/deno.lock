@@ -6531,6 +6531,7 @@
         "npm:@vitest/ui@^2.1.2",
         "npm:baseui@12.2.0",
         "npm:cross-env@^7.0.3",
+        "npm:dayjs@^1.11.13",
         "npm:eslint-plugin-react-hooks@^5.1.0-rc.0",
         "npm:eslint-plugin-react-refresh@~0.4.9",
         "npm:eslint-plugin-storybook@0.9",

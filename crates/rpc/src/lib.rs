@@ -661,6 +661,8 @@ pub mod api {
                     name: artist.name,
                     bio: artist.bio,
                     image: artist.image,
+                    albums: vec![],
+                    tracks: vec![],
                 }
             }
         }
@@ -676,6 +678,7 @@ pub mod api {
                     album_art: album.album_art,
                     md5: album.md5,
                     artist_id: album.artist_id,
+                    tracks: vec![],
                 }
             }
         }

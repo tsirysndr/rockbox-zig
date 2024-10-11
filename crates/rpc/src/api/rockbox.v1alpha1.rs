@@ -382,6 +382,10 @@ pub struct Artist {
     pub bio: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(string, optional, tag = "4")]
     pub image: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(message, repeated, tag = "5")]
+    pub albums: ::prost::alloc::vec::Vec<Album>,
+    #[prost(message, repeated, tag = "6")]
+    pub tracks: ::prost::alloc::vec::Vec<Track>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Album {
@@ -401,6 +405,8 @@ pub struct Album {
     pub md5: ::prost::alloc::string::String,
     #[prost(string, tag = "8")]
     pub artist_id: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "9")]
+    pub tracks: ::prost::alloc::vec::Vec<Track>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetAlbumRequest {

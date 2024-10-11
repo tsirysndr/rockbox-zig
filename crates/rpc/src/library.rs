@@ -2,9 +2,9 @@ use rockbox_library::repo;
 use sqlx::Sqlite;
 
 use crate::api::rockbox::v1alpha1::{
-    library_service_server::LibraryService, GetAlbumRequest, GetAlbumResponse, GetAlbumsRequest,
-    GetAlbumsResponse, GetArtistRequest, GetArtistResponse, GetArtistsRequest, GetArtistsResponse,
-    GetTrackRequest, GetTrackResponse, GetTracksRequest, GetTracksResponse,
+    library_service_server::LibraryService, Album, Artist, GetAlbumRequest, GetAlbumResponse,
+    GetAlbumsRequest, GetAlbumsResponse, GetArtistRequest, GetArtistResponse, GetArtistsRequest,
+    GetArtistsResponse, GetTrackRequest, GetTrackResponse, GetTracksRequest, GetTracksResponse,
 };
 
 pub struct Library {
@@ -63,9 +63,17 @@ impl LibraryService for Library {
         let album = repo::album::find(self.pool.clone(), &params.id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        Ok(tonic::Response::new(GetAlbumResponse {
-            album: album.map(|a| a.into()),
-        }))
+        let mut album: Option<Album> = album.map(|a| a.into());
+        let tracks = repo::album_tracks::find_by_album(self.pool.clone(), &params.id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(album) = album.as_mut() {
+            album.tracks = tracks.into_iter().map(|t| t.into()).collect();
+        }
+
+        let response = GetAlbumResponse { album };
+        Ok(tonic::Response::new(response))
     }
 
     async fn get_artist(
@@ -76,9 +84,20 @@ impl LibraryService for Library {
         let artist = repo::artist::find(self.pool.clone(), &params.id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        Ok(tonic::Response::new(GetArtistResponse {
-            artist: artist.map(|a| a.into()),
-        }))
+        let mut artist: Option<Artist> = artist.map(|a| a.into());
+        let albums = repo::album::find_by_artist(self.pool.clone(), &params.id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks = repo::artist_tracks::find_by_artist(self.pool.clone(), &params.id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(artist) = artist.as_mut() {
+            artist.albums = albums.into_iter().map(|a| a.into()).collect();
+            artist.tracks = tracks.into_iter().map(|t| t.into()).collect();
+        }
+
+        Ok(tonic::Response::new(GetArtistResponse { artist }))
     }
 
     async fn get_track(

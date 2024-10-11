@@ -5649,6 +5649,7 @@ dependencies = [
 name = "rockbox-ext"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "deno_ast",
  "deno_console 0.167.0",
  "deno_core",

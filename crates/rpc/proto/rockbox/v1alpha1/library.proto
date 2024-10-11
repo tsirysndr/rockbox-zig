@@ -33,6 +33,8 @@ message Artist {
   string name = 2;
   optional string bio = 3;
   optional string image = 4;
+  repeated Album albums = 5;
+  repeated Track tracks = 6;
 }
 
 message Album {
@@ -44,6 +46,7 @@ message Album {
   optional string album_art = 6;
   string md5 = 7;
   string artist_id = 8;
+  repeated Track tracks = 9;
 }
 
 message GetAlbumRequest {
