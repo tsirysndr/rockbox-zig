@@ -66,8 +66,6 @@ const AlbumDetailsWithData: FC = () => {
     }
   }
 
-  console.log(">> io", volumes);
-
   return (
     <AlbumDetails
       onGoBack={() => navigate(-1)}

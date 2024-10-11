@@ -119,7 +119,6 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
       ),
     }),
   ];
-  console.log(">>", props.volumes, props.volumes.length);
 
   return (
     <Container>
