@@ -37,5 +37,6 @@ export const Default: Story = {
       yearString: "2006",
       tracks: [],
     },
+    volumes: [],
   },
 };

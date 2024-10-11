@@ -9,4 +9,5 @@ export type Track = {
   cover?: string;
   albumId?: string;
   artistId?: string;
+  discnum?: number;
 };

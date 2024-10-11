@@ -457,14 +457,14 @@ export type GetArtistsQuery = { __typename?: 'Query', artists: Array<{ __typenam
 export type TracksQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TracksQuery = { __typename?: 'Query', tracks: Array<{ __typename?: 'Track', id?: string | null, tracknum: number, title: string, artist: string, album: string, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> };
+export type TracksQuery = { __typename?: 'Query', tracks: Array<{ __typename?: 'Track', id?: string | null, tracknum: number, title: string, artist: string, album: string, discnum: number, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> };
 
 export type GetAlbumQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetAlbumQuery = { __typename?: 'Query', album?: { __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, tracknum: number, artist: string, album: string, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
+export type GetAlbumQuery = { __typename?: 'Query', album?: { __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, tracknum: number, artist: string, album: string, discnum: number, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
 
 export type GetRockboxVersionQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -618,6 +618,7 @@ export const TracksDocument = gql`
     title
     artist
     album
+    discnum
     albumArtist
     artistId
     albumId
@@ -675,6 +676,7 @@ export const GetAlbumDocument = gql`
       tracknum
       artist
       album
+      discnum
       albumArtist
       artistId
       albumId

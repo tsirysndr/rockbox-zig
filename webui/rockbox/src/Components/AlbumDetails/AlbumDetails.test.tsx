@@ -32,6 +32,7 @@ describe("AlbumDetails", () => {
             yearString: "2006",
             tracks: [],
           }}
+          volumes={[]}
         />
       </MemoryRouter>
     );
