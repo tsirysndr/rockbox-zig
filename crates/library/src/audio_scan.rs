@@ -62,6 +62,39 @@ pub fn scan_audio_files(
                     )
                 );
 
+                let artist_id = repo::artist::save(
+                    pool.clone(),
+                    Artist {
+                        id: artist_id.clone(),
+                        name: match entry.albumartist.is_empty() {
+                            true => entry.artist.clone(),
+                            false => entry.albumartist.clone(),
+                        },
+                        bio: None,
+                        image: None,
+                    },
+                )
+                .await?;
+
+                let album_art = extract_and_save_album_cover(&entry.path)?;
+                let album_id = repo::album::save(
+                    pool.clone(),
+                    Album {
+                        id: album_id,
+                        title: entry.album.clone(),
+                        artist: match entry.albumartist.is_empty() {
+                            true => entry.artist.clone(),
+                            false => entry.albumartist.clone(),
+                        },
+                        year: entry.year as u32,
+                        year_string: entry.year_string.clone(),
+                        album_art,
+                        md5: album_md5,
+                        artist_id: artist_id.clone(),
+                    },
+                )
+                .await?;
+
                 repo::track::save(
                     pool.clone(),
                     Track {
@@ -69,7 +102,7 @@ pub fn scan_audio_files(
                         path: entry.path.clone(),
                         title: entry.title,
                         artist: entry.artist.clone(),
-                        album: entry.album.clone(),
+                        album: entry.album,
                         genre: match entry.genre_string.as_str() {
                             "" => None,
                             _ => Some(entry.genre_string),
@@ -77,7 +110,7 @@ pub fn scan_audio_files(
                         year: Some(entry.year as u32),
                         track_number: Some(entry.tracknum as u32),
                         disc_number: entry.discnum as u32,
-                        year_string: Some(entry.year_string.clone()),
+                        year_string: Some(entry.year_string),
                         composer: entry.composer,
                         album_artist: entry.albumartist.clone(),
                         bitrate: entry.bitrate,
@@ -90,39 +123,6 @@ pub fn scan_audio_files(
                         artist_id: artist_id.clone(),
                         album_id: album_id.clone(),
                         ..Default::default()
-                    },
-                )
-                .await?;
-
-                let album_art = extract_and_save_album_cover(&entry.path)?;
-                repo::album::save(
-                    pool.clone(),
-                    Album {
-                        id: album_id,
-                        title: entry.album,
-                        artist: match entry.albumartist.is_empty() {
-                            true => entry.artist.clone(),
-                            false => entry.albumartist.clone(),
-                        },
-                        year: entry.year as u32,
-                        year_string: entry.year_string,
-                        album_art,
-                        md5: album_md5,
-                        artist_id: artist_id.clone(),
-                    },
-                )
-                .await?;
-
-                repo::artist::save(
-                    pool.clone(),
-                    Artist {
-                        id: artist_id,
-                        name: match entry.albumartist.is_empty() {
-                            true => entry.artist.clone(),
-                            false => entry.albumartist.clone(),
-                        },
-                        bio: None,
-                        image: None,
                     },
                 )
                 .await?;

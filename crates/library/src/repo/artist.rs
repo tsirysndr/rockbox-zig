@@ -1,7 +1,7 @@
 use crate::entity::artist::Artist;
 use sqlx::{Error, Pool, Sqlite};
 
-pub async fn save(pool: Pool<Sqlite>, artist: Artist) -> Result<(), Error> {
+pub async fn save(pool: Pool<Sqlite>, artist: Artist) -> Result<String, Error> {
     match sqlx::query(
         r#"
         INSERT INTO artist (
@@ -20,12 +20,32 @@ pub async fn save(pool: Pool<Sqlite>, artist: Artist) -> Result<(), Error> {
     .execute(&pool)
     .await
     {
-        Ok(_) => {}
+        Ok(_) => Ok(artist.id.clone()),
         Err(_e) => {
             // eprintln!("Error saving artist: {:?}", e);
+            // get the artist by name and return the id
+            let artist = find_by_name(pool.clone(), &artist.name).await?;
+            Ok(artist.unwrap().id)
         }
     }
-    Ok(())
+}
+
+pub async fn find_by_name(pool: Pool<Sqlite>, name: &str) -> Result<Option<Artist>, Error> {
+    match sqlx::query_as::<_, Artist>(
+        r#"
+        SELECT * FROM artist WHERE name = $1
+        "#,
+    )
+    .bind(name)
+    .fetch_optional(&pool)
+    .await
+    {
+        Ok(artist) => Ok(artist),
+        Err(e) => {
+            eprintln!("Error finding artist: {:?}", e);
+            Err(e)
+        }
+    }
 }
 
 pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Artist>, Error> {
