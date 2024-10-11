@@ -10,6 +10,7 @@ pub struct Album {
     pub year_string: String,
     pub album_art: Option<String>,
     pub md5: String,
+    pub artist_id: String,
 }
 
 #[Object]
@@ -41,6 +42,10 @@ impl Album {
     async fn md5(&self) -> &str {
         &self.md5
     }
+
+    async fn artist_id(&self) -> &str {
+        &self.artist_id
+    }
 }
 
 impl From<rockbox_library::entity::album::Album> for Album {
@@ -53,6 +58,7 @@ impl From<rockbox_library::entity::album::Album> for Album {
             year_string: album.year_string,
             album_art: album.album_art,
             md5: album.md5,
+            artist_id: album.artist_id,
         }
     }
 }

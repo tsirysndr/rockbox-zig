@@ -108,6 +108,7 @@ pub fn scan_audio_files(
                         year_string: entry.year_string,
                         album_art,
                         md5: album_md5,
+                        artist_id: artist_id.clone(),
                     },
                 )
                 .await?;

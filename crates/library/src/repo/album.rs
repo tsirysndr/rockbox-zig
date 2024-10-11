@@ -11,9 +11,10 @@ pub async fn save(pool: Pool<Sqlite>, album: Album) -> Result<(), sqlx::Error> {
           year,
           year_string,
           album_art,
-          md5
+          md5,
+          artist_id
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         "#,
     )
     .bind(&album.id)
@@ -23,6 +24,7 @@ pub async fn save(pool: Pool<Sqlite>, album: Album) -> Result<(), sqlx::Error> {
     .bind(&album.year_string)
     .bind(&album.album_art)
     .bind(&album.md5)
+    .bind(&album.artist_id)
     .execute(&pool)
     .await
     {
@@ -55,7 +57,7 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Album>, sqlx::E
 pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Album>, sqlx::Error> {
     match sqlx::query_as::<_, Album>(
         r#"
-        SELECT * FROM album
+        SELECT * FROM album ORDER BY title ASC
         "#,
     )
     .fetch_all(&pool)

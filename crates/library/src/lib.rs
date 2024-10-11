@@ -23,5 +23,14 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         "../migrations/20240923093823_create_tables.sql"
     ))
     .await?;
+    match pool
+        .execute(include_str!(
+            "../migrations/20241011011557_add_artist_id_column.sql"
+        ))
+        .await
+    {
+        Ok(_) => {}
+        Err(_) => println!("artist_id column already exists"),
+    }
     Ok(pool)
 }

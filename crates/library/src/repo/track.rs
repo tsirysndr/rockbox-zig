@@ -78,7 +78,7 @@ pub async fn find_by_md5(pool: Pool<Sqlite>, md5: &str) -> Result<Option<Track>,
 }
 
 pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Track>, Error> {
-    let result: Vec<Track> = sqlx::query_as("SELECT * FROM track")
+    let result: Vec<Track> = sqlx::query_as("SELECT * FROM track ORDER BY title ASC")
         .fetch_all(&pool)
         .await?;
     Ok(result)

@@ -399,6 +399,8 @@ pub struct Album {
     pub album_art: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(string, tag = "7")]
     pub md5: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub artist_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetAlbumRequest {
