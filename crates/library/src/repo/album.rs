@@ -1,7 +1,7 @@
 use crate::entity::album::Album;
 use sqlx::{Pool, Sqlite};
 
-pub async fn save(pool: Pool<Sqlite>, album: Album) -> Result<(), sqlx::Error> {
+pub async fn save(pool: Pool<Sqlite>, album: Album) -> Result<String, sqlx::Error> {
     match sqlx::query(
         r#"
         INSERT INTO album (
@@ -28,12 +28,31 @@ pub async fn save(pool: Pool<Sqlite>, album: Album) -> Result<(), sqlx::Error> {
     .execute(&pool)
     .await
     {
-        Ok(_) => {}
+        Ok(_) => Ok(album.id.clone()),
         Err(_e) => {
             // eprintln!("Error saving album: {:?}", e);
+            let album = find_by_md5(pool.clone(), &album.md5).await?;
+            Ok(album.unwrap().id)
         }
     }
-    Ok(())
+}
+
+pub async fn find_by_md5(pool: Pool<Sqlite>, md5: &str) -> Result<Option<Album>, sqlx::Error> {
+    match sqlx::query_as::<_, Album>(
+        r#"
+        SELECT * FROM album WHERE md5 = $1
+        "#,
+    )
+    .bind(md5)
+    .fetch_optional(&pool)
+    .await
+    {
+        Ok(album) => Ok(album),
+        Err(e) => {
+            eprintln!("Error finding album: {:?}", e);
+            Err(e)
+        }
+    }
 }
 
 pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Album>, sqlx::Error> {
