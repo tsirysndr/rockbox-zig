@@ -147,7 +147,9 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
                   <Artist to={`/artists/${props.album?.artistId}`}>
                     {props.album?.artist}
                   </Artist>
-                  <Tracks>{props.tracks.length} TRACKS</Tracks>
+                  <Tracks>
+                    {props.tracks.length || props.volumes.flat().length} TRACKS
+                  </Tracks>
                   <Year>{props.album?.year}</Year>
                 </div>
                 <ButtonGroup>
