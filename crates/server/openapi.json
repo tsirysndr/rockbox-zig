@@ -1028,7 +1028,7 @@
         }
       ],
       "get": {
-        "summary": "Your GET endpoint",
+        "summary": "Get Artist's Tracks",
         "tags": [
           "Artists"
         ],
