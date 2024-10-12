@@ -32,5 +32,8 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         Ok(_) => {}
         Err(_) => println!("artist_id column already exists"),
     }
+    sqlx::query("PRAGMA journal_mode=WAL")
+        .execute(&pool)
+        .await?;
     Ok(pool)
 }
