@@ -9,3 +9,4 @@ tools/mkboot
 tools/rdfbinary
 tools/uclpack
 tools/scramble
+webui/rockbox/node_modules
