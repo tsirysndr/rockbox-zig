@@ -16,7 +16,6 @@ describe("ArtistDetails", () => {
             albums={albums}
             onPlayAll={vi.fn()}
             onShuffleAll={vi.fn()}
-            onClickAlbum={vi.fn()}
             onPlayAlbum={vi.fn()}
             onLikeAlbum={vi.fn()}
             onUnLikeAlbum={vi.fn()}

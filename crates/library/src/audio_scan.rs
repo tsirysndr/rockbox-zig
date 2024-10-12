@@ -90,7 +90,7 @@ pub fn scan_audio_files(
                         },
                         year: entry.year as u32,
                         year_string: entry.year_string.clone(),
-                        album_art,
+                        album_art: album_art.clone(),
                         md5: album_md5,
                         artist_id: artist_id.clone(),
                     },
@@ -124,6 +124,7 @@ pub fn scan_audio_files(
                         updated_at: Utc::now(),
                         artist_id: artist_id.clone(),
                         album_id: album_id.clone(),
+                        album_art,
                         ..Default::default()
                     },
                 )

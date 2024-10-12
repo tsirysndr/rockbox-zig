@@ -29,6 +29,7 @@ pub struct Track {
     pub album_id: Option<String>,
     pub artist_id: Option<String>,
     pub genre_id: Option<String>,
+    pub album_art: Option<String>,
 }
 
 #[Object]
@@ -132,6 +133,10 @@ impl Track {
     async fn genre_id(&self) -> Option<&str> {
         self.genre_id.as_deref()
     }
+
+    async fn album_art(&self) -> Option<&str> {
+        self.album_art.as_deref()
+    }
 }
 
 impl From<Mp3Entry> for Track {
@@ -207,6 +212,7 @@ impl From<rockbox_library::entity::track::Track> for Track {
             album_id: Some(track.album_id),
             genre_id: Some(track.genre_id),
             path: track.path,
+            album_art: track.album_art,
             ..Default::default()
         }
     }

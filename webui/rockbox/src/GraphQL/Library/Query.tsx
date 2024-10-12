@@ -55,6 +55,7 @@ export const GET_ARTIST = gql`
         title
         artist
         album
+        albumArt
         albumArtist
         artistId
         albumId
@@ -77,6 +78,7 @@ export const GET_TRACKS = gql`
       albumArtist
       artistId
       albumId
+      albumArt
       path
       length
     }

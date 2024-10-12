@@ -22,6 +22,7 @@ import {
   Link,
   AlbumFooterMenu,
   FloatingButton,
+  NoAlbumCover,
 } from "./styles";
 import ArrowBack from "../Icons/ArrowBack";
 import Shuffle from "../Icons/Shuffle";
@@ -40,7 +41,7 @@ import "./styles.css";
 
 const columnHelper = createColumnHelper<Track>();
 const columns = [
-  columnHelper.accessor("cover", {
+  columnHelper.accessor("albumArt", {
     header: "Title",
     size: 48,
     cell: (info) => (
@@ -139,7 +140,6 @@ export type ArtistDetailsProps = {
   name: string;
   tracks: Track[];
   albums: any[];
-  onClickAlbum: (album: any) => void;
   onPlayAll: () => void;
   onShuffleAll: () => void;
   onPlayAlbum: (album: any) => void;
@@ -214,11 +214,10 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
                       </AlbumFooterMenu>
                     </Hover>
                     <RouterLink to={`/albums/${item.id}`}>
-                      <AlbumCover
-                        src={item.cover ? item.cover : AlbumArt}
-                        onClick={() => props.onClickAlbum(item)}
-                        effect="opacity"
-                      />
+                      {item.albumArt && (
+                        <AlbumCover src={item.albumArt} effect="opacity" />
+                      )}
+                      {!item.albumArt && <NoAlbumCover src={AlbumArt} />}
                     </RouterLink>
                   </div>
                   <AlbumTitle to={`/albums/${item.id}`}>
