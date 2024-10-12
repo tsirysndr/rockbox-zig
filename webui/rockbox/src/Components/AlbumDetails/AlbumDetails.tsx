@@ -61,6 +61,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
           style={{
             minWidth: 150,
             width: "calc(100% - 20px)",
+            maxWidth: "300px",
             fontSize: 14,
             textOverflow: "ellipsis",
             overflow: "hidden",
@@ -80,9 +81,10 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
           style={{
             minWidth: 150,
             width: "calc(100% - 20px)",
+            maxWidth: "calc(100vw - 800px)",
             fontSize: 14,
-            textOverflow: "ellipsis",
             overflow: "hidden",
+            textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             cursor: "pointer",
             color: "#000",

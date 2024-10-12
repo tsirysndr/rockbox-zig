@@ -130,7 +130,7 @@ exports[`ArtistDetails > should render 1`] = `
         </a>
       </div>
       <div
-        class="css-1qxls6i"
+        class="css-v8cdaf"
       >
         <div
           class="css-1dlrxtg"
@@ -465,7 +465,7 @@ exports[`ArtistDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 48px;"
+                  style="width: 48px; overflow: hidden;"
                 >
                   <img
                     alt="album art"
@@ -474,19 +474,19 @@ exports[`ArtistDetails > should render 1`] = `
                   />
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Get Lucky
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
@@ -497,10 +497,10 @@ exports[`ArtistDetails > should render 1`] = `
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
@@ -511,12 +511,12 @@ exports[`ArtistDetails > should render 1`] = `
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   6:10
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -628,7 +628,7 @@ exports[`ArtistDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 48px;"
+                  style="width: 48px; overflow: hidden;"
                 >
                   <img
                     alt="album art"
@@ -637,19 +637,19 @@ exports[`ArtistDetails > should render 1`] = `
                   />
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Instant Crush
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
@@ -660,10 +660,10 @@ exports[`ArtistDetails > should render 1`] = `
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
@@ -674,12 +674,12 @@ exports[`ArtistDetails > should render 1`] = `
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   5:38
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -791,7 +791,7 @@ exports[`ArtistDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 48px;"
+                  style="width: 48px; overflow: hidden;"
                 >
                   <img
                     alt="album art"
@@ -800,19 +800,19 @@ exports[`ArtistDetails > should render 1`] = `
                   />
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Arround the World
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
@@ -823,10 +823,10 @@ exports[`ArtistDetails > should render 1`] = `
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
@@ -837,12 +837,12 @@ exports[`ArtistDetails > should render 1`] = `
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   7:10
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"

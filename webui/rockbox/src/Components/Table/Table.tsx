@@ -59,6 +59,7 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
                 key={cell.id}
                 style={{
                   width: cell.column.getSize(),
+                  overflow: "hidden",
                 }}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}

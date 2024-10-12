@@ -12,6 +12,7 @@ export const MainView = styled.div`
   flex: 1;
   flex-direction: column;
   position: relative;
+  width: calc(100% - 240px);
 `;
 
 export const Title = styled.div`

@@ -127,7 +127,7 @@ exports[`AlbumDetails > should render 1`] = `
       </a>
     </div>
     <div
-      class="css-1qxls6i"
+      class="css-v8cdaf"
     >
       <div
         class="css-1dlrxtg"
@@ -490,40 +490,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   1
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Gasoline (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/1"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   2:57
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -635,40 +635,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   2
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Driven Under (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/2"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   4:58
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -780,40 +780,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   3
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Diseased (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/3"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   3:46
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -925,40 +925,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   4
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Truth (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/4"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   5:15
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -1070,40 +1070,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   5
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Immortality (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/5"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   5:02
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -1215,40 +1215,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   6
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Tied My Hands (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/6"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   5:16
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -1360,40 +1360,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   7
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Sympathetic (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/7"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   4:12
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -1505,40 +1505,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   8
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Fine Again (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/8"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   5:05
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -1650,40 +1650,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   9
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Broken (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/9"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   4:17
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -1795,40 +1795,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   10
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     The Gift (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/10"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   5:36
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -1940,40 +1940,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   11
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Remedy (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/11"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   3:40
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -2085,40 +2085,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   12
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     Plastic Man (Live)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/12"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   3:34
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"
@@ -2230,40 +2230,40 @@ exports[`AlbumDetails > should render 1`] = `
                 style="height: 48px;"
               >
                 <td
-                  style="width: 20px;"
+                  style="width: 20px; overflow: hidden;"
                 >
                   13
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     The Gist (Alternate Mix)
                   </div>
                 </td>
                 <td
-                  style="width: 150px;"
+                  style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    style="min-width: 150px; width: calc(100% - 20px); font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
+                    style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: rgb(0, 0, 0);"
                   >
                     <a
                       class="css-i74fgx"
-                      href="/artists/13"
+                      href="/artists/undefined"
                     >
                       Seether
                     </a>
                   </div>
                 </td>
                 <td
-                  style="width: 50px;"
+                  style="width: 50px; overflow: hidden;"
                 >
                   3:24
                 </td>
                 <td
-                  style="width: 100px;"
+                  style="width: 100px; overflow: hidden;"
                 >
                   <div
                     class="css-14zx4vh"

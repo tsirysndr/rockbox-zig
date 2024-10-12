@@ -55,6 +55,7 @@ const columns = [
         style={{
           minWidth: 150,
           width: "calc(100% - 20px)",
+          maxWidth: "300px",
           fontSize: 14,
           textOverflow: "ellipsis",
           overflow: "hidden",
@@ -74,6 +75,7 @@ const columns = [
         style={{
           minWidth: 150,
           width: "calc(100% - 20px)",
+          maxWidth: "300px",
           fontSize: 14,
           textOverflow: "ellipsis",
           overflow: "hidden",
@@ -93,11 +95,11 @@ const columns = [
     cell: (info) => (
       <div
         style={{
-          minWidth: 150,
           width: "calc(100% - 20px)",
+          maxWidth: "calc(100vw - 800px)",
           fontSize: 14,
-          textOverflow: "ellipsis",
           overflow: "hidden",
+          textOverflow: "ellipsis",
           whiteSpace: "nowrap",
           cursor: "pointer",
           color: "#000",
