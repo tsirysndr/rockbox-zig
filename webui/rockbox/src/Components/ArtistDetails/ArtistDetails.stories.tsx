@@ -24,7 +24,6 @@ export const Default: Story = {
     albums,
     onPlayAll: fn(),
     onShuffleAll: fn(),
-    onClickAlbum: fn(),
     onPlayAlbum: fn(),
     onLikeAlbum: fn(),
     onUnLikeAlbum: fn(),

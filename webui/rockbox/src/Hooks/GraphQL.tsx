@@ -212,6 +212,7 @@ export type SystemStatus = {
 export type Track = {
   __typename?: 'Track';
   album: Scalars['String']['output'];
+  albumArt?: Maybe<Scalars['String']['output']>;
   albumArtist: Scalars['String']['output'];
   albumId?: Maybe<Scalars['String']['output']>;
   artist: Scalars['String']['output'];
@@ -461,12 +462,12 @@ export type GetArtistQueryVariables = Exact<{
 }>;
 
 
-export type GetArtistQuery = { __typename?: 'Query', artist?: { __typename?: 'Artist', id: string, name: string, albums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string }>, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
+export type GetArtistQuery = { __typename?: 'Query', artist?: { __typename?: 'Artist', id: string, name: string, albums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string }>, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArt?: string | null, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
 
 export type TracksQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TracksQuery = { __typename?: 'Query', tracks: Array<{ __typename?: 'Track', id?: string | null, tracknum: number, title: string, artist: string, album: string, discnum: number, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> };
+export type TracksQuery = { __typename?: 'Query', tracks: Array<{ __typename?: 'Track', id?: string | null, tracknum: number, title: string, artist: string, album: string, discnum: number, albumArtist: string, artistId?: string | null, albumId?: string | null, albumArt?: string | null, path: string, length: number }> };
 
 export type GetAlbumQueryVariables = Exact<{
   id: Scalars['String']['input'];
@@ -639,6 +640,7 @@ export const GetArtistDocument = gql`
       title
       artist
       album
+      albumArt
       albumArtist
       artistId
       albumId
@@ -693,6 +695,7 @@ export const TracksDocument = gql`
     albumArtist
     artistId
     albumId
+    albumArt
     path
     length
   }

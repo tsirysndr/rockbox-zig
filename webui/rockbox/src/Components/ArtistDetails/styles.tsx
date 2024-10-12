@@ -170,3 +170,9 @@ export const FloatingButton = styled.button`
     background-color: #434242b5;
   }
 `;
+
+export const NoAlbumCover = styled.img`
+  width: 100%;
+  border-radius: 3px;
+  cursor: pointer;
+`;
