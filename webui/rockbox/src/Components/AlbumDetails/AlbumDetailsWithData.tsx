@@ -34,6 +34,7 @@ const AlbumDetailsWithData: FC = () => {
         trackNumber: x.tracknum,
         title: x.title,
         artist: x.artist,
+        artistId: x.artistId!,
         time: formatTime(x.length),
         discnum: x.discnum,
       })) || []
