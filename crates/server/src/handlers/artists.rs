@@ -16,9 +16,21 @@ pub async fn get_artist(ctx: &Context, req: &Request, res: &mut Response) -> Res
 }
 
 pub async fn get_artist_albums(
-    _ctx: &Context,
-    _req: &Request,
-    _res: &mut Response,
+    ctx: &Context,
+    req: &Request,
+    res: &mut Response,
 ) -> Result<(), Error> {
-    todo!("to be implemented");
+    let albums = repo::album::find_by_artist(ctx.pool.clone(), &req.params[0]).await?;
+    res.json(&albums);
+    Ok(())
+}
+
+pub async fn get_artist_tracks(
+    ctx: &Context,
+    req: &Request,
+    res: &mut Response,
+) -> Result<(), Error> {
+    let tracks = repo::artist_tracks::find_by_artist(ctx.pool.clone(), &req.params[0]).await?;
+    res.json(&tracks);
+    Ok(())
 }

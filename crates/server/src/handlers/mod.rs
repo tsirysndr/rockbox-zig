@@ -31,6 +31,7 @@ async_handler!(albums, get_album_tracks);
 async_handler!(artists, get_artists);
 async_handler!(artists, get_artist);
 async_handler!(artists, get_artist_albums);
+async_handler!(artists, get_artist_tracks);
 async_handler!(browse, get_tree_entries);
 async_handler!(player, play);
 async_handler!(player, pause);

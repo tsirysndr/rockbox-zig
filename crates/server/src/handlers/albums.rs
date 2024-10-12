@@ -16,9 +16,11 @@ pub async fn get_album(ctx: &Context, req: &Request, res: &mut Response) -> Resu
 }
 
 pub async fn get_album_tracks(
-    _ctx: &Context,
-    _req: &Request,
-    _res: &mut Response,
+    ctx: &Context,
+    req: &Request,
+    res: &mut Response,
 ) -> Result<(), Error> {
-    todo!("to be implemented");
+    let tracks = repo::album_tracks::find_by_album(ctx.pool.clone(), &req.params[0]).await?;
+    res.json(&tracks);
+    Ok(())
 }

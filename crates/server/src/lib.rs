@@ -30,6 +30,7 @@ pub extern "C" fn start_server() {
     app.get("/artists", get_artists);
     app.get("/artists/:id", get_artist);
     app.get("/artists/:id/albums", get_artist_albums);
+    app.get("/artists/:id/tracks", get_artist_tracks);
 
     app.get("/browse/tree-entries", get_tree_entries);
 

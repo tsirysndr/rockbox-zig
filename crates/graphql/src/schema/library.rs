@@ -1,5 +1,5 @@
 use async_graphql::*;
-use rockbox_library::{entity::artist, repo};
+use rockbox_library::repo;
 use sqlx::{Pool, Sqlite};
 
 use crate::schema::objects::track::Track;

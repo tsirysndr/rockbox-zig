@@ -1015,35 +1015,49 @@
           "Playlists"
         ]
       }
+    },
+    "/artists/{id}/tracks": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [
+          "Artists"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Track.v1",
+                    "x-stoplight": {
+                      "id": "vcpked2x8fog7"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-artists-id-tracks"
+      }
     }
   },
   "components": {
     "schemas": {
       "Album.v1": {
         "type": "object",
-        "properties": {
-          "album_art": {
-            "type": "string"
-          },
-          "artist": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "md5": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "year": {
-            "type": "integer"
-          },
-          "year_string": {
-            "type": "string"
-          }
-        },
         "x-examples": {
           "Example 1": {
             "album_art": "216ccc791352fbbffc11268b984db19a.jpg",
@@ -1066,7 +1080,42 @@
             "year_string": "2014-12-09"
           }
         ],
-        "title": "Album"
+        "title": "Album",
+        "properties": {
+          "album_art": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "md5": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          },
+          "year_string": {
+            "type": "string"
+          },
+          "tracks": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "7ng5gjun7ppdf"
+            },
+            "items": {
+              "$ref": "#/components/schemas/Track.v1",
+              "x-stoplight": {
+                "id": "eoxt1tuziuzrf"
+              }
+            }
+          }
+        }
       },
       "Artist.v1": {
         "x-stoplight": {
@@ -1103,6 +1152,30 @@
             "type": "string",
             "x-stoplight": {
               "id": "69j27eohqstp7"
+            }
+          },
+          "albums": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "2p7oo0nysxxe0"
+            },
+            "items": {
+              "$ref": "#/components/schemas/Album.v1",
+              "x-stoplight": {
+                "id": "zicm4vo4217x8"
+              }
+            }
+          },
+          "tracks": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "w0a6febmx5z3g"
+            },
+            "items": {
+              "$ref": "#/components/schemas/Track.v1",
+              "x-stoplight": {
+                "id": "q4daivn3dx1gr"
+              }
             }
           }
         }
