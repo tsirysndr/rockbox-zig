@@ -56,6 +56,9 @@ const AlbumDetailsWithData: FC = () => {
   }, [tracks, loading]);
 
   function getVolumes() {
+    if (!tracks.some((track) => track.discnum === 2)) {
+      return;
+    }
     let volume = 1;
     while (tracks.some((track) => track.discnum === volume)) {
       volumes.push(tracks.filter((track) => track.discnum === volume));
