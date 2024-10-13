@@ -1,10 +1,12 @@
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
 use async_graphql::*;
+use rockbox_library::repo;
 use rockbox_sys::{
     events::RockboxCommand,
     types::{audio_status::AudioStatus, file_position::FilePosition, mp3_entry::Mp3Entry},
 };
+use sqlx::{Pool, Sqlite};
 
 use crate::{rockbox_url, schema::objects::track::Track};
 
@@ -15,26 +17,50 @@ pub struct PlaybackQuery;
 impl PlaybackQuery {
     async fn status(&self) -> Result<i32, Error> {
         let client = reqwest::Client::new();
-        let url = format!("{}/audio_status", rockbox_url());
+        let url = format!("{}/player/status", rockbox_url());
         let response = client.get(&url).send().await?;
         let response = response.json::<AudioStatus>().await?;
         Ok(response.status)
     }
 
     async fn current_track(&self, ctx: &Context<'_>) -> Result<Option<Track>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
         let client = ctx.data::<reqwest::Client>().unwrap();
         let url = format!("{}/player/current-track", rockbox_url());
         let response = client.get(&url).send().await?;
         let track = response.json::<Option<Mp3Entry>>().await?;
-        Ok(track.map(|t| t.into()))
+        let mut track: Option<Track> = track.map(|t| t.into());
+        let path: Option<String> = track.as_ref().map(|t| t.path.clone());
+        if let Some(path) = path {
+            let hash = format!("{:x}", md5::compute(path.as_bytes()));
+            if let Some(metadata) = repo::track::find_by_md5(pool.clone(), &hash).await? {
+                track.as_mut().unwrap().id = Some(metadata.id);
+                track.as_mut().unwrap().album_art = metadata.album_art;
+                track.as_mut().unwrap().album_id = Some(metadata.album_id);
+                track.as_mut().unwrap().artist_id = Some(metadata.artist_id);
+            }
+        }
+        Ok(track)
     }
 
     async fn next_track(&self, ctx: &Context<'_>) -> Result<Option<Track>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
         let client = ctx.data::<reqwest::Client>().unwrap();
         let url = format!("{}/player/next-track", rockbox_url());
         let response = client.get(&url).send().await?;
         let track = response.json::<Option<Mp3Entry>>().await?;
-        Ok(track.map(|t| t.into()))
+        let mut track: Option<Track> = track.map(|t| t.into());
+        let path: Option<String> = track.as_ref().map(|t| t.path.clone());
+        if let Some(path) = path {
+            let hash = format!("{:x}", md5::compute(path.as_bytes()));
+            if let Some(metadata) = repo::track::find_by_md5(pool.clone(), &hash).await? {
+                track.as_mut().unwrap().id = Some(metadata.id);
+                track.as_mut().unwrap().album_art = metadata.album_art;
+                track.as_mut().unwrap().album_id = Some(metadata.album_id);
+                track.as_mut().unwrap().artist_id = Some(metadata.artist_id);
+            }
+        }
+        Ok(track)
     }
 
     async fn get_file_position(&self, ctx: &Context<'_>) -> Result<i32, Error> {

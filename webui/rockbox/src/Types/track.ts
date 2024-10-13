@@ -11,3 +11,16 @@ export type Track = {
   artistId?: string;
   discnum?: number;
 };
+
+export type CurrentTrack = {
+  id?: string;
+  album?: string;
+  artist?: string;
+  title?: string;
+  cover?: string;
+  duration: number;
+  progress: number;
+  isPlaying?: boolean;
+  albumId?: string | null;
+  artistId?: string | null;
+};

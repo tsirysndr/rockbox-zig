@@ -5680,6 +5680,7 @@ dependencies = [
  "anyhow",
  "async-graphql",
  "async-graphql-actix-web",
+ "md5",
  "owo-colors 4.1.0",
  "reqwest",
  "rockbox-library",

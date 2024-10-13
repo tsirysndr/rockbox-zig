@@ -10,6 +10,7 @@ actix-web = "4.9.0"
 anyhow = "1.0.87"
 async-graphql = "7.0.9"
 async-graphql-actix-web = "7.0.9"
+md5 = "0.7.0"
 owo-colors = "4.1.0"
 reqwest = {version = "0.12.7", features = ["rustls-tls", "json"], default-features = false}
 rockbox-library = {path = "../library"}

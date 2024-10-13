@@ -476,6 +476,49 @@ export type GetAlbumQueryVariables = Exact<{
 
 export type GetAlbumQuery = { __typename?: 'Query', album?: { __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, tracknum: number, artist: string, album: string, discnum: number, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
 
+export type PlayMutationVariables = Exact<{
+  elapsed: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
+}>;
+
+
+export type PlayMutation = { __typename?: 'Mutation', play: string };
+
+export type PauseMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PauseMutation = { __typename?: 'Mutation', pause: string };
+
+export type ResumeMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ResumeMutation = { __typename?: 'Mutation', resume: string };
+
+export type PreviousMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PreviousMutation = { __typename?: 'Mutation', previous: string };
+
+export type NextMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NextMutation = { __typename?: 'Mutation', next: string };
+
+export type GetCurrentTrackQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCurrentTrackQuery = { __typename?: 'Query', currentTrack?: { __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, elapsed: number, length: number, year: number, yearString: string } | null };
+
+export type GetNextTrackQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetNextTrackQuery = { __typename?: 'Query', nextTrack?: { __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, length: number, year: number, yearString: string } | null };
+
+export type GetPlaybackStatusQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetPlaybackStatusQuery = { __typename?: 'Query', status: number };
+
 export type GetRockboxVersionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -794,6 +837,292 @@ export type GetAlbumQueryHookResult = ReturnType<typeof useGetAlbumQuery>;
 export type GetAlbumLazyQueryHookResult = ReturnType<typeof useGetAlbumLazyQuery>;
 export type GetAlbumSuspenseQueryHookResult = ReturnType<typeof useGetAlbumSuspenseQuery>;
 export type GetAlbumQueryResult = Apollo.QueryResult<GetAlbumQuery, GetAlbumQueryVariables>;
+export const PlayDocument = gql`
+    mutation Play($elapsed: Int!, $offset: Int!) {
+  play(elapsed: $elapsed, offset: $offset)
+}
+    `;
+export type PlayMutationFn = Apollo.MutationFunction<PlayMutation, PlayMutationVariables>;
+
+/**
+ * __usePlayMutation__
+ *
+ * To run a mutation, you first call `usePlayMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePlayMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [playMutation, { data, loading, error }] = usePlayMutation({
+ *   variables: {
+ *      elapsed: // value for 'elapsed'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function usePlayMutation(baseOptions?: Apollo.MutationHookOptions<PlayMutation, PlayMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PlayMutation, PlayMutationVariables>(PlayDocument, options);
+      }
+export type PlayMutationHookResult = ReturnType<typeof usePlayMutation>;
+export type PlayMutationResult = Apollo.MutationResult<PlayMutation>;
+export type PlayMutationOptions = Apollo.BaseMutationOptions<PlayMutation, PlayMutationVariables>;
+export const PauseDocument = gql`
+    mutation Pause {
+  pause
+}
+    `;
+export type PauseMutationFn = Apollo.MutationFunction<PauseMutation, PauseMutationVariables>;
+
+/**
+ * __usePauseMutation__
+ *
+ * To run a mutation, you first call `usePauseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePauseMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [pauseMutation, { data, loading, error }] = usePauseMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function usePauseMutation(baseOptions?: Apollo.MutationHookOptions<PauseMutation, PauseMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PauseMutation, PauseMutationVariables>(PauseDocument, options);
+      }
+export type PauseMutationHookResult = ReturnType<typeof usePauseMutation>;
+export type PauseMutationResult = Apollo.MutationResult<PauseMutation>;
+export type PauseMutationOptions = Apollo.BaseMutationOptions<PauseMutation, PauseMutationVariables>;
+export const ResumeDocument = gql`
+    mutation Resume {
+  resume
+}
+    `;
+export type ResumeMutationFn = Apollo.MutationFunction<ResumeMutation, ResumeMutationVariables>;
+
+/**
+ * __useResumeMutation__
+ *
+ * To run a mutation, you first call `useResumeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResumeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resumeMutation, { data, loading, error }] = useResumeMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useResumeMutation(baseOptions?: Apollo.MutationHookOptions<ResumeMutation, ResumeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResumeMutation, ResumeMutationVariables>(ResumeDocument, options);
+      }
+export type ResumeMutationHookResult = ReturnType<typeof useResumeMutation>;
+export type ResumeMutationResult = Apollo.MutationResult<ResumeMutation>;
+export type ResumeMutationOptions = Apollo.BaseMutationOptions<ResumeMutation, ResumeMutationVariables>;
+export const PreviousDocument = gql`
+    mutation Previous {
+  previous
+}
+    `;
+export type PreviousMutationFn = Apollo.MutationFunction<PreviousMutation, PreviousMutationVariables>;
+
+/**
+ * __usePreviousMutation__
+ *
+ * To run a mutation, you first call `usePreviousMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePreviousMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [previousMutation, { data, loading, error }] = usePreviousMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function usePreviousMutation(baseOptions?: Apollo.MutationHookOptions<PreviousMutation, PreviousMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PreviousMutation, PreviousMutationVariables>(PreviousDocument, options);
+      }
+export type PreviousMutationHookResult = ReturnType<typeof usePreviousMutation>;
+export type PreviousMutationResult = Apollo.MutationResult<PreviousMutation>;
+export type PreviousMutationOptions = Apollo.BaseMutationOptions<PreviousMutation, PreviousMutationVariables>;
+export const NextDocument = gql`
+    mutation Next {
+  next
+}
+    `;
+export type NextMutationFn = Apollo.MutationFunction<NextMutation, NextMutationVariables>;
+
+/**
+ * __useNextMutation__
+ *
+ * To run a mutation, you first call `useNextMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useNextMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [nextMutation, { data, loading, error }] = useNextMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNextMutation(baseOptions?: Apollo.MutationHookOptions<NextMutation, NextMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<NextMutation, NextMutationVariables>(NextDocument, options);
+      }
+export type NextMutationHookResult = ReturnType<typeof useNextMutation>;
+export type NextMutationResult = Apollo.MutationResult<NextMutation>;
+export type NextMutationOptions = Apollo.BaseMutationOptions<NextMutation, NextMutationVariables>;
+export const GetCurrentTrackDocument = gql`
+    query GetCurrentTrack {
+  currentTrack {
+    id
+    title
+    artist
+    album
+    albumArt
+    artistId
+    albumId
+    elapsed
+    length
+    year
+    yearString
+  }
+}
+    `;
+
+/**
+ * __useGetCurrentTrackQuery__
+ *
+ * To run a query within a React component, call `useGetCurrentTrackQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCurrentTrackQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCurrentTrackQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCurrentTrackQuery(baseOptions?: Apollo.QueryHookOptions<GetCurrentTrackQuery, GetCurrentTrackQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCurrentTrackQuery, GetCurrentTrackQueryVariables>(GetCurrentTrackDocument, options);
+      }
+export function useGetCurrentTrackLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCurrentTrackQuery, GetCurrentTrackQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCurrentTrackQuery, GetCurrentTrackQueryVariables>(GetCurrentTrackDocument, options);
+        }
+export function useGetCurrentTrackSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCurrentTrackQuery, GetCurrentTrackQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCurrentTrackQuery, GetCurrentTrackQueryVariables>(GetCurrentTrackDocument, options);
+        }
+export type GetCurrentTrackQueryHookResult = ReturnType<typeof useGetCurrentTrackQuery>;
+export type GetCurrentTrackLazyQueryHookResult = ReturnType<typeof useGetCurrentTrackLazyQuery>;
+export type GetCurrentTrackSuspenseQueryHookResult = ReturnType<typeof useGetCurrentTrackSuspenseQuery>;
+export type GetCurrentTrackQueryResult = Apollo.QueryResult<GetCurrentTrackQuery, GetCurrentTrackQueryVariables>;
+export const GetNextTrackDocument = gql`
+    query GetNextTrack {
+  nextTrack {
+    id
+    title
+    artist
+    album
+    albumArt
+    artistId
+    albumId
+    length
+    year
+    yearString
+  }
+}
+    `;
+
+/**
+ * __useGetNextTrackQuery__
+ *
+ * To run a query within a React component, call `useGetNextTrackQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetNextTrackQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetNextTrackQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetNextTrackQuery(baseOptions?: Apollo.QueryHookOptions<GetNextTrackQuery, GetNextTrackQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetNextTrackQuery, GetNextTrackQueryVariables>(GetNextTrackDocument, options);
+      }
+export function useGetNextTrackLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetNextTrackQuery, GetNextTrackQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetNextTrackQuery, GetNextTrackQueryVariables>(GetNextTrackDocument, options);
+        }
+export function useGetNextTrackSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetNextTrackQuery, GetNextTrackQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetNextTrackQuery, GetNextTrackQueryVariables>(GetNextTrackDocument, options);
+        }
+export type GetNextTrackQueryHookResult = ReturnType<typeof useGetNextTrackQuery>;
+export type GetNextTrackLazyQueryHookResult = ReturnType<typeof useGetNextTrackLazyQuery>;
+export type GetNextTrackSuspenseQueryHookResult = ReturnType<typeof useGetNextTrackSuspenseQuery>;
+export type GetNextTrackQueryResult = Apollo.QueryResult<GetNextTrackQuery, GetNextTrackQueryVariables>;
+export const GetPlaybackStatusDocument = gql`
+    query GetPlaybackStatus {
+  status
+}
+    `;
+
+/**
+ * __useGetPlaybackStatusQuery__
+ *
+ * To run a query within a React component, call `useGetPlaybackStatusQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPlaybackStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPlaybackStatusQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetPlaybackStatusQuery(baseOptions?: Apollo.QueryHookOptions<GetPlaybackStatusQuery, GetPlaybackStatusQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPlaybackStatusQuery, GetPlaybackStatusQueryVariables>(GetPlaybackStatusDocument, options);
+      }
+export function useGetPlaybackStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPlaybackStatusQuery, GetPlaybackStatusQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPlaybackStatusQuery, GetPlaybackStatusQueryVariables>(GetPlaybackStatusDocument, options);
+        }
+export function useGetPlaybackStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPlaybackStatusQuery, GetPlaybackStatusQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPlaybackStatusQuery, GetPlaybackStatusQueryVariables>(GetPlaybackStatusDocument, options);
+        }
+export type GetPlaybackStatusQueryHookResult = ReturnType<typeof useGetPlaybackStatusQuery>;
+export type GetPlaybackStatusLazyQueryHookResult = ReturnType<typeof useGetPlaybackStatusLazyQuery>;
+export type GetPlaybackStatusSuspenseQueryHookResult = ReturnType<typeof useGetPlaybackStatusSuspenseQuery>;
+export type GetPlaybackStatusQueryResult = Apollo.QueryResult<GetPlaybackStatusQuery, GetPlaybackStatusQueryVariables>;
 export const GetRockboxVersionDocument = gql`
     query GetRockboxVersion {
   rockboxVersion
