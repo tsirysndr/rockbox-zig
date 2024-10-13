@@ -31,7 +31,9 @@ const ControlBarWithData: FC = () => {
       artist: data.currentTrack?.artist,
       title: data.currentTrack?.title,
       cover: data.currentTrack?.albumArt
-        ? `http://localhost:6062/covers/${data.currentTrack?.albumArt}`
+        ? data.currentTrack?.albumArt.startsWith("http")
+          ? data.currentTrack?.albumArt
+          : `http://localhost:6062/covers/${data.currentTrack?.albumArt}`
         : "",
       duration: data.currentTrack?.length || 0,
       progress: data.currentTrack?.elapsed || 0,

@@ -180,16 +180,13 @@ exports[`Tracks > should render 1`] = `
                 class="css-10asy2d"
               >
                 <svg
+                  fill="none"
                   height="32"
-                  viewBox="0 0 512 512"
                   width="32"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <title>
-                    Pause
-                  </title>
                   <path
-                    d="M208 432h-48a16 16 0 0 1-16-16V96a16 16 0 0 1 16-16h48a16 16 0 0 1 16 16v320a16 16 0 0 1-16 16zm144 0h-48a16 16 0 0 1-16-16V96a16 16 0 0 1 16-16h48a16 16 0 0 1 16 16v320a16 16 0 0 1-16 16z"
+                    d="M10.657 27a2.842 2.842 0 0 1-1.258-.292C8.536 26.283 8 25.458 8 24.563V6.438c0-.899.536-1.721 1.399-2.146a2.856 2.856 0 0 1 2.571.028l17.817 9.273c.755.411 1.213 1.131 1.213 1.906 0 .774-.458 1.495-1.213 1.906l-17.82 9.275a2.846 2.846 0 0 1-1.31.32Z"
                     style="fill: #000;"
                   />
                 </svg>
@@ -234,68 +231,28 @@ exports[`Tracks > should render 1`] = `
           <div
             class="css-frud38"
           >
-            <img
-              alt="Album cover"
-              class="css-31cka"
-              src="https://resources.tidal.com/images/fe6787d5/4ba5/4d3e/8576/48943ee6a768/320x320.jpg"
-            />
+            <div
+              class="css-4ijxew"
+            >
+              <svg
+                height="28"
+                viewBox="0 0 24 24"
+                width="28"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8.1 4.65v11.26a3.45 3.45 0 1 0 1.5 2.84V5.85l10.2-2.36v10.62A3.45 3.45 0 1 0 21.3 17V1.61Zm-2 16a2 2 0 1 1 2-2 2 2 0 0 1-1.95 2.05Zm11.7-1.8a1.95 1.95 0 1 1 2-1.85 2 2 0 0 1-1.95 1.9Z"
+                  fill="#b1b2b5"
+                />
+              </svg>
+            </div>
             <div
               class="css-rbpzuh"
             >
               <div
-                class="css-1cojt9j"
+                style="color: rgb(177, 178, 181); text-align: center;"
               >
-                Drankin N Smokin
-              </div>
-              <div
-                style="display: flex; flex-direction: row; align-items: center; justify-content: space-between;"
-              >
-                <div
-                  class="css-1jnbdma"
-                >
-                  02:03
-                </div>
-                <div
-                  class="css-bdl275"
-                >
-                  Future, Lil Uzi Vert
-                  <span
-                    class="css-c9cgcr"
-                  >
-                    -
-                  </span>
-                  Pluto x Baby Pluto (Deluxe)
-                </div>
-                <div
-                  class="css-1jnbdma"
-                >
-                  04:15
-                </div>
-              </div>
-              <div
-                class="css-1n7uud4"
-              >
-                <div
-                  aria-label="48% Loaded"
-                  aria-valuemax="100"
-                  aria-valuemin="0"
-                  aria-valuenow="48.3219508605943"
-                  class="ae"
-                  data-baseweb="progress-bar"
-                  role="progressbar"
-                >
-                  <div
-                    class="af ag ah ai aj"
-                  >
-                    <div
-                      class="ak al am an ao ap aq ar"
-                    >
-                      <div
-                        class="ak al am an as at ae au av"
-                      />
-                    </div>
-                  </div>
-                </div>
+                No track playing
               </div>
             </div>
           </div>
@@ -334,11 +291,11 @@ exports[`Tracks > should render 1`] = `
             class="css-9wcbnz"
           >
             <div
-              class="aw af ar ax ay az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi bj bk bl bm bn bo"
+              class="ae af ag ah ai aj ak al am an ao ap aq ar as at au av aw ax ay az b0 b1 b2 b3 b4 b5 b6 b7 b8"
               data-baseweb="input"
             >
               <div
-                class="af bp bq br b7 b8 bd be bf bg bn bs bt bl bu bv"
+                class="af b9 ba bb ar as ax ay az b0 b7 bc bd b5 be bf"
               >
                 <svg
                   data-test="icon-ActionActiveSearch"
@@ -356,14 +313,14 @@ exports[`Tracks > should render 1`] = `
                 </svg>
               </div>
               <div
-                class="af ae bw b7 b8 bd be bf bg bt bl"
+                class="af bg bh ar as ax ay az b0 bd b5"
                 data-baseweb="base-input"
               >
                 <input
                   aria-invalid="false"
                   aria-required="false"
                   autocomplete="on"
-                  class="aw bl bx by bz c0 c1 c2 c3 c4 c5 ae c6 c7 c8 c9 ca cb bm cc bd cd bf bg ce cf cg"
+                  class="ae b5 bi bj bk bl bm bn bo bp bq bg br bs bt bu bv bw b6 bx ax by az b0 bz c0 c1"
                   inputmode="text"
                   name="filter"
                   placeholder="Search song"

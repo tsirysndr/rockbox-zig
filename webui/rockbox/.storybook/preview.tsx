@@ -3,6 +3,8 @@ import React from "react";
 import Providers from "../src/Providers";
 import "../src/index.css";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { mocks } from "../src/mocks";
+import { MockedProvider } from "@apollo/client/testing";
 
 const preview: Preview = {
   parameters: {
@@ -31,7 +33,9 @@ export const decorators = [
   reactRouterDecorator,
   (Story) => (
     <Providers>
-      <Story />
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <Story />
+      </MockedProvider>
     </Providers>
   ),
 ];
