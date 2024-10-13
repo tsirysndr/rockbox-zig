@@ -8,6 +8,11 @@ pub mod settings;
 pub mod sound;
 pub mod system;
 
+pub const AUDIO_EXTENSIONS: [&str; 17] = [
+    "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",
+    "spx", "sid", "ape", "wma",
+];
+
 pub mod api {
     #[path = ""]
     pub mod rockbox {

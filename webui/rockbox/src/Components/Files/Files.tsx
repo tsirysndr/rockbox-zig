@@ -5,6 +5,7 @@ import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
 import { Folder2, MusicNoteBeamed } from "@styled-icons/bootstrap";
 import {
+  AudioFile,
   BackButton,
   ButtonGroup,
   Container,
@@ -17,9 +18,10 @@ import {
 } from "./styles";
 import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
 import { File } from "../../Types/file";
-import Table from "../VirtualizedTable";
+import Table from "../Table";
 import "./styles.css";
 import ArrowBack from "../Icons/ArrowBack";
+import { Spinner } from "baseui/spinner";
 
 const columnHelper = createColumnHelper<File>();
 const columns = [
@@ -32,6 +34,7 @@ const columns = [
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          marginLeft: 10,
         }}
       >
         {info.row.original.isDirectory && <Folder2 size={20} />}
@@ -41,7 +44,18 @@ const columns = [
   }),
   columnHelper.accessor("name", {
     header: "",
-    cell: (info) => <Directory href="#">{info.getValue()}</Directory>,
+    cell: (info) => (
+      <>
+        {info.row.original.isDirectory && (
+          <Directory to={`/files?q=${info.row.original.path}`}>
+            {info.getValue()}
+          </Directory>
+        )}
+        {!info.row.original.isDirectory && (
+          <AudioFile>{info.getValue()}</AudioFile>
+        )}
+      </>
+    ),
   }),
   columnHelper.accessor("name", {
     header: "",
@@ -60,6 +74,9 @@ const columns = [
 
 export type FilesProps = {
   files: File[];
+  canGoBack: boolean;
+  onGoBack: () => void;
+  refetching?: boolean;
 };
 
 const Files: FC<FilesProps> = (props) => {
@@ -69,13 +86,29 @@ const Files: FC<FilesProps> = (props) => {
       <MainView>
         <ControlBar />
         <ContentWrapper>
-          <BackButton onClick={() => {}}>
-            <div style={{ marginTop: 2 }}>
-              <ArrowBack color={"#000"} />
-            </div>
-          </BackButton>
+          {props.canGoBack && (
+            <BackButton onClick={() => props.onGoBack()}>
+              <div style={{ marginTop: 2 }}>
+                <ArrowBack color={"#000"} />
+              </div>
+            </BackButton>
+          )}
           <Title>Files</Title>
-          <Table columns={columns as any} tracks={props.files} />
+          {!props.refetching && (
+            <Table columns={columns as any} tracks={props.files as any} />
+          )}
+          {props.refetching && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "calc(100vh - 200px)",
+              }}
+            >
+              <Spinner $size={"30px"} $borderWidth={"4px"} />
+            </div>
+          )}
         </ContentWrapper>
       </MainView>
     </Container>

@@ -11,7 +11,7 @@ message TreeGetContextRequest {}
 message TreeGetContextResponse {}
 
 message TreeGetEntriesRequest {
-  string path = 1;
+  optional string path = 1;
 }
 
 message Entry {

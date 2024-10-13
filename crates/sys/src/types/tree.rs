@@ -93,7 +93,7 @@ impl From<crate::BrowseContext> for BrowseContext {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Entry {
     pub name: String,      // char* name
     pub attr: i32,         // int attr (FAT attributes + file type flags)

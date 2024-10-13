@@ -8,9 +8,15 @@ use std::{
     thread,
 };
 
+pub mod cache;
 pub mod handlers;
 pub mod http;
 pub mod types;
+
+pub const AUDIO_EXTENSIONS: [&str; 17] = [
+    "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",
+    "spx", "sid", "ape", "wma",
+];
 
 #[no_mangle]
 pub extern "C" fn debugfn(args: *const c_char) {
