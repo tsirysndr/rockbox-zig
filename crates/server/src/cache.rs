@@ -1,32 +1,16 @@
-use std::{env, fs};
+use std::{fs, thread};
 
-use async_graphql::*;
+use anyhow::Error;
+use rockbox_sys::types::tree::Entry;
 
-use crate::{schema::objects::entry::Entry, AUDIO_EXTENSIONS};
+use crate::{http::Context, AUDIO_EXTENSIONS};
 
-#[derive(Default)]
-pub struct BrowseQuery;
-
-#[Object]
-impl BrowseQuery {
-    async fn tree_get_entries(
-        &self,
-        _ctx: &Context<'_>,
-        path: Option<String>,
-    ) -> Result<Vec<Entry>, Error> {
-        let show_hidden = false;
-        let home = env::var("HOME").unwrap();
-        let music_library = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
-
-        let path = match path {
-            Some(path) => path,
-            None => music_library,
-        };
-
-        if !fs::metadata(&path)?.is_dir() {
-            return Err(Error::new("Path is not a directory"));
-        }
-
+pub fn update_cache(ctx: &Context, path: &str, show_hidden: bool) {
+    let fs_cache = ctx.fs_cache.clone();
+    let path = path.to_string();
+    thread::spawn(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let mut fs_cache = rt.block_on(fs_cache.lock());
         let mut entries = vec![];
 
         for file in fs::read_dir(&path)? {
@@ -61,6 +45,7 @@ impl BrowseQuery {
             });
         }
 
-        Ok(entries)
-    }
+        fs_cache.insert(path, entries.clone());
+        Ok::<(), Error>(())
+    });
 }

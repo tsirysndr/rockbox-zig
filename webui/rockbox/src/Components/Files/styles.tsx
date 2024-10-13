@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { Link } from "react-router-dom";
 
 export const Container = styled.div`
   display: flex;
@@ -54,7 +55,7 @@ export const ButtonGroup = styled.div`
 
 export const ContentWrapper = styled.div`
   overflow-y: auto;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 100px);
   padding-left: 20px;
   padding-right: 20px;
 `;
@@ -64,10 +65,34 @@ export const AlbumCover = styled.img`
   width: 48px;
 `;
 
-export const Directory = styled.a`
+export const Directory = styled(Link)`
   color: #000;
+  margin-left: 10px;
   text-decoration: none;
   font-family: RockfordSansRegular;
+  width: calc(100vw - 500px);
+  max-width: calc(100vw - 500px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: block;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+export const AudioFile = styled.div`
+  color: #000;
+  margin-left: 10px;
+  text-decoration: none;
+  font-family: RockfordSansRegular;
+  width: calc(100vw - 500px);
+  max-width: calc(100vw - 500px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: block;
+  cursor: pointer;
   &:hover {
     text-decoration: underline;
   }

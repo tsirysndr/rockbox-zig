@@ -185,7 +185,7 @@ export type QueryTrackArgs = {
 
 
 export type QueryTreeGetEntriesArgs = {
-  path: Scalars['String']['input'];
+  path?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type ReplaygainSettings = {
@@ -441,11 +441,11 @@ export type UserSettings = {
 };
 
 export type GetEntriesQueryVariables = Exact<{
-  path: Scalars['String']['input'];
+  path?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type GetEntriesQuery = { __typename?: 'Query', treeGetEntries: Array<{ __typename?: 'Entry', name: string, timeWrite: number }> };
+export type GetEntriesQuery = { __typename?: 'Query', treeGetEntries: Array<{ __typename?: 'Entry', name: string, attr: number, timeWrite: number }> };
 
 export type GetAlbumsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -483,9 +483,10 @@ export type GetRockboxVersionQuery = { __typename?: 'Query', rockboxVersion: str
 
 
 export const GetEntriesDocument = gql`
-    query GetEntries($path: String!) {
+    query GetEntries($path: String) {
   treeGetEntries(path: $path) {
     name
+    attr
     timeWrite
   }
 }
@@ -507,7 +508,7 @@ export const GetEntriesDocument = gql`
  *   },
  * });
  */
-export function useGetEntriesQuery(baseOptions: Apollo.QueryHookOptions<GetEntriesQuery, GetEntriesQueryVariables> & ({ variables: GetEntriesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useGetEntriesQuery(baseOptions?: Apollo.QueryHookOptions<GetEntriesQuery, GetEntriesQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetEntriesQuery, GetEntriesQueryVariables>(GetEntriesDocument, options);
       }

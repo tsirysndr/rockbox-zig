@@ -9,8 +9,8 @@ pub struct TreeGetContextRequest {}
 pub struct TreeGetContextResponse {}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TreeGetEntriesRequest {
-    #[prost(string, tag = "1")]
-    pub path: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "1")]
+    pub path: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Entry {

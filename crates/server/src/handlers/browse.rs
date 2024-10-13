@@ -1,22 +1,24 @@
-use std::fs;
+use std::{env, fs};
 
-use crate::http::{Context, Request, Response};
+use crate::{
+    cache::update_cache,
+    http::{Context, Request, Response},
+    AUDIO_EXTENSIONS,
+};
 use anyhow::Error;
 use rockbox_sys::types::tree::Entry;
 
-const AUDIO_EXTENSIONS: [&str; 17] = [
-    "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",
-    "spx", "sid", "ape", "wma",
-];
-
 pub async fn get_tree_entries(
-    _ctx: &Context,
+    ctx: &Context,
     req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let home = env::var("HOME").unwrap();
+    let music_library = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
+
     let path = match req.query_params.get("q") {
-        Some(path) => path.as_str().unwrap_or("/"),
-        None => "/",
+        Some(path) => path.as_str().unwrap_or(&music_library),
+        None => &music_library,
     };
     let show_hidden = match req.query_params.get("show_hidden") {
         Some(show_hidden) => show_hidden.as_str().unwrap_or("false") == "true",
@@ -26,6 +28,13 @@ pub async fn get_tree_entries(
     if !fs::metadata(path)?.is_dir() {
         res.set_status(500);
         res.text("Path is not a directory");
+        return Ok(());
+    }
+
+    let mut fs_cache = ctx.fs_cache.lock().await;
+    if let Some(entries) = fs_cache.get(path.into()) {
+        update_cache(ctx, path, show_hidden);
+        res.json(entries);
         return Ok(());
     }
 
@@ -55,9 +64,15 @@ pub async fn get_tree_entries(
                 .modified()?
                 .duration_since(std::time::SystemTime::UNIX_EPOCH)?
                 .as_secs() as u32,
+            attr: match file.metadata()?.is_dir() {
+                true => 0x10,
+                false => 0,
+            },
             ..Default::default()
         });
     }
+
+    fs_cache.insert(path.to_string(), entries.clone());
 
     res.json(&entries);
     Ok(())
