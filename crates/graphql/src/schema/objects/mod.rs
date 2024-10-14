@@ -1,5 +1,6 @@
 pub mod album;
 pub mod artist;
+pub mod audio_status;
 pub mod compressor_settings;
 pub mod entry;
 pub mod eq_band_setting;

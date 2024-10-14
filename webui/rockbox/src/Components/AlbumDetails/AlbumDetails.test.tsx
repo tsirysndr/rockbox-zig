@@ -5,6 +5,7 @@ import { tracks } from "./mocks";
 import { MemoryRouter } from "react-router-dom";
 import { MockedProvider } from "@apollo/client/testing";
 import { mocks } from "../../mocks";
+import { RecoilRoot } from "recoil";
 
 describe("AlbumDetails", () => {
   it("should render", () => {
@@ -16,27 +17,29 @@ describe("AlbumDetails", () => {
     const { container } = render(
       <MemoryRouter initialEntries={["/"]}>
         <MockedProvider mocks={mocks}>
-          <AlbumDetails
-            onGoBack={onGoBack}
-            onLike={onLike}
-            onPlayAll={onPlayAll}
-            onShuffleAll={onShuffleAll}
-            onUnlike={onUnlike}
-            tracks={tracks}
-            album={{
-              id: "1",
-              title: "One Cold Night (Live)",
-              artist: "Seether",
-              year: 2006,
-              albumArt:
-                "https://resources.tidal.com/images/f6f5f0a6/dc95/4561/9ca6/6ba1e0f6a062/320x320.jpg",
-              artistId: "1",
-              md5: "md5",
-              yearString: "2006",
-              tracks: [],
-            }}
-            volumes={[]}
-          />
+          <RecoilRoot>
+            <AlbumDetails
+              onGoBack={onGoBack}
+              onLike={onLike}
+              onPlayAll={onPlayAll}
+              onShuffleAll={onShuffleAll}
+              onUnlike={onUnlike}
+              tracks={tracks}
+              album={{
+                id: "1",
+                title: "One Cold Night (Live)",
+                artist: "Seether",
+                year: 2006,
+                albumArt:
+                  "https://resources.tidal.com/images/f6f5f0a6/dc95/4561/9ca6/6ba1e0f6a062/320x320.jpg",
+                artistId: "1",
+                md5: "md5",
+                yearString: "2006",
+                tracks: [],
+              }}
+              volumes={[]}
+            />
+          </RecoilRoot>
         </MockedProvider>
       </MemoryRouter>
     );

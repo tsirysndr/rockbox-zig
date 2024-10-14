@@ -137,7 +137,12 @@ exports[`ControlBar > should render 1`] = `
               >
                 -
               </span>
-              Forgotten Shapes
+              <a
+                class="css-1759b6u"
+                href="/albums/229251493"
+              >
+                Forgotten Shapes
+              </a>
             </div>
             <div
               class="css-1jnbdma"

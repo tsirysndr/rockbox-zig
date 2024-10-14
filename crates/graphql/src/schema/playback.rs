@@ -1,6 +1,8 @@
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
+use crate::schema::objects;
 use async_graphql::*;
+use futures_util::Stream;
 use rockbox_library::repo;
 use rockbox_sys::{
     events::RockboxCommand,
@@ -8,7 +10,7 @@ use rockbox_sys::{
 };
 use sqlx::{Pool, Sqlite};
 
-use crate::{rockbox_url, schema::objects::track::Track};
+use crate::{rockbox_url, schema::objects::track::Track, simplebroker::SimpleBroker};
 
 #[derive(Default)]
 pub struct PlaybackQuery;
@@ -146,5 +148,19 @@ impl PlaybackMutation {
             .unwrap()
             .send(RockboxCommand::Stop)?;
         Ok("hard_stop".to_string())
+    }
+}
+
+#[derive(Default)]
+pub struct PlaybackSubscription;
+
+#[Subscription]
+impl PlaybackSubscription {
+    async fn currently_playing_song(&self) -> impl Stream<Item = Track> {
+        SimpleBroker::<Track>::subscribe()
+    }
+
+    async fn playback_status(&self) -> impl Stream<Item = objects::audio_status::AudioStatus> {
+        SimpleBroker::<objects::audio_status::AudioStatus>::subscribe()
     }
 }

@@ -18,9 +18,10 @@
  * KIND, either express or implied.
  *
  ****************************************************************************/
-#ifndef SERVER_THREAD_H
-#define SERVER_THREAD_H
+#ifndef BROKER_THREAD_H
+#define BROKER_THREAD_H
 
-void server_init(void);
 
-#endif /* SERVER_THREAD_H */
+void broker_init(void);
+
+#endif /* BROKER_THREAD_H */

@@ -718,7 +718,7 @@
         ]
       }
     },
-    "/player/prev": {
+    "/player/previous": {
       "parameters": [],
       "put": {
         "summary": "Play Previous Track",

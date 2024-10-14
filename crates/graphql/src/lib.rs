@@ -1,9 +1,11 @@
-use async_graphql::{EmptySubscription, Schema};
-use schema::{Mutation, Query};
+use async_graphql::Schema;
+use schema::{Mutation, Query, Subscription};
 
 pub mod schema;
 pub mod server;
-pub type RockboxSchema = Schema<Query, Mutation, EmptySubscription>;
+pub mod simplebroker;
+
+pub type RockboxSchema = Schema<Query, Mutation, Subscription>;
 
 pub const AUDIO_EXTENSIONS: [&str; 17] = [
     "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",

@@ -7,22 +7,31 @@ use actix_cors::Cors;
 use actix_files::{self as fs, NamedFile};
 use actix_web::{
     error::ErrorNotFound,
+    guard,
     http::header::{ContentDisposition, DispositionType, HOST},
     web::{self, Data},
     App, HttpRequest, HttpResponse, HttpServer, Result,
 };
 use anyhow::Error;
-use async_graphql::{http::GraphiQLSource, EmptySubscription, Schema};
-use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
+use async_graphql::{http::GraphiQLSource, Schema};
+use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse, GraphQLSubscription};
 use owo_colors::OwoColorize;
 use rockbox_library::{create_connection_pool, repo};
 use rockbox_sys::events::RockboxCommand;
 use sqlx::{Pool, Sqlite};
 
 use crate::{
-    schema::{Mutation, Query},
+    schema::{Mutation, Query, Subscription},
     RockboxSchema,
 };
+
+async fn index_ws(
+    schema: web::Data<RockboxSchema>,
+    req: HttpRequest,
+    payload: web::Payload,
+) -> Result<HttpResponse> {
+    GraphQLSubscription::new(Schema::clone(&*schema)).start(&req, payload)
+}
 
 #[actix_web::post("/graphql")]
 async fn index_graphql(schema: web::Data<RockboxSchema>, req: GraphQLRequest) -> GraphQLResponse {
@@ -83,7 +92,7 @@ pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Err
     let schema = Schema::build(
         Query::default(),
         Mutation::default(),
-        EmptySubscription::default(),
+        Subscription::default(),
     )
     .data(cmd_tx)
     .data(client)
@@ -111,6 +120,12 @@ pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Err
             .wrap(cors)
             .service(index_graphql)
             .service(index_graphiql)
+            .service(
+                web::resource("/graphql")
+                    .guard(guard::Get())
+                    .guard(guard::Header("upgrade", "websocket"))
+                    .to(index_ws),
+            )
             .service(fs::Files::new("/covers", covers_path).show_files_listing())
             .route("/tracks/{id}", web::get().to(index_file))
             .route("/tracks/{id}", web::head().to(index_file))

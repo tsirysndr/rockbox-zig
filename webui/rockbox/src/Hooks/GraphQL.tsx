@@ -40,6 +40,11 @@ export type Artist = {
   tracks: Array<Track>;
 };
 
+export type AudioStatus = {
+  __typename?: 'AudioStatus';
+  status: Scalars['Int']['output'];
+};
+
 export type CompressorSettings = {
   __typename?: 'CompressorSettings';
   attackTime: Scalars['Int']['output'];
@@ -193,6 +198,12 @@ export type ReplaygainSettings = {
   noclip: Scalars['Boolean']['output'];
   preamp: Scalars['Int']['output'];
   type: Scalars['Int']['output'];
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  currentlyPlayingSong: Track;
+  playbackStatus: AudioStatus;
 };
 
 export type SystemStatus = {
@@ -518,6 +529,16 @@ export type GetPlaybackStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetPlaybackStatusQuery = { __typename?: 'Query', status: number };
+
+export type CurrentlyPlayingSongSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CurrentlyPlayingSongSubscription = { __typename?: 'Subscription', currentlyPlayingSong: { __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, elapsed: number, length: number, year: number, yearString: string } };
+
+export type PlaybackStatusSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PlaybackStatusSubscription = { __typename?: 'Subscription', playbackStatus: { __typename?: 'AudioStatus', status: number } };
 
 export type GetRockboxVersionQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1123,6 +1144,74 @@ export type GetPlaybackStatusQueryHookResult = ReturnType<typeof useGetPlaybackS
 export type GetPlaybackStatusLazyQueryHookResult = ReturnType<typeof useGetPlaybackStatusLazyQuery>;
 export type GetPlaybackStatusSuspenseQueryHookResult = ReturnType<typeof useGetPlaybackStatusSuspenseQuery>;
 export type GetPlaybackStatusQueryResult = Apollo.QueryResult<GetPlaybackStatusQuery, GetPlaybackStatusQueryVariables>;
+export const CurrentlyPlayingSongDocument = gql`
+    subscription CurrentlyPlayingSong {
+  currentlyPlayingSong {
+    id
+    title
+    artist
+    album
+    albumArt
+    artistId
+    albumId
+    elapsed
+    length
+    year
+    yearString
+  }
+}
+    `;
+
+/**
+ * __useCurrentlyPlayingSongSubscription__
+ *
+ * To run a query within a React component, call `useCurrentlyPlayingSongSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useCurrentlyPlayingSongSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCurrentlyPlayingSongSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCurrentlyPlayingSongSubscription(baseOptions?: Apollo.SubscriptionHookOptions<CurrentlyPlayingSongSubscription, CurrentlyPlayingSongSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<CurrentlyPlayingSongSubscription, CurrentlyPlayingSongSubscriptionVariables>(CurrentlyPlayingSongDocument, options);
+      }
+export type CurrentlyPlayingSongSubscriptionHookResult = ReturnType<typeof useCurrentlyPlayingSongSubscription>;
+export type CurrentlyPlayingSongSubscriptionResult = Apollo.SubscriptionResult<CurrentlyPlayingSongSubscription>;
+export const PlaybackStatusDocument = gql`
+    subscription PlaybackStatus {
+  playbackStatus {
+    status
+  }
+}
+    `;
+
+/**
+ * __usePlaybackStatusSubscription__
+ *
+ * To run a query within a React component, call `usePlaybackStatusSubscription` and pass it any options that fit your needs.
+ * When your component renders, `usePlaybackStatusSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePlaybackStatusSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function usePlaybackStatusSubscription(baseOptions?: Apollo.SubscriptionHookOptions<PlaybackStatusSubscription, PlaybackStatusSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<PlaybackStatusSubscription, PlaybackStatusSubscriptionVariables>(PlaybackStatusDocument, options);
+      }
+export type PlaybackStatusSubscriptionHookResult = ReturnType<typeof usePlaybackStatusSubscription>;
+export type PlaybackStatusSubscriptionResult = Apollo.SubscriptionResult<PlaybackStatusSubscription>;
 export const GetRockboxVersionDocument = gql`
     query GetRockboxVersion {
   rockboxVersion

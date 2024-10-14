@@ -3,7 +3,11 @@ import {
   createHttpLink,
   InMemoryCache,
   ApolloProvider,
+  split,
 } from "@apollo/client";
+import { WebSocketLink } from "@apollo/client/link/ws";
+import { getMainDefinition } from "@apollo/client/utilities";
+import { SubscriptionClient } from "subscriptions-transport-ws";
 import { FC, ReactNode } from "react";
 
 const uri =
@@ -16,8 +20,25 @@ const httpLink = createHttpLink({
   uri,
 });
 
+const wsLink = new WebSocketLink(
+  new SubscriptionClient(uri.replace("http", "ws"))
+);
+
+const splitLink = split(
+  ({ query }) => {
+    const definition = getMainDefinition(query);
+    return (
+      definition.kind === "OperationDefinition" &&
+      definition.operation === "subscription"
+    );
+  },
+  wsLink,
+  httpLink
+);
+const link = splitLink;
+
 const client = new ApolloClient({
-  link: httpLink,
+  link,
   cache: new InMemoryCache(),
 });
 

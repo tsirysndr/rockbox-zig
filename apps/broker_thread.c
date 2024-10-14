@@ -24,49 +24,46 @@
 #include "logf.h"
 #include "appevents.h"
 
-bool server_is_initialized = false;
+bool broker_is_initialized = false;
 
-/* Server thread */
-static long server_stack[(DEFAULT_STACK_SIZE * 4)/sizeof(long)];
-static const char server_thread_name[] = "server";
-unsigned int server_thread_id = 0;
+/* Broker thread */
+static long broker_stack[(DEFAULT_STACK_SIZE * 4)/sizeof(long)];
+static const char broker_thread_name[] = "broker";
+unsigned int broker_thread_id = 0;
 
-extern void start_server(void);
-extern void start_servers(void);
+extern void start_broker(void);
 
 extern void debugfn(const char *fmt);
 
-static void server_thread(void) {
-    start_server();
+static void broker_thread(void) {
+    start_broker();
 }
 
 /** -- Startup -- **/
 
-/* Initialize the server - called from init() in main.c */
-void INIT_ATTR server_init(void)
+/* Initialize the broker - called from init() in main.c */
+void INIT_ATTR broker_init(void)
 {
     /* Can never do this twice */
-    if (server_is_initialized)
+    if (broker_is_initialized)
     {
-        logf("server: already initialized");
+        logf("broker: already initialized");
         return;
     }
 
-    logf("server: initializing");
+    logf("broker: initializing");
 
     /* Initialize queues before giving control elsewhere in case it likes
        to send messages. Thread creation will be delayed however so nothing
        starts running until ready if something yields such as talk_init. */
     // queue_init(&server_queue, true);
-    server_thread_id = create_thread(server_thread, server_stack,
-                  sizeof(server_stack), 0, server_thread_name
+    broker_thread_id = create_thread(broker_thread, broker_stack,
+                  sizeof(broker_stack), 0, broker_thread_name
                   IF_PRIO(,  PRIORITY_USER_INTERFACE)
                   IF_COP(, CPU));
 
     sleep(HZ); /* Give it a chance to start */
-    
-    start_servers();
 
    /* Probably safe to say */
-    server_is_initialized = true;
+    broker_is_initialized = true;
 }

@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { ProgressBar } from "baseui/progress-bar";
 import {
+  Album,
   AlbumCover,
   ArtistAlbum,
   Container,
@@ -14,22 +15,15 @@ import {
 } from "./styles";
 import Track from "../../Icons/Track";
 import { useTimeFormat } from "../../../Hooks/useFormat";
+import { CurrentTrack as NowPlaying } from "../../../Types/track";
 
 export type CurrentTrackProps = {
-  nowPlaying?: {
-    album?: string;
-    artist?: string;
-    title?: string;
-    cover?: string;
-    duration: number;
-    progress: number;
-    isPlaying?: boolean;
-    albumId?: string;
-  };
+  nowPlaying?: NowPlaying;
 };
 
 const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
   const { formatTime } = useTimeFormat();
+  const album = `${nowPlaying?.artist} - ${nowPlaying?.album}`;
   return (
     <Container>
       {!nowPlaying?.cover && (
@@ -41,12 +35,12 @@ const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
         <AlbumCover src={nowPlaying.cover} alt="Album cover" />
       )}
       <TrackInfo>
-        {!nowPlaying && (
+        {(!nowPlaying || nowPlaying?.duration === 0) && (
           <div style={{ color: "#b1b2b5", textAlign: "center" }}>
             No track playing
           </div>
         )}
-        {nowPlaying && (
+        {nowPlaying && nowPlaying?.duration > 0 && (
           <>
             <Title>{nowPlaying.title}</Title>
             <div
@@ -61,7 +55,11 @@ const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
               <ArtistAlbum>
                 {nowPlaying.artist}
                 <Separator>-</Separator>
-                {nowPlaying.album}
+                <Album to={`/albums/${nowPlaying.albumId}`}>
+                  {album.length > 75
+                    ? `${nowPlaying.album?.substring(0, 30)}...`
+                    : nowPlaying.album}
+                </Album>
               </ArtistAlbum>
               <Time>{formatTime(nowPlaying.duration)}</Time>
             </div>

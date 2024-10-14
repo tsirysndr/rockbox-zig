@@ -8,10 +8,10 @@ import { Button, Container, Controls, ControlsContainer } from "./styles";
 import CurrentTrack from "./CurrentTrack";
 import RightMenu from "./RightMenu";
 import Pause from "../Icons/Pause";
-import { CurrentTrack as Track } from "../../Types/track";
+import { CurrentTrack as NowPlaying } from "../../Types/track";
 
 export type ControlBarProps = {
-  nowPlaying?: Track;
+  nowPlaying?: NowPlaying;
   onPlay: () => void;
   onPause: () => void;
   onNext: () => void;

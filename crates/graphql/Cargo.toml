@@ -10,12 +10,16 @@ actix-web = "4.9.0"
 anyhow = "1.0.87"
 async-graphql = "7.0.9"
 async-graphql-actix-web = "7.0.9"
+futures-channel = "0.3.31"
+futures-util = "0.3.31"
 md5 = "0.7.0"
+once_cell = "1.20.2"
 owo-colors = "4.1.0"
 reqwest = {version = "0.12.7", features = ["rustls-tls", "json"], default-features = false}
 rockbox-library = {path = "../library"}
 rockbox-sys = {path = "../sys"}
 serde = "1.0.210"
 serde_json = "1.0.128"
+slab = "0.4.9"
 sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
 tokio = {version = "1.36.0", features = ["full"]}
