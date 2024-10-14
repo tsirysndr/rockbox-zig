@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import AlbumDetails from "./AlbumDetails";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetAlbumQuery } from "../../Hooks/GraphQL";
@@ -16,14 +16,20 @@ const AlbumDetailsWithData: FC = () => {
       id: id!,
     },
   });
-  const album = data
-    ? {
-        ...data.album!,
-        albumArt: data.album?.albumArt
-          ? `http://localhost:6062/covers/${data.album?.albumArt}`
-          : "",
-      }
-    : null;
+
+  const album = useMemo(
+    () =>
+      data
+        ? {
+            ...data.album!,
+            albumArt: data.album?.albumArt
+              ? `http://localhost:6062/covers/${data.album?.albumArt}`
+              : "",
+          }
+        : null,
+    [data]
+  );
+
   useEffect(() => {
     if (loading || !album) {
       return;
@@ -48,12 +54,12 @@ const AlbumDetailsWithData: FC = () => {
   }, [id]);
 
   useEffect(() => {
-    if (loading || !tracks.length) {
+    if (!tracks.length) {
       return;
     }
     getVolumes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tracks, loading]);
+  }, [tracks]);
 
   function getVolumes() {
     if (!tracks.some((track) => track.discnum === 2)) {
