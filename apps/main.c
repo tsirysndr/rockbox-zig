@@ -95,6 +95,7 @@
 #include "playback.h"
 #include "tdspeed.h"
 #include "server_thread.h"
+#include "broker_thread.h"
 #if defined(HAVE_RECORDING) && !defined(SIMULATOR)
 #include "pcm_record.h"
 #endif
@@ -454,6 +455,7 @@ static void init(void)
 
 #ifdef ROCKBOX_SERVER
     server_init();
+    broker_init();
 #endif
 }
 

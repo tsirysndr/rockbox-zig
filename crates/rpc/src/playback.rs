@@ -99,7 +99,7 @@ impl PlaybackService for Playback {
     ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
         let response = self
             .client
-            .get(&format!("{}/audio_status", rockbox_url()))
+            .get(&format!("{}/player/status", rockbox_url()))
             .send()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?

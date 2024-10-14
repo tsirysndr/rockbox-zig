@@ -1,7 +1,7 @@
-use async_graphql::MergedObject;
+use async_graphql::{MergedObject, MergedSubscription};
 use browse::BrowseQuery;
 use library::LibraryQuery;
-use playback::{PlaybackMutation, PlaybackQuery};
+use playback::{PlaybackMutation, PlaybackQuery, PlaybackSubscription};
 use playlist::{PlaylistMutation, PlaylistQuery};
 use settings::SettingsQuery;
 use sound::{SoundMutation, SoundQuery};
@@ -30,3 +30,6 @@ pub struct Query(
 
 #[derive(MergedObject, Default)]
 pub struct Mutation(PlaybackMutation, PlaylistMutation, SoundMutation);
+
+#[derive(MergedSubscription, Default)]
+pub struct Subscription(PlaybackSubscription);

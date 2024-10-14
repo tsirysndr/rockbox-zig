@@ -1,6 +1,12 @@
 use handlers::*;
 
 use http::RockboxHttpServer;
+use rockbox_graphql::{
+    schema::objects::{audio_status::AudioStatus, track::Track},
+    simplebroker::SimpleBroker,
+};
+use rockbox_library::repo;
+use rockbox_sys as rb;
 use rockbox_sys::events::RockboxCommand;
 use std::{
     ffi::c_char,
@@ -116,7 +122,10 @@ pub extern "C" fn start_servers() {
                     client.put(&format!("{}/player/next", url)).send().unwrap();
                 }
                 RockboxCommand::Prev => {
-                    client.put(&format!("{}/player/prev", url)).send().unwrap();
+                    client
+                        .put(&format!("{}/player/previous", url))
+                        .send()
+                        .unwrap();
                 }
                 RockboxCommand::FfRewind(newtime) => {
                     client
@@ -176,4 +185,34 @@ pub extern "C" fn start_servers() {
             }
         }
     });
+}
+
+#[no_mangle]
+pub extern "C" fn start_broker() {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let pool = rt
+        .block_on(rockbox_library::create_connection_pool())
+        .unwrap();
+    loop {
+        let playback_status: AudioStatus = rb::playback::status().into();
+        SimpleBroker::publish(playback_status);
+        match rb::playback::current_track() {
+            Some(current_track) => {
+                let hash = format!("{:x}", md5::compute(current_track.path.as_bytes()));
+                if let Ok(Some(metadata)) =
+                    rt.block_on(repo::track::find_by_md5(pool.clone(), &hash))
+                {
+                    let mut track: Track = current_track.into();
+                    track.id = Some(metadata.id);
+                    track.album_art = metadata.album_art;
+                    track.album_id = Some(metadata.album_id);
+                    track.artist_id = Some(metadata.artist_id);
+                    SimpleBroker::publish(track);
+                }
+            }
+            None => {}
+        };
+        thread::sleep(std::time::Duration::from_millis(100));
+        rb::system::sleep(rb::HZ);
+    }
 }

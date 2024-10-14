@@ -2,6 +2,7 @@ import { FC } from "react";
 import ThemeProvider from "./ThemeProvider";
 import { Provider as StyletronProvider } from "styletron-react";
 import { Client as Styletron } from "styletron-engine-atomic";
+import { RecoilRoot } from "recoil";
 
 const engine = new Styletron();
 
@@ -11,9 +12,11 @@ export type ProvidersProps = {
 
 const Providers: FC<ProvidersProps> = ({ children }) => {
   return (
-    <StyletronProvider value={engine}>
-      <ThemeProvider>{children}</ThemeProvider>
-    </StyletronProvider>
+    <RecoilRoot>
+      <StyletronProvider value={engine}>
+        <ThemeProvider>{children}</ThemeProvider>
+      </StyletronProvider>
+    </RecoilRoot>
   );
 };
 

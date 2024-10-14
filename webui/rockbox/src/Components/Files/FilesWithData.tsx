@@ -6,7 +6,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 const FilesWithData: FC = () => {
   const navigate = useNavigate();
   const [refetching, setRefetching] = useState(false);
-  const { data, refetch, loading } = useGetEntriesQuery();
+  const { data, refetch } = useGetEntriesQuery();
   const [params] = useSearchParams();
   const path = params.get("q");
   const canGoBack = !!path;

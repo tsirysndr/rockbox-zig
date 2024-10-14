@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { Link } from "react-router-dom";
 
 export const Container = styled.div`
   display: flex;
@@ -75,6 +76,14 @@ export const Title = styled.div`
   width: calc(100% - 20px);
   margin-left: 10px;
   margin-right: 10px;
+`;
+
+export const Album = styled(Link)`
+  text-decoration: none;
+  color: inherit;
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 export const styles = {
