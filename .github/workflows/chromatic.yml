@@ -9,7 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: mv .git webui/rockbox
+        with:
+          fetch-depth: 0
       - name: Publish Storybook to Chromatic
         uses: fluentci-io/setup-fluentci@v5
         with:
