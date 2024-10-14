@@ -8,7 +8,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup Fluent CI
         uses: fluentci-io/setup-fluentci@v5
         with:
