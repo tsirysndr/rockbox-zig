@@ -4,6 +4,7 @@ import { Disc } from "@styled-icons/boxicons-regular";
 import { HardDrive } from "@styled-icons/feather";
 import Artist from "../Icons/Artist";
 import Track from "../Icons/Track";
+import RockboxLogo from "../../Assets/rockbox-icon.svg";
 
 export type SidebarProps = {
   active: string;
@@ -12,6 +13,11 @@ export type SidebarProps = {
 const Sidebar: FC<SidebarProps> = ({ active }) => {
   return (
     <SidebarContainer>
+      <img
+        src={RockboxLogo}
+        alt="Rockbox"
+        style={{ width: 40, marginBottom: 20, marginLeft: 12 }}
+      />
       <MenuItem
         color={active === "albums" ? "#fe099c" : "initial"}
         to="/albums"

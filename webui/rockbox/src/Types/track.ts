@@ -4,7 +4,8 @@ export type Track = {
   title: string;
   artist: string;
   album?: string;
-  time: string;
+  time?: string;
+  duration?: number;
   albumArt?: string;
   cover?: string;
   albumId?: string;
