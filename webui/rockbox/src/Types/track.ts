@@ -1,15 +1,16 @@
 export type Track = {
   id: string;
-  trackNumber?: number;
+  trackNumber?: number | null;
   title: string;
   artist: string;
   album?: string;
-  time: string;
-  albumArt?: string;
-  cover?: string;
-  albumId?: string;
-  artistId?: string;
-  discnum?: number;
+  time?: string | null;
+  duration?: number | null;
+  albumArt?: string | null;
+  cover?: string | null;
+  albumId?: string | null;
+  artistId?: string | null;
+  discnum?: number | null;
 };
 
 export type CurrentTrack = {

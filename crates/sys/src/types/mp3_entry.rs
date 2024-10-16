@@ -2,7 +2,7 @@ use crate::cast_ptr;
 use crate::get_string_from_ptr;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Mp3Entry {
     pub path: String,
     pub title: String,                     // char* title
@@ -58,6 +58,10 @@ pub struct Mp3Entry {
     pub has_embedded_albumart: bool,       // bool has_embedded_albumart
     pub mb_track_id: String,               // char* mb_track_id
     pub is_asf_stream: bool,               // bool is_asf_stream
+    pub album_id: Option<String>,
+    pub artist_id: Option<String>,
+    pub genre_id: Option<String>,
+    pub album_art: Option<String>,
 }
 
 impl From<crate::Mp3Entry> for Mp3Entry {
@@ -126,6 +130,7 @@ impl From<crate::Mp3Entry> for Mp3Entry {
             // mb_track_id: get_string_from_ptr!(entry.mb_track_id),
             mb_track_id: "".to_string(),
             is_asf_stream: entry.is_asf_stream,
+            ..Default::default()
         }
     }
 }

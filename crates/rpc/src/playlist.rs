@@ -43,7 +43,16 @@ impl PlaylistService for Playlist {
             .iter()
             .map(|track| CurrentTrackResponse::from(track.clone()))
             .collect::<Vec<CurrentTrackResponse>>();
-        Ok(tonic::Response::new(GetCurrentResponse { tracks }))
+        Ok(tonic::Response::new(GetCurrentResponse {
+            index: data.index,
+            amount: data.amount,
+            max_playlist_size: data.max_playlist_size,
+            first_index: data.first_index,
+            last_insert_pos: data.last_insert_pos,
+            seed: data.seed,
+            last_shuffled_start: data.last_shuffled_start,
+            tracks,
+        }))
     }
 
     async fn get_resume_info(
@@ -127,9 +136,30 @@ impl PlaylistService for Playlist {
 
     async fn start(
         &self,
-        _request: tonic::Request<StartRequest>,
+        request: tonic::Request<StartRequest>,
     ) -> Result<tonic::Response<StartResponse>, tonic::Status> {
-        let url = format!("{}/playlists/start", rockbox_url());
+        let request = request.into_inner();
+
+        let mut url = format!("{}/playlists/start", rockbox_url());
+
+        if let Some(start_index) = request.start_index {
+            url = format!("{}?start_index={}", url, start_index);
+        }
+
+        if let Some(elapsed) = request.elapsed {
+            url = match url.contains("?") {
+                true => format!("{}&elapsed={}", url, elapsed),
+                false => format!("{}?elapsed={}", url, elapsed),
+            };
+        }
+
+        if let Some(offset) = request.offset {
+            url = match url.contains("?") {
+                true => format!("{}&offset={}", url, offset),
+                false => format!("{}?offset={}", url, offset),
+            };
+        }
+
         self.client
             .put(&url)
             .send()

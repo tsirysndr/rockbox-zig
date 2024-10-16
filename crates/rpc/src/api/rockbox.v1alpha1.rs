@@ -2611,7 +2611,21 @@ pub mod playback_service_server {
 pub struct GetCurrentRequest {}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetCurrentResponse {
-    #[prost(message, repeated, tag = "1")]
+    #[prost(int32, tag = "1")]
+    pub index: i32,
+    #[prost(int32, tag = "2")]
+    pub amount: i32,
+    #[prost(int32, tag = "3")]
+    pub max_playlist_size: i32,
+    #[prost(int32, tag = "4")]
+    pub first_index: i32,
+    #[prost(int32, tag = "5")]
+    pub last_insert_pos: i32,
+    #[prost(int32, tag = "6")]
+    pub seed: i32,
+    #[prost(int32, tag = "7")]
+    pub last_shuffled_start: i32,
+    #[prost(message, repeated, tag = "8")]
     pub tracks: ::prost::alloc::vec::Vec<CurrentTrackResponse>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -2659,7 +2673,14 @@ pub struct SetModifiedRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SetModifiedResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct StartRequest {}
+pub struct StartRequest {
+    #[prost(int32, optional, tag = "1")]
+    pub start_index: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "2")]
+    pub elapsed: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "3")]
+    pub offset: ::core::option::Option<i32>,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct StartResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]

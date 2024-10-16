@@ -6,6 +6,7 @@ export const Container = styled.div`
   height: 60px;
   margin-top: 5px;
   margin-bottom: 20px;
+  padding-right: 20px;
 `;
 
 export const ControlsContainer = styled.div`

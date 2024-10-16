@@ -148,24 +148,24 @@ const MAX_DIR_LEVELS: usize = 10;
 pub struct PlaylistInfo {
     pub utf8: bool,                    // bool utf8
     pub control_created: bool,         // bool control_created
-    pub flags: c_uint,                 // unsigned int flags
-    pub fd: c_int,                     // int fd
-    pub control_fd: c_int,             // int control_fd
-    pub max_playlist_size: c_int,      // int max_playlist_size
+    pub flags: u32,                    // unsigned int flags
+    pub fd: i32,                       // int fd
+    pub control_fd: i32,               // int control_fd
+    pub max_playlist_size: i32,        // int max_playlist_size
     pub indices: [c_ulong; 200],       // unsigned long* indices
-    pub index: c_int,                  // int index
-    pub first_index: c_int,            // int first_index
-    pub amount: c_int,                 // int amount
-    pub last_insert_pos: c_int,        // int last_insert_pos
+    pub index: i32,                    // int index
+    pub first_index: i32,              // int first_index
+    pub amount: i32,                   // int amount
+    pub last_insert_pos: i32,          // int last_insert_pos
     pub started: bool,                 // bool started
-    pub last_shuffled_start: c_int,    // int last_shuffled_start
-    pub seed: c_int,                   // int seed
+    pub last_shuffled_start: i32,      // int last_shuffled_start
+    pub seed: i32,                     // int seed
     pub mutex: *mut c_void,            // struct mutex (convert to a void pointer for FFI)
-    pub dirlen: c_int,                 // int dirlen
+    pub dirlen: i32,                   // int dirlen
     pub filename: [c_uchar; MAX_PATH], // char filename[MAX_PATH]
     pub control_filename:
         [c_uchar; std::mem::size_of::<[u8; PLAYLIST_CONTROL_FILE.len() + 100 + 8]>()], // char control_filename[sizeof(PLAYLIST_CONTROL_FILE) + 8]
-    pub dcfrefs_handle: c_int, // int dcfrefs_handle
+    pub dcfrefs_handle: i32, // int dcfrefs_handle
 }
 
 #[repr(C)]
@@ -1095,6 +1095,12 @@ extern "C" {
         queue: c_uchar,
     ) -> c_int;
     fn playlist_shuffle(random_seed: c_int, start_index: c_int) -> c_int;
+    fn rb_playlist_index() -> i32;
+    fn rb_playlist_first_index() -> i32;
+    fn rb_playlist_last_insert_pos() -> i32;
+    fn rb_playlist_seed() -> i32;
+    fn rb_playlist_last_shuffled_start() -> i32;
+    fn rb_max_playlist_size() -> i32;
     fn warn_on_pl_erase() -> c_uchar;
 
     // Sound

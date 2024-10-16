@@ -16,6 +16,7 @@ import {
 import Track from "../../Icons/Track";
 import { useTimeFormat } from "../../../Hooks/useFormat";
 import { CurrentTrack as NowPlaying } from "../../../Types/track";
+import _ from "lodash";
 
 export type CurrentTrackProps = {
   nowPlaying?: NowPlaying;
@@ -42,7 +43,11 @@ const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
         )}
         {nowPlaying && nowPlaying?.duration > 0 && (
           <>
-            <Title>{nowPlaying.title}</Title>
+            <Title>
+              {_.get(nowPlaying, "title.length", 0) > 75
+                ? `${nowPlaying.title?.substring(0, 75)}...`
+                : nowPlaying.title}
+            </Title>
             <div
               style={{
                 display: "flex",
@@ -53,7 +58,9 @@ const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
             >
               <Time>{formatTime(nowPlaying.progress)}</Time>
               <ArtistAlbum>
-                {nowPlaying.artist}
+                {_.get(nowPlaying, "artist.length", 0) > 65
+                  ? `${nowPlaying.artist?.substring(0, 54)}...`
+                  : nowPlaying.artist}
                 <Separator>-</Separator>
                 <Album to={`/albums/${nowPlaying.albumId}`}>
                   {album.length > 75

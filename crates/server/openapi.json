@@ -903,6 +903,63 @@
         ]
       }
     },
+    "/playlists/current": {
+      "get": {
+        "summary": "Get Playlist Details",
+        "tags": [
+          "Playlists"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "amount": {
+                      "type": "integer"
+                    },
+                    "index": {
+                      "type": "integer"
+                    },
+                    "max_playlist_size": {
+                      "type": "integer"
+                    },
+                    "first_index": {
+                      "type": "integer"
+                    },
+                    "last_insert_pos": {
+                      "type": "integer"
+                    },
+                    "seed": {
+                      "type": "integer"
+                    },
+                    "last_shuffled_start": {
+                      "type": "integer"
+                    },
+                    "tracks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Track.v1",
+                        "x-stoplight": {
+                          "id": "gz6dzxyv1j0ws"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "operationId": "get-current-playlist",
+      "description": "",
+      "requestBody": {
+        "content": {}
+      }
+    },
     "/playlists/current/tracks": {
       "get": {
         "summary": "Get Playlist Tracks",

@@ -2,13 +2,14 @@ use handlers::*;
 
 use http::RockboxHttpServer;
 use rockbox_graphql::{
-    schema::objects::{audio_status::AudioStatus, track::Track},
+    schema::objects::{self, audio_status::AudioStatus, track::Track},
     simplebroker::SimpleBroker,
 };
 use rockbox_library::repo;
-use rockbox_sys as rb;
 use rockbox_sys::events::RockboxCommand;
+use rockbox_sys::{self as rb, types::mp3_entry::Mp3Entry};
 use std::{
+    collections::HashMap,
     ffi::c_char,
     sync::{Arc, Mutex},
     thread,
@@ -57,6 +58,7 @@ pub extern "C" fn start_server() {
     app.put("/player/next", next);
     app.put("/player/previous", previous);
     app.put("/player/stop", stop);
+    app.get("/player/file-position", get_file_position);
 
     app.post("/playlists", create_playlist);
     app.put("/playlists/start", start_playlist);
@@ -67,6 +69,7 @@ pub extern "C" fn start_server() {
     app.get("/playlists/:id/tracks", get_playlist_tracks);
     app.post("/playlists/:id/tracks", insert_tracks);
     app.delete("/playlists/:id/tracks", remove_tracks);
+    app.get("/playlists/:id", get_playlist);
 
     app.get("/tracks", get_tracks);
     app.get("/tracks/:id", get_track);
@@ -193,6 +196,9 @@ pub extern "C" fn start_broker() {
     let pool = rt
         .block_on(rockbox_library::create_connection_pool())
         .unwrap();
+
+    let mut metadata_cache: HashMap<String, Mp3Entry> = HashMap::new();
+
     loop {
         let playback_status: AudioStatus = rb::playback::status().into();
         SimpleBroker::publish(playback_status);
@@ -212,6 +218,65 @@ pub extern "C" fn start_broker() {
             }
             None => {}
         };
+
+        let mut current_playlist = rb::playlist::get_current();
+        let amount = rb::playlist::amount();
+
+        let mut entries: Vec<Mp3Entry> = vec![];
+
+        for i in 0..amount {
+            let info = rb::playlist::get_track_info(i);
+            let mut entry = rb::metadata::get_metadata(-1, &info.filename);
+
+            let hash = format!("{:x}", md5::compute(info.filename.as_bytes()));
+
+            if let Some(entry) = metadata_cache.get(&hash) {
+                entries.push(entry.clone());
+                continue;
+            }
+
+            let track = rt
+                .block_on(repo::track::find_by_md5(pool.clone(), &hash))
+                .unwrap();
+
+            if track.is_none() {
+                entries.push(entry);
+                continue;
+            }
+
+            entry.album_art = track.as_ref().map(|t| t.album_art.clone()).flatten();
+            entry.album_id = track.as_ref().map(|t| t.album_id.clone());
+            entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
+            entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
+
+            metadata_cache.insert(hash, entry.clone());
+            entries.push(entry);
+        }
+
+        current_playlist.amount = amount;
+        current_playlist.max_playlist_size = rb::playlist::max_playlist_size();
+        current_playlist.index = rb::playlist::index();
+        current_playlist.first_index = rb::playlist::first_index();
+        current_playlist.last_insert_pos = rb::playlist::last_insert_pos();
+        current_playlist.seed = rb::playlist::seed();
+        current_playlist.last_shuffled_start = rb::playlist::last_shuffled_start();
+        current_playlist.entries = entries;
+
+        SimpleBroker::publish(objects::playlist::Playlist {
+            amount: current_playlist.amount,
+            index: current_playlist.index,
+            max_playlist_size: current_playlist.max_playlist_size,
+            first_index: current_playlist.first_index,
+            last_insert_pos: current_playlist.last_insert_pos,
+            seed: current_playlist.seed,
+            last_shuffled_start: current_playlist.last_shuffled_start,
+            tracks: current_playlist
+                .entries
+                .into_iter()
+                .map(|t| t.into())
+                .collect(),
+        });
+
         thread::sleep(std::time::Duration::from_millis(100));
         rb::system::sleep(rb::HZ);
     }

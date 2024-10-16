@@ -162,6 +162,10 @@ impl From<Mp3Entry> for Track {
         let length = mp3entry.length;
         let elapsed = mp3entry.elapsed;
         let path = mp3entry.path;
+        let album_id = mp3entry.album_id;
+        let artist_id = mp3entry.artist_id;
+        let genre_id = mp3entry.genre_id;
+        let album_art = mp3entry.album_art;
 
         Track {
             title,
@@ -185,6 +189,10 @@ impl From<Mp3Entry> for Track {
             length,
             elapsed,
             path,
+            album_id,
+            artist_id,
+            genre_id,
+            album_art,
             ..Default::default()
         }
     }

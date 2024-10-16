@@ -108,3 +108,27 @@ pub fn insert_track(filename: &str, position: i32, queue: bool, sync: bool) -> i
 pub fn delete_track(index: i32) -> i32 {
     unsafe { crate::rb_playlist_delete_track(index) }
 }
+
+pub fn index() -> i32 {
+    unsafe { crate::rb_playlist_index() }
+}
+
+pub fn first_index() -> i32 {
+    unsafe { crate::rb_playlist_first_index() }
+}
+
+pub fn last_insert_pos() -> i32 {
+    unsafe { crate::rb_playlist_last_insert_pos() }
+}
+
+pub fn seed() -> i32 {
+    unsafe { crate::rb_playlist_seed() }
+}
+
+pub fn last_shuffled_start() -> i32 {
+    unsafe { crate::rb_playlist_last_shuffled_start() }
+}
+
+pub fn max_playlist_size() -> i32 {
+    unsafe { crate::rb_max_playlist_size() }
+}

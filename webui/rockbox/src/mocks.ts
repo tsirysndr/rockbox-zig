@@ -1,7 +1,12 @@
 import {
+  nextTracks,
+  previousTracks,
+} from "./Components/ControlBar/PlayQueue/mocks";
+import {
   GET_CURRENT_TRACK,
   GET_PLAYBACK_STATUS,
 } from "./GraphQL/Playback/Query";
+import { GET_CURRENT_PLAYLIST } from "./GraphQL/Playlist/Query";
 
 export const mocks = [
   {
@@ -32,5 +37,28 @@ export const mocks = [
       query: GET_PLAYBACK_STATUS,
     },
     result: { data: { status: 1 } },
+  },
+  {
+    request: {
+      query: GET_CURRENT_PLAYLIST,
+    },
+    result: {
+      data: {
+        playlistGetCurrent: {
+          index: 2,
+          amount: previousTracks.length + nextTracks.length,
+          maxPlaylistSize: 10000,
+          tracks: [...previousTracks, ...nextTracks].map((x) => ({
+            id: x.id,
+            title: x.title,
+            artist: x.artist,
+            albumArt: x.cover,
+            artistId: null,
+            albumId: null,
+            path: "",
+          })),
+        },
+      },
+    },
   },
 ];
