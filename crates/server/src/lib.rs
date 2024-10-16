@@ -6,9 +6,10 @@ use rockbox_graphql::{
     simplebroker::SimpleBroker,
 };
 use rockbox_library::repo;
-use rockbox_sys as rb;
 use rockbox_sys::events::RockboxCommand;
+use rockbox_sys::{self as rb, types::mp3_entry::Mp3Entry};
 use std::{
+    collections::HashMap,
     ffi::c_char,
     sync::{Arc, Mutex},
     thread,
@@ -195,6 +196,9 @@ pub extern "C" fn start_broker() {
     let pool = rt
         .block_on(rockbox_library::create_connection_pool())
         .unwrap();
+
+    let mut metadata_cache: HashMap<String, Mp3Entry> = HashMap::new();
+
     loop {
         let playback_status: AudioStatus = rb::playback::status().into();
         SimpleBroker::publish(playback_status);
@@ -218,11 +222,34 @@ pub extern "C" fn start_broker() {
         let mut current_playlist = rb::playlist::get_current();
         let amount = rb::playlist::amount();
 
-        let mut entries = vec![];
+        let mut entries: Vec<Mp3Entry> = vec![];
 
         for i in 0..amount {
             let info = rb::playlist::get_track_info(i);
-            let entry = rb::metadata::get_metadata(-1, &info.filename);
+            let mut entry = rb::metadata::get_metadata(-1, &info.filename);
+
+            let hash = format!("{:x}", md5::compute(info.filename.as_bytes()));
+
+            if let Some(entry) = metadata_cache.get(&hash) {
+                entries.push(entry.clone());
+                continue;
+            }
+
+            let track = rt
+                .block_on(repo::track::find_by_md5(pool.clone(), &hash))
+                .unwrap();
+
+            if track.is_none() {
+                entries.push(entry);
+                continue;
+            }
+
+            entry.album_art = track.as_ref().map(|t| t.album_art.clone()).flatten();
+            entry.album_id = track.as_ref().map(|t| t.album_id.clone());
+            entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
+            entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
+
+            metadata_cache.insert(hash, entry.clone());
             entries.push(entry);
         }
 

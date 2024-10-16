@@ -1,6 +1,9 @@
 use anyhow::Error;
 use owo_colors::OwoColorize;
-use rockbox_sys::{self as rb, types::tree::Entry};
+use rockbox_sys::{
+    self as rb,
+    types::{mp3_entry::Mp3Entry, tree::Entry},
+};
 use serde::Serialize;
 use serde_json::Value;
 use sqlx::Sqlite;
@@ -19,6 +22,7 @@ type Handler = fn(&Context, &Request, &mut Response) -> Result<(), Error>;
 pub struct Context {
     pub pool: sqlx::Pool<Sqlite>,
     pub fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
+    pub metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
 }
 
 #[derive(Debug)]
@@ -248,6 +252,7 @@ impl RockboxHttpServer {
         let rt = tokio::runtime::Runtime::new()?;
         let db_pool = rt.block_on(rockbox_library::create_connection_pool())?;
         let fs_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
+        let metadata_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
 
         loop {
             match listener.accept() {
@@ -260,6 +265,7 @@ impl RockboxHttpServer {
                     }
                     let mut cloned_self = self.clone();
                     let cloned_fs_cache = fs_cache.clone();
+                    let cloned_metadata_cache = metadata_cache.clone();
                     pool.execute(move || {
                         let mut buf_reader = BufReader::new(&stream);
                         let mut request = String::new();
@@ -324,6 +330,7 @@ impl RockboxHttpServer {
                                 db_pool,
                                 req_body,
                                 cloned_fs_cache,
+                                cloned_metadata_cache,
                             );
                         }
 
@@ -366,12 +373,17 @@ impl RockboxHttpServer {
         pool: sqlx::Pool<Sqlite>,
         body: Option<String>,
         fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
+        metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
     ) {
         println!("{} {}", method.bright_cyan(), path);
         match self.router.route(method, path) {
             Some((handler, params)) => {
                 let mut response = Response::new();
-                let context = Context { pool, fs_cache };
+                let context = Context {
+                    pool,
+                    fs_cache,
+                    metadata_cache,
+                };
                 let request = Request {
                     method: method.to_string(),
                     params,

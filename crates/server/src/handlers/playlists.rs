@@ -3,6 +3,7 @@ use crate::{
     types::{DeleteTracks, InsertTracks, NewPlaylist},
 };
 use anyhow::Error;
+use rockbox_library::repo;
 use rockbox_sys::{self as rb, types::playlist_amount::PlaylistAmount};
 
 pub async fn create_playlist(
@@ -201,16 +202,37 @@ pub async fn remove_tracks(_ctx: &Context, req: &Request, res: &mut Response) ->
 }
 
 pub async fn current_playlist(
-    _ctx: &Context,
+    ctx: &Context,
     _req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let mut metadata_cache = ctx.metadata_cache.lock().await;
     let mut entries = vec![];
     let amount = rb::playlist::amount();
 
     for i in 0..amount {
         let info = rb::playlist::get_track_info(i);
-        let entry = rb::metadata::get_metadata(-1, &info.filename);
+        let mut entry = rb::metadata::get_metadata(-1, &info.filename);
+        let hash = format!("{:x}", md5::compute(info.filename.as_bytes()));
+
+        if let Some(entry) = metadata_cache.get(&hash) {
+            entries.push(entry.clone());
+            continue;
+        }
+
+        let track = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
+
+        if track.is_none() {
+            entries.push(entry.clone());
+            continue;
+        }
+
+        entry.album_art = track.as_ref().map(|t| t.album_art.clone()).flatten();
+        entry.album_id = track.as_ref().map(|t| t.album_id.clone());
+        entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
+        entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
+
+        metadata_cache.insert(hash, entry.clone());
         entries.push(entry);
     }
 
@@ -219,14 +241,35 @@ pub async fn current_playlist(
     Ok(())
 }
 
-pub async fn get_playlist(_ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn get_playlist(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+    let mut metadata_cache = ctx.metadata_cache.lock().await;
     let mut result = rb::playlist::get_current();
     let mut entries = vec![];
     let amount = rb::playlist::amount();
 
     for i in 0..amount {
         let info = rb::playlist::get_track_info(i);
-        let entry = rb::metadata::get_metadata(-1, &info.filename);
+        let mut entry = rb::metadata::get_metadata(-1, &info.filename);
+        let hash = format!("{:x}", md5::compute(info.filename.as_bytes()));
+
+        if let Some(entry) = metadata_cache.get(&hash) {
+            entries.push(entry.clone());
+            continue;
+        }
+
+        let track = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
+
+        if track.is_none() {
+            entries.push(entry.clone());
+            continue;
+        }
+
+        entry.album_art = track.as_ref().map(|t| t.album_art.clone()).flatten();
+        entry.album_id = track.as_ref().map(|t| t.album_id.clone());
+        entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
+        entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
+
+        metadata_cache.insert(hash, entry.clone());
         entries.push(entry);
     }
 

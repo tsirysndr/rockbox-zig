@@ -23,6 +23,9 @@ export const usePlayQueue = () => {
       return tracks.slice(0, currentTrackIndex + 1).map((x, index) => ({
         ...x,
         id: index.toString(),
+        cover: x.albumArt
+          ? `http://localhost:6062/covers/${x.albumArt}`
+          : undefined,
       }));
     }
     const currentTrackIndex = _.get(data, "playlistGetCurrent.index", 0);
@@ -30,6 +33,9 @@ export const usePlayQueue = () => {
     return tracks.slice(0, currentTrackIndex + 1).map((x, index) => ({
       ...x,
       id: index.toString(),
+      cover: x.albumArt
+        ? `http://localhost:6062/covers/${x.albumArt}`
+        : undefined,
     }));
   }, [data, playlistSubscription]);
 
@@ -44,6 +50,9 @@ export const usePlayQueue = () => {
       return tracks.slice(currentTrackIndex + 1).map((x, index) => ({
         ...x,
         id: index.toString(),
+        cover: x.albumArt
+          ? `http://localhost:6062/covers/${x.albumArt}`
+          : undefined,
       }));
     }
     const currentTrackIndex = _.get(data, "playlistGetCurrent.index", 0);
@@ -51,6 +60,9 @@ export const usePlayQueue = () => {
     return tracks.slice(currentTrackIndex + 1).map((x, index) => ({
       ...x,
       id: index.toString(),
+      cover: x.albumArt
+        ? `http://localhost:6062/covers/${x.albumArt}`
+        : undefined,
     }));
   }, [data, playlistSubscription]);
 
