@@ -9,7 +9,6 @@ import { controlBarState } from "../Components/ControlBar/ControlBarState";
 
 export const usePlayQueue = () => {
   const { resumeIndex } = useRecoilValue(controlBarState);
-  console.log(">> resumeIndex", resumeIndex);
   const { data: playlistSubscription } = usePlaylistChangedSubscription({
     fetchPolicy: "network-only",
   });
