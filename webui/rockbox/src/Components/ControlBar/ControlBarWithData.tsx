@@ -124,6 +124,7 @@ const ControlBarWithData: FC = () => {
         setControlBarState((state) => ({
           ...state,
           locked: false,
+          resumeIndex: -1,
         }));
       }, 3000);
       return;

@@ -9,6 +9,7 @@ import { controlBarState } from "../Components/ControlBar/ControlBarState";
 
 export const usePlayQueue = () => {
   const { resumeIndex } = useRecoilValue(controlBarState);
+  console.log(">> resumeIndex", resumeIndex);
   const { data: playlistSubscription } = usePlaylistChangedSubscription({
     fetchPolicy: "network-only",
   });
@@ -30,7 +31,10 @@ export const usePlayQueue = () => {
           : undefined,
       }));
     }
-    const currentTrackIndex = _.get(data, "playlistGetCurrent.index", 0);
+    const currentTrackIndex =
+      resumeIndex > -1
+        ? resumeIndex
+        : _.get(data, "playlistGetCurrent.index", 0);
     const tracks = _.get(data, "playlistGetCurrent.tracks", []);
     return tracks.slice(0, currentTrackIndex + 1).map((x, index) => ({
       ...x,
@@ -56,7 +60,10 @@ export const usePlayQueue = () => {
           : undefined,
       }));
     }
-    const currentTrackIndex = _.get(data, "playlistGetCurrent.index", 0);
+    const currentTrackIndex =
+      resumeIndex > -1
+        ? resumeIndex
+        : _.get(data, "playlistGetCurrent.index", 0);
     const tracks = _.get(data, "playlistGetCurrent.tracks", []);
     return tracks.slice(currentTrackIndex + 1).map((x, index) => ({
       ...x,

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import {
   useGetCurrentPlaylistQuery,
   useGetGlobalStatusQuery,
+  useGetPlaybackStatusQuery,
   useResumePlaylistMutation,
   useResumePlaylistTrackMutation,
 } from "./GraphQL";
@@ -18,9 +19,16 @@ export const useResumePlaylist = () => {
   } = useGetCurrentPlaylistQuery();
   const [resumePlaylist] = useResumePlaylistMutation();
   const [resumePlaylistTrack] = useResumePlaylistTrackMutation();
+  const { data: getPlaybackStatusData, loading: getPlaybackStatusLoading } =
+    useGetPlaybackStatusQuery();
 
   useEffect(() => {
-    if (loading || !currentPlaylistData || !globalStatusData) {
+    if (
+      loading ||
+      !currentPlaylistData ||
+      !globalStatusData ||
+      getPlaybackStatusLoading
+    ) {
       return;
     }
 
@@ -56,14 +64,23 @@ export const useResumePlaylist = () => {
             : "",
           duration: currentSong?.length || 0,
           progress: globalStatusData.globalStatus.resumeElapsed,
-          isPlaying: false,
+          isPlaying: getPlaybackStatusData?.status === 1,
           albumId: currentSong?.albumId,
         },
-        resumeIndex: globalStatusData.globalStatus.resumeIndex,
+        resumeIndex:
+          getPlaybackStatusData?.status === 1
+            ? -1
+            : globalStatusData.globalStatus.resumeIndex,
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, currentPlaylistData, globalStatusData]);
+  }, [
+    loading,
+    currentPlaylistData,
+    globalStatusData,
+    getPlaybackStatusLoading,
+    getPlaybackStatusData,
+  ]);
 
   return { resumePlaylistTrack };
 };
