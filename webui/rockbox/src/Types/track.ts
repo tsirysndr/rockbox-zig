@@ -3,7 +3,7 @@ export type Track = {
   trackNumber?: number | null;
   title: string;
   artist: string;
-  album?: string;
+  album?: string | null;
   time?: string | null;
   duration?: number | null;
   albumArt?: string | null;
