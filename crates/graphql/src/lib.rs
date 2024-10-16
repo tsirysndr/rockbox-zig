@@ -4,6 +4,7 @@ use schema::{Mutation, Query, Subscription};
 pub mod schema;
 pub mod server;
 pub mod simplebroker;
+pub mod types;
 
 pub type RockboxSchema = Schema<Query, Mutation, Subscription>;
 

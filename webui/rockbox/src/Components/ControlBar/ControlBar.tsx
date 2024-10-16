@@ -12,7 +12,7 @@ import { CurrentTrack as NowPlaying } from "../../Types/track";
 
 export type ControlBarProps = {
   nowPlaying?: NowPlaying;
-  onPlay: () => void;
+  onPlay: () => Promise<void>;
   onPause: () => void;
   onNext: () => void;
   onPrevious: () => void;

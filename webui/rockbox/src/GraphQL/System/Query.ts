@@ -5,3 +5,14 @@ export const GET_ROCKBOX_VERSION = gql`
     rockboxVersion
   }
 `;
+
+export const GET_GLOBAL_STATUS = gql`
+  query GetGlobalStatus {
+    globalStatus {
+      resumeIndex
+      resumeCrc32
+      resumeOffset
+      resumeElapsed
+    }
+  }
+`;

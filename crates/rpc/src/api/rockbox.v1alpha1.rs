@@ -2654,7 +2654,10 @@ pub struct AmountResponse {
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PlaylistResumeRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct PlaylistResumeResponse {}
+pub struct PlaylistResumeResponse {
+    #[prost(int32, tag = "1")]
+    pub code: i32,
+}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ResumeTrackRequest {
     #[prost(int32, tag = "1")]

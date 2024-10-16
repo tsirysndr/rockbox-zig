@@ -18,3 +18,8 @@ pub struct InsertTracks {
 pub struct DeleteTracks {
     pub positions: Vec<i32>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StatusCode {
+    pub code: i32,
+}

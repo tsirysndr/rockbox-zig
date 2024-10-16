@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { css } from "@emotion/react";
 import { Link } from "react-router-dom";
 
 export const Container = styled.div`
@@ -6,14 +7,6 @@ export const Container = styled.div`
   flex-direction: row;
   width: 100%;
   height: 100%;
-`;
-
-export const MainView = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  position: relative;
-  width: calc(100% - 240px);
 `;
 
 export const Title = styled.div`

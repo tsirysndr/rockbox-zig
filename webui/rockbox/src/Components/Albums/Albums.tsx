@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
 import { Cell, Grid } from "baseui/layout-grid";
+import MainView from "../MainView";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
 import AlbumArt from "../../Assets/albumart.svg";
@@ -13,7 +14,6 @@ import {
   FilterContainer,
   FloatingButton,
   Hover,
-  MainView,
   Scrollable,
   Title,
   Year,

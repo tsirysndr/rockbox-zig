@@ -7,6 +7,7 @@ pub mod server;
 pub mod settings;
 pub mod sound;
 pub mod system;
+pub mod types;
 
 pub const AUDIO_EXTENSIONS: [&str; 17] = [
     "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",

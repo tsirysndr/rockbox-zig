@@ -3,9 +3,9 @@ import { FC } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
+import MainView from "../MainView/MainView";
 import {
   Container,
-  MainView,
   AlbumCover,
   ContentWrapper,
   AlbumTitle,
@@ -45,6 +45,7 @@ export type AlbumDetailsProps = {
   tracks: Track[];
   album?: Album | null;
   volumes: Track[][];
+  enableBlur?: boolean;
 };
 
 const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
@@ -127,7 +128,9 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
   return (
     <Container>
       <Sidebar active="albums" />
-      <MainView>
+      <MainView
+        cover={props.enableBlur ? (props.album?.albumArt as any) : undefined}
+      >
         <ControlBar />
         <ContentWrapper>
           <BackButton onClick={() => props.onGoBack()}>

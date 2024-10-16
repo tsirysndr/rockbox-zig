@@ -15,9 +15,10 @@ import _ from "lodash";
 import { useRecoilState } from "recoil";
 import { controlBarState } from "./ControlBarState";
 import { usePlayQueue } from "../../Hooks/usePlayQueue";
+import { useResumePlaylist } from "../../Hooks/useResumePlaylist";
 
 const ControlBarWithData: FC = () => {
-  const [{ nowPlaying, locked }, setControlBarState] =
+  const [{ nowPlaying, locked, resumeIndex }, setControlBarState] =
     useRecoilState(controlBarState);
   const { data, loading } = useGetCurrentTrackQuery();
   const { data: playback } = useGetPlaybackStatusQuery({
@@ -30,6 +31,7 @@ const ControlBarWithData: FC = () => {
   const { data: playbackSubscription } = useCurrentlyPlayingSongSubscription();
   const { data: playbackStatus } = usePlaybackStatusSubscription();
   const { previousTracks, nextTracks } = usePlayQueue();
+  const { resumePlaylistTrack } = useResumePlaylist();
 
   const setNowPlaying = (nowPlaying: CurrentTrack) => {
     setControlBarState((state) => ({
@@ -96,7 +98,7 @@ const ControlBarWithData: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, loading, playback]);
 
-  const onPlay = () => {
+  const onPlay = async () => {
     setControlBarState((state) => ({
       ...state,
       nowPlaying: {
@@ -105,7 +107,30 @@ const ControlBarWithData: FC = () => {
       },
       locked: true,
     }));
+
+    if (resumeIndex > -1) {
+      try {
+        await resumePlaylistTrack();
+      } catch (e) {
+        console.error(e);
+      }
+
+      setControlBarState((state) => ({
+        ...state,
+        resumeIndex: -1,
+      }));
+
+      setTimeout(() => {
+        setControlBarState((state) => ({
+          ...state,
+          locked: false,
+          resumeIndex: -1,
+        }));
+      }, 3000);
+      return;
+    }
     resume();
+
     setTimeout(() => {
       setControlBarState((state) => ({
         ...state,

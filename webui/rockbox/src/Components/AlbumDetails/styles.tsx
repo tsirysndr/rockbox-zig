@@ -8,13 +8,6 @@ export const Container = styled.div`
   height: 100%;
 `;
 
-export const MainView = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  width: calc(100% - 240px);
-`;
-
 export const AlbumCover = styled.img`
   height: 240px;
   width: 240px;

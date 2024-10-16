@@ -1,5 +1,5 @@
-tr:nth-child(even)  {
-  background-color: #f9f9f9;
+tbody > tr:hover  {
+  background-color: #f9f9f97a;
 }
 
 table {

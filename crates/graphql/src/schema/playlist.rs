@@ -7,7 +7,9 @@ use rockbox_sys::{
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
 };
 
-use crate::{rockbox_url, schema::objects::playlist::Playlist, simplebroker::SimpleBroker};
+use crate::{
+    rockbox_url, schema::objects::playlist::Playlist, simplebroker::SimpleBroker, types::StatusCode,
+};
 
 #[derive(Default)]
 pub struct PlaylistQuery;
@@ -61,13 +63,12 @@ pub struct PlaylistMutation;
 
 #[Object]
 impl PlaylistMutation {
-    async fn playlist_resume(&self, ctx: &Context<'_>) -> Result<String, Error> {
-        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
-            .unwrap()
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::PlaylistResume)?;
-        Ok("".to_string())
+    async fn playlist_resume(&self, _ctx: &Context<'_>) -> Result<i32, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/playlists/resume", rockbox_url());
+        let response = client.put(&url).send().await?;
+        let response = response.json::<StatusCode>().await?;
+        Ok(response.code)
     }
 
     async fn resume_track(&self, ctx: &Context<'_>) -> Result<String, Error> {

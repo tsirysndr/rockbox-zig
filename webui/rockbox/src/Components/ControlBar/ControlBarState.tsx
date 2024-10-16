@@ -6,6 +6,7 @@ export const controlBarState = atom<{
   locked?: boolean;
   previousTracks?: Track[];
   nextTracks?: Track[];
+  resumeIndex: number;
 }>({
   key: "controlBarState",
   default: {
@@ -13,5 +14,6 @@ export const controlBarState = atom<{
     locked: false,
     previousTracks: [],
     nextTracks: [],
+    resumeIndex: -1,
   },
 });

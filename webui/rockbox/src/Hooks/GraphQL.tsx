@@ -90,7 +90,7 @@ export type Mutation = {
   playlistInsertTracks: Scalars['Int']['output'];
   playlistRemoveAllTracks: Scalars['Int']['output'];
   playlistRemoveTrack: Scalars['Int']['output'];
-  playlistResume: Scalars['String']['output'];
+  playlistResume: Scalars['Int']['output'];
   playlistSetModified: Scalars['String']['output'];
   playlistStart: Scalars['Int']['output'];
   playlistSync: Scalars['String']['output'];
@@ -561,6 +561,16 @@ export type PlaybackStatusSubscriptionVariables = Exact<{ [key: string]: never; 
 
 export type PlaybackStatusSubscription = { __typename?: 'Subscription', playbackStatus: { __typename?: 'AudioStatus', status: number } };
 
+export type ResumePlaylistMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ResumePlaylistMutation = { __typename?: 'Mutation', playlistResume: number };
+
+export type ResumePlaylistTrackMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ResumePlaylistTrackMutation = { __typename?: 'Mutation', resumeTrack: string };
+
 export type PlaylistRemoveTrackMutationVariables = Exact<{
   index: Scalars['Int']['input'];
 }>;
@@ -580,7 +590,7 @@ export type StartPlaylistMutation = { __typename?: 'Mutation', playlistStart: nu
 export type GetCurrentPlaylistQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetCurrentPlaylistQuery = { __typename?: 'Query', playlistGetCurrent: { __typename?: 'Playlist', index: number, amount: number, maxPlaylistSize: number, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, path: string }> } };
+export type GetCurrentPlaylistQuery = { __typename?: 'Query', playlistGetCurrent: { __typename?: 'Playlist', index: number, amount: number, maxPlaylistSize: number, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, path: string, album: string, length: number }> } };
 
 export type PlaylistChangedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -591,6 +601,11 @@ export type GetRockboxVersionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetRockboxVersionQuery = { __typename?: 'Query', rockboxVersion: string };
+
+export type GetGlobalStatusQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGlobalStatusQuery = { __typename?: 'Query', globalStatus: { __typename?: 'SystemStatus', resumeIndex: number, resumeCrc32: number, resumeOffset: number, resumeElapsed: number } };
 
 
 export const GetEntriesDocument = gql`
@@ -1259,6 +1274,66 @@ export function usePlaybackStatusSubscription(baseOptions?: Apollo.SubscriptionH
       }
 export type PlaybackStatusSubscriptionHookResult = ReturnType<typeof usePlaybackStatusSubscription>;
 export type PlaybackStatusSubscriptionResult = Apollo.SubscriptionResult<PlaybackStatusSubscription>;
+export const ResumePlaylistDocument = gql`
+    mutation ResumePlaylist {
+  playlistResume
+}
+    `;
+export type ResumePlaylistMutationFn = Apollo.MutationFunction<ResumePlaylistMutation, ResumePlaylistMutationVariables>;
+
+/**
+ * __useResumePlaylistMutation__
+ *
+ * To run a mutation, you first call `useResumePlaylistMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResumePlaylistMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resumePlaylistMutation, { data, loading, error }] = useResumePlaylistMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useResumePlaylistMutation(baseOptions?: Apollo.MutationHookOptions<ResumePlaylistMutation, ResumePlaylistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResumePlaylistMutation, ResumePlaylistMutationVariables>(ResumePlaylistDocument, options);
+      }
+export type ResumePlaylistMutationHookResult = ReturnType<typeof useResumePlaylistMutation>;
+export type ResumePlaylistMutationResult = Apollo.MutationResult<ResumePlaylistMutation>;
+export type ResumePlaylistMutationOptions = Apollo.BaseMutationOptions<ResumePlaylistMutation, ResumePlaylistMutationVariables>;
+export const ResumePlaylistTrackDocument = gql`
+    mutation ResumePlaylistTrack {
+  resumeTrack
+}
+    `;
+export type ResumePlaylistTrackMutationFn = Apollo.MutationFunction<ResumePlaylistTrackMutation, ResumePlaylistTrackMutationVariables>;
+
+/**
+ * __useResumePlaylistTrackMutation__
+ *
+ * To run a mutation, you first call `useResumePlaylistTrackMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResumePlaylistTrackMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resumePlaylistTrackMutation, { data, loading, error }] = useResumePlaylistTrackMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useResumePlaylistTrackMutation(baseOptions?: Apollo.MutationHookOptions<ResumePlaylistTrackMutation, ResumePlaylistTrackMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResumePlaylistTrackMutation, ResumePlaylistTrackMutationVariables>(ResumePlaylistTrackDocument, options);
+      }
+export type ResumePlaylistTrackMutationHookResult = ReturnType<typeof useResumePlaylistTrackMutation>;
+export type ResumePlaylistTrackMutationResult = Apollo.MutationResult<ResumePlaylistTrackMutation>;
+export type ResumePlaylistTrackMutationOptions = Apollo.BaseMutationOptions<ResumePlaylistTrackMutation, ResumePlaylistTrackMutationVariables>;
 export const PlaylistRemoveTrackDocument = gql`
     mutation PlaylistRemoveTrack($index: Int!) {
   playlistRemoveTrack(index: $index)
@@ -1337,6 +1412,8 @@ export const GetCurrentPlaylistDocument = gql`
       artistId
       albumId
       path
+      album
+      length
     }
   }
 }
@@ -1450,3 +1527,45 @@ export type GetRockboxVersionQueryHookResult = ReturnType<typeof useGetRockboxVe
 export type GetRockboxVersionLazyQueryHookResult = ReturnType<typeof useGetRockboxVersionLazyQuery>;
 export type GetRockboxVersionSuspenseQueryHookResult = ReturnType<typeof useGetRockboxVersionSuspenseQuery>;
 export type GetRockboxVersionQueryResult = Apollo.QueryResult<GetRockboxVersionQuery, GetRockboxVersionQueryVariables>;
+export const GetGlobalStatusDocument = gql`
+    query GetGlobalStatus {
+  globalStatus {
+    resumeIndex
+    resumeCrc32
+    resumeOffset
+    resumeElapsed
+  }
+}
+    `;
+
+/**
+ * __useGetGlobalStatusQuery__
+ *
+ * To run a query within a React component, call `useGetGlobalStatusQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGlobalStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGlobalStatusQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetGlobalStatusQuery(baseOptions?: Apollo.QueryHookOptions<GetGlobalStatusQuery, GetGlobalStatusQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGlobalStatusQuery, GetGlobalStatusQueryVariables>(GetGlobalStatusDocument, options);
+      }
+export function useGetGlobalStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGlobalStatusQuery, GetGlobalStatusQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGlobalStatusQuery, GetGlobalStatusQueryVariables>(GetGlobalStatusDocument, options);
+        }
+export function useGetGlobalStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGlobalStatusQuery, GetGlobalStatusQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetGlobalStatusQuery, GetGlobalStatusQueryVariables>(GetGlobalStatusDocument, options);
+        }
+export type GetGlobalStatusQueryHookResult = ReturnType<typeof useGetGlobalStatusQuery>;
+export type GetGlobalStatusLazyQueryHookResult = ReturnType<typeof useGetGlobalStatusLazyQuery>;
+export type GetGlobalStatusSuspenseQueryHookResult = ReturnType<typeof useGetGlobalStatusSuspenseQuery>;
+export type GetGlobalStatusQueryResult = Apollo.QueryResult<GetGlobalStatusQuery, GetGlobalStatusQueryVariables>;
