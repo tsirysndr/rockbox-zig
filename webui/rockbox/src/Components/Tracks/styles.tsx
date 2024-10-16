@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 import { Link as RouterLink } from "react-router-dom";
 
 export const Container = styled.div`
@@ -57,11 +58,24 @@ export const ContentWrapper = styled.div`
   height: calc(100vh - 60px);
   padding-left: 20px;
   padding-right: 20px;
+  position: relative;
 `;
 
-export const AlbumCover = styled.img`
+export const AlbumCover = styled(LazyLoadImage)`
   height: 48px;
   width: 48px;
+`;
+
+export const AlbumCoverAlt = styled.div<{ current?: boolean }>`
+  height: 48px;
+  width: 48px;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: ${(props) => props.theme.colors.cover};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  ${({ current }) => `opacity: ${current ? 0 : 1};`}
 `;
 
 export const FilterContainer = styled.div`

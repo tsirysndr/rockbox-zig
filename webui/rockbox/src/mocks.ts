@@ -2,6 +2,7 @@ import {
   nextTracks,
   previousTracks,
 } from "./Components/ControlBar/PlayQueue/mocks";
+import { GET_TRACKS } from "./GraphQL/Library/Query";
 import {
   GET_CURRENT_TRACK,
   GET_PLAYBACK_STATUS,
@@ -58,6 +59,30 @@ export const mocks = [
             path: "",
           })),
         },
+      },
+    },
+  },
+  {
+    request: {
+      query: GET_TRACKS,
+    },
+    result: {
+      data: {
+        tracks: [
+          {
+            id: "cm272oeon00esm9634q1lw5ae",
+            tracknum: 1,
+            title: "Set It Off",
+            artist: "Boosie Badazz",
+            album: "Bad Azz",
+            discnum: 1,
+            albumArtist: "Boosie Badazz",
+            artistId: "cm272ocoi003km963fy45i7cn",
+            albumId: "cm272ocoi003lm963xo1d7wb2",
+            albumArt:
+              "https://resources.tidal.com/images/31ce8fc7/b10c/47ee/991d/6fab3e15dbe4/320x320.jpg",
+          },
+        ],
       },
     },
   },

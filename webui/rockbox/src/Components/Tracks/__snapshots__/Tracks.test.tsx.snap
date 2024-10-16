@@ -11,11 +11,16 @@ exports[`Tracks > should render 1`] = `
       <div
         class="css-1fkc5kv"
       >
-        <img
-          alt="Rockbox"
-          src="/src/Assets/rockbox-icon.svg"
-          style="width: 40px; margin-bottom: 20px; margin-left: 12px;"
-        />
+        <a
+          href="/"
+          style="text-decoration: none;"
+        >
+          <img
+            alt="Rockbox"
+            src="/src/Assets/rockbox-icon.svg"
+            style="width: 40px; margin-bottom: 20px; margin-left: 12px;"
+          />
+        </a>
         <a
           class="css-tujm8o"
           color="initial"
@@ -287,7 +292,7 @@ exports[`Tracks > should render 1`] = `
           </div>
         </div>
         <div
-          class="css-bd0ywd"
+          class="css-18cz59b"
         >
           <div
             class="css-b8ko1a"
@@ -338,52 +343,54 @@ exports[`Tracks > should render 1`] = `
             </div>
           </div>
           <div
-            style="overflow: auto; position: relative; height: 600px;"
+            style="margin-bottom: 60px;"
           >
-            <table
-              style="width: 100%;"
+            <div
+              style="height: 96px;"
             >
-              <thead>
-                <tr
-                  style="height: 36px; color: rgba(0, 0, 0, 0.54);"
-                >
-                  <th
-                    style="text-align: left; width: 20px;"
+              <table
+                style="width: 100%;"
+              >
+                <thead>
+                  <tr
+                    style="height: 36px; color: rgba(0, 0, 0, 0.54);"
                   >
-                    #
-                  </th>
-                  <th
-                    style="text-align: left; width: 54px;"
-                  >
-                    Title
-                  </th>
-                  <th
-                    style="text-align: left; width: 150px;"
-                  />
-                  <th
-                    style="text-align: left; width: 150px;"
-                  >
-                    Artist
-                  </th>
-                  <th
-                    style="text-align: left; width: 150px;"
-                  >
-                    Album
-                  </th>
-                  <th
-                    style="text-align: left; width: 50px;"
-                  >
-                    Time
-                  </th>
-                  <th
-                    style="text-align: left; width: 100px;"
-                  />
-                </tr>
-              </thead>
-              <tbody
-                style="height: 99px; position: relative;"
-              />
-            </table>
+                    <th
+                      style="text-align: left; width: 20px;"
+                    >
+                      #
+                    </th>
+                    <th
+                      style="text-align: left; width: 54px;"
+                    >
+                      Title
+                    </th>
+                    <th
+                      style="text-align: left; width: 150px;"
+                    />
+                    <th
+                      style="text-align: left; width: 150px;"
+                    >
+                      Artist
+                    </th>
+                    <th
+                      style="text-align: left; width: 150px;"
+                    >
+                      Album
+                    </th>
+                    <th
+                      style="text-align: left; width: 50px;"
+                    >
+                      Time
+                    </th>
+                    <th
+                      style="text-align: left; width: 100px;"
+                    />
+                  </tr>
+                </thead>
+                <tbody />
+              </table>
+            </div>
           </div>
         </div>
       </div>

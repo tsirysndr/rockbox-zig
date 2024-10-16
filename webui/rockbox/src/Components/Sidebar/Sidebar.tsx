@@ -13,11 +13,13 @@ export type SidebarProps = {
 const Sidebar: FC<SidebarProps> = ({ active }) => {
   return (
     <SidebarContainer>
-      <img
-        src={RockboxLogo}
-        alt="Rockbox"
-        style={{ width: 40, marginBottom: 20, marginLeft: 12 }}
-      />
+      <a href="/" style={{ textDecoration: "none" }}>
+        <img
+          src={RockboxLogo}
+          alt="Rockbox"
+          style={{ width: 40, marginBottom: 20, marginLeft: 12 }}
+        />
+      </a>
       <MenuItem
         color={active === "albums" ? "#fe099c" : "initial"}
         to="/albums"

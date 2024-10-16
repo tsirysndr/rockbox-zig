@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
 export const Container = styled.div`
   height: calc(100vh - 113px);
@@ -70,7 +71,7 @@ export const TrackDetails = styled.div`
   flex: 1;
 `;
 
-export const AlbumCover = styled.img<{ current?: boolean }>`
+export const AlbumCover = styled(LazyLoadImage)<{ current?: boolean }>`
   height: 48px;
   width: 48px;
   border-radius: 4px;

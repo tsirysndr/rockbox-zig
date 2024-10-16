@@ -5,7 +5,7 @@ import {
   IdIdentifier,
   useReactTable,
 } from "@tanstack/react-table";
-import { FC, useRef, useState } from "react";
+import { FC, RefObject, useCallback, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Track } from "../../Types/track";
 import { File } from "../../Types/file";
@@ -14,23 +14,29 @@ export type TableProps = {
   columns: (AccessorKeyColumnDefBase<Track, string | undefined> &
     Partial<IdIdentifier<Track, string | undefined>>)[];
   tracks: Track[] | File[];
+  containerRef: RefObject<HTMLDivElement>;
 };
 
-const Table: FC<TableProps> = ({ columns, tracks }) => {
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [data, _setData] = useState<Track[] | File[]>(() => [...tracks]);
-
+const VirtualizedTable: FC<TableProps> = ({
+  columns,
+  tracks,
+  containerRef,
+}) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const data = useMemo(() => tracks, [tracks]);
   const table = useReactTable({
-    data,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: data as any,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    debugTable: true,
   });
 
   const { rows } = table.getRowModel();
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
-    estimateSize: () => 33, //estimate row height for accurate scrollbar dragging
-    getScrollElement: () => tableContainerRef.current,
+    estimateSize: useCallback(() => 32, []), //estimate row height for accurate scrollbar dragging
+    getScrollElement: () => containerRef.current,
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" &&
@@ -41,14 +47,7 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
   });
 
   return (
-    <div
-      ref={tableContainerRef}
-      style={{
-        overflow: "auto", //our scrollable table container
-        position: "relative", //needed for sticky header
-        height: "600px", //should be a fixed height
-      }}
-    >
+    <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
       <table style={{ width: "100%" }}>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -72,20 +71,20 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
             </tr>
           ))}
         </thead>
-        <tbody
-          style={{
-            height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
-            position: "relative",
-          }}
-        >
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+        <tbody>
+          {rowVirtualizer.getVirtualItems().map((virtualRow, index) => {
             const row = rows[virtualRow.index];
             return (
               <tr
                 data-index={virtualRow.index} //needed for dynamic row height measurement
                 ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
                 key={row.id}
-                style={{ height: 48 }}
+                style={{
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${
+                    virtualRow.start - index * virtualRow.size
+                  }px)`,
+                }}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id}>
@@ -101,4 +100,4 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
   );
 };
 
-export default Table;
+export default VirtualizedTable;

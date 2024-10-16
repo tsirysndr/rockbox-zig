@@ -1,3 +1,28 @@
 table {
   border-spacing: 0;
 }
+
+.album-cover-container {
+  height: 64px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  position: relative;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.album-cover-container .floating-play {
+  display: none;
+  position: absolute;
+  left: 19px;
+  top: 17px;
+ }
+
+.album-cover-container:hover .floating-play {
+  display: block;
+}
+
+.album-cover-container:hover img {
+  opacity: 0.4;
+ }
