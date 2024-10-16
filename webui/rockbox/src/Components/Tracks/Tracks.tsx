@@ -114,7 +114,7 @@ const Tracks: FC<TracksProps> = (props) => {
         <div
           style={{
             minWidth: 150,
-            maxWidth: "calc((100vw - 240px - 230px) / 3)",
+            maxWidth: 170,
             fontSize: 14,
             textOverflow: "ellipsis",
             overflow: "hidden",
