@@ -105,3 +105,33 @@ pub fn remove_all_tracks() c_int {
     const playlist = playlist_get_current();
     return playlist_remove_all_tracks(playlist);
 }
+
+pub fn playlist_index() c_int {
+    const playlist = playlist_get_current();
+    return playlist.index;
+}
+
+pub fn playlist_first_index() c_int {
+    const playlist = playlist_get_current();
+    return playlist.first_index;
+}
+
+pub fn playlist_last_insert_pos() c_int {
+    const playlist = playlist_get_current();
+    return playlist.last_insert_pos;
+}
+
+pub fn playlist_seed() c_int {
+    const playlist = playlist_get_current();
+    return playlist.seed;
+}
+
+pub fn playlist_last_shuffled_start() c_int {
+    const playlist = playlist_get_current();
+    return playlist.last_shuffled_start;
+}
+
+pub fn max_playlist_size() c_int {
+    const playlist = playlist_get_current();
+    return playlist.max_playlist_size;
+}

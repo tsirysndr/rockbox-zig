@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useMemo, useRef, useState } from "react";
 import { Track } from "../../../Types/track";
 import { Link } from "react-router-dom";
 import { useTheme } from "@emotion/react";
@@ -20,6 +20,8 @@ import {
   TrackDetails,
   TrackTitle,
 } from "./styles";
+import "./styles.css";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 export type PlayQueueProps = {
   previousTracks?: Track[];
@@ -37,6 +39,20 @@ const PlayQueue: FC<PlayQueueProps> = ({
 }) => {
   const theme = useTheme();
   const [active, setActive] = useState("playqueue");
+  const parentRef = useRef<HTMLDivElement>(null);
+  const { currentIndex, amount } = useMemo(() => {
+    return {
+      currentIndex: previousTracks.length,
+      amount: previousTracks.length + nextTracks.length,
+    };
+  }, [previousTracks.length, nextTracks.length]);
+
+  // The virtualizer
+  const rowVirtualizer = useVirtualizer({
+    count: active === "playqueue" ? nextTracks.length : previousTracks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 64,
+  });
 
   const onSwitch = () => {
     if (active === "playqueue") {
@@ -67,61 +83,95 @@ const PlayQueue: FC<PlayQueueProps> = ({
     <Container>
       <Header>
         <Title>{active === "playqueue" ? "Play Queue" : "History"}</Title>
+        {amount > 0 && (
+          <Title
+            style={{ fontSize: 14, color: "#616161", textAlign: "center" }}
+          >
+            {currentIndex}
+            {"  /  "}
+            {amount}
+          </Title>
+        )}
         <Switch onClick={onSwitch}>
           {active === "playqueue" ? "History" : "Play Queue"}
         </Switch>
       </Header>
-      <List>
-        {tracks.map((track, index) => (
-          <ListItem key={track.id}>
-            {track.cover && (
-              <div className="album-cover-container">
-                <AlbumCover src={track.cover} />
-                <div
-                  onClick={() => _onPlayTrackAt(index)}
-                  className="floating-play"
-                >
-                  <Play size={16} color={track.cover ? "#fff" : "#000"} />
+      <List ref={parentRef}>
+        <div
+          style={{
+            height: rowVirtualizer.getTotalSize()
+              ? `${rowVirtualizer.getTotalSize()}px`
+              : undefined,
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualItem) => (
+            <ListItem
+              key={virtualItem.key}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "calc(100% - 34px)",
+                transform: `translateY(${virtualItem.start}px)`,
+              }}
+            >
+              {tracks[virtualItem.index].cover && (
+                <div className="album-cover-container">
+                  <AlbumCover src={tracks[virtualItem.index].cover!} />
+                  <div
+                    onClick={() => _onPlayTrackAt(virtualItem.index)}
+                    className="floating-play"
+                  >
+                    <Play
+                      size={16}
+                      color={tracks[virtualItem.index].cover ? "#fff" : "#000"}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-            {!track.cover && (
-              <div className="album-cover-container">
-                <AlbumCoverAlt>
-                  <TrackIcon width={28} height={28} color="#a4a3a3" />
-                </AlbumCoverAlt>
-                <div
-                  onClick={() => _onPlayTrackAt(index)}
-                  className="floating-play"
-                >
-                  <Play size={16} color={track.cover ? "#fff" : "#000"} />
+              )}
+              {!tracks[virtualItem.index].cover && (
+                <div className="album-cover-container">
+                  <AlbumCoverAlt>
+                    <TrackIcon width={28} height={28} color="#a4a3a3" />
+                  </AlbumCoverAlt>
+                  <div
+                    onClick={() => _onPlayTrackAt(virtualItem.index)}
+                    className="floating-play"
+                  >
+                    <Play
+                      size={16}
+                      color={tracks[virtualItem.index].cover ? "#fff" : "#000"}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-            <TrackDetails>
-              <TrackTitle>{track.title}</TrackTitle>
-              <Link
-                to={`/artists/${track.artistId}`}
-                style={{ textDecoration: "none" }}
-              >
-                <Artist>{track.artist}</Artist>
-              </Link>
-            </TrackDetails>
-            <Remove onClick={() => _onRemoveTrack(index)}>
-              <CloseOutline size={24} color={theme.colors.text} />
-            </Remove>
-          </ListItem>
-        ))}
-        {tracks.length === 0 && active === "playqueue" && (
-          <Placeholder>
-            No upcoming tracks. Add some to your play queue.
-          </Placeholder>
-        )}
-        {tracks.length === 0 && active === "history" && (
-          <Placeholder>
-            No history. Play some tracks to see them here.
-          </Placeholder>
-        )}
+              )}
+              <TrackDetails>
+                <TrackTitle>{tracks[virtualItem.index].title}</TrackTitle>
+                <Link
+                  to={`/artists/${tracks[virtualItem.index].artistId}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <Artist>{tracks[virtualItem.index].artist}</Artist>
+                </Link>
+              </TrackDetails>
+              <Remove onClick={() => _onRemoveTrack(virtualItem.index)}>
+                <CloseOutline size={24} color={theme.colors.text} />
+              </Remove>
+            </ListItem>
+          ))}
+          {tracks.length === 0 && active === "playqueue" && (
+            <Placeholder>
+              No upcoming tracks. Add some to your play queue.
+            </Placeholder>
+          )}
+          {tracks.length === 0 && active === "history" && (
+            <Placeholder>
+              No history. Play some tracks to see them here.
+            </Placeholder>
+          )}
+        </div>
       </List>
     </Container>
   );

@@ -26,3 +26,12 @@ export const Default: Story = {
     onRemoveTrackAt: fn(),
   },
 };
+
+export const EmptyList: Story = {
+  args: {
+    previousTracks: [],
+    nextTracks: [],
+    onPlayTrackAt: fn(),
+    onRemoveTrackAt: fn(),
+  },
+};

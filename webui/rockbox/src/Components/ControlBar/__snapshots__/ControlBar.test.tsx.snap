@@ -6,7 +6,7 @@ exports[`ControlBar > should render 1`] = `
     class=""
   >
     <div
-      class="css-1dlrxtg"
+      class="css-14bvc2y"
     >
       <div
         class="css-1h69jy4"
@@ -181,6 +181,8 @@ exports[`ControlBar > should render 1`] = `
         class="css-nb4c1y"
       >
         <button
+          aria-expanded="false"
+          aria-haspopup="true"
           class="css-10asy2d"
         >
           <svg

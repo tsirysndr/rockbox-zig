@@ -43,7 +43,11 @@ const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
         )}
         {nowPlaying && nowPlaying?.duration > 0 && (
           <>
-            <Title>{nowPlaying.title}</Title>
+            <Title>
+              {_.get(nowPlaying, "title.length", 0) > 75
+                ? `${nowPlaying.title?.substring(0, 75)}...`
+                : nowPlaying.title}
+            </Title>
             <div
               style={{
                 display: "flex",
@@ -54,7 +58,7 @@ const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
             >
               <Time>{formatTime(nowPlaying.progress)}</Time>
               <ArtistAlbum>
-                {_.get(nowPlaying, "artist.length", 0) > 75
+                {_.get(nowPlaying, "artist.length", 0) > 65
                   ? `${nowPlaying.artist?.substring(0, 54)}...`
                   : nowPlaying.artist}
                 <Separator>-</Separator>

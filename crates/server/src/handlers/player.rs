@@ -3,18 +3,14 @@ use anyhow::Error;
 use rockbox_sys as rb;
 
 pub async fn play(_ctx: &Context, req: &Request, _res: &mut Response) -> Result<(), Error> {
-    let elapsed = req
-        .query_params
-        .get("elapsed")
-        .unwrap()
-        .as_i64()
-        .unwrap_or(0);
-    let offset = req
-        .query_params
-        .get("offset")
-        .unwrap()
-        .as_i64()
-        .unwrap_or(0);
+    let elapsed = match req.query_params.get("elapsed") {
+        Some(elapsed) => elapsed.as_str().unwrap_or("0").parse().unwrap_or(0),
+        None => 0,
+    };
+    let offset = match req.query_params.get("offset") {
+        Some(offset) => offset.as_str().unwrap_or("0").parse().unwrap_or(0),
+        None => 0,
+    };
     rb::playback::play(elapsed, offset);
     Ok(())
 }
@@ -25,13 +21,11 @@ pub async fn pause(_ctx: &Context, _req: &Request, _res: &mut Response) -> Resul
 }
 
 pub async fn ff_rewind(_ctx: &Context, req: &Request, _res: &mut Response) -> Result<(), Error> {
-    let newtime = req
-        .query_params
-        .get("newtime")
-        .unwrap()
-        .as_i64()
-        .unwrap_or(0);
-    rb::playback::ff_rewind(newtime as i32);
+    let newtime = match req.query_params.get("newtime") {
+        Some(newtime) => newtime.as_str().unwrap_or("0").parse().unwrap_or(0),
+        None => 0,
+    };
+    rb::playback::ff_rewind(newtime);
     Ok(())
 }
 
@@ -41,7 +35,11 @@ pub async fn status(_ctx: &Context, _req: &Request, res: &mut Response) -> Resul
     Ok(())
 }
 
-pub async fn current_track(_ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn current_track(
+    _ctx: &Context,
+    _req: &Request,
+    res: &mut Response,
+) -> Result<(), Error> {
     let track = rb::playback::current_track();
     res.json(&track);
     Ok(())
@@ -79,5 +77,15 @@ pub async fn previous(_ctx: &Context, _req: &Request, _res: &mut Response) -> Re
 
 pub async fn stop(_ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
     rb::playback::hard_stop();
+    Ok(())
+}
+
+pub async fn get_file_position(
+    _ctx: &Context,
+    _req: &Request,
+    res: &mut Response,
+) -> Result<(), Error> {
+    let position = rb::playback::get_file_pos();
+    res.json(&position);
     Ok(())
 }

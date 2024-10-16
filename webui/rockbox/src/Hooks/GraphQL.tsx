@@ -89,6 +89,7 @@ export type Mutation = {
   playlistInsertDirectory: Scalars['Int']['output'];
   playlistInsertTracks: Scalars['Int']['output'];
   playlistRemoveAllTracks: Scalars['Int']['output'];
+  playlistRemoveTrack: Scalars['Int']['output'];
   playlistResume: Scalars['String']['output'];
   playlistSetModified: Scalars['String']['output'];
   playlistStart: Scalars['Int']['output'];
@@ -140,8 +141,27 @@ export type MutationPlaylistInsertTracksArgs = {
   tracks: Array<Scalars['String']['input']>;
 };
 
+
+export type MutationPlaylistRemoveTrackArgs = {
+  index: Scalars['Int']['input'];
+};
+
+
+export type MutationPlaylistStartArgs = {
+  elapsed?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  startIndex?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type Playlist = {
   __typename?: 'Playlist';
+  amount: Scalars['Int']['output'];
+  firstIndex: Scalars['Int']['output'];
+  index: Scalars['Int']['output'];
+  lastInsertPos: Scalars['Int']['output'];
+  lastShuffledStart: Scalars['Int']['output'];
+  maxPlaylistSize: Scalars['Int']['output'];
+  seed: Scalars['Int']['output'];
   tracks: Array<Track>;
 };
 
@@ -204,6 +224,7 @@ export type Subscription = {
   __typename?: 'Subscription';
   currentlyPlayingSong: Track;
   playbackStatus: AudioStatus;
+  playlistChanged: Playlist;
 };
 
 export type SystemStatus = {
@@ -539,6 +560,32 @@ export type PlaybackStatusSubscriptionVariables = Exact<{ [key: string]: never; 
 
 
 export type PlaybackStatusSubscription = { __typename?: 'Subscription', playbackStatus: { __typename?: 'AudioStatus', status: number } };
+
+export type PlaylistRemoveTrackMutationVariables = Exact<{
+  index: Scalars['Int']['input'];
+}>;
+
+
+export type PlaylistRemoveTrackMutation = { __typename?: 'Mutation', playlistRemoveTrack: number };
+
+export type StartPlaylistMutationVariables = Exact<{
+  startIndex?: InputMaybe<Scalars['Int']['input']>;
+  elapsed?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type StartPlaylistMutation = { __typename?: 'Mutation', playlistStart: number };
+
+export type GetCurrentPlaylistQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCurrentPlaylistQuery = { __typename?: 'Query', playlistGetCurrent: { __typename?: 'Playlist', index: number, amount: number, maxPlaylistSize: number, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, path: string }> } };
+
+export type PlaylistChangedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PlaylistChangedSubscription = { __typename?: 'Subscription', playlistChanged: { __typename?: 'Playlist', index: number, amount: number, maxPlaylistSize: number, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, path: string }> } };
 
 export type GetRockboxVersionQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1212,6 +1259,160 @@ export function usePlaybackStatusSubscription(baseOptions?: Apollo.SubscriptionH
       }
 export type PlaybackStatusSubscriptionHookResult = ReturnType<typeof usePlaybackStatusSubscription>;
 export type PlaybackStatusSubscriptionResult = Apollo.SubscriptionResult<PlaybackStatusSubscription>;
+export const PlaylistRemoveTrackDocument = gql`
+    mutation PlaylistRemoveTrack($index: Int!) {
+  playlistRemoveTrack(index: $index)
+}
+    `;
+export type PlaylistRemoveTrackMutationFn = Apollo.MutationFunction<PlaylistRemoveTrackMutation, PlaylistRemoveTrackMutationVariables>;
+
+/**
+ * __usePlaylistRemoveTrackMutation__
+ *
+ * To run a mutation, you first call `usePlaylistRemoveTrackMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePlaylistRemoveTrackMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [playlistRemoveTrackMutation, { data, loading, error }] = usePlaylistRemoveTrackMutation({
+ *   variables: {
+ *      index: // value for 'index'
+ *   },
+ * });
+ */
+export function usePlaylistRemoveTrackMutation(baseOptions?: Apollo.MutationHookOptions<PlaylistRemoveTrackMutation, PlaylistRemoveTrackMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PlaylistRemoveTrackMutation, PlaylistRemoveTrackMutationVariables>(PlaylistRemoveTrackDocument, options);
+      }
+export type PlaylistRemoveTrackMutationHookResult = ReturnType<typeof usePlaylistRemoveTrackMutation>;
+export type PlaylistRemoveTrackMutationResult = Apollo.MutationResult<PlaylistRemoveTrackMutation>;
+export type PlaylistRemoveTrackMutationOptions = Apollo.BaseMutationOptions<PlaylistRemoveTrackMutation, PlaylistRemoveTrackMutationVariables>;
+export const StartPlaylistDocument = gql`
+    mutation StartPlaylist($startIndex: Int, $elapsed: Int, $offset: Int) {
+  playlistStart(startIndex: $startIndex, elapsed: $elapsed, offset: $offset)
+}
+    `;
+export type StartPlaylistMutationFn = Apollo.MutationFunction<StartPlaylistMutation, StartPlaylistMutationVariables>;
+
+/**
+ * __useStartPlaylistMutation__
+ *
+ * To run a mutation, you first call `useStartPlaylistMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useStartPlaylistMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [startPlaylistMutation, { data, loading, error }] = useStartPlaylistMutation({
+ *   variables: {
+ *      startIndex: // value for 'startIndex'
+ *      elapsed: // value for 'elapsed'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useStartPlaylistMutation(baseOptions?: Apollo.MutationHookOptions<StartPlaylistMutation, StartPlaylistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<StartPlaylistMutation, StartPlaylistMutationVariables>(StartPlaylistDocument, options);
+      }
+export type StartPlaylistMutationHookResult = ReturnType<typeof useStartPlaylistMutation>;
+export type StartPlaylistMutationResult = Apollo.MutationResult<StartPlaylistMutation>;
+export type StartPlaylistMutationOptions = Apollo.BaseMutationOptions<StartPlaylistMutation, StartPlaylistMutationVariables>;
+export const GetCurrentPlaylistDocument = gql`
+    query GetCurrentPlaylist {
+  playlistGetCurrent {
+    index
+    amount
+    maxPlaylistSize
+    tracks {
+      id
+      title
+      artist
+      albumArt
+      artistId
+      albumId
+      path
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCurrentPlaylistQuery__
+ *
+ * To run a query within a React component, call `useGetCurrentPlaylistQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCurrentPlaylistQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCurrentPlaylistQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCurrentPlaylistQuery(baseOptions?: Apollo.QueryHookOptions<GetCurrentPlaylistQuery, GetCurrentPlaylistQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCurrentPlaylistQuery, GetCurrentPlaylistQueryVariables>(GetCurrentPlaylistDocument, options);
+      }
+export function useGetCurrentPlaylistLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCurrentPlaylistQuery, GetCurrentPlaylistQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCurrentPlaylistQuery, GetCurrentPlaylistQueryVariables>(GetCurrentPlaylistDocument, options);
+        }
+export function useGetCurrentPlaylistSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCurrentPlaylistQuery, GetCurrentPlaylistQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCurrentPlaylistQuery, GetCurrentPlaylistQueryVariables>(GetCurrentPlaylistDocument, options);
+        }
+export type GetCurrentPlaylistQueryHookResult = ReturnType<typeof useGetCurrentPlaylistQuery>;
+export type GetCurrentPlaylistLazyQueryHookResult = ReturnType<typeof useGetCurrentPlaylistLazyQuery>;
+export type GetCurrentPlaylistSuspenseQueryHookResult = ReturnType<typeof useGetCurrentPlaylistSuspenseQuery>;
+export type GetCurrentPlaylistQueryResult = Apollo.QueryResult<GetCurrentPlaylistQuery, GetCurrentPlaylistQueryVariables>;
+export const PlaylistChangedDocument = gql`
+    subscription PlaylistChanged {
+  playlistChanged {
+    index
+    amount
+    maxPlaylistSize
+    tracks {
+      id
+      title
+      artist
+      albumArt
+      artistId
+      albumId
+      path
+    }
+  }
+}
+    `;
+
+/**
+ * __usePlaylistChangedSubscription__
+ *
+ * To run a query within a React component, call `usePlaylistChangedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `usePlaylistChangedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePlaylistChangedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function usePlaylistChangedSubscription(baseOptions?: Apollo.SubscriptionHookOptions<PlaylistChangedSubscription, PlaylistChangedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<PlaylistChangedSubscription, PlaylistChangedSubscriptionVariables>(PlaylistChangedDocument, options);
+      }
+export type PlaylistChangedSubscriptionHookResult = ReturnType<typeof usePlaylistChangedSubscription>;
+export type PlaylistChangedSubscriptionResult = Apollo.SubscriptionResult<PlaylistChangedSubscription>;
 export const GetRockboxVersionDocument = gql`
     query GetRockboxVersion {
   rockboxVersion

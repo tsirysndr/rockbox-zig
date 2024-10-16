@@ -11,7 +11,7 @@ const AlbumDetailsWithData: FC = () => {
   const { formatTime } = useTimeFormat();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { data, loading, refetch } = useGetAlbumQuery({
+  const { data, refetch } = useGetAlbumQuery({
     variables: {
       id: id!,
     },
@@ -31,7 +31,7 @@ const AlbumDetailsWithData: FC = () => {
   );
 
   useEffect(() => {
-    if (loading || !album) {
+    if (!album) {
       return;
     }
     setTracks(
@@ -46,7 +46,7 @@ const AlbumDetailsWithData: FC = () => {
       })) || []
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, album]);
+  }, [album]);
 
   useEffect(() => {
     refetch();

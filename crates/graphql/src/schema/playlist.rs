@@ -1,12 +1,13 @@
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
 use async_graphql::*;
+use futures_util::Stream;
 use rockbox_sys::{
     events::RockboxCommand,
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
 };
 
-use crate::{rockbox_url, schema::objects::playlist::Playlist};
+use crate::{rockbox_url, schema::objects::playlist::Playlist, simplebroker::SimpleBroker};
 
 #[derive(Default)]
 pub struct PlaylistQuery;
@@ -19,6 +20,13 @@ impl PlaylistQuery {
         let response = client.get(&url).send().await?;
         let response = response.json::<PlaylistInfo>().await?;
         Ok(Playlist {
+            amount: response.amount,
+            index: response.index,
+            max_playlist_size: response.max_playlist_size,
+            first_index: response.first_index,
+            last_insert_pos: response.last_insert_pos,
+            seed: response.seed,
+            last_shuffled_start: response.last_shuffled_start,
             tracks: response.entries.into_iter().map(|t| t.into()).collect(),
         })
     }
@@ -75,10 +83,45 @@ impl PlaylistMutation {
         "set modified".to_string()
     }
 
-    async fn playlist_start(&self, ctx: &Context<'_>) -> Result<i32, Error> {
+    async fn playlist_start(
+        &self,
+        ctx: &Context<'_>,
+        start_index: Option<i32>,
+        elapsed: Option<i32>,
+        offset: Option<i32>,
+    ) -> Result<i32, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
-        let url = format!("{}/playlists/start", rockbox_url());
+        let mut url = format!("{}/playlists/start", rockbox_url());
+
+        if let Some(start_index) = start_index {
+            url = format!("{}?start_index={}", url, start_index);
+        }
+
+        if let Some(elapsed) = elapsed {
+            url = match url.contains("?") {
+                true => format!("{}&elapsed={}", url, elapsed),
+                false => format!("{}?elapsed={}", url, elapsed),
+            };
+        }
+
+        if let Some(offset) = offset {
+            url = match url.contains("?") {
+                true => format!("{}&offset={}", url, offset),
+                false => format!("{}?offset={}", url, offset),
+            };
+        }
+
         client.put(&url).send().await?;
+        Ok(0)
+    }
+
+    async fn playlist_remove_track(&self, ctx: &Context<'_>, index: i32) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let body = serde_json::json!({
+            "positions": vec![index],
+        });
+        client.delete(&url).json(&body).send().await?;
         Ok(0)
     }
 
@@ -165,5 +208,15 @@ impl PlaylistMutation {
         let response = client.put(&url).send().await?;
         let ret = response.text().await?.parse()?;
         Ok(ret)
+    }
+}
+
+#[derive(Default)]
+pub struct PlaylistSubscription;
+
+#[Subscription]
+impl PlaylistSubscription {
+    async fn playlist_changed(&self) -> impl Stream<Item = Playlist> {
+        SimpleBroker::<Playlist>::subscribe()
     }
 }

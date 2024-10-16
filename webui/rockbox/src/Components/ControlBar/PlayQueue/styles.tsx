@@ -21,7 +21,8 @@ export const Title = styled.div`
 
 export const Switch = styled(Title)`
   color: #fe099c;
-  flex: initial;
+  flex: 1;
+  text-align: end;
   cursor: pointer;
   -webkit-user-select: none;
   -ms-user-select: none;
@@ -30,7 +31,7 @@ export const Switch = styled(Title)`
 
 export const List = styled.div`
   height: calc(100% - 59.5px);
-  overflow-y: scroll;
+  overflow-y: auto;
 `;
 
 export const ListItem = styled.div`

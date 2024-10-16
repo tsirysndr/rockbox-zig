@@ -8,6 +8,11 @@ exports[`AlbumDetails > should render 1`] = `
     <div
       class="css-1fkc5kv"
     >
+      <img
+        alt="Rockbox"
+        src="/src/Assets/rockbox-icon.svg"
+        style="width: 40px; margin-bottom: 20px; margin-left: 12px;"
+      />
       <a
         class="css-8v05qj"
         color="#fe099c"
@@ -130,7 +135,7 @@ exports[`AlbumDetails > should render 1`] = `
       class="css-v8cdaf"
     >
       <div
-        class="css-1dlrxtg"
+        class="css-14bvc2y"
       >
         <div
           class="css-1h69jy4"
@@ -257,6 +262,8 @@ exports[`AlbumDetails > should render 1`] = `
           class="css-nb4c1y"
         >
           <button
+            aria-expanded="false"
+            aria-haspopup="true"
             class="css-10asy2d"
           >
             <svg

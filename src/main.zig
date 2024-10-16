@@ -74,3 +74,27 @@ export fn rb_playlist_insert_directory(dir: [*]const u8, position: c_int, queue:
 export fn rb_playlist_remove_all_tracks() c_int {
     return playlist.remove_all_tracks();
 }
+
+export fn rb_playlist_index() c_int {
+    return playlist.playlist_index();
+}
+
+export fn rb_playlist_first_index() c_int {
+    return playlist.playlist_first_index();
+}
+
+export fn rb_playlist_last_insert_pos() c_int {
+    return playlist.playlist_last_insert_pos();
+}
+
+export fn rb_playlist_seed() c_int {
+    return playlist.playlist_seed();
+}
+
+export fn rb_playlist_last_shuffled_start() c_int {
+    return playlist.playlist_last_shuffled_start();
+}
+
+export fn rb_max_playlist_size() c_int {
+    return playlist.max_playlist_size();
+}

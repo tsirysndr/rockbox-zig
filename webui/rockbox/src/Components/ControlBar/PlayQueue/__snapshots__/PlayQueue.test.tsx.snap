@@ -1,0 +1,46 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PlayQueue > should render 1`] = `
+<div>
+  <div
+    class=""
+  >
+    <div
+      class="css-17m5cz6"
+    >
+      <div
+        class="css-o2j9ze"
+      >
+        <div
+          class="css-p7veh6"
+        >
+          Play Queue
+        </div>
+        <div
+          class="css-p7veh6"
+          style="font-size: 14px; color: rgb(97, 97, 97); text-align: center;"
+        >
+          1
+            /  
+          4
+        </div>
+        <div
+          class="css-14tdrps"
+        >
+          History
+        </div>
+      </div>
+      <div
+        class="css-1wmblyr"
+      >
+        <div
+          style="height: 192px; width: 100%; position: relative;"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class=""
+  />
+</div>
+`;

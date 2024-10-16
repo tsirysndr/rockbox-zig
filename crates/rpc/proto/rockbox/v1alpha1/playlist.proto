@@ -7,7 +7,14 @@ import "rockbox/v1alpha1/playback.proto";
 message GetCurrentRequest {}
 
 message GetCurrentResponse {
-  repeated rockbox.v1alpha1.CurrentTrackResponse tracks = 1;
+  int32 index = 1;
+  int32 amount = 2;
+  int32 max_playlist_size = 3;
+  int32 first_index = 4;
+  int32 last_insert_pos = 5;
+  int32 seed = 6;
+  int32 last_shuffled_start = 7;
+  repeated rockbox.v1alpha1.CurrentTrackResponse tracks = 8;
 }
 
 message GetResumeInfoRequest {}
@@ -49,7 +56,11 @@ message SetModifiedRequest {}
 
 message SetModifiedResponse {}
 
-message StartRequest {}
+message StartRequest {
+  optional int32 start_index = 1;
+  optional int32 elapsed = 2;
+  optional int32 offset = 3;
+}
 
 message StartResponse {}
 

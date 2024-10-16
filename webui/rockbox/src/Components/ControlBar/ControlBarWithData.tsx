@@ -14,6 +14,7 @@ import { CurrentTrack } from "../../Types/track";
 import _ from "lodash";
 import { useRecoilState } from "recoil";
 import { controlBarState } from "./ControlBarState";
+import { usePlayQueue } from "../../Hooks/usePlayQueue";
 
 const ControlBarWithData: FC = () => {
   const [{ nowPlaying, locked }, setControlBarState] =
@@ -28,6 +29,7 @@ const ControlBarWithData: FC = () => {
   const [next] = useNextMutation();
   const { data: playbackSubscription } = useCurrentlyPlayingSongSubscription();
   const { data: playbackStatus } = usePlaybackStatusSubscription();
+  const { previousTracks, nextTracks } = usePlayQueue();
 
   const setNowPlaying = (nowPlaying: CurrentTrack) => {
     setControlBarState((state) => ({
@@ -35,6 +37,15 @@ const ControlBarWithData: FC = () => {
       nowPlaying,
     }));
   };
+
+  useEffect(() => {
+    setControlBarState((state) => ({
+      ...state,
+      nextTracks,
+      previousTracks,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextTracks, previousTracks]);
 
   useEffect(() => {
     if (_.get(playbackSubscription, "currentlyPlayingSong.length", 0) > 0) {
@@ -50,7 +61,9 @@ const ControlBarWithData: FC = () => {
           : "",
         duration: currentSong?.length || 0,
         progress: currentSong?.elapsed || 0,
-        isPlaying: playbackStatus?.playbackStatus.status === 1 && !locked,
+        isPlaying: !locked
+          ? playbackStatus?.playbackStatus.status === 1
+          : nowPlaying?.isPlaying,
         albumId: currentSong?.albumId,
       });
     }
@@ -86,6 +99,10 @@ const ControlBarWithData: FC = () => {
   const onPlay = () => {
     setControlBarState((state) => ({
       ...state,
+      nowPlaying: {
+        ...nowPlaying!,
+        isPlaying: true,
+      },
       locked: true,
     }));
     resume();
@@ -94,21 +111,25 @@ const ControlBarWithData: FC = () => {
         ...state,
         locked: false,
       }));
-    }, 2000);
+    }, 3000);
   };
 
   const onPause = () => {
     setControlBarState((state) => ({
       ...state,
+      nowPlaying: {
+        ...nowPlaying!,
+        isPlaying: false,
+      },
       locked: true,
     }));
     pause();
     setTimeout(() => {
       setControlBarState((state) => ({
         ...state,
-        locked: false,
+        locked: true,
       }));
-    }, 2000);
+    }, 3000);
   };
 
   return (
