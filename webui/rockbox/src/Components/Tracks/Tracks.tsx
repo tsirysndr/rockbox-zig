@@ -3,6 +3,7 @@ import { FC, useRef } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
+import MainView from "../MainView";
 import {
   AlbumCover,
   AlbumCoverAlt,
@@ -13,7 +14,6 @@ import {
   Hover,
   IconButton,
   Link,
-  MainView,
   Title,
 } from "./styles";
 import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";

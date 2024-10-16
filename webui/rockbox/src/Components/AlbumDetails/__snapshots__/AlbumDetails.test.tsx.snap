@@ -6,7 +6,7 @@ exports[`AlbumDetails > should render 1`] = `
     class="css-e1989k"
   >
     <div
-      class="css-1fkc5kv"
+      class="css-1tlxqlf"
     >
       <a
         href="/"
@@ -137,7 +137,7 @@ exports[`AlbumDetails > should render 1`] = `
       </a>
     </div>
     <div
-      class="css-v8cdaf"
+      class="css-y9r6ap"
     >
       <div
         class="css-14bvc2y"

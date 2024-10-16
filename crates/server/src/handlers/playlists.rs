@@ -1,6 +1,6 @@
 use crate::{
     http::{Context, Request, Response},
-    types::{DeleteTracks, InsertTracks, NewPlaylist},
+    types::{DeleteTracks, InsertTracks, NewPlaylist, StatusCode},
 };
 use anyhow::Error;
 use rockbox_library::repo;
@@ -88,9 +88,10 @@ pub async fn get_playlist_amount(
 pub async fn resume_playlist(
     _ctx: &Context,
     _req: &Request,
-    _res: &mut Response,
+    res: &mut Response,
 ) -> Result<(), Error> {
-    rb::playlist::resume();
+    let code = rb::playlist::resume();
+    res.json(&StatusCode { code });
     Ok(())
 }
 

@@ -41,7 +41,9 @@ message AmountResponse {
 
 message PlaylistResumeRequest {}
 
-message PlaylistResumeResponse {}
+message PlaylistResumeResponse {
+  int32 code = 1;
+}
 
 message ResumeTrackRequest {
   int32 start_index = 1;

@@ -4,8 +4,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useGetAlbumQuery } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 import { Track } from "../../Types/track";
+import { useRecoilValue } from "recoil";
+import { settingsState } from "../Settings/SettingsState";
 
 const AlbumDetailsWithData: FC = () => {
+  const { enableBlur } = useRecoilValue(settingsState);
   const [volumes, setVolumes] = useState<Track[][]>([]);
   const [tracks, setTracks] = useState<Track[]>([]);
   const { formatTime } = useTimeFormat();
@@ -88,6 +91,7 @@ const AlbumDetailsWithData: FC = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       album={album as any}
       volumes={volumes}
+      enableBlur={enableBlur}
     />
   );
 };

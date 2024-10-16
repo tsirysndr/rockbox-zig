@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
-import Sidebar from "../Sidebar";
+import Sidebar from "../Sidebar/Sidebar";
 import ControlBar from "../ControlBar";
 import {
   SmallAlbumCover,

@@ -2,12 +2,12 @@
 import { FC } from "react";
 import { Cell, Grid } from "baseui/layout-grid";
 import Sidebar from "../Sidebar";
+import MainView from "../MainView";
 import ControlBar from "../ControlBar";
 import {
   ArtistCover,
   ArtistName,
   Container,
-  MainView,
   NoArtistCover,
   Scrollable,
   Title,

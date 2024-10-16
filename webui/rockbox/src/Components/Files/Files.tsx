@@ -13,7 +13,6 @@ import {
   Directory,
   Hover,
   IconButton,
-  MainView,
   Title,
 } from "./styles";
 import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
@@ -22,6 +21,7 @@ import Table from "../Table";
 import "./styles.css";
 import ArrowBack from "../Icons/ArrowBack";
 import { Spinner } from "baseui/spinner";
+import MainView from "../MainView";
 
 const columnHelper = createColumnHelper<File>();
 const columns = [

@@ -14,6 +14,8 @@ export const GET_CURRENT_PLAYLIST = gql`
         artistId
         albumId
         path
+        album
+        length
       }
     }
   }

@@ -8,6 +8,7 @@ use rockbox_sys::{
 use crate::{
     api::rockbox::v1alpha1::{playlist_service_server::PlaylistService, *},
     rockbox_url,
+    types::StatusCode,
 };
 
 pub struct Playlist {
@@ -107,12 +108,20 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<PlaylistResumeRequest>,
     ) -> Result<tonic::Response<PlaylistResumeResponse>, tonic::Status> {
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::PlaylistResume)
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
-        Ok(tonic::Response::new(PlaylistResumeResponse::default()))
+        let url = format!("{}/playlists/resume", rockbox_url());
+        let response = self
+            .client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let response = response
+            .json::<StatusCode>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(PlaylistResumeResponse {
+            code: response.code,
+        }))
     }
 
     async fn resume_track(

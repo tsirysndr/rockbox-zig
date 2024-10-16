@@ -8,11 +8,12 @@ import RockboxLogo from "../../Assets/rockbox-icon.svg";
 
 export type SidebarProps = {
   active: string;
+  cover?: string;
 };
 
-const Sidebar: FC<SidebarProps> = ({ active }) => {
+const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
   return (
-    <SidebarContainer>
+    <SidebarContainer cover={cover}>
       <a href="/" style={{ textDecoration: "none" }}>
         <img
           src={RockboxLogo}
