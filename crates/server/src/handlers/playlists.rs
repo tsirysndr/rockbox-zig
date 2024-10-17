@@ -91,8 +91,9 @@ pub async fn resume_playlist(
     res: &mut Response,
 ) -> Result<(), Error> {
     let status = rb::system::get_global_status();
+    let playback_status = rb::playback::status();
 
-    if status.resume_index == -1 {
+    if status.resume_index == -1 || playback_status == 1 {
         res.json(&StatusCode { code: -1 });
         return Ok(());
     }
