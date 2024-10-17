@@ -1,6 +1,10 @@
 [package]
-name = "webui"
-version = "0.1.0"
 edition = "2021"
+name = "rockbox-webui"
+version = "0.1.0"
 
 [dependencies]
+actix-web = "4.9.0"
+mime_guess = "2.0.5"
+mimes = "0.1.0"
+rust-embed = {version = "8.5.0", features = ["debug-embed", "actix"]}

@@ -5,7 +5,7 @@ import {
   IdIdentifier,
   useReactTable,
 } from "@tanstack/react-table";
-import { FC, RefObject, useCallback, useMemo } from "react";
+import { FC, RefObject, useState, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Track } from "../../Types/track";
 import { File } from "../../Types/file";
@@ -23,7 +23,7 @@ const VirtualizedTable: FC<TableProps> = ({
   containerRef,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const data = useMemo(() => tracks, [tracks]);
+  const [data] = useState([...tracks]);
   const table = useReactTable({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: data as any,
@@ -35,7 +35,7 @@ const VirtualizedTable: FC<TableProps> = ({
   const { rows } = table.getRowModel();
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
-    estimateSize: useCallback(() => 32, []), //estimate row height for accurate scrollbar dragging
+    estimateSize: () => 32, //estimate row height for accurate scrollbar dragging
     getScrollElement: () => containerRef.current,
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
@@ -45,6 +45,12 @@ const VirtualizedTable: FC<TableProps> = ({
         : undefined,
     overscan: 5,
   });
+
+  useEffect(() => {
+    rowVirtualizer.measure();
+    rowVirtualizer.getVirtualItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>

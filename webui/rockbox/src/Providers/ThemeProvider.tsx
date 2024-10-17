@@ -17,7 +17,8 @@ export type ThemeContextType = {
 
 export const ThemeContext = createContext<ThemeContextType>({
   theme: "light",
-  setTheme: (theme: Theme) => {},
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setTheme: (_theme: Theme) => {},
 });
 
 export type ThemeProviderProps = {

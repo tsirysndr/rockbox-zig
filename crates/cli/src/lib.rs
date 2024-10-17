@@ -67,6 +67,53 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             scan_audio_files(pool, path.into()).await
         })
         .unwrap();
+
+        const BANNER: &str = r#"
+          __________               __   ___.
+Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
+Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
+Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
+Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
+                  \/            \/     \/    \/            \/
+"#;
+
+        println!("{}", BANNER.yellow());
+
+        let port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".to_string());
+        let addr = format!("0.0.0.0:{}", port);
+
+        println!(
+            "{} server is running on {}",
+            "Rockbox TCP".bright_purple(),
+            addr.bright_green()
+        );
+
+        let graphql_port = env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string());
+        let addr = format!("{}:{}", "0.0.0.0", graphql_port);
+
+        println!(
+            "{} server is running on {}",
+            "Rockbox GraphQL".bright_purple(),
+            addr.bright_green()
+        );
+
+        let rockbox_port: u16 = std::env::var("ROCKBOX_PORT")
+            .unwrap_or_else(|_| "6061".to_string())
+            .parse()
+            .expect("ROCKBOX_PORT must be a number");
+
+        let host_and_port = format!("0.0.0.0:{}", rockbox_port);
+
+        println!(
+            "{} server is running on {}",
+            "Rockbox gRPC".bright_purple(),
+            host_and_port.bright_green()
+        );
+
+        println!(
+            "Rockbox Web UI is running on {} ⚡",
+            "http://localhost:6062".bright_green()
+        );
     });
 
     return 0;

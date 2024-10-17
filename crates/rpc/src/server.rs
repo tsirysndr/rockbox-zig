@@ -33,12 +33,6 @@ pub async fn start(
 
     let host_and_port = format!("0.0.0.0:{}", rockbox_port);
 
-    println!(
-        "{} server is running on {}",
-        "Rockbox gRPC".bright_purple(),
-        host_and_port.bright_green()
-    );
-
     let client = reqwest::Client::new();
     let pool = create_connection_pool().await?;
 
@@ -49,9 +43,9 @@ pub async fn start(
                 .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
                 .build_v1alpha()?,
         )
-        .add_service(tonic_web::enable(LibraryServiceServer::new(
-            Library::new(pool),
-        )))
+        .add_service(tonic_web::enable(LibraryServiceServer::new(Library::new(
+            pool,
+        ))))
         .add_service(tonic_web::enable(PlaylistServiceServer::new(
             Playlist::new(cmd_tx.clone(), client.clone()),
         )))

@@ -51,19 +51,38 @@ export const useResumePlaylist = () => {
         currentPlaylistData.playlistGetCurrent.tracks[
           globalStatusData.globalStatus.resumeIndex
         ];
+
       setControlBarState((state) => ({
         ...state,
         nowPlaying: {
-          album: currentSong?.album,
-          artist: currentSong?.artist,
-          title: currentSong?.title,
-          cover: currentSong?.albumArt
-            ? currentSong?.albumArt.startsWith("http")
-              ? currentSong.albumArt
-              : `http://localhost:6062/covers/${currentSong?.albumArt}`
-            : "",
-          duration: currentSong?.length || 0,
-          progress: globalStatusData.globalStatus.resumeElapsed,
+          album:
+            getPlaybackStatusData?.status === 1
+              ? state.nowPlaying?.album
+              : currentSong?.album,
+          artist:
+            getPlaybackStatusData?.status === 1
+              ? state.nowPlaying?.artist
+              : currentSong?.artist,
+          title:
+            getPlaybackStatusData?.status === 1
+              ? state.nowPlaying?.title
+              : currentSong?.title,
+          cover:
+            getPlaybackStatusData?.status === 1
+              ? state.nowPlaying?.cover
+              : currentSong?.albumArt
+              ? currentSong?.albumArt.startsWith("http")
+                ? currentSong.albumArt
+                : `http://localhost:6062/covers/${currentSong?.albumArt}`
+              : "",
+          duration:
+            getPlaybackStatusData?.status === 1
+              ? state.nowPlaying?.duration || 0
+              : currentSong?.length || 0,
+          progress:
+            getPlaybackStatusData?.status === 1
+              ? state.nowPlaying?.progress || 0
+              : globalStatusData.globalStatus.resumeElapsed,
           isPlaying: getPlaybackStatusData?.status === 1,
           albumId: currentSong?.albumId,
         },
