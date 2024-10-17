@@ -33,7 +33,7 @@ export const useResumePlaylist = () => {
       return;
     }
 
-    if (globalStatusData.globalStatus.resumeIndex > -1) {
+    if (globalStatusData.globalStatus.resumeIndex > -1 && getPlaybackStatusData?.status !== 1) {
       resumePlaylist()
         .then((res) => {
           if (res.data?.playlistResume === 0) {
