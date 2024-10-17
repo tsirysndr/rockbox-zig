@@ -15,9 +15,9 @@ use actix_web::{
 use anyhow::Error;
 use async_graphql::{http::GraphiQLSource, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse, GraphQLSubscription};
-use owo_colors::OwoColorize;
 use rockbox_library::{create_connection_pool, repo};
 use rockbox_sys::events::RockboxCommand;
+use rockbox_webui::{dist, index, index_spa};
 use sqlx::{Pool, Sqlite};
 
 use crate::{
@@ -98,14 +98,9 @@ pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Err
     .data(client)
     .data(pool.clone())
     .finish();
+
     let graphql_port = std::env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string());
     let addr = format!("{}:{}", "0.0.0.0", graphql_port);
-
-    println!(
-        "{} server is running on {}",
-        "Rockbox GraphQL".bright_purple(),
-        addr.bright_green()
-    );
 
     HttpServer::new(move || {
         let home = std::env::var("HOME").unwrap();
@@ -127,8 +122,18 @@ pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Err
                     .to(index_ws),
             )
             .service(fs::Files::new("/covers", covers_path).show_files_listing())
+            .service(index)
+            .route("/tracks", web::get().to(index_spa))
+            .route("/artists", web::get().to(index_spa))
+            .route("/albums", web::get().to(index_spa))
+            .route("/files", web::get().to(index_spa))
+            .route("/artists/{_:.*}", web::get().to(index_spa))
+            .route("/albums/{_:.*}", web::get().to(index_spa))
+            .route("/playlists/{_:.*}", web::get().to(index_spa))
+            .route("/files/{_:.*}", web::get().to(index_spa))
             .route("/tracks/{id}", web::get().to(index_file))
             .route("/tracks/{id}", web::head().to(index_file))
+            .service(dist)
     })
     .bind(addr)?
     .run()

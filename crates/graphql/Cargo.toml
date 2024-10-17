@@ -18,6 +18,7 @@ owo-colors = "4.1.0"
 reqwest = {version = "0.12.7", features = ["rustls-tls", "json"], default-features = false}
 rockbox-library = {path = "../library"}
 rockbox-sys = {path = "../sys"}
+rockbox-webui = {path = "../../webui"}
 serde = "1.0.210"
 serde_json = "1.0.128"
 slab = "0.4.9"

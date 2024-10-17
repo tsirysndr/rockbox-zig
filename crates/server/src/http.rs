@@ -225,27 +225,10 @@ impl RockboxHttpServer {
 
     // Start listening and handling incoming requests
     pub fn listen(&mut self) -> Result<(), Error> {
-        const BANNER: &str = r#"
-                  __________               __   ___.
-        Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
-        Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
-        Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
-        Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
-                          \/            \/     \/    \/            \/
-       "#;
-
-        println!("{}", BANNER.yellow());
-
         let port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".to_string());
         let addr = format!("0.0.0.0:{}", port);
         let listener = TcpListener::bind(&addr)?;
         listener.set_nonblocking(true)?;
-
-        println!(
-            "{} server is running on {}",
-            "Rockbox TCP".bright_purple(),
-            addr.bright_green()
-        );
 
         let pool = ThreadPool::new(4);
         let active_connections = Arc::new(Mutex::new(0));

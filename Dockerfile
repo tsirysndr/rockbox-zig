@@ -12,13 +12,19 @@ RUN apt-get update && apt-get install -y build-essential \
 
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgx install zig@0.13.0
+RUN pkgx install zig@0.13.0 node bun@1.1.30
 
 COPY . /app
 
 WORKDIR /app
 
 RUN mkdir -p build /root/.local/lib/rockbox
+
+WORKDIR /app/webui/rockbox
+
+RUN bun install
+
+RUN bun run build
 
 WORKDIR /app/build
 

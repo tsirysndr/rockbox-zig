@@ -4307,6 +4307,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "mimes"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a3a4ed4e4fb5df880a131f680e98336e2f8538101ace1d41915a12cbb992c84"
+
+[[package]]
 name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5688,6 +5694,7 @@ dependencies = [
  "reqwest",
  "rockbox-library",
  "rockbox-sys",
+ "rockbox-webui",
  "serde",
  "serde_json",
  "slab",
@@ -5760,6 +5767,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-webui"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "mime_guess",
+ "mimes",
+ "rust-embed",
+]
+
+[[package]]
 name = "ron"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5803,6 +5820,42 @@ dependencies = [
  "hashlink",
  "libsqlite3-sys",
  "smallvec",
+]
+
+[[package]]
+name = "rust-embed"
+version = "8.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa66af4a4fdd5e7ebc276f115e895611a34739a9c1c01028383d612d550953c0"
+dependencies = [
+ "actix-web",
+ "mime_guess",
+ "rust-embed-impl",
+ "rust-embed-utils",
+ "walkdir",
+]
+
+[[package]]
+name = "rust-embed-impl"
+version = "8.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6125dbc8867951125eec87294137f4e9c2c96566e61bf72c45095a7c77761478"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "rust-embed-utils",
+ "syn 2.0.77",
+ "walkdir",
+]
+
+[[package]]
+name = "rust-embed-utils"
+version = "8.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e5347777e9aacb56039b0e1f28785929a8a3b709e87482e7442c72e7c12529d"
+dependencies = [
+ "sha2",
+ "walkdir",
 ]
 
 [[package]]
@@ -7972,10 +8025,6 @@ checksum = "bd7c23921eeb1713a4e851530e9b9756e4fb0e89978582942612524cf09f01cd"
 dependencies = [
  "rustls-pki-types",
 ]
-
-[[package]]
-name = "webui"
-version = "0.1.0"
 
 [[package]]
 name = "wgpu-core"
