@@ -90,6 +90,13 @@ pub async fn resume_playlist(
     _req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let status = rb::system::get_global_status();
+
+    if status.resume_index == -1 {
+        res.json(&StatusCode { code: -1 });
+        return Ok(());
+    }
+
     let code = rb::playlist::resume();
     res.json(&StatusCode { code });
     Ok(())

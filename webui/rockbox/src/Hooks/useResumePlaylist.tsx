@@ -32,7 +32,7 @@ export const useResumePlaylist = () => {
       return;
     }
 
-    if (currentPlaylistData.playlistGetCurrent.tracks.length === 0) {
+    if (globalStatusData.globalStatus.resumeIndex > -1) {
       resumePlaylist()
         .then((res) => {
           if (res.data?.playlistResume === 0) {
