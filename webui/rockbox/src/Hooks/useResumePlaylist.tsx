@@ -10,7 +10,8 @@ import { useRecoilState } from "recoil";
 import { controlBarState } from "../Components/ControlBar/ControlBarState";
 
 export const useResumePlaylist = () => {
-  const [{ resumeIndex }, setControlBarState] = useRecoilState(controlBarState);
+  const [{ nowPlaying, resumeIndex }, setControlBarState] =
+    useRecoilState(controlBarState);
   const { data: globalStatusData } = useGetGlobalStatusQuery();
   const {
     data: currentPlaylistData,
@@ -40,7 +41,9 @@ export const useResumePlaylist = () => {
           }
         })
         .catch((e) => console.error(e));
-      return;
+      if (nowPlaying?.progress || nowPlaying?.duration) {
+        return;
+      }
     }
 
     if (
