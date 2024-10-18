@@ -22,8 +22,8 @@ import {
 } from "./styles";
 import Filter from "../Filter";
 import Play from "../Icons/Play";
-import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
 import HeartOutline from "../Icons/HeartOutline";
+import ContextMenu from "./ContextMenu";
 
 export type AlbumsProps = {
   albums: any[];
@@ -70,9 +70,14 @@ const Albums: FC<AlbumsProps> = (props) => {
                         >
                           <Play small color="#000" />
                         </div>
-                        <FloatingButton>
-                          <EllipsisHorizontal size={24} color="#fff" />
-                        </FloatingButton>
+                        <ContextMenu
+                          album={item}
+                          onPlayNext={() => {}}
+                          onCreatePlaylist={() => {}}
+                          onAddTrackToPlaylist={() => {}}
+                          onPlayLast={() => {}}
+                          recentPlaylists={[]}
+                        />
                         <FloatingButton onClick={() => props.onLike(item)}>
                           <HeartOutline color="#fff" size={20} />
                         </FloatingButton>

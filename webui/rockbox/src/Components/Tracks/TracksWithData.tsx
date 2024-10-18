@@ -36,13 +36,7 @@ const TracksWithData: FC = () => {
     console.log(">>", trackId);
   };
 
-  return (
-    <>
-      {tracks.length > 0 && (
-        <Tracks tracks={tracks} onPlayTrack={onPlayTrack} />
-      )}
-    </>
-  );
+  return <Tracks tracks={tracks} onPlayTrack={onPlayTrack} />;
 };
 
 export default TracksWithData;

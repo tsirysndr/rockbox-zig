@@ -46,6 +46,7 @@ const AlbumDetailsWithData: FC = () => {
         artistId: x.artistId!,
         time: formatTime(x.length),
         discnum: x.discnum,
+        albumArt: album.albumArt,
       })) || []
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
