@@ -17,22 +17,18 @@ import {
   ButtonGroup,
   Separator,
   BackButton,
-  IconButton,
-  Hover,
   Label,
   Link,
 } from "./styles";
 import Button from "../Button";
 import ArrowBack from "../Icons/ArrowBack";
-import HeartOutline from "../Icons/HeartOutline";
-import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
-import Add from "../Icons/Add";
 import Play from "../Icons/Play";
 import Shuffle from "../Icons/Shuffle";
 import Table from "../Table";
 import { Track } from "../../Types/track";
 import { Album } from "../../Hooks/GraphQL";
 import AlbumArt from "../../Assets/albumart.svg";
+import ContextMenu from "../ContextMenu";
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -109,17 +105,20 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
         <ButtonGroup
           style={{ justifyContent: "flex-end", alignItems: "center" }}
         >
-          <IconButton>
-            <Hover>
-              <EllipsisHorizontal size={24} />
-            </Hover>
-          </IconButton>
-          <IconButton>
-            <Add color="#000" size={24} />
-          </IconButton>
-          <IconButton onClick={() => props.onLike(info.row.original.id)}>
-            <HeartOutline color="#000" />
-          </IconButton>
+          <ContextMenu
+            track={{
+              title: info.row.original.title,
+              artist: info.row.original.artist,
+              time: info.row.original.time,
+              cover: info.row.original.albumArt,
+            }}
+            onPlayNext={() => {}}
+            onCreatePlaylist={() => {}}
+            onAddTrackToPlaylist={() => {}}
+            onPlayLast={() => {}}
+            onAddShuffled={() => {}}
+            recentPlaylists={[]}
+          />
         </ButtonGroup>
       ),
     }),

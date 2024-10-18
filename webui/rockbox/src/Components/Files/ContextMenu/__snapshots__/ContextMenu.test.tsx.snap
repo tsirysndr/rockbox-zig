@@ -1,0 +1,53 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ContextMenu > should render 1`] = `
+<div>
+  <div
+    class=""
+  >
+    <div
+      class="css-113iyi7"
+    >
+      <button
+        class="css-1t1di7c"
+      >
+        <div
+          aria-expanded="false"
+          aria-haspopup="true"
+          class="css-l6q2r8"
+        >
+          <svg
+            aria-hidden="true"
+            class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+            fill="currentColor"
+            focusable="false"
+            height="24"
+            viewBox="0 0 512 512"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              cx="256"
+              cy="256"
+              r="48"
+            />
+            <circle
+              cx="416"
+              cy="256"
+              r="48"
+            />
+            <circle
+              cx="96"
+              cy="256"
+              r="48"
+            />
+          </svg>
+        </div>
+      </button>
+    </div>
+  </div>
+  <div
+    class=""
+  />
+</div>
+`;

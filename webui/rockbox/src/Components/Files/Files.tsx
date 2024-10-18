@@ -11,66 +11,17 @@ import {
   Container,
   ContentWrapper,
   Directory,
-  Hover,
-  IconButton,
   Title,
 } from "./styles";
-import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
 import { File } from "../../Types/file";
 import Table from "../Table";
 import "./styles.css";
 import ArrowBack from "../Icons/ArrowBack";
 import { Spinner } from "baseui/spinner";
 import MainView from "../MainView";
+import ContextMenu from "./ContextMenu";
 
 const columnHelper = createColumnHelper<File>();
-const columns = [
-  columnHelper.accessor("name", {
-    header: "",
-    size: 15,
-    cell: (info) => (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginLeft: 10,
-        }}
-      >
-        {info.row.original.isDirectory && <Folder2 size={20} />}
-        {!info.row.original.isDirectory && <MusicNoteBeamed size={20} />}
-      </div>
-    ),
-  }),
-  columnHelper.accessor("name", {
-    header: "",
-    cell: (info) => (
-      <>
-        {info.row.original.isDirectory && (
-          <Directory to={`/files?q=${info.row.original.path}`}>
-            {info.getValue()}
-          </Directory>
-        )}
-        {!info.row.original.isDirectory && (
-          <AudioFile>{info.getValue()}</AudioFile>
-        )}
-      </>
-    ),
-  }),
-  columnHelper.accessor("name", {
-    header: "",
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    cell: (_info) => (
-      <ButtonGroup style={{ justifyContent: "flex-end", alignItems: "center" }}>
-        <IconButton>
-          <Hover>
-            <EllipsisHorizontal size={24} />
-          </Hover>
-        </IconButton>
-      </ButtonGroup>
-    ),
-  }),
-];
 
 export type FilesProps = {
   files: File[];
@@ -80,6 +31,64 @@ export type FilesProps = {
 };
 
 const Files: FC<FilesProps> = (props) => {
+  const columns = [
+    columnHelper.accessor("name", {
+      header: "",
+      size: 15,
+      cell: (info) => (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginLeft: 10,
+          }}
+        >
+          {info.row.original.isDirectory && <Folder2 size={20} />}
+          {!info.row.original.isDirectory && <MusicNoteBeamed size={20} />}
+        </div>
+      ),
+    }),
+    columnHelper.accessor("name", {
+      header: "",
+      cell: (info) => (
+        <>
+          {info.row.original.isDirectory && (
+            <Directory to={`/files?q=${info.row.original.path}`}>
+              {info.getValue()}
+            </Directory>
+          )}
+          {!info.row.original.isDirectory && (
+            <AudioFile>{info.getValue()}</AudioFile>
+          )}
+        </>
+      ),
+    }),
+    columnHelper.accessor("name", {
+      header: "",
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      cell: (info) => (
+        <ButtonGroup
+          style={{ justifyContent: "flex-end", alignItems: "center" }}
+        >
+          <ContextMenu
+            entry={{
+              title: info.row.original.name,
+              isDirectory: info.row.original.isDirectory,
+            }}
+            onPlayNext={() => {}}
+            onCreatePlaylist={() => {}}
+            onAddTrackToPlaylist={() => {}}
+            onPlayLast={() => {}}
+            onAddShuffled={() => {}}
+            onPlayShuffled={() => {}}
+            recentPlaylists={[]}
+          />
+        </ButtonGroup>
+      ),
+    }),
+  ];
+
   return (
     <Container>
       <Sidebar active="files" />
