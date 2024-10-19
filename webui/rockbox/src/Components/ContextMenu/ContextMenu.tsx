@@ -25,11 +25,11 @@ import {
 export type ContextMenuProps = {
   liked?: boolean;
   track: any;
-  onPlayNext: (id: string) => void;
+  onPlayNext: (path: string) => void;
   onCreatePlaylist: (name: string, description?: string) => void;
   onAddTrackToPlaylist: (playlistId: string, trackId: string) => void;
-  onPlayLast: (id: string) => void;
-  onAddShuffled: (id: string) => void;
+  onPlayLast: (path: string) => void;
+  onAddShuffled: (path: string) => void;
   recentPlaylists: any[];
 };
 
@@ -127,13 +127,13 @@ const ContextMenu: FC<ContextMenuProps> = ({
                       return;
                     }
                     if (item.label === "Play Next") {
-                      onPlayNext(track.id);
+                      onPlayNext(track.path);
                     }
                     if (item.label === "Play Last") {
-                      onPlayLast(track.id);
+                      onPlayLast(track.path);
                     }
                     if (item.label === "Add Shuffled") {
-                      onAddShuffled(track.id);
+                      onAddShuffled(track.path);
                     }
                     close();
                   }}

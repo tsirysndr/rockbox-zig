@@ -2,6 +2,7 @@ export type Track = {
   id: string;
   trackNumber?: number | null;
   title: string;
+  path?: string;
   artist: string;
   album?: string | null;
   time?: string | null;

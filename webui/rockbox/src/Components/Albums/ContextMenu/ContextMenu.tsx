@@ -24,6 +24,9 @@ export type ContextMenuProps = {
   onCreatePlaylist: (name: string, description?: string) => void;
   onAddTrackToPlaylist: (playlistId: string, trackId: string) => void;
   onPlayLast: (id: string) => void;
+  onPlayShuffled: (id: string) => void;
+  onAddShuffled: (id: string) => void;
+  onPlayLastShuffled: (id: string) => void;
   recentPlaylists: any[];
 };
 
@@ -33,6 +36,9 @@ const ContextMenu: FC<ContextMenuProps> = ({
   // onCreatePlaylist,
   onPlayLast,
   onAddTrackToPlaylist,
+  onPlayShuffled,
+  onAddShuffled,
+  onPlayLastShuffled,
   recentPlaylists,
 }) => {
   const theme = useTheme();
@@ -123,14 +129,22 @@ const ContextMenu: FC<ContextMenuProps> = ({
                     },
                   ]}
                   onItemSelect={({ item }) => {
-                    if (item.label === "Add to Playlist") {
-                      return;
-                    }
-                    if (item.label === "Play Next") {
-                      onPlayNext(album.id);
-                    }
-                    if (item.label === "Play Last") {
-                      onPlayLast(album.id);
+                    switch (item.label) {
+                      case "Play Next":
+                        onPlayNext(album.id);
+                        break;
+                      case "Play Last":
+                        onPlayLast(album.id);
+                        break;
+                      case "Add Shuffled":
+                        onAddShuffled(album.id);
+                        break;
+                      case "Play Last Shuffled":
+                        onPlayLastShuffled(album.id);
+                        break;
+                      case "Play Shuffled":
+                        onPlayShuffled(album.id);
+                        break;
                     }
                     close();
                   }}

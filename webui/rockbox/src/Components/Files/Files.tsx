@@ -75,14 +75,8 @@ const Files: FC<FilesProps> = (props) => {
             entry={{
               title: info.row.original.name,
               isDirectory: info.row.original.isDirectory,
+              path: info.row.original.path,
             }}
-            onPlayNext={() => {}}
-            onCreatePlaylist={() => {}}
-            onAddTrackToPlaylist={() => {}}
-            onPlayLast={() => {}}
-            onAddShuffled={() => {}}
-            onPlayShuffled={() => {}}
-            recentPlaylists={[]}
           />
         </ButtonGroup>
       ),

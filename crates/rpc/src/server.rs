@@ -16,7 +16,6 @@ use crate::playlist::Playlist;
 use crate::settings::Settings;
 use crate::sound::Sound;
 use crate::system::System;
-use owo_colors::OwoColorize;
 use rockbox_library::create_connection_pool;
 use rockbox_sys::events::RockboxCommand;
 use tonic::transport::Server;
@@ -31,8 +30,6 @@ pub async fn start(
 
     let addr: SocketAddr = format!("0.0.0.0:{}", rockbox_port).parse()?;
 
-    let host_and_port = format!("0.0.0.0:{}", rockbox_port);
-
     let client = reqwest::Client::new();
     let pool = create_connection_pool().await?;
 
@@ -44,17 +41,17 @@ pub async fn start(
                 .build_v1alpha()?,
         )
         .add_service(tonic_web::enable(LibraryServiceServer::new(Library::new(
-            pool,
+            pool.clone(),
         ))))
         .add_service(tonic_web::enable(PlaylistServiceServer::new(
-            Playlist::new(cmd_tx.clone(), client.clone()),
+            Playlist::new(cmd_tx.clone(), client.clone(), pool.clone()),
         )))
         .add_service(tonic_web::enable(PlaybackServiceServer::new(
-            Playback::new(cmd_tx.clone(), client.clone()),
+            Playback::new(cmd_tx.clone(), client.clone(), pool.clone()),
         )))
-        .add_service(tonic_web::enable(BrowseServiceServer::new(Browse::new(
-            client.clone(),
-        ))))
+        .add_service(tonic_web::enable(BrowseServiceServer::new(
+            Browse::default(),
+        )))
         .add_service(tonic_web::enable(SoundServiceServer::new(Sound::default())))
         .add_service(tonic_web::enable(SettingsServiceServer::new(
             Settings::new(client.clone()),

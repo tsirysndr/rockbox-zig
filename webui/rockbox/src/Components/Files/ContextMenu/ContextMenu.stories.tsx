@@ -28,6 +28,7 @@ export const Directory: Story = {
     onPlayLast: fn(),
     onAddShuffled: fn(),
     onPlayShuffled: fn(),
+    onPlayLastShuffled: fn(),
     recentPlaylists: [],
   },
 };

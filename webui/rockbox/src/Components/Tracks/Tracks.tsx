@@ -154,7 +154,6 @@ const Tracks: FC<TracksProps> = (props) => {
     columnHelper.accessor("id", {
       header: "",
       size: 100,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       cell: (info) => (
         <ButtonGroup
           style={{ justifyContent: "flex-end", alignItems: "center" }}
@@ -165,13 +164,8 @@ const Tracks: FC<TracksProps> = (props) => {
               artist: info.row.original.artist,
               time: info.row.original.time,
               cover: info.row.original.albumArt,
+              path: info.row.original.path,
             }}
-            onPlayNext={() => {}}
-            onCreatePlaylist={() => {}}
-            onAddTrackToPlaylist={() => {}}
-            onPlayLast={() => {}}
-            onAddShuffled={() => {}}
-            recentPlaylists={[]}
           />
         </ButtonGroup>
       ),

@@ -70,14 +70,7 @@ const Albums: FC<AlbumsProps> = (props) => {
                         >
                           <Play small color="#000" />
                         </div>
-                        <ContextMenu
-                          album={item}
-                          onPlayNext={() => {}}
-                          onCreatePlaylist={() => {}}
-                          onAddTrackToPlaylist={() => {}}
-                          onPlayLast={() => {}}
-                          recentPlaylists={[]}
-                        />
+                        <ContextMenu item={item} />
                         <FloatingButton onClick={() => props.onLike(item)}>
                           <HeartOutline color="#fff" size={20} />
                         </FloatingButton>

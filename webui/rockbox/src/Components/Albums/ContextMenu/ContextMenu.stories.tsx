@@ -28,6 +28,9 @@ export const Default: Story = {
     onCreatePlaylist: fn(),
     onAddTrackToPlaylist: fn(),
     onPlayLast: fn(),
+    onAddShuffled: fn(),
+    onPlayLastShuffled: fn(),
+    onPlayShuffled: fn(),
     recentPlaylists: [],
   },
 };

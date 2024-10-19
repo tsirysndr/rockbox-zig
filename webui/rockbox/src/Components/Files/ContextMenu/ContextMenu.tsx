@@ -20,12 +20,13 @@ import {
 
 export type ContextMenuProps = {
   entry: any;
-  onPlayNext: (id: string) => void;
+  onPlayNext: (path: string) => void;
   onCreatePlaylist: (name: string, description?: string) => void;
-  onAddTrackToPlaylist: (playlistId: string, trackId: string) => void;
-  onPlayLast: (id: string) => void;
-  onAddShuffled: (id: string) => void;
-  onPlayShuffled: (id: string) => void;
+  onAddTrackToPlaylist: (playlistId: string, path: string) => void;
+  onPlayLast: (path: string) => void;
+  onAddShuffled: (path: string) => void;
+  onPlayShuffled: (path: string) => void;
+  onPlayLastShuffled: (path: string) => void;
   recentPlaylists: any[];
 };
 
@@ -37,6 +38,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
   onAddTrackToPlaylist,
   onAddShuffled,
   onPlayShuffled,
+  onPlayLastShuffled,
   recentPlaylists,
 }) => {
   const theme = useTheme();
@@ -154,20 +156,24 @@ const ContextMenu: FC<ContextMenuProps> = ({
                   }}
                   items={items}
                   onItemSelect={({ item }) => {
-                    if (item.label === "Add to Playlist") {
-                      return;
-                    }
-                    if (item.label === "Play Next") {
-                      onPlayNext(entry.id);
-                    }
-                    if (item.label === "Play Last") {
-                      onPlayLast(entry.id);
-                    }
-                    if (item.label === "Add Shuffled") {
-                      onAddShuffled(entry.id);
-                    }
-                    if (item.label === "Play Shuffled") {
-                      onPlayShuffled(entry.id);
+                    switch (item.label) {
+                      case "Play Next":
+                        onPlayNext(entry.path);
+                        break;
+                      case "Play Last":
+                        onPlayLast(entry.path);
+                        break;
+                      case "Add Shuffled":
+                        onAddShuffled(entry.path);
+                        break;
+                      case "Play Shuffled":
+                        onPlayShuffled(entry.path);
+                        break;
+                      case "Play Last Shuffled":
+                        onPlayLastShuffled(entry.path);
+                        break;
+                      default:
+                        break;
                     }
                     close();
                   }}

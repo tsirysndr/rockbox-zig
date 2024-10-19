@@ -1,9 +1,11 @@
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
+use rockbox_library::repo;
 use rockbox_sys::{
     events::RockboxCommand,
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
 };
+use sqlx::Sqlite;
 
 use crate::{
     api::rockbox::v1alpha1::{playlist_service_server::PlaylistService, *},
@@ -14,11 +16,20 @@ use crate::{
 pub struct Playlist {
     cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
     client: reqwest::Client,
+    pool: sqlx::Pool<Sqlite>,
 }
 
 impl Playlist {
-    pub fn new(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>, client: reqwest::Client) -> Self {
-        Self { cmd_tx, client }
+    pub fn new(
+        cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
+        client: reqwest::Client,
+        pool: sqlx::Pool<Sqlite>,
+    ) -> Self {
+        Self {
+            cmd_tx,
+            client,
+            pool,
+        }
     }
 }
 
@@ -308,5 +319,31 @@ impl PlaylistService for Playlist {
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(ShufflePlaylistResponse::default()))
+    }
+
+    async fn insert_album(
+        &self,
+        request: tonic::Request<InsertAlbumRequest>,
+    ) -> Result<tonic::Response<InsertAlbumResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let album_id = request.album_id;
+        let position = request.position;
+        let tracks = repo::album_tracks::find_by_album(self.pool.clone(), &album_id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks: Vec<String> = tracks.into_iter().map(|t| t.path).collect();
+        let body = serde_json::json!({
+            "position": position,
+            "tracks": tracks,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(tonic::Response::new(InsertAlbumResponse::default()))
     }
 }

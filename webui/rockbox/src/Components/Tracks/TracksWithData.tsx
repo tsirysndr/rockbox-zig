@@ -27,6 +27,7 @@ const TracksWithData: FC = () => {
           : undefined,
         albumId: x.albumId,
         artistId: x.artistId,
+        path: x.path,
       }))
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

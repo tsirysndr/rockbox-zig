@@ -111,13 +111,8 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
               artist: info.row.original.artist,
               time: info.row.original.time,
               cover: info.row.original.albumArt,
+              path: info.row.original.path,
             }}
-            onPlayNext={() => {}}
-            onCreatePlaylist={() => {}}
-            onAddTrackToPlaylist={() => {}}
-            onPlayLast={() => {}}
-            onAddShuffled={() => {}}
-            recentPlaylists={[]}
           />
         </ButtonGroup>
       ),

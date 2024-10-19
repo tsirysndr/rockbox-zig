@@ -18,6 +18,7 @@ describe("ContextMenu", () => {
           onAddShuffled={vi.fn()}
           onPlayShuffled={vi.fn()}
           onPlayLast={vi.fn()}
+          onPlayLastShuffled={vi.fn()}
           recentPlaylists={[]}
         />
       </Providers>
