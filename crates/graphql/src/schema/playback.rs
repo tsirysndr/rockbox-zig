@@ -1,6 +1,9 @@
-use std::sync::{mpsc::Sender, Arc, Mutex};
+use std::{
+    fs,
+    sync::{mpsc::Sender, Arc, Mutex},
+};
 
-use crate::schema::objects;
+use crate::{read_files, schema::objects, AUDIO_EXTENSIONS};
 use async_graphql::*;
 use futures_util::Stream;
 use rockbox_library::repo;
@@ -79,75 +82,211 @@ pub struct PlaybackMutation;
 
 #[Object]
 impl PlaybackMutation {
-    async fn play(&self, ctx: &Context<'_>, elapsed: i64, offset: i64) -> Result<String, Error> {
+    async fn play(&self, ctx: &Context<'_>, elapsed: i64, offset: i64) -> Result<i32, Error> {
         let cmd = ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>().unwrap();
         cmd.lock()
             .unwrap()
             .send(RockboxCommand::Play(elapsed, offset))?;
-        Ok("play".to_string())
+        Ok(0)
     }
 
-    async fn pause(&self, ctx: &Context<'_>) -> Result<String, Error> {
+    async fn pause(&self, ctx: &Context<'_>) -> Result<i32, Error> {
         ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
             .unwrap()
             .lock()
             .unwrap()
             .send(RockboxCommand::Pause)?;
-        Ok("pause".to_string())
+        Ok(0)
     }
 
-    async fn resume(&self, ctx: &Context<'_>) -> Result<String, Error> {
+    async fn resume(&self, ctx: &Context<'_>) -> Result<i32, Error> {
         ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
             .unwrap()
             .lock()
             .unwrap()
             .send(RockboxCommand::Resume)?;
-        Ok("resume".to_string())
+        Ok(0)
     }
 
-    async fn next(&self, ctx: &Context<'_>) -> Result<String, Error> {
+    async fn next(&self, ctx: &Context<'_>) -> Result<i32, Error> {
         ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
             .unwrap()
             .lock()
             .unwrap()
             .send(RockboxCommand::Next)?;
-        Ok("next".to_string())
+        Ok(0)
     }
 
-    async fn previous(&self, ctx: &Context<'_>) -> Result<String, Error> {
+    async fn previous(&self, ctx: &Context<'_>) -> Result<i32, Error> {
         ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
             .unwrap()
             .lock()
             .unwrap()
             .send(RockboxCommand::Prev)?;
-        Ok("previous".to_string())
+        Ok(0)
     }
 
-    async fn fast_forward_rewind(&self, ctx: &Context<'_>, new_time: i32) -> Result<String, Error> {
+    async fn fast_forward_rewind(&self, ctx: &Context<'_>, new_time: i32) -> Result<i32, Error> {
         ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
             .unwrap()
             .lock()
             .unwrap()
             .send(RockboxCommand::FfRewind(new_time))?;
-        Ok("fast_forward_rewind".to_string())
+        Ok(0)
     }
 
-    async fn flush_and_reload_tracks(&self, ctx: &Context<'_>) -> Result<String, Error> {
+    async fn flush_and_reload_tracks(&self, ctx: &Context<'_>) -> Result<i32, Error> {
         ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
             .unwrap()
             .lock()
             .unwrap()
             .send(RockboxCommand::FlushAndReloadTracks)?;
-        Ok("flush_and_reload_tracks".to_string())
+        Ok(0)
     }
 
-    async fn hard_stop(&self, ctx: &Context<'_>) -> Result<String, Error> {
+    async fn hard_stop(&self, ctx: &Context<'_>) -> Result<i32, Error> {
         ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
             .unwrap()
             .lock()
             .unwrap()
             .send(RockboxCommand::Stop)?;
-        Ok("hard_stop".to_string())
+        Ok(0)
+    }
+
+    async fn play_album(
+        &self,
+        ctx: &Context<'_>,
+        album_id: String,
+        shuffle: Option<bool>,
+    ) -> Result<i32, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let tracks = repo::album_tracks::find_by_album(pool.clone(), &album_id).await?;
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        client.post(&url).json(&body).send().await?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            client.put(&url).send().await?;
+        }
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        client.put(&url).send().await?;
+
+        Ok(0)
+    }
+
+    async fn play_artist_tracks(
+        &self,
+        ctx: &Context<'_>,
+        artist_id: String,
+        shuffle: Option<bool>,
+    ) -> Result<i32, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let tracks = repo::artist_tracks::find_by_artist(pool.clone(), &artist_id).await?;
+        let body = serde_json::json!({
+            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        client.post(&url).json(&body).send().await?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            client.put(&url).send().await?;
+        }
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        client.put(&url).send().await?;
+
+        Ok(0)
+    }
+
+    async fn play_playlist(
+        &self,
+        _ctx: &Context<'_>,
+        _playlist_id: String,
+        _shuffle: Option<bool>,
+    ) -> Result<i32, Error> {
+        todo!()
+    }
+
+    async fn play_directory(
+        &self,
+        ctx: &Context<'_>,
+        path: String,
+        recurse: Option<bool>,
+        shuffle: Option<bool>,
+    ) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let mut tracks: Vec<String> = vec![];
+
+        if !std::path::Path::new(&path).is_dir() {
+            return Err(Error::new("Invalid path"));
+        }
+
+        match recurse {
+            Some(true) => tracks = read_files(path).await?,
+            _ => {
+                for file in fs::read_dir(&path)? {
+                    let file = file?;
+
+                    if file.metadata()?.is_file()
+                        && !AUDIO_EXTENSIONS.iter().any(|ext| {
+                            file.path()
+                                .to_string_lossy()
+                                .ends_with(&format!(".{}", ext))
+                        })
+                    {
+                        continue;
+                    }
+
+                    tracks.push(file.path().to_string_lossy().to_string());
+                }
+            }
+        }
+
+        let body = serde_json::json!({
+            "tracks": tracks,
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        client.post(&url).json(&body).send().await?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            client.put(&url).send().await?;
+        }
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        client.put(&url).send().await?;
+
+        Ok(0)
+    }
+
+    async fn play_track(&self, ctx: &Context<'_>, path: String) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+
+        if !std::path::Path::new(&path).is_file() {
+            return Err(Error::new("Invalid path"));
+        }
+
+        let body = serde_json::json!({
+            "tracks": vec![path],
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        client.post(&url).json(&body).send().await?;
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        client.put(&url).send().await?;
+
+        Ok(0)
     }
 }
 

@@ -71,7 +71,9 @@ pub fn build_playlist(files: [*]const [*]const u8, start_index: c_int, size: c_i
     const playlist = playlist_get_current();
     var context: PlaylistInsertContext = undefined;
 
-    _ = playlist_insert_context_create(playlist, &context, PLAYLIST_REPLACE, false, false);
+    if (playlist_insert_context_create(playlist, &context, PLAYLIST_REPLACE, false, false) < 0) {
+        return -1;
+    }
 
     var i: usize = 0;
     while (i < size) {
@@ -84,6 +86,27 @@ pub fn build_playlist(files: [*]const [*]const u8, start_index: c_int, size: c_i
 
     playlist_insert_context_release(&context);
     return start;
+}
+
+pub fn insert_tracks(files: [*]const [*]const u8, position: c_int, size: c_int) c_int {
+    const playlist = playlist_get_current();
+    var context: PlaylistInsertContext = undefined;
+
+    if (playlist_insert_context_create(playlist, &context, position, false, false) < 0) {
+        return -1;
+    }
+
+    var i: usize = 0;
+    while (i < size) {
+        const res = playlist_insert_context_add(&context, files[i]);
+        if (res < 0) {
+            break;
+        }
+        i += 1;
+    }
+
+    playlist_insert_context_release(&context);
+    return position;
 }
 
 pub fn insert_track(filename: [*]const u8, position: c_int, queue: bool, sync: bool) c_int {

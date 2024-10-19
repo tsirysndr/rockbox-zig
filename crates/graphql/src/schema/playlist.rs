@@ -2,6 +2,7 @@ use std::sync::{mpsc::Sender, Arc, Mutex};
 
 use async_graphql::*;
 use futures_util::Stream;
+use rockbox_library::repo;
 use rockbox_sys::{
     events::RockboxCommand,
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
@@ -159,9 +160,10 @@ impl PlaylistMutation {
         Ok(start_index)
     }
 
-    async fn playlist_insert_tracks(
+    async fn insert_tracks(
         &self,
         ctx: &Context<'_>,
+        _playlist_id: Option<String>,
         position: i32,
         tracks: Vec<String>,
     ) -> Result<i32, Error> {
@@ -176,9 +178,10 @@ impl PlaylistMutation {
         Ok(start_index)
     }
 
-    async fn playlist_insert_directory(
+    async fn insert_directory(
         &self,
         ctx: &Context<'_>,
+        _playlist_id: Option<String>,
         position: i32,
         directory: String,
     ) -> Result<i32, Error> {
@@ -198,9 +201,31 @@ impl PlaylistMutation {
         &self,
         _ctx: &Context<'_>,
         _position: i32,
+        _target_playlist_id: Option<String>,
         _playlist_id: String,
+        _shuffle: Option<bool>,
     ) -> String {
-        "playlist insert playlist".to_string()
+        todo!()
+    }
+
+    async fn insert_album(
+        &self,
+        ctx: &Context<'_>,
+        album_id: String,
+        position: i32,
+    ) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let pool = ctx.data::<sqlx::Pool<sqlx::Sqlite>>()?;
+        let tracks = repo::album_tracks::find_by_album(pool.clone(), &album_id).await?;
+        let tracks: Vec<String> = tracks.into_iter().map(|t| t.path).collect();
+        let body = serde_json::json!({
+            "position": position,
+            "tracks": tracks,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let response = client.post(&url).json(&body).send().await?;
+        let start_index = response.text().await?.parse()?;
+        Ok(start_index)
     }
 
     async fn shuffle_playlist(&self, ctx: &Context<'_>) -> Result<i32, Error> {

@@ -1,11 +1,21 @@
 import { FC, useEffect, useState } from "react";
 import Albums from "./Albums";
-import { useGetAlbumsQuery } from "../../Hooks/GraphQL";
+import { useGetAlbumsQuery, usePlayAlbumMutation } from "../../Hooks/GraphQL";
 
 const AlbumsWithData: FC = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [albums, setAlbums] = useState<any[]>([]);
   const { data } = useGetAlbumsQuery();
+  const [playAlbum] = usePlayAlbumMutation();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onPlay = ({ id: albumId }: any) => {
+    playAlbum({
+      variables: {
+        albumId,
+      },
+    });
+  };
 
   useEffect(() => {
     if (data) {
@@ -27,7 +37,7 @@ const AlbumsWithData: FC = () => {
       onFilter={() => {}}
       albums={albums}
       onLike={() => {}}
-      onPlay={() => {}}
+      onPlay={onPlay}
       onUnLike={() => {}}
     />
   );

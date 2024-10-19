@@ -182,9 +182,11 @@ pub async fn insert_tracks(_ctx: &Context, req: &Request, res: &mut Response) ->
         return Ok(());
     }
 
-    for (_, track) in tracklist.tracks.iter().enumerate() {
-        rb::playlist::insert_track(track, tracklist.position, true, false);
-    }
+    rb::playlist::insert_tracks(
+        tracklist.tracks.iter().map(|t| t.as_str()).collect(),
+        tracklist.position,
+        tracklist.tracks.len() as i32,
+    );
 
     res.text(&tracklist.position.to_string());
 

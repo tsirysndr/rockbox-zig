@@ -98,6 +98,22 @@ pub fn build_playlist(files: Vec<&str>, start_index: i32, size: i32) -> i32 {
     unsafe { crate::rb_build_playlist(files, start_index, size) }
 }
 
+pub fn insert_tracks(files: Vec<&str>, position: i32, size: i32) -> i32 {
+    let mut c_strings: Vec<CString> = Vec::with_capacity(files.len());
+    let mut pointers: Vec<*const u8> = Vec::with_capacity(files.len());
+
+    for file in files {
+        let c_string = CString::new(file).expect("CString::new failed");
+        pointers.push(c_string.as_ptr() as *const u8);
+        c_strings.push(c_string);
+    }
+
+    // Create a raw pointer to the vector of pointers
+    let files = pointers.as_ptr();
+
+    unsafe { crate::rb_playlist_insert_tracks(files, position, size) }
+}
+
 pub fn insert_track(filename: &str, position: i32, queue: bool, sync: bool) -> i32 {
     let filename = CString::new(filename).unwrap();
     unsafe {

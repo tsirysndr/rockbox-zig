@@ -103,6 +103,41 @@ message HardStopRequest {}
 
 message HardStopResponse {}
 
+message PlayAlbumRequest {
+  string album_id = 1;
+  optional bool shuffle = 2;
+}
+
+message PlayAlbumResponse {}
+
+message PlayArtistTracksRequest {
+  string artist_id = 1;
+  optional bool shuffle = 2;
+}
+
+message PlayArtistTracksResponse {}
+
+message PlayPlaylistRequest {
+  string playlist_id = 1;
+  optional bool shuffle = 2;
+}
+
+message PlayPlaylistResponse {}
+
+message PlayDirectoryRequest {
+  string path = 1;
+  optional bool shuffle = 2;
+  optional bool recurse = 3;
+}
+
+message PlayDirectoryResponse {}
+
+message PlayTrackRequest {
+  string path = 1;
+}
+
+message PlayTrackResponse {}
+
 service PlaybackService {
   rpc Play(PlayRequest) returns (PlayResponse) {}
   rpc Pause(PauseRequest) returns (PauseResponse) {}
@@ -116,4 +151,9 @@ service PlaybackService {
   rpc FlushAndReloadTracks(FlushAndReloadTracksRequest) returns (FlushAndReloadTracksResponse) {}
   rpc GetFilePosition(GetFilePositionRequest) returns (GetFilePositionResponse) {}
   rpc HardStop(HardStopRequest) returns (HardStopResponse) {}
+  rpc PlayAlbum(PlayAlbumRequest) returns (PlayAlbumResponse) {}
+  rpc PlayArtistTracks(PlayArtistTracksRequest) returns (PlayArtistTracksResponse) {}
+  rpc PlayPlaylist(PlayPlaylistRequest) returns (PlayPlaylistResponse) {}
+  rpc PlayDirectory(PlayDirectoryRequest) returns (PlayDirectoryResponse) {}
+  rpc PlayTrack(PlayTrackRequest) returns (PlayTrackResponse) {}
 }

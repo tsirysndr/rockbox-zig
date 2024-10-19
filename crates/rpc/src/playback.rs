@@ -1,19 +1,33 @@
-use std::sync::{mpsc::Sender, Arc, Mutex};
+use std::{
+    fs,
+    sync::{mpsc::Sender, Arc, Mutex},
+};
 
 use crate::{
     api::rockbox::v1alpha1::{playback_service_server::PlaybackService, *},
-    rockbox_url,
+    read_files, rockbox_url, AUDIO_EXTENSIONS,
 };
+use rockbox_library::repo;
 use rockbox_sys::{self as rb, events::RockboxCommand, types::audio_status::AudioStatus};
+use sqlx::Sqlite;
 
 pub struct Playback {
     cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
     client: reqwest::Client,
+    pool: sqlx::Pool<Sqlite>,
 }
 
 impl Playback {
-    pub fn new(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>, client: reqwest::Client) -> Self {
-        Self { cmd_tx, client }
+    pub fn new(
+        cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
+        client: reqwest::Client,
+        pool: sqlx::Pool<Sqlite>,
+    ) -> Self {
+        Self {
+            cmd_tx,
+            client,
+            pool,
+        }
     }
 }
 
@@ -182,5 +196,201 @@ impl PlaybackService for Playback {
             .send(RockboxCommand::Stop)
             .map_err(|_| tonic::Status::internal("Failed to send command"))?;
         Ok(tonic::Response::new(HardStopResponse::default()))
+    }
+
+    async fn play_album(
+        &self,
+        request: tonic::Request<PlayAlbumRequest>,
+    ) -> Result<tonic::Response<PlayAlbumResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let album_id = request.album_id;
+        let shuffle = request.shuffle;
+        let tracks = repo::album_tracks::find_by_album(self.pool.clone(), &album_id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let body = serde_json::json!({
+            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            self.client
+                .put(&url)
+                .send()
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        }
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(tonic::Response::new(PlayAlbumResponse::default()))
+    }
+
+    async fn play_artist_tracks(
+        &self,
+        request: tonic::Request<PlayArtistTracksRequest>,
+    ) -> Result<tonic::Response<PlayArtistTracksResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let artist_id = request.artist_id;
+        let shuffle = request.shuffle;
+        let tracks = repo::artist_tracks::find_by_artist(self.pool.clone(), &artist_id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let body = serde_json::json!({
+            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            self.client
+                .put(&url)
+                .send()
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        }
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(PlayArtistTracksResponse::default()))
+    }
+
+    async fn play_playlist(
+        &self,
+        _request: tonic::Request<PlayPlaylistRequest>,
+    ) -> Result<tonic::Response<PlayPlaylistResponse>, tonic::Status> {
+        todo!()
+    }
+
+    async fn play_directory(
+        &self,
+        request: tonic::Request<PlayDirectoryRequest>,
+    ) -> Result<tonic::Response<PlayDirectoryResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let path = request.path;
+        let recurse = request.recurse;
+        let shuffle = request.shuffle;
+        let mut tracks: Vec<String> = vec![];
+
+        if !std::path::Path::new(&path).is_dir() {
+            return Err(tonic::Status::invalid_argument("Path is not a directory"));
+        }
+
+        match recurse {
+            Some(true) => {
+                tracks = read_files(path)
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?
+            }
+            _ => {
+                for file in
+                    fs::read_dir(&path).map_err(|e| tonic::Status::internal(e.to_string()))?
+                {
+                    let file = file.map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+                    if file
+                        .metadata()
+                        .map_err(|e| tonic::Status::internal(e.to_string()))?
+                        .is_file()
+                        && !AUDIO_EXTENSIONS.iter().any(|ext| {
+                            file.path()
+                                .to_string_lossy()
+                                .ends_with(&format!(".{}", ext))
+                        })
+                    {
+                        continue;
+                    }
+
+                    tracks.push(file.path().to_string_lossy().to_string());
+                }
+            }
+        }
+
+        let body = serde_json::json!({
+            "tracks": tracks,
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            self.client
+                .put(&url)
+                .send()
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        }
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(tonic::Response::new(PlayDirectoryResponse::default()))
+    }
+
+    async fn play_track(
+        &self,
+        request: tonic::Request<PlayTrackRequest>,
+    ) -> Result<tonic::Response<PlayTrackResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let path = request.path;
+
+        if !std::path::Path::new(&path).is_file() {
+            return Err(tonic::Status::invalid_argument("Path is not a file"));
+        }
+
+        let body = serde_json::json!({
+            "tracks": vec![path],
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(tonic::Response::new(PlayTrackResponse::default()))
     }
 }

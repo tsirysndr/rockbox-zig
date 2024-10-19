@@ -1,7 +1,7 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import AlbumDetails from "./AlbumDetails";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetAlbumQuery } from "../../Hooks/GraphQL";
+import { useGetAlbumQuery, usePlayAlbumMutation } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 import { Track } from "../../Types/track";
 import { useRecoilValue } from "recoil";
@@ -19,6 +19,7 @@ const AlbumDetailsWithData: FC = () => {
       id: id!,
     },
   });
+  const [playAlbum] = usePlayAlbumMutation();
 
   const album = useMemo(
     () =>
@@ -46,6 +47,8 @@ const AlbumDetailsWithData: FC = () => {
         artistId: x.artistId!,
         time: formatTime(x.length),
         discnum: x.discnum,
+        albumArt: album.albumArt,
+        path: x.path,
       })) || []
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -79,12 +82,21 @@ const AlbumDetailsWithData: FC = () => {
     }
   }
 
+  function onPlayAll(shuffle: boolean) {
+    playAlbum({
+      variables: {
+        albumId: id!,
+        shuffle,
+      },
+    });
+  }
+
   return (
     <AlbumDetails
       onGoBack={() => navigate(-1)}
       onLike={() => {}}
-      onPlayAll={() => {}}
-      onShuffleAll={() => {}}
+      onPlayAll={() => onPlayAll(false)}
+      onShuffleAll={() => onPlayAll(true)}
       onUnlike={() => {}}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tracks={tracks as any[]}

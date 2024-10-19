@@ -2,20 +2,11 @@ use std::{env, fs};
 
 use crate::{
     api::rockbox::v1alpha1::{browse_service_server::BrowseService, *},
-    rockbox_url, AUDIO_EXTENSIONS,
+    AUDIO_EXTENSIONS,
 };
-use rockbox_sys as rb;
 
 #[derive(Default)]
-pub struct Browse {
-    client: reqwest::Client,
-}
-
-impl Browse {
-    pub fn new(client: reqwest::Client) -> Self {
-        Self { client }
-    }
-}
+pub struct Browse;
 
 #[tonic::async_trait]
 impl BrowseService for Browse {

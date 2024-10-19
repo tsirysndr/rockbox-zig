@@ -92,25 +92,40 @@ message CreatePlaylistResponse {
 }
 
 message InsertTracksRequest {
-  int32 position = 1;
-  repeated string tracks = 2;
+  optional string playlist_id = 1;
+  int32 position = 2;
+  repeated string tracks = 3;
+  optional bool shuffle = 4;
 }
 
 message InsertTracksResponse {}
 
 message InsertDirectoryRequest {
-  int32 position = 1;
-  string directory = 2;
+  optional string playlist_id = 1;
+  int32 position = 2;
+  string directory = 3;
+  optional bool recurse = 4;
+  optional bool shuffle = 5;
 }
 
 message InsertDirectoryResponse {}
 
 message InsertPlaylistRequest {
   int32 position = 1;
-  string playlist_id = 2;
+  string target_playlist_id = 2;
+  string playlist_id = 3;
+  optional bool shuffle = 4;
 }
 
 message InsertPlaylistResponse {}
+
+message InsertAlbumRequest {
+  int32 position = 1;
+  string album_id = 2;
+  optional bool shuffle = 3;
+}
+
+message InsertAlbumResponse {}
 
 message ShufflePlaylistRequest {
   int32 start_index = 1;
@@ -136,5 +151,6 @@ service PlaylistService {
   rpc InsertTracks(InsertTracksRequest) returns (InsertTracksResponse) {}
   rpc InsertDirectory(InsertDirectoryRequest) returns (InsertDirectoryResponse) {}
   rpc InsertPlaylist(InsertPlaylistRequest) returns (InsertPlaylistResponse) {}
+  rpc InsertAlbum(InsertAlbumRequest) returns (InsertAlbumResponse) {}
   rpc ShufflePlaylist(ShufflePlaylistRequest) returns (ShufflePlaylistResponse) {}
 }

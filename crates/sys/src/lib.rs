@@ -22,6 +22,15 @@ const MAX_PATHNAME: usize = 80;
 const NB_SCREENS: usize = 2;
 pub const HZ: i32 = 100;
 
+pub const PLAYLIST_PREPEND: i32 = -1;
+pub const PLAYLIST_INSERT: i32 = -2;
+pub const PLAYLIST_INSERT_LAST: i32 = -3;
+pub const PLAYLIST_INSERT_FIRST: i32 = -4;
+pub const PLAYLIST_INSERT_SHUFFLED: i32 = -5;
+pub const PLAYLIST_REPLACE: i32 = -6;
+pub const PLAYLIST_INSERT_LAST_SHUFFLED: i32 = -7;
+pub const PLAYLIST_INSERT_LAST_ROTATED: i32 = -8;
+
 #[macro_export]
 macro_rules! cast_ptr {
     ($ptr:expr) => {{
@@ -1068,6 +1077,7 @@ extern "C" {
     fn playlist_get_resume_info(resume_index: *mut c_int) -> c_int;
     fn rb_get_track_info_from_current_playlist(index: i32) -> PlaylistTrackInfo;
     fn rb_build_playlist(files: *const *const u8, start_index: i32, size: i32) -> i32;
+    fn rb_playlist_insert_tracks(files: *const *const u8, position: i32, size: i32) -> i32;
     fn rb_playlist_insert_track(filename: *const u8, position: i32, queue: bool, sync: bool)
         -> i32;
     fn rb_playlist_delete_track(index: i32) -> i32;
@@ -1086,14 +1096,7 @@ extern "C" {
     fn playlist_set_modified(playlist: *mut PlaylistInfo, modified: c_uchar);
     fn playlist_start(start_index: c_int, elapsed: c_ulong, offset: c_ulong);
     fn playlist_sync(playlist: *mut PlaylistInfo);
-    fn playlist_remove_all_tracks(playlist: *mut PlaylistInfo) -> c_int;
     fn playlist_create(dir: *const c_char, file: *const c_char) -> c_int;
-    fn playlist_insert_playlist(
-        playlist: *mut PlaylistInfo,
-        filename: *const c_char,
-        position: c_int,
-        queue: c_uchar,
-    ) -> c_int;
     fn playlist_shuffle(random_seed: c_int, start_index: c_int) -> c_int;
     fn rb_playlist_index() -> i32;
     fn rb_playlist_first_index() -> i32;

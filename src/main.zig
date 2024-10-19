@@ -59,6 +59,10 @@ export fn rb_build_playlist(files: [*]const [*]const u8, start_index: c_int, siz
     return playlist.build_playlist(files, start_index, size);
 }
 
+export fn rb_playlist_insert_tracks(files: [*]const [*]const u8, position: c_int, size: c_int) c_int {
+    return playlist.insert_tracks(files, position, size);
+}
+
 export fn rb_playlist_insert_track(filename: [*]const u8, position: c_int, queue: bool, sync: bool) c_int {
     return playlist.insert_track(filename, position, queue, sync);
 }

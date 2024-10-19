@@ -11,7 +11,6 @@ import {
   Container,
   ContentWrapper,
   Hover,
-  IconButton,
   Label,
   MainView,
   Name,
@@ -32,12 +31,12 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { Track } from "../../Types/track";
 import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
 import HeartOutline from "../Icons/HeartOutline";
-import Add from "../Icons/Add";
 import Table from "../Table";
 import AlbumArt from "../../Assets/albumart.svg";
 import { Cell, Grid } from "baseui/layout-grid";
 import { Link as RouterLink } from "react-router-dom";
 import "./styles.css";
+import ContextMenu from "../ContextMenu";
 
 const columnHelper = createColumnHelper<Track>();
 const columns = [
@@ -119,20 +118,17 @@ const columns = [
   columnHelper.accessor("id", {
     header: "",
     size: 100,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    cell: (_info) => (
+    cell: (info) => (
       <ButtonGroup style={{ justifyContent: "flex-end", alignItems: "center" }}>
-        <IconButton>
-          <Hover>
-            <EllipsisHorizontal size={24} />
-          </Hover>
-        </IconButton>
-        <IconButton>
-          <Add color="#000" size={24} />
-        </IconButton>
-        <IconButton>
-          <HeartOutline color="#000" />
-        </IconButton>
+        <ContextMenu
+          track={{
+            title: info.row.original.title,
+            artist: info.row.original.artist,
+            time: info.row.original.time,
+            cover: info.row.original.albumArt,
+            path: info.row.original.path,
+          }}
+        />
       </ButtonGroup>
     ),
   }),

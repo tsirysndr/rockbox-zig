@@ -56,7 +56,6 @@ export const mocks = [
             albumArt: x.cover,
             artistId: null,
             albumId: null,
-            path: "",
           })),
         },
       },

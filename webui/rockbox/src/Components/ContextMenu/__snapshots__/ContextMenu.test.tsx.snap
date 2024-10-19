@@ -1,0 +1,124 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ContextMenu > should render 1`] = `
+<div>
+  <div
+    class=""
+  >
+    <div
+      class="css-113iyi7"
+    >
+      <button
+        class="css-10bvv2v"
+      >
+        <div
+          aria-expanded="false"
+          aria-haspopup="true"
+          class="css-l6q2r8"
+        >
+          <svg
+            aria-hidden="true"
+            class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+            fill="currentColor"
+            focusable="false"
+            viewBox="0 0 512 512"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              cx="256"
+              cy="256"
+              r="48"
+            />
+            <circle
+              cx="416"
+              cy="256"
+              r="48"
+            />
+            <circle
+              cx="96"
+              cy="256"
+              r="48"
+            />
+          </svg>
+        </div>
+      </button>
+      <div
+        class="css-1hu1tgx"
+      />
+      <div
+        aria-expanded="false"
+        aria-haspopup="true"
+        class="css-l6q2r8"
+      >
+        <svg
+          fill="none"
+          height="24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g
+            class="ionicon"
+            style="fill: #000;"
+          >
+            <path
+              d="M11 5v12m6-6H5"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="fill: none;"
+            />
+            <path
+              class="stroke-shape"
+              d="M11 5v12m6-6H5"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="fill: none; stroke-width: 2; stroke: #000;"
+            />
+          </g>
+        </svg>
+      </div>
+      <div
+        class="css-1hu1tgx"
+      />
+      <div
+        class="css-l6q2r8"
+      >
+        <svg
+          fill="none"
+          height="24"
+          style="padding-top: 1px;"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g
+            class="ionicon"
+            style="fill: #000;"
+          >
+            <path
+              d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="fill: none;"
+            />
+            <path
+              class="stroke-shape"
+              d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="fill: none; stroke-width: 2; stroke: #000; stroke-opacity: 1;"
+            />
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    class=""
+  />
+</div>
+`;

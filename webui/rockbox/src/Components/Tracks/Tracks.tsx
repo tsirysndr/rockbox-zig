@@ -11,20 +11,16 @@ import {
   Container,
   ContentWrapper,
   FilterContainer,
-  Hover,
-  IconButton,
   Link,
   Title,
 } from "./styles";
-import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
-import Add from "../Icons/Add";
-import HeartOutline from "../Icons/HeartOutline";
 import { Track } from "../../Types/track";
 import Table from "../VirtualizedTable";
 import Filter from "../Filter";
 import TrackIcon from "../Icons/Track";
 import { Play } from "@styled-icons/ionicons-sharp";
 import "./styles.css";
+import ContextMenu from "../ContextMenu";
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -158,22 +154,19 @@ const Tracks: FC<TracksProps> = (props) => {
     columnHelper.accessor("id", {
       header: "",
       size: 100,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cell: (_info) => (
+      cell: (info) => (
         <ButtonGroup
           style={{ justifyContent: "flex-end", alignItems: "center" }}
         >
-          <IconButton>
-            <Hover>
-              <EllipsisHorizontal size={24} />
-            </Hover>
-          </IconButton>
-          <IconButton>
-            <Add color="#000" size={24} />
-          </IconButton>
-          <IconButton>
-            <HeartOutline color="#000" />
-          </IconButton>
+          <ContextMenu
+            track={{
+              title: info.row.original.title,
+              artist: info.row.original.artist,
+              time: info.row.original.time,
+              cover: info.row.original.albumArt,
+              path: info.row.original.path,
+            }}
+          />
         </ButtonGroup>
       ),
     }),
@@ -189,11 +182,13 @@ const Tracks: FC<TracksProps> = (props) => {
             <Filter placeholder="Search song" onChange={() => {}} />
           </FilterContainer>
           <div style={{ marginBottom: 60 }}>
-            <Table
-              columns={columns as any}
-              tracks={props.tracks}
-              containerRef={containerRef}
-            />
+            {props.tracks.length > 0 && (
+              <Table
+                columns={columns as any}
+                tracks={props.tracks}
+                containerRef={containerRef}
+              />
+            )}
           </div>
         </ContentWrapper>
       </MainView>
