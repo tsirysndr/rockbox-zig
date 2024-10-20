@@ -52,7 +52,9 @@ pub async fn start(
         .add_service(tonic_web::enable(BrowseServiceServer::new(
             Browse::default(),
         )))
-        .add_service(tonic_web::enable(SoundServiceServer::new(Sound::default())))
+        .add_service(tonic_web::enable(SoundServiceServer::new(Sound::new(
+            client.clone(),
+        ))))
         .add_service(tonic_web::enable(SettingsServiceServer::new(
             Settings::new(client.clone()),
         )))

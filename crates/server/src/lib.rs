@@ -59,6 +59,7 @@ pub extern "C" fn start_server() {
     app.put("/player/previous", previous);
     app.put("/player/stop", stop);
     app.get("/player/file-position", get_file_position);
+    app.put("/player/volume", adjust_volume);
 
     app.post("/playlists", create_playlist);
     app.put("/playlists/start", start_playlist);

@@ -7,6 +7,8 @@ import {
   LightTheme,
 } from "../Theme";
 import { BaseProvider } from "baseui";
+import { ThemeProvider as MaterialThemeProvider } from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
 
 export type Theme = "light" | "dark";
 
@@ -21,6 +23,15 @@ export const ThemeContext = createContext<ThemeContextType>({
   setTheme: (_theme: Theme) => {},
 });
 
+const muitheme = createTheme({
+  cssVariables: true,
+  palette: {
+    primary: {
+      main: "#fe099c",
+    },
+  },
+});
+
 export type ThemeProviderProps = {
   children: React.ReactNode;
 };
@@ -28,15 +39,17 @@ export type ThemeProviderProps = {
 const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>("light");
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      <EmotionThemeProvider theme={theme === "dark" ? DarkTheme : LightTheme}>
-        <BaseProvider
-          theme={theme === "dark" ? BaseUIDarkTheme : BaseUILightTheme}
-        >
-          {children}
-        </BaseProvider>
-      </EmotionThemeProvider>
-    </ThemeContext.Provider>
+    <MaterialThemeProvider theme={muitheme}>
+      <ThemeContext.Provider value={{ theme, setTheme }}>
+        <EmotionThemeProvider theme={theme === "dark" ? DarkTheme : LightTheme}>
+          <BaseProvider
+            theme={theme === "dark" ? BaseUIDarkTheme : BaseUILightTheme}
+          >
+            {children}
+          </BaseProvider>
+        </EmotionThemeProvider>
+      </ThemeContext.Provider>
+    </MaterialThemeProvider>
   );
 };
 

@@ -72,7 +72,7 @@ export type EqBandSetting = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  adjustVolume: Scalars['String']['output'];
+  adjustVolume: Scalars['Int']['output'];
   beepPlay: Scalars['String']['output'];
   fastForwardRewind: Scalars['Int']['output'];
   flushAndReloadTracks: Scalars['Int']['output'];
@@ -110,6 +110,11 @@ export type Mutation = {
   soundSet: Scalars['String']['output'];
   soundUnit: Scalars['String']['output'];
   systemSoundPlay: Scalars['String']['output'];
+};
+
+
+export type MutationAdjustVolumeArgs = {
+  steps: Scalars['Int']['input'];
 };
 
 
@@ -700,6 +705,18 @@ export type PlaylistChangedSubscriptionVariables = Exact<{ [key: string]: never;
 
 
 export type PlaylistChangedSubscription = { __typename?: 'Subscription', playlistChanged: { __typename?: 'Playlist', index: number, amount: number, maxPlaylistSize: number, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, path: string }> } };
+
+export type GetGlobalSettingsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', volume: number, eqEnabled: boolean, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }> } };
+
+export type AdjustVolumeMutationVariables = Exact<{
+  steps: Scalars['Int']['input'];
+}>;
+
+
+export type AdjustVolumeMutation = { __typename?: 'Mutation', adjustVolume: number };
 
 export type GetRockboxVersionQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1824,6 +1841,82 @@ export function usePlaylistChangedSubscription(baseOptions?: Apollo.Subscription
       }
 export type PlaylistChangedSubscriptionHookResult = ReturnType<typeof usePlaylistChangedSubscription>;
 export type PlaylistChangedSubscriptionResult = Apollo.SubscriptionResult<PlaylistChangedSubscription>;
+export const GetGlobalSettingsDocument = gql`
+    query GetGlobalSettings {
+  globalSettings {
+    volume
+    eqEnabled
+    eqBandSettings {
+      q
+      cutoff
+      gain
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetGlobalSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetGlobalSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGlobalSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGlobalSettingsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetGlobalSettingsQuery(baseOptions?: Apollo.QueryHookOptions<GetGlobalSettingsQuery, GetGlobalSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGlobalSettingsQuery, GetGlobalSettingsQueryVariables>(GetGlobalSettingsDocument, options);
+      }
+export function useGetGlobalSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGlobalSettingsQuery, GetGlobalSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGlobalSettingsQuery, GetGlobalSettingsQueryVariables>(GetGlobalSettingsDocument, options);
+        }
+export function useGetGlobalSettingsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGlobalSettingsQuery, GetGlobalSettingsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetGlobalSettingsQuery, GetGlobalSettingsQueryVariables>(GetGlobalSettingsDocument, options);
+        }
+export type GetGlobalSettingsQueryHookResult = ReturnType<typeof useGetGlobalSettingsQuery>;
+export type GetGlobalSettingsLazyQueryHookResult = ReturnType<typeof useGetGlobalSettingsLazyQuery>;
+export type GetGlobalSettingsSuspenseQueryHookResult = ReturnType<typeof useGetGlobalSettingsSuspenseQuery>;
+export type GetGlobalSettingsQueryResult = Apollo.QueryResult<GetGlobalSettingsQuery, GetGlobalSettingsQueryVariables>;
+export const AdjustVolumeDocument = gql`
+    mutation AdjustVolume($steps: Int!) {
+  adjustVolume(steps: $steps)
+}
+    `;
+export type AdjustVolumeMutationFn = Apollo.MutationFunction<AdjustVolumeMutation, AdjustVolumeMutationVariables>;
+
+/**
+ * __useAdjustVolumeMutation__
+ *
+ * To run a mutation, you first call `useAdjustVolumeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAdjustVolumeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [adjustVolumeMutation, { data, loading, error }] = useAdjustVolumeMutation({
+ *   variables: {
+ *      steps: // value for 'steps'
+ *   },
+ * });
+ */
+export function useAdjustVolumeMutation(baseOptions?: Apollo.MutationHookOptions<AdjustVolumeMutation, AdjustVolumeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AdjustVolumeMutation, AdjustVolumeMutationVariables>(AdjustVolumeDocument, options);
+      }
+export type AdjustVolumeMutationHookResult = ReturnType<typeof useAdjustVolumeMutation>;
+export type AdjustVolumeMutationResult = Apollo.MutationResult<AdjustVolumeMutation>;
+export type AdjustVolumeMutationOptions = Apollo.BaseMutationOptions<AdjustVolumeMutation, AdjustVolumeMutationVariables>;
 export const GetRockboxVersionDocument = gql`
     query GetRockboxVersion {
   rockboxVersion
