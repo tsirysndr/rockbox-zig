@@ -1,17 +1,23 @@
-.album-cover-container.queue {
-  height: 64px;
+table {
+  border-spacing: 0;
+}
+
+.album-cover-container {
+  height: 48px;
+  width: 48px;
   justify-content: center;
   align-items: center;
   display: flex;
   position: relative;
-  margin-left: 10px;
+  cursor: pointer;
+  margin-right: 10px;
 }
 
-.album-cover-container.queue .floating-play {
+.album-cover-container .floating-play {
   display: none;
   position: absolute;
-  left: 10px;
-  top: 17px;
+  left: 17px;
+  top: 10px;
  }
 
 .album-cover-container:hover .floating-play {

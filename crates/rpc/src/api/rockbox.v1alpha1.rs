@@ -459,6 +459,48 @@ pub struct GetTracksResponse {
     #[prost(message, repeated, tag = "1")]
     pub tracks: ::prost::alloc::vec::Vec<Track>,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LikeTrackRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct LikeTrackResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LikeAlbumRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct LikeAlbumResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UnlikeTrackRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct UnlikeTrackResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UnlikeAlbumRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct UnlikeAlbumResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetLikedTracksRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetLikedTracksResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub tracks: ::prost::alloc::vec::Vec<Track>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetLikedAlbumsRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetLikedAlbumsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub albums: ::prost::alloc::vec::Vec<Album>,
+}
 /// Generated client implementations.
 pub mod library_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
@@ -696,6 +738,164 @@ pub mod library_service_client {
                 .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetTrack"));
             self.inner.unary(req, path, codec).await
         }
+        pub async fn like_track(
+            &mut self,
+            request: impl tonic::IntoRequest<super::LikeTrackRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::LikeTrackResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/LikeTrack",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "LikeTrack"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn unlike_track(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UnlikeTrackRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UnlikeTrackResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/UnlikeTrack",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "UnlikeTrack"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn like_album(
+            &mut self,
+            request: impl tonic::IntoRequest<super::LikeAlbumRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::LikeAlbumResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/LikeAlbum",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "LikeAlbum"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn unlike_album(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UnlikeAlbumRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UnlikeAlbumResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/UnlikeAlbum",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "UnlikeAlbum"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_liked_tracks(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetLikedTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetLikedTracksResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/GetLikedTracks",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetLikedTracks"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_liked_albums(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetLikedAlbumsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetLikedAlbumsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/GetLikedAlbums",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetLikedAlbums"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -745,6 +945,48 @@ pub mod library_service_server {
             request: tonic::Request<super::GetTrackRequest>,
         ) -> std::result::Result<
             tonic::Response<super::GetTrackResponse>,
+            tonic::Status,
+        >;
+        async fn like_track(
+            &self,
+            request: tonic::Request<super::LikeTrackRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::LikeTrackResponse>,
+            tonic::Status,
+        >;
+        async fn unlike_track(
+            &self,
+            request: tonic::Request<super::UnlikeTrackRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UnlikeTrackResponse>,
+            tonic::Status,
+        >;
+        async fn like_album(
+            &self,
+            request: tonic::Request<super::LikeAlbumRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::LikeAlbumResponse>,
+            tonic::Status,
+        >;
+        async fn unlike_album(
+            &self,
+            request: tonic::Request<super::UnlikeAlbumRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::UnlikeAlbumResponse>,
+            tonic::Status,
+        >;
+        async fn get_liked_tracks(
+            &self,
+            request: tonic::Request<super::GetLikedTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetLikedTracksResponse>,
+            tonic::Status,
+        >;
+        async fn get_liked_albums(
+            &self,
+            request: tonic::Request<super::GetLikedAlbumsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetLikedAlbumsResponse>,
             tonic::Status,
         >;
     }
@@ -1079,6 +1321,278 @@ pub mod library_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetTrackSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/LikeTrack" => {
+                    #[allow(non_camel_case_types)]
+                    struct LikeTrackSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::LikeTrackRequest>
+                    for LikeTrackSvc<T> {
+                        type Response = super::LikeTrackResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::LikeTrackRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::like_track(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = LikeTrackSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/UnlikeTrack" => {
+                    #[allow(non_camel_case_types)]
+                    struct UnlikeTrackSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::UnlikeTrackRequest>
+                    for UnlikeTrackSvc<T> {
+                        type Response = super::UnlikeTrackResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::UnlikeTrackRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::unlike_track(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UnlikeTrackSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/LikeAlbum" => {
+                    #[allow(non_camel_case_types)]
+                    struct LikeAlbumSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::LikeAlbumRequest>
+                    for LikeAlbumSvc<T> {
+                        type Response = super::LikeAlbumResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::LikeAlbumRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::like_album(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = LikeAlbumSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/UnlikeAlbum" => {
+                    #[allow(non_camel_case_types)]
+                    struct UnlikeAlbumSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::UnlikeAlbumRequest>
+                    for UnlikeAlbumSvc<T> {
+                        type Response = super::UnlikeAlbumResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::UnlikeAlbumRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::unlike_album(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UnlikeAlbumSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/GetLikedTracks" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetLikedTracksSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::GetLikedTracksRequest>
+                    for GetLikedTracksSvc<T> {
+                        type Response = super::GetLikedTracksResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetLikedTracksRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::get_liked_tracks(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetLikedTracksSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/GetLikedAlbums" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetLikedAlbumsSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::GetLikedAlbumsRequest>
+                    for GetLikedAlbumsSvc<T> {
+                        type Response = super::GetLikedAlbumsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetLikedAlbumsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::get_liked_albums(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetLikedAlbumsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

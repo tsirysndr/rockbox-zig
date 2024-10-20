@@ -1,14 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
 import Album from "./Album";
-import { usePlayAlbumMutation } from "../../Hooks/GraphQL";
+import {
+  useLikeAlbumMutation,
+  usePlayAlbumMutation,
+  useUnlikeAlbumMutation,
+} from "../../Hooks/GraphQL";
+import { useRecoilState } from "recoil";
+import { likesState } from "../Likes/LikesState";
 
 export type AlbumWithDataProps = {
   album: any;
 };
 
 const AlbumWithData: FC<AlbumWithDataProps> = ({ album }) => {
+  const [likes, setLikes] = useRecoilState(likesState);
   const [playAlbum] = usePlayAlbumMutation();
+  const [likeAlbum] = useLikeAlbumMutation();
+  const [unlikeAlbum] = useUnlikeAlbumMutation();
 
   const onPlay = ({ id: albumId }: any) => {
     playAlbum({
@@ -17,12 +26,38 @@ const AlbumWithData: FC<AlbumWithDataProps> = ({ album }) => {
       },
     });
   };
+
+  const onLike = ({ id: albumId }: any) => {
+    setLikes({
+      ...likes,
+      [albumId]: true,
+    });
+    likeAlbum({
+      variables: {
+        albumId,
+      },
+    });
+  };
+
+  const onUnlike = ({ id: albumId }: any) => {
+    setLikes({
+      ...likes,
+      [albumId]: false,
+    });
+    unlikeAlbum({
+      variables: {
+        albumId,
+      },
+    });
+  };
+
   return (
     <Album
       album={album}
-      onLike={() => {}}
+      onLike={onLike}
       onPlay={onPlay}
-      onUnLike={() => {}}
+      onUnLike={onUnlike}
+      liked={likes[album.id]}
     />
   );
 };

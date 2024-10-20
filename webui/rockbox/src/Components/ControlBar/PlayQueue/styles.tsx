@@ -41,7 +41,6 @@ export const ListItem = styled.div`
   height: 64px;
   align-items: center;
   padding-left: 16px;
-  padding-right: 16px;
   cursor: pointer;
   &:hover {
     background-color: ${({ theme }) => theme.colors.hover};
@@ -89,7 +88,6 @@ export const AlbumCoverAlt = styled.div<{ current?: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: 18px;
   ${({ current }) => `opacity: ${current ? 0 : 1};`}
 `;
 

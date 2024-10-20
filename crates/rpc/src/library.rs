@@ -1,10 +1,13 @@
-use rockbox_library::repo;
+use rockbox_library::{entity::favourites::Favourites, repo};
 use sqlx::Sqlite;
 
 use crate::api::rockbox::v1alpha1::{
     library_service_server::LibraryService, Album, Artist, GetAlbumRequest, GetAlbumResponse,
     GetAlbumsRequest, GetAlbumsResponse, GetArtistRequest, GetArtistResponse, GetArtistsRequest,
-    GetArtistsResponse, GetTrackRequest, GetTrackResponse, GetTracksRequest, GetTracksResponse,
+    GetArtistsResponse, GetLikedAlbumsRequest, GetLikedAlbumsResponse, GetLikedTracksRequest,
+    GetLikedTracksResponse, GetTrackRequest, GetTrackResponse, GetTracksRequest, GetTracksResponse,
+    LikeAlbumRequest, LikeAlbumResponse, LikeTrackRequest, LikeTrackResponse, UnlikeAlbumRequest,
+    UnlikeAlbumResponse, UnlikeTrackRequest, UnlikeTrackResponse,
 };
 
 pub struct Library {
@@ -110,6 +113,90 @@ impl LibraryService for Library {
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(GetTrackResponse {
             track: track.map(|t| t.into()),
+        }))
+    }
+
+    async fn like_track(
+        &self,
+        request: tonic::Request<LikeTrackRequest>,
+    ) -> Result<tonic::Response<LikeTrackResponse>, tonic::Status> {
+        let params = request.into_inner();
+        repo::favourites::save(
+            self.pool.clone(),
+            Favourites {
+                id: cuid::cuid1().map_err(|e| tonic::Status::internal(e.to_string()))?,
+                track_id: Some(params.id),
+                created_at: chrono::Utc::now(),
+                album_id: None,
+            },
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(LikeTrackResponse {}))
+    }
+
+    async fn like_album(
+        &self,
+        request: tonic::Request<LikeAlbumRequest>,
+    ) -> Result<tonic::Response<LikeAlbumResponse>, tonic::Status> {
+        let params = request.into_inner();
+        repo::favourites::save(
+            self.pool.clone(),
+            Favourites {
+                id: cuid::cuid1().map_err(|e| tonic::Status::internal(e.to_string()))?,
+                track_id: None,
+                created_at: chrono::Utc::now(),
+                album_id: Some(params.id),
+            },
+        )
+        .await
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(LikeAlbumResponse {}))
+    }
+
+    async fn unlike_track(
+        &self,
+        request: tonic::Request<UnlikeTrackRequest>,
+    ) -> Result<tonic::Response<UnlikeTrackResponse>, tonic::Status> {
+        let params = request.into_inner();
+        repo::favourites::delete(self.pool.clone(), &params.id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(UnlikeTrackResponse {}))
+    }
+
+    async fn unlike_album(
+        &self,
+        request: tonic::Request<UnlikeAlbumRequest>,
+    ) -> Result<tonic::Response<UnlikeAlbumResponse>, tonic::Status> {
+        let params = request.into_inner();
+        repo::favourites::delete(self.pool.clone(), &params.id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(UnlikeAlbumResponse {}))
+    }
+
+    async fn get_liked_tracks(
+        &self,
+        _request: tonic::Request<GetLikedTracksRequest>,
+    ) -> Result<tonic::Response<GetLikedTracksResponse>, tonic::Status> {
+        let tracks = repo::favourites::all_tracks(self.pool.clone())
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(GetLikedTracksResponse {
+            tracks: tracks.into_iter().map(|t| t.into()).collect(),
+        }))
+    }
+
+    async fn get_liked_albums(
+        &self,
+        _request: tonic::Request<GetLikedAlbumsRequest>,
+    ) -> Result<tonic::Response<GetLikedAlbumsResponse>, tonic::Status> {
+        let albums = repo::favourites::all_albums(self.pool.clone())
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(GetLikedAlbumsResponse {
+            albums: albums.into_iter().map(|a| a.into()).collect(),
         }))
     }
 }

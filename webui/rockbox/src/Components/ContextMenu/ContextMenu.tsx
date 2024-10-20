@@ -30,6 +30,8 @@ export type ContextMenuProps = {
   onAddTrackToPlaylist: (playlistId: string, trackId: string) => void;
   onPlayLast: (path: string) => void;
   onAddShuffled: (path: string) => void;
+  onLike: (trackId: string) => void;
+  onUnlike: (trackId: string) => void;
   recentPlaylists: any[];
 };
 
@@ -41,6 +43,8 @@ const ContextMenu: FC<ContextMenuProps> = ({
   onPlayLast,
   onAddTrackToPlaylist,
   onAddShuffled,
+  onLike,
+  onUnlike,
   recentPlaylists,
 }) => {
   const theme = useTheme();
@@ -196,12 +200,16 @@ const ContextMenu: FC<ContextMenuProps> = ({
       </StatefulPopover>
       <Separator />
       {liked && (
-        <Icon>
-          <Heart height={24} width={24} color={theme.colors.icon} />
+        <Icon onClick={() => onUnlike(track.id)}>
+          <Heart height={24} width={24} color={"#fe09a3"} />
         </Icon>
       )}
       {!liked && (
-        <Icon>
+        <Icon
+          onClick={() => {
+            onLike(track.id);
+          }}
+        >
           <HeartOutline height={24} width={24} color={theme.colors.icon} />
         </Icon>
       )}

@@ -11,10 +11,8 @@ import Providers from "../../Providers";
 describe("AlbumDetails", () => {
   it("should render", () => {
     const onGoBack = vi.fn();
-    const onLike = vi.fn();
     const onPlayAll = vi.fn();
     const onShuffleAll = vi.fn();
-    const onUnlike = vi.fn();
     const { container } = render(
       <MemoryRouter initialEntries={["/"]}>
         <MockedProvider mocks={mocks}>
@@ -22,10 +20,8 @@ describe("AlbumDetails", () => {
             <RecoilRoot>
               <AlbumDetails
                 onGoBack={onGoBack}
-                onLike={onLike}
                 onPlayAll={onPlayAll}
                 onShuffleAll={onShuffleAll}
-                onUnlike={onUnlike}
                 tracks={tracks}
                 album={{
                   id: "1",

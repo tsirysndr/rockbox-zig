@@ -36,8 +36,6 @@ export type AlbumDetailsProps = {
   onPlayAll: () => void;
   onShuffleAll: () => void;
   onGoBack: () => void;
-  onLike: (track: string) => void;
-  onUnlike: (track: string) => void;
   tracks: Track[];
   album?: Album | null;
   volumes: Track[][];
@@ -107,6 +105,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
         >
           <ContextMenu
             track={{
+              id: info.row.original.id,
               title: info.row.original.title,
               artist: info.row.original.artist,
               time: info.row.original.time,

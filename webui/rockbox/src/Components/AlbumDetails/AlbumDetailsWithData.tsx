@@ -94,10 +94,8 @@ const AlbumDetailsWithData: FC = () => {
   return (
     <AlbumDetails
       onGoBack={() => navigate(-1)}
-      onLike={() => {}}
       onPlayAll={() => onPlayAll(false)}
       onShuffleAll={() => onPlayAll(true)}
-      onUnlike={() => {}}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tracks={tracks as any[]}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
