@@ -236,17 +236,17 @@ impl PlaybackMutation {
                 for file in fs::read_dir(&path)? {
                     let file = file?;
 
-                    if file.metadata()?.is_file()
-                        && !AUDIO_EXTENSIONS.iter().any(|ext| {
+                    if file.metadata()?.is_file() {
+                        if !AUDIO_EXTENSIONS.iter().any(|ext| {
                             file.path()
                                 .to_string_lossy()
                                 .ends_with(&format!(".{}", ext))
-                        })
-                    {
-                        continue;
-                    }
+                        }) {
+                            continue;
+                        }
 
-                    tracks.push(file.path().to_string_lossy().to_string());
+                        tracks.push(file.path().to_string_lossy().to_string());
+                    }
                 }
             }
         }

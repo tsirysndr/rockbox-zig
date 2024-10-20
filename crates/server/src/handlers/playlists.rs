@@ -3,8 +3,13 @@ use crate::{
     types::{DeleteTracks, InsertTracks, NewPlaylist, StatusCode},
 };
 use anyhow::Error;
+use rand::seq::SliceRandom;
+use rockbox_graphql::read_files;
 use rockbox_library::repo;
-use rockbox_sys::{self as rb, types::playlist_amount::PlaylistAmount};
+use rockbox_sys::{
+    self as rb, types::playlist_amount::PlaylistAmount, PLAYLIST_INSERT_LAST,
+    PLAYLIST_INSERT_LAST_SHUFFLED,
+};
 
 pub async fn create_playlist(
     _ctx: &Context,
@@ -138,23 +143,11 @@ pub async fn get_playlist_tracks(
 
 pub async fn insert_tracks(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let req_body = req.body.as_ref().unwrap();
-    let tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
+    let mut tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
     let amount = rb::playlist::amount();
 
     if let Some(dir) = &tracklist.directory {
-        if amount == 0 {
-            let status = rb::playlist::create(dir, None);
-            if status == -1 {
-                res.set_status(500);
-                res.text("Failed to create playlist");
-                return Ok(());
-            }
-        }
-        rb::playlist::insert_directory(dir, tracklist.position, true, true);
-        if tracklist.shuffle.unwrap_or(false) {
-            let random_seed = rb::system::current_tick() as i32;
-            rb::playlist::shuffle(random_seed, 0);
-        }
+        tracklist.tracks = read_files(dir.clone()).await?;
     }
 
     if tracklist.tracks.is_empty() {
@@ -182,11 +175,15 @@ pub async fn insert_tracks(_ctx: &Context, req: &Request, res: &mut Response) ->
         return Ok(());
     }
 
-    rb::playlist::insert_tracks(
-        tracklist.tracks.iter().map(|t| t.as_str()).collect(),
-        tracklist.position,
-        tracklist.tracks.len() as i32,
-    );
+    let mut tracks: Vec<&str> = tracklist.tracks.iter().map(|t| t.as_str()).collect();
+    let position = match tracklist.position {
+        PLAYLIST_INSERT_LAST_SHUFFLED => {
+            tracks.shuffle(&mut rand::thread_rng());
+            PLAYLIST_INSERT_LAST
+        }
+        _ => tracklist.position,
+    };
+    rb::playlist::insert_tracks(tracks, position, tracklist.tracks.len() as i32);
 
     res.text(&tracklist.position.to_string());
 

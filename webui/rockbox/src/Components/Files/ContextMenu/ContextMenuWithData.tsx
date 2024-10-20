@@ -81,6 +81,7 @@ const ContextMenuWithData: FC<ContextMenuWithDataProps> = ({ entry }) => {
       variables: {
         path,
         shuffle: true,
+        recurse: true,
       },
     });
   };

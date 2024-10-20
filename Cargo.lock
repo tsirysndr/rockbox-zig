@@ -5749,6 +5749,7 @@ dependencies = [
  "md5",
  "owo-colors 4.1.0",
  "queryst",
+ "rand",
  "reqwest",
  "rockbox-graphql",
  "rockbox-library",

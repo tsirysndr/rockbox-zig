@@ -11,6 +11,7 @@ anyhow = "1.0.89"
 md5 = "0.7.0"
 owo-colors = "4.0.0"
 queryst = "3.0.0"
+rand = "0.8.5"
 reqwest = {version = "0.12.7", features = ["blocking", "rustls-tls"], default-features = false}
 rockbox-graphql = {path = "../graphql"}
 rockbox-library = {path = "../library"}
