@@ -91,6 +91,42 @@ message GetTracksResponse {
   repeated Track tracks = 1;
 }
 
+message LikeTrackRequest {
+  string id = 1;
+}
+
+message LikeTrackResponse {}
+
+message LikeAlbumRequest {
+  string id = 1;
+}
+
+message LikeAlbumResponse {}
+
+message UnlikeTrackRequest {
+  string id = 1;
+}
+
+message UnlikeTrackResponse {}
+
+message UnlikeAlbumRequest {
+  string id = 1;
+}
+
+message UnlikeAlbumResponse {}
+
+message GetLikedTracksRequest {}
+
+message GetLikedTracksResponse {
+  repeated Track tracks = 1;
+}
+
+message GetLikedAlbumsRequest {}
+
+message GetLikedAlbumsResponse {
+  repeated Album albums = 1;
+}
+
 service LibraryService {
   rpc GetAlbums(GetAlbumsRequest) returns (GetAlbumsResponse);
   rpc GetArtists(GetArtistsRequest) returns (GetArtistsResponse);
@@ -98,4 +134,10 @@ service LibraryService {
   rpc GetAlbum(GetAlbumRequest) returns (GetAlbumResponse);
   rpc GetArtist(GetArtistRequest) returns (GetArtistResponse);
   rpc GetTrack(GetTrackRequest) returns (GetTrackResponse);
+  rpc LikeTrack(LikeTrackRequest) returns (LikeTrackResponse);
+  rpc UnlikeTrack(UnlikeTrackRequest) returns (UnlikeTrackResponse);
+  rpc LikeAlbum(LikeAlbumRequest) returns (LikeAlbumResponse);
+  rpc UnlikeAlbum(UnlikeAlbumRequest) returns (UnlikeAlbumResponse);
+  rpc GetLikedTracks(GetLikedTracksRequest) returns (GetLikedTracksResponse);
+  rpc GetLikedAlbums(GetLikedAlbumsRequest) returns (GetLikedAlbumsResponse);
 }

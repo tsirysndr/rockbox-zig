@@ -21,7 +21,7 @@ export const Default: Story = {
   args: {
     name: "Daft Punk",
     tracks,
-    albums,
+    albums: albums.map((x) => ({ ...x, cover: x.albumArt })),
     onPlayAll: fn(),
     onShuffleAll: fn(),
     onPlayAlbum: fn(),

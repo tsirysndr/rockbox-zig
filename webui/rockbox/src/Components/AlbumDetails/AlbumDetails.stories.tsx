@@ -22,8 +22,6 @@ export const Default: Story = {
     onGoBack: fn(),
     onPlayAll: fn(),
     onShuffleAll: fn(),
-    onLike: fn(),
-    onUnlike: fn(),
     tracks,
     album: {
       id: "1",

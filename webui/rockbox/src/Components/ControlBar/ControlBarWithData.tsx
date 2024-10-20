@@ -3,6 +3,8 @@ import ControlBar from "./ControlBar";
 import {
   useCurrentlyPlayingSongSubscription,
   useGetCurrentTrackQuery,
+  useGetLikedAlbumsQuery,
+  useGetLikedTracksQuery,
   useGetPlaybackStatusQuery,
   useNextMutation,
   usePauseMutation,
@@ -16,6 +18,7 @@ import { useRecoilState } from "recoil";
 import { controlBarState } from "./ControlBarState";
 import { usePlayQueue } from "../../Hooks/usePlayQueue";
 import { useResumePlaylist } from "../../Hooks/useResumePlaylist";
+import { likesState } from "../Likes/LikesState";
 
 const ControlBarWithData: FC = () => {
   const [{ nowPlaying, locked, resumeIndex }, setControlBarState] =
@@ -32,6 +35,48 @@ const ControlBarWithData: FC = () => {
   const { data: playbackStatus } = usePlaybackStatusSubscription();
   const { previousTracks, nextTracks } = usePlayQueue();
   const { resumePlaylistTrack } = useResumePlaylist();
+
+  const [likes, setLikes] = useRecoilState(likesState);
+  const { data: likedTracksData, loading: likedTracksLoading } =
+    useGetLikedTracksQuery({
+      fetchPolicy: "network-only",
+    });
+  const { data: likedAlbumsData, loading: likedAlbumsLoading } =
+    useGetLikedAlbumsQuery({
+      fetchPolicy: "network-only",
+    });
+
+  useEffect(() => {
+    if (
+      !likedTracksData ||
+      likedTracksLoading ||
+      !likedAlbumsData ||
+      likedAlbumsLoading
+    ) {
+      return;
+    }
+
+    const updatedLikes: Record<string, boolean> = {
+      ...likes,
+    };
+
+    likedTracksData.likedTracks.forEach((x) => {
+      updatedLikes[x.id!] = true;
+    });
+
+    likedAlbumsData.likedAlbums.forEach((x) => {
+      updatedLikes[x.id!] = true;
+    });
+
+    setLikes(updatedLikes);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    likedTracksData,
+    likedTracksLoading,
+    likedAlbumsData,
+    likedAlbumsLoading,
+  ]);
 
   const setNowPlaying = (nowPlaying: CurrentTrack) => {
     setControlBarState((state) => ({

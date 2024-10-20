@@ -22,8 +22,12 @@ const VirtualizedTable: FC<TableProps> = ({
   tracks,
   containerRef,
 }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [data] = useState([...tracks]);
+  const [data, setData] = useState([...tracks]);
+
+  useEffect(() => {
+    setData([...tracks]);
+  }, [tracks]);
+
   const table = useReactTable({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: data as any,
@@ -53,13 +57,18 @@ const VirtualizedTable: FC<TableProps> = ({
   }, []);
 
   return (
-    <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+    <div
+      style={{
+        height: `${rowVirtualizer.getTotalSize()}px`,
+        marginBottom: 100,
+      }}
+    >
       <table style={{ width: "100%" }}>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
               key={headerGroup.id}
-              style={{ height: 36, color: "rgba(0, 0, 0, 0.54)" }}
+              style={{ height: 48, color: "rgba(0, 0, 0, 0.54)" }}
             >
               {headerGroup.headers.map((header) => (
                 <th

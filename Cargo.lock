@@ -5686,6 +5686,8 @@ dependencies = [
  "anyhow",
  "async-graphql",
  "async-graphql-actix-web",
+ "chrono",
+ "cuid",
  "futures",
  "futures-channel",
  "futures-util",
@@ -5725,6 +5727,8 @@ name = "rockbox-rpc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
+ "cuid",
  "futures",
  "owo-colors 5.0.0",
  "prost 0.13.2",

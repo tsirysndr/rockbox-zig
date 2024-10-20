@@ -160,6 +160,7 @@ const Tracks: FC<TracksProps> = (props) => {
         >
           <ContextMenu
             track={{
+              id: info.row.original.id,
               title: info.row.original.title,
               artist: info.row.original.artist,
               time: info.row.original.time,

@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
-import { Link } from "react-router-dom";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import { Link as RouterLink } from "react-router-dom";
 
 export const Container = styled.div`
   display: flex;
@@ -47,47 +48,32 @@ export const ButtonGroup = styled.div`
 
 export const ContentWrapper = styled.div`
   overflow-y: auto;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 60px);
   padding-left: 20px;
   padding-right: 20px;
+  position: relative;
 `;
 
-export const AlbumCover = styled.img`
+export const AlbumCover = styled(LazyLoadImage)`
   height: 48px;
   width: 48px;
 `;
 
-export const Directory = styled(Link)`
-  color: #000;
-  margin-left: 10px;
-  text-decoration: none;
-  font-family: RockfordSansRegular;
-  width: calc(100vw - 500px);
-  max-width: calc(100vw - 500px);
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  display: block;
-  &:hover {
-    text-decoration: underline;
-  }
+export const AlbumCoverAlt = styled.div<{ current?: boolean }>`
+  height: 48px;
+  width: 48px;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: ${(props) => props.theme.colors.cover};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  ${({ current }) => `opacity: ${current ? 0 : 1};`}
 `;
 
-export const AudioFile = styled.div`
-  color: #000;
-  margin-left: 10px;
-  text-decoration: none;
-  font-family: RockfordSansRegular;
-  width: calc(100vw - 500px);
-  max-width: calc(100vw - 500px);
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  display: block;
-  cursor: pointer;
-  &:hover {
-    text-decoration: underline;
-  }
+export const FilterContainer = styled.div`
+  margin-top: 30px;
+  margin-bottom: 40px;
 `;
 
 export const BackButton = styled.button`
@@ -98,11 +84,19 @@ export const BackButton = styled.button`
   justify-content: center;
   height: 30px;
   width: 30px;
-  left: 20px;
   border-radius: 15px;
   background-color: #f7f7f8;
-  margin-top: 45px;
+  margin-top: 26px;
   margin-bottom: 46px;
   position: absolute;
   z-index: 1;
+`;
+
+export const Link = styled(RouterLink)`
+  color: #000;
+  text-decoration: none;
+  font-family: RockfordSansRegular;
+  &:hover {
+    text-decoration: underline;
+  }
 `;

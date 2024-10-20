@@ -82,6 +82,8 @@ export type Mutation = {
   insertPlaylist: Scalars['String']['output'];
   insertTracks: Scalars['Int']['output'];
   keyclickClick: Scalars['String']['output'];
+  likeAlbum: Scalars['Int']['output'];
+  likeTrack: Scalars['Int']['output'];
   next: Scalars['Int']['output'];
   pause: Scalars['Int']['output'];
   pcmbufFade: Scalars['String']['output'];
@@ -110,6 +112,8 @@ export type Mutation = {
   soundSet: Scalars['String']['output'];
   soundUnit: Scalars['String']['output'];
   systemSoundPlay: Scalars['String']['output'];
+  unlikeAlbum: Scalars['Int']['output'];
+  unlikeTrack: Scalars['Int']['output'];
 };
 
 
@@ -148,6 +152,16 @@ export type MutationInsertTracksArgs = {
   playlistId?: InputMaybe<Scalars['String']['input']>;
   position: Scalars['Int']['input'];
   tracks: Array<Scalars['String']['input']>;
+};
+
+
+export type MutationLikeAlbumArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationLikeTrackArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -204,6 +218,16 @@ export type MutationPlaylistStartArgs = {
   startIndex?: InputMaybe<Scalars['Int']['input']>;
 };
 
+
+export type MutationUnlikeAlbumArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationUnlikeTrackArgs = {
+  id: Scalars['String']['input'];
+};
+
 export type Playlist = {
   __typename?: 'Playlist';
   amount: Scalars['Int']['output'];
@@ -231,6 +255,8 @@ export type Query = {
   getTrackInfo: Scalars['String']['output'];
   globalSettings: UserSettings;
   globalStatus: SystemStatus;
+  likedAlbums: Array<Album>;
+  likedTracks: Array<Track>;
   nextTrack?: Maybe<Track>;
   playlistAmount: Scalars['Int']['output'];
   playlistGetCurrent: Playlist;
@@ -530,6 +556,34 @@ export type GetEntriesQueryVariables = Exact<{
 
 export type GetEntriesQuery = { __typename?: 'Query', treeGetEntries: Array<{ __typename?: 'Entry', name: string, attr: number, timeWrite: number }> };
 
+export type LikeTrackMutationVariables = Exact<{
+  trackId: Scalars['String']['input'];
+}>;
+
+
+export type LikeTrackMutation = { __typename?: 'Mutation', likeTrack: number };
+
+export type UnlikeTrackMutationVariables = Exact<{
+  trackId: Scalars['String']['input'];
+}>;
+
+
+export type UnlikeTrackMutation = { __typename?: 'Mutation', unlikeTrack: number };
+
+export type LikeAlbumMutationVariables = Exact<{
+  albumId: Scalars['String']['input'];
+}>;
+
+
+export type LikeAlbumMutation = { __typename?: 'Mutation', likeAlbum: number };
+
+export type UnlikeAlbumMutationVariables = Exact<{
+  albumId: Scalars['String']['input'];
+}>;
+
+
+export type UnlikeAlbumMutation = { __typename?: 'Mutation', unlikeAlbum: number };
+
 export type GetAlbumsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -558,6 +612,16 @@ export type GetAlbumQueryVariables = Exact<{
 
 
 export type GetAlbumQuery = { __typename?: 'Query', album?: { __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, tracknum: number, artist: string, album: string, discnum: number, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
+
+export type GetLikedTracksQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetLikedTracksQuery = { __typename?: 'Query', likedTracks: Array<{ __typename?: 'Track', id?: string | null, tracknum: number, title: string, artist: string, album: string, discnum: number, albumArtist: string, artistId?: string | null, albumId?: string | null, albumArt?: string | null, path: string, length: number }> };
+
+export type GetLikedAlbumsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetLikedAlbumsQuery = { __typename?: 'Query', likedAlbums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> }> };
 
 export type PlayMutationVariables = Exact<{
   elapsed: Scalars['Int']['input'];
@@ -771,6 +835,130 @@ export type GetEntriesQueryHookResult = ReturnType<typeof useGetEntriesQuery>;
 export type GetEntriesLazyQueryHookResult = ReturnType<typeof useGetEntriesLazyQuery>;
 export type GetEntriesSuspenseQueryHookResult = ReturnType<typeof useGetEntriesSuspenseQuery>;
 export type GetEntriesQueryResult = Apollo.QueryResult<GetEntriesQuery, GetEntriesQueryVariables>;
+export const LikeTrackDocument = gql`
+    mutation LikeTrack($trackId: String!) {
+  likeTrack(id: $trackId)
+}
+    `;
+export type LikeTrackMutationFn = Apollo.MutationFunction<LikeTrackMutation, LikeTrackMutationVariables>;
+
+/**
+ * __useLikeTrackMutation__
+ *
+ * To run a mutation, you first call `useLikeTrackMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLikeTrackMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [likeTrackMutation, { data, loading, error }] = useLikeTrackMutation({
+ *   variables: {
+ *      trackId: // value for 'trackId'
+ *   },
+ * });
+ */
+export function useLikeTrackMutation(baseOptions?: Apollo.MutationHookOptions<LikeTrackMutation, LikeTrackMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LikeTrackMutation, LikeTrackMutationVariables>(LikeTrackDocument, options);
+      }
+export type LikeTrackMutationHookResult = ReturnType<typeof useLikeTrackMutation>;
+export type LikeTrackMutationResult = Apollo.MutationResult<LikeTrackMutation>;
+export type LikeTrackMutationOptions = Apollo.BaseMutationOptions<LikeTrackMutation, LikeTrackMutationVariables>;
+export const UnlikeTrackDocument = gql`
+    mutation UnlikeTrack($trackId: String!) {
+  unlikeTrack(id: $trackId)
+}
+    `;
+export type UnlikeTrackMutationFn = Apollo.MutationFunction<UnlikeTrackMutation, UnlikeTrackMutationVariables>;
+
+/**
+ * __useUnlikeTrackMutation__
+ *
+ * To run a mutation, you first call `useUnlikeTrackMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnlikeTrackMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unlikeTrackMutation, { data, loading, error }] = useUnlikeTrackMutation({
+ *   variables: {
+ *      trackId: // value for 'trackId'
+ *   },
+ * });
+ */
+export function useUnlikeTrackMutation(baseOptions?: Apollo.MutationHookOptions<UnlikeTrackMutation, UnlikeTrackMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnlikeTrackMutation, UnlikeTrackMutationVariables>(UnlikeTrackDocument, options);
+      }
+export type UnlikeTrackMutationHookResult = ReturnType<typeof useUnlikeTrackMutation>;
+export type UnlikeTrackMutationResult = Apollo.MutationResult<UnlikeTrackMutation>;
+export type UnlikeTrackMutationOptions = Apollo.BaseMutationOptions<UnlikeTrackMutation, UnlikeTrackMutationVariables>;
+export const LikeAlbumDocument = gql`
+    mutation LikeAlbum($albumId: String!) {
+  likeAlbum(id: $albumId)
+}
+    `;
+export type LikeAlbumMutationFn = Apollo.MutationFunction<LikeAlbumMutation, LikeAlbumMutationVariables>;
+
+/**
+ * __useLikeAlbumMutation__
+ *
+ * To run a mutation, you first call `useLikeAlbumMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLikeAlbumMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [likeAlbumMutation, { data, loading, error }] = useLikeAlbumMutation({
+ *   variables: {
+ *      albumId: // value for 'albumId'
+ *   },
+ * });
+ */
+export function useLikeAlbumMutation(baseOptions?: Apollo.MutationHookOptions<LikeAlbumMutation, LikeAlbumMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LikeAlbumMutation, LikeAlbumMutationVariables>(LikeAlbumDocument, options);
+      }
+export type LikeAlbumMutationHookResult = ReturnType<typeof useLikeAlbumMutation>;
+export type LikeAlbumMutationResult = Apollo.MutationResult<LikeAlbumMutation>;
+export type LikeAlbumMutationOptions = Apollo.BaseMutationOptions<LikeAlbumMutation, LikeAlbumMutationVariables>;
+export const UnlikeAlbumDocument = gql`
+    mutation UnlikeAlbum($albumId: String!) {
+  unlikeAlbum(id: $albumId)
+}
+    `;
+export type UnlikeAlbumMutationFn = Apollo.MutationFunction<UnlikeAlbumMutation, UnlikeAlbumMutationVariables>;
+
+/**
+ * __useUnlikeAlbumMutation__
+ *
+ * To run a mutation, you first call `useUnlikeAlbumMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnlikeAlbumMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unlikeAlbumMutation, { data, loading, error }] = useUnlikeAlbumMutation({
+ *   variables: {
+ *      albumId: // value for 'albumId'
+ *   },
+ * });
+ */
+export function useUnlikeAlbumMutation(baseOptions?: Apollo.MutationHookOptions<UnlikeAlbumMutation, UnlikeAlbumMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnlikeAlbumMutation, UnlikeAlbumMutationVariables>(UnlikeAlbumDocument, options);
+      }
+export type UnlikeAlbumMutationHookResult = ReturnType<typeof useUnlikeAlbumMutation>;
+export type UnlikeAlbumMutationResult = Apollo.MutationResult<UnlikeAlbumMutation>;
+export type UnlikeAlbumMutationOptions = Apollo.BaseMutationOptions<UnlikeAlbumMutation, UnlikeAlbumMutationVariables>;
 export const GetAlbumsDocument = gql`
     query GetAlbums {
   albums {
@@ -1041,6 +1229,113 @@ export type GetAlbumQueryHookResult = ReturnType<typeof useGetAlbumQuery>;
 export type GetAlbumLazyQueryHookResult = ReturnType<typeof useGetAlbumLazyQuery>;
 export type GetAlbumSuspenseQueryHookResult = ReturnType<typeof useGetAlbumSuspenseQuery>;
 export type GetAlbumQueryResult = Apollo.QueryResult<GetAlbumQuery, GetAlbumQueryVariables>;
+export const GetLikedTracksDocument = gql`
+    query GetLikedTracks {
+  likedTracks {
+    id
+    tracknum
+    title
+    artist
+    album
+    discnum
+    albumArtist
+    artistId
+    albumId
+    albumArt
+    path
+    length
+  }
+}
+    `;
+
+/**
+ * __useGetLikedTracksQuery__
+ *
+ * To run a query within a React component, call `useGetLikedTracksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLikedTracksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLikedTracksQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetLikedTracksQuery(baseOptions?: Apollo.QueryHookOptions<GetLikedTracksQuery, GetLikedTracksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLikedTracksQuery, GetLikedTracksQueryVariables>(GetLikedTracksDocument, options);
+      }
+export function useGetLikedTracksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLikedTracksQuery, GetLikedTracksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLikedTracksQuery, GetLikedTracksQueryVariables>(GetLikedTracksDocument, options);
+        }
+export function useGetLikedTracksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetLikedTracksQuery, GetLikedTracksQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetLikedTracksQuery, GetLikedTracksQueryVariables>(GetLikedTracksDocument, options);
+        }
+export type GetLikedTracksQueryHookResult = ReturnType<typeof useGetLikedTracksQuery>;
+export type GetLikedTracksLazyQueryHookResult = ReturnType<typeof useGetLikedTracksLazyQuery>;
+export type GetLikedTracksSuspenseQueryHookResult = ReturnType<typeof useGetLikedTracksSuspenseQuery>;
+export type GetLikedTracksQueryResult = Apollo.QueryResult<GetLikedTracksQuery, GetLikedTracksQueryVariables>;
+export const GetLikedAlbumsDocument = gql`
+    query GetLikedAlbums {
+  likedAlbums {
+    id
+    title
+    artist
+    albumArt
+    year
+    yearString
+    artistId
+    md5
+    tracks {
+      id
+      title
+      artist
+      album
+      albumArtist
+      artistId
+      albumId
+      path
+      length
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetLikedAlbumsQuery__
+ *
+ * To run a query within a React component, call `useGetLikedAlbumsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLikedAlbumsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLikedAlbumsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetLikedAlbumsQuery(baseOptions?: Apollo.QueryHookOptions<GetLikedAlbumsQuery, GetLikedAlbumsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLikedAlbumsQuery, GetLikedAlbumsQueryVariables>(GetLikedAlbumsDocument, options);
+      }
+export function useGetLikedAlbumsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLikedAlbumsQuery, GetLikedAlbumsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLikedAlbumsQuery, GetLikedAlbumsQueryVariables>(GetLikedAlbumsDocument, options);
+        }
+export function useGetLikedAlbumsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetLikedAlbumsQuery, GetLikedAlbumsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetLikedAlbumsQuery, GetLikedAlbumsQueryVariables>(GetLikedAlbumsDocument, options);
+        }
+export type GetLikedAlbumsQueryHookResult = ReturnType<typeof useGetLikedAlbumsQuery>;
+export type GetLikedAlbumsLazyQueryHookResult = ReturnType<typeof useGetLikedAlbumsLazyQuery>;
+export type GetLikedAlbumsSuspenseQueryHookResult = ReturnType<typeof useGetLikedAlbumsSuspenseQuery>;
+export type GetLikedAlbumsQueryResult = Apollo.QueryResult<GetLikedAlbumsQuery, GetLikedAlbumsQueryVariables>;
 export const PlayDocument = gql`
     mutation Play($elapsed: Int!, $offset: Int!) {
   play(elapsed: $elapsed, offset: $offset)

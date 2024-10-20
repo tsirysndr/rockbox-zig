@@ -30,6 +30,8 @@ export const Default: Story = {
     onAddTrackToPlaylist: fn(),
     onPlayLast: fn(),
     onAddShuffled: fn(),
+    onLike: fn(),
+    onUnlike: fn(),
     recentPlaylists: [],
   },
 };

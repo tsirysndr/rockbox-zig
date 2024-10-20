@@ -112,3 +112,48 @@ export const GET_ALBUM = gql`
     }
   }
 `;
+
+export const GET_LIKED_TRACKS = gql`
+  query GetLikedTracks {
+    likedTracks {
+      id
+      tracknum
+      title
+      artist
+      album
+      discnum
+      albumArtist
+      artistId
+      albumId
+      albumArt
+      path
+      length
+    }
+  }
+`;
+
+export const GET_LIKED_ALBUMS = gql`
+  query GetLikedAlbums {
+    likedAlbums {
+      id
+      title
+      artist
+      albumArt
+      year
+      yearString
+      artistId
+      md5
+      tracks {
+        id
+        title
+        artist
+        album
+        albumArtist
+        artistId
+        albumId
+        path
+        length
+      }
+    }
+  }
+`;

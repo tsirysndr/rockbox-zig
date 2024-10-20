@@ -15,12 +15,14 @@ import Play from "../Icons/Play";
 import ContextMenu from "./ContextMenu";
 import HeartOutline from "../Icons/HeartOutline";
 import AlbumArt from "../../Assets/albumart.svg";
+import Heart from "../Icons/Heart";
 
 export type AlbumProps = {
   album: any;
   onPlay: (album: any) => void;
   onLike: (album: any) => void;
   onUnLike: (album: any) => void;
+  liked?: boolean;
 };
 
 const Album: FC<AlbumProps> = (props) => {
@@ -43,9 +45,16 @@ const Album: FC<AlbumProps> = (props) => {
             <Play small color="#000" />
           </div>
           <ContextMenu item={props.album} />
-          <FloatingButton onClick={() => props.onLike(props.album)}>
-            <HeartOutline color="#fff" size={20} />
-          </FloatingButton>
+          {!props.liked && (
+            <FloatingButton onClick={() => props.onLike(props.album)}>
+              <HeartOutline color="#fff" size={20} />
+            </FloatingButton>
+          )}
+          {props.liked && (
+            <FloatingButton onClick={() => props.onUnLike(props.album)}>
+              <Heart color="#fe09a3" size={20} />
+            </FloatingButton>
+          )}
         </AlbumFooterMenu>
       </Hover>
       <Link to={`/albums/${props.album.id}`}>
