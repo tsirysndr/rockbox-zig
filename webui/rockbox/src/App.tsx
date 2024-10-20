@@ -5,6 +5,7 @@ import TracksPage from "./Containers/Tracks";
 import AlbumDetails from "./Components/AlbumDetails";
 import ArtistDetails from "./Components/ArtistDetails";
 import FilesPage from "./Containers/Files";
+import LikesPage from "./Containers/Likes";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/artists/:id" element={<ArtistDetails />} />
         <Route path="/tracks" element={<TracksPage />} />
         <Route path="/files" element={<FilesPage />} />
+        <Route path="/likes" element={<LikesPage />} />
       </Routes>
     </BrowserRouter>
   );

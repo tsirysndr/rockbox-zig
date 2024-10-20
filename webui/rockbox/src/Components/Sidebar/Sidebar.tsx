@@ -5,6 +5,7 @@ import { HardDrive } from "@styled-icons/feather";
 import Artist from "../Icons/Artist";
 import Track from "../Icons/Track";
 import RockboxLogo from "../../Assets/rockbox-icon.svg";
+import HeartOutline from "../Icons/HeartOutline";
 
 export type SidebarProps = {
   active: string;
@@ -46,6 +47,14 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
       <MenuItem color={active === "songs" ? "#fe099c" : "initial"} to="/tracks">
         <Track height={20} color={active === "songs" ? "#fe099c" : "initial"} />
         <div style={{ marginLeft: 6 }}>Songs</div>
+      </MenuItem>
+      <MenuItem color={active === "likes" ? "#fe099c" : "initial"} to="/likes">
+        <HeartOutline
+          height={20}
+          width={20}
+          color={active === "likes" ? "#fe099c" : "initial"}
+        />
+        <div style={{ marginLeft: 6 }}>Likes</div>
       </MenuItem>
       <MenuItem color={active === "files" ? "#fe099c" : "initial"} to="/files">
         <HardDrive

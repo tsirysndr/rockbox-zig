@@ -1,7 +1,10 @@
 import { FC } from "react";
 import ArtistDetails from "./ArtistDetails";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetArtistQuery } from "../../Hooks/GraphQL";
+import {
+  useGetArtistQuery,
+  usePlayArtistTracksMutation,
+} from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 
 const ArtistDetailsWithData: FC = () => {
@@ -12,6 +15,7 @@ const ArtistDetailsWithData: FC = () => {
       id: id!,
     },
   });
+  const [playArtistTracks] = usePlayArtistTracksMutation();
   const { formatTime } = useTimeFormat();
   const tracks =
     data?.artist?.tracks.map((x) => ({
@@ -22,16 +26,26 @@ const ArtistDetailsWithData: FC = () => {
   const albums =
     data?.artist?.albums.map((x) => ({
       ...x,
-      albumArt: x.albumArt ? `http://localhost:6062/covers/${x.albumArt}` : "",
+      cover: x.albumArt ? `http://localhost:6062/covers/${x.albumArt}` : "",
     })) || [];
+
+  const onPlayAll = (shuffle: boolean) => {
+    playArtistTracks({
+      variables: {
+        artistId: id!,
+        shuffle,
+      },
+    });
+  };
+
   return (
     <ArtistDetails
       name={data?.artist?.name || ""}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tracks={(tracks as any) || []}
       albums={albums || []}
-      onPlayAll={() => {}}
-      onShuffleAll={() => {}}
+      onPlayAll={() => onPlayAll(false)}
+      onShuffleAll={() => onPlayAll(true)}
       onPlayAlbum={() => {}}
       onLikeAlbum={() => {}}
       onUnLikeAlbum={() => {}}

@@ -1,0 +1,145 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Album > should render 1`] = `
+<div>
+  <div
+    class=""
+  >
+    <div
+      style="position: relative; width: 100%;"
+    >
+      <button
+        class="css-12ezcoy"
+      >
+        <div
+          class="css-15yrfky"
+        >
+          <div
+            style="background-color: rgba(255, 255, 255, 0.855); height: 40px; width: 40px; border-radius: 20px; display: flex; justify-content: center; align-items: center;"
+          >
+            <svg
+              fill="none"
+              height="20"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                class="ionicon"
+                d="M7.386 16c-.23 0-.456-.057-.656-.165-.45-.24-.73-.706-.73-1.213V4.378a1.387 1.387 0 0 1 2.071-1.197l9.296 5.241c.394.232.633.64.633 1.077 0 .438-.239.845-.633 1.078L8.07 15.819a1.39 1.39 0 0 1-.684.181Z"
+                style="fill: #000;"
+              />
+            </svg>
+          </div>
+          <div
+            class="css-113iyi7"
+          >
+            <button
+              class="css-10bvv2v"
+            >
+              <div
+                aria-expanded="false"
+                aria-haspopup="true"
+                class="css-10n9a0h"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                  color="#fff"
+                  fill="currentColor"
+                  focusable="false"
+                  height="24"
+                  viewBox="0 0 512 512"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="256"
+                    cy="256"
+                    r="48"
+                  />
+                  <circle
+                    cx="416"
+                    cy="256"
+                    r="48"
+                  />
+                  <circle
+                    cx="96"
+                    cy="256"
+                    r="48"
+                  />
+                </svg>
+              </div>
+            </button>
+          </div>
+          <button
+            class="css-10n9a0h"
+          >
+            <svg
+              fill="none"
+              height="20"
+              style="padding-top: 1px;"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g
+                class="ionicon"
+                style="fill: #fff;"
+              >
+                <path
+                  d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  style="fill: none;"
+                />
+                <path
+                  class="stroke-shape"
+                  d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  style="fill: none; stroke-width: 2; stroke: #fff; stroke-opacity: 1;"
+                />
+              </g>
+            </svg>
+          </button>
+        </div>
+      </button>
+      <a
+        class="css-11g9kr1"
+        href="/albums/1"
+      >
+        <span
+          class=" lazy-load-image-background opacity"
+          style="color: transparent; display: inline-block;"
+        >
+          <img
+            class="css-1g7adp4"
+            src="https://resources.tidal.com/images/b80f3852/73e5/43d6/90ea/021d1fad2bbe/320x320.jpg"
+          />
+        </span>
+        <div
+          class="css-e68bk5"
+        >
+          The End, So Far
+        </div>
+      </a>
+      <a
+        class="css-9sbfuc"
+        href="/artists/1"
+      >
+        Slipknot
+      </a>
+      <div
+        class="css-1q570sn"
+      >
+        2022
+      </div>
+    </div>
+  </div>
+  <div
+    class=""
+  />
+</div>
+`;

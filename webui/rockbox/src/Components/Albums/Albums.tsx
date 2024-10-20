@@ -4,31 +4,13 @@ import { Cell, Grid } from "baseui/layout-grid";
 import MainView from "../MainView";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
-import AlbumArt from "../../Assets/albumart.svg";
-import {
-  AlbumCover,
-  AlbumFooterMenu,
-  AlbumTitle,
-  Artist,
-  Container,
-  FilterContainer,
-  FloatingButton,
-  Hover,
-  Scrollable,
-  Title,
-  Year,
-  Link,
-  NoAlbumCover,
-} from "./styles";
+import { Container, FilterContainer, Scrollable, Title } from "./styles";
 import Filter from "../Filter";
-import Play from "../Icons/Play";
-import HeartOutline from "../Icons/HeartOutline";
-import ContextMenu from "./ContextMenu";
+import Album from "../Album";
 
 export type AlbumsProps = {
   albums: any[];
   onFilter: (filter: string) => void;
-  onPlay: (album: any) => void;
   onLike: (album: any) => void;
   onUnLike: (album: any) => void;
 };
@@ -53,41 +35,7 @@ const Albums: FC<AlbumsProps> = (props) => {
             >
               {albums.map((item) => (
                 <Cell key={item.id}>
-                  <div style={{ position: "relative", width: "100%" }}>
-                    <Hover>
-                      <AlbumFooterMenu>
-                        <div
-                          style={{
-                            backgroundColor: "#ffffffda",
-                            height: 40,
-                            width: 40,
-                            borderRadius: 20,
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}
-                          onClick={() => props.onPlay(item)}
-                        >
-                          <Play small color="#000" />
-                        </div>
-                        <ContextMenu item={item} />
-                        <FloatingButton onClick={() => props.onLike(item)}>
-                          <HeartOutline color="#fff" size={20} />
-                        </FloatingButton>
-                      </AlbumFooterMenu>
-                    </Hover>
-                    <Link to={`/albums/${item.id}`}>
-                      {item.cover && (
-                        <AlbumCover src={item.cover} effect="opacity" />
-                      )}
-                      {!item.cover && <NoAlbumCover src={AlbumArt} />}
-                      <AlbumTitle>{item.title}</AlbumTitle>
-                    </Link>
-                    <Artist to={`/artists/${item.artistId}`}>
-                      {item.artist}
-                    </Artist>
-                    <Year>{item.year}</Year>
-                  </div>
+                  <Album album={item} />
                 </Cell>
               ))}
             </Grid>

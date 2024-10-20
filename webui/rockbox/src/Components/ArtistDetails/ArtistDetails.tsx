@@ -4,24 +4,16 @@ import Sidebar from "../Sidebar/Sidebar";
 import ControlBar from "../ControlBar";
 import {
   SmallAlbumCover,
-  AlbumTitle,
-  Artist,
   BackButton,
   ButtonGroup,
   Container,
   ContentWrapper,
-  Hover,
   Label,
   MainView,
   Name,
   Separator,
   Title,
-  Year,
-  AlbumCover,
   Link,
-  AlbumFooterMenu,
-  FloatingButton,
-  NoAlbumCover,
 } from "./styles";
 import ArrowBack from "../Icons/ArrowBack";
 import Shuffle from "../Icons/Shuffle";
@@ -29,14 +21,12 @@ import Play from "../Icons/Play";
 import Button from "../Button";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Track } from "../../Types/track";
-import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
-import HeartOutline from "../Icons/HeartOutline";
 import Table from "../Table";
 import AlbumArt from "../../Assets/albumart.svg";
 import { Cell, Grid } from "baseui/layout-grid";
-import { Link as RouterLink } from "react-router-dom";
 import "./styles.css";
 import ContextMenu from "../ContextMenu";
+import Album from "../Album";
 
 const columnHelper = createColumnHelper<Track>();
 const columns = [
@@ -162,14 +152,14 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
           </BackButton>
           <Name>{props.name}</Name>
           <ButtonGroup>
-            <Button onClick={() => {}} kind="primary">
+            <Button onClick={props.onPlayAll} kind="primary">
               <Label>
                 <Play small color="#fff" />
                 <div style={{ marginLeft: 7 }}>Play</div>
               </Label>
             </Button>
             <Separator />
-            <Button onClick={() => {}} kind="secondary">
+            <Button onClick={props.onShuffleAll} kind="secondary">
               <Label>
                 <Shuffle color="#fe099c" />
                 <div style={{ marginLeft: 7 }}>Shuffle</div>
@@ -187,42 +177,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             >
               {props.albums.map((item) => (
                 <Cell key={item.id}>
-                  <div style={{ position: "relative", width: "100%" }}>
-                    <Hover>
-                      <AlbumFooterMenu>
-                        <div
-                          style={{
-                            backgroundColor: "#ffffffbc",
-                            height: 40,
-                            width: 40,
-                            borderRadius: 20,
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}
-                        >
-                          <Play small color="#000" />
-                        </div>
-                        <FloatingButton>
-                          <EllipsisHorizontal size={24} color="#fff" />
-                        </FloatingButton>
-                        <FloatingButton>
-                          <HeartOutline color="#fff" />
-                        </FloatingButton>
-                      </AlbumFooterMenu>
-                    </Hover>
-                    <RouterLink to={`/albums/${item.id}`}>
-                      {item.albumArt && (
-                        <AlbumCover src={item.albumArt} effect="opacity" />
-                      )}
-                      {!item.albumArt && <NoAlbumCover src={AlbumArt} />}
-                    </RouterLink>
-                  </div>
-                  <AlbumTitle to={`/albums/${item.id}`}>
-                    {item.title}
-                  </AlbumTitle>
-                  <Artist>{item.artist}</Artist>
-                  <Year>{item.year}</Year>
+                  <Album album={item} />
                 </Cell>
               ))}
             </Grid>
