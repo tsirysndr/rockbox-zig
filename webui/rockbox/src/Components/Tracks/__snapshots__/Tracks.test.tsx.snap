@@ -425,14 +425,14 @@ exports[`Tracks > should render 1`] = `
             style="margin-bottom: 60px;"
           >
             <div
-              style="height: 96px;"
+              style="height: 96px; margin-bottom: 100px;"
             >
               <table
                 style="width: 100%;"
               >
                 <thead>
                   <tr
-                    style="height: 36px; color: rgba(0, 0, 0, 0.54);"
+                    style="height: 48px; color: rgba(0, 0, 0, 0.54);"
                   >
                     <th
                       style="text-align: left; width: 20px;"
