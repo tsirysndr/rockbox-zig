@@ -1,7 +1,18 @@
-use crate::api::rockbox::v1alpha1::{sound_service_server::SoundService, *};
+use crate::{
+    api::rockbox::v1alpha1::{sound_service_server::SoundService, *},
+    rockbox_url,
+};
 
 #[derive(Default)]
-pub struct Sound;
+pub struct Sound {
+    client: reqwest::Client,
+}
+
+impl Sound {
+    pub fn new(client: reqwest::Client) -> Self {
+        Self { client }
+    }
+}
 
 #[tonic::async_trait]
 impl SoundService for Sound {
@@ -9,6 +20,18 @@ impl SoundService for Sound {
         &self,
         request: tonic::Request<AdjustVolumeRequest>,
     ) -> Result<tonic::Response<AdjustVolumeResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let body = serde_json::json!({
+            "steps": request.steps,
+        });
+        let url = format!("{}/player/volume", rockbox_url());
+        self.client
+            .put(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
         Ok(tonic::Response::new(AdjustVolumeResponse::default()))
     }
 

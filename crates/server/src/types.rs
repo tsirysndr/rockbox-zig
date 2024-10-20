@@ -15,6 +15,11 @@ pub struct InsertTracks {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct NewVolume {
+    pub steps: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DeleteTracks {
     pub positions: Vec<i32>,
 }

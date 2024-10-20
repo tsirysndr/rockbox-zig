@@ -1,4 +1,7 @@
-use crate::http::{Context, Request, Response};
+use crate::{
+    http::{Context, Request, Response},
+    types::NewVolume,
+};
 use anyhow::Error;
 use rockbox_sys as rb;
 
@@ -87,5 +90,14 @@ pub async fn get_file_position(
 ) -> Result<(), Error> {
     let position = rb::playback::get_file_pos();
     res.json(&position);
+    Ok(())
+}
+
+pub async fn adjust_volume(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let req_body = req.body.as_ref().unwrap();
+    let new_volume: NewVolume = serde_json::from_str(&req_body).unwrap();
+
+    rb::sound::adjust_volume(new_volume.steps);
+    res.json(&new_volume);
     Ok(())
 }

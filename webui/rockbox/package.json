@@ -23,6 +23,7 @@
     "@graphql-codegen/typescript": "4.1.0",
     "@graphql-codegen/typescript-operations": "4.3.0",
     "@graphql-codegen/typescript-react-apollo": "4.3.2",
+    "@mui/material": "^6.1.4",
     "@styled-icons/bootstrap": "^10.47.0",
     "@styled-icons/boxicons-regular": "^10.47.0",
     "@styled-icons/entypo": "^10.46.0",

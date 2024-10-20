@@ -178,8 +178,47 @@ exports[`ControlBar > should render 1`] = `
         </div>
       </div>
       <div
-        class="css-nb4c1y"
+        class="css-1jirr0j"
       >
+        <div
+          class="css-1p6caij"
+        >
+          <div
+            style="width: 100px; margin-top: 5px;"
+          >
+            <span
+              class="MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-m0hede-MuiSlider-root"
+            >
+              <span
+                class="MuiSlider-rail css-r64h58-MuiSlider-rail"
+              />
+              <span
+                class="MuiSlider-track css-xvk2i-MuiSlider-track"
+                style="left: 0%; width: 80%;"
+              />
+              <span
+                class="MuiSlider-thumb MuiSlider-thumbSizeMedium MuiSlider-thumbColorPrimary MuiSlider-thumb MuiSlider-thumbSizeMedium MuiSlider-thumbColorPrimary css-b1410s-MuiSlider-thumb"
+                data-index="0"
+                style="left: 80%;"
+              >
+                <input
+                  aria-label="Volume"
+                  aria-orientation="horizontal"
+                  aria-valuemax="100"
+                  aria-valuemin="0"
+                  aria-valuenow="80"
+                  data-index="0"
+                  max="100"
+                  min="0"
+                  step="1"
+                  style="border: 0px; height: 100%; margin: -1px; overflow: hidden; padding: 0px; position: absolute; white-space: nowrap; width: 100%; direction: ltr;"
+                  type="range"
+                  value="80"
+                />
+              </span>
+            </span>
+          </div>
+        </div>
         <button
           aria-expanded="false"
           aria-haspopup="true"

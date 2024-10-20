@@ -5,12 +5,15 @@ import { StatefulPopover } from "baseui/popover";
 import { Button } from "../styles";
 import PlayQueue from "../PlayQueue";
 import { useTheme } from "@emotion/react";
+import Volume from "./Volume";
 import _ from "lodash";
 
 const RightMenu: FC = () => {
   const theme = useTheme();
+
   return (
     <Container>
+      <Volume />
       <StatefulPopover
         placement="bottom"
         content={() => <PlayQueue />}
@@ -22,11 +25,7 @@ const RightMenu: FC = () => {
           },
           Inner: {
             style: {
-              backgroundColor: _.get(
-                theme,
-                "colors.popoverBackground",
-                "#fff"
-              ),
+              backgroundColor: _.get(theme, "colors.popoverBackground", "#fff"),
             },
           },
         }}

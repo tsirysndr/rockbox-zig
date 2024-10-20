@@ -1,5 +1,7 @@
 use async_graphql::*;
 
+use crate::rockbox_url;
+
 #[derive(Default)]
 pub struct SoundQuery;
 
@@ -27,8 +29,15 @@ pub struct SoundMutation;
 
 #[Object]
 impl SoundMutation {
-    async fn adjust_volume(&self) -> String {
-        "adjust volume".to_string()
+    async fn adjust_volume(&self, ctx: &Context<'_>, steps: i32) -> Result<i32, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "steps": steps,
+        });
+        let url = format!("{}/player/volume", rockbox_url());
+        client.put(&url).json(&body).send().await?;
+
+        Ok(0)
     }
 
     async fn sound_set(&self) -> String {
