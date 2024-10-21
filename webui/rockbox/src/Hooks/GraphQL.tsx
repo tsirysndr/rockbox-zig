@@ -195,6 +195,7 @@ export type MutationPlayArtistTracksArgs = {
 
 export type MutationPlayDirectoryArgs = {
   path: Scalars['String']['input'];
+  position?: InputMaybe<Scalars['Int']['input']>;
   recurse?: InputMaybe<Scalars['Boolean']['input']>;
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
 };
@@ -690,6 +691,7 @@ export type PlayDirectoryMutationVariables = Exact<{
   path: Scalars['String']['input'];
   recurse?: InputMaybe<Scalars['Boolean']['input']>;
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
+  position?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
@@ -1590,8 +1592,13 @@ export type PlayArtistTracksMutationHookResult = ReturnType<typeof usePlayArtist
 export type PlayArtistTracksMutationResult = Apollo.MutationResult<PlayArtistTracksMutation>;
 export type PlayArtistTracksMutationOptions = Apollo.BaseMutationOptions<PlayArtistTracksMutation, PlayArtistTracksMutationVariables>;
 export const PlayDirectoryDocument = gql`
-    mutation PlayDirectory($path: String!, $recurse: Boolean, $shuffle: Boolean) {
-  playDirectory(path: $path, recurse: $recurse, shuffle: $shuffle)
+    mutation PlayDirectory($path: String!, $recurse: Boolean, $shuffle: Boolean, $position: Int) {
+  playDirectory(
+    path: $path
+    recurse: $recurse
+    shuffle: $shuffle
+    position: $position
+  )
 }
     `;
 export type PlayDirectoryMutationFn = Apollo.MutationFunction<PlayDirectoryMutation, PlayDirectoryMutationVariables>;
@@ -1612,6 +1619,7 @@ export type PlayDirectoryMutationFn = Apollo.MutationFunction<PlayDirectoryMutat
  *      path: // value for 'path'
  *      recurse: // value for 'recurse'
  *      shuffle: // value for 'shuffle'
+ *      position: // value for 'position'
  *   },
  * });
  */

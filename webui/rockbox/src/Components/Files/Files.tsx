@@ -20,6 +20,7 @@ import ArrowBack from "../Icons/ArrowBack";
 import { Spinner } from "baseui/spinner";
 import MainView from "../MainView";
 import ContextMenu from "./ContextMenu";
+import Play from "../Icons/Play";
 
 const columnHelper = createColumnHelper<File>();
 
@@ -28,6 +29,8 @@ export type FilesProps = {
   canGoBack: boolean;
   onGoBack: () => void;
   refetching?: boolean;
+  onPlayTrack: (path: string, index: number) => void;
+  onPlayDirectory: (path: string) => void;
 };
 
 const Files: FC<FilesProps> = (props) => {
@@ -44,8 +47,35 @@ const Files: FC<FilesProps> = (props) => {
             marginLeft: 10,
           }}
         >
-          {info.row.original.isDirectory && <Folder2 size={20} />}
-          {!info.row.original.isDirectory && <MusicNoteBeamed size={20} />}
+          {info.row.original.isDirectory && (
+            <div>
+              <div
+                className="play"
+                onClick={() => props.onPlayDirectory(info.row.original.path)}
+              >
+                <Play small />
+              </div>
+              <div className="folder">
+                <Folder2 size={20} />
+              </div>
+            </div>
+          )}
+          {!info.row.original.isDirectory && (
+            <div>
+              <div
+                className="play"
+                onClick={() => {
+                  const parent = info.row.original.path.split("/").slice(0, -1);
+                  props.onPlayTrack(parent.join("/") || "/", info.row.index);
+                }}
+              >
+                <Play small />
+              </div>
+              <div className="folder">
+                <MusicNoteBeamed size={20} />
+              </div>
+            </div>
+          )}
         </div>
       ),
     }),
@@ -59,7 +89,14 @@ const Files: FC<FilesProps> = (props) => {
             </Directory>
           )}
           {!info.row.original.isDirectory && (
-            <AudioFile>{info.getValue()}</AudioFile>
+            <AudioFile
+              onClick={() => {
+                const parent = info.row.original.path.split("/").slice(0, -1);
+                props.onPlayTrack(parent.join("/") || "/", info.row.index);
+              }}
+            >
+              {info.getValue()}
+            </AudioFile>
           )}
         </>
       ),

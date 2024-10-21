@@ -304,7 +304,13 @@ impl PlaybackService for Playback {
         let path = request.path;
         let recurse = request.recurse;
         let shuffle = request.shuffle;
+        let position = request.position;
         let mut tracks: Vec<String> = vec![];
+
+        let recurse = match position {
+            Some(_) => Some(false),
+            None => recurse,
+        };
 
         if !std::path::Path::new(&path).is_dir() {
             return Err(tonic::Status::invalid_argument("Path is not a directory"));
@@ -361,7 +367,11 @@ impl PlaybackService for Playback {
                 .map_err(|e| tonic::Status::internal(e.to_string()))?;
         }
 
-        let url = format!("{}/playlists/start", rockbox_url());
+        let url = match position {
+            Some(position) => format!("{}/playlists/start?start_index={}", rockbox_url(), position),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
         self.client
             .put(&url)
             .send()

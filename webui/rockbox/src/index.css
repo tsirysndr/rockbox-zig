@@ -51,3 +51,22 @@ tr:hover td div .floating-play {
 tr:hover td div .tracknumber {
  display: none;
 }
+
+
+tr td div .play {
+  cursor: pointer;
+  display: none;
+}
+
+
+tr:hover td div .play {
+  cursor: pointer;
+  margin-left: -5px;
+  margin-top: 5px;
+  display: block;
+}
+
+
+tr:hover td div .folder {
+ display: none;
+}

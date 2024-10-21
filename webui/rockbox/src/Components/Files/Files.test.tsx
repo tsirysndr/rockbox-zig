@@ -13,7 +13,13 @@ describe("Files", () => {
       <MemoryRouter initialEntries={["/"]}>
         <MockedProvider mocks={mocks}>
           <Providers>
-            <Files files={files} canGoBack={true} onGoBack={vi.fn()} />
+            <Files
+              files={files}
+              canGoBack={true}
+              onGoBack={vi.fn()}
+              onPlayDirectory={vi.fn()}
+              onPlayTrack={vi.fn()}
+            />
           </Providers>
         </MockedProvider>
       </MemoryRouter>

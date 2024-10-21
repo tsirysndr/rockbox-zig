@@ -85,8 +85,8 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
             >
               <Time>{formatTime(nowPlaying.progress)}</Time>
               <ArtistAlbum>
-                {_.get(nowPlaying, "artist.length", 0) > 65
-                  ? `${nowPlaying.artist?.substring(0, 54)}...`
+                {_.get(nowPlaying, "artist.length", 0) > 40
+                  ? `${nowPlaying.artist?.substring(0, 40)}...`
                   : nowPlaying.artist}
                 <Separator>-</Separator>
                 <Album to={`/albums/${nowPlaying.albumId}`}>

@@ -51,8 +51,18 @@ export const PLAY_ARTIST_TRACKS = gql`
 `;
 
 export const PLAY_DIRECTORY = gql`
-  mutation PlayDirectory($path: String!, $recurse: Boolean, $shuffle: Boolean) {
-    playDirectory(path: $path, recurse: $recurse, shuffle: $shuffle)
+  mutation PlayDirectory(
+    $path: String!
+    $recurse: Boolean
+    $shuffle: Boolean
+    $position: Int
+  ) {
+    playDirectory(
+      path: $path
+      recurse: $recurse
+      shuffle: $shuffle
+      position: $position
+    )
   }
 `;
 

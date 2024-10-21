@@ -233,9 +233,15 @@ impl PlaybackMutation {
         path: String,
         recurse: Option<bool>,
         shuffle: Option<bool>,
+        position: Option<i32>,
     ) -> Result<i32, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
         let mut tracks: Vec<String> = vec![];
+
+        let recurse = match position {
+            Some(_) => Some(false),
+            None => recurse,
+        };
 
         if !std::path::Path::new(&path).is_dir() {
             return Err(Error::new("Invalid path"));
@@ -274,7 +280,11 @@ impl PlaybackMutation {
             client.put(&url).send().await?;
         }
 
-        let url = format!("{}/playlists/start", rockbox_url());
+        let url = match position {
+            Some(p) => format!("{}/playlists/start?start_index={}", rockbox_url(), p),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
         client.put(&url).send().await?;
 
         Ok(0)
