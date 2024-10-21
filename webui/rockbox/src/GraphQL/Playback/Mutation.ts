@@ -31,20 +31,38 @@ export const NEXT = gql`
 `;
 
 export const PLAY_ALBUM = gql`
-  mutation PlayAlbum($albumId: String!, $shuffle: Boolean) {
-    playAlbum(albumId: $albumId, shuffle: $shuffle)
+  mutation PlayAlbum($albumId: String!, $shuffle: Boolean, $position: Int) {
+    playAlbum(albumId: $albumId, shuffle: $shuffle, position: $position)
   }
 `;
 
 export const PLAY_ARTIST_TRACKS = gql`
-  mutation PlayArtistTracks($artistId: String!, $shuffle: Boolean) {
-    playArtistTracks(artistId: $artistId, shuffle: $shuffle)
+  mutation PlayArtistTracks(
+    $artistId: String!
+    $shuffle: Boolean
+    $position: Int
+  ) {
+    playArtistTracks(
+      artistId: $artistId
+      shuffle: $shuffle
+      position: $position
+    )
   }
 `;
 
 export const PLAY_DIRECTORY = gql`
-  mutation PlayDirectory($path: String!, $recurse: Boolean, $shuffle: Boolean) {
-    playDirectory(path: $path, recurse: $recurse, shuffle: $shuffle)
+  mutation PlayDirectory(
+    $path: String!
+    $recurse: Boolean
+    $shuffle: Boolean
+    $position: Int
+  ) {
+    playDirectory(
+      path: $path
+      recurse: $recurse
+      shuffle: $shuffle
+      position: $position
+    )
   }
 `;
 
@@ -55,7 +73,13 @@ export const PLAY_TRACK = gql`
 `;
 
 export const PLAY_LIKED_TRACKS = gql`
-  mutation PlayLikedTracks($shuffle: Boolean) {
-    playLikedTracks(shuffle: $shuffle)
+  mutation PlayLikedTracks($shuffle: Boolean, $position: Int) {
+    playLikedTracks(shuffle: $shuffle, position: $position)
+  }
+`;
+
+export const PLAY_ALL_TRACKS = gql`
+  mutation PlayAllTracks($shuffle: Boolean, $position: Int) {
+    playAllTracks(shuffle: $shuffle, position: $position)
   }
 `;

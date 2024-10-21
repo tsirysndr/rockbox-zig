@@ -16,8 +16,8 @@ table {
 .album-cover-container .floating-play {
   display: none;
   position: absolute;
-  left: 14px;
-  top: 14px;
+  left: 17px;
+  top: 13px;
  }
 
 .album-cover-container:hover .floating-play {

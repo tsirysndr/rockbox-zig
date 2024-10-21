@@ -49,8 +49,12 @@ const LikesWithData: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, loading]);
 
-  const onPlayTrack = (trackId: string) => {
-    console.log(">>", trackId);
+  const onPlayTrack = (position: number) => {
+    playLikedTracks({
+      variables: {
+        position,
+      },
+    });
   };
 
   const onPlayAll = () => {

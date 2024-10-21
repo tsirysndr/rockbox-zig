@@ -91,6 +91,25 @@ const AlbumDetailsWithData: FC = () => {
     });
   }
 
+  function onPlayTrack(position: number, disc: number) {
+    let realPosition = 0;
+    if (disc > 1) {
+      // get the real position, since we have multiple discs,
+      // we need to calculate the real position,
+      // disc are ordered by volume
+      for (let i = 0; i < disc - 1; i++) {
+        realPosition += volumes[i].length;
+      }
+      realPosition += position;
+    }
+    playAlbum({
+      variables: {
+        albumId: id!,
+        position: disc > 1 ? realPosition : position,
+      },
+    });
+  }
+
   return (
     <AlbumDetails
       onGoBack={() => navigate(-1)}
@@ -102,6 +121,7 @@ const AlbumDetailsWithData: FC = () => {
       album={album as any}
       volumes={volumes}
       enableBlur={enableBlur}
+      onPlayTrack={onPlayTrack}
     />
   );
 };

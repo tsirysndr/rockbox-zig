@@ -22,5 +22,7 @@ export const Default: Story = {
     files,
     canGoBack: true,
     onGoBack: fn(),
+    onPlayDirectory: fn(),
+    onPlayTrack: fn(),
   },
 };

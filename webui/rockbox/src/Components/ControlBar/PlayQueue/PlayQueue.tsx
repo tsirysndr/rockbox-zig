@@ -132,13 +132,14 @@ const PlayQueue: FC<PlayQueueProps> = ({
                 </div>
               )}
               {!tracks[virtualItem.index].cover && (
-                <div className="album-cover-container queue">
+                <div className="album-cover-container">
                   <AlbumCoverAlt>
                     <TrackIcon width={28} height={28} color="#a4a3a3" />
                   </AlbumCoverAlt>
                   <div
                     onClick={() => _onPlayTrackAt(virtualItem.index)}
                     className="floating-play queue"
+                    style={{ left: 19, top: 10 }}
                   >
                     <Play
                       size={16}

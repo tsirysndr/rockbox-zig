@@ -28,7 +28,7 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
   });
 
   return (
-    <table style={{ width: "100%", marginTop: 31 }}>
+    <table style={{ width: "100%", marginTop: 20 }}>
       <thead>
         {table.getHeaderGroups().map((headerGroup) => (
           <tr

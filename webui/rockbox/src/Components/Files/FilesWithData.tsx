@@ -1,6 +1,9 @@
 import { FC, useEffect, useState } from "react";
 import Files from "./Files";
-import { useGetEntriesQuery } from "../../Hooks/GraphQL";
+import {
+  useGetEntriesQuery,
+  usePlayDirectoryMutation,
+} from "../../Hooks/GraphQL";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const FilesWithData: FC = () => {
@@ -10,6 +13,7 @@ const FilesWithData: FC = () => {
   const [params] = useSearchParams();
   const path = params.get("q");
   const canGoBack = !!path;
+  const [playDirectory] = usePlayDirectoryMutation();
 
   const files =
     data?.treeGetEntries.map((x) => ({
@@ -19,6 +23,23 @@ const FilesWithData: FC = () => {
     })) || [];
 
   const onGoBack = () => navigate(-1);
+
+  const onPlayDirectory = (path: string) => {
+    playDirectory({
+      variables: {
+        path,
+      },
+    });
+  };
+
+  const onPlayTrack = (path: string, position: number) => {
+    playDirectory({
+      variables: {
+        path,
+        position,
+      },
+    });
+  };
 
   useEffect(() => {
     setRefetching(true);
@@ -36,6 +57,8 @@ const FilesWithData: FC = () => {
       canGoBack={canGoBack}
       onGoBack={onGoBack}
       refetching={refetching}
+      onPlayDirectory={onPlayDirectory}
+      onPlayTrack={onPlayTrack}
     />
   );
 };

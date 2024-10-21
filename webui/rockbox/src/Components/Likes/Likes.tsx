@@ -31,7 +31,7 @@ const columnHelper = createColumnHelper<Track>();
 
 export type TracksProps = {
   tracks: Track[];
-  onPlayTrack: (id: string) => void;
+  onPlayTrack: (index: number) => void;
   onPlayAll: () => void;
   onShuffleAll: () => void;
 };
@@ -71,7 +71,7 @@ const Likes: FC<TracksProps> = (props) => {
                 effect="blur"
               />
               <div
-                onClick={() => props.onPlayTrack(info.row.original.id)}
+                onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
                 <Play small color={info.getValue() ? "#fff" : "#000"} />
@@ -84,7 +84,7 @@ const Likes: FC<TracksProps> = (props) => {
                 <TrackIcon width={28} height={28} color="#a4a3a3" />
               </AlbumCoverAlt>
               <div
-                onClick={() => props.onPlayTrack(info.row.original.id)}
+                onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
                 <Play small color={info.getValue() ? "#fff" : "#000"} />

@@ -91,6 +91,7 @@ export type Mutation = {
   pcmbufSetLowLatency: Scalars['String']['output'];
   play: Scalars['Int']['output'];
   playAlbum: Scalars['Int']['output'];
+  playAllTracks: Scalars['Int']['output'];
   playArtistTracks: Scalars['Int']['output'];
   playDirectory: Scalars['Int']['output'];
   playLikedTracks: Scalars['Int']['output'];
@@ -174,30 +175,41 @@ export type MutationPlayArgs = {
 
 export type MutationPlayAlbumArgs = {
   albumId: Scalars['String']['input'];
+  position?: InputMaybe<Scalars['Int']['input']>;
+  shuffle?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type MutationPlayAllTracksArgs = {
+  position?: InputMaybe<Scalars['Int']['input']>;
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
 export type MutationPlayArtistTracksArgs = {
   artistId: Scalars['String']['input'];
+  position?: InputMaybe<Scalars['Int']['input']>;
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
 export type MutationPlayDirectoryArgs = {
   path: Scalars['String']['input'];
+  position?: InputMaybe<Scalars['Int']['input']>;
   recurse?: InputMaybe<Scalars['Boolean']['input']>;
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
 export type MutationPlayLikedTracksArgs = {
+  position?: InputMaybe<Scalars['Int']['input']>;
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
 export type MutationPlayPlaylistArgs = {
   playlistId: Scalars['String']['input'];
+  position?: InputMaybe<Scalars['Int']['input']>;
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
@@ -660,6 +672,7 @@ export type NextMutation = { __typename?: 'Mutation', next: number };
 export type PlayAlbumMutationVariables = Exact<{
   albumId: Scalars['String']['input'];
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
+  position?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
@@ -668,6 +681,7 @@ export type PlayAlbumMutation = { __typename?: 'Mutation', playAlbum: number };
 export type PlayArtistTracksMutationVariables = Exact<{
   artistId: Scalars['String']['input'];
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
+  position?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
@@ -677,6 +691,7 @@ export type PlayDirectoryMutationVariables = Exact<{
   path: Scalars['String']['input'];
   recurse?: InputMaybe<Scalars['Boolean']['input']>;
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
+  position?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
@@ -691,10 +706,19 @@ export type PlayTrackMutation = { __typename?: 'Mutation', playTrack: number };
 
 export type PlayLikedTracksMutationVariables = Exact<{
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
+  position?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
 export type PlayLikedTracksMutation = { __typename?: 'Mutation', playLikedTracks: number };
+
+export type PlayAllTracksMutationVariables = Exact<{
+  shuffle?: InputMaybe<Scalars['Boolean']['input']>;
+  position?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type PlayAllTracksMutation = { __typename?: 'Mutation', playAllTracks: number };
 
 export type GetCurrentTrackQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1502,8 +1526,8 @@ export type NextMutationHookResult = ReturnType<typeof useNextMutation>;
 export type NextMutationResult = Apollo.MutationResult<NextMutation>;
 export type NextMutationOptions = Apollo.BaseMutationOptions<NextMutation, NextMutationVariables>;
 export const PlayAlbumDocument = gql`
-    mutation PlayAlbum($albumId: String!, $shuffle: Boolean) {
-  playAlbum(albumId: $albumId, shuffle: $shuffle)
+    mutation PlayAlbum($albumId: String!, $shuffle: Boolean, $position: Int) {
+  playAlbum(albumId: $albumId, shuffle: $shuffle, position: $position)
 }
     `;
 export type PlayAlbumMutationFn = Apollo.MutationFunction<PlayAlbumMutation, PlayAlbumMutationVariables>;
@@ -1523,6 +1547,7 @@ export type PlayAlbumMutationFn = Apollo.MutationFunction<PlayAlbumMutation, Pla
  *   variables: {
  *      albumId: // value for 'albumId'
  *      shuffle: // value for 'shuffle'
+ *      position: // value for 'position'
  *   },
  * });
  */
@@ -1534,8 +1559,8 @@ export type PlayAlbumMutationHookResult = ReturnType<typeof usePlayAlbumMutation
 export type PlayAlbumMutationResult = Apollo.MutationResult<PlayAlbumMutation>;
 export type PlayAlbumMutationOptions = Apollo.BaseMutationOptions<PlayAlbumMutation, PlayAlbumMutationVariables>;
 export const PlayArtistTracksDocument = gql`
-    mutation PlayArtistTracks($artistId: String!, $shuffle: Boolean) {
-  playArtistTracks(artistId: $artistId, shuffle: $shuffle)
+    mutation PlayArtistTracks($artistId: String!, $shuffle: Boolean, $position: Int) {
+  playArtistTracks(artistId: $artistId, shuffle: $shuffle, position: $position)
 }
     `;
 export type PlayArtistTracksMutationFn = Apollo.MutationFunction<PlayArtistTracksMutation, PlayArtistTracksMutationVariables>;
@@ -1555,6 +1580,7 @@ export type PlayArtistTracksMutationFn = Apollo.MutationFunction<PlayArtistTrack
  *   variables: {
  *      artistId: // value for 'artistId'
  *      shuffle: // value for 'shuffle'
+ *      position: // value for 'position'
  *   },
  * });
  */
@@ -1566,8 +1592,13 @@ export type PlayArtistTracksMutationHookResult = ReturnType<typeof usePlayArtist
 export type PlayArtistTracksMutationResult = Apollo.MutationResult<PlayArtistTracksMutation>;
 export type PlayArtistTracksMutationOptions = Apollo.BaseMutationOptions<PlayArtistTracksMutation, PlayArtistTracksMutationVariables>;
 export const PlayDirectoryDocument = gql`
-    mutation PlayDirectory($path: String!, $recurse: Boolean, $shuffle: Boolean) {
-  playDirectory(path: $path, recurse: $recurse, shuffle: $shuffle)
+    mutation PlayDirectory($path: String!, $recurse: Boolean, $shuffle: Boolean, $position: Int) {
+  playDirectory(
+    path: $path
+    recurse: $recurse
+    shuffle: $shuffle
+    position: $position
+  )
 }
     `;
 export type PlayDirectoryMutationFn = Apollo.MutationFunction<PlayDirectoryMutation, PlayDirectoryMutationVariables>;
@@ -1588,6 +1619,7 @@ export type PlayDirectoryMutationFn = Apollo.MutationFunction<PlayDirectoryMutat
  *      path: // value for 'path'
  *      recurse: // value for 'recurse'
  *      shuffle: // value for 'shuffle'
+ *      position: // value for 'position'
  *   },
  * });
  */
@@ -1630,8 +1662,8 @@ export type PlayTrackMutationHookResult = ReturnType<typeof usePlayTrackMutation
 export type PlayTrackMutationResult = Apollo.MutationResult<PlayTrackMutation>;
 export type PlayTrackMutationOptions = Apollo.BaseMutationOptions<PlayTrackMutation, PlayTrackMutationVariables>;
 export const PlayLikedTracksDocument = gql`
-    mutation PlayLikedTracks($shuffle: Boolean) {
-  playLikedTracks(shuffle: $shuffle)
+    mutation PlayLikedTracks($shuffle: Boolean, $position: Int) {
+  playLikedTracks(shuffle: $shuffle, position: $position)
 }
     `;
 export type PlayLikedTracksMutationFn = Apollo.MutationFunction<PlayLikedTracksMutation, PlayLikedTracksMutationVariables>;
@@ -1650,6 +1682,7 @@ export type PlayLikedTracksMutationFn = Apollo.MutationFunction<PlayLikedTracksM
  * const [playLikedTracksMutation, { data, loading, error }] = usePlayLikedTracksMutation({
  *   variables: {
  *      shuffle: // value for 'shuffle'
+ *      position: // value for 'position'
  *   },
  * });
  */
@@ -1660,6 +1693,38 @@ export function usePlayLikedTracksMutation(baseOptions?: Apollo.MutationHookOpti
 export type PlayLikedTracksMutationHookResult = ReturnType<typeof usePlayLikedTracksMutation>;
 export type PlayLikedTracksMutationResult = Apollo.MutationResult<PlayLikedTracksMutation>;
 export type PlayLikedTracksMutationOptions = Apollo.BaseMutationOptions<PlayLikedTracksMutation, PlayLikedTracksMutationVariables>;
+export const PlayAllTracksDocument = gql`
+    mutation PlayAllTracks($shuffle: Boolean, $position: Int) {
+  playAllTracks(shuffle: $shuffle, position: $position)
+}
+    `;
+export type PlayAllTracksMutationFn = Apollo.MutationFunction<PlayAllTracksMutation, PlayAllTracksMutationVariables>;
+
+/**
+ * __usePlayAllTracksMutation__
+ *
+ * To run a mutation, you first call `usePlayAllTracksMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePlayAllTracksMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [playAllTracksMutation, { data, loading, error }] = usePlayAllTracksMutation({
+ *   variables: {
+ *      shuffle: // value for 'shuffle'
+ *      position: // value for 'position'
+ *   },
+ * });
+ */
+export function usePlayAllTracksMutation(baseOptions?: Apollo.MutationHookOptions<PlayAllTracksMutation, PlayAllTracksMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PlayAllTracksMutation, PlayAllTracksMutationVariables>(PlayAllTracksDocument, options);
+      }
+export type PlayAllTracksMutationHookResult = ReturnType<typeof usePlayAllTracksMutation>;
+export type PlayAllTracksMutationResult = Apollo.MutationResult<PlayAllTracksMutation>;
+export type PlayAllTracksMutationOptions = Apollo.BaseMutationOptions<PlayAllTracksMutation, PlayAllTracksMutationVariables>;
 export const GetCurrentTrackDocument = gql`
     query GetCurrentTrack {
   currentTrack {

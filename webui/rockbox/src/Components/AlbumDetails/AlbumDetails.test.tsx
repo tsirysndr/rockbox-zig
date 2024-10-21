@@ -36,6 +36,7 @@ describe("AlbumDetails", () => {
                   tracks: [],
                 }}
                 volumes={[]}
+                onPlayTrack={vi.fn()}
               />
             </RecoilRoot>
           </Providers>
