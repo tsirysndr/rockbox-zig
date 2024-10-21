@@ -34,3 +34,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-y: hidden;
 }
+
+tr td div .floating-play {
+  cursor: pointer;
+  display: none;
+}
+
+
+tr:hover td div .floating-play {
+  cursor: pointer;
+  margin-left: -5px;
+  display: block;
+}
+
+
+tr:hover td div .tracknumber {
+ display: none;
+}

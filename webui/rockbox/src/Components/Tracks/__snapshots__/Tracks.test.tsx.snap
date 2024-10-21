@@ -435,7 +435,7 @@ exports[`Tracks > should render 1`] = `
                     style="height: 48px; color: rgba(0, 0, 0, 0.54);"
                   >
                     <th
-                      style="text-align: left; width: 20px;"
+                      style="width: 20px;"
                     >
                       #
                     </th>

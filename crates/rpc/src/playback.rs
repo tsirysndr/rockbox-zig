@@ -205,6 +205,7 @@ impl PlaybackService for Playback {
         let request = request.into_inner();
         let album_id = request.album_id;
         let shuffle = request.shuffle;
+        let position = request.position;
         let tracks = repo::album_tracks::find_by_album(self.pool.clone(), &album_id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
@@ -229,7 +230,11 @@ impl PlaybackService for Playback {
                 .map_err(|e| tonic::Status::internal(e.to_string()))?;
         }
 
-        let url = format!("{}/playlists/start", rockbox_url());
+        let url = match position {
+            Some(position) => format!("{}/playlists/start?start_index={}", rockbox_url(), position),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
         self.client
             .put(&url)
             .send()
@@ -246,6 +251,7 @@ impl PlaybackService for Playback {
         let request = request.into_inner();
         let artist_id = request.artist_id;
         let shuffle = request.shuffle;
+        let position = request.position;
         let tracks = repo::artist_tracks::find_by_artist(self.pool.clone(), &artist_id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
@@ -270,7 +276,11 @@ impl PlaybackService for Playback {
                 .map_err(|e| tonic::Status::internal(e.to_string()))?;
         }
 
-        let url = format!("{}/playlists/start", rockbox_url());
+        let url = match position {
+            Some(position) => format!("{}/playlists/start?start_index={}", rockbox_url(), position),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
         self.client
             .put(&url)
             .send()
@@ -400,6 +410,7 @@ impl PlaybackService for Playback {
     ) -> Result<tonic::Response<PlayLikedTracksResponse>, tonic::Status> {
         let request = request.into_inner();
         let shuffle = request.shuffle;
+        let position = request.position;
         let tracks = repo::favourites::all_tracks(self.pool.clone())
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
@@ -424,7 +435,11 @@ impl PlaybackService for Playback {
                 .map_err(|e| tonic::Status::internal(e.to_string()))?;
         }
 
-        let url = format!("{}/playlists/start", rockbox_url());
+        let url = match position {
+            Some(position) => format!("{}/playlists/start?start_index={}", rockbox_url(), position),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
         self.client
             .put(&url)
             .send()
@@ -432,5 +447,50 @@ impl PlaybackService for Playback {
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         Ok(tonic::Response::new(PlayLikedTracksResponse::default()))
+    }
+
+    async fn play_all_tracks(
+        &self,
+        request: tonic::Request<PlayAllTracksRequest>,
+    ) -> Result<tonic::Response<PlayAllTracksResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let shuffle = request.shuffle;
+        let position = request.position;
+        let tracks = repo::track::all(self.pool.clone())
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let body = serde_json::json!({
+            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            self.client
+                .put(&url)
+                .send()
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        }
+
+        let url = match position {
+            Some(position) => format!("{}/playlists/start?start_index={}", rockbox_url(), position),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(tonic::Response::new(PlayAllTracksResponse::default()))
     }
 }

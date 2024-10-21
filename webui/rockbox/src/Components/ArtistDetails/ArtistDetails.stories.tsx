@@ -30,5 +30,6 @@ export const Default: Story = {
     onLikeTrack: fn(),
     onUnlikeTrack: fn(),
     onGoBack: fn(),
+    onPlayTrack: fn(),
   },
 };

@@ -73,7 +73,13 @@ const VirtualizedTable: FC<TableProps> = ({
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  style={{ textAlign: "left", width: header.getSize() }}
+                  style={{
+                    textAlign:
+                      header.column.columnDef.header !== "#"
+                        ? "left"
+                        : undefined,
+                    width: header.getSize(),
+                  }}
                 >
                   {header.isPlaceholder
                     ? null
