@@ -2043,6 +2043,13 @@ pub struct PlayTrackRequest {
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PlayTrackResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PlayLikedTracksRequest {
+    #[prost(bool, optional, tag = "1")]
+    pub shuffle: ::core::option::Option<bool>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PlayLikedTracksResponse {}
 /// Generated client implementations.
 pub mod playback_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
@@ -2570,6 +2577,36 @@ pub mod playback_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        pub async fn play_liked_tracks(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PlayLikedTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PlayLikedTracksResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.PlaybackService/PlayLikedTracks",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "rockbox.v1alpha1.PlaybackService",
+                        "PlayLikedTracks",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -2681,6 +2718,13 @@ pub mod playback_service_server {
             request: tonic::Request<super::PlayTrackRequest>,
         ) -> std::result::Result<
             tonic::Response<super::PlayTrackResponse>,
+            tonic::Status,
+        >;
+        async fn play_liked_tracks(
+            &self,
+            request: tonic::Request<super::PlayLikedTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PlayLikedTracksResponse>,
             tonic::Status,
         >;
     }
@@ -3515,6 +3559,52 @@ pub mod playback_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = PlayTrackSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.PlaybackService/PlayLikedTracks" => {
+                    #[allow(non_camel_case_types)]
+                    struct PlayLikedTracksSvc<T: PlaybackService>(pub Arc<T>);
+                    impl<
+                        T: PlaybackService,
+                    > tonic::server::UnaryService<super::PlayLikedTracksRequest>
+                    for PlayLikedTracksSvc<T> {
+                        type Response = super::PlayLikedTracksResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::PlayLikedTracksRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PlaybackService>::play_liked_tracks(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = PlayLikedTracksSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

@@ -393,4 +393,44 @@ impl PlaybackService for Playback {
 
         Ok(tonic::Response::new(PlayTrackResponse::default()))
     }
+
+    async fn play_liked_tracks(
+        &self,
+        request: tonic::Request<PlayLikedTracksRequest>,
+    ) -> Result<tonic::Response<PlayLikedTracksResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let shuffle = request.shuffle;
+        let tracks = repo::favourites::all_tracks(self.pool.clone())
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let body = serde_json::json!({
+            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            self.client
+                .put(&url)
+                .send()
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        }
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(tonic::Response::new(PlayLikedTracksResponse::default()))
+    }
 }

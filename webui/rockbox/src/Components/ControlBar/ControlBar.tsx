@@ -18,6 +18,9 @@ export type ControlBarProps = {
   onPrevious: () => void;
   onShuffle: () => void;
   onRepeat: () => void;
+  liked?: boolean;
+  onLike: (trackId: string) => void;
+  onUnlike: (trackId: string) => void;
 };
 
 const ControlBar: FC<ControlBarProps> = (props) => {
@@ -49,7 +52,12 @@ const ControlBar: FC<ControlBarProps> = (props) => {
           </Button>
         </ControlsContainer>
       </Controls>
-      <CurrentTrack nowPlaying={props.nowPlaying} />
+      <CurrentTrack
+        nowPlaying={props.nowPlaying}
+        liked={props.liked}
+        onLike={props.onLike}
+        onUnlike={props.onUnlike}
+      />
       <RightMenu />
     </Container>
   );

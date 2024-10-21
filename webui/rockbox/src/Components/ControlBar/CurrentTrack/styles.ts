@@ -78,6 +78,22 @@ export const Title = styled.div`
   margin-right: 10px;
 `;
 
+export const Actions = styled.div`
+  width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+  opacity: 0;
+  &:hover {
+    opacity: 1;
+  }
+`;
+
+export const Icon = styled.div`
+  cursor: pointer;
+`;
+
 export const Album = styled(Link)`
   text-decoration: none;
   color: inherit;

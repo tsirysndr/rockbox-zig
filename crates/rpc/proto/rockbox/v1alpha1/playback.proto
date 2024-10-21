@@ -138,6 +138,12 @@ message PlayTrackRequest {
 
 message PlayTrackResponse {}
 
+message PlayLikedTracksRequest {
+  optional bool shuffle = 1;
+}
+
+message PlayLikedTracksResponse {}
+
 service PlaybackService {
   rpc Play(PlayRequest) returns (PlayResponse) {}
   rpc Pause(PauseRequest) returns (PauseResponse) {}
@@ -156,4 +162,5 @@ service PlaybackService {
   rpc PlayPlaylist(PlayPlaylistRequest) returns (PlayPlaylistResponse) {}
   rpc PlayDirectory(PlayDirectoryRequest) returns (PlayDirectoryResponse) {}
   rpc PlayTrack(PlayTrackRequest) returns (PlayTrackResponse) {}
+  rpc PlayLikedTracks(PlayLikedTracksRequest) returns (PlayLikedTracksResponse) {}
 }

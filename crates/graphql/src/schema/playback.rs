@@ -288,6 +288,37 @@ impl PlaybackMutation {
 
         Ok(0)
     }
+
+    async fn play_liked_tracks(
+        &self,
+        ctx: &Context<'_>,
+        shuffle: Option<bool>,
+    ) -> Result<i32, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let tracks = repo::favourites::all_tracks(pool.clone())
+            .await?
+            .into_iter()
+            .map(|t| t.path)
+            .collect::<Vec<String>>();
+
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "tracks": tracks,
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        client.post(&url).json(&body).send().await?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            client.put(&url).send().await?;
+        }
+
+        let url = format!("{}/playlists/start", rockbox_url());
+        client.put(&url).send().await?;
+
+        Ok(0)
+    }
 }
 
 #[derive(Default)]

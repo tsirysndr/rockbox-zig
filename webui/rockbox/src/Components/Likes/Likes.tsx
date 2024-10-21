@@ -13,20 +13,27 @@ import {
   FilterContainer,
   Link,
   Title,
+  Separator,
+  Label,
+  HeaderWrapper,
 } from "./styles";
 import { Track } from "../../Types/track";
 import Table from "../VirtualizedTable";
 import Filter from "../Filter";
 import TrackIcon from "../Icons/Track";
-import { Play } from "@styled-icons/ionicons-sharp";
 import "./styles.css";
 import ContextMenu from "../ContextMenu";
+import Button from "../Button";
+import Play from "../Icons/Play";
+import Shuffle from "../Icons/Shuffle";
 
 const columnHelper = createColumnHelper<Track>();
 
 export type TracksProps = {
   tracks: Track[];
   onPlayTrack: (id: string) => void;
+  onPlayAll: () => void;
+  onShuffleAll: () => void;
 };
 
 const Likes: FC<TracksProps> = (props) => {
@@ -43,6 +50,8 @@ const Likes: FC<TracksProps> = (props) => {
             justifyContent: "center",
             marginLeft: 5,
             marginRight: 5,
+            height: 48,
+            marginTop: -10,
           }}
         >
           {info.getValue()}
@@ -65,7 +74,7 @@ const Likes: FC<TracksProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.original.id)}
                 className="floating-play"
               >
-                <Play size={16} color={info.getValue() ? "#fff" : "#000"} />
+                <Play small color={info.getValue() ? "#fff" : "#000"} />
               </div>
             </div>
           )}
@@ -78,7 +87,7 @@ const Likes: FC<TracksProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.original.id)}
                 className="floating-play"
               >
-                <Play size={16} color={info.getValue() ? "#fff" : "#000"} />
+                <Play small color={info.getValue() ? "#fff" : "#000"} />
               </div>
             </div>
           )}
@@ -179,9 +188,26 @@ const Likes: FC<TracksProps> = (props) => {
         <ControlBar />
         <ContentWrapper ref={containerRef}>
           <Title>Likes</Title>
-          <FilterContainer>
-            <Filter placeholder="Search song" onChange={() => {}} />
-          </FilterContainer>
+          <HeaderWrapper>
+            <ButtonGroup>
+              <Button onClick={props.onPlayAll} kind="primary">
+                <Label>
+                  <Play small color="#fff" />
+                  <div style={{ marginLeft: 7 }}>Play</div>
+                </Label>
+              </Button>
+              <Separator />
+              <Button onClick={props.onShuffleAll} kind="secondary">
+                <Label>
+                  <Shuffle color="#fe099c" />
+                  <div style={{ marginLeft: 7 }}>Shuffle</div>
+                </Label>
+              </Button>
+            </ButtonGroup>
+            <FilterContainer>
+              <Filter placeholder="Search song" onChange={() => {}} />
+            </FilterContainer>
+          </HeaderWrapper>
           <div style={{ marginBottom: 60 }}>
             {props.tracks.length > 0 && (
               <Table

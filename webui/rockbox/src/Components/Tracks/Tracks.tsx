@@ -43,6 +43,7 @@ const Tracks: FC<TracksProps> = (props) => {
             justifyContent: "center",
             marginLeft: 5,
             marginRight: 5,
+            marginTop: -6,
           }}
         >
           {info.getValue()}
@@ -55,7 +56,7 @@ const Tracks: FC<TracksProps> = (props) => {
       cell: (info) => (
         <>
           {info.getValue() && (
-            <div className="album-cover-container">
+            <div className="album-cover-container songs">
               <AlbumCover
                 src={info.getValue()!}
                 alt="album art"
@@ -70,7 +71,7 @@ const Tracks: FC<TracksProps> = (props) => {
             </div>
           )}
           {!info.getValue() && (
-            <div className="album-cover-container">
+            <div className="album-cover-container songs">
               <AlbumCoverAlt>
                 <TrackIcon width={28} height={28} color="#a4a3a3" />
               </AlbumCoverAlt>

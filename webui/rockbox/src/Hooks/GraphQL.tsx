@@ -93,6 +93,7 @@ export type Mutation = {
   playAlbum: Scalars['Int']['output'];
   playArtistTracks: Scalars['Int']['output'];
   playDirectory: Scalars['Int']['output'];
+  playLikedTracks: Scalars['Int']['output'];
   playPlaylist: Scalars['Int']['output'];
   playTrack: Scalars['Int']['output'];
   playlistCreate: Scalars['Int']['output'];
@@ -186,6 +187,11 @@ export type MutationPlayArtistTracksArgs = {
 export type MutationPlayDirectoryArgs = {
   path: Scalars['String']['input'];
   recurse?: InputMaybe<Scalars['Boolean']['input']>;
+  shuffle?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type MutationPlayLikedTracksArgs = {
   shuffle?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
@@ -682,6 +688,13 @@ export type PlayTrackMutationVariables = Exact<{
 
 
 export type PlayTrackMutation = { __typename?: 'Mutation', playTrack: number };
+
+export type PlayLikedTracksMutationVariables = Exact<{
+  shuffle?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type PlayLikedTracksMutation = { __typename?: 'Mutation', playLikedTracks: number };
 
 export type GetCurrentTrackQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1616,6 +1629,37 @@ export function usePlayTrackMutation(baseOptions?: Apollo.MutationHookOptions<Pl
 export type PlayTrackMutationHookResult = ReturnType<typeof usePlayTrackMutation>;
 export type PlayTrackMutationResult = Apollo.MutationResult<PlayTrackMutation>;
 export type PlayTrackMutationOptions = Apollo.BaseMutationOptions<PlayTrackMutation, PlayTrackMutationVariables>;
+export const PlayLikedTracksDocument = gql`
+    mutation PlayLikedTracks($shuffle: Boolean) {
+  playLikedTracks(shuffle: $shuffle)
+}
+    `;
+export type PlayLikedTracksMutationFn = Apollo.MutationFunction<PlayLikedTracksMutation, PlayLikedTracksMutationVariables>;
+
+/**
+ * __usePlayLikedTracksMutation__
+ *
+ * To run a mutation, you first call `usePlayLikedTracksMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePlayLikedTracksMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [playLikedTracksMutation, { data, loading, error }] = usePlayLikedTracksMutation({
+ *   variables: {
+ *      shuffle: // value for 'shuffle'
+ *   },
+ * });
+ */
+export function usePlayLikedTracksMutation(baseOptions?: Apollo.MutationHookOptions<PlayLikedTracksMutation, PlayLikedTracksMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PlayLikedTracksMutation, PlayLikedTracksMutationVariables>(PlayLikedTracksDocument, options);
+      }
+export type PlayLikedTracksMutationHookResult = ReturnType<typeof usePlayLikedTracksMutation>;
+export type PlayLikedTracksMutationResult = Apollo.MutationResult<PlayLikedTracksMutation>;
+export type PlayLikedTracksMutationOptions = Apollo.BaseMutationOptions<PlayLikedTracksMutation, PlayLikedTracksMutationVariables>;
 export const GetCurrentTrackDocument = gql`
     query GetCurrentTrack {
   currentTrack {
