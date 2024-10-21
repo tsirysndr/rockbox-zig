@@ -158,6 +158,7 @@ impl PlaybackMutation {
         ctx: &Context<'_>,
         album_id: String,
         shuffle: Option<bool>,
+        position: Option<i32>,
     ) -> Result<i32, Error> {
         let pool = ctx.data::<Pool<Sqlite>>()?;
         let tracks = repo::album_tracks::find_by_album(pool.clone(), &album_id).await?;
@@ -174,7 +175,11 @@ impl PlaybackMutation {
             client.put(&url).send().await?;
         }
 
-        let url = format!("{}/playlists/start", rockbox_url());
+        let url = match position {
+            Some(p) => format!("{}/playlists/start?start_index={}", rockbox_url(), p),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
         client.put(&url).send().await?;
 
         Ok(0)
@@ -185,6 +190,7 @@ impl PlaybackMutation {
         ctx: &Context<'_>,
         artist_id: String,
         shuffle: Option<bool>,
+        position: Option<i32>,
     ) -> Result<i32, Error> {
         let pool = ctx.data::<Pool<Sqlite>>()?;
         let client = ctx.data::<reqwest::Client>().unwrap();
@@ -201,7 +207,11 @@ impl PlaybackMutation {
             client.put(&url).send().await?;
         }
 
-        let url = format!("{}/playlists/start", rockbox_url());
+        let url = match position {
+            Some(p) => format!("{}/playlists/start?start_index={}", rockbox_url(), p),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
         client.put(&url).send().await?;
 
         Ok(0)
@@ -212,6 +222,7 @@ impl PlaybackMutation {
         _ctx: &Context<'_>,
         _playlist_id: String,
         _shuffle: Option<bool>,
+        _position: Option<i32>,
     ) -> Result<i32, Error> {
         todo!()
     }
@@ -293,6 +304,7 @@ impl PlaybackMutation {
         &self,
         ctx: &Context<'_>,
         shuffle: Option<bool>,
+        position: Option<i32>,
     ) -> Result<i32, Error> {
         let pool = ctx.data::<Pool<Sqlite>>()?;
         let tracks = repo::favourites::all_tracks(pool.clone())
@@ -314,7 +326,47 @@ impl PlaybackMutation {
             client.put(&url).send().await?;
         }
 
-        let url = format!("{}/playlists/start", rockbox_url());
+        let url = match position {
+            Some(p) => format!("{}/playlists/start?start_index={}", rockbox_url(), p),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
+        client.put(&url).send().await?;
+
+        Ok(0)
+    }
+
+    async fn play_all_tracks(
+        &self,
+        ctx: &Context<'_>,
+        shuffle: Option<bool>,
+        position: Option<i32>,
+    ) -> Result<i32, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let tracks = repo::track::all(pool.clone())
+            .await?
+            .into_iter()
+            .map(|t| t.path)
+            .collect::<Vec<String>>();
+
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let body = serde_json::json!({
+            "tracks": tracks,
+        });
+
+        let url = format!("{}/playlists", rockbox_url());
+        client.post(&url).json(&body).send().await?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            client.put(&url).send().await?;
+        }
+
+        let url = match position {
+            Some(p) => format!("{}/playlists/start?start_index={}", rockbox_url(), p),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
         client.put(&url).send().await?;
 
         Ok(0)

@@ -38,6 +38,15 @@ const ArtistDetailsWithData: FC = () => {
     });
   };
 
+  const onPlayTrack = (position: number) => {
+    playArtistTracks({
+      variables: {
+        artistId: id!,
+        position,
+      },
+    });
+  };
+
   return (
     <ArtistDetails
       name={data?.artist?.name || ""}
@@ -52,6 +61,7 @@ const ArtistDetailsWithData: FC = () => {
       onLikeTrack={() => {}}
       onUnlikeTrack={() => {}}
       onGoBack={() => navigate(-1)}
+      onPlayTrack={onPlayTrack}
     />
   );
 };

@@ -106,6 +106,7 @@ message HardStopResponse {}
 message PlayAlbumRequest {
   string album_id = 1;
   optional bool shuffle = 2;
+  optional int32 position = 3;
 }
 
 message PlayAlbumResponse {}
@@ -113,6 +114,7 @@ message PlayAlbumResponse {}
 message PlayArtistTracksRequest {
   string artist_id = 1;
   optional bool shuffle = 2;
+  optional int32 position = 3;
 }
 
 message PlayArtistTracksResponse {}
@@ -140,9 +142,17 @@ message PlayTrackResponse {}
 
 message PlayLikedTracksRequest {
   optional bool shuffle = 1;
+  optional int32 position = 2;
 }
 
 message PlayLikedTracksResponse {}
+
+message PlayAllTracksRequest {
+  optional bool shuffle = 1;
+  optional int32 position = 2;
+}
+
+message PlayAllTracksResponse {}
 
 service PlaybackService {
   rpc Play(PlayRequest) returns (PlayResponse) {}
@@ -163,4 +173,5 @@ service PlaybackService {
   rpc PlayDirectory(PlayDirectoryRequest) returns (PlayDirectoryResponse) {}
   rpc PlayTrack(PlayTrackRequest) returns (PlayTrackResponse) {}
   rpc PlayLikedTracks(PlayLikedTracksRequest) returns (PlayLikedTracksResponse) {}
+  rpc PlayAllTracks(PlayAllTracksRequest) returns (PlayAllTracksResponse) {}
 }

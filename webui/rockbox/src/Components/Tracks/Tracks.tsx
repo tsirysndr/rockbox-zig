@@ -26,7 +26,7 @@ const columnHelper = createColumnHelper<Track>();
 
 export type TracksProps = {
   tracks: Track[];
-  onPlayTrack: (id: string) => void;
+  onPlayTrack: (index: number) => void;
 };
 
 const Tracks: FC<TracksProps> = (props) => {
@@ -63,7 +63,7 @@ const Tracks: FC<TracksProps> = (props) => {
                 effect="blur"
               />
               <div
-                onClick={() => props.onPlayTrack(info.row.original.id)}
+                onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
                 <Play size={16} color={info.getValue() ? "#fff" : "#000"} />
@@ -76,7 +76,7 @@ const Tracks: FC<TracksProps> = (props) => {
                 <TrackIcon width={28} height={28} color="#a4a3a3" />
               </AlbumCoverAlt>
               <div
-                onClick={() => props.onPlayTrack(info.row.original.id)}
+                onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
                 <Play size={16} color={info.getValue() ? "#fff" : "#000"} />

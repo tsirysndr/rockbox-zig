@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import Tracks from "./Tracks";
-import { useTracksQuery } from "../../Hooks/GraphQL";
+import { usePlayAllTracksMutation, useTracksQuery } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 import { Track } from "../../Types/track";
 
@@ -8,6 +8,7 @@ const TracksWithData: FC = () => {
   const { data, loading } = useTracksQuery();
   const [tracks, setTracks] = useState<Track[]>([]);
   const { formatTime } = useTimeFormat();
+  const [playAllTracks] = usePlayAllTracksMutation();
 
   useEffect(() => {
     if (!data || loading) {
@@ -33,8 +34,12 @@ const TracksWithData: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, loading]);
 
-  const onPlayTrack = (trackId: string) => {
-    console.log(">>", trackId);
+  const onPlayTrack = (position: number) => {
+    playAllTracks({
+      variables: {
+        position,
+      },
+    });
   };
 
   return <Tracks tracks={tracks} onPlayTrack={onPlayTrack} />;

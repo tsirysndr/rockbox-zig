@@ -36,5 +36,6 @@ export const Default: Story = {
       tracks: [],
     },
     volumes: [],
+    onPlayTrack: fn(),
   },
 };

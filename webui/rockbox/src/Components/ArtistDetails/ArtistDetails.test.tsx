@@ -25,6 +25,7 @@ describe("ArtistDetails", () => {
               onLikeTrack={vi.fn()}
               onUnlikeTrack={vi.fn()}
               onGoBack={vi.fn()}
+              onPlayTrack={vi.fn()}
             />
           </Providers>
         </MockedProvider>

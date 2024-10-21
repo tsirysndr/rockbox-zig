@@ -29,6 +29,7 @@ import { Track } from "../../Types/track";
 import { Album } from "../../Hooks/GraphQL";
 import AlbumArt from "../../Assets/albumart.svg";
 import ContextMenu from "../ContextMenu";
+import _ from "lodash";
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -40,6 +41,7 @@ export type AlbumDetailsProps = {
   album?: Album | null;
   volumes: Track[][];
   enableBlur?: boolean;
+  onPlayTrack: (position: number, disc: number) => void;
 };
 
 const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
@@ -47,7 +49,22 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
     columnHelper.accessor("trackNumber", {
       header: "#",
       size: 20,
-      cell: (info) => info.getValue(),
+      cell: (info) => (
+        <div style={{ position: "relative" }}>
+          <div className="tracknumber">{info.getValue()}</div>
+          <div
+            className="floating-play"
+            onClick={() =>
+              props.onPlayTrack(
+                info.row.index,
+                _.get(info, "row.original.discnum", 1)
+              )
+            }
+          >
+            <Play color="#000" small />
+          </div>
+        </div>
+      ),
     }),
     columnHelper.accessor("title", {
       header: "Title",

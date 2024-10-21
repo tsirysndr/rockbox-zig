@@ -46,7 +46,7 @@ pub async fn find_by_album(pool: Pool<Sqlite>, album_id: &str) -> Result<Vec<Tra
         SELECT * FROM album_tracks
         LEFT JOIN track ON album_tracks.track_id = track.id
         WHERE album_tracks.album_id = $1 
-        ORDER BY track_number ASC
+        ORDER BY disc_number, track_number ASC
         "#,
     )
     .bind(album_id)
