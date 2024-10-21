@@ -1,5 +1,7 @@
+use std::env;
+
 use async_graphql::*;
-use rockbox_library::{entity::favourites::Favourites, repo};
+use rockbox_library::{audio_scan::scan_audio_files, entity::favourites::Favourites, repo};
 use sqlx::{Pool, Sqlite};
 
 use crate::schema::objects::track::Track;
@@ -118,6 +120,14 @@ impl LibraryMutation {
     async fn unlike_album(&self, ctx: &Context<'_>, id: String) -> Result<i32, Error> {
         let pool = ctx.data::<Pool<Sqlite>>()?;
         repo::favourites::delete(pool.clone(), &id).await?;
+        Ok(0)
+    }
+
+    async fn scan_library(&self, ctx: &Context<'_>) -> Result<i32, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let home = env::var("HOME")?;
+        let path = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
+        scan_audio_files(pool.clone(), path.into()).await?;
         Ok(0)
     }
 }

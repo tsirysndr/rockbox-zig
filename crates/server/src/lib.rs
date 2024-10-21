@@ -78,6 +78,7 @@ pub extern "C" fn start_server() {
     app.get("/version", get_rockbox_version);
     app.get("/status", get_status);
     app.get("/settings", get_global_settings);
+    app.put("/scan-library", scan_library);
 
     app.get("/", index);
     app.get("/operations/:id", index);

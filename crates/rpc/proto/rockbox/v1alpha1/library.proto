@@ -127,6 +127,10 @@ message GetLikedAlbumsResponse {
   repeated Album albums = 1;
 }
 
+message ScanLibraryRequest {}
+
+message ScanLibraryResponse {}
+
 service LibraryService {
   rpc GetAlbums(GetAlbumsRequest) returns (GetAlbumsResponse);
   rpc GetArtists(GetArtistsRequest) returns (GetArtistsResponse);
@@ -140,4 +144,5 @@ service LibraryService {
   rpc UnlikeAlbum(UnlikeAlbumRequest) returns (UnlikeAlbumResponse);
   rpc GetLikedTracks(GetLikedTracksRequest) returns (GetLikedTracksResponse);
   rpc GetLikedAlbums(GetLikedAlbumsRequest) returns (GetLikedAlbumsResponse);
+  rpc ScanLibrary(ScanLibraryRequest) returns (ScanLibraryResponse);
 }

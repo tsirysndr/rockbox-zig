@@ -1,7 +1,8 @@
+use anyhow::Error;
 use clap::Command;
 use owo_colors::OwoColorize;
 use rockbox_library::audio_scan::scan_audio_files;
-use rockbox_library::create_connection_pool;
+use rockbox_library::{create_connection_pool, repo};
 use std::{env, ffi::CStr};
 use std::{fs, thread};
 
@@ -60,11 +61,24 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             }
         }
 
+        let update_library = match env::var("ROCKBOX_UPDATE_LIBRARY")
+            .as_ref()
+            .map(|s| s.as_str())
+        {
+            Ok("1") => true,
+            Ok("true") => true,
+            Ok(_) => false,
+            Err(_) => false,
+        };
         let path = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
             let pool = create_connection_pool().await?;
-            scan_audio_files(pool, path.into()).await
+            let tracks = repo::track::all(pool.clone()).await?;
+            if tracks.is_empty() || update_library {
+                scan_audio_files(pool, path.into()).await?;
+            }
+            Ok::<(), Error>(())
         })
         .unwrap();
 

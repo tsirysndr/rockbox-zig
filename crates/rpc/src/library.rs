@@ -1,4 +1,6 @@
-use rockbox_library::{entity::favourites::Favourites, repo};
+use std::env;
+
+use rockbox_library::{audio_scan::scan_audio_files, entity::favourites::Favourites, repo};
 use sqlx::Sqlite;
 
 use crate::api::rockbox::v1alpha1::{
@@ -6,8 +8,9 @@ use crate::api::rockbox::v1alpha1::{
     GetAlbumsRequest, GetAlbumsResponse, GetArtistRequest, GetArtistResponse, GetArtistsRequest,
     GetArtistsResponse, GetLikedAlbumsRequest, GetLikedAlbumsResponse, GetLikedTracksRequest,
     GetLikedTracksResponse, GetTrackRequest, GetTrackResponse, GetTracksRequest, GetTracksResponse,
-    LikeAlbumRequest, LikeAlbumResponse, LikeTrackRequest, LikeTrackResponse, UnlikeAlbumRequest,
-    UnlikeAlbumResponse, UnlikeTrackRequest, UnlikeTrackResponse,
+    LikeAlbumRequest, LikeAlbumResponse, LikeTrackRequest, LikeTrackResponse, ScanLibraryRequest,
+    ScanLibraryResponse, UnlikeAlbumRequest, UnlikeAlbumResponse, UnlikeTrackRequest,
+    UnlikeTrackResponse,
 };
 
 pub struct Library {
@@ -198,5 +201,19 @@ impl LibraryService for Library {
         Ok(tonic::Response::new(GetLikedAlbumsResponse {
             albums: albums.into_iter().map(|a| a.into()).collect(),
         }))
+    }
+
+    async fn scan_library(
+        &self,
+        _request: tonic::Request<ScanLibraryRequest>,
+    ) -> Result<tonic::Response<ScanLibraryResponse>, tonic::Status> {
+        let home = env::var("HOME").map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let path = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
+
+        scan_audio_files(self.pool.clone(), path.into())
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(tonic::Response::new(ScanLibraryResponse {}))
     }
 }

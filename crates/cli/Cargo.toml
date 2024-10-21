@@ -7,6 +7,7 @@ version = "0.1.0"
 crate-type = ["staticlib"]
 
 [dependencies]
+anyhow = "1.0.90"
 clap = "4.5.17"
 owo-colors = "4.1.0"
 rockbox-library = {path = "../library"}
