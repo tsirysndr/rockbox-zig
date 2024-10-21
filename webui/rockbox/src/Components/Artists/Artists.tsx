@@ -32,38 +32,42 @@ const Artists: FC<ArtistsProps> = (props) => {
         <ControlBar />
         <Scrollable>
           <Title>Artists</Title>
-          <FilterContainer>
-            <Filter placeholder="Search artists" onChange={() => {}} />
-          </FilterContainer>
-          <div style={{ marginBottom: 100 }}>
-            <Grid
-              gridColumns={[2, 3, 4]}
-              gridMargins={[18, 18, 18]}
-              gridGutters={[10, 10, 10]}
-            >
-              {artists.map((item) => (
-                <Cell key={item.id} align={"center"}>
-                  <Link
-                    to={`/artists/${item.id}`}
-                    style={{ textDecoration: "none" }}
-                  >
-                    {item.cover && (
-                      <ArtistCover
-                        src={item.cover}
-                        onClick={() => onClickArtist(item)}
-                      />
-                    )}
-                    {!item.cover && (
-                      <NoArtistCover onClick={() => onClickArtist(item)}>
-                        <Artist width={75} height={75} color="#a4a3a3" />
-                      </NoArtistCover>
-                    )}
-                    <ArtistName>{item.name}</ArtistName>
-                  </Link>
-                </Cell>
-              ))}
-            </Grid>
-          </div>
+          {props.artists.length > 0 && (
+            <>
+              <FilterContainer>
+                <Filter placeholder="Search artists" onChange={() => {}} />
+              </FilterContainer>
+              <div style={{ marginBottom: 100 }}>
+                <Grid
+                  gridColumns={[2, 3, 4]}
+                  gridMargins={[18, 18, 18]}
+                  gridGutters={[10, 10, 10]}
+                >
+                  {artists.map((item) => (
+                    <Cell key={item.id} align={"center"}>
+                      <Link
+                        to={`/artists/${item.id}`}
+                        style={{ textDecoration: "none" }}
+                      >
+                        {item.cover && (
+                          <ArtistCover
+                            src={item.cover}
+                            onClick={() => onClickArtist(item)}
+                          />
+                        )}
+                        {!item.cover && (
+                          <NoArtistCover onClick={() => onClickArtist(item)}>
+                            <Artist width={75} height={75} color="#a4a3a3" />
+                          </NoArtistCover>
+                        )}
+                        <ArtistName>{item.name}</ArtistName>
+                      </Link>
+                    </Cell>
+                  ))}
+                </Grid>
+              </div>
+            </>
+          )}
         </Scrollable>
       </MainView>
     </Container>

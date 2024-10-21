@@ -180,18 +180,22 @@ const Tracks: FC<TracksProps> = (props) => {
         <ControlBar />
         <ContentWrapper ref={containerRef}>
           <Title>Songs</Title>
-          <FilterContainer>
-            <Filter placeholder="Search song" onChange={() => {}} />
-          </FilterContainer>
-          <div style={{ marginBottom: 60 }}>
-            {props.tracks.length > 0 && (
-              <Table
-                columns={columns as any}
-                tracks={props.tracks}
-                containerRef={containerRef}
-              />
-            )}
-          </div>
+          {props.tracks.length > 0 && (
+            <>
+              <FilterContainer>
+                <Filter placeholder="Search song" onChange={() => {}} />
+              </FilterContainer>
+              <div style={{ marginBottom: 60 }}>
+                {props.tracks.length > 0 && (
+                  <Table
+                    columns={columns as any}
+                    tracks={props.tracks}
+                    containerRef={containerRef}
+                  />
+                )}
+              </div>
+            </>
+          )}
         </ContentWrapper>
       </MainView>
     </Container>

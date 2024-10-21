@@ -6496,6 +6496,7 @@
         "npm:@graphql-codegen/typescript-operations@4.3.0",
         "npm:@graphql-codegen/typescript-react-apollo@4.3.2",
         "npm:@graphql-codegen/typescript@4.1.0",
+        "npm:@mui/material@^6.1.4",
         "npm:@storybook/addon-essentials@^8.3.4",
         "npm:@storybook/addon-interactions@^8.3.4",
         "npm:@storybook/addon-links@^8.3.4",

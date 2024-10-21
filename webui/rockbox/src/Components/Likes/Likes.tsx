@@ -188,35 +188,39 @@ const Likes: FC<TracksProps> = (props) => {
         <ControlBar />
         <ContentWrapper ref={containerRef}>
           <Title>Likes</Title>
-          <HeaderWrapper>
-            <ButtonGroup>
-              <Button onClick={props.onPlayAll} kind="primary">
-                <Label>
-                  <Play small color="#fff" />
-                  <div style={{ marginLeft: 7 }}>Play</div>
-                </Label>
-              </Button>
-              <Separator />
-              <Button onClick={props.onShuffleAll} kind="secondary">
-                <Label>
-                  <Shuffle color="#fe099c" />
-                  <div style={{ marginLeft: 7 }}>Shuffle</div>
-                </Label>
-              </Button>
-            </ButtonGroup>
-            <FilterContainer>
-              <Filter placeholder="Search song" onChange={() => {}} />
-            </FilterContainer>
-          </HeaderWrapper>
-          <div style={{ marginBottom: 60 }}>
-            {props.tracks.length > 0 && (
-              <Table
-                columns={columns as any}
-                tracks={props.tracks}
-                containerRef={containerRef}
-              />
-            )}
-          </div>
+          {props.tracks.length > 0 && (
+            <>
+              <HeaderWrapper>
+                <ButtonGroup>
+                  <Button onClick={props.onPlayAll} kind="primary">
+                    <Label>
+                      <Play small color="#fff" />
+                      <div style={{ marginLeft: 7 }}>Play</div>
+                    </Label>
+                  </Button>
+                  <Separator />
+                  <Button onClick={props.onShuffleAll} kind="secondary">
+                    <Label>
+                      <Shuffle color="#fe099c" />
+                      <div style={{ marginLeft: 7 }}>Shuffle</div>
+                    </Label>
+                  </Button>
+                </ButtonGroup>
+                <FilterContainer>
+                  <Filter placeholder="Search song" onChange={() => {}} />
+                </FilterContainer>
+              </HeaderWrapper>
+              <div style={{ marginBottom: 60 }}>
+                {props.tracks.length > 0 && (
+                  <Table
+                    columns={columns as any}
+                    tracks={props.tracks}
+                    containerRef={containerRef}
+                  />
+                )}
+              </div>
+            </>
+          )}
         </ContentWrapper>
       </MainView>
     </Container>

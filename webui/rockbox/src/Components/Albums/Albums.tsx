@@ -24,22 +24,26 @@ const Albums: FC<AlbumsProps> = (props) => {
         <ControlBar />
         <Scrollable>
           <Title>Albums</Title>
-          <FilterContainer>
-            <Filter placeholder="Search albums" onChange={() => {}} />
-          </FilterContainer>
-          <div style={{ marginBottom: 100 }}>
-            <Grid
-              gridColumns={[2, 4, 5]}
-              gridMargins={[20, 20, 20]}
-              gridGutters={[25, 25, 25]}
-            >
-              {albums.map((item) => (
-                <Cell key={item.id}>
-                  <Album album={item} />
-                </Cell>
-              ))}
-            </Grid>
-          </div>
+          {props.albums.length > 0 && (
+            <>
+              <FilterContainer>
+                <Filter placeholder="Search albums" onChange={() => {}} />
+              </FilterContainer>
+              <div style={{ marginBottom: 100 }}>
+                <Grid
+                  gridColumns={[2, 4, 5]}
+                  gridMargins={[20, 20, 20]}
+                  gridGutters={[25, 25, 25]}
+                >
+                  {albums.map((item) => (
+                    <Cell key={item.id}>
+                      <Album album={item} />
+                    </Cell>
+                  ))}
+                </Grid>
+              </div>
+            </>
+          )}
         </Scrollable>
       </MainView>
     </Container>
