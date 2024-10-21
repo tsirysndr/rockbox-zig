@@ -379,16 +379,59 @@ exports[`Artists > should render 1`] = `
             Artists
           </div>
           <div
+            class="css-1ngvhjn"
+          >
+            <div
+              class="ae af ag ah ai aj ak al am an ao ap aq ar as at au av aw ax ay az b0 b1 b2 b3 b4 b5 b6 b7 b8"
+              data-baseweb="input"
+            >
+              <div
+                class="af b9 ba bb ar as ax ay az b0 b7 bc bd b5 be bf"
+              >
+                <svg
+                  data-test="icon-ActionActiveSearch"
+                  fill="none"
+                  height="20"
+                  width="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    clip-rule="evenodd"
+                    d="M4 9.5a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0ZM9.5 2a7.5 7.5 0 1 0 4.549 13.463l2.744 2.744a1 1 0 0 0 1.414-1.414l-2.744-2.744A7.5 7.5 0 0 0 9.5 2Z"
+                    fill="#ACAAAA"
+                    fill-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div
+                class="af bg bh ar as ax ay az b0 bd b5"
+                data-baseweb="base-input"
+              >
+                <input
+                  aria-invalid="false"
+                  aria-required="false"
+                  autocomplete="on"
+                  class="ae b5 bi bj bk bl bm bn bo bp bq bg br bs bt bu bv bw b6 bx ax by az b0 bz c0 c1"
+                  inputmode="text"
+                  name="filter"
+                  placeholder="Search artists"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+          <div
             style="margin-bottom: 100px;"
           >
             <div
-              class="ae af"
+              class="c2 c3"
             >
               <div
-                class="ag ah ai af aj ak al am an ao ap aq ar as at au av aw ax ay"
+                class="ae af c4 c3 c5 c6 c7 c8 c9 ca cb cc cd ce cf cg ch ci cj ck"
               >
                 <div
-                  class="ag az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi bj bk bl bm bn bo bp"
+                  class="ae bg cl cm cn co cp cq cr cs ct cu cv cw cx cy cz d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da"
                 >
                   <a
                     href="/artists/1"
@@ -406,7 +449,7 @@ exports[`Artists > should render 1`] = `
                   </a>
                 </div>
                 <div
-                  class="ag az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi bj bk bl bm bn bo bp"
+                  class="ae bg cl cm cn co cp cq cr cs ct cu cv cw cx cy cz d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da"
                 >
                   <a
                     href="/artists/2"
@@ -424,7 +467,7 @@ exports[`Artists > should render 1`] = `
                   </a>
                 </div>
                 <div
-                  class="ag az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi bj bk bl bm bn bo bp"
+                  class="ae bg cl cm cn co cp cq cr cs ct cu cv cw cx cy cz d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da"
                 >
                   <a
                     href="/artists/3"
@@ -442,7 +485,7 @@ exports[`Artists > should render 1`] = `
                   </a>
                 </div>
                 <div
-                  class="ag az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi bj bk bl bm bn bo bp"
+                  class="ae bg cl cm cn co cp cq cr cs ct cu cv cw cx cy cz d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da"
                 >
                   <a
                     href="/artists/4"
@@ -460,7 +503,7 @@ exports[`Artists > should render 1`] = `
                   </a>
                 </div>
                 <div
-                  class="ag az b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 ba bb bc bd be bf bg bh bi bj bk bl bm bn bo bp"
+                  class="ae bg cl cm cn co cp cq cr cs ct cu cv cw cx cy cz d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 da"
                 >
                   <a
                     href="/artists/4"

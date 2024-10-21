@@ -17,6 +17,8 @@ const meta = {
     onPrevious: { action: "onPrevious" },
     onShuffle: { action: "onShuffle" },
     onRepeat: { action: "onRepeat" },
+    onLike: { action: "onLike" },
+    onUnlike: { action: "onUnlike" },
   },
 } satisfies Meta<typeof ControlBar>;
 
@@ -32,6 +34,9 @@ export const Default: Story = {
     onPrevious: fn(),
     onShuffle: fn(),
     onRepeat: fn(),
+    onLike: fn(),
+    onUnlike: fn(),
+    liked: false,
   },
 };
 
@@ -54,5 +59,7 @@ export const Playing: Story = {
     onPrevious: fn(),
     onShuffle: fn(),
     onRepeat: fn(),
+    onLike: fn(),
+    onUnlike: fn(),
   },
 };

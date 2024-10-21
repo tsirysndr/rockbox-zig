@@ -55,3 +55,9 @@ export const ArtistName = styled.div`
   width: 194px;
   color: #000;
 `;
+
+export const FilterContainer = styled.div`
+  margin-top: 30px;
+  margin-bottom: 40px;
+  margin-left: 20px;
+`;

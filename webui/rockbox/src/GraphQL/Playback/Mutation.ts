@@ -53,3 +53,9 @@ export const PLAY_TRACK = gql`
     playTrack(path: $path)
   }
 `;
+
+export const PLAY_LIKED_TRACKS = gql`
+  mutation PlayLikedTracks($shuffle: Boolean) {
+    playLikedTracks(shuffle: $shuffle)
+  }
+`;

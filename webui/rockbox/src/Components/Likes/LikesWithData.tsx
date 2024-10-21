@@ -1,6 +1,9 @@
 import { FC, useEffect } from "react";
 import Likes from "./Likes";
-import { useGetLikedTracksQuery } from "../../Hooks/GraphQL";
+import {
+  useGetLikedTracksQuery,
+  usePlayLikedTracksMutation,
+} from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 import { useRecoilState } from "recoil";
 import { likedTracks, likesState } from "./LikesState";
@@ -11,6 +14,7 @@ const LikesWithData: FC = () => {
     fetchPolicy: "network-only",
   });
   const [tracks, setTracks] = useRecoilState(likedTracks);
+  const [playLikedTracks] = usePlayLikedTracksMutation();
   const { formatTime } = useTimeFormat();
 
   useEffect(() => {
@@ -49,7 +53,26 @@ const LikesWithData: FC = () => {
     console.log(">>", trackId);
   };
 
-  return <Likes tracks={tracks} onPlayTrack={onPlayTrack} />;
+  const onPlayAll = () => {
+    playLikedTracks();
+  };
+
+  const onShuffleAll = () => {
+    playLikedTracks({
+      variables: {
+        shuffle: true,
+      },
+    });
+  };
+
+  return (
+    <Likes
+      tracks={tracks}
+      onPlayTrack={onPlayTrack}
+      onPlayAll={onPlayAll}
+      onShuffleAll={onShuffleAll}
+    />
+  );
 };
 
 export default LikesWithData;

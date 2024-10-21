@@ -8,12 +8,14 @@ import {
   ArtistCover,
   ArtistName,
   Container,
+  FilterContainer,
   NoArtistCover,
   Scrollable,
   Title,
 } from "./styles";
 import Artist from "../Icons/Artist";
 import { Link } from "react-router-dom";
+import Filter from "../Filter";
 
 export type ArtistsProps = {
   artists: any[];
@@ -30,6 +32,9 @@ const Artists: FC<ArtistsProps> = (props) => {
         <ControlBar />
         <Scrollable>
           <Title>Artists</Title>
+          <FilterContainer>
+            <Filter placeholder="Search artists" onChange={() => {}} />
+          </FilterContainer>
           <div style={{ marginBottom: 100 }}>
             <Grid
               gridColumns={[2, 3, 4]}

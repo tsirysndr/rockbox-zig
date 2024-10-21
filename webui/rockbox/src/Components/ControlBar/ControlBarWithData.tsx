@@ -6,11 +6,13 @@ import {
   useGetLikedAlbumsQuery,
   useGetLikedTracksQuery,
   useGetPlaybackStatusQuery,
+  useLikeTrackMutation,
   useNextMutation,
   usePauseMutation,
   usePlaybackStatusSubscription,
   usePreviousMutation,
   useResumeMutation,
+  useUnlikeTrackMutation,
 } from "../../Hooks/GraphQL";
 import { CurrentTrack } from "../../Types/track";
 import _ from "lodash";
@@ -35,6 +37,8 @@ const ControlBarWithData: FC = () => {
   const { data: playbackStatus } = usePlaybackStatusSubscription();
   const { previousTracks, nextTracks } = usePlayQueue();
   const { resumePlaylistTrack } = useResumePlaylist();
+  const [likeTrack] = useLikeTrackMutation();
+  const [unlikeTrack] = useUnlikeTrackMutation();
 
   const [likes, setLikes] = useRecoilState(likesState);
   const { data: likedTracksData, loading: likedTracksLoading } =
@@ -98,6 +102,7 @@ const ControlBarWithData: FC = () => {
     if (_.get(playbackSubscription, "currentlyPlayingSong.length", 0) > 0) {
       const currentSong = playbackSubscription?.currentlyPlayingSong;
       setNowPlaying({
+        id: currentSong?.id || "",
         album: currentSong?.album,
         artist: currentSong?.artist,
         title: currentSong?.title,
@@ -127,6 +132,7 @@ const ControlBarWithData: FC = () => {
     }
 
     setNowPlaying({
+      id: data.currentTrack?.id || "",
       album: data.currentTrack?.album,
       artist: data.currentTrack?.artist,
       title: data.currentTrack?.title,
@@ -202,6 +208,48 @@ const ControlBarWithData: FC = () => {
     }, 3000);
   };
 
+  const onLike = async (trackId: string) => {
+    if (!nowPlaying || !trackId) {
+      return;
+    }
+
+    setLikes((state) => ({
+      ...state,
+      [trackId]: true,
+    }));
+
+    try {
+      await likeTrack({
+        variables: {
+          trackId,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const onUnlike = async (trackId: string) => {
+    if (!nowPlaying || !trackId) {
+      return;
+    }
+
+    setLikes((state) => ({
+      ...state,
+      [trackId]: false,
+    }));
+
+    try {
+      await unlikeTrack({
+        variables: {
+          trackId,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <ControlBar
       nowPlaying={nowPlaying}
@@ -211,6 +259,9 @@ const ControlBarWithData: FC = () => {
       onPrevious={() => previous()}
       onShuffle={() => {}}
       onRepeat={() => {}}
+      liked={likes[nowPlaying?.id || ""]}
+      onLike={onLike}
+      onUnlike={onUnlike}
     />
   );
 };

@@ -100,3 +100,20 @@ export const Link = styled(RouterLink)`
     text-decoration: underline;
   }
 `;
+
+export const Label = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
+export const Separator = styled.div`
+  width: 20px;
+`;
+
+export const HeaderWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;

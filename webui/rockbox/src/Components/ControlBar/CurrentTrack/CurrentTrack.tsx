@@ -1,10 +1,12 @@
 import { FC } from "react";
 import { ProgressBar } from "baseui/progress-bar";
 import {
+  Actions,
   Album,
   AlbumCover,
   ArtistAlbum,
   Container,
+  Icon,
   NoCover,
   ProgressbarContainer,
   Separator,
@@ -17,12 +19,22 @@ import Track from "../../Icons/Track";
 import { useTimeFormat } from "../../../Hooks/useFormat";
 import { CurrentTrack as NowPlaying } from "../../../Types/track";
 import _ from "lodash";
+import HeartOutline from "../../Icons/HeartOutline";
+import Heart from "../../Icons/Heart";
 
 export type CurrentTrackProps = {
   nowPlaying?: NowPlaying;
+  liked?: boolean;
+  onLike: (trackId: string) => void;
+  onUnlike: (trackId: string) => void;
 };
 
-const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
+const CurrentTrack: FC<CurrentTrackProps> = ({
+  nowPlaying,
+  liked,
+  onLike,
+  onUnlike,
+}) => {
   const { formatTime } = useTimeFormat();
   const album = `${nowPlaying?.artist} - ${nowPlaying?.album}`;
   return (
@@ -43,11 +55,26 @@ const CurrentTrack: FC<CurrentTrackProps> = ({ nowPlaying }) => {
         )}
         {nowPlaying && nowPlaying?.duration > 0 && (
           <>
-            <Title>
-              {_.get(nowPlaying, "title.length", 0) > 75
-                ? `${nowPlaying.title?.substring(0, 75)}...`
-                : nowPlaying.title}
-            </Title>
+            <div style={{ display: "flex", flexDirection: "row" }}>
+              <Actions />
+              <Title>
+                {_.get(nowPlaying, "title.length", 0) > 75
+                  ? `${nowPlaying.title?.substring(0, 75)}...`
+                  : nowPlaying.title}
+              </Title>
+              <Actions>
+                {!liked && (
+                  <Icon onClick={() => onLike(nowPlaying!.id!)}>
+                    <HeartOutline color="#000" />
+                  </Icon>
+                )}
+                {liked && (
+                  <Icon onClick={() => onUnlike(nowPlaying!.id!)}>
+                    <Heart color="#fe09a3" />
+                  </Icon>
+                )}
+              </Actions>
+            </div>
             <div
               style={{
                 display: "flex",

@@ -2,8 +2,8 @@ table {
   border-spacing: 0;
 }
 
-.album-cover-container {
-  height: 64px;
+.album-cover-container.songs {
+  height: 48px;
   justify-content: center;
   align-items: center;
   display: flex;
@@ -12,17 +12,17 @@ table {
   margin-right: 10px;
 }
 
-.album-cover-container .floating-play {
+.album-cover-container.songs .floating-play {
   display: none;
   position: absolute;
-  left: 19px;
-  top: 17px;
+  left: 17px;
+  top: 10px;
  }
 
-.album-cover-container:hover .floating-play {
+.album-cover-container.songs:hover .floating-play {
   display: block;
 }
 
-.album-cover-container:hover img {
+.album-cover-container.songs:hover img {
   opacity: 0.4;
  }

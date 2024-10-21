@@ -73,7 +73,7 @@ export const ButtonGroup = styled.div`
 `;
 
 export const Separator = styled.div`
-  width: 26px;
+  width: 20px;
 `;
 
 export const BackButton = styled.button`
