@@ -12,7 +12,9 @@ RUN apt-get update && apt-get install -y build-essential \
 
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgx install zig@0.13.0 node bun@1.1.30
+RUN pkgx install zig@0.13.0 node bun@1.1.30 go protoc buf
+
+RUN go get github.com/golang/protobuf/protoc-gen-go
 
 COPY . /app
 

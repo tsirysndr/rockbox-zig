@@ -225,3 +225,59 @@ impl From<rockbox_library::entity::track::Track> for Track {
         }
     }
 }
+
+impl From<rockbox_search::rockbox::search::v1alpha1::Track> for Track {
+    fn from(track: rockbox_search::rockbox::search::v1alpha1::Track) -> Self {
+        Self {
+            id: Some(track.id),
+            title: track.title,
+            artist: track.artist,
+            album: track.album,
+            genre: track.genre,
+            year_string: track.year_string,
+            composer: track.composer,
+            album_artist: track.album_artist,
+            discnum: track.disc_number as i32,
+            tracknum: track.track_number as i32,
+            year: track.year as i32,
+            bitrate: track.bitrate,
+            frequency: track.frequency as u64,
+            filesize: track.filesize as u64,
+            length: track.length as u64,
+            artist_id: track.artist_id,
+            album_id: track.album_id,
+            genre_id: track.genre_id,
+            path: track.path,
+            album_art: track.album_art,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<rockbox_search::rockbox::search::v1alpha1::LikedTrack> for Track {
+    fn from(track: rockbox_search::rockbox::search::v1alpha1::LikedTrack) -> Self {
+        Self {
+            id: Some(track.id),
+            title: track.title,
+            artist: track.artist,
+            album: track.album,
+            genre: track.genre,
+            year_string: track.year_string,
+            composer: track.composer,
+            album_artist: track.album_artist,
+            discnum: track.disc_number as i32,
+            tracknum: track.track_number as i32,
+            year: track.year as i32,
+            bitrate: track.bitrate,
+            frequency: track.frequency as u64,
+            filesize: track.filesize as u64,
+            length: track.length as u64,
+            artist_id: track.artist_id,
+            album_id: track.album_id,
+            genre_id: track.genre_id,
+            path: track.path,
+            album_art: track.album_art,
+            ..Default::default()
+        }
+    }
+}

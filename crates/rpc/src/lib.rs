@@ -28,7 +28,7 @@ pub mod api {
         };
         use v1alpha1::{
             Album, Artist, CurrentTrackResponse, Entry, GetGlobalSettingsResponse,
-            GetGlobalStatusResponse, NextTrackResponse, Track,
+            GetGlobalStatusResponse, NextTrackResponse, SearchResponse, Track,
         };
 
         #[path = "rockbox.v1alpha1.rs"]
@@ -719,6 +719,74 @@ pub mod api {
                     genre_id: Some(track.genre_id),
                     created_at: track.created_at.to_rfc3339(),
                     updated_at: track.updated_at.to_rfc3339(),
+                }
+            }
+        }
+
+        impl From<rockbox_search::rockbox::search::v1alpha1::Album> for Album {
+            fn from(album: rockbox_search::rockbox::search::v1alpha1::Album) -> Self {
+                Self {
+                    id: album.id,
+                    title: album.title,
+                    artist: album.artist,
+                    year: album.year,
+                    year_string: album.year_string,
+                    album_art: album.album_art,
+                    md5: album.md5,
+                    artist_id: album.artist_id,
+                    ..Default::default()
+                }
+            }
+        }
+
+        impl From<rockbox_search::rockbox::search::v1alpha1::Artist> for Artist {
+            fn from(artist: rockbox_search::rockbox::search::v1alpha1::Artist) -> Self {
+                Self {
+                    id: artist.id,
+                    name: artist.name,
+                    bio: artist.bio,
+                    image: artist.image,
+                    ..Default::default()
+                }
+            }
+        }
+
+        impl From<rockbox_search::rockbox::search::v1alpha1::Track> for Track {
+            fn from(track: rockbox_search::rockbox::search::v1alpha1::Track) -> Self {
+                Self {
+                    id: track.id,
+                    path: track.path,
+                    title: track.title,
+                    artist: track.artist,
+                    album: track.album,
+                    album_artist: track.album_artist,
+                    bitrate: track.bitrate,
+                    composer: track.composer,
+                    disc_number: track.disc_number,
+                    filesize: track.filesize,
+                    frequency: track.frequency,
+                    length: track.length,
+                    track_number: track.track_number,
+                    year: track.year,
+                    year_string: track.year_string,
+                    genre: track.genre,
+                    md5: track.md5,
+                    album_art: track.album_art,
+                    artist_id: track.artist_id,
+                    album_id: track.album_id,
+                    genre_id: track.genre_id,
+                    created_at: track.created_at,
+                    updated_at: track.updated_at,
+                }
+            }
+        }
+
+        impl From<rockbox_types::SearchResults> for SearchResponse {
+            fn from(results: rockbox_types::SearchResults) -> Self {
+                Self {
+                    artists: results.artists.into_iter().map(Into::into).collect(),
+                    albums: results.albums.into_iter().map(Into::into).collect(),
+                    tracks: results.tracks.into_iter().map(Into::into).collect(),
                 }
             }
         }

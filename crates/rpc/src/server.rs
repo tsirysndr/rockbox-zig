@@ -42,6 +42,7 @@ pub async fn start(
         )
         .add_service(tonic_web::enable(LibraryServiceServer::new(Library::new(
             pool.clone(),
+            client.clone(),
         ))))
         .add_service(tonic_web::enable(PlaylistServiceServer::new(
             Playlist::new(cmd_tx.clone(), client.clone(), pool.clone()),

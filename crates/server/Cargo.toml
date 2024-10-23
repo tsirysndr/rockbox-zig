@@ -16,7 +16,9 @@ reqwest = {version = "0.12.7", features = ["blocking", "rustls-tls"], default-fe
 rockbox-graphql = {path = "../graphql"}
 rockbox-library = {path = "../library"}
 rockbox-rpc = {path = "../rpc"}
+rockbox-search = {path = "../search"}
 rockbox-sys = {path = "../sys"}
+rockbox-types = {path = "../types"}
 serde = {version = "1.0.210", features = ["derive"]}
 serde_json = "1.0.128"
 sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}

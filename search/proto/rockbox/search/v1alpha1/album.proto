@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package rockbox.search.v1alpha1;
+
+option go_package = "github.com/tsirysndr/rockbox-zig/gen/rockbox/search/v1alpha1";
+
+message Album {
+  string id = 1;
+  string title = 2;
+  string artist = 3;
+  uint32 year = 4;
+  string year_string = 5;
+  optional string album_art = 6;
+  string md5 = 7;
+  string artist_id = 8;
+}
+
+message AlbumList {
+  repeated Album albums = 1;
+}

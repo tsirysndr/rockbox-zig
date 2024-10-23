@@ -1,9 +1,7 @@
-use crate::{
-    http::{Context, Request, Response},
-    types::NewVolume,
-};
+use crate::http::{Context, Request, Response};
 use anyhow::Error;
 use rockbox_sys as rb;
+use rockbox_types::NewVolume;
 
 pub async fn play(_ctx: &Context, req: &Request, _res: &mut Response) -> Result<(), Error> {
     let elapsed = match req.query_params.get("elapsed") {

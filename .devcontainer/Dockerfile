@@ -34,7 +34,9 @@ RUN curl -fsSL https://bun.sh/install | bash
 
 ENV PATH=/root/.bun/bin:$PATH
 
-RUN pkgx install node
+RUN pkgx install node go protoc buf
+
+RUN go get github.com/golang/protobuf/protoc-gen-go
 
 ENV LANG=en_US.UTF-8
 

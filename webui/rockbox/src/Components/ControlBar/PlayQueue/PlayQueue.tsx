@@ -113,7 +113,7 @@ const PlayQueue: FC<PlayQueueProps> = ({
                 position: "absolute",
                 top: 0,
                 left: 0,
-                width: "calc(100% - 34px)",
+                width: "calc(100% - 12px)",
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >

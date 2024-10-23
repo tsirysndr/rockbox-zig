@@ -33,6 +33,7 @@ export const Switch = styled(Title)`
 export const List = styled.div`
   height: calc(100% - 59.5px);
   overflow-y: auto;
+  overflow-x: hidden;
 `;
 
 export const ListItem = styled.div`
@@ -95,6 +96,7 @@ export const Remove = styled.button`
   background-color: transparent;
   cursor: pointer;
   border: none;
+  margin-right: 10px;
 `;
 
 export const Placeholder = styled.div`

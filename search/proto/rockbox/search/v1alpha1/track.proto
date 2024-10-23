@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package rockbox.search.v1alpha1;
+
+option go_package = "github.com/tsirysndr/rockbox-zig/gen/rockbox/search/v1alpha1";
+
+message Track {
+  string id = 1;
+  string path = 2;
+  string title = 3;
+  string artist = 4;
+  string album = 5;
+  string album_artist = 6;
+  uint32 bitrate = 7;
+  string composer = 8;
+  uint32 disc_number = 9;
+  uint32 filesize = 10;
+  uint32 frequency = 11;
+  uint32 length = 12;
+  uint32 track_number = 13;
+  uint32 year = 14;
+  string year_string = 15;
+  string genre = 16;
+  string md5 = 17;
+  optional string album_art = 18;
+  optional string artist_id = 19;
+  optional string album_id = 20;
+  optional string genre_id = 21;
+  string created_at = 22;
+  string updated_at = 23;
+}
+
+message TrackList {
+  repeated Track tracks = 1;
+}

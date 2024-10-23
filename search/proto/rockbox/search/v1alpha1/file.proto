@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package rockbox.search.v1alpha1;
+
+option go_package = "github.com/tsirysndr/rockbox-zig/gen/rockbox/search/v1alpha1";
+
+message File {
+  string id = 1;
+  string name = 2;
+  uint32 time_write = 4;
+  bool is_directory = 5;
+}
+
+message FileList {
+  repeated File files = 1;
+}

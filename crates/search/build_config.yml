@@ -1,0 +1,36 @@
+---
+includes: [src/proto]
+files:
+  - src/proto/rockbox/search/v1alpha1/album.proto
+  - src/proto/rockbox/search/v1alpha1/artist.proto
+  - src/proto/rockbox/search/v1alpha1/file.proto
+  - src/proto/rockbox/search/v1alpha1/like.proto
+  - src/proto/rockbox/search/v1alpha1/track.proto
+output: src/pb
+messages:
+  - paths:
+      - rockbox.search.v1alpha1.Album
+      - rockbox.search.v1alpha1.AlbumList
+      - rockbox.search.v1alpha1.Artist
+      - rockbox.search.v1alpha1.ArtistList
+      - rockbox.search.v1alpha1.File
+      - rockbox.search.v1alpha1.FileList
+      - rockbox.search.v1alpha1.LikedTrack
+      - rockbox.search.v1alpha1.LikedTrackList
+      - rockbox.search.v1alpha1.LikedAlbum
+      - rockbox.search.v1alpha1.LikedAlbumList
+      - rockbox.search.v1alpha1.Track
+      - rockbox.search.v1alpha1.TrackList
+    attrs:
+      - derive(serde::Serialize, serde::Deserialize)
+      - serde(default)
+enums:
+  - paths: []
+    attrs:
+      - derive(serde::Serialize, serde::Deserialize)
+      - serde(rename_all = "lowercase")
+fields:
+  - paths: []
+    attrs:
+btree_map: ["."]
+bytes: ["."]

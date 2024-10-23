@@ -1,25 +1,28 @@
-use std::env;
-
-use rockbox_library::{audio_scan::scan_audio_files, entity::favourites::Favourites, repo};
+use rockbox_library::{entity::favourites::Favourites, repo};
+use rockbox_types::SearchResults;
 use sqlx::Sqlite;
 
-use crate::api::rockbox::v1alpha1::{
-    library_service_server::LibraryService, Album, Artist, GetAlbumRequest, GetAlbumResponse,
-    GetAlbumsRequest, GetAlbumsResponse, GetArtistRequest, GetArtistResponse, GetArtistsRequest,
-    GetArtistsResponse, GetLikedAlbumsRequest, GetLikedAlbumsResponse, GetLikedTracksRequest,
-    GetLikedTracksResponse, GetTrackRequest, GetTrackResponse, GetTracksRequest, GetTracksResponse,
-    LikeAlbumRequest, LikeAlbumResponse, LikeTrackRequest, LikeTrackResponse, ScanLibraryRequest,
-    ScanLibraryResponse, UnlikeAlbumRequest, UnlikeAlbumResponse, UnlikeTrackRequest,
-    UnlikeTrackResponse,
+use crate::{
+    api::rockbox::v1alpha1::{
+        library_service_server::LibraryService, Album, Artist, GetAlbumRequest, GetAlbumResponse,
+        GetAlbumsRequest, GetAlbumsResponse, GetArtistRequest, GetArtistResponse,
+        GetArtistsRequest, GetArtistsResponse, GetLikedAlbumsRequest, GetLikedAlbumsResponse,
+        GetLikedTracksRequest, GetLikedTracksResponse, GetTrackRequest, GetTrackResponse,
+        GetTracksRequest, GetTracksResponse, LikeAlbumRequest, LikeAlbumResponse, LikeTrackRequest,
+        LikeTrackResponse, ScanLibraryRequest, ScanLibraryResponse, SearchRequest, SearchResponse,
+        UnlikeAlbumRequest, UnlikeAlbumResponse, UnlikeTrackRequest, UnlikeTrackResponse,
+    },
+    rockbox_url,
 };
 
 pub struct Library {
     pool: sqlx::Pool<Sqlite>,
+    client: reqwest::Client,
 }
 
 impl Library {
-    pub fn new(pool: sqlx::Pool<Sqlite>) -> Self {
-        Self { pool }
+    pub fn new(pool: sqlx::Pool<Sqlite>, client: reqwest::Client) -> Self {
+        Self { pool, client }
     }
 }
 
@@ -207,13 +210,33 @@ impl LibraryService for Library {
         &self,
         _request: tonic::Request<ScanLibraryRequest>,
     ) -> Result<tonic::Response<ScanLibraryResponse>, tonic::Status> {
-        let home = env::var("HOME").map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let path = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
+        let url = format!("{}/scan-library", rockbox_url());
+        self.client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(ScanLibraryResponse {}))
+    }
 
-        scan_audio_files(self.pool.clone(), path.into())
+    async fn search(
+        &self,
+        request: tonic::Request<SearchRequest>,
+    ) -> Result<tonic::Response<SearchResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let term = request.term;
+        let url = format!("{}/search?q={}", rockbox_url(), term);
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let results = response
+            .json::<SearchResults>()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        Ok(tonic::Response::new(ScanLibraryResponse {}))
+        Ok(tonic::Response::new(results.into()))
     }
 }

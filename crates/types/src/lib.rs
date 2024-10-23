@@ -1,3 +1,4 @@
+use rockbox_search::rockbox::search::v1alpha1::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,4 +28,14 @@ pub struct DeleteTracks {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StatusCode {
     pub code: i32,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub struct SearchResults {
+    pub artists: Vec<Artist>,
+    pub albums: Vec<Album>,
+    pub tracks: Vec<Track>,
+    pub liked_tracks: Vec<LikedTrack>,
+    pub liked_albums: Vec<LikedAlbum>,
+    pub files: Vec<File>,
 }

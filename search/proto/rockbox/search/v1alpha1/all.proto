@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package rockbox.search.v1alpha1;
+
+import "rockbox/search/v1alpha1/album.proto";
+import "rockbox/search/v1alpha1/artist.proto";
+import "rockbox/search/v1alpha1/file.proto";
+import "rockbox/search/v1alpha1/like.proto";
+import "rockbox/search/v1alpha1/track.proto";
+
+option go_package = "github.com/tsirysndr/rockbox-zig/gen/rockbox/search/v1alpha1";
+
+message All {
+  repeated rockbox.search.v1alpha1.Album albums = 1;
+  repeated rockbox.search.v1alpha1.Artist artists = 2;
+  repeated rockbox.search.v1alpha1.File files = 3;
+  repeated rockbox.search.v1alpha1.LikedAlbum liked_albums = 4;
+  repeated rockbox.search.v1alpha1.LikedTrack liked_track = 5;
+  repeated rockbox.search.v1alpha1.Track tracks = 6;
+}

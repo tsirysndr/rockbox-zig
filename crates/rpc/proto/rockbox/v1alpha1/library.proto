@@ -131,6 +131,16 @@ message ScanLibraryRequest {}
 
 message ScanLibraryResponse {}
 
+message SearchRequest {
+  string term = 1;
+}
+
+message SearchResponse {
+  repeated Track tracks = 1;
+  repeated Album albums = 2;
+  repeated Artist artists = 3;
+}
+
 service LibraryService {
   rpc GetAlbums(GetAlbumsRequest) returns (GetAlbumsResponse);
   rpc GetArtists(GetArtistsRequest) returns (GetArtistsResponse);
@@ -145,4 +155,5 @@ service LibraryService {
   rpc GetLikedTracks(GetLikedTracksRequest) returns (GetLikedTracksResponse);
   rpc GetLikedAlbums(GetLikedAlbumsRequest) returns (GetLikedAlbumsResponse);
   rpc ScanLibrary(ScanLibraryRequest) returns (ScanLibraryResponse);
+  rpc Search(SearchRequest) returns (SearchResponse);
 }

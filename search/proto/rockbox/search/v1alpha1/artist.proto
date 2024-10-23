@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package rockbox.search.v1alpha1;
+
+option go_package = "github.com/tsirysndr/rockbox-zig/gen/rockbox/search/v1alpha1";
+
+message Artist {
+  string id = 1;
+  string name = 2;
+  optional string bio = 3;
+  optional string image = 4;
+}
+
+message ArtistList {
+  repeated Artist artists = 1;
+}

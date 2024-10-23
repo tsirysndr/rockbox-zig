@@ -70,3 +70,36 @@ impl From<rockbox_library::entity::album::Album> for Album {
         }
     }
 }
+
+impl From<rockbox_search::rockbox::search::v1alpha1::Album> for Album {
+    fn from(album: rockbox_search::rockbox::search::v1alpha1::Album) -> Self {
+        Self {
+            id: album.id,
+            title: album.title,
+            artist: album.artist,
+            year: album.year,
+            year_string: album.year_string,
+            album_art: album.album_art,
+            md5: album.md5,
+            artist_id: album.artist_id,
+            tracks: vec![],
+        }
+    }
+}
+
+
+impl From<rockbox_search::rockbox::search::v1alpha1::LikedAlbum> for Album {
+    fn from(album: rockbox_search::rockbox::search::v1alpha1::LikedAlbum) -> Self {
+        Self {
+            id: album.id,
+            title: album.title,
+            artist: album.artist,
+            year: album.year,
+            year_string: album.year_string,
+            album_art: album.album_art,
+            md5: album.md5,
+            artist_id: album.artist_id,
+            tracks: vec![],
+        }
+    }
+}

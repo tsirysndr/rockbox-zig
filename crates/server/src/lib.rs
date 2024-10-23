@@ -18,7 +18,6 @@ use std::{
 pub mod cache;
 pub mod handlers;
 pub mod http;
-pub mod types;
 
 pub const AUDIO_EXTENSIONS: [&str; 17] = [
     "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",
@@ -79,6 +78,7 @@ pub extern "C" fn start_server() {
     app.get("/status", get_status);
     app.get("/settings", get_global_settings);
     app.put("/scan-library", scan_library);
+    app.get("/search", search);
 
     app.get("/", index);
     app.get("/operations/:id", index);
