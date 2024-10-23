@@ -723,36 +723,37 @@ pub mod api {
             }
         }
 
-        impl From<rockbox_search::rockbox::search::v1alpha1::Album> for Album {
-            fn from(album: rockbox_search::rockbox::search::v1alpha1::Album) -> Self {
+        impl From<rockbox_search::album::Album> for Album {
+            fn from(album: rockbox_search::album::Album) -> Self {
                 Self {
                     id: album.id,
                     title: album.title,
                     artist: album.artist,
-                    year: album.year,
+                    year: album.year as u32,
                     year_string: album.year_string,
                     album_art: album.album_art,
                     md5: album.md5,
                     artist_id: album.artist_id,
-                    ..Default::default()
+                    tracks: vec![],
                 }
             }
         }
 
-        impl From<rockbox_search::rockbox::search::v1alpha1::Artist> for Artist {
-            fn from(artist: rockbox_search::rockbox::search::v1alpha1::Artist) -> Self {
+        impl From<rockbox_search::artist::Artist> for Artist {
+            fn from(artist: rockbox_search::artist::Artist) -> Self {
                 Self {
                     id: artist.id,
                     name: artist.name,
                     bio: artist.bio,
                     image: artist.image,
-                    ..Default::default()
+                    albums: vec![],
+                    tracks: vec![],
                 }
             }
         }
 
-        impl From<rockbox_search::rockbox::search::v1alpha1::Track> for Track {
-            fn from(track: rockbox_search::rockbox::search::v1alpha1::Track) -> Self {
+        impl From<rockbox_search::track::Track> for Track {
+            fn from(track: rockbox_search::track::Track) -> Self {
                 Self {
                     id: track.id,
                     path: track.path,
@@ -760,14 +761,14 @@ pub mod api {
                     artist: track.artist,
                     album: track.album,
                     album_artist: track.album_artist,
-                    bitrate: track.bitrate,
+                    bitrate: track.bitrate as u32,
                     composer: track.composer,
-                    disc_number: track.disc_number,
-                    filesize: track.filesize,
-                    frequency: track.frequency,
-                    length: track.length,
-                    track_number: track.track_number,
-                    year: track.year,
+                    disc_number: track.disc_number as u32,
+                    filesize: track.filesize as u32,
+                    frequency: track.frequency as u32,
+                    length: track.length as u32,
+                    track_number: track.track_number as u32,
+                    year: track.year as u32,
                     year_string: track.year_string,
                     genre: track.genre,
                     md5: track.md5,
@@ -783,10 +784,26 @@ pub mod api {
 
         impl From<rockbox_types::SearchResults> for SearchResponse {
             fn from(results: rockbox_types::SearchResults) -> Self {
+                let artists = results
+                    .artists
+                    .into_iter()
+                    .map(|artist| artist.into())
+                    .collect();
+                let albums = results
+                    .albums
+                    .into_iter()
+                    .map(|album| album.into())
+                    .collect();
+                let tracks = results
+                    .tracks
+                    .into_iter()
+                    .map(|track| track.into())
+                    .collect();
+
                 Self {
-                    artists: results.artists.into_iter().map(Into::into).collect(),
-                    albums: results.albums.into_iter().map(Into::into).collect(),
-                    tracks: results.tracks.into_iter().map(Into::into).collect(),
+                    artists,
+                    albums,
+                    tracks,
                 }
             }
         }

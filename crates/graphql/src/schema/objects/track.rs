@@ -226,8 +226,8 @@ impl From<rockbox_library::entity::track::Track> for Track {
     }
 }
 
-impl From<rockbox_search::rockbox::search::v1alpha1::Track> for Track {
-    fn from(track: rockbox_search::rockbox::search::v1alpha1::Track) -> Self {
+impl From<rockbox_search::track::Track> for Track {
+    fn from(track: rockbox_search::track::Track) -> Self {
         Self {
             id: Some(track.id),
             title: track.title,
@@ -240,7 +240,7 @@ impl From<rockbox_search::rockbox::search::v1alpha1::Track> for Track {
             discnum: track.disc_number as i32,
             tracknum: track.track_number as i32,
             year: track.year as i32,
-            bitrate: track.bitrate,
+            bitrate: track.bitrate as u32,
             frequency: track.frequency as u64,
             filesize: track.filesize as u64,
             length: track.length as u64,
@@ -254,8 +254,8 @@ impl From<rockbox_search::rockbox::search::v1alpha1::Track> for Track {
     }
 }
 
-impl From<rockbox_search::rockbox::search::v1alpha1::LikedTrack> for Track {
-    fn from(track: rockbox_search::rockbox::search::v1alpha1::LikedTrack) -> Self {
+impl From<rockbox_search::liked_track::LikedTrack> for Track {
+    fn from(track: rockbox_search::liked_track::LikedTrack) -> Self {
         Self {
             id: Some(track.id),
             title: track.title,
@@ -268,7 +268,7 @@ impl From<rockbox_search::rockbox::search::v1alpha1::LikedTrack> for Track {
             discnum: track.disc_number as i32,
             tracknum: track.track_number as i32,
             year: track.year as i32,
-            bitrate: track.bitrate,
+            bitrate: track.bitrate as u32,
             frequency: track.frequency as u64,
             filesize: track.filesize as u64,
             length: track.length as u64,

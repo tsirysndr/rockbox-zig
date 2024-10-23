@@ -1,4 +1,8 @@
-use rockbox_search::rockbox::search::v1alpha1::*;
+use rockbox_search::artist::Artist;
+use rockbox_search::file::File;
+use rockbox_search::liked_album::LikedAlbum;
+use rockbox_search::liked_track::LikedTrack;
+use rockbox_search::{album::Album, track::Track};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]

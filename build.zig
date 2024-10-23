@@ -2925,11 +2925,7 @@ pub fn build(b: *std.Build) !void {
     exe.addLibraryPath(.{
         .cwd_relative = "./target/release",
     });
-    exe.addLibraryPath(.{
-        .cwd_relative = "./search",
-    });
     exe.linkSystemLibrary("rockbox_cli");
-    exe.linkSystemLibrary("rockboxsearch");
     exe.linkSystemLibrary("rockbox_server");
     exe.linkSystemLibrary("libunwind");
     exe.linkLibrary(libfirmware);

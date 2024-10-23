@@ -431,7 +431,6 @@ zig: $(BUILDDIR)/apps/recorder/jpeg_load.o $(BUILDDIR)/lang/lang.h $(BUILDDIR)/l
 	cd .. \
 	&& cargo build -p rockbox-cli --release \
 	&& cargo build -p rockbox-server --release \
-	&& cd search && go build -buildmode=c-archive -o librockboxsearch.a \
 	&& cd .. && zig build all
 help:
 	@echo "A few helpful make targets"

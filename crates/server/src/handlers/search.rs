@@ -1,8 +1,6 @@
 use crate::http::{Context, Request, Response};
 use anyhow::Error;
-use rockbox_search::{
-    search_album, search_artist, search_file, search_liked_album, search_liked_track, search_track,
-};
+use rockbox_search::{search_entities, Searchable};
 use rockbox_types::SearchResults;
 
 pub async fn search(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
@@ -17,12 +15,12 @@ pub async fn search(_ctx: &Context, req: &Request, res: &mut Response) -> Result
             res.json(&SearchResults::default());
         }
         Some(term) => {
-            let albums = search_album(term)?.albums;
-            let artists = search_artist(term)?.artists;
-            let tracks = search_track(term)?.tracks;
-            let files = search_file(term)?.files;
-            let liked_tracks = search_liked_track(term)?.tracks;
-            let liked_albums = search_liked_album(term)?.albums;
+            let albums = vec![];
+            let artists = vec![];
+            let tracks = vec![];
+            let files = vec![];
+            let liked_tracks = vec![];
+            let liked_albums = vec![];
 
             let results = SearchResults {
                 albums,

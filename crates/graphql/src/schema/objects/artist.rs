@@ -53,8 +53,8 @@ impl From<rockbox_library::entity::artist::Artist> for Artist {
     }
 }
 
-impl From<rockbox_search::rockbox::search::v1alpha1::Artist> for Artist {
-    fn from(artist: rockbox_search::rockbox::search::v1alpha1::Artist) -> Self {
+impl From<rockbox_search::artist::Artist> for Artist {
+    fn from(artist: rockbox_search::artist::Artist) -> Self {
         Self {
             id: artist.id,
             name: artist.name,

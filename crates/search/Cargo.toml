@@ -5,13 +5,5 @@ version = "0.1.0"
 
 [dependencies]
 anyhow = "1.0.90"
-prost = "0.13.3"
-prost-helper = "0.8.3"
-prost-types = "0.13.3"
 serde = {version = "1.0.213", features = ["derive"]}
-
-[build-dependencies]
-prost-build = "0.13.3"
-prost-serde = "0.3.0"
-serde = {version = "1.0.213", features = ["derive"]}
-serde_yaml = "0.9.34"
+tantivy = "0.22.0"
