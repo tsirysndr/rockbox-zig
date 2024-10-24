@@ -1,0 +1,10 @@
+[package]
+edition = "2021"
+name = "rockbox-search"
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1.0.90"
+rockbox-library = {path = "../library"}
+serde = {version = "1.0.213", features = ["derive"]}
+tantivy = "0.22.0"

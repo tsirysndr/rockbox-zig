@@ -28,6 +28,7 @@ const FilesWithData: FC = () => {
     playDirectory({
       variables: {
         path,
+        recurse: true,
       },
     });
   };

@@ -34,6 +34,8 @@ export type TracksProps = {
   onPlayTrack: (index: number) => void;
   onPlayAll: () => void;
   onShuffleAll: () => void;
+  keyword?: string;
+  loading?: boolean;
 };
 
 const Likes: FC<TracksProps> = (props) => {
@@ -188,7 +190,7 @@ const Likes: FC<TracksProps> = (props) => {
         <ControlBar />
         <ContentWrapper ref={containerRef}>
           <Title>Likes</Title>
-          {props.tracks.length > 0 && (
+          {(props.tracks.length > 0 || props.keyword) && !props.loading && (
             <>
               <HeaderWrapper>
                 <ButtonGroup>
@@ -207,7 +209,7 @@ const Likes: FC<TracksProps> = (props) => {
                   </Button>
                 </ButtonGroup>
                 <FilterContainer>
-                  <Filter placeholder="Search song" onChange={() => {}} />
+                  <Filter placeholder="Search song" />
                 </FilterContainer>
               </HeaderWrapper>
               <div style={{ marginBottom: 60 }}>

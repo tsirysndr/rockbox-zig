@@ -1,12 +1,11 @@
-use std::env;
-
 use async_graphql::*;
-use rockbox_library::{audio_scan::scan_audio_files, entity::favourites::Favourites, repo};
+use rockbox_library::{entity::favourites::Favourites, repo};
+use rockbox_search::{search_entities, Indexes};
 use sqlx::{Pool, Sqlite};
 
-use crate::schema::objects::track::Track;
+use crate::{rockbox_url, schema::objects::track::Track};
 
-use super::objects::{album::Album, artist::Artist};
+use super::objects::{album::Album, artist::Artist, search::SearchResults};
 
 #[derive(Default)]
 pub struct LibraryQuery;
@@ -74,6 +73,43 @@ impl LibraryQuery {
         let results = repo::favourites::all_albums(pool.clone()).await?;
         Ok(results.into_iter().map(Into::into).collect())
     }
+
+    async fn search(&self, ctx: &Context<'_>, term: String) -> Result<SearchResults, Error> {
+        let indexes = ctx.data::<Indexes>()?;
+        let albums = search_entities(
+            &indexes.albums,
+            &term,
+            &rockbox_search::album::Album::default(),
+        )?;
+        let artists = search_entities(
+            &indexes.artists,
+            &term,
+            &rockbox_search::artist::Artist::default(),
+        )?;
+        let tracks = search_entities(
+            &indexes.tracks,
+            &term,
+            &rockbox_search::track::Track::default(),
+        )?;
+        let liked_tracks = search_entities(
+            &indexes.liked_tracks,
+            &term,
+            &rockbox_search::liked_track::LikedTrack::default(),
+        )?;
+        let liked_albums = search_entities(
+            &indexes.liked_albums,
+            &term,
+            &rockbox_search::liked_album::LikedAlbum::default(),
+        )?;
+
+        Ok(SearchResults {
+            albums: albums.into_iter().map(|(_, x)| x.into()).collect(),
+            artists: artists.into_iter().map(|(_, x)| x.into()).collect(),
+            tracks: tracks.into_iter().map(|(_, x)| x.into()).collect(),
+            liked_tracks: liked_tracks.into_iter().map(|(_, x)| x.into()).collect(),
+            liked_albums: liked_albums.into_iter().map(|(_, x)| x.into()).collect(),
+        })
+    }
 }
 
 #[derive(Default)]
@@ -124,10 +160,9 @@ impl LibraryMutation {
     }
 
     async fn scan_library(&self, ctx: &Context<'_>) -> Result<i32, Error> {
-        let pool = ctx.data::<Pool<Sqlite>>()?;
-        let home = env::var("HOME")?;
-        let path = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
-        scan_audio_files(pool.clone(), path.into()).await?;
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/scan-library", rockbox_url());
+        client.put(&url).send().await?;
         Ok(0)
     }
 }

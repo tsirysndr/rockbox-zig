@@ -1,114 +1,93 @@
-use async_graphql::*;
+use crate::{Indexable, Searchable};
+use rockbox_library::entity;
 use serde::{Deserialize, Serialize};
-use tantivy::schema::Schema;
-use tantivy::schema::SchemaBuilder;
-use tantivy::schema::Value;
-use tantivy::schema::*;
-use tantivy::TantivyDocument;
+use tantivy::{doc, schema::*, TantivyDocument};
 
-use super::track::Track;
-
-#[derive(Default, Clone, Serialize, Deserialize)]
-pub struct Album {
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct LikedAlbum {
     pub id: String,
     pub title: String,
     pub artist: String,
-    pub year: u32,
+    pub year: i64,
     pub year_string: String,
     pub album_art: Option<String>,
     pub md5: String,
     pub artist_id: String,
-    pub tracks: Vec<Track>,
 }
 
-#[Object]
-impl Album {
-    async fn id(&self) -> &str {
-        &self.id
+impl Indexable for LikedAlbum {
+    fn to_document(&self) -> TantivyDocument {
+        let schema: Schema = self.build_schema();
+
+        let id = schema.get_field("id").unwrap();
+        let title = schema.get_field("title").unwrap();
+        let artist = schema.get_field("artist").unwrap();
+        let year = schema.get_field("year").unwrap();
+        let year_string = schema.get_field("year_string").unwrap();
+        let album_art = schema.get_field("album_art").unwrap();
+        let md5 = schema.get_field("md5").unwrap();
+        let artist_id = schema.get_field("artist_id").unwrap();
+
+        let mut document = doc!(
+            id => self.id.to_owned(),
+            title => self.title.to_owned(),
+            artist => self.artist.to_owned(),
+            year => self.year,
+            year_string => self.year_string.to_owned(),
+        );
+
+        if let Some(value) = &self.album_art {
+            document.add_text(album_art, value);
+        }
+
+        document.add_text(md5, &self.md5);
+        document.add_text(artist_id, &self.artist_id);
+
+        document
     }
 
-    async fn title(&self) -> &str {
-        &self.title
-    }
+    fn build_schema(&self) -> Schema {
+        let mut schema_builder: SchemaBuilder = Schema::builder();
 
-    async fn artist(&self) -> &str {
-        &self.artist
-    }
+        schema_builder.add_text_field("id", STRING | STORED);
+        schema_builder.add_text_field("title", TEXT | STORED);
+        schema_builder.add_text_field("artist", TEXT | STORED);
+        schema_builder.add_i64_field("year", STORED);
+        schema_builder.add_text_field("year_string", STRING | STORED);
+        schema_builder.add_text_field("album_art", STRING | STORED);
+        schema_builder.add_text_field("md5", STRING | STORED);
+        schema_builder.add_text_field("artist_id", STRING | STORED);
 
-    async fn year(&self) -> i32 {
-        self.year as i32
-    }
-
-    async fn year_string(&self) -> &str {
-        &self.year_string
-    }
-
-    async fn album_art(&self) -> Option<&str> {
-        self.album_art.as_deref()
-    }
-
-    async fn md5(&self) -> &str {
-        &self.md5
-    }
-
-    async fn artist_id(&self) -> &str {
-        &self.artist_id
-    }
-
-    async fn tracks(&self) -> Vec<Track> {
-        self.tracks.clone()
+        schema_builder.build()
     }
 }
 
-impl From<rockbox_library::entity::album::Album> for Album {
-    fn from(album: rockbox_library::entity::album::Album) -> Self {
+impl Searchable for LikedAlbum {
+    fn schema(&self) -> Schema {
+        self.build_schema()
+    }
+
+    fn default_fields(&self) -> Vec<String> {
+        vec!["title".to_string(), "artist".to_string()]
+    }
+}
+
+impl From<entity::album::Album> for LikedAlbum {
+    fn from(album: entity::album::Album) -> Self {
         Self {
             id: album.id,
             title: album.title,
             artist: album.artist,
-            year: album.year,
+            year: album.year as i64,
             year_string: album.year_string,
             album_art: album.album_art,
             md5: album.md5,
             artist_id: album.artist_id,
-            tracks: vec![],
         }
     }
 }
 
-impl From<rockbox_search::album::Album> for Album {
-    fn from(album: rockbox_search::album::Album) -> Self {
-        Self {
-            id: album.id,
-            title: album.title,
-            artist: album.artist,
-            year: album.year as u32,
-            year_string: album.year_string,
-            album_art: album.album_art,
-            md5: album.md5,
-            artist_id: album.artist_id,
-            tracks: vec![],
-        }
-    }
-}
-
-impl From<rockbox_search::liked_album::LikedAlbum> for Album {
-    fn from(album: rockbox_search::liked_album::LikedAlbum) -> Self {
-        Self {
-            id: album.id,
-            title: album.title,
-            artist: album.artist,
-            year: album.year as u32,
-            year_string: album.year_string,
-            album_art: album.album_art,
-            md5: album.md5,
-            artist_id: album.artist_id,
-            tracks: vec![],
-        }
-    }
-}
-
-impl From<TantivyDocument> for Album {
+impl From<TantivyDocument> for LikedAlbum {
     fn from(document: TantivyDocument) -> Self {
         let mut schema_builder: SchemaBuilder = Schema::builder();
 
@@ -139,7 +118,7 @@ impl From<TantivyDocument> for Album {
             .as_str()
             .unwrap()
             .to_string();
-        let year = document.get_first(year_field).unwrap().as_i64().unwrap() as u32;
+        let year = document.get_first(year_field).unwrap().as_i64().unwrap();
         let year_string = document
             .get_first(year_string_field)
             .unwrap()
@@ -175,7 +154,6 @@ impl From<TantivyDocument> for Album {
             album_art,
             md5,
             artist_id,
-            ..Default::default()
         }
     }
 }

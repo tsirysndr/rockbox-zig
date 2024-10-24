@@ -1,5 +1,6 @@
 use anyhow::Error;
 use owo_colors::OwoColorize;
+use rockbox_search::{create_indexes, Indexes};
 use rockbox_sys::{
     self as rb,
     types::{mp3_entry::Mp3Entry, tree::Entry},
@@ -23,6 +24,7 @@ pub struct Context {
     pub pool: sqlx::Pool<Sqlite>,
     pub fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
     pub metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
+    pub indexes: Indexes,
 }
 
 #[derive(Debug)]
@@ -237,6 +239,8 @@ impl RockboxHttpServer {
         let fs_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
         let metadata_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
 
+        let indexes = create_indexes()?;
+
         loop {
             match listener.accept() {
                 Ok((stream, _)) => {
@@ -249,6 +253,7 @@ impl RockboxHttpServer {
                     let mut cloned_self = self.clone();
                     let cloned_fs_cache = fs_cache.clone();
                     let cloned_metadata_cache = metadata_cache.clone();
+                    let cloned_indexes = indexes.clone();
                     pool.execute(move || {
                         let mut buf_reader = BufReader::new(&stream);
                         let mut request = String::new();
@@ -314,6 +319,7 @@ impl RockboxHttpServer {
                                 req_body,
                                 cloned_fs_cache,
                                 cloned_metadata_cache,
+                                cloned_indexes,
                             );
                         }
 
@@ -357,6 +363,7 @@ impl RockboxHttpServer {
         body: Option<String>,
         fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
         metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
+        indexes: Indexes,
     ) {
         println!("{} {}", method.bright_cyan(), path);
         match self.router.route(method, path) {
@@ -366,6 +373,7 @@ impl RockboxHttpServer {
                     pool,
                     fs_cache,
                     metadata_cache,
+                    indexes,
                 };
                 let request = Request {
                     method: method.to_string(),

@@ -13,6 +13,8 @@ export type AlbumsProps = {
   onFilter: (filter: string) => void;
   onLike: (album: any) => void;
   onUnLike: (album: any) => void;
+  keyword?: string;
+  loading?: boolean;
 };
 
 const Albums: FC<AlbumsProps> = (props) => {
@@ -24,10 +26,10 @@ const Albums: FC<AlbumsProps> = (props) => {
         <ControlBar />
         <Scrollable>
           <Title>Albums</Title>
-          {props.albums.length > 0 && (
+          {(props.albums.length > 0 || props.keyword) && !props.loading && (
             <>
               <FilterContainer>
-                <Filter placeholder="Search albums" onChange={() => {}} />
+                <Filter placeholder="Search albums" />
               </FilterContainer>
               <div style={{ marginBottom: 100 }}>
                 <Grid

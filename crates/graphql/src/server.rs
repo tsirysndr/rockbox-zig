@@ -16,6 +16,7 @@ use anyhow::Error;
 use async_graphql::{http::GraphiQLSource, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse, GraphQLSubscription};
 use rockbox_library::{create_connection_pool, repo};
+use rockbox_search::create_indexes;
 use rockbox_sys::events::RockboxCommand;
 use rockbox_webui::{dist, index, index_spa};
 use sqlx::{Pool, Sqlite};
@@ -89,6 +90,7 @@ async fn index_file(req: HttpRequest) -> Result<NamedFile, actix_web::Error> {
 pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Error> {
     let client = reqwest::Client::new();
     let pool = create_connection_pool().await?;
+    let indexes = create_indexes()?;
     let schema = Schema::build(
         Query::default(),
         Mutation::default(),
@@ -97,6 +99,7 @@ pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Err
     .data(cmd_tx)
     .data(client)
     .data(pool.clone())
+    .data(indexes)
     .finish();
 
     let graphql_port = std::env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string());

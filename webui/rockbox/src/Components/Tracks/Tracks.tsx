@@ -27,6 +27,8 @@ const columnHelper = createColumnHelper<Track>();
 export type TracksProps = {
   tracks: Track[];
   onPlayTrack: (index: number) => void;
+  keyword?: string;
+  loading?: boolean;
 };
 
 const Tracks: FC<TracksProps> = (props) => {
@@ -180,10 +182,10 @@ const Tracks: FC<TracksProps> = (props) => {
         <ControlBar />
         <ContentWrapper ref={containerRef}>
           <Title>Songs</Title>
-          {props.tracks.length > 0 && (
+          {(props.tracks.length > 0 || props.keyword) && !props.loading && (
             <>
               <FilterContainer>
-                <Filter placeholder="Search song" onChange={() => {}} />
+                <Filter placeholder="Search song" />
               </FilterContainer>
               <div style={{ marginBottom: 60 }}>
                 {props.tracks.length > 0 && (

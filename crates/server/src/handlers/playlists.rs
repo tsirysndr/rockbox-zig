@@ -1,7 +1,4 @@
-use crate::{
-    http::{Context, Request, Response},
-    types::{DeleteTracks, InsertTracks, NewPlaylist, StatusCode},
-};
+use crate::http::{Context, Request, Response};
 use anyhow::Error;
 use rand::seq::SliceRandom;
 use rockbox_graphql::read_files;
@@ -10,6 +7,7 @@ use rockbox_sys::{
     self as rb, types::playlist_amount::PlaylistAmount, PLAYLIST_INSERT_LAST,
     PLAYLIST_INSERT_LAST_SHUFFLED,
 };
+use rockbox_types::{DeleteTracks, InsertTracks, NewPlaylist, StatusCode};
 
 pub async fn create_playlist(
     _ctx: &Context,

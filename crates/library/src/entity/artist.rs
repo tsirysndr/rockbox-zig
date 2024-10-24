@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(sqlx::FromRow, Default, Serialize, Deserialize)]
+#[derive(sqlx::FromRow, Default, Serialize, Deserialize, Clone)]
 pub struct Artist {
     pub id: String,
     pub name: String,
