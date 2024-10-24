@@ -55,7 +55,8 @@ make zig
 - [x] [gRPC API](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
 - [x] GraphQL API
 - [x] HTTP API
-- [ ] Web Client (React)
+- [x] Web Client (React)
+- [x] Fast search engine, built with [Tantivy](https://github.com/quickwit-oss/tantivy)
 - [ ] Desktop Client (Electron/Gtk)
 - [ ] Terminal Client (TUI)
 - [ ] Android Library
