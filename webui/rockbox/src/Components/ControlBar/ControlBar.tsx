@@ -21,6 +21,7 @@ export type ControlBarProps = {
   liked?: boolean;
   onLike: (trackId: string) => void;
   onUnlike: (trackId: string) => void;
+  onSeek: (time: number) => void;
 };
 
 const ControlBar: FC<ControlBarProps> = (props) => {
@@ -57,6 +58,7 @@ const ControlBar: FC<ControlBarProps> = (props) => {
         liked={props.liked}
         onLike={props.onLike}
         onUnlike={props.onUnlike}
+        onSeek={props.onSeek}
       />
       <RightMenu />
     </Container>

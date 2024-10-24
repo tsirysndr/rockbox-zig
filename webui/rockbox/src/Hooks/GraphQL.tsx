@@ -743,6 +743,14 @@ export type PlayAllTracksMutationVariables = Exact<{
 
 export type PlayAllTracksMutation = { __typename?: 'Mutation', playAllTracks: number };
 
+export type SeekMutationVariables = Exact<{
+  elapsed: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
+}>;
+
+
+export type SeekMutation = { __typename?: 'Mutation', play: number };
+
 export type GetCurrentTrackQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1837,6 +1845,38 @@ export function usePlayAllTracksMutation(baseOptions?: Apollo.MutationHookOption
 export type PlayAllTracksMutationHookResult = ReturnType<typeof usePlayAllTracksMutation>;
 export type PlayAllTracksMutationResult = Apollo.MutationResult<PlayAllTracksMutation>;
 export type PlayAllTracksMutationOptions = Apollo.BaseMutationOptions<PlayAllTracksMutation, PlayAllTracksMutationVariables>;
+export const SeekDocument = gql`
+    mutation Seek($elapsed: Int!, $offset: Int!) {
+  play(elapsed: $elapsed, offset: $offset)
+}
+    `;
+export type SeekMutationFn = Apollo.MutationFunction<SeekMutation, SeekMutationVariables>;
+
+/**
+ * __useSeekMutation__
+ *
+ * To run a mutation, you first call `useSeekMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSeekMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [seekMutation, { data, loading, error }] = useSeekMutation({
+ *   variables: {
+ *      elapsed: // value for 'elapsed'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useSeekMutation(baseOptions?: Apollo.MutationHookOptions<SeekMutation, SeekMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SeekMutation, SeekMutationVariables>(SeekDocument, options);
+      }
+export type SeekMutationHookResult = ReturnType<typeof useSeekMutation>;
+export type SeekMutationResult = Apollo.MutationResult<SeekMutation>;
+export type SeekMutationOptions = Apollo.BaseMutationOptions<SeekMutation, SeekMutationVariables>;
 export const GetCurrentTrackDocument = gql`
     query GetCurrentTrack {
   currentTrack {

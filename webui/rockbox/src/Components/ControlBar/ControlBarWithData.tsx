@@ -12,6 +12,7 @@ import {
   usePlaybackStatusSubscription,
   usePreviousMutation,
   useResumeMutation,
+  useSeekMutation,
   useUnlikeTrackMutation,
 } from "../../Hooks/GraphQL";
 import { CurrentTrack } from "../../Types/track";
@@ -39,6 +40,7 @@ const ControlBarWithData: FC = () => {
   const { resumePlaylistTrack } = useResumePlaylist();
   const [likeTrack] = useLikeTrackMutation();
   const [unlikeTrack] = useUnlikeTrackMutation();
+  const [seek] = useSeekMutation();
 
   const [likes, setLikes] = useRecoilState(likesState);
   const { data: likedTracksData, loading: likedTracksLoading } =
@@ -250,6 +252,19 @@ const ControlBarWithData: FC = () => {
     }
   };
 
+  const onSeek = (elapsed: number) => {
+    if (!nowPlaying) {
+      return;
+    }
+
+    seek({
+      variables: {
+        elapsed,
+        offset: 0,
+      },
+    });
+  };
+
   return (
     <ControlBar
       nowPlaying={nowPlaying}
@@ -262,6 +277,7 @@ const ControlBarWithData: FC = () => {
       liked={likes[nowPlaying?.id || ""]}
       onLike={onLike}
       onUnlike={onUnlike}
+      onSeek={onSeek}
     />
   );
 };
