@@ -11,7 +11,6 @@ futures = "0.3.30"
 lofty = "0.21.1"
 md5 = "0.7.0"
 owo-colors = "4.1.0"
-rockbox-search = {path = "../search"}
 rockbox-sys = {path = "../sys"}
 serde = "1.0.210"
 sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}

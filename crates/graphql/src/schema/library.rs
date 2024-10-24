@@ -1,5 +1,6 @@
 use async_graphql::*;
 use rockbox_library::{entity::favourites::Favourites, repo};
+use rockbox_search::{search_entities, Indexes};
 use sqlx::{Pool, Sqlite};
 
 use crate::{rockbox_url, schema::objects::track::Track};
@@ -74,13 +75,40 @@ impl LibraryQuery {
     }
 
     async fn search(&self, ctx: &Context<'_>, term: String) -> Result<SearchResults, Error> {
-        let client = ctx.data::<reqwest::Client>().unwrap();
+        let indexes = ctx.data::<Indexes>()?;
+        let albums = search_entities(
+            &indexes.albums,
+            &term,
+            &rockbox_search::album::Album::default(),
+        )?;
+        let artists = search_entities(
+            &indexes.artists,
+            &term,
+            &rockbox_search::artist::Artist::default(),
+        )?;
+        let tracks = search_entities(
+            &indexes.tracks,
+            &term,
+            &rockbox_search::track::Track::default(),
+        )?;
+        let liked_tracks = search_entities(
+            &indexes.liked_tracks,
+            &term,
+            &rockbox_search::liked_track::LikedTrack::default(),
+        )?;
+        let liked_albums = search_entities(
+            &indexes.liked_albums,
+            &term,
+            &rockbox_search::liked_album::LikedAlbum::default(),
+        )?;
 
-        let url = format!("{}/search?q={}", rockbox_url(), term);
-        let response = client.get(&url).send().await?;
-        let results = response.json::<rockbox_types::SearchResults>().await?;
-
-        Ok(results.into())
+        Ok(SearchResults {
+            albums: albums.into_iter().map(|(_, x)| x.into()).collect(),
+            artists: artists.into_iter().map(|(_, x)| x.into()).collect(),
+            tracks: tracks.into_iter().map(|(_, x)| x.into()).collect(),
+            liked_tracks: liked_tracks.into_iter().map(|(_, x)| x.into()).collect(),
+            liked_albums: liked_albums.into_iter().map(|(_, x)| x.into()).collect(),
+        })
     }
 }
 

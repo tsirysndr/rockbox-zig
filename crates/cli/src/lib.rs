@@ -3,6 +3,10 @@ use clap::Command;
 use owo_colors::OwoColorize;
 use rockbox_library::audio_scan::scan_audio_files;
 use rockbox_library::{create_connection_pool, repo};
+use rockbox_search::album::Album;
+use rockbox_search::artist::Artist;
+use rockbox_search::track::Track;
+use rockbox_search::{create_indexes, delete_all_documents, index_entity};
 use std::{env, ffi::CStr};
 use std::{fs, thread};
 
@@ -76,7 +80,44 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             let pool = create_connection_pool().await?;
             let tracks = repo::track::all(pool.clone()).await?;
             if tracks.is_empty() || update_library {
-                scan_audio_files(pool, path.into()).await?;
+                scan_audio_files(pool.clone(), path.into()).await?;
+                let tracks = repo::track::all(pool.clone()).await?;
+                let albums = repo::album::all(pool.clone()).await?;
+                let artists = repo::artist::all(pool.clone()).await?;
+                let indexes = create_indexes()?;
+                let tracks_index = indexes.tracks.clone();
+                let albums_index = indexes.albums.clone();
+                let artists_index = indexes.artists.clone();
+
+                thread::spawn(move || {
+                    match delete_all_documents(&tracks_index) {
+                        Ok(_) => {}
+                        Err(e) => eprintln!("Error deleting all documents: {:?}", e),
+                    }
+                    for track in tracks {
+                        index_entity::<Track>(&tracks_index, &track.into()).unwrap();
+                    }
+                });
+
+                thread::spawn(move || {
+                    match delete_all_documents(&albums_index) {
+                        Ok(_) => {}
+                        Err(e) => eprintln!("Error deleting all documents: {:?}", e),
+                    }
+                    for album in albums {
+                        index_entity::<Album>(&albums_index, &album.into()).unwrap();
+                    }
+                });
+
+                thread::spawn(move || {
+                    match delete_all_documents(&artists_index) {
+                        Ok(_) => {}
+                        Err(e) => eprintln!("Error deleting all documents: {:?}", e),
+                    }
+                    for artist in artists {
+                        index_entity::<Artist>(&artists_index, &artist.into()).unwrap();
+                    }
+                });
             }
             Ok::<(), Error>(())
         })

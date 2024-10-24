@@ -7,7 +7,7 @@ import Search from "../Icons/Search";
 
 export type FilterProps = {
   placeholder?: string;
-  onChange: (value: string) => void;
+  onChange: (value: string) => Promise<void>;
 };
 
 const Filter: FC<FilterProps> = ({ placeholder = "Filter", onChange }) => {

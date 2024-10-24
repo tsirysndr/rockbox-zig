@@ -157,3 +157,60 @@ export const GET_LIKED_ALBUMS = gql`
     }
   }
 `;
+
+export const SEARCH = gql`
+  query Search($term: String!) {
+    search(term: $term) {
+      tracks {
+        id
+        title
+        artist
+        album
+        albumArtist
+        path
+        albumArt
+        length
+        composer
+        comment
+        albumId
+        artistId
+      }
+      albums {
+        id
+        title
+        year
+        yearString
+        albumArt
+        artist
+        artistId
+      }
+      artists {
+        id
+        name
+        image
+      }
+      likedTracks {
+        id
+        title
+        artist
+        album
+        albumArtist
+        path
+        albumArt
+        length
+        composer
+        comment
+        albumId
+        artistId
+      }
+      likedAlbums {
+        id
+        title
+        albumArt
+        artist
+        artistId
+        year
+      }
+    }
+  }
+`;

@@ -45,3 +45,32 @@ impl Searchable for File {
         vec!["name".to_string()]
     }
 }
+
+impl From<TantivyDocument> for File {
+    fn from(doc: TantivyDocument) -> Self {
+        let mut schema_builder: SchemaBuilder = Schema::builder();
+
+        let name_field = schema_builder.add_text_field("name", TEXT | STORED);
+        let time_write_field = schema_builder.add_i64_field("time_write", STORED);
+        let is_directory_field = schema_builder.add_bool_field("is_directory", STORED);
+
+        let name = doc
+            .get_first(name_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let time_write = doc.get_first(time_write_field).unwrap().as_i64().unwrap();
+        let is_directory = doc
+            .get_first(is_directory_field)
+            .unwrap()
+            .as_bool()
+            .unwrap();
+
+        Self {
+            name,
+            time_write,
+            is_directory,
+        }
+    }
+}

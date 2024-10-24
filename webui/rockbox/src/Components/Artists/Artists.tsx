@@ -21,6 +21,8 @@ export type ArtistsProps = {
   artists: any[];
   onClickArtist: (artist: any) => void;
   onFilter: (filter: string) => void;
+  keyword?: string;
+  loading?: boolean;
 };
 
 const Artists: FC<ArtistsProps> = (props) => {
@@ -32,10 +34,10 @@ const Artists: FC<ArtistsProps> = (props) => {
         <ControlBar />
         <Scrollable>
           <Title>Artists</Title>
-          {props.artists.length > 0 && (
+          {(props.artists.length > 0 || props.keyword) && !props.loading && (
             <>
               <FilterContainer>
-                <Filter placeholder="Search artists" onChange={() => {}} />
+                <Filter placeholder="Search artists" />
               </FilterContainer>
               <div style={{ marginBottom: 100 }}>
                 <Grid

@@ -1,3 +1,3 @@
-import Filter from "./Filter";
+import Filter from "./FilterWithData";
 
 export default Filter;

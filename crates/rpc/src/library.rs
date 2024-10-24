@@ -1,4 +1,5 @@
 use rockbox_library::{entity::favourites::Favourites, repo};
+use rockbox_search::search_entities;
 use rockbox_types::SearchResults;
 use sqlx::Sqlite;
 
@@ -18,11 +19,20 @@ use crate::{
 pub struct Library {
     pool: sqlx::Pool<Sqlite>,
     client: reqwest::Client,
+    indexes: rockbox_search::Indexes,
 }
 
 impl Library {
-    pub fn new(pool: sqlx::Pool<Sqlite>, client: reqwest::Client) -> Self {
-        Self { pool, client }
+    pub fn new(
+        pool: sqlx::Pool<Sqlite>,
+        client: reqwest::Client,
+        indexes: rockbox_search::Indexes,
+    ) -> Self {
+        Self {
+            pool,
+            client,
+            indexes,
+        }
     }
 }
 
@@ -225,18 +235,48 @@ impl LibraryService for Library {
     ) -> Result<tonic::Response<SearchResponse>, tonic::Status> {
         let request = request.into_inner();
         let term = request.term;
-        let url = format!("{}/search?q={}", rockbox_url(), term);
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let results = response
-            .json::<SearchResults>()
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        Ok(tonic::Response::new(results.into()))
+        let albums = search_entities(
+            &self.indexes.albums,
+            &term,
+            &rockbox_search::album::Album::default(),
+        )
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let artists = search_entities(
+            &self.indexes.artists,
+            &term,
+            &rockbox_search::artist::Artist::default(),
+        )
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks = search_entities(
+            &self.indexes.tracks,
+            &term,
+            &rockbox_search::track::Track::default(),
+        )
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let files = search_entities(
+            &self.indexes.files,
+            &term,
+            &rockbox_search::file::File::default(),
+        )
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let liked_tracks = search_entities(
+            &self.indexes.liked_tracks,
+            &term,
+            &rockbox_search::liked_track::LikedTrack::default(),
+        )
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let liked_albums = search_entities(
+            &self.indexes.liked_albums,
+            &term,
+            &rockbox_search::liked_album::LikedAlbum::default(),
+        )
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(tonic::Response::new(SearchResponse {
+            albums: albums.into_iter().map(|(_, x)| x.into()).collect(),
+            artists: artists.into_iter().map(|(_, x)| x.into()).collect(),
+            tracks: tracks.into_iter().map(|(_, x)| x.into()).collect(),
+        }))
     }
 }

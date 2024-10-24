@@ -1,4 +1,5 @@
 use crate::{Indexable, Searchable};
+use rockbox_library::entity;
 use serde::{Deserialize, Serialize};
 use tantivy::{doc, schema::*, TantivyDocument};
 
@@ -47,6 +48,7 @@ impl Indexable for Track {
         let length = schema.get_field("length").unwrap();
         let track_number = schema.get_field("track_number").unwrap();
         let year = schema.get_field("year").unwrap();
+        let year_string = schema.get_field("year_string").unwrap();
         let genre = schema.get_field("genre").unwrap();
         let md5 = schema.get_field("md5").unwrap();
         let album_art = schema.get_field("album_art").unwrap();
@@ -71,10 +73,9 @@ impl Indexable for Track {
             length => self.length,
             track_number => self.track_number,
             year => self.year,
+            year_string => self.year_string.to_owned(),
             genre => self.genre.to_owned(),
             md5 => self.md5.to_owned(),
-            created_at => self.created_at.to_owned(),
-            updated_at => self.updated_at.to_owned(),
         );
 
         if let Some(value) = &self.album_art {
@@ -92,6 +93,9 @@ impl Indexable for Track {
         if let Some(value) = &self.genre_id {
             document.add_text(genre_id, value);
         }
+
+        document.add_text(created_at, &self.created_at);
+        document.add_text(updated_at, &self.updated_at);
 
         document
     }
@@ -113,6 +117,7 @@ impl Indexable for Track {
         schema_builder.add_i64_field("length", STORED);
         schema_builder.add_i64_field("track_number", STORED);
         schema_builder.add_i64_field("year", STORED);
+        schema_builder.add_text_field("year_string", STRING | STORED);
         schema_builder.add_text_field("genre", TEXT | STORED);
         schema_builder.add_text_field("md5", STRING | STORED);
         schema_builder.add_text_field("album_art", STRING | STORED);
@@ -139,5 +144,210 @@ impl Searchable for Track {
             "album_artist".to_string(),
             "composer".to_string(),
         ]
+    }
+}
+
+impl From<entity::track::Track> for Track {
+    fn from(track: entity::track::Track) -> Self {
+        Self {
+            id: track.id,
+            path: track.path,
+            title: track.title,
+            artist: track.artist,
+            album: track.album,
+            album_artist: track.album_artist,
+            bitrate: track.bitrate as i64,
+            composer: track.composer,
+            disc_number: track.disc_number as i64,
+            filesize: track.filesize as i64,
+            frequency: track.frequency as i64,
+            length: track.length as i64,
+            track_number: track.track_number.unwrap_or_default() as i64,
+            year: track.year.unwrap_or_default() as i64,
+            year_string: track.year_string.unwrap_or_default(),
+            genre: track.genre.unwrap_or_default(),
+            md5: track.md5,
+            album_art: track.album_art,
+            artist_id: Some(track.artist_id),
+            album_id: Some(track.album_id),
+            genre_id: Some(track.genre_id),
+            created_at: track.created_at.to_rfc3339(),
+            updated_at: track.updated_at.to_rfc3339(),
+        }
+    }
+}
+
+impl From<TantivyDocument> for Track {
+    fn from(document: TantivyDocument) -> Self {
+        let mut schema_builder: SchemaBuilder = Schema::builder();
+
+        let id_field = schema_builder.add_text_field("id", STRING | STORED);
+        let path_field = schema_builder.add_text_field("path", TEXT | STORED);
+        let title_field = schema_builder.add_text_field("title", TEXT | STORED);
+        let artist_field = schema_builder.add_text_field("artist", TEXT | STORED);
+        let album_field = schema_builder.add_text_field("album", TEXT | STORED);
+        let album_artist_field = schema_builder.add_text_field("album_artist", TEXT | STORED);
+        let bitrate_field = schema_builder.add_i64_field("bitrate", STORED);
+        let composer_field = schema_builder.add_text_field("composer", TEXT | STORED);
+        let disc_number_field = schema_builder.add_i64_field("disc_number", STORED);
+        let filesize_field = schema_builder.add_i64_field("filesize", STORED);
+        let frequency_field = schema_builder.add_i64_field("frequency", STORED);
+        let length_field = schema_builder.add_i64_field("length", STORED);
+        let track_number_field = schema_builder.add_i64_field("track_number", STORED);
+        let year_field = schema_builder.add_i64_field("year", STORED);
+        let year_string_field = schema_builder.add_text_field("year_string", STRING | STORED);
+        let genre_field = schema_builder.add_text_field("genre", TEXT | STORED);
+        let md5_field = schema_builder.add_text_field("md5", STRING | STORED);
+        let album_art_field = schema_builder.add_text_field("album_art", STRING | STORED);
+        let artist_id_field = schema_builder.add_text_field("artist_id", STRING | STORED);
+        let album_id_field = schema_builder.add_text_field("album_id", STRING | STORED);
+        let genre_id_field = schema_builder.add_text_field("genre_id", STRING | STORED);
+        let created_at_field = schema_builder.add_text_field("created_at", STRING | STORED);
+        let updated_at_field = schema_builder.add_text_field("updated_at", STRING | STORED);
+
+        let id = document
+            .get_first(id_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let path = document
+            .get_first(path_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let title = document
+            .get_first(title_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let artist = document
+            .get_first(artist_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let album = document
+            .get_first(album_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let album_artist = document
+            .get_first(album_artist_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let bitrate = document.get_first(bitrate_field).unwrap().as_i64().unwrap();
+        let composer = document
+            .get_first(composer_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let disc_number = document
+            .get_first(disc_number_field)
+            .unwrap()
+            .as_i64()
+            .unwrap();
+        let filesize = document
+            .get_first(filesize_field)
+            .unwrap()
+            .as_i64()
+            .unwrap();
+        let frequency = document
+            .get_first(frequency_field)
+            .unwrap()
+            .as_i64()
+            .unwrap();
+        let length = document.get_first(length_field).unwrap().as_i64().unwrap();
+        let track_number = document
+            .get_first(track_number_field)
+            .unwrap()
+            .as_i64()
+            .unwrap();
+        let year = document.get_first(year_field).unwrap().as_i64().unwrap();
+        let year_string = document
+            .get_first(year_string_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let genre = document
+            .get_first(genre_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let md5 = document
+            .get_first(md5_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let album_art = match document.get_first(album_art_field) {
+            Some(album_art) => album_art.as_str(),
+            None => None,
+        };
+        let album_art = match album_art {
+            Some("") => None,
+            Some(album_art) => Some(album_art.to_string()),
+            None => None,
+        };
+        let artist_id = match document.get_first(artist_id_field) {
+            Some(artist_id) => Some(artist_id.as_str().unwrap().to_string()),
+            None => None,
+        };
+        let album_id = match document.get_first(album_id_field) {
+            Some(album_id) => Some(album_id.as_str().unwrap().to_string()),
+            None => None,
+        };
+        let album_id = match album_id {
+            Some(album_id) => Some(album_id.to_string()),
+            None => None,
+        };
+        let genre_id = match document.get_first(genre_id_field) {
+            Some(genre_id) => Some(genre_id.as_str().unwrap().to_string()),
+            None => None,
+        };
+        let created_at = document
+            .get_first(created_at_field)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .to_string();
+        let updated_at = match document.get_first(updated_at_field) {
+            Some(updated_at) => updated_at.as_str().unwrap().to_string(),
+            None => "".to_string(),
+        };
+
+        Self {
+            id,
+            path,
+            title,
+            artist,
+            album,
+            album_artist,
+            bitrate,
+            composer,
+            disc_number,
+            filesize,
+            frequency,
+            length,
+            track_number,
+            year,
+            year_string,
+            genre,
+            md5,
+            album_art,
+            artist_id,
+            album_id,
+            genre_id,
+            created_at,
+            updated_at,
+        }
     }
 }

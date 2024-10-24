@@ -17,6 +17,7 @@ use crate::settings::Settings;
 use crate::sound::Sound;
 use crate::system::System;
 use rockbox_library::create_connection_pool;
+use rockbox_search::create_indexes;
 use rockbox_sys::events::RockboxCommand;
 use tonic::transport::Server;
 
@@ -32,6 +33,7 @@ pub async fn start(
 
     let client = reqwest::Client::new();
     let pool = create_connection_pool().await?;
+    let indexes = create_indexes()?;
 
     Server::builder()
         .accept_http1(true)
@@ -43,6 +45,7 @@ pub async fn start(
         .add_service(tonic_web::enable(LibraryServiceServer::new(Library::new(
             pool.clone(),
             client.clone(),
+            indexes,
         ))))
         .add_service(tonic_web::enable(PlaylistServiceServer::new(
             Playlist::new(cmd_tx.clone(), client.clone(), pool.clone()),

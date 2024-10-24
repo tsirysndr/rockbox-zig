@@ -6,3 +6,4 @@ version = "0.1.0"
 [dependencies]
 rockbox-search = {path = "../search"}
 serde = {version = "1.0.213", features = ["derive"]}
+

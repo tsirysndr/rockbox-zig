@@ -5805,6 +5805,7 @@ dependencies = [
  "clap",
  "owo-colors 4.1.0",
  "rockbox-library",
+ "rockbox-search",
  "tokio",
 ]
 
@@ -5861,6 +5862,7 @@ dependencies = [
  "serde_json",
  "slab",
  "sqlx",
+ "tantivy",
  "tokio",
 ]
 
@@ -5875,7 +5877,6 @@ dependencies = [
  "lofty",
  "md5",
  "owo-colors 4.1.0",
- "rockbox-search",
  "rockbox-sys",
  "serde",
  "sqlx",
@@ -5900,6 +5901,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "tantivy",
  "tokio",
  "tonic",
  "tonic-build",
@@ -5912,6 +5914,7 @@ name = "rockbox-search"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "rockbox-library",
  "serde",
  "tantivy",
 ]

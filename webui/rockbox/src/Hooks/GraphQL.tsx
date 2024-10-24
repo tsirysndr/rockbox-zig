@@ -107,6 +107,7 @@ export type Mutation = {
   previous: Scalars['Int']['output'];
   resume: Scalars['Int']['output'];
   resumeTrack: Scalars['String']['output'];
+  scanLibrary: Scalars['Int']['output'];
   setPitch: Scalars['String']['output'];
   shufflePlaylist: Scalars['Int']['output'];
   soundMax: Scalars['String']['output'];
@@ -279,6 +280,7 @@ export type Query = {
   playlistAmount: Scalars['Int']['output'];
   playlistGetCurrent: Playlist;
   rockboxVersion: Scalars['String']['output'];
+  search: SearchResults;
   soundCurrent: Scalars['String']['output'];
   soundDefault: Scalars['String']['output'];
   soundVal2Phys: Scalars['String']['output'];
@@ -299,6 +301,11 @@ export type QueryArtistArgs = {
 };
 
 
+export type QuerySearchArgs = {
+  term: Scalars['String']['input'];
+};
+
+
 export type QueryTrackArgs = {
   id: Scalars['String']['input'];
 };
@@ -313,6 +320,15 @@ export type ReplaygainSettings = {
   noclip: Scalars['Boolean']['output'];
   preamp: Scalars['Int']['output'];
   type: Scalars['Int']['output'];
+};
+
+export type SearchResults = {
+  __typename?: 'SearchResults';
+  albums: Array<Album>;
+  artists: Array<Artist>;
+  likedAlbums: Array<Album>;
+  likedTracks: Array<Track>;
+  tracks: Array<Track>;
 };
 
 export type Subscription = {
@@ -640,6 +656,13 @@ export type GetLikedAlbumsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetLikedAlbumsQuery = { __typename?: 'Query', likedAlbums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> }> };
+
+export type SearchQueryVariables = Exact<{
+  term: Scalars['String']['input'];
+}>;
+
+
+export type SearchQuery = { __typename?: 'Query', search: { __typename?: 'SearchResults', tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArtist: string, path: string, albumArt?: string | null, length: number, composer: string, comment: string, albumId?: string | null, artistId?: string | null }>, albums: Array<{ __typename?: 'Album', id: string, title: string, year: number, yearString: string, albumArt?: string | null, artist: string, artistId: string }>, artists: Array<{ __typename?: 'Artist', id: string, name: string, image?: string | null }>, likedTracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArtist: string, path: string, albumArt?: string | null, length: number, composer: string, comment: string, albumId?: string | null, artistId?: string | null }>, likedAlbums: Array<{ __typename?: 'Album', id: string, title: string, albumArt?: string | null, artist: string, artistId: string, year: number }> } };
 
 export type PlayMutationVariables = Exact<{
   elapsed: Scalars['Int']['input'];
@@ -1373,6 +1396,95 @@ export type GetLikedAlbumsQueryHookResult = ReturnType<typeof useGetLikedAlbumsQ
 export type GetLikedAlbumsLazyQueryHookResult = ReturnType<typeof useGetLikedAlbumsLazyQuery>;
 export type GetLikedAlbumsSuspenseQueryHookResult = ReturnType<typeof useGetLikedAlbumsSuspenseQuery>;
 export type GetLikedAlbumsQueryResult = Apollo.QueryResult<GetLikedAlbumsQuery, GetLikedAlbumsQueryVariables>;
+export const SearchDocument = gql`
+    query Search($term: String!) {
+  search(term: $term) {
+    tracks {
+      id
+      title
+      artist
+      album
+      albumArtist
+      path
+      albumArt
+      length
+      composer
+      comment
+      albumId
+      artistId
+    }
+    albums {
+      id
+      title
+      year
+      yearString
+      albumArt
+      artist
+      artistId
+    }
+    artists {
+      id
+      name
+      image
+    }
+    likedTracks {
+      id
+      title
+      artist
+      album
+      albumArtist
+      path
+      albumArt
+      length
+      composer
+      comment
+      albumId
+      artistId
+    }
+    likedAlbums {
+      id
+      title
+      albumArt
+      artist
+      artistId
+      year
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchQuery__
+ *
+ * To run a query within a React component, call `useSearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchQuery({
+ *   variables: {
+ *      term: // value for 'term'
+ *   },
+ * });
+ */
+export function useSearchQuery(baseOptions: Apollo.QueryHookOptions<SearchQuery, SearchQueryVariables> & ({ variables: SearchQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchQuery, SearchQueryVariables>(SearchDocument, options);
+      }
+export function useSearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchQuery, SearchQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchQuery, SearchQueryVariables>(SearchDocument, options);
+        }
+export function useSearchSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchQuery, SearchQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchQuery, SearchQueryVariables>(SearchDocument, options);
+        }
+export type SearchQueryHookResult = ReturnType<typeof useSearchQuery>;
+export type SearchLazyQueryHookResult = ReturnType<typeof useSearchLazyQuery>;
+export type SearchSuspenseQueryHookResult = ReturnType<typeof useSearchSuspenseQuery>;
+export type SearchQueryResult = Apollo.QueryResult<SearchQuery, SearchQueryVariables>;
 export const PlayDocument = gql`
     mutation Play($elapsed: Int!, $offset: Int!) {
   play(elapsed: $elapsed, offset: $offset)
