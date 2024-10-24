@@ -1,3 +1,4 @@
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import { Link } from "react-router-dom";
 
@@ -30,10 +31,15 @@ export const AlbumCover = styled.img`
   border-bottom-left-radius: 4px;
 `;
 
-export const ProgressbarContainer = styled.div`
+export const ProgressbarContainer = styled.div<{ active?: boolean }>`
   width: 100%;
   position: absolute;
   bottom: -12px;
+  ${({ active }) =>
+    active &&
+    css`
+      cursor: pointer;
+    `}
 `;
 
 export const TrackInfo = styled.div`

@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useRef } from "react";
 import { ProgressBar } from "baseui/progress-bar";
 import {
   Actions,
@@ -27,6 +27,7 @@ export type CurrentTrackProps = {
   liked?: boolean;
   onLike: (trackId: string) => void;
   onUnlike: (trackId: string) => void;
+  onSeek: (time: number) => void;
 };
 
 const CurrentTrack: FC<CurrentTrackProps> = ({
@@ -34,9 +35,24 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
   liked,
   onLike,
   onUnlike,
+  onSeek,
 }) => {
+  const progressbarRef = useRef<HTMLDivElement>(null);
   const { formatTime } = useTimeFormat();
   const album = `${nowPlaying?.artist} - ${nowPlaying?.album}`;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleClick = (e: any) => {
+    if (progressbarRef.current) {
+      const rect = progressbarRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left < 0 ? 0 : e.clientX - rect.left;
+      const width = rect.width;
+      const percentage = (x / width) * 100;
+      const time = (percentage / 100) * nowPlaying!.duration;
+      onSeek(Math.floor(time));
+    }
+  };
+
   return (
     <Container>
       {!nowPlaying?.cover && (
@@ -97,7 +113,11 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
               </ArtistAlbum>
               <Time>{formatTime(nowPlaying.duration)}</Time>
             </div>
-            <ProgressbarContainer>
+            <ProgressbarContainer
+              ref={progressbarRef}
+              onClick={handleClick}
+              active={nowPlaying!.duration > 0}
+            >
               <ProgressBar
                 value={
                   nowPlaying!.duration > 0

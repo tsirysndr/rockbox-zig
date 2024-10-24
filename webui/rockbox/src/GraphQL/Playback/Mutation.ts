@@ -83,3 +83,9 @@ export const PLAY_ALL_TRACKS = gql`
     playAllTracks(shuffle: $shuffle, position: $position)
   }
 `;
+
+export const SEEK = gql`
+  mutation Seek($elapsed: Int!, $offset: Int!) {
+    play(elapsed: $elapsed, offset: $offset)
+  }
+`;

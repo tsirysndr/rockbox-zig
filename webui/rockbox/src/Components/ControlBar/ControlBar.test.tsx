@@ -32,6 +32,7 @@ describe("ControlBar", () => {
               onRepeat={vi.fn()}
               onLike={vi.fn()}
               onUnlike={vi.fn()}
+              onSeek={vi.fn()}
             />
           </MockedProvider>
         </MemoryRouter>

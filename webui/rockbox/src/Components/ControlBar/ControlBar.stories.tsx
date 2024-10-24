@@ -36,6 +36,7 @@ export const Default: Story = {
     onRepeat: fn(),
     onLike: fn(),
     onUnlike: fn(),
+    onSeek: fn(),
     liked: false,
   },
 };
@@ -61,5 +62,6 @@ export const Playing: Story = {
     onRepeat: fn(),
     onLike: fn(),
     onUnlike: fn(),
+    onSeek: fn(),
   },
 };
