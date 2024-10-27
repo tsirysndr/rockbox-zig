@@ -4,6 +4,7 @@ pub mod audio_status;
 pub mod compressor_settings;
 pub mod entry;
 pub mod eq_band_setting;
+pub mod new_global_settings;
 pub mod playlist;
 pub mod replaygain_settings;
 pub mod search;

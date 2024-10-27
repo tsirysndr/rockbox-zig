@@ -2,11 +2,18 @@ use async_graphql::*;
 use rockbox_sys as rb;
 use serde::{Deserialize, Serialize};
 
+#[derive(Default, Clone, Serialize, Deserialize, InputObject)]
+pub struct EqBandSettingInput {
+    pub cutoff: i32,
+    pub q: i32,
+    pub gain: i32,
+}
+
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct EqBandSetting {
-    pub cutoff: i32, // Hz
+    pub cutoff: i32,
     pub q: i32,
-    pub gain: i32, // +/- dB
+    pub gain: i32,
 }
 
 #[Object]

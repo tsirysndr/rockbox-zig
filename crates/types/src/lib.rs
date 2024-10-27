@@ -43,3 +43,18 @@ pub struct SearchResults {
     pub liked_albums: Vec<LikedAlbum>,
     pub files: Vec<File>,
 }
+
+#[derive(Default, Serialize, Deserialize)]
+pub struct EqBandSetting {
+    pub cutoff: i32,
+    pub q: i32,
+    pub gain: i32,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub struct ReplaygainSettings {
+    pub enabled: bool,
+    pub preamp: i32,
+    pub peak: i32,
+    pub clip: i32,
+}

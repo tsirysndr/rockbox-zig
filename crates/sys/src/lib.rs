@@ -84,6 +84,41 @@ macro_rules! ptr_to_option {
     };
 }
 
+#[macro_export]
+macro_rules! set_value_setting {
+    ($setting:expr, $global_setting:expr) => {
+        if let Some(value) = $setting {
+            $global_setting = value;
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! set_bool_setting {
+    ($setting:expr, $global_setting:expr) => {
+        if let Some(value) = $setting {
+            $global_setting = match value {
+                true => 1,
+                false => 0,
+            };
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! set_str_setting {
+    ($setting:expr, $global_setting:expr, $len:expr) => {
+        if let Some(player_name) = $setting {
+            let mut array = [0u8; $len]; // Initialize a fixed-size array with zeros
+            let bytes = player_name.as_bytes(); // Convert the String to bytes
+
+            let copy_len = bytes.len().min($len);
+            array[..copy_len].copy_from_slice(&bytes[..copy_len]);
+            $global_setting = array;
+        }
+    };
+}
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct Mp3Entry {
@@ -1051,7 +1086,7 @@ pub struct SystemStatus {
 }
 
 extern "C" {
-    pub static global_settings: UserSettings;
+    pub static mut global_settings: UserSettings;
     pub static global_status: SystemStatus;
     pub static language_strings: *mut *mut c_char;
     pub static core_bitmaps: CbmpBitmapInfoEntry;
@@ -1290,6 +1325,7 @@ extern "C" {
     fn get_settings_list(count: *mut c_int) -> SettingsList;
     fn find_setting(variable: *const c_void) -> SettingsList;
     fn settings_save() -> c_int;
+    fn settings_apply(read_disk: c_uchar);
     fn option_screen(
         setting: *mut SettingsList,
         parent: [Viewport; NB_SCREENS],
@@ -1333,6 +1369,7 @@ extern "C" {
         get_talk_id: Option<extern "C" fn(c_int, c_int) -> c_int>,
     );
     fn set_bool(string: *const c_char, variable: *const c_uchar) -> c_uchar;
+    fn rb_get_crossfade_mode() -> i32;
 
     // Misc
     fn codec_load_file();

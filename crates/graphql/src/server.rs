@@ -131,6 +131,7 @@ pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Err
             .route("/albums", web::get().to(index_spa))
             .route("/files", web::get().to(index_spa))
             .route("/likes", web::get().to(index_spa))
+            .route("/settings", web::get().to(index_spa))
             .route("/artists/{_:.*}", web::get().to(index_spa))
             .route("/albums/{_:.*}", web::get().to(index_spa))
             .route("/playlists/{_:.*}", web::get().to(index_spa))

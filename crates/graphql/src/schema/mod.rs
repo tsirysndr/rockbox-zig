@@ -3,7 +3,7 @@ use browse::BrowseQuery;
 use library::{LibraryMutation, LibraryQuery};
 use playback::{PlaybackMutation, PlaybackQuery, PlaybackSubscription};
 use playlist::{PlaylistMutation, PlaylistQuery, PlaylistSubscription};
-use settings::SettingsQuery;
+use settings::{SettingsMutation, SettingsQuery};
 use sound::{SoundMutation, SoundQuery};
 use system::SystemQuery;
 
@@ -34,6 +34,7 @@ pub struct Mutation(
     PlaylistMutation,
     SoundMutation,
     LibraryMutation,
+    SettingsMutation,
 );
 
 #[derive(MergedSubscription, Default)]

@@ -1,6 +1,5 @@
 use rockbox_library::{entity::favourites::Favourites, repo};
 use rockbox_search::search_entities;
-use rockbox_types::SearchResults;
 use sqlx::Sqlite;
 
 use crate::{

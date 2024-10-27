@@ -70,6 +70,12 @@ export type EqBandSetting = {
   q: Scalars['Int']['output'];
 };
 
+export type EqBandSettingInput = {
+  cutoff: Scalars['Int']['input'];
+  gain: Scalars['Int']['input'];
+  q: Scalars['Int']['input'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   adjustVolume: Scalars['Int']['output'];
@@ -107,6 +113,7 @@ export type Mutation = {
   previous: Scalars['Int']['output'];
   resume: Scalars['Int']['output'];
   resumeTrack: Scalars['String']['output'];
+  saveSettings: Scalars['Boolean']['output'];
   scanLibrary: Scalars['Int']['output'];
   setPitch: Scalars['String']['output'];
   shufflePlaylist: Scalars['Int']['output'];
@@ -238,6 +245,11 @@ export type MutationPlaylistStartArgs = {
 };
 
 
+export type MutationSaveSettingsArgs = {
+  settings: NewGlobalSettings;
+};
+
+
 export type MutationUnlikeAlbumArgs = {
   id: Scalars['String']['input'];
 };
@@ -245,6 +257,36 @@ export type MutationUnlikeAlbumArgs = {
 
 export type MutationUnlikeTrackArgs = {
   id: Scalars['String']['input'];
+};
+
+export type NewGlobalSettings = {
+  balance?: InputMaybe<Scalars['Int']['input']>;
+  bass?: InputMaybe<Scalars['Int']['input']>;
+  bassCutoff?: InputMaybe<Scalars['Int']['input']>;
+  channelConfig?: InputMaybe<Scalars['Int']['input']>;
+  crossfade?: InputMaybe<Scalars['Int']['input']>;
+  eqBandSettings?: InputMaybe<Array<EqBandSettingInput>>;
+  eqEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  fadeInDelay?: InputMaybe<Scalars['Int']['input']>;
+  fadeInDuration?: InputMaybe<Scalars['Int']['input']>;
+  fadeOnStop?: InputMaybe<Scalars['Boolean']['input']>;
+  fadeOutDelay?: InputMaybe<Scalars['Int']['input']>;
+  fadeOutDuration?: InputMaybe<Scalars['Int']['input']>;
+  fadeOutMixmode?: InputMaybe<Scalars['Int']['input']>;
+  musicDir?: InputMaybe<Scalars['String']['input']>;
+  partyMode?: InputMaybe<Scalars['Boolean']['input']>;
+  playerName?: InputMaybe<Scalars['String']['input']>;
+  playlistShuffle?: InputMaybe<Scalars['Boolean']['input']>;
+  repeatMode?: InputMaybe<Scalars['Int']['input']>;
+  replaygainSettings?: InputMaybe<ReplaygainSettingsInput>;
+  stereoWidth?: InputMaybe<Scalars['Int']['input']>;
+  stereoswMode?: InputMaybe<Scalars['Int']['input']>;
+  surroundBalance?: InputMaybe<Scalars['Int']['input']>;
+  surroundEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  surroundFx1?: InputMaybe<Scalars['Int']['input']>;
+  surroundFx2?: InputMaybe<Scalars['Boolean']['input']>;
+  treble?: InputMaybe<Scalars['Int']['input']>;
+  trebleCutoff?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Playlist = {
@@ -320,6 +362,12 @@ export type ReplaygainSettings = {
   noclip: Scalars['Boolean']['output'];
   preamp: Scalars['Int']['output'];
   type: Scalars['Int']['output'];
+};
+
+export type ReplaygainSettingsInput = {
+  noclip: Scalars['Boolean']['input'];
+  preamp: Scalars['Int']['input'];
+  type: Scalars['Int']['input'];
 };
 
 export type SearchResults = {
@@ -838,10 +886,17 @@ export type PlaylistChangedSubscriptionVariables = Exact<{ [key: string]: never;
 
 export type PlaylistChangedSubscription = { __typename?: 'Subscription', playlistChanged: { __typename?: 'Playlist', index: number, amount: number, maxPlaylistSize: number, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, path: string }> } };
 
+export type SaveSettingsMutationVariables = Exact<{
+  settings: NewGlobalSettings;
+}>;
+
+
+export type SaveSettingsMutation = { __typename?: 'Mutation', saveSettings: boolean };
+
 export type GetGlobalSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', volume: number, eqEnabled: boolean, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }> } };
+export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', volume: number, playlistShuffle: boolean, repeatMode: number, bass: number, bassCutoff: number, treble: number, trebleCutoff: number, crossfade: number, fadeOnStop: boolean, crossfadeFadeInDelay: number, crossfadeFadeInDuration: number, crossfadeFadeOutDelay: number, crossfadeFadeOutDuration: number, crossfadeFadeOutMixmode: number, balance: number, stereoWidth: number, stereoswMode: number, surroundEnabled: number, surroundBalance: number, surroundFx1: number, surroundFx2: boolean, partyMode: boolean, ditheringEnabled: boolean, channelConfig: number, playerName: string, eqEnabled: boolean, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }>, replaygainSettings: { __typename?: 'ReplaygainSettings', noclip: boolean, type: number, preamp: number } } };
 
 export type AdjustVolumeMutationVariables = Exact<{
   steps: Scalars['Int']['input'];
@@ -2397,15 +2452,75 @@ export function usePlaylistChangedSubscription(baseOptions?: Apollo.Subscription
       }
 export type PlaylistChangedSubscriptionHookResult = ReturnType<typeof usePlaylistChangedSubscription>;
 export type PlaylistChangedSubscriptionResult = Apollo.SubscriptionResult<PlaylistChangedSubscription>;
+export const SaveSettingsDocument = gql`
+    mutation SaveSettings($settings: NewGlobalSettings!) {
+  saveSettings(settings: $settings)
+}
+    `;
+export type SaveSettingsMutationFn = Apollo.MutationFunction<SaveSettingsMutation, SaveSettingsMutationVariables>;
+
+/**
+ * __useSaveSettingsMutation__
+ *
+ * To run a mutation, you first call `useSaveSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSaveSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [saveSettingsMutation, { data, loading, error }] = useSaveSettingsMutation({
+ *   variables: {
+ *      settings: // value for 'settings'
+ *   },
+ * });
+ */
+export function useSaveSettingsMutation(baseOptions?: Apollo.MutationHookOptions<SaveSettingsMutation, SaveSettingsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SaveSettingsMutation, SaveSettingsMutationVariables>(SaveSettingsDocument, options);
+      }
+export type SaveSettingsMutationHookResult = ReturnType<typeof useSaveSettingsMutation>;
+export type SaveSettingsMutationResult = Apollo.MutationResult<SaveSettingsMutation>;
+export type SaveSettingsMutationOptions = Apollo.BaseMutationOptions<SaveSettingsMutation, SaveSettingsMutationVariables>;
 export const GetGlobalSettingsDocument = gql`
     query GetGlobalSettings {
   globalSettings {
     volume
+    playlistShuffle
+    repeatMode
+    bass
+    bassCutoff
+    treble
+    trebleCutoff
+    crossfade
+    fadeOnStop
+    crossfadeFadeInDelay
+    crossfadeFadeInDuration
+    crossfadeFadeOutDelay
+    crossfadeFadeOutDuration
+    crossfadeFadeOutMixmode
+    balance
+    stereoWidth
+    stereoswMode
+    surroundEnabled
+    surroundBalance
+    surroundFx1
+    surroundFx2
+    partyMode
+    ditheringEnabled
+    channelConfig
+    playerName
     eqEnabled
     eqBandSettings {
       q
       cutoff
       gain
+    }
+    replaygainSettings {
+      noclip
+      type
+      preamp
     }
   }
 }

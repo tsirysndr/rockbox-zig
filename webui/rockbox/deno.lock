@@ -12,6 +12,7 @@
     "npm:@graphql-codegen/typescript-operations@4.3.0": "4.3.0_graphql@15.7.2",
     "npm:@graphql-codegen/typescript-react-apollo@4.3.2": "4.3.2_graphql@15.7.2",
     "npm:@graphql-codegen/typescript@4.1.0": "4.1.0_graphql@15.7.2",
+    "npm:@mui/material@^6.1.4": "6.1.5_@emotion+react@11.13.3__react@18.3.1_@emotion+styled@11.13.0__@emotion+react@11.13.3___react@18.3.1__react@18.3.1_@types+react@18.3.11_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:@storybook/addon-essentials@^8.3.4": "8.3.5_storybook@8.3.5",
     "npm:@storybook/addon-interactions@^8.3.4": "8.3.5_storybook@8.3.5",
     "npm:@storybook/addon-links@^8.3.4": "8.3.5_react@18.3.1_storybook@8.3.5",
@@ -43,10 +44,12 @@
     "npm:@types/react-dom@^18.3.0": "18.3.0",
     "npm:@types/react-lazy-load-image-component@^1.6.4": "1.6.4",
     "npm:@types/react@^18.3.11": "18.3.11",
+    "npm:@types/wicg-file-system-access@^2023.10.5": "2023.10.5",
     "npm:@vitejs/plugin-react@^4.3.1": "4.3.2_vite@5.4.8__@types+node@22.7.5_@babel+core@7.25.8_@types+node@22.7.5",
     "npm:@vitest/ui@^2.1.2": "2.1.2_vitest@2.1.2__@types+node@22.7.5__@vitest+ui@2.1.2__jsdom@25.0.1__@vitest+spy@2.1.2__vite@5.4.8___@types+node@22.7.5_@types+node@22.7.5_jsdom@25.0.1",
     "npm:baseui@12.2.0": "12.2.0_react@18.3.1_react-dom@18.3.1__react@18.3.1_styletron-react@6.1.1__react@18.3.1_date-fns@2.30.0_@types+react@18.3.11",
     "npm:cross-env@^7.0.3": "7.0.3",
+    "npm:dayjs@^1.11.13": "1.11.13",
     "npm:eslint-plugin-react-hooks@^5.1.0-rc.0": "5.1.0-rc-fb9a90fa48-20240614_eslint@9.12.0",
     "npm:eslint-plugin-react-refresh@~0.4.9": "0.4.12_eslint@9.12.0",
     "npm:eslint-plugin-storybook@0.9": "0.9.0_eslint@9.12.0_typescript@5.6.3",
@@ -1452,6 +1455,91 @@
         "react@18.3.1"
       ]
     },
+    "@mui/core-downloads-tracker@6.1.5": {
+      "integrity": "sha512-3J96098GrC95XsLw/TpGNMxhUOnoG9NZ/17Pfk1CrJj+4rcuolsF2RdF3XAFTu/3a/A+5ouxlSIykzYz6Ee87g=="
+    },
+    "@mui/material@6.1.5_@emotion+react@11.13.3__react@18.3.1_@emotion+styled@11.13.0__@emotion+react@11.13.3___react@18.3.1__react@18.3.1_@types+react@18.3.11_react@18.3.1_react-dom@18.3.1__react@18.3.1": {
+      "integrity": "sha512-rhaxC7LnlOG8zIVYv7BycNbWkC5dlm9A/tcDUp0CuwA7Zf9B9JP6M3rr50cNKxI7Z0GIUesAT86ceVm44quwnQ==",
+      "dependencies": [
+        "@babel/runtime",
+        "@emotion/react",
+        "@emotion/styled",
+        "@mui/core-downloads-tracker",
+        "@mui/system",
+        "@mui/types",
+        "@mui/utils",
+        "@popperjs/core",
+        "@types/react",
+        "@types/react-transition-group",
+        "clsx@2.1.1",
+        "csstype",
+        "prop-types",
+        "react@18.3.1",
+        "react-dom@18.3.1_react@18.3.1",
+        "react-is@18.3.1",
+        "react-transition-group"
+      ]
+    },
+    "@mui/private-theming@6.1.5_@types+react@18.3.11_react@18.3.1": {
+      "integrity": "sha512-FJqweqEXk0KdtTho9C2h6JEKXsOT7MAVH2Uj3N5oIqs6YKxnwBn2/zL2QuYYEtj5OJ87rEUnCfFic6ldClvzJw==",
+      "dependencies": [
+        "@babel/runtime",
+        "@mui/utils",
+        "@types/react",
+        "prop-types",
+        "react@18.3.1"
+      ]
+    },
+    "@mui/styled-engine@6.1.5_@emotion+react@11.13.3__react@18.3.1_@emotion+styled@11.13.0__@emotion+react@11.13.3___react@18.3.1__react@18.3.1_react@18.3.1": {
+      "integrity": "sha512-tiyWzMkHeWlOoE6AqomWvYvdml8Nv5k5T+LDwOiwHEawx8P9Lyja6ZwWPU6xljwPXYYPT2KBp1XvMly7dsK46A==",
+      "dependencies": [
+        "@babel/runtime",
+        "@emotion/cache",
+        "@emotion/react",
+        "@emotion/serialize",
+        "@emotion/sheet",
+        "@emotion/styled",
+        "csstype",
+        "prop-types",
+        "react@18.3.1"
+      ]
+    },
+    "@mui/system@6.1.5_@emotion+react@11.13.3__react@18.3.1_@emotion+styled@11.13.0__@emotion+react@11.13.3___react@18.3.1__react@18.3.1_@types+react@18.3.11_react@18.3.1": {
+      "integrity": "sha512-vPM9ocQ8qquRDByTG3XF/wfYTL7IWL/20EiiKqByLDps8wOmbrDG9rVznSE3ZbcjFCFfMRMhtxvN92bwe/63SA==",
+      "dependencies": [
+        "@babel/runtime",
+        "@emotion/react",
+        "@emotion/styled",
+        "@mui/private-theming",
+        "@mui/styled-engine",
+        "@mui/types",
+        "@mui/utils",
+        "@types/react",
+        "clsx@2.1.1",
+        "csstype",
+        "prop-types",
+        "react@18.3.1"
+      ]
+    },
+    "@mui/types@7.2.18_@types+react@18.3.11": {
+      "integrity": "sha512-uvK9dWeyCJl/3ocVnTOS6nlji/Knj8/tVqVX03UVTpdmTJYu/s4jtDd9Kvv0nRGE0CUSNW1UYAci7PYypjealg==",
+      "dependencies": [
+        "@types/react"
+      ]
+    },
+    "@mui/utils@6.1.5_@types+react@18.3.11_react@18.3.1": {
+      "integrity": "sha512-vp2WfNDY+IbKUIGg+eqX1Ry4t/BilMjzp6p9xO1rfqpYjH1mj8coQxxDfKxcQLzBQkmBJjymjoGOak5VUYwXug==",
+      "dependencies": [
+        "@babel/runtime",
+        "@mui/types",
+        "@types/prop-types",
+        "@types/react",
+        "clsx@2.1.1",
+        "prop-types",
+        "react@18.3.1",
+        "react-is@18.3.1"
+      ]
+    },
     "@nodelib/fs.scandir@2.1.5": {
       "integrity": "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==",
       "dependencies": [
@@ -1471,6 +1559,9 @@
     },
     "@polka/url@1.0.0-next.28": {
       "integrity": "sha512-8LduaNlMZGwdZ6qWrKlfa+2M4gahzFkprZiAt2TF8uS0qQgBizKXpXURqvTJ4WtmupWxaLqjRb2UCTe72mu+Aw=="
+    },
+    "@popperjs/core@2.11.8": {
+      "integrity": "sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A=="
     },
     "@remix-run/router@1.19.2": {
       "integrity": "sha512-baiMx18+IMuD1yyvOGaHM9QrVUPGGG0jC+z+IPHnRJWUAUvaKuWKyE8gjDj2rzv3sz9zOGoRSPgeBVHRhZnBlA=="
@@ -2219,6 +2310,12 @@
         "csstype"
       ]
     },
+    "@types/react-transition-group@4.4.11": {
+      "integrity": "sha512-RM05tAniPZ5DZPzzNFP+DmrcOdD0efDUxMy3145oljWSl3x9ZV5vhme98gTxFrj2lhXvmGNnUiuDyJgY9IKkNA==",
+      "dependencies": [
+        "@types/react"
+      ]
+    },
     "@types/react-virtualized-auto-sizer@1.0.4": {
       "integrity": "sha512-nhYwlFiYa8M3S+O2T9QO/e1FQUYMr/wJENUdf/O0dhRi1RS/93rjrYQFYdbUqtdFySuhrtnEDX29P6eKOttY+A==",
       "dependencies": [
@@ -2270,6 +2367,9 @@
     },
     "@types/uuid@9.0.8": {
       "integrity": "sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA=="
+    },
+    "@types/wicg-file-system-access@2023.10.5": {
+      "integrity": "sha512-e9kZO9kCdLqT2h9Tw38oGv9UNzBBWaR1MzuAavxPcsV/7FJ3tWbU6RI3uB+yKIDPGLkGVbplS52ub0AcRLvrhA=="
     },
     "@types/ws@8.5.12": {
       "integrity": "sha512-3tPRkv1EtkDpzlgyKyI8pGsGZAGPEaXeu0DOj5DI25Ja91bdAYddYHbADRYVrZMRbfW+1l5YwXVDKohDJNQxkQ==",
@@ -3053,6 +3153,9 @@
     "clsx@1.2.1": {
       "integrity": "sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg=="
     },
+    "clsx@2.1.1": {
+      "integrity": "sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA=="
+    },
     "color-convert@1.9.3": {
       "integrity": "sha512-QfAUtd+vFdAtFQcC8CCyYt1fYWxSqAiK2cSD6zDB8N3cpsEBAvRxp9zOGg6G/SHHJYAT88/az/IuDGALsNVbGg==",
       "dependencies": [
@@ -3426,6 +3529,9 @@
       "dependencies": [
         "@babel/runtime"
       ]
+    },
+    "dayjs@1.11.13": {
+      "integrity": "sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg=="
     },
     "debounce@1.2.1": {
       "integrity": "sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug=="
@@ -5325,6 +5431,9 @@
     "react-is@18.1.0": {
       "integrity": "sha512-Fl7FuabXsJnV5Q1qIOQwx/sagGF18kogb4gpfcG4gjLBWO0WDiiz1ko/ExayuxE7InyQkBLkxRFG5oxY6Uu3Kg=="
     },
+    "react-is@18.3.1": {
+      "integrity": "sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg=="
+    },
     "react-lazy-load-image-component@1.6.2_react@18.3.1": {
       "integrity": "sha512-dAdH5PsRgvDMlHC7QpZRA9oRzEZl1kPFwowmR9Mt0IUUhxk2wwq43PB6Ffwv84HFYuPmsxDUCka0E9KVXi8roQ==",
       "dependencies": [
@@ -5375,6 +5484,17 @@
         "react@18.3.1"
       ]
     },
+    "react-transition-group@4.4.5_react@18.3.1_react-dom@18.3.1__react@18.3.1": {
+      "integrity": "sha512-pZcd1MCJoiKiBR2NRxeCRg13uCXbydPnmB4EOeRrY7480qNWO8IIgQG6zlDkm6uRMsURXPuKq0GWtiM59a5Q6g==",
+      "dependencies": [
+        "@babel/runtime",
+        "dom-helpers",
+        "loose-envify",
+        "prop-types",
+        "react@18.3.1",
+        "react-dom@18.3.1_react@18.3.1"
+      ]
+    },
     "react-uid@2.3.3_@types+react@18.3.11_react@18.3.1": {
       "integrity": "sha512-iNpDovcb9qBpBTo8iUgqRSQOS8GV3bWoNaTaUptHkXtAooXSo0OWe7vN6TqqB8x3x0bNBbQx96kkmSltQ5h9kQ==",
       "dependencies": [
@@ -5394,7 +5514,7 @@
       "integrity": "sha512-YqQMRzlVANBv1L/7r63OHa2b0ZsAaDp1UhVNEdUaXI8A5u6hTpA5NYtUueLH2rFuY/27mTGIBl7ZhqFKzw18YQ==",
       "dependencies": [
         "@babel/runtime",
-        "clsx",
+        "clsx@1.2.1",
         "dom-helpers",
         "loose-envify",
         "prop-types",
@@ -6528,6 +6648,7 @@
         "npm:@types/react-dom@^18.3.0",
         "npm:@types/react-lazy-load-image-component@^1.6.4",
         "npm:@types/react@^18.3.11",
+        "npm:@types/wicg-file-system-access@^2023.10.5",
         "npm:@vitejs/plugin-react@^4.3.1",
         "npm:@vitest/ui@^2.1.2",
         "npm:baseui@12.2.0",

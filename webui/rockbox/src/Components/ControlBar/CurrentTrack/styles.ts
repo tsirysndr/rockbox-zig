@@ -118,7 +118,7 @@ export const styles = {
     },
     BarProgress: {
       style: () => ({
-        backgroundColor: "#fe099c",
+        backgroundColor: "rgb(254, 9, 156)",
       }),
     },
     Bar: {
