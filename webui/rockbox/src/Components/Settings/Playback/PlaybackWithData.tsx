@@ -2,30 +2,36 @@ import { FC } from "react";
 import Playback from "./Playback";
 import { useRecoilState } from "recoil";
 import { settingsState } from "../SettingsState";
-import { useSaveSettingsMutation } from "../../../Hooks/GraphQL";
+import {
+  useGetGlobalSettingsQuery,
+  useSaveSettingsMutation,
+} from "../../../Hooks/GraphQL";
 
 const PlaybackWithData: FC = () => {
+  const { refetch: refetchSettings } = useGetGlobalSettingsQuery();
   const [settings] = useRecoilState(settingsState);
   const [saveSettings] = useSaveSettingsMutation();
 
-  const onShuffleChange = (playlistShuffle: boolean) => {
-    saveSettings({
+  const onShuffleChange = async (playlistShuffle: boolean) => {
+    await saveSettings({
       variables: {
         settings: {
           playlistShuffle,
         },
       },
     });
+    await refetchSettings();
   };
 
-  const onRepeatChange = (repeatMode: number) => {
-    saveSettings({
+  const onRepeatChange = async (repeatMode: number) => {
+    await saveSettings({
       variables: {
         settings: {
           repeatMode,
         },
       },
     });
+    await refetchSettings();
   };
 
   const onCrossfadeChange = (crossfade: number) => {

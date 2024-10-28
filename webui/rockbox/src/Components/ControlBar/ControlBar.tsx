@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import Play from "../Icons/Play";
 import Previous from "../Icons/Previous";
 import Next from "../Icons/Next";
@@ -22,14 +22,34 @@ export type ControlBarProps = {
   onLike: (trackId: string) => void;
   onUnlike: (trackId: string) => void;
   onSeek: (time: number) => void;
+  shuffle?: boolean;
+  repeat?: boolean;
 };
 
 const ControlBar: FC<ControlBarProps> = (props) => {
+  const [shuffle, setShuffle] = useState(props.shuffle);
+  const [repeat, setRepeat] = useState(props.repeat);
+
+  useEffect(() => {
+    setShuffle(props.shuffle);
+    setRepeat(props.repeat);
+  }, [props.shuffle, props.repeat]);
+
+  const onShuffle = () => {
+    setShuffle(!shuffle);
+    props.onShuffle();
+  };
+
+  const onRepeat = () => {
+    setRepeat(!repeat);
+    props.onRepeat();
+  };
+
   return (
     <Container>
       <Controls>
         <ControlsContainer>
-          <Button onClick={props.onShuffle}>
+          <Button onClick={onShuffle} active={shuffle}>
             <Shuffle />
           </Button>
           <Button onClick={props.onPrevious}>
@@ -48,7 +68,7 @@ const ControlBar: FC<ControlBarProps> = (props) => {
           <Button onClick={props.onNext}>
             <Next />
           </Button>
-          <Button onClick={props.onRepeat}>
+          <Button onClick={onRepeat} active={repeat}>
             <Repeat />
           </Button>
         </ControlsContainer>

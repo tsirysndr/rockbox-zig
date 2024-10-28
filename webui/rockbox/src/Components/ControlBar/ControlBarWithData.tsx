@@ -3,6 +3,7 @@ import ControlBar from "./ControlBar";
 import {
   useCurrentlyPlayingSongSubscription,
   useGetCurrentTrackQuery,
+  useGetGlobalSettingsQuery,
   useGetLikedAlbumsQuery,
   useGetLikedTracksQuery,
   useGetPlaybackStatusQuery,
@@ -12,6 +13,7 @@ import {
   usePlaybackStatusSubscription,
   usePreviousMutation,
   useResumeMutation,
+  useSaveSettingsMutation,
   useSeekMutation,
   useUnlikeTrackMutation,
 } from "../../Hooks/GraphQL";
@@ -22,6 +24,7 @@ import { controlBarState } from "./ControlBarState";
 import { usePlayQueue } from "../../Hooks/usePlayQueue";
 import { useResumePlaylist } from "../../Hooks/useResumePlaylist";
 import { likesState } from "../Likes/LikesState";
+import { settingsState } from "../Settings/SettingsState";
 
 const ControlBarWithData: FC = () => {
   const [{ nowPlaying, locked, resumeIndex }, setControlBarState] =
@@ -41,6 +44,9 @@ const ControlBarWithData: FC = () => {
   const [likeTrack] = useLikeTrackMutation();
   const [unlikeTrack] = useUnlikeTrackMutation();
   const [seek] = useSeekMutation();
+  const [saveSettings] = useSaveSettingsMutation();
+  const { refetch: refetchSettings } = useGetGlobalSettingsQuery();
+  const [settings] = useRecoilState(settingsState);
 
   const [likes, setLikes] = useRecoilState(likesState);
   const { data: likedTracksData, loading: likedTracksLoading } =
@@ -265,6 +271,28 @@ const ControlBarWithData: FC = () => {
     });
   };
 
+  const onShuffle = async () => {
+    await saveSettings({
+      variables: {
+        settings: {
+          playlistShuffle: !settings.playlistShuffle,
+        },
+      },
+    });
+    await refetchSettings();
+  };
+
+  const onRepeat = async () => {
+    await saveSettings({
+      variables: {
+        settings: {
+          repeatMode: settings.repeatMode === 0 ? 1 : 0,
+        },
+      },
+    });
+    await refetchSettings();
+  };
+
   return (
     <ControlBar
       nowPlaying={nowPlaying}
@@ -272,8 +300,10 @@ const ControlBarWithData: FC = () => {
       onPause={onPause}
       onNext={() => next()}
       onPrevious={() => previous()}
-      onShuffle={() => {}}
-      onRepeat={() => {}}
+      onShuffle={onShuffle}
+      onRepeat={onRepeat}
+      shuffle={settings.playlistShuffle}
+      repeat={settings.repeatMode !== 0}
       liked={likes[nowPlaying?.id || ""]}
       onLike={onLike}
       onUnlike={onUnlike}

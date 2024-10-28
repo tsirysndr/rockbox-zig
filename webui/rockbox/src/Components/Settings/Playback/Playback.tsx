@@ -83,7 +83,7 @@ const Playback: FC<PlaybackProps> = (props) => {
   };
 
   const onRepeatChange = (repeat: number) => {
-    setRepeat(repeatValues[props.repeat]);
+    setRepeat(repeatValues[repeat]);
     props.onRepeatChange(repeat);
   };
 

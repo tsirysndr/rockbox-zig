@@ -1,3 +1,4 @@
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 
 export const Container = styled.div`
@@ -17,13 +18,20 @@ export const ControlsContainer = styled.div`
   width: 160px;
 `;
 
-export const Button = styled.button`
+export const Button = styled.button<{ active?: boolean }>`
   background-color: transparent;
   cursor: pointer;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 8px;
+  border-radius: 6px;
+  ${(props) =>
+    props.active &&
+    css`
+      background-color: #e9e9ea8c;
+    `}
   &:hover {
     opacity: 0.6;
   }
