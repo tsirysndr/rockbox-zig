@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "x-stoplight": {
-    "id": "pekyaa98hprrk"
+    "id": "jz8crifyfa3cs"
   },
   "info": {
     "title": "Rockbox API v1",
@@ -38,7 +38,7 @@
                   "items": {
                     "$ref": "#/components/schemas/Album.v1",
                     "x-stoplight": {
-                      "id": "g3x93ebnemzva"
+                      "id": "dhzrs9eun7c4r"
                     }
                   }
                 }
@@ -124,7 +124,7 @@
                   "items": {
                     "$ref": "#/components/schemas/Track.v1",
                     "x-stoplight": {
-                      "id": "hi439roy03b8p"
+                      "id": "lesjtxruzxhwd"
                     }
                   }
                 }
@@ -172,7 +172,7 @@
                   "items": {
                     "$ref": "#/components/schemas/Artist.v1",
                     "x-stoplight": {
-                      "id": "03rsibvu1zlxz"
+                      "id": "fjrt0wk35qlt5"
                     }
                   }
                 }
@@ -227,7 +227,7 @@
                   "items": {
                     "$ref": "#/components/schemas/Artist.v1",
                     "x-stoplight": {
-                      "id": "mq2z0jvupvbjs"
+                      "id": "m69bd1mn62bxr"
                     }
                   }
                 }
@@ -255,7 +255,7 @@
                   "items": {
                     "$ref": "#/components/schemas/Track.v1",
                     "x-stoplight": {
-                      "id": "1onvs6nmuxc8z"
+                      "id": "ara2m1lvcmddb"
                     }
                   }
                 }
@@ -553,6 +553,237 @@
           }
         },
         "operationId": "get-settings"
+      },
+      "put": {
+        "summary": "Update Settings",
+        "operationId": "put-settings",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Settings"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "music_dir": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "s5w686bbel2ow"
+                    }
+                  },
+                  "playlist_shuffle": {
+                    "type": "boolean",
+                    "x-stoplight": {
+                      "id": "74lbit2keyuc1"
+                    }
+                  },
+                  "repeat_mode": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "tukzj0gpepqxd"
+                    }
+                  },
+                  "bass": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "6t0mo3j9ii8le"
+                    }
+                  },
+                  "treble": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "m6ps5g53ql35f"
+                    }
+                  },
+                  "bass_cutoff": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "btltz18zg0wh3"
+                    }
+                  },
+                  "treble_cutoff": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "ctcf9ue3n09oj"
+                    }
+                  },
+                  "crossfade": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "1wmv1tkgdlb33"
+                    }
+                  },
+                  "fade_on_stop": {
+                    "type": "boolean",
+                    "x-stoplight": {
+                      "id": "y2gm9cth8mkgn"
+                    }
+                  },
+                  "fade_in_delay": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "gdikoz2jfg82y"
+                    }
+                  },
+                  "fade_in_duration": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "w32xyzy8n607i"
+                    }
+                  },
+                  "fade_out_delay": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "sr257acz1kkbl"
+                    }
+                  },
+                  "fade_out_duration": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "lbrm6uqfk0wix"
+                    }
+                  },
+                  "fade_out_mixmode": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "m8b0tu8h0f5nq"
+                    }
+                  },
+                  "balance": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "ilnhsvl03we54"
+                    }
+                  },
+                  "stereo_width": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "sk1xaig7kukxo"
+                    }
+                  },
+                  "stereosw_mode": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "vlyej7vc8e4um"
+                    }
+                  },
+                  "surround_enabled": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "yfvcl8ps2obmp"
+                    }
+                  },
+                  "surround_balance": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "66mf6d8w8f2q7"
+                    }
+                  },
+                  "surround_fx1": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "3hug8gn2kiymj"
+                    }
+                  },
+                  "surround_fx2": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "uxjs9bez3bhen"
+                    }
+                  },
+                  "party_mode": {
+                    "type": "boolean",
+                    "x-stoplight": {
+                      "id": "4w5jl41gjhbaq"
+                    }
+                  },
+                  "channel_config": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "76h4qwztxv3jg"
+                    }
+                  },
+                  "player_name": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "kx3laxpui8wn3"
+                    }
+                  },
+                  "eq_enabled": {
+                    "type": "boolean",
+                    "x-stoplight": {
+                      "id": "8n2wj0eul68hv"
+                    }
+                  },
+                  "eq_band_settings": {
+                    "type": "array",
+                    "x-stoplight": {
+                      "id": "tvp7sid0vwyc4"
+                    },
+                    "items": {
+                      "x-stoplight": {
+                        "id": "o30uc4yx8gac5"
+                      },
+                      "type": "object",
+                      "properties": {
+                        "cutoff": {
+                          "type": "integer",
+                          "x-stoplight": {
+                            "id": "xbwoyf2cghtse"
+                          }
+                        },
+                        "q": {
+                          "type": "integer",
+                          "x-stoplight": {
+                            "id": "ix73oc8eroz08"
+                          }
+                        },
+                        "gain": {
+                          "type": "integer",
+                          "x-stoplight": {
+                            "id": "b941ccqlswavi"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "replaygain_settings": {
+                    "type": "object",
+                    "x-stoplight": {
+                      "id": "p31bpzizz4hbf"
+                    },
+                    "properties": {
+                      "noclip": {
+                        "type": "boolean",
+                        "x-stoplight": {
+                          "id": "2uu5oesku4vq1"
+                        }
+                      },
+                      "type": {
+                        "type": "integer",
+                        "x-stoplight": {
+                          "id": "evpt8uo1ak8rb"
+                        }
+                      },
+                      "preamp": {
+                        "type": "integer",
+                        "x-stoplight": {
+                          "id": "99letqgynncba"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/status": {
@@ -766,17 +997,17 @@
                   "name": {
                     "type": "string",
                     "x-stoplight": {
-                      "id": "74lnjkz6fpkw3"
+                      "id": "xicf18cyr9u6y"
                     }
                   },
                   "tracks": {
                     "type": "array",
                     "x-stoplight": {
-                      "id": "vbmd8a6gj0bh1"
+                      "id": "jawv3jvtfvlik"
                     },
                     "items": {
                       "x-stoplight": {
-                        "id": "ydqsysvo8ulzo"
+                        "id": "zgptcbpd8bpep"
                       },
                       "type": "string"
                     }
@@ -943,7 +1174,7 @@
                       "items": {
                         "$ref": "#/components/schemas/Track.v1",
                         "x-stoplight": {
-                          "id": "gz6dzxyv1j0ws"
+                          "id": "nv4fqov9gf4t4"
                         }
                       }
                     }
@@ -976,7 +1207,7 @@
                   "items": {
                     "$ref": "#/components/schemas/Track.v1",
                     "x-stoplight": {
-                      "id": "gz6dzxyv1j0ws"
+                      "id": "ls4kga6ga92bp"
                     }
                   }
                 }
@@ -1007,17 +1238,17 @@
                   "position": {
                     "type": "integer",
                     "x-stoplight": {
-                      "id": "rfwihwha8u2y9"
+                      "id": "03yo7z5xfx9zg"
                     }
                   },
                   "tracks": {
                     "type": "array",
                     "x-stoplight": {
-                      "id": "b083o1we9o941"
+                      "id": "lifh2pzcb1nmj"
                     },
                     "items": {
                       "x-stoplight": {
-                        "id": "wcnusekrv3lsu"
+                        "id": "pqnsp7w5ujb0i"
                       },
                       "type": "string"
                     }
@@ -1025,7 +1256,7 @@
                   "directory": {
                     "type": "string",
                     "x-stoplight": {
-                      "id": "fef5euvkoab63"
+                      "id": "u2vi3f2cfouo0"
                     }
                   }
                 }
@@ -1054,11 +1285,11 @@
                   "positions": {
                     "type": "array",
                     "x-stoplight": {
-                      "id": "3hrf3tf7wjttc"
+                      "id": "7sodedhj2syc7"
                     },
                     "items": {
                       "x-stoplight": {
-                        "id": "udk6yl9ngivci"
+                        "id": "fblagbx73vo6x"
                       },
                       "type": "integer"
                     }
@@ -1099,7 +1330,7 @@
                   "items": {
                     "$ref": "#/components/schemas/Track.v1",
                     "x-stoplight": {
-                      "id": "vcpked2x8fog7"
+                      "id": "an0l7e2vpmx6x"
                     }
                   }
                 }
@@ -1108,6 +1339,176 @@
           }
         },
         "operationId": "get-artists-id-tracks"
+      }
+    },
+    "/player/volume": {
+      "put": {
+        "summary": "Adjust Volume",
+        "operationId": "put-player-volume",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Player"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "steps": {
+                    "type": "integer",
+                    "x-stoplight": {
+                      "id": "t7dk1iz5f0eol"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scan-library": {
+      "put": {
+        "summary": "Scan Library",
+        "operationId": "put-scan-library",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Library"
+        ]
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Search",
+        "tags": [
+          "Library"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "albums": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "019f0i09xzdu8"
+                      },
+                      "items": {
+                        "$ref": "#/components/schemas/Album.v1",
+                        "x-stoplight": {
+                          "id": "m5ctl94xkgv4i"
+                        }
+                      }
+                    },
+                    "artists": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "q4j72lavmdcoc"
+                      },
+                      "items": {
+                        "$ref": "#/components/schemas/Artist.v1",
+                        "x-stoplight": {
+                          "id": "z0k5m35wf3fuh"
+                        }
+                      }
+                    },
+                    "tracks": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "zgycozcr6tror"
+                      },
+                      "items": {
+                        "$ref": "#/components/schemas/Track.v1",
+                        "x-stoplight": {
+                          "id": "iadt803zpcu5p"
+                        }
+                      }
+                    },
+                    "files": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "wuydvte7y6xsw"
+                      },
+                      "items": {
+                        "x-stoplight": {
+                          "id": "699qj4o9kba5g"
+                        },
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "x-stoplight": {
+                              "id": "viqtl758xypm1"
+                            }
+                          },
+                          "time_write": {
+                            "type": "integer",
+                            "x-stoplight": {
+                              "id": "bv5om5xxc8vag"
+                            }
+                          },
+                          "is_directory": {
+                            "type": "boolean",
+                            "x-stoplight": {
+                              "id": "psu25s55d12o1"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "liked_tracks": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "53rj1yd8k5h4s"
+                      },
+                      "items": {
+                        "$ref": "#/components/schemas/Track.v1",
+                        "x-stoplight": {
+                          "id": "9xob3497ldmtt"
+                        }
+                      }
+                    },
+                    "liked_albums": {
+                      "type": "array",
+                      "x-stoplight": {
+                        "id": "dfq6obcjknhjs"
+                      },
+                      "items": {
+                        "$ref": "#/components/schemas/Album.v1",
+                        "x-stoplight": {
+                          "id": "gicyfb787tg0w"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "get-search",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "q"
+          }
+        ]
       }
     }
   },
@@ -1163,12 +1564,12 @@
           "tracks": {
             "type": "array",
             "x-stoplight": {
-              "id": "7ng5gjun7ppdf"
+              "id": "cexr5aqti95au"
             },
             "items": {
               "$ref": "#/components/schemas/Track.v1",
               "x-stoplight": {
-                "id": "eoxt1tuziuzrf"
+                "id": "8sb8bq9omx42b"
               }
             }
           }
@@ -1176,7 +1577,7 @@
       },
       "Artist.v1": {
         "x-stoplight": {
-          "id": "03rsibvu1zlxz"
+          "id": "0wktkyg4gevd3"
         },
         "type": "object",
         "x-examples": {
@@ -1202,36 +1603,36 @@
           "bio": {
             "type": "string",
             "x-stoplight": {
-              "id": "f2du13h4su3yn"
+              "id": "bv1vmm5or30d9"
             }
           },
           "image": {
             "type": "string",
             "x-stoplight": {
-              "id": "69j27eohqstp7"
+              "id": "zziizes11l6yp"
             }
           },
           "albums": {
             "type": "array",
             "x-stoplight": {
-              "id": "2p7oo0nysxxe0"
+              "id": "gt6wtmfwwqno0"
             },
             "items": {
               "$ref": "#/components/schemas/Album.v1",
               "x-stoplight": {
-                "id": "zicm4vo4217x8"
+                "id": "s0p904ajhds7m"
               }
             }
           },
           "tracks": {
             "type": "array",
             "x-stoplight": {
-              "id": "w0a6febmx5z3g"
+              "id": "fdb8ajuw7tq2s"
             },
             "items": {
               "$ref": "#/components/schemas/Track.v1",
               "x-stoplight": {
-                "id": "q4daivn3dx1gr"
+                "id": "7xmpqe7kfh8uy"
               }
             }
           }
