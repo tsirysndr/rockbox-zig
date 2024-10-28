@@ -33,6 +33,13 @@ pub extern "C" fn debugfn(args: *const c_char) {
 
 #[no_mangle]
 pub extern "C" fn start_server() {
+    match rockbox_settings::load_settings(None) {
+        Ok(_) => {}
+        Err(e) => {
+            println!("Warning loading settings: {}", e);
+        }
+    }
+
     let mut app = RockboxHttpServer::new();
 
     app.get("/albums", get_albums);
@@ -77,6 +84,7 @@ pub extern "C" fn start_server() {
     app.get("/version", get_rockbox_version);
     app.get("/status", get_status);
     app.get("/settings", get_global_settings);
+    app.put("/settings", update_global_settings);
     app.put("/scan-library", scan_library);
     app.get("/search", search);
 
@@ -194,7 +202,10 @@ pub extern "C" fn start_servers() {
 
 #[no_mangle]
 pub extern "C" fn start_broker() {
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
     let pool = rt
         .block_on(rockbox_library::create_connection_pool())
         .unwrap();

@@ -19,7 +19,7 @@ pub async fn create_playlist(
         return Ok(());
     }
     let body = req.body.as_ref().unwrap();
-    let new_playslist: NewPlaylist = serde_json::from_str(&body).unwrap();
+    let new_playslist: NewPlaylist = serde_json::from_str(body).unwrap();
 
     if new_playslist.tracks.is_empty() {
         return Ok(());

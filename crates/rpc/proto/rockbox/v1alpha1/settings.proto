@@ -212,7 +212,7 @@ message GetGlobalSettingsResponse {
   int32 surround_enabled = 173;
   int32 surround_balance = 174;
   int32 surround_fx1 = 175;
-  bool surround_fx2 = 176;
+  int32 surround_fx2 = 176;
   bool surround_method2 = 177;
   int32 surround_mix = 178;
   int32 pbe = 179;
@@ -220,9 +220,43 @@ message GetGlobalSettingsResponse {
   int32 afr_enabled = 181;
   int32 governor = 182;
   int32 stereosw_mode = 183;
+  string music_dir = 184;
 }
+
+message SaveSettingsRequest {
+  optional string music_dir = 1;
+  optional bool playlist_shuffle = 2;
+  optional int32 repeat_mode = 3;
+  optional int32 bass = 4;
+  optional int32 treble = 5;
+  optional int32 bass_cutoff = 6;
+  optional int32 treble_cutoff = 7;
+  optional int32 crossfade = 8;
+  optional bool fade_on_stop = 9;
+  optional int32 fade_in_delay = 10;
+  optional int32 fade_in_duration = 11;
+  optional int32 fade_out_delay = 12;
+  optional int32 fade_out_duration = 13;
+  optional int32 fade_out_mixmode = 14;
+  optional int32 balance = 15;
+  optional int32 stereo_width = 16;
+  optional int32 stereosw_mode = 17;
+  optional int32 surround_enabled = 18;
+  optional int32 surround_balance = 19;
+  optional int32 surround_fx1 = 20;
+  optional int32 surround_fx2 = 21;
+  optional bool party_mode = 22;
+  optional int32 channel_config = 23;
+  optional string player_name = 24;
+  optional bool eq_enabled = 25;
+  repeated EqBandSetting eq_band_settings = 26;
+  optional ReplaygainSettings replaygain_settings = 27;
+}
+
+message SaveSettingsResponse {}
 
 service SettingsService {
   rpc GetSettingsList(GetSettingsListRequest) returns (GetSettingsListResponse);
   rpc GetGlobalSettings(GetGlobalSettingsRequest) returns (GetGlobalSettingsResponse);
+  rpc SaveSettings(SaveSettingsRequest) returns (SaveSettingsResponse);
 }

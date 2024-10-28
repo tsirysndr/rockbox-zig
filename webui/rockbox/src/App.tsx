@@ -6,6 +6,7 @@ import AlbumDetails from "./Components/AlbumDetails";
 import ArtistDetails from "./Components/ArtistDetails";
 import FilesPage from "./Containers/Files";
 import LikesPage from "./Containers/Likes";
+import SettingsPage from "./Containers/Settings";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/tracks" element={<TracksPage />} />
         <Route path="/files" element={<FilesPage />} />
         <Route path="/likes" element={<LikesPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </BrowserRouter>
   );

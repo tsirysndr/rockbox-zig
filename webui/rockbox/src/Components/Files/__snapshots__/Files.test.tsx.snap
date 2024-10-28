@@ -11,16 +11,43 @@ exports[`Files > should render 1`] = `
       <div
         class="css-1tlxqlf"
       >
-        <a
-          href="/"
-          style="text-decoration: none;"
+        <div
+          class="css-1osgnyu"
         >
-          <img
-            alt="Rockbox"
-            src="/src/Assets/rockbox-icon.svg"
-            style="width: 40px; margin-bottom: 20px; margin-left: 12px;"
-          />
-        </a>
+          <a
+            href="/"
+            style="text-decoration: none;"
+          >
+            <img
+              alt="Rockbox"
+              src="/src/Assets/rockbox-icon.svg"
+              style="width: 40px; margin-bottom: 20px; margin-left: 12px; margin-top: -12px;"
+            />
+          </a>
+          <a
+            href="/settings"
+          >
+            <button
+              class="css-fduwnf"
+            >
+              <svg
+                aria-hidden="true"
+                class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                color="#000"
+                fill="currentColor"
+                focusable="false"
+                height="24"
+                viewBox="0 0 48 48"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5.25 15.5h19.88a6.25 6.25 0 0 0 12.25 0h5.37a1.25 1.25 0 1 0 0-2.5h-5.38a6.25 6.25 0 0 0-12.24 0H5.25a1.25 1.25 0 1 0 0 2.5Zm26-5a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5Zm-26 24h5.63a6.25 6.25 0 0 0 12.24 0h19.63a1.25 1.25 0 1 0 0-2.5H23.12a6.25 6.25 0 0 0-12.25 0H5.25a1.25 1.25 0 1 0 0 2.5Zm11.75-5a3.75 3.75 0 1 1 0 7.5 3.75 3.75 0 0 1 0-7.5Z"
+                />
+              </svg>
+            </button>
+          </a>
+        </div>
         <a
           class="css-tujm8o"
           color="initial"

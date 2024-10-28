@@ -4,11 +4,12 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     compressor_settings::CompressorSettings, eq_band_setting::EqBandSetting,
-    replaygain_settings::ReplaygainSettings, settings_list::SettingsList,
+    replaygain_settings::ReplaygainSettings,
 };
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct UserSettings {
+    pub music_dir: String,
     pub volume: i32,
     pub balance: i32,
     pub bass: i32,
@@ -248,7 +249,7 @@ pub struct UserSettings {
     pub surround_enabled: i32,
     pub surround_balance: i32,
     pub surround_fx1: i32,
-    pub surround_fx2: bool,
+    pub surround_fx2: i32,
     pub surround_method2: bool,
     pub surround_mix: i32,
 
@@ -263,6 +264,10 @@ pub struct UserSettings {
 
 #[Object]
 impl UserSettings {
+    async fn music_dir(&self) -> &str {
+        &self.music_dir
+    }
+
     async fn volume(&self) -> i32 {
         self.volume
     }
@@ -1019,7 +1024,7 @@ impl UserSettings {
         self.surround_fx1
     }
 
-    async fn surround_fx2(&self) -> bool {
+    async fn surround_fx2(&self) -> i32 {
         self.surround_fx2
     }
 
@@ -1055,6 +1060,7 @@ impl UserSettings {
 impl From<rb::types::user_settings::UserSettings> for UserSettings {
     fn from(settings: rb::types::user_settings::UserSettings) -> Self {
         Self {
+            music_dir: settings.music_dir,
             volume: settings.volume,
             balance: settings.balance,
             bass: settings.bass,

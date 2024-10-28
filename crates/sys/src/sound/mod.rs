@@ -74,3 +74,7 @@ pub fn keyclick_click(rawbutton: bool, action: i32) {
     let rawbutton = if rawbutton { 1 } else { 0 };
     unsafe { crate::keyclick_click(rawbutton, action) }
 }
+
+pub fn audio_set_crossfade(crossfade: i32) {
+    unsafe { crate::audio_set_crossfade(crossfade) }
+}

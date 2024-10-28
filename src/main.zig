@@ -2,6 +2,7 @@ const std = @import("std");
 const playlist = @import("rockbox/playlist.zig");
 const metadata = @import("rockbox/metadata.zig");
 const tree = @import("rockbox/tree.zig");
+const settings = @import("rockbox/settings.zig");
 
 extern fn main_c() c_int;
 extern fn parse_args(argc: usize, argv: [*]const [*]const u8) c_int;
@@ -101,4 +102,8 @@ export fn rb_playlist_last_shuffled_start() c_int {
 
 export fn rb_max_playlist_size() c_int {
     return playlist.max_playlist_size();
+}
+
+export fn rb_get_crossfade_mode() c_int {
+    return settings.get_crossfade_mode();
 }

@@ -24,7 +24,10 @@ pub mod api {
         use rockbox_sys::types::{
             mp3_entry::Mp3Entry,
             system_status::SystemStatus,
-            user_settings::{CompressorSettings, EqBandSetting, ReplaygainSettings, UserSettings},
+            user_settings::{
+                CompressorSettings, EqBandSetting, NewGlobalSettings, ReplaygainSettings,
+                UserSettings,
+            },
         };
         use tantivy::schema::Schema;
         use tantivy::schema::SchemaBuilder;
@@ -32,7 +35,7 @@ pub mod api {
         use tantivy::TantivyDocument;
         use v1alpha1::{
             Album, Artist, CurrentTrackResponse, Entry, GetGlobalSettingsResponse,
-            GetGlobalStatusResponse, NextTrackResponse, SearchResponse, Track,
+            GetGlobalStatusResponse, NextTrackResponse, SaveSettingsRequest, SearchResponse, Track,
         };
 
         #[path = "rockbox.v1alpha1.rs"]
@@ -437,8 +440,10 @@ pub mod api {
                 let afr_enabled = settings.afr_enabled;
                 let governor = settings.governor;
                 let stereosw_mode = settings.stereosw_mode;
+                let music_dir = settings.music_dir;
 
                 GetGlobalSettingsResponse {
+                    music_dir,
                     volume,
                     balance,
                     bass,
@@ -1096,6 +1101,55 @@ pub mod api {
                     genre_id,
                     created_at,
                     updated_at,
+                }
+            }
+        }
+
+        impl Into<NewGlobalSettings> for SaveSettingsRequest {
+            fn into(self) -> NewGlobalSettings {
+                NewGlobalSettings {
+                    music_dir: self.music_dir,
+                    playlist_shuffle: self.playlist_shuffle,
+                    repeat_mode: self.repeat_mode,
+                    bass: self.bass,
+                    treble: self.treble,
+                    bass_cutoff: self.bass_cutoff,
+                    treble_cutoff: self.treble_cutoff,
+                    crossfade: self.crossfade,
+                    fade_on_stop: self.fade_on_stop,
+                    fade_in_delay: self.fade_in_delay,
+                    fade_in_duration: self.fade_in_duration,
+                    fade_out_delay: self.fade_out_delay,
+                    fade_out_duration: self.fade_out_duration,
+                    fade_out_mixmode: self.fade_out_mixmode,
+                    balance: self.balance,
+                    stereo_width: self.stereo_width,
+                    stereosw_mode: self.stereosw_mode,
+                    surround_enabled: self.surround_enabled,
+                    surround_balance: self.surround_balance,
+                    surround_fx1: self.surround_fx1,
+                    surround_fx2: self.surround_fx2,
+                    party_mode: self.party_mode,
+                    channel_config: self.channel_config,
+                    player_name: self.player_name,
+                    eq_enabled: self.eq_enabled,
+                    eq_band_settings: Some(
+                        self.eq_band_settings
+                            .into_iter()
+                            .map(|band| EqBandSetting {
+                                cutoff: band.cutoff,
+                                q: band.q,
+                                gain: band.gain,
+                            })
+                            .collect(),
+                    ),
+                    replaygain_settings: self.replaygain_settings.map(|settings| {
+                        ReplaygainSettings {
+                            noclip: settings.noclip,
+                            r#type: settings.r#type,
+                            preamp: settings.preamp,
+                        }
+                    }),
                 }
             }
         }

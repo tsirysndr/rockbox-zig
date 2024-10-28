@@ -63,6 +63,7 @@ async_handler!(system, get_rockbox_version);
 async_handler!(system, get_status);
 async_handler!(system, scan_library);
 async_handler!(settings, get_global_settings);
+async_handler!(settings, update_global_settings);
 async_handler!(docs, get_openapi);
 async_handler!(docs, index);
 async_handler!(search, search);

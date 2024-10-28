@@ -830,6 +830,55 @@ void sound_settings_apply(void)
 #endif
 }
 
+void audio_settings_apply()
+{
+
+    sound_settings_apply();
+
+#ifdef HAVE_DISK_STORAGE
+    audio_set_buffer_margin(global_settings.buffer_margin);
+#endif
+   
+#ifdef HAVE_PLAY_FREQ
+    /* before crossfade */
+//    audio_set_playback_frequency(global_settings.play_frequency);
+#endif
+#ifdef HAVE_CROSSFADE
+ //   audio_set_crossfade(global_settings.crossfade);
+#endif
+    // replaygain_update();
+    dsp_set_crossfeed_type(global_settings.crossfeed);
+    dsp_set_crossfeed_direct_gain(global_settings.crossfeed_direct_gain);
+    dsp_set_crossfeed_cross_params(global_settings.crossfeed_cross_gain,
+                                   global_settings.crossfeed_hf_attenuation,
+                                   global_settings.crossfeed_hf_cutoff);
+
+    /* Configure software equalizer, hardware eq is handled in audio_init() */
+    dsp_eq_enable(global_settings.eq_enabled);
+    dsp_set_eq_precut(global_settings.eq_precut);
+    for(int i = 0; i < EQ_NUM_BANDS; i++) {
+        dsp_set_eq_coefs(i, &global_settings.eq_band_settings[i]);
+    }
+
+    dsp_dither_enable(global_settings.dithering_enabled);
+    dsp_surround_set_balance(global_settings.surround_balance);
+    dsp_surround_set_cutoff(global_settings.surround_fx1, global_settings.surround_fx2);
+    dsp_surround_mix(global_settings.surround_mix);
+    dsp_surround_enable(global_settings.surround_enabled);
+    dsp_afr_enable(global_settings.afr_enabled);
+    dsp_pbe_precut(global_settings.pbe_precut);
+    dsp_pbe_enable(global_settings.pbe);
+#ifdef HAVE_PITCHCONTROL
+    dsp_timestretch_enable(global_settings.timestretch_enabled);
+#endif
+    dsp_set_compressor(&global_settings.compressor_settings);
+
+#ifdef HAVE_SPDIF_POWER
+    spdif_power_enable(global_settings.spdif_enable);
+#endif
+
+}
+
 void settings_apply(bool read_disk)
 {
     logf("%s", __func__);

@@ -6194,8 +6194,8 @@ pub struct GetGlobalSettingsResponse {
     pub surround_balance: i32,
     #[prost(int32, tag = "175")]
     pub surround_fx1: i32,
-    #[prost(bool, tag = "176")]
-    pub surround_fx2: bool,
+    #[prost(int32, tag = "176")]
+    pub surround_fx2: i32,
     #[prost(bool, tag = "177")]
     pub surround_method2: bool,
     #[prost(int32, tag = "178")]
@@ -6210,7 +6210,68 @@ pub struct GetGlobalSettingsResponse {
     pub governor: i32,
     #[prost(int32, tag = "183")]
     pub stereosw_mode: i32,
+    #[prost(string, tag = "184")]
+    pub music_dir: ::prost::alloc::string::String,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SaveSettingsRequest {
+    #[prost(string, optional, tag = "1")]
+    pub music_dir: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, optional, tag = "2")]
+    pub playlist_shuffle: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "3")]
+    pub repeat_mode: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "4")]
+    pub bass: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "5")]
+    pub treble: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "6")]
+    pub bass_cutoff: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "7")]
+    pub treble_cutoff: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "8")]
+    pub crossfade: ::core::option::Option<i32>,
+    #[prost(bool, optional, tag = "9")]
+    pub fade_on_stop: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "10")]
+    pub fade_in_delay: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "11")]
+    pub fade_in_duration: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "12")]
+    pub fade_out_delay: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "13")]
+    pub fade_out_duration: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "14")]
+    pub fade_out_mixmode: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "15")]
+    pub balance: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "16")]
+    pub stereo_width: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "17")]
+    pub stereosw_mode: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "18")]
+    pub surround_enabled: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "19")]
+    pub surround_balance: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "20")]
+    pub surround_fx1: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "21")]
+    pub surround_fx2: ::core::option::Option<i32>,
+    #[prost(bool, optional, tag = "22")]
+    pub party_mode: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "23")]
+    pub channel_config: ::core::option::Option<i32>,
+    #[prost(string, optional, tag = "24")]
+    pub player_name: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, optional, tag = "25")]
+    pub eq_enabled: ::core::option::Option<bool>,
+    #[prost(message, repeated, tag = "26")]
+    pub eq_band_settings: ::prost::alloc::vec::Vec<EqBandSetting>,
+    #[prost(message, optional, tag = "27")]
+    pub replaygain_settings: ::core::option::Option<ReplaygainSettings>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SaveSettingsResponse {}
 /// Generated client implementations.
 pub mod settings_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
@@ -6356,6 +6417,33 @@ pub mod settings_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        pub async fn save_settings(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SaveSettingsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SaveSettingsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.SettingsService/SaveSettings",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.SettingsService", "SaveSettings"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -6377,6 +6465,13 @@ pub mod settings_service_server {
             request: tonic::Request<super::GetGlobalSettingsRequest>,
         ) -> std::result::Result<
             tonic::Response<super::GetGlobalSettingsResponse>,
+            tonic::Status,
+        >;
+        async fn save_settings(
+            &self,
+            request: tonic::Request<super::SaveSettingsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::SaveSettingsResponse>,
             tonic::Status,
         >;
     }
@@ -6533,6 +6628,51 @@ pub mod settings_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetGlobalSettingsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.SettingsService/SaveSettings" => {
+                    #[allow(non_camel_case_types)]
+                    struct SaveSettingsSvc<T: SettingsService>(pub Arc<T>);
+                    impl<
+                        T: SettingsService,
+                    > tonic::server::UnaryService<super::SaveSettingsRequest>
+                    for SaveSettingsSvc<T> {
+                        type Response = super::SaveSettingsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SaveSettingsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SettingsService>::save_settings(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = SaveSettingsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

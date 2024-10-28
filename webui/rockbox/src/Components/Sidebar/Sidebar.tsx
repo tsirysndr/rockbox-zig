@@ -1,11 +1,13 @@
 import { FC } from "react";
-import { SidebarContainer, MenuItem } from "./styles";
+import { SidebarContainer, MenuItem, Header, SettingsButton } from "./styles";
 import { Disc } from "@styled-icons/boxicons-regular";
 import { HardDrive } from "@styled-icons/feather";
 import Artist from "../Icons/Artist";
 import Track from "../Icons/Track";
 import RockboxLogo from "../../Assets/rockbox-icon.svg";
 import HeartOutline from "../Icons/HeartOutline";
+import { Options } from "@styled-icons/fluentui-system-regular";
+import { Link } from "react-router-dom";
 
 export type SidebarProps = {
   active: string;
@@ -15,13 +17,25 @@ export type SidebarProps = {
 const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
   return (
     <SidebarContainer cover={cover}>
-      <a href="/" style={{ textDecoration: "none" }}>
-        <img
-          src={RockboxLogo}
-          alt="Rockbox"
-          style={{ width: 40, marginBottom: 20, marginLeft: 12 }}
-        />
-      </a>
+      <Header>
+        <a href="/" style={{ textDecoration: "none" }}>
+          <img
+            src={RockboxLogo}
+            alt="Rockbox"
+            style={{
+              width: 40,
+              marginBottom: 20,
+              marginLeft: 12,
+              marginTop: -12,
+            }}
+          />
+        </a>
+        <Link to="/settings">
+          <SettingsButton>
+            <Options size={24} color="#000" />
+          </SettingsButton>
+        </Link>
+      </Header>
       <MenuItem
         color={active === "albums" ? "#fe099c" : "initial"}
         to="/albums"

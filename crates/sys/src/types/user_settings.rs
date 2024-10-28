@@ -3,7 +3,7 @@ use std::ffi::CStr;
 use crate::cast_ptr;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ReplaygainSettings {
     pub noclip: bool, // scale to prevent clips
     pub r#type: i32, // 0=track gain, 1=album gain, 2=track gain if shuffle is on, album gain otherwise, 4=off
@@ -12,7 +12,7 @@ pub struct ReplaygainSettings {
 
 impl From<crate::ReplaygainSettings> for ReplaygainSettings {
     fn from(settings: crate::ReplaygainSettings) -> Self {
-        let noclip = if settings.noclip == 1 { true } else { false };
+        let noclip = settings.noclip;
         Self {
             noclip,
             r#type: settings.r#type,
@@ -21,11 +21,21 @@ impl From<crate::ReplaygainSettings> for ReplaygainSettings {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+impl Into<crate::ReplaygainSettings> for ReplaygainSettings {
+    fn into(self) -> crate::ReplaygainSettings {
+        crate::ReplaygainSettings {
+            noclip: self.noclip,
+            r#type: self.r#type,
+            preamp: self.preamp,
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct EqBandSetting {
-    pub cutoff: i32, // Hz
+    pub cutoff: i32,
     pub q: i32,
-    pub gain: i32, // +/- dB
+    pub gain: i32,
 }
 
 impl From<crate::EqBandSetting> for EqBandSetting {
@@ -34,6 +44,16 @@ impl From<crate::EqBandSetting> for EqBandSetting {
             cutoff: setting.cutoff,
             q: setting.q,
             gain: setting.gain,
+        }
+    }
+}
+
+impl Into<crate::EqBandSetting> for EqBandSetting {
+    fn into(self) -> crate::EqBandSetting {
+        crate::EqBandSetting {
+            cutoff: self.cutoff,
+            q: self.q,
+            gain: self.gain,
         }
     }
 }
@@ -88,6 +108,8 @@ impl From<crate::CompressorSettings> for CompressorSettings {
 
 #[derive(Serialize, Deserialize)]
 pub struct UserSettings {
+    pub music_dir: String,
+
     // Audio settings
     pub volume: i32,
     pub balance: i32,
@@ -329,7 +351,7 @@ pub struct UserSettings {
     pub surround_enabled: i32,
     pub surround_balance: i32,
     pub surround_fx1: i32,
-    pub surround_fx2: bool,
+    pub surround_fx2: i32,
     pub surround_method2: bool,
     pub surround_mix: i32,
 
@@ -344,7 +366,10 @@ pub struct UserSettings {
 
 impl From<crate::UserSettings> for UserSettings {
     fn from(settings: crate::UserSettings) -> Self {
+        let home = std::env::var("HOME").unwrap();
         Self {
+            music_dir: std::env::var("ROCKBOX_LIBRARY")
+                .unwrap_or_else(|_| format!("{}/Music", home)),
             volume: settings.volume,
             balance: settings.balance,
             bass: settings.bass,
@@ -365,7 +390,7 @@ impl From<crate::UserSettings> for UserSettings {
             crossfeed_cross_gain: settings.crossfeed_cross_gain as u32,
             crossfeed_hf_attenuation: settings.crossfeed_hf_attenuation as u32,
             crossfeed_hf_cutoff: settings.crossfeed_hf_cutoff as u32,
-            eq_enabled: settings.eq_enabled != 0,
+            eq_enabled: settings.eq_enabled,
             eq_precut: settings.eq_precut as u32,
             eq_band_settings: settings
                 .eq_band_settings
@@ -375,27 +400,27 @@ impl From<crate::UserSettings> for UserSettings {
             beep: settings.beep,
             keyclick: settings.keyclick,
             keyclick_repeats: settings.keyclick_repeats,
-            dithering_enabled: settings.dithering_enabled != 0,
-            timestretch_enabled: settings.timestretch_enabled != 0,
+            dithering_enabled: settings.dithering_enabled,
+            timestretch_enabled: settings.timestretch_enabled,
             list_accel_start_delay: settings.list_accel_start_delay,
             list_accel_wait: settings.list_accel_wait,
             touchpad_sensitivity: settings.touchpad_sensitivity,
             touchpad_deadzone: settings.touchpad_deadzone,
             pause_rewind: settings.pause_rewind,
             unplug_mode: settings.unplug_mode,
-            unplug_autoresume: settings.unplug_autoresume != 0,
+            unplug_autoresume: settings.unplug_autoresume,
             timeformat: settings.timeformat,
             disk_spindown: settings.disk_spindown,
             buffer_margin: settings.buffer_margin,
             dirfilter: settings.dirfilter,
             show_filename_ext: settings.show_filename_ext,
             default_codepage: settings.default_codepage,
-            hold_lr_for_scroll_in_list: settings.hold_lr_for_scroll_in_list != 0,
-            play_selected: settings.play_selected != 0,
+            hold_lr_for_scroll_in_list: settings.hold_lr_for_scroll_in_list,
+            play_selected: settings.play_selected,
             single_mode: settings.single_mode,
-            party_mode: settings.party_mode != 0,
-            cuesheet: settings.cuesheet != 0,
-            car_adapter_mode: settings.car_adapter_mode != 0,
+            party_mode: settings.party_mode,
+            cuesheet: settings.cuesheet,
+            car_adapter_mode: settings.car_adapter_mode,
             car_adapter_mode_delay: settings.car_adapter_mode_delay,
             start_in_screen: settings.start_in_screen,
             ff_rewind_min_step: settings.ff_rewind_min_step,
@@ -403,7 +428,7 @@ impl From<crate::UserSettings> for UserSettings {
             peak_meter_release: settings.peak_meter_release,
             peak_meter_hold: settings.peak_meter_hold,
             peak_meter_clip_hold: settings.peak_meter_clip_hold,
-            peak_meter_dbfs: settings.peak_meter_dbfs != 0,
+            peak_meter_dbfs: settings.peak_meter_dbfs,
             peak_meter_min: settings.peak_meter_min,
             peak_meter_max: settings.peak_meter_max,
             wps_file: unsafe {
@@ -431,16 +456,16 @@ impl From<crate::UserSettings> for UserSettings {
             max_files_in_playlist: settings.max_files_in_playlist,
             volume_type: settings.volume_type,
             battery_display: settings.battery_display,
-            show_icons: settings.show_icons != 0,
+            show_icons: settings.show_icons,
             statusbar: settings.statusbar,
             scrollbar: settings.scrollbar,
             scrollbar_width: settings.scrollbar_width,
             list_line_padding: settings.list_line_padding,
             list_separator_height: settings.list_separator_height,
             list_separator_color: settings.list_separator_color,
-            browse_current: settings.browse_current != 0,
-            scroll_paginated: settings.scroll_paginated != 0,
-            list_wraparound: settings.list_wraparound != 0,
+            browse_current: settings.browse_current,
+            scroll_paginated: settings.scroll_paginated,
+            list_wraparound: settings.list_wraparound,
             list_order: settings.list_order,
             scroll_speed: settings.scroll_speed,
             bidir_limit: settings.bidir_limit,
@@ -448,19 +473,19 @@ impl From<crate::UserSettings> for UserSettings {
             scroll_step: settings.scroll_step,
             autoloadbookmark: settings.autoloadbookmark,
             autocreatebookmark: settings.autocreatebookmark,
-            autoupdatebookmark: settings.autoupdatebookmark != 0,
+            autoupdatebookmark: settings.autoupdatebookmark,
             usemrb: settings.usemrb,
-            dircache: settings.dircache != 0,
+            dircache: settings.dircache,
             tagcache_ram: settings.tagcache_ram,
-            tagcache_autoupdate: settings.tagcache_autoupdate != 0,
-            autoresume_enable: settings.autoresume_enable != 0,
+            tagcache_autoupdate: settings.tagcache_autoupdate,
+            autoresume_enable: settings.autoresume_enable,
             autoresume_automatic: settings.autoresume_automatic,
             autoresume_paths: unsafe {
                 CStr::from_ptr(cast_ptr!(settings.autoresume_paths.as_ptr()))
                     .to_string_lossy()
                     .into_owned()
             },
-            runtimedb: settings.runtimedb != 0,
+            runtimedb: settings.runtimedb,
             tagcache_scan_paths: unsafe {
                 CStr::from_ptr(cast_ptr!(settings.tagcache_scan_paths.as_ptr()))
                     .to_string_lossy()
@@ -489,45 +514,44 @@ impl From<crate::UserSettings> for UserSettings {
             browser_default: settings.browser_default,
             repeat_mode: settings.repeat_mode,
             next_folder: settings.next_folder,
-            constrain_next_folder: settings.constrain_next_folder != 0,
+            constrain_next_folder: settings.constrain_next_folder,
             recursive_dir_insert: settings.recursive_dir_insert,
-            fade_on_stop: settings.fade_on_stop != 0,
-            playlist_shuffle: settings.playlist_shuffle != 0,
-            warnon_erase_dynplaylist: settings.warnon_erase_dynplaylist != 0,
-            keep_current_track_on_replace_playlist: settings.keep_current_track_on_replace_playlist
-                != 0,
-            show_shuffled_adding_options: settings.show_shuffled_adding_options != 0,
+            fade_on_stop: settings.fade_on_stop,
+            playlist_shuffle: settings.playlist_shuffle,
+            warnon_erase_dynplaylist: settings.warnon_erase_dynplaylist,
+            keep_current_track_on_replace_playlist: settings.keep_current_track_on_replace_playlist,
+            show_shuffled_adding_options: settings.show_shuffled_adding_options,
             show_queue_options: settings.show_queue_options,
             album_art: settings.album_art,
-            rewind_across_tracks: settings.rewind_across_tracks != 0,
-            playlist_viewer_icons: settings.playlist_viewer_icons != 0,
-            playlist_viewer_indices: settings.playlist_viewer_indices != 0,
+            rewind_across_tracks: settings.rewind_across_tracks,
+            playlist_viewer_icons: settings.playlist_viewer_icons,
+            playlist_viewer_indices: settings.playlist_viewer_indices,
             playlist_viewer_track_display: settings.playlist_viewer_track_display,
-            talk_menu: settings.talk_menu != 0,
+            talk_menu: settings.talk_menu,
             talk_dir: settings.talk_dir,
-            talk_dir_clip: settings.talk_dir_clip != 0,
+            talk_dir_clip: settings.talk_dir_clip,
             talk_file: settings.talk_file,
-            talk_file_clip: settings.talk_file_clip != 0,
-            talk_filetype: settings.talk_filetype != 0,
-            talk_battery_level: settings.talk_battery_level != 0,
+            talk_file_clip: settings.talk_file_clip,
+            talk_filetype: settings.talk_filetype,
+            talk_battery_level: settings.talk_battery_level,
             talk_mixer_amp: settings.talk_mixer_amp,
-            sort_case: settings.sort_case != 0,
+            sort_case: settings.sort_case,
             sort_dir: settings.sort_dir,
             sort_file: settings.sort_file,
             interpret_numbers: settings.interpret_numbers,
             poweroff: settings.poweroff,
             battery_capacity: settings.battery_capacity,
             battery_type: settings.battery_type,
-            spdif_enable: settings.spdif_enable != 0,
+            spdif_enable: settings.spdif_enable,
             usb_charging: settings.usb_charging,
             contrast: settings.contrast,
-            invert: settings.invert != 0,
-            flip_display: settings.flip_display != 0,
+            invert: settings.invert,
+            flip_display: settings.flip_display,
             cursor_style: settings.cursor_style,
             screen_scroll_step: settings.screen_scroll_step,
             show_path_in_browser: settings.show_path_in_browser,
-            offset_out_of_view: settings.offset_out_of_view != 0,
-            disable_mainmenu_scrolling: settings.disable_mainmenu_scrolling != 0,
+            offset_out_of_view: settings.offset_out_of_view,
+            disable_mainmenu_scrolling: settings.disable_mainmenu_scrolling,
             icon_file: unsafe {
                 CStr::from_ptr(cast_ptr!(settings.icon_file.as_ptr()))
                     .to_string_lossy()
@@ -550,25 +574,25 @@ impl From<crate::UserSettings> for UserSettings {
                     .into_owned()
             },
             backlight_timeout: settings.backlight_timeout,
-            caption_backlight: settings.caption_backlight != 0,
-            bl_filter_first_keypress: settings.bl_filter_first_keypress != 0,
+            caption_backlight: settings.caption_backlight,
+            bl_filter_first_keypress: settings.bl_filter_first_keypress,
             backlight_timeout_plugged: settings.backlight_timeout_plugged,
-            bt_selective_softlock_actions: settings.bt_selective_softlock_actions != 0,
+            bt_selective_softlock_actions: settings.bt_selective_softlock_actions,
             bt_selective_softlock_actions_mask: settings.bt_selective_softlock_actions_mask,
-            bl_selective_actions: settings.bl_selective_actions != 0,
+            bl_selective_actions: settings.bl_selective_actions,
             bl_selective_actions_mask: settings.bl_selective_actions_mask,
             backlight_on_button_hold: settings.backlight_on_button_hold,
             lcd_sleep_after_backlight_off: settings.lcd_sleep_after_backlight_off,
             brightness: settings.brightness,
             speaker_mode: settings.speaker_mode,
-            prevent_skip: settings.prevent_skip != 0,
+            prevent_skip: settings.prevent_skip,
             touch_mode: settings.touch_mode,
             ts_calibration_data: TouchscreenParameter::from(settings.ts_calibration_data),
-            pitch_mode_semitone: settings.pitch_mode_semitone != 0,
-            pitch_mode_timestretch: settings.pitch_mode_timestretch != 0,
-            usb_hid: settings.usb_hid != 0,
+            pitch_mode_semitone: settings.pitch_mode_semitone,
+            pitch_mode_timestretch: settings.pitch_mode_timestretch,
+            usb_hid: settings.usb_hid,
             usb_keypad_mode: settings.usb_keypad_mode,
-            usb_skip_first_drive: settings.usb_skip_first_drive != 0,
+            usb_skip_first_drive: settings.usb_skip_first_drive,
             player_name: unsafe {
                 CStr::from_ptr(cast_ptr!(settings.player_name.as_ptr()))
                     .to_string_lossy()
@@ -576,23 +600,23 @@ impl From<crate::UserSettings> for UserSettings {
             },
             compressor_settings: CompressorSettings::from(settings.compressor_settings),
             sleeptimer_duration: settings.sleeptimer_duration,
-            sleeptimer_on_startup: settings.sleeptimer_on_startup != 0,
-            keypress_restarts_sleeptimer: settings.keypress_restarts_sleeptimer != 0,
-            show_shutdown_message: settings.show_shutdown_message != 0,
+            sleeptimer_on_startup: settings.sleeptimer_on_startup,
+            keypress_restarts_sleeptimer: settings.keypress_restarts_sleeptimer,
+            show_shutdown_message: settings.show_shutdown_message,
             hotkey_wps: settings.hotkey_wps,
             hotkey_tree: settings.hotkey_tree,
             resume_rewind: settings.resume_rewind,
             depth_3d: settings.depth_3d,
             roll_off: settings.roll_off,
             power_mode: settings.power_mode,
-            keyclick_hardware: settings.keyclick_hardware != 0,
+            keyclick_hardware: settings.keyclick_hardware,
             start_directory: unsafe {
                 CStr::from_ptr(cast_ptr!(settings.start_directory.as_ptr()))
                     .to_string_lossy()
                     .into_owned()
             },
-            root_menu_customized: settings.root_menu_customized != 0,
-            shortcuts_replaces_qs: settings.shortcuts_replaces_qs != 0,
+            root_menu_customized: settings.root_menu_customized,
+            shortcuts_replaces_qs: settings.shortcuts_replaces_qs,
             play_frequency: settings.play_frequency,
             volume_limit: settings.volume_limit,
             volume_adjust_mode: settings.volume_adjust_mode,
@@ -600,14 +624,79 @@ impl From<crate::UserSettings> for UserSettings {
             surround_enabled: settings.surround_enabled,
             surround_balance: settings.surround_balance,
             surround_fx1: settings.surround_fx1,
-            surround_fx2: settings.surround_fx2 != 0,
-            surround_method2: settings.surround_method2 != 0,
+            surround_fx2: settings.surround_fx2,
+            surround_method2: settings.surround_method2,
             surround_mix: settings.surround_mix,
             pbe: settings.pbe,
             pbe_precut: settings.pbe_precut,
             afr_enabled: settings.afr_enabled,
             governor: settings.governor,
             stereosw_mode: settings.stereosw_mode,
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct NewGlobalSettings {
+    pub music_dir: Option<String>,
+    pub playlist_shuffle: Option<bool>,
+    pub repeat_mode: Option<i32>,
+    pub bass: Option<i32>,
+    pub treble: Option<i32>,
+    pub bass_cutoff: Option<i32>,
+    pub treble_cutoff: Option<i32>,
+    pub crossfade: Option<i32>,
+    pub fade_on_stop: Option<bool>,
+    pub fade_in_delay: Option<i32>,
+    pub fade_in_duration: Option<i32>,
+    pub fade_out_delay: Option<i32>,
+    pub fade_out_duration: Option<i32>,
+    pub fade_out_mixmode: Option<i32>,
+    pub balance: Option<i32>,
+    pub stereo_width: Option<i32>,
+    pub stereosw_mode: Option<i32>,
+    pub surround_enabled: Option<i32>,
+    pub surround_balance: Option<i32>,
+    pub surround_fx1: Option<i32>,
+    pub surround_fx2: Option<i32>,
+    pub party_mode: Option<bool>,
+    pub channel_config: Option<i32>,
+    pub player_name: Option<String>,
+    pub eq_enabled: Option<bool>,
+    pub eq_band_settings: Option<Vec<EqBandSetting>>,
+    pub replaygain_settings: Option<ReplaygainSettings>,
+}
+
+impl From<UserSettings> for NewGlobalSettings {
+    fn from(settings: UserSettings) -> Self {
+        Self {
+            music_dir: None,
+            playlist_shuffle: Some(settings.playlist_shuffle),
+            repeat_mode: Some(settings.repeat_mode),
+            bass: Some(settings.bass),
+            treble: Some(settings.treble),
+            bass_cutoff: Some(settings.bass_cutoff),
+            treble_cutoff: Some(settings.treble_cutoff),
+            crossfade: Some(settings.crossfade),
+            fade_on_stop: Some(settings.fade_on_stop),
+            fade_in_delay: Some(settings.crossfade_fade_in_delay),
+            fade_in_duration: Some(settings.crossfade_fade_in_duration),
+            fade_out_delay: Some(settings.crossfade_fade_out_delay),
+            fade_out_duration: Some(settings.crossfade_fade_out_duration),
+            fade_out_mixmode: Some(settings.crossfade_fade_out_mixmode),
+            balance: Some(settings.balance),
+            stereo_width: Some(settings.stereo_width),
+            stereosw_mode: Some(settings.stereosw_mode),
+            surround_enabled: Some(settings.surround_enabled),
+            surround_balance: Some(settings.surround_balance),
+            surround_fx1: Some(settings.surround_fx1),
+            surround_fx2: Some(settings.surround_fx2),
+            party_mode: Some(settings.party_mode),
+            channel_config: Some(settings.channel_config),
+            player_name: Some(settings.player_name),
+            eq_enabled: Some(settings.eq_enabled),
+            eq_band_settings: Some(settings.eq_band_settings),
+            replaygain_settings: Some(settings.replaygain_settings),
         }
     }
 }
