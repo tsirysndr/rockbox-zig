@@ -1,7 +1,7 @@
 use std::ffi::{c_char, c_int, c_uchar, c_void, CString};
 
 use crate::{
-    set_bool_setting, set_str_setting, set_value_setting,
+    set_str_setting, set_value_setting,
     types::user_settings::{NewGlobalSettings, UserSettings},
     EqBandSetting, OptItems, SettingsList, Viewport, EQ_NUM_BANDS, NB_SCREENS,
 };
@@ -137,7 +137,7 @@ pub fn get_crossfade_mode() -> i32 {
 
 pub fn save_settings(settings: NewGlobalSettings) {
     unsafe {
-        set_bool_setting!(
+        set_value_setting!(
             settings.playlist_shuffle,
             crate::global_settings.playlist_shuffle
         );
@@ -146,8 +146,12 @@ pub fn save_settings(settings: NewGlobalSettings) {
         set_value_setting!(settings.treble, crate::global_settings.treble);
         set_value_setting!(settings.bass_cutoff, crate::global_settings.bass_cutoff);
         set_value_setting!(settings.treble_cutoff, crate::global_settings.treble_cutoff);
+
         set_value_setting!(settings.crossfade, crate::global_settings.crossfade);
-        set_bool_setting!(settings.fade_on_stop, crate::global_settings.fade_on_stop);
+        crate::sound::audio_set_crossfade(crate::global_settings.crossfade);
+
+        set_value_setting!(settings.fade_on_stop, crate::global_settings.fade_on_stop);
+
         set_value_setting!(
             settings.fade_in_delay,
             crate::global_settings.crossfade_fade_in_delay
@@ -156,14 +160,20 @@ pub fn save_settings(settings: NewGlobalSettings) {
             settings.fade_in_duration,
             crate::global_settings.crossfade_fade_in_duration
         );
+
         set_value_setting!(
             settings.fade_out_delay,
             crate::global_settings.crossfade_fade_out_delay
         );
+        crate::sound::audio_set_crossfade(crate::global_settings.crossfade);
+
         set_value_setting!(
             settings.fade_out_duration,
             crate::global_settings.crossfade_fade_out_duration
         );
+
+        crate::sound::audio_set_crossfade(crate::global_settings.crossfade);
+
         set_value_setting!(
             settings.fade_out_mixmode,
             crate::global_settings.crossfade_fade_out_mixmode
@@ -171,7 +181,8 @@ pub fn save_settings(settings: NewGlobalSettings) {
         set_value_setting!(settings.balance, crate::global_settings.balance);
         set_value_setting!(settings.stereo_width, crate::global_settings.stereo_width);
         set_value_setting!(settings.stereosw_mode, crate::global_settings.stereosw_mode);
-        set_bool_setting!(
+
+        set_value_setting!(
             settings.surround_enabled,
             crate::global_settings.surround_enabled
         );
@@ -180,14 +191,14 @@ pub fn save_settings(settings: NewGlobalSettings) {
             crate::global_settings.surround_balance
         );
         set_value_setting!(settings.surround_fx1, crate::global_settings.surround_fx1);
-        set_bool_setting!(settings.surround_fx2, crate::global_settings.surround_fx2);
-        set_bool_setting!(settings.party_mode, crate::global_settings.party_mode);
+        set_value_setting!(settings.surround_fx2, crate::global_settings.surround_fx2);
+        set_value_setting!(settings.party_mode, crate::global_settings.party_mode);
         set_value_setting!(
             settings.channel_config,
             crate::global_settings.channel_config
         );
         set_str_setting!(settings.player_name, crate::global_settings.player_name, 64);
-        set_bool_setting!(settings.eq_enabled, crate::global_settings.eq_enabled);
+        set_value_setting!(settings.eq_enabled, crate::global_settings.eq_enabled);
 
         if let Some(eq_band_settings) = settings.eq_band_settings {
             let mut array = [EqBandSetting {

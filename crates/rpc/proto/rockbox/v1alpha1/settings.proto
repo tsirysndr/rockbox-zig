@@ -212,7 +212,7 @@ message GetGlobalSettingsResponse {
   int32 surround_enabled = 173;
   int32 surround_balance = 174;
   int32 surround_fx1 = 175;
-  bool surround_fx2 = 176;
+  int32 surround_fx2 = 176;
   bool surround_method2 = 177;
   int32 surround_mix = 178;
   int32 pbe = 179;
@@ -241,10 +241,10 @@ message SaveSettingsRequest {
   optional int32 balance = 15;
   optional int32 stereo_width = 16;
   optional int32 stereosw_mode = 17;
-  optional bool surround_enabled = 18;
+  optional int32 surround_enabled = 18;
   optional int32 surround_balance = 19;
   optional int32 surround_fx1 = 20;
-  optional bool surround_fx2 = 21;
+  optional int32 surround_fx2 = 21;
   optional bool party_mode = 22;
   optional int32 channel_config = 23;
   optional string player_name = 24;

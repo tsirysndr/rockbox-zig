@@ -527,6 +527,7 @@ export type UserSettings = {
   lstColor: Scalars['Int']['output'];
   maxFilesInDir: Scalars['Int']['output'];
   maxFilesInPlaylist: Scalars['Int']['output'];
+  musicDir: Scalars['String']['output'];
   nextFolder: Scalars['Int']['output'];
   offsetOutOfView: Scalars['Boolean']['output'];
   partyMode: Scalars['Boolean']['output'];
@@ -896,7 +897,7 @@ export type SaveSettingsMutation = { __typename?: 'Mutation', saveSettings: bool
 export type GetGlobalSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', volume: number, playlistShuffle: boolean, repeatMode: number, bass: number, bassCutoff: number, treble: number, trebleCutoff: number, crossfade: number, fadeOnStop: boolean, crossfadeFadeInDelay: number, crossfadeFadeInDuration: number, crossfadeFadeOutDelay: number, crossfadeFadeOutDuration: number, crossfadeFadeOutMixmode: number, balance: number, stereoWidth: number, stereoswMode: number, surroundEnabled: number, surroundBalance: number, surroundFx1: number, surroundFx2: boolean, partyMode: boolean, ditheringEnabled: boolean, channelConfig: number, playerName: string, eqEnabled: boolean, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }>, replaygainSettings: { __typename?: 'ReplaygainSettings', noclip: boolean, type: number, preamp: number } } };
+export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', musicDir: string, volume: number, playlistShuffle: boolean, repeatMode: number, bass: number, bassCutoff: number, treble: number, trebleCutoff: number, crossfade: number, fadeOnStop: boolean, crossfadeFadeInDelay: number, crossfadeFadeInDuration: number, crossfadeFadeOutDelay: number, crossfadeFadeOutDuration: number, crossfadeFadeOutMixmode: number, balance: number, stereoWidth: number, stereoswMode: number, surroundEnabled: number, surroundBalance: number, surroundFx1: number, surroundFx2: boolean, partyMode: boolean, ditheringEnabled: boolean, channelConfig: number, playerName: string, eqEnabled: boolean, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }>, replaygainSettings: { __typename?: 'ReplaygainSettings', noclip: boolean, type: number, preamp: number } } };
 
 export type AdjustVolumeMutationVariables = Exact<{
   steps: Scalars['Int']['input'];
@@ -2486,6 +2487,7 @@ export type SaveSettingsMutationOptions = Apollo.BaseMutationOptions<SaveSetting
 export const GetGlobalSettingsDocument = gql`
     query GetGlobalSettings {
   globalSettings {
+    musicDir
     volume
     playlistShuffle
     repeatMode

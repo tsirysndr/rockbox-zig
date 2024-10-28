@@ -6194,8 +6194,8 @@ pub struct GetGlobalSettingsResponse {
     pub surround_balance: i32,
     #[prost(int32, tag = "175")]
     pub surround_fx1: i32,
-    #[prost(bool, tag = "176")]
-    pub surround_fx2: bool,
+    #[prost(int32, tag = "176")]
+    pub surround_fx2: i32,
     #[prost(bool, tag = "177")]
     pub surround_method2: bool,
     #[prost(int32, tag = "178")]
@@ -6249,14 +6249,14 @@ pub struct SaveSettingsRequest {
     pub stereo_width: ::core::option::Option<i32>,
     #[prost(int32, optional, tag = "17")]
     pub stereosw_mode: ::core::option::Option<i32>,
-    #[prost(bool, optional, tag = "18")]
-    pub surround_enabled: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "18")]
+    pub surround_enabled: ::core::option::Option<i32>,
     #[prost(int32, optional, tag = "19")]
     pub surround_balance: ::core::option::Option<i32>,
     #[prost(int32, optional, tag = "20")]
     pub surround_fx1: ::core::option::Option<i32>,
-    #[prost(bool, optional, tag = "21")]
-    pub surround_fx2: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "21")]
+    pub surround_fx2: ::core::option::Option<i32>,
     #[prost(bool, optional, tag = "22")]
     pub party_mode: ::core::option::Option<bool>,
     #[prost(int32, optional, tag = "23")]

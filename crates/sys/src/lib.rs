@@ -94,18 +94,6 @@ macro_rules! set_value_setting {
 }
 
 #[macro_export]
-macro_rules! set_bool_setting {
-    ($setting:expr, $global_setting:expr) => {
-        if let Some(value) = $setting {
-            $global_setting = match value {
-                true => 1,
-                false => 0,
-            };
-        }
-    };
-}
-
-#[macro_export]
 macro_rules! set_str_setting {
     ($setting:expr, $global_setting:expr, $len:expr) => {
         if let Some(player_name) = $setting {
@@ -784,7 +772,7 @@ pub struct UserSettings {
     pub crossfeed_hf_cutoff: c_uint,
 
     // EQ
-    pub eq_enabled: c_uchar,
+    pub eq_enabled: bool,
     pub eq_precut: c_uint,
     pub eq_band_settings: [EqBandSetting; EQ_NUM_BANDS],
 
@@ -792,8 +780,8 @@ pub struct UserSettings {
     pub beep: c_int,
     pub keyclick: c_int,
     pub keyclick_repeats: c_int,
-    pub dithering_enabled: c_uchar,
-    pub timestretch_enabled: c_uchar,
+    pub dithering_enabled: bool,
+    pub timestretch_enabled: bool,
 
     // Misc options
     pub list_accel_start_delay: c_int,
@@ -804,7 +792,7 @@ pub struct UserSettings {
 
     pub pause_rewind: c_int,
     pub unplug_mode: c_int,
-    pub unplug_autoresume: c_uchar,
+    pub unplug_autoresume: bool,
 
     pub qs_items: [*const SettingsList; QUICKSCREEN_ITEM_COUNT],
 
@@ -815,12 +803,12 @@ pub struct UserSettings {
     pub dirfilter: c_int,
     pub show_filename_ext: c_int,
     pub default_codepage: c_int,
-    pub hold_lr_for_scroll_in_list: c_uchar,
-    pub play_selected: c_uchar,
+    pub hold_lr_for_scroll_in_list: bool,
+    pub play_selected: bool,
     pub single_mode: c_int,
-    pub party_mode: c_uchar,
-    pub cuesheet: c_uchar,
-    pub car_adapter_mode: c_uchar,
+    pub party_mode: bool,
+    pub cuesheet: bool,
+    pub car_adapter_mode: bool,
     pub car_adapter_mode_delay: c_int,
     pub start_in_screen: c_int,
     pub ff_rewind_min_step: c_int,
@@ -829,7 +817,7 @@ pub struct UserSettings {
     pub peak_meter_release: c_int,
     pub peak_meter_hold: c_int,
     pub peak_meter_clip_hold: c_int,
-    pub peak_meter_dbfs: c_uchar,
+    pub peak_meter_dbfs: bool,
     pub peak_meter_min: c_int,
     pub peak_meter_max: c_int,
 
@@ -842,7 +830,7 @@ pub struct UserSettings {
     pub max_files_in_playlist: c_int,
     pub volume_type: c_int,
     pub battery_display: c_int,
-    pub show_icons: c_uchar,
+    pub show_icons: bool,
     pub statusbar: c_int,
 
     pub scrollbar: c_int,
@@ -852,9 +840,9 @@ pub struct UserSettings {
     pub list_separator_height: c_int,
     pub list_separator_color: c_int,
 
-    pub browse_current: c_uchar,
-    pub scroll_paginated: c_uchar,
-    pub list_wraparound: c_uchar,
+    pub browse_current: bool,
+    pub scroll_paginated: bool,
+    pub list_wraparound: bool,
     pub list_order: c_int,
     pub scroll_speed: c_int,
     pub bidir_limit: c_int,
@@ -863,16 +851,16 @@ pub struct UserSettings {
 
     pub autoloadbookmark: c_int,
     pub autocreatebookmark: c_int,
-    pub autoupdatebookmark: c_uchar,
+    pub autoupdatebookmark: bool,
     pub usemrb: c_int,
 
-    pub dircache: c_uchar,
+    pub dircache: bool,
     pub tagcache_ram: c_int,
-    pub tagcache_autoupdate: c_uchar,
-    pub autoresume_enable: c_uchar,
+    pub tagcache_autoupdate: bool,
+    pub autoresume_enable: bool,
     pub autoresume_automatic: c_int,
     pub autoresume_paths: [c_uchar; MAX_PATHNAME + 1],
-    pub runtimedb: c_uchar,
+    pub runtimedb: bool,
     pub tagcache_scan_paths: [c_uchar; MAX_PATHNAME + 1],
     pub tagcache_db_path: [c_uchar; MAX_PATHNAME + 1],
     pub backdrop_file: [c_uchar; MAX_PATHNAME + 1],
@@ -888,31 +876,31 @@ pub struct UserSettings {
 
     pub repeat_mode: c_int,
     pub next_folder: c_int,
-    pub constrain_next_folder: c_uchar,
+    pub constrain_next_folder: bool,
     pub recursive_dir_insert: c_int,
-    pub fade_on_stop: c_uchar,
-    pub playlist_shuffle: c_uchar,
-    pub warnon_erase_dynplaylist: c_uchar,
-    pub keep_current_track_on_replace_playlist: c_uchar,
-    pub show_shuffled_adding_options: c_uchar,
+    pub fade_on_stop: bool,
+    pub playlist_shuffle: bool,
+    pub warnon_erase_dynplaylist: bool,
+    pub keep_current_track_on_replace_playlist: bool,
+    pub show_shuffled_adding_options: bool,
     pub show_queue_options: c_int,
     pub album_art: c_int,
-    pub rewind_across_tracks: c_uchar,
+    pub rewind_across_tracks: bool,
 
-    pub playlist_viewer_icons: c_uchar,
-    pub playlist_viewer_indices: c_uchar,
+    pub playlist_viewer_icons: bool,
+    pub playlist_viewer_indices: bool,
     pub playlist_viewer_track_display: c_int,
 
-    pub talk_menu: c_uchar,
+    pub talk_menu: bool,
     pub talk_dir: c_int,
-    pub talk_dir_clip: c_uchar,
+    pub talk_dir_clip: bool,
     pub talk_file: c_int,
-    pub talk_file_clip: c_uchar,
-    pub talk_filetype: c_uchar,
-    pub talk_battery_level: c_uchar,
+    pub talk_file_clip: bool,
+    pub talk_filetype: bool,
+    pub talk_battery_level: bool,
     pub talk_mixer_amp: c_int,
 
-    pub sort_case: c_uchar,
+    pub sort_case: bool,
     pub sort_dir: c_int,
     pub sort_file: c_int,
     pub interpret_numbers: c_int,
@@ -920,47 +908,47 @@ pub struct UserSettings {
     pub poweroff: c_int,
     pub battery_capacity: c_int,
     pub battery_type: c_int,
-    pub spdif_enable: c_uchar,
+    pub spdif_enable: bool,
     pub usb_charging: c_int,
 
     pub contrast: c_int,
-    pub invert: c_uchar,
-    pub flip_display: c_uchar,
+    pub invert: bool,
+    pub flip_display: bool,
     pub cursor_style: c_int,
     pub screen_scroll_step: c_int,
     pub show_path_in_browser: c_int,
-    pub offset_out_of_view: c_uchar,
-    pub disable_mainmenu_scrolling: c_uchar,
+    pub offset_out_of_view: bool,
+    pub disable_mainmenu_scrolling: bool,
     pub icon_file: [c_uchar; MAX_FILENAME + 1],
     pub viewers_icon_file: [c_uchar; MAX_FILENAME + 1],
     pub font_file: [c_uchar; MAX_FILENAME + 1],
     pub glyphs_to_cache: c_int,
     pub kbd_file: [c_uchar; MAX_FILENAME + 1],
     pub backlight_timeout: c_int,
-    pub caption_backlight: c_uchar,
-    pub bl_filter_first_keypress: c_uchar,
+    pub caption_backlight: bool,
+    pub bl_filter_first_keypress: bool,
     pub backlight_timeout_plugged: c_int,
-    pub bt_selective_softlock_actions: c_uchar,
+    pub bt_selective_softlock_actions: bool,
     pub bt_selective_softlock_actions_mask: c_int,
-    pub bl_selective_actions: c_uchar,
+    pub bl_selective_actions: bool,
     pub bl_selective_actions_mask: c_int,
     pub backlight_on_button_hold: c_int,
     pub lcd_sleep_after_backlight_off: c_int,
     pub brightness: c_int,
 
     pub speaker_mode: c_int,
-    pub prevent_skip: c_uchar,
+    pub prevent_skip: bool,
 
     pub touch_mode: c_int,
     pub ts_calibration_data: TouchscreenParameter,
 
-    pub pitch_mode_semitone: c_uchar,
-    pub pitch_mode_timestretch: c_uchar,
+    pub pitch_mode_semitone: bool,
+    pub pitch_mode_timestretch: bool,
 
-    pub usb_hid: c_uchar,
+    pub usb_hid: bool,
     pub usb_keypad_mode: c_int,
 
-    pub usb_skip_first_drive: c_uchar,
+    pub usb_skip_first_drive: bool,
 
     pub ui_vp_config: [c_uchar; 64],
     pub player_name: [c_uchar; 64],
@@ -968,10 +956,10 @@ pub struct UserSettings {
     pub compressor_settings: CompressorSettings,
 
     pub sleeptimer_duration: c_int,
-    pub sleeptimer_on_startup: c_uchar,
-    pub keypress_restarts_sleeptimer: c_uchar,
+    pub sleeptimer_on_startup: bool,
+    pub keypress_restarts_sleeptimer: bool,
 
-    pub show_shutdown_message: c_uchar,
+    pub show_shutdown_message: bool,
 
     pub hotkey_wps: c_int,
     pub hotkey_tree: c_int,
@@ -984,11 +972,11 @@ pub struct UserSettings {
 
     pub power_mode: c_int,
 
-    pub keyclick_hardware: c_uchar,
+    pub keyclick_hardware: bool,
 
     pub start_directory: [c_uchar; MAX_PATHNAME + 1],
-    pub root_menu_customized: c_uchar,
-    pub shortcuts_replaces_qs: c_uchar,
+    pub root_menu_customized: bool,
+    pub shortcuts_replaces_qs: bool,
 
     pub play_frequency: c_int,
     pub volume_limit: c_int,
@@ -999,8 +987,8 @@ pub struct UserSettings {
     pub surround_enabled: c_int,
     pub surround_balance: c_int,
     pub surround_fx1: c_int,
-    pub surround_fx2: c_uchar,
-    pub surround_method2: c_uchar,
+    pub surround_fx2: c_int,
+    pub surround_method2: bool,
     pub surround_mix: c_int,
 
     pub pbe: c_int,
@@ -1016,7 +1004,7 @@ pub struct UserSettings {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ReplaygainSettings {
-    pub noclip: c_uchar, // scale to prevent clips
+    pub noclip: bool,  // scale to prevent clips
     pub r#type: c_int, // 0=track gain, 1=album gain, 2=track gain if shuffle is on, album gain otherwise, 4=off
     pub preamp: c_int, // scale replaygained tracks by this
 }

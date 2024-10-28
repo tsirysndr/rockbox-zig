@@ -23,18 +23,9 @@ pub fn load_settings(settings: Option<NewGlobalSettings>) -> Result<(), Error> {
 
     rb::settings::save_settings(settings.clone());
 
-    unsafe {
-        rb::sound::audio_set_crossfade(rb::global_settings.crossfade);
-    }
-
     rb::settings::apply_audio_settings();
 
-    let enabled = unsafe {
-        match rb::global_settings.eq_enabled {
-            0 => false,
-            _ => true,
-        }
-    };
+    let enabled = unsafe { rb::global_settings.eq_enabled };
     rb::sound::pcmbuf_set_low_latency(true);
     rb::sound::dsp::eq_enable(enabled);
     rb::sound::pcmbuf_set_low_latency(false);

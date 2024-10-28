@@ -841,10 +841,10 @@ void audio_settings_apply()
    
 #ifdef HAVE_PLAY_FREQ
     /* before crossfade */
-    audio_set_playback_frequency(global_settings.play_frequency);
+//    audio_set_playback_frequency(global_settings.play_frequency);
 #endif
 #ifdef HAVE_CROSSFADE
-    audio_set_crossfade(global_settings.crossfade);
+ //   audio_set_crossfade(global_settings.crossfade);
 #endif
     // replaygain_update();
     dsp_set_crossfeed_type(global_settings.crossfeed);

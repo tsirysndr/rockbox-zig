@@ -25,7 +25,7 @@ pub struct NewGlobalSettings {
     pub surround_enabled: Option<bool>,
     pub surround_balance: Option<i32>,
     pub surround_fx1: Option<i32>,
-    pub surround_fx2: Option<bool>,
+    pub surround_fx2: Option<i32>,
     pub party_mode: Option<bool>,
     pub channel_config: Option<i32>,
     pub player_name: Option<String>,

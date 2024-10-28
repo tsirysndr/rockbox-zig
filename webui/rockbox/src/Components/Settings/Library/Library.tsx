@@ -1,9 +1,19 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Item, Section, SettingsTitle } from "./styles";
 import { Input } from "baseui/input";
 
-const Library: FC = () => {
-  const [musicFolder, setMusicFolder] = useState<string>("$HOME/Music");
+export type LibraryProps = {
+  musicDir: string;
+  onSaveMusicDirectoryPath: (musicDir: string) => void;
+};
+
+const Library: FC<LibraryProps> = (props) => {
+  const [musicFolder, setMusicFolder] = useState<string>(props.musicDir);
+
+  useEffect(() => {
+    setMusicFolder(props.musicDir);
+  }, [props.musicDir]);
+
   return (
     <>
       <SettingsTitle>Library</SettingsTitle>
@@ -13,7 +23,10 @@ const Library: FC = () => {
           <div>
             <Input
               value={musicFolder}
-              onChange={(e) => setMusicFolder(e.target.value)}
+              onChange={(e) => {
+                setMusicFolder(e.target.value);
+                props.onSaveMusicDirectoryPath(e.target.value);
+              }}
               placeholder="Music folder"
             />
           </div>

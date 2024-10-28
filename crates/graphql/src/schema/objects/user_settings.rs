@@ -249,7 +249,7 @@ pub struct UserSettings {
     pub surround_enabled: i32,
     pub surround_balance: i32,
     pub surround_fx1: i32,
-    pub surround_fx2: bool,
+    pub surround_fx2: i32,
     pub surround_method2: bool,
     pub surround_mix: i32,
 
@@ -1024,7 +1024,7 @@ impl UserSettings {
         self.surround_fx1
     }
 
-    async fn surround_fx2(&self) -> bool {
+    async fn surround_fx2(&self) -> i32 {
         self.surround_fx2
     }
 
