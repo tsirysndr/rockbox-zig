@@ -219,7 +219,7 @@ exports[`ArtistDetails > should render 1`] = `
               class="css-1ytum11"
             >
               <button
-                class="css-10asy2d"
+                class="css-174s4i9"
               >
                 <svg
                   data-test="icon-PlaybackShuffle"
@@ -238,7 +238,7 @@ exports[`ArtistDetails > should render 1`] = `
                 </svg>
               </button>
               <button
-                class="css-10asy2d"
+                class="css-174s4i9"
               >
                 <svg
                   fill="none"
@@ -254,7 +254,7 @@ exports[`ArtistDetails > should render 1`] = `
                 </svg>
               </button>
               <button
-                class="css-10asy2d"
+                class="css-174s4i9"
               >
                 <svg
                   fill="none"
@@ -269,7 +269,7 @@ exports[`ArtistDetails > should render 1`] = `
                 </svg>
               </button>
               <button
-                class="css-10asy2d"
+                class="css-174s4i9"
               >
                 <svg
                   fill="none"
@@ -285,7 +285,7 @@ exports[`ArtistDetails > should render 1`] = `
                 </svg>
               </button>
               <button
-                class="css-10asy2d"
+                class="css-174s4i9"
               >
                 <svg
                   data-test="icon-PlaybackInactiveRepeat"
@@ -378,7 +378,7 @@ exports[`ArtistDetails > should render 1`] = `
             <button
               aria-expanded="false"
               aria-haspopup="true"
-              class="css-10asy2d"
+              class="css-174s4i9"
             >
               <svg
                 aria-hidden="true"
