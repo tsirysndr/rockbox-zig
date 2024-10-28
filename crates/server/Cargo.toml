@@ -17,6 +17,7 @@ rockbox-graphql = {path = "../graphql"}
 rockbox-library = {path = "../library"}
 rockbox-rpc = {path = "../rpc"}
 rockbox-search = {path = "../search"}
+rockbox-settings = {path = "../settings"}
 rockbox-sys = {path = "../sys"}
 rockbox-types = {path = "../types"}
 serde = {version = "1.0.210", features = ["derive"]}

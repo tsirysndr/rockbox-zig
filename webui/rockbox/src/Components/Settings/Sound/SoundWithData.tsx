@@ -19,10 +19,22 @@ const SoundWithData: FC = () => {
   };
 
   const onBassChange = (bass: number) => {
-    console.log(">> bass", bass);
+    saveSettings({
+      variables: {
+        settings: {
+          bass,
+        },
+      },
+    });
   };
   const onTrebleChange = (treble: number) => {
-    console.log(">> treble", treble);
+    saveSettings({
+      variables: {
+        settings: {
+          treble,
+        },
+      },
+    });
   };
   return (
     <Sound

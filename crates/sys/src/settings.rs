@@ -164,6 +164,10 @@ pub fn save_settings(settings: NewGlobalSettings) {
             settings.fade_out_duration,
             crate::global_settings.crossfade_fade_out_duration
         );
+        set_value_setting!(
+            settings.fade_out_mixmode,
+            crate::global_settings.crossfade_fade_out_mixmode
+        );
         set_value_setting!(settings.balance, crate::global_settings.balance);
         set_value_setting!(settings.stereo_width, crate::global_settings.stereo_width);
         set_value_setting!(settings.stereosw_mode, crate::global_settings.stereosw_mode);
@@ -202,8 +206,6 @@ pub fn save_settings(settings: NewGlobalSettings) {
         if let Some(replaygain_settings) = settings.replaygain_settings {
             crate::global_settings.replaygain_settings = replaygain_settings.into();
         }
-
-        crate::settings_save();
     }
 }
 
@@ -211,5 +213,11 @@ pub fn apply_settings(read_disk: bool) {
     unsafe {
         let read_disk = if read_disk { 1 } else { 0 };
         crate::settings_apply(read_disk);
+    }
+}
+
+pub fn apply_audio_settings() {
+    unsafe {
+        crate::audio_settings_apply();
     }
 }

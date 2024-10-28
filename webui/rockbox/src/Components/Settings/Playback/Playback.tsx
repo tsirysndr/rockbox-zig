@@ -77,6 +77,56 @@ const Playback: FC<PlaybackProps> = (props) => {
     props.fadeOutMode,
   ]);
 
+  const onShuffleChange = (shuffle: boolean) => {
+    setShuffle(shuffle);
+    props.onShuffleChange(shuffle);
+  };
+
+  const onRepeatChange = (repeat: number) => {
+    setRepeat(repeatValues[props.repeat]);
+    props.onRepeatChange(repeat);
+  };
+
+  const onFadeOnStopPauseChange = (fadeOnStopPause: boolean) => {
+    setFadeOnStopPause(fadeOnStopPause);
+    props.onFadeOnStopPauseChange(fadeOnStopPause);
+  };
+
+  const onCrossfadeChange = (crossfade: number) => {
+    setCrossfade(crossfadeValues[crossfade]);
+    props.onCrossfadeChange(crossfade);
+  };
+
+  const onReplaygainChange = (replaygain: number) => {
+    setReplaygain(replaygainValues[replaygain]);
+    props.onReplaygainChange(replaygain);
+  };
+
+  const onFadeInDelayChange = (fadeInDelay: number) => {
+    setFadeInDelay(fadeInDelay);
+    props.onFadeInDelayChange(fadeInDelay);
+  };
+
+  const onFadeInDurationChange = (fadeInDuration: number) => {
+    setFadeInDuration(fadeInDuration);
+    props.onFadeInDurationChange(fadeInDuration);
+  };
+
+  const onFadeOutDelayChange = (fadeOutDelay: number) => {
+    setFadeOutDelay(fadeOutDelay);
+    props.onFadeOutDelayChange(fadeOutDelay);
+  };
+
+  const onFadeOutDurationChange = (fadeOutDuration: number) => {
+    setFadeOutDuration(fadeOutDuration);
+    props.onFadeOutDurationChange(fadeOutDuration);
+  };
+
+  const onFadeOutModeChange = (fadeOutMode: number) => {
+    setFadeOutMode(fadeOutModeValues[fadeOutMode]);
+    props.onFadeOutModeChange(fadeOutMode);
+  };
+
   return (
     <>
       <SettingsTitle>Playback</SettingsTitle>
@@ -84,7 +134,10 @@ const Playback: FC<PlaybackProps> = (props) => {
         <Item>
           <div>Shuffle</div>
           <div>
-            <Switch checked={shuffle} onChange={() => setShuffle(!shuffle)} />
+            <Switch
+              checked={shuffle}
+              onChange={() => onShuffleChange(!shuffle)}
+            />
           </div>
         </Item>
         <Item>
@@ -95,7 +148,7 @@ const Playback: FC<PlaybackProps> = (props) => {
               value={repeat}
               onChange={(params) => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                setRepeat(params.value as any);
+                onRepeatChange((params.value as any)[0].value);
               }}
               clearable={false}
             />
@@ -107,7 +160,7 @@ const Playback: FC<PlaybackProps> = (props) => {
           <div>
             <Switch
               checked={fadeOnStopPause}
-              onChange={() => setFadeOnStopPause(!fadeOnStopPause)}
+              onChange={() => onFadeOnStopPauseChange(!fadeOnStopPause)}
             />
           </div>
         </Item>
@@ -120,7 +173,7 @@ const Playback: FC<PlaybackProps> = (props) => {
               value={crossfade}
               onChange={(params) => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                setCrossfade(params.value as any);
+                onCrossfadeChange((params.value as any)[0].value);
               }}
               clearable={false}
             />
@@ -133,7 +186,9 @@ const Playback: FC<PlaybackProps> = (props) => {
             <Slider
               value={fadeInDelay}
               onChange={(_event, value) => setFadeInDelay(value as number)}
-              //onChangeCommitted={handleVolumeChange}
+              onChangeCommitted={(_event, value) =>
+                onFadeInDelayChange(value as number)
+              }
               sx={styles.slider}
               valueLabelDisplay="auto"
               min={0}
@@ -150,7 +205,9 @@ const Playback: FC<PlaybackProps> = (props) => {
             <Slider
               value={fadeInDuration}
               onChange={(_event, value) => setFadeInDuration(value as number)}
-              //onChangeCommitted={handleVolumeChange}
+              onChangeCommitted={(_event, value) =>
+                onFadeInDurationChange(value as number)
+              }
               sx={styles.slider}
               valueLabelDisplay="auto"
               min={0}
@@ -166,7 +223,9 @@ const Playback: FC<PlaybackProps> = (props) => {
             <Slider
               value={fadeOutDelay}
               onChange={(_event, value) => setFadeOutDelay(value as number)}
-              //onChangeCommitted={handleVolumeChange}
+              onChangeCommitted={(_event, value) =>
+                onFadeOutDelayChange(value as number)
+              }
               sx={styles.slider}
               valueLabelDisplay="auto"
               min={0}
@@ -182,7 +241,9 @@ const Playback: FC<PlaybackProps> = (props) => {
             <Slider
               value={fadeOutDuration}
               onChange={(_event, value) => setFadeOutDuration(value as number)}
-              //onChangeCommitted={handleVolumeChange}
+              onChangeCommitted={(_event, value) =>
+                onFadeOutDurationChange(value as number)
+              }
               sx={styles.slider}
               valueLabelDisplay="auto"
               min={0}
@@ -199,7 +260,7 @@ const Playback: FC<PlaybackProps> = (props) => {
               value={fadeOutMode}
               onChange={(params) => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                setFadeOutMode(params.value as any);
+                onFadeOutModeChange((params.value as any)[0].value);
               }}
               clearable={false}
             />
@@ -214,7 +275,7 @@ const Playback: FC<PlaybackProps> = (props) => {
               value={replaygain}
               onChange={(params) => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                setReplaygain(params.value as any);
+                onReplaygainChange((params.value as any)[0].value);
               }}
               clearable={false}
             />

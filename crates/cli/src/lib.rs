@@ -74,7 +74,7 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             Ok(_) => false,
             Err(_) => false,
         };
-        let path = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
+        let path = rockbox_settings::get_music_dir().unwrap_or(format!("{}/Music", home));
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
             let pool = create_connection_pool().await?;

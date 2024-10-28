@@ -3,7 +3,7 @@ use std::ffi::CStr;
 use crate::cast_ptr;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ReplaygainSettings {
     pub noclip: bool, // scale to prevent clips
     pub r#type: i32, // 0=track gain, 1=album gain, 2=track gain if shuffle is on, album gain otherwise, 4=off
@@ -32,7 +32,7 @@ impl Into<crate::ReplaygainSettings> for ReplaygainSettings {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct EqBandSetting {
     pub cutoff: i32, // Hz
     pub q: i32,
@@ -109,6 +109,8 @@ impl From<crate::CompressorSettings> for CompressorSettings {
 
 #[derive(Serialize, Deserialize)]
 pub struct UserSettings {
+    pub music_dir: String,
+
     // Audio settings
     pub volume: i32,
     pub balance: i32,
@@ -365,7 +367,10 @@ pub struct UserSettings {
 
 impl From<crate::UserSettings> for UserSettings {
     fn from(settings: crate::UserSettings) -> Self {
+        let home = std::env::var("HOME").unwrap();
         Self {
+            music_dir: std::env::var("ROCKBOX_LIBRARY")
+                .unwrap_or_else(|_| format!("{}/Music", home)),
             volume: settings.volume,
             balance: settings.balance,
             bass: settings.bass,
@@ -633,7 +638,7 @@ impl From<crate::UserSettings> for UserSettings {
     }
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct NewGlobalSettings {
     pub music_dir: Option<String>,
     pub playlist_shuffle: Option<bool>,
@@ -662,4 +667,38 @@ pub struct NewGlobalSettings {
     pub eq_enabled: Option<bool>,
     pub eq_band_settings: Option<Vec<EqBandSetting>>,
     pub replaygain_settings: Option<ReplaygainSettings>,
+}
+
+impl From<UserSettings> for NewGlobalSettings {
+    fn from(settings: UserSettings) -> Self {
+        Self {
+            music_dir: None,
+            playlist_shuffle: Some(settings.playlist_shuffle),
+            repeat_mode: Some(settings.repeat_mode),
+            bass: Some(settings.bass),
+            treble: Some(settings.treble),
+            bass_cutoff: Some(settings.bass_cutoff),
+            treble_cutoff: Some(settings.treble_cutoff),
+            crossfade: Some(settings.crossfade),
+            fade_on_stop: Some(settings.fade_on_stop),
+            fade_in_delay: Some(settings.crossfade_fade_in_delay),
+            fade_in_duration: Some(settings.crossfade_fade_in_duration),
+            fade_out_delay: Some(settings.crossfade_fade_out_delay),
+            fade_out_duration: Some(settings.crossfade_fade_out_duration),
+            fade_out_mixmode: Some(settings.crossfade_fade_out_mixmode),
+            balance: Some(settings.balance),
+            stereo_width: Some(settings.stereo_width),
+            stereosw_mode: Some(settings.stereosw_mode),
+            surround_enabled: Some(settings.surround_enabled == 1),
+            surround_balance: Some(settings.surround_balance),
+            surround_fx1: Some(settings.surround_fx1),
+            surround_fx2: Some(settings.surround_fx2),
+            party_mode: Some(settings.party_mode),
+            channel_config: Some(settings.channel_config),
+            player_name: Some(settings.player_name),
+            eq_enabled: Some(settings.eq_enabled),
+            eq_band_settings: Some(settings.eq_band_settings),
+            replaygain_settings: Some(settings.replaygain_settings),
+        }
+    }
 }

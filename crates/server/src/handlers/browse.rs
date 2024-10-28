@@ -32,7 +32,7 @@ pub async fn get_tree_entries(
     }
 
     let mut fs_cache = ctx.fs_cache.lock().await;
-    if let Some(entries) = fs_cache.get(path.into()) {
+    if let Some(entries) = fs_cache.get(&path.to_string()) {
         update_cache(ctx, path, show_hidden);
         res.json(entries);
         return Ok(());

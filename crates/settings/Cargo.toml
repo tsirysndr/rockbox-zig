@@ -1,0 +1,9 @@
+[package]
+edition = "2021"
+name = "rockbox-settings"
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1.0.91"
+rockbox-sys = {path = "../sys"}
+toml = "0.8.19"

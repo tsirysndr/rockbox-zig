@@ -41,11 +41,11 @@ const Sound: FC<SoundProps> = (props) => {
   };
 
   const onBassChangeCommitted = (value: number) => {
-    props.onBassChange(value);
+    props.onBassChange(Math.floor((value / 100) * 48 - 24));
   };
 
   const onTrebleChangeCommitted = (value: number) => {
-    props.onTrebleChange(value);
+    props.onTrebleChange(Math.floor((value / 100) * 48 - 24));
   };
 
   const onBalanceChangeCommitted = (value: number) => {

@@ -19,9 +19,9 @@ pub async fn update_global_settings(
     res: &mut Response,
 ) -> Result<(), Error> {
     let body = req.body.as_ref().unwrap();
-    let settings: NewGlobalSettings = serde_json::from_str(&body)?;
-    rb::settings::save_settings(settings);
-    rb::settings::apply_settings(false);
+    let settings: NewGlobalSettings = serde_json::from_str(body)?;
+    rockbox_settings::load_settings(Some(settings))?;
+    rockbox_settings::write_settings()?;
     res.set_status(204);
     Ok(())
 }

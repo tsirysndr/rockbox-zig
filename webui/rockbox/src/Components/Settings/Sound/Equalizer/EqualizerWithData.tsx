@@ -2,23 +2,36 @@ import { FC } from "react";
 import Equalizer from "./Equalizer";
 import { useRecoilState } from "recoil";
 import { settingsState } from "../../SettingsState";
+import { useSaveSettingsMutation } from "../../../../Hooks/GraphQL";
 
 const EqualizerWithData: FC = () => {
   const [settings] = useRecoilState(settingsState);
-  console.log(">> settings", settings);
+  const [saveSettings] = useSaveSettingsMutation();
 
-  const onEnableEq = (enable: boolean) => {
-    console.log(">> enable", enable);
+  const onEnableEq = (eqEnabled: boolean) => {
+    saveSettings({
+      variables: {
+        settings: {
+          eqEnabled,
+        },
+      },
+    });
   };
 
   const onEqBandSettingsChange = (
-    newEqBandSettings: {
+    eqBandSettings: {
       q: number;
       gain: number;
       cutoff: number;
     }[]
   ) => {
-    console.log(">> newEqBandSettings", newEqBandSettings);
+    saveSettings({
+      variables: {
+        settings: {
+          eqBandSettings,
+        },
+      },
+    });
   };
 
   return (

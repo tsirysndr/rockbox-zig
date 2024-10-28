@@ -1024,9 +1024,9 @@ pub struct ReplaygainSettings {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct EqBandSetting {
-    pub cutoff: c_int, // Hz
+    pub cutoff: c_int,
     pub q: c_int,
-    pub gain: c_int, // +/- dB
+    pub gain: c_int,
 }
 
 #[repr(C)]
@@ -1195,6 +1195,7 @@ extern "C" {
     fn pcmbuf_set_low_latency(state: c_uchar);
     fn system_sound_play(sound: SystemSound);
     fn keyclick_click(rawbutton: c_uchar, action: c_int);
+    fn audio_set_crossfade(crossfade: c_int);
 
     // Browsing
     fn rockbox_browse_at(path: *const c_char) -> c_int;
@@ -1326,6 +1327,7 @@ extern "C" {
     fn find_setting(variable: *const c_void) -> SettingsList;
     fn settings_save() -> c_int;
     fn settings_apply(read_disk: c_uchar);
+    fn audio_settings_apply();
     fn option_screen(
         setting: *mut SettingsList,
         parent: [Viewport; NB_SCREENS],

@@ -33,6 +33,13 @@ pub extern "C" fn debugfn(args: *const c_char) {
 
 #[no_mangle]
 pub extern "C" fn start_server() {
+    match rockbox_settings::load_settings(None) {
+        Ok(_) => {}
+        Err(e) => {
+            println!("Warning loading settings: {}", e);
+        }
+    }
+
     let mut app = RockboxHttpServer::new();
 
     app.get("/albums", get_albums);

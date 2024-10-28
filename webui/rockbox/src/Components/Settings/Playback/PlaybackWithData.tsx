@@ -2,38 +2,114 @@ import { FC } from "react";
 import Playback from "./Playback";
 import { useRecoilState } from "recoil";
 import { settingsState } from "../SettingsState";
+import { useSaveSettingsMutation } from "../../../Hooks/GraphQL";
 
 const PlaybackWithData: FC = () => {
   const [settings] = useRecoilState(settingsState);
-  const onShuffleChange = (shuffle: boolean) => {
-    console.log(">> shuffle", shuffle);
+  const [saveSettings] = useSaveSettingsMutation();
+
+  const onShuffleChange = (playlistShuffle: boolean) => {
+    saveSettings({
+      variables: {
+        settings: {
+          playlistShuffle,
+        },
+      },
+    });
   };
-  const onRepeatChange = (repeat: number) => {
-    console.log(">> repeat", repeat);
+
+  const onRepeatChange = (repeatMode: number) => {
+    saveSettings({
+      variables: {
+        settings: {
+          repeatMode,
+        },
+      },
+    });
   };
+
   const onCrossfadeChange = (crossfade: number) => {
-    console.log(">> crossfade", crossfade);
+    saveSettings({
+      variables: {
+        settings: {
+          crossfade,
+        },
+      },
+    });
   };
-  const onFadeOnStopPauseChange = (fadeOnStopPause: boolean) => {
-    console.log(">> fadeOnStopPause", fadeOnStopPause);
+
+  const onFadeOnStopPauseChange = (fadeOnStop: boolean) => {
+    saveSettings({
+      variables: {
+        settings: {
+          fadeOnStop,
+        },
+      },
+    });
   };
+
   const onReplaygainChange = (replaygain: number) => {
-    console.log(">> replaygain", replaygain);
+    saveSettings({
+      variables: {
+        settings: {
+          replaygainSettings: {
+            type: replaygain,
+            preamp: settings.replaygainSettings.preamp,
+            noclip: settings.replaygainSettings.noclip,
+          },
+        },
+      },
+    });
   };
+
   const onFadeInDelayChange = (fadeInDelay: number) => {
-    console.log(">> fadeInDelay", fadeInDelay);
+    saveSettings({
+      variables: {
+        settings: {
+          fadeInDelay,
+        },
+      },
+    });
   };
+
   const onFadeInDurationChange = (fadeInDuration: number) => {
-    console.log(">> fadeInDuration", fadeInDuration);
+    saveSettings({
+      variables: {
+        settings: {
+          fadeInDuration,
+        },
+      },
+    });
   };
+
   const onFadeOutDelayChange = (fadeOutDelay: number) => {
-    console.log(">> fadeOutDelay", fadeOutDelay);
+    saveSettings({
+      variables: {
+        settings: {
+          fadeOutDelay,
+        },
+      },
+    });
   };
+
   const onFadeOutDurationChange = (fadeOutDuration: number) => {
-    console.log(">> fadeOutDuration", fadeOutDuration);
+    saveSettings({
+      variables: {
+        settings: {
+          fadeOutDuration,
+        },
+      },
+    });
   };
-  const onFadeOutModeChange = (fadeOutMode: number) => {
-    console.log(">> fadeOutMode", fadeOutMode);
+
+  const onFadeOutModeChange = (fadeOutMixmode: number) => {
+    saveSettings({
+      variables: {
+        settings: {
+          fadeOutMixmode,
+        },
+      },
+    });
   };
 
   return (

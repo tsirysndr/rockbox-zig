@@ -1,10 +1,11 @@
-use rockbox_sys::types::user_settings::UserSettings;
+use rockbox_sys::types::user_settings::{NewGlobalSettings, UserSettings};
 use tonic::{Request, Response, Status};
 
 use crate::{
     api::rockbox::v1alpha1::{
         settings_service_server::SettingsService, GetGlobalSettingsRequest,
         GetGlobalSettingsResponse, GetSettingsListRequest, GetSettingsListResponse,
+        SaveSettingsRequest, SaveSettingsResponse,
     },
     rockbox_url,
 };
@@ -53,5 +54,22 @@ impl SettingsService for Settings {
             .map_err(|e| Status::internal(e.to_string()))?;
         //let settings = response.json::<UserSettings>().await?;
         todo!()
+    }
+
+    async fn save_settings(
+        &self,
+        request: Request<SaveSettingsRequest>,
+    ) -> Result<Response<SaveSettingsResponse>, Status> {
+        let settings = request.into_inner();
+        let settings: NewGlobalSettings = settings.into();
+
+        let url = format!("{}/settings", rockbox_url());
+        self.client
+            .put(url)
+            .json(&settings)
+            .send()
+            .await
+            .map_err(|e| Status::internal(e.to_string()))?;
+        Ok(Response::new(SaveSettingsResponse::default()))
     }
 }

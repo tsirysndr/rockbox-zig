@@ -12,4 +12,5 @@ clap = "4.5.17"
 owo-colors = "4.1.0"
 rockbox-library = {path = "../library"}
 rockbox-search = {path = "../search"}
+rockbox-settings = {path = "../settings"}
 tokio = {version = "1.36.0", features = ["full"]}

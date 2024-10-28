@@ -48,6 +48,7 @@
     "npm:@vitejs/plugin-react@^4.3.1": "4.3.2_vite@5.4.8__@types+node@22.7.5_@babel+core@7.25.8_@types+node@22.7.5",
     "npm:@vitest/ui@^2.1.2": "2.1.2_vitest@2.1.2__@types+node@22.7.5__@vitest+ui@2.1.2__jsdom@25.0.1__@vitest+spy@2.1.2__vite@5.4.8___@types+node@22.7.5_@types+node@22.7.5_jsdom@25.0.1",
     "npm:baseui@12.2.0": "12.2.0_react@18.3.1_react-dom@18.3.1__react@18.3.1_styletron-react@6.1.1__react@18.3.1_date-fns@2.30.0_@types+react@18.3.11",
+    "npm:bignumber.js@^9.1.2": "9.1.2",
     "npm:cross-env@^7.0.3": "7.0.3",
     "npm:dayjs@^1.11.13": "1.11.13",
     "npm:eslint-plugin-react-hooks@^5.1.0-rc.0": "5.1.0-rc-fb9a90fa48-20240614_eslint@9.12.0",
@@ -2893,6 +2894,9 @@
       "dependencies": [
         "open"
       ]
+    },
+    "bignumber.js@9.1.2": {
+      "integrity": "sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug=="
     },
     "bl@4.1.0": {
       "integrity": "sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==",
@@ -6652,6 +6656,7 @@
         "npm:@vitejs/plugin-react@^4.3.1",
         "npm:@vitest/ui@^2.1.2",
         "npm:baseui@12.2.0",
+        "npm:bignumber.js@^9.1.2",
         "npm:cross-env@^7.0.3",
         "npm:dayjs@^1.11.13",
         "npm:eslint-plugin-react-hooks@^5.1.0-rc.0",

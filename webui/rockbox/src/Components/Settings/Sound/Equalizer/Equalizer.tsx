@@ -2,6 +2,7 @@ import { FC, useEffect, useState } from "react";
 import styles, { Container, Item } from "./styles";
 import Switch from "../../../Switch";
 import { Slider } from "@mui/material";
+import BigNumber from "bignumber.js";
 
 export type EqualizerProps = {
   eqEnabled: boolean;
@@ -37,7 +38,7 @@ const Equalizer: FC<EqualizerProps> = (props) => {
 
   const formatLabel = (value: number) => {
     const labels: Record<number, string> = {
-      64: "32 Hz",
+      64: "1 Hz",
       125: "64 Hz",
       250: "125 Hz",
       500: "250 Hz",
@@ -107,7 +108,11 @@ const Equalizer: FC<EqualizerProps> = (props) => {
                 max={100}
                 step={0.1}
                 valueLabelFormat={(value) =>
-                  `${((value / 100) * 48 - 24).toFixed(1)} dB`
+                  `${new BigNumber(value)
+                    .dividedBy(100)
+                    .multipliedBy(48)
+                    .minus(24)
+                    .toPrecision(2, 1)} dB`
                 }
               />
               <div>{formatLabel(band.q)}</div>

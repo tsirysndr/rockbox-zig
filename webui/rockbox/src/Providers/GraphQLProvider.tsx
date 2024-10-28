@@ -4,7 +4,9 @@ import {
   InMemoryCache,
   ApolloProvider,
   split,
+  from,
 } from "@apollo/client";
+import { removeTypenameFromVariables } from "@apollo/client/link/remove-typename";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { SubscriptionClient } from "subscriptions-transport-ws";
@@ -13,8 +15,9 @@ import { FC, ReactNode } from "react";
 const uri =
   process.env.NODE_ENV === "development"
     ? import.meta.env.VITE_APP_API_URL || "http://localhost:6062/graphql"
-    : // eslint-disable-next-line no-restricted-globals
-      `${origin}/graphql`;
+    : `${origin}/graphql`;
+
+const removeTypenameLink = removeTypenameFromVariables();
 
 const httpLink = createHttpLink({
   uri,
@@ -33,7 +36,7 @@ const splitLink = split(
     );
   },
   wsLink,
-  httpLink
+  from([removeTypenameLink, httpLink])
 );
 const link = splitLink;
 
