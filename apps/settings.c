@@ -1217,6 +1217,14 @@ const struct settings_list* find_setting(const void* variable)
     return NULL;
 }
 
+void set_repeat_mode(int mode) {
+    global_settings.repeat_mode = mode;
+    struct settings_list *setting = find_setting(&global_settings.repeat_mode);
+    int *value = setting->setting;
+    if (value)
+        *value = mode;
+}
+
 const struct settings_list* find_setting_by_cfgname(const char* name)
 {
     logf("Searching for Setting: '%s'",name);

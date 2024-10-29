@@ -33,8 +33,6 @@ unsigned int broker_thread_id = 0;
 
 extern void start_broker(void);
 
-extern void debugfn(const char *fmt);
-
 static void broker_thread(void) {
     start_broker();
 }

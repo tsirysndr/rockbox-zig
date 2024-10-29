@@ -135,20 +135,36 @@ pub fn get_crossfade_mode() -> i32 {
     unsafe { crate::rb_get_crossfade_mode() }
 }
 
-pub fn save_settings(settings: NewGlobalSettings) {
+pub fn save_settings(settings: NewGlobalSettings, from_disk: bool) {
     unsafe {
         set_value_setting!(
             settings.playlist_shuffle,
             crate::global_settings.playlist_shuffle
         );
+        if let Some(playlist_shuffle) = settings.playlist_shuffle {
+            if !from_disk {
+                let seed = crate::system::current_tick();
+                match playlist_shuffle {
+                    true => crate::playlist_randomise_current(seed as u32, 1),
+                    false => crate::playlist_sort_current(1),
+                };
+            }
+        }
+
         set_value_setting!(settings.repeat_mode, crate::global_settings.repeat_mode);
+        if let Some(repeat_mode) = settings.repeat_mode {
+            crate::set_repeat_mode(repeat_mode);
+        }
+
         set_value_setting!(settings.bass, crate::global_settings.bass);
         set_value_setting!(settings.treble, crate::global_settings.treble);
         set_value_setting!(settings.bass_cutoff, crate::global_settings.bass_cutoff);
         set_value_setting!(settings.treble_cutoff, crate::global_settings.treble_cutoff);
 
         set_value_setting!(settings.crossfade, crate::global_settings.crossfade);
-        crate::sound::audio_set_crossfade(crate::global_settings.crossfade);
+        if settings.crossfade.is_some() {
+            crate::sound::audio_set_crossfade(crate::global_settings.crossfade);
+        }
 
         set_value_setting!(settings.fade_on_stop, crate::global_settings.fade_on_stop);
 
@@ -165,14 +181,17 @@ pub fn save_settings(settings: NewGlobalSettings) {
             settings.fade_out_delay,
             crate::global_settings.crossfade_fade_out_delay
         );
-        crate::sound::audio_set_crossfade(crate::global_settings.crossfade);
+        if settings.fade_out_delay.is_some() {
+            crate::sound::audio_set_crossfade(crate::global_settings.crossfade);
+        }
 
         set_value_setting!(
             settings.fade_out_duration,
             crate::global_settings.crossfade_fade_out_duration
         );
-
-        crate::sound::audio_set_crossfade(crate::global_settings.crossfade);
+        if settings.fade_out_duration.is_some() {
+            crate::sound::audio_set_crossfade(crate::global_settings.crossfade);
+        }
 
         set_value_setting!(
             settings.fade_out_mixmode,

@@ -87,3 +87,9 @@ pub fn hard_stop() {
         crate::audio_hard_stop();
     }
 }
+
+pub fn set_repeat_mode(mode: i32) {
+    unsafe {
+        crate::set_repeat_mode(mode);
+    }
+}

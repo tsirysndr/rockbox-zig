@@ -1,8 +1,8 @@
 use anyhow::Error;
 use rockbox_sys::{self as rb, types::user_settings::NewGlobalSettings};
 
-pub fn load_settings(settings: Option<NewGlobalSettings>) -> Result<(), Error> {
-    let settings: NewGlobalSettings = match settings {
+pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Error> {
+    let settings: NewGlobalSettings = match new_settings.clone() {
         Some(settings) => settings,
         None => {
             let home = std::env::var("HOME")?;
@@ -21,7 +21,7 @@ pub fn load_settings(settings: Option<NewGlobalSettings>) -> Result<(), Error> {
         }
     }
 
-    rb::settings::save_settings(settings.clone());
+    rb::settings::save_settings(settings.clone(), new_settings.is_none());
 
     rb::settings::apply_audio_settings();
 

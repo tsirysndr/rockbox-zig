@@ -34,8 +34,6 @@ unsigned int server_thread_id = 0;
 extern void start_server(void);
 extern void start_servers(void);
 
-extern void debugfn(const char *fmt);
-
 static void server_thread(void) {
     start_server();
 }

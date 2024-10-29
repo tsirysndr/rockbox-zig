@@ -1121,6 +1121,8 @@ extern "C" {
     fn playlist_sync(playlist: *mut PlaylistInfo);
     fn playlist_create(dir: *const c_char, file: *const c_char) -> c_int;
     fn playlist_shuffle(random_seed: c_int, start_index: c_int) -> c_int;
+    fn playlist_randomise_current(seed: c_uint, start_current: c_uchar) -> c_int;
+    fn playlist_sort_current(start_current: c_uchar) -> c_int;
     fn rb_playlist_index() -> i32;
     fn rb_playlist_first_index() -> i32;
     fn rb_playlist_last_insert_pos() -> i32;
@@ -1360,6 +1362,7 @@ extern "C" {
     );
     fn set_bool(string: *const c_char, variable: *const c_uchar) -> c_uchar;
     fn rb_get_crossfade_mode() -> i32;
+    fn set_repeat_mode(mode: c_int);
 
     // Misc
     fn codec_load_file();
