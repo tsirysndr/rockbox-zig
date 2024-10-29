@@ -148,3 +148,11 @@ pub fn last_shuffled_start() -> i32 {
 pub fn max_playlist_size() -> i32 {
     unsafe { crate::rb_max_playlist_size() }
 }
+
+pub fn randomise_current(seed: u32, start_current: bool) -> i32 {
+    unsafe { crate::playlist_randomise_current(seed, if start_current { 1 } else { 0 }) }
+}
+
+pub fn sort_current(start_current: bool) -> i32 {
+    unsafe { crate::playlist_sort_current(if start_current { 1 } else { 0 }) }
+}

@@ -3055,6 +3055,11 @@ int playlist_randomise(struct playlist_info* playlist, unsigned int seed,
     return result;
 }
 
+int playlist_randomise_current(unsigned int seed, bool start_current)
+{
+    return playlist_randomise(NULL, seed, start_current);
+}   
+
 /*
  * Removes all tracks, from the playlist, leaving the presently playing
  * track queued.
@@ -3693,6 +3698,11 @@ int playlist_sort(struct playlist_info* playlist, bool start_current)
     playlist_write_unlock(playlist);
     dc_thread_start(playlist, true);
     return result;
+}
+
+int playlist_sort_current(bool start_current)
+{
+ return playlist_sort(NULL, start_current);   
 }
 
 /* start playing current playlist at specified index/offset */

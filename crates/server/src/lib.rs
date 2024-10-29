@@ -11,6 +11,7 @@ use rockbox_sys::{self as rb, types::mp3_entry::Mp3Entry};
 use std::{
     collections::HashMap,
     ffi::c_char,
+    ffi::c_int,
     sync::{Arc, Mutex},
     thread,
 };
@@ -25,10 +26,10 @@ pub const AUDIO_EXTENSIONS: [&str; 17] = [
 ];
 
 #[no_mangle]
-pub extern "C" fn debugfn(args: *const c_char) {
+pub extern "C" fn debugfn(args: *const c_char, value: c_int) {
     let c_str = unsafe { std::ffi::CStr::from_ptr(args) };
     let str_slice = c_str.to_str().unwrap();
-    println!("{}", str_slice);
+    println!("{} {}", str_slice, value);
 }
 
 #[no_mangle]
