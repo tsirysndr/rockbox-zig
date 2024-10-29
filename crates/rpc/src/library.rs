@@ -217,9 +217,14 @@ impl LibraryService for Library {
 
     async fn scan_library(
         &self,
-        _request: tonic::Request<ScanLibraryRequest>,
+        request: tonic::Request<ScanLibraryRequest>,
     ) -> Result<tonic::Response<ScanLibraryResponse>, tonic::Status> {
-        let url = format!("{}/scan-library", rockbox_url());
+        let request = request.into_inner();
+        let params = match request.path {
+            Some(path) => format!("?path={}", path),
+            None => "".to_string(),
+        };
+        let url = format!("{}/scan-library{}", rockbox_url(), params);
         self.client
             .put(&url)
             .send()
@@ -251,24 +256,6 @@ impl LibraryService for Library {
             &self.indexes.tracks,
             &term,
             &rockbox_search::track::Track::default(),
-        )
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let files = search_entities(
-            &self.indexes.files,
-            &term,
-            &rockbox_search::file::File::default(),
-        )
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let liked_tracks = search_entities(
-            &self.indexes.liked_tracks,
-            &term,
-            &rockbox_search::liked_track::LikedTrack::default(),
-        )
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let liked_albums = search_entities(
-            &self.indexes.liked_albums,
-            &term,
-            &rockbox_search::liked_album::LikedAlbum::default(),
         )
         .map_err(|e| tonic::Status::internal(e.to_string()))?;
 

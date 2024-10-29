@@ -1,7 +1,9 @@
 [workspace]
 default-members = ["crates/*"]
 members = [
-  "crates/*", "webui",
+  "cli",
+  "crates/*",
+  "webui",
 ]
 resolver = "2"
 

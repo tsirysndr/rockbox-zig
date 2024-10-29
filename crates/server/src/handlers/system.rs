@@ -25,10 +25,22 @@ pub async fn get_rockbox_version(
     Ok(())
 }
 
-pub async fn scan_library(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn scan_library(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let home = env::var("HOME")?;
-    let path = rockbox_settings::get_music_dir().unwrap_or(format!("{}/Music", home));
+    let music_library = format!("{}/Music", home);
+
+    let path = match req.query_params.get("path") {
+        Some(path) => path.as_str().unwrap_or(&music_library),
+        None => &music_library,
+    };
+
     scan_audio_files(ctx.pool.clone(), path.into()).await?;
+
+    if path != music_library {
+        res.text("0");
+        return Ok(());
+    }
+
     let tracks = repo::track::all(ctx.pool.clone()).await?;
     let albums = repo::album::all(ctx.pool.clone()).await?;
     let artists = repo::artist::all(ctx.pool.clone()).await?;

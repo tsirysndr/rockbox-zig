@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=builder /root/.local /root/.local
 
-COPY --from=builder /root/.local/bin/rockbox /usr/bin/rockbox
+COPY --from=builder /root/.local/bin/rockboxd /usr/bin/rockboxd
 
 ENV SDL_VIDEODRIVER=dummy
 
@@ -53,4 +53,4 @@ EXPOSE 6061
 EXPOSE 6062
 EXPOSE 6063
 
-CMD ["rockbox"]
+CMD ["rockboxd"]

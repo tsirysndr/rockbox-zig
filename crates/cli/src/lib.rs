@@ -51,7 +51,7 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
     "#
         .yellow()
     );
-    let cli = Command::new("rockbox").version(VERSION).about(&banner);
+    let cli = Command::new("rockboxd").version(VERSION).about(&banner);
 
     cli.get_matches_from(args);
 

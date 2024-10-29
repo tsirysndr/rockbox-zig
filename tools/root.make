@@ -415,7 +415,7 @@ ziginstall: zig
 	cd .. \
 	&& zig build install-rockbox \
 	&& mkdir -p $(RBPREFIX)/bin $(RBPREFIX)/share/rockbox \
-	&& cp zig-out/bin/rockbox $(RBPREFIX)/bin \
+	&& cp zig-out/bin/rockboxd $(RBPREFIX)/bin \
 	&& cp -r assets/* $(RBPREFIX)/share/rockbox
 
 symlinkinstall: simext1
@@ -431,6 +431,7 @@ zig: $(BUILDDIR)/apps/recorder/jpeg_load.o $(BUILDDIR)/lang/lang.h $(BUILDDIR)/l
 	cd .. \
 	&& cargo build -p rockbox-cli --release \
 	&& cargo build -p rockbox-server --release \
+	&& cargo build -p rockbox --release \
 	&& zig build all
 help:
 	@echo "A few helpful make targets"
