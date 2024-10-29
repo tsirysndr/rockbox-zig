@@ -2,7 +2,7 @@ use anyhow::Error;
 use clap::{arg, Command};
 use owo_colors::OwoColorize;
 
-use cmd::{community::*, scan::*};
+use cmd::{community::*, scan::*, start::*};
 
 pub mod cmd;
 
@@ -31,6 +31,7 @@ fn cli() -> Command {
         .subcommand(
             Command::new("community").about("Join our community on Discord to chat with us!"),
         )
+        .subcommand(Command::new("start").about("Start the Rockbox server"))
 }
 
 #[tokio::main]
@@ -44,6 +45,9 @@ async fn main() -> Result<(), Error> {
         }
         Some(("community", _)) => {
             community();
+        }
+        Some(("start", _)) => {
+            start()?;
         }
         _ => cli().print_help()?,
     }
