@@ -45,7 +45,7 @@ RUN make ziginstall -j$(nproc)
 
 RUN deno install -A -r -g https://cli.fluentci.io -n fluentci
 
-ENV PATH=/root/.deno/bin:${PATH}
+ENV PATH=/root/.local/bin:${PATH}
 
 RUN fluentci run --wasm . release
 
