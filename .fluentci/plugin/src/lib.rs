@@ -118,6 +118,11 @@ pub fn release(_args: String) -> FnResult<String> {
             "$TAG",
             "/root/.local/lib/rockbox/rockbox-assets-${TARGET}.tar.gz.sha256",
         ])?
+        .with_exec(vec![
+            "rm",
+            "/root/.local/lib/rockbox/*.tar.gz*",
+            "/root/.local/share/rockbox/*.tar.gz*",
+        ])?
         .stdout()?;
 
     Ok(stdout)

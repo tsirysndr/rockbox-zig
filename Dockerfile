@@ -47,6 +47,8 @@ RUN deno install -A -r -g https://cli.fluentci.io -n fluentci
 
 ENV PATH=/root/.local/bin:${PATH}
 
+WORKDIR /app
+
 RUN fluentci run --wasm . release
 
 FROM debian:bookworm
