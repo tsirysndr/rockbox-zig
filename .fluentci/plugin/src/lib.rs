@@ -61,40 +61,42 @@ pub fn release(_args: String) -> FnResult<String> {
     let stdout = dag()
         .pipeline("release")?
         .pkgx()?
-        .with_packages(vec!["gh", "git-scm.org"])?
         .with_exec(vec![
+            "pkgx",
+            "+gh",
+            "+git-scm.org",
             "gh",
             "release",
             "upload",
-            "$TAG",
+            "${TAG}",
             "target/release/rockbox_${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
-            "$TAG",
+            "${TAG}",
             "target/release/rockbox_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
-            "$TAG",
+            "${TAG}",
             "zig-out/bin/rockboxd_${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
-            "$TAG",
+            "${TAG}",
             "zig-out/bin/rockboxd_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
-            "$TAG",
+            "${TAG}",
             "/root/.local/lib/rockbox/rockbox-codecs-${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
@@ -108,14 +110,14 @@ pub fn release(_args: String) -> FnResult<String> {
             "gh",
             "release",
             "upload",
-            "$TAG",
+            "${TAG}",
             "/root/.local/share/rockbox/rockbox-assets-${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
-            "$TAG",
+            "${TAG}",
             "/root/.local/share/rockbox/rockbox-assets-${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
