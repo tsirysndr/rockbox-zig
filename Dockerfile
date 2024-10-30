@@ -1,18 +1,29 @@
 FROM rust:1.81-bookworm AS builder
 
+ARG GITHUB_TOKEN
+
+ARG TAG
+
+ENV GITHUB_ACCESS_TOKEN=${GITHUB_TOKEN}
+
+ENV GH_TOKEN=${GITHUB_TOKEN}
+
+ENV TAG=${TAG}
+
 RUN apt-get update && apt-get install -y build-essential \
   libusb-dev \
   libsdl1.2-dev \
   libfreetype6-dev \
   libunwind-dev \
   curl \
+  wget \
   zip \
   unzip \
   protobuf-compiler
 
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgx install zig@0.13.0 node bun@1.1.30 protoc buf
+RUN pkgx install zig@0.13.0 node bun@1.1.30 protoc buf deno
 
 COPY . /app
 
@@ -32,6 +43,12 @@ RUN ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 -
 
 RUN make ziginstall -j$(nproc)
 
+RUN deno install -A -r -g https://cli.fluentci.io -n fluentci
+
+ENV PATH=/root/.deno/bin:${PATH}
+
+RUN fluentci run --wasm . release
+
 FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y \
@@ -45,7 +62,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=builder /root/.local /root/.local
 
-COPY --from=builder /root/.local/bin/rockbox /usr/bin/rockbox
+COPY --from=builder /root/.local/bin/rockboxd /usr/bin/rockboxd
 
 ENV SDL_VIDEODRIVER=dummy
 
@@ -53,4 +70,4 @@ EXPOSE 6061
 EXPOSE 6062
 EXPOSE 6063
 
-CMD ["rockbox"]
+CMD ["rockboxd"]

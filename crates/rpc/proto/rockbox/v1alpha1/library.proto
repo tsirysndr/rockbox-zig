@@ -127,7 +127,9 @@ message GetLikedAlbumsResponse {
   repeated Album albums = 1;
 }
 
-message ScanLibraryRequest {}
+message ScanLibraryRequest {
+  optional string path = 1;
+}
 
 message ScanLibraryResponse {}
 

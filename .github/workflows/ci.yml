@@ -1,6 +1,14 @@
 name: ci
 on:
+  push:
+    tags:
+      - "*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "The existing tag to publish"
+        type: "string"
+        required: true
 
 env:
   REGISTRY: ghcr.io
@@ -25,10 +33,11 @@ jobs:
           wasm: true
           plugin: buildx
           args: |
-            build_cloud --platform linux/amd64,linux/arm64 -t tsiry/rockbox:latest . --push
+            build_cloud --platform linux/amd64,linux/arm64 -t tsiry/rockbox:latest . --build-arg GITHUB_TOKEN="${GITHUB_ACCESS_TOKEN}" --build-arg TAG="${TAG}" --push
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUILDX_BUILDER: tsiry/rockbox-builder
+          TAG: ${{ inputs.tag || github.ref_name }}
 
       - name: Log in to Github Container Registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1

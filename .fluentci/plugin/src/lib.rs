@@ -7,6 +7,123 @@ mod helpers;
 use helpers::detect_system;
 
 #[plugin_fn]
+pub fn release(_args: String) -> FnResult<String> {
+    let tag = dag().get_env("TAG")?;
+    let gh_token = dag().get_env("GH_TOKEN")?;
+
+    if tag.is_empty() || gh_token.is_empty() {
+        return Ok("TAG, GH_TOKEN not set, skipping release".into());
+    }
+
+    let os = dag().get_os()?;
+    let arch = dag().get_arch()?;
+    let target = format!("{}-{}", os, arch);
+
+    if os != "linux" {
+        return Ok("Only linux is supported for release".into());
+    }
+
+    if arch != "x86_64" && arch != "aarch64" {
+        return Ok("Only x86_64 and aarch64 are supported for release".into());
+    }
+
+    dag().set_envs(vec![("TARGET".into(), target)])?;
+
+    dag()
+        .pipeline("archive")?
+        .pkgx()?
+        .with_exec(vec![
+            "cd target/release && tar czvf rockbox_${TARGET}.tar.gz rockbox",
+        ])?
+        .with_exec(vec![
+            "cd target/release && sha256sum rockbox_${TARGET}.tar.gz > rockbox_${TARGET}.tar.gz.sha256",
+        ])?
+        .with_exec(vec![
+            "cd zig-out/bin && tar czvf rockboxd_${TARGET}.tar.gz rockboxd",
+        ])?
+        .with_exec(vec![
+            "cd zig-out/bin && sha256sum rockboxd_${TARGET}.tar.gz > rockboxd_${TARGET}.tar.gz.sha256",
+        ])?
+        .with_exec(vec![
+            "cd /root/.local/lib/rockbox && tar czvf rockbox-codecs-${TARGET}.tar.gz *",
+        ])?
+        .with_exec(vec![
+            "cd /root/.local/lib/rockbox && sha256sum rockbox-codecs-${TARGET}.tar.gz > rockbox-codecs-${TARGET}.tar.gz.sha256",
+        ])?
+        .with_exec(vec![
+            "cd /root/.local/share/rockbox && tar czvf rockbox-assets-${TARGET}.tar.gz *",
+        ])?
+        .with_exec(vec![
+            "cd /root/.local/share/rockbox && sha256sum rockbox-assets-${TARGET}.tar.gz > rockbox-assets-${TARGET}.tar.gz.sha256",
+        ])?
+        .stdout()?;
+
+    let stdout = dag()
+        .pipeline("release")?
+        .pkgx()?
+        .with_packages(vec!["gh", "git-scm.org"])?
+        .with_exec(vec![
+            "gh",
+            "release",
+            "upload",
+            "$TAG",
+            "target/release/rockbox-${TARGET}.tar.gz",
+        ])?
+        .with_exec(vec![
+            "gh",
+            "release",
+            "upload",
+            "$TAG",
+            "target/release/rockbox-${TARGET}.tar.gz.sha256",
+        ])?
+        .with_exec(vec![
+            "gh",
+            "release",
+            "upload",
+            "$TAG",
+            "zig-out/bin/rockboxd-${TARGET}.tar.gz",
+        ])?
+        .with_exec(vec![
+            "gh",
+            "release",
+            "upload",
+            "$TAG",
+            "zig-out/bin/rockboxd-${TARGET}.tar.gz.sha256",
+        ])?
+        .with_exec(vec![
+            "gh",
+            "release",
+            "upload",
+            "$TAG",
+            "/root/.local/lib/rockbox/rockbox-codecs-${TARGET}.tar.gz",
+        ])?
+        .with_exec(vec![
+            "gh",
+            "release",
+            "upload",
+            "$TAG",
+            "/root/.local/lib/rockbox/rockbox-codecs-${TARGET}.tar.gz.sha256",
+        ])?
+        .with_exec(vec![
+            "gh",
+            "release",
+            "upload",
+            "$TAG",
+            "/root/.local/lib/rockbox/rockbox-assets-${TARGET}.tar.gz",
+        ])?
+        .with_exec(vec![
+            "gh",
+            "release",
+            "upload",
+            "$TAG",
+            "/root/.local/lib/rockbox/rockbox-assets-${TARGET}.tar.gz.sha256",
+        ])?
+        .stdout()?;
+
+    Ok(stdout)
+}
+
+#[plugin_fn]
 pub fn build(args: String) -> FnResult<String> {
     let version = dag()
         .get_env("BUILDX_VERSION")

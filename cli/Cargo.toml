@@ -1,0 +1,18 @@
+[package]
+edition = "2021"
+name = "rockbox"
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1.0.91"
+clap = "4.5.20"
+opener = "0.7.2"
+owo-colors = "4.1.0"
+prost = "0.13.2"
+tokio = {version = "1.36.0", features = ["full"]}
+tonic = "0.12.2"
+tonic-reflection = "0.12.2"
+tonic-web = "0.12.2"
+
+[build-dependencies]
+tonic-build = "0.12.2"
