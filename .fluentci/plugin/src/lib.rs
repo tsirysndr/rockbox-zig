@@ -61,6 +61,7 @@ pub fn release(_args: String) -> FnResult<String> {
     let stdout = dag()
         .pipeline("release")?
         .pkgx()?
+        .with_exec(vec!["pkgx gh auth login --with-token < .github_token"])?
         .with_exec(vec![
             "pkgx",
             "+gh",

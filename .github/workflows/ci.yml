@@ -27,6 +27,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+      - name: Write Github Token to file
+        run: echo $GITHUB_TOKEN > .github_token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and Publish image to Docker Hub
         uses: fluentci-io/setup-fluentci@v5
         with:
