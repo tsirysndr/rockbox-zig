@@ -17,7 +17,7 @@ pub fn release(_args: String) -> FnResult<String> {
 
     let os = dag().get_os()?;
     let arch = dag().get_arch()?;
-    let target = format!("{}-{}", os, arch);
+    let target = format!("{}-{}", arch, os);
 
     if os != "linux" {
         return Ok("Only linux is supported for release".into());
