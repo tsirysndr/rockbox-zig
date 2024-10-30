@@ -67,28 +67,28 @@ pub fn release(_args: String) -> FnResult<String> {
             "release",
             "upload",
             "$TAG",
-            "target/release/rockbox-${TARGET}.tar.gz",
+            "target/release/rockbox_${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
             "$TAG",
-            "target/release/rockbox-${TARGET}.tar.gz.sha256",
+            "target/release/rockbox_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
             "$TAG",
-            "zig-out/bin/rockboxd-${TARGET}.tar.gz",
+            "zig-out/bin/rockboxd_${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
             "$TAG",
-            "zig-out/bin/rockboxd-${TARGET}.tar.gz.sha256",
+            "zig-out/bin/rockboxd_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
             "gh",
