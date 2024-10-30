@@ -109,14 +109,14 @@ pub fn release(_args: String) -> FnResult<String> {
             "release",
             "upload",
             "$TAG",
-            "/root/.local/lib/rockbox/rockbox-assets-${TARGET}.tar.gz",
+            "/root/.local/share/rockbox/rockbox-assets-${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
             "$TAG",
-            "/root/.local/lib/rockbox/rockbox-assets-${TARGET}.tar.gz.sha256",
+            "/root/.local/share/rockbox/rockbox-assets-${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
             "rm",
