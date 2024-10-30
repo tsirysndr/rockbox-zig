@@ -72,6 +72,9 @@ pub fn release(_args: String) -> FnResult<String> {
             "target/release/rockbox_${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
+            "pkgx",
+            "+gh",
+            "+git-scm.org",
             "gh",
             "release",
             "upload",
@@ -79,6 +82,9 @@ pub fn release(_args: String) -> FnResult<String> {
             "target/release/rockbox_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
+            "pkgx",
+            "+gh",
+            "+git-scm.org",
             "gh",
             "release",
             "upload",
@@ -93,6 +99,9 @@ pub fn release(_args: String) -> FnResult<String> {
             "zig-out/bin/rockboxd_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
+            "pkgx",
+            "+gh",
+            "+git-scm.org",
             "gh",
             "release",
             "upload",
@@ -100,6 +109,9 @@ pub fn release(_args: String) -> FnResult<String> {
             "/root/.local/lib/rockbox/rockbox-codecs-${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
+            "pkgx",
+            "+gh",
+            "+git-scm.org",
             "gh",
             "release",
             "upload",
@@ -107,6 +119,9 @@ pub fn release(_args: String) -> FnResult<String> {
             "/root/.local/lib/rockbox/rockbox-codecs-${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
+            "pkgx",
+            "+gh",
+            "+git-scm.org",
             "gh",
             "release",
             "upload",
@@ -114,6 +129,9 @@ pub fn release(_args: String) -> FnResult<String> {
             "/root/.local/share/rockbox/rockbox-assets-${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
+            "pkgx",
+            "+gh",
+            "+git-scm.org",
             "gh",
             "release",
             "upload",
