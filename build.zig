@@ -3399,7 +3399,7 @@ fn install_rockbox(b: *std.Build) !*std.Build.Step {
         "mkdir", "-p", to.str(),
     });
     const cp = b.addSystemCommand(&[_][]const u8{
-        "cp", "zig-out/bin/rockbox", to.str(),
+        "cp", "zig-out/bin/rockboxd", to.str(),
     });
     mkdir.step.dependOn(b.getInstallStep());
     cp.step.dependOn(&mkdir.step);
