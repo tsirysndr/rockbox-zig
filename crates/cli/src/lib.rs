@@ -38,7 +38,11 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         })
         .collect();
 
-    const VERSION: &str = env!("CARGO_PKG_VERSION");
+    const VERSION: &str = match option_env!("TAG") {
+        Some(tag) => tag,
+        None => env!("CARGO_PKG_VERSION"),
+    };
+
     let banner = format!(
         "{}\nA fork of the original Rockbox project, with a focus on modernization and more features.",
         r#"

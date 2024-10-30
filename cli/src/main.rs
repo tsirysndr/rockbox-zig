@@ -19,7 +19,10 @@ fn cli() -> Command {
     "#
         .yellow()
     );
-    const VERSION: &str = env!("CARGO_PKG_VERSION");
+    const VERSION: &str = match option_env!("TAG") {
+        Some(tag) => tag,
+        None => env!("CARGO_PKG_VERSION"),
+    };
     Command::new("rockbox")
         .version(VERSION)
         .about(&banner)
@@ -57,7 +60,7 @@ async fn main() -> Result<(), Error> {
         Some(("webui", _)) => {
             webui();
         }
-        _ => cli().print_help()?,
+        _ => start()?,
     }
     Ok(())
 }

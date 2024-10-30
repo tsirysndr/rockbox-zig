@@ -416,6 +416,7 @@ ziginstall: zig
 	&& zig build install-rockbox \
 	&& mkdir -p $(RBPREFIX)/bin $(RBPREFIX)/share/rockbox \
 	&& cp zig-out/bin/rockboxd $(RBPREFIX)/bin \
+	&& cp target/release/rockbox $(RBPREFIX)/bin \
 	&& cp -r assets/* $(RBPREFIX)/share/rockbox
 
 symlinkinstall: simext1
