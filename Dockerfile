@@ -29,7 +29,7 @@ COPY . /app
 
 WORKDIR /app
 
-RUN mkdir -p build /root/.local/lib/rockbox
+RUN mkdir -p build
 
 WORKDIR /app/webui/rockbox
 
@@ -39,7 +39,7 @@ RUN bun run build
 
 WORKDIR /app/build
 
-RUN ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=$HOME/.local
+RUN ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local
 
 RUN make ziginstall -j$(nproc)
 
@@ -62,9 +62,11 @@ RUN apt-get update && apt-get install -y \
   libasound2 \
   pulseaudio
 
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /usr/local/lib/rockbox /usr/local/lib/rockbox
 
-COPY --from=builder /root/.local/bin/rockboxd /usr/bin/rockboxd
+COPY --from=builder /usr/local/share/rockbox /usr/local/share/rockbox
+
+COPY --from=builder /usr/local/bin/rockboxd /usr/local/bin/rockboxd
 
 ENV SDL_VIDEODRIVER=dummy
 
