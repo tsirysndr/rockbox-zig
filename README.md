@@ -58,7 +58,6 @@ curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.
 
 MacOS, currently not supported, but you can run in a docker container.
 
-
 ## 📦 Downloads
 
 - `Linux`: intel: [rockbox_2024.10.30_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.10.30/rockbox_2024.10.30_x86_64-linux.tar.gz) arm64: [rockbox_2024.10.30_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.10.30/rockbox_2024.10.30_aarch64-linux.tar.gz)
