@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y build-essential \
 
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgx install zig@0.13.0 node bun@1.1.30 protoc buf deno
+RUN pkgx install zig@0.13.0 protoc buf deno
 
 COPY . /app
 
@@ -33,9 +33,9 @@ RUN mkdir -p build
 
 WORKDIR /app/webui/rockbox
 
-RUN bun install
+RUN deno install && deno install --dev
 
-RUN bun run build
+RUN deno task build
 
 WORKDIR /app/build
 
