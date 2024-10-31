@@ -54,7 +54,7 @@ DOWNLOAD_URL=$(curl -sSL "$RELEASE_URL" | grep -o "browser_download_url.*rockbox
 
 ASSET_NAME=$(basename $DOWNLOAD_URL)
 
-INSTALL_DIR="$HOME/.local/bin"
+INSTALL_DIR="/usr/local/bin"
 
 DOWNLOAD_URL=`echo $DOWNLOAD_URL | tr -d '\"'`
 
@@ -67,7 +67,11 @@ tar -xzf /tmp/$ASSET_NAME -C /tmp
 # Set the correct permissions for the binary
 chmod +x /tmp/rockbox
 
-mv /tmp/rockbox $INSTALL_DIR
+if command -v sudo >/dev/null 2>&1; then
+    sudo mv /tmp/rockbox $INSTALL_DIR
+else
+    mv /tmp/rockbox $INSTALL_DIR
+fi
 
 if command -v apt-get >/dev/null 2>&1; then
     if command -v sudo >/dev/null 2>&1; then
@@ -162,7 +166,11 @@ tar -xzf /tmp/$ASSET_NAME -C /tmp
 # Set the correct permissions for the binary
 chmod +x /tmp/rockboxd
 
-mv /tmp/rockboxd $INSTALL_DIR
+if command -v sudo >/dev/null 2>&1; then
+    sudo mv /tmp/rockboxd $INSTALL_DIR
+else
+    mv /tmp/rockboxd $INSTALL_DIR
+fi
 
 # Install Rockbox assets
 
@@ -185,8 +193,13 @@ curl -SL $DOWNLOAD_URL -o /tmp/$ASSET_NAME
 mkdir -p /tmp/rockbox-assets
 tar -xzf /tmp/$ASSET_NAME -C /tmp/rockbox-assets
 
-mkdir -p $INSTALL_DIR/../share/rockbox
-cp -r /tmp/rockbox-assets/* $INSTALL_DIR/../share/rockbox
+if command -v sudo >/dev/null 2>&1; then
+    sudo mkdir -p $INSTALL_DIR/../share/rockbox
+    sudo cp -r /tmp/rockbox-assets/* $INSTALL_DIR/../share/rockbox
+else
+    mkdir -p $INSTALL_DIR/../share/rockbox
+    cp -r /tmp/rockbox-assets/* $INSTALL_DIR/../share/rockbox
+fi
 
 # Install Rockbox Codecs
 
@@ -207,14 +220,14 @@ curl -SL $DOWNLOAD_URL -o /tmp/$ASSET_NAME
 # Extract the asset
 tar -xzf /tmp/$ASSET_NAME -C /tmp
 
-mkdir -p $INSTALL_DIR/../lib/rockbox
-cp -r /tmp/codecs $INSTALL_DIR/../lib/rockbox
-cp -r /tmp/rocks $INSTALL_DIR/../lib/rockbox
-
-# detect if user can run rockboxd, if not add $HOME/.local/bin to PATH
-if ! command -v rockboxd >/dev/null 2>&1; then
-    echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> $HOME/.bashrc
-    export PATH="$HOME/.local/bin:$PATH"
+if command -v sudo >/dev/null 2>&1; then
+    sudo mkdir -p $INSTALL_DIR/../lib/rockbox
+    sudo cp -r /tmp/codecs $INSTALL_DIR/../lib/rockbox
+    sudo cp -r /tmp/rocks $INSTALL_DIR/../lib/rockbox
+else
+    mkdir -p $INSTALL_DIR/../lib/rockbox
+    cp -r /tmp/codecs $INSTALL_DIR/../lib/rockbox
+    cp -r /tmp/rocks $INSTALL_DIR/../lib/rockbox
 fi
 
 cat <<EOF

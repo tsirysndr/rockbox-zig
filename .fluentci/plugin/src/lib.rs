@@ -45,16 +45,16 @@ pub fn release(_args: String) -> FnResult<String> {
             "cd zig-out/bin && sha256sum rockboxd_${TAG}_${TARGET}.tar.gz > rockboxd_${TAG}_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
-            "cd /root/.local/lib/rockbox && tar czvf rockbox-codecs-${TAG}-${TARGET}.tar.gz *",
+            "cd /usr/local/lib/rockbox && tar czvf rockbox-codecs-${TAG}-${TARGET}.tar.gz *",
         ])?
         .with_exec(vec![
-            "cd /root/.local/lib/rockbox && sha256sum rockbox-codecs-${TAG}-${TARGET}.tar.gz > rockbox-codecs-${TAG}-${TARGET}.tar.gz.sha256",
+            "cd /usr/local/lib/rockbox && sha256sum rockbox-codecs-${TAG}-${TARGET}.tar.gz > rockbox-codecs-${TAG}-${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
-            "cd /root/.local/share/rockbox && tar czvf rockbox-assets-${TAG}-${TARGET}.tar.gz *",
+            "cd /usr/local/share/rockbox && tar czvf rockbox-assets-${TAG}-${TARGET}.tar.gz *",
         ])?
         .with_exec(vec![
-            "cd /root/.local/share/rockbox && sha256sum rockbox-assets-${TAG}-${TARGET}.tar.gz > rockbox-assets-${TAG}-${TARGET}.tar.gz.sha256",
+            "cd /usr/local/share/rockbox && sha256sum rockbox-assets-${TAG}-${TARGET}.tar.gz > rockbox-assets-${TAG}-${TARGET}.tar.gz.sha256",
         ])?
         .stdout()?;
 
@@ -95,33 +95,33 @@ pub fn release(_args: String) -> FnResult<String> {
             "release",
             "upload",
             "${TAG}",
-            "/root/.local/lib/rockbox/rockbox-codecs-${TAG}-${TARGET}.tar.gz",
+            "/usr/local/lib/rockbox/rockbox-codecs-${TAG}-${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
             "$TAG",
-            "/root/.local/lib/rockbox/rockbox-codecs-${TAG}-${TARGET}.tar.gz.sha256",
+            "/usr/local/lib/rockbox/rockbox-codecs-${TAG}-${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
             "${TAG}",
-            "/root/.local/share/rockbox/rockbox-assets-${TAG}-${TARGET}.tar.gz",
+            "/usr/local/share/rockbox/rockbox-assets-${TAG}-${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
             "${TAG}",
-            "/root/.local/share/rockbox/rockbox-assets-${TAG}-${TARGET}.tar.gz.sha256",
+            "/usr/local/share/rockbox/rockbox-assets-${TAG}-${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
             "rm",
-            "/root/.local/lib/rockbox/*.tar.gz*",
-            "/root/.local/share/rockbox/*.tar.gz*",
+            "/usr/local/lib/rockbox/*.tar.gz*",
+            "/usr/local/share/rockbox/*.tar.gz*",
         ])?
         .stdout()?;
 
