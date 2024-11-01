@@ -17,8 +17,8 @@ pub fn start() -> Result<(), Error> {
             let mut child = Command::new("rockboxd")
                 .env("SDL_VIDEODRIVER", video_driver)
                 .env("ROCKBOX_PORT", port)
-                .env("ROCKBOX_UI_PORT", ui_port)
-                .env("ROCKBOX_HTTP_PORT", http_port)
+                .env("ROCKBOX_GRAPHQL_PORT", ui_port)
+                .env("ROCKBOX_TCP_PORT", http_port)
                 .spawn()?;
 
             child.wait()?;
