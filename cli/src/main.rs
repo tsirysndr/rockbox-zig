@@ -58,9 +58,11 @@ async fn main() -> Result<(), Error> {
             start()?;
         }
         Some(("webui", _)) => {
-            webui();
+            webui()?;
         }
-        _ => start()?,
+        _ => {
+            start()?;
+        }
     }
     Ok(())
 }
