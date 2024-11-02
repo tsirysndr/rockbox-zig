@@ -70,6 +70,8 @@ COPY --from=builder /usr/local/bin/rockboxd /usr/local/bin/rockboxd
 
 ENV SDL_VIDEODRIVER=dummy
 
+ENV SDL_AUDIODRIVER=dummy
+
 EXPOSE 6061
 EXPOSE 6062
 EXPOSE 6063

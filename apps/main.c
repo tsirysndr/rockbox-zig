@@ -157,6 +157,8 @@
 
 /*#define AUTOROCK*/ /* define this to check for "autostart.rock" on boot */
 
+extern void start_audio_buffer_broker(void);
+
 static void init(void);
 /* main(), and various functions called by main() and init() may be
  * be INIT_ATTR. These functions must not be called after the final call
@@ -456,6 +458,7 @@ static void init(void)
 #ifdef ROCKBOX_SERVER
     server_init();
     broker_init();
+    start_audio_buffer_broker();
 #endif
 }
 

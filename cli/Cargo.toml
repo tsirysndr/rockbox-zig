@@ -9,6 +9,7 @@ clap = "4.5.20"
 opener = "0.7.2"
 owo-colors = "4.1.0"
 prost = "0.13.2"
+rockbox-audio = {path = "../crates/audio"}
 tokio = {version = "1.36.0", features = ["full"]}
 tonic = "0.12.2"
 tonic-reflection = "0.12.2"

@@ -73,6 +73,8 @@ static SDL_AudioCVT cvt;
 static int audio_locked = 0;
 static SDL_mutex *audio_lock;
 
+extern void process_pcm_buffer(Uint8 *data, size_t size);
+
 void pcm_play_lock(void)
 {
     if (++audio_locked == 1)
@@ -164,6 +166,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
             udata->num_in = cvt.len / pcm_sample_bytes;
             udata->num_out = cvt.len_cvt / pcm_sample_bytes;
 
+            process_pcm_buffer(cvt.buf, (size_t)cvt.len_cvt);
+
 #ifdef DEBUG
             if (udata->debug != NULL) {
                fwrite(cvt.buf, sizeof(Uint8), cvt.len_cvt, udata->debug);
@@ -194,6 +198,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
                 break;
                 }
             }
+
+            process_pcm_buffer(udata->stream, (size_t)wr);
 #ifdef DEBUG
             if (udata->debug != NULL) {
                fwrite(udata->stream, sizeof(Uint8), wr, udata->debug);
@@ -204,6 +210,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
         udata->num_in = udata->num_out = MIN(udata->num_in, udata->num_out);
         pcm_copy_buffer(udata->stream, pcm_data,
                         udata->num_out * pcm_sample_bytes);
+        process_pcm_buffer(pcm_data, (size_t) udata->num_out * pcm_sample_bytes);
 #ifdef DEBUG
         if (udata->debug != NULL) {
            fwrite(pcm_data, sizeof(Uint8), udata->num_out * pcm_sample_bytes,
