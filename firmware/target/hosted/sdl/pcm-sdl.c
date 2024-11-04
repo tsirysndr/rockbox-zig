@@ -330,6 +330,7 @@ unsigned long spdif_measure_frequency(void)
 
 #endif /* HAVE_RECORDING */
 
+#ifndef ROCKBOX_SERVER
 void pcm_play_dma_init(void)
 {
     if (SDL_InitSubSystem(SDL_INIT_AUDIO))
@@ -392,6 +393,13 @@ void pcm_play_dma_init(void)
 
     pcm_dma_apply_settings_nolock();
 }
+#endif
+
+#ifdef ROCKBOX_SERVER
+void pcm_play_dma_init(void) {
+
+}
+#endif
 
 void pcm_play_dma_postinit(void)
 {

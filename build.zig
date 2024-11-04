@@ -4235,6 +4235,7 @@ const all_sources = [_][]const u8{
     "apps/gui/color_picker.c",
     "apps/audio_thread.c",
     "apps/pcmbuf.c",
+    "apps/pcm_callback.c",
     "apps/codec_thread.c",
     "apps/playback.c",
     "apps/codecs.c",

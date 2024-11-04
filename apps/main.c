@@ -94,8 +94,12 @@
 #include "audio_thread.h"
 #include "playback.h"
 #include "tdspeed.h"
+
+#ifdef ROCKBOX_SERVER
 #include "server_thread.h"
 #include "broker_thread.h"
+#endif
+
 #if defined(HAVE_RECORDING) && !defined(SIMULATOR)
 #include "pcm_record.h"
 #endif
