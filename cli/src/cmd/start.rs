@@ -14,22 +14,25 @@ pub fn start() -> Result<(), Error> {
     match wait_for_rockboxd(port.parse()?, Some(1)) {
         Ok(_) => {}
         Err(_) => {
-            thread::spawn(move || match rockbox_audio::read_audio_socket() {
-                Ok(_) => {}
-                Err(e) => eprintln!("Error reading audio socket: {}", e),
+            thread::spawn(move || {
+                let mut child = Command::new("rockboxd")
+                    .env("SDL_VIDEODRIVER", video_driver)
+                    .env("ROCKBOX_PORT", port)
+                    .env("ROCKBOX_GRAPHQL_PORT", ui_port)
+                    .env("ROCKBOX_TCP_PORT", http_port)
+                    .env("SDL_AUDIODRIVER", "dummy")
+                    .spawn()?;
+
+                child.wait()?;
+                Ok::<(), Error>(())
             });
 
-            thread::sleep(std::time::Duration::from_secs(1));
+            thread::sleep(std::time::Duration::from_secs(5));
 
-            let mut child = Command::new("rockboxd")
-                .env("SDL_VIDEODRIVER", video_driver)
-                .env("ROCKBOX_PORT", port)
-                .env("ROCKBOX_GRAPHQL_PORT", ui_port)
-                .env("ROCKBOX_TCP_PORT", http_port)
-                .env("SDL_AUDIODRIVER", "dummy")
-                .spawn()?;
-
-            child.wait()?;
+            match rockbox_audio::read_audio_socket() {
+                Ok(_) => {}
+                Err(e) => eprintln!("Error reading audio socket: {}", e),
+            }
         }
     };
     Ok(())
