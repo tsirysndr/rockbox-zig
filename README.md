@@ -91,7 +91,7 @@ MacOS, currently not supported, but you can run in a docker container.
 
 ## 🧑‍🔬 Architecture
 
-![architecture](./docs/rockbox-server-architecture.jpg)
+![architecture](./docs/rockbox-arch.png)
   
 ## 📚 GraphQL API
 
