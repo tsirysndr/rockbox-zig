@@ -73,7 +73,7 @@ MacOS, currently not supported, but you can run in a docker container.
 - [x] HTTP API
 - [x] Web Client (React)
 - [x] Fast search engine, built with [Tantivy](https://github.com/quickwit-oss/tantivy)
-- [ ] Desktop Client (Electron/Gtk)
+- [x] Desktop Client (Electron/Gtk)
 - [ ] Terminal Client (TUI)
 - [ ] Android Library
 - [ ] Mobile version (React Native)
