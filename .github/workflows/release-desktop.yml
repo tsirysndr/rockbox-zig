@@ -27,7 +27,7 @@ jobs:
             run build:electron
           working-directory: webui/rockbox
         env:
-          GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: List files
         run: ls -ltr release/*
         working-directory: webui/rockbox
@@ -46,5 +46,5 @@ jobs:
         env:
           RELEASE_VERSION: v${{ inputs.tag || github.ref_name }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: webui/rockbox/release/${{ env.RELEASE_VERSION }}
