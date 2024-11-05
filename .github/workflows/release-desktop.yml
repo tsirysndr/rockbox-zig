@@ -34,6 +34,7 @@ jobs:
       - name: Prepare release assets
         run: |
           shasum -a 256 rockbox_${{ env.RELEASE_VERSION }}.AppImage > rockbox_${{ env.RELEASE_VERSION }}.AppImage.sha256
+          shasum -a 256 rockbox_${{ env.RELEASE_VERSION }}.tar.gz > rockbox_${{ env.RELEASE_VERSION }}.tar.gz.sha256
         working-directory: webui/rockbox/release/${{ env.RELEASE_VERSION }}
         env:
           RELEASE_VERSION: v${{ inputs.tag || github.ref_name }}
