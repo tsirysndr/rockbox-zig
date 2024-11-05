@@ -6,7 +6,8 @@ import electron from "vite-plugin-electron/simple";
 import pkg from "./package.json";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default defineConfig((({ command }: any) => {
   rmSync("dist-electron", { recursive: true, force: true });
 
   const isServe = command === "serve";
@@ -81,4 +82,5 @@ export default defineConfig(({ command }) => {
       })(),
     clearScreen: false,
   };
-});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}) as any);
