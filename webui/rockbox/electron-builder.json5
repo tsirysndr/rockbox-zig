@@ -1,0 +1,32 @@
+/**
+ * @see https://www.electron.build/configuration/configuration
+ */
+{
+  appId: "com.rockbox-zig.app",
+  asar: true,
+  directories: {
+    output: "release/v${version}",
+  },
+  files: ["dist-electron", "dist"],
+  mac: {
+    icon: "assets/icon.svg",
+    artifactName: "${productName}_v${version}_${arch}.${ext}",
+    target: ["dmg", "zip"],
+  },
+  linux: {
+    icon: "assets/icon.svg",
+    artifactName: "${productName}_v${version}.${ext}",
+    target: ["AppImage", "tar.gz"],
+  },
+  nsis: {
+    oneClick: false,
+    perMachine: false,
+    allowToChangeInstallationDirectory: true,
+    deleteAppDataOnUninstall: false,
+  },
+  publish: {
+    provider: "generic",
+    channel: "latest",
+    url: "https://github.com/tsirysndr/rockbox-zig/releases/download/v${version}/",
+  },
+}

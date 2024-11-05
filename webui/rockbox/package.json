@@ -1,16 +1,27 @@
 {
   "name": "rockbox",
   "private": true,
-  "version": "0.0.0",
+  "version": "2024.11.5",
   "type": "module",
+  "main": "dist-electron/main/index.js",
+  "author": "Tsiry Sandratraina <tsiry.sndr@fluentci.io>",
+  "debug": {
+    "env": {
+      "VITE_DEV_SERVER_URL": "http://127.0.0.1:5173/"
+    }
+  },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "vite --config vite.dev.config.ts",
+    "build": "tsc -b && vite build --config vite.dev.config.ts",
+    "build:electron-web": "tsc && vite build",
+    "build:electron": "tsc && vite build && electron-builder",
+    "start": "VITE_DEV_SERVER_URL=http://localhost:5173/ electron .",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "vite preview --config vite.dev.config.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test": "vitest",
+    "test": "vitest --config vite.dev.config.ts",
+    "coverage": "vitest run --config vite.dev.config.ts --coverage",
     "graphql:generate": "graphql-codegen"
   },
   "dependencies": {
@@ -49,6 +60,7 @@
     "baseui": "12.2.0",
     "bignumber.js": "^9.1.2",
     "dayjs": "^1.11.13",
+    "electron-updater": "^6.1.8",
     "graphql": "15.7.2",
     "jsdom": "^25.0.1",
     "lodash": "^4.17.21",
@@ -85,6 +97,8 @@
     "@types/wicg-file-system-access": "^2023.10.5",
     "@vitejs/plugin-react": "^4.3.1",
     "cross-env": "^7.0.3",
+    "electron": "30.0.8",
+    "electron-builder": "^24.13.3",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
@@ -93,7 +107,9 @@
     "storybook": "^8.3.4",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vite-plugin-electron": "^0.28.8",
+    "vite-plugin-electron-renderer": "^0.14.6"
   },
   "eslintConfig": {
     "extends": [
