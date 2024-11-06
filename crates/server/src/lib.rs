@@ -6,6 +6,7 @@ use rockbox_graphql::{
     simplebroker::SimpleBroker,
 };
 use rockbox_library::repo;
+use rockbox_mpris::MprisServer;
 use rockbox_sys::events::RockboxCommand;
 use rockbox_sys::{self as rb, types::mp3_entry::Mp3Entry};
 use std::{
@@ -199,6 +200,18 @@ pub extern "C" fn start_servers() {
             }
         }
     });
+
+    // Wait for the rpc server to start
+    thread::sleep(std::time::Duration::from_millis(500));
+
+    thread::spawn(
+        move || match async_std::task::block_on(MprisServer::start()) {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("Error starting mpris server: {}", e);
+            }
+        },
+    );
 }
 
 #[no_mangle]

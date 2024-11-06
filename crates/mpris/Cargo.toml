@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name = "rockbox-mpris"
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1.0.93"
+async-std = {version = "1.13.0", features = ["unstable", "attributes"]}
+mpris-server = "0.8.1"
+rockbox-graphql = {path = "../graphql"}
+rockbox-rpc = {path = "../rpc"}
+tokio = {version = "1.36.0", features = ["full"]}
