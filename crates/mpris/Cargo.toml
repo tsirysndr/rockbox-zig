@@ -10,3 +10,4 @@ mpris-server = "0.8.1"
 rockbox-graphql = {path = "../graphql"}
 rockbox-rpc = {path = "../rpc"}
 tokio = {version = "1.36.0", features = ["full"]}
+urlencoding = "2.1.3"

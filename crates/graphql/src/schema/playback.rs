@@ -292,10 +292,7 @@ impl PlaybackMutation {
 
     async fn play_track(&self, ctx: &Context<'_>, path: String) -> Result<i32, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
-
-        if !std::path::Path::new(&path).is_file() {
-            return Err(Error::new("Invalid path"));
-        }
+        let path = path.replace("file://", "");
 
         let body = serde_json::json!({
             "tracks": vec![path],
@@ -304,8 +301,9 @@ impl PlaybackMutation {
         let url = format!("{}/playlists", rockbox_url());
         client.post(&url).json(&body).send().await?;
 
+        let client = reqwest::Client::new();
         let url = format!("{}/playlists/start", rockbox_url());
-        client.put(&url).send().await?;
+        client.put(&url).body("").send().await?;
 
         Ok(0)
     }

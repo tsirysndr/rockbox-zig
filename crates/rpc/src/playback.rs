@@ -1,6 +1,7 @@
 use std::{
     fs,
     sync::{mpsc::Sender, Arc, Mutex},
+    thread,
 };
 
 use crate::{
@@ -386,14 +387,11 @@ impl PlaybackService for Playback {
         request: tonic::Request<PlayTrackRequest>,
     ) -> Result<tonic::Response<PlayTrackResponse>, tonic::Status> {
         let request = request.into_inner();
-        let path = request.path;
-
-        if !std::path::Path::new(&path).is_file() {
-            return Err(tonic::Status::invalid_argument("Path is not a file"));
-        }
+        let path = request.path.replace("file://", "");
+        let tracks = vec![path.clone()];
 
         let body = serde_json::json!({
-            "tracks": vec![path],
+            "tracks": tracks,
         });
 
         let url = format!("{}/playlists", rockbox_url());
@@ -404,8 +402,9 @@ impl PlaybackService for Playback {
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
+        let client = reqwest::Client::new();
         let url = format!("{}/playlists/start", rockbox_url());
-        self.client
+        client
             .put(&url)
             .send()
             .await
