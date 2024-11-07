@@ -303,7 +303,7 @@ impl PlaybackMutation {
 
         let client = reqwest::Client::new();
         let url = format!("{}/playlists/start", rockbox_url());
-        client.put(&url).body("").send().await?;
+        client.put(&url).send().await?;
 
         Ok(0)
     }
