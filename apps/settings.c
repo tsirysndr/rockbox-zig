@@ -619,7 +619,7 @@ static bool settings_write_config(const char* filename, int options)
         switch (options)
         {
             case SETTINGS_SAVE_CHANGED:
-                if (!is_changed(setting))
+               // if (!is_changed(setting))
                     continue;
                 break;
             case SETTINGS_SAVE_SOUND:

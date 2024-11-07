@@ -1133,16 +1133,19 @@ pub mod api {
                     channel_config: self.channel_config,
                     player_name: self.player_name,
                     eq_enabled: self.eq_enabled,
-                    eq_band_settings: Some(
-                        self.eq_band_settings
-                            .into_iter()
-                            .map(|band| EqBandSetting {
-                                cutoff: band.cutoff,
-                                q: band.q,
-                                gain: band.gain,
-                            })
-                            .collect(),
-                    ),
+                    eq_band_settings: match self.eq_band_settings.is_empty() {
+                        true => None,
+                        false => Some(
+                            self.eq_band_settings
+                                .into_iter()
+                                .map(|band| EqBandSetting {
+                                    cutoff: band.cutoff,
+                                    q: band.q,
+                                    gain: band.gain,
+                                })
+                                .collect(),
+                        ),
+                    },
                     replaygain_settings: self.replaygain_settings.map(|settings| {
                         ReplaygainSettings {
                             noclip: settings.noclip,

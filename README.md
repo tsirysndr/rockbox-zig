@@ -81,9 +81,10 @@ MacOS, currently not supported, but you can run in a docker container.
 - [ ] Stream from Spotify
 - [ ] Stream from Tidal
 - [ ] Stream to Chromecast
+- [ ] Stream to Kodi
 - [ ] TuneIn Radio
 - [ ] MPD Server
-- [ ] MPRIS
+- [x] MPRIS
 - [ ] Upnp Player
 - [ ] Airplay
 - [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)

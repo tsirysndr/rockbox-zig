@@ -8,6 +8,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 anyhow = "1.0.89"
+async-std = {version = "1.13.0", features = ["unstable"]}
 md5 = "0.7.0"
 owo-colors = "4.0.0"
 queryst = "3.0.0"
@@ -15,6 +16,7 @@ rand = "0.8.5"
 reqwest = {version = "0.12.7", features = ["blocking", "rustls-tls"], default-features = false}
 rockbox-graphql = {path = "../graphql"}
 rockbox-library = {path = "../library"}
+rockbox-mpris = {path = "../mpris"}
 rockbox-rpc = {path = "../rpc"}
 rockbox-search = {path = "../search"}
 rockbox-settings = {path = "../settings"}
@@ -25,3 +27,4 @@ serde_json = "1.0.128"
 sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
 threadpool = "1.8.1"
 tokio = {version = "1.36.0", features = ["full"]}
+urlencoding = "2.1.3"
