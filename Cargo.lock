@@ -6295,6 +6295,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-mpd"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "tokio",
+]
+
+[[package]]
 name = "rockbox-mpris"
 version = "0.1.0"
 dependencies = [
