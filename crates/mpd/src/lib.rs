@@ -116,6 +116,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "tagtypes clear" => handle_clear(&mut ctx, &request, &mut stream).await?,
             "tagtypes enable" => handle_tagtypes_enable(&mut ctx, &request, &mut stream).await?,
             "stats" => handle_stats(&mut ctx, &request, &mut stream).await?,
+            "plchanges" => handle_playlistinfo(&mut ctx, &request, &mut stream).await?,
             "command_list_begin" => {
                 handle_command_list_begin(&mut ctx, &request, &mut stream).await?
             }

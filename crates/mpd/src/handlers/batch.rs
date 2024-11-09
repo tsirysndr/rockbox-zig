@@ -72,6 +72,7 @@ pub async fn handle_command_list_begin(
             "tagtypes clear" => handle_tagtypes_clear(&mut ctx, &request, stream).await?,
             "tagtypes enable" => handle_tagtypes_enable(&mut ctx, &request, stream).await?,
             "stats" => handle_stats(&mut ctx, &request, stream).await?,
+            "plchanges" => handle_playlistinfo(&mut ctx, &request, stream).await?,
             _ => {
                 println!("Unhandled command: {}", request);
                 if !ctx.batch {
@@ -141,6 +142,7 @@ pub async fn handle_command_list_ok_begin(
             "tagtypes clear" => handle_tagtypes_clear(&mut ctx, &request, stream).await?,
             "tagtypes enable" => handle_tagtypes_enable(&mut ctx, &request, stream).await?,
             "stats" => handle_stats(&mut ctx, &request, stream).await?,
+            "plchanges" => handle_playlistinfo(&mut ctx, &request, stream).await?,
             _ => {
                 println!("Unhandled command: {}", request);
                 if !ctx.batch {
