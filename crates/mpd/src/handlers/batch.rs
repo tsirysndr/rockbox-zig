@@ -79,8 +79,6 @@ pub async fn handle_command_list_begin(
         });
     }
 
-    let mut response = response.replace("OK\n", "list_OK\n");
-    response.push_str("OK\n");
     stream.write_all(response.as_bytes()).await?;
 
     Ok(response)

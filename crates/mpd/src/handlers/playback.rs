@@ -314,7 +314,7 @@ pub async fn handle_repeat(
 
 pub async fn handle_getvol(
     ctx: &mut Context,
-    request: &str,
+    _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
     let response = ctx
