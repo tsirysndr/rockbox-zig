@@ -1,7 +1,8 @@
 use anyhow::Error;
 use rockbox_rpc::api::rockbox::v1alpha1::{
-    CurrentTrackRequest, GetCurrentRequest, GetGlobalSettingsRequest, NextRequest, PauseRequest,
-    PlayRequest, PreviousRequest, ResumeRequest, SaveSettingsRequest, StatusRequest,
+    AdjustVolumeRequest, CurrentTrackRequest, GetCurrentRequest, GetGlobalSettingsRequest,
+    NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest, SaveSettingsRequest,
+    StatusRequest,
 };
 use tokio::{
     io::{AsyncWriteExt, BufReader},
@@ -108,6 +109,13 @@ pub async fn handle_status(
         false => 0,
     };
 
+    let volume = response.volume;
+    // volume is between -80 db and 0 db
+    // we need to convert it to 0-100
+    // -80 db is 0
+    // 0 db is 100
+    let volume = ((volume + 80) * 100 / 80).max(0).min(100);
+
     let response = ctx.playback.current_track(CurrentTrackRequest {}).await?;
     let response = response.into_inner();
 
@@ -127,8 +135,8 @@ pub async fn handle_status(
     let song = response.index;
 
     let response = format!(
-        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplaylistlength: {}\nsong: {}\nOK\n",
-        status, repeat, single, random, time, elapsed, playlistlength, song
+        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplaylistlength: {}\nsong: {}\nvolume: {}\nOK\n",
+        status, repeat, single, random, time, elapsed, playlistlength, song, volume
     );
 
     if !ctx.batch {
@@ -309,11 +317,24 @@ pub async fn handle_getvol(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    println!("{}", request);
+    let response = ctx
+        .settings
+        .get_global_settings(GetGlobalSettingsRequest {})
+        .await?;
+    let response = response.into_inner();
+    let volume = response.volume;
+    // volume is between -80 db and 0 db
+    // we need to convert it to 0-100
+    // -80 db is 0
+    // 0 db is 100
+    let volume = ((volume + 80) * 100 / 80).max(0).min(100);
+    let response = format!("volume: {}\nOK\n", volume);
+
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        stream.write_all(response.as_bytes()).await?;
     }
-    Ok("OK\n".to_string())
+
+    Ok(response)
 }
 
 pub async fn handle_setvol(
@@ -321,7 +342,32 @@ pub async fn handle_setvol(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    println!("{}", request);
+    let response = ctx
+        .settings
+        .get_global_settings(GetGlobalSettingsRequest {})
+        .await?;
+    let response = response.into_inner();
+    let volume = response.volume as i32;
+    let arg = request.split_whitespace().nth(1);
+    if arg.is_none() {
+        if !ctx.batch {
+            stream
+                .write_all(b"ACK [2@0] {setvol} incorrect arguments\n")
+                .await?;
+        }
+        return Ok("ACK [2@0] {setvol} incorrect arguments\n".to_string());
+    }
+
+    let new_volume = arg.unwrap().replace("\"", "").parse::<i64>().unwrap();
+    // volume is between 0 and 100
+    // we need to convert it to -80 db to 0 db
+    // 0 is -80 db
+    // 100 is 0 db
+    let new_volume = ((new_volume * 80 / 100) - 80) as i32;
+    let steps = new_volume - volume;
+    ctx.sound
+        .adjust_volume(AdjustVolumeRequest { steps })
+        .await?;
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;
     }
