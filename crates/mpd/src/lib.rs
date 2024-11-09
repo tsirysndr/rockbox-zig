@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, sync::Arc};
 
 use anyhow::Error;
 use handlers::{
@@ -9,7 +9,7 @@ use handlers::{
     playback::{
         handle_getvol, handle_next, handle_pause, handle_play, handle_playid, handle_previous,
         handle_random, handle_repeat, handle_seek, handle_seekcur, handle_seekid, handle_setvol,
-        handle_single, handle_status, handle_stop, handle_toggle,
+        handle_single, handle_status, handle_toggle,
     },
     queue::{
         handle_add, handle_clear, handle_delete, handle_move, handle_playlistinfo, handle_shuffle,
@@ -22,6 +22,7 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
+    sync::Mutex,
 };
 use tonic::transport::Channel;
 
@@ -32,6 +33,7 @@ pub struct Context {
     pub playback: PlaybackServiceClient<Channel>,
     pub settings: SettingsServiceClient<Channel>,
     pub sound: SoundServiceClient<Channel>,
+    pub single: Arc<Mutex<String>>,
 }
 
 pub struct MpdServer {}
@@ -52,6 +54,7 @@ impl MpdServer {
             playback,
             settings,
             sound,
+            single: Arc::new(Mutex::new("\"0\"".to_string())),
         };
 
         let listener = TcpListener::bind(&addr).await?;
@@ -62,7 +65,9 @@ impl MpdServer {
             tokio::spawn(async move {
                 match handle_client(context, stream).await {
                     Ok(_) => {}
-                    Err(e) => eprintln!("Error: {}", e),
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
+                    }
                 }
             });
         }
@@ -91,7 +96,6 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "seek" => handle_seek(&mut ctx, &request, &mut stream).await?,
             "seekid" => handle_seekid(&mut ctx, &request, &mut stream).await?,
             "seekcur" => handle_seekcur(&mut ctx, &request, &mut stream).await?,
-            "stop" => handle_stop(&mut ctx, &request, &mut stream).await?,
             "random" => handle_random(&mut ctx, &request, &mut stream).await?,
             "repeat" => handle_repeat(&mut ctx, &request, &mut stream).await?,
             "getvol" => handle_getvol(&mut ctx, &request, &mut stream).await?,

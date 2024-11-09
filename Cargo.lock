@@ -6366,6 +6366,7 @@ dependencies = [
  "reqwest",
  "rockbox-graphql",
  "rockbox-library",
+ "rockbox-mpd",
  "rockbox-mpris",
  "rockbox-rpc",
  "rockbox-search",

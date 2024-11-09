@@ -1,6 +1,6 @@
 use anyhow::Error;
 use rockbox_rpc::api::rockbox::v1alpha1::{
-    NextRequest, PauseRequest, PreviousRequest, ResumeRequest, StatusRequest,
+    NextRequest, PauseRequest, PreviousRequest, ResumeRequest, SaveSettingsRequest, StatusRequest,
 };
 use tokio::{
     io::{AsyncWriteExt, BufReader},
@@ -144,22 +144,25 @@ pub async fn handle_seekcur(
     Ok(())
 }
 
-pub async fn handle_stop(
-    ctx: &mut Context,
-    request: &str,
-    stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
-    println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
-}
-
 pub async fn handle_random(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<(), Error> {
-    println!("{}", request);
+    let arg = request.split_whitespace().nth(1);
+    if arg.is_none() {
+        stream
+            .write_all(b"ACK [2@0] {random} incorrect arguments\n")
+            .await?;
+        return Ok(());
+    }
+
+    ctx.settings
+        .save_settings(SaveSettingsRequest {
+            playlist_shuffle: Some(arg.unwrap() == r#""1""#),
+            ..Default::default()
+        })
+        .await?;
     stream.write_all(b"OK\n").await?;
     Ok(())
 }
@@ -169,7 +172,35 @@ pub async fn handle_repeat(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<(), Error> {
-    println!("{}", request);
+    let arg = request.split_whitespace().nth(1);
+    if arg.is_none() {
+        stream
+            .write_all(b"ACK [2@0] {repeat} incorrect arguments\n")
+            .await?;
+        return Ok(());
+    }
+
+    let single = ctx.single.lock().await;
+
+    let repeat_mode = match arg.unwrap() {
+        r#""0""# => Some(0),
+        r#""1""# => match single.as_str() {
+            r#""1""# => Some(2),
+            _ => Some(1),
+        },
+        _ => {
+            stream
+                .write_all(b"ACK [2@0] {repeat} incorrect arguments\n")
+                .await?;
+            return Ok(());
+        }
+    };
+    ctx.settings
+        .save_settings(SaveSettingsRequest {
+            repeat_mode,
+            ..Default::default()
+        })
+        .await?;
     stream.write_all(b"OK\n").await?;
     Ok(())
 }
@@ -199,7 +230,16 @@ pub async fn handle_single(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<(), Error> {
-    println!("{}", request);
+    let arg = request.split_whitespace().nth(1);
+    if arg.is_none() {
+        stream
+            .write_all(b"ACK [2@0] {single} incorrect arguments\n")
+            .await?;
+        return Ok(());
+    }
+
+    let mut single = ctx.single.lock().await;
+    *single = arg.unwrap().to_string();
     stream.write_all(b"OK\n").await?;
     Ok(())
 }
