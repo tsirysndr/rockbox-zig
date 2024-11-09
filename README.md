@@ -19,6 +19,8 @@
 A modern take on the [Rockbox](https://www.rockbox.org) open-source firmware with enhancements in Zig and Rust. This project offers:
 
 - gRPC & GraphQL APIs for seamless interaction and control
+- [MPD](https://mpd.readthedocs.io/en/stable/protocol.html) server for compatibility with existing clients
+- [MPRIS](https://specifications.freedesktop.org/mpris-spec/) support for desktop integration
 - TypeScript support for building powerful extensions
 
 Take advantage of modern tooling while preserving the core functionality of Rockbox.
@@ -35,7 +37,10 @@ To quickly get started, you can run the following docker command:
 docker run \
     --device /dev/snd \
     --privileged \
-    -p 6061:6061 -p 6062:6062 -p 6063:6063 \
+    -p 6061:6061 \
+    -p 6062:6062 \
+    -p 6063:6063 \
+    -p 6600:6600 \
     -v $HOME/Music:/root/Music \
     tsiry/rockbox:latest
 ```
@@ -61,7 +66,7 @@ MacOS, currently not supported, but you can run in a docker container.
 
 ## 📦 Downloads
 
-- `Linux`: intel: [rockbox_2024.11.7_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.11.7/rockbox_2024.11.7_x86_64-linux.tar.gz) arm64: [rockbox_2024.11.7_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.11.7/rockbox_2024.11.7_aarch64-linux.tar.gz)
+- `Linux`: intel: [rockbox_2024.11.10_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.11.10/rockbox_2024.11.10_x86_64-linux.tar.gz) arm64: [rockbox_2024.11.10_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.11.10/rockbox_2024.11.10_aarch64-linux.tar.gz)
 
 
 ## ✨ Features
@@ -83,9 +88,9 @@ MacOS, currently not supported, but you can run in a docker container.
 - [ ] Stream to Chromecast
 - [ ] Stream to Kodi
 - [ ] TuneIn Radio
-- [ ] MPD Server
+- [x] MPD Server
 - [x] MPRIS
-- [ ] Upnp Player
+- [ ] UPnP/DLNA
 - [ ] Airplay
 - [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
 - [ ] Wasm extensions

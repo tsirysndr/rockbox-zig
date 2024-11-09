@@ -1,7 +1,6 @@
 use std::{
     fs,
     sync::{mpsc::Sender, Arc, Mutex},
-    thread,
 };
 
 use crate::{

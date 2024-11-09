@@ -6,6 +6,7 @@ use rockbox_graphql::{
     simplebroker::SimpleBroker,
 };
 use rockbox_library::repo;
+use rockbox_mpd::MpdServer;
 use rockbox_mpris::MprisServer;
 use rockbox_sys::events::RockboxCommand;
 use rockbox_sys::{self as rb, types::mp3_entry::Mp3Entry};
@@ -212,6 +213,19 @@ pub extern "C" fn start_servers() {
             }
         },
     );
+
+    thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        match runtime.block_on(MpdServer::start()) {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("Error starting mpd server: {}", e);
+            }
+        }
+    });
 }
 
 #[no_mangle]

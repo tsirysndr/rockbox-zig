@@ -25,6 +25,7 @@ import { usePlayQueue } from "../../Hooks/usePlayQueue";
 import { useResumePlaylist } from "../../Hooks/useResumePlaylist";
 import { likesState } from "../Likes/LikesState";
 import { settingsState } from "../Settings/SettingsState";
+import { useSettings } from "../../Hooks/useSettings";
 
 const ControlBarWithData: FC = () => {
   const [{ nowPlaying, locked, resumeIndex }, setControlBarState] =
@@ -57,6 +58,8 @@ const ControlBarWithData: FC = () => {
     useGetLikedAlbumsQuery({
       fetchPolicy: "network-only",
     });
+
+  useSettings();
 
   useEffect(() => {
     if (
