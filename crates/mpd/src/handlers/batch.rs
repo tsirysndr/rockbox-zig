@@ -9,7 +9,7 @@ use crate::{parse_command, setup_context, Context};
 use super::{
     library::{
         handle_config, handle_list_album, handle_list_artist, handle_list_title, handle_rescan,
-        handle_search, handle_tagtypes, handle_tagtypes_clear,
+        handle_search, handle_stats, handle_tagtypes, handle_tagtypes_clear,
     },
     playback::{
         handle_currentsong, handle_getvol, handle_next, handle_pause, handle_play, handle_playid,
@@ -69,6 +69,7 @@ pub async fn handle_command_list_begin(
             "config" => handle_config(&mut ctx, &request, stream).await?,
             "tagtypes " => handle_tagtypes(&mut ctx, &request, stream).await?,
             "tagtypes clear" => handle_tagtypes_clear(&mut ctx, &request, stream).await?,
+            "stats" => handle_stats(&mut ctx, &request, stream).await?,
             _ => {
                 println!("Unhandled command: {}", request);
                 if !ctx.batch {
@@ -136,6 +137,7 @@ pub async fn handle_command_list_ok_begin(
             "config" => handle_config(&mut ctx, &request, stream).await?,
             "tagtypes " => handle_tagtypes(&mut ctx, &request, stream).await?,
             "tagtypes clear" => handle_clear(&mut ctx, &request, stream).await?,
+            "stats" => handle_stats(&mut ctx, &request, stream).await?,
             _ => {
                 println!("Unhandled command: {}", request);
                 if !ctx.batch {

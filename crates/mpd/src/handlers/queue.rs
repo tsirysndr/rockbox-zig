@@ -1,4 +1,5 @@
 use anyhow::Error;
+use rockbox_rpc::api::rockbox::v1alpha1::ShufflePlaylistRequest;
 use tokio::{
     io::{AsyncWriteExt, BufReader},
     net::TcpStream,
@@ -8,10 +9,12 @@ use crate::Context;
 
 pub async fn handle_shuffle(
     ctx: &mut Context,
-    request: &str,
+    _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    println!("{}", request);
+    ctx.playlist
+        .shuffle_playlist(ShufflePlaylistRequest { start_index: 0 })
+        .await?;
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;
     }

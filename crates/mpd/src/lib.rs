@@ -5,7 +5,7 @@ use handlers::{
     batch::{handle_command_list_begin, handle_command_list_ok_begin},
     library::{
         handle_config, handle_list_album, handle_list_artist, handle_list_title, handle_rescan,
-        handle_search, handle_tagtypes,
+        handle_search, handle_stats, handle_tagtypes,
     },
     playback::{
         handle_currentsong, handle_getvol, handle_next, handle_pause, handle_play, handle_playid,
@@ -111,6 +111,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "config" => handle_config(&mut ctx, &request, &mut stream).await?,
             "tagtypes " => handle_tagtypes(&mut ctx, &request, &mut stream).await?,
             "tagtypes clear" => handle_clear(&mut ctx, &request, &mut stream).await?,
+            "stats" => handle_stats(&mut ctx, &request, &mut stream).await?,
             "command_list_begin" => {
                 handle_command_list_begin(&mut ctx, &request, &mut stream).await?
             }

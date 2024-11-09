@@ -90,7 +90,7 @@ MacOS, currently not supported, but you can run in a docker container.
 - [ ] TuneIn Radio
 - [x] MPD Server
 - [x] MPRIS
-- [ ] Upnp Player
+- [ ] UPnP/DLNA
 - [ ] Airplay
 - [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
 - [ ] Wasm extensions

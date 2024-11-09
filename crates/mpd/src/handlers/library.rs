@@ -186,3 +186,29 @@ pub async fn handle_tagtypes_clear(
 
     Ok("".to_string())
 }
+
+pub async fn handle_stats(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    let response = ctx.library.get_albums(GetAlbumsRequest {}).await?;
+    let response = response.into_inner();
+    let albums = response.albums.len();
+    let response = ctx.library.get_artists(GetArtistsRequest {}).await?;
+    let response = response.into_inner();
+    let artists = response.artists.len();
+    let response = ctx.library.get_tracks(GetTracksRequest {}).await?;
+    let response = response.into_inner();
+    let tracks = response.tracks.len();
+    let response = format!(
+        "artists: {}\nalbums: {}\nsongs: {}\nOK\n",
+        artists, albums, tracks
+    );
+
+    if !ctx.batch {
+        stream.write_all(response.as_bytes()).await?;
+    }
+
+    Ok(response)
+}
