@@ -10,58 +10,70 @@ pub async fn handle_shuffle(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_add(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_playlistinfo(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_delete(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_clear(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_move(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }

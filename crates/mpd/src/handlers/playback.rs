@@ -1,7 +1,7 @@
 use anyhow::Error;
 use rockbox_rpc::api::rockbox::v1alpha1::{
-    NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest, SaveSettingsRequest,
-    StatusRequest,
+    CurrentTrackRequest, GetGlobalSettingsRequest, NextRequest, PauseRequest, PlayRequest,
+    PreviousRequest, ResumeRequest, SaveSettingsRequest, StatusRequest,
 };
 use tokio::{
     io::{AsyncWriteExt, BufReader},
@@ -14,26 +14,34 @@ pub async fn handle_play(
     ctx: &mut Context,
     _request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     ctx.playback.resume(ResumeRequest {}).await?;
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_pause(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     match arg {
         Some(r#""0""#) => {
             ctx.playback.resume(ResumeRequest {}).await?;
-            stream.write_all(b"OK\n").await?;
+            if !ctx.batch {
+                stream.write_all(b"OK\n").await?;
+            }
         }
         Some(r#""1""#) => {
             ctx.playback.pause(PauseRequest {}).await?;
-            stream.write_all(b"OK\n").await?;
+            if !ctx.batch {
+                stream.write_all(b"OK\n").await?;
+            }
         }
         _ => {
             stream
@@ -41,14 +49,14 @@ pub async fn handle_pause(
                 .await?;
         }
     }
-    Ok(())
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_toggle(
     ctx: &mut Context,
     _request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     let response = ctx.playback.status(StatusRequest {}).await?;
     let response = response.into_inner();
     match response.status {
@@ -64,15 +72,17 @@ pub async fn handle_toggle(
                 .await?;
         }
     }
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_status(
     ctx: &mut Context,
     _request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     let response = ctx.playback.status(StatusRequest {}).await?;
     let response = response.into_inner();
     let status = match response.status {
@@ -80,72 +90,127 @@ pub async fn handle_status(
         3 => "pause",
         _ => "stop",
     };
-    let response = format!("state: {}\nOK\n", status);
-    stream.write_all(response.as_bytes()).await?;
-    Ok(())
+
+    let response = ctx
+        .settings
+        .get_global_settings(GetGlobalSettingsRequest {})
+        .await?;
+    let response = response.into_inner();
+    let repeat = match response.repeat_mode {
+        0 => 0,
+        1 => 1,
+        2 => 1,
+        _ => 0,
+    };
+
+    let random = match response.playlist_shuffle {
+        true => 1,
+        false => 0,
+    };
+
+    let response = ctx.playback.current_track(CurrentTrackRequest {}).await?;
+    let response = response.into_inner();
+
+    let time = format!(
+        "{}:{}",
+        (response.elapsed / 1000) as i64,
+        (response.length / 1000) as i64
+    );
+    let elapsed = (response.elapsed / 1000) as i64;
+
+    let single = ctx.single.lock().await;
+    let single = single.as_str().replace("\"", "");
+
+    let response = format!(
+        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nOK\n",
+        status, repeat, single, random, time, elapsed
+    );
+
+    if !ctx.batch {
+        stream.write_all(response.as_bytes()).await?;
+    }
+    Ok(response)
 }
 
 pub async fn handle_next(
     ctx: &mut Context,
     _request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     ctx.playback.next(NextRequest {}).await?;
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_previous(
     ctx: &mut Context,
     _request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     ctx.playback.previous(PreviousRequest {}).await?;
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_playid(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_seek(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_seekid(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_seekcur(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
         stream
             .write_all(b"ACK [2@0] {seekcur} incorrect arguments\n")
             .await?;
-        return Ok(());
+        return Ok("ACK [2@0] {seekcur} incorrect arguments\n".to_string());
     }
 
     ctx.playback
@@ -157,21 +222,25 @@ pub async fn handle_seekcur(
             offset: 0,
         })
         .await?;
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_random(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
-        stream
-            .write_all(b"ACK [2@0] {random} incorrect arguments\n")
-            .await?;
-        return Ok(());
+        if !ctx.batch {
+            stream
+                .write_all(b"ACK [2@0] {random} incorrect arguments\n")
+                .await?;
+        }
+        return Ok("ACK [2@0] {random} incorrect arguments\n".to_string());
     }
 
     ctx.settings
@@ -180,21 +249,25 @@ pub async fn handle_random(
             ..Default::default()
         })
         .await?;
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_repeat(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
-        stream
-            .write_all(b"ACK [2@0] {repeat} incorrect arguments\n")
-            .await?;
-        return Ok(());
+        if !ctx.batch {
+            stream
+                .write_all(b"ACK [2@0] {repeat} incorrect arguments\n")
+                .await?;
+        }
+        return Ok("ACK [2@0] {repeat} incorrect arguments\n".to_string());
     }
 
     let single = ctx.single.lock().await;
@@ -206,10 +279,12 @@ pub async fn handle_repeat(
             _ => Some(1),
         },
         _ => {
-            stream
-                .write_all(b"ACK [2@0] {repeat} incorrect arguments\n")
-                .await?;
-            return Ok(());
+            if !ctx.batch {
+                stream
+                    .write_all(b"ACK [2@0] {repeat} incorrect arguments\n")
+                    .await?;
+            }
+            return Ok("ACK [2@0] {repeat} incorrect arguments\n".to_string());
         }
     };
     ctx.settings
@@ -218,45 +293,78 @@ pub async fn handle_repeat(
             ..Default::default()
         })
         .await?;
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_getvol(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_setvol(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     println!("{}", request);
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_single(
     ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
-        stream
-            .write_all(b"ACK [2@0] {single} incorrect arguments\n")
-            .await?;
-        return Ok(());
+        if !ctx.batch {
+            stream
+                .write_all(b"ACK [2@0] {single} incorrect arguments\n")
+                .await?;
+        }
+        return Ok("ACK [2@0] {single} incorrect arguments\n".to_string());
     }
 
     let mut single = ctx.single.lock().await;
     *single = arg.unwrap().to_string();
-    stream.write_all(b"OK\n").await?;
-    Ok(())
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+    Ok("OK\n".to_string())
+}
+
+pub async fn handle_currentsong(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    let response = ctx.playback.current_track(CurrentTrackRequest {}).await?;
+    let response = response.into_inner();
+    let response = format!(
+        "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTrack: {}\nDate: {}\nTime: {}\nOK\n",
+        response.path,
+        response.title,
+        response.artist,
+        response.album,
+        response.tracknum,
+        response.year,
+        (response.elapsed / 1000) as i64
+    );
+    if !ctx.batch {
+        stream.write_all(response.as_bytes()).await?;
+    }
+    Ok(response)
 }
