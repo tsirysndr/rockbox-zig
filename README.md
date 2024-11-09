@@ -19,8 +19,8 @@
 A modern take on the [Rockbox](https://www.rockbox.org) open-source firmware with enhancements in Zig and Rust. This project offers:
 
 - gRPC & GraphQL APIs for seamless interaction and control
-- Mpd server for compatibility with existing clients
-- MPRIS support for desktop integration
+- [Mpd](https://mpd.readthedocs.io/en/stable/protocol.html) server for compatibility with existing clients
+- [MPRIS](https://specifications.freedesktop.org/mpris-spec/) support for desktop integration
 - TypeScript support for building powerful extensions
 
 Take advantage of modern tooling while preserving the core functionality of Rockbox.
