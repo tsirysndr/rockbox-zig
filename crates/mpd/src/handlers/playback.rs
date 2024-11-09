@@ -128,6 +128,8 @@ pub async fn handle_status(
 
     let single = ctx.single.lock().await;
     let single = single.as_str().replace("\"", "");
+    let bitrate = response.bitrate;
+    let audio = format!("{}:16:2", response.frequency);
 
     let response = ctx.playlist.get_current(GetCurrentRequest {}).await?;
     let response = response.into_inner();
@@ -135,8 +137,8 @@ pub async fn handle_status(
     let song = response.index;
 
     let response = format!(
-        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplaylistlength: {}\nsong: {}\nvolume: {}\nOK\n",
-        status, repeat, single, random, time, elapsed, playlistlength, song, volume
+        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplaylistlength: {}\nsong: {}\nvolume: {}\naudio: {}\nbitrate: {}\nOK\n",
+        status, repeat, single, random, time, elapsed, playlistlength, song, volume, audio, bitrate,
     );
 
     if !ctx.batch {
@@ -403,16 +405,19 @@ pub async fn handle_currentsong(
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
     let response = ctx.playback.current_track(CurrentTrackRequest {}).await?;
-    let response = response.into_inner();
+    let current = response.into_inner();
+    let response = ctx.playlist.get_current(GetCurrentRequest {}).await?;
+    let current_playlist = response.into_inner();
     let response = format!(
-        "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTrack: {}\nDate: {}\nTime: {}\nOK\n",
-        response.path,
-        response.title,
-        response.artist,
-        response.album,
-        response.tracknum,
-        response.year,
-        (response.elapsed / 1000) as i64
+        "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTrack: {}\nDate: {}\nTime: {}\nPos: {}\nOK\n",
+        current.path,
+        current.title,
+        current.artist,
+        current.album,
+        current.tracknum,
+        current.year,
+        (current.elapsed / 1000) as i64,
+        current_playlist.index,
     );
     if !ctx.batch {
         stream.write_all(response.as_bytes()).await?;

@@ -5,7 +5,7 @@ use handlers::{
     batch::{handle_command_list_begin, handle_command_list_ok_begin},
     library::{
         handle_config, handle_list_album, handle_list_artist, handle_list_title, handle_rescan,
-        handle_search,
+        handle_search, handle_tagtypes,
     },
     playback::{
         handle_currentsong, handle_getvol, handle_next, handle_pause, handle_play, handle_playid,
@@ -109,6 +109,8 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "status" => handle_status(&mut ctx, &request, &mut stream).await?,
             "currentsong" => handle_currentsong(&mut ctx, &request, &mut stream).await?,
             "config" => handle_config(&mut ctx, &request, &mut stream).await?,
+            "tagtypes " => handle_tagtypes(&mut ctx, &request, &mut stream).await?,
+            "tagtypes clear" => handle_clear(&mut ctx, &request, &mut stream).await?,
             "command_list_begin" => {
                 handle_command_list_begin(&mut ctx, &request, &mut stream).await?
             }
@@ -133,7 +135,12 @@ fn parse_command(request: &str) -> Result<String, Error> {
     if command == "list" {
         // should parse the next word, and return "list album" or "list artist" or "list title"
         let r#type = request.split_whitespace().nth(1).unwrap_or_default();
-        return Ok(format!("list {}", r#type));
+        return Ok(format!("list {}", r#type.to_lowercase()));
+    }
+
+    if command == "tagtypes" {
+        let r#type = request.split_whitespace().nth(1).unwrap_or_default();
+        return Ok(format!("tagtypes {}", r#type.replace("\"", "")));
     }
 
     Ok(command.to_string())

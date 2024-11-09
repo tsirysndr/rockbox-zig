@@ -1,5 +1,8 @@
 use anyhow::Error;
-use rockbox_rpc::api::rockbox::v1alpha1::{GetGlobalSettingsRequest, ScanLibraryRequest};
+use rockbox_rpc::api::rockbox::v1alpha1::{
+    GetAlbumsRequest, GetArtistsRequest, GetGlobalSettingsRequest, GetTracksRequest,
+    ScanLibraryRequest, SearchRequest,
+};
 use tokio::{
     io::{AsyncWriteExt, BufReader},
     net::TcpStream,
@@ -9,38 +12,61 @@ use crate::Context;
 
 pub async fn handle_list_album(
     ctx: &mut Context,
-    request: &str,
+    _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    println!("{}", request);
+    let response = ctx.library.get_albums(GetAlbumsRequest {}).await?;
+    let response = response.into_inner();
+    let response = response
+        .albums
+        .iter()
+        .map(|x| format!("Album: {}\n", x.title))
+        .collect::<String>();
+    let response = format!("{}OK\n", response);
+
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        stream.write_all(response.as_bytes()).await?;
     }
-    Ok("OK\n".to_string())
+
+    Ok(response)
 }
 
 pub async fn handle_list_artist(
     ctx: &mut Context,
-    request: &str,
+    _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    println!("{}", request);
+    let response = ctx.library.get_artists(GetArtistsRequest {}).await?;
+    let response = response.into_inner();
+    let response = response
+        .artists
+        .iter()
+        .map(|x| format!("Artist: {}\n", x.name))
+        .collect::<String>();
+    let response = format!("{}OK\n", response);
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        stream.write_all(response.as_bytes()).await?;
     }
-    Ok("OK\n".to_string())
+    Ok(response)
 }
 
 pub async fn handle_list_title(
     ctx: &mut Context,
-    request: &str,
+    _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    println!("{}", request);
+    let response = ctx.library.get_tracks(GetTracksRequest {}).await?;
+    let response = response.into_inner();
+    let response = response
+        .tracks
+        .iter()
+        .map(|x| format!("Title: {}\n", x.title))
+        .collect::<String>();
+    let response = format!("{}OK\n", response);
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        stream.write_all(response.as_bytes()).await?;
     }
-    Ok("OK\n".to_string())
+    Ok(response)
 }
 
 pub async fn handle_search(
@@ -48,11 +74,40 @@ pub async fn handle_search(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    println!("{}", request);
+    let term = request
+        .replace("\"", "")
+        .replace("search Album", "")
+        .replace("search Artist", "")
+        .replace("search Title", "")
+        .replace("search album", "")
+        .replace("search artist", "")
+        .replace("search title", "")
+        .trim()
+        .to_string();
+    let response = ctx.library.search(SearchRequest { term }).await?;
+    let response = response.into_inner();
+
+    let response = response
+        .tracks
+        .iter()
+        .map(|x| {
+            format!(
+                "file: {}\nArtist: {}\nAlbum: {}\nTitle: {}\nTrack: {}\nTime: {}\nDuration: {}\n",
+                x.path,
+                x.artist,
+                x.album,
+                x.title,
+                x.track_number,
+                (x.length / 1000) as u32,
+                x.length / 1000
+            )
+        })
+        .collect::<String>();
+    let response = format!("{}OK\n", response);
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        stream.write_all(response.as_bytes()).await?;
     }
-    Ok("OK\n".to_string())
+    Ok(response)
 }
 
 pub async fn handle_rescan(
@@ -93,11 +148,41 @@ pub async fn handle_config(
         .get_global_settings(GetGlobalSettingsRequest {})
         .await?;
     let response = response.into_inner();
-    let response = format!("music_directory: {}\nOK\n", response.music_dir);
+    let response = format!("music_directory: {}OK\n", response.music_dir);
 
     if !ctx.batch {
         stream.write_all(response.as_bytes()).await?;
     }
 
     Ok(response)
+}
+
+pub async fn handle_tagtypes(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    let response = format!(
+        "Tagtype: Artist\nTagtype: Album\nTagtype: Title\nTagtype: Track\nTagtype: Date\nOK\n"
+    );
+
+    if !ctx.batch {
+        stream.write_all(response.as_bytes()).await?;
+    }
+
+    Ok(response)
+}
+
+pub async fn handle_tagtypes_clear(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    let response = format!("OK\n");
+
+    if !ctx.batch {
+        stream.write_all(response.as_bytes()).await?;
+    }
+
+    Ok("".to_string())
 }
