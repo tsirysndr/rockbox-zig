@@ -1,7 +1,7 @@
 use anyhow::Error;
 use rockbox_rpc::api::rockbox::v1alpha1::{
-    CurrentTrackRequest, GetGlobalSettingsRequest, NextRequest, PauseRequest, PlayRequest,
-    PreviousRequest, ResumeRequest, SaveSettingsRequest, StatusRequest,
+    CurrentTrackRequest, GetCurrentRequest, GetGlobalSettingsRequest, NextRequest, PauseRequest,
+    PlayRequest, PreviousRequest, ResumeRequest, SaveSettingsRequest, StatusRequest,
 };
 use tokio::{
     io::{AsyncWriteExt, BufReader},
@@ -121,9 +121,14 @@ pub async fn handle_status(
     let single = ctx.single.lock().await;
     let single = single.as_str().replace("\"", "");
 
+    let response = ctx.playlist.get_current(GetCurrentRequest {}).await?;
+    let response = response.into_inner();
+    let playlistlength = response.amount;
+    let song = response.index;
+
     let response = format!(
-        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nOK\n",
-        status, repeat, single, random, time, elapsed
+        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplaylistlength: {}\nsong: {}\nOK\n",
+        status, repeat, single, random, time, elapsed, playlistlength, song
     );
 
     if !ctx.batch {

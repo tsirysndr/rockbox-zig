@@ -18,7 +18,8 @@ use handlers::{
 };
 use rockbox_rpc::api::rockbox::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
-    settings_service_client::SettingsServiceClient, sound_service_client::SoundServiceClient,
+    playlist_service_client::PlaylistServiceClient, settings_service_client::SettingsServiceClient,
+    sound_service_client::SoundServiceClient,
 };
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -35,6 +36,7 @@ pub struct Context {
     pub playback: PlaybackServiceClient<Channel>,
     pub settings: SettingsServiceClient<Channel>,
     pub sound: SoundServiceClient<Channel>,
+    pub playlist: PlaylistServiceClient<Channel>,
     pub single: Arc<Mutex<String>>,
     pub batch: bool,
 }
@@ -146,12 +148,14 @@ pub async fn setup_context(batch: bool) -> Result<Context, Error> {
     let playback = PlaybackServiceClient::connect(url.clone()).await?;
     let settings = SettingsServiceClient::connect(url.clone()).await?;
     let sound = SoundServiceClient::connect(url.clone()).await?;
+    let playlist = PlaylistServiceClient::connect(url.clone()).await?;
 
     Ok(Context {
         library,
         playback,
         settings,
         sound,
+        playlist,
         single: Arc::new(Mutex::new("\"0\"".to_string())),
         batch,
     })
