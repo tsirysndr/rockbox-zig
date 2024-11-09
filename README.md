@@ -35,7 +35,10 @@ To quickly get started, you can run the following docker command:
 docker run \
     --device /dev/snd \
     --privileged \
-    -p 6061:6061 -p 6062:6062 -p 6063:6063 \
+    -p 6061:6061 \
+    -p 6062:6062 \
+    -p 6063:6063 \
+    -p 6600:6600 \
     -v $HOME/Music:/root/Music \
     tsiry/rockbox:latest
 ```
@@ -83,7 +86,7 @@ MacOS, currently not supported, but you can run in a docker container.
 - [ ] Stream to Chromecast
 - [ ] Stream to Kodi
 - [ ] TuneIn Radio
-- [ ] MPD Server
+- [x] MPD Server
 - [x] MPRIS
 - [ ] Upnp Player
 - [ ] Airplay
