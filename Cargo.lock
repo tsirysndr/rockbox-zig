@@ -6299,7 +6299,9 @@ name = "rockbox-mpd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "rockbox-rpc",
  "tokio",
+ "tonic",
 ]
 
 [[package]]
