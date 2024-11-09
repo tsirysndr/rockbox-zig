@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [dependencies]
 anyhow = "1.0.93"
+regex = "1.11.1"
 rockbox-rpc = {path = "../rpc"}
 tokio = {version = "1.36.0", features = ["full"]}
 tonic = "0.12.2"

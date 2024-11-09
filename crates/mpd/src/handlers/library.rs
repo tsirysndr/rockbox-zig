@@ -143,18 +143,12 @@ pub async fn handle_config(
     _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    let response = ctx
-        .settings
-        .get_global_settings(GetGlobalSettingsRequest {})
-        .await?;
-    let response = response.into_inner();
-    let response = format!("music_directory: {}OK\n", response.music_dir);
-
+    let response = "ACK [4@0] {config} Command only permitted to local clients";
     if !ctx.batch {
         stream.write_all(response.as_bytes()).await?;
     }
 
-    Ok(response)
+    Ok(response.to_string())
 }
 
 pub async fn handle_tagtypes(
@@ -174,6 +168,20 @@ pub async fn handle_tagtypes(
 }
 
 pub async fn handle_tagtypes_clear(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    let response = format!("OK\n");
+
+    if !ctx.batch {
+        stream.write_all(response.as_bytes()).await?;
+    }
+
+    Ok("".to_string())
+}
+
+pub async fn handle_tagtypes_enable(
     ctx: &mut Context,
     _request: &str,
     stream: &mut BufReader<TcpStream>,
