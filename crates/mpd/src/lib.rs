@@ -115,6 +115,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "rescan" => handle_rescan(&mut ctx, &request, &mut stream).await?,
             "status" => handle_status(&mut ctx, &request, &mut stream).await?,
             _ => {
+                println!("Unhandled command: {}", request);
                 stream
                     .write_all(b"ACK [5@0] {unhandled} unknown command\n")
                     .await?;

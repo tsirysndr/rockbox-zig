@@ -1,6 +1,7 @@
 use anyhow::Error;
 use rockbox_rpc::api::rockbox::v1alpha1::{
-    NextRequest, PauseRequest, PreviousRequest, ResumeRequest, SaveSettingsRequest, StatusRequest,
+    NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest, SaveSettingsRequest,
+    StatusRequest,
 };
 use tokio::{
     io::{AsyncWriteExt, BufReader},
@@ -139,7 +140,23 @@ pub async fn handle_seekcur(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<(), Error> {
-    println!("{}", request);
+    let arg = request.split_whitespace().nth(1);
+    if arg.is_none() {
+        stream
+            .write_all(b"ACK [2@0] {seekcur} incorrect arguments\n")
+            .await?;
+        return Ok(());
+    }
+
+    ctx.playback
+        .play(PlayRequest {
+            elapsed: arg
+                .map(|x| x.replace("\"", ""))
+                .map(|x| x.parse::<i64>().unwrap() * 1000)
+                .unwrap_or_default(),
+            offset: 0,
+        })
+        .await?;
     stream.write_all(b"OK\n").await?;
     Ok(())
 }
