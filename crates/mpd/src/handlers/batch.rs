@@ -20,14 +20,15 @@ use super::{
     queue::{
         handle_add, handle_clear, handle_delete, handle_move, handle_playlistinfo, handle_shuffle,
     },
+    system::handle_decoders,
 };
 
 pub async fn handle_command_list_begin(
-    _ctx: &mut Context,
+    ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    let mut ctx = setup_context(true).await?;
+    let mut ctx = setup_context(true, Some(ctx.clone())).await?;
 
     let commands: Vec<&str> = request
         .split("\n")
@@ -74,6 +75,7 @@ pub async fn handle_command_list_begin(
             "stats" => handle_stats(&mut ctx, &request, stream).await?,
             "plchanges" => handle_playlistinfo(&mut ctx, &request, stream).await?,
             "outputs" => handle_outputs(&mut ctx, &request, stream).await?,
+            "decoders" => handle_decoders(&mut ctx, &request, stream).await?,
             _ => {
                 println!("Unhandled command: {}", request);
                 if !ctx.batch {
@@ -92,11 +94,11 @@ pub async fn handle_command_list_begin(
 }
 
 pub async fn handle_command_list_ok_begin(
-    _ctx: &mut Context,
+    ctx: &mut Context,
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    let mut ctx = setup_context(true).await?;
+    let mut ctx = setup_context(true, Some(ctx.clone())).await?;
 
     let commands: Vec<&str> = request
         .split("\n")
@@ -145,6 +147,7 @@ pub async fn handle_command_list_ok_begin(
             "stats" => handle_stats(&mut ctx, &request, stream).await?,
             "plchanges" => handle_playlistinfo(&mut ctx, &request, stream).await?,
             "outputs" => handle_outputs(&mut ctx, &request, stream).await?,
+            "decoders" => handle_decoders(&mut ctx, &request, stream).await?,
             _ => {
                 println!("Unhandled command: {}", request);
                 if !ctx.batch {

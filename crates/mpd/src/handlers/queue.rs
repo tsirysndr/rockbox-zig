@@ -1,6 +1,6 @@
 use std::fs;
 
-use crate::{Context, PLAYLIST_INSERT_LAST};
+use crate::{consts::PLAYLIST_INSERT_LAST, Context};
 use anyhow::Error;
 use regex::Regex;
 use rockbox_rpc::api::rockbox::v1alpha1::{
@@ -23,6 +23,12 @@ pub async fn handle_shuffle(
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;
     }
+
+    match ctx.event_sender.send("playlist".to_string()) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
+
     Ok("OK\n".to_string())
 }
 
@@ -103,6 +109,12 @@ pub async fn handle_add(
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;
     }
+
+    match ctx.event_sender.send("playlist".to_string()) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
+
     Ok("OK\n".to_string())
 }
 
@@ -187,6 +199,12 @@ pub async fn handle_delete(
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;
     }
+
+    match ctx.event_sender.send("playlist".to_string()) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
+
     Ok("OK\n".to_string())
 }
 
@@ -201,6 +219,12 @@ pub async fn handle_clear(
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;
     }
+
+    match ctx.event_sender.send("playlist".to_string()) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
+
     Ok("OK\n".to_string())
 }
 
