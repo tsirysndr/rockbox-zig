@@ -424,3 +424,17 @@ pub async fn handle_currentsong(
     }
     Ok(response)
 }
+
+pub async fn handle_outputs(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    let response =
+        "outputid: 0\noutputname: default detected output\nplugin: pulse\noutputenabled: 1\nOK\n"
+            .to_string();
+    if !ctx.batch {
+        stream.write_all(response.as_bytes()).await?;
+    }
+    Ok(response)
+}
