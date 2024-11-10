@@ -13,9 +13,9 @@ use super::{
         handle_tagtypes_enable,
     },
     playback::{
-        handle_currentsong, handle_getvol, handle_next, handle_pause, handle_play, handle_playid,
-        handle_previous, handle_random, handle_repeat, handle_seek, handle_seekcur, handle_seekid,
-        handle_setvol, handle_single, handle_status, handle_toggle,
+        handle_currentsong, handle_getvol, handle_next, handle_outputs, handle_pause, handle_play,
+        handle_playid, handle_previous, handle_random, handle_repeat, handle_seek, handle_seekcur,
+        handle_seekid, handle_setvol, handle_single, handle_status, handle_toggle,
     },
     queue::{
         handle_add, handle_clear, handle_delete, handle_move, handle_playlistinfo, handle_shuffle,
@@ -73,6 +73,7 @@ pub async fn handle_command_list_begin(
             "tagtypes enable" => handle_tagtypes_enable(&mut ctx, &request, stream).await?,
             "stats" => handle_stats(&mut ctx, &request, stream).await?,
             "plchanges" => handle_playlistinfo(&mut ctx, &request, stream).await?,
+            "outputs" => handle_outputs(&mut ctx, &request, stream).await?,
             _ => {
                 println!("Unhandled command: {}", request);
                 if !ctx.batch {
@@ -143,6 +144,7 @@ pub async fn handle_command_list_ok_begin(
             "tagtypes enable" => handle_tagtypes_enable(&mut ctx, &request, stream).await?,
             "stats" => handle_stats(&mut ctx, &request, stream).await?,
             "plchanges" => handle_playlistinfo(&mut ctx, &request, stream).await?,
+            "outputs" => handle_outputs(&mut ctx, &request, stream).await?,
             _ => {
                 println!("Unhandled command: {}", request);
                 if !ctx.batch {

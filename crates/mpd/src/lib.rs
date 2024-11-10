@@ -8,9 +8,9 @@ use handlers::{
         handle_search, handle_stats, handle_tagtypes, handle_tagtypes_enable,
     },
     playback::{
-        handle_currentsong, handle_getvol, handle_next, handle_pause, handle_play, handle_playid,
-        handle_previous, handle_random, handle_repeat, handle_seek, handle_seekcur, handle_seekid,
-        handle_setvol, handle_single, handle_status, handle_toggle,
+        handle_currentsong, handle_getvol, handle_next, handle_outputs, handle_pause, handle_play,
+        handle_playid, handle_previous, handle_random, handle_repeat, handle_seek, handle_seekcur,
+        handle_seekid, handle_setvol, handle_single, handle_status, handle_toggle,
     },
     queue::{
         handle_add, handle_clear, handle_delete, handle_move, handle_playlistinfo, handle_shuffle,
@@ -117,6 +117,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "tagtypes enable" => handle_tagtypes_enable(&mut ctx, &request, &mut stream).await?,
             "stats" => handle_stats(&mut ctx, &request, &mut stream).await?,
             "plchanges" => handle_playlistinfo(&mut ctx, &request, &mut stream).await?,
+            "outputs" => handle_outputs(&mut ctx, &request, &mut stream).await?,
             "command_list_begin" => {
                 handle_command_list_begin(&mut ctx, &request, &mut stream).await?
             }
