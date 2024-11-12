@@ -1,3 +1,7 @@
+pub const AUDIO_EXTENSIONS: [&str; 17] = [
+    "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",
+    "spx", "sid", "ape", "wma",
+];
 pub const PLAYLIST_INSERT_FIRST: i32 = -4;
 pub const PLAYLIST_INSERT_LAST: i32 = -3;
 pub const DECODERS: &str = r#"plugin: mpg123

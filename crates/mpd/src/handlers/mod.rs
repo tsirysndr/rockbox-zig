@@ -1,4 +1,5 @@
 pub mod batch;
+pub mod browse;
 pub mod library;
 pub mod playback;
 pub mod queue;

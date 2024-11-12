@@ -1,4 +1,5 @@
 use anyhow::Error;
+use rockbox_library::repo;
 use rockbox_rpc::api::rockbox::v1alpha1::{
     GetAlbumsRequest, GetArtistsRequest, GetGlobalSettingsRequest, GetTracksRequest,
     ScanLibraryRequest, SearchRequest,
@@ -178,7 +179,7 @@ pub async fn handle_tagtypes_clear(
         stream.write_all(response.as_bytes()).await?;
     }
 
-    Ok("".to_string())
+    Ok(response)
 }
 
 pub async fn handle_tagtypes_enable(
@@ -219,4 +220,31 @@ pub async fn handle_stats(
     }
 
     Ok(response)
+}
+
+pub async fn handle_find_artist(
+    ctx: &mut Context,
+    request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    repo::track::find_by_artist(ctx.pool.clone(), "").await?;
+    todo!()
+}
+
+pub async fn handle_find_album(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    repo::track::find_by_album(ctx.pool.clone(), "").await?;
+    todo!()
+}
+
+pub async fn handle_find_title(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    repo::track::find_by_title(ctx.pool.clone(), "").await?;
+    todo!()
 }

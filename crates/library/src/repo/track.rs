@@ -86,3 +86,39 @@ pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Track>, Error> {
         .await?;
     Ok(result)
 }
+
+pub async fn find_by_artist(pool: Pool<Sqlite>, artist: &str) -> Result<Vec<Track>, Error> {
+    let result: Vec<Track> =
+        sqlx::query_as("SELECT * FROM track WHERE artist = $1 ORDER BY title ASC")
+            .bind(artist)
+            .fetch_all(&pool)
+            .await?;
+    Ok(result)
+}
+
+pub async fn find_by_album(pool: Pool<Sqlite>, album: &str) -> Result<Vec<Track>, Error> {
+    let result: Vec<Track> =
+        sqlx::query_as("SELECT * FROM track WHERE album = $1 ORDER BY title ASC")
+            .bind(album)
+            .fetch_all(&pool)
+            .await?;
+    Ok(result)
+}
+
+pub async fn find_by_title(pool: Pool<Sqlite>, title: &str) -> Result<Vec<Track>, Error> {
+    let result: Vec<Track> =
+        sqlx::query_as("SELECT * FROM track WHERE title = $1 ORDER BY title ASC")
+            .bind(title)
+            .fetch_all(&pool)
+            .await?;
+    Ok(result)
+}
+
+pub async fn find_by_filename(pool: Pool<Sqlite>, filename: &str) -> Result<Vec<Track>, Error> {
+    let result: Vec<Track> =
+        sqlx::query_as("SELECT * FROM track WHERE path = $1 ORDER BY title ASC")
+            .bind(filename)
+            .fetch_all(&pool)
+            .await?;
+    Ok(result)
+}

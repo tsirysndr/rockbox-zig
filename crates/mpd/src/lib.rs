@@ -1,6 +1,7 @@
 use anyhow::Error;
 use handlers::{
     batch::{handle_command_list_begin, handle_command_list_ok_begin},
+    browse::{handle_listall, handle_listallinfo, handle_listfiles, handle_lsinfo},
     library::{
         handle_config, handle_list_album, handle_list_artist, handle_list_title, handle_rescan,
         handle_search, handle_stats, handle_tagtypes, handle_tagtypes_enable,
@@ -15,15 +16,18 @@ use handlers::{
     },
     system::{handle_decoders, handle_idle, handle_noidle},
 };
+use kv::{build_tracks_kv, KV};
 use rockbox_graphql::{
     schema::objects::{audio_status::AudioStatus, playlist::Playlist, track::Track},
     simplebroker::SimpleBroker,
 };
+use rockbox_library::{create_connection_pool, entity, repo};
 use rockbox_rpc::api::rockbox::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
     playlist_service_client::PlaylistServiceClient, settings_service_client::SettingsServiceClient,
     sound_service_client::SoundServiceClient,
 };
+use sqlx::{Pool, Sqlite};
 use std::{env, sync::Arc, thread};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -34,7 +38,9 @@ use tokio_stream::StreamExt;
 use tonic::transport::Channel;
 
 pub mod consts;
+pub mod dir;
 pub mod handlers;
+pub mod kv;
 
 #[derive(Clone)]
 pub struct Context {
@@ -51,6 +57,8 @@ pub struct Context {
     pub current_track: Arc<Mutex<Option<Track>>>,
     pub current_playlist: Arc<Mutex<Option<Playlist>>>,
     pub playback_status: Arc<Mutex<Option<AudioStatus>>>,
+    pub pool: Pool<Sqlite>,
+    pub kv: Arc<Mutex<KV<entity::track::Track>>>,
 }
 pub struct MpdServer {}
 
@@ -132,6 +140,10 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "idle" => handle_idle(&mut ctx, &request, &mut stream).await?,
             "noidle" => handle_noidle(&mut ctx, &request, &mut stream).await?,
             "decoders" => handle_decoders(&mut ctx, &request, &mut stream).await?,
+            "lsinfo" => handle_lsinfo(&mut ctx, &request, &mut stream).await?,
+            "listall" => handle_listall(&mut ctx, &request, &mut stream).await?,
+            "listallinfo" => handle_listallinfo(&mut ctx, &request, &mut stream).await?,
+            "listfiles" => handle_listfiles(&mut ctx, &request, &mut stream).await?,
             "command_list_begin" => {
                 handle_command_list_begin(&mut ctx, &request, &mut stream).await?
             }
@@ -165,6 +177,11 @@ fn parse_command(request: &str) -> Result<String, Error> {
         return Ok(format!("tagtypes {}", r#type.replace("\"", "")));
     }
 
+    if command == "find" {
+        let r#type = request.split_whitespace().nth(1).unwrap_or_default();
+        return Ok(format!("find {}", r#type.to_lowercase()));
+    }
+
     Ok(command.to_string())
 }
 
@@ -172,6 +189,9 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
     let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
     let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
     let url = format!("tcp://{}:{}", host, port);
+
+    let pool = create_connection_pool().await?;
+    let kv = Arc::new(Mutex::new(build_tracks_kv(pool.clone()).await?));
 
     let library = LibraryServiceClient::connect(url.clone()).await?;
     let playback = PlaybackServiceClient::connect(url.clone()).await?;
@@ -214,6 +234,8 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
             Some(ref ctx) => ctx.clone().playback_status,
             None => Arc::new(Mutex::new(None)),
         },
+        pool,
+        kv,
     })
 }
 

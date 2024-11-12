@@ -135,7 +135,7 @@ pub async fn handle_status(
 
     if current_track.is_none() {
         let response = format!(
-            "state: {}\nrepeat: {}\nsingle: 0\nrandom: {}\ntime: 0:0\nelapsed: 0\nplaylistlength: 0\nsong: 0\nvolume: {}\naudio: 0:16:2\nbitrate: 0\nOK\n",
+            "state: {}\nrepeat: {}\nsingle: 0\nrandom: {}\ntime: 0:0\nelapsed: 0\nplaylistlength: 0\nvolume: {}\naudio: 0:16:2\nbitrate: 0\nOK\n",
             status, repeat, random, volume,
         );
         if !ctx.batch {
