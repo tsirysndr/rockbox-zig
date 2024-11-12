@@ -156,7 +156,7 @@ pub async fn handle_delete(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    let request = request.replace("\"", "");
+    let request = request.trim_matches('"');
     let arg = request.split_whitespace().last();
     if arg.is_none() {
         if !ctx.batch {

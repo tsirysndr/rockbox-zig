@@ -280,7 +280,7 @@ pub async fn handle_seekcur(
     ctx.playback
         .play(PlayRequest {
             elapsed: arg
-                .map(|x| x.replace("\"", ""))
+                .map(|x| x.trim_matches('"'))
                 .map(|x| x.parse::<i64>().unwrap() * 1000)
                 .unwrap_or_default(),
             offset: 0,

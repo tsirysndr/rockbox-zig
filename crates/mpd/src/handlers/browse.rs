@@ -190,12 +190,13 @@ async fn build_file_metadata(
 
     if let Some(track) = track {
         response.push_str(&format!(
-            "Title: {}\nArtist: {}\nAlbum: {}\nTime: {}\nDuration: {}\n",
+            "Title: {}\nArtist: {}\nAlbum: {}\nTime: {}\nDuration: {}\nAlbumArtist: {}\n",
             track.title,
             track.artist,
             track.album,
             (track.length / 1000) as u32,
-            track.length / 1000
+            track.length / 1000,
+            track.album_artist,
         ));
         if let Some(track_number) = track.track_number {
             response.push_str(&format!("Track: {}\n", track_number));

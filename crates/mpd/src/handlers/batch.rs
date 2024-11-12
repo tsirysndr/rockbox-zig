@@ -9,9 +9,9 @@ use crate::{parse_command, setup_context, Context};
 use super::{
     browse::{handle_listall, handle_listallinfo, handle_listfiles, handle_lsinfo},
     library::{
-        handle_config, handle_list_album, handle_list_artist, handle_list_title, handle_rescan,
-        handle_search, handle_stats, handle_tagtypes, handle_tagtypes_clear,
-        handle_tagtypes_enable,
+        handle_config, handle_find_album, handle_find_artist, handle_find_title, handle_list_album,
+        handle_list_artist, handle_list_title, handle_rescan, handle_search, handle_stats,
+        handle_tagtypes, handle_tagtypes_clear, handle_tagtypes_enable,
     },
     playback::{
         handle_currentsong, handle_getvol, handle_next, handle_outputs, handle_pause, handle_play,
@@ -120,6 +120,9 @@ pub async fn match_command(
         "listall" => handle_listall(ctx, request, stream).await,
         "listallinfo" => handle_listallinfo(ctx, request, stream).await,
         "listfiles" => handle_listfiles(ctx, request, stream).await,
+        "find artist" => handle_find_artist(ctx, request, stream).await,
+        "find album" => handle_find_album(ctx, request, stream).await,
+        "find title" => handle_find_title(ctx, request, stream).await,
         _ => {
             println!("Unhandled command: {}", request);
             if !ctx.batch {

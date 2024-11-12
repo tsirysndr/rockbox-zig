@@ -3,8 +3,9 @@ use handlers::{
     batch::{handle_command_list_begin, handle_command_list_ok_begin},
     browse::{handle_listall, handle_listallinfo, handle_listfiles, handle_lsinfo},
     library::{
-        handle_config, handle_list_album, handle_list_artist, handle_list_title, handle_rescan,
-        handle_search, handle_stats, handle_tagtypes, handle_tagtypes_enable,
+        handle_config, handle_find_album, handle_find_artist, handle_find_title, handle_list_album,
+        handle_list_artist, handle_list_title, handle_rescan, handle_search, handle_stats,
+        handle_tagtypes, handle_tagtypes_enable,
     },
     playback::{
         handle_currentsong, handle_getvol, handle_next, handle_outputs, handle_pause, handle_play,
@@ -144,6 +145,9 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "listall" => handle_listall(&mut ctx, &request, &mut stream).await?,
             "listallinfo" => handle_listallinfo(&mut ctx, &request, &mut stream).await?,
             "listfiles" => handle_listfiles(&mut ctx, &request, &mut stream).await?,
+            "find artist" => handle_find_artist(&mut ctx, &request, &mut stream).await?,
+            "find album" => handle_find_album(&mut ctx, &request, &mut stream).await?,
+            "find title" => handle_find_title(&mut ctx, &request, &mut stream).await?,
             "command_list_begin" => {
                 handle_command_list_begin(&mut ctx, &request, &mut stream).await?
             }

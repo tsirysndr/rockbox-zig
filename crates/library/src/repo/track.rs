@@ -122,3 +122,20 @@ pub async fn find_by_filename(pool: Pool<Sqlite>, filename: &str) -> Result<Vec<
             .await?;
     Ok(result)
 }
+
+pub async fn find_by_artist_album_date(
+    pool: Pool<Sqlite>,
+    artist: &str,
+    album: &str,
+    date: &str,
+) -> Result<Vec<Track>, Error> {
+    let result: Vec<Track> = sqlx::query_as(
+        "SELECT * FROM track WHERE artist = $1 AND album = $2 AND year_string = $3 ORDER BY title ASC",
+    )
+    .bind(artist)
+    .bind(album)
+    .bind(date)
+    .fetch_all(&pool)
+    .await?;
+    Ok(result)
+}
