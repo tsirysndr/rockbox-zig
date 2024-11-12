@@ -19,7 +19,8 @@ use super::{
         handle_seekid, handle_setvol, handle_single, handle_status, handle_toggle,
     },
     queue::{
-        handle_add, handle_clear, handle_delete, handle_move, handle_playlistinfo, handle_shuffle,
+        handle_add, handle_addid, handle_clear, handle_delete, handle_move, handle_playlistinfo,
+        handle_shuffle,
     },
     system::handle_decoders,
 };
@@ -96,6 +97,7 @@ pub async fn match_command(
         "single" => handle_single(ctx, request, stream).await,
         "shuffle" => handle_shuffle(ctx, request, stream).await,
         "add" => handle_add(ctx, request, stream).await,
+        "addid" => handle_addid(ctx, request, stream).await,
         "playlistinfo" => handle_playlistinfo(ctx, request, stream).await,
         "delete" => handle_delete(ctx, request, stream).await,
         "clear" => handle_clear(ctx, request, stream).await,

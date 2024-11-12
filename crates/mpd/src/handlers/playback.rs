@@ -1,7 +1,7 @@
 use anyhow::Error;
 use rockbox_rpc::api::rockbox::v1alpha1::{
     AdjustVolumeRequest, NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest,
-    SaveSettingsRequest,
+    SaveSettingsRequest, StartRequest,
 };
 use tokio::{
     io::{AsyncWriteExt, BufReader},
@@ -111,7 +111,7 @@ pub async fn handle_status(
         _ => "stop",
     };
 
-    let settings = rockbox_sys::settings::get_global_settings();
+    let settings = ctx.current_settings.lock().await;
     let repeat = match settings.repeat_mode {
         0 => 0,
         1 => 1,
@@ -175,8 +175,9 @@ pub async fn handle_status(
     let song = current_playlist.index;
 
     let response = format!(
-        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplaylistlength: {}\nsong: {}\nvolume: {}\naudio: {}\nbitrate: {}\nOK\n",
-        status, repeat, single, random, time, elapsed, playlistlength, song, volume, audio, bitrate,
+        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplayllist: {}\nplaylistlength: {}\nsong: {}\nsongid: {}\nvolume: {}\naudio: {}\nbitrate: {}\nnextsong: {}\nnextsongid: {}\nOK\n",
+        status, repeat, single, random, time, elapsed, playlistlength + 1, playlistlength, song, song + 1, volume, audio, bitrate,
+        song + 1, song + 2,
     );
 
     if !ctx.batch {
@@ -224,8 +225,35 @@ pub async fn handle_playid(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    // TODO: Implement playid
-    println!("{}", request);
+    let arg = request.split_whitespace().nth(1);
+
+    if arg.is_none() {
+        stream
+            .write_all(b"ACK [2@0] {playid} incorrect arguments\n")
+            .await?;
+        return Ok("ACK [2@0] {playid} incorrect arguments\n".to_string());
+    }
+
+    let arg = arg.unwrap();
+    let arg = arg.trim();
+    let arg = arg.trim_matches('"');
+    let arg = arg.parse::<i32>();
+
+    if arg.is_err() {
+        stream
+            .write_all(b"ACK [2@0] {playid} incorrect arguments\n")
+            .await?;
+        return Ok("ACK [2@0] {playid} incorrect arguments\n".to_string());
+    }
+
+    let arg = arg.unwrap();
+
+    ctx.playlist
+        .start(StartRequest {
+            start_index: Some(arg - 1),
+            ..Default::default()
+        })
+        .await?;
 
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;

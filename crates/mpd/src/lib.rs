@@ -13,7 +13,8 @@ use handlers::{
         handle_seekid, handle_setvol, handle_single, handle_status, handle_toggle,
     },
     queue::{
-        handle_add, handle_clear, handle_delete, handle_move, handle_playlistinfo, handle_shuffle,
+        handle_add, handle_addid, handle_clear, handle_delete, handle_move, handle_playlistinfo,
+        handle_shuffle,
     },
     system::{handle_decoders, handle_idle, handle_noidle},
 };
@@ -22,12 +23,13 @@ use rockbox_graphql::{
     schema::objects::{audio_status::AudioStatus, playlist::Playlist, track::Track},
     simplebroker::SimpleBroker,
 };
-use rockbox_library::{create_connection_pool, entity, repo};
+use rockbox_library::{create_connection_pool, entity};
 use rockbox_rpc::api::rockbox::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
     playlist_service_client::PlaylistServiceClient, settings_service_client::SettingsServiceClient,
     sound_service_client::SoundServiceClient,
 };
+use rockbox_sys::types::user_settings::UserSettings;
 use sqlx::{Pool, Sqlite};
 use std::{env, sync::Arc, thread};
 use tokio::{
@@ -60,6 +62,8 @@ pub struct Context {
     pub playback_status: Arc<Mutex<Option<AudioStatus>>>,
     pub pool: Pool<Sqlite>,
     pub kv: Arc<Mutex<KV<entity::track::Track>>>,
+    pub current_settings: Arc<Mutex<UserSettings>>,
+    pub idle: Arc<Mutex<usize>>,
 }
 pub struct MpdServer {}
 
@@ -119,6 +123,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "single" => handle_single(&mut ctx, &request, &mut stream).await?,
             "shuffle" => handle_shuffle(&mut ctx, &request, &mut stream).await?,
             "add" => handle_add(&mut ctx, &request, &mut stream).await?,
+            "addid" => handle_addid(&mut ctx, &request, &mut stream).await?,
             "playlistinfo" => handle_playlistinfo(&mut ctx, &request, &mut stream).await?,
             "delete" => handle_delete(&mut ctx, &request, &mut stream).await?,
             "clear" => handle_clear(&mut ctx, &request, &mut stream).await?,
@@ -240,12 +245,25 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
         },
         pool,
         kv,
+        current_settings: Arc::new(Mutex::new(rockbox_sys::settings::get_global_settings())),
+        idle: Arc::new(Mutex::new(0)),
     })
 }
 
 pub fn listen_events(ctx: Context) {
     let ctx_clone = ctx.clone();
     let another_ctx = ctx.clone();
+    let another_cloned_ctx = ctx.clone();
+
+    thread::spawn(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        loop {
+            let mut current_settings = rt.block_on(another_cloned_ctx.current_settings.lock());
+            *current_settings = rockbox_sys::settings::get_global_settings();
+            drop(current_settings);
+            thread::sleep(std::time::Duration::from_millis(800));
+        }
+    });
 
     thread::spawn(move || {
         let mut subscription = SimpleBroker::<Track>::subscribe();

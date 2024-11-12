@@ -35,6 +35,10 @@ impl<V> KV<V> {
     pub fn values(&self) -> Vec<&V> {
         self.store.values().collect()
     }
+
+    pub fn id(&self, key: &str) -> Option<usize> {
+        self.keys().iter().position(|x| x == key)
+    }
 }
 
 pub async fn build_tracks_kv(pool: Pool<Sqlite>) -> Result<KV<entity::track::Track>, Error> {
