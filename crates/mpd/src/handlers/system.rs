@@ -4,7 +4,10 @@ use tokio::{
     net::TcpStream,
 };
 
-use crate::{consts::DECODERS, Context};
+use crate::{
+    consts::{COMMANDS, DECODERS},
+    Context,
+};
 
 pub async fn handle_idle(
     _ctx: &mut Context,
@@ -50,4 +53,15 @@ pub async fn handle_decoders(
         stream.write_all(DECODERS.as_bytes()).await?;
     }
     Ok(DECODERS.to_string())
+}
+
+pub async fn handle_commands(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    if !ctx.batch {
+        stream.write_all(COMMANDS.as_bytes()).await?;
+    }
+    Ok(COMMANDS.to_string())
 }

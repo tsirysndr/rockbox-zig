@@ -313,3 +313,47 @@ mime_type: audio/x-mpd-cdda-pcm-reverse
 mime_type: audio/x-mpd-alsa-pcm
 OK
 "#;
+
+pub const COMMANDS: &str = r#"command: add
+command: addid
+command: clear
+command: commands
+command: currentsong
+command: decoders
+command: delete
+command: deleteid
+command: find
+command: getvol
+command: list
+command: listall
+command: listallinfo
+command: listfiles
+command: listmounts
+command: lsinfo
+command: next
+command: outputs
+command: pause
+command: play
+command: playid
+command: playlistinfo
+command: playlistsearch
+command: plchanges
+command: previous
+command: random
+command: repeat
+command: rescan
+command: search
+command: seekcur
+command: seekid
+command: sendmessage
+command: setvol
+command: shuffle
+command: single
+command: stats
+command: status
+command: stop
+command: tagtypes
+command: update
+command: volume
+OK
+"#;
