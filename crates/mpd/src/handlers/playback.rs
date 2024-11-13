@@ -15,7 +15,6 @@ pub async fn handle_play(
     _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    println!("request: {}", _request);
     ctx.playback.resume(ResumeRequest {}).await?;
     match ctx.event_sender.send("player".to_string()) {
         Ok(_) => {}
@@ -31,33 +30,22 @@ pub async fn handle_play(
 
 pub async fn handle_pause(
     ctx: &mut Context,
-    request: &str,
+    _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    println!("request: {}", request);
-    let arg = request.split_whitespace().nth(1);
-    match arg {
-        Some(r#""0""#) => {
+    let playback_status = ctx.playback_status.lock().await;
+    let status = playback_status.as_ref().map(|x| x.status);
+
+    match status {
+        Some(1) => {
+            ctx.playback.pause(PauseRequest {}).await?;
+        }
+        Some(3) => {
             ctx.playback.resume(ResumeRequest {}).await?;
-            if !ctx.batch {
-                stream.write_all(b"OK\n").await?;
-            }
-        }
-        Some(r#""1""#) => {
-            ctx.playback.pause(PauseRequest {}).await?;
-            if !ctx.batch {
-                stream.write_all(b"OK\n").await?;
-            }
-        }
-        None => {
-            ctx.playback.pause(PauseRequest {}).await?;
-            if !ctx.batch {
-                stream.write_all(b"OK\n").await?;
-            }
         }
         _ => {
             stream
-                .write_all(b"ACK [2@0] {pause} incorrect arguments\n")
+                .write_all(b"ACK [2@0] {pause} no song is playing\n")
                 .await?;
         }
     }
@@ -175,7 +163,7 @@ pub async fn handle_status(
     let song = current_playlist.index;
 
     let response = format!(
-        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplayllist: {}\nplaylistlength: {}\nsong: {}\nsongid: {}\nvolume: {}\naudio: {}\nbitrate: {}\nnextsong: {}\nnextsongid: {}\nOK\n",
+        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplaylist: {}\nplaylistlength: {}\nsong: {}\nsongid: {}\nvolume: {}\naudio: {}\nbitrate: {}\nnextsong: {}\nnextsongid: {}\nOK\n",
         status, repeat, single, random, time, elapsed, playlistlength + 1, playlistlength, song, song + 1, volume, audio, bitrate,
         song + 1, song + 2,
     );

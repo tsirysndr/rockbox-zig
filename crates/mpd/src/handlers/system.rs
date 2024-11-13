@@ -11,6 +11,17 @@ pub async fn handle_idle(
     _request: &str,
     _stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
+    // TODO: Implement idle
+    /*
+        let idle = ctx.idle.lock().await;
+
+        if *idle {
+            stream
+                .write_all(b"changed: player\nchanged: playlist\nOK\n")
+                .await?;
+            return Ok("changed: player\nchanged: playlist\nOK\n".to_string());
+        }
+    */
     Ok("".to_string())
 }
 
@@ -20,6 +31,8 @@ pub async fn handle_noidle(
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
     ctx.idle_state.send(false)?;
+    let mut idle = ctx.idle.lock().await;
+    *idle = false;
 
     let response = "OK\n".to_string();
     if !ctx.batch {

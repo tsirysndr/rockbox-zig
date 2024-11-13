@@ -17,6 +17,9 @@ pub async fn handle_shuffle(
     _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
+    let mut idle = ctx.idle.lock().await;
+    *idle = true;
+
     ctx.playlist
         .shuffle_playlist(ShufflePlaylistRequest { start_index: 0 })
         .await?;
@@ -37,6 +40,9 @@ pub async fn handle_add(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
+    let mut idle = ctx.idle.lock().await;
+    *idle = true;
+
     let response = ctx
         .settings
         .get_global_settings(GetGlobalSettingsRequest {})
@@ -130,6 +136,9 @@ pub async fn handle_addid(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
+    let mut idle = ctx.idle.lock().await;
+    *idle = true;
+
     let response = ctx
         .settings
         .get_global_settings(GetGlobalSettingsRequest {})
@@ -271,6 +280,9 @@ pub async fn handle_delete(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
+    let mut idle = ctx.idle.lock().await;
+    *idle = true;
+
     let arg = request.split_whitespace().last();
     if arg.is_none() {
         if !ctx.batch {
@@ -326,6 +338,9 @@ pub async fn handle_clear(
     _request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
+    let mut idle = ctx.idle.lock().await;
+    *idle = true;
+
     ctx.playlist
         .remove_all_tracks(RemoveAllTracksRequest { positions: vec![] })
         .await?;

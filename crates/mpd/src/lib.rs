@@ -27,11 +27,12 @@ use rockbox_library::{create_connection_pool, entity};
 use rockbox_rpc::api::rockbox::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
     playlist_service_client::PlaylistServiceClient, settings_service_client::SettingsServiceClient,
-    sound_service_client::SoundServiceClient,
+    sound_service_client::SoundServiceClient, system_service_client::SystemServiceClient,
+    GetCurrentRequest, GetGlobalStatusRequest, PlaylistResumeRequest,
 };
 use rockbox_sys::types::user_settings::UserSettings;
 use sqlx::{Pool, Sqlite};
-use std::{env, sync::Arc, thread};
+use std::{env, sync::Arc, thread, time::Duration};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
@@ -52,6 +53,7 @@ pub struct Context {
     pub settings: SettingsServiceClient<Channel>,
     pub sound: SoundServiceClient<Channel>,
     pub playlist: PlaylistServiceClient<Channel>,
+    pub system: SystemServiceClient<Channel>,
     pub single: Arc<Mutex<String>>,
     pub batch: bool,
     pub idle_state: Arc<watch::Sender<bool>>,
@@ -63,7 +65,7 @@ pub struct Context {
     pub pool: Pool<Sqlite>,
     pub kv: Arc<Mutex<KV<entity::track::Track>>>,
     pub current_settings: Arc<Mutex<UserSettings>>,
-    pub idle: Arc<Mutex<usize>>,
+    pub idle: Arc<Mutex<bool>>,
 }
 pub struct MpdServer {}
 
@@ -74,6 +76,10 @@ impl MpdServer {
         let context = setup_context(false, None).await?;
 
         listen_events(context.clone());
+
+        thread::sleep(Duration::from_millis(200));
+
+        restore_playlist(context.clone())?;
 
         let listener = TcpListener::bind(&addr).await?;
 
@@ -207,6 +213,7 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
     let settings = SettingsServiceClient::connect(url.clone()).await?;
     let sound = SoundServiceClient::connect(url.clone()).await?;
     let playlist = PlaylistServiceClient::connect(url.clone()).await?;
+    let system = SystemServiceClient::connect(url.clone()).await?;
 
     let (event_sender, _) = broadcast::channel(16);
     let (idle_state, idle_cancel) = watch::channel(false);
@@ -217,6 +224,7 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
         settings,
         sound,
         playlist,
+        system,
         single: Arc::new(Mutex::new("\"0\"".to_string())),
         batch,
         idle_state: match ctx {
@@ -246,7 +254,7 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
         pool,
         kv,
         current_settings: Arc::new(Mutex::new(rockbox_sys::settings::get_global_settings())),
-        idle: Arc::new(Mutex::new(0)),
+        idle: Arc::new(Mutex::new(false)),
     })
 }
 
@@ -281,6 +289,21 @@ pub fn listen_events(ctx: Context) {
 
         while let Some(playlist) = rt.block_on(subscription.next()) {
             let mut current_playlist = rt.block_on(ctx_clone.current_playlist.lock());
+
+            // verify if current_playlist index is different from playlist index
+            if (current_playlist.is_some()
+                && current_playlist.as_ref().unwrap().index != playlist.index)
+                || current_playlist.is_none()
+            {
+                let ctx = ctx_clone.clone();
+                thread::spawn(move || {
+                    thread::sleep(std::time::Duration::from_millis(500));
+                    let rt = tokio::runtime::Runtime::new().unwrap();
+                    let mut idle = rt.block_on(ctx.idle.lock());
+                    *idle = true;
+                });
+            }
+
             *current_playlist = Some(playlist);
         }
     });
@@ -291,7 +314,72 @@ pub fn listen_events(ctx: Context) {
 
         while let Some(status) = rt.block_on(subscription.next()) {
             let mut playback_status = rt.block_on(another_ctx.playback_status.lock());
+            // verify if playback_status status is different from status status
+            if playback_status.is_some()
+                && playback_status.as_ref().unwrap().status != status.status
+            {
+                let ctx = another_ctx.clone();
+                thread::spawn(move || {
+                    thread::sleep(std::time::Duration::from_millis(500));
+                    let rt = tokio::runtime::Runtime::new().unwrap();
+                    let mut idle = rt.block_on(ctx.idle.lock());
+                    *idle = true;
+                });
+            }
             *playback_status = Some(status);
         }
     });
+}
+
+pub fn restore_playlist(ctx: Context) -> Result<(), Error> {
+    let ctx_clone = ctx.clone();
+    thread::spawn(move || {
+        let mut ctx = ctx_clone.clone();
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let response = ctx
+                .system
+                .get_global_status(GetGlobalStatusRequest {})
+                .await?;
+            let response = response.into_inner();
+
+            let playback_status = ctx.playback_status.lock().await;
+            let mut status = 0;
+
+            if playback_status.is_some() {
+                status = playback_status.as_ref().unwrap().status;
+            }
+
+            if response.resume_index > -1 && status != 1 {
+                ctx.playlist
+                    .playlist_resume(PlaylistResumeRequest {})
+                    .await?;
+                let resume_index = response.resume_index;
+                let resume_elapsed = response.resume_elapsed;
+                thread::sleep(std::time::Duration::from_millis(500));
+                let response = ctx.playlist.get_current(GetCurrentRequest {}).await?;
+                let response = response.into_inner();
+                let mut current_track = ctx.current_track.lock().await;
+                *current_track = Some(Track {
+                    path: response.tracks[resume_index as usize].path.clone(),
+                    artist: response.tracks[resume_index as usize].artist.clone(),
+                    album: response.tracks[resume_index as usize].album.clone(),
+                    title: response.tracks[resume_index as usize].title.clone(),
+                    album_artist: response.tracks[resume_index as usize].album_artist.clone(),
+                    elapsed: resume_elapsed as u64,
+                    length: response.tracks[resume_index as usize].length,
+                    tracknum: response.tracks[resume_index as usize].tracknum,
+                    year: response.tracks[resume_index as usize].year,
+                    year_string: response.tracks[resume_index as usize].year_string.clone(),
+                    ..Default::default()
+                });
+            }
+
+            Ok::<(), Error>(())
+        })?;
+
+        Ok::<(), Error>(())
+    });
+
+    Ok(())
 }
