@@ -5,7 +5,14 @@ version = "0.1.0"
 
 [dependencies]
 anyhow = "1.0.93"
+chrono = "0.4.38"
 regex = "1.11.1"
+rockbox-graphql = {path = "../graphql"}
+rockbox-library = {path = "../library"}
 rockbox-rpc = {path = "../rpc"}
+rockbox-settings = {path = "../settings"}
+rockbox-sys = {path = "../sys"}
+sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
 tokio = {version = "1.36.0", features = ["full"]}
+tokio-stream = "0.1"
 tonic = "0.12.2"

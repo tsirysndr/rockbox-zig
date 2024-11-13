@@ -6299,9 +6299,16 @@ name = "rockbox-mpd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "regex",
+ "rockbox-graphql",
+ "rockbox-library",
  "rockbox-rpc",
+ "rockbox-settings",
+ "rockbox-sys",
+ "sqlx",
  "tokio",
+ "tokio-stream",
  "tonic",
 ]
 
