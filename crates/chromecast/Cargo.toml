@@ -1,0 +1,18 @@
+[package]
+edition = "2021"
+name = "rockbox-chromecast"
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1.0.93"
+async-trait = "0.1.83"
+chromecast = {version = "0.18.2", features = ["thread_safe"]}
+futures = "0.3.31"
+md5 = "0.7.0"
+rockbox-graphql = {path = "../graphql"}
+rockbox-library = {path = "../library"}
+rockbox-traits = {path = "../traits"}
+rockbox-types = {path = "../types"}
+sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
+tokio = {version = "1.36.0", features = ["full"]}
+tokio-stream = "0.1"

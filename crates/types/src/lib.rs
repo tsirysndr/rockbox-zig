@@ -5,6 +5,8 @@ use rockbox_search::liked_track::LikedTrack;
 use rockbox_search::{album::Album, track::Track};
 use serde::{Deserialize, Serialize};
 
+pub mod device;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NewPlaylist {
     pub name: Option<String>,
