@@ -1,6 +1,7 @@
 pub mod albums;
 pub mod artists;
 pub mod browse;
+pub mod devices;
 pub mod docs;
 pub mod player;
 pub mod playlists;
@@ -67,3 +68,7 @@ async_handler!(settings, update_global_settings);
 async_handler!(docs, get_openapi);
 async_handler!(docs, index);
 async_handler!(search, search);
+async_handler!(devices, connect);
+async_handler!(devices, disconnect);
+async_handler!(devices, get_devices);
+async_handler!(devices, get_device);

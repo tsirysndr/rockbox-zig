@@ -3,6 +3,7 @@ use futures::{future::BoxFuture, stream::FuturesUnordered, StreamExt};
 use tokio::fs;
 
 pub mod browse;
+pub mod device;
 pub mod library;
 pub mod metadata;
 pub mod playback;
@@ -34,7 +35,7 @@ pub mod api {
         use tantivy::schema::*;
         use tantivy::TantivyDocument;
         use v1alpha1::{
-            Album, Artist, CurrentTrackResponse, Entry, GetGlobalSettingsResponse,
+            Album, Artist, CurrentTrackResponse, Device, Entry, GetGlobalSettingsResponse,
             GetGlobalStatusResponse, NextTrackResponse, SaveSettingsRequest, SearchResponse, Track,
         };
 
@@ -1153,6 +1154,25 @@ pub mod api {
                             preamp: settings.preamp,
                         }
                     }),
+                }
+            }
+        }
+
+        impl From<rockbox_types::device::Device> for Device {
+            fn from(device: rockbox_types::device::Device) -> Self {
+                Self {
+                    id: device.id,
+                    name: device.name,
+                    host: device.host,
+                    port: device.port as u32,
+                    ip: device.ip,
+                    service: device.service,
+                    app: device.app,
+                    is_connected: device.is_connected,
+                    base_url: device.base_url,
+                    is_cast_device: device.is_cast_device,
+                    is_source_device: device.is_source_device,
+                    is_current_device: device.is_current_device,
                 }
             }
         }

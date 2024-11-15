@@ -9,11 +9,14 @@ crate-type = ["staticlib"]
 [dependencies]
 anyhow = "1.0.89"
 async-std = {version = "1.13.0", features = ["unstable"]}
+futures-util = "0.3.31"
 md5 = "0.7.0"
 owo-colors = "4.0.0"
 queryst = "3.0.0"
 rand = "0.8.5"
 reqwest = {version = "0.12.7", features = ["blocking", "rustls-tls"], default-features = false}
+rockbox-chromecast = {path = "../chromecast"}
+rockbox-discovery = {path = "../discovery"}
 rockbox-graphql = {path = "../graphql"}
 rockbox-library = {path = "../library"}
 rockbox-mpd = {path = "../mpd"}
@@ -22,6 +25,8 @@ rockbox-rpc = {path = "../rpc"}
 rockbox-search = {path = "../search"}
 rockbox-settings = {path = "../settings"}
 rockbox-sys = {path = "../sys"}
+rockbox-tracklist = {path = "../tracklist"}
+rockbox-traits = {path = "../traits"}
 rockbox-types = {path = "../types"}
 serde = {version = "1.0.210", features = ["derive"]}
 serde_json = "1.0.128"

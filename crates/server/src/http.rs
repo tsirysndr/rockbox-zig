@@ -5,6 +5,8 @@ use rockbox_sys::{
     self as rb,
     types::{mp3_entry::Mp3Entry, tree::Entry},
 };
+use rockbox_traits::Player;
+use rockbox_types::device::Device;
 use serde::Serialize;
 use serde_json::Value;
 use sqlx::Sqlite;
@@ -18,6 +20,8 @@ use std::{
 };
 use threadpool::ThreadPool;
 
+use crate::scan::scan_chromecast_devices;
+
 type Handler = fn(&Context, &Request, &mut Response) -> Result<(), Error>;
 
 pub struct Context {
@@ -25,6 +29,9 @@ pub struct Context {
     pub fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
     pub metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
     pub indexes: Indexes,
+    pub devices: Arc<Mutex<Vec<Device>>>,
+    pub current_device: Arc<Mutex<Option<Device>>>,
+    pub player: Arc<Mutex<Option<Box<dyn Player + Send>>>>,
 }
 
 #[derive(Debug)]
@@ -238,6 +245,12 @@ impl RockboxHttpServer {
         let db_pool = rt.block_on(rockbox_library::create_connection_pool())?;
         let fs_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
         let metadata_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
+        let devices = Arc::new(Mutex::new(Vec::new()));
+        let current_device = Arc::new(Mutex::new(None));
+        let player = Arc::new(Mutex::new(None));
+
+        // Start scanning for devices
+        scan_chromecast_devices(devices.clone());
 
         let indexes = create_indexes()?;
 
@@ -254,6 +267,9 @@ impl RockboxHttpServer {
                     let cloned_fs_cache = fs_cache.clone();
                     let cloned_metadata_cache = metadata_cache.clone();
                     let cloned_indexes = indexes.clone();
+                    let cloned_devices = devices.clone();
+                    let cloned_current_device = current_device.clone();
+                    let cloned_player = player.clone();
                     pool.execute(move || {
                         let mut buf_reader = BufReader::new(&stream);
                         let mut request = String::new();
@@ -320,6 +336,9 @@ impl RockboxHttpServer {
                                 cloned_fs_cache,
                                 cloned_metadata_cache,
                                 cloned_indexes,
+                                cloned_devices,
+                                cloned_current_device,
+                                cloned_player,
                             );
                         }
 
@@ -364,6 +383,9 @@ impl RockboxHttpServer {
         fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
         metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
         indexes: Indexes,
+        devices: Arc<Mutex<Vec<Device>>>,
+        current_device: Arc<Mutex<Option<Device>>>,
+        player: Arc<Mutex<Option<Box<dyn Player + Send>>>>,
     ) {
         println!("{} {}", method.bright_cyan(), path);
         match self.router.route(method, path) {
@@ -374,6 +396,9 @@ impl RockboxHttpServer {
                     fs_cache,
                     metadata_cache,
                     indexes,
+                    devices,
+                    current_device,
+                    player,
                 };
                 let request = Request {
                     method: method.to_string(),

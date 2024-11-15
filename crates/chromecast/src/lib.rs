@@ -12,22 +12,19 @@ use anyhow::Error;
 use async_trait::async_trait;
 use chromecast::{
     channels::{
-        media::{Metadata, StatusEntry},
+        media::{Image, Media, Metadata, MusicTrackMediaMetadata, StatusEntry, StreamType},
         receiver::CastDeviceApp,
     },
     CastDevice,
 };
+use rockbox_traits::types::track::{Album, Track};
+use rockbox_traits::types::{playback::Playback, track::Artist};
 use rockbox_traits::Player;
 use rockbox_types::device::Device;
 use tokio::sync::mpsc;
-use types::track::{Album, Track};
-use types::{playback::Playback, track::Artist};
 
 const DEFAULT_DESTINATION_ID: &str = "receiver-0";
 const DEFAULT_APP_ID: &str = "88DCBD57";
-
-pub mod types;
-
 pub struct Chromecast<'a> {
     host: Option<String>,
     port: Option<u16>,
@@ -95,11 +92,79 @@ impl<'a> Chromecast<'a> {
 
         Ok(Some(Box::new(player)))
     }
+
+    fn reconnect(&mut self) -> Result<(CastDevice, String), Error> {
+        let cast_device = match CastDevice::connect_without_host_verification(
+            self.host.clone().unwrap(),
+            self.port.unwrap(),
+        ) {
+            Ok(cast_device) => cast_device,
+            Err(err) => panic!("Could not establish connection with Cast Device: {:?}", err),
+        };
+
+        cast_device
+            .connection
+            .connect(DEFAULT_DESTINATION_ID.to_string())?;
+        cast_device.heartbeat.ping()?;
+
+        let app_to_run = CastDeviceApp::from_str(DEFAULT_APP_ID).unwrap();
+        let app = cast_device.receiver.launch_app(&app_to_run)?;
+
+        cast_device
+            .connection
+            .connect(app.transport_id.as_str())
+            .unwrap();
+
+        Ok((cast_device, app.transport_id))
+    }
+
+    fn current_app_session(&mut self) -> Result<(CastDevice, String, i32, String), Error> {
+        let app_to_manage = CastDeviceApp::from_str(DEFAULT_APP_ID).unwrap();
+
+        let (cast_device, _) = self.reconnect()?;
+
+        cast_device
+            .connection
+            .connect(DEFAULT_DESTINATION_ID.to_string())
+            .unwrap();
+        cast_device.heartbeat.ping().unwrap();
+
+        let status = cast_device.receiver.get_status().unwrap();
+
+        let app = status
+            .applications
+            .iter()
+            .find(|app| CastDeviceApp::from_str(app.app_id.as_str()).unwrap() == app_to_manage);
+
+        match app {
+            Some(app) => {
+                cast_device
+                    .connection
+                    .connect(app.transport_id.as_str())
+                    .unwrap();
+
+                let status = cast_device
+                    .media
+                    .get_status(app.transport_id.as_str(), None)
+                    .unwrap();
+                let status = status.entries.first().unwrap();
+                let media_session_id = status.media_session_id;
+                let transport_id = app.transport_id.as_str();
+                Ok((
+                    cast_device,
+                    transport_id.to_string(),
+                    media_session_id,
+                    "".to_string(),
+                ))
+            }
+            None => Err(Error::msg(format!("{:?} is not running", app_to_manage))),
+        }
+    }
 }
 
 #[async_trait]
 impl<'a> Player for Chromecast<'a> {
-    async fn play(&self, url: &str) -> Result<(), Error> {
+    async fn play(&self) -> Result<(), Error> {
         self.cmd_tx
             .as_ref()
             .unwrap()
@@ -155,35 +220,106 @@ impl<'a> Player for Chromecast<'a> {
         Ok(())
     }
 
-    async fn volume(&self, level: f32) -> Result<(), Error> {
+    async fn volume(&self, _level: f32) -> Result<(), Error> {
         todo!()
     }
 
-    async fn load_tracks(&self) -> Result<(), Error> {
+    async fn load_tracks(&self, tracks: Vec<Track>, start_index: Option<i32>) -> Result<(), Error> {
+        let media = tracks
+            .iter()
+            .map(|track| Media {
+                content_id: track.uri.clone(),
+                content_type: "".to_string(),
+                stream_type: StreamType::None,
+                metadata: Some(Metadata::MusicTrack(MusicTrackMediaMetadata {
+                    title: Some(track.title.clone()),
+                    artist: Some(track.artists.first().unwrap().name.clone()),
+                    album_name: Some(track.album.as_ref().unwrap().title.clone()),
+                    album_artist: Some(track.artists.first().unwrap().name.clone()),
+                    track_number: track.track_number,
+                    disc_number: Some(track.disc_number),
+                    images: match &track.album.as_ref().unwrap().cover {
+                        Some(cover) => vec![Image {
+                            url: cover.clone(),
+                            dimensions: None,
+                        }],
+                        None => vec![],
+                    },
+                    release_date: None,
+                    composer: None,
+                })),
+                duration: None,
+            })
+            .collect::<Vec<Media>>();
+
+        let transport_id = self.transport_id.as_ref().map(|id| id.as_str()).unwrap();
+
+        if let Some(cast_device) = &self.client {
+            cast_device.media.queue_load(
+                transport_id,
+                media.clone(),
+                Some(start_index.unwrap_or(0)),
+                None,
+            )?;
+            println!("[chromecast] Tracks loaded");
+            println!("[chromecast] Playing track {:#?}", media[0]);
+            return Ok(());
+        }
+
+        return Err(Error::msg("device not connected"));
+    }
+
+    async fn play_next(&self, track: Track) -> Result<(), Error> {
+        if let Some(cmd_tx) = &self.cmd_tx {
+            cmd_tx.send(CastPlayerCommand::PlayNext(track)).unwrap();
+            return Ok(());
+        }
+        Err(Error::msg("Cast device is not connected"))
+    }
+
+    async fn load(&mut self, track: Track) -> Result<(), Error> {
+        let (cast_device, transport_id, _, session_id) = self.current_app_session()?;
+
+        cast_device.media.load(
+            transport_id.as_str(),
+            session_id.as_str(),
+            &Media {
+                content_id: track.uri,
+                content_type: "".to_string(),
+                stream_type: StreamType::Buffered,
+                duration: None,
+                metadata: None,
+            },
+        )?;
+
+        Ok(())
+    }
+
+    async fn get_current_playback(&mut self) -> Result<Playback, Error> {
+        if self.host.is_none() || self.port.is_none() {
+            return Err(Error::msg("No device connected"));
+        }
+
+        if self.client.is_none() {
+            return Err(Error::msg("Cast device is not connected"));
+        }
+
+        let current_playback = self.current_playback.lock().unwrap();
+        match &current_playback.current {
+            Some(playback) => return Ok(playback.clone()),
+            None => return Ok(Playback::default()),
+        }
+    }
+
+    async fn get_current_tracklist(&self) -> Result<(Vec<Track>, Vec<Track>), Error> {
         todo!()
     }
 
-    async fn play_next(&self) -> Result<(), Error> {
+    async fn play_track_at(&self, _position: u32) -> Result<(), Error> {
         todo!()
     }
 
-    async fn load(&self) -> Result<(), Error> {
-        todo!()
-    }
-
-    async fn get_current_playback(&self) -> Result<(), Error> {
-        todo!()
-    }
-
-    async fn get_current_tracklist(&self) -> Result<(), Error> {
-        todo!()
-    }
-
-    async fn play_track_at(&self) -> Result<(), Error> {
-        todo!()
-    }
-
-    async fn remove_track_at(&self) -> Result<(), Error> {
+    async fn remove_track_at(&self, _position: u32) -> Result<(), Error> {
         todo!()
     }
 
@@ -518,12 +654,60 @@ impl<'a> CastPlayerInternal<'a> {
         Ok(())
     }
 
-    fn handle_seek(&self, seconds: i32) -> Result<(), Error> {
+    fn handle_seek(&self, _seconds: i32) -> Result<(), Error> {
         todo!();
     }
 
     fn handle_play_next(&self, track: Track) -> Result<(), Error> {
-        todo!();
+        let items = vec![Media {
+            content_id: track.uri.clone(),
+            content_type: "".to_string(),
+            stream_type: StreamType::Buffered,
+            metadata: Some(Metadata::MusicTrack(MusicTrackMediaMetadata {
+                title: Some(track.title.clone()),
+                artist: Some(track.artists.first().unwrap().name.clone()),
+                album_name: Some(track.album.as_ref().unwrap().title.clone()),
+                album_artist: Some(track.artists.first().unwrap().name.clone()),
+                track_number: track.track_number,
+                disc_number: Some(track.disc_number),
+                images: match &track.album.as_ref().unwrap().cover {
+                    Some(cover) => vec![Image {
+                        url: cover.clone(),
+                        dimensions: None,
+                    }],
+                    None => vec![],
+                },
+                release_date: None,
+                composer: None,
+            })),
+            duration: None,
+        }];
+        let playback = self.get_current_playback()?;
+
+        let tracklist = playback.items;
+        let mut tracklist = tracklist.iter();
+        let mut before: Option<i32> = None;
+        loop {
+            let cursor = tracklist.next();
+            if cursor.is_none() {
+                break;
+            }
+            let (_, item_id) = cursor.unwrap();
+            if *item_id == playback.current_item_id.unwrap() {
+                let cursor = tracklist.next();
+                before = cursor.map(|(_, item_id)| *item_id);
+                break;
+            }
+        }
+
+        let (transport_id, media_session_id, _) = self.current_app_session()?;
+        self.cast_device.media.queue_insert(
+            transport_id.as_str(),
+            media_session_id,
+            items,
+            before,
+        )?;
+        return Ok(());
     }
 
     fn handle_disconnect(&self) -> Result<(), Error> {

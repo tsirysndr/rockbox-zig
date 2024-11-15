@@ -4,6 +4,8 @@ name = "rockbox-types"
 version = "0.1.0"
 
 [dependencies]
+local-ip-addr = "0.1.1"
+mdns-sd = "0.5.9"
 rockbox-search = {path = "../search"}
+rockbox-traits = {path = "../traits"}
 serde = {version = "1.0.213", features = ["derive"]}
-
