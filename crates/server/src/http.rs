@@ -1,5 +1,6 @@
 use anyhow::Error;
 use owo_colors::OwoColorize;
+use rockbox_library::entity::track::Track;
 use rockbox_search::{create_indexes, Indexes};
 use rockbox_sys::{
     self as rb,
@@ -20,7 +21,11 @@ use std::{
 };
 use threadpool::ThreadPool;
 
-use crate::scan::scan_chromecast_devices;
+use crate::{
+    kv::{build_tracks_kv, KV},
+    player_events::listen_for_playback_changes,
+    scan::scan_chromecast_devices,
+};
 
 type Handler = fn(&Context, &Request, &mut Response) -> Result<(), Error>;
 
@@ -32,6 +37,7 @@ pub struct Context {
     pub devices: Arc<Mutex<Vec<Device>>>,
     pub current_device: Arc<Mutex<Option<Device>>>,
     pub player: Arc<Mutex<Option<Box<dyn Player + Send>>>>,
+    pub kv: Arc<Mutex<KV<Track>>>,
 }
 
 #[derive(Debug)]
@@ -248,9 +254,11 @@ impl RockboxHttpServer {
         let devices = Arc::new(Mutex::new(Vec::new()));
         let current_device = Arc::new(Mutex::new(None));
         let player = Arc::new(Mutex::new(None));
+        let kv = Arc::new(Mutex::new(rt.block_on(build_tracks_kv(db_pool.clone()))?));
 
         // Start scanning for devices
         scan_chromecast_devices(devices.clone());
+        listen_for_playback_changes(player.clone(), db_pool.clone());
 
         let indexes = create_indexes()?;
 
@@ -270,6 +278,7 @@ impl RockboxHttpServer {
                     let cloned_devices = devices.clone();
                     let cloned_current_device = current_device.clone();
                     let cloned_player = player.clone();
+                    let cloned_kv = kv.clone();
                     pool.execute(move || {
                         let mut buf_reader = BufReader::new(&stream);
                         let mut request = String::new();
@@ -339,6 +348,7 @@ impl RockboxHttpServer {
                                 cloned_devices,
                                 cloned_current_device,
                                 cloned_player,
+                                cloned_kv,
                             );
                         }
 
@@ -386,6 +396,7 @@ impl RockboxHttpServer {
         devices: Arc<Mutex<Vec<Device>>>,
         current_device: Arc<Mutex<Option<Device>>>,
         player: Arc<Mutex<Option<Box<dyn Player + Send>>>>,
+        kv: Arc<Mutex<KV<Track>>>,
     ) {
         println!("{} {}", method.bright_cyan(), path);
         match self.router.route(method, path) {
@@ -399,6 +410,7 @@ impl RockboxHttpServer {
                     devices,
                     current_device,
                     player,
+                    kv,
                 };
                 let request = Request {
                     method: method.to_string(),

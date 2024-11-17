@@ -1302,7 +1302,7 @@ extern "C" {
     fn semaphore_wait();
     fn semaphore_release();
     fn reset_poweroff_timer();
-    fn set_sleeptimer_duration();
+    fn set_sleeptimer_duration(minutes: c_int);
     fn get_sleep_timer();
 
     // Menu

@@ -22,6 +22,14 @@ pub struct InsertTracks {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct LoadTracks {
+    pub tracks: Vec<String>,
+    pub directory: Option<String>,
+    pub album_id: Option<String>,
+    pub shuffle: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NewVolume {
     pub steps: i32,
 }

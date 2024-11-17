@@ -1,6 +1,10 @@
+use std::env;
+
 use crate::cast_ptr;
 use crate::get_string_from_ptr;
+use rockbox_traits::types::track::Track;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Mp3Entry {
@@ -130,6 +134,48 @@ impl From<crate::Mp3Entry> for Mp3Entry {
             // mb_track_id: get_string_from_ptr!(entry.mb_track_id),
             mb_track_id: "".to_string(),
             is_asf_stream: entry.is_asf_stream,
+            ..Default::default()
+        }
+    }
+}
+
+impl From<Track> for Mp3Entry {
+    fn from(track: Track) -> Self {
+        let client = reqwest::blocking::Client::new();
+        let album_art = match track.album_cover {
+            Some(cover) => {
+                let url = Url::parse(&cover).unwrap();
+                let path = url.path();
+                match client
+                    .get(&format!(
+                        "{}:{}{}",
+                        "http://localhost",
+                        env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string()),
+                        path
+                    ))
+                    .send()
+                {
+                    Ok(response) => match response.status() {
+                        reqwest::StatusCode::OK => Some(format!(
+                            "http://localhost:{}{}",
+                            env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string()),
+                            path
+                        )),
+                        _ => Some(cover),
+                    },
+                    Err(_) => Some(cover),
+                }
+            }
+            None => None,
+        };
+        Self {
+            title: track.title,
+            artist: track.artist,
+            album: track.album,
+            albumartist: track.album_artist.unwrap_or_default(),
+            path: track.path,
+            album_art,
+            length: (track.duration.unwrap_or_default() as u64) * 1000 as u64,
             ..Default::default()
         }
     }

@@ -993,7 +993,7 @@ static void handle_sleep_timer(void)
         }
         else {
             DEBUGF("Sleep timer timeout. Shutting off...\n");
-            sys_poweroff();
+            // sys_poweroff();
         }
     }
 }
@@ -1049,7 +1049,7 @@ void handle_auto_poweroff(void)
             && TIME_AFTER(tick, storage_last_disk_activity() + timeout)
 #endif
         ) {
-            sys_poweroff();
+            // sys_poweroff();
         }
     } else
         handle_sleep_timer();

@@ -3,7 +3,7 @@ use std::{
     sync::{mpsc::Sender, Arc, Mutex},
 };
 
-use crate::{read_files, schema::objects, AUDIO_EXTENSIONS};
+use crate::{check_and_load_player, read_files, schema::objects, AUDIO_EXTENSIONS};
 use async_graphql::*;
 use futures_util::Stream;
 use rockbox_library::repo;
@@ -11,6 +11,7 @@ use rockbox_sys::{
     events::RockboxCommand,
     types::{audio_status::AudioStatus, file_position::FilePosition, mp3_entry::Mp3Entry},
 };
+use rockbox_types::device::Device;
 use sqlx::{Pool, Sqlite};
 
 use crate::{rockbox_url, schema::objects::track::Track, simplebroker::SimpleBroker};
@@ -91,38 +92,30 @@ impl PlaybackMutation {
     }
 
     async fn pause(&self, ctx: &Context<'_>) -> Result<i32, Error> {
-        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
-            .unwrap()
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Pause)?;
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/player/pause", rockbox_url());
+        client.put(&url).send().await?;
         Ok(0)
     }
 
     async fn resume(&self, ctx: &Context<'_>) -> Result<i32, Error> {
-        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
-            .unwrap()
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Resume)?;
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/player/resume", rockbox_url());
+        client.put(&url).send().await?;
         Ok(0)
     }
 
     async fn next(&self, ctx: &Context<'_>) -> Result<i32, Error> {
-        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
-            .unwrap()
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Next)?;
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/player/next", rockbox_url());
+        client.put(&url).send().await?;
         Ok(0)
     }
 
     async fn previous(&self, ctx: &Context<'_>) -> Result<i32, Error> {
-        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
-            .unwrap()
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Prev)?;
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/player/previous", rockbox_url());
+        client.put(&url).send().await?;
         Ok(0)
     }
 
@@ -163,9 +156,12 @@ impl PlaybackMutation {
         let pool = ctx.data::<Pool<Sqlite>>()?;
         let tracks = repo::album_tracks::find_by_album(pool.clone(), &album_id).await?;
         let client = ctx.data::<reqwest::Client>().unwrap();
+        let tracks = tracks.into_iter().map(|t| t.path).collect::<Vec<String>>();
         let body = serde_json::json!({
-            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+            "tracks": tracks,
         });
+
+        check_and_load_player!(client, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
         client.post(&url).json(&body).send().await?;
@@ -195,9 +191,12 @@ impl PlaybackMutation {
         let pool = ctx.data::<Pool<Sqlite>>()?;
         let client = ctx.data::<reqwest::Client>().unwrap();
         let tracks = repo::artist_tracks::find_by_artist(pool.clone(), &artist_id).await?;
+        let tracks = tracks.into_iter().map(|t| t.path).collect::<Vec<String>>();
         let body = serde_json::json!({
-            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+            "tracks": tracks,
         });
+
+        check_and_load_player!(client, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
         client.post(&url).json(&body).send().await?;
@@ -272,6 +271,8 @@ impl PlaybackMutation {
             "tracks": tracks,
         });
 
+        check_and_load_player!(client, tracks, shuffle.unwrap_or_default());
+
         let url = format!("{}/playlists", rockbox_url());
         client.post(&url).json(&body).send().await?;
 
@@ -295,8 +296,12 @@ impl PlaybackMutation {
         let path = path.replace("file://", "");
 
         let body = serde_json::json!({
-            "tracks": vec![path],
+            "tracks": vec![path.clone()],
         });
+
+        check_and_load_player!(client, vec![path], false);
+
+        let client = reqwest::Client::new();
 
         let url = format!("{}/playlists", rockbox_url());
         client.post(&url).json(&body).send().await?;
@@ -325,6 +330,8 @@ impl PlaybackMutation {
         let body = serde_json::json!({
             "tracks": tracks,
         });
+
+        check_and_load_player!(client, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
         client.post(&url).json(&body).send().await?;
@@ -361,6 +368,8 @@ impl PlaybackMutation {
         let body = serde_json::json!({
             "tracks": tracks,
         });
+
+        check_and_load_player!(client, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
         client.post(&url).json(&body).send().await?;

@@ -6636,6 +6636,8 @@ dependencies = [
  "anyhow",
  "async-std",
  "futures-util",
+ "lazy_static",
+ "local-ip-addr",
  "md5",
  "owo-colors 4.1.0",
  "queryst",
@@ -6659,6 +6661,7 @@ dependencies = [
  "sqlx",
  "threadpool",
  "tokio",
+ "url",
  "urlencoding",
 ]
 
@@ -6676,7 +6679,10 @@ name = "rockbox-sys"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "reqwest",
+ "rockbox-traits",
  "serde",
+ "url",
 ]
 
 [[package]]

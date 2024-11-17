@@ -12,13 +12,15 @@ use anyhow::Error;
 use async_trait::async_trait;
 use chromecast::{
     channels::{
-        media::{Image, Media, Metadata, MusicTrackMediaMetadata, StatusEntry, StreamType},
+        media::{
+            Image, Media, Metadata, MusicTrackMediaMetadata, PlayerState, StatusEntry, StreamType,
+        },
         receiver::CastDeviceApp,
     },
     CastDevice,
 };
-use rockbox_traits::types::track::{Album, Track};
-use rockbox_traits::types::{playback::Playback, track::Artist};
+use rockbox_traits::types::playback::Playback;
+use rockbox_traits::types::track::Track;
 use rockbox_traits::Player;
 use rockbox_types::device::Device;
 use tokio::sync::mpsc;
@@ -233,12 +235,12 @@ impl<'a> Player for Chromecast<'a> {
                 stream_type: StreamType::None,
                 metadata: Some(Metadata::MusicTrack(MusicTrackMediaMetadata {
                     title: Some(track.title.clone()),
-                    artist: Some(track.artists.first().unwrap().name.clone()),
-                    album_name: Some(track.album.as_ref().unwrap().title.clone()),
-                    album_artist: Some(track.artists.first().unwrap().name.clone()),
+                    artist: Some(track.artist.clone()),
+                    album_name: Some(track.album.clone()),
+                    album_artist: track.album_artist.clone(),
                     track_number: track.track_number,
                     disc_number: Some(track.disc_number),
-                    images: match &track.album.as_ref().unwrap().cover {
+                    images: match &track.album_cover {
                         Some(cover) => vec![Image {
                             url: cover.clone(),
                             dimensions: None,
@@ -248,7 +250,7 @@ impl<'a> Player for Chromecast<'a> {
                     release_date: None,
                     composer: None,
                 })),
-                duration: None,
+                duration: track.duration,
             })
             .collect::<Vec<Media>>();
 
@@ -478,29 +480,12 @@ impl<'a> CastPlayerInternal<'a> {
                             .to_string(),
                         uri: media.content_id.clone(),
                         title: metadata.title.clone().unwrap(),
-                        artists: vec![Artist {
-                            id: format!("{:x}", md5::compute(metadata.artist.clone().unwrap())),
-                            name: metadata.artist.clone().unwrap(),
-                            ..Default::default()
-                        }],
-                        album: Some(Album {
-                            id: cover
-                                .clone()
-                                .map(|x| {
-                                    x.split("/")
-                                        .last()
-                                        .map(|x| x.split(".").next().unwrap())
-                                        .unwrap()
-                                        .to_string()
-                                })
-                                .unwrap_or_default(),
-                            title: metadata.album_name.clone().unwrap(),
-                            cover,
-                            ..Default::default()
-                        }),
+                        artist: metadata.artist.clone().unwrap(),
+                        album: metadata.album_name.clone().unwrap(),
                         track_number: metadata.track_number,
                         disc_number: metadata.disc_number.unwrap_or(0),
                         duration: media.duration,
+                        album_cover: cover,
                         ..Default::default()
                     },
                     item.item_id,
@@ -521,29 +506,12 @@ impl<'a> CastPlayerInternal<'a> {
                         .to_string(),
                     uri: media.content_id.clone(),
                     title: metadata.title.clone().unwrap(),
-                    artists: vec![Artist {
-                        id: format!("{:x}", md5::compute(metadata.artist.clone().unwrap())),
-                        name: metadata.artist.clone().unwrap(),
-                        ..Default::default()
-                    }],
-                    album: Some(Album {
-                        id: cover
-                            .clone()
-                            .map(|x| {
-                                x.split("/")
-                                    .last()
-                                    .map(|x| x.split(".").next().unwrap())
-                                    .unwrap()
-                                    .to_string()
-                            })
-                            .unwrap_or_default(),
-                        title: metadata.album_name.clone().unwrap(),
-                        cover,
-                        ..Default::default()
-                    }),
+                    artist: metadata.artist.clone().unwrap(),
+                    album: metadata.album_name.clone().unwrap(),
                     track_number: metadata.track_number,
                     disc_number: metadata.disc_number.unwrap_or(0),
                     duration: media.duration,
+                    album_cover: cover,
                     ..Default::default()
                 };
                 return Ok(Playback {
@@ -553,7 +521,7 @@ impl<'a> CastPlayerInternal<'a> {
                         .current_time
                         .map(|x| (x * 1000.0) as u32)
                         .unwrap_or(0),
-                    is_playing: true,
+                    is_playing: status.player_state.to_string() == "PLAYING",
                     items,
                     current_item_id: status.current_item_id,
                 });
@@ -572,7 +540,7 @@ impl<'a> CastPlayerInternal<'a> {
             }),
             index: 0,
             position_ms: status.current_time.map(|x| x as u32).unwrap_or(0),
-            is_playing: true,
+            is_playing: status.player_state.to_string() == "PLAYING",
             current_item_id: status.current_item_id,
             items,
         });
@@ -582,11 +550,10 @@ impl<'a> CastPlayerInternal<'a> {
         let app_to_manage = CastDeviceApp::from_str(DEFAULT_APP_ID).unwrap();
         self.cast_device
             .connection
-            .connect(DEFAULT_DESTINATION_ID.to_string())
-            .unwrap();
-        self.cast_device.heartbeat.ping().unwrap();
+            .connect(DEFAULT_DESTINATION_ID.to_string())?;
+        self.cast_device.heartbeat.ping()?;
 
-        let status = self.cast_device.receiver.get_status().unwrap();
+        let status = self.cast_device.receiver.get_status()?;
 
         let app = status
             .applications
@@ -597,14 +564,17 @@ impl<'a> CastPlayerInternal<'a> {
             Some(app) => {
                 self.cast_device
                     .connection
-                    .connect(app.transport_id.as_str())
-                    .unwrap();
+                    .connect(app.transport_id.as_str())?;
 
                 let status = self
                     .cast_device
                     .media
-                    .get_status(app.transport_id.as_str(), None)
-                    .unwrap();
+                    .get_status(app.transport_id.as_str(), None)?;
+
+                if status.entries.is_empty() {
+                    return Err(Error::msg("No media session running"));
+                }
+
                 let status = status.entries.first().unwrap();
                 let media_session_id = status.media_session_id;
                 let transport_id = app.transport_id.as_str();
@@ -665,12 +635,12 @@ impl<'a> CastPlayerInternal<'a> {
             stream_type: StreamType::Buffered,
             metadata: Some(Metadata::MusicTrack(MusicTrackMediaMetadata {
                 title: Some(track.title.clone()),
-                artist: Some(track.artists.first().unwrap().name.clone()),
-                album_name: Some(track.album.as_ref().unwrap().title.clone()),
-                album_artist: Some(track.artists.first().unwrap().name.clone()),
+                artist: Some(track.artist.clone()),
+                album_name: Some(track.album.clone()),
+                album_artist: track.album_artist,
                 track_number: track.track_number,
                 disc_number: Some(track.disc_number),
-                images: match &track.album.as_ref().unwrap().cover {
+                images: match &track.album_cover {
                     Some(cover) => vec![Image {
                         url: cover.clone(),
                         dimensions: None,

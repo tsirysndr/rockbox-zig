@@ -1212,3 +1212,34 @@ pub fn read_files(path: String) -> BoxFuture<'static, Result<Vec<String>, Error>
         Ok(result)
     })
 }
+
+#[macro_export]
+macro_rules! check_and_load_player {
+    ($response:expr, $tracks:expr, $shuffle:expr) => {
+        let client = reqwest::Client::new();
+        let response = client
+            .get(format!("{}/player", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let player = response
+            .json::<rockbox_types::device::Device>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if player.host.is_empty() && player.port == 0 {
+            let client = reqwest::Client::new();
+            let body = serde_json::json!({
+                "tracks": $tracks,
+                "shuffle": $shuffle,
+            });
+            client
+                .put(&format!("{}/player/", rockbox_url()))
+                .json(&body)
+                .send()
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            return Ok(tonic::Response::new($response));
+        }
+    };
+}

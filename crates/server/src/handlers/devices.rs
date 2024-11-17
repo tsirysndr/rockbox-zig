@@ -1,7 +1,10 @@
 use anyhow::Error;
 use rockbox_chromecast::Chromecast;
 
-use crate::http::{Context, Request, Response};
+use crate::{
+    http::{Context, Request, Response},
+    GLOBAL_MUTEX,
+};
 
 pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let id = &req.params[0];
@@ -10,6 +13,8 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
     let devices = ctx.devices.lock().unwrap();
     let device = devices.iter().find(|d| d.id == *id);
     if let Some(device) = device {
+        let mut mutex = GLOBAL_MUTEX.lock().unwrap();
+        *mutex = 1;
         *player = Chromecast::connect(device.clone())?;
         *current_device = Some(device.clone());
         res.set_status(200);
@@ -24,8 +29,11 @@ pub async fn disconnect(ctx: &Context, req: &Request, res: &mut Response) -> Res
     let mut player = ctx.player.lock().unwrap();
     let mut current_device = ctx.current_device.lock().unwrap();
     if let Some(player) = player.as_mut() {
+        player.stop().await?;
         player.disconnect().await?;
     }
+    let mut mutex = GLOBAL_MUTEX.lock().unwrap();
+    *mutex = 0;
     *player = None;
     *current_device = None;
     res.set_status(200);
