@@ -5,10 +5,11 @@ use std::{
 };
 
 use rockbox_graphql::{
-    schema::objects::{audio_status::AudioStatus, track::Track},
+    schema::objects::{audio_status::AudioStatus, playlist::Playlist, track::Track},
     simplebroker::SimpleBroker,
 };
 use rockbox_library::repo;
+use rockbox_sys::types::mp3_entry::Mp3Entry;
 use rockbox_traits::Player;
 use sqlx::{Pool, Sqlite};
 use url::Url;
@@ -79,6 +80,21 @@ pub fn listen_for_playback_changes(
                                     true => 1,
                                     false => 3,
                                 },
+                            });
+
+                            let tracks = current_playback.items;
+                            let index = match tracks.len() >= 2 {
+                                true => tracks.len() - 2,
+                                false => 0,
+                            } as i32;
+
+                            let tracks: Vec<Mp3Entry> =
+                                tracks.into_iter().map(|(t, _)| t.into()).collect();
+                            SimpleBroker::publish(Playlist {
+                                amount: tracks.len() as i32,
+                                index,
+                                tracks: tracks.into_iter().map(|t| t.into()).collect(),
+                                ..Default::default()
                             });
                         }
                     }

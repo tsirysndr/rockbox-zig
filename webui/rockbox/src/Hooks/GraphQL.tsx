@@ -55,6 +55,22 @@ export type CompressorSettings = {
   threshold: Scalars['Int']['output'];
 };
 
+export type Device = {
+  __typename?: 'Device';
+  app: Scalars['String']['output'];
+  baseUrl?: Maybe<Scalars['String']['output']>;
+  host: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  ip: Scalars['String']['output'];
+  isCastDevice: Scalars['Boolean']['output'];
+  isConnected: Scalars['Boolean']['output'];
+  isCurrentDevice: Scalars['Boolean']['output'];
+  isSourceDevice: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  port: Scalars['Int']['output'];
+  service: Scalars['String']['output'];
+};
+
 export type Entry = {
   __typename?: 'Entry';
   attr: Scalars['Int']['output'];
@@ -80,6 +96,8 @@ export type Mutation = {
   __typename?: 'Mutation';
   adjustVolume: Scalars['Int']['output'];
   beepPlay: Scalars['String']['output'];
+  connect: Scalars['Boolean']['output'];
+  disconnect: Scalars['Boolean']['output'];
   fastForwardRewind: Scalars['Int']['output'];
   flushAndReloadTracks: Scalars['Int']['output'];
   hardStop: Scalars['Int']['output'];
@@ -129,6 +147,16 @@ export type Mutation = {
 
 export type MutationAdjustVolumeArgs = {
   steps: Scalars['Int']['input'];
+};
+
+
+export type MutationConnectArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationDisconnectArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -284,7 +312,7 @@ export type NewGlobalSettings = {
   surroundBalance?: InputMaybe<Scalars['Int']['input']>;
   surroundEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   surroundFx1?: InputMaybe<Scalars['Int']['input']>;
-  surroundFx2?: InputMaybe<Scalars['Boolean']['input']>;
+  surroundFx2?: InputMaybe<Scalars['Int']['input']>;
   treble?: InputMaybe<Scalars['Int']['input']>;
   trebleCutoff?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -308,6 +336,8 @@ export type Query = {
   artist?: Maybe<Artist>;
   artists: Array<Artist>;
   currentTrack?: Maybe<Track>;
+  device?: Maybe<Device>;
+  devices: Array<Device>;
   getDisplayIndex: Scalars['String']['output'];
   getFilePosition: Scalars['Int']['output'];
   getFirstIndex: Scalars['String']['output'];
@@ -339,6 +369,11 @@ export type QueryAlbumArgs = {
 
 
 export type QueryArtistArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryDeviceArgs = {
   id: Scalars['String']['input'];
 };
 
@@ -593,7 +628,7 @@ export type UserSettings = {
   surroundBalance: Scalars['Int']['output'];
   surroundEnabled: Scalars['Int']['output'];
   surroundFx1: Scalars['Int']['output'];
-  surroundFx2: Scalars['Boolean']['output'];
+  surroundFx2: Scalars['Int']['output'];
   surroundMethod2: Scalars['Boolean']['output'];
   surroundMix: Scalars['Int']['output'];
   tagcacheAutoupdate: Scalars['Boolean']['output'];
@@ -638,6 +673,32 @@ export type GetEntriesQueryVariables = Exact<{
 
 
 export type GetEntriesQuery = { __typename?: 'Query', treeGetEntries: Array<{ __typename?: 'Entry', name: string, attr: number, timeWrite: number }> };
+
+export type ConnectToDeviceMutationVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type ConnectToDeviceMutation = { __typename?: 'Mutation', connect: boolean };
+
+export type DisconnectFromDeviceMutationVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type DisconnectFromDeviceMutation = { __typename?: 'Mutation', disconnect: boolean };
+
+export type GetDevicesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetDevicesQuery = { __typename?: 'Query', devices: Array<{ __typename?: 'Device', id: string, name: string, app: string, ip: string, host: string, port: number, isCastDevice: boolean, service: string, isConnected: boolean }> };
+
+export type GetDeviceQueryVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type GetDeviceQuery = { __typename?: 'Query', device?: { __typename?: 'Device', id: string, name: string, app: string, ip: string, host: string, port: number, isCastDevice: boolean, service: string, isConnected: boolean } | null };
 
 export type LikeTrackMutationVariables = Exact<{
   trackId: Scalars['String']['input'];
@@ -897,7 +958,7 @@ export type SaveSettingsMutation = { __typename?: 'Mutation', saveSettings: bool
 export type GetGlobalSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', musicDir: string, volume: number, playlistShuffle: boolean, repeatMode: number, bass: number, bassCutoff: number, treble: number, trebleCutoff: number, crossfade: number, fadeOnStop: boolean, crossfadeFadeInDelay: number, crossfadeFadeInDuration: number, crossfadeFadeOutDelay: number, crossfadeFadeOutDuration: number, crossfadeFadeOutMixmode: number, balance: number, stereoWidth: number, stereoswMode: number, surroundEnabled: number, surroundBalance: number, surroundFx1: number, surroundFx2: boolean, partyMode: boolean, ditheringEnabled: boolean, channelConfig: number, playerName: string, eqEnabled: boolean, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }>, replaygainSettings: { __typename?: 'ReplaygainSettings', noclip: boolean, type: number, preamp: number } } };
+export type GetGlobalSettingsQuery = { __typename?: 'Query', globalSettings: { __typename?: 'UserSettings', musicDir: string, volume: number, playlistShuffle: boolean, repeatMode: number, bass: number, bassCutoff: number, treble: number, trebleCutoff: number, crossfade: number, fadeOnStop: boolean, crossfadeFadeInDelay: number, crossfadeFadeInDuration: number, crossfadeFadeOutDelay: number, crossfadeFadeOutDuration: number, crossfadeFadeOutMixmode: number, balance: number, stereoWidth: number, stereoswMode: number, surroundEnabled: number, surroundBalance: number, surroundFx1: number, surroundFx2: number, partyMode: boolean, ditheringEnabled: boolean, channelConfig: number, playerName: string, eqEnabled: boolean, eqBandSettings: Array<{ __typename?: 'EqBandSetting', q: number, cutoff: number, gain: number }>, replaygainSettings: { __typename?: 'ReplaygainSettings', noclip: boolean, type: number, preamp: number } } };
 
 export type AdjustVolumeMutationVariables = Exact<{
   steps: Scalars['Int']['input'];
@@ -959,6 +1020,163 @@ export type GetEntriesQueryHookResult = ReturnType<typeof useGetEntriesQuery>;
 export type GetEntriesLazyQueryHookResult = ReturnType<typeof useGetEntriesLazyQuery>;
 export type GetEntriesSuspenseQueryHookResult = ReturnType<typeof useGetEntriesSuspenseQuery>;
 export type GetEntriesQueryResult = Apollo.QueryResult<GetEntriesQuery, GetEntriesQueryVariables>;
+export const ConnectToDeviceDocument = gql`
+    mutation ConnectToDevice($id: String!) {
+  connect(id: $id)
+}
+    `;
+export type ConnectToDeviceMutationFn = Apollo.MutationFunction<ConnectToDeviceMutation, ConnectToDeviceMutationVariables>;
+
+/**
+ * __useConnectToDeviceMutation__
+ *
+ * To run a mutation, you first call `useConnectToDeviceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConnectToDeviceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [connectToDeviceMutation, { data, loading, error }] = useConnectToDeviceMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useConnectToDeviceMutation(baseOptions?: Apollo.MutationHookOptions<ConnectToDeviceMutation, ConnectToDeviceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConnectToDeviceMutation, ConnectToDeviceMutationVariables>(ConnectToDeviceDocument, options);
+      }
+export type ConnectToDeviceMutationHookResult = ReturnType<typeof useConnectToDeviceMutation>;
+export type ConnectToDeviceMutationResult = Apollo.MutationResult<ConnectToDeviceMutation>;
+export type ConnectToDeviceMutationOptions = Apollo.BaseMutationOptions<ConnectToDeviceMutation, ConnectToDeviceMutationVariables>;
+export const DisconnectFromDeviceDocument = gql`
+    mutation DisconnectFromDevice($id: String!) {
+  disconnect(id: $id)
+}
+    `;
+export type DisconnectFromDeviceMutationFn = Apollo.MutationFunction<DisconnectFromDeviceMutation, DisconnectFromDeviceMutationVariables>;
+
+/**
+ * __useDisconnectFromDeviceMutation__
+ *
+ * To run a mutation, you first call `useDisconnectFromDeviceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDisconnectFromDeviceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [disconnectFromDeviceMutation, { data, loading, error }] = useDisconnectFromDeviceMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDisconnectFromDeviceMutation(baseOptions?: Apollo.MutationHookOptions<DisconnectFromDeviceMutation, DisconnectFromDeviceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DisconnectFromDeviceMutation, DisconnectFromDeviceMutationVariables>(DisconnectFromDeviceDocument, options);
+      }
+export type DisconnectFromDeviceMutationHookResult = ReturnType<typeof useDisconnectFromDeviceMutation>;
+export type DisconnectFromDeviceMutationResult = Apollo.MutationResult<DisconnectFromDeviceMutation>;
+export type DisconnectFromDeviceMutationOptions = Apollo.BaseMutationOptions<DisconnectFromDeviceMutation, DisconnectFromDeviceMutationVariables>;
+export const GetDevicesDocument = gql`
+    query GetDevices {
+  devices {
+    id
+    name
+    app
+    ip
+    host
+    port
+    isCastDevice
+    service
+    isConnected
+  }
+}
+    `;
+
+/**
+ * __useGetDevicesQuery__
+ *
+ * To run a query within a React component, call `useGetDevicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDevicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDevicesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetDevicesQuery(baseOptions?: Apollo.QueryHookOptions<GetDevicesQuery, GetDevicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetDevicesQuery, GetDevicesQueryVariables>(GetDevicesDocument, options);
+      }
+export function useGetDevicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDevicesQuery, GetDevicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetDevicesQuery, GetDevicesQueryVariables>(GetDevicesDocument, options);
+        }
+export function useGetDevicesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetDevicesQuery, GetDevicesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetDevicesQuery, GetDevicesQueryVariables>(GetDevicesDocument, options);
+        }
+export type GetDevicesQueryHookResult = ReturnType<typeof useGetDevicesQuery>;
+export type GetDevicesLazyQueryHookResult = ReturnType<typeof useGetDevicesLazyQuery>;
+export type GetDevicesSuspenseQueryHookResult = ReturnType<typeof useGetDevicesSuspenseQuery>;
+export type GetDevicesQueryResult = Apollo.QueryResult<GetDevicesQuery, GetDevicesQueryVariables>;
+export const GetDeviceDocument = gql`
+    query GetDevice($id: String!) {
+  device(id: $id) {
+    id
+    name
+    app
+    ip
+    host
+    port
+    isCastDevice
+    service
+    isConnected
+  }
+}
+    `;
+
+/**
+ * __useGetDeviceQuery__
+ *
+ * To run a query within a React component, call `useGetDeviceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeviceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeviceQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetDeviceQuery(baseOptions: Apollo.QueryHookOptions<GetDeviceQuery, GetDeviceQueryVariables> & ({ variables: GetDeviceQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetDeviceQuery, GetDeviceQueryVariables>(GetDeviceDocument, options);
+      }
+export function useGetDeviceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDeviceQuery, GetDeviceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetDeviceQuery, GetDeviceQueryVariables>(GetDeviceDocument, options);
+        }
+export function useGetDeviceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetDeviceQuery, GetDeviceQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetDeviceQuery, GetDeviceQueryVariables>(GetDeviceDocument, options);
+        }
+export type GetDeviceQueryHookResult = ReturnType<typeof useGetDeviceQuery>;
+export type GetDeviceLazyQueryHookResult = ReturnType<typeof useGetDeviceLazyQuery>;
+export type GetDeviceSuspenseQueryHookResult = ReturnType<typeof useGetDeviceSuspenseQuery>;
+export type GetDeviceQueryResult = Apollo.QueryResult<GetDeviceQuery, GetDeviceQueryVariables>;
 export const LikeTrackDocument = gql`
     mutation LikeTrack($trackId: String!) {
   likeTrack(id: $trackId)

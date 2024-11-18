@@ -1,9 +1,13 @@
 use std::env;
 
-use crate::http::{Context, Request, Response};
+use crate::{
+    http::{Context, Request, Response},
+    GLOBAL_MUTEX,
+};
 use anyhow::Error;
 use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
+use rockbox_chromecast::Chromecast;
 use rockbox_sys::{
     self as rb,
     types::{audio_status::AudioStatus, mp3_entry::Mp3Entry},
@@ -16,6 +20,18 @@ pub async fn load(ctx: &Context, req: &Request, res: &mut Response) -> Result<()
     if player.is_none() {
         res.set_status(404);
         return Ok(());
+    }
+
+    let mut current_device = ctx.current_device.lock().unwrap();
+    let devices = ctx.devices.lock().unwrap();
+    let device = devices
+        .iter()
+        .find(|d| d.id == *current_device.as_ref().unwrap().id);
+    if let Some(device) = device {
+        let mut mutex = GLOBAL_MUTEX.lock().unwrap();
+        *mutex = 1;
+        *player = Chromecast::connect(device.clone())?;
+        *current_device = Some(device.clone());
     }
 
     let player = player.as_deref_mut().unwrap();

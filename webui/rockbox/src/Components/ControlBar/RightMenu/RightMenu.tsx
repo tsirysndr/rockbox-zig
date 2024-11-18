@@ -18,17 +18,11 @@ const RightMenu: FC = () => {
       <Volume />
       <StatefulPopover
         placement="bottom"
-        content={({ close }) => (
-          <DeviceList
-            castDevices={[]}
-            connectToCastDevice={() => {}}
-            disconnectFromCastDevice={() => {}}
-            close={close}
-          />
-        )}
+        content={({ close }) => <DeviceList close={close} />}
         overrides={{
           Body: {
             style: {
+              top: "10px",
               left: "-70px",
             },
           },

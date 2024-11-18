@@ -13,7 +13,14 @@ pub fn scan_chromecast_devices(devices: Arc<Mutex<Vec<Device>>>) {
             let services = discover(CHROMECAST_SERVICE_NAME);
             tokio::pin!(services);
             while let Some(info) = services.next().await {
-                devices.lock().unwrap().push(Device::from(info.clone()));
+                let mut devices = devices.lock().unwrap();
+                if devices
+                    .iter()
+                    .any(|d| d.id == info.get_fullname().to_owned())
+                {
+                    continue;
+                }
+                devices.push(Device::from(info.clone()));
                 SimpleBroker::<Device>::publish(Device::from(info.clone()));
             }
         });

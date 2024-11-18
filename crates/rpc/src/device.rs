@@ -51,6 +51,11 @@ impl DeviceService for Device {
             .send()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if response.status() == 404 {
+            return Ok(tonic::Response::new(GetDeviceResponse { device: None }));
+        }
+
         let response = response
             .json::<Option<rockbox_types::device::Device>>()
             .await

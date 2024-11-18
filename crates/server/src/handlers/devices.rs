@@ -48,6 +48,16 @@ pub async fn get_devices(ctx: &Context, _req: &Request, res: &mut Response) -> R
 
 pub async fn get_device(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let id = &req.params[0];
+    if id == "current" {
+        let current_device = ctx.current_device.lock().unwrap();
+        if let Some(device) = current_device.as_ref() {
+            res.json(&device.clone());
+            return Ok(());
+        }
+        res.set_status(404);
+        return Ok(());
+    }
+
     let devices = ctx.devices.lock().unwrap();
     let device = devices.iter().find(|d| d.id == *id);
 

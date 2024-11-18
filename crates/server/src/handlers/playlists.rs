@@ -1,12 +1,17 @@
+use std::env;
+
 use crate::http::{Context, Request, Response};
 use anyhow::Error;
+use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
 use rockbox_graphql::read_files;
 use rockbox_library::repo;
 use rockbox_sys::{
-    self as rb, types::playlist_amount::PlaylistAmount, PLAYLIST_INSERT_LAST,
-    PLAYLIST_INSERT_LAST_SHUFFLED,
+    self as rb,
+    types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
+    PLAYLIST_INSERT_LAST, PLAYLIST_INSERT_LAST_SHUFFLED,
 };
+use rockbox_traits::types::track::Track;
 use rockbox_types::{DeleteTracks, InsertTracks, NewPlaylist, StatusCode};
 
 pub async fn create_playlist(
@@ -139,10 +144,56 @@ pub async fn get_playlist_tracks(
     Ok(())
 }
 
-pub async fn insert_tracks(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let req_body = req.body.as_ref().unwrap();
     let mut tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
     let amount = rb::playlist::amount();
+
+    let mut player = ctx.player.lock().unwrap();
+
+    if let Some(player) = player.as_deref_mut() {
+        let kv = ctx.kv.lock().unwrap();
+        let rockbox_addr =
+            env::var("ROCKBOX_ADDR").unwrap_or_else(|_| get_local_ip_address().unwrap());
+        let rockbox_port = env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or_else(|_| "6062".to_string());
+
+        let tracks = tracklist
+            .tracks
+            .iter()
+            .filter(|t| kv.get(*t).is_some())
+            .map(|t| {
+                let track = kv.get(t).unwrap();
+                Track {
+                    id: track.id.clone(),
+                    title: track.title.clone(),
+                    artist: track.artist.clone(),
+                    album: track.album.clone(),
+                    album_artist: Some(track.album_artist.clone()),
+                    artist_id: Some(track.artist_id.clone()),
+                    album_id: Some(track.album_id.clone()),
+                    album_cover: track.album_art.clone().map(|cover| {
+                        format!("http://{}:{}/covers/{}", rockbox_addr, rockbox_port, cover)
+                    }),
+                    track_number: track.track_number,
+                    path: track.path.clone(),
+                    uri: format!(
+                        "http://{}:{}/tracks/{}",
+                        rockbox_addr, rockbox_port, track.id
+                    ),
+                    disc_number: track.disc_number,
+                    duration: Some(track.length as f32 / 1000.0),
+                    ..Default::default()
+                }
+            })
+            .collect::<Vec<Track>>();
+
+        for track in tracks {
+            player.play_next(track).await?;
+        }
+
+        res.text("0");
+        return Ok(());
+    }
 
     if let Some(dir) = &tracklist.directory {
         tracklist.tracks = read_files(dir.clone()).await?;
@@ -188,7 +239,14 @@ pub async fn insert_tracks(_ctx: &Context, req: &Request, res: &mut Response) ->
     Ok(())
 }
 
-pub async fn remove_tracks(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn remove_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let player = ctx.player.lock().unwrap();
+
+    if let Some(_) = player.as_deref() {
+        res.text("0");
+        return Ok(());
+    }
+
     let req_body = req.body.as_ref().unwrap();
     let params = serde_json::from_str::<DeleteTracks>(&req_body)?;
     let mut ret = 0;
@@ -248,6 +306,26 @@ pub async fn current_playlist(
 }
 
 pub async fn get_playlist(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+    let mut player = ctx.player.lock().unwrap();
+
+    if let Some(player) = player.as_deref_mut() {
+        let current_playback = player.get_current_playback().await?;
+        let tracks = current_playback.items;
+        let index = match tracks.len() >= 2 {
+            true => tracks.len() - 2,
+            false => 0,
+        } as i32;
+
+        let result = PlaylistInfo {
+            amount: tracks.len() as i32,
+            index,
+            entries: tracks.into_iter().map(|(t, _)| t.into()).collect(),
+            ..Default::default()
+        };
+        res.json(&result);
+        return Ok(());
+    }
+
     let mut metadata_cache = ctx.metadata_cache.lock().await;
     let mut result = rb::playlist::get_current();
     let mut entries = vec![];

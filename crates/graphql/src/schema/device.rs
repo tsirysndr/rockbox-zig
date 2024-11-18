@@ -21,6 +21,11 @@ impl DeviceQuery {
         let client = reqwest::Client::new();
         let url = format!("{}/devices/{}", rockbox_url(), id);
         let response = client.get(&url).send().await?;
+
+        if response.status() == 404 {
+            return Ok(None);
+        }
+
         let response = response.json::<Option<Device>>().await?;
         Ok(response)
     }
