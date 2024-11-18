@@ -37,7 +37,7 @@ export const settingsState = atom<{
   surroundEnabled: number;
   surroundBalance: number;
   surroundFx1: number;
-  surroundFx2: boolean;
+  surroundFx2: number;
 }>({
   key: "settings",
   default: {
@@ -66,7 +66,7 @@ export const settingsState = atom<{
     surroundEnabled: 0,
     surroundBalance: 0,
     surroundFx1: 0,
-    surroundFx2: false,
+    surroundFx2: 0,
     crossfade: 0,
     fadeOnStop: false,
     crossfadeFadeInDelay: 0,
