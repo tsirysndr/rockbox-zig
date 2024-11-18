@@ -5,6 +5,8 @@ use rockbox_search::liked_track::LikedTrack;
 use rockbox_search::{album::Album, track::Track};
 use serde::{Deserialize, Serialize};
 
+pub mod device;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NewPlaylist {
     pub name: Option<String>,
@@ -16,6 +18,14 @@ pub struct InsertTracks {
     pub position: i32,
     pub tracks: Vec<String>,
     pub directory: Option<String>,
+    pub shuffle: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoadTracks {
+    pub tracks: Vec<String>,
+    pub directory: Option<String>,
+    pub album_id: Option<String>,
     pub shuffle: Option<bool>,
 }
 

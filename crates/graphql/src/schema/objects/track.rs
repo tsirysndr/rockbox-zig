@@ -7,7 +7,7 @@ use tantivy::schema::Value;
 use tantivy::schema::*;
 use tantivy::TantivyDocument;
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Track {
     pub id: Option<String>,
     pub title: String,

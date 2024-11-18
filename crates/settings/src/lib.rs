@@ -12,6 +12,11 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
         }
     };
 
+    if new_settings.is_none() {
+        // disable sleep timer
+        rb::system::set_sleeptimer_duration(0);
+    }
+
     if let Some(music_dir) = settings.clone().music_dir {
         if let Ok(_) = std::fs::metadata(&music_dir) {
             std::env::set_var(

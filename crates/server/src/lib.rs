@@ -1,6 +1,7 @@
 use handlers::*;
 
 use http::RockboxHttpServer;
+use lazy_static::lazy_static;
 use rockbox_graphql::{
     schema::objects::{self, audio_status::AudioStatus, track::Track},
     simplebroker::SimpleBroker,
@@ -21,11 +22,18 @@ use std::{
 pub mod cache;
 pub mod handlers;
 pub mod http;
+pub mod kv;
+pub mod player_events;
+pub mod scan;
 
 pub const AUDIO_EXTENSIONS: [&str; 17] = [
     "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",
     "spx", "sid", "ape", "wma",
 ];
+
+lazy_static! {
+    pub static ref GLOBAL_MUTEX: Mutex<i32> = Mutex::new(0);
+}
 
 #[no_mangle]
 pub extern "C" fn debugfn(args: *const c_char, value: c_int) {
@@ -56,6 +64,8 @@ pub extern "C" fn start_server() {
 
     app.get("/browse/tree-entries", get_tree_entries);
 
+    app.get("/player", get_current_player);
+    app.put("/player/load", load);
     app.put("/player/play", play);
     app.put("/player/pause", pause);
     app.put("/player/resume", resume);
@@ -90,6 +100,11 @@ pub extern "C" fn start_server() {
     app.put("/settings", update_global_settings);
     app.put("/scan-library", scan_library);
     app.get("/search", search);
+
+    app.get("/devices", get_devices);
+    app.get("/devices/:id", get_device);
+    app.put("/devices/:id/connect", connect);
+    app.put("/devices/:id/disconnect", disconnect);
 
     app.get("/", index);
     app.get("/operations/:id", index);
@@ -241,6 +256,16 @@ pub extern "C" fn start_broker() {
     let mut metadata_cache: HashMap<String, Mp3Entry> = HashMap::new();
 
     loop {
+        let mutex = GLOBAL_MUTEX.lock().unwrap();
+        if *mutex == 1 {
+            drop(mutex);
+            thread::sleep(std::time::Duration::from_millis(100));
+            rb::system::sleep(rb::HZ);
+            continue;
+        }
+
+        drop(mutex);
+
         let playback_status: AudioStatus = rb::playback::status().into();
         SimpleBroker::publish(playback_status);
         match rb::playback::current_track() {

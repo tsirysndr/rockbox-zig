@@ -1,0 +1,8 @@
+[package]
+edition = "2021"
+name = "rockbox-traits"
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1.0.93"
+async-trait = "0.1.83"

@@ -2,6 +2,7 @@ pub mod album;
 pub mod artist;
 pub mod audio_status;
 pub mod compressor_settings;
+pub mod device;
 pub mod entry;
 pub mod eq_band_setting;
 pub mod new_global_settings;

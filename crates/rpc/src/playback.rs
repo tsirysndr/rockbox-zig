@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     api::rockbox::v1alpha1::{playback_service_server::PlaybackService, *},
-    read_files, rockbox_url, AUDIO_EXTENSIONS,
+    check_and_load_player, read_files, rockbox_url, AUDIO_EXTENSIONS,
 };
 use rockbox_library::repo;
 use rockbox_sys::{self as rb, events::RockboxCommand, types::audio_status::AudioStatus};
@@ -50,11 +50,11 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<PauseRequest>,
     ) -> Result<tonic::Response<PauseResponse>, tonic::Status> {
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Pause)
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+        self.client
+            .put(&format!("{}/player/pause", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(PauseResponse::default()))
     }
 
@@ -62,11 +62,11 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<ResumeRequest>,
     ) -> Result<tonic::Response<ResumeResponse>, tonic::Status> {
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Resume)
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+        self.client
+            .put(&format!("{}/player/resume", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(ResumeResponse::default()))
     }
 
@@ -74,11 +74,11 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<NextRequest>,
     ) -> Result<tonic::Response<NextResponse>, tonic::Status> {
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Next)
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+        self.client
+            .put(&format!("{}/player/next", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(NextResponse::default()))
     }
 
@@ -86,11 +86,11 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<PreviousRequest>,
     ) -> Result<tonic::Response<PreviousResponse>, tonic::Status> {
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Prev)
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+        self.client
+            .put(&format!("{}/player/previous", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(PreviousResponse::default()))
     }
 
@@ -209,9 +209,13 @@ impl PlaybackService for Playback {
         let tracks = repo::album_tracks::find_by_album(self.pool.clone(), &album_id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks = tracks.into_iter().map(|t| t.path).collect::<Vec<String>>();
         let body = serde_json::json!({
-            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+            "tracks": tracks,
         });
+
+        let response = PlayAlbumResponse::default();
+        check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
         self.client
@@ -255,9 +259,13 @@ impl PlaybackService for Playback {
         let tracks = repo::artist_tracks::find_by_artist(self.pool.clone(), &artist_id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks = tracks.into_iter().map(|t| t.path).collect::<Vec<String>>();
         let body = serde_json::json!({
-            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+            "tracks": tracks,
         });
+
+        let response = PlayArtistTracksResponse::default();
+        check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
         self.client
@@ -350,6 +358,9 @@ impl PlaybackService for Playback {
             "tracks": tracks,
         });
 
+        let response = PlayDirectoryResponse::default();
+        check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
+
         let url = format!("{}/playlists", rockbox_url());
         self.client
             .post(&url)
@@ -393,6 +404,9 @@ impl PlaybackService for Playback {
             "tracks": tracks,
         });
 
+        let response = PlayTrackResponse::default();
+        check_and_load_player!(response, tracks, false);
+
         let url = format!("{}/playlists", rockbox_url());
         self.client
             .post(&url)
@@ -422,9 +436,13 @@ impl PlaybackService for Playback {
         let tracks = repo::favourites::all_tracks(self.pool.clone())
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks = tracks.into_iter().map(|t| t.path).collect::<Vec<String>>();
         let body = serde_json::json!({
-            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+            "tracks": tracks,
         });
+
+        let response = PlayLikedTracksResponse::default();
+        check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
         self.client
@@ -467,9 +485,13 @@ impl PlaybackService for Playback {
         let tracks = repo::track::all(self.pool.clone())
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks = tracks.into_iter().map(|t| t.path).collect::<Vec<String>>();
         let body = serde_json::json!({
-            "tracks": tracks.into_iter().map(|t| t.path).collect::<Vec<String>>(),
+            "tracks": tracks,
         });
+
+        let response = PlayAllTracksResponse::default();
+        check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
         self.client

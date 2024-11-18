@@ -3,6 +3,7 @@ use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 
 use crate::api::rockbox::v1alpha1::browse_service_server::BrowseServiceServer;
+use crate::api::rockbox::v1alpha1::device_service_server::DeviceServiceServer;
 use crate::api::rockbox::v1alpha1::library_service_server::LibraryServiceServer;
 use crate::api::rockbox::v1alpha1::playback_service_server::PlaybackServiceServer;
 use crate::api::rockbox::v1alpha1::playlist_service_server::PlaylistServiceServer;
@@ -10,6 +11,7 @@ use crate::api::rockbox::v1alpha1::settings_service_server::SettingsServiceServe
 use crate::api::rockbox::v1alpha1::sound_service_server::SoundServiceServer;
 use crate::api::rockbox::FILE_DESCRIPTOR_SET;
 use crate::browse::Browse;
+use crate::device::Device;
 use crate::library::Library;
 use crate::playback::Playback;
 use crate::playlist::Playlist;
@@ -42,6 +44,9 @@ pub async fn start(
                 .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
                 .build_v1alpha()?,
         )
+        .add_service(tonic_web::enable(DeviceServiceServer::new(Device::new(
+            client.clone(),
+        ))))
         .add_service(tonic_web::enable(LibraryServiceServer::new(Library::new(
             pool.clone(),
             client.clone(),

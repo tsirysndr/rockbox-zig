@@ -19,6 +19,7 @@
 A modern take on the [Rockbox](https://www.rockbox.org) open-source firmware with enhancements in Zig and Rust. This project offers:
 
 - gRPC & GraphQL APIs for seamless interaction and control
+- Chromecast support for streaming to your TV
 - [MPD](https://mpd.readthedocs.io/en/stable/protocol.html) server for compatibility with existing clients
 - [MPRIS](https://specifications.freedesktop.org/mpris-spec/) support for desktop integration
 - TypeScript support for building powerful extensions
@@ -66,7 +67,7 @@ MacOS, currently not supported, but you can run in a docker container.
 
 ## 📦 Downloads
 
-- `Linux`: intel: [rockbox_2024.11.13_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.11.13/rockbox_2024.11.13_x86_64-linux.tar.gz) arm64: [rockbox_2024.11.13_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.11.13/rockbox_2024.11.13_aarch64-linux.tar.gz)
+- `Linux`: intel: [rockbox_2024.11.18_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.11.18/rockbox_2024.11.18_x86_64-linux.tar.gz) arm64: [rockbox_2024.11.18_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.11.18/rockbox_2024.11.18_aarch64-linux.tar.gz)
 
 
 ## ✨ Features
@@ -85,7 +86,7 @@ MacOS, currently not supported, but you can run in a docker container.
 - [ ] Stream from Youtube (audio only)
 - [ ] Stream from Spotify
 - [ ] Stream from Tidal
-- [ ] Stream to Chromecast
+- [x] Stream to Chromecast
 - [ ] Stream to Kodi
 - [ ] TuneIn Radio
 - [x] MPD Server

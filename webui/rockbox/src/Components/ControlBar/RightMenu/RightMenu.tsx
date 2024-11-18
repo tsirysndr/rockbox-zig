@@ -7,6 +7,8 @@ import PlayQueue from "../PlayQueue";
 import { useTheme } from "@emotion/react";
 import Volume from "./Volume";
 import _ from "lodash";
+import { Speaker } from "@styled-icons/bootstrap";
+import DeviceList from "../DeviceList";
 
 const RightMenu: FC = () => {
   const theme = useTheme();
@@ -14,6 +16,34 @@ const RightMenu: FC = () => {
   return (
     <Container>
       <Volume />
+      <StatefulPopover
+        placement="bottom"
+        content={({ close }) => <DeviceList close={close} />}
+        overrides={{
+          Body: {
+            style: {
+              top: "10px",
+              left: "-70px",
+            },
+          },
+          Inner: {
+            style: {
+              backgroundColor: theme.colors.popoverBackground,
+            },
+          },
+        }}
+      >
+        <button
+          style={{
+            border: "none",
+            backgroundColor: "initial",
+            cursor: "pointer",
+          }}
+        >
+          <Speaker size={18} color={theme.colors.icon} />
+        </button>
+      </StatefulPopover>
+
       <StatefulPopover
         placement="bottom"
         content={() => <PlayQueue />}

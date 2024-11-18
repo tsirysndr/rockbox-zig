@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name = "rockbox-discovery"
+version = "0.1.0"
+
+[dependencies]
+async-stream = "0.3.6"
+futures-util = "0.3.31"
+libmdns = "0.9.1"
+mdns = "3.0.0"
+mdns-sd = "0.5.9"
+tokio = {version = "1.36.0", features = ["full"]}

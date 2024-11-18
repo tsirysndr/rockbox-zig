@@ -115,9 +115,9 @@ pub fn reset_poweroff_timer() {
     }
 }
 
-pub fn set_sleeptimer_duration() {
+pub fn set_sleeptimer_duration(minutes: i32) {
     unsafe {
-        crate::set_sleeptimer_duration();
+        crate::set_sleeptimer_duration(minutes);
     }
 }
 
