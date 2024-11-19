@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name = "rockbox-gtk"
+version = "0.1.0"
+
+[dependencies]
+adw = {version = "0.7", package = "libadwaita", features = ["v1_6"]}
+gtk = {version = "0.9", package = "gtk4", features = ["gnome_46"]}
+gtk-blueprint = "0.2.0"
+
+[build-dependencies]
+gtk-blueprint = "0.2.0"

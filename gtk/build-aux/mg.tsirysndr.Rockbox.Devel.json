@@ -1,0 +1,52 @@
+{
+    "id": "mg.tsirysndr.Rockbox.Devel",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "47",
+    "sdk": "org.gnome.Sdk",
+    "sdk-extensions": [
+        "org.freedesktop.Sdk.Extension.rust-stable",
+        "org.freedesktop.Sdk.Extension.llvm18"
+    ],
+    "command": "rockbox-gtk",
+    "tags": [
+        "nightly"
+    ],
+    "finish-args": [
+        "--talk-name=org.freedesktop.DBus",
+        "--own-name=mg.tsirysndr.Rockbox.Devel",
+        "--socket=session-bus",
+        "--share=network",
+        "--share=ipc",
+        "--socket=fallback-x11",
+        "--socket=wayland",
+        "--device=dri",
+        "--socket=pulseaudio",
+        "--filesystem=xdg-run/gvfsd",
+        "--filesystem=xdg-music"
+    ],
+    "build-options": {
+        "append-path": "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm18/bin",
+        "env": {
+            "RUSTFLAGS": "-C force-frame-pointers=yes -C symbol-mangling-version=v0 -C linker=clang -C link-arg=-fuse-ld=/usr/lib/sdk/rust-stable/bin/mold"
+        },
+        "build-args": [
+            "--share=network"
+        ]
+    },
+    "modules": [
+        {
+            "name": "rockbox",
+            "buildsystem": "meson",
+            "run-tests": false,
+            "config-opts": [
+                "-Dprofile=development"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "../"
+                }
+            ]
+        }
+    ]
+}
