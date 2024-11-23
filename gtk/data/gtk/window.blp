@@ -62,7 +62,12 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                     margin-bottom: 12;
                     margin-start: 6;
                     margin-end: 6;
-                    spacing: 12;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "disc-symbolic";
+                      pixel-size: 20;
+                    }
 
                     Label {
                       halign: start;
@@ -70,22 +75,18 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                       wrap: true;
                       wrap-mode: char;
                     }
-
-                    Label albums_no_label {
-                      hexpand: true;
-                      halign: end;
-
-                      styles [
-                        "dim-label"
-                      ]
-                    }
                   }
 
                   Box artists_row_box {
                     margin-top: 12;
                     margin-bottom: 12;
                     margin-start: 6;
-                    spacing: 12;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "artist-symbolic";
+                      pixel-size: 20;
+                    }
 
                     Label {
                       halign: start;
@@ -94,23 +95,18 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                       wrap: true;
                       wrap-mode: char;
                     }
-
-                    Label artists_no_label {
-                      hexpand: true;
-                      halign: end;
-                      margin-end: 6;
-
-                      styles [
-                        "dim-label"
-                      ]
-                    }
                   }
 
                   Box songs_row_box {
                     margin-top: 12;
                     margin-bottom: 12;
                     margin-start: 6;
-                    spacing: 12;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "music-symbolic";
+                      pixel-size: 20;
+                    }
 
                     Label {
                       halign: start;
@@ -119,23 +115,19 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                       wrap: true;
                       wrap-mode: char;
                     }
-
-                    Label songs_no_label {
-                      hexpand: true;
-                      halign: end;
-                      margin-end: 6;
-
-                      styles [
-                        "dim-label"
-                      ]
-                    }
                   }
 
                   Box likes_row_box {
                     margin-top: 12;
                     margin-bottom: 12;
                     margin-start: 6;
-                    spacing: 12;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "heart-outline-symbolic";
+                      pixel-size: 20;
+                      margin-top: 3;
+                    }
 
                     Label {
                       halign: start;
@@ -144,23 +136,17 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                       wrap: true;
                       wrap-mode: char;
                     }
-
-                    Label likes_no_label {
-                      hexpand: true;
-                      halign: end;
-                      margin-end: 6;
-
-                      styles [
-                        "dim-label"
-                      ]
-                    }
                   }
 
                   Box files_row_box {
                     margin-top: 12;
                     margin-bottom: 12;
                     margin-start: 6;
-                    spacing: 12;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "harddrive-symbolic";
+                    }
 
                     Label {
                       halign: start;
@@ -168,16 +154,6 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                       margin-end: 6;
                       wrap: true;
                       wrap-mode: char;
-                    }
-
-                    Label files_no_label {
-                      hexpand: true;
-                      halign: end;
-                      margin-end: 6;
-
-                      styles [
-                        "dim-label"
-                      ]
                     }
                   }
 
@@ -279,7 +255,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                     name: "artists-page";
                     title: _("Artists");
                     child: ScrolledWindow  {
-                      
+                      $Artists artists {}
                     };
                   }
 
@@ -287,7 +263,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                     name: "likes-page";
                     title: _("Likes");
                     child: ScrolledWindow  {
-                      
+                      $Likes likes {}
                     };
                   }
 
@@ -295,7 +271,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                     name: "files-page";
                     title: _("Files");
                     child: ScrolledWindow  {
-                      
+                      $Files files {}
                     };
                   }
 

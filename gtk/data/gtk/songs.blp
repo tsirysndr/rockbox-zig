@@ -18,6 +18,17 @@ template $Songs : Box {
       margin-start: 10;
       margin-end: 10;
 
+      Label {
+        label: "01";
+        halign: start;
+        valign: center;
+        margin-end: 10;
+
+        styles [
+          "track-number"
+        ]
+      }
+
       Box {
         margin-end: 10;
         Image {
@@ -70,10 +81,33 @@ template $Songs : Box {
           "track-duration"
         ]
       }
-    
+
+      Button {
+        tooltip-text: _("Like");
+        child: Image {
+          icon-name: "heart-outline-symbolic";
+          pixel-size: 24;
+        };
+        halign: center;
+        valign: center;
+        margin-end: 0;
+        margin-start: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+        width-request: 40;
+        height-request: 40;
+
+        styles [
+          "transparent-button"
+        ]
+      }
+
       Button {
         tooltip-text: _("More");
-        icon-name: "view-more-symbolic";
+        child: Image {
+          icon-name: "options-symbolic";
+          pixel-size: 24;
+        };
         halign: center;
         valign: center;
         margin-end: 0;
@@ -99,6 +133,17 @@ template $Songs : Box {
       margin-top: 0;
       margin-start: 10;
       margin-end: 10;
+
+      Label {
+        label: "02";
+        halign: start;
+        valign: center;
+        margin-end: 10;
+
+        styles [
+          "track-number"
+        ]
+      }
 
       Box {
         margin-end: 10;
@@ -155,8 +200,31 @@ template $Songs : Box {
       }
 
       Button {
+        tooltip-text: _("Like");
+        child: Image {
+          icon-name: "heart-outline-symbolic";
+          pixel-size: 24;
+        };
+        halign: center;
+        valign: center;
+        margin-end: 0;
+        margin-start: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+        width-request: 40;
+        height-request: 40;
+
+        styles [
+          "transparent-button"
+        ]
+      }
+
+      Button {
         tooltip-text: _("More");
-        icon-name: "view-more-symbolic";
+        child: Image {
+          icon-name: "options-symbolic";
+          pixel-size: 24;
+        };
         halign: center;
         valign: center;
         margin-end: 0;

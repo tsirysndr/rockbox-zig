@@ -120,6 +120,26 @@ template $AlbumDetails : Box {
             "transparent-button"
           ]
         }
+
+        Button album_more_button {
+          tooltip-text: _("More");
+          child: Image {
+            icon-name: "options-symbolic";
+            pixel-size: 24;
+          };
+          halign: center;
+          valign: center;
+          margin-end: 0;
+          margin-start: 0;
+          margin-top: 0;
+          margin-bottom: 0;
+          width-request: 40;
+          height-request: 40;
+
+          styles [
+            "transparent-button"
+          ]
+        }
       }
     }
   }
@@ -193,8 +213,33 @@ template $AlbumDetails : Box {
       }
     
       Button {
+        tooltip-text: _("Like");
+        child: Image {
+          icon-name: "heart-outline-symbolic";
+          pixel-size: 24;
+        };
+        halign: center;
+        valign: center;
+        margin-end: 0;
+        margin-start: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+        width-request: 40;
+        height-request: 40;
+
+        styles [
+          "transparent-button"
+        ]
+      }
+
+      Button {
         tooltip-text: _("More");
-        icon-name: "view-more-symbolic";
+        
+        child: Image {
+          icon-name: "options-symbolic";
+          pixel-size: 24;
+        };
+
         halign: center;
         valign: center;
         margin-end: 0;
@@ -274,8 +319,31 @@ template $AlbumDetails : Box {
       }
 
       Button {
+        tooltip-text: _("Like");
+        child: Image {
+          icon-name: "heart-outline-symbolic";
+          pixel-size: 24;
+        };
+        halign: center;
+        valign: center;
+        margin-end: 0;
+        margin-start: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+        width-request: 40;
+        height-request: 40;
+
+        styles [
+          "transparent-button"
+        ]
+      }
+
+      Button {
         tooltip-text: _("More");
-        icon-name: "view-more-symbolic";
+        child: Image {
+          icon-name: "options-symbolic";
+          pixel-size: 24;
+        };
         halign: center;
         valign: center;
         margin-end: 0;

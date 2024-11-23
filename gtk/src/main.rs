@@ -1,6 +1,8 @@
 use app::RbApplication;
-use gtk::glib;
+use gtk::{glib, gio};
 
+#[rustfmt::skip]
+mod config;
 pub mod app;
 pub mod ui;
 
@@ -16,6 +18,15 @@ pub mod api {
 fn main() -> glib::ExitCode {
     // Initialize GTK
     gtk::init().unwrap_or_else(|_| panic!("Failed to initialize GTK."));
+
+    // Load app resources
+    let path = &format!(
+        "{}/{}/rockbox.gresource",
+        config::DATADIR,
+        config::PKGNAME,
+    );
+    let res = gio::Resource::load(path).expect("Could not load resources");
+    gio::resources_register(&res);
 
     RbApplication::run()
 }

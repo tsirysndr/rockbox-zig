@@ -26,7 +26,12 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for AlbumDetails {}
+    impl ObjectImpl for AlbumDetails {
+        fn constructed(&self, obj: &Self::Type) {
+            self.parent_constructed(obj);
+        }
+    }
+
     impl WidgetImpl for AlbumDetails {}
     impl BoxImpl for AlbumDetails {}
 }

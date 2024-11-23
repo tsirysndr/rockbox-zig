@@ -7,6 +7,8 @@ project('rockbox-gtk', 'rust',
 gnome = import('gnome')
 i18n = import('i18n')
 
+pkgdatadir = join_paths(get_option('prefix'), get_option('datadir'), meson.project_name())
+
 # Dependencies
 
 dependency('glib-2.0', version: '>= 2.66')
@@ -24,4 +26,14 @@ datadir    = join_paths(get_option('prefix'), get_option('datadir'))
 localedir  = join_paths(get_option('prefix'), get_option('localedir'))
 bindir     = join_paths(get_option('prefix'), get_option('bindir'))
 
+app_id = 'mg.tsirysndr.Rockbox'
+prefix = '/mg/tsirysndr/Rockbox'
+
+conf = configuration_data()
+conf.set('APP_ID', app_id)
+conf.set('PREFIX', prefix)
+conf.set('VERSION', meson.project_version())
+conf.set('pkgdatadir', pkgdatadir)
+
 subdir('src')
+subdir('data')

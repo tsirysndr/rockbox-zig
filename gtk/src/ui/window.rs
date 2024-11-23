@@ -3,6 +3,7 @@ use crate::ui::media_controls::MediaControls;
 use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::albums::Albums;
 use crate::ui::pages::songs::Songs;
+use crate::ui::pages::{artists::Artists, files::Files, likes::Likes};
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::ViewStack;
@@ -45,23 +46,13 @@ mod imp {
         #[template_child]
         pub albums_row_box: TemplateChild<Box>,
         #[template_child]
-        pub albums_no_label: TemplateChild<Label>,
-        #[template_child]
         pub artists_row_box: TemplateChild<Box>,
-        #[template_child]
-        pub artists_no_label: TemplateChild<Label>,
         #[template_child]
         pub songs_row_box: TemplateChild<Box>,
         #[template_child]
-        pub songs_no_label: TemplateChild<Label>,
-        #[template_child]
         pub likes_row_box: TemplateChild<Box>,
         #[template_child]
-        pub likes_no_label: TemplateChild<Label>,
-        #[template_child]
         pub files_row_box: TemplateChild<Box>,
-        #[template_child]
-        pub files_no_label: TemplateChild<Label>,
 
         #[template_child]
         pub toast_overlay: TemplateChild<ToastOverlay>,
@@ -79,6 +70,18 @@ mod imp {
         pub songs_page: TemplateChild<ViewStackPage>,
         #[template_child]
         pub songs: TemplateChild<Songs>,
+        #[template_child]
+        pub likes_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub likes: TemplateChild<Likes>,
+        #[template_child]
+        pub files_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub files: TemplateChild<Files>,
+        #[template_child]
+        pub artists_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub artists: TemplateChild<Artists>,
         #[template_child]
         pub album_details_page: TemplateChild<ViewStackPage>,
         #[template_child]
@@ -146,12 +149,13 @@ mod imp {
                     .unwrap()
                     .downcast::<gtk::Box>()
                     .unwrap()
-                    .first_child()
+                    .last_child()
                     .unwrap()
                     .downcast::<gtk::Label>()
                     .unwrap()
                     .text()
                     .to_string();
+
                 match label.as_str() {
                     "Albums" => {
                         let main_stack = self_.main_stack.get();
@@ -185,6 +189,9 @@ mod imp {
                     }
                     _ => {}
                 }
+
+                let go_back_button = self_.go_back_button.get();
+                go_back_button.set_visible(false);
             });
         }
     }

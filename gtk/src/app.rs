@@ -75,9 +75,9 @@ impl RbApplication {
     pub fn run() -> glib::ExitCode {
         // Create new GObject and downcast it into RbApplication
         let app = glib::Object::builder::<RbApplication>()
-            .property("application-id", Some("mg.tsirysndr.Rockbox.Devel"))
+            .property("application-id", Some("mg.tsirysndr.Rockbox"))
             .property("flags", gio::ApplicationFlags::empty())
-            .property("resource-base-path", Some("/mg/tsirysndr/rockbox"))
+            .property("resource-base-path", Some("/mg/tsirysndr/Rockbox"))
             .build();
 
         // Start running gtk::Application

@@ -13,6 +13,8 @@ use gtk::{glib, Box, FlowBox, Image, Label, Orientation};
 use std::cell::RefCell;
 
 mod imp {
+    use crate::config;
+
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -84,11 +86,12 @@ mod imp {
             year: u32,
         ) {
             let home = std::env::var("HOME").unwrap();
-            let picture_path = match filename {
-                Some(filename) => format!("{}/.config/rockbox.org/covers/{}", home, filename),
-                None => format!("{}/.config/rockbox.org/covers/albumart.jpg", home),
+            let image = match filename {
+                Some(filename) => {
+                    Image::from_file(&format!("{}/.config/rockbox.org/covers/{}", home, filename))
+                }
+                None => Image::from_resource("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"),
             };
-            let image = Image::from_file(&picture_path);
             image.set_size_request(200, 200);
             let image_container = Box::new(Orientation::Vertical, 0);
 
