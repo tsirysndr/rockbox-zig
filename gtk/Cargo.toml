@@ -5,8 +5,16 @@ version = "0.1.0"
 
 [dependencies]
 adw = {version = "0.7", package = "libadwaita", features = ["v1_6"]}
+anyhow = "1.0.93"
+futures = "0.3.31"
 gtk = {version = "0.9", package = "gtk4", features = ["gnome_46"]}
 gtk-blueprint = "0.2.0"
+prost = "0.13.2"
+reqwest = {version = "0.12.7", features = ["rustls-tls", "json", "blocking"], default-features = false}
+tokio = {version = "1.36.0", features = ["full"]}
+tonic = "0.12.2"
+tonic-reflection = "0.12.2"
+tonic-web = "0.12.2"
 
 [build-dependencies]
-gtk-blueprint = "0.2.0"
+tonic-build = "0.12.2"

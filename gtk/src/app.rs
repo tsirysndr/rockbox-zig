@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use gio::subclass::prelude::ApplicationImpl;
 use glib::subclass::types::ObjectSubclass;
 use glib::WeakRef;
-use gtk::{gio, glib};
+use gtk::{gdk::Display, gio, glib, CssProvider, STYLE_PROVIDER_PRIORITY_APPLICATION};
 use std::cell::OnceCell;
 
 mod imp {
@@ -33,6 +33,7 @@ mod imp {
     impl ApplicationImpl for RbApplication {
         fn activate(&self) {
             let app = self.obj();
+            load_css();
 
             if let Some(weak_window) = self.window.get() {
                 weak_window.upgrade().unwrap().present();
@@ -58,6 +59,16 @@ glib::wrapper! {
   pub struct RbApplication(ObjectSubclass<imp::RbApplication>)
     @extends gio::Application, gtk::Application, adw::Application,
     @implements gio::ActionMap, gio::ActionGroup;
+}
+
+fn load_css() {
+    let provider = CssProvider::new();
+    provider.load_from_string(include_str!("styles.css"));
+    gtk::style_context_add_provider_for_display(
+        &Display::default().expect("Error initializing gtk css provider."),
+        &provider,
+        STYLE_PROVIDER_PRIORITY_APPLICATION,
+    );
 }
 
 impl RbApplication {

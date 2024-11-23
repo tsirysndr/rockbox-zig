@@ -1,0 +1,180 @@
+using Gtk 4.0;
+
+template $Songs : Box {
+  ListBox tracks {
+    hexpand: true;
+    margin-top: 15;
+    margin-bottom: 15;
+    selection-mode: none;
+
+    Box {
+      orientation: horizontal;
+      spacing: 10;
+      halign: fill;
+      valign: center;
+      hexpand: true;
+      margin-bottom: 0;
+      margin-top: 0;
+      margin-start: 10;
+      margin-end: 10;
+
+      Box {
+        margin-end: 10;
+        Image {
+          width-request: 50;
+          height-request: 50;
+          file: "/home/tsirysndr/.config/rockbox.org/covers/8cd770913d6057a716debac03873c78e.jpg";
+        }
+
+        styles [
+          "media-album-art"
+        ]
+      }
+
+      Box {
+        hexpand: true;
+        valign: center;
+        halign: fill;
+        orientation: vertical;
+
+        Label {
+          label: "Fly from the Inside";
+          halign: start;
+          valign: center;
+          hexpand: true;
+          margin-bottom: 3;
+
+          styles [
+            "track-title"
+          ]
+        }
+
+        Label {
+          label: "Shinedown";
+          halign: start;
+          valign: center;
+          hexpand: true;
+
+          styles [
+            "track-artist"
+          ]
+        }
+      }
+
+      Label {
+        label: "3:55";
+        halign: end;
+        valign: center;
+
+        styles [
+          "track-duration"
+        ]
+      }
+    
+      Button {
+        tooltip-text: _("More");
+        icon-name: "view-more-symbolic";
+        halign: center;
+        valign: center;
+        margin-end: 0;
+        margin-start: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+        width-request: 40;
+        height-request: 40;
+
+        styles [
+          "transparent-button"
+        ]
+      }
+    }
+
+    Box {
+      orientation: horizontal;
+      spacing: 10;
+      halign: fill;
+      valign: center;
+      hexpand: true;
+      margin-bottom: 0;
+      margin-top: 0;
+      margin-start: 10;
+      margin-end: 10;
+
+      Box {
+        margin-end: 10;
+        Image {
+          width-request: 50;
+          height-request: 50;
+          file: "/home/tsirysndr/.config/rockbox.org/covers/8cd770913d6057a716debac03873c78e.jpg";
+        }
+
+        styles [
+          "media-album-art"
+        ]
+      }
+
+      Box {
+        hexpand: true;
+        halign: fill;
+        valign: center;
+        orientation: vertical;
+
+        Label {
+          label: "Left Out";
+          halign: start;
+          valign: center;
+          hexpand: true;
+          margin-bottom: 3;
+
+          styles [
+            "track-title"
+          ]
+        }
+
+        Label {
+          label: "Shinedown";
+          halign: start;
+          valign: center;
+          hexpand: true;
+
+          styles [
+            "track-artist"
+          ]
+        }
+
+      }
+
+      Label track_duration {
+        label: "3:59";
+        halign: end;
+        valign: center;
+
+        styles [
+          "track-duration"
+        ]
+      }
+
+      Button {
+        tooltip-text: _("More");
+        icon-name: "view-more-symbolic";
+        halign: center;
+        valign: center;
+        margin-end: 0;
+        margin-start: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+        width-request: 40;
+        height-request: 40;
+
+        styles [
+          "transparent-button"
+        ]
+      }
+    }
+
+    styles [
+      "album-track-list"
+    ]
+  }
+
+}

@@ -6915,9 +6915,18 @@ dependencies = [
 name = "rockbox-gtk"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "futures",
  "gtk-blueprint",
  "gtk4",
  "libadwaita",
+ "prost 0.13.2",
+ "reqwest",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tonic-reflection",
+ "tonic-web",
 ]
 
 [[package]]

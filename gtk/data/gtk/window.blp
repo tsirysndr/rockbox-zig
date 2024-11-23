@@ -1,10 +1,12 @@
+
 using Gtk 4.0;
 using Adw 1;
 
+
 template $RbApplicationWindow : Adw.ApplicationWindow {
   title: _("Rockbox");
-  width-request: 360;
-  height-request: 100;
+  width-request: 900;
+  height-request: 600;
 
   Adw.Breakpoint {
     condition ("max-width: 564px")
@@ -55,16 +57,12 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                 hscrollbar-policy: never;
 
                 ListBox sidebar {
-                  Box all_games_row_box {
+                  Box albums_row_box {
                     margin-top: 12;
                     margin-bottom: 12;
                     margin-start: 6;
                     margin-end: 6;
                     spacing: 12;
-
-                    Image {
-                      icon-name: "view-grid-symbolic";
-                    }
 
                     Label {
                       halign: start;
@@ -73,7 +71,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                       wrap-mode: char;
                     }
 
-                    Label all_games_no_label {
+                    Label albums_no_label {
                       hexpand: true;
                       halign: end;
 
@@ -83,25 +81,21 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                     }
                   }
 
-                  Box added_row_box {
+                  Box artists_row_box {
                     margin-top: 12;
                     margin-bottom: 12;
                     margin-start: 6;
                     spacing: 12;
 
-                    Image {
-                      icon-name: "list-add-symbolic";
-                    }
-
                     Label {
                       halign: start;
-                      label: _("Added");
+                      label: _("Artists");
                       margin-end: 6;
                       wrap: true;
                       wrap-mode: char;
                     }
 
-                    Label added_games_no_label {
+                    Label artists_no_label {
                       hexpand: true;
                       halign: end;
                       margin-end: 6;
@@ -112,6 +106,80 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                     }
                   }
 
+                  Box songs_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 12;
+
+                    Label {
+                      halign: start;
+                      label: _("Songs");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+
+                    Label songs_no_label {
+                      hexpand: true;
+                      halign: end;
+                      margin-end: 6;
+
+                      styles [
+                        "dim-label"
+                      ]
+                    }
+                  }
+
+                  Box likes_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 12;
+
+                    Label {
+                      halign: start;
+                      label: _("Likes");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+
+                    Label likes_no_label {
+                      hexpand: true;
+                      halign: end;
+                      margin-end: 6;
+
+                      styles [
+                        "dim-label"
+                      ]
+                    }
+                  }
+
+                  Box files_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 12;
+
+                    Label {
+                      halign: start;
+                      label: _("Files");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+
+                    Label files_no_label {
+                      hexpand: true;
+                      halign: end;
+                      margin-end: 6;
+
+                      styles [
+                        "dim-label"
+                      ]
+                    }
+                  }
 
                   styles [
                     "navigation-sidebar"
@@ -124,6 +192,8 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
           Adw.ToolbarView library_view {
             [top]
             Adw.HeaderBar header_bar {
+              show-back-button: true;
+
               [start]
               Button show_sidebar_button {
                 icon-name: "sidebar-show-symbolic";
@@ -133,10 +203,11 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
               }
 
               [start]
-              MenuButton {
-                tooltip-text: _("Add Game");
-                icon-name: "list-add-symbolic";
-                menu-model: add_games;
+              Button go_back_button {
+                tooltip-text: _("Go Back");
+                icon-name: "go-previous-symbolic";
+                action-name: "win.go_back";
+                visible: false;
               }
 
               [end]
@@ -178,21 +249,61 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
             }
 
             Overlay library_overlay {
-              ScrolledWindow scrolledwindow {
-                FlowBox library {
-                  homogeneous: true;
-                  halign: center;
-                  valign: start;
-                  column-spacing: 12;
-                  row-spacing: 12;
-                  margin-top: 15;
-                  margin-bottom: 15;
-                  margin-start: 15;
-                  margin-end: 15;
-                  selection-mode: none;
+                Adw.ViewStack main_stack {
+                  
+                  Adw.ViewStackPage albums_page {
+                    name: "albums-page";
+                    title: _("Albums");
+                    child: ScrolledWindow {
+                      $Albums albums {}
+                    };
+                  }
+
+                  Adw.ViewStackPage album_details_page {
+                    name: "album-details-page";
+                    title: _("Album");
+                    child: ScrolledWindow  {
+                      $AlbumDetails album_details {}
+                    };
+                  }
+
+                  Adw.ViewStackPage songs_page {
+                    name: "songs-page";
+                    title: _("Songs");
+                    child: ScrolledWindow  {
+                      $Songs songs {}
+                    };
+                  }
+
+                  Adw.ViewStackPage artists_page {
+                    name: "artists-page";
+                    title: _("Artists");
+                    child: ScrolledWindow  {
+                      
+                    };
+                  }
+
+                  Adw.ViewStackPage likes_page {
+                    name: "likes-page";
+                    title: _("Likes");
+                    child: ScrolledWindow  {
+                      
+                    };
+                  }
+
+                  Adw.ViewStackPage files_page {
+                    name: "files-page";
+                    title: _("Files");
+                    child: ScrolledWindow  {
+                      
+                    };
+                  }
+
                 }
-              }
             }
+
+            [bottom]
+            $MediaControls media_control_bar {}
           }
         }
       }
@@ -486,17 +597,7 @@ menu primary_menu {
   section {
     item (_("Preferences"), "app.preferences")
     item (_("Keyboard Shortcuts"), "win.show-help-overlay")
-    item (_("About Cartridges"), "app.about")
-  }
-}
-
-menu add_games {
-  section {
-    item (_("Add Game"), "app.add_game")
-  }
-
-  section {
-    item (_("Import"), "app.import")
+    item (_("About Rockbox"), "app.about")
   }
 }
 

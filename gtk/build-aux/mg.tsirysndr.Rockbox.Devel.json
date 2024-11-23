@@ -12,9 +12,6 @@
         "nightly"
     ],
     "finish-args": [
-        "--talk-name=org.freedesktop.DBus",
-        "--own-name=mg.tsirysndr.Rockbox.Devel",
-        "--socket=session-bus",
         "--share=network",
         "--share=ipc",
         "--socket=fallback-x11",
@@ -34,6 +31,23 @@
         ]
     },
     "modules": [
+        {
+            "name": "protoc",
+            "buildsystem": "simple",
+            "build-commands": [
+                "curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v28.3/protoc-28.3-linux-x86_64.zip",
+                "unzip protoc-28.3-linux-x86_64.zip -d /app",
+                "chmod -R u+w /app/bin/protoc",
+                "chmod +x /app/bin/protoc"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/protocolbuffers/protobuf/releases/download/v28.3/protoc-28.3-linux-x86_64.zip",
+                    "sha256": "0ad949f04a6a174da83cdcbdb36dee0a4925272a5b6d83f79a6bf9852076d53f"
+                }
+            ]
+        },
         {
             "name": "rockbox",
             "buildsystem": "meson",
