@@ -6,9 +6,11 @@ version = "0.1.0"
 [dependencies]
 adw = {version = "0.7", package = "libadwaita", features = ["v1_6"]}
 anyhow = "1.0.93"
+chrono = "0.4.38"
 futures = "0.3.31"
 gtk = {version = "0.9", package = "gtk4", features = ["gnome_46"]}
 gtk-blueprint = "0.2.0"
+md5 = "0.7.0"
 prost = "0.13.2"
 reqwest = {version = "0.12.7", features = ["rustls-tls", "json", "blocking"], default-features = false}
 tokio = {version = "1.36.0", features = ["full"]}

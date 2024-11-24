@@ -2106,6 +2106,14 @@ pub struct CurrentTrackResponse {
     pub elapsed: u64,
     #[prost(string, tag = "21")]
     pub path: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "22")]
+    pub album_art: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, tag = "23")]
+    pub album_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "24")]
+    pub artist_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "25")]
+    pub id: ::prost::alloc::string::String,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct NextTrackRequest {}

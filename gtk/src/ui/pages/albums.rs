@@ -13,7 +13,6 @@ use gtk::{glib, Box, FlowBox, Image, Label, Orientation};
 use std::cell::RefCell;
 
 mod imp {
-    use crate::config;
 
     use super::*;
 

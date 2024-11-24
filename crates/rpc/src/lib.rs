@@ -67,6 +67,9 @@ pub mod api {
                 let length = mp3entry.length;
                 let elapsed = mp3entry.elapsed;
                 let path = mp3entry.path;
+                let album_id = mp3entry.album_id.unwrap_or_default();
+                let artist_id = mp3entry.artist_id.unwrap_or_default();
+                let album_art = mp3entry.album_art;
 
                 CurrentTrackResponse {
                     title,
@@ -90,6 +93,10 @@ pub mod api {
                     length,
                     elapsed,
                     path,
+                    album_id,
+                    artist_id,
+                    album_art,
+                    id: "".into(),
                 }
             }
         }
@@ -120,6 +127,10 @@ pub mod api {
                         length: 0,
                         elapsed: 0,
                         path: "".to_string(),
+                        id: "".to_string(),
+                        album_id: "".to_string(),
+                        artist_id: "".to_string(),
+                        album_art: None,
                     },
                 }
             }

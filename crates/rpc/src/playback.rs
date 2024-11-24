@@ -138,6 +138,21 @@ impl PlaybackService for Playback {
             .json::<Option<rb::types::mp3_entry::Mp3Entry>>()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(track) = track.as_ref() {
+            let hash = format!("{:x}", md5::compute(track.path.as_bytes()));
+            let metadata = repo::track::find_by_md5(self.pool.clone(), &hash)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            if let Some(metadata) = metadata {
+                let mut track = track.clone();
+                track.album_art = metadata.album_art;
+                track.album_id = Some(metadata.album_id);
+                track.artist_id = Some(metadata.artist_id);
+                return Ok(tonic::Response::new(track.into()));
+            }
+        }
+
         Ok(tonic::Response::new(track.into()))
     }
 

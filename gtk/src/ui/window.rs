@@ -1,4 +1,5 @@
 use crate::app::RbApplication;
+use crate::types::track::Track;
 use crate::ui::media_controls::MediaControls;
 use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::albums::Albums;
@@ -10,9 +11,10 @@ use adw::ViewStack;
 use adw::{NavigationPage, NavigationView, OverlaySplitView, ToastOverlay, ViewStackPage};
 use glib::subclass;
 use gtk::{
-    gio, glib, Box, Button, CompositeTemplate, Label, ListBox, MenuButton, Overlay, SearchBar,
+    gio, glib, Box, Button, CompositeTemplate, ListBox, MenuButton, Overlay, SearchBar,
     SearchEntry, ToggleButton,
 };
+use std::cell::RefCell;
 
 mod imp {
 
@@ -93,6 +95,7 @@ mod imp {
 
         pub show_sidebar: std::cell::Cell<bool>,
         pub previous_page: String,
+        pub current_track: RefCell<Option<Track>>,
     }
 
     #[glib::object_subclass]

@@ -67,7 +67,7 @@ template $MediaControls : Box {
     Image album_art {
       width-request: 60;
       height-request: 60;
-      file: "/home/tsirysndr/.config/rockbox.org/covers/8cd770913d6057a716debac03873c78e.jpg";
+      resource: "/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg";
     }
 
     styles [
@@ -95,8 +95,8 @@ template $MediaControls : Box {
         spacing: 0;
         valign: center;
 
-        Label media_control_bar_title {
-          label: "Crying Out";
+        Label title {
+          label: "No song playing";
           halign: center;
           max-width-chars: 60;
           wrap: true;
@@ -109,8 +109,8 @@ template $MediaControls : Box {
           ]
         }
 
-        Label media_control_bar_artist {
-          label: "Shinedown - Leave a Whisper";
+        Label artist_album {
+          label: "";
           halign: center;
           max-width-chars: 60;
           wrap: true;
@@ -126,8 +126,9 @@ template $MediaControls : Box {
       valign: center;
       orientation: horizontal;
       spacing: 5;
+      visible: false;
 
-      Label current_time_label {
+      Label elapsed {
         label: "00:00";
         halign: end;
 
@@ -146,7 +147,7 @@ template $MediaControls : Box {
         tooltip-text: _("Progress");
       }
 
-      Label time_label {
+      Label duration {
         label: "00:00";
         halign: end;
 

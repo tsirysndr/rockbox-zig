@@ -61,6 +61,10 @@ message CurrentTrackResponse {
   uint64 length = 19;
   uint64 elapsed = 20;
   string path = 21;
+  optional string album_art = 22;
+  string album_id = 23;
+  string artist_id = 24;
+  string id = 25;
 }
 
 message NextTrackRequest {}

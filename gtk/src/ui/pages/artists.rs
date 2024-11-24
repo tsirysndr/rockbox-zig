@@ -26,7 +26,12 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for Artists {}
+    impl ObjectImpl for Artists {
+        fn constructed(&self) {
+            self.parent_constructed();
+        }
+    }
+
     impl WidgetImpl for Artists {}
     impl BoxImpl for Artists {}
 }
@@ -41,4 +46,6 @@ impl Artists {
     pub fn new() -> Self {
         glib::Object::new()
     }
+
+    pub fn load_artists(&self) {}
 }

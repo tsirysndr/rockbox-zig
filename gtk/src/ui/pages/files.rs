@@ -26,7 +26,12 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for Files {}
+    impl ObjectImpl for Files {
+        fn constructed(&self) {
+            self.parent_constructed();
+        }
+    }
+
     impl WidgetImpl for Files {}
     impl BoxImpl for Files {}
 }
@@ -41,4 +46,6 @@ impl Files {
     pub fn new() -> Self {
         glib::Object::new()
     }
+
+    pub fn load_files(&self, path: Option<&str>) {}
 }

@@ -26,7 +26,12 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for Songs {}
+    impl ObjectImpl for Songs {
+        fn constructed(&self) {
+            self.parent_constructed();
+        }
+    }
+
     impl WidgetImpl for Songs {}
     impl BoxImpl for Songs {}
 }
@@ -41,4 +46,6 @@ impl Songs {
     pub fn new() -> Self {
         glib::Object::new()
     }
+
+    pub fn load_songs(&self) {}
 }

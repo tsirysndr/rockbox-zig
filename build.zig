@@ -2927,7 +2927,7 @@ pub fn build(b: *std.Build) !void {
     });
     exe.linkSystemLibrary("rockbox_cli");
     exe.linkSystemLibrary("rockbox_server");
-    exe.linkSystemLibrary("libunwind");
+    exe.linkSystemLibrary("unwind");
     exe.linkLibrary(libfirmware);
     exe.linkLibrary(libspeex_voice);
     exe.linkLibrary(librbcodec);

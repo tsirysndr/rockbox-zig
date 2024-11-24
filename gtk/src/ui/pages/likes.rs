@@ -26,7 +26,12 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for Likes {}
+    impl ObjectImpl for Likes {
+        fn constructed(&self) {
+            self.parent_constructed();
+        }
+    }
+
     impl WidgetImpl for Likes {}
     impl BoxImpl for Likes {}
 }
@@ -41,4 +46,6 @@ impl Likes {
     pub fn new() -> Self {
         glib::Object::new()
     }
+
+    pub fn load_likes(&self) {}
 }

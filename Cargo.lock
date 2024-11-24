@@ -6916,10 +6916,12 @@ name = "rockbox-gtk"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "futures",
  "gtk-blueprint",
  "gtk4",
  "libadwaita",
+ "md5",
  "prost 0.13.2",
  "reqwest",
  "tokio",
@@ -6985,6 +6987,7 @@ dependencies = [
  "chrono",
  "cuid",
  "futures",
+ "md5",
  "owo-colors 5.0.0",
  "prost 0.13.2",
  "reqwest",
