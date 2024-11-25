@@ -67,6 +67,8 @@ message CurrentTrackResponse {
   string id = 25;
 }
 
+message StreamCurrentTrackRequest {}
+
 message NextTrackRequest {}
 
 message NextTrackResponse {
@@ -179,4 +181,5 @@ service PlaybackService {
   rpc PlayTrack(PlayTrackRequest) returns (PlayTrackResponse) {}
   rpc PlayLikedTracks(PlayLikedTracksRequest) returns (PlayLikedTracksResponse) {}
   rpc PlayAllTracks(PlayAllTracksRequest) returns (PlayAllTracksResponse) {}
+  rpc StreamCurrentTrack(StreamCurrentTrackRequest) returns (stream CurrentTrackResponse) {}
 }

@@ -22,6 +22,7 @@ pub const AUDIO_EXTENSIONS: [&str; 17] = [
 pub mod api {
     #[path = ""]
     pub mod rockbox {
+        use rockbox_graphql::schema;
         use rockbox_sys::types::{
             mp3_entry::Mp3Entry,
             system_status::SystemStatus,
@@ -133,6 +134,62 @@ pub mod api {
                         album_art: None,
                     },
                 }
+            }
+        }
+
+        impl From<schema::objects::track::Track> for CurrentTrackResponse {
+            fn from(track: schema::objects::track::Track) -> Self {
+                let title = track.title;
+                let artist = track.artist;
+                let album = track.album;
+                let genre = track.genre;
+                let disc = track.disc;
+                let track_string = track.track_string;
+                let year_string = track.year_string;
+                let composer = track.composer;
+                let comment = track.comment;
+                let album_artist = track.album_artist;
+                let grouping = track.grouping;
+                let discnum = track.discnum;
+                let tracknum = track.tracknum;
+                let layer = track.layer;
+                let year = track.year;
+                let bitrate = track.bitrate;
+                let frequency = track.frequency;
+                let filesize = track.filesize;
+                let length = track.length;
+                let elapsed = track.elapsed;
+                let path = track.path;
+                let album_id = track.album_id.unwrap_or_default();
+                let artist_id = track.artist_id.unwrap_or_default();
+                let album_art = track.album_art;
+                return Self {
+                    title,
+                    artist,
+                    album,
+                    genre,
+                    disc,
+                    track_string,
+                    year_string,
+                    composer,
+                    comment,
+                    album_artist,
+                    grouping,
+                    discnum,
+                    tracknum,
+                    layer,
+                    year,
+                    bitrate,
+                    frequency,
+                    filesize,
+                    length,
+                    elapsed,
+                    path,
+                    album_id,
+                    artist_id,
+                    album_art,
+                    ..Default::default()
+                };
             }
         }
 

@@ -1,5 +1,6 @@
 use std::{
     fs,
+    pin::Pin,
     sync::{mpsc::Sender, Arc, Mutex},
 };
 
@@ -10,6 +11,9 @@ use crate::{
 use rockbox_library::repo;
 use rockbox_sys::{self as rb, events::RockboxCommand, types::audio_status::AudioStatus};
 use sqlx::Sqlite;
+use tokio_stream::{Stream, StreamExt};
+use rockbox_graphql::simplebroker::SimpleBroker;
+use rockbox_graphql::schema::objects::track::Track;
 
 pub struct Playback {
     cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
@@ -537,5 +541,28 @@ impl PlaybackService for Playback {
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         Ok(tonic::Response::new(PlayAllTracksResponse::default()))
+    }
+
+    type StreamCurrentTrackStream = Pin<
+        Box<
+            dyn Stream<Item = Result<CurrentTrackResponse, tonic::Status>>
+                + Send
+                + Sync
+                + 'static,
+        >,
+    >;
+
+    async fn stream_current_track(
+        &self,
+        _request: tonic::Request<StreamCurrentTrackRequest>,
+    ) -> Result<tonic::Response<Self::StreamCurrentTrackStream>, tonic::Status> {
+        let mut stream = SimpleBroker::<Track>::subscribe();
+        let output = async_stream::try_stream! {
+            while let Some(track) = stream.next().await {
+                yield track.into();
+            }
+        };
+
+        Ok(tonic::Response::new(Box::pin(output) as Self::StreamCurrentTrackStream))
     }
 }

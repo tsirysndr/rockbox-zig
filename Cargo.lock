@@ -6984,6 +6984,7 @@ name = "rockbox-rpc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-stream 0.3.6",
  "chrono",
  "cuid",
  "futures",
@@ -6991,6 +6992,7 @@ dependencies = [
  "owo-colors 5.0.0",
  "prost 0.13.2",
  "reqwest",
+ "rockbox-graphql",
  "rockbox-library",
  "rockbox-search",
  "rockbox-sys",
@@ -7000,6 +7002,7 @@ dependencies = [
  "sqlx",
  "tantivy",
  "tokio",
+ "tokio-stream",
  "tonic",
  "tonic-build",
  "tonic-reflection",
