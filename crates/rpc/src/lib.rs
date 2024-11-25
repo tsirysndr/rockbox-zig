@@ -37,7 +37,8 @@ pub mod api {
         use tantivy::TantivyDocument;
         use v1alpha1::{
             Album, Artist, CurrentTrackResponse, Device, Entry, GetGlobalSettingsResponse,
-            GetGlobalStatusResponse, NextTrackResponse, SaveSettingsRequest, SearchResponse, Track,
+            GetGlobalStatusResponse, NextTrackResponse, SaveSettingsRequest, SearchResponse,
+            StatusResponse, Track,
         };
 
         #[path = "rockbox.v1alpha1.rs"]
@@ -190,6 +191,14 @@ pub mod api {
                     album_art,
                     ..Default::default()
                 };
+            }
+        }
+
+        impl From<schema::objects::audio_status::AudioStatus> for StatusResponse {
+            fn from(status: schema::objects::audio_status::AudioStatus) -> Self {
+                Self {
+                    status: status.status,
+                }
             }
         }
 

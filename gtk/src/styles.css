@@ -11,6 +11,20 @@
   background-color: transparent;
 }
 
+.inactive-button {
+  background-color: transparent;
+}
+
+.button-box {
+  height: 32px;
+  border-radius: 10px;
+}
+
+.active-button {
+  height: 32px;
+  border-radius: 10px;
+}
+
 .media-title {
   font-weight: bold;
 }

@@ -5,20 +5,27 @@ template $MediaControls : Box {
   spacing: 10;
   margin-start: 12;
   margin-end: 12;
-  margin-top: 12;
-  margin-bottom: 12;
   valign: center;
 
-  Button shuffle_button {
-    icon-name: "media-playlist-shuffle-symbolic";
-    action-name: "app.shuffle";
-    tooltip-text: _("Shuffle");
+  Box {
+    margin-top: 32;
+    margin-bottom: 32;
+    
+    Button shuffle_button {
+      icon-name: "media-playlist-shuffle-symbolic";
+      action-name: "app.shuffle";
+      tooltip-text: _("Shuffle");
+
+      styles [
+        "inactive-button"
+      ]
+    }
 
     styles [
-      "media-control-button"
+      "button-box"
     ]
   }
-  
+
   Button previous_button {
     icon-name: "media-skip-backward-symbolic";
     action-name: "app.previous";
@@ -33,7 +40,7 @@ template $MediaControls : Box {
     action-name: "app.play_pause";
     tooltip-text: _("Play");
 
-    child: Image {
+    child: Image play_icon {
       icon-name: "media-playback-start-symbolic";
       pixel-size: 30;
     };
@@ -53,13 +60,22 @@ template $MediaControls : Box {
     ]
   }
 
-  Button repeat_button {
-    icon-name: "media-playlist-repeat-symbolic";
-    action-name: "app.repeat";
-    tooltip-text: _("Repeat");
+  Box {
+    margin-top: 32;
+    margin-bottom: 32;
+
+    Button repeat_button {
+      icon-name: "media-playlist-repeat-symbolic";
+      action-name: "app.repeat";
+      tooltip-text: _("Repeat");
+
+      styles [
+        "inactive-button"
+      ]
+    }
 
     styles [
-      "media-control-button"
+      "button-box"
     ]
   }
 
@@ -81,7 +97,7 @@ template $MediaControls : Box {
     orientation: vertical;
     spacing: 0;
     valign: center;
-    margin-top: 5;
+    margin-top: 17;
 
     Box media_current_song_box {
       hexpand: true;
@@ -127,6 +143,7 @@ template $MediaControls : Box {
       orientation: horizontal;
       spacing: 5;
       visible: false;
+      margin-bottom: 5;
 
       Label elapsed {
         label: "00:00";

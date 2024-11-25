@@ -8,12 +8,13 @@ use crate::{
     api::rockbox::v1alpha1::{playback_service_server::PlaybackService, *},
     check_and_load_player, read_files, rockbox_url, AUDIO_EXTENSIONS,
 };
+use rockbox_graphql::schema;
+use rockbox_graphql::schema::objects::track::Track;
+use rockbox_graphql::simplebroker::SimpleBroker;
 use rockbox_library::repo;
 use rockbox_sys::{self as rb, events::RockboxCommand, types::audio_status::AudioStatus};
 use sqlx::Sqlite;
 use tokio_stream::{Stream, StreamExt};
-use rockbox_graphql::simplebroker::SimpleBroker;
-use rockbox_graphql::schema::objects::track::Track;
 
 pub struct Playback {
     cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
@@ -544,12 +545,7 @@ impl PlaybackService for Playback {
     }
 
     type StreamCurrentTrackStream = Pin<
-        Box<
-            dyn Stream<Item = Result<CurrentTrackResponse, tonic::Status>>
-                + Send
-                + Sync
-                + 'static,
-        >,
+        Box<dyn Stream<Item = Result<CurrentTrackResponse, tonic::Status>> + Send + Sync + 'static>,
     >;
 
     async fn stream_current_track(
@@ -563,6 +559,27 @@ impl PlaybackService for Playback {
             }
         };
 
-        Ok(tonic::Response::new(Box::pin(output) as Self::StreamCurrentTrackStream))
+        Ok(tonic::Response::new(
+            Box::pin(output) as Self::StreamCurrentTrackStream
+        ))
+    }
+
+    type StreamStatusStream =
+        Pin<Box<dyn Stream<Item = Result<StatusResponse, tonic::Status>> + Send + Sync + 'static>>;
+
+    async fn stream_status(
+        &self,
+        _request: tonic::Request<StreamStatusRequest>,
+    ) -> Result<tonic::Response<Self::StreamStatusStream>, tonic::Status> {
+        let mut stream = SimpleBroker::<schema::objects::audio_status::AudioStatus>::subscribe();
+        let output = async_stream::try_stream! {
+            while let Some(status) = stream.next().await {
+                yield status.into();
+            }
+        };
+
+        Ok(tonic::Response::new(
+            Box::pin(output) as Self::StreamStatusStream
+        ))
     }
 }
