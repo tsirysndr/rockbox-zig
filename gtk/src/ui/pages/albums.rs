@@ -11,6 +11,7 @@ use gtk::prelude::WidgetExt;
 use gtk::CompositeTemplate;
 use gtk::{glib, Box, FlowBox, Image, Label, Orientation};
 use std::cell::RefCell;
+use crate::ui::pages::album_details::AlbumDetails;
 
 mod imp {
 
@@ -24,6 +25,7 @@ mod imp {
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub library_page: RefCell<Option<adw::NavigationPage>>,
         pub go_back_button: RefCell<Option<gtk::Button>>,
+        pub album_details: RefCell<Option<AlbumDetails>>,
     }
 
     #[glib::object_subclass]
@@ -77,8 +79,13 @@ mod imp {
             *self.go_back_button.borrow_mut() = Some(go_back_button);
         }
 
+        pub fn set_album_details(&self, album_details: AlbumDetails) {
+            *self.album_details.borrow_mut() = Some(album_details);
+        }
+
         pub fn add_picture_to_library(
             &self,
+            album_id: &str,
             filename: Option<String>,
             title: &str,
             artist: &str,
@@ -95,7 +102,7 @@ mod imp {
             let image_container = Box::new(Orientation::Vertical, 0);
 
             let self_weak = self.downgrade();
-            let title_ = title.to_string();
+            let album_id = album_id.to_string();
 
             let gesture = gtk::GestureClick::new();
             gesture.connect_released(move |_, _, _, _| {
@@ -104,11 +111,12 @@ mod imp {
                     None => return,
                 };
                 let obj = self_.obj();
-                obj.navigate_to_details(&title_);
+                obj.navigate_to_details(&album_id);
+                obj.imp().album_details.borrow().as_ref().unwrap().imp().load_album(&album_id);
             });
 
             image_container.append(&image);
-            image_container.add_controller(gesture);
+            image_container.add_controller(gesture.clone());
             image_container.add_css_class("rounded-image");
 
             let title = Label::new(Some(title));
@@ -116,6 +124,7 @@ mod imp {
             title.set_max_width_chars(23);
             title.add_css_class("album-label");
             title.set_halign(gtk::Align::Start);
+            title.add_controller(gesture);
 
             let artist = Label::new(Some(artist));
             artist.set_ellipsize(EllipsizeMode::End);
@@ -190,6 +199,7 @@ impl Albums {
         if let Ok(albums) = handle.join().unwrap() {
             for album in albums.albums {
                 self.imp().add_picture_to_library(
+                    &album.id,
                     album.album_art,
                     &album.title,
                     &album.artist,

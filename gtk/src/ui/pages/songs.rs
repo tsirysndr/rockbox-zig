@@ -1,7 +1,7 @@
 use adw::subclass::prelude::*;
 use glib::subclass;
 use gtk::glib;
-use gtk::CompositeTemplate;
+use gtk::{CompositeTemplate, ListBox};
 
 mod imp {
 
@@ -9,7 +9,10 @@ mod imp {
 
     #[derive(Debug, Default, CompositeTemplate)]
     #[template(file = "../gtk/songs.ui")]
-    pub struct Songs {}
+    pub struct Songs {
+        #[template_child]
+        pub tracks: TemplateChild<ListBox>,
+    }
 
     #[glib::object_subclass]
     impl ObjectSubclass for Songs {

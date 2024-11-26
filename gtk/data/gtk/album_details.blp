@@ -19,7 +19,7 @@ template $AlbumDetails : Box {
         valign: start;
         width-request: 230;
         height-request: 230;
-        file: "/home/tsirysndr/.config/rockbox.org/covers/8cd770913d6057a716debac03873c78e.jpg";
+        resource: "/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg";
       }
       
       styles [
@@ -34,7 +34,7 @@ template $AlbumDetails : Box {
       valign: center;
 
       Label album_title {
-         label: "Leave a Whisper";
+         label: "";
          halign: start;
          max-width-chars: 200;
          wrap: true;
@@ -48,7 +48,7 @@ template $AlbumDetails : Box {
       }
 
       Label album_artist {
-         label: "Shinedown";
+         label: "";
          halign: start;
          max-width-chars: 200;
          wrap: true;
@@ -61,7 +61,7 @@ template $AlbumDetails : Box {
       }
 
       Label album_tracks {
-         label: "12 TRACKS";
+         label: "";
          halign: start;
          margin-top: 25;
 
@@ -71,7 +71,7 @@ template $AlbumDetails : Box {
       }
 
       Label album_year {
-         label: "2003";
+         label: "";
          halign: start;
          margin-top: 5;
          margin-bottom: 15;
@@ -90,6 +90,7 @@ template $AlbumDetails : Box {
         Button album_play_button {
           tooltip-text: _("Play album");
           icon-name: "media-playback-start-symbolic";
+          action-name: "app.play-album";
           halign: center;
           valign: center;
           margin-end: 10;
@@ -107,6 +108,7 @@ template $AlbumDetails : Box {
         Button album_shuffle_button {
           tooltip-text: _("Shuffle album");
           icon-name: "media-playlist-shuffle-symbolic";
+          action-name: "app.shuffle-album";
           halign: center;
           valign: center;
           margin-end: 0;
@@ -149,215 +151,6 @@ template $AlbumDetails : Box {
     margin-top: 15;
     margin-bottom: 15;
     selection-mode: none;
-
-    Box {
-      orientation: horizontal;
-      spacing: 10;
-      halign: fill;
-      valign: center;
-      hexpand: true;
-      margin-bottom: 10;
-      margin-top: 10;
-      margin-start: 10;
-      margin-end: 10;
-
-      Label {
-        label: "01";
-        halign: start;
-        valign: center;
-        margin-end: 10;
-
-        styles [
-          "track-number"
-        ]
-      }
-
-      Box {
-        hexpand: true;
-        valign: center;
-        halign: fill;
-        orientation: vertical;
-
-        Label {
-          label: "Fly from the Inside";
-          halign: start;
-          valign: center;
-          hexpand: true;
-          margin-bottom: 3;
-
-          styles [
-            "track-title"
-          ]
-        }
-
-        Label {
-          label: "Shinedown";
-          halign: start;
-          valign: center;
-          hexpand: true;
-
-          styles [
-            "track-artist"
-          ]
-        }
-      }
-
-      Label {
-        label: "3:55";
-        halign: end;
-        valign: center;
-
-        styles [
-          "track-duration"
-        ]
-      }
-    
-      Button {
-        tooltip-text: _("Like");
-        child: Image {
-          icon-name: "heart-outline-symbolic";
-          pixel-size: 24;
-        };
-        halign: center;
-        valign: center;
-        margin-end: 0;
-        margin-start: 0;
-        margin-top: 0;
-        margin-bottom: 0;
-        width-request: 40;
-        height-request: 40;
-
-        styles [
-          "transparent-button"
-        ]
-      }
-
-      Button {
-        tooltip-text: _("More");
-        
-        child: Image {
-          icon-name: "options-symbolic";
-          pixel-size: 24;
-        };
-
-        halign: center;
-        valign: center;
-        margin-end: 0;
-        margin-start: 0;
-        margin-top: 0;
-        margin-bottom: 0;
-        width-request: 40;
-        height-request: 40;
-
-        styles [
-          "transparent-button"
-        ]
-      }
-    }
-
-    Box {
-      orientation: horizontal;
-      spacing: 10;
-      halign: fill;
-      valign: center;
-      hexpand: true;
-      margin-bottom: 10;
-      margin-top: 10;
-      margin-start: 10;
-      margin-end: 10;
-
-      Label {
-        label: "02";
-        halign: start;
-        valign: center;
-        margin-end: 10;
-
-        styles [
-          "track-number"
-        ]
-      }
-
-      Box {
-        hexpand: true;
-        halign: fill;
-        valign: center;
-        orientation: vertical;
-
-        Label {
-          label: "Left Out";
-          halign: start;
-          valign: center;
-          hexpand: true;
-          margin-bottom: 3;
-
-          styles [
-            "track-title"
-          ]
-        }
-
-        Label {
-          label: "Shinedown";
-          halign: start;
-          valign: center;
-          hexpand: true;
-
-          styles [
-            "track-artist"
-          ]
-        }
-
-      }
-
-      Label track_duration {
-        label: "3:59";
-        halign: end;
-        valign: center;
-
-        styles [
-          "track-duration"
-        ]
-      }
-
-      Button {
-        tooltip-text: _("Like");
-        child: Image {
-          icon-name: "heart-outline-symbolic";
-          pixel-size: 24;
-        };
-        halign: center;
-        valign: center;
-        margin-end: 0;
-        margin-start: 0;
-        margin-top: 0;
-        margin-bottom: 0;
-        width-request: 40;
-        height-request: 40;
-
-        styles [
-          "transparent-button"
-        ]
-      }
-
-      Button {
-        tooltip-text: _("More");
-        child: Image {
-          icon-name: "options-symbolic";
-          pixel-size: 24;
-        };
-        halign: center;
-        valign: center;
-        margin-end: 0;
-        margin-start: 0;
-        margin-top: 0;
-        margin-bottom: 0;
-        width-request: 40;
-        height-request: 40;
-
-        styles [
-          "transparent-button"
-        ]
-      }
-    }
 
     styles [
       "album-track-list"

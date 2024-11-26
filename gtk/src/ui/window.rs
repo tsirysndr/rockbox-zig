@@ -234,12 +234,14 @@ impl RbApplicationWindow {
         let main_stack = window.imp().main_stack.get();
         let library_page = window.imp().library_page.get();
         let albums = window.imp().albums.get();
+        let album_details = window.imp().album_details.get();
 
         albums.imp().set_main_stack(main_stack.clone());
         albums.imp().set_library_page(library_page.clone());
         albums
             .imp()
             .set_go_back_button(window.imp().go_back_button.get().clone());
+        albums.imp().set_album_details(album_details.clone());
 
         window
     }
