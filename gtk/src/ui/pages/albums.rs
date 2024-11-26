@@ -85,7 +85,7 @@ mod imp {
 
         pub fn add_picture_to_library(
             &self,
-            album_id: &str,
+            id: &str,
             filename: Option<String>,
             title: &str,
             artist: &str,
@@ -102,7 +102,7 @@ mod imp {
             let image_container = Box::new(Orientation::Vertical, 0);
 
             let self_weak = self.downgrade();
-            let album_id = album_id.to_string();
+            let album_id = id.to_string();
 
             let gesture = gtk::GestureClick::new();
             gesture.connect_released(move |_, _, _, _| {
@@ -116,15 +116,29 @@ mod imp {
             });
 
             image_container.append(&image);
-            image_container.add_controller(gesture.clone());
+            image_container.add_controller(gesture);
             image_container.add_css_class("rounded-image");
 
+
+            let self_weak = self.downgrade();
+            let album_id = id.to_string();
+            let label_click = gtk::GestureClick::new();
+            label_click.connect_released(move |_, _, _, _| {
+                let self_ = match self_weak.upgrade() {
+                    Some(self_) => self_,
+                    None => return,
+                };
+                let obj = self_.obj();
+                obj.navigate_to_details(&album_id);
+                obj.imp().album_details.borrow().as_ref().unwrap().imp().load_album(&album_id);
+            });
+            
             let title = Label::new(Some(title));
             title.set_ellipsize(EllipsizeMode::End);
             title.set_max_width_chars(23);
             title.add_css_class("album-label");
             title.set_halign(gtk::Align::Start);
-            title.add_controller(gesture);
+            title.add_controller(label_click);
 
             let artist = Label::new(Some(artist));
             artist.set_ellipsize(EllipsizeMode::End);
