@@ -11,6 +11,7 @@
     <file alias="heart-outline-symbolic.svg">icons/svg/heart-outline-symbolic.svg</file>
     <file alias="heart-symbolic.svg">icons/svg/heart-symbolic.svg</file>
     <file alias="music-symbolic.svg">icons/svg/music-symbolic.svg</file>
+    <file alias="music-alt-symbolic.svg">icons/svg/music-alt-symbolic.svg</file>
     <file alias="options-symbolic.svg">icons/svg/options-symbolic.svg</file>
   </gresource>
 </gresources>

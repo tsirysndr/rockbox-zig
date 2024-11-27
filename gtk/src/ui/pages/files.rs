@@ -6,8 +6,9 @@ use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate, ListBox};
+use gtk::{CompositeTemplate, ListBox, Button};
 use std::env;
+use std::cell::RefCell;
 
 mod imp {
 
@@ -18,6 +19,9 @@ mod imp {
     pub struct Files {
         #[template_child]
         pub files: TemplateChild<ListBox>,
+
+        pub main_stack: RefCell<Option<adw::ViewStack>>,
+        pub go_back_button: RefCell<Option<Button>>,
     }
 
     #[glib::object_subclass]
@@ -57,6 +61,16 @@ mod imp {
 
     impl WidgetImpl for Files {}
     impl BoxImpl for Files {}
+
+    impl Files {
+        pub fn set_main_stack(&self, main_stack: adw::ViewStack) {
+            *self.main_stack.borrow_mut() = Some(main_stack);
+        }
+
+        pub fn set_go_back_button(&self, go_back_button: Button) {
+            *self.go_back_button.borrow_mut() = Some(go_back_button);
+        }
+    }
 }
 
 glib::wrapper! {
@@ -92,6 +106,8 @@ impl Files {
                 let file = File::new();
                 // pop up the filename
                 let filename = entry.name.split("/").last().unwrap();
+                file.imp().set_files(self.imp().files.clone());
+                file.imp().set_go_back_button(self.imp().go_back_button.borrow().clone());
                 file.imp().file_name.set_text(filename);
                 self.imp().files.append(&file);
             }

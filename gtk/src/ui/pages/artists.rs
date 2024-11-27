@@ -6,9 +6,10 @@ use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate, FlowBox};
+use gtk::{CompositeTemplate, FlowBox, Button};
 use std::env;
 use gtk::pango::EllipsizeMode;
+use std::cell::RefCell;
 
 mod imp {
 
@@ -19,6 +20,10 @@ mod imp {
     pub struct Artists {
         #[template_child]
         pub artists: TemplateChild<FlowBox>,
+
+        pub main_stack: RefCell<Option<adw::ViewStack>>,
+        pub library_page: RefCell<Option<adw::NavigationPage>>,
+        pub go_back_button: RefCell<Option<Button>>,
     }
 
     #[glib::object_subclass]
@@ -59,6 +64,20 @@ mod imp {
 
     impl WidgetImpl for Artists {}
     impl BoxImpl for Artists {}
+
+    impl Artists {
+        pub fn set_main_stack(&self, main_stack: adw::ViewStack) {
+            *self.main_stack.borrow_mut() = Some(main_stack);
+        }
+
+        pub fn set_library_page(&self, library_page: adw::NavigationPage) {
+            *self.library_page.borrow_mut() = Some(library_page);
+        }
+
+        pub fn set_go_back_button(&self, go_back_button: Button) {
+            *self.go_back_button.borrow_mut() = Some(go_back_button);
+        }
+    }
 }
 
 glib::wrapper! {
@@ -92,6 +111,19 @@ impl Artists {
                 artist.imp().artist_name.set_text(&artist_item.name);
                 artist.imp().artist_name.set_ellipsize(EllipsizeMode::End);
                 artist.imp().artist_name.set_max_width_chars(20);
+
+                let main_stack = self.imp().main_stack.borrow().as_ref().unwrap().clone();
+                let library_page = self.imp().library_page.borrow().as_ref().unwrap().clone();
+                let go_back_button = self.imp().go_back_button.borrow().as_ref().unwrap().clone();
+
+                let click = gtk::GestureClick::new();
+                click.connect_released(move |_, _, _, _| {
+                    main_stack.set_visible_child_name("artist-details-page");
+                    library_page.set_title("Artist");
+                    go_back_button.set_visible(true);
+                });
+                artist.add_controller(click);
+
                 self.imp().artists.append(&artist);
             }
         }

@@ -11,15 +11,22 @@ template $File : Box {
   margin-start: 15;
   margin-end: 15;
 
-  Image file_icon {
-    icon-name: "directory-symbolic";
-    pixel-size: 20;
-  }
+  Box row {
+      orientation: horizontal;
+      halign: fill;
+      valign: center;
+  
+      Image file_icon {
+        icon-name: "directory-symbolic";
+        pixel-size: 20;
+      }
 
-  Label file_name {
-    halign: start;
-    valign: center;
-    hexpand: true;
+      Label file_name {
+        halign: start;
+        valign: center;
+        hexpand: true;
+        margin-start: 10;
+      }
   }
 
   Button {

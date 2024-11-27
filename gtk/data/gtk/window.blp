@@ -259,6 +259,14 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                     };
                   }
 
+                  Adw.ViewStackPage artist_details_page {
+                    name: "artist-details-page";
+                    title: _("Artist");
+                    child: ScrolledWindow  {
+                      $ArtistDetails artist_details {}
+                    };
+                  }
+
                   Adw.ViewStackPage likes_page {
                     name: "likes-page";
                     title: _("Likes");

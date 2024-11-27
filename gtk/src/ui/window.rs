@@ -2,6 +2,7 @@ use crate::app::RbApplication;
 use crate::types::track::Track;
 use crate::ui::media_controls::MediaControls;
 use crate::ui::pages::album_details::AlbumDetails;
+use crate::ui::pages::artist_details::ArtistDetails;
 use crate::ui::pages::albums::Albums;
 use crate::ui::pages::songs::Songs;
 use crate::ui::pages::{artists::Artists, files::Files, likes::Likes};
@@ -14,7 +15,7 @@ use gtk::{
     gio, glib, Box, Button, CompositeTemplate, ListBox, MenuButton, Overlay, SearchBar,
     SearchEntry, ToggleButton,
 };
-use std::cell::RefCell;
+use std::cell::{RefCell, Cell};
 
 mod imp {
 
@@ -85,6 +86,10 @@ mod imp {
         #[template_child]
         pub artists: TemplateChild<Artists>,
         #[template_child]
+        pub artist_details_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub artist_details: TemplateChild<ArtistDetails>,
+        #[template_child]
         pub album_details_page: TemplateChild<ViewStackPage>,
         #[template_child]
         pub album_details: TemplateChild<AlbumDetails>,
@@ -93,8 +98,8 @@ mod imp {
         #[template_child]
         pub media_control_bar: TemplateChild<MediaControls>,
 
-        pub show_sidebar: std::cell::Cell<bool>,
-        pub previous_page: String,
+        pub show_sidebar: Cell<bool>,
+        pub previous_page: RefCell<(String, String)>,
         pub current_track: RefCell<Option<Track>>,
     }
 
@@ -106,8 +111,8 @@ mod imp {
 
         fn new() -> Self {
             Self {
-                show_sidebar: std::cell::Cell::new(true),
-                previous_page: "Albums".to_string(),
+                show_sidebar: Cell::new(true),
+                previous_page: RefCell::new(("Albums".to_string(), "albums-page".to_string())),
                 ..Default::default()
             }
         }
@@ -165,30 +170,35 @@ mod imp {
                         main_stack.set_visible_child_name("albums-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Albums");
+                        self_.previous_page.replace(("Albums".to_string(), "albums-page".to_string()));
                     }
                     "Artists" => {
                         let main_stack = self_.main_stack.get();
                         main_stack.set_visible_child_name("artists-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Artists");
+                        self_.previous_page.replace(("Artists".to_string(), "artists-page".to_string()));
                     }
                     "Songs" => {
                         let main_stack = self_.main_stack.get();
                         main_stack.set_visible_child_name("songs-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Songs");
+                        self_.previous_page.replace(("Songs".to_string(), "songs-page".to_string()));
                     }
                     "Likes" => {
                         let main_stack = self_.main_stack.get();
                         main_stack.set_visible_child_name("likes-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Likes");
+                        self_.previous_page.replace(("Likes".to_string(), "likes-page".to_string()));
                     }
                     "Files" => {
                         let main_stack = self_.main_stack.get();
                         main_stack.set_visible_child_name("files-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Files");
+                        self_.previous_page.replace(("Files".to_string(), "files-page".to_string()));
                     }
                     _ => {}
                 }
@@ -213,9 +223,15 @@ mod imp {
 
         fn go_back(&self) {
             let main_stack = self.main_stack.get();
-            main_stack.set_visible_child_name("albums-page");
+            let previous_page = self.previous_page.borrow();
+            
+            if previous_page.1 == "files-page" {
+                return;
+            }
+
+            main_stack.set_visible_child_name(previous_page.1.as_str());
             let library_page = self.library_page.get();
-            library_page.set_title(self.previous_page.as_str());
+            library_page.set_title(previous_page.0.as_str());
         }
     }
 }
@@ -235,6 +251,8 @@ impl RbApplicationWindow {
         let library_page = window.imp().library_page.get();
         let albums = window.imp().albums.get();
         let album_details = window.imp().album_details.get();
+        let artists = window.imp().artists.get();
+        let files = window.imp().files.get();
 
         albums.imp().set_main_stack(main_stack.clone());
         albums.imp().set_library_page(library_page.clone());
@@ -242,6 +260,17 @@ impl RbApplicationWindow {
             .imp()
             .set_go_back_button(window.imp().go_back_button.get().clone());
         albums.imp().set_album_details(album_details.clone());
+
+        artists.imp().set_main_stack(main_stack.clone());
+        artists.imp().set_library_page(library_page.clone());
+        artists
+            .imp()
+            .set_go_back_button(window.imp().go_back_button.get().clone());
+
+        files.imp().set_main_stack(main_stack.clone());
+        files
+            .imp()
+            .set_go_back_button(window.imp().go_back_button.get().clone());
 
         window
     }
