@@ -1,7 +1,14 @@
+use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
+use crate::api::rockbox::v1alpha1::{GetArtistsRequest, GetArtistsResponse};
+use crate::ui::artist::Artist;
+use adw::prelude::*;
 use adw::subclass::prelude::*;
+use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::CompositeTemplate;
+use gtk::{CompositeTemplate, FlowBox};
+use std::env;
+use gtk::pango::EllipsizeMode;
 
 mod imp {
 
@@ -9,7 +16,10 @@ mod imp {
 
     #[derive(Debug, Default, CompositeTemplate)]
     #[template(file = "../gtk/artists.ui")]
-    pub struct Artists {}
+    pub struct Artists {
+        #[template_child]
+        pub artists: TemplateChild<FlowBox>,
+    }
 
     #[glib::object_subclass]
     impl ObjectSubclass for Artists {
@@ -29,6 +39,21 @@ mod imp {
     impl ObjectImpl for Artists {
         fn constructed(&self) {
             self.parent_constructed();
+
+            let self_weak = self.downgrade();
+            glib::idle_add_local(move || {
+                let self_ = match self_weak.upgrade() {
+                    Some(self_) => self_,
+                    None => return glib::ControlFlow::Continue,
+                };
+
+                glib::MainContext::default().spawn_local(async move {
+                    let obj = self_.obj();
+                    obj.load_artists();
+                });
+
+                glib::ControlFlow::Break
+            });
         }
     }
 
@@ -47,5 +72,34 @@ impl Artists {
         glib::Object::new()
     }
 
-    pub fn load_artists(&self) {}
+    pub fn load_artists(&self) {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let response_ = rt.block_on(async {
+            let url = build_url();
+            let mut client = LibraryServiceClient::connect(url).await?;
+            let response = client.get_artists(GetArtistsRequest {}).await?.into_inner();
+            Ok::<GetArtistsResponse, Error>(response)
+        });
+
+        if let Ok(response) = response_{
+            let artists = self.imp().artists.clone();
+            while let Some(row) = artists.first_child() {
+                artists.remove(&row);
+            }
+
+            for artist_item in response.artists {
+                let artist = Artist::new();
+                artist.imp().artist_name.set_text(&artist_item.name);
+                artist.imp().artist_name.set_ellipsize(EllipsizeMode::End);
+                artist.imp().artist_name.set_max_width_chars(20);
+                self.imp().artists.append(&artist);
+            }
+        }
+    }
+}
+
+fn build_url() -> String {
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+    format!("tcp://{}:{}", host, port)
 }

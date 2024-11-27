@@ -8,34 +8,24 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(file = "./gtk/song.ui")]
-    pub struct Song {
+    #[template(file = "./gtk/artist.ui")]
+    pub struct Artist {
         #[template_child]
-        pub album_art_container: TemplateChild<gtk::Box>,
+        pub artist_image: TemplateChild<Image>,
         #[template_child]
-        pub album_art: TemplateChild<Image>,
+        pub artist_noimage: TemplateChild<gtk::Box>,
         #[template_child]
-        pub track_number: TemplateChild<Label>,
-        #[template_child]
-        pub track_title: TemplateChild<Label>,
-        #[template_child]
-        pub artist: TemplateChild<Label>,
-        #[template_child]
-        pub track_duration: TemplateChild<Label>,
+        pub artist_name: TemplateChild<Label>,
     }
 
     #[glib::object_subclass]
-    impl ObjectSubclass for Song {
-        const NAME: &'static str = "Song";
+    impl ObjectSubclass for Artist {
+        const NAME: &'static str = "Artist";
         type ParentType = gtk::Box;
-        type Type = super::Song;
+        type Type = super::Artist;
 
         fn class_init(klass: &mut Self::Class) {
             Self::bind_template(klass);
-
-            klass.install_action("app.like-song", None, move |_song, _action, _target| {
-
-            });
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
@@ -43,23 +33,23 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for Song {
+    impl ObjectImpl for Artist {
         fn constructed(&self) {
             self.parent_constructed();
         }
     }
 
-    impl WidgetImpl for Song {}
-    impl BoxImpl for Song {}
+    impl WidgetImpl for Artist {}
+    impl BoxImpl for Artist {}
 }
 
 glib::wrapper! {
-  pub struct Song(ObjectSubclass<imp::Song>)
+  pub struct Artist(ObjectSubclass<imp::Artist>)
     @extends gtk::Widget, gtk::Box;
 }
 
 #[gtk::template_callbacks]
-impl Song {
+impl Artist {
     pub fn new() -> Self {
         glib::Object::new()
     }

@@ -1,0 +1,44 @@
+using Gtk 4.0;
+
+template $File : Box {
+  orientation: horizontal;
+  spacing: 10;
+  halign: fill;
+  valign: center;
+  hexpand: true;
+  margin-top: 5;
+  margin-bottom: 5;
+  margin-start: 15;
+  margin-end: 15;
+
+  Image file_icon {
+    icon-name: "directory-symbolic";
+    pixel-size: 20;
+  }
+
+  Label file_name {
+    halign: start;
+    valign: center;
+    hexpand: true;
+  }
+
+  Button {
+    tooltip-text: _("More");
+
+    child: Image {
+      icon-name: "options-symbolic";
+      pixel-size: 24;
+    };
+
+    halign: center;
+    valign: center;
+    width-request: 40;
+    height-request: 40;
+
+    styles [
+      "transparent-button"
+    ]
+  }
+
+}
+

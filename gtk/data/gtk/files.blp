@@ -1,5 +1,14 @@
 using Gtk 4.0;
 
 template $Files : Box {
+  ListBox files {
+    hexpand: true;
+    margin-top: 15;
+    margin-bottom: 15;
+    selection-mode: none;
 
+    styles [
+     "file-list"
+    ]
+  }
 }

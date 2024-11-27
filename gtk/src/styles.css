@@ -74,3 +74,18 @@
 .track-title {
   font-weight: bold;
 }
+
+.artist-noimage {
+  height: 240px;
+  width: 240px;
+  border-radius: 170px;
+  background-color: #f6f6f6;
+}
+
+.artist-icon {
+  color: #a4a3a3;
+}
+
+.file-list {
+  background-color: transparent;
+}

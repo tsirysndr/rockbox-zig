@@ -6,7 +6,7 @@
   <gresource prefix="@PREFIX@/icons/scalable/categories/">
     <file alias="artist-symbolic.svg">icons/svg/artist-symbolic.svg</file>
     <file alias="disc-symbolic.svg">icons/svg/disc-symbolic.svg</file>
-    <file alias="folder-symbolic.svg">icons/svg/folder-symbolic.svg</file>
+    <file alias="directory-symbolic.svg">icons/svg/directory-symbolic.svg</file>
     <file alias="harddrive-symbolic.svg">icons/svg/harddrive-symbolic.svg</file>
     <file alias="heart-outline-symbolic.svg">icons/svg/heart-outline-symbolic.svg</file>
     <file alias="heart-symbolic.svg">icons/svg/heart-symbolic.svg</file>

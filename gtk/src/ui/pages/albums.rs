@@ -211,6 +211,12 @@ impl Albums {
             })
         });
         if let Ok(albums) = handle.join().unwrap() {
+            // clear the library
+            let library = self.imp().library.get();
+            while let Some(child) = library.first_child() {
+                library.remove(&child);
+            }
+
             for album in albums.albums {
                 self.imp().add_picture_to_library(
                     &album.id,
