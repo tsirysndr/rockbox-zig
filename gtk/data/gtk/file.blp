@@ -6,15 +6,15 @@ template $File : Box {
   halign: fill;
   valign: center;
   hexpand: true;
-  margin-top: 5;
-  margin-bottom: 5;
   margin-start: 15;
   margin-end: 15;
 
   Box row {
       orientation: horizontal;
       halign: fill;
-      valign: center;
+      valign: fill;
+      margin-top: 5;
+      margin-bottom: 5;
   
       Image file_icon {
         icon-name: "directory-symbolic";

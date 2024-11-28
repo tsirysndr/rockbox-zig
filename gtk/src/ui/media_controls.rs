@@ -362,6 +362,10 @@ impl MediaControls {
             let media_control_bar_progress = self.imp().media_control_bar_progress.get();
             let progress_bar = self.imp().progress_bar.get();
 
+            if track.length == 0 {
+                return;
+            }
+
             let progression = (track.elapsed as f64 / track.length as f64) * 100.0;
             progress_bar.set_value(progression);
             media_control_bar_progress.set_visible(true);

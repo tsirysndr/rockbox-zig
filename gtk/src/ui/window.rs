@@ -128,8 +128,6 @@ mod imp {
             klass.install_action("win.go_back", None, move |win, _action, _parameter| {
                 let self_ = imp::RbApplicationWindow::from_obj(win);
                 self_.go_back();
-                let go_back_button = self_.go_back_button.get();
-                go_back_button.set_visible(false);
             });
         }
 
@@ -226,12 +224,17 @@ mod imp {
             let previous_page = self.previous_page.borrow();
             
             if previous_page.1 == "files-page" {
+                let files = self.files.get();
+                files.go_back();
                 return;
             }
 
             main_stack.set_visible_child_name(previous_page.1.as_str());
             let library_page = self.library_page.get();
             library_page.set_title(previous_page.0.as_str());
+                
+            let go_back_button = self.go_back_button.get();
+            go_back_button.set_visible(false);
         }
     }
 }
