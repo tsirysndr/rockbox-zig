@@ -89,3 +89,20 @@
 .file-list {
   background-color: transparent;
 }
+
+.track-list {
+  background-color: transparent;
+}
+
+.subtitle {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.artist-name {
+  font-size: 24px;
+}

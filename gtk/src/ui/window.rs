@@ -2,8 +2,8 @@ use crate::app::RbApplication;
 use crate::types::track::Track;
 use crate::ui::media_controls::MediaControls;
 use crate::ui::pages::album_details::AlbumDetails;
-use crate::ui::pages::artist_details::ArtistDetails;
 use crate::ui::pages::albums::Albums;
+use crate::ui::pages::artist_details::ArtistDetails;
 use crate::ui::pages::songs::Songs;
 use crate::ui::pages::{artists::Artists, files::Files, likes::Likes};
 use adw::prelude::*;
@@ -15,7 +15,7 @@ use gtk::{
     gio, glib, Box, Button, CompositeTemplate, ListBox, MenuButton, Overlay, SearchBar,
     SearchEntry, ToggleButton,
 };
-use std::cell::{RefCell, Cell};
+use std::cell::{Cell, RefCell};
 
 mod imp {
 
@@ -168,35 +168,45 @@ mod imp {
                         main_stack.set_visible_child_name("albums-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Albums");
-                        self_.previous_page.replace(("Albums".to_string(), "albums-page".to_string()));
+                        self_
+                            .previous_page
+                            .replace(("Albums".to_string(), "albums-page".to_string()));
                     }
                     "Artists" => {
                         let main_stack = self_.main_stack.get();
                         main_stack.set_visible_child_name("artists-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Artists");
-                        self_.previous_page.replace(("Artists".to_string(), "artists-page".to_string()));
+                        self_
+                            .previous_page
+                            .replace(("Artists".to_string(), "artists-page".to_string()));
                     }
                     "Songs" => {
                         let main_stack = self_.main_stack.get();
                         main_stack.set_visible_child_name("songs-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Songs");
-                        self_.previous_page.replace(("Songs".to_string(), "songs-page".to_string()));
+                        self_
+                            .previous_page
+                            .replace(("Songs".to_string(), "songs-page".to_string()));
                     }
                     "Likes" => {
                         let main_stack = self_.main_stack.get();
                         main_stack.set_visible_child_name("likes-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Likes");
-                        self_.previous_page.replace(("Likes".to_string(), "likes-page".to_string()));
+                        self_
+                            .previous_page
+                            .replace(("Likes".to_string(), "likes-page".to_string()));
                     }
                     "Files" => {
                         let main_stack = self_.main_stack.get();
                         main_stack.set_visible_child_name("files-page");
                         let library_page = self_.library_page.get();
                         library_page.set_title("Files");
-                        self_.previous_page.replace(("Files".to_string(), "files-page".to_string()));
+                        self_
+                            .previous_page
+                            .replace(("Files".to_string(), "files-page".to_string()));
                     }
                     _ => {}
                 }
@@ -222,7 +232,7 @@ mod imp {
         fn go_back(&self) {
             let main_stack = self.main_stack.get();
             let previous_page = self.previous_page.borrow();
-            
+
             if previous_page.1 == "files-page" {
                 let files = self.files.get();
                 files.go_back();
@@ -232,7 +242,7 @@ mod imp {
             main_stack.set_visible_child_name(previous_page.1.as_str());
             let library_page = self.library_page.get();
             library_page.set_title(previous_page.0.as_str());
-                
+
             let go_back_button = self.go_back_button.get();
             go_back_button.set_visible(false);
         }
@@ -255,6 +265,7 @@ impl RbApplicationWindow {
         let albums = window.imp().albums.get();
         let album_details = window.imp().album_details.get();
         let artists = window.imp().artists.get();
+        let artist_details = window.imp().artist_details.get();
         let files = window.imp().files.get();
 
         albums.imp().set_main_stack(main_stack.clone());
@@ -269,6 +280,7 @@ impl RbApplicationWindow {
         artists
             .imp()
             .set_go_back_button(window.imp().go_back_button.get().clone());
+        artists.imp().set_artist_details(artist_details.clone());
 
         files.imp().set_main_stack(main_stack.clone());
         files

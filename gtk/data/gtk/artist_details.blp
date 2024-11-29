@@ -1,5 +1,105 @@
 using Gtk 4.0;
 
 template $ArtistDetails : Box {
+  orientation: vertical;
+  spacing: 20;
+  margin-top: 50;
+  margin-bottom: 25;
 
+  Box {
+    orientation: horizontal;
+    hexpand: true;
+    margin-start: 25;
+    margin-end: 25;
+
+    Image artist_image {
+      visible: false;
+      margin-end: 20;
+    }
+
+    Box artist_noimage {
+      visible: true;
+      halign: center;
+      valign: center;
+      margin-end: 20;
+
+      Box {
+        halign: fill;
+        valign: fill;
+
+        Image {
+          icon-name: "artist-symbolic";
+          pixel-size: 50;
+          margin-top: 20;
+          margin-bottom: 20;
+          margin-start: 20;
+          margin-end: 20;
+
+          styles [
+            "artist-icon"
+          ]
+        }
+
+        styles [
+          "artist-noimage"
+        ]
+      }
+    }
+
+    Label artist_name {
+        halign: start;
+        selectable: true;
+        label: _("Artist Name");
+
+        styles [
+          "artist-name",
+          "bold"
+        ]
+    }
+  }
+  
+  Label {
+    label: _("Tracks");
+    hexpand: true;
+    halign: start;
+    margin-top: 20;
+    margin-start: 25;
+    margin-end: 25;
+
+    styles [
+      "subtitle"
+    ]
+  }
+
+  ListBox tracks {
+    hexpand: true;
+    selection-mode: none;
+    styles [
+      "track-list"
+    ]
+  }
+
+  Label {
+    label: _("Albums");
+    hexpand: true;
+    halign: start;
+    margin-top: 20;
+    margin-start: 25;
+    margin-end: 25;
+    
+    styles [
+      "subtitle"
+    ]
+  }
+
+  FlowBox albums {
+    homogeneous: true;
+    valign: center;
+    halign: start;
+    row-spacing: 12;
+    column-spacing: 12;
+    selection-mode: none;
+    margin-start: 20;
+  }
 }
+

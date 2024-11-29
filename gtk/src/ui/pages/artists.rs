@@ -1,6 +1,7 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::{GetArtistsRequest, GetArtistsResponse};
 use crate::ui::artist::Artist;
+use crate::ui::pages::artist_details::ArtistDetails;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
@@ -24,6 +25,7 @@ mod imp {
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub library_page: RefCell<Option<adw::NavigationPage>>,
         pub go_back_button: RefCell<Option<Button>>,
+        pub artist_details: RefCell<Option<ArtistDetails>>,
     }
 
     #[glib::object_subclass]
@@ -77,6 +79,10 @@ mod imp {
         pub fn set_go_back_button(&self, go_back_button: Button) {
             *self.go_back_button.borrow_mut() = Some(go_back_button);
         }
+
+        pub fn set_artist_details(&self, artist_details: ArtistDetails) {
+            *self.artist_details.borrow_mut() = Some(artist_details);
+        }
     }
 }
 
@@ -115,12 +121,15 @@ impl Artists {
                 let main_stack = self.imp().main_stack.borrow().as_ref().unwrap().clone();
                 let library_page = self.imp().library_page.borrow().as_ref().unwrap().clone();
                 let go_back_button = self.imp().go_back_button.borrow().as_ref().unwrap().clone();
+                let artist_details = self.imp().artist_details.borrow().as_ref().unwrap().clone();
+                let artist_id = artist_item.id.clone();
 
                 let click = gtk::GestureClick::new();
                 click.connect_released(move |_, _, _, _| {
                     main_stack.set_visible_child_name("artist-details-page");
                     library_page.set_title("Artist");
                     go_back_button.set_visible(true);
+                    artist_details.load_artist(&artist_id);
                 });
                 artist.add_controller(click);
 
