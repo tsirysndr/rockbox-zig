@@ -1,12 +1,13 @@
 use crate::api::rockbox::v1alpha1::browse_service_client::BrowseServiceClient;
 use crate::api::rockbox::v1alpha1::{TreeGetEntriesRequest, TreeGetEntriesResponse};
+use crate::state::AppState;
+use adw::prelude::*;
 use adw::subclass::prelude::*;
+use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
 use gtk::{CompositeTemplate, Image, Label, ListBox};
-use adw::prelude::*;
-use std::cell::{RefCell, Cell};
-use anyhow::Error;
+use std::cell::{Cell, RefCell};
 use std::env;
 
 mod imp {
@@ -26,8 +27,8 @@ mod imp {
         pub files: RefCell<Option<ListBox>>,
         pub go_back_button: RefCell<Option<gtk::Button>>,
         pub path: RefCell<String>,
-        pub current_path: RefCell<Option<String>>,
         pub is_dir: Cell<bool>,
+        pub state: glib::WeakRef<AppState>,
     }
 
     #[glib::object_subclass]
@@ -61,8 +62,8 @@ mod imp {
                         return;
                     }
 
-                    let mut current_path = self_.current_path.borrow_mut();
-                    *current_path = Some(path.clone());
+                    let state = self_.state.upgrade().unwrap();
+                    state.set_current_path(path.clone().as_str());
 
                     obj.load_files(Some(path));
                     let go_back_button = self_.go_back_button.borrow();
@@ -91,10 +92,6 @@ mod imp {
         pub fn set_path(&self, path: String) {
             *self.path.borrow_mut() = path;
         }
-        
-        pub fn set_current_path(&self, path: Option<String>) {
-            *self.current_path.borrow_mut() = path;
-        }
 
         pub fn set_is_dir(&self, is_dir: bool) {
             self.is_dir.set(is_dir);
@@ -103,7 +100,6 @@ mod imp {
                 false => self.file_icon.set_icon_name(Some("music-alt-symbolic")),
             };
         }
-
     }
 }
 
@@ -124,9 +120,7 @@ impl File {
             let url = build_url();
             let mut client = BrowseServiceClient::connect(url).await?;
             let response = client
-                .tree_get_entries(TreeGetEntriesRequest {
-                    path
-                })
+                .tree_get_entries(TreeGetEntriesRequest { path: path.clone() })
                 .await?
                 .into_inner();
             Ok::<TreeGetEntriesResponse, Error>(response)
@@ -136,16 +130,17 @@ impl File {
             let files = self.imp().files.borrow();
             let files_ref = files.as_ref();
             let files_ref = files_ref.unwrap();
-                    
+
             while let Some(file) = files_ref.first_child() {
                 files_ref.remove(&file);
             }
-                
+
             for entry in response.entries {
                 let file = File::new();
                 let filename = entry.name.split("/").last().unwrap();
                 file.imp().set_files(files_ref.clone());
-                file.imp().set_go_back_button(self.imp().go_back_button.borrow().clone());
+                file.imp()
+                    .set_go_back_button(self.imp().go_back_button.borrow().clone());
                 file.imp().file_name.set_text(filename);
                 file.imp().set_path(entry.name.clone());
                 file.imp().set_is_dir(entry.attr == 16);
@@ -153,12 +148,10 @@ impl File {
             }
         }
     }
-    
 }
 
 fn build_url() -> String {
     let host = env::var("ROCKBOX_HOST").unwrap_or("localhost".to_string());
     let port = env::var("ROCKBOX_PORT").unwrap_or("6061".to_string());
     format!("tcp://{}:{}", host, port)
-    
 }

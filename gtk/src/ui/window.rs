@@ -245,12 +245,16 @@ mod imp {
             }
             if current_page.1 == "files-page" && poped_page.1 == "album-details-page" {
                 let files = self.files.get();
-                let default_string = String::new();
-                let current_path = files.imp().current_path.borrow();
-                let current_path_ref = current_path.as_ref().unwrap_or(&default_string);
+                let default_string = String::from("");
+                let state = self.state.upgrade().unwrap();
+                let current_path = state.current_path().unwrap_or(String::from(""));
                 let music_directory = files.imp().music_directory.borrow();
                 let music_directory_ref = music_directory.as_ref().unwrap_or(&default_string);
-                go_back_button.set_visible(*current_path_ref != *music_directory_ref);
+
+                go_back_button.set_visible(
+                    current_path != *music_directory_ref
+                        && current_path != *default_string,
+                );
             }
         }
     }
@@ -281,6 +285,7 @@ impl RbApplicationWindow {
         artists.imp().state.set(Some(&state));
         artist_details.imp().state.set(Some(&state));
         media_control_bar.imp().state.set(Some(&state));
+        files.imp().state.set(Some(&state));
 
         media_control_bar
             .imp()

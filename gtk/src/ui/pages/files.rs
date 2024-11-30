@@ -1,15 +1,19 @@
-use crate::api::rockbox::v1alpha1::settings_service_client::SettingsServiceClient;
 use crate::api::rockbox::v1alpha1::browse_service_client::BrowseServiceClient;
-use crate::api::rockbox::v1alpha1::{TreeGetEntriesRequest, TreeGetEntriesResponse, GetGlobalSettingsRequest, GetGlobalSettingsResponse};
+use crate::api::rockbox::v1alpha1::settings_service_client::SettingsServiceClient;
+use crate::api::rockbox::v1alpha1::{
+    GetGlobalSettingsRequest, GetGlobalSettingsResponse, TreeGetEntriesRequest,
+    TreeGetEntriesResponse,
+};
+use crate::state::AppState;
 use crate::ui::file::File;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate, ListBox, Button, ListBoxRow};
-use std::env;
+use gtk::{Button, CompositeTemplate, ListBox, ListBoxRow};
 use std::cell::RefCell;
+use std::env;
 use std::path::Path;
 
 mod imp {
@@ -25,7 +29,7 @@ mod imp {
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub go_back_button: RefCell<Option<Button>>,
         pub music_directory: RefCell<Option<String>>,
-        pub current_path: RefCell<Option<String>>,
+        pub state: glib::WeakRef<AppState>,
     }
 
     #[glib::object_subclass]
@@ -58,7 +62,6 @@ mod imp {
                     let obj = self_.obj();
                     obj.load_files(None);
                 });
-
 
                 let self_ = match self_weak.upgrade() {
                     Some(self_) => self_,
@@ -106,7 +109,7 @@ impl Files {
             let url = build_url();
             let mut client = BrowseServiceClient::connect(url).await?;
             let response = client
-                .tree_get_entries(TreeGetEntriesRequest { path })
+                .tree_get_entries(TreeGetEntriesRequest { path: path.clone() })
                 .await?
                 .into_inner();
             Ok::<TreeGetEntriesResponse, Error>(response)
@@ -117,17 +120,19 @@ impl Files {
             while let Some(row) = files.first_child() {
                 files.remove(&row);
             }
-            let current_path = self.imp().current_path.borrow();
+            let state = self.imp().state.upgrade().unwrap();
+            state.set_current_path(path.clone().unwrap_or("".to_string()).as_str());
 
             for entry in response.entries {
                 let file = File::new();
                 // pop up the filename
                 let filename = entry.name.split("/").last().unwrap();
                 file.imp().set_files(self.imp().files.clone());
-                file.imp().set_go_back_button(self.imp().go_back_button.borrow().clone());
+                file.imp()
+                    .set_go_back_button(self.imp().go_back_button.borrow().clone());
                 file.imp().file_name.set_text(filename);
+                file.imp().state.set(Some(&state));
                 file.imp().set_path(entry.name.clone());
-                file.imp().set_current_path(current_path.clone());
                 file.imp().set_is_dir(entry.attr == 16);
                 self.imp().files.append(&file);
             }
@@ -140,7 +145,7 @@ impl Files {
             let url = build_url();
             let mut client = SettingsServiceClient::connect(url).await?;
             let response = client
-                .get_global_settings(GetGlobalSettingsRequest { })
+                .get_global_settings(GetGlobalSettingsRequest {})
                 .await?
                 .into_inner();
             Ok::<GetGlobalSettingsResponse, Error>(response)
@@ -157,10 +162,7 @@ impl Files {
             Some(child) => {
                 let row = child.downcast::<ListBoxRow>().unwrap();
                 let file = row.first_child().unwrap().downcast::<File>().unwrap();
-                let path = file
-                    .imp()
-                    .path
-                    .borrow();
+                let path = file.imp().path.borrow();
                 let path = path.clone();
                 let parent = match Path::new(&path).parent() {
                     Some(parent) => match parent.parent() {
@@ -169,22 +171,19 @@ impl Files {
                     },
                     None => Path::new(&path),
                 };
-                parent
-                    .to_str()
-                    .unwrap()
-                    .to_string()
-            },
+                parent.to_str().unwrap().to_string()
+            }
             None => {
                 let music_directory = self.imp().music_directory.borrow();
                 let music_directory = music_directory.clone().unwrap();
-                let current_path = self.imp().current_path.borrow();
-                current_path.clone().unwrap_or(music_directory)
+                let state = self.imp().state.upgrade().unwrap();
+                state.current_path().unwrap_or(music_directory)
             }
         };
 
         let music_directory = self.imp().music_directory.borrow();
         let music_directory = music_directory.clone().unwrap();
-        
+
         if parent == music_directory {
             let go_back_button = self.imp().go_back_button.borrow();
             let go_back_button = go_back_button.clone().unwrap();
