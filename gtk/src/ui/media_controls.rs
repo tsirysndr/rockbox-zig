@@ -14,8 +14,10 @@ use crate::api::rockbox::v1alpha1::{
     NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest, SaveSettingsRequest,
     StreamCurrentTrackRequest, StreamStatusRequest,
 };
+use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::types::track::Track;
+use crate::ui::pages::album_details::AlbumDetails;
 use std::cell::{Cell, RefCell};
 use tokio::sync::mpsc;
 
@@ -59,6 +61,12 @@ mod imp {
         pub playback_status: Cell<i32>,
         pub shuffle_enabled: Cell<bool>,
         pub repeat_mode: Cell<i32>,
+        pub library_page: RefCell<Option<adw::NavigationPage>>,
+        pub current_album_id: RefCell<Option<String>>,
+        pub album_details: RefCell<Option<AlbumDetails>>,
+        pub main_stack: RefCell<Option<adw::ViewStack>>,
+        pub go_back_button: RefCell<Option<Button>>,
+        pub state: glib::WeakRef<AppState>,
     }
 
     #[glib::object_subclass]
@@ -139,6 +147,34 @@ mod imp {
                     glib::Propagation::Stop
                 });
 
+            let album_click = gtk::GestureClick::new();
+            let self_weak = self.downgrade();
+            album_click.connect_released(move |_, _, _, _| {
+                let self_ = match self_weak.upgrade() {
+                    Some(self_) => self_,
+                    None => return,
+                };
+                let state = self_.state.upgrade().unwrap();
+                let current_album_id = self_.current_album_id.borrow();
+                if let Some(album_id) = current_album_id.as_ref() {
+                    let album_details = self_.album_details.borrow();
+                    let library_page = self_.library_page.borrow();
+                    let main_stack = self_.main_stack.borrow();
+                    let go_back_button = self_.go_back_button.borrow();
+                    let album_details_ref = album_details.as_ref().unwrap();
+                    let library_page_ref = library_page.as_ref().unwrap();
+                    let main_stack_ref = main_stack.as_ref().unwrap();
+                    let go_back_button_ref = go_back_button.as_ref().unwrap();
+                    main_stack_ref.set_visible_child_name("album-details-page");
+                    library_page_ref.set_title("Album");
+                    go_back_button_ref.set_visible(true);
+                    state.push_navigation("Album", "album-details-page");
+                    album_details_ref.imp().load_album(album_id);
+                }
+            });
+            let album_art = self.album_art.get();
+            album_art.add_controller(album_click);
+
             let self_weak = self.downgrade();
             glib::idle_add_local(move || {
                 let self_ = match self_weak.upgrade() {
@@ -190,6 +226,8 @@ mod imp {
                         artist_album.set_text(&format!("{} - {}", track.artist, track.album));
                         elapsed.set_text(&format_milliseconds(track.elapsed));
                         duration.set_text(&format_milliseconds(track.length));
+
+                        self_.current_album_id.replace(Some(track.album_id));
 
                         if let Some(filename) = track.album_art {
                             let home = std::env::var("HOME").unwrap();

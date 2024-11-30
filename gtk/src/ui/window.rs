@@ -265,10 +265,18 @@ impl RbApplicationWindow {
         let artists = window.imp().artists.get();
         let artist_details = window.imp().artist_details.get();
         let files = window.imp().files.get();
+        let media_control_bar = window.imp().media_control_bar.get();
+        let go_back_button = window.imp().go_back_button.get();
 
         window.imp().state.set(Some(&state));
         artists.imp().state.set(Some(&state));
         artist_details.imp().state.set(Some(&state));
+        media_control_bar.imp().state.set(Some(&state));
+
+        media_control_bar.imp().library_page.replace(Some(library_page.clone()));
+        media_control_bar.imp().album_details.replace(Some(album_details.clone()));
+        media_control_bar.imp().main_stack.replace(Some(main_stack.clone()));
+        media_control_bar.imp().go_back_button.replace(Some(go_back_button.clone()));
 
         albums.imp().set_main_stack(main_stack.clone());
         albums.imp().set_library_page(library_page.clone());
