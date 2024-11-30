@@ -1,4 +1,5 @@
 use crate::app;
+use crate::state::AppState;
 use crate::ui::window::RbApplicationWindow;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
@@ -12,6 +13,7 @@ mod imp {
 
     use super::*;
     pub struct RbApplication {
+        pub state: OnceCell<AppState>,
         pub window: OnceCell<WeakRef<RbApplicationWindow>>,
     }
 
@@ -23,6 +25,7 @@ mod imp {
 
         fn new() -> Self {
             Self {
+                state: OnceCell::new(),
                 window: OnceCell::new(),
             }
         }
@@ -85,7 +88,9 @@ impl RbApplication {
     }
 
     pub fn create_window(&self) -> RbApplicationWindow {
-        let window = RbApplicationWindow::new();
+        let app_state = self.imp().state.get_or_init(AppState::new);
+        let window = RbApplicationWindow::new(app_state.clone());
+
         self.add_window(&window);
 
         window.present();

@@ -1,16 +1,18 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::{GetArtistsRequest, GetArtistsResponse};
+use crate::state::AppState;
 use crate::ui::artist::Artist;
+use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::artist_details::ArtistDetails;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate, FlowBox, Button};
-use std::env;
 use gtk::pango::EllipsizeMode;
+use gtk::{Button, CompositeTemplate, FlowBox};
 use std::cell::RefCell;
+use std::env;
 
 mod imp {
 
@@ -26,6 +28,8 @@ mod imp {
         pub library_page: RefCell<Option<adw::NavigationPage>>,
         pub go_back_button: RefCell<Option<Button>>,
         pub artist_details: RefCell<Option<ArtistDetails>>,
+        pub album_details: RefCell<Option<AlbumDetails>>,
+        pub state: glib::WeakRef<AppState>,
     }
 
     #[glib::object_subclass]
@@ -82,6 +86,26 @@ mod imp {
 
         pub fn set_artist_details(&self, artist_details: ArtistDetails) {
             *self.artist_details.borrow_mut() = Some(artist_details);
+            let artist_details = self.artist_details.borrow_mut();
+            if let Some(artist_details) = artist_details.as_ref() {
+                let main_stack = self.main_stack.borrow();
+                let main_stack = main_stack.as_ref().unwrap();
+                let library_page = self.library_page.borrow();
+                let library_page = library_page.as_ref().unwrap();
+                artist_details.imp().set_main_stack(main_stack.clone());
+                artist_details.imp().set_library_page(library_page.clone());
+            }
+        }
+
+        pub fn set_album_details(&self, album_details: AlbumDetails) {
+            *self.album_details.borrow_mut() = Some(album_details);
+            let artist_details = self.artist_details.borrow();
+            let artist_details = artist_details.as_ref().unwrap();
+            let album_details = self.album_details.borrow();
+            let album_details = album_details.as_ref().unwrap();
+            artist_details
+                .imp()
+                .set_album_details(album_details.clone());
         }
     }
 }
@@ -106,7 +130,7 @@ impl Artists {
             Ok::<GetArtistsResponse, Error>(response)
         });
 
-        if let Ok(response) = response_{
+        if let Ok(response) = response_ {
             let artists = self.imp().artists.clone();
             while let Some(row) = artists.first_child() {
                 artists.remove(&row);
@@ -122,6 +146,7 @@ impl Artists {
                 let library_page = self.imp().library_page.borrow().as_ref().unwrap().clone();
                 let go_back_button = self.imp().go_back_button.borrow().as_ref().unwrap().clone();
                 let artist_details = self.imp().artist_details.borrow().as_ref().unwrap().clone();
+                let state = self.imp().state.upgrade().unwrap();
                 let artist_id = artist_item.id.clone();
 
                 let click = gtk::GestureClick::new();
@@ -129,7 +154,8 @@ impl Artists {
                     main_stack.set_visible_child_name("artist-details-page");
                     library_page.set_title("Artist");
                     go_back_button.set_visible(true);
-                    artist_details.load_artist(&artist_id);
+                    artist_details.imp().load_artist(&artist_id);
+                    state.push_navigation("Artist", "artist-details-page");
                 });
                 artist.add_controller(click);
 

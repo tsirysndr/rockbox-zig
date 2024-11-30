@@ -2,6 +2,7 @@ use std::{env, thread};
 
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::{GetAlbumsRequest, GetAlbumsResponse};
+use crate::ui::pages::album_details::AlbumDetails;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
@@ -11,7 +12,6 @@ use gtk::prelude::WidgetExt;
 use gtk::CompositeTemplate;
 use gtk::{glib, Box, FlowBox, Image, Label, Orientation};
 use std::cell::RefCell;
-use crate::ui::pages::album_details::AlbumDetails;
 
 mod imp {
 
@@ -26,6 +26,7 @@ mod imp {
         pub library_page: RefCell<Option<adw::NavigationPage>>,
         pub go_back_button: RefCell<Option<gtk::Button>>,
         pub album_details: RefCell<Option<AlbumDetails>>,
+        pub previous_page: RefCell<Vec<(String, String)>>,
     }
 
     #[glib::object_subclass]
@@ -83,6 +84,10 @@ mod imp {
             *self.album_details.borrow_mut() = Some(album_details);
         }
 
+        pub fn set_previous_page(&self, previous_page: Vec<(String, String)>) {
+            *self.previous_page.borrow_mut() = previous_page;
+        }
+
         pub fn add_picture_to_library(
             &self,
             id: &str,
@@ -112,13 +117,18 @@ mod imp {
                 };
                 let obj = self_.obj();
                 obj.navigate_to_details(&album_id);
-                obj.imp().album_details.borrow().as_ref().unwrap().imp().load_album(&album_id);
+                obj.imp()
+                    .album_details
+                    .borrow()
+                    .as_ref()
+                    .unwrap()
+                    .imp()
+                    .load_album(&album_id);
             });
 
             image_container.append(&image);
             image_container.add_controller(gesture);
             image_container.add_css_class("rounded-image");
-
 
             let self_weak = self.downgrade();
             let album_id = id.to_string();
@@ -130,9 +140,15 @@ mod imp {
                 };
                 let obj = self_.obj();
                 obj.navigate_to_details(&album_id);
-                obj.imp().album_details.borrow().as_ref().unwrap().imp().load_album(&album_id);
+                obj.imp()
+                    .album_details
+                    .borrow()
+                    .as_ref()
+                    .unwrap()
+                    .imp()
+                    .load_album(&album_id);
             });
-            
+
             let title = Label::new(Some(title));
             title.set_ellipsize(EllipsizeMode::End);
             title.set_max_width_chars(23);

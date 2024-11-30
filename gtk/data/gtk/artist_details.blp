@@ -5,6 +5,9 @@ template $ArtistDetails : Box {
   spacing: 20;
   margin-top: 50;
   margin-bottom: 25;
+  valign: center;
+  hexpand: true;
+  halign: fill;
 
   Box {
     orientation: horizontal;
@@ -46,15 +49,127 @@ template $ArtistDetails : Box {
       }
     }
 
-    Label artist_name {
-        halign: start;
-        selectable: true;
-        label: _("Artist Name");
+    Box {
+      orientation: horizontal;
+      hexpand: true;
+      halign: fill;
+      valign: center;
 
-        styles [
-          "artist-name",
-          "bold"
-        ]
+      Box {
+        halign: fill;
+        hexpand: true;
+      
+        Label artist_name {
+          halign: start;
+          selectable: true;
+          label: _("Artist Name");
+
+          styles [
+            "artist-name",
+            "bold"
+          ]
+        }
+      }
+
+      Box {
+        orientation: horizontal;
+        halign: end;
+        valign: center;
+
+        Box {
+          orientation: vertical;
+          margin-end: 10;
+
+          Button play_button {
+            tooltip-text: _("Play all tracks");
+            icon-name: "media-playback-start-symbolic";
+            action-name: "app.play-artist-tracks";
+            halign: center;
+            valign:  center;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          Button {
+            label: "Play";
+            action-name: "app.play-artist-tracks";
+            halign: center;
+            valign: center;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+        }
+
+        Box {
+          orientation: vertical;
+          margin-end: 10;
+
+          Button shuffle_button {
+            tooltip-text: _("Shuffle all tracks");
+            icon-name: "media-playlist-shuffle-symbolic";
+            action-name: "app.shuffle-artist-tracks";
+            halign: center;
+            valign:  center;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          Button {
+            label: "Shuffle";
+            action-name: "app.shuffle-artist-tracks";
+            halign: center;
+            valign: center;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+        }
+
+        Box {
+          orientation: vertical;
+          
+          Button more_button {
+            tooltip-text: _("More");
+            halign: center;
+            valign:  center;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            child: Image {
+              icon-name: "options-symbolic";
+              pixel-size: 24;
+            };
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          Button {
+            label: "More";
+            halign: center;
+            valign: center;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+        }
+
+      }
     }
   }
   

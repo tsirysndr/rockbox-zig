@@ -83,65 +83,110 @@ template $AlbumDetails : Box {
 
       Box album_actions {
         orientation: horizontal;
-        spacing: 10;
+        spacing: 0;
         halign: start;
         valign: center;
 
-        Button album_play_button {
-          tooltip-text: _("Play album");
-          icon-name: "media-playback-start-symbolic";
-          action-name: "app.play-album";
-          halign: center;
-          valign: center;
+        Box {
+          orientation: vertical;
           margin-end: 10;
-          margin-start: 0;
-          margin-top: 0;
-          margin-bottom: 0;
-          width-request: 40;
-          height-request: 40;
 
-          styles [
-            "transparent-button"
-          ]
+          Button album_play_button {
+            tooltip-text: _("Play album");
+            icon-name: "media-playback-start-symbolic";
+            action-name: "app.play-album";
+            halign: center;
+            valign: center;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          Button {
+            label: "Play";
+            action-name: "app.play-album";
+            halign: center;
+            valign: center;
+            
+            styles [
+              "transparent-button"
+            ]
+          }
         }
 
-        Button album_shuffle_button {
-          tooltip-text: _("Shuffle album");
-          icon-name: "media-playlist-shuffle-symbolic";
-          action-name: "app.shuffle-album";
-          halign: center;
-          valign: center;
-          margin-end: 0;
-          margin-start: 0;
-          margin-top: 0;
-          margin-bottom: 0;
-          width-request: 40;
-          height-request: 40;
+        Box {
+          orientation: vertical;
+          margin-end: 10; 
+            
+          Button album_shuffle_button {
+            tooltip-text: _("Shuffle album");
+            icon-name: "media-playlist-shuffle-symbolic";
+            action-name: "app.shuffle-album";
+            halign: center;
+            valign: center;
+            margin-end: 0;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
 
-          styles [
-            "transparent-button"
-          ]
+            styles [
+              "transparent-button"
+            ]
+          }
+        
+        
+          Button {
+            label: "Shuffle";
+            action-name: "app.shuffle-album";
+            halign: center;
+            valign: center;
+            
+            styles [
+              "transparent-button"
+            ]
+          }
         }
 
-        Button album_more_button {
-          tooltip-text: _("More");
-          child: Image {
-            icon-name: "options-symbolic";
-            pixel-size: 24;
-          };
-          halign: center;
-          valign: center;
-          margin-end: 0;
-          margin-start: 0;
-          margin-top: 0;
-          margin-bottom: 0;
-          width-request: 40;
-          height-request: 40;
 
-          styles [
-            "transparent-button"
-          ]
+        Box {
+          orientation: vertical;
+          margin-end: 10;
+
+          Button album_more_button {
+            tooltip-text: _("More");
+            child: Image {
+              icon-name: "options-symbolic";
+              pixel-size: 24;
+            };
+
+            halign: center;
+            valign: center;
+            margin-end: 0;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          Button {
+            label: "More";
+            halign: center;
+            valign: center;
+            
+            styles [
+              "transparent-button"
+            ]
+          }
+
         }
+
       }
     }
   }
