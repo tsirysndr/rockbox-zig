@@ -135,6 +135,8 @@ impl File {
                 files_ref.remove(&file);
             }
 
+            let state = self.imp().state.upgrade().unwrap();
+
             for entry in response.entries {
                 let file = File::new();
                 let filename = entry.name.split("/").last().unwrap();
@@ -142,6 +144,7 @@ impl File {
                 file.imp()
                     .set_go_back_button(self.imp().go_back_button.borrow().clone());
                 file.imp().file_name.set_text(filename);
+                file.imp().state.set(Some(&state));
                 file.imp().set_path(entry.name.clone());
                 file.imp().set_is_dir(entry.attr == 16);
                 files_ref.append(&file);
