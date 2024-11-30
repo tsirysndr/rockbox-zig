@@ -226,10 +226,10 @@ mod imp {
             let main_stack = self.main_stack.get();
             let state = self.state.upgrade().unwrap();
 
-            state.pop_navigation();
+            let poped_page = state.pop_navigation();
             let current_page = state.current_page();
 
-            if current_page.1 == "files-page" {
+            if current_page.1 == "files-page" && poped_page.1 == "files-page" {
                 let files = self.files.get();
                 files.go_back();
                 return;
@@ -242,6 +242,15 @@ mod imp {
             let go_back_button = self.go_back_button.get();
             if state.navigation_stack_len() == 1 {
                 go_back_button.set_visible(false);
+            }
+            if current_page.1 == "files-page" && poped_page.1 == "album-details-page" {
+                let files = self.files.get();
+                let default_string = String::new();
+                let current_path = files.imp().current_path.borrow();
+                let current_path_ref = current_path.as_ref().unwrap_or(&default_string);
+                let music_directory = files.imp().music_directory.borrow();
+                let music_directory_ref = music_directory.as_ref().unwrap_or(&default_string);
+                go_back_button.set_visible(*current_path_ref != *music_directory_ref);
             }
         }
     }
@@ -273,10 +282,22 @@ impl RbApplicationWindow {
         artist_details.imp().state.set(Some(&state));
         media_control_bar.imp().state.set(Some(&state));
 
-        media_control_bar.imp().library_page.replace(Some(library_page.clone()));
-        media_control_bar.imp().album_details.replace(Some(album_details.clone()));
-        media_control_bar.imp().main_stack.replace(Some(main_stack.clone()));
-        media_control_bar.imp().go_back_button.replace(Some(go_back_button.clone()));
+        media_control_bar
+            .imp()
+            .library_page
+            .replace(Some(library_page.clone()));
+        media_control_bar
+            .imp()
+            .album_details
+            .replace(Some(album_details.clone()));
+        media_control_bar
+            .imp()
+            .main_stack
+            .replace(Some(main_stack.clone()));
+        media_control_bar
+            .imp()
+            .go_back_button
+            .replace(Some(go_back_button.clone()));
 
         albums.imp().set_main_stack(main_stack.clone());
         albums.imp().set_library_page(library_page.clone());
