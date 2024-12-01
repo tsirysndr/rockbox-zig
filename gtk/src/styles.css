@@ -99,6 +99,11 @@
   font-size: 20px;
 }
 
+.disc {
+  font-weight: bold;
+  font-size: 16px;
+}
+
 .bold {
   font-weight: bold;
 }

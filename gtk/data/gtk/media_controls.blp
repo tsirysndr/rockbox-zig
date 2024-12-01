@@ -177,4 +177,16 @@ template $MediaControls : Box {
       }
     }
   }
+
+  Box {  
+    Button playlist_button {
+      icon-name: "chevronup-symbolic";
+      action-name: "app.show-playlist";
+      tooltip-text: _("Show Playlist");
+
+      styles [
+        "media-control-button"
+      ]
+    }
+  }
 }

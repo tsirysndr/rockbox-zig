@@ -13,5 +13,7 @@
     <file alias="music-symbolic.svg">icons/svg/music-symbolic.svg</file>
     <file alias="music-alt-symbolic.svg">icons/svg/music-alt-symbolic.svg</file>
     <file alias="options-symbolic.svg">icons/svg/options-symbolic.svg</file>
+    <file alias="chevronup-symbolic.svg">icons/svg/chevronup-symbolic.svg</file>
+    <file alias="chevrondown-symbolic.svg">icons/svg/chevrondown-symbolic.svg</file>
   </gresource>
 </gresources>

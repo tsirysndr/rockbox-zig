@@ -113,6 +113,13 @@ mod imp {
                     media_controls.repeat();
                 },
             );
+ 
+            klass.install_action(
+                "app.show-playlist",
+                None,
+                move |media_controls, _action, _target| {
+                },
+            );
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {

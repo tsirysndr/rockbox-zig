@@ -191,15 +191,9 @@ template $AlbumDetails : Box {
     }
   }
 
-  ListBox album_track_list {
+  Box album_tracklist {
     hexpand: true;
-    margin-top: 15;
-    margin-bottom: 15;
-    selection-mode: none;
-
-    styles [
-      "album-track-list"
-    ]
+    halign: fill;
+    orientation: vertical;
   }
-
 }

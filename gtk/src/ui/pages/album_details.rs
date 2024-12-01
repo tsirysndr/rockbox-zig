@@ -1,7 +1,7 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{Album, GetAlbumRequest};
+use crate::api::rockbox::v1alpha1::{Album, GetAlbumRequest, Track};
 use crate::time::format_milliseconds;
-use crate::ui::song::Song;
+use crate::ui::album_tracks::AlbumTracks;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
@@ -28,7 +28,7 @@ mod imp {
         #[template_child]
         pub album_year: TemplateChild<Label>,
         #[template_child]
-        pub album_track_list: TemplateChild<ListBox>,
+        pub album_tracklist: TemplateChild<gtk::Box>,
     }
 
     #[glib::object_subclass]
@@ -99,22 +99,37 @@ mod imp {
                     }
                 }
 
-                let album_track_list = self.album_track_list.clone();
-                while let Some(row) = album_track_list.first_child() {
-                    album_track_list.remove(&row);
+                let album_tracklist = self.album_tracklist.clone();
+                while let Some(row) = album_tracklist.first_child() {
+                    album_tracklist.remove(&row);
                 }
 
-                for track in album.tracks {
-                    let song = Song::new();
-                    song.imp()
-                        .track_number
-                        .set_text(&format!("{}", track.track_number));
-                    song.imp().track_title.set_text(&track.title);
-                    song.imp().artist.set_text(&track.artist);
-                    song.imp()
-                        .track_duration
-                        .set_text(&format_milliseconds(track.length as u64));
-                    self.album_track_list.append(&song);
+                let discs = album
+                    .tracks
+                    .iter()
+                    .map(|t| t.disc_number)
+                    .max()
+                    .unwrap_or(1);
+
+                match discs > 1 {
+                    true => {
+                        for disc in 1..=discs {
+                            let album_tracks = AlbumTracks::new();
+                            let tracks = album
+                                .tracks
+                                .clone()
+                                .into_iter()
+                                .filter(|t| t.disc_number == disc)
+                                .collect::<Vec<Track>>();
+                            album_tracks.imp().load_tracks(tracks, Some(disc));
+                            self.album_tracklist.append(&album_tracks);
+                        }
+                    }
+                    false => {
+                        let album_tracks = AlbumTracks::new();
+                        album_tracks.imp().load_tracks(album.tracks, None);
+                        self.album_tracklist.append(&album_tracks);
+                    }
                 }
             }
         }
