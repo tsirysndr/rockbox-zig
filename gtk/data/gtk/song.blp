@@ -77,7 +77,7 @@ template $Song : Box {
     ]
   }
  
-  Button {
+  Button heart_button {
     tooltip-text: _("Like");
     child: Image {
       icon-name: "heart-outline-symbolic";
@@ -98,7 +98,7 @@ template $Song : Box {
     ]
   }
 
-  Button {
+  Button more_button {
     tooltip-text: _("More");
     
     child: Image {
@@ -119,5 +119,24 @@ template $Song : Box {
       "transparent-button"
     ]
   }
+}
+
+
+Button remove_button {
+    tooltip-text: _("Remove");
+    visible: false;
+
+    halign: center;
+    valign: center;
+    margin-end: 0;
+    margin-start: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    width-request: 40;
+    height-request: 40;
+    
+    styles [
+      "transparent-button"
+    ]
 }
 

@@ -1,4 +1,5 @@
 use crate::navigation::NavigationHistory;
+use crate::types::track::Track;
 use glib::subclass::prelude::*;
 use gtk::glib;
 use std::cell::RefCell;
@@ -10,6 +11,7 @@ mod imp {
     pub struct AppState {
         pub navigation_history: RefCell<NavigationHistory>,
         pub current_path: RefCell<Option<String>>,
+        pub current_track: RefCell<Option<Track>>,
     }
 
     #[glib::object_subclass]
@@ -34,6 +36,7 @@ impl AppState {
             .navigation_history
             .replace(NavigationHistory::new());
         obj.imp().current_path.replace(None);
+        obj.imp().current_track.replace(None);
 
         obj
     }
@@ -87,5 +90,15 @@ impl AppState {
     pub fn set_current_path(&self, path: &str) {
         let self_ = imp::AppState::from_obj(self);
         *self_.current_path.borrow_mut() = Some(path.to_string());
+    }
+
+    pub fn current_track(&self) -> Option<Track> {
+        let self_ = imp::AppState::from_obj(self);
+        self_.current_track.borrow().clone()
+    }
+
+    pub fn set_current_track(&self, track: Track) {
+        let self_ = imp::AppState::from_obj(self);
+        *self_.current_track.borrow_mut() = Some(track);
     }
 }

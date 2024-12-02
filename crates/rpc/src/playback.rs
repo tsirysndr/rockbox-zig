@@ -582,4 +582,27 @@ impl PlaybackService for Playback {
             Box::pin(output) as Self::StreamStatusStream
         ))
     }
+
+    type StreamPlaylistStream = Pin<
+        Box<dyn Stream<Item = Result<PlaylistResponse, tonic::Status>> + Send + Sync + 'static>,
+    >;
+
+    async fn stream_playlist(
+        &self,
+        _request: tonic::Request<StreamPlaylistRequest>,
+    ) -> Result<tonic::Response<Self::StreamPlaylistStream>, tonic::Status> {
+        let mut stream = SimpleBroker::<schema::objects::playlist::Playlist>::subscribe();
+        let output = async_stream::try_stream! {
+            while let Some(playlist) = stream.next().await {
+                yield PlaylistResponse {
+                    index: playlist.index,
+                    amount: playlist.amount,
+                    tracks: playlist.tracks.into_iter().map(|t| t.into()).collect(),
+                };
+            }
+        };
+        Ok(tonic::Response::new(
+            Box::pin(output) as Self::StreamPlaylistStream
+        ))
+    }
 }

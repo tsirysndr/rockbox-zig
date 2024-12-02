@@ -104,6 +104,15 @@
   font-size: 16px;
 }
 
+.current-track-title {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.current-track-artist {
+  font-size: 18px;
+}
+
 .bold {
   font-weight: bold;
 }

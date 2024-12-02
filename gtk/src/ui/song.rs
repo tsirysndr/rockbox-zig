@@ -1,7 +1,7 @@
 use adw::subclass::prelude::*;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate, Image, Label};
+use gtk::{Button, CompositeTemplate, Image, Label};
 
 mod imp {
 
@@ -22,6 +22,10 @@ mod imp {
         pub artist: TemplateChild<Label>,
         #[template_child]
         pub track_duration: TemplateChild<Label>,
+        #[template_child]
+        pub heart_button: TemplateChild<Button>,
+        #[template_child]
+        pub more_button: TemplateChild<Button>,
     }
 
     #[glib::object_subclass]
@@ -33,9 +37,7 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             Self::bind_template(klass);
 
-            klass.install_action("app.like-song", None, move |_song, _action, _target| {
-
-            });
+            klass.install_action("app.like-song", None, move |_song, _action, _target| {});
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {

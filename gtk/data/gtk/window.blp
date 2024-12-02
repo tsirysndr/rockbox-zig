@@ -282,6 +282,12 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                       $Files files {}
                     };
                   }
+                  
+                  Adw.ViewStackPage current_playlist_page {
+                    name: "current-playlist-page";
+                    title: _("Play Queue");
+                    child: $CurrentPlaylist current_playlist {};
+                  }
 
                 }
             }

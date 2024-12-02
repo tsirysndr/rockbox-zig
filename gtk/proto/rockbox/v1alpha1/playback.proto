@@ -163,6 +163,14 @@ message PlayAllTracksRequest {
 
 message PlayAllTracksResponse {}
 
+message StreamPlaylistRequest {}
+
+message PlaylistResponse {
+  int32 index = 1;
+  int32 amount = 2;
+  repeated CurrentTrackResponse tracks = 3;
+}
+
 service PlaybackService {
   rpc Play(PlayRequest) returns (PlayResponse) {}
   rpc Pause(PauseRequest) returns (PauseResponse) {}
@@ -185,4 +193,5 @@ service PlaybackService {
   rpc PlayAllTracks(PlayAllTracksRequest) returns (PlayAllTracksResponse) {}
   rpc StreamCurrentTrack(StreamCurrentTrackRequest) returns (stream CurrentTrackResponse) {}
   rpc StreamStatus(StreamStatusRequest) returns (stream StatusResponse) {}
+  rpc StreamPlaylist(StreamPlaylistRequest) returns (stream PlaylistResponse) {}
 }

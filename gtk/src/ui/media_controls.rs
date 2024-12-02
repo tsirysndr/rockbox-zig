@@ -18,6 +18,7 @@ use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::types::track::Track;
 use crate::ui::pages::album_details::AlbumDetails;
+use crate::ui::pages::current_playlist::CurrentPlaylist;
 use std::cell::{Cell, RefCell};
 use tokio::sync::mpsc;
 
@@ -56,6 +57,8 @@ mod imp {
         pub media_control_bar_progress: TemplateChild<gtk::Box>,
         #[template_child]
         pub progress_bar: TemplateChild<Scale>,
+        #[template_child]
+        pub playlist_button: TemplateChild<Button>,
 
         pub current_track: RefCell<Option<Track>>,
         pub playback_status: Cell<i32>,
@@ -66,7 +69,9 @@ mod imp {
         pub album_details: RefCell<Option<AlbumDetails>>,
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub go_back_button: RefCell<Option<Button>>,
+        pub playlist_displayed: Cell<bool>,
         pub state: glib::WeakRef<AppState>,
+        pub current_playlist: RefCell<Option<CurrentPlaylist>>,
     }
 
     #[glib::object_subclass]
@@ -113,11 +118,12 @@ mod imp {
                     media_controls.repeat();
                 },
             );
- 
+
             klass.install_action(
                 "app.show-playlist",
                 None,
                 move |media_controls, _action, _target| {
+                    media_controls.show_playlist();
                 },
             );
         }
@@ -211,6 +217,8 @@ mod imp {
                     None => return glib::ControlFlow::Continue,
                 };
 
+                let state = self_.state.upgrade().unwrap();
+
                 glib::MainContext::default().spawn_local(async move {
                     while let Some(track) = rx.recv().await {
                         let title = self_.title.get();
@@ -236,21 +244,25 @@ mod imp {
 
                         self_.current_album_id.replace(Some(track.album_id));
 
-                        if let Some(filename) = track.album_art {
+                        if let Some(ref filename) = track.album_art {
                             let home = std::env::var("HOME").unwrap();
                             let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
                             album_art.set_from_file(Some(&path));
                         }
 
-                        self_.set_current_track(Track {
+                        let current_track = Track {
                             title: track.title,
                             artist: track.artist,
                             album: track.album,
                             album_artist: track.album_artist,
                             duration: track.length,
                             elapsed: track.elapsed,
+                            album_art: track.album_art,
                             ..Default::default()
-                        });
+                        };
+
+                        state.set_current_track(current_track.clone());
+                        self_.set_current_track(current_track.clone());
                     }
                 });
 
@@ -555,5 +567,47 @@ impl MediaControls {
                 Ok::<(), Error>(())
             });
         });
+    }
+
+    pub fn show_playlist(&self) {
+        let playlist_displayed = self.imp().playlist_displayed.get();
+        let main_stack = self.imp().main_stack.borrow();
+        let library_page = self.imp().library_page.borrow();
+        let library_page_ref = library_page.as_ref().unwrap();
+        let state = self.imp().state.upgrade().unwrap();
+        let playlist_button = self.imp().playlist_button.get();
+        let go_back_button = self.imp().go_back_button.borrow();
+        let go_back_button_ref = go_back_button.as_ref().unwrap();
+
+        match playlist_displayed {
+            true => {
+                state.pop_navigation();
+                main_stack
+                    .as_ref()
+                    .unwrap()
+                    .set_visible_child_name(&state.current_page().1);
+                playlist_button.set_icon_name("chevronup-symbolic");
+                playlist_button.set_tooltip_text(Some("Show Play Queue"));
+                self.imp().playlist_displayed.set(false);
+                go_back_button_ref.set_visible(state.navigation_stack_len() > 1);
+                library_page_ref.set_title(&state.current_page().0);
+            }
+            false => {
+                main_stack
+                    .as_ref()
+                    .unwrap()
+                    .set_visible_child_name("current-playlist-page");
+                state.push_navigation("Play Queue", "current-playlist-page");
+                playlist_button.set_icon_name("chevrondown-symbolic");
+                playlist_button.set_tooltip_text(Some("Hide Play Queue"));
+                let current_playlist = self.imp().current_playlist.borrow();
+                let current_playlist_ref = current_playlist.as_ref().unwrap();
+                current_playlist_ref.load_current_track();
+                current_playlist_ref.load_current_playlist();
+                self.imp().playlist_displayed.set(true);
+                go_back_button_ref.set_visible(false);
+                library_page_ref.set_title("Play Queue");
+            }
+        }
     }
 }

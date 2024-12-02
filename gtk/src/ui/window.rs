@@ -5,6 +5,7 @@ use crate::ui::media_controls::MediaControls;
 use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::albums::Albums;
 use crate::ui::pages::artist_details::ArtistDetails;
+use crate::ui::pages::current_playlist::CurrentPlaylist;
 use crate::ui::pages::songs::Songs;
 use crate::ui::pages::{artists::Artists, files::Files, likes::Likes};
 use adw::prelude::*;
@@ -94,6 +95,10 @@ mod imp {
         pub album_details_page: TemplateChild<ViewStackPage>,
         #[template_child]
         pub album_details: TemplateChild<AlbumDetails>,
+        #[template_child]
+        pub current_playlist_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub current_playlist: TemplateChild<CurrentPlaylist>,
         #[template_child]
         pub library_overlay: TemplateChild<Overlay>,
         #[template_child]
@@ -202,6 +207,11 @@ mod imp {
                         }
                         _ => {}
                     }
+
+                    let media_control_bar = self_.media_control_bar.get();
+                    if media_control_bar.imp().playlist_displayed.get() {
+                        media_control_bar.show_playlist();
+                    }
                 }
 
                 let go_back_button = self_.go_back_button.get();
@@ -252,8 +262,7 @@ mod imp {
                 let music_directory_ref = music_directory.as_ref().unwrap_or(&default_string);
 
                 go_back_button.set_visible(
-                    current_path != *music_directory_ref
-                        && current_path != *default_string,
+                    current_path != *music_directory_ref && current_path != *default_string,
                 );
             }
         }
@@ -278,6 +287,7 @@ impl RbApplicationWindow {
         let artists = window.imp().artists.get();
         let artist_details = window.imp().artist_details.get();
         let files = window.imp().files.get();
+        let current_playlist = window.imp().current_playlist.get();
         let media_control_bar = window.imp().media_control_bar.get();
         let go_back_button = window.imp().go_back_button.get();
 
@@ -286,6 +296,7 @@ impl RbApplicationWindow {
         artist_details.imp().state.set(Some(&state));
         media_control_bar.imp().state.set(Some(&state));
         files.imp().state.set(Some(&state));
+        current_playlist.imp().state.set(Some(&state));
 
         media_control_bar
             .imp()
@@ -303,6 +314,10 @@ impl RbApplicationWindow {
             .imp()
             .go_back_button
             .replace(Some(go_back_button.clone()));
+        media_control_bar
+            .imp()
+            .current_playlist
+            .replace(Some(current_playlist.clone()));
 
         albums.imp().set_main_stack(main_stack.clone());
         albums.imp().set_library_page(library_page.clone());
