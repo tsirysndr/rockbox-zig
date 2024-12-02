@@ -3,11 +3,10 @@ use crate::time::format_milliseconds;
 use crate::ui::song::Song;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate, Image, Label, ListBox};
-use std::{env, thread};
+use gtk::{CompositeTemplate,  Label, ListBox};
+use std::env;
 
 mod imp {
 

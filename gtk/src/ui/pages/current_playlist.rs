@@ -1,19 +1,17 @@
-use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
-use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    CurrentTrackResponse, GetCurrentRequest, GetCurrentResponse, GetTracksRequest,
-    GetTracksResponse, PlaylistResponse, StreamPlaylistRequest,
+    CurrentTrackResponse, PlaylistResponse, StreamPlaylistRequest,
 };
 use crate::state::AppState;
-use crate::time::format_milliseconds;
+use crate::types::track::Track;
 use crate::ui::song::Song;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate, Image, Label, ListBox};
+use gtk::pango::EllipsizeMode;
+use gtk::{CompositeTemplate, Image, Label, ListBox, ScrolledWindow};
 use std::cell::{Cell, RefCell};
 use std::env;
 use std::thread;
@@ -33,14 +31,19 @@ mod imp {
         #[template_child]
         pub track_artist: TemplateChild<Label>,
         #[template_child]
+        pub track_index: TemplateChild<Label>,
+        #[template_child]
         pub now_playing: TemplateChild<gtk::Box>,
         #[template_child]
         pub next_tracks: TemplateChild<ListBox>,
+        #[template_child]
+        pub scrolled_window: TemplateChild<ScrolledWindow>,
 
         pub state: glib::WeakRef<AppState>,
         pub ready: Cell<bool>,
         pub tracks: RefCell<Vec<CurrentTrackResponse>>,
         pub current_index: Cell<usize>,
+        pub size: Cell<usize>,
     }
 
     #[glib::object_subclass]
@@ -61,6 +64,45 @@ mod imp {
     impl ObjectImpl for CurrentPlaylist {
         fn constructed(&self) {
             self.parent_constructed();
+            self.size.set(10);
+
+            let self_weak = self.downgrade();
+            self.scrolled_window.connect_edge_reached(move |_, pos| {
+                if pos == gtk::PositionType::Bottom {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+
+                    let index = self_.current_index.get() as usize + 1;
+                    let size = self_.size.get();
+                    let tracks = self_.tracks.borrow().clone();
+
+                    if index + size >= tracks.len() {
+                        return;
+                    }
+
+                    let next_range_end = (index + size + 3).min(tracks.len());
+                    let next_tracks = tracks[index + size..next_range_end].to_vec();
+
+                    if next_tracks.is_empty() {
+                        return;
+                    }
+
+                    self_.size.set(size + next_tracks.len());
+
+                    for track in next_tracks {
+                        let song = create_song_widget(Track {
+                            title: track.title.clone(),
+                            artist: track.artist.clone(),
+                            album_art: track.album_art.clone(),
+                            ..Default::default()
+                        });
+
+                        self_.next_tracks.append(&song);
+                    }
+                }
+            });
 
             let self_weak = self.downgrade();
             glib::idle_add_local(move || {
@@ -115,29 +157,7 @@ mod imp {
                         obj.imp().now_playing.append(&label);
 
                         if let Some(track) = state.current_track() {
-                            let song = Song::new();
-                            song.imp().track_number.set_visible(false);
-                            song.imp().track_title.set_text(&track.title);
-                            song.imp().artist.set_text(&track.artist);
-                            song.imp().track_duration.set_visible(false);
-                            song.imp().heart_button.set_visible(false);
-                            song.imp().more_button.set_visible(false);
-
-                            match track.album_art {
-                                Some(filename) => {
-                                    let home = env::var("HOME").unwrap();
-                                    let path =
-                                        format!("{}/.config/rockbox.org/covers/{}", home, filename);
-                                    song.imp().album_art.set_from_file(Some(&path));
-                                }
-                                None => {
-                                    song.imp().album_art.set_resource(Some(
-                                        "/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg",
-                                    ));
-                                }
-                            }
-
-                            song.imp().album_art_container.set_visible(true);
+                            let song = create_song_widget(track);
                             obj.imp().now_playing.append(&song);
                         }
 
@@ -145,35 +165,23 @@ mod imp {
                             obj.imp().next_tracks.remove(&row);
                         }
 
-                        for track in next_tracks.into_iter().take(20) {
-                            let song = Song::new();
-                            song.imp().track_number.set_visible(false);
-                            song.imp().track_title.set_text(&track.title);
-                            song.imp().artist.set_text(&track.artist);
-                            song.imp().track_duration.set_visible(false);
-                            song.imp().heart_button.set_visible(false);
-                            song.imp().more_button.set_visible(false);
-
-                            match track.album_art {
-                                Some(filename) => {
-                                    let home = env::var("HOME").unwrap();
-                                    let path =
-                                        format!("{}/.config/rockbox.org/covers/{}", home, filename);
-                                    song.imp().album_art.set_from_file(Some(&path));
-                                }
-                                None => {
-                                    song.imp().album_art.set_resource(Some(
-                                        "/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg",
-                                    ));
-                                }
-                            }
+                        let limit = match next_tracks.len() > 10 {
+                            true => 10,
+                            false => next_tracks.len(),
+                        };
+                        for track in next_tracks.into_iter().take(limit) {
+                            let song = create_song_widget(Track {
+                                title: track.title.clone(),
+                                artist: track.artist.clone(),
+                                album_art: track.album_art.clone(),
+                                ..Default::default()
+                            });
 
                             song.imp().album_art_container.set_visible(true);
                             obj.imp().next_tracks.append(&song);
                         }
                     }
                 });
-
                 glib::ControlFlow::Break
             });
         }
@@ -200,6 +208,12 @@ impl CurrentPlaylist {
             Some(track) => {
                 self.imp().track_title.set_text(&track.title);
                 self.imp().track_artist.set_text(&track.artist);
+                self.imp().track_index.set_text(&format!(
+                    "{} of {}",
+                    self.imp().current_index.get() + 1,
+                    self.imp().tracks.borrow().len()
+                ));
+
                 match track.album_art {
                     Some(filename) => {
                         let home = env::var("HOME").unwrap();
@@ -241,28 +255,7 @@ impl CurrentPlaylist {
         let state = self.imp().state.upgrade().unwrap();
 
         if let Some(track) = state.current_track() {
-            let song = Song::new();
-            song.imp().track_number.set_visible(false);
-            song.imp().track_title.set_text(&track.title);
-            song.imp().artist.set_text(&track.artist);
-            song.imp().track_duration.set_visible(false);
-            song.imp().heart_button.set_visible(false);
-            song.imp().more_button.set_visible(false);
-
-            match track.album_art {
-                Some(filename) => {
-                    let home = env::var("HOME").unwrap();
-                    let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
-                    song.imp().album_art.set_from_file(Some(&path));
-                }
-                None => {
-                    song.imp()
-                        .album_art
-                        .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
-                }
-            }
-
-            song.imp().album_art_container.set_visible(true);
+            let song = create_song_widget(track);
             self.imp().now_playing.append(&song);
         }
 
@@ -270,29 +263,18 @@ impl CurrentPlaylist {
             self.imp().next_tracks.remove(&row);
         }
 
-        for track in next_tracks.into_iter().take(20) {
-            let song = Song::new();
-            song.imp().track_number.set_visible(false);
-            song.imp().track_title.set_text(&track.title);
-            song.imp().artist.set_text(&track.artist);
-            song.imp().track_duration.set_visible(false);
-            song.imp().heart_button.set_visible(false);
-            song.imp().more_button.set_visible(false);
+        let limit = match next_tracks.len() > 10 {
+            true => 10,
+            false => next_tracks.len(),
+        };
 
-            match track.album_art {
-                Some(filename) => {
-                    let home = env::var("HOME").unwrap();
-                    let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
-                    song.imp().album_art.set_from_file(Some(&path));
-                }
-                None => {
-                    song.imp()
-                        .album_art
-                        .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
-                }
-            }
-
-            song.imp().album_art_container.set_visible(true);
+        for track in next_tracks.into_iter().take(limit) {
+            let song = create_song_widget(Track {
+                title: track.title.clone(),
+                artist: track.artist.clone(),
+                album_art: track.album_art.clone(),
+                ..Default::default()
+            });
             self.imp().next_tracks.append(&song);
         }
     }
@@ -316,6 +298,37 @@ impl CurrentPlaylist {
             });
         });
     }
+}
+
+fn create_song_widget(track: Track) -> Song {
+    let song = Song::new();
+    song.imp().track_number.set_visible(false);
+    song.imp().track_title.set_text(&track.title);
+    song.imp().track_title.set_ellipsize(EllipsizeMode::End);
+    song.imp().track_title.set_max_width_chars(42);
+    song.imp().artist.set_text(&track.artist);
+    song.imp().artist.set_ellipsize(EllipsizeMode::End);
+    song.imp().artist.set_max_width_chars(42);
+    song.imp().track_duration.set_visible(false);
+    song.imp().heart_button.set_visible(false);
+    song.imp().more_button.set_visible(false);
+
+    match track.album_art {
+        Some(filename) => {
+            let home = env::var("HOME").unwrap();
+            let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
+            song.imp().album_art.set_from_file(Some(&path));
+        }
+        None => {
+            song.imp()
+                .album_art
+                .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+        }
+    }
+
+    song.imp().album_art_container.set_visible(true);
+
+    song
 }
 
 fn build_url() -> String {

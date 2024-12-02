@@ -45,10 +45,15 @@ template $CurrentPlaylist : Box {
                 "current-track-artist"
               ]
             }
+            
+            Label track_index {
+              halign: center;
+              margin-top: 10;
+            }
         }
     }
     
-    ScrolledWindow {
+    ScrolledWindow scrolled_window {
         hscrollbar-policy: never;
 
         Box {

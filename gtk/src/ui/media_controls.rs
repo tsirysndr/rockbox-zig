@@ -591,6 +591,9 @@ impl MediaControls {
                 self.imp().playlist_displayed.set(false);
                 go_back_button_ref.set_visible(state.navigation_stack_len() > 1);
                 library_page_ref.set_title(&state.current_page().0);
+                let current_playlist = self.imp().current_playlist.borrow();
+                let current_playlist_ref = current_playlist.as_ref().unwrap();
+                current_playlist_ref.imp().size.set(10);
             }
             false => {
                 main_stack

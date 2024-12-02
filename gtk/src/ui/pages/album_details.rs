@@ -1,13 +1,12 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::{Album, GetAlbumRequest, Track};
-use crate::time::format_milliseconds;
 use crate::ui::album_tracks::AlbumTracks;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate, Image, Label, ListBox};
+use gtk::{CompositeTemplate, Image, Label};
 use std::{env, thread};
 
 mod imp {
