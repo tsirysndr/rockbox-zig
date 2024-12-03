@@ -1,5 +1,5 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{GetTracksRequest, GetTracksResponse};
+use crate::api::rockbox::v1alpha1::{GetTracksRequest, GetTracksResponse, Track};
 use crate::time::format_milliseconds;
 use crate::ui::song::Song;
 use adw::prelude::*;
@@ -8,7 +8,9 @@ use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
 use gtk::{CompositeTemplate, ListBox};
+use std::cell::{Cell, RefCell};
 use std::env;
+use gtk::pango::EllipsizeMode;
 
 mod imp {
 
@@ -19,6 +21,9 @@ mod imp {
     pub struct Songs {
         #[template_child]
         pub tracks: TemplateChild<ListBox>,
+
+        pub all_tracks: RefCell<Vec<Track>>,
+        pub size: Cell<usize>,
     }
 
     #[glib::object_subclass]
@@ -39,6 +44,7 @@ mod imp {
     impl ObjectImpl for Songs {
         fn constructed(&self) {
             self.parent_constructed();
+            self.size.set(20);
 
             let self_weak = self.downgrade();
             glib::idle_add_local(move || {
@@ -58,6 +64,60 @@ mod imp {
 
     impl WidgetImpl for Songs {}
     impl BoxImpl for Songs {}
+
+    impl Songs {
+        pub fn create_songs_widgets(&self, list: Option<Vec<Track>>, limit: Option<usize>) {
+            let tracks = self.all_tracks.borrow();
+            let tracks = match list {
+                Some(list) => {
+                    let cloned_list = list.clone();
+                    cloned_list.into_iter().enumerate().take(list.len())
+                },
+                None => {
+                let cloned_tracks = tracks.clone();
+                    cloned_tracks
+                    .into_iter()
+                    .enumerate()
+                    .take(limit.unwrap_or(tracks.len()))
+                },
+            };
+            
+            let size = self.size.get();
+
+            for (index, track) in tracks {
+                let song = Song::new();
+                song.imp().track_number.set_text(&format!("{}", match size == 20 {
+                    true => index + 1,
+                    false => index + 1 + size - 3,
+                }));
+                song.imp().track_title.set_text(&track.title);
+                song.imp().track_title.set_ellipsize(EllipsizeMode::End);
+                song.imp().track_title.set_max_width_chars(100);
+                song.imp().artist.set_text(&track.artist);
+                song.imp().artist.set_ellipsize(EllipsizeMode::End);
+                song.imp().artist.set_max_width_chars(100);
+                song.imp()
+                    .track_duration
+                    .set_text(&format!("{}", format_milliseconds(track.length as u64)));
+
+                match track.album_art.as_ref() {
+                    Some(filename) => {
+                        let home = env::var("HOME").unwrap();
+                        let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
+                        song.imp().album_art.set_from_file(Some(&path));
+                    }
+                    None => {
+                        song.imp()
+                            .album_art
+                            .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+                    }
+                }
+
+                song.imp().album_art_container.set_visible(true);
+                self.tracks.append(&song);
+            }
+        }
+    }
 }
 
 glib::wrapper! {
@@ -86,31 +146,8 @@ impl Songs {
                 tracks.remove(&row);
             }
 
-            for (index, track) in response.tracks.iter().enumerate().take(20) {
-                let song = Song::new();
-                song.imp().track_number.set_text(&format!("{}", index + 1));
-                song.imp().track_title.set_text(&track.title);
-                song.imp().artist.set_text(&track.artist);
-                song.imp()
-                    .track_duration
-                    .set_text(&format!("{}", format_milliseconds(track.length as u64)));
-
-                match track.album_art.as_ref() {
-                    Some(filename) => {
-                        let home = env::var("HOME").unwrap();
-                        let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
-                        song.imp().album_art.set_from_file(Some(&path));
-                    }
-                    None => {
-                        song.imp()
-                            .album_art
-                            .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
-                    }
-                }
-
-                song.imp().album_art_container.set_visible(true);
-                self.imp().tracks.append(&song);
-            }
+            self.imp().all_tracks.replace(response.tracks.clone());
+            self.imp().create_songs_widgets(None, Some(20));
         }
     }
 }

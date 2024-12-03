@@ -230,7 +230,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                   Adw.ViewStackPage albums_page {
                     name: "albums-page";
                     title: _("Albums");
-                    child: ScrolledWindow {
+                    child: ScrolledWindow albums_scrolled_window {
                       $Albums albums {}
                     };
                   }
@@ -246,7 +246,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                   Adw.ViewStackPage songs_page {
                     name: "songs-page";
                     title: _("Songs");
-                    child: ScrolledWindow  {
+                    child: ScrolledWindow songs_scrolled_window {
                       $Songs songs {}
                     };
                   }
@@ -254,7 +254,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                   Adw.ViewStackPage artists_page {
                     name: "artists-page";
                     title: _("Artists");
-                    child: ScrolledWindow  {
+                    child: ScrolledWindow  artists_scrolled_window {
                       $Artists artists {}
                     };
                   }
@@ -270,7 +270,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                   Adw.ViewStackPage likes_page {
                     name: "likes-page";
                     title: _("Likes");
-                    child: ScrolledWindow  {
+                    child: ScrolledWindow likes_scrolled_window {
                       $Likes likes {}
                     };
                   }

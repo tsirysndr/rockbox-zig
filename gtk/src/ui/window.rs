@@ -14,8 +14,8 @@ use adw::ViewStack;
 use adw::{NavigationPage, NavigationView, OverlaySplitView, ToastOverlay, ViewStackPage};
 use glib::subclass;
 use gtk::{
-    gio, glib, Box, Button, CompositeTemplate, ListBox, MenuButton, Overlay, SearchBar,
-    SearchEntry, ToggleButton,
+    gio, glib, Box, Button, CompositeTemplate, ListBox, MenuButton, Overlay, ScrolledWindow,
+    SearchBar, SearchEntry, ToggleButton,
 };
 use std::cell::{Cell, RefCell};
 
@@ -70,13 +70,19 @@ mod imp {
         #[template_child]
         pub albums_page: TemplateChild<ViewStackPage>,
         #[template_child]
+        pub albums_scrolled_window: TemplateChild<ScrolledWindow>,
+        #[template_child]
         pub albums: TemplateChild<Albums>,
         #[template_child]
         pub songs_page: TemplateChild<ViewStackPage>,
         #[template_child]
+        pub songs_scrolled_window: TemplateChild<ScrolledWindow>,
+        #[template_child]
         pub songs: TemplateChild<Songs>,
         #[template_child]
         pub likes_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub likes_scrolled_window: TemplateChild<ScrolledWindow>,
         #[template_child]
         pub likes: TemplateChild<Likes>,
         #[template_child]
@@ -85,6 +91,8 @@ mod imp {
         pub files: TemplateChild<Files>,
         #[template_child]
         pub artists_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub artists_scrolled_window: TemplateChild<ScrolledWindow>,
         #[template_child]
         pub artists: TemplateChild<Artists>,
         #[template_child]
@@ -145,6 +153,126 @@ mod imp {
     impl ObjectImpl for RbApplicationWindow {
         fn constructed(&self) {
             self.parent_constructed();
+
+            let weak_self = self.downgrade();
+            self.albums_scrolled_window
+                .connect_edge_reached(move |_, pos| {
+                    if pos == gtk::PositionType::Bottom {
+                        let self_ = match weak_self.upgrade() {
+                            Some(self_) => self_,
+                            None => return,
+                        };
+                        let size = self_.albums.imp().size.get();
+                        let all_albums = self_.albums.imp().all_albums.borrow();
+                        let next_range_end = (size + 5).min(all_albums.len());
+
+                        if size >= all_albums.len() {
+                            return;
+                        }
+
+                        let next_albums = all_albums[size..next_range_end].to_vec();
+
+                        if next_albums.is_empty() {
+                            return;
+                        }
+
+                        self_.albums.imp().size.set(size + next_albums.len());
+                        self_
+                            .albums
+                            .imp()
+                            .create_albums_widgets(Some(next_albums), None);
+                    }
+                });
+
+            let weak_self = self.downgrade();
+            self.artists_scrolled_window
+                .connect_edge_reached(move |_, pos| {
+                    if pos == gtk::PositionType::Bottom {
+                        let self_ = match weak_self.upgrade() {
+                            Some(self_) => self_,
+                            None => return,
+                        };
+                        let size = self_.artists.imp().size.get();
+                        let all_artists = self_.artists.imp().all_artists.borrow();
+                        let next_range_end = (size + 5).min(all_artists.len());
+
+                        if size >= all_artists.len() {
+                            return;
+                        }
+
+                        let next_artists = all_artists[size..next_range_end].to_vec();
+
+                        if next_artists.is_empty() {
+                            return;
+                        }
+
+                        self_.artists.imp().size.set(size + next_artists.len());
+                        self_
+                            .artists
+                            .imp()
+                            .create_artists_widgets(Some(next_artists), None);
+                    }
+                });
+
+            let weak_self = self.downgrade();
+            self.songs_scrolled_window
+                .connect_edge_reached(move |_, pos| {
+                    if pos == gtk::PositionType::Bottom {
+                        let self_ = match weak_self.upgrade() {
+                            Some(self_) => self_,
+                            None => return,
+                        };
+                        let size = self_.songs.imp().size.get();
+                        let all_songs = self_.songs.imp().all_tracks.borrow();
+                        let next_range_end = (size + 3).min(all_songs.len());
+
+                        if size >= all_songs.len() {
+                            return;
+                        }
+
+                        let next_songs = all_songs[size..next_range_end].to_vec();
+
+                        if next_songs.is_empty() {
+                            return;
+                        }
+
+                        self_.songs.imp().size.set(size + next_songs.len());
+                        self_
+                            .songs
+                            .imp()
+                            .create_songs_widgets(Some(next_songs), None);
+                    }
+                });
+
+            let weak_self = self.downgrade();
+            self.likes_scrolled_window
+                .connect_edge_reached(move |_, pos| {
+                    if pos == gtk::PositionType::Bottom {
+                        let self_ = match weak_self.upgrade() {
+                            Some(self_) => self_,
+                            None => return,
+                        };
+                        let size = self_.likes.imp().size.get();
+                        let likes = self_.likes.imp().likes.borrow();
+                        let next_range_end = (size + 3).min(likes.len());
+
+                        if size >= likes.len() {
+                            return;
+                        }
+
+                        let next_likes = likes[size..next_range_end].to_vec();
+
+                        if next_likes.is_empty() {
+                            return;
+                        }
+
+                        self_.likes.imp().size.set(size + next_likes.len());
+                        self_
+                            .likes
+                            .imp()
+                            .create_songs_widgets(Some(next_likes), None);
+                    }
+                });
 
             let sidebar = self.sidebar.get();
             sidebar.select_row(Some(&sidebar.row_at_index(0).unwrap()));

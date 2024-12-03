@@ -1,7 +1,7 @@
 use std::{env, thread};
 
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{GetAlbumsRequest, GetAlbumsResponse};
+use crate::api::rockbox::v1alpha1::{Album, GetAlbumsRequest, GetAlbumsResponse};
 use crate::ui::pages::album_details::AlbumDetails;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
@@ -11,7 +11,7 @@ use gtk::pango::EllipsizeMode;
 use gtk::prelude::WidgetExt;
 use gtk::CompositeTemplate;
 use gtk::{glib, Box, FlowBox, Image, Label, Orientation};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 mod imp {
 
@@ -27,6 +27,8 @@ mod imp {
         pub go_back_button: RefCell<Option<gtk::Button>>,
         pub album_details: RefCell<Option<AlbumDetails>>,
         pub previous_page: RefCell<Vec<(String, String)>>,
+        pub all_albums: RefCell<Vec<Album>>,
+        pub size: Cell<usize>,
     }
 
     #[glib::object_subclass]
@@ -47,6 +49,8 @@ mod imp {
     impl ObjectImpl for Albums {
         fn constructed(&self) {
             self.parent_constructed();
+
+            self.size.set(15);
 
             let self_weak = self.downgrade();
             glib::idle_add_local(move || {
@@ -183,6 +187,26 @@ mod imp {
 
             self.library.append(&container);
         }
+
+        pub fn create_albums_widgets(&self, list: Option<Vec<Album>>, limit: Option<usize>) {
+            let albums = self.all_albums.borrow();
+            let albums = match list {
+                Some(list) => list.clone().into_iter().take(list.len()),
+                None => albums
+                    .clone()
+                    .into_iter()
+                    .take(limit.unwrap_or(albums.len())),
+            };
+            for album in albums {
+                self.add_picture_to_library(
+                    &album.id,
+                    album.album_art,
+                    &album.title,
+                    &album.artist,
+                    album.year,
+                );
+            }
+        }
     }
 }
 
@@ -233,15 +257,8 @@ impl Albums {
                 library.remove(&child);
             }
 
-            for album in albums.albums {
-                self.imp().add_picture_to_library(
-                    &album.id,
-                    album.album_art,
-                    &album.title,
-                    &album.artist,
-                    album.year,
-                );
-            }
+            self.imp().all_albums.replace(albums.albums.clone());
+            self.imp().create_albums_widgets(None, Some(15));
         }
     }
 }

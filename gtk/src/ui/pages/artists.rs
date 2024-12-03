@@ -1,5 +1,5 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{GetArtistsRequest, GetArtistsResponse};
+use crate::api::rockbox::v1alpha1::{Artist as ArtistItem, GetArtistsRequest, GetArtistsResponse};
 use crate::state::AppState;
 use crate::ui::artist::Artist;
 use crate::ui::pages::album_details::AlbumDetails;
@@ -11,7 +11,7 @@ use glib::subclass;
 use gtk::glib;
 use gtk::pango::EllipsizeMode;
 use gtk::{Button, CompositeTemplate, FlowBox};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::env;
 
 mod imp {
@@ -30,6 +30,8 @@ mod imp {
         pub artist_details: RefCell<Option<ArtistDetails>>,
         pub album_details: RefCell<Option<AlbumDetails>>,
         pub state: glib::WeakRef<AppState>,
+        pub size: Cell<usize>,
+        pub all_artists: RefCell<Vec<ArtistItem>>,
     }
 
     #[glib::object_subclass]
@@ -50,6 +52,8 @@ mod imp {
     impl ObjectImpl for Artists {
         fn constructed(&self) {
             self.parent_constructed();
+
+            self.size.set(30);
 
             let self_weak = self.downgrade();
             glib::idle_add_local(move || {
@@ -107,6 +111,40 @@ mod imp {
                 .imp()
                 .set_album_details(album_details.clone());
         }
+
+        pub fn create_artists_widgets(&self, list: Option<Vec<ArtistItem>>, limit: Option<usize>) {
+            let artists = self.all_artists.borrow();
+            let artists = match list {
+                Some(list) => list.clone().into_iter().take(list.len()),
+                None => artists.clone().into_iter().take(limit.unwrap_or(artists.len()))
+            };
+            for artist_item in artists {
+                let artist = Artist::new();
+                artist.imp().artist_name.set_text(&artist_item.name);
+                artist.imp().artist_name.set_ellipsize(EllipsizeMode::End);
+                artist.imp().artist_name.set_max_width_chars(40);
+
+                let main_stack = self.main_stack.borrow().as_ref().unwrap().clone();
+                let library_page = self.library_page.borrow().as_ref().unwrap().clone();
+                let go_back_button = self.go_back_button.borrow().as_ref().unwrap().clone();
+                let artist_details = self.artist_details.borrow().as_ref().unwrap().clone();
+                let state = self.state.upgrade().unwrap();
+                let artist_id = artist_item.id.clone();
+
+                let click = gtk::GestureClick::new();
+                click.connect_released(move |_, _, _, _| {
+                    main_stack.set_visible_child_name("artist-details-page");
+                    library_page.set_title("Artist");
+                    go_back_button.set_visible(true);
+                    artist_details.imp().load_artist(&artist_id);
+                    state.push_navigation("Artist", "artist-details-page");
+                });
+                artist.add_controller(click);
+
+                self.artists.append(&artist);
+            }
+
+        }
     }
 }
 
@@ -136,31 +174,8 @@ impl Artists {
                 artists.remove(&row);
             }
 
-            for artist_item in response.artists {
-                let artist = Artist::new();
-                artist.imp().artist_name.set_text(&artist_item.name);
-                artist.imp().artist_name.set_ellipsize(EllipsizeMode::End);
-                artist.imp().artist_name.set_max_width_chars(20);
-
-                let main_stack = self.imp().main_stack.borrow().as_ref().unwrap().clone();
-                let library_page = self.imp().library_page.borrow().as_ref().unwrap().clone();
-                let go_back_button = self.imp().go_back_button.borrow().as_ref().unwrap().clone();
-                let artist_details = self.imp().artist_details.borrow().as_ref().unwrap().clone();
-                let state = self.imp().state.upgrade().unwrap();
-                let artist_id = artist_item.id.clone();
-
-                let click = gtk::GestureClick::new();
-                click.connect_released(move |_, _, _, _| {
-                    main_stack.set_visible_child_name("artist-details-page");
-                    library_page.set_title("Artist");
-                    go_back_button.set_visible(true);
-                    artist_details.imp().load_artist(&artist_id);
-                    state.push_navigation("Artist", "artist-details-page");
-                });
-                artist.add_controller(click);
-
-                self.imp().artists.append(&artist);
-            }
+            self.imp().all_artists.replace(response.artists.clone());
+            self.imp().create_artists_widgets(None, Some(40));
         }
     }
 }
