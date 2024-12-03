@@ -25,6 +25,8 @@ mod imp {
         #[template_child]
         pub heart_button: TemplateChild<Button>,
         #[template_child]
+        pub heart_icon: TemplateChild<Image>,
+        #[template_child]
         pub more_button: TemplateChild<Button>,
     }
 

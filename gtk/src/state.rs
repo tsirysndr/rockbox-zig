@@ -1,8 +1,10 @@
+use crate::api::rockbox::v1alpha1::Track as RockboxTrack;
 use crate::navigation::NavigationHistory;
 use crate::types::track::Track;
 use glib::subclass::prelude::*;
 use gtk::glib;
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 mod imp {
     use super::*;
@@ -12,6 +14,7 @@ mod imp {
         pub navigation_history: RefCell<NavigationHistory>,
         pub current_path: RefCell<Option<String>>,
         pub current_track: RefCell<Option<Track>>,
+        pub likes: RefCell<HashMap<String, RockboxTrack>>,
     }
 
     #[glib::object_subclass]
@@ -37,7 +40,7 @@ impl AppState {
             .replace(NavigationHistory::new());
         obj.imp().current_path.replace(None);
         obj.imp().current_track.replace(None);
-
+        obj.imp().likes.replace(HashMap::new());
         obj
     }
 
@@ -100,5 +103,26 @@ impl AppState {
     pub fn set_current_track(&self, track: Track) {
         let self_ = imp::AppState::from_obj(self);
         *self_.current_track.borrow_mut() = Some(track);
+    }
+
+    pub fn set_liked_tracks(&self, liked_tracks: Vec<RockboxTrack>) {
+        let self_ = imp::AppState::from_obj(self);
+        let mut likes = self_.likes.borrow_mut();
+        likes.clear();
+        for like in liked_tracks {
+            likes.insert(like.id.clone(), like);
+        }
+    }
+
+    pub fn liked_tracks(&self) -> Vec<RockboxTrack> {
+        let self_ = imp::AppState::from_obj(self);
+        let likes = self_.likes.borrow();
+        likes.values().cloned().collect()
+    }
+
+    pub fn is_liked_track(&self, track_id: &str) -> bool {
+        let self_ = imp::AppState::from_obj(self);
+        let likes = self_.likes.borrow();
+        likes.contains_key(track_id)
     }
 }

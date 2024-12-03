@@ -418,6 +418,8 @@ impl RbApplicationWindow {
         let current_playlist = window.imp().current_playlist.get();
         let media_control_bar = window.imp().media_control_bar.get();
         let go_back_button = window.imp().go_back_button.get();
+        let likes = window.imp().likes.get();
+        let songs = window.imp().songs.get();
 
         window.imp().state.set(Some(&state));
         artists.imp().state.set(Some(&state));
@@ -425,6 +427,9 @@ impl RbApplicationWindow {
         media_control_bar.imp().state.set(Some(&state));
         files.imp().state.set(Some(&state));
         current_playlist.imp().state.set(Some(&state));
+        likes.imp().state.set(Some(&state));
+        songs.imp().state.set(Some(&state));
+        album_details.imp().state.set(Some(&state));
 
         media_control_bar
             .imp()

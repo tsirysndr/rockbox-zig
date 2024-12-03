@@ -1,11 +1,13 @@
 use crate::api::rockbox::v1alpha1::Track;
+use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::ui::song::Song;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate,  Label, ListBox};
+use gtk::pango::EllipsizeMode;
+use gtk::{CompositeTemplate, Label, ListBox};
 use std::env;
 
 mod imp {
@@ -19,6 +21,8 @@ mod imp {
         pub volume: TemplateChild<Label>,
         #[template_child]
         pub tracklist: TemplateChild<ListBox>,
+
+        pub state: glib::WeakRef<AppState>,
     }
 
     #[glib::object_subclass]
@@ -58,16 +62,31 @@ mod imp {
                 tracklist.remove(&row);
             }
 
+            let state = self.state.upgrade().unwrap();
+
             for track in tracks {
                 let song = Song::new();
                 song.imp()
                     .track_number
                     .set_text(&format!("{:02}", track.track_number));
                 song.imp().track_title.set_text(&track.title);
+                song.imp().track_title.set_ellipsize(EllipsizeMode::End);
+                song.imp().track_title.set_max_width_chars(100);
                 song.imp().artist.set_text(&track.artist);
+                song.imp().artist.set_ellipsize(EllipsizeMode::End);
+                song.imp().artist.set_max_width_chars(100);
                 song.imp()
                     .track_duration
                     .set_text(&format_milliseconds(track.length as u64));
+
+                match state.is_liked_track(&track.id) {
+                    true => song.imp().heart_icon.set_icon_name(Some("heart-symbolic")),
+                    false => song
+                        .imp()
+                        .heart_icon
+                        .set_icon_name(Some("heart-outline-symbolic")),
+                }
+
                 self.tracklist.append(&song);
             }
         }

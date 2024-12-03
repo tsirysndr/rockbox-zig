@@ -1,5 +1,6 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::{GetLikedTracksRequest, GetLikedTracksResponse, Track};
+use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::ui::song::Song;
 use adw::prelude::*;
@@ -7,10 +8,10 @@ use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
+use gtk::pango::EllipsizeMode;
 use gtk::{CompositeTemplate, ListBox};
 use std::cell::{Cell, RefCell};
 use std::env;
-use gtk::pango::EllipsizeMode;
 
 mod imp {
 
@@ -24,6 +25,7 @@ mod imp {
 
         pub likes: RefCell<Vec<Track>>,
         pub size: Cell<usize>,
+        pub state: glib::WeakRef<AppState>,
     }
 
     #[glib::object_subclass]
@@ -73,21 +75,27 @@ mod imp {
                 Some(list) => {
                     let cloned_list = list.clone();
                     cloned_list.into_iter().enumerate().take(list.len())
-                },
+                }
                 None => {
                     let cloned_likes = likes.clone();
-                    cloned_likes.into_iter().enumerate().take(limit.unwrap_or(likes.len()))
-                },
+                    cloned_likes
+                        .into_iter()
+                        .enumerate()
+                        .take(limit.unwrap_or(likes.len()))
+                }
             };
 
             let size = self.size.get();
 
             for (index, track) in likes {
                 let song = Song::new();
-                song.imp().track_number.set_text(&format!("{}", match size == 20 {
-                    true => index + 1,
-                    false => index + 1 + size - 3,
-                }));
+                song.imp().track_number.set_text(&format!(
+                    "{}",
+                    match size == 20 {
+                        true => index + 1,
+                        false => index + 1 + size - 3,
+                    }
+                ));
                 song.imp().track_title.set_text(&track.title);
                 song.imp().track_title.set_ellipsize(EllipsizeMode::End);
                 song.imp().track_title.set_max_width_chars(100);
@@ -97,6 +105,8 @@ mod imp {
                 song.imp()
                     .track_duration
                     .set_text(&format!("{}", format_milliseconds(track.length as u64)));
+
+                song.imp().heart_icon.set_icon_name(Some("heart-symbolic"));
 
                 match track.album_art.as_ref() {
                     Some(filename) => {
@@ -148,6 +158,10 @@ impl Likes {
             }
 
             self.imp().likes.replace(response.tracks.clone());
+
+            let state = self.imp().state.upgrade().unwrap();
+            state.set_liked_tracks(response.tracks.clone());
+
             self.imp().create_songs_widgets(None, Some(20));
         }
     }

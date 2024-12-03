@@ -11,6 +11,7 @@ use gtk::{CompositeTemplate, ListBox};
 use std::cell::{Cell, RefCell};
 use std::env;
 use gtk::pango::EllipsizeMode;
+use crate::state::AppState;
 
 mod imp {
 
@@ -24,6 +25,7 @@ mod imp {
 
         pub all_tracks: RefCell<Vec<Track>>,
         pub size: Cell<usize>,
+        pub state: glib::WeakRef<AppState>,
     }
 
     #[glib::object_subclass]
@@ -83,6 +85,7 @@ mod imp {
             };
             
             let size = self.size.get();
+            let state = self.state.upgrade().unwrap();
 
             for (index, track) in tracks {
                 let song = Song::new();
@@ -99,6 +102,11 @@ mod imp {
                 song.imp()
                     .track_duration
                     .set_text(&format!("{}", format_milliseconds(track.length as u64)));
+
+               match state.is_liked_track(&track.id) {
+                    true => song.imp().heart_icon.set_icon_name(Some("heart-symbolic")),
+                    false => song.imp().heart_icon.set_icon_name(Some("heart-outline-symbolic")),
+                } 
 
                 match track.album_art.as_ref() {
                     Some(filename) => {
