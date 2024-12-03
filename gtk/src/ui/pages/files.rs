@@ -157,32 +157,16 @@ impl Files {
     }
 
     pub fn go_back(&self) {
-        let child = self.imp().files.first_child();
-        let parent = match child {
-            Some(child) => {
-                let row = child.downcast::<ListBoxRow>().unwrap();
-                let file = row.first_child().unwrap().downcast::<File>().unwrap();
-                let path = file.imp().path.borrow();
-                let path = path.clone();
-                let parent = match Path::new(&path).parent() {
-                    Some(parent) => match parent.parent() {
-                        Some(parent) => parent,
-                        None => parent,
-                    },
-                    None => Path::new(&path),
-                };
-                parent.to_str().unwrap().to_string()
-            }
-            None => {
-                let music_directory = self.imp().music_directory.borrow();
-                let music_directory = music_directory.clone().unwrap();
-                let state = self.imp().state.upgrade().unwrap();
-                state.current_path().unwrap_or(music_directory)
-            }
-        };
-
         let music_directory = self.imp().music_directory.borrow();
         let music_directory = music_directory.clone().unwrap();
+        let state = self.imp().state.upgrade().unwrap();
+        let parent = match state.current_path() {
+            Some(current_path) => match Path::new(&current_path).parent() {
+                Some(parent) => parent.to_str().unwrap().to_string(),
+                None => music_directory.clone(),
+            },
+            None => music_directory.clone(),
+        };
 
         if parent == music_directory {
             let go_back_button = self.imp().go_back_button.borrow();
