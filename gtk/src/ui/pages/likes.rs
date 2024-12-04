@@ -86,9 +86,12 @@ mod imp {
             };
 
             let size = self.size.get();
+            let state = self.state.upgrade().unwrap();
 
             for (index, track) in likes {
                 let song = Song::new();
+                song.imp().state.set(Some(&state));
+                song.imp().track.replace(Some(track.clone()));
                 song.imp().track_number.set_text(&format!(
                     "{}",
                     match size == 20 {
@@ -131,6 +134,12 @@ mod imp {
 glib::wrapper! {
   pub struct Likes(ObjectSubclass<imp::Likes>)
     @extends gtk::Widget, gtk::Box;
+}
+
+impl Default for Likes {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[gtk::template_callbacks]

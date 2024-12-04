@@ -125,4 +125,16 @@ impl AppState {
         let likes = self_.likes.borrow();
         likes.contains_key(track_id)
     }
+
+    pub fn remove_like(&self, track_id: &str) {
+        let self_ = imp::AppState::from_obj(self);
+        let mut likes = self_.likes.borrow_mut();
+        likes.remove(track_id);
+    }
+
+    pub fn add_like(&self, track: RockboxTrack) {
+        let self_ = imp::AppState::from_obj(self);
+        let mut likes = self_.likes.borrow_mut();
+        likes.insert(track.id.clone(), track);
+    }
 }

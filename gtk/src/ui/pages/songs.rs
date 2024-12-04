@@ -1,5 +1,6 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::{GetTracksRequest, GetTracksResponse, Track};
+use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::ui::song::Song;
 use adw::prelude::*;
@@ -7,11 +8,10 @@ use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
+use gtk::pango::EllipsizeMode;
 use gtk::{CompositeTemplate, ListBox};
 use std::cell::{Cell, RefCell};
 use std::env;
-use gtk::pango::EllipsizeMode;
-use crate::state::AppState;
 
 mod imp {
 
@@ -74,25 +74,30 @@ mod imp {
                 Some(list) => {
                     let cloned_list = list.clone();
                     cloned_list.into_iter().enumerate().take(list.len())
-                },
+                }
                 None => {
-                let cloned_tracks = tracks.clone();
+                    let cloned_tracks = tracks.clone();
                     cloned_tracks
-                    .into_iter()
-                    .enumerate()
-                    .take(limit.unwrap_or(tracks.len()))
-                },
+                        .into_iter()
+                        .enumerate()
+                        .take(limit.unwrap_or(tracks.len()))
+                }
             };
-            
+
             let size = self.size.get();
             let state = self.state.upgrade().unwrap();
 
             for (index, track) in tracks {
                 let song = Song::new();
-                song.imp().track_number.set_text(&format!("{}", match size == 20 {
-                    true => index + 1,
-                    false => index + 1 + size - 3,
-                }));
+                song.imp().state.set(Some(&state));
+                song.imp().track.replace(Some(track.clone()));
+                song.imp().track_number.set_text(&format!(
+                    "{}",
+                    match size == 20 {
+                        true => index + 1,
+                        false => index + 1 + size - 3,
+                    }
+                ));
                 song.imp().track_title.set_text(&track.title);
                 song.imp().track_title.set_ellipsize(EllipsizeMode::End);
                 song.imp().track_title.set_max_width_chars(100);
@@ -103,10 +108,13 @@ mod imp {
                     .track_duration
                     .set_text(&format!("{}", format_milliseconds(track.length as u64)));
 
-               match state.is_liked_track(&track.id) {
+                match state.is_liked_track(&track.id) {
                     true => song.imp().heart_icon.set_icon_name(Some("heart-symbolic")),
-                    false => song.imp().heart_icon.set_icon_name(Some("heart-outline-symbolic")),
-                } 
+                    false => song
+                        .imp()
+                        .heart_icon
+                        .set_icon_name(Some("heart-outline-symbolic")),
+                }
 
                 match track.album_art.as_ref() {
                     Some(filename) => {

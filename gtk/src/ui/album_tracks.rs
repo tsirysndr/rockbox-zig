@@ -66,6 +66,8 @@ mod imp {
 
             for track in tracks {
                 let song = Song::new();
+                song.imp().state.set(Some(&state));
+                song.imp().track.replace(Some(track.clone()));
                 song.imp()
                     .track_number
                     .set_text(&format!("{:02}", track.track_number));

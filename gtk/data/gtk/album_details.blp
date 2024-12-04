@@ -3,7 +3,7 @@ using Gtk 4.0;
 template $AlbumDetails : Box {
   hexpand: true;
   orientation: vertical;
-  spacing: 10;
+  spacing: 0;
   margin-start: 25;
   margin-end: 25;
   margin-top: 25;
@@ -11,7 +11,7 @@ template $AlbumDetails : Box {
 
   Box album_info {
     orientation: horizontal;
-    spacing: 10;
+    spacing: 0;
 
     Box {
       Image album_cover {
@@ -41,6 +41,7 @@ template $AlbumDetails : Box {
          wrap-mode: word_char;
          natural-wrap-mode: word;
          margin-bottom: 3;
+         margin-start: 20;
 
          styles [
            "album-title"
@@ -54,6 +55,7 @@ template $AlbumDetails : Box {
          wrap: true;
          wrap-mode: word_char;
          natural-wrap-mode: word;
+         margin-start: 20;
 
          styles [
            "album-artist"
@@ -64,6 +66,7 @@ template $AlbumDetails : Box {
          label: "";
          halign: start;
          margin-top: 25;
+         margin-start: 20;
 
          styles [
            "album-tracks"
@@ -75,6 +78,7 @@ template $AlbumDetails : Box {
          halign: start;
          margin-top: 5;
          margin-bottom: 15;
+         margin-start: 20;
 
          styles [
            "album-year"

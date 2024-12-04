@@ -325,6 +325,12 @@ mod imp {
                             let library_page = self_.library_page.get();
                             library_page.set_title("Likes");
                             state.new_navigation_from("Likes", "likes-page");
+                            let likes = self_.likes.get();
+                            glib::idle_add_local(move || {
+                                likes.imp().size.set(20);
+                                likes.load_likes();
+                                glib::ControlFlow::Break
+                            });
                         }
                         "Files" => {
                             let main_stack = self_.main_stack.get();
@@ -408,6 +414,7 @@ impl RbApplicationWindow {
     pub fn new(state: AppState) -> Self {
         let window: Self = glib::Object::new::<Self>();
 
+        let likes = window.imp().likes.get();
         let main_stack = window.imp().main_stack.get();
         let library_page = window.imp().library_page.get();
         let albums = window.imp().albums.get();
@@ -418,7 +425,6 @@ impl RbApplicationWindow {
         let current_playlist = window.imp().current_playlist.get();
         let media_control_bar = window.imp().media_control_bar.get();
         let go_back_button = window.imp().go_back_button.get();
-        let likes = window.imp().likes.get();
         let songs = window.imp().songs.get();
 
         window.imp().state.set(Some(&state));

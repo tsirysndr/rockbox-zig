@@ -5,14 +5,16 @@ use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
+use gtk::pango::EllipsizeMode;
 use gtk::{Button, CompositeTemplate, Image, Label, Scale};
 
+use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
 use crate::api::rockbox::v1alpha1::settings_service_client::SettingsServiceClient;
 use crate::api::rockbox::v1alpha1::{
     CurrentTrackRequest, CurrentTrackResponse, GetGlobalSettingsRequest, GetGlobalSettingsResponse,
-    NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest, SaveSettingsRequest,
-    StreamCurrentTrackRequest, StreamStatusRequest,
+    LikeTrackRequest, NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest,
+    SaveSettingsRequest, StreamCurrentTrackRequest, StreamStatusRequest, UnlikeTrackRequest,
 };
 use crate::state::AppState;
 use crate::time::format_milliseconds;
@@ -57,6 +59,12 @@ mod imp {
         pub media_control_bar_progress: TemplateChild<gtk::Box>,
         #[template_child]
         pub progress_bar: TemplateChild<Scale>,
+        #[template_child]
+        pub heart_button: TemplateChild<Button>,
+        #[template_child]
+        pub more_button: TemplateChild<Button>,
+        #[template_child]
+        pub heart_icon: TemplateChild<Image>,
         #[template_child]
         pub playlist_button: TemplateChild<Button>,
 
@@ -118,6 +126,10 @@ mod imp {
                     media_controls.repeat();
                 },
             );
+
+            klass.install_action("app.like", None, move |media_controls, _action, _target| {
+                media_controls.like();
+            });
 
             klass.install_action(
                 "app.show-playlist",
@@ -228,8 +240,13 @@ mod imp {
                         let album_art = self_.album_art.get();
                         let media_control_bar_progress = self_.media_control_bar_progress.get();
                         let progress_bar = self_.progress_bar.get();
+                        let heart_button = self_.heart_button.get();
+                        let more_button = self_.more_button.get();
 
                         if track.length == 0 {
+                            media_control_bar_progress.set_visible(false);
+                            heart_button.set_visible(false);
+                            more_button.set_visible(false);
                             continue;
                         }
 
@@ -237,8 +254,15 @@ mod imp {
                         progress_bar.set_value(progression);
                         media_control_bar_progress.set_visible(true);
 
+                        heart_button.set_visible(true);
+                        more_button.set_visible(true);
+
                         title.set_text(&track.title);
+                        title.set_ellipsize(EllipsizeMode::End);
+                        title.set_max_width_chars(100);
                         artist_album.set_text(&format!("{} - {}", track.artist, track.album));
+                        artist_album.set_ellipsize(EllipsizeMode::End);
+                        artist_album.set_max_width_chars(100);
                         elapsed.set_text(&format_milliseconds(track.elapsed));
                         duration.set_text(&format_milliseconds(track.length));
 
@@ -250,7 +274,15 @@ mod imp {
                             album_art.set_from_file(Some(&path));
                         }
 
+                        match state.is_liked_track(&track.id) {
+                            true => self_.heart_icon.set_icon_name(Some("heart-symbolic")),
+                            false => self_
+                                .heart_icon
+                                .set_icon_name(Some("heart-outline-symbolic")),
+                        }
+
                         let current_track = Track {
+                            id: track.id,
                             title: track.title,
                             artist: track.artist,
                             album: track.album,
@@ -438,7 +470,18 @@ impl MediaControls {
                 album_art.set_from_file(Some(&path));
             }
 
+            let state = self.imp().state.upgrade().unwrap();
+
+            match state.is_liked_track(&track.id) {
+                true => self.imp().heart_icon.set_icon_name(Some("heart-symbolic")),
+                false => self
+                    .imp()
+                    .heart_icon
+                    .set_icon_name(Some("heart-outline-symbolic")),
+            }
+
             self.imp().set_current_track(Track {
+                id: track.id,
                 title: track.title,
                 artist: track.artist,
                 album: track.album,
@@ -564,6 +607,51 @@ impl MediaControls {
                         ..Default::default()
                     })
                     .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn like(&self) {
+        let state = self.imp().state.upgrade().unwrap();
+        let track = state.current_track().unwrap();
+        let track_id = track.id.clone();
+        let heart_icon = self.imp().heart_icon.get();
+        let is_liked = state.is_liked_track(&track_id);
+
+        match is_liked {
+            true => {
+                heart_icon.set_icon_name(Some("heart-outline-symbolic"));
+                state.remove_like(&track_id);
+            }
+            false => {
+                heart_icon.set_icon_name(Some("heart-symbolic"));
+                state.add_like(track.into());
+            }
+        }
+
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = LibraryServiceClient::connect(url).await.unwrap();
+                match is_liked {
+                    true => {
+                        client
+                            .unlike_track(UnlikeTrackRequest {
+                                id: track_id.clone(),
+                            })
+                            .await?;
+                    }
+                    false => {
+                        client
+                            .like_track(LikeTrackRequest {
+                                id: track_id.clone(),
+                            })
+                            .await?;
+                    }
+                }
+
                 Ok::<(), Error>(())
             });
         });

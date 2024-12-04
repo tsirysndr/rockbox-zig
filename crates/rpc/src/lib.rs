@@ -164,7 +164,9 @@ pub mod api {
                 let album_id = track.album_id.unwrap_or_default();
                 let artist_id = track.artist_id.unwrap_or_default();
                 let album_art = track.album_art;
+                let id = track.id.unwrap_or_default();
                 return Self {
+                    id,
                     title,
                     artist,
                     album,

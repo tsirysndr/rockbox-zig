@@ -108,14 +108,26 @@ mod imp {
                         tracks.remove(&row);
                     }
 
+                    let state = self.state.upgrade().unwrap();
+
                     for track in artist.tracks.iter().take(10) {
                         let song = Song::new();
+                        song.imp().state.set(Some(&state));
+                        song.imp().track.replace(Some(track.clone()));
                         song.imp().track_title.set_text(&track.title);
                         song.imp().track_number.set_visible(false);
                         song.imp().artist.set_text(&track.artist);
                         song.imp()
                             .track_duration
                             .set_text(&format_milliseconds(track.length as u64));
+
+                        match state.is_liked_track(&track.id) {
+                            true => song.imp().heart_icon.set_icon_name(Some("heart-symbolic")),
+                            false => song
+                                .imp()
+                                .heart_icon
+                                .set_icon_name(Some("heart-outline-symbolic")),
+                        }
 
                         match track.album_art.as_ref() {
                             Some(filename) => {

@@ -392,12 +392,6 @@ impl From<TantivyDocument> for Track {
             .as_str()
             .unwrap()
             .to_string();
-        let md5 = document
-            .get_first(md5_field)
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .to_string();
         let album_art = match document.get_first(album_art_field) {
             Some(album_art) => album_art.as_str(),
             None => None,

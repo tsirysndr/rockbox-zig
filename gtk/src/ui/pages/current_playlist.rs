@@ -207,7 +207,11 @@ impl CurrentPlaylist {
         match state.current_track() {
             Some(track) => {
                 self.imp().track_title.set_text(&track.title);
+                self.imp().track_title.set_ellipsize(EllipsizeMode::End);
+                self.imp().track_title.set_max_width_chars(80);
                 self.imp().track_artist.set_text(&track.artist);
+                self.imp().track_artist.set_ellipsize(EllipsizeMode::End);
+                self.imp().track_artist.set_max_width_chars(80);
                 self.imp().track_index.set_text(&format!(
                     "{} of {}",
                     self.imp().current_index.get() + 1,
@@ -305,10 +309,10 @@ fn create_song_widget(track: Track) -> Song {
     song.imp().track_number.set_visible(false);
     song.imp().track_title.set_text(&track.title);
     song.imp().track_title.set_ellipsize(EllipsizeMode::End);
-    song.imp().track_title.set_max_width_chars(42);
+    song.imp().track_title.set_max_width_chars(80);
     song.imp().artist.set_text(&track.artist);
     song.imp().artist.set_ellipsize(EllipsizeMode::End);
-    song.imp().artist.set_max_width_chars(42);
+    song.imp().artist.set_max_width_chars(80);
     song.imp().track_duration.set_visible(false);
     song.imp().heart_button.set_visible(false);
     song.imp().more_button.set_visible(false);

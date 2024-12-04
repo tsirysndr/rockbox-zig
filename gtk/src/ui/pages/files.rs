@@ -11,7 +11,7 @@ use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{Button, CompositeTemplate, ListBox, ListBoxRow};
+use gtk::{Button, CompositeTemplate, ListBox};
 use std::cell::RefCell;
 use std::env;
 use std::path::Path;
