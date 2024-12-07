@@ -63,7 +63,14 @@
 }
 
 .transparent-button {
-  border-radius: 20px;
+  background-color: transparent;
+}
+
+menubutton {
+  background-color: transparent;
+}
+
+menubutton > button {
   background-color: transparent;
 }
 

@@ -1,5 +1,10 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{Album, GetAlbumRequest, Track};
+use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
+use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
+use crate::api::rockbox::v1alpha1::{
+    Album, GetAlbumRequest, InsertAlbumRequest, PlayAlbumRequest, Track,
+};
+use crate::constants::*;
 use crate::state::AppState;
 use crate::ui::album_tracks::AlbumTracks;
 use adw::prelude::*;
@@ -8,6 +13,7 @@ use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
 use gtk::{CompositeTemplate, Image, Label};
+use std::cell::RefCell;
 use std::{env, thread};
 
 mod imp {
@@ -31,6 +37,7 @@ mod imp {
         pub album_tracklist: TemplateChild<gtk::Box>,
 
         pub state: glib::WeakRef<AppState>,
+        pub album_id: RefCell<String>,
     }
 
     #[glib::object_subclass]
@@ -45,13 +52,57 @@ mod imp {
             klass.install_action(
                 "app.play-album",
                 None,
-                move |_album_details, _action, _target| {},
+                move |album_details, _action, _target| {
+                    album_details.play_album(false);
+                },
             );
 
             klass.install_action(
                 "app.shuffle-album",
                 None,
-                move |_album_details, _action, _target| {},
+                move |album_details, _action, _target| {
+                    album_details.play_album(true);
+                },
+            );
+
+            klass.install_action(
+                "app.album.play-next",
+                None,
+                move |album_details, _action, _target| {
+                    album_details.play_next();
+                },
+            );
+
+            klass.install_action(
+                "app.album.play-last",
+                None,
+                move |album_details, _action, _target| {
+                    album_details.play_last();
+                },
+            );
+
+            klass.install_action(
+                "app.album.add-shuffled",
+                None,
+                move |album_details, _action, _target| {
+                    album_details.add_shuffled();
+                },
+            );
+
+            klass.install_action(
+                "app.album.play-last-shuffled",
+                None,
+                move |album_details, _action, _target| {
+                    album_details.play_last_shuffled();
+                },
+            );
+
+            klass.install_action(
+                "app.album.play-shuffled",
+                None,
+                move |album_details, _action, _target| {
+                    album_details.play_album(true);
+                },
             );
         }
 
@@ -72,6 +123,7 @@ mod imp {
     impl AlbumDetails {
         pub fn load_album(&self, id: &str) {
             let id = id.to_string();
+            self.album_id.replace(id.clone());
             let handle = thread::spawn(move || {
                 let rt = tokio::runtime::Runtime::new().unwrap();
                 rt.block_on(async {
@@ -162,5 +214,105 @@ glib::wrapper! {
 impl AlbumDetails {
     pub fn new() -> Self {
         glib::Object::new()
+    }
+
+    pub fn play_album(&self, shuffle: bool) {
+        let album_id = self.imp().album_id.borrow();
+        let album_id = album_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaybackServiceClient::connect(url).await?;
+                client
+                    .play_album(PlayAlbumRequest {
+                        album_id,
+                        shuffle: Some(shuffle),
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_next(&self) {
+        let album_id = self.imp().album_id.borrow();
+        let album_id = album_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .insert_album(InsertAlbumRequest {
+                        album_id,
+                        position: PLAYLIST_INSERT_FIRST,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn add_shuffled(&self) {
+        let album_id = self.imp().album_id.borrow();
+        let album_id = album_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .insert_album(InsertAlbumRequest {
+                        album_id,
+                        position: PLAYLIST_INSERT_SHUFFLED,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_last_shuffled(&self) {
+        let album_id = self.imp().album_id.borrow();
+        let album_id = album_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .insert_album(InsertAlbumRequest {
+                        album_id,
+                        position: PLAYLIST_INSERT_LAST_SHUFFLED,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_last(&self) {
+        let album_id = self.imp().album_id.borrow();
+        let album_id = album_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .insert_album(InsertAlbumRequest {
+                        album_id,
+                        position: PLAYLIST_INSERT_LAST,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
     }
 }

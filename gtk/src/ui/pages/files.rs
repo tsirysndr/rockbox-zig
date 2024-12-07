@@ -134,6 +134,18 @@ impl Files {
                 file.imp().state.set(Some(&state));
                 file.imp().set_path(entry.name.clone());
                 file.imp().set_is_dir(entry.attr == 16);
+
+                match entry.attr == 16 {
+                    true => {
+                        file.imp().file_menu.set_visible(false);
+                        file.imp().directory_menu.set_visible(true);
+                    }
+                    false => {
+                        file.imp().file_menu.set_visible(true);
+                        file.imp().directory_menu.set_visible(false);
+                    }
+                }
+
                 self.imp().files.append(&file);
             }
         }

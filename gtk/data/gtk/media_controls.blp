@@ -152,8 +152,9 @@ template $MediaControls : Box {
             ]
           }
 
-          Button more_button {
+          MenuButton more_button {
             tooltip-text: _("More");
+            menu-model: context_menu;
             child: Image {
               icon-name: "options-symbolic";
               pixel-size: 24;
@@ -232,5 +233,12 @@ template $MediaControls : Box {
         "media-control-button"
       ]
     }
+  }
+}
+
+menu context_menu {
+  section {
+    item (_("Go to Artist"), "app.go-to-artist")
+    item (_("Go to Album"), "app.go-to-album")
   }
 }

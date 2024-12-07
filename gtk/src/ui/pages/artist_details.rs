@@ -1,5 +1,10 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{GetArtistRequest, GetArtistResponse};
+use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
+use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
+use crate::api::rockbox::v1alpha1::{
+    GetArtistRequest, GetArtistResponse, InsertTracksRequest, PlayArtistTracksRequest,
+};
+use crate::constants::*;
 use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::ui::pages::album_details::AlbumDetails;
@@ -12,7 +17,7 @@ use gtk::glib;
 use gtk::pango::EllipsizeMode;
 use gtk::{CompositeTemplate, FlowBox, Image, Label, ListBox, Orientation};
 use std::cell::RefCell;
-use std::env;
+use std::{env, thread};
 
 mod imp {
 
@@ -36,6 +41,7 @@ mod imp {
         pub album_details: RefCell<Option<AlbumDetails>>,
         pub library_page: RefCell<Option<adw::NavigationPage>>,
         pub state: glib::WeakRef<AppState>,
+        pub artist_id: RefCell<String>,
     }
 
     #[glib::object_subclass]
@@ -48,15 +54,51 @@ mod imp {
             Self::bind_template(klass);
 
             klass.install_action(
-                "app.play-artist-tracks",
+                "app.artist.play",
                 None,
-                move |_artist_details, _action, _target| {},
+                move |artist_details, _action, _target| {
+                    artist_details.play(false);
+                },
             );
 
             klass.install_action(
-                "app.shuffle-artist-tracks",
+                "app.artist.shuffle",
                 None,
-                move |_artist_details, _action, _target| {},
+                move |artist_details, _action, _target| {
+                    artist_details.play(true);
+                },
+            );
+
+            klass.install_action(
+                "app.artist.play-next",
+                None,
+                move |artist_details, _action, _target| {
+                    artist_details.play_next();
+                },
+            );
+
+            klass.install_action(
+                "app.artist.play-last",
+                None,
+                move |artist_details, _action, _target| {
+                    artist_details.play_last();
+                },
+            );
+
+            klass.install_action(
+                "app.artist.add-shuffled",
+                None,
+                move |artist_details, _action, _target| {
+                    artist_details.add_shuffled();
+                },
+            );
+
+            klass.install_action(
+                "app.artist.play-last-shuffled",
+                None,
+                move |artist_details, _action, _target| {
+                    artist_details.play_last_shuffled();
+                },
             );
         }
 
@@ -90,6 +132,7 @@ mod imp {
         pub fn load_artist(&self, id: &str) {
             let id = id.to_string();
             let rt = tokio::runtime::Runtime::new().unwrap();
+            self.artist_id.replace(id.clone());
             let response_ = rt.block_on(async {
                 let url = build_url();
                 let mut client = LibraryServiceClient::connect(url).await?;
@@ -271,6 +314,109 @@ impl ArtistDetails {
             let state = self.imp().state.upgrade().unwrap();
             state.push_navigation("Album", "album-details-page");
         }
+    }
+
+    pub fn play(&self, shuffle: bool) {
+        let artist_id = self.imp().artist_id.borrow();
+        let artist_id = artist_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaybackServiceClient::connect(url).await?;
+                client
+                    .play_artist_tracks(PlayArtistTracksRequest {
+                        artist_id,
+                        shuffle: Some(shuffle),
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_next(&self) {
+        let artist_id = self.imp().artist_id.borrow();
+        let artist_id = artist_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                // TODO: call the correct rpc method
+                client
+                    .insert_tracks(InsertTracksRequest {
+                        tracks: vec![],
+                        position: PLAYLIST_INSERT_FIRST,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_last(&self) {
+        let artist_id = self.imp().artist_id.borrow();
+        let artist_id = artist_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                // TODO: call the correct rpc method
+                client
+                    .insert_tracks(InsertTracksRequest {
+                        tracks: vec![],
+                        position: PLAYLIST_INSERT_LAST,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn add_shuffled(&self) {
+        let artist_id = self.imp().artist_id.borrow();
+        let artist_id = artist_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                // TODO: call the correct rpc method
+                client
+                    .insert_tracks(InsertTracksRequest {
+                        tracks: vec![],
+                        position: PLAYLIST_INSERT_SHUFFLED,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_last_shuffled(&self) {
+        let artist_id = self.imp().artist_id.borrow();
+        let artist_id = artist_id.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .insert_tracks(InsertTracksRequest {
+                        tracks: vec![],
+                        position: PLAYLIST_INSERT_LAST_SHUFFLED,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
     }
 }
 

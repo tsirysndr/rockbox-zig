@@ -98,9 +98,9 @@ template $Song : Box {
     ]
   }
 
-  Button more_button {
+  MenuButton more_button {
     tooltip-text: _("More");
-    
+    menu-model: context_menu;
     child: Image {
       icon-name: "options-symbolic";
       pixel-size: 24;
@@ -140,3 +140,10 @@ Button remove_button {
     ]
 }
 
+menu context_menu {
+  section {
+    item (_("Play Next"), "app.play-next")
+    item (_("Play Last"), "app.play-last")
+    item (_("Add Shuffled"), "app.add-shuffled")
+  }
+}

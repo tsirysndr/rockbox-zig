@@ -1,11 +1,15 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{LikeTrackRequest, Track, UnlikeTrackRequest};
+use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
+use crate::api::rockbox::v1alpha1::{
+    InsertTracksRequest, LikeTrackRequest, Track, UnlikeTrackRequest,
+};
+use crate::constants::*;
 use crate::state::AppState;
 use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{Button, CompositeTemplate, Image, Label};
+use gtk::{Button, CompositeTemplate, Image, Label, MenuButton};
 use std::cell::RefCell;
 use std::env;
 use std::thread;
@@ -34,7 +38,7 @@ mod imp {
         #[template_child]
         pub heart_icon: TemplateChild<Image>,
         #[template_child]
-        pub more_button: TemplateChild<Button>,
+        pub more_button: TemplateChild<MenuButton>,
 
         pub track: RefCell<Option<Track>>,
         pub state: glib::WeakRef<AppState>,
@@ -51,6 +55,18 @@ mod imp {
 
             klass.install_action("app.like-song", None, move |song, _action, _target| {
                 song.like();
+            });
+
+            klass.install_action("app.play-next", None, move |song, _action, _target| {
+                song.play_next();
+            });
+
+            klass.install_action("app.play-last", None, move |song, _action, _target| {
+                song.play_last();
+            });
+
+            klass.install_action("app.add-shuffled", None, move |song, _action, _target| {
+                song.add_shuffled();
             });
         }
 
@@ -101,7 +117,7 @@ impl Song {
         thread::spawn(move || {
             let rt = tokio::runtime::Runtime::new().unwrap();
             let url = build_url();
-            let _ = rt.block_on(async {
+            let result = rt.block_on(async {
                 let mut client = LibraryServiceClient::connect(url).await.unwrap();
                 match is_liked {
                     true => {
@@ -120,6 +136,74 @@ impl Song {
                     }
                 }
 
+                Ok::<(), Error>(())
+            });
+
+            match result {
+                Ok(_) => {}
+                Err(e) => eprintln!("Error liking track: {:?}", e),
+            }
+        });
+    }
+
+    pub fn play_next(&self) {
+        let track = self.imp().track.borrow();
+        let track = track.as_ref().unwrap();
+        let track = track.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .insert_tracks(InsertTracksRequest {
+                        tracks: vec![track.path.clone()],
+                        position: PLAYLIST_INSERT_FIRST,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_last(&self) {
+        let track = self.imp().track.borrow();
+        let track = track.as_ref().unwrap();
+        let track = track.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .insert_tracks(InsertTracksRequest {
+                        tracks: vec![track.path.clone()],
+                        position: PLAYLIST_INSERT_LAST,
+                        ..Default::default()
+                    })
+                    .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn add_shuffled(&self) {
+        let track = self.imp().track.borrow();
+        let track = track.as_ref().unwrap();
+        let track = track.clone();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .insert_tracks(InsertTracksRequest {
+                        tracks: vec![track.path.clone()],
+                        position: PLAYLIST_INSERT_SHUFFLED,
+                        ..Default::default()
+                    })
+                    .await?;
                 Ok::<(), Error>(())
             });
         });

@@ -4,6 +4,7 @@ use gtk::{gio, glib};
 #[rustfmt::skip]
 mod config;
 pub mod app;
+pub mod constants;
 pub mod navigation;
 pub mod state;
 pub mod time;

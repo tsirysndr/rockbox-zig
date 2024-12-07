@@ -1,13 +1,5 @@
 use std::{env, thread};
 
-use adw::prelude::*;
-use adw::subclass::prelude::*;
-use anyhow::Error;
-use glib::subclass;
-use gtk::glib;
-use gtk::pango::EllipsizeMode;
-use gtk::{Button, CompositeTemplate, Image, Label, Scale};
-
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
 use crate::api::rockbox::v1alpha1::settings_service_client::SettingsServiceClient;
@@ -21,6 +13,14 @@ use crate::time::format_milliseconds;
 use crate::types::track::Track;
 use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::current_playlist::CurrentPlaylist;
+use adw::prelude::*;
+use adw::subclass::prelude::*;
+use anyhow::Error;
+use glib::subclass;
+use gtk::gdk_pixbuf::Pixbuf;
+use gtk::glib;
+use gtk::pango::EllipsizeMode;
+use gtk::{Button, CompositeTemplate, Image, Label, MenuButton, Scale};
 use std::cell::{Cell, RefCell};
 use tokio::sync::mpsc;
 
@@ -62,7 +62,7 @@ mod imp {
         #[template_child]
         pub heart_button: TemplateChild<Button>,
         #[template_child]
-        pub more_button: TemplateChild<Button>,
+        pub more_button: TemplateChild<MenuButton>,
         #[template_child]
         pub heart_icon: TemplateChild<Image>,
         #[template_child]
@@ -137,6 +137,18 @@ mod imp {
                 move |media_controls, _action, _target| {
                     media_controls.show_playlist();
                 },
+            );
+
+            klass.install_action(
+                "app.go-to-artist",
+                None,
+                move |_media_controls, _action, _target| {},
+            );
+
+            klass.install_action(
+                "app.go-to-album",
+                None,
+                move |_media_controls, _action, _target| {},
             );
         }
 
@@ -272,6 +284,9 @@ mod imp {
                             let home = std::env::var("HOME").unwrap();
                             let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
                             album_art.set_from_file(Some(&path));
+                        } else {
+                            album_art
+                                .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
                         }
 
                         match state.is_liked_track(&track.id) {
@@ -468,6 +483,8 @@ impl MediaControls {
                 let home = std::env::var("HOME").unwrap();
                 let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
                 album_art.set_from_file(Some(&path));
+            } else {
+                album_art.set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
             }
 
             let state = self.imp().state.upgrade().unwrap();

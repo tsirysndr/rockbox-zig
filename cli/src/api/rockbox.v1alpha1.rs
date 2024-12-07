@@ -2220,8 +2220,8 @@ pub struct PlayDirectoryRequest {
     pub shuffle: ::core::option::Option<bool>,
     #[prost(bool, optional, tag = "3")]
     pub recurse: ::core::option::Option<bool>,
-    #[prost(bool, optional, tag = "4")]
-    pub position: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "4")]
+    pub position: ::core::option::Option<i32>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PlayDirectoryResponse {}

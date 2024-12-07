@@ -29,9 +29,29 @@ template $File : Box {
       }
   }
 
-  Button {
+  MenuButton file_menu {
     tooltip-text: _("More");
+    menu-model: file_context_menu;
+    visible: false;
+    child: Image {
+      icon-name: "options-symbolic";
+      pixel-size: 24;
+    };
 
+    halign: center;
+    valign: center;
+    width-request: 40;
+    height-request: 40;
+
+    styles [
+      "transparent-button"
+    ]
+  }
+
+  MenuButton directory_menu {
+    tooltip-text: _("More");
+    menu-model: directory_context_menu;
+    visible: true;
     child: Image {
       icon-name: "options-symbolic";
       pixel-size: 24;
@@ -49,3 +69,23 @@ template $File : Box {
 
 }
 
+menu directory_context_menu {
+  section {
+    item (_("Play"), "app.dir.play")
+    item (_("Play Next"), "app.dir.play-next")
+    item (_("Play Last"), "app.dir.play-last")
+    item (_("Add Shuffled"), "app.dir.add-shuffled")
+    item (_("Play Last Shuffled"), "app.dir.play-last-shuffled")
+    item (_("Play Shuffled"), "app.dir.play-shuffled")
+  }
+}
+
+
+menu file_context_menu {
+  section {
+    item (_("Play"), "app.dir.play")
+    item (_("Play Next"), "app.dir.play-next")
+    item (_("Play Last"), "app.dir.play-last")
+    item (_("Add Shuffled"), "app.dir.add-shuffled")
+  }
+}

@@ -1,14 +1,20 @@
 use crate::api::rockbox::v1alpha1::browse_service_client::BrowseServiceClient;
-use crate::api::rockbox::v1alpha1::{TreeGetEntriesRequest, TreeGetEntriesResponse};
+use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
+use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
+use crate::api::rockbox::v1alpha1::{
+    InsertDirectoryRequest, InsertTracksRequest, PlayDirectoryRequest, PlayTrackRequest,
+    TreeGetEntriesRequest, TreeGetEntriesResponse,
+};
+use crate::constants::*;
 use crate::state::AppState;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::{CompositeTemplate, Image, Label, ListBox};
+use gtk::{CompositeTemplate, Image, Label, ListBox, MenuButton};
 use std::cell::{Cell, RefCell};
-use std::env;
+use std::{env, thread};
 
 mod imp {
 
@@ -23,6 +29,10 @@ mod imp {
         pub file_name: TemplateChild<Label>,
         #[template_child]
         pub row: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub file_menu: TemplateChild<MenuButton>,
+        #[template_child]
+        pub directory_menu: TemplateChild<MenuButton>,
 
         pub files: RefCell<Option<ListBox>>,
         pub go_back_button: RefCell<Option<gtk::Button>>,
@@ -39,6 +49,42 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             Self::bind_template(klass);
+
+            klass.install_action("app.dir.play-next", None, move |file, _action, _target| {
+                file.play_next();
+            });
+
+            klass.install_action("app.dir.play-last", None, move |file, _action, _target| {
+                file.play_last();
+            });
+
+            klass.install_action(
+                "app.dir.add-shuffled",
+                None,
+                move |file, _action, _target| {
+                    file.add_shuffled();
+                },
+            );
+
+            klass.install_action(
+                "app.dir.play-last-shuffled",
+                None,
+                move |file, _action, _target| {
+                    file.play_last_shuffled();
+                },
+            );
+
+            klass.install_action(
+                "app.dir.play-shuffled",
+                None,
+                move |file, _action, _target| {
+                    file.play(true);
+                },
+            );
+
+            klass.install_action("app.dir.play", None, move |file, _action, _target| {
+                file.play(false);
+            });
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
@@ -147,9 +193,186 @@ impl File {
                 file.imp().state.set(Some(&state));
                 file.imp().set_path(entry.name.clone());
                 file.imp().set_is_dir(entry.attr == 16);
+
+                match entry.attr == 16 {
+                    true => {
+                        file.imp().file_menu.set_visible(false);
+                        file.imp().directory_menu.set_visible(true);
+                    }
+                    false => {
+                        file.imp().file_menu.set_visible(true);
+                        file.imp().directory_menu.set_visible(false);
+                    }
+                }
+
                 files_ref.append(&file);
             }
         }
+    }
+
+    pub fn play_next(&self) {
+        let path = self.imp().path.borrow();
+        let path = path.clone();
+        let is_dir = self.imp().is_dir.get();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                match is_dir {
+                    true => {
+                        client
+                            .insert_directory(InsertDirectoryRequest {
+                                directory: path,
+                                position: PLAYLIST_INSERT_FIRST,
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                    false => {
+                        client
+                            .insert_tracks(InsertTracksRequest {
+                                tracks: vec![path],
+                                position: PLAYLIST_INSERT_FIRST,
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                }
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_last(&self) {
+        let path = self.imp().path.borrow();
+        let path = path.clone();
+        let is_dir = self.imp().is_dir.get();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                match is_dir {
+                    true => {
+                        client
+                            .insert_directory(InsertDirectoryRequest {
+                                directory: path,
+                                position: PLAYLIST_INSERT_LAST,
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                    false => {
+                        client
+                            .insert_tracks(InsertTracksRequest {
+                                tracks: vec![path],
+                                position: PLAYLIST_INSERT_LAST,
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                }
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn add_shuffled(&self) {
+        let path = self.imp().path.borrow();
+        let path = path.clone();
+        let is_dir = self.imp().is_dir.get();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                match is_dir {
+                    true => {
+                        client
+                            .insert_directory(InsertDirectoryRequest {
+                                directory: path,
+                                position: PLAYLIST_INSERT_SHUFFLED,
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                    false => {
+                        client
+                            .insert_tracks(InsertTracksRequest {
+                                tracks: vec![path],
+                                position: PLAYLIST_INSERT_SHUFFLED,
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                }
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_last_shuffled(&self) {
+        let path = self.imp().path.borrow();
+        let path = path.clone();
+        let is_dir = self.imp().is_dir.get();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                match is_dir {
+                    true => {
+                        client
+                            .insert_directory(InsertDirectoryRequest {
+                                directory: path,
+                                position: PLAYLIST_INSERT_LAST_SHUFFLED,
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                    false => {
+                        client
+                            .insert_tracks(InsertTracksRequest {
+                                tracks: vec![path],
+                                position: PLAYLIST_INSERT_LAST_SHUFFLED,
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                }
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play(&self, shuffle: bool) {
+        let path = self.imp().path.borrow();
+        let path = path.clone();
+        let is_dir = self.imp().is_dir.get();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaybackServiceClient::connect(url).await?;
+                match is_dir {
+                    true => {
+                        client
+                            .play_directory(PlayDirectoryRequest {
+                                path,
+                                shuffle: Some(shuffle),
+                                recurse: Some(false),
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                    false => {
+                        client.play_track(PlayTrackRequest { path }).await?;
+                    }
+                }
+                Ok::<(), Error>(())
+            });
+        });
     }
 }
 
