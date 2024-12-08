@@ -1,0 +1,262 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message GetSettingsListRequest {
+  int32 count = 1;
+}
+
+message GetSettingsListResponse {}
+
+message GetGlobalSettingsRequest {}
+
+message ReplaygainSettings {
+  bool noclip = 1;
+  int32 type = 2;
+  int32 preamp = 3;
+}
+
+message EqBandSetting {
+  int32 cutoff = 1;
+  int32 q = 2;
+  int32 gain = 3;
+}
+
+message SettingsList {
+  uint32 flags = 1;
+  int32 lang_id = 2;
+  string cfg_name = 3;
+  string cfg_vals = 4;
+}
+
+message CompressorSettings {
+  int32 threshold = 1;
+  int32 makeup_gain = 2;
+  int32 ratio = 3;
+  int32 knee = 4;
+  int32 release_time = 5;
+  int32 attack_time = 6;
+}
+
+message GetGlobalSettingsResponse {
+  int32 volume = 1;
+  int32 balance = 2;
+  int32 bass = 3;
+  int32 treble = 4;
+  int32 channel_config = 5;
+  int32 stereo_width = 6;
+  int32 bass_cutoff = 7;
+  int32 treble_cutoff = 8;
+  int32 crossfade = 9;
+  int32 crossfade_fade_in_delay = 10;
+  int32 crossfade_fade_out_delay = 11;
+  int32 crossfade_fade_in_duration = 12;
+  int32 crossfade_fade_out_duration = 13;
+  int32 crossfade_fade_out_mixmode = 14;
+  ReplaygainSettings replaygain_settings = 15;
+  int32 crossfeed = 16;
+  uint32 crossfeed_direct_gain = 17;
+  uint32 crossfeed_cross_gain = 18;
+  uint32 crossfeed_hf_attenuation = 19;
+  uint32 crossfeed_hf_cutoff = 20;
+  bool eq_enabled = 21;
+  uint32 eq_precut = 22;
+  repeated EqBandSetting eq_band_settings = 23;
+  int32 beep = 24;
+  int32 keyclick = 25;
+  int32 keyclick_repeats = 26;
+  bool dithering_enabled = 27;
+  bool timestretch_enabled = 28;
+  int32 list_accel_start_delay = 29;
+  int32 list_accel_wait = 30;
+  int32 touchpad_sensitivity = 31;
+  int32 touchpad_deadzone = 32;
+  int32 pause_rewind = 33;
+  int32 unplug_mode = 34;
+  bool unplug_autoresume = 35;
+  int32 timeformat = 37;
+  int32 disk_spindown = 38;
+  int32 buffer_margin = 39;
+  int32 dirfilter = 40;
+  int32 show_filename_ext = 41;
+  int32 default_codepage = 42;
+  bool hold_lr_for_scroll_in_list = 43;
+  bool play_selected = 44;
+  int32 single_mode = 45;
+  bool party_mode = 46;
+  bool car_adapter_mode = 48;
+  int32 car_adapter_mode_delay = 49;
+  int32 start_in_screen = 50;
+  int32 ff_rewind_min_step = 51;
+  int32 ff_rewind_accel = 52;
+  int32 peak_meter_release = 53;
+  int32 peak_meter_hold = 54;
+  int32 peak_meter_clip_hold = 55;
+  bool peak_meter_dbfs = 56;
+  int32 peak_meter_min = 57;
+  int32 peak_meter_max = 58;
+  string wps_file = 59;
+  string sbs_file = 60;
+  string lang_file = 61;
+  string playlist_catalog_dir = 62;
+  int32 skip_length = 63;
+  int32 max_files_in_dir = 64;
+  int32 max_files_in_playlist = 65;
+  int32 volume_type = 66;
+  int32 battery_display = 67;
+  bool show_icons = 68;
+  int32 statusbar = 69;
+  int32 scrollbar = 70;
+  int32 scrollbar_width = 71;
+  int32 list_line_padding = 72;
+  int32 list_separator_color = 73;
+  bool browse_current = 74;
+  bool scroll_paginated = 75;
+  bool list_wraparound = 76;
+  int32 list_order = 77;
+  int32 scroll_speed = 78;
+  int32 bidir_limit = 79;
+  int32 scroll_delay = 80;
+  int32 scroll_step = 81;
+  int32 autoloadbookmark = 82;
+  int32 autocreatebookmark = 83;
+  bool autoupdatebookmark = 84;
+  int32 usemrb = 85;
+  bool dircache = 86;
+  int32 tagcache_ram = 87;
+  bool tagcache_autoupdate = 88;
+  bool autoresume_enable = 89;
+  int32 autoresume_automatic = 90;
+  string autoresume_paths = 91;
+  bool runtimedb = 92;
+  string tagcache_scan_paths = 93;
+  string tagcache_db_path = 94;
+  string backdrop_file = 95;
+  int32 bg_color = 96;
+  int32 fg_color = 97;
+  int32 lss_color = 98;
+  int32 lse_color = 99;
+  int32 lst_color = 100;
+  string colors_file = 101;
+  int32 browser_default = 102;
+  int32 repeat_mode = 103;
+  int32 next_folder = 104;
+  bool constrain_next_folder = 105;
+  int32 recursive_dir_insert = 106;
+  bool fade_on_stop = 107;
+  bool playlist_shuffle = 108;
+  bool warnon_erase_dynplaylist = 109;
+  bool keep_current_track_on_replace_playlist = 110;
+  bool show_shuffled_adding_options = 111;
+  int32 show_queue_options = 112;
+  int32 album_art = 113;
+  bool rewind_across_tracks = 114;
+  bool playlist_viewer_icons = 115;
+  bool playlist_viewer_indices = 116;
+  int32 playlist_viewer_track_display = 117;
+  bool sort_case = 118;
+  int32 sort_dir = 119;
+  int32 sort_file = 120;
+  int32 interpret_numbers = 121;
+  int32 poweroff = 122;
+  bool spdif_enable = 123;
+  int32 contrast = 124;
+  bool invert = 125;
+  bool flip_display = 126;
+  int32 cursor_style = 127;
+  int32 screen_scroll_step = 128;
+  int32 show_path_in_browser = 129;
+  bool offset_out_of_view = 130;
+  bool disable_mainmenu_scrolling = 131;
+  string icon_file = 132;
+  string viewers_icon_file = 133;
+  string font_file = 134;
+  int32 glyphs_to_cache = 135;
+  string kbd_file = 136;
+  int32 backlight_timeout = 137;
+  bool caption_backlight = 138;
+  bool bl_filter_first_keypress = 139;
+  int32 backlight_timeout_plugged = 140;
+  bool bt_selective_softlock_actions = 141;
+  int32 bt_selective_softlock_actions_mask = 142;
+  bool bl_selective_actions = 143;
+  int32 bl_selective_actions_mask = 144;
+  int32 backlight_on_button_hold = 145;
+  int32 lcd_sleep_after_backlight_off = 146;
+  int32 brightness = 147;
+  int32 speaker_mode = 148;
+  bool prevent_skip = 149;
+  int32 touch_mode = 150;
+  bool pitch_mode_semitone = 151;
+  bool pitch_mode_timestretch = 152;
+  string player_name = 153;
+  CompressorSettings compressor_settings = 154;
+  int32 sleeptimer_duration = 155;
+  bool sleeptimer_on_startup = 156;
+  bool keypress_restarts_sleeptimer = 157;
+  bool show_shutdown_message = 158;
+  int32 hotkey_wps = 159;
+  int32 hotkey_tree = 160;
+  int32 resume_rewind = 161;
+  int32 depth_3d = 162;
+  int32 roll_off = 163;
+  int32 power_mode = 164;
+  bool keyclick_hardware = 165;
+  string start_directory = 166;
+  bool root_menu_customized = 167;
+  bool shortcuts_replaces_qs = 168;
+  int32 play_frequency = 169;
+  int32 volume_limit = 170;
+  int32 volume_adjust_mode = 171;
+  int32 volume_adjust_norm_steps = 172;
+  int32 surround_enabled = 173;
+  int32 surround_balance = 174;
+  int32 surround_fx1 = 175;
+  int32 surround_fx2 = 176;
+  bool surround_method2 = 177;
+  int32 surround_mix = 178;
+  int32 pbe = 179;
+  int32 pbe_precut = 180;
+  int32 afr_enabled = 181;
+  int32 governor = 182;
+  int32 stereosw_mode = 183;
+  string music_dir = 184;
+}
+
+message SaveSettingsRequest {
+  optional string music_dir = 1;
+  optional bool playlist_shuffle = 2;
+  optional int32 repeat_mode = 3;
+  optional int32 bass = 4;
+  optional int32 treble = 5;
+  optional int32 bass_cutoff = 6;
+  optional int32 treble_cutoff = 7;
+  optional int32 crossfade = 8;
+  optional bool fade_on_stop = 9;
+  optional int32 fade_in_delay = 10;
+  optional int32 fade_in_duration = 11;
+  optional int32 fade_out_delay = 12;
+  optional int32 fade_out_duration = 13;
+  optional int32 fade_out_mixmode = 14;
+  optional int32 balance = 15;
+  optional int32 stereo_width = 16;
+  optional int32 stereosw_mode = 17;
+  optional int32 surround_enabled = 18;
+  optional int32 surround_balance = 19;
+  optional int32 surround_fx1 = 20;
+  optional int32 surround_fx2 = 21;
+  optional bool party_mode = 22;
+  optional int32 channel_config = 23;
+  optional string player_name = 24;
+  optional bool eq_enabled = 25;
+  repeated EqBandSetting eq_band_settings = 26;
+  optional ReplaygainSettings replaygain_settings = 27;
+}
+
+message SaveSettingsResponse {}
+
+service SettingsService {
+  rpc GetSettingsList(GetSettingsListRequest) returns (GetSettingsListResponse);
+  rpc GetGlobalSettings(GetGlobalSettingsRequest) returns (GetGlobalSettingsResponse);
+  rpc SaveSettings(SaveSettingsRequest) returns (SaveSettingsResponse);
+}

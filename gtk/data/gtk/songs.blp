@@ -1,0 +1,14 @@
+using Gtk 4.0;
+
+template $Songs : Box {
+  ListBox tracks {
+    hexpand: true;
+    margin-top: 15;
+    margin-bottom: 15;
+    selection-mode: none;
+
+    styles [
+      "album-track-list"
+    ]
+  }
+}

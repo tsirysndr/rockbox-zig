@@ -1,0 +1,43 @@
+using Gtk 4.0;
+
+template $Artist : Box {
+  orientation: vertical;
+  spacing: 10;
+
+  Image artist_image {
+    visible: false;
+  }
+
+  Box artist_noimage {
+    visible: true;
+    halign: center;
+    valign: center;
+
+    Box {
+      halign: fill;
+      valign: fill;
+
+      Image {
+        icon-name: "artist-symbolic";
+        pixel-size: 40;
+        margin-top: 50;
+        margin-bottom: 50;
+        margin-start: 50;
+        margin-end: 50;
+
+        styles [
+          "artist-icon"
+        ]
+      }
+      styles [
+        "artist-noimage"
+      ]
+    }
+
+  }
+
+  Label artist_name {
+    halign: center;
+    selectable: true;
+  }
+}

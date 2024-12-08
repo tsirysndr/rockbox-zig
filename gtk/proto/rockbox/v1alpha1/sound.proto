@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message AdjustVolumeRequest {
+  int32 steps = 1;
+}
+
+message AdjustVolumeResponse {
+}
+
+message SoundSetRequest {
+  int32 setting = 1;
+  int32 value = 2;
+}
+
+message SoundSetResponse {}
+
+message SoundCurrentRequest {
+  int32 setting = 1;
+}
+
+message SoundCurrentResponse {
+  int32 value = 1;
+}
+
+message SoundDefaultRequest {
+  int32 setting = 1;
+}
+
+message SoundDefaultResponse {
+  int32 value = 1;
+}
+
+message SoundMinRequest {
+  int32 setting = 1;
+}
+
+message SoundMinResponse {
+  int32 value = 1;
+}
+
+message SoundMaxRequest {
+  int32 setting = 1;
+}
+
+message SoundMaxResponse {
+  int32 value = 1;
+}
+
+message SoundUnitRequest { }
+
+message SoundUnitResponse { }
+
+message SoundVal2PhysRequest {
+  int32 setting = 1;
+  int32 value = 2;
+}
+
+message SoundVal2PhysResponse {
+  int32 value = 1;
+}
+
+message GetPitchRequest { }
+
+message GetPitchResponse {
+  int32 value = 1;
+}
+
+message SetPitchRequest {
+  int32 value = 1;
+}
+
+message SetPitchResponse { }
+
+message BeepPlayRequest {
+  uint32 frequency = 1;
+  uint32 duration = 2;
+  uint32 amplitude = 3;
+}
+
+message BeepPlayResponse { }
+
+message PcmbufFadeRequest {
+  int32 fade = 1;
+  bool in = 2;
+}
+
+message PcmbufFadeResponse { }
+
+message PcmbufSetLowLatencyRequest {
+  bool state = 1;
+}
+
+message PcmbufSetLowLatencyResponse { }
+
+message SystemSoundPlayRequest {
+  uint32 sound = 1;
+}
+
+message SystemSoundPlayResponse { }
+
+message KeyclickClickRequest {
+  bool rawbutton = 1;
+  int32 action = 2;
+}
+
+message KeyclickClickResponse { }
+
+service SoundService {
+  rpc AdjustVolume(AdjustVolumeRequest) returns (AdjustVolumeResponse);
+  rpc SoundSet(SoundSetRequest) returns (SoundSetResponse);
+  rpc SoundCurrent(SoundCurrentRequest) returns (SoundCurrentResponse);
+  rpc SoundDefault(SoundDefaultRequest) returns (SoundDefaultResponse);
+  rpc SoundMin(SoundMinRequest) returns (SoundMinResponse);
+  rpc SoundMax(SoundMaxRequest) returns (SoundMaxResponse);
+  rpc SoundUnit(SoundUnitRequest) returns (SoundUnitResponse);
+  rpc SoundVal2Phys(SoundVal2PhysRequest) returns (SoundVal2PhysResponse);
+  rpc GetPitch(GetPitchRequest) returns (GetPitchResponse);
+  rpc SetPitch(SetPitchRequest) returns (SetPitchResponse);
+  rpc BeepPlay(BeepPlayRequest) returns (BeepPlayResponse);
+  rpc PcmbufFade(PcmbufFadeRequest) returns (PcmbufFadeResponse);
+  rpc PcmbufSetLowLatency(PcmbufSetLowLatencyRequest) returns (PcmbufSetLowLatencyResponse);
+  rpc SystemSoundPlay(SystemSoundPlayRequest) returns (SystemSoundPlayResponse);
+  rpc KeyclickClick(KeyclickClickRequest) returns (KeyclickClickResponse);
+}
