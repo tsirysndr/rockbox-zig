@@ -12,12 +12,12 @@ use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::types::track::Track;
 use crate::ui::pages::album_details::AlbumDetails;
+use crate::ui::pages::artist_details::ArtistDetails;
 use crate::ui::pages::current_playlist::CurrentPlaylist;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
-use gtk::gdk_pixbuf::Pixbuf;
 use gtk::glib;
 use gtk::pango::EllipsizeMode;
 use gtk::{Button, CompositeTemplate, Image, Label, MenuButton, Scale};
@@ -74,7 +74,9 @@ mod imp {
         pub repeat_mode: Cell<i32>,
         pub library_page: RefCell<Option<adw::NavigationPage>>,
         pub current_album_id: RefCell<Option<String>>,
+        pub current_artist_id: RefCell<Option<String>>,
         pub album_details: RefCell<Option<AlbumDetails>>,
+        pub artist_details: RefCell<Option<ArtistDetails>>,
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub go_back_button: RefCell<Option<Button>>,
         pub playlist_displayed: Cell<bool>,
@@ -142,13 +144,17 @@ mod imp {
             klass.install_action(
                 "app.go-to-artist",
                 None,
-                move |_media_controls, _action, _target| {},
+                move |media_controls, _action, _target| {
+                    media_controls.go_to_artist();
+                },
             );
 
             klass.install_action(
                 "app.go-to-album",
                 None,
-                move |_media_controls, _action, _target| {},
+                move |media_controls, _action, _target| {
+                    media_controls.go_to_album();
+                },
             );
         }
 
@@ -245,6 +251,7 @@ mod imp {
 
                 glib::MainContext::default().spawn_local(async move {
                     while let Some(track) = rx.recv().await {
+                        let mut current_artist_id = self_.current_artist_id.borrow_mut();
                         let title = self_.title.get();
                         let artist_album = self_.artist_album.get();
                         let elapsed = self_.elapsed.get();
@@ -262,6 +269,7 @@ mod imp {
                             continue;
                         }
 
+                        current_artist_id.replace(track.artist_id.clone());
                         let progression = (track.elapsed as f64 / track.length as f64) * 100.0;
                         progress_bar.set_value(progression);
                         media_control_bar_progress.set_visible(true);
@@ -716,6 +724,45 @@ impl MediaControls {
                 go_back_button_ref.set_visible(false);
                 library_page_ref.set_title("Play Queue");
             }
+        }
+    }
+
+    pub fn go_to_artist(&self) {
+        let state = self.imp().state.upgrade().unwrap();
+        let library_page = self.imp().library_page.borrow();
+        let main_stack = self.imp().main_stack.borrow();
+        let artist_details = self.imp().artist_details.borrow();
+        let go_back_button = self.imp().go_back_button.borrow();
+        let current_artist_id = self.imp().current_artist_id.borrow();
+        let library_page_ref = library_page.as_ref().unwrap();
+        let main_stack_ref = main_stack.as_ref().unwrap();
+        let go_back_button_ref = go_back_button.as_ref().unwrap();
+        let artist_details_ref = artist_details.as_ref().unwrap();
+        let current_artist_id_ref = current_artist_id.as_ref().unwrap();
+        main_stack_ref.set_visible_child_name("artist-details-page");
+        library_page_ref.set_title("Artist");
+        go_back_button_ref.set_visible(true);
+        artist_details_ref.imp().load_artist(current_artist_id_ref);
+        state.push_navigation("Artist", "artist-details-page");
+    }
+
+    pub fn go_to_album(&self) {
+        let state = self.imp().state.upgrade().unwrap();
+        let current_album_id = self.imp().current_album_id.borrow();
+        if let Some(album_id) = current_album_id.as_ref() {
+            let album_details = self.imp().album_details.borrow();
+            let library_page = self.imp().library_page.borrow();
+            let main_stack = self.imp().main_stack.borrow();
+            let go_back_button = self.imp().go_back_button.borrow();
+            let album_details_ref = album_details.as_ref().unwrap();
+            let library_page_ref = library_page.as_ref().unwrap();
+            let main_stack_ref = main_stack.as_ref().unwrap();
+            let go_back_button_ref = go_back_button.as_ref().unwrap();
+            main_stack_ref.set_visible_child_name("album-details-page");
+            library_page_ref.set_title("Album");
+            go_back_button_ref.set_visible(true);
+            state.push_navigation("Album", "album-details-page");
+            album_details_ref.imp().load_album(album_id);
         }
     }
 }

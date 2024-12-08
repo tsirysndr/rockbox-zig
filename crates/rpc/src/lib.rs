@@ -1306,14 +1306,14 @@ macro_rules! check_and_load_player {
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        if player.host.is_empty() && player.port == 0 {
+        if !player.host.is_empty() && player.port != 0 {
             let client = reqwest::Client::new();
             let body = serde_json::json!({
                 "tracks": $tracks,
                 "shuffle": $shuffle,
             });
             client
-                .put(&format!("{}/player/", rockbox_url()))
+                .put(&format!("{}/player/load", rockbox_url()))
                 .json(&body)
                 .send()
                 .await

@@ -447,6 +447,10 @@ impl RbApplicationWindow {
             .replace(Some(album_details.clone()));
         media_control_bar
             .imp()
+            .artist_details
+            .replace(Some(artist_details.clone()));
+        media_control_bar
+            .imp()
             .main_stack
             .replace(Some(main_stack.clone()));
         media_control_bar
