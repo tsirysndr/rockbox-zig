@@ -238,7 +238,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -247,7 +248,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -259,7 +261,8 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
@@ -288,7 +291,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -297,7 +301,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -309,7 +314,8 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
@@ -382,7 +388,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -391,7 +398,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -403,7 +411,8 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
@@ -465,7 +474,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -474,7 +484,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -486,7 +497,8 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
@@ -514,7 +526,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -523,7 +536,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -535,7 +549,8 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
