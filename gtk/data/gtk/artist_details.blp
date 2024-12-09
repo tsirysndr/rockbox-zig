@@ -83,7 +83,7 @@ template $ArtistDetails : Box {
           Button play_button {
             tooltip-text: _("Play all tracks");
             icon-name: "media-playback-start-symbolic";
-            action-name: "app.play-artist-tracks";
+            action-name: "app.artist.play";
             halign: center;
             valign:  center;
             margin-start: 0;
@@ -97,7 +97,7 @@ template $ArtistDetails : Box {
 
           Button {
             label: "Play";
-            action-name: "app.play-artist-tracks";
+            action-name: "app.artist.play";
             halign: center;
             valign: center;
 
@@ -114,7 +114,7 @@ template $ArtistDetails : Box {
           Button shuffle_button {
             tooltip-text: _("Shuffle all tracks");
             icon-name: "media-playlist-shuffle-symbolic";
-            action-name: "app.shuffle-artist-tracks";
+            action-name: "app.artist.shuffle";
             halign: center;
             valign:  center;
             margin-start: 0;
@@ -128,7 +128,7 @@ template $ArtistDetails : Box {
 
           Button {
             label: "Shuffle";
-            action-name: "app.shuffle-artist-tracks";
+            action-name: "app.artist.shuffle";
             halign: center;
             valign: center;
 
@@ -229,6 +229,5 @@ menu context_menu {
     item (_("Play Last"), "app.artist.play-last")
     item (_("Add Shuffled"), "app.artist.add-shuffled")
     item (_("Play Last Shuffled"), "app.artist.play-last-shuffled")
-    item (_("Play Shuffled"), "app.artist.shuffled")
   }
 }

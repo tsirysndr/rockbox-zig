@@ -4959,6 +4959,17 @@ pub struct InsertAlbumRequest {
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct InsertAlbumResponse {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InsertArtistTracksRequest {
+    #[prost(int32, tag = "1")]
+    pub position: i32,
+    #[prost(string, tag = "2")]
+    pub artist_id: ::prost::alloc::string::String,
+    #[prost(bool, optional, tag = "3")]
+    pub shuffle: ::core::option::Option<bool>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct InsertArtistTracksResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ShufflePlaylistRequest {
     #[prost(int32, tag = "1")]
@@ -5531,6 +5542,36 @@ pub mod playlist_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        pub async fn insert_artist_tracks(
+            &mut self,
+            request: impl tonic::IntoRequest<super::InsertArtistTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::InsertArtistTracksResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.PlaylistService/InsertArtistTracks",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "rockbox.v1alpha1.PlaylistService",
+                        "InsertArtistTracks",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         pub async fn shuffle_playlist(
             &mut self,
             request: impl tonic::IntoRequest<super::ShufflePlaylistRequest>,
@@ -5685,6 +5726,13 @@ pub mod playlist_service_server {
             request: tonic::Request<super::InsertAlbumRequest>,
         ) -> std::result::Result<
             tonic::Response<super::InsertAlbumResponse>,
+            tonic::Status,
+        >;
+        async fn insert_artist_tracks(
+            &self,
+            request: tonic::Request<super::InsertArtistTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::InsertArtistTracksResponse>,
             tonic::Status,
         >;
         async fn shuffle_playlist(
@@ -6573,6 +6621,55 @@ pub mod playlist_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = InsertAlbumSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.PlaylistService/InsertArtistTracks" => {
+                    #[allow(non_camel_case_types)]
+                    struct InsertArtistTracksSvc<T: PlaylistService>(pub Arc<T>);
+                    impl<
+                        T: PlaylistService,
+                    > tonic::server::UnaryService<super::InsertArtistTracksRequest>
+                    for InsertArtistTracksSvc<T> {
+                        type Response = super::InsertArtistTracksResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::InsertArtistTracksRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PlaylistService>::insert_artist_tracks(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = InsertArtistTracksSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

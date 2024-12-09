@@ -127,6 +127,14 @@ message InsertAlbumRequest {
 
 message InsertAlbumResponse {}
 
+message InsertArtistTracksRequest {
+  int32 position = 1;
+  string artist_id = 2;
+  optional bool shuffle = 3;
+}
+
+message InsertArtistTracksResponse {}
+
 message ShufflePlaylistRequest {
   int32 start_index = 1;
 }
@@ -152,5 +160,6 @@ service PlaylistService {
   rpc InsertDirectory(InsertDirectoryRequest) returns (InsertDirectoryResponse) {}
   rpc InsertPlaylist(InsertPlaylistRequest) returns (InsertPlaylistResponse) {}
   rpc InsertAlbum(InsertAlbumRequest) returns (InsertAlbumResponse) {}
+  rpc InsertArtistTracks(InsertArtistTracksRequest) returns (InsertArtistTracksResponse) {}
   rpc ShufflePlaylist(ShufflePlaylistRequest) returns (ShufflePlaylistResponse) {}
 }

@@ -2,7 +2,8 @@ use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
 use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    GetArtistRequest, GetArtistResponse, InsertTracksRequest, PlayArtistTracksRequest,
+    GetArtistRequest, GetArtistResponse, InsertArtistTracksRequest, InsertTracksRequest,
+    PlayArtistTracksRequest,
 };
 use crate::constants::*;
 use crate::state::AppState;
@@ -344,10 +345,9 @@ impl ArtistDetails {
             let url = build_url();
             let _ = rt.block_on(async {
                 let mut client = PlaylistServiceClient::connect(url).await?;
-                // TODO: call the correct rpc method
                 client
-                    .insert_tracks(InsertTracksRequest {
-                        tracks: vec![],
+                    .insert_artist_tracks(InsertArtistTracksRequest {
+                        artist_id,
                         position: PLAYLIST_INSERT_FIRST,
                         ..Default::default()
                     })
@@ -365,10 +365,9 @@ impl ArtistDetails {
             let url = build_url();
             let _ = rt.block_on(async {
                 let mut client = PlaylistServiceClient::connect(url).await?;
-                // TODO: call the correct rpc method
                 client
-                    .insert_tracks(InsertTracksRequest {
-                        tracks: vec![],
+                    .insert_artist_tracks(InsertArtistTracksRequest {
+                        artist_id,
                         position: PLAYLIST_INSERT_LAST,
                         ..Default::default()
                     })
@@ -386,10 +385,9 @@ impl ArtistDetails {
             let url = build_url();
             let _ = rt.block_on(async {
                 let mut client = PlaylistServiceClient::connect(url).await?;
-                // TODO: call the correct rpc method
                 client
-                    .insert_tracks(InsertTracksRequest {
-                        tracks: vec![],
+                    .insert_artist_tracks(InsertArtistTracksRequest {
+                        artist_id,
                         position: PLAYLIST_INSERT_SHUFFLED,
                         ..Default::default()
                     })
@@ -408,8 +406,8 @@ impl ArtistDetails {
             let _ = rt.block_on(async {
                 let mut client = PlaylistServiceClient::connect(url).await?;
                 client
-                    .insert_tracks(InsertTracksRequest {
-                        tracks: vec![],
+                    .insert_artist_tracks(InsertArtistTracksRequest {
+                        artist_id,
                         position: PLAYLIST_INSERT_LAST_SHUFFLED,
                         ..Default::default()
                     })
