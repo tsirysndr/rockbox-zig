@@ -2,8 +2,7 @@ use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
 use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    GetArtistRequest, GetArtistResponse, InsertArtistTracksRequest, InsertTracksRequest,
-    PlayArtistTracksRequest,
+    GetArtistRequest, GetArtistResponse, InsertArtistTracksRequest, PlayArtistTracksRequest,
 };
 use crate::constants::*;
 use crate::state::AppState;
