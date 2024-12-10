@@ -185,6 +185,22 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                 action-name: "win.go_back";
                 visible: false;
               }
+              
+              [start]
+              Button play_all_button {
+                tooltip-text: _("Play All Songs");
+                icon-name: "media-playback-start-symbolic";
+                action-name: "app.play_all";
+                visible: false;
+              }
+              
+              [start]
+              Button shuffle_all_button {
+                tooltip-text: _("Shuffle All Songs");
+                icon-name: "media-playlist-shuffle-symbolic";
+                action-name: "app.shuffle_all";
+                visible: false;
+              }
 
               [end]
               MenuButton primary_menu_button {

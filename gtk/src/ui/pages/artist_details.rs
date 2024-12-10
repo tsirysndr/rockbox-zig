@@ -43,6 +43,8 @@ mod imp {
         pub library_page: RefCell<Option<adw::NavigationPage>>,
         pub state: glib::WeakRef<AppState>,
         pub artist_id: RefCell<String>,
+        pub play_all_button: RefCell<Option<gtk::Button>>,
+        pub shuffle_all_button: RefCell<Option<gtk::Button>>,
     }
 
     #[glib::object_subclass]
@@ -128,6 +130,15 @@ mod imp {
 
         pub fn set_library_page(&self, library_page: adw::NavigationPage) {
             *self.library_page.borrow_mut() = Some(library_page);
+        }
+
+        pub fn hide_top_buttons(&self, hide: bool) {
+            let play_all_button = self.play_all_button.borrow();
+            let play_all_button_ref = play_all_button.as_ref();
+            let shuffle_all_button = self.shuffle_all_button.borrow();
+            let shuffle_all_button_ref = shuffle_all_button.as_ref();
+            play_all_button_ref.unwrap().set_visible(!hide);
+            shuffle_all_button_ref.unwrap().set_visible(!hide);
         }
 
         pub fn load_artist(&self, id: &str) {

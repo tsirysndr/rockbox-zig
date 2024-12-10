@@ -38,6 +38,8 @@ mod imp {
 
         pub state: glib::WeakRef<AppState>,
         pub album_id: RefCell<String>,
+        pub play_all_button: RefCell<Option<gtk::Button>>,
+        pub shuffle_all_button: RefCell<Option<gtk::Button>>,
     }
 
     #[glib::object_subclass]
@@ -121,6 +123,15 @@ mod imp {
     impl BoxImpl for AlbumDetails {}
 
     impl AlbumDetails {
+        pub fn hide_top_buttons(&self, hide: bool) {
+            let play_all_button = self.play_all_button.borrow();
+            let play_all_button_ref = play_all_button.as_ref();
+            let shuffle_all_button = self.shuffle_all_button.borrow();
+            let shuffle_all_button_ref = shuffle_all_button.as_ref();
+            play_all_button_ref.unwrap().set_visible(!hide);
+            shuffle_all_button_ref.unwrap().set_visible(!hide);
+        }
+
         pub fn load_album(&self, id: &str) {
             let id = id.to_string();
             self.album_id.replace(id.clone());

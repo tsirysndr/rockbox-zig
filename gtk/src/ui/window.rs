@@ -1,3 +1,5 @@
+use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
+use crate::api::rockbox::v1alpha1::{PlayAllTracksRequest, PlayLikedTracksRequest};
 use crate::app::RbApplication;
 use crate::state::AppState;
 use crate::types::track::Track;
@@ -12,12 +14,15 @@ use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::ViewStack;
 use adw::{NavigationPage, NavigationView, OverlaySplitView, ToastOverlay, ViewStackPage};
+use anyhow::Error;
 use glib::subclass;
 use gtk::{
     gio, glib, Box, Button, CompositeTemplate, ListBox, MenuButton, Overlay, ScrolledWindow,
     SearchBar, SearchEntry, ToggleButton,
 };
 use std::cell::{Cell, RefCell};
+use std::env;
+use std::thread;
 
 mod imp {
 
@@ -32,6 +37,10 @@ mod imp {
         pub primary_menu_button: TemplateChild<MenuButton>,
         #[template_child]
         pub go_back_button: TemplateChild<Button>,
+        #[template_child]
+        pub play_all_button: TemplateChild<Button>,
+        #[template_child]
+        pub shuffle_all_button: TemplateChild<Button>,
 
         #[template_child]
         pub search_bar: TemplateChild<SearchBar>,
@@ -142,6 +151,16 @@ mod imp {
             klass.install_action("win.go_back", None, move |win, _action, _parameter| {
                 let self_ = imp::RbApplicationWindow::from_obj(win);
                 self_.go_back();
+            });
+
+            klass.install_action("app.play_all", None, move |win, _action, _parameter| {
+                let self_ = imp::RbApplicationWindow::from_obj(win);
+                self_.play_all();
+            });
+
+            klass.install_action("app.shuffle_all", None, move |win, _action, _parameter| {
+                let self_ = imp::RbApplicationWindow::from_obj(win);
+                self_.shuffle_all();
             });
         }
 
@@ -304,6 +323,10 @@ mod imp {
                             let library_page = self_.library_page.get();
                             library_page.set_title("Albums");
                             state.new_navigation_from("Albums", "albums-page");
+                            let play_all_button = self_.play_all_button.get();
+                            let shuffle_all_button = self_.shuffle_all_button.get();
+                            play_all_button.set_visible(false);
+                            shuffle_all_button.set_visible(false);
                         }
                         "Artists" => {
                             let main_stack = self_.main_stack.get();
@@ -311,6 +334,10 @@ mod imp {
                             let library_page = self_.library_page.get();
                             library_page.set_title("Artists");
                             state.new_navigation_from("Artists", "artists-page");
+                            let play_all_button = self_.play_all_button.get();
+                            let shuffle_all_button = self_.shuffle_all_button.get();
+                            play_all_button.set_visible(false);
+                            shuffle_all_button.set_visible(false);
                         }
                         "Songs" => {
                             let main_stack = self_.main_stack.get();
@@ -318,6 +345,10 @@ mod imp {
                             let library_page = self_.library_page.get();
                             library_page.set_title("Songs");
                             state.new_navigation_from("Songs", "songs-page");
+                            let play_all_button = self_.play_all_button.get();
+                            let shuffle_all_button = self_.shuffle_all_button.get();
+                            play_all_button.set_visible(true);
+                            shuffle_all_button.set_visible(true);
                         }
                         "Likes" => {
                             let main_stack = self_.main_stack.get();
@@ -325,6 +356,11 @@ mod imp {
                             let library_page = self_.library_page.get();
                             library_page.set_title("Likes");
                             state.new_navigation_from("Likes", "likes-page");
+                            let play_all_button = self_.play_all_button.get();
+                            let shuffle_all_button = self_.shuffle_all_button.get();
+                            play_all_button.set_visible(true);
+                            shuffle_all_button.set_visible(true);
+
                             let likes = self_.likes.get();
                             glib::idle_add_local(move || {
                                 likes.imp().size.set(20);
@@ -338,6 +374,10 @@ mod imp {
                             let library_page = self_.library_page.get();
                             library_page.set_title("Files");
                             state.new_navigation_from("Files", "files-page");
+                            let play_all_button = self_.play_all_button.get();
+                            let shuffle_all_button = self_.shuffle_all_button.get();
+                            play_all_button.set_visible(false);
+                            shuffle_all_button.set_visible(false);
                         }
                         _ => {}
                     }
@@ -364,6 +404,13 @@ mod imp {
             let current_state = self.show_sidebar.get();
             self.show_sidebar.set(!current_state);
             self.overlay_split_view.set_show_sidebar(!current_state);
+        }
+
+        pub fn hide_top_buttons(&self, hide: bool) {
+            let play_all_button = self.play_all_button.get();
+            let shuffle_all_button = self.shuffle_all_button.get();
+            play_all_button.set_visible(!hide);
+            shuffle_all_button.set_visible(!hide);
         }
 
         fn go_back(&self) {
@@ -399,6 +446,86 @@ mod imp {
                     current_path != *music_directory_ref && current_path != *default_string,
                 );
             }
+
+            if current_page.1 == "songs-page" || current_page.1 == "likes-page" {
+                self.hide_top_buttons(false);
+            } else {
+                self.hide_top_buttons(true);
+            }
+        }
+
+        fn play_all(&self) {
+            let state = self.state.upgrade().unwrap();
+            if state.current_page().1 == "songs-page" {
+                thread::spawn(move || {
+                    let rt = tokio::runtime::Runtime::new().unwrap();
+                    let url = build_url();
+                    let _ = rt.block_on(async {
+                        let mut client = PlaybackServiceClient::connect(url).await?;
+                        client
+                            .play_all_tracks(PlayAllTracksRequest {
+                                shuffle: Some(false),
+                                position: Some(0),
+                            })
+                            .await?;
+                        Ok::<(), Error>(())
+                    });
+                });
+            }
+
+            if state.current_page().1 == "likes-page" {
+                thread::spawn(move || {
+                    let rt = tokio::runtime::Runtime::new().unwrap();
+                    let url = build_url();
+                    let _ = rt.block_on(async {
+                        let mut client = PlaybackServiceClient::connect(url).await?;
+                        client
+                            .play_liked_tracks(PlayLikedTracksRequest {
+                                shuffle: Some(false),
+                                position: Some(0),
+                            })
+                            .await?;
+                        Ok::<(), Error>(())
+                    });
+                });
+            }
+        }
+
+        fn shuffle_all(&self) {
+            let state = self.state.upgrade().unwrap();
+            if state.current_page().1 == "songs-page" {
+                thread::spawn(move || {
+                    let rt = tokio::runtime::Runtime::new().unwrap();
+                    let url = build_url();
+                    let _ = rt.block_on(async {
+                        let mut client = PlaybackServiceClient::connect(url).await?;
+                        client
+                            .play_all_tracks(PlayAllTracksRequest {
+                                shuffle: Some(true),
+                                position: Some(0),
+                            })
+                            .await?;
+                        Ok::<(), Error>(())
+                    });
+                });
+            }
+
+            if state.current_page().1 == "likes-page" {
+                thread::spawn(move || {
+                    let rt = tokio::runtime::Runtime::new().unwrap();
+                    let url = build_url();
+                    let _ = rt.block_on(async {
+                        let mut client = PlaybackServiceClient::connect(url).await?;
+                        client
+                            .play_liked_tracks(PlayLikedTracksRequest {
+                                shuffle: Some(true),
+                                position: Some(0),
+                            })
+                            .await?;
+                        Ok::<(), Error>(())
+                    });
+                });
+            }
         }
     }
 }
@@ -425,6 +552,8 @@ impl RbApplicationWindow {
         let current_playlist = window.imp().current_playlist.get();
         let media_control_bar = window.imp().media_control_bar.get();
         let go_back_button = window.imp().go_back_button.get();
+        let play_all_button = window.imp().play_all_button.get();
+        let shuffle_all_button = window.imp().shuffle_all_button.get();
         let songs = window.imp().songs.get();
 
         window.imp().state.set(Some(&state));
@@ -436,6 +565,33 @@ impl RbApplicationWindow {
         likes.imp().state.set(Some(&state));
         songs.imp().state.set(Some(&state));
         album_details.imp().state.set(Some(&state));
+
+        artist_details
+            .imp()
+            .play_all_button
+            .replace(Some(play_all_button.clone()));
+        artist_details
+            .imp()
+            .shuffle_all_button
+            .replace(Some(shuffle_all_button.clone()));
+
+        album_details
+            .imp()
+            .play_all_button
+            .replace(Some(play_all_button.clone()));
+        album_details
+            .imp()
+            .shuffle_all_button
+            .replace(Some(shuffle_all_button.clone()));
+
+        current_playlist
+            .imp()
+            .play_all_button
+            .replace(Some(play_all_button.clone()));
+        current_playlist
+            .imp()
+            .shuffle_all_button
+            .replace(Some(shuffle_all_button.clone()));
 
         media_control_bar
             .imp()
@@ -494,4 +650,11 @@ impl Default for RbApplicationWindow {
             .downcast()
             .unwrap()
     }
+}
+
+fn build_url() -> String {
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+
+    format!("tcp://{}:{}", host, port)
 }

@@ -44,6 +44,8 @@ mod imp {
         pub tracks: RefCell<Vec<CurrentTrackResponse>>,
         pub current_index: Cell<usize>,
         pub size: Cell<usize>,
+        pub play_all_button: RefCell<Option<gtk::Button>>,
+        pub shuffle_all_button: RefCell<Option<gtk::Button>>,
     }
 
     #[glib::object_subclass]
@@ -200,6 +202,15 @@ glib::wrapper! {
 impl CurrentPlaylist {
     pub fn new() -> Self {
         glib::Object::new()
+    }
+
+    pub fn hide_top_buttons(&self, hide: bool) {
+        let play_all_button = self.imp().play_all_button.borrow();
+        let play_all_button_ref = play_all_button.as_ref();
+        let shuffle_all_button = self.imp().shuffle_all_button.borrow();
+        let shuffle_all_button_ref = shuffle_all_button.as_ref();
+        play_all_button_ref.unwrap().set_visible(!hide);
+        shuffle_all_button_ref.unwrap().set_visible(!hide);
     }
 
     pub fn load_current_track(&self) {

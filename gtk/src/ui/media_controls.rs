@@ -211,6 +211,7 @@ mod imp {
                     main_stack_ref.set_visible_child_name("album-details-page");
                     library_page_ref.set_title("Album");
                     go_back_button_ref.set_visible(true);
+                    album_details_ref.imp().hide_top_buttons(true);
                     state.push_navigation("Album", "album-details-page");
                     album_details_ref.imp().load_album(album_id);
                 }
@@ -706,6 +707,9 @@ impl MediaControls {
                 library_page_ref.set_title(&state.current_page().0);
                 let current_playlist = self.imp().current_playlist.borrow();
                 let current_playlist_ref = current_playlist.as_ref().unwrap();
+                current_playlist_ref.hide_top_buttons(false);
+                current_playlist_ref.load_current_track();
+                current_playlist_ref.load_current_playlist();
                 current_playlist_ref.imp().size.set(10);
             }
             false => {
@@ -718,6 +722,7 @@ impl MediaControls {
                 playlist_button.set_tooltip_text(Some("Hide Play Queue"));
                 let current_playlist = self.imp().current_playlist.borrow();
                 let current_playlist_ref = current_playlist.as_ref().unwrap();
+                current_playlist_ref.hide_top_buttons(true);
                 current_playlist_ref.load_current_track();
                 current_playlist_ref.load_current_playlist();
                 self.imp().playlist_displayed.set(true);
@@ -742,6 +747,7 @@ impl MediaControls {
         main_stack_ref.set_visible_child_name("artist-details-page");
         library_page_ref.set_title("Artist");
         go_back_button_ref.set_visible(true);
+        artist_details_ref.imp().hide_top_buttons(true);
         artist_details_ref.imp().load_artist(current_artist_id_ref);
         state.push_navigation("Artist", "artist-details-page");
     }
@@ -762,6 +768,7 @@ impl MediaControls {
             library_page_ref.set_title("Album");
             go_back_button_ref.set_visible(true);
             state.push_navigation("Album", "album-details-page");
+            album_details_ref.imp().hide_top_buttons(true);
             album_details_ref.imp().load_album(album_id);
         }
     }
