@@ -707,7 +707,18 @@ impl MediaControls {
                 library_page_ref.set_title(&state.current_page().0);
                 let current_playlist = self.imp().current_playlist.borrow();
                 let current_playlist_ref = current_playlist.as_ref().unwrap();
-                current_playlist_ref.hide_top_buttons(false);
+
+                if state.current_page().1 == "likes-page" || state.current_page().1 == "songs-page"
+                {
+                    current_playlist_ref.hide_top_buttons(false);
+                }
+
+                if state.current_page().1 == "files-page"
+                    && state.current_path() != state.music_directory()
+                    && state.current_path().is_some()
+                {
+                    go_back_button_ref.set_visible(true);
+                }
                 current_playlist_ref.load_current_track();
                 current_playlist_ref.load_current_playlist();
                 current_playlist_ref.imp().size.set(10);

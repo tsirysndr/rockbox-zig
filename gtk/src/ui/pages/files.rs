@@ -68,11 +68,6 @@ mod imp {
                     None => return glib::ControlFlow::Continue,
                 };
 
-                glib::MainContext::default().spawn_local(async move {
-                    let obj = self_.obj();
-                    obj.get_music_directory();
-                });
-
                 glib::ControlFlow::Break
             });
         }
@@ -152,6 +147,8 @@ impl Files {
     }
 
     pub fn get_music_directory(&self) {
+        let state = self.imp().state.upgrade();
+
         let rt = tokio::runtime::Runtime::new().unwrap();
         let response_ = rt.block_on(async {
             let url = build_url();
@@ -164,7 +161,12 @@ impl Files {
         });
 
         if let Ok(response) = response_ {
-            self.imp().music_directory.replace(Some(response.music_dir));
+            self.imp()
+                .music_directory
+                .replace(Some(response.music_dir.clone()));
+            if let Some(state) = state {
+                state.set_music_directory(&response.music_dir);
+            }
         }
     }
 

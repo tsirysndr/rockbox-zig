@@ -434,7 +434,9 @@ mod imp {
             if state.navigation_stack_len() == 1 {
                 go_back_button.set_visible(false);
             }
-            if current_page.1 == "files-page" && poped_page.1 == "album-details-page" {
+            if current_page.1 == "files-page"
+                && (poped_page.1 == "album-details-page" || poped_page.1 == "artist-details-page")
+            {
                 let files = self.files.get();
                 let default_string = String::from("");
                 let state = self.state.upgrade().unwrap();
@@ -565,6 +567,8 @@ impl RbApplicationWindow {
         likes.imp().state.set(Some(&state));
         songs.imp().state.set(Some(&state));
         album_details.imp().state.set(Some(&state));
+
+        files.get_music_directory();
 
         artist_details
             .imp()
