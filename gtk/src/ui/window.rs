@@ -558,6 +558,8 @@ impl RbApplicationWindow {
         let shuffle_all_button = window.imp().shuffle_all_button.get();
         let songs = window.imp().songs.get();
 
+        songs.imp().likes_page.replace(Some(likes.clone()));
+
         window.imp().state.set(Some(&state));
         artists.imp().state.set(Some(&state));
         artist_details.imp().state.set(Some(&state));

@@ -2,6 +2,7 @@ use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::{GetTracksRequest, GetTracksResponse, Track};
 use crate::state::AppState;
 use crate::time::format_milliseconds;
+use crate::ui::pages::likes::Likes;
 use crate::ui::song::Song;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
@@ -15,6 +16,8 @@ use std::env;
 
 mod imp {
 
+    use std::borrow::Borrow;
+
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -26,6 +29,7 @@ mod imp {
         pub all_tracks: RefCell<Vec<Track>>,
         pub size: Cell<usize>,
         pub state: glib::WeakRef<AppState>,
+        pub likes_page: RefCell<Option<Likes>>,
     }
 
     #[glib::object_subclass]
@@ -57,6 +61,9 @@ mod imp {
 
                 glib::MainContext::default().spawn_local(async move {
                     let obj = self_.obj();
+                    let likes_page = obj.imp().likes_page.borrow();
+                    let likes_page_ref = likes_page.as_ref().unwrap();
+                    likes_page_ref.load_likes();
                     obj.load_songs();
                 });
                 glib::ControlFlow::Break

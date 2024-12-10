@@ -175,19 +175,36 @@ template $ArtistDetails : Box {
       }
     }
   }
-  
-  Label {
-    label: _("Tracks");
+ 
+  Box {
+    orientation: horizontal;
     hexpand: true;
-    halign: start;
-    margin-top: 20;
-    margin-start: 25;
-    margin-end: 25;
+    halign: fill;
+    valign: center;
 
-    styles [
-      "subtitle"
-    ]
-  }
+    Label {
+      label: _("Tracks");
+      hexpand: true;
+      halign: start;
+      margin-top: 20;
+      margin-start: 25;
+      margin-end: 25;
+
+      styles [
+        "subtitle"
+      ]
+    }
+
+    Button show_all_tracks_button {
+      label: "View All";
+      halign: end;
+      valign: center;
+
+      styles [
+        "transparent-button"
+      ]
+    }
+}
 
   ListBox tracks {
     hexpand: true;
