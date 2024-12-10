@@ -346,4 +346,30 @@ impl PlaylistService for Playlist {
 
         Ok(tonic::Response::new(InsertAlbumResponse::default()))
     }
+
+    async fn insert_artist_tracks(
+        &self,
+        request: tonic::Request<InsertArtistTracksRequest>,
+    ) -> Result<tonic::Response<InsertArtistTracksResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let artist_id = request.artist_id;
+        let position = request.position;
+        let tracks = repo::artist_tracks::find_by_artist(self.pool.clone(), &artist_id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks: Vec<String> = tracks.into_iter().map(|t| t.path).collect();
+        let body = serde_json::json!({
+            "position": position,
+            "tracks": tracks,
+        });
+        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        self.client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(tonic::Response::new(InsertArtistTracksResponse::default()))
+    }
 }

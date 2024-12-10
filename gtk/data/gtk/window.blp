@@ -1,0 +1,619 @@
+
+using Gtk 4.0;
+using Adw 1;
+
+
+template $RbApplicationWindow : Adw.ApplicationWindow {
+  title: _("Rockbox");
+  width-request: 900;
+  height-request: 600;
+
+  Adw.Breakpoint {
+    condition ("max-width: 564px")
+
+    setters {
+      overlay_split_view.collapsed: true;
+      details_view_box.orientation: vertical;
+      details_view_box.margin-top: 12;
+      details_view_box.margin-start: 12;
+      details_view_box.margin-end: 12;
+      details_view_details_box.margin-start: 0;
+      details_view_details_box.margin-end: 0;
+      details_view_title.margin-top: 30;
+      details_view_title.halign: center;
+      details_view_developer.halign: center;
+      details_view_date_box.halign: center;
+      details_view_toolbar.halign: center;
+      details_view_toolbar.orientation: vertical;
+      details_view_play_button.halign: center;
+      details_view_toolbar_buttons.margin-start: 0;
+    }
+  }
+
+  Adw.ToastOverlay toast_overlay {
+    Adw.NavigationView navigation_view {
+      Adw.NavigationPage library_page {
+        title: _("Albums");
+
+        Adw.OverlaySplitView overlay_split_view {
+          sidebar-width-fraction: .2;
+
+          [sidebar]
+          Adw.NavigationPage sidebar_navigation_page {
+            title: _("Rockbox");
+
+            Adw.ToolbarView {
+              [top]
+              Adw.HeaderBar {
+                [start]
+                Button {
+                  icon-name: "sidebar-show-symbolic";
+                  action-name: "win.show_sidebar";
+                  tooltip-text: _("Toggle Sidebar");
+                }
+              }
+
+              ScrolledWindow {
+                hscrollbar-policy: never;
+
+                ListBox sidebar {
+                  Box albums_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    margin-end: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "disc-symbolic";
+                      pixel-size: 20;
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Albums");
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  Box artists_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "artist-symbolic";
+                      pixel-size: 20;
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Artists");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  Box songs_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "music-symbolic";
+                      pixel-size: 20;
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Songs");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  Box likes_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "heart-outline-symbolic";
+                      pixel-size: 20;
+                      margin-top: 3;
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Likes");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  Box files_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "harddrive-symbolic";
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Files");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  styles [
+                    "navigation-sidebar"
+                  ]
+                }
+              }
+            }
+          }
+
+          Adw.ToolbarView library_view {
+            [top]
+            Adw.HeaderBar header_bar {
+              show-back-button: true;
+
+              [start]
+              Button show_sidebar_button {
+                icon-name: "sidebar-show-symbolic";
+                action-name: "win.show_sidebar";
+                tooltip-text: _("Toggle Sidebar");
+                visible: bind overlay_split_view.show-sidebar inverted;
+              }
+
+              [start]
+              Button go_back_button {
+                tooltip-text: _("Go Back");
+                icon-name: "go-previous-symbolic";
+                action-name: "win.go_back";
+                visible: false;
+              }
+              
+              [start]
+              Button play_all_button {
+                tooltip-text: _("Play All Songs");
+                icon-name: "media-playback-start-symbolic";
+                action-name: "app.play_all";
+                visible: false;
+              }
+              
+              [start]
+              Button shuffle_all_button {
+                tooltip-text: _("Shuffle All Songs");
+                icon-name: "media-playlist-shuffle-symbolic";
+                action-name: "app.shuffle_all";
+                visible: false;
+              }
+
+              [end]
+              MenuButton primary_menu_button {
+                tooltip-text: _("Main Menu");
+                icon-name: "open-menu-symbolic";
+                menu-model: primary_menu;
+              }
+
+              [end]
+              ToggleButton search_button {
+                tooltip-text: _("Search");
+                icon-name: "system-search-symbolic";
+                action-name: "win.toggle_search";
+              }
+            }
+
+            [top]
+            SearchBar search_bar {
+              search-mode-enabled: bind search_button.active bidirectional;
+              key-capture-widget: navigation_view;
+
+              Adw.Clamp {
+                maximum-size: 500;
+                tightening-threshold: 500;
+
+                SearchEntry search_entry {
+                  placeholder-text: _("Search");
+                  hexpand: true;
+
+                  ShortcutController {
+                    Shortcut {
+                      trigger: "Escape";
+                      action: "action(win.toggle_search)";
+                    }
+                  }
+                }
+              }
+            }
+
+            Overlay library_overlay {
+                Adw.ViewStack main_stack {
+                  
+                  Adw.ViewStackPage albums_page {
+                    name: "albums-page";
+                    title: _("Albums");
+                    child: ScrolledWindow albums_scrolled_window {
+                      $Albums albums {}
+                    };
+                  }
+
+                  Adw.ViewStackPage album_details_page {
+                    name: "album-details-page";
+                    title: _("Album");
+                    child: ScrolledWindow  {
+                      $AlbumDetails album_details {}
+                    };
+                  }
+
+                  Adw.ViewStackPage songs_page {
+                    name: "songs-page";
+                    title: _("Songs");
+                    child: ScrolledWindow songs_scrolled_window {
+                      $Songs songs {}
+                    };
+                  }
+
+                  Adw.ViewStackPage artists_page {
+                    name: "artists-page";
+                    title: _("Artists");
+                    child: ScrolledWindow  artists_scrolled_window {
+                      $Artists artists {}
+                    };
+                  }
+
+                  Adw.ViewStackPage artist_details_page {
+                    name: "artist-details-page";
+                    title: _("Artist");
+                    child: ScrolledWindow  {
+                      $ArtistDetails artist_details {}
+                    };
+                  }
+
+                  Adw.ViewStackPage likes_page {
+                    name: "likes-page";
+                    title: _("Likes");
+                    child: ScrolledWindow likes_scrolled_window {
+                      $Likes likes {}
+                    };
+                  }
+
+                  Adw.ViewStackPage files_page {
+                    name: "files-page";
+                    title: _("Files");
+                    child: ScrolledWindow  {
+                      $Files files {}
+                    };
+                  }
+                  
+                  Adw.ViewStackPage current_playlist_page {
+                    name: "current-playlist-page";
+                    title: _("Play Queue");
+                    child: $CurrentPlaylist current_playlist {};
+                  }
+
+                }
+            }
+
+            [bottom]
+            $MediaControls media_control_bar {}
+          }
+        }
+      }
+    }
+  }
+}
+
+Adw.NavigationPage hidden_library_page {
+  title: _("Hidden Games");
+
+  Adw.ToolbarView hidden_library_view {
+    [top]
+    Adw.HeaderBar hidden_header_bar {
+      [end]
+      MenuButton hidden_primary_menu_button {
+        tooltip-text: _("Main Menu");
+        icon-name: "open-menu-symbolic";
+        menu-model: primary_menu;
+      }
+
+      [end]
+      ToggleButton hidden_search_button {
+        tooltip-text: _("Search");
+        icon-name: "system-search-symbolic";
+        action-name: "win.toggle_search";
+      }
+    }
+
+    [top]
+    SearchBar hidden_search_bar {
+      search-mode-enabled: bind hidden_search_button.active bidirectional;
+      key-capture-widget: hidden_library_view;
+
+      Adw.Clamp {
+        maximum-size: 500;
+        tightening-threshold: 500;
+
+        SearchEntry hidden_search_entry {
+          placeholder-text: _("Search");
+          hexpand: true;
+        }
+      }
+    }
+
+    Overlay hidden_library_overlay {
+      ScrolledWindow hidden_scrolledwindow {
+        FlowBox hidden_library {
+          homogeneous: true;
+          halign: center;
+          valign: start;
+          column-spacing: 12;
+          row-spacing: 12;
+          margin-top: 15;
+          margin-bottom: 15;
+          margin-start: 15;
+          margin-end: 15;
+          selection-mode: none;
+        }
+      }
+    }
+
+    styles [
+      "background",
+    ]
+  }
+}
+
+Adw.NavigationPage details_page {
+  title: _("Game Details");
+
+  Overlay details_view {
+    name: "details_view";
+
+    [overlay]
+    Adw.ToolbarView details_view_toolbar_view {
+      [top]
+      Adw.HeaderBar {}
+
+      ScrolledWindow {
+        Box details_view_box {
+          halign: center;
+          valign: center;
+          margin-start: 24;
+          margin-end: 24;
+          margin-top: 24;
+          margin-bottom: 24;
+
+          Adw.Clamp {
+            maximum-size: 200;
+
+            Overlay {
+              [overlay]
+              Adw.Spinner details_view_spinner {
+                visible: false;
+              }
+
+              Picture details_view_cover {
+                halign: end;
+                valign: start;
+                width-request: 200;
+                height-request: 300;
+
+                styles [
+                  "card",
+                ]
+              }
+            }
+          }
+
+          Box details_view_details_box {
+            orientation: vertical;
+            margin-start: 48;
+            vexpand: true;
+            valign: center;
+
+            Label details_view_title {
+              label: _("Game Title");
+              hexpand: true;
+              halign: start;
+              max-width-chars: 24;
+              wrap: true;
+              wrap-mode: word_char;
+              natural-wrap-mode: word;
+
+              styles [
+                "title-1",
+              ]
+            }
+
+            Label details_view_developer {
+              margin-top: 6;
+              hexpand: true;
+              halign: start;
+              max-width-chars: 36;
+              wrap: true;
+              wrap-mode: word_char;
+              natural-wrap-mode: word;
+
+              styles [
+                "heading",
+              ]
+            }
+
+            Box details_view_date_box {
+              orientation: horizontal;
+              margin-top: 15;
+              hexpand: true;
+              halign: start;
+
+              Label details_view_added {
+                wrap: true;
+                wrap-mode: word_char;
+                natural-wrap-mode: word;
+                justify: center;
+              }
+
+              Label details_view_last_played {
+                margin-start: 12;
+                wrap: true;
+                wrap-mode: word_char;
+                natural-wrap-mode: word;
+                justify: center;
+              }
+            }
+
+            Box details_view_toolbar {
+              hexpand: true;
+              vexpand: true;
+              valign: center;
+
+              Button details_view_play_button {
+                name: "details_view_play_button";
+                action-name: "app.launch_game";
+                label: _("Play");
+                halign: start;
+                margin-top: 24;
+
+                styles [
+                  "opaque",
+                  "pill",
+                ]
+              }
+
+              Box details_view_toolbar_buttons {
+                halign: start;
+                valign: center;
+                margin-top: 24;
+                margin-start: 9;
+
+                Button {
+                  icon-name: "document-edit-symbolic";
+                  action-name: "app.edit_game";
+                  tooltip-text: _("Edit");
+
+                  styles [
+                    "raised",
+                    "circular",
+                  ]
+                }
+
+                Button details_view_hide_button {
+                  action-name: "app.hide_game";
+
+                  styles [
+                    "raised",
+                    "circular",
+                  ]
+                }
+
+                Button {
+                  icon-name: "user-trash-symbolic";
+                  action-name: "app.remove_game";
+                  tooltip-text: _("Remove");
+
+                  styles [
+                    "raised",
+                    "circular",
+                  ]
+                }
+
+                MenuButton {
+                  icon-name: "system-search-symbolic";
+                  menu-model: search;
+                  tooltip-text: _("Search");
+
+                  styles [
+                    "raised",
+                    "circular",
+                  ]
+                }
+
+                styles [
+                  "toolbar",
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+
+    Picture details_view_blurred_cover {
+      keep-aspect-ratio: false;
+    }
+  }
+}
+
+menu primary_menu {
+  section {
+    submenu {
+      label: _("Sort");
+
+      item {
+        label: _("A-Z");
+        action: "win.sort_by";
+        target: "a-z";
+      }
+
+      item {
+        label: _("Z-A");
+        action: "win.sort_by";
+        target: "z-a";
+      }
+
+      item {
+        label: _("Newest");
+        action: "win.sort_by";
+        target: "newest";
+      }
+
+      item {
+        label: _("Oldest");
+        action: "win.sort_by";
+        target: "oldest";
+      }
+
+      item {
+        label: _("Last Played");
+        action: "win.sort_by";
+        target: "last_played";
+      }
+    }
+
+    item {
+      label: _("Show Hidden");
+      action: "win.show_hidden";
+      hidden-when: "action-disabled";
+    }
+  }
+
+  section {
+    item (_("Preferences"), "app.preferences")
+    item (_("Keyboard Shortcuts"), "win.show-help-overlay")
+    item (_("About Rockbox"), "app.about")
+  }
+}
+
+menu search {
+  section {
+    label: "Search on…";
+    item (_("IGDB"), "app.igdb_search")
+    item (_("SteamGridDB"), "app.sgdb_search")
+    item (_("ProtonDB"), "app.protondb_search")
+    item (_("Lutris"), "app.lutris_search")
+    item (_("HowLongToBeat"), "app.hltb_search")
+  }
+}

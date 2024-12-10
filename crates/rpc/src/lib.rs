@@ -22,6 +22,7 @@ pub const AUDIO_EXTENSIONS: [&str; 17] = [
 pub mod api {
     #[path = ""]
     pub mod rockbox {
+        use rockbox_graphql::schema;
         use rockbox_sys::types::{
             mp3_entry::Mp3Entry,
             system_status::SystemStatus,
@@ -36,7 +37,8 @@ pub mod api {
         use tantivy::TantivyDocument;
         use v1alpha1::{
             Album, Artist, CurrentTrackResponse, Device, Entry, GetGlobalSettingsResponse,
-            GetGlobalStatusResponse, NextTrackResponse, SaveSettingsRequest, SearchResponse, Track,
+            GetGlobalStatusResponse, NextTrackResponse, SaveSettingsRequest, SearchResponse,
+            StatusResponse, Track,
         };
 
         #[path = "rockbox.v1alpha1.rs"]
@@ -67,6 +69,9 @@ pub mod api {
                 let length = mp3entry.length;
                 let elapsed = mp3entry.elapsed;
                 let path = mp3entry.path;
+                let album_id = mp3entry.album_id.unwrap_or_default();
+                let artist_id = mp3entry.artist_id.unwrap_or_default();
+                let album_art = mp3entry.album_art;
 
                 CurrentTrackResponse {
                     title,
@@ -90,6 +95,10 @@ pub mod api {
                     length,
                     elapsed,
                     path,
+                    album_id,
+                    artist_id,
+                    album_art,
+                    id: "".into(),
                 }
             }
         }
@@ -120,7 +129,77 @@ pub mod api {
                         length: 0,
                         elapsed: 0,
                         path: "".to_string(),
+                        id: "".to_string(),
+                        album_id: "".to_string(),
+                        artist_id: "".to_string(),
+                        album_art: None,
                     },
+                }
+            }
+        }
+
+        impl From<schema::objects::track::Track> for CurrentTrackResponse {
+            fn from(track: schema::objects::track::Track) -> Self {
+                let title = track.title;
+                let artist = track.artist;
+                let album = track.album;
+                let genre = track.genre;
+                let disc = track.disc;
+                let track_string = track.track_string;
+                let year_string = track.year_string;
+                let composer = track.composer;
+                let comment = track.comment;
+                let album_artist = track.album_artist;
+                let grouping = track.grouping;
+                let discnum = track.discnum;
+                let tracknum = track.tracknum;
+                let layer = track.layer;
+                let year = track.year;
+                let bitrate = track.bitrate;
+                let frequency = track.frequency;
+                let filesize = track.filesize;
+                let length = track.length;
+                let elapsed = track.elapsed;
+                let path = track.path;
+                let album_id = track.album_id.unwrap_or_default();
+                let artist_id = track.artist_id.unwrap_or_default();
+                let album_art = track.album_art;
+                let id = track.id.unwrap_or_default();
+                return Self {
+                    id,
+                    title,
+                    artist,
+                    album,
+                    genre,
+                    disc,
+                    track_string,
+                    year_string,
+                    composer,
+                    comment,
+                    album_artist,
+                    grouping,
+                    discnum,
+                    tracknum,
+                    layer,
+                    year,
+                    bitrate,
+                    frequency,
+                    filesize,
+                    length,
+                    elapsed,
+                    path,
+                    album_id,
+                    artist_id,
+                    album_art,
+                    ..Default::default()
+                };
+            }
+        }
+
+        impl From<schema::objects::audio_status::AudioStatus> for StatusResponse {
+            fn from(status: schema::objects::audio_status::AudioStatus) -> Self {
+                Self {
+                    status: status.status,
                 }
             }
         }
@@ -1227,14 +1306,14 @@ macro_rules! check_and_load_player {
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        if player.host.is_empty() && player.port == 0 {
+        if !player.host.is_empty() && player.port != 0 {
             let client = reqwest::Client::new();
             let body = serde_json::json!({
                 "tracks": $tracks,
                 "shuffle": $shuffle,
             });
             client
-                .put(&format!("{}/player/", rockbox_url()))
+                .put(&format!("{}/player/load", rockbox_url()))
                 .json(&body)
                 .send()
                 .await

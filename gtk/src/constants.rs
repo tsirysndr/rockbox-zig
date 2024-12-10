@@ -1,0 +1,8 @@
+pub const PLAYLIST_PREPEND: i32 = -1;
+pub const PLAYLIST_INSERT: i32 = -2;
+pub const PLAYLIST_INSERT_LAST: i32 = -3;
+pub const PLAYLIST_INSERT_FIRST: i32 = -4;
+pub const PLAYLIST_INSERT_SHUFFLED: i32 = -5;
+pub const PLAYLIST_REPLACE: i32 = -6;
+pub const PLAYLIST_INSERT_LAST_SHUFFLED: i32 = -7;
+pub const PLAYLIST_INSERT_LAST_ROTATED: i32 = -8;

@@ -2,7 +2,7 @@
 default-members = ["crates/*"]
 members = [
   "cli",
-  "crates/*",
+  "crates/*", "gtk",
   "webui",
 ]
 resolver = "2"
