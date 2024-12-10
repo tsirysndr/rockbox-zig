@@ -120,6 +120,18 @@ mod imp {
             });
 
             self.row.add_controller(click);
+
+            let self_weak = self.downgrade();
+            let gesture = gtk::GestureClick::new();
+            let is_dir = self.is_dir.get();
+            gesture.connect_pressed(move |gestrure, n_press, _, _| {
+                if n_press == 2 && !is_dir {
+                    if let Some(self_) = self_weak.upgrade() {
+                        let obj = self_.obj();
+                        obj.play(false);
+                    }
+                }
+            });
         }
     }
 

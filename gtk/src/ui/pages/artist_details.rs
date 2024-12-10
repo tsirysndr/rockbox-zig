@@ -351,13 +351,13 @@ impl ArtistDetails {
         if let Some(main_stack) = self.imp().main_stack.borrow().as_ref() {
             main_stack.set_visible_child_name("artist-tracks-page");
 
-            let title = artist_name.clone();
+            let title = artist_name;
 
             if let Some(library_page) = self.imp().library_page.borrow().as_ref() {
-                library_page.set_title(&title);
+                library_page.set_title(title);
             }
             let state = self.imp().state.upgrade().unwrap();
-            state.push_navigation(&title, "artist-tracks-page");
+            state.push_navigation(title, "artist-tracks-page");
             let artist_tracks = self.imp().artist_tracks.borrow();
             let artist_tracks_ref = artist_tracks.as_ref();
             let artist_tracks_ref = artist_tracks_ref.unwrap();

@@ -10,7 +10,7 @@ use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
-use gtk::pango::EllipsizeMode;
+use gtk::pango::{EllipsizeMode, WrapMode};
 use gtk::{CompositeTemplate, Image, Label, ListBox, ScrolledWindow};
 use std::cell::{Cell, RefCell};
 use std::env;
@@ -92,16 +92,20 @@ mod imp {
                     }
 
                     self_.size.set(size + next_tracks.len());
-
+                    let mut i = index + size;
                     for track in next_tracks {
-                        let song = create_song_widget(Track {
-                            title: track.title.clone(),
-                            artist: track.artist.clone(),
-                            album_art: track.album_art.clone(),
-                            ..Default::default()
-                        });
+                        let song = create_song_widget(
+                            Track {
+                                title: track.title.clone(),
+                                artist: track.artist.clone(),
+                                album_art: track.album_art.clone(),
+                                ..Default::default()
+                            },
+                            i as i32,
+                        );
 
                         self_.next_tracks.append(&song);
+                        i += 1;
                     }
                 }
             });
@@ -159,7 +163,7 @@ mod imp {
                         obj.imp().now_playing.append(&label);
 
                         if let Some(track) = state.current_track() {
-                            let song = create_song_widget(track);
+                            let song = create_song_widget(track, playlist.index as i32);
                             obj.imp().now_playing.append(&song);
                         }
 
@@ -171,16 +175,21 @@ mod imp {
                             true => 10,
                             false => next_tracks.len(),
                         };
+                        let mut i = index;
                         for track in next_tracks.into_iter().take(limit) {
-                            let song = create_song_widget(Track {
-                                title: track.title.clone(),
-                                artist: track.artist.clone(),
-                                album_art: track.album_art.clone(),
-                                ..Default::default()
-                            });
+                            let song = create_song_widget(
+                                Track {
+                                    title: track.title.clone(),
+                                    artist: track.artist.clone(),
+                                    album_art: track.album_art.clone(),
+                                    ..Default::default()
+                                },
+                                i as i32,
+                            );
 
                             song.imp().album_art_container.set_visible(true);
                             obj.imp().next_tracks.append(&song);
+                            i += 1;
                         }
                     }
                 });
@@ -218,11 +227,13 @@ impl CurrentPlaylist {
         match state.current_track() {
             Some(track) => {
                 self.imp().track_title.set_text(&track.title);
-                self.imp().track_title.set_ellipsize(EllipsizeMode::End);
-                self.imp().track_title.set_max_width_chars(80);
+                self.imp().track_title.set_wrap_mode(WrapMode::WordChar);
+                self.imp().track_title.set_max_width_chars(20);
+                self.imp().track_title.set_wrap(true);
                 self.imp().track_artist.set_text(&track.artist);
-                self.imp().track_artist.set_ellipsize(EllipsizeMode::End);
-                self.imp().track_artist.set_max_width_chars(80);
+                self.imp().track_artist.set_wrap_mode(WrapMode::WordChar);
+                self.imp().track_artist.set_max_width_chars(20);
+                self.imp().track_artist.set_wrap(true);
                 self.imp().track_index.set_text(&format!(
                     "{} of {}",
                     self.imp().current_index.get() + 1,
@@ -270,7 +281,7 @@ impl CurrentPlaylist {
         let state = self.imp().state.upgrade().unwrap();
 
         if let Some(track) = state.current_track() {
-            let song = create_song_widget(track);
+            let song = create_song_widget(track, index as i32 - 1);
             self.imp().now_playing.append(&song);
         }
 
@@ -283,14 +294,19 @@ impl CurrentPlaylist {
             false => next_tracks.len(),
         };
 
+        let mut i = index;
         for track in next_tracks.into_iter().take(limit) {
-            let song = create_song_widget(Track {
-                title: track.title.clone(),
-                artist: track.artist.clone(),
-                album_art: track.album_art.clone(),
-                ..Default::default()
-            });
+            let song = create_song_widget(
+                Track {
+                    title: track.title.clone(),
+                    artist: track.artist.clone(),
+                    album_art: track.album_art.clone(),
+                    ..Default::default()
+                },
+                i as i32,
+            );
             self.imp().next_tracks.append(&song);
+            i += 1;
         }
     }
 
@@ -315,7 +331,7 @@ impl CurrentPlaylist {
     }
 }
 
-fn create_song_widget(track: Track) -> Song {
+fn create_song_widget(track: Track, index: i32) -> Song {
     let song = Song::new();
     song.imp().track_number.set_visible(false);
     song.imp().track_title.set_text(&track.title);
@@ -327,6 +343,9 @@ fn create_song_widget(track: Track) -> Song {
     song.imp().track_duration.set_visible(false);
     song.imp().heart_button.set_visible(false);
     song.imp().more_button.set_visible(false);
+    song.imp().index.set(index);
+    song.imp().is_playlist.set(true);
+    song.imp().track.replace(Some(track.clone().into()));
 
     match track.album_art {
         Some(filename) => {

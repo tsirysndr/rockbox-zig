@@ -1,7 +1,9 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
+use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
 use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    InsertTracksRequest, LikeTrackRequest, Track, UnlikeTrackRequest,
+    InsertTracksRequest, LikeTrackRequest, PlayTrackRequest, StartRequest, Track,
+    UnlikeTrackRequest,
 };
 use crate::constants::*;
 use crate::state::AppState;
@@ -9,8 +11,9 @@ use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
+use gtk::prelude::WidgetExt;
 use gtk::{Button, CompositeTemplate, Image, Label, MenuButton};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::env;
 use std::thread;
 
@@ -21,6 +24,8 @@ mod imp {
     #[derive(Debug, Default, CompositeTemplate)]
     #[template(file = "./gtk/song.ui")]
     pub struct Song {
+        #[template_child]
+        pub container: TemplateChild<gtk::Box>,
         #[template_child]
         pub album_art_container: TemplateChild<gtk::Box>,
         #[template_child]
@@ -42,6 +47,8 @@ mod imp {
 
         pub track: RefCell<Option<Track>>,
         pub state: glib::WeakRef<AppState>,
+        pub index: Cell<i32>,
+        pub is_playlist: Cell<bool>,
     }
 
     #[glib::object_subclass]
@@ -52,6 +59,10 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             Self::bind_template(klass);
+
+            klass.install_action("app.play-song", None, move |song, _action, _target| {
+                song.play_song();
+            });
 
             klass.install_action("app.like-song", None, move |song, _action, _target| {
                 song.like();
@@ -78,6 +89,24 @@ mod imp {
     impl ObjectImpl for Song {
         fn constructed(&self) {
             self.parent_constructed();
+            self.index.set(0);
+            self.is_playlist.set(false);
+
+            let container = self.container.get();
+            let self_weak = self.downgrade();
+
+            let gesture = gtk::GestureClick::new();
+            gesture.connect_pressed(move |_, n_press, _, _| {
+                if n_press == 2 {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let obj = self_.obj();
+                    obj.play_song();
+                }
+            });
+            container.add_controller(gesture);
         }
     }
 
@@ -204,6 +233,42 @@ impl Song {
                         ..Default::default()
                     })
                     .await?;
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn play_song(&self) {
+        let track = self.imp().track.borrow();
+        let track = track.as_ref().unwrap();
+        let track = track.clone();
+        let index = self.imp().index.get();
+        let is_playlist = self.imp().is_playlist.get();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let _ = rt.block_on(async {
+                let url = build_url();
+                let mut client = PlaybackServiceClient::connect(url).await?;
+
+                match is_playlist {
+                    true => {
+                        let url = build_url();
+                        let mut client = PlaylistServiceClient::connect(url).await?;
+                        client
+                            .start(StartRequest {
+                                start_index: Some(index),
+                                ..Default::default()
+                            })
+                            .await?;
+                    }
+                    false => {
+                        client
+                            .play_track(PlayTrackRequest {
+                                path: track.path.clone(),
+                            })
+                            .await?;
+                    }
+                }
                 Ok::<(), Error>(())
             });
         });

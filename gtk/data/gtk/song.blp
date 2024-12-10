@@ -2,127 +2,132 @@ using Gtk 4.0;
 
 template $Song : Box {
   orientation: horizontal;
-  spacing: 10;
   halign: fill;
-  valign: center;
   hexpand: true;
-  margin-bottom: 10;
-  margin-top: 10;
-  margin-start: 10;
-  margin-end: 10;
 
-  Label track_number {
-    label: "";
-    halign: start;
-    valign: center;
-    margin-end: 10;
-
-    styles [
-      "track-number"
-    ]
-  }
-
-  Box album_art_container {
-    margin-end: 10;
-    visible: false;
-    
-    Image album_art {
-      width-request: 50;
-      height-request: 50;
-      resource: "/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg";
-    }
-
-    styles [
-      "media-album-art"
-    ]
-  }
-
-  Box {
-    hexpand: true;
-    valign: center;
+  Box container {
+    orientation: horizontal;
+    spacing: 10;
     halign: fill;
-    orientation: vertical;
-
-    Label track_title {
-      label: "";
-      halign: start;
-      valign: center;
-      hexpand: true;
-      margin-bottom: 3;
-
-      styles [
-        "track-title"
-      ]
-    }
-
-    Label artist {
-      label: "";
-      halign: start;
-      valign: center;
-      hexpand: true;
-
-      styles [
-        "track-artist"
-      ]
-    }
-  }
-
-  Label track_duration {
-    label: "";
-    halign: end;
     valign: center;
+    hexpand: true;
+    margin-bottom: 10;
+    margin-top: 10;
+    margin-start: 10;
+    margin-end: 10;
 
-    styles [
-      "track-duration"
-    ]
-  }
+    Label track_number {
+      label: "";
+      halign: start;
+      valign: center;
+      margin-end: 10;
+
+      styles [
+        "track-number"
+      ]
+    }
+
+    Box album_art_container {
+      margin-end: 10;
+      visible: false;
+    
+      Image album_art {
+        width-request: 50;
+        height-request: 50;
+        resource: "/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg";
+      }
+
+      styles [
+        "media-album-art"
+      ]
+    }
+
+    Box {
+      hexpand: true;
+      valign: center;
+      halign: fill;
+      orientation: vertical;
+
+      Label track_title {
+        label: "";
+        halign: start;
+        valign: center;
+        hexpand: true;
+        margin-bottom: 3;
+
+        styles [
+          "track-title"
+        ]
+      }
+
+      Label artist {
+        label: "";
+        halign: start;
+        valign: center;
+        hexpand: true;
+
+        styles [
+          "track-artist"
+        ]
+      }
+    }
+
+    Label track_duration {
+      label: "";
+      halign: end;
+      valign: center;
+
+      styles [
+        "track-duration"
+      ]
+    }
  
-  Button heart_button {
-    tooltip-text: _("Like");
-    child: Image heart_icon {
-      icon-name: "heart-outline-symbolic";
-      pixel-size: 24;
-    };
-    action-name: "app.like-song";
-    halign: center;
-    valign: center;
-    margin-end: 0;
-    margin-start: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    width-request: 40;
-    height-request: 40;
+    Button heart_button {
+      tooltip-text: _("Like");
+      child: Image heart_icon {
+        icon-name: "heart-outline-symbolic";
+        pixel-size: 24;
+      };
+      action-name: "app.like-song";
+      halign: center;
+      valign: center;
+      margin-end: 0;
+      margin-start: 0;
+      margin-top: 0;
+      margin-bottom: 0;
+      width-request: 40;
+      height-request: 40;
 
-    styles [
-      "transparent-button"
-    ]
+      styles [
+        "transparent-button"
+      ]
+    }
+
+    MenuButton more_button {
+      tooltip-text: _("More");
+      menu-model: context_menu;
+      child: Image {
+        icon-name: "options-symbolic";
+        pixel-size: 24;
+      };
+
+      halign: center;
+      valign: center;
+      margin-end: 0;
+      margin-start: 0;
+      margin-top: 0;
+      margin-bottom: 0;
+      width-request: 40;
+      height-request: 40;
+
+      styles [
+        "transparent-button"
+      ]
+    }
   }
 
-  MenuButton more_button {
-    tooltip-text: _("More");
-    menu-model: context_menu;
-    child: Image {
-      icon-name: "options-symbolic";
-      pixel-size: 24;
-    };
 
-    halign: center;
-    valign: center;
-    margin-end: 0;
-    margin-start: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    width-request: 40;
-    height-request: 40;
-
-    styles [
-      "transparent-button"
-    ]
-  }
-}
-
-
-Button remove_button {
+  Button remove_button {
     tooltip-text: _("Remove");
     visible: false;
 
@@ -138,10 +143,13 @@ Button remove_button {
     styles [
       "transparent-button"
     ]
+  }
 }
+
 
 menu context_menu {
   section {
+    item (_("Play"), "app.play-song")
     item (_("Play Next"), "app.play-next")
     item (_("Play Last"), "app.play-last")
     item (_("Add Shuffled"), "app.add-shuffled")
