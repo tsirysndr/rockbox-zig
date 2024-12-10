@@ -8,6 +8,7 @@ use crate::constants::*;
 use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::ui::pages::album_details::AlbumDetails;
+use crate::ui::pages::songs::Songs;
 use crate::ui::song::Song;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
@@ -20,6 +21,8 @@ use std::cell::RefCell;
 use std::{env, thread};
 
 mod imp {
+
+    use std::borrow::Borrow;
 
     use super::*;
 
@@ -39,9 +42,11 @@ mod imp {
 
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub album_details: RefCell<Option<AlbumDetails>>,
+        pub artist_tracks: RefCell<Option<Songs>>,
         pub library_page: RefCell<Option<adw::NavigationPage>>,
         pub state: glib::WeakRef<AppState>,
         pub artist_id: RefCell<String>,
+        pub artist: RefCell<String>,
         pub play_all_button: RefCell<Option<gtk::Button>>,
         pub shuffle_all_button: RefCell<Option<gtk::Button>>,
     }
@@ -99,7 +104,21 @@ mod imp {
                 "app.artist.play-last-shuffled",
                 None,
                 move |artist_details, _action, _target| {
+                    let artist_id = artist_details.imp().artist_id.borrow();
                     artist_details.play_last_shuffled();
+                },
+            );
+
+            klass.install_action(
+                "app.artist.view-all-tracks",
+                None,
+                move |artist_details, _action, _target| {
+                    let artist_id = artist_details.imp().artist_id.borrow();
+                    let artist_name = artist_details.imp().artist.borrow();
+                    let artist_id = artist_id.clone();
+                    let artist_name = artist_name.clone();
+
+                    artist_details.navigate_to_artist_tracks(&artist_id, &artist_name);
                 },
             );
         }
@@ -156,6 +175,7 @@ mod imp {
 
             if let Ok(response) = response_ {
                 if let Some(artist) = response.artist {
+                    self.artist.replace(artist.name.clone());
                     self.artist_name.set_text(&artist.name);
                     let tracks = self.tracks.clone();
                     while let Some(row) = tracks.first_child() {
@@ -324,6 +344,24 @@ impl ArtistDetails {
             }
             let state = self.imp().state.upgrade().unwrap();
             state.push_navigation("Album", "album-details-page");
+        }
+    }
+
+    pub fn navigate_to_artist_tracks(&self, artist_id: &str, artist_name: &str) {
+        if let Some(main_stack) = self.imp().main_stack.borrow().as_ref() {
+            main_stack.set_visible_child_name("artist-tracks-page");
+
+            let title = artist_name.clone();
+
+            if let Some(library_page) = self.imp().library_page.borrow().as_ref() {
+                library_page.set_title(&title);
+            }
+            let state = self.imp().state.upgrade().unwrap();
+            state.push_navigation(&title, "artist-tracks-page");
+            let artist_tracks = self.imp().artist_tracks.borrow();
+            let artist_tracks_ref = artist_tracks.as_ref();
+            let artist_tracks_ref = artist_tracks_ref.unwrap();
+            artist_tracks_ref.load_artist_songs(artist_id);
         }
     }
 

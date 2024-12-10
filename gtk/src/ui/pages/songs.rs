@@ -1,5 +1,7 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{GetTracksRequest, GetTracksResponse, Track};
+use crate::api::rockbox::v1alpha1::{
+    GetArtistRequest, GetArtistResponse, GetTracksRequest, GetTracksResponse, Track,
+};
 use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::ui::pages::likes::Likes;
@@ -171,6 +173,34 @@ impl Songs {
 
             self.imp().all_tracks.replace(response.tracks.clone());
             self.imp().create_songs_widgets(None, Some(20));
+        }
+    }
+
+    pub fn load_artist_songs(&self, artist_id: &str) {
+        self.imp().size.set(20);
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let response_ = rt.block_on(async {
+            let url = build_url();
+            let mut client = LibraryServiceClient::connect(url).await?;
+            let response = client
+                .get_artist(GetArtistRequest {
+                    id: artist_id.to_string(),
+                })
+                .await?
+                .into_inner();
+            Ok::<GetArtistResponse, Error>(response)
+        });
+
+        if let Ok(response) = response_ {
+            let tracks = self.imp().tracks.clone();
+            while let Some(row) = tracks.first_child() {
+                tracks.remove(&row);
+            }
+
+            if let Some(artist) = response.artist {
+                self.imp().all_tracks.replace(artist.tracks.clone());
+                self.imp().create_songs_widgets(None, Some(20));
+            }
         }
     }
 }

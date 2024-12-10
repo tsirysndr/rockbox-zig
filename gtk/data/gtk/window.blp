@@ -304,6 +304,14 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                     title: _("Play Queue");
                     child: $CurrentPlaylist current_playlist {};
                   }
+                  
+                  Adw.ViewStackPage artist_tracks_page {
+                    name: "artist-tracks-page";
+                    title: _("Artist Tracks");
+                    child: ScrolledWindow  artist_tracks_scrolled_window {
+                      $Songs artist_tracks {}
+                    };
+                  }
 
                 }
             }

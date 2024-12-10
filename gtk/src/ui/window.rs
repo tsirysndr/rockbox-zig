@@ -109,6 +109,12 @@ mod imp {
         #[template_child]
         pub artist_details: TemplateChild<ArtistDetails>,
         #[template_child]
+        pub artist_tracks_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub artist_tracks: TemplateChild<Songs>,
+        #[template_child]
+        pub artist_tracks_scrolled_window: TemplateChild<ScrolledWindow>,
+        #[template_child]
         pub album_details_page: TemplateChild<ViewStackPage>,
         #[template_child]
         pub album_details: TemplateChild<AlbumDetails>,
@@ -258,6 +264,36 @@ mod imp {
                         self_.songs.imp().size.set(size + next_songs.len());
                         self_
                             .songs
+                            .imp()
+                            .create_songs_widgets(Some(next_songs), None);
+                    }
+                });
+
+            let weak_self = self.downgrade();
+            self.artist_tracks_scrolled_window
+                .connect_edge_reached(move |_, pos| {
+                    if pos == gtk::PositionType::Bottom {
+                        let self_ = match weak_self.upgrade() {
+                            Some(self_) => self_,
+                            None => return,
+                        };
+                        let size = self_.artist_tracks.imp().size.get();
+                        let all_songs = self_.artist_tracks.imp().all_tracks.borrow();
+                        let next_range_end = (size + 3).min(all_songs.len());
+
+                        if size >= all_songs.len() {
+                            return;
+                        }
+
+                        let next_songs = all_songs[size..next_range_end].to_vec();
+
+                        if next_songs.is_empty() {
+                            return;
+                        }
+
+                        self_.artist_tracks.imp().size.set(size + next_songs.len());
+                        self_
+                            .artist_tracks
                             .imp()
                             .create_songs_widgets(Some(next_songs), None);
                     }
@@ -557,8 +593,10 @@ impl RbApplicationWindow {
         let play_all_button = window.imp().play_all_button.get();
         let shuffle_all_button = window.imp().shuffle_all_button.get();
         let songs = window.imp().songs.get();
+        let artist_tracks = window.imp().artist_tracks.get();
 
         songs.imp().likes_page.replace(Some(likes.clone()));
+        artist_tracks.imp().likes_page.replace(Some(likes.clone()));
 
         window.imp().state.set(Some(&state));
         artists.imp().state.set(Some(&state));
@@ -568,9 +606,15 @@ impl RbApplicationWindow {
         current_playlist.imp().state.set(Some(&state));
         likes.imp().state.set(Some(&state));
         songs.imp().state.set(Some(&state));
+        artist_tracks.imp().state.set(Some(&state));
         album_details.imp().state.set(Some(&state));
 
         files.get_music_directory();
+
+        artist_details
+            .imp()
+            .artist_tracks
+            .replace(Some(artist_tracks.clone()));
 
         artist_details
             .imp()
