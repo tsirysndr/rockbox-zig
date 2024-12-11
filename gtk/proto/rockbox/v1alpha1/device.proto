@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message GetDevicesRequest {}
+
+message GetDevicesResponse {
+  repeated Device devices = 1;
+}
+
+message GetDeviceRequest {
+  string id = 1;
+}
+
+message GetDeviceResponse {
+  Device device = 1;
+}
+
+message ConnectDeviceRequest {
+  string id = 1;
+}
+
+message ConnectDeviceResponse {
+  Device device = 1;
+}
+
+message DisconnectDeviceRequest {
+  string id = 1;
+}
+
+message DisconnectDeviceResponse {
+  Device device = 1;
+}
+
+message Device {
+  string id = 1;
+  string name = 2;
+  string host = 3;
+  string ip = 4;
+  uint32 port = 5;
+  string service = 6;
+  string app = 7;
+  bool is_connected = 8;
+  optional string base_url = 9;
+  bool is_cast_device = 10;
+  bool is_source_device = 11;
+  bool is_current_device = 12;
+}
+
+service DeviceService {
+  rpc GetDevices(GetDevicesRequest) returns (GetDevicesResponse);
+  rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse);
+  rpc ConnectDevice(ConnectDeviceRequest) returns (ConnectDeviceResponse);
+  rpc DisconnectDevice(DisconnectDeviceRequest) returns (DisconnectDeviceResponse);
+}

@@ -1,0 +1,30 @@
+using Gtk 4.0;
+
+template $AlbumTracks : Box {
+  hexpand: true;
+  orientation: vertical;
+  margin-top: 15;
+  margin-bottom: 15;
+
+  Label volume {
+    label: "Volume 1";
+    halign: start;
+    visible: false;
+    margin-bottom: 5;
+
+    styles [
+      "disc"
+    ]
+  }
+
+  ListBox tracklist {
+    hexpand: true;
+    selection-mode: none;
+
+    styles [
+      "album-track-list"
+    ]
+  }
+
+}
+

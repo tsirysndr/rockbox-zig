@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message RockboxBrowseRequest {}
+
+message RockboxBrowseResponse {}
+
+message TreeGetContextRequest {}
+
+message TreeGetContextResponse {}
+
+message TreeGetEntriesRequest {
+  optional string path = 1;
+}
+
+message Entry {
+  string name = 1;
+  int32 attr = 2;
+  uint32 time_write = 3;
+  int32 customaction = 4;
+}
+
+message TreeGetEntriesResponse {
+  repeated Entry entries = 1;
+}
+
+message TreeGetEntryAtRequest {}
+
+message TreeGetEntryAtResponse {}
+
+message BrowseId3Request {}
+
+message BrowseId3Response {}
+
+service BrowseService {
+  rpc TreeGetEntries(TreeGetEntriesRequest) returns (TreeGetEntriesResponse);
+}

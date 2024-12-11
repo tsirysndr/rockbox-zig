@@ -1,0 +1,8 @@
+pub static NAME: &str = @NAME@;
+pub static PKGNAME: &str = @PKGNAME@;
+pub static APP_ID: &str = @APP_ID@;
+pub static PATH_ID: &str = @PATH_ID@;
+pub static VERSION: &str = @VERSION@;
+pub static VCS_TAG: &str = @VCS_TAG@;
+pub static LOCALEDIR: &str = @LOCALEDIR@;
+pub static DATADIR: &str = @DATADIR@;

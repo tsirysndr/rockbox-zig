@@ -8,6 +8,8 @@
 *.o
 *.a
 *~
+*.ui
+
 __pycache__
 
 # Don't exclude zig files

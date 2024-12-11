@@ -1,0 +1,251 @@
+using Gtk 4.0;
+
+template $ArtistDetails : Box {
+  orientation: vertical;
+  spacing: 20;
+  margin-top: 50;
+  margin-bottom: 25;
+  valign: center;
+  hexpand: true;
+  halign: fill;
+
+  Box {
+    orientation: horizontal;
+    hexpand: true;
+    margin-start: 25;
+    margin-end: 25;
+
+    Image artist_image {
+      visible: false;
+      margin-end: 20;
+    }
+
+    Box artist_noimage {
+      visible: true;
+      halign: center;
+      valign: center;
+      margin-end: 20;
+
+      Box {
+        halign: fill;
+        valign: fill;
+
+        Image {
+          icon-name: "artist-symbolic";
+          pixel-size: 50;
+          margin-top: 20;
+          margin-bottom: 20;
+          margin-start: 20;
+          margin-end: 20;
+
+          styles [
+            "artist-icon"
+          ]
+        }
+
+        styles [
+          "artist-noimage"
+        ]
+      }
+    }
+
+    Box {
+      orientation: horizontal;
+      hexpand: true;
+      halign: fill;
+      valign: center;
+
+      Box {
+        halign: fill;
+        hexpand: true;
+      
+        Label artist_name {
+          halign: start;
+          selectable: true;
+          label: _("Artist Name");
+
+          styles [
+            "artist-name",
+            "bold"
+          ]
+        }
+      }
+
+      Box {
+        orientation: horizontal;
+        halign: end;
+        valign: center;
+
+        Box {
+          orientation: vertical;
+          margin-end: 10;
+
+          Button play_button {
+            tooltip-text: _("Play all tracks");
+            icon-name: "media-playback-start-symbolic";
+            action-name: "app.artist.play";
+            halign: center;
+            valign:  center;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          Button {
+            label: "Play";
+            action-name: "app.artist.play";
+            halign: center;
+            valign: center;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+        }
+
+        Box {
+          orientation: vertical;
+          margin-end: 10;
+
+          Button shuffle_button {
+            tooltip-text: _("Shuffle all tracks");
+            icon-name: "media-playlist-shuffle-symbolic";
+            action-name: "app.artist.shuffle";
+            halign: center;
+            valign:  center;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          Button {
+            label: "Shuffle";
+            action-name: "app.artist.shuffle";
+            halign: center;
+            valign: center;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+        }
+
+        Box {
+          orientation: vertical;
+          
+          MenuButton more_button {
+            tooltip-text: _("More");
+            halign: center;
+            valign:  center;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            menu-model: context_menu;
+
+            child: Image {
+              icon-name: "options-symbolic";
+              pixel-size: 24;
+            };
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          MenuButton {
+            label: "More";
+            halign: center;
+            valign: center;
+            menu-model: context_menu;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+        }
+
+      }
+    }
+  }
+ 
+  Box {
+    orientation: horizontal;
+    hexpand: true;
+    halign: fill;
+    valign: center;
+
+    Label {
+      label: _("Tracks");
+      hexpand: true;
+      halign: start;
+      margin-top: 20;
+      margin-start: 25;
+      margin-end: 25;
+
+      styles [
+        "subtitle"
+      ]
+    }
+
+    Button show_all_tracks_button {
+      label: "View All";
+      action-name: "app.artist.view-all-tracks";
+      halign: end;
+      valign: center;
+
+      styles [
+        "transparent-button"
+      ]
+    }
+}
+
+  ListBox tracks {
+    hexpand: true;
+    selection-mode: none;
+    styles [
+      "track-list"
+    ]
+  }
+
+  Label {
+    label: _("Albums");
+    hexpand: true;
+    halign: start;
+    margin-top: 20;
+    margin-start: 25;
+    margin-end: 25;
+    
+    styles [
+      "subtitle"
+    ]
+  }
+
+  FlowBox albums {
+    homogeneous: true;
+    valign: center;
+    halign: start;
+    row-spacing: 12;
+    column-spacing: 12;
+    selection-mode: none;
+    margin-start: 20;
+  }
+}
+
+
+menu context_menu {
+  section {
+    item (_("Play"), "app.artist.play")
+    item (_("Play Next"), "app.artist.play-next")
+    item (_("Play Last"), "app.artist.play-last")
+    item (_("Add Shuffled"), "app.artist.add-shuffled")
+    item (_("Play Last Shuffled"), "app.artist.play-last-shuffled")
+  }
+}

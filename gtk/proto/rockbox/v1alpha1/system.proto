@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message GetRockboxVersionRequest {
+}
+
+message GetRockboxVersionResponse {
+  string version = 1;
+}
+
+message GetGlobalStatusRequest {
+}
+
+message GetGlobalStatusResponse {
+  int32 resume_index = 1;
+  uint32 resume_crc32 = 2;
+  uint32 resume_elapsed = 3;
+  uint32 resume_offset = 4;
+  int32 runtime = 5;
+  int32 topruntime = 6;
+  int32 dircache_size = 7;
+  int32 last_screen = 8;
+  int32 viewer_icon_count = 9;
+  int32 last_volume_change = 10;
+}
+
+service SystemService {
+  rpc GetRockboxVersion(GetRockboxVersionRequest) returns (GetRockboxVersionResponse);
+  rpc GetGlobalStatus(GetGlobalStatusRequest) returns (GetGlobalStatusResponse);
+}
