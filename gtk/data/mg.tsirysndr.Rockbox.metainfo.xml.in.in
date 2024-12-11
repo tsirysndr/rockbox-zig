@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <!-- Meson Build -->
+  <id>@APP_ID@</id>
+  <name>@NAME@</name>
+  <translation type="gettext">@PKGNAME@</translation>
+  <launchable type="desktop-id">rockbox.desktop</launchable>
+
+  <!-- General -->
+  <summary>A Modern Gtk Application for Rockbox</summary>
+  <description>
+    <p>
+      Rockbox is a free replacement for digital music players. And this is a modern Desktop
+      application built on top of it,
+      A modified version of Rockbox runs in the background and provides the audio playback
+      functionality.
+    </p>
+  </description>
+  <content_rating type="oars-1.1" />
+
+  <!-- Branding -->
+  <developer_name>Felix Häcker</developer_name>
+  <developer id="mg.tsirysndr">
+    <name>Tsiry Sandratraina</name>
+  </developer>
+  <branding>
+    <color type="primary" scheme_preference="light">#d5b0e7</color>
+    <color type="primary" scheme_preference="dark">#501a5c</color>
+  </branding>
+
+  <!-- License -->
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <!-- URLs -->
+  <url type="homepage">https://github.com/tsirysndr/rockbox-zig</url>
+  <url type="bugtracker">https://github.com/tsirysndr/rockbox-zig/issues</url>
+  <url type="donation">https://github.com/sponsors/tsirysndr</url>
+  <url type="contact">tsiry.sndr@fluentci.io</url>
+  <url type="vcs-browser">https://github.com/tsirysndr/rockbox-zig</url>
+  <url type="contribute">https://github.com/tsirysndr/rockbox-zig/blob/master/CONTRIBUTING.md</url>
+
+  <!-- Supported Hardware -->
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+  </supports>
+
+  <!-- Releases -->
+  <releases>
+    <release version="0.1.0" date="2023-12-31">
+      <description>
+        <p>First beta release.</p>
+      </description>
+    </release>
+  </releases>
+</component>
+
+

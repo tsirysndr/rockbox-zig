@@ -1,8 +1,10 @@
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
 use crate::api::rockbox::v1alpha1::{PlayAllTracksRequest, PlayLikedTracksRequest};
 use crate::app::RbApplication;
+use crate::config;
 use crate::state::AppState;
 use crate::types::track::Track;
+use crate::ui::about_dialog;
 use crate::ui::media_controls::MediaControls;
 use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::albums::Albums;
@@ -12,8 +14,10 @@ use crate::ui::pages::songs::Songs;
 use crate::ui::pages::{artists::Artists, files::Files, likes::Likes};
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use adw::ViewStack;
-use adw::{NavigationPage, NavigationView, OverlaySplitView, ToastOverlay, ViewStackPage};
+use adw::{
+    AboutDialog, NavigationPage, NavigationView, OverlaySplitView, ToastOverlay, ViewStack,
+    ViewStackPage,
+};
 use anyhow::Error;
 use glib::subclass;
 use gtk::{
@@ -25,7 +29,6 @@ use std::env;
 use std::thread;
 
 mod imp {
-
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -167,6 +170,24 @@ mod imp {
             klass.install_action("app.shuffle_all", None, move |win, _action, _parameter| {
                 let self_ = imp::RbApplicationWindow::from_obj(win);
                 self_.shuffle_all();
+            });
+
+            klass.install_action("app.preferences", None, move |win, _action, _parameter| {
+                let self_ = imp::RbApplicationWindow::from_obj(win);
+                self_.go_to_preferences();
+            });
+
+            klass.install_action(
+                "win.show-help-overlay",
+                None,
+                move |win, _action, _parameter| {
+                    let self_ = imp::RbApplicationWindow::from_obj(win);
+                    self_.show_help_overlay();
+                },
+            );
+
+            klass.install_action("app.about", None, move |win, _action, _parameter| {
+                about_dialog::show(win);
             });
         }
 
@@ -565,6 +586,10 @@ mod imp {
                 });
             }
         }
+
+        pub fn go_to_preferences(&self) {}
+
+        pub fn show_help_overlay(&self) {}
     }
 }
 
