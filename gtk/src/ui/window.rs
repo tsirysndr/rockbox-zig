@@ -1,5 +1,8 @@
+use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
-use crate::api::rockbox::v1alpha1::{PlayAllTracksRequest, PlayLikedTracksRequest};
+use crate::api::rockbox::v1alpha1::{
+    PlayAllTracksRequest, PlayLikedTracksRequest, ScanLibraryRequest,
+};
 use crate::app::RbApplication;
 use crate::config;
 use crate::state::AppState;
@@ -27,6 +30,7 @@ use gtk::{
 use std::cell::{Cell, RefCell};
 use std::env;
 use std::thread;
+use tokio::sync::mpsc;
 
 mod imp {
     use super::*;
@@ -166,6 +170,15 @@ mod imp {
                 let self_ = imp::RbApplicationWindow::from_obj(win);
                 self_.play_all();
             });
+
+            klass.install_action(
+                "app.refresh_library",
+                None,
+                move |win, _action, _parameter| {
+                    let self_ = imp::RbApplicationWindow::from_obj(win);
+                    self_.refresh_library();
+                },
+            );
 
             klass.install_action("app.shuffle_all", None, move |win, _action, _parameter| {
                 let self_ = imp::RbApplicationWindow::from_obj(win);
@@ -590,6 +603,35 @@ mod imp {
         pub fn go_to_preferences(&self) {}
 
         pub fn show_help_overlay(&self) {}
+
+        pub fn refresh_library(&self) {
+            let self_weak = self.downgrade();
+            let (tx, mut rx) = mpsc::channel(32);
+            thread::spawn(move || {
+                let rt = tokio::runtime::Runtime::new().unwrap();
+                let url = build_url();
+                let _ = rt.block_on(async {
+                    let mut client = LibraryServiceClient::connect(url).await?;
+                    client
+                        .scan_library(ScanLibraryRequest { path: None })
+                        .await?;
+                    tx.send(0).await?;
+                    Ok::<(), Error>(())
+                });
+            });
+
+            let self_ = match self_weak.upgrade() {
+                Some(self_) => self_,
+                None => return,
+            };
+            glib::MainContext::default().spawn_local(async move {
+                while let Some(_) = rx.recv().await {
+                    let albums = self_.albums.get();
+                    albums.imp().size.set(15);
+                    albums.load_pictures();
+                }
+            });
+        }
     }
 }
 
