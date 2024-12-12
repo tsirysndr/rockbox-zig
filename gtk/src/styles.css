@@ -127,3 +127,15 @@ menubutton > button {
 .artist-name {
   font-size: 24px;
 }
+
+.spinrow {
+  border: none;
+  box-shadow: none;
+}
+
+.spinrow:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+

@@ -7,7 +7,6 @@ use crate::app::RbApplication;
 use crate::config;
 use crate::state::AppState;
 use crate::types::track::Track;
-use crate::ui::about_dialog;
 use crate::ui::media_controls::MediaControls;
 use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::albums::Albums;
@@ -15,11 +14,11 @@ use crate::ui::pages::artist_details::ArtistDetails;
 use crate::ui::pages::current_playlist::CurrentPlaylist;
 use crate::ui::pages::songs::Songs;
 use crate::ui::pages::{artists::Artists, files::Files, likes::Likes};
+use crate::ui::{about_dialog, preferences_dialog};
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{
-    AboutDialog, NavigationPage, NavigationView, OverlaySplitView, ToastOverlay, ViewStack,
-    ViewStackPage,
+    NavigationPage, NavigationView, OverlaySplitView, ToastOverlay, ViewStack, ViewStackPage,
 };
 use anyhow::Error;
 use glib::subclass;
@@ -33,6 +32,8 @@ use std::thread;
 use tokio::sync::mpsc;
 
 mod imp {
+    use preferences_dialog::RbPreferencesDialog;
+
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -186,8 +187,8 @@ mod imp {
             });
 
             klass.install_action("app.preferences", None, move |win, _action, _parameter| {
-                let self_ = imp::RbApplicationWindow::from_obj(win);
-                self_.go_to_preferences();
+                let preferences_window = RbPreferencesDialog::default();
+                preferences_window.present(Some(win));
             });
 
             klass.install_action(
@@ -195,7 +196,6 @@ mod imp {
                 None,
                 move |win, _action, _parameter| {
                     let self_ = imp::RbApplicationWindow::from_obj(win);
-                    self_.show_help_overlay();
                 },
             );
 
@@ -599,10 +599,6 @@ mod imp {
                 });
             }
         }
-
-        pub fn go_to_preferences(&self) {}
-
-        pub fn show_help_overlay(&self) {}
 
         pub fn refresh_library(&self) {
             let self_weak = self.downgrade();
