@@ -8,6 +8,43 @@ use anyhow::Error;
 use gtk::{glib, CompositeTemplate};
 use std::{env, thread};
 
+macro_rules! connect_equalizer_band_tooltips {
+    ($self:expr, $($band:ident), * $(,)?) => {
+        $(
+            $self.imp().$band.set_has_tooltip(true);
+            $self.imp().$band.connect_value_changed(|s| {
+                let value = s.value();
+                s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
+            });
+            $self.imp().$band.connect_query_tooltip(|s, _x, _y, _keyboard_mode, tooltip| {
+                let value = s.value();
+                tooltip.set_text(Some(&format!("{:.1} dB", value)));
+                true
+            });
+        )+
+    };
+}
+
+macro_rules! set_equalizer_bands {
+    ($self:expr, $settings:expr, $($index:expr),+ $(,)?) => {
+        $(
+            match $index {
+                0 => $self.imp().equalizer_band_1.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                1 => $self.imp().equalizer_band_2.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                2 => $self.imp().equalizer_band_3.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                3 => $self.imp().equalizer_band_4.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                4 => $self.imp().equalizer_band_5.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                5 => $self.imp().equalizer_band_6.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                6 => $self.imp().equalizer_band_7.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                7 => $self.imp().equalizer_band_8.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                8 => $self.imp().equalizer_band_9.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                9 => $self.imp().equalizer_band_10.set_value($settings.eq_band_settings[$index].cutoff as f64 * 0.1),
+                _ => panic!("Invalid equalizer band index")
+            }
+        )+
+    };
+}
+
 mod imp {
     use glib::subclass;
 
@@ -184,36 +221,9 @@ impl RbPreferencesDialog {
                 self.imp().treble.set_value(settings.treble as f64);
                 self.imp().balance.set_value(settings.treble as f64);
                 self.imp().enable_equalizer.set_active(settings.eq_enabled);
-                self.imp()
-                    .equalizer_band_1
-                    .set_value(settings.eq_band_settings[0].cutoff as f64 * 0.1);
-                self.imp()
-                    .equalizer_band_2
-                    .set_value(settings.eq_band_settings[1].cutoff as f64 * 0.1);
-                self.imp()
-                    .equalizer_band_3
-                    .set_value(settings.eq_band_settings[2].cutoff as f64 * 0.1);
-                self.imp()
-                    .equalizer_band_4
-                    .set_value(settings.eq_band_settings[3].cutoff as f64 * 0.1);
-                self.imp()
-                    .equalizer_band_5
-                    .set_value(settings.eq_band_settings[4].cutoff as f64 * 0.1);
-                self.imp()
-                    .equalizer_band_6
-                    .set_value(settings.eq_band_settings[5].cutoff as f64 * 0.1);
-                self.imp()
-                    .equalizer_band_7
-                    .set_value(settings.eq_band_settings[6].cutoff as f64 * 0.1);
-                self.imp()
-                    .equalizer_band_8
-                    .set_value(settings.eq_band_settings[7].cutoff as f64 * 0.1);
-                self.imp()
-                    .equalizer_band_9
-                    .set_value(settings.eq_band_settings[8].cutoff as f64 * 0.1);
-                self.imp()
-                    .equalizer_band_10
-                    .set_value(settings.eq_band_settings[9].cutoff as f64 * 0.1);
+
+                set_equalizer_bands!(self, settings, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+
                 self.imp().repeat.set_selected(settings.repeat_mode as u32);
                 self.imp().shuffle.set_active(settings.playlist_shuffle);
                 self.imp().fade_on_stop.set_active(settings.fade_on_stop);
@@ -248,146 +258,19 @@ impl RbPreferencesDialog {
     }
 
     fn set_equalizer_tooltip(&self) {
-        self.imp().equalizer_band_1.set_has_tooltip(true);
-        self.imp().equalizer_band_2.set_has_tooltip(true);
-        self.imp().equalizer_band_3.set_has_tooltip(true);
-        self.imp().equalizer_band_4.set_has_tooltip(true);
-        self.imp().equalizer_band_5.set_has_tooltip(true);
-        self.imp().equalizer_band_6.set_has_tooltip(true);
-        self.imp().equalizer_band_7.set_has_tooltip(true);
-        self.imp().equalizer_band_8.set_has_tooltip(true);
-        self.imp().equalizer_band_9.set_has_tooltip(true);
-        self.imp().equalizer_band_10.set_has_tooltip(true);
-
-        self.imp().equalizer_band_1.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp().equalizer_band_2.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp().equalizer_band_3.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp().equalizer_band_4.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp().equalizer_band_5.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp().equalizer_band_6.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp().equalizer_band_7.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp().equalizer_band_8.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp().equalizer_band_9.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp().equalizer_band_10.connect_value_changed(|s| {
-            let value = s.value();
-            s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
-        });
-
-        self.imp()
-            .equalizer_band_1
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
-
-        self.imp()
-            .equalizer_band_2
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
-
-        self.imp()
-            .equalizer_band_3
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
-
-        self.imp()
-            .equalizer_band_4
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
-
-        self.imp()
-            .equalizer_band_5
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
-
-        self.imp()
-            .equalizer_band_6
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
-
-        self.imp()
-            .equalizer_band_7
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
-
-        self.imp()
-            .equalizer_band_8
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
-
-        self.imp()
-            .equalizer_band_9
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
-
-        self.imp()
-            .equalizer_band_10
-            .connect_query_tooltip(|s, _x, _y, _keyboad_mode, tooltip| {
-                let value = s.value();
-                tooltip.set_text(Some(&format!("{:.1} dB", value)));
-                true
-            });
+        connect_equalizer_band_tooltips!(
+            self,
+            equalizer_band_1,
+            equalizer_band_2,
+            equalizer_band_3,
+            equalizer_band_4,
+            equalizer_band_5,
+            equalizer_band_6,
+            equalizer_band_7,
+            equalizer_band_8,
+            equalizer_band_9,
+            equalizer_band_10,
+        );
     }
 }
 

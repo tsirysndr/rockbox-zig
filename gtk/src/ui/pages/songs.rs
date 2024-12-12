@@ -17,9 +17,6 @@ use std::cell::{Cell, RefCell};
 use std::env;
 
 mod imp {
-
-    use std::borrow::Borrow;
-
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
