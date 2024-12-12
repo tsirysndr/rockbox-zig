@@ -19,7 +19,7 @@ mod imp {
         #[template_child]
         pub library_location_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub file_chooser_button: TemplateChild<gtk::Button>,
+        pub directory_picker_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub bass: TemplateChild<adw::SpinRow>,
         #[template_child]
@@ -88,6 +88,42 @@ mod imp {
     impl ObjectImpl for RbPreferencesDialog {
         fn constructed(&self) {
             self.parent_constructed();
+
+            let self_weak = self.downgrade();
+            self.directory_picker_button.connect_clicked(move |_| {
+                let dialog = gtk::FileChooserDialog::builder()
+                    .title("Select Music Library Location")
+                    .action(gtk::FileChooserAction::SelectFolder)
+                    .build();
+
+                dialog.add_buttons(&[
+                    ("Cancel", gtk::ResponseType::Cancel),
+                    ("Select", gtk::ResponseType::Accept),
+                ]);
+
+                let self_ = match self_weak.upgrade() {
+                    Some(self_) => self_,
+                    None => return,
+                };
+
+                dialog.connect_response(move |dialog, response| {
+                    if response != gtk::ResponseType::Accept {
+                        dialog.close();
+                        return;
+                    }
+
+                    if let Some(folder) = dialog.file() {
+                        let obj = self_.obj();
+                        let path = folder.path().unwrap();
+                        obj.imp()
+                            .library_location_label
+                            .set_label(path.to_str().unwrap());
+                    }
+                    dialog.close();
+                });
+
+                dialog.show();
+            });
 
             let self_weak = self.downgrade();
             glib::idle_add_local(move || {
