@@ -1,6 +1,7 @@
 use std::env;
 
 use crate::http::{Context, Request, Response};
+use crate::PLAYER_MUTEX;
 use anyhow::Error;
 use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
@@ -19,6 +20,7 @@ pub async fn create_playlist(
     req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     if req.body.is_none() {
         res.set_status(400);
         return Ok(());
@@ -44,6 +46,7 @@ pub async fn create_playlist(
         new_playslist.tracks.len() as i32,
     );
     res.text(&start_index.to_string());
+    drop(player_mutex);
     Ok(())
 }
 
@@ -52,6 +55,7 @@ pub async fn start_playlist(
     req: &Request,
     _res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let start_index = match req.query_params.get("start_index") {
         Some(start_index) => start_index.as_str().unwrap_or("0").parse().unwrap_or(0),
         None => 0,
@@ -65,6 +69,7 @@ pub async fn start_playlist(
         None => 0,
     };
     rb::playlist::start(start_index, elapsed, offset);
+    drop(player_mutex);
     Ok(())
 }
 
@@ -73,6 +78,7 @@ pub async fn shuffle_playlist(
     req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let start_index = match req.query_params.get("start_index") {
         Some(start_index) => start_index.as_str().unwrap_or("0").parse().unwrap_or(0),
         None => 0,
@@ -80,6 +86,7 @@ pub async fn shuffle_playlist(
     let seed = rb::system::current_tick();
     let ret = rb::playlist::shuffle(seed as i32, start_index as i32);
     res.text(&ret.to_string());
+    drop(player_mutex);
     Ok(())
 }
 
@@ -88,8 +95,10 @@ pub async fn get_playlist_amount(
     _req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let amount = rb::playlist::amount();
     res.json(&PlaylistAmount { amount });
+    drop(player_mutex);
     Ok(())
 }
 
@@ -98,6 +107,7 @@ pub async fn resume_playlist(
     _req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let status = rb::system::get_global_status();
     let playback_status = rb::playback::status();
 
@@ -108,6 +118,7 @@ pub async fn resume_playlist(
 
     let code = rb::playlist::resume();
     res.json(&StatusCode { code });
+    drop(player_mutex);
     Ok(())
 }
 
@@ -116,6 +127,7 @@ pub async fn resume_track(
     _req: &Request,
     _res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let status = rb::system::get_global_status();
     rb::playlist::resume_track(
         status.resume_index,
@@ -123,6 +135,7 @@ pub async fn resume_track(
         status.resume_elapsed.into(),
         status.resume_offset.into(),
     );
+    drop(player_mutex);
     Ok(())
 }
 
@@ -131,6 +144,7 @@ pub async fn get_playlist_tracks(
     _req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let mut entries = vec![];
     let amount = rb::playlist::amount();
 
@@ -141,10 +155,13 @@ pub async fn get_playlist_tracks(
     }
 
     res.json(&entries);
+
+    drop(player_mutex);
     Ok(())
 }
 
 pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let req_body = req.body.as_ref().unwrap();
     let mut tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
     let amount = rb::playlist::amount();
@@ -236,10 +253,13 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
 
     res.text(&tracklist.position.to_string());
 
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn remove_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let player = ctx.player.lock().unwrap();
 
     if let Some(_) = player.as_deref() {
@@ -262,6 +282,7 @@ pub async fn remove_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
     }
 
     res.text(&ret.to_string());
+    drop(player_mutex);
     Ok(())
 }
 
@@ -270,6 +291,7 @@ pub async fn current_playlist(
     _req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let mut metadata_cache = ctx.metadata_cache.lock().await;
     let mut entries = vec![];
     let amount = rb::playlist::amount();
@@ -302,10 +324,12 @@ pub async fn current_playlist(
 
     res.json(&entries);
 
+    drop(player_mutex);
     Ok(())
 }
 
 pub async fn get_playlist(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let mut player = ctx.player.lock().unwrap();
 
     if let Some(player) = player.as_deref_mut() {
@@ -367,5 +391,6 @@ pub async fn get_playlist(ctx: &Context, _req: &Request, res: &mut Response) -> 
     result.entries = entries;
 
     res.json(&result);
+    drop(player_mutex);
     Ok(())
 }

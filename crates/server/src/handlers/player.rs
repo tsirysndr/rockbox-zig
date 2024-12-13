@@ -1,5 +1,6 @@
 use std::env;
 
+use crate::PLAYER_MUTEX;
 use crate::{
     http::{Context, Request, Response},
     GLOBAL_MUTEX,
@@ -16,6 +17,7 @@ use rockbox_traits::types::track::Track;
 use rockbox_types::{device::Device, LoadTracks, NewVolume};
 
 pub async fn load(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let mut player = ctx.player.lock().unwrap();
     if player.is_none() {
         res.set_status(404);
@@ -80,10 +82,13 @@ pub async fn load(ctx: &Context, req: &Request, res: &mut Response) -> Result<()
 
     res.set_status(200);
 
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn play(ctx: &Context, req: &Request, _res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let elapsed = match req.query_params.get("elapsed") {
         Some(elapsed) => elapsed.as_str().unwrap_or("0").parse().unwrap_or(0),
         None => 0,
@@ -98,10 +103,13 @@ pub async fn play(ctx: &Context, req: &Request, _res: &mut Response) -> Result<(
         rb::playback::play(elapsed, offset);
     }
 
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn pause(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let player = ctx.player.lock().unwrap();
 
     match player.as_deref() {
@@ -113,19 +121,26 @@ pub async fn pause(ctx: &Context, _req: &Request, _res: &mut Response) -> Result
         }
     }
 
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn ff_rewind(_ctx: &Context, req: &Request, _res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let newtime = match req.query_params.get("newtime") {
         Some(newtime) => newtime.as_str().unwrap_or("0").parse().unwrap_or(0),
         None => 0,
     };
     rb::playback::ff_rewind(newtime);
+
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn status(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let mut player = ctx.player.lock().unwrap();
 
     if let Some(player) = player.as_deref_mut() {
@@ -141,10 +156,14 @@ pub async fn status(ctx: &Context, _req: &Request, res: &mut Response) -> Result
 
     let status = rb::playback::status();
     res.json(&status);
+
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn current_track(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let mut player = ctx.player.lock().unwrap();
 
     if let Some(player) = player.as_deref_mut() {
@@ -160,10 +179,14 @@ pub async fn current_track(ctx: &Context, _req: &Request, res: &mut Response) ->
 
     let track = rb::playback::current_track();
     res.json(&track);
+
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn next_track(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let player = ctx.player.lock().unwrap();
 
     if let Some(_player) = player.as_deref() {
@@ -172,6 +195,9 @@ pub async fn next_track(ctx: &Context, _req: &Request, res: &mut Response) -> Re
 
     let track = rb::playback::next_track();
     res.json(&track);
+
+    drop(player_mutex);
+
     Ok(())
 }
 
@@ -180,11 +206,14 @@ pub async fn flush_and_reload_tracks(
     _req: &Request,
     _res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     rb::playback::flush_and_reload_tracks();
+    drop(player_mutex);
     Ok(())
 }
 
 pub async fn resume(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let player = ctx.player.lock().unwrap();
 
     match player.as_deref() {
@@ -196,10 +225,13 @@ pub async fn resume(ctx: &Context, _req: &Request, _res: &mut Response) -> Resul
         }
     }
 
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn next(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let player = ctx.player.lock().unwrap();
 
     match player.as_deref() {
@@ -211,10 +243,13 @@ pub async fn next(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<
         }
     }
 
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn previous(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let player = ctx.player.lock().unwrap();
 
     match player.as_deref() {
@@ -226,11 +261,18 @@ pub async fn previous(ctx: &Context, _req: &Request, _res: &mut Response) -> Res
         }
     }
 
+    drop(player_mutex);
+
     Ok(())
 }
 
 pub async fn stop(_ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
+
     rb::playback::hard_stop();
+
+    drop(player_mutex);
+
     Ok(())
 }
 
@@ -239,8 +281,12 @@ pub async fn get_file_position(
     _req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let position = rb::playback::get_file_pos();
     res.json(&position);
+
+    drop(player_mutex);
+
     Ok(())
 }
 

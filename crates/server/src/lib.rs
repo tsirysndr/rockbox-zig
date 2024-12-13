@@ -33,6 +33,7 @@ pub const AUDIO_EXTENSIONS: [&str; 17] = [
 
 lazy_static! {
     pub static ref GLOBAL_MUTEX: Mutex<i32> = Mutex::new(0);
+    pub static ref PLAYER_MUTEX: Mutex<i32> = Mutex::new(0);
 }
 
 #[no_mangle]
@@ -266,6 +267,8 @@ pub extern "C" fn start_broker() {
 
         drop(mutex);
 
+        let player_mutex = PLAYER_MUTEX.lock().unwrap();
+
         let playback_status: AudioStatus = rb::playback::status().into();
         SimpleBroker::publish(playback_status);
         match rb::playback::current_track() {
@@ -318,6 +321,8 @@ pub extern "C" fn start_broker() {
             metadata_cache.insert(hash, entry.clone());
             entries.push(entry);
         }
+
+        drop(player_mutex);
 
         current_playlist.amount = amount;
         current_playlist.max_playlist_size = rb::playlist::max_playlist_size();
