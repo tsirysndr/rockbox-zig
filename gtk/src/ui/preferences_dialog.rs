@@ -1,11 +1,14 @@
 use crate::api::rockbox::v1alpha1::settings_service_client::SettingsServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    GetAlbumResponse, GetGlobalSettingsRequest, GetGlobalSettingsResponse,
+    GetAlbumResponse, GetGlobalSettingsRequest, GetGlobalSettingsResponse, ReplaygainSettings,
+    SaveSettingsRequest, SaveSettingsResponse,
 };
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
+use gtk::glib::property::PropertyGet;
 use gtk::{glib, CompositeTemplate};
+use std::cell::RefCell;
 use std::{env, thread};
 
 macro_rules! connect_equalizer_band_tooltips {
@@ -15,6 +18,7 @@ macro_rules! connect_equalizer_band_tooltips {
             $self.imp().$band.connect_value_changed(|s| {
                 let value = s.value();
                 s.set_tooltip_text(Some(&format!("{:.1} dB", value)));
+
             });
             $self.imp().$band.connect_query_tooltip(|s, _x, _y, _keyboard_mode, tooltip| {
                 let value = s.value();
@@ -45,8 +49,33 @@ macro_rules! set_equalizer_bands {
     };
 }
 
+macro_rules! connect_equalizer_band_value_changed {
+    ($self:expr, $band:ident, $index:expr) => {
+        let self_weak = $self.downgrade();
+        $self.$band.connect_value_changed(move |scale| {
+            let self_ = match self_weak.upgrade() {
+                Some(self_) => self_,
+                None => return,
+            };
+            let value = scale.value();
+            let obj = self_.obj();
+            {
+                let mut settings = obj.imp().settings.borrow_mut();
+                if let Some(settings) = settings.as_mut() {
+                    settings.eq_band_settings[$index].cutoff = (value * 10.0) as i32;
+                }
+            }
+            obj.save_settings();
+        });
+    };
+}
+
 mod imp {
+    use std::borrow::BorrowMut;
+
     use glib::subclass;
+
+    use crate::api::rockbox::v1alpha1::ReplaygainSettings;
 
     use super::*;
 
@@ -105,6 +134,9 @@ mod imp {
         pub fade_out_mode: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub replaygain: TemplateChild<adw::ComboRow>,
+
+        pub settings: RefCell<Option<SaveSettingsRequest>>,
+        pub replaygain_settings: RefCell<Option<ReplaygainSettings>>,
     }
 
     #[glib::object_subclass]
@@ -125,7 +157,50 @@ mod imp {
     impl ObjectImpl for RbPreferencesDialog {
         fn constructed(&self) {
             self.parent_constructed();
+            self.settings.replace(None);
 
+            self.handle_music_dir();
+            self.handle_bass();
+            self.handle_treble();
+            self.handle_balance();
+            self.handle_enable_equalizer();
+            self.handle_equalizer_bands();
+            self.handle_repeat();
+            self.handle_shuffle();
+            self.handle_fade_on_stop();
+            self.handle_crossfade();
+            self.handle_fade_in_delay();
+            self.handle_fade_in_duration();
+            self.handle_fade_out_delay();
+            self.handle_fade_out_duration();
+            self.handle_fade_out_mode();
+            self.handle_replaygain();
+
+            let self_weak = self.downgrade();
+            glib::idle_add_local(move || {
+                let self_ = match self_weak.upgrade() {
+                    Some(self_) => self_,
+                    None => return glib::ControlFlow::Continue,
+                };
+
+                glib::MainContext::default().spawn_local(async move {
+                    let obj = self_.obj();
+                    obj.load_settings();
+                });
+
+                glib::ControlFlow::Break
+            });
+        }
+    }
+
+    impl WidgetImpl for RbPreferencesDialog {}
+
+    impl AdwDialogImpl for RbPreferencesDialog {}
+
+    impl PreferencesDialogImpl for RbPreferencesDialog {}
+
+    impl RbPreferencesDialog {
+        fn handle_music_dir(&self) {
             let self_weak = self.downgrade();
             self.directory_picker_button.connect_clicked(move |_| {
                 let dialog = gtk::FileChooserDialog::builder()
@@ -152,40 +227,327 @@ mod imp {
                     if let Some(folder) = dialog.file() {
                         let obj = self_.obj();
                         let path = folder.path().unwrap();
-                        obj.imp()
-                            .library_location_label
-                            .set_label(path.to_str().unwrap());
+                        let path = path.to_str().unwrap();
+                        obj.imp().library_location_label.set_label(path);
+                        {
+                            let mut settings = obj.imp().settings.borrow_mut();
+                            if let Some(settings) = settings.as_mut() {
+                                settings.music_dir = Some(path.to_string());
+                            }
+                        }
+
+                        obj.save_settings();
                     }
                     dialog.close();
                 });
 
                 dialog.show();
             });
+        }
 
+        fn handle_bass(&self) {
             let self_weak = self.downgrade();
-            glib::idle_add_local(move || {
-                let self_ = match self_weak.upgrade() {
-                    Some(self_) => self_,
-                    None => return glib::ControlFlow::Continue,
-                };
-
-                glib::MainContext::default().spawn_local(async move {
+            self.bass
+                .connect_notify_local(Some("value"), move |spin_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = spin_row.value();
                     let obj = self_.obj();
-                    obj.load_settings();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.bass = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
                 });
+        }
 
-                glib::ControlFlow::Break
-            });
+        fn handle_treble(&self) {
+            let self_weak = self.downgrade();
+            self.treble
+                .connect_notify_local(Some("value"), move |spin_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = spin_row.value();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.treble = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_balance(&self) {
+            let self_weak = self.downgrade();
+            self.balance
+                .connect_notify_local(Some("value"), move |spin_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = spin_row.value();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.balance = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_enable_equalizer(&self) {
+            let self_weak = self.downgrade();
+            self.enable_equalizer
+                .connect_notify_local(Some("state"), move |switch_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = switch_row.is_active();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.eq_enabled = Some(value);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_equalizer_bands(&self) {
+            connect_equalizer_band_value_changed!(self, equalizer_band_1, 0);
+            connect_equalizer_band_value_changed!(self, equalizer_band_2, 1);
+            connect_equalizer_band_value_changed!(self, equalizer_band_3, 2);
+            connect_equalizer_band_value_changed!(self, equalizer_band_4, 3);
+            connect_equalizer_band_value_changed!(self, equalizer_band_5, 4);
+            connect_equalizer_band_value_changed!(self, equalizer_band_6, 5);
+            connect_equalizer_band_value_changed!(self, equalizer_band_7, 6);
+            connect_equalizer_band_value_changed!(self, equalizer_band_8, 7);
+            connect_equalizer_band_value_changed!(self, equalizer_band_9, 8);
+            connect_equalizer_band_value_changed!(self, equalizer_band_10, 9);
+        }
+
+        fn handle_repeat(&self) {
+            let self_weak = self.downgrade();
+            self.repeat
+                .connect_notify_local(Some("selected"), move |combo_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = combo_row.selected();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.repeat_mode = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_shuffle(&self) {
+            let self_weak = self.downgrade();
+            self.shuffle
+                .connect_state_flags_changed(move |switch_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = switch_row.is_active();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.playlist_shuffle = Some(value);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_fade_on_stop(&self) {
+            let self_weak = self.downgrade();
+            self.fade_on_stop
+                .connect_state_flags_changed(move |switch_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = switch_row.is_active();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.fade_on_stop = Some(value);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_crossfade(&self) {
+            let self_weak = self.downgrade();
+            self.crossfade
+                .connect_notify_local(Some("selected"), move |combo_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = combo_row.selected();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.crossfade = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_fade_in_delay(&self) {
+            let self_weak = self.downgrade();
+            self.fade_in_delay
+                .connect_notify_local(Some("value"), move |spin_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = spin_row.value();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.fade_in_delay = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_fade_in_duration(&self) {
+            let self_weak = self.downgrade();
+            self.fade_in_duration
+                .connect_notify_local(Some("value"), move |spin_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = spin_row.value();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.fade_in_duration = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_fade_out_delay(&self) {
+            let self_weak = self.downgrade();
+            self.fade_out_delay
+                .connect_notify_local(Some("value"), move |spin_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = spin_row.value();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.fade_out_delay = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_fade_out_duration(&self) {
+            let self_weak = self.downgrade();
+            self.fade_out_duration
+                .connect_notify_local(Some("value"), move |spin_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = spin_row.value();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.fade_out_duration = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_fade_out_mode(&self) {
+            let self_weak = self.downgrade();
+            self.fade_out_mode
+                .connect_notify_local(Some("selected"), move |combo_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = combo_row.selected();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            settings.fade_out_mixmode = Some(value as i32);
+                        }
+                    }
+                    obj.save_settings();
+                });
+        }
+
+        fn handle_replaygain(&self) {
+            let self_weak = self.downgrade();
+            self.replaygain
+                .connect_notify_local(Some("selected"), move |combo_row, _| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+                    let value = combo_row.selected();
+                    let obj = self_.obj();
+                    {
+                        let mut settings = obj.imp().settings.borrow_mut();
+                        if let Some(settings) = settings.as_mut() {
+                            if let Some(ref mut replaygain_settings) = settings.replaygain_settings
+                            {
+                                replaygain_settings.r#type = value as i32;
+                            } else {
+                                let replaygain_settings =
+                                    obj.imp().replaygain_settings.borrow_mut();
+                                let replaygain_settings = replaygain_settings.as_ref().unwrap();
+                                let mut replaygain_settings = replaygain_settings.clone();
+                                replaygain_settings.r#type = value as i32;
+                                settings.replaygain_settings = Some(replaygain_settings);
+                            }
+                        }
+                    }
+                    obj.save_settings();
+                });
         }
     }
-
-    impl WidgetImpl for RbPreferencesDialog {}
-
-    impl AdwDialogImpl for RbPreferencesDialog {}
-
-    impl PreferencesDialogImpl for RbPreferencesDialog {}
-
-    impl RbPreferencesDialog {}
 }
 
 glib::wrapper! {
@@ -214,6 +576,13 @@ impl RbPreferencesDialog {
 
         match response {
             Ok(settings) => {
+                self.imp().settings.replace(Some(SaveSettingsRequest {
+                    eq_band_settings: settings.eq_band_settings.clone(),
+                    ..Default::default()
+                }));
+                self.imp()
+                    .replaygain_settings
+                    .replace(settings.replaygain_settings);
                 self.imp()
                     .library_location_label
                     .set_label(&settings.music_dir);
@@ -271,6 +640,25 @@ impl RbPreferencesDialog {
             equalizer_band_9,
             equalizer_band_10,
         );
+    }
+
+    fn save_settings(&self) {
+        let settings = self.imp().settings.borrow();
+        let settings_ref = settings.as_ref();
+        if let Some(settings) = settings.clone() {
+            thread::spawn(move || {
+                let rt = tokio::runtime::Runtime::new().unwrap();
+                let response = rt.block_on(async {
+                    let url = build_url();
+                    let mut client = SettingsServiceClient::connect(url).await?;
+                    let response = client.save_settings(settings).await?.into_inner();
+                    Ok::<SaveSettingsResponse, Error>(response)
+                });
+                if let Err(e) = response {
+                    eprintln!("Error saving settings: {}", e);
+                }
+            });
+        }
     }
 }
 

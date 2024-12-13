@@ -47,6 +47,7 @@ template $RbPreferencesDialog: Adw.PreferencesDialog {
       
       Adw.SpinRow bass {
         title: _("Bass");
+        name: "bass";
         adjustment: Adjustment {
           lower: -24;
           upper: 24;
@@ -58,6 +59,7 @@ template $RbPreferencesDialog: Adw.PreferencesDialog {
       
       Adw.SpinRow treble {
         title: _("Treble");
+        name: "treble";
         adjustment: Adjustment {
           lower: -24;
           upper: 24;
@@ -65,11 +67,11 @@ template $RbPreferencesDialog: Adw.PreferencesDialog {
           value: 0;
         };
 
-
       }
       
       Adw.SpinRow balance {
         title: _("Balance");
+        name: "balance";
         adjustment: Adjustment {
           lower: -100;
           upper: 100;
