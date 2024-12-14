@@ -3,7 +3,7 @@ use crate::navigation::NavigationHistory;
 use crate::types::track::Track;
 use glib::subclass::prelude::*;
 use gtk::glib;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 
 mod imp {
@@ -16,6 +16,8 @@ mod imp {
         pub music_directory: RefCell<Option<String>>,
         pub current_track: RefCell<Option<Track>>,
         pub likes: RefCell<HashMap<String, RockboxTrack>>,
+        pub resume_index: Cell<i32>,
+        pub resume_elapsed: Cell<u32>,
     }
 
     #[glib::object_subclass]
@@ -43,6 +45,8 @@ impl AppState {
         obj.imp().music_directory.replace(None);
         obj.imp().current_track.replace(None);
         obj.imp().likes.replace(HashMap::new());
+        obj.imp().resume_index.set(-1);
+        obj.imp().resume_elapsed.set(0);
         obj
     }
 
@@ -148,5 +152,25 @@ impl AppState {
         let self_ = imp::AppState::from_obj(self);
         let mut likes = self_.likes.borrow_mut();
         likes.insert(track.id.clone(), track);
+    }
+
+    pub fn resume_index(&self) -> i32 {
+        let self_ = imp::AppState::from_obj(self);
+        self_.resume_index.get()
+    }
+
+    pub fn resume_elapsed(&self) -> u32 {
+        let self_ = imp::AppState::from_obj(self);
+        self_.resume_elapsed.get()
+    }
+
+    pub fn set_resume_index(&self, index: i32) {
+        let self_ = imp::AppState::from_obj(self);
+        self_.resume_index.set(index);
+    }
+
+    pub fn set_resume_elapsed(&self, elapsed: u32) {
+        let self_ = imp::AppState::from_obj(self);
+        self_.resume_elapsed.set(elapsed);
     }
 }

@@ -226,6 +226,10 @@ impl CurrentPlaylist {
         let state = self.imp().state.upgrade().unwrap();
         match state.current_track() {
             Some(track) => {
+                let current_index = match state.resume_index() > -1 {
+                    true => state.resume_index() as usize,
+                    false => self.imp().current_index.get(),
+                };
                 self.imp().track_title.set_text(&track.title);
                 self.imp().track_title.set_wrap_mode(WrapMode::WordChar);
                 self.imp().track_title.set_max_width_chars(20);
@@ -236,7 +240,7 @@ impl CurrentPlaylist {
                 self.imp().track_artist.set_wrap(true);
                 self.imp().track_index.set_text(&format!(
                     "{} of {}",
-                    self.imp().current_index.get() + 1,
+                    current_index + 1,
                     self.imp().tracks.borrow().len()
                 ));
 

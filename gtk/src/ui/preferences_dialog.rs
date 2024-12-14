@@ -71,7 +71,6 @@ macro_rules! connect_equalizer_band_value_changed {
 }
 
 mod imp {
-    use std::borrow::BorrowMut;
 
     use glib::subclass;
 

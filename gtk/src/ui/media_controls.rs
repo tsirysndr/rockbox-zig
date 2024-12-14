@@ -2,11 +2,15 @@ use std::{env, thread};
 
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
+use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
 use crate::api::rockbox::v1alpha1::settings_service_client::SettingsServiceClient;
+use crate::api::rockbox::v1alpha1::system_service_client::SystemServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    CurrentTrackRequest, CurrentTrackResponse, GetGlobalSettingsRequest, GetGlobalSettingsResponse,
-    LikeTrackRequest, NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest,
-    SaveSettingsRequest, StreamCurrentTrackRequest, StreamStatusRequest, UnlikeTrackRequest,
+    CurrentTrackRequest, CurrentTrackResponse, GetCurrentRequest, GetCurrentResponse,
+    GetGlobalSettingsRequest, GetGlobalSettingsResponse, GetGlobalStatusRequest,
+    GetGlobalStatusResponse, LikeTrackRequest, NextRequest, PauseRequest, PlayRequest,
+    PreviousRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest,
+    StreamCurrentTrackRequest, StreamStatusRequest, UnlikeTrackRequest,
 };
 use crate::state::AppState;
 use crate::time::format_milliseconds;
@@ -17,13 +21,14 @@ use crate::ui::pages::current_playlist::CurrentPlaylist;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
-use futures::task::LocalSpawnExt;
 use glib::subclass;
 use gtk::glib;
 use gtk::pango::EllipsizeMode;
 use gtk::{Button, CompositeTemplate, Image, Label, MenuButton, Scale};
 use std::cell::{Cell, RefCell};
 use tokio::sync::mpsc;
+
+use super::pages::current_playlist;
 
 mod imp {
 
@@ -84,6 +89,8 @@ mod imp {
         pub state: glib::WeakRef<AppState>,
         pub current_playlist: RefCell<Option<CurrentPlaylist>>,
         pub status_lock: Cell<bool>,
+        pub resume_index: Cell<i32>,
+        pub resume_elapsed: Cell<u32>,
     }
 
     #[glib::object_subclass]
@@ -170,6 +177,8 @@ mod imp {
             self.parent_constructed();
 
             self.status_lock.set(false);
+            self.resume_index.set(-1);
+            self.resume_elapsed.set(0);
 
             let self_weak = self.downgrade();
             self.progress_bar
@@ -285,6 +294,7 @@ mod imp {
                         let progression = (track.elapsed as f64 / track.length as f64) * 100.0;
                         progress_bar.set_value(progression);
                         media_control_bar_progress.set_visible(true);
+                        heart_button.set_visible(true);
 
                         heart_button.set_visible(true);
                         more_button.set_visible(true);
@@ -361,6 +371,11 @@ mod imp {
                             1 => self_.play_icon.set_icon_name(Some("media-playback-pause")),
                             3 => self_.play_icon.set_icon_name(Some("media-playback-start")),
                             _ => {}
+                        }
+
+                        if status == 1 {
+                            let state = self_.state.upgrade().unwrap();
+                            state.set_resume_index(-1);
                         }
                     }
                 });
@@ -471,57 +486,117 @@ impl MediaControls {
             });
         });
 
-        let handle = thread::spawn(move || {
-            let rt = tokio::runtime::Runtime::new().unwrap();
-            rt.block_on(async {
-                let url = build_url();
-                let mut client = PlaybackServiceClient::connect(url).await?;
-                let response = client.current_track(CurrentTrackRequest {}).await?;
-                Ok::<CurrentTrackResponse, Error>(response.into_inner())
-            })
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let response = rt.block_on(async {
+            let url = build_url();
+            let mut client = PlaybackServiceClient::connect(url).await?;
+            let response = client.current_track(CurrentTrackRequest {}).await?;
+            Ok::<CurrentTrackResponse, Error>(response.into_inner())
         });
 
-        if let Ok(track) = handle.join().unwrap() {
-            let title = self.imp().title.get();
-            let artist_album = self.imp().artist_album.get();
-            let elapsed = self.imp().elapsed.get();
-            let duration = self.imp().duration.get();
-            let album_art = self.imp().album_art.get();
-            let media_control_bar_progress = self.imp().media_control_bar_progress.get();
-            let progress_bar = self.imp().progress_bar.get();
+        if let Err(e) = response {
+            eprintln!("failed to get current track: {}", e);
+            return;
+        }
 
-            if track.length == 0 {
-                return;
-            }
+        let track = match self.get_last_playback() {
+            Some(last_playback) => last_playback,
+            None => response.unwrap(),
+        };
 
-            let progression = (track.elapsed as f64 / track.length as f64) * 100.0;
-            progress_bar.set_value(progression);
-            media_control_bar_progress.set_visible(true);
+        let title = self.imp().title.get();
+        let artist_album = self.imp().artist_album.get();
+        let elapsed = self.imp().elapsed.get();
+        let duration = self.imp().duration.get();
+        let album_art = self.imp().album_art.get();
+        let media_control_bar_progress = self.imp().media_control_bar_progress.get();
+        let progress_bar = self.imp().progress_bar.get();
+        let heart_button = self.imp().heart_button.get();
+        let more_button = self.imp().more_button.get();
 
-            title.set_text(&track.title);
-            artist_album.set_text(&format!("{} - {}", track.artist, track.album));
-            elapsed.set_text(&format_milliseconds(track.elapsed));
-            duration.set_text(&format_milliseconds(track.length));
+        if track.length == 0 {
+            return;
+        }
 
-            if let Some(filename) = track.album_art {
-                let home = std::env::var("HOME").unwrap();
-                let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
-                album_art.set_from_file(Some(&path));
-            } else {
-                album_art.set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
-            }
+        let progression = match self.imp().resume_index.get() > -1 {
+            true => (self.imp().resume_elapsed.get() as f64 / track.length as f64) * 100.0,
+            false => (track.elapsed as f64 / track.length as f64) * 100.0,
+        };
+        progress_bar.set_value(progression);
+        media_control_bar_progress.set_visible(true);
+        heart_button.set_visible(true);
+        more_button.set_visible(true);
+
+        title.set_text(&track.title);
+        artist_album.set_text(&format!("{} - {}", track.artist, track.album));
+        elapsed.set_text(&format_milliseconds(track.elapsed));
+        duration.set_text(&format_milliseconds(track.length));
+
+        if self.imp().resume_index.get() > -1 {
+            elapsed.set_text(&format_milliseconds(self.imp().resume_elapsed.get() as u64));
+        }
+
+        if let Some(filename) = track.album_art {
+            let home = std::env::var("HOME").unwrap();
+            let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
+            album_art.set_from_file(Some(&path));
+        } else {
+            album_art.set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+        }
+
+        let state = self.imp().state.upgrade().unwrap();
+
+        match state.is_liked_track(&track.id) {
+            true => self.imp().heart_icon.set_icon_name(Some("heart-symbolic")),
+            false => self
+                .imp()
+                .heart_icon
+                .set_icon_name(Some("heart-outline-symbolic")),
+        }
+
+        self.imp().set_current_track(Track {
+            id: track.id,
+            title: track.title,
+            artist: track.artist,
+            album: track.album,
+            album_artist: track.album_artist,
+            duration: track.length,
+            elapsed: track.elapsed,
+            ..Default::default()
+        });
+    }
+
+    pub fn get_last_playback(&self) -> Option<CurrentTrackResponse> {
+        let playlist = self.get_current_playlist();
+        if playlist.is_empty() {
+            return None;
+        }
+
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let global_status = rt.block_on(async {
+            let url = build_url();
+            let mut client = SystemServiceClient::connect(url).await?;
+            let response = client.get_global_status(GetGlobalStatusRequest {}).await?;
+            Ok::<GetGlobalStatusResponse, Error>(response.into_inner())
+        });
+
+        if let Err(e) = global_status {
+            eprintln!("failed to get global: {}", e);
+            return None;
+        }
+
+        let global_status = global_status.unwrap();
+        if global_status.resume_index > -1 {
+            self.imp().resume_index.set(global_status.resume_index);
+            self.imp().resume_elapsed.set(global_status.resume_elapsed);
+            let last_playback = playlist[global_status.resume_index as usize].clone();
 
             let state = self.imp().state.upgrade().unwrap();
+            state.set_resume_index(global_status.resume_index);
+            state.set_resume_elapsed(global_status.resume_elapsed);
 
-            match state.is_liked_track(&track.id) {
-                true => self.imp().heart_icon.set_icon_name(Some("heart-symbolic")),
-                false => self
-                    .imp()
-                    .heart_icon
-                    .set_icon_name(Some("heart-outline-symbolic")),
-            }
-
-            self.imp().set_current_track(Track {
+            let track = last_playback.clone();
+            state.set_current_track(Track {
                 id: track.id,
                 title: track.title,
                 artist: track.artist,
@@ -529,9 +604,32 @@ impl MediaControls {
                 album_artist: track.album_artist,
                 duration: track.length,
                 elapsed: track.elapsed,
+                album_art: track.album_art,
                 ..Default::default()
             });
+
+            return Some(last_playback);
         }
+
+        return None;
+    }
+
+    pub fn get_current_playlist(&self) -> Vec<CurrentTrackResponse> {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let current_playlist = rt.block_on(async {
+            let url = build_url();
+            let mut client = PlaylistServiceClient::connect(url).await?;
+            let response = client.get_current(GetCurrentRequest {}).await?;
+            Ok::<GetCurrentResponse, Error>(response.into_inner())
+        });
+
+        if let Err(e) = current_playlist {
+            eprintln!("failed to get current playlist: {}", e);
+            return vec![];
+        }
+
+        let current_playlist = current_playlist.unwrap();
+        current_playlist.tracks
     }
 
     pub fn play(&self) {
@@ -551,7 +649,7 @@ impl MediaControls {
         };
         let playback_status = self.imp().playback_status.get();
 
-        let self_weak = self.downgrade();
+        let resume_index = self.imp().resume_index.get();
         thread::spawn(move || {
             let rt = tokio::runtime::Runtime::new().unwrap();
             let _ = rt.block_on(async {
@@ -565,7 +663,17 @@ impl MediaControls {
                     3 => {
                         client.resume(ResumeRequest {}).await?;
                     }
-                    _ => {}
+                    _ => {
+                        if resume_index > -1 {
+                            let url = build_url();
+                            let mut client = PlaylistServiceClient::connect(url).await?;
+                            client
+                                .resume_track(ResumeTrackRequest {
+                                    ..Default::default()
+                                })
+                                .await?;
+                        }
+                    }
                 };
                 Ok::<(), Error>(())
             });
