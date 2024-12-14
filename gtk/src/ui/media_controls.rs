@@ -17,6 +17,7 @@ use crate::ui::pages::current_playlist::CurrentPlaylist;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
+use futures::task::LocalSpawnExt;
 use glib::subclass;
 use gtk::glib;
 use gtk::pango::EllipsizeMode;
@@ -82,6 +83,7 @@ mod imp {
         pub playlist_displayed: Cell<bool>,
         pub state: glib::WeakRef<AppState>,
         pub current_playlist: RefCell<Option<CurrentPlaylist>>,
+        pub status_lock: Cell<bool>,
     }
 
     #[glib::object_subclass]
@@ -166,6 +168,8 @@ mod imp {
     impl ObjectImpl for MediaControls {
         fn constructed(&self) {
             self.parent_constructed();
+
+            self.status_lock.set(false);
 
             let self_weak = self.downgrade();
             self.progress_bar
@@ -341,6 +345,10 @@ mod imp {
 
                 glib::MainContext::default().spawn_local(async move {
                     while let Some(status) = rx.recv().await {
+                        if self_.status_lock.get() {
+                            continue;
+                        }
+
                         self_.playback_status.set(status);
                         match status {
                             1 => self_.play_icon.set_icon_name(Some("media-playback-pause")),
@@ -520,36 +528,53 @@ impl MediaControls {
     }
 
     pub fn play(&self) {
+        self.imp().status_lock.set(true);
+        match self.imp().playback_status.get() {
+            1 => {
+                self.imp()
+                    .play_icon
+                    .set_icon_name(Some("media-playback-start"));
+            }
+            3 => {
+                self.imp()
+                    .play_icon
+                    .set_icon_name(Some("media-playback-pause"));
+            }
+            _ => {}
+        };
+        let playback_status = self.imp().playback_status.get();
+
         let self_weak = self.downgrade();
-        glib::MainContext::default().spawn_local(async move {
-            let self_ = match self_weak.upgrade() {
-                Some(self_) => self_,
-                None => return,
-            };
+        thread::spawn(move || {
             let rt = tokio::runtime::Runtime::new().unwrap();
             let _ = rt.block_on(async {
                 let url = build_url();
                 let mut client = PlaybackServiceClient::connect(url).await?;
 
-                match self_.imp().playback_status.get() {
+                match playback_status {
                     1 => {
-                        self_
-                            .imp()
-                            .play_icon
-                            .set_icon_name(Some("media-playback-start"));
                         client.pause(PauseRequest {}).await?;
                     }
                     3 => {
-                        self_
-                            .imp()
-                            .play_icon
-                            .set_icon_name(Some("media-playback-pause"));
                         client.resume(ResumeRequest {}).await?;
                     }
                     _ => {}
                 };
                 Ok::<(), Error>(())
             });
+        });
+
+        let self_weak = self.downgrade();
+        glib::idle_add_local(move || {
+            let self_ = match self_weak.upgrade() {
+                Some(self_) => self_,
+                None => return glib::ControlFlow::Continue,
+            };
+            glib::MainContext::default().spawn_local(async move {
+                thread::sleep(std::time::Duration::from_secs(3));
+                self_.imp().status_lock.set(false);
+            });
+            glib::ControlFlow::Break
         });
     }
 
