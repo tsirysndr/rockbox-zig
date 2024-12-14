@@ -22,7 +22,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(file = "./gtk/song.ui")]
+    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/song.ui")]
     pub struct Song {
         #[template_child]
         pub container: TemplateChild<gtk::Box>,

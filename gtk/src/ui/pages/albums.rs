@@ -18,7 +18,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(file = "../gtk/albums.ui")]
+    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/albums.ui")]
     pub struct Albums {
         #[template_child]
         pub library: TemplateChild<FlowBox>,

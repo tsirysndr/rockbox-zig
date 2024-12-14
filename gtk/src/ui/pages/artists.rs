@@ -19,7 +19,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(file = "../gtk/artists.ui")]
+    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/artists.ui")]
     pub struct Artists {
         #[template_child]
         pub artists: TemplateChild<FlowBox>,
@@ -116,7 +116,10 @@ mod imp {
             let artists = self.all_artists.borrow();
             let artists = match list {
                 Some(list) => list.clone().into_iter().take(list.len()),
-                None => artists.clone().into_iter().take(limit.unwrap_or(artists.len()))
+                None => artists
+                    .clone()
+                    .into_iter()
+                    .take(limit.unwrap_or(artists.len())),
             };
             for artist_item in artists {
                 let artist = Artist::new();
@@ -143,7 +146,6 @@ mod imp {
 
                 self.artists.append(&artist);
             }
-
         }
     }
 }

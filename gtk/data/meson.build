@@ -6,6 +6,36 @@ conf.set('NAME', name)
 conf.set('PKGNAME', app_id)
 conf.set('pkgdatadir', pkgdatadir)
 
+blueprints = custom_target(
+  'blueprints',
+  input: files(
+    'gtk/album_details.blp',
+    'gtk/album_tracks.blp',
+    'gtk/albums.blp',
+    'gtk/artist.blp',
+    'gtk/artist_details.blp',
+    'gtk/artists.blp',
+    'gtk/current_playlist.blp',
+    'gtk/file.blp',
+    'gtk/files.blp',
+    'gtk/help-overlay.blp',
+    'gtk/likes.blp',
+    'gtk/media_controls.blp',
+    'gtk/preferences.blp',
+    'gtk/song.blp',
+    'gtk/songs.blp',
+    'gtk/window.blp',
+  ),
+  output: '.',
+  command: [
+    find_program('blueprint-compiler'),
+    'batch-compile',
+    '@OUTPUT@',
+    '@CURRENT_SOURCE_DIR@',
+    '@INPUT@',
+  ]
+)
+
 appstream_file = i18n.merge_file(
   input: configure_file(
     input: 'mg.tsirysndr.Rockbox.metainfo.xml.in.in',
@@ -51,7 +81,7 @@ gnome.compile_resources(
   gresource_bundle: true,
   install: true,
   install_dir: pkgdatadir,
-  dependencies: appstream_file,
+  dependencies: [appstream_file, blueprints],
 )
 
 subdir('icons')

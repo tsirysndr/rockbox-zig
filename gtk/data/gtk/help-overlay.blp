@@ -1,0 +1,83 @@
+using Gtk 4.0;
+
+ShortcutsWindow help_overlay {
+  modal: true;
+
+  ShortcutsSection {
+    section-name: "shortcuts";
+    max-height: 10;
+
+    ShortcutsGroup {
+      title: _("General");
+
+      ShortcutsShortcut {
+        title: _("Search");
+        action-name: "win.toggle_search";
+      }
+
+      ShortcutsShortcut {
+        title: _("Preferences");
+        action-name: "app.preferences";
+      }
+
+      ShortcutsShortcut {
+        title: _("Show keyboard shortcuts");
+        action-name: "win.show-help-overlay";
+      }
+
+      ShortcutsShortcut {
+        title: _("Quit");
+        action-name: "app.quit";
+      }
+    }
+
+    ShortcutsGroup {
+      title: _("Library");
+
+      ShortcutsShortcut {
+        title: _("Refresh Library");
+        action-name: "app.refresh_library";
+      }
+
+      ShortcutsShortcut {
+        title: _("Like / Unlike current song");
+        action-name: "app.like";
+      }
+    }
+
+    ShortcutsGroup {
+      title: _("Playback");
+
+      ShortcutsShortcut {
+        title: _("Play / Pause");
+        action-name:  "app.play_pause";
+      }
+
+      ShortcutsShortcut {
+        title: _("Skip to the previous song");
+        action-name: "app.previous";
+      }
+
+      ShortcutsShortcut {
+        title: _("Skip to next song");
+        action-name: "app.next";
+      }
+
+      ShortcutsShortcut {
+        title: _("Seek ten seconds backward in the song");
+        action-name: "app.seek_backward";
+      }
+
+      ShortcutsShortcut {
+        title: _("Seek ten seconds forward in the song");
+        action-name: "app.seek_forward";
+      }
+ 
+      ShortcutsShortcut {
+        title: _("Shuffle");
+        action-name: "app.shuffle";
+      }
+
+    }
+  }
+}

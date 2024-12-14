@@ -22,7 +22,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(file = "../gtk/current_playlist.ui")]
+    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/current_playlist.ui")]
     pub struct CurrentPlaylist {
         #[template_child]
         pub album_cover: TemplateChild<Image>,

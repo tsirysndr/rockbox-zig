@@ -1,6 +1,6 @@
-use crate::app;
 use crate::state::AppState;
-use crate::ui::window::RbApplicationWindow;
+use crate::ui::window::{self, RbApplicationWindow};
+use crate::{app, ui::media_controls};
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use gio::subclass::prelude::ApplicationImpl;
@@ -97,14 +97,95 @@ impl RbApplication {
         window
     }
 
-    pub fn setup_gactions(&self) {}
+    pub fn setup_gactions(&self) {
+        let window = self.imp().window.get();
+        let window = window.unwrap().upgrade().unwrap();
+
+        let media_controls = window.imp().media_control_bar.get();
+        let like = gio::ActionEntry::builder("like")
+            .activate(move |_, _, _| {
+                media_controls.like();
+            })
+            .build();
+
+        let media_controls = window.imp().media_control_bar.get();
+        let play = gio::ActionEntry::builder("play_pause")
+            .activate(move |_, _, _| {
+                media_controls.play();
+            })
+            .build();
+
+        let media_controls = window.imp().media_control_bar.get();
+        let previous = gio::ActionEntry::builder("previous")
+            .activate(move |_, _, _| {
+                media_controls.previous();
+            })
+            .build();
+
+        let media_controls = window.imp().media_control_bar.get();
+        let next = gio::ActionEntry::builder("next")
+            .activate(move |_, _, _| {
+                media_controls.next();
+            })
+            .build();
+
+        let media_controls = window.imp().media_control_bar.get();
+        let shuffle = gio::ActionEntry::builder("shuffle")
+            .activate(move |_, _, _| {
+                media_controls.shuffle();
+            })
+            .build();
+
+        let window_clone = window.clone();
+        let refresh_library = gio::ActionEntry::builder("refresh_library")
+            .activate(move |_, _, _| {
+                window_clone.imp().refresh_library();
+            })
+            .build();
+
+        let media_controls = window.imp().media_control_bar.get();
+        let seek_backward = gio::ActionEntry::builder("seek_backward")
+            .activate(move |_, _, _| {
+                media_controls.seek_backward();
+            })
+            .build();
+
+        let media_controls = window.imp().media_control_bar.get();
+        let seek_forward = gio::ActionEntry::builder("seek_forward")
+            .activate(move |_, _, _| {
+                media_controls.seek_forward();
+            })
+            .build();
+
+        self.add_action_entries([
+            like,
+            play,
+            previous,
+            next,
+            shuffle,
+            refresh_library,
+            seek_backward,
+            seek_forward,
+        ]);
+
+        self.set_accels_for_action("win.toggle_search", &["<primary>f"]);
+        self.set_accels_for_action("app.preferences", &["<primary>comma"]);
+        self.set_accels_for_action("app.quit", &["<primary>q"]);
+
+        self.set_accels_for_action("app.refresh_library", &["<primary>r"]);
+        self.set_accels_for_action("app.like", &["<primary>l"]);
+
+        self.set_accels_for_action("app.play_pause", &["<primary>space"]);
+        self.set_accels_for_action("app.previous", &["<primary>Left"]);
+        self.set_accels_for_action("app.next", &["<primary>Right"]);
+        self.set_accels_for_action("app.seek_backward", &["<Shift><primary>Left"]);
+        self.set_accels_for_action("app.seek_forward", &["<Shift><primary>Right"]);
+        self.set_accels_for_action("app.shuffle", &["<primary>s"]);
+    }
 }
 
 impl Default for RbApplication {
     fn default() -> Self {
-        println!("Creating default RbApplication");
-        println!("{:?}", gio::Application::default());
-
         gio::Application::default()
             .expect("Could not get default GApplication")
             .downcast()

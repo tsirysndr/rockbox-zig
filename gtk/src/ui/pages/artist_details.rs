@@ -27,7 +27,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(file = "../gtk/artist_details.ui")]
+    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/artist_details.ui")]
     pub struct ArtistDetails {
         #[template_child]
         pub artist_image: TemplateChild<Image>,

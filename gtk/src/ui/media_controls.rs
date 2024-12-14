@@ -30,7 +30,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(file = "gtk/media_controls.ui")]
+    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/media_controls.ui")]
     pub struct MediaControls {
         #[template_child]
         pub shuffle_button: TemplateChild<Button>,
@@ -813,6 +813,46 @@ impl MediaControls {
             state.push_navigation("Album", "album-details-page");
             album_details_ref.imp().hide_top_buttons(true);
             album_details_ref.imp().load_album(album_id);
+        }
+    }
+
+    pub fn seek_backward(&self) {
+        let current_track = self.imp().current_track.borrow();
+        if let Some(track) = &*current_track {
+            let elapsed = (track.elapsed - 10000).max(0) as i64;
+            glib::idle_add_local(move || {
+                glib::MainContext::default().spawn_local(async move {
+                    let rt = tokio::runtime::Runtime::new().unwrap();
+                    let _ = rt.block_on(async {
+                        let url = build_url();
+                        let mut client = PlaybackServiceClient::connect(url).await?;
+                        client.play(PlayRequest { elapsed, offset: 0 }).await?;
+                        Ok::<(), Error>(())
+                    });
+                });
+                thread::sleep(std::time::Duration::from_millis(200));
+                glib::ControlFlow::Break
+            });
+        }
+    }
+
+    pub fn seek_forward(&self) {
+        let current_track = self.imp().current_track.borrow();
+        if let Some(track) = &*current_track {
+            let elapsed = (track.elapsed + 10000).min(track.duration) as i64;
+            glib::idle_add_local(move || {
+                glib::MainContext::default().spawn_local(async move {
+                    let rt = tokio::runtime::Runtime::new().unwrap();
+                    let _ = rt.block_on(async {
+                        let url = build_url();
+                        let mut client = PlaybackServiceClient::connect(url).await?;
+                        client.play(PlayRequest { elapsed, offset: 0 }).await?;
+                        Ok::<(), Error>(())
+                    });
+                });
+                thread::sleep(std::time::Duration::from_millis(200));
+                glib::ControlFlow::Break
+            });
         }
     }
 }

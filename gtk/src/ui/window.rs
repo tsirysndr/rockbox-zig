@@ -26,18 +26,18 @@ use gtk::{
     gio, glib, Box, Button, CompositeTemplate, ListBox, MenuButton, Overlay, ScrolledWindow,
     SearchBar, SearchEntry, ToggleButton,
 };
+use preferences_dialog::RbPreferencesDialog;
 use std::cell::{Cell, RefCell};
 use std::env;
 use std::thread;
 use tokio::sync::mpsc;
 
 mod imp {
-    use preferences_dialog::RbPreferencesDialog;
 
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(file = "gtk/window.ui")]
+    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/window.ui")]
     pub struct RbApplicationWindow {
         #[template_child]
         pub show_sidebar_button: TemplateChild<Button>,
@@ -191,16 +191,12 @@ mod imp {
                 preferences_window.present(Some(win));
             });
 
-            klass.install_action(
-                "win.show-help-overlay",
-                None,
-                move |win, _action, _parameter| {
-                    let self_ = imp::RbApplicationWindow::from_obj(win);
-                },
-            );
-
             klass.install_action("app.about", None, move |win, _action, _parameter| {
                 about_dialog::show(win);
+            });
+
+            klass.install_action("app.quit", None, move |win, _action, _parameter| {
+                win.close();
             });
         }
 
