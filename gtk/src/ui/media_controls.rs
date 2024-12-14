@@ -173,7 +173,10 @@ mod imp {
 
             let self_weak = self.downgrade();
             self.progress_bar
-                .connect_change_value(move |_, _scroll_type, value| {
+                .connect_change_value(move |_, scroll_type, value| {
+                    if scroll_type != gtk::ScrollType::Jump {
+                        return glib::Propagation::Stop;
+                    }
                     let self_ = match self_weak.upgrade() {
                         Some(self_) => self_,
                         None => return glib::Propagation::Stop,
@@ -181,14 +184,18 @@ mod imp {
                     let current_track = self_.current_track.borrow();
                     if let Some(track) = &*current_track {
                         let elapsed = (track.duration as i64 * value as i64) / 100;
-                        glib::MainContext::default().spawn_local(async move {
-                            let rt = tokio::runtime::Runtime::new().unwrap();
-                            let _ = rt.block_on(async {
-                                let url = build_url();
-                                let mut client = PlaybackServiceClient::connect(url).await?;
-                                client.play(PlayRequest { elapsed, offset: 0 }).await?;
-                                Ok::<(), Error>(())
+                        glib::idle_add_local(move || {
+                            glib::MainContext::default().spawn_local(async move {
+                                let rt = tokio::runtime::Runtime::new().unwrap();
+                                let _ = rt.block_on(async {
+                                    let url = build_url();
+                                    let mut client = PlaybackServiceClient::connect(url).await?;
+                                    client.play(PlayRequest { elapsed, offset: 0 }).await?;
+                                    Ok::<(), Error>(())
+                                });
                             });
+                            thread::sleep(std::time::Duration::from_millis(500));
+                            glib::ControlFlow::Break
                         });
                     }
                     glib::Propagation::Stop
