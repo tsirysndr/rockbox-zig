@@ -103,6 +103,7 @@ mod imp {
                             },
                             i as i32,
                         );
+                        song.imp().remove_button.set_visible(true);
 
                         self_.next_tracks.append(&song);
                         i += 1;
@@ -135,7 +136,11 @@ mod imp {
                         obj.load_current_track();
                         let state = obj.imp().state.upgrade().unwrap();
 
-                        obj.imp().current_index.set(playlist.index as usize);
+                        let current_index = match state.resume_index() > -1 {
+                            true => state.resume_index() as usize,
+                            false => playlist.index as usize,
+                        };
+                        obj.imp().current_index.set(current_index);
                         obj.imp().tracks.replace(playlist.tracks.clone());
 
                         if let Some(track) = state.current_track() {
@@ -146,7 +151,7 @@ mod imp {
 
                         obj.imp().ready.set(true);
 
-                        let index = playlist.index as usize + 1;
+                        let index = current_index + 1;
                         let mut tracks = playlist.tracks.clone();
                         let next_tracks =
                             tracks.drain(index..).collect::<Vec<CurrentTrackResponse>>();
@@ -163,7 +168,8 @@ mod imp {
                         obj.imp().now_playing.append(&label);
 
                         if let Some(track) = state.current_track() {
-                            let song = create_song_widget(track, playlist.index as i32);
+                            let song = create_song_widget(track, current_index as i32);
+                            song.imp().remove_button.set_visible(false);
                             obj.imp().now_playing.append(&song);
                         }
 
@@ -187,6 +193,7 @@ mod imp {
                                 i as i32,
                             );
 
+                            song.imp().remove_button.set_visible(true);
                             song.imp().album_art_container.set_visible(true);
                             obj.imp().next_tracks.append(&song);
                             i += 1;
@@ -309,6 +316,7 @@ impl CurrentPlaylist {
                 },
                 i as i32,
             );
+            song.imp().remove_button.set_visible(true);
             self.imp().next_tracks.append(&song);
             i += 1;
         }

@@ -2,8 +2,8 @@ use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
 use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    InsertTracksRequest, LikeTrackRequest, PlayTrackRequest, StartRequest, Track,
-    UnlikeTrackRequest,
+    InsertTracksRequest, LikeTrackRequest, PlayTrackRequest, RemoveTracksRequest, StartRequest,
+    Track, UnlikeTrackRequest,
 };
 use crate::constants::*;
 use crate::state::AppState;
@@ -44,6 +44,8 @@ mod imp {
         pub heart_icon: TemplateChild<Image>,
         #[template_child]
         pub more_button: TemplateChild<MenuButton>,
+        #[template_child]
+        pub remove_button: TemplateChild<Button>,
 
         pub track: RefCell<Option<Track>>,
         pub state: glib::WeakRef<AppState>,
@@ -78,6 +80,10 @@ mod imp {
 
             klass.install_action("app.add-shuffled", None, move |song, _action, _target| {
                 song.add_shuffled();
+            });
+
+            klass.install_action("app.remove-song", None, move |song, _action, _target| {
+                song.remove_song_from_playlist();
             });
         }
 
@@ -269,6 +275,24 @@ impl Song {
                             .await?;
                     }
                 }
+                Ok::<(), Error>(())
+            });
+        });
+    }
+
+    pub fn remove_song_from_playlist(&self) {
+        self.imp().container.get().set_visible(false);
+        let index = self.imp().index.get();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let _ = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .remove_tracks(RemoveTracksRequest {
+                        positions: vec![index],
+                    })
+                    .await?;
                 Ok::<(), Error>(())
             });
         });

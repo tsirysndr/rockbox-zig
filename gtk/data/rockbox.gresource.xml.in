@@ -32,5 +32,6 @@
     <file alias="options-symbolic.svg">icons/svg/options-symbolic.svg</file>
     <file alias="chevronup-symbolic.svg">icons/svg/chevronup-symbolic.svg</file>
     <file alias="chevrondown-symbolic.svg">icons/svg/chevrondown-symbolic.svg</file>
+    <file alias="close-alt-symbolic.svg">icons/svg/close-alt-symbolic.svg</file>
   </gresource>
 </gresources>

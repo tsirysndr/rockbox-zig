@@ -110,7 +110,6 @@ template $Song : Box {
         icon-name: "options-symbolic";
         pixel-size: 24;
       };
-
       halign: center;
       valign: center;
       margin-end: 0;
@@ -124,26 +123,35 @@ template $Song : Box {
         "transparent-button"
       ]
     }
-  }
 
 
-  Button remove_button {
-    tooltip-text: _("Remove");
-    visible: false;
+    Button remove_button {
+      tooltip-text: _("Remove");
+      visible: false;
+      
+      child: Image {
+        icon-name: "close-alt-symbolic";
+        pixel-size: 24;
+      };
+      
+      action-name: "app.remove-song";
 
-    halign: center;
-    valign: center;
-    margin-end: 0;
-    margin-start: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    width-request: 40;
-    height-request: 40;
+      halign: center;
+      valign: center;
+      margin-end: 0;
+      margin-start: 0;
+      margin-top: 0;
+      margin-bottom: 0;
+      width-request: 40;
+      height-request: 40;
     
-    styles [
-      "transparent-button"
-    ]
+      styles [
+        "transparent-button"
+      ]
+    }
+
   }
+
 }
 
 
