@@ -1,7 +1,8 @@
 use std::{env, thread};
 
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{Album, GetAlbumsRequest, GetAlbumsResponse};
+use crate::api::rockbox::v1alpha1::{Album, GetAlbumsRequest, GetAlbumsResponse, SearchRequest};
+use crate::state::AppState;
 use crate::ui::pages::album_details::AlbumDetails;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
@@ -10,7 +11,7 @@ use glib::subclass;
 use gtk::pango::EllipsizeMode;
 use gtk::prelude::WidgetExt;
 use gtk::CompositeTemplate;
-use gtk::{glib, Box, FlowBox, Image, Label, Orientation};
+use gtk::{glib, Box, FlowBox, Image, Label, Orientation, SearchBar};
 use std::cell::{Cell, RefCell};
 
 mod imp {
@@ -29,6 +30,9 @@ mod imp {
         pub previous_page: RefCell<Vec<(String, String)>>,
         pub all_albums: RefCell<Vec<Album>>,
         pub size: Cell<usize>,
+        pub search_mode: Cell<bool>,
+        pub state: glib::WeakRef<AppState>,
+        pub search_bar: RefCell<Option<SearchBar>>,
     }
 
     #[glib::object_subclass]
@@ -61,6 +65,11 @@ mod imp {
 
                 glib::MainContext::default().spawn_local(async move {
                     let obj = self_.obj();
+
+                    if obj.imp().search_mode.get() {
+                        return;
+                    }
+
                     obj.load_pictures();
                 });
 
@@ -231,6 +240,16 @@ impl Albums {
             if let Some(go_back_button) = self.imp().go_back_button.borrow().as_ref() {
                 go_back_button.set_visible(true);
             }
+
+            let state = self.imp().state.upgrade().unwrap();
+            match self.imp().search_mode.get() {
+                true => state.push_navigation("Search Results", "search-page"),
+                false => state.push_navigation("Albums", "albums-page"),
+            }
+
+            let search_bar = self.imp().search_bar.borrow().as_ref().unwrap().clone();
+            search_bar.set_search_mode(false);
+            state.set_search_mode(false);
         } else {
             eprintln!("NavigationView not set!");
         }
@@ -251,14 +270,30 @@ impl Albums {
             })
         });
         if let Ok(albums) = handle.join().unwrap() {
-            // clear the library
-            let library = self.imp().library.get();
-            while let Some(child) = library.first_child() {
-                library.remove(&child);
-            }
+            self.clear();
 
             self.imp().all_albums.replace(albums.albums.clone());
             self.imp().create_albums_widgets(None, Some(15));
         }
     }
+
+    pub fn clear(&self) {
+        let library = self.imp().library.get();
+        while let Some(child) = library.first_child() {
+            library.remove(&child);
+        }
+    }
+
+    pub fn load_search_results(&self, albums: Vec<Album>) {
+        self.clear();
+
+        self.imp().all_albums.replace(albums.clone());
+        self.imp().create_albums_widgets(Some(albums.clone()), None);
+    }
+}
+
+fn build_url() -> String {
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+    format!("tcp://{}:{}", host, port)
 }

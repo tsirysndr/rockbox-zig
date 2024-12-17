@@ -139,3 +139,10 @@ menubutton > button {
   box-shadow: none;
 }
 
+.tab {
+  background-color: transparent;
+}
+
+.tab:hover {
+  background-color: #f6f6f6;
+}

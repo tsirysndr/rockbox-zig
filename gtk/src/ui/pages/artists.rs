@@ -1,5 +1,7 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
-use crate::api::rockbox::v1alpha1::{Artist as ArtistItem, GetArtistsRequest, GetArtistsResponse};
+use crate::api::rockbox::v1alpha1::{
+    Artist as ArtistItem, GetArtistsRequest, GetArtistsResponse, SearchRequest,
+};
 use crate::state::AppState;
 use crate::ui::artist::Artist;
 use crate::ui::pages::album_details::AlbumDetails;
@@ -10,9 +12,9 @@ use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
 use gtk::pango::EllipsizeMode;
-use gtk::{Button, CompositeTemplate, FlowBox};
+use gtk::{Button, CompositeTemplate, FlowBox, SearchBar};
 use std::cell::{Cell, RefCell};
-use std::env;
+use std::{env, thread};
 
 mod imp {
 
@@ -32,6 +34,8 @@ mod imp {
         pub state: glib::WeakRef<AppState>,
         pub size: Cell<usize>,
         pub all_artists: RefCell<Vec<ArtistItem>>,
+        pub search_mode: Cell<bool>,
+        pub search_bar: RefCell<Option<SearchBar>>,
     }
 
     #[glib::object_subclass]
@@ -64,6 +68,11 @@ mod imp {
 
                 glib::MainContext::default().spawn_local(async move {
                     let obj = self_.obj();
+
+                    if obj.imp().search_mode.get() {
+                        return;
+                    }
+
                     obj.load_artists();
                 });
 
@@ -131,6 +140,7 @@ mod imp {
                 let library_page = self.library_page.borrow().as_ref().unwrap().clone();
                 let go_back_button = self.go_back_button.borrow().as_ref().unwrap().clone();
                 let artist_details = self.artist_details.borrow().as_ref().unwrap().clone();
+                let search_bar = self.search_bar.borrow().as_ref().unwrap().clone();
                 let state = self.state.upgrade().unwrap();
                 let artist_id = artist_item.id.clone();
 
@@ -141,6 +151,8 @@ mod imp {
                     go_back_button.set_visible(true);
                     artist_details.imp().load_artist(&artist_id);
                     state.push_navigation("Artist", "artist-details-page");
+                    search_bar.set_search_mode(false);
+                    state.set_search_mode(false);
                 });
                 artist.add_controller(click);
 
@@ -179,6 +191,21 @@ impl Artists {
             self.imp().all_artists.replace(response.artists.clone());
             self.imp().create_artists_widgets(None, Some(40));
         }
+    }
+
+    pub fn clear(&self) {
+        let artists_ = self.imp().artists.clone();
+        while let Some(row) = artists_.first_child() {
+            artists_.remove(&row);
+        }
+    }
+
+    pub fn load_search_results(&self, artists: Vec<ArtistItem>) {
+        self.clear();
+
+        self.imp().all_artists.replace(artists.clone());
+        self.imp()
+            .create_artists_widgets(Some(artists.clone()), None);
     }
 }
 

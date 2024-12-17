@@ -1,7 +1,7 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    PlayAllTracksRequest, PlayLikedTracksRequest, ScanLibraryRequest,
+    PlayAllTracksRequest, PlayLikedTracksRequest, ScanLibraryRequest, SearchRequest, SearchResponse,
 };
 use crate::app::RbApplication;
 use crate::config;
@@ -12,16 +12,19 @@ use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::albums::Albums;
 use crate::ui::pages::artist_details::ArtistDetails;
 use crate::ui::pages::current_playlist::CurrentPlaylist;
+use crate::ui::pages::search::Search;
 use crate::ui::pages::songs::Songs;
 use crate::ui::pages::{artists::Artists, files::Files, likes::Likes};
 use crate::ui::{about_dialog, preferences_dialog};
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{
-    NavigationPage, NavigationView, OverlaySplitView, ToastOverlay, ViewStack, ViewStackPage,
+    NavigationPage, NavigationView, OverlaySplitView, StatusPage, TabBar, TabView, ToastOverlay,
+    ViewStack, ViewStackPage,
 };
 use anyhow::Error;
 use glib::subclass;
+use glib::timeout_add_local;
 use gtk::{
     gio, glib, Box, Button, CompositeTemplate, ListBox, MenuButton, Overlay, ScrolledWindow,
     SearchBar, SearchEntry, ToggleButton,
@@ -33,7 +36,6 @@ use std::thread;
 use tokio::sync::mpsc;
 
 mod imp {
-
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -78,8 +80,6 @@ mod imp {
 
         #[template_child]
         pub toast_overlay: TemplateChild<ToastOverlay>,
-        #[template_child]
-        pub details_view: TemplateChild<Overlay>,
         #[template_child]
         pub library_page: TemplateChild<NavigationPage>,
         #[template_child]
@@ -127,6 +127,10 @@ mod imp {
         #[template_child]
         pub album_details: TemplateChild<AlbumDetails>,
         #[template_child]
+        pub search_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub search: TemplateChild<Search>,
+        #[template_child]
         pub current_playlist_page: TemplateChild<ViewStackPage>,
         #[template_child]
         pub current_playlist: TemplateChild<CurrentPlaylist>,
@@ -134,10 +138,13 @@ mod imp {
         pub library_overlay: TemplateChild<Overlay>,
         #[template_child]
         pub media_control_bar: TemplateChild<MediaControls>,
+        #[template_child]
+        pub notice_no_results: TemplateChild<StatusPage>,
 
         pub show_sidebar: Cell<bool>,
         pub state: glib::WeakRef<AppState>,
         pub current_track: RefCell<Option<Track>>,
+        pub search_debounce_source: RefCell<Option<glib::SourceId>>,
     }
 
     #[glib::object_subclass]
@@ -147,6 +154,9 @@ mod imp {
         type Type = super::RbApplicationWindow;
 
         fn new() -> Self {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let client = rt.block_on(LibraryServiceClient::connect(url)).unwrap();
             Self {
                 show_sidebar: Cell::new(true),
                 state: glib::WeakRef::new(),
@@ -198,6 +208,15 @@ mod imp {
             klass.install_action("app.quit", None, move |win, _action, _parameter| {
                 win.close();
             });
+
+            klass.install_action(
+                "win.toggle_search",
+                None,
+                move |win, _action, _parameter| {
+                    let self_ = imp::RbApplicationWindow::from_obj(win);
+                    self_.toggle_searchbar();
+                },
+            );
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
@@ -452,6 +471,11 @@ mod imp {
                     if media_control_bar.imp().playlist_displayed.get() {
                         media_control_bar.show_playlist();
                     }
+
+                    let search_bar = self_.search_bar.get();
+                    search_bar.set_search_mode(false);
+                    let state = self_.state.upgrade().unwrap();
+                    state.set_search_mode(false);
                 }
 
                 let go_back_button = self_.go_back_button.get();
@@ -472,6 +496,42 @@ mod imp {
             self.overlay_split_view.set_show_sidebar(!current_state);
         }
 
+        fn toggle_searchbar(&self) {
+            let state = self.state.upgrade().unwrap();
+            let search_bar = self.search_bar.get();
+            let search_mode = state.search_mode();
+            search_bar.set_search_mode(!search_mode);
+            state.set_search_mode(!search_mode);
+            let search_entry = self.search_entry.get();
+
+            if !search_mode {
+                search_entry.grab_focus();
+
+                let main_stack = self.main_stack.get();
+                let library_page = self.library_page.get();
+                let go_back_button = self.go_back_button.get();
+                let state = self.state.upgrade().unwrap();
+                main_stack.set_visible_child_name("search-page");
+                library_page.set_title("Search Results");
+                go_back_button.set_visible(true);
+                state.push_navigation("Search", "search-page");
+                let self_weak = self.downgrade();
+
+                search_entry.connect_changed(move |entry| {
+                    let self_ = match self_weak.upgrade() {
+                        Some(self_) => self_,
+                        None => return,
+                    };
+
+                    let text = entry.text();
+                    let text = text.to_string();
+                    self_.search_term(text.clone());
+                });
+            } else {
+                self.go_back();
+            }
+        }
+
         pub fn hide_top_buttons(&self, hide: bool) {
             let play_all_button = self.play_all_button.get();
             let shuffle_all_button = self.shuffle_all_button.get();
@@ -490,6 +550,22 @@ mod imp {
                 let files = self.files.get();
                 files.go_back();
                 return;
+            }
+
+            if poped_page.1 == "search-page" {
+                let search_bar = self.search_bar.get();
+                search_bar.set_search_mode(false);
+                state.set_search_mode(false);
+
+                self.search.imp().album_results.clear();
+                self.search.imp().artist_results.clear();
+                self.search.imp().track_results.clear();
+            }
+
+            if current_page.1 == "search-page" {
+                let search_bar = self.search_bar.get();
+                search_bar.set_search_mode(true);
+                state.set_search_mode(true);
             }
 
             main_stack.set_visible_child_name(current_page.1.as_str());
@@ -624,6 +700,56 @@ mod imp {
                 }
             });
         }
+
+        pub fn search_term(&self, term: String) {
+            if term.len() < 3 {
+                self.search.imp().album_results.clear();
+                self.search.imp().artist_results.clear();
+                self.search.imp().track_results.clear();
+
+                return;
+            }
+
+            let self_weak = self.downgrade();
+            let search_debounce_source =
+                glib::timeout_add_local(std::time::Duration::from_millis(300), move || {
+                    let term = term.clone();
+                    let self_weak = self_weak.clone();
+
+                    glib::spawn_future_local(async move {
+                        let rt = tokio::runtime::Runtime::new().unwrap();
+                        let response = rt.block_on(async move {
+                            let url = build_url();
+                            let mut client = LibraryServiceClient::connect(url).await?;
+                            let response =
+                                client.search(SearchRequest { term }).await?.into_inner();
+                            Ok::<SearchResponse, Error>(response)
+                        });
+
+                        if response.is_err() {
+                            println!("Error: {:?}", response.err());
+                            return;
+                        }
+
+                        let response = response.unwrap();
+
+                        let self_ = match self_weak.upgrade() {
+                            Some(self_) => self_,
+                            None => return,
+                        };
+                        glib::idle_add_local(move || {
+                            let state = self_.state.upgrade().unwrap();
+                            state.set_search_results(response.clone());
+                            self_.search.load_results();
+                            glib::ControlFlow::Break
+                        });
+                    });
+                    glib::ControlFlow::Break
+                });
+
+            self.search_debounce_source
+                .replace(Some(search_debounce_source));
+        }
     }
 }
 
@@ -653,8 +779,13 @@ impl RbApplicationWindow {
         let shuffle_all_button = window.imp().shuffle_all_button.get();
         let songs = window.imp().songs.get();
         let artist_tracks = window.imp().artist_tracks.get();
+        let search = window.imp().search.get();
+        let album_results = search.imp().album_results.get();
+        let artist_results = search.imp().artist_results.get();
+        let track_results = search.imp().track_results.get();
 
         songs.imp().likes_page.replace(Some(likes.clone()));
+        track_results.imp().likes_page.replace(Some(likes.clone()));
         artist_tracks.imp().likes_page.replace(Some(likes.clone()));
 
         window.imp().state.set(Some(&state));
@@ -667,6 +798,40 @@ impl RbApplicationWindow {
         songs.imp().state.set(Some(&state));
         artist_tracks.imp().state.set(Some(&state));
         album_details.imp().state.set(Some(&state));
+        artist_results.imp().state.set(Some(&state));
+        track_results.imp().state.set(Some(&state));
+        album_results.imp().state.set(Some(&state));
+        albums.imp().state.set(Some(&state));
+        search.imp().state.set(Some(&state));
+
+        artist_results.imp().search_mode.set(true);
+        album_results.imp().search_mode.set(true);
+        track_results.imp().search_mode.set(true);
+
+        media_control_bar
+            .imp()
+            .search_bar
+            .replace(Some(window.imp().search_bar.get().clone()));
+
+        artists
+            .imp()
+            .search_bar
+            .replace(Some(window.imp().search_bar.get().clone()));
+
+        albums
+            .imp()
+            .search_bar
+            .replace(Some(window.imp().search_bar.get().clone()));
+
+        artist_results
+            .imp()
+            .search_bar
+            .replace(Some(window.imp().search_bar.get().clone()));
+
+        album_results
+            .imp()
+            .search_bar
+            .replace(Some(window.imp().search_bar.get().clone()));
 
         files.get_music_directory();
 
@@ -746,6 +911,25 @@ impl RbApplicationWindow {
         files
             .imp()
             .set_go_back_button(window.imp().go_back_button.get().clone());
+
+        album_results.imp().set_main_stack(main_stack.clone());
+        album_results.imp().set_library_page(library_page.clone());
+        album_results
+            .imp()
+            .set_go_back_button(window.imp().go_back_button.get().clone());
+
+        artist_results.imp().set_main_stack(main_stack.clone());
+        artist_results.imp().set_library_page(library_page.clone());
+        artist_results
+            .imp()
+            .set_go_back_button(window.imp().go_back_button.get().clone());
+        artist_results
+            .imp()
+            .set_artist_details(artist_details.clone());
+        artist_results
+            .imp()
+            .set_album_details(album_details.clone());
+        album_results.imp().set_album_details(album_details.clone());
 
         window
     }

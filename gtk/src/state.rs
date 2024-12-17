@@ -1,3 +1,4 @@
+use crate::api::rockbox::v1alpha1::SearchResponse;
 use crate::api::rockbox::v1alpha1::Track as RockboxTrack;
 use crate::navigation::NavigationHistory;
 use crate::types::track::Track;
@@ -7,6 +8,7 @@ use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 
 mod imp {
+
     use super::*;
 
     #[derive(Default)]
@@ -18,6 +20,8 @@ mod imp {
         pub likes: RefCell<HashMap<String, RockboxTrack>>,
         pub resume_index: Cell<i32>,
         pub resume_elapsed: Cell<u32>,
+        pub search_mode: Cell<bool>,
+        pub search_results: RefCell<Option<SearchResponse>>,
     }
 
     #[glib::object_subclass]
@@ -47,6 +51,8 @@ impl AppState {
         obj.imp().likes.replace(HashMap::new());
         obj.imp().resume_index.set(-1);
         obj.imp().resume_elapsed.set(0);
+        obj.imp().search_mode.set(false);
+        obj.imp().search_results.replace(None);
         obj
     }
 
@@ -172,5 +178,25 @@ impl AppState {
     pub fn set_resume_elapsed(&self, elapsed: u32) {
         let self_ = imp::AppState::from_obj(self);
         self_.resume_elapsed.set(elapsed);
+    }
+
+    pub fn search_mode(&self) -> bool {
+        let self_ = imp::AppState::from_obj(self);
+        self_.search_mode.get()
+    }
+
+    pub fn set_search_mode(&self, mode: bool) {
+        let self_ = imp::AppState::from_obj(self);
+        self_.search_mode.set(mode);
+    }
+
+    pub fn search_results(&self) -> Option<SearchResponse> {
+        let self_ = imp::AppState::from_obj(self);
+        self_.search_results.borrow().clone()
+    }
+
+    pub fn set_search_results(&self, results: SearchResponse) {
+        let self_ = imp::AppState::from_obj(self);
+        self_.search_results.replace(Some(results));
     }
 }

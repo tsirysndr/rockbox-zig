@@ -1,6 +1,6 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    GetArtistRequest, GetArtistResponse, GetTracksRequest, GetTracksResponse, Track,
+    GetArtistRequest, GetArtistResponse, GetTracksRequest, GetTracksResponse, SearchRequest, Track,
 };
 use crate::state::AppState;
 use crate::time::format_milliseconds;
@@ -14,7 +14,7 @@ use gtk::glib;
 use gtk::pango::EllipsizeMode;
 use gtk::{CompositeTemplate, ListBox};
 use std::cell::{Cell, RefCell};
-use std::env;
+use std::{env, thread};
 
 mod imp {
     use super::*;
@@ -29,6 +29,7 @@ mod imp {
         pub size: Cell<usize>,
         pub state: glib::WeakRef<AppState>,
         pub likes_page: RefCell<Option<Likes>>,
+        pub search_mode: Cell<bool>,
     }
 
     #[glib::object_subclass]
@@ -63,6 +64,11 @@ mod imp {
                     let likes_page = obj.imp().likes_page.borrow();
                     let likes_page_ref = likes_page.as_ref().unwrap();
                     likes_page_ref.load_likes();
+
+                    if obj.imp().search_mode.get() {
+                        return;
+                    }
+
                     obj.load_songs();
                 });
                 glib::ControlFlow::Break
@@ -199,6 +205,20 @@ impl Songs {
                 self.imp().create_songs_widgets(None, Some(20));
             }
         }
+    }
+
+    pub fn clear(&self) {
+        let tracks_ = self.imp().tracks.clone();
+        while let Some(row) = tracks_.first_child() {
+            tracks_.remove(&row);
+        }
+    }
+
+    pub fn load_search_results(&self, tracks: Vec<Track>) {
+        self.clear();
+
+        self.imp().all_tracks.replace(tracks.clone());
+        self.imp().create_songs_widgets(Some(tracks.clone()), None);
     }
 }
 

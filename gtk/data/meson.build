@@ -22,6 +22,7 @@ blueprints = custom_target(
     'gtk/likes.blp',
     'gtk/media_controls.blp',
     'gtk/preferences.blp',
+    'gtk/search.blp',
     'gtk/song.blp',
     'gtk/songs.blp',
     'gtk/window.blp',

@@ -24,7 +24,7 @@ use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
 use gtk::pango::EllipsizeMode;
-use gtk::{Button, CompositeTemplate, Image, Label, MenuButton, Scale};
+use gtk::{Button, CompositeTemplate, Image, Label, MenuButton, Scale, SearchBar};
 use std::cell::{Cell, RefCell};
 use tokio::sync::mpsc;
 
@@ -91,6 +91,7 @@ mod imp {
         pub status_lock: Cell<bool>,
         pub resume_index: Cell<i32>,
         pub resume_elapsed: Cell<u32>,
+        pub search_bar: RefCell<Option<SearchBar>>,
     }
 
     #[glib::object_subclass]
@@ -228,6 +229,12 @@ mod imp {
                     let library_page_ref = library_page.as_ref().unwrap();
                     let main_stack_ref = main_stack.as_ref().unwrap();
                     let go_back_button_ref = go_back_button.as_ref().unwrap();
+
+                    let search_bar = self_.search_bar.borrow();
+                    let search_bar = search_bar.as_ref().unwrap();
+                    search_bar.set_search_mode(false);
+
+                    state.set_search_mode(false);
                     main_stack_ref.set_visible_child_name("album-details-page");
                     library_page_ref.set_title("Album");
                     go_back_button_ref.set_visible(true);
@@ -864,6 +871,11 @@ impl MediaControls {
                 current_playlist_ref.imp().size.set(10);
             }
             false => {
+                let search_bar = self.imp().search_bar.borrow();
+                let search_bar = search_bar.as_ref().unwrap();
+                search_bar.set_search_mode(false);
+                state.set_search_mode(false);
+
                 main_stack
                     .as_ref()
                     .unwrap()
@@ -895,6 +907,12 @@ impl MediaControls {
         let go_back_button_ref = go_back_button.as_ref().unwrap();
         let artist_details_ref = artist_details.as_ref().unwrap();
         let current_artist_id_ref = current_artist_id.as_ref().unwrap();
+
+        let search_bar = self.imp().search_bar.borrow();
+        let search_bar = search_bar.as_ref().unwrap();
+        search_bar.set_search_mode(false);
+        state.set_search_mode(false);
+
         main_stack_ref.set_visible_child_name("artist-details-page");
         library_page_ref.set_title("Artist");
         go_back_button_ref.set_visible(true);
@@ -915,6 +933,12 @@ impl MediaControls {
             let library_page_ref = library_page.as_ref().unwrap();
             let main_stack_ref = main_stack.as_ref().unwrap();
             let go_back_button_ref = go_back_button.as_ref().unwrap();
+
+            let search_bar = self.imp().search_bar.borrow();
+            let search_bar = search_bar.as_ref().unwrap();
+            search_bar.set_search_mode(false);
+            state.set_search_mode(false);
+
             main_stack_ref.set_visible_child_name("album-details-page");
             library_page_ref.set_title("Album");
             go_back_button_ref.set_visible(true);
