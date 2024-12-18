@@ -394,40 +394,6 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
 
 menu primary_menu {
   section {
-    submenu {
-      label: _("Sort");
-
-      item {
-        label: _("A-Z");
-        action: "win.sort_by";
-        target: "a-z";
-      }
-
-      item {
-        label: _("Z-A");
-        action: "win.sort_by";
-        target: "z-a";
-      }
-
-      item {
-        label: _("Newest");
-        action: "win.sort_by";
-        target: "newest";
-      }
-
-      item {
-        label: _("Oldest");
-        action: "win.sort_by";
-        target: "oldest";
-      }
-
-      item {
-        label: _("Last Played");
-        action: "win.sort_by";
-        target: "last_played";
-      }
-    }
-
     item {
       label: _("Refresh Library");
       action: "app.refresh_library";
