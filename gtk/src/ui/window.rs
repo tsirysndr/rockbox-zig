@@ -1,7 +1,9 @@
 use crate::api::rockbox::v1alpha1::library_service_client::LibraryServiceClient;
 use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
+use crate::api::rockbox::v1alpha1::system_service_client::SystemServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    PlayAllTracksRequest, PlayLikedTracksRequest, ScanLibraryRequest, SearchRequest, SearchResponse,
+    GetGlobalStatusRequest, GetGlobalStatusResponse, PlayAllTracksRequest, PlayLikedTracksRequest,
+    ScanLibraryRequest, SearchRequest, SearchResponse,
 };
 use crate::app::RbApplication;
 use crate::config;
@@ -139,10 +141,13 @@ mod imp {
         pub media_control_bar: TemplateChild<MediaControls>,
         #[template_child]
         pub notice_no_results: TemplateChild<StatusPage>,
+        #[template_child]
+        pub placeholder_page: TemplateChild<ViewStackPage>,
 
         pub show_sidebar: Cell<bool>,
         pub state: glib::WeakRef<AppState>,
         pub current_track: RefCell<Option<Track>>,
+        pub show_placeholder: Cell<bool>,
     }
 
     #[glib::object_subclass]
@@ -155,6 +160,7 @@ mod imp {
             Self {
                 show_sidebar: Cell::new(true),
                 state: glib::WeakRef::new(),
+                show_placeholder: Cell::new(false),
                 ..Default::default()
             }
         }
@@ -212,6 +218,12 @@ mod imp {
                     self_.toggle_searchbar();
                 },
             );
+
+            klass.install_action("app.copy_command", None, move |win, _action, _parameter| {
+                const CMD: &str = "rockbox start";
+                win.clipboard().set_text(CMD);
+                win.add_message_toast("Copied to clipboard");
+            });
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
@@ -222,6 +234,8 @@ mod imp {
     impl ObjectImpl for RbApplicationWindow {
         fn constructed(&self) {
             self.parent_constructed();
+
+            self.verify_rockboxd();
 
             let weak_self = self.downgrade();
             self.albums_scrolled_window
@@ -399,7 +413,9 @@ mod imp {
                     match label.as_str() {
                         "Albums" => {
                             let main_stack = self_.main_stack.get();
-                            main_stack.set_visible_child_name("albums-page");
+                            if !self_.show_placeholder.get() {
+                                main_stack.set_visible_child_name("albums-page");
+                            }
                             let library_page = self_.library_page.get();
                             library_page.set_title("Albums");
                             state.new_navigation_from("Albums", "albums-page");
@@ -410,7 +426,9 @@ mod imp {
                         }
                         "Artists" => {
                             let main_stack = self_.main_stack.get();
-                            main_stack.set_visible_child_name("artists-page");
+                            if !self_.show_placeholder.get() {
+                                main_stack.set_visible_child_name("artists-page");
+                            }
                             let library_page = self_.library_page.get();
                             library_page.set_title("Artists");
                             state.new_navigation_from("Artists", "artists-page");
@@ -421,7 +439,9 @@ mod imp {
                         }
                         "Songs" => {
                             let main_stack = self_.main_stack.get();
-                            main_stack.set_visible_child_name("songs-page");
+                            if !self_.show_placeholder.get() {
+                                main_stack.set_visible_child_name("songs-page");
+                            }
                             let library_page = self_.library_page.get();
                             library_page.set_title("Songs");
                             state.new_navigation_from("Songs", "songs-page");
@@ -435,7 +455,9 @@ mod imp {
                         }
                         "Likes" => {
                             let main_stack = self_.main_stack.get();
-                            main_stack.set_visible_child_name("likes-page");
+                            if !self_.show_placeholder.get() {
+                                main_stack.set_visible_child_name("likes-page");
+                            }
                             let library_page = self_.library_page.get();
                             library_page.set_title("Likes");
                             state.new_navigation_from("Likes", "likes-page");
@@ -459,7 +481,9 @@ mod imp {
                         }
                         "Files" => {
                             let main_stack = self_.main_stack.get();
-                            main_stack.set_visible_child_name("files-page");
+                            if !self_.show_placeholder.get() {
+                                main_stack.set_visible_child_name("files-page");
+                            }
                             let library_page = self_.library_page.get();
                             library_page.set_title("Files");
                             state.new_navigation_from("Files", "files-page");
@@ -494,6 +518,29 @@ mod imp {
     impl AdwApplicationWindowImpl for RbApplicationWindow {}
 
     impl RbApplicationWindow {
+        fn verify_rockboxd(&self) {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let global_status = rt.block_on(async {
+                let url = build_url();
+                let mut client = SystemServiceClient::connect(url).await?;
+                let response = client.get_global_status(GetGlobalStatusRequest {}).await?;
+                Ok::<GetGlobalStatusResponse, Error>(response.into_inner())
+            });
+
+            match global_status {
+                Ok(_) => {
+                    self.show_placeholder.set(false);
+                    self.media_control_bar.set_visible(true);
+                }
+                Err(_) => {
+                    let main_stack = self.main_stack.get();
+                    main_stack.set_visible_child_name("placeholder-page");
+                    self.show_placeholder.set(true);
+                    self.media_control_bar.set_visible(false);
+                }
+            }
+        }
+
         fn toggle_sidebar(&self) {
             let current_state = self.show_sidebar.get();
             self.show_sidebar.set(!current_state);
@@ -515,7 +562,11 @@ mod imp {
                 let library_page = self.library_page.get();
                 let go_back_button = self.go_back_button.get();
                 let state = self.state.upgrade().unwrap();
-                main_stack.set_visible_child_name("search-page");
+
+                if !self.show_placeholder.get() {
+                    main_stack.set_visible_child_name("search-page");
+                }
+
                 library_page.set_title("Search Results");
                 go_back_button.set_visible(true);
                 state.push_navigation("Search", "search-page");
@@ -565,6 +616,10 @@ mod imp {
                 self.search.imp().artist_results.clear(false);
                 self.search.imp().track_results.clear(false);
                 self.search_entry.get().set_text("");
+
+                if self.show_placeholder.get() {
+                    main_stack.set_visible_child_name("placeholder-page");
+                }
             }
 
             if current_page.1 == "search-page" {
@@ -573,7 +628,10 @@ mod imp {
                 state.set_search_mode(true);
             }
 
-            main_stack.set_visible_child_name(current_page.1.as_str());
+            if !self.show_placeholder.get() {
+                main_stack.set_visible_child_name(current_page.1.as_str());
+            }
+
             let library_page = self.library_page.get();
             library_page.set_title(current_page.0.as_str());
 
@@ -931,6 +989,11 @@ impl RbApplicationWindow {
         album_results.imp().set_album_details(album_details.clone());
 
         window
+    }
+
+    pub fn add_message_toast(&self, message: &str) {
+        let toast = adw::Toast::new(message);
+        self.imp().toast_overlay.add_toast(toast);
     }
 }
 

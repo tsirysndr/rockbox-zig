@@ -20,6 +20,7 @@
     <file compressed="true" preprocess="xml-stripblanks">gtk/songs.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/window.ui</file>
     <file>icons/jpg/albumart.jpg</file>
+    <file>icons/jpg/disc.png</file>
   </gresource>
   <gresource prefix="@PREFIX@/icons/scalable/categories/">
     <file alias="artist-symbolic.svg">icons/svg/artist-symbolic.svg</file>

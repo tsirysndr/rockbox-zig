@@ -235,12 +235,86 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
 
             Overlay library_overlay {
                 Adw.ViewStack main_stack {
-                  
+
                   Adw.ViewStackPage albums_page {
                     name: "albums-page";
                     title: _("Albums");
                     child: ScrolledWindow albums_scrolled_window {
                       $Albums albums {}
+                    };
+                  }
+                  
+                  Adw.ViewStackPage placeholder_page {
+                    name: "placeholder-page";
+                    title: _("Rockbox");
+                    child: Box placeholder {
+                       hexpand: true;
+                       vexpand: true;
+                       halign: center;
+                       valign: center;
+                       orientation: vertical;
+              
+                       Image {
+                          resource: "/mg/tsirysndr/Rockbox/icons/jpg/disc.png";
+                          width-request: 300;
+                          height-request: 300;
+                          margin-top: 20;
+                       }
+
+                       Label oops_message {
+                          label: _("Oops! Can't connect to the rockbox daemon.");
+                          halign: center;
+                          margin-bottom: 10;
+
+                          styles [
+                            "bold" 
+                          ]
+                       }
+
+                       Label {
+                          use-markup: true;
+                          label: _("Please make sure it's running.");
+                          halign: center;
+                       }
+                       
+                       Label {
+                          use-markup: true;
+                          label: _("Rockbox CLI installation instructions can be found at <a href='https://github.com/tsirysndr/rockbox-zig?tab=readme-ov-file#-installation'>https://github.com/tsirysndr/rockbox-zig?tab=readme-ov-file#-installation</a>");
+                          halign: center;
+                       }
+                       
+                       Label {
+                          label: _("Execute the following command in your terminal to start the daemon:");
+                          halign: center;
+                       }
+
+                        Adw.Clamp {
+                            maximum-size: 400;
+                            margin-top: 20;
+                            
+                            Adw.PreferencesGroup {
+                              Adw.ActionRow {
+                                title: _("rockbox start");
+                                
+                                styles [
+                                  "monospace"
+                                ]
+
+                                Button {
+                                    valign: center;
+                                    icon-name: "edit-copy-symbolic";
+                                    tooltip-text: _("Copy");
+                                    action-name: "app.copy_command";
+                                    
+                                    styles [
+                                      "transparent-button"
+                                    ]
+                                }
+
+                              }
+                            }
+                        }
+
                     };
                   }
 
