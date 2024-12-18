@@ -156,6 +156,7 @@ template $MediaControls : Box {
           MenuButton more_button {
             tooltip-text: _("More");
             menu-model: context_menu;
+            visible: false;
             child: Image {
               icon-name: "options-symbolic";
               pixel-size: 24;
@@ -229,6 +230,7 @@ template $MediaControls : Box {
       icon-name: "chevronup-symbolic";
       action-name: "app.show-playlist";
       tooltip-text: _("Show Play Queue");
+      visible: false;
 
       styles [
         "media-control-button"

@@ -289,11 +289,13 @@ mod imp {
                         let progress_bar = self_.progress_bar.get();
                         let heart_button = self_.heart_button.get();
                         let more_button = self_.more_button.get();
+                        let playlist_button = self_.playlist_button.get();
 
                         if track.length == 0 {
                             media_control_bar_progress.set_visible(false);
                             heart_button.set_visible(false);
                             more_button.set_visible(false);
+                            playlist_button.set_visible(false);
                             continue;
                         }
 
@@ -302,9 +304,8 @@ mod imp {
                         progress_bar.set_value(progression);
                         media_control_bar_progress.set_visible(true);
                         heart_button.set_visible(true);
-
-                        heart_button.set_visible(true);
                         more_button.set_visible(true);
+                        playlist_button.set_visible(true);
 
                         title.set_text(&track.title);
                         title.set_ellipsize(EllipsizeMode::End);
@@ -520,6 +521,7 @@ impl MediaControls {
         let progress_bar = self.imp().progress_bar.get();
         let heart_button = self.imp().heart_button.get();
         let more_button = self.imp().more_button.get();
+        let playlist_button = self.imp().playlist_button.get();
 
         if track.length == 0 {
             return;
@@ -533,6 +535,7 @@ impl MediaControls {
         media_control_bar_progress.set_visible(true);
         heart_button.set_visible(true);
         more_button.set_visible(true);
+        playlist_button.set_visible(true);
 
         title.set_text(&track.title);
         artist_album.set_text(&format!("{} - {}", track.artist, track.album));
@@ -840,6 +843,10 @@ impl MediaControls {
         let go_back_button = self.imp().go_back_button.borrow();
         let go_back_button_ref = go_back_button.as_ref().unwrap();
 
+        if state.tracks().is_empty() {
+            return;
+        }
+
         match playlist_displayed {
             true => {
                 state.pop_navigation();
@@ -906,6 +913,11 @@ impl MediaControls {
         let main_stack_ref = main_stack.as_ref().unwrap();
         let go_back_button_ref = go_back_button.as_ref().unwrap();
         let artist_details_ref = artist_details.as_ref().unwrap();
+
+        if current_artist_id.is_none() {
+            return;
+        }
+
         let current_artist_id_ref = current_artist_id.as_ref().unwrap();
 
         let search_bar = self.imp().search_bar.borrow();
@@ -924,6 +936,11 @@ impl MediaControls {
     pub fn go_to_album(&self) {
         let state = self.imp().state.upgrade().unwrap();
         let current_album_id = self.imp().current_album_id.borrow();
+
+        if state.tracks().is_empty() {
+            return;
+        }
+
         if let Some(album_id) = current_album_id.as_ref() {
             let album_details = self.imp().album_details.borrow();
             let library_page = self.imp().library_page.borrow();

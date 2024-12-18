@@ -152,9 +152,6 @@ mod imp {
         type Type = super::RbApplicationWindow;
 
         fn new() -> Self {
-            let rt = tokio::runtime::Runtime::new().unwrap();
-            let url = build_url();
-            let client = rt.block_on(LibraryServiceClient::connect(url)).unwrap();
             Self {
                 show_sidebar: Cell::new(true),
                 state: glib::WeakRef::new(),
@@ -430,8 +427,11 @@ mod imp {
                             state.new_navigation_from("Songs", "songs-page");
                             let play_all_button = self_.play_all_button.get();
                             let shuffle_all_button = self_.shuffle_all_button.get();
-                            play_all_button.set_visible(true);
-                            shuffle_all_button.set_visible(true);
+
+                            if !state.tracks().is_empty() {
+                                play_all_button.set_visible(true);
+                                shuffle_all_button.set_visible(true);
+                            }
                         }
                         "Likes" => {
                             let main_stack = self_.main_stack.get();
@@ -448,6 +448,12 @@ mod imp {
                             glib::idle_add_local(move || {
                                 likes.imp().size.set(20);
                                 likes.load_likes();
+
+                                if state.liked_tracks().is_empty() {
+                                    play_all_button.set_visible(false);
+                                    shuffle_all_button.set_visible(false);
+                                }
+
                                 glib::ControlFlow::Break
                             });
                         }
