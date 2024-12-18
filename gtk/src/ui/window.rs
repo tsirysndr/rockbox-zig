@@ -24,7 +24,6 @@ use adw::{
 };
 use anyhow::Error;
 use glib::subclass;
-use glib::timeout_add_local;
 use gtk::{
     gio, glib, Box, Button, CompositeTemplate, ListBox, MenuButton, Overlay, ScrolledWindow,
     SearchBar, SearchEntry, ToggleButton,
@@ -144,7 +143,6 @@ mod imp {
         pub show_sidebar: Cell<bool>,
         pub state: glib::WeakRef<AppState>,
         pub current_track: RefCell<Option<Track>>,
-        pub search_debounce_source: RefCell<Option<glib::SourceId>>,
     }
 
     #[glib::object_subclass]
@@ -557,9 +555,10 @@ mod imp {
                 search_bar.set_search_mode(false);
                 state.set_search_mode(false);
 
-                self.search.imp().album_results.clear();
-                self.search.imp().artist_results.clear();
-                self.search.imp().track_results.clear();
+                self.search.imp().album_results.clear(false);
+                self.search.imp().artist_results.clear(false);
+                self.search.imp().track_results.clear(false);
+                self.search_entry.get().set_text("");
             }
 
             if current_page.1 == "search-page" {
@@ -703,52 +702,46 @@ mod imp {
 
         pub fn search_term(&self, term: String) {
             if term.len() < 3 {
-                self.search.imp().album_results.clear();
-                self.search.imp().artist_results.clear();
-                self.search.imp().track_results.clear();
+                self.search.imp().album_results.clear(false);
+                self.search.imp().artist_results.clear(false);
+                self.search.imp().track_results.clear(false);
 
                 return;
             }
 
-            let self_weak = self.downgrade();
-            let search_debounce_source =
-                glib::timeout_add_local(std::time::Duration::from_millis(300), move || {
-                    let term = term.clone();
-                    let self_weak = self_weak.clone();
+            let state = self.state.upgrade().unwrap();
+            let albums = state
+                .albums()
+                .into_iter()
+                .filter(|album| {
+                    album.title.to_lowercase().contains(&term.to_lowercase())
+                        || album.artist.to_lowercase().contains(&term.to_lowercase())
+                })
+                .collect::<Vec<_>>();
 
-                    glib::spawn_future_local(async move {
-                        let rt = tokio::runtime::Runtime::new().unwrap();
-                        let response = rt.block_on(async move {
-                            let url = build_url();
-                            let mut client = LibraryServiceClient::connect(url).await?;
-                            let response =
-                                client.search(SearchRequest { term }).await?.into_inner();
-                            Ok::<SearchResponse, Error>(response)
-                        });
+            let artists = state
+                .artists()
+                .into_iter()
+                .filter(|artist| artist.name.to_lowercase().contains(&term.to_lowercase()))
+                .collect::<Vec<_>>();
 
-                        if response.is_err() {
-                            println!("Error: {:?}", response.err());
-                            return;
-                        }
+            let tracks = state
+                .tracks()
+                .into_iter()
+                .filter(|track| {
+                    track.title.to_lowercase().contains(&term.to_lowercase())
+                        || track.artist.to_lowercase().contains(&term.to_lowercase())
+                        || track.album.to_lowercase().contains(&term.to_lowercase())
+                })
+                .take(10)
+                .collect::<Vec<_>>();
 
-                        let response = response.unwrap();
-
-                        let self_ = match self_weak.upgrade() {
-                            Some(self_) => self_,
-                            None => return,
-                        };
-                        glib::idle_add_local(move || {
-                            let state = self_.state.upgrade().unwrap();
-                            state.set_search_results(response.clone());
-                            self_.search.load_results();
-                            glib::ControlFlow::Break
-                        });
-                    });
-                    glib::ControlFlow::Break
-                });
-
-            self.search_debounce_source
-                .replace(Some(search_debounce_source));
+            state.set_search_results(SearchResponse {
+                albums,
+                artists,
+                tracks,
+            });
+            self.search.load_results();
         }
     }
 }

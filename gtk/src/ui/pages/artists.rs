@@ -183,6 +183,9 @@ impl Artists {
         });
 
         if let Ok(response) = response_ {
+            let state = self.imp().state.upgrade().unwrap();
+            state.set_artists(response.artists.clone());
+
             let artists = self.imp().artists.clone();
             while let Some(row) = artists.first_child() {
                 artists.remove(&row);
@@ -193,7 +196,12 @@ impl Artists {
         }
     }
 
-    pub fn clear(&self) {
+    pub fn clear(&self, ui_only: bool) {
+        if !ui_only {
+            let state = self.imp().state.upgrade().unwrap();
+            state.clear_search_results();
+        }
+
         let artists_ = self.imp().artists.clone();
         while let Some(row) = artists_.first_child() {
             artists_.remove(&row);
@@ -201,7 +209,7 @@ impl Artists {
     }
 
     pub fn load_search_results(&self, artists: Vec<ArtistItem>) {
-        self.clear();
+        self.clear(true);
 
         self.imp().all_artists.replace(artists.clone());
         self.imp()

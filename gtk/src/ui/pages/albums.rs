@@ -269,15 +269,24 @@ impl Albums {
                 Ok::<GetAlbumsResponse, Error>(response.into_inner())
             })
         });
-        if let Ok(albums) = handle.join().unwrap() {
-            self.clear();
 
-            self.imp().all_albums.replace(albums.albums.clone());
+        if let Ok(response) = handle.join().unwrap() {
+            let state = self.imp().state.upgrade().unwrap();
+            state.set_albums(response.albums.clone());
+
+            self.clear(true);
+
+            self.imp().all_albums.replace(response.albums.clone());
             self.imp().create_albums_widgets(None, Some(15));
         }
     }
 
-    pub fn clear(&self) {
+    pub fn clear(&self, ui_only: bool) {
+        if !ui_only {
+            let state = self.imp().state.upgrade().unwrap();
+            state.clear_search_results();
+        }
+
         let library = self.imp().library.get();
         while let Some(child) = library.first_child() {
             library.remove(&child);
@@ -285,7 +294,7 @@ impl Albums {
     }
 
     pub fn load_search_results(&self, albums: Vec<Album>) {
-        self.clear();
+        self.clear(true);
 
         self.imp().all_albums.replace(albums.clone());
         self.imp().create_albums_widgets(Some(albums.clone()), None);

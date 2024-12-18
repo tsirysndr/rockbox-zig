@@ -1,3 +1,5 @@
+use crate::api::rockbox::v1alpha1::Album as RockboxAlbum;
+use crate::api::rockbox::v1alpha1::Artist as RockboxArtist;
 use crate::api::rockbox::v1alpha1::SearchResponse;
 use crate::api::rockbox::v1alpha1::Track as RockboxTrack;
 use crate::navigation::NavigationHistory;
@@ -22,6 +24,9 @@ mod imp {
         pub resume_elapsed: Cell<u32>,
         pub search_mode: Cell<bool>,
         pub search_results: RefCell<Option<SearchResponse>>,
+        pub albums: RefCell<Vec<RockboxAlbum>>,
+        pub tracks: RefCell<Vec<RockboxTrack>>,
+        pub artists: RefCell<Vec<RockboxArtist>>,
     }
 
     #[glib::object_subclass]
@@ -53,6 +58,9 @@ impl AppState {
         obj.imp().resume_elapsed.set(0);
         obj.imp().search_mode.set(false);
         obj.imp().search_results.replace(None);
+        obj.imp().albums.replace(Vec::new());
+        obj.imp().artists.replace(Vec::new());
+        obj.imp().tracks.replace(Vec::new());
         obj
     }
 
@@ -198,5 +206,45 @@ impl AppState {
     pub fn set_search_results(&self, results: SearchResponse) {
         let self_ = imp::AppState::from_obj(self);
         self_.search_results.replace(Some(results));
+    }
+
+    pub fn clear_search_results(&self) {
+        let self_ = imp::AppState::from_obj(self);
+        self_
+            .search_results
+            .replace(Some(SearchResponse::default()));
+    }
+
+    pub fn set_albums(&self, albums: Vec<RockboxAlbum>) {
+        let self_ = imp::AppState::from_obj(self);
+        *self_.albums.borrow_mut() = albums;
+    }
+
+    pub fn albums(&self) -> Vec<RockboxAlbum> {
+        let self_ = imp::AppState::from_obj(self);
+        let albums = self_.albums.borrow();
+        albums.clone()
+    }
+
+    pub fn set_artists(&self, artists: Vec<RockboxArtist>) {
+        let self_ = imp::AppState::from_obj(self);
+        *self_.artists.borrow_mut() = artists;
+    }
+
+    pub fn artists(&self) -> Vec<RockboxArtist> {
+        let self_ = imp::AppState::from_obj(self);
+        let artists = self_.artists.borrow();
+        artists.clone()
+    }
+
+    pub fn set_tracks(&self, tracks: Vec<RockboxTrack>) {
+        let self_ = imp::AppState::from_obj(self);
+        *self_.tracks.borrow_mut() = tracks;
+    }
+
+    pub fn tracks(&self) -> Vec<RockboxTrack> {
+        let self_ = imp::AppState::from_obj(self);
+        let tracks = self_.tracks.borrow();
+        tracks.clone()
     }
 }
