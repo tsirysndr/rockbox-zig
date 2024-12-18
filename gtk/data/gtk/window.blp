@@ -273,13 +273,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
 
                        Label {
                           use-markup: true;
-                          label: _("Please make sure it's running.");
-                          halign: center;
-                       }
-                       
-                       Label {
-                          use-markup: true;
-                          label: _("Rockbox CLI installation instructions can be found at <a href='https://github.com/tsirysndr/rockbox-zig?tab=readme-ov-file#-installation'>https://github.com/tsirysndr/rockbox-zig?tab=readme-ov-file#-installation</a>");
+                          label: _("Please make sure it's running. Rockbox CLI installation instructions can be found <a href='https://github.com/tsirysndr/rockbox-zig?tab=readme-ov-file#-installation'>here</a>");
                           halign: center;
                        }
                        
@@ -290,7 +284,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
 
                         Adw.Clamp {
                             maximum-size: 400;
-                            margin-top: 20;
+                            margin-top: 15;
                             
                             Adw.PreferencesGroup {
                               Adw.ActionRow {
