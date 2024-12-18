@@ -120,7 +120,7 @@ mod imp {
                     None => return glib::ControlFlow::Continue,
                 };
 
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     let obj = self_.obj();
                     obj.stream_playlist(tx);
                 });
@@ -130,7 +130,7 @@ mod imp {
                     None => return glib::ControlFlow::Continue,
                 };
 
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     let obj = self_.obj();
                     while let Some(playlist) = rx.recv().await {
                         obj.load_current_track();

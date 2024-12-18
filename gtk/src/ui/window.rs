@@ -755,7 +755,7 @@ mod imp {
                 Some(self_) => self_,
                 None => return,
             };
-            glib::MainContext::default().spawn_local(async move {
+            glib::spawn_future_local(async move {
                 while let Some(_) = rx.recv().await {
                     let albums = self_.albums.get();
                     albums.imp().size.set(15);

@@ -195,7 +195,7 @@ mod imp {
                     if let Some(track) = &*current_track {
                         let elapsed = (track.duration as i64 * value as i64) / 100;
                         glib::idle_add_local(move || {
-                            glib::MainContext::default().spawn_local(async move {
+                            glib::spawn_future_local(async move {
                                 let rt = tokio::runtime::Runtime::new().unwrap();
                                 let _ = rt.block_on(async {
                                     let url = build_url();
@@ -255,7 +255,7 @@ mod imp {
 
                 let (tx, mut rx) = mpsc::channel(32);
 
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     let obj = self_.obj();
                     obj.load_current_track(tx);
                 });
@@ -265,7 +265,7 @@ mod imp {
                     None => return glib::ControlFlow::Continue,
                 };
 
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     let obj = self_.obj();
                     obj.load_playback_settings();
                 });
@@ -277,7 +277,7 @@ mod imp {
 
                 let state = self_.state.upgrade().unwrap();
 
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     while let Some(track) = rx.recv().await {
                         let mut current_artist_id = self_.current_artist_id.borrow_mut();
                         let title = self_.title.get();
@@ -358,7 +358,7 @@ mod imp {
                     None => return glib::ControlFlow::Continue,
                 };
 
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     let obj = self_.obj();
                     obj.stream_status(tx);
                 });
@@ -368,7 +368,7 @@ mod imp {
                     None => return glib::ControlFlow::Continue,
                 };
 
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     while let Some(status) = rx.recv().await {
                         if self_.status_lock.get() {
                             continue;
@@ -695,7 +695,7 @@ impl MediaControls {
                 Some(self_) => self_,
                 None => return glib::ControlFlow::Continue,
             };
-            glib::MainContext::default().spawn_local(async move {
+            glib::spawn_future_local(async move {
                 thread::sleep(std::time::Duration::from_secs(3));
                 self_.imp().status_lock.set(false);
             });
@@ -704,7 +704,7 @@ impl MediaControls {
     }
 
     pub fn previous(&self) {
-        glib::MainContext::default().spawn_local(async move {
+        glib::spawn_future_local(async move {
             let rt = tokio::runtime::Runtime::new().unwrap();
             let _ = rt.block_on(async {
                 let url = build_url();
@@ -716,7 +716,7 @@ impl MediaControls {
     }
 
     pub fn next(&self) {
-        glib::MainContext::default().spawn_local(async move {
+        glib::spawn_future_local(async move {
             let rt = tokio::runtime::Runtime::new().unwrap();
             let _ = rt.block_on(async {
                 let url = build_url();
@@ -740,7 +740,7 @@ impl MediaControls {
             false => self.imp().shuffle_button.add_css_class("inactive-button"),
         }
 
-        glib::MainContext::default().spawn_local(async move {
+        glib::spawn_future_local(async move {
             let rt = tokio::runtime::Runtime::new().unwrap();
             let _ = rt.block_on(async {
                 let url = build_url();
@@ -771,7 +771,7 @@ impl MediaControls {
 
         let repeat_mode = self.imp().repeat_mode.get();
 
-        glib::MainContext::default().spawn_local(async move {
+        glib::spawn_future_local(async move {
             let rt = tokio::runtime::Runtime::new().unwrap();
             let _ = rt.block_on(async {
                 let url = build_url();
@@ -970,7 +970,7 @@ impl MediaControls {
         if let Some(track) = &*current_track {
             let elapsed = (track.elapsed - 10000).max(0) as i64;
             glib::idle_add_local(move || {
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     let rt = tokio::runtime::Runtime::new().unwrap();
                     let _ = rt.block_on(async {
                         let url = build_url();
@@ -990,7 +990,7 @@ impl MediaControls {
         if let Some(track) = &*current_track {
             let elapsed = (track.elapsed + 10000).min(track.duration) as i64;
             glib::idle_add_local(move || {
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     let rt = tokio::runtime::Runtime::new().unwrap();
                     let _ = rt.block_on(async {
                         let url = build_url();

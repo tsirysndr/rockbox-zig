@@ -58,7 +58,7 @@ mod imp {
                     None => return glib::ControlFlow::Continue,
                 };
 
-                glib::MainContext::default().spawn_local(async move {
+                glib::spawn_future_local(async move {
                     let obj = self_.obj();
                     obj.load_files(None);
                 });
