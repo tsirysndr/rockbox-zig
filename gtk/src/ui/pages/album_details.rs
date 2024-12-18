@@ -21,7 +21,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/album_details.ui")]
+    #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/album_details.ui")]
     pub struct AlbumDetails {
         #[template_child]
         pub album_cover: TemplateChild<Image>,
@@ -159,8 +159,9 @@ mod imp {
                         self.album_cover.set_from_file(Some(&path));
                     }
                     None => {
-                        self.album_cover
-                            .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+                        self.album_cover.set_resource(Some(
+                            "/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg",
+                        ));
                     }
                 }
 

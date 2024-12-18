@@ -39,7 +39,7 @@ blueprints = custom_target(
 
 appstream_file = i18n.merge_file(
   input: configure_file(
-    input: 'mg.tsirysndr.Rockbox.metainfo.xml.in.in',
+    input: 'io.github.tsirysndr.Rockbox.metainfo.xml.in.in',
     output: app_id + '.metainfo.xml.in',
     configuration: conf,
   ),
@@ -51,11 +51,11 @@ appstream_file = i18n.merge_file(
 
 desktop_file = i18n.merge_file(
   input: configure_file(
-    input: 'mg.tsirysndr.Rockbox.desktop.in',
-    output: 'rockbox.desktop.in',
+    input: 'io.github.tsirysndr.Rockbox.desktop.in.in',
+    output: 'io.github.tsirysndr.Rockbox.desktop.in',
     configuration: conf,
   ),
-  output: 'rockbox.desktop',
+  output: 'io.github.tsirysndr.Rockbox.desktop',
   type: 'desktop',
   po_dir: '../po',
   install: true,

@@ -35,7 +35,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/media_controls.ui")]
+    #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/media_controls.ui")]
     pub struct MediaControls {
         #[template_child]
         pub shuffle_button: TemplateChild<Button>,
@@ -323,8 +323,9 @@ mod imp {
                             let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
                             album_art.set_from_file(Some(&path));
                         } else {
-                            album_art
-                                .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+                            album_art.set_resource(Some(
+                                "/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg",
+                            ));
                         }
 
                         match state.is_liked_track(&track.id) {
@@ -551,7 +552,7 @@ impl MediaControls {
             let path = format!("{}/.config/rockbox.org/covers/{}", home, filename);
             album_art.set_from_file(Some(&path));
         } else {
-            album_art.set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+            album_art.set_resource(Some("/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
         }
 
         let state = self.imp().state.upgrade().unwrap();

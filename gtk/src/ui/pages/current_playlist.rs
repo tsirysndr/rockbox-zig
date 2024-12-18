@@ -22,7 +22,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/current_playlist.ui")]
+    #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/current_playlist.ui")]
     pub struct CurrentPlaylist {
         #[template_child]
         pub album_cover: TemplateChild<Image>,
@@ -258,16 +258,16 @@ impl CurrentPlaylist {
                         self.imp().album_cover.set_from_file(Some(&path));
                     }
                     None => {
-                        self.imp()
-                            .album_cover
-                            .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+                        self.imp().album_cover.set_resource(Some(
+                            "/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg",
+                        ));
                     }
                 }
             }
             None => {
                 self.imp()
                     .album_cover
-                    .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+                    .set_resource(Some("/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
                 self.imp().track_title.set_text("No song playing");
                 self.imp().track_artist.set_text("");
             }
@@ -368,7 +368,7 @@ fn create_song_widget(track: Track, index: i32) -> Song {
         None => {
             song.imp()
                 .album_art
-                .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+                .set_resource(Some("/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
         }
     }
 

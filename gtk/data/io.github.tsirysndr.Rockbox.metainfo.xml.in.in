@@ -4,7 +4,7 @@
   <id>@APP_ID@</id>
   <name>@NAME@</name>
   <translation type="gettext">@PKGNAME@</translation>
-  <launchable type="desktop-id">rockbox.desktop</launchable>
+  <launchable type="desktop-id">@APP_ID@.desktop</launchable>
 
   <!-- General -->
   <summary>A Modern Gtk Application for Rockbox</summary>
@@ -20,7 +20,7 @@
 
   <!-- Branding -->
   <developer_name>Tsiry Sandratraina</developer_name>
-  <developer id="mg.tsirysndr">
+  <developer id="io.github.tsirysndr">
     <name>Tsiry Sandratraina</name>
   </developer>
   <branding>

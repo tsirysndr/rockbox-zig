@@ -79,7 +79,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/preferences.ui")]
+    #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/preferences.ui")]
     pub struct RbPreferencesDialog {
         #[template_child]
         pub library_location_label: TemplateChild<gtk::Label>,

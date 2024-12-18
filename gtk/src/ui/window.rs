@@ -40,7 +40,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/window.ui")]
+    #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/window.ui")]
     pub struct RbApplicationWindow {
         #[template_child]
         pub show_sidebar_button: TemplateChild<Button>,

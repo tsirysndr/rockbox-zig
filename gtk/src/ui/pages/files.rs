@@ -21,7 +21,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/files.ui")]
+    #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/files.ui")]
     pub struct Files {
         #[template_child]
         pub files: TemplateChild<ListBox>,

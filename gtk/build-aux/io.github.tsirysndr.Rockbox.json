@@ -1,5 +1,5 @@
 {
-  "id": "mg.tsirysndr.Rockbox.Devel",
+  "id": "io.github.tsirysndr.Rockbox",
   "runtime": "org.gnome.Platform",
   "runtime-version": "47",
   "sdk": "org.gnome.Sdk",

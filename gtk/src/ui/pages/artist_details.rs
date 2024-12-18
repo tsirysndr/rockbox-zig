@@ -25,7 +25,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/artist_details.ui")]
+    #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/artist_details.ui")]
     pub struct ArtistDetails {
         #[template_child]
         pub artist_image: TemplateChild<Image>,
@@ -210,7 +210,7 @@ mod imp {
                             }
                             None => {
                                 song.imp().album_art.set_resource(Some(
-                                    "/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg",
+                                    "/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg",
                                 ));
                             }
                         }
@@ -233,9 +233,9 @@ mod imp {
                                     format!("{}/.config/rockbox.org/covers/{}", home, filename);
                                 Image::from_file(&path)
                             }
-                            None => {
-                                Image::from_resource("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg")
-                            }
+                            None => Image::from_resource(
+                                "/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg",
+                            ),
                         };
                         image.set_size_request(200, 200);
                         let image_container = gtk::Box::new(Orientation::Vertical, 0);

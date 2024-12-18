@@ -16,7 +16,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/search.ui")]
+    #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/search.ui")]
     pub struct Search {
         #[template_child]
         pub albums: TemplateChild<Button>,

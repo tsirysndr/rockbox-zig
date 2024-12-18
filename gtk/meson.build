@@ -18,16 +18,16 @@ dependency('libadwaita-1', version: '>=1.6.beta')
 
 # Initialize project variables
 name       = 'Rockbox'
-base_id    = 'mg.tsirysndr.Rockbox'
-path_id    = '/mg/tsirysndr/Rockbox'
+base_id    = 'io.github.tsirysndr.Rockbox'
+path_id    = '/io/github/tsirysndr/Rockbox'
 app_id     = base_id
 vcs_tag    = run_command('git', 'rev-parse', '--short', 'HEAD', check: false).stdout().strip()
 datadir    = join_paths(get_option('prefix'), get_option('datadir'))
 localedir  = join_paths(get_option('prefix'), get_option('localedir'))
 bindir     = join_paths(get_option('prefix'), get_option('bindir'))
 
-app_id = 'mg.tsirysndr.Rockbox'
-prefix = '/mg/tsirysndr/Rockbox'
+app_id = 'io.github.tsirysndr.Rockbox'
+prefix = '/io/github/tsirysndr/Rockbox'
 
 conf = configuration_data()
 conf.set('APP_ID', app_id)

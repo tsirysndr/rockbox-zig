@@ -20,7 +20,7 @@ mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
-    #[template(resource = "/mg/tsirysndr/Rockbox/gtk/songs.ui")]
+    #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/songs.ui")]
     pub struct Songs {
         #[template_child]
         pub tracks: TemplateChild<ListBox>,
@@ -135,9 +135,9 @@ mod imp {
                         song.imp().album_art.set_from_file(Some(&path));
                     }
                     None => {
-                        song.imp()
-                            .album_art
-                            .set_resource(Some("/mg/tsirysndr/Rockbox/icons/jpg/albumart.jpg"));
+                        song.imp().album_art.set_resource(Some(
+                            "/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg",
+                        ));
                     }
                 }
 
