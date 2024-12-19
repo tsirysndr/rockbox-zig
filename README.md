@@ -14,7 +14,7 @@
 [![storybook](https://raw.githubusercontent.com/storybooks/brand/master/badge/badge-storybook.svg)](https://master--670ceec25af685dcdc87c0df.chromatic.com/?path=/story/components-albums--default)
 
 
-![Rockbox UI](./docs/rockbox-ui.png)
+![Rockbox UI](./gtk/data/screenshots/1.png)
 
 A modern take on the [Rockbox](https://www.rockbox.org) open-source firmware with enhancements in Zig and Rust. This project offers:
 
