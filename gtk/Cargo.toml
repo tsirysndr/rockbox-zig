@@ -18,9 +18,9 @@ reqwest = { version = "0.12.7", features = [
   "blocking",
 ], default-features = false }
 tokio = { version = "1.36.0", features = ["full"] }
-tonic = "0.12.2"
-tonic-reflection = "0.12.2"
-tonic-web = "0.12.2"
+tonic = "0.12.3"
+tonic-reflection = "0.12.3"
+tonic-web = "0.12.3"
 
 [build-dependencies]
-tonic-build = "0.12.2"
+tonic-build = "0.12.3"
