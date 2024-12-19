@@ -1,7 +1,7 @@
 {
   "name": "rockbox",
   "private": true,
-  "version": "2024.11.18",
+  "version": "2024.12.19",
   "type": "module",
   "main": "dist-electron/main/index.js",
   "author": "Tsiry Sandratraina <tsiry.sndr@fluentci.io>",
