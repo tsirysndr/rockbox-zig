@@ -34,9 +34,9 @@ sqlx = { version = "0.8.2", features = [
 tantivy = "0.22.0"
 tokio = { version = "1.36.0", features = ["full"] }
 tokio-stream = "0.1.16"
-tonic = "0.12.2"
+tonic = "0.12.3"
 tonic-reflection = "0.12.2"
-tonic-web = "0.12.2"
+tonic-web = "0.12.3"
 
 [build-dependencies]
-tonic-build = "0.12.2"
+tonic-build = "0.12.3"

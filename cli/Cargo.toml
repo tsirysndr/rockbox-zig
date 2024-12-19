@@ -9,10 +9,10 @@ clap = "4.5.20"
 opener = "0.7.2"
 owo-colors = "4.1.0"
 prost = "0.13.2"
-tokio = {version = "1.36.0", features = ["full"]}
-tonic = "0.12.2"
-tonic-reflection = "0.12.2"
-tonic-web = "0.12.2"
+tokio = { version = "1.36.0", features = ["full"] }
+tonic = "0.12.3"
+tonic-reflection = "0.12.3"
+tonic-web = "0.12.3"
 
 [build-dependencies]
-tonic-build = "0.12.2"
+tonic-build = "0.12.3"

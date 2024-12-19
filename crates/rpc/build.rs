@@ -2,7 +2,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
         .out_dir("src/api")
         .file_descriptor_set_path("src/api/rockbox_descriptor.bin")
-        .compile(
+        .compile_protos(
             &[
                 "proto/rockbox/v1alpha1/browse.proto",
                 "proto/rockbox/v1alpha1/device.proto",
