@@ -11,9 +11,8 @@
   <description>
     <p>
       Rockbox is a free replacement for digital music players. And this is a modern Desktop
-      application built on top of it,
-      A modified version of Rockbox runs in the background and provides the audio playback
-      functionality.
+      application built on top of it, a modified version of Rockbox runs in the background as a
+      music player daemon and provides the audio playback functionality.
     </p>
   </description>
   <content_rating type="oars-1.1" />
@@ -44,6 +43,43 @@
   <requires>
     <display_length compare="ge">360</display_length>
   </requires>
+  <screenshots>
+    <screenshot type="default">
+      <image>
+        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/1.png</image>
+      <caption>Music Library</caption>
+    </screenshot>
+    <screenshot>
+      <image>
+        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/2.png</image>
+      <caption>Album Details</caption>
+    </screenshot>
+    <screenshot>
+      <image>
+        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/3.png</image>
+      <caption>Play Queue</caption>
+    </screenshot>
+    <screenshot>
+      <image>
+        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/4.png</image>
+      <caption>Equalizer Settings</caption>
+    </screenshot>
+    <screenshot>
+      <image>
+        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/5.png</image>
+      <caption>File Browser</caption>
+    </screenshot>
+    <screenshot>
+      <image>
+        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/6.png</image>
+      <caption>Tracks</caption>
+    </screenshot>
+    <screenshot>
+      <image>
+        https://raw.githubusercontent.com/tsirysndr/rockbox-zig/master/gtk/data/screenshots/7.png</image>
+      <caption>Crossfade Settings</caption>
+    </screenshot>
+  </screenshots>
   <supports>
     <control>keyboard</control>
     <control>pointing</control>
@@ -52,7 +88,7 @@
 
   <!-- Releases -->
   <releases>
-    <release version="0.1.0" date="2023-12-31">
+    <release version="0.1.0" date="2024-12-19">
       <description>
         <p>First beta release.</p>
       </description>
