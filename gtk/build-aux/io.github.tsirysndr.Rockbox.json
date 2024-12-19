@@ -20,13 +20,13 @@
     "--socket=pulseaudio",
     "--filesystem=host",
     "--filesystem=xdg-run/gvfsd",
-    "--filesystem=xdg-music",
-    "--talk-name=org.gtk.vfs.*"
+    "--filesystem=xdg-music"
   ],
   "build-options": {
     "append-path": "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm18/bin",
     "env": {
-      "RUSTFLAGS": "-C force-frame-pointers=yes -C symbol-mangling-version=v0 -C linker=clang -C link-arg=-fuse-ld=/usr/lib/sdk/rust-stable/bin/mold"
+      "RUSTFLAGS": "-C force-frame-pointers=yes -C symbol-mangling-version=v0 -C linker=clang -C link-arg=-fuse-ld=/usr/lib/sdk/rust-stable/bin/mold",
+      "CMAKE_BUILD_PARALLEL_LEVEL": "8"
     },
     "build-args": [
       "--share=network"
@@ -35,18 +35,12 @@
   "modules": [
     {
       "name": "protoc",
-      "buildsystem": "simple",
-      "build-commands": [
-        "curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v28.3/protoc-28.3-linux-x86_64.zip",
-        "unzip protoc-28.3-linux-x86_64.zip -d /app",
-        "chmod -R u+w /app/bin/protoc",
-        "chmod +x /app/bin/protoc"
-      ],
+      "buildsystem": "cmake",
       "sources": [
         {
-          "type": "archive",
-          "url": "https://github.com/protocolbuffers/protobuf/releases/download/v28.3/protoc-28.3-linux-x86_64.zip",
-          "sha256": "0ad949f04a6a174da83cdcbdb36dee0a4925272a5b6d83f79a6bf9852076d53f"
+          "type": "git",
+          "url": "https://github.com/protocolbuffers/protobuf",
+          "tag": "v29.2"
         }
       ]
     },

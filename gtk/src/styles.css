@@ -1,6 +1,5 @@
 .rounded-image {
   border-radius: 12px;
-  overflow: hidden;
 }
 
 .album-label {
@@ -16,12 +15,10 @@
 }
 
 .button-box {
-  height: 32px;
   border-radius: 10px;
 }
 
 .active-button {
-  height: 32px;
   border-radius: 10px;
 }
 
@@ -34,10 +31,7 @@
 }
 
 .media-album-art {
-  max-width: 60px;
-  max-height: 60px;
   border-radius: 4px;
-  overflow: hidden;
 }
 
 .year-label {
@@ -45,11 +39,8 @@
 }
 
 .album-cover {
-  max-width: 230px;
-  max-height: 230px;
   margin-right: 20px;
   border-radius: 5px;
-  overflow: hidden;
 }
 
 .album-title {
@@ -83,8 +74,6 @@ menubutton > button {
 }
 
 .artist-noimage {
-  height: 240px;
-  width: 240px;
   border-radius: 170px;
   background-color: #f6f6f6;
 }
