@@ -1,12 +1,10 @@
 use crate::api::rockbox::v1alpha1::settings_service_client::SettingsServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    GetAlbumResponse, GetGlobalSettingsRequest, GetGlobalSettingsResponse, ReplaygainSettings,
-    SaveSettingsRequest, SaveSettingsResponse,
+    GetGlobalSettingsRequest, GetGlobalSettingsResponse, SaveSettingsRequest, SaveSettingsResponse,
 };
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
-use gtk::glib::property::PropertyGet;
 use gtk::{glib, CompositeTemplate};
 use std::cell::RefCell;
 use std::{env, thread};
@@ -643,7 +641,6 @@ impl RbPreferencesDialog {
 
     fn save_settings(&self) {
         let settings = self.imp().settings.borrow();
-        let settings_ref = settings.as_ref();
         if let Some(settings) = settings.clone() {
             thread::spawn(move || {
                 let rt = tokio::runtime::Runtime::new().unwrap();
