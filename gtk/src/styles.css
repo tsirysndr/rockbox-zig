@@ -1,0 +1,137 @@
+.rounded-image {
+  border-radius: 12px;
+}
+
+.album-label {
+  font-weight: bold;
+}
+
+.media-control-button {
+  background-color: transparent;
+}
+
+.inactive-button {
+  background-color: transparent;
+}
+
+.button-box {
+  border-radius: 10px;
+}
+
+.active-button {
+  border-radius: 10px;
+}
+
+.media-title {
+  font-weight: bold;
+}
+
+.media-time {
+  font-size: 12px;
+}
+
+.media-album-art {
+  border-radius: 4px;
+}
+
+.year-label {
+  font-size: 12px;
+}
+
+.album-cover {
+  margin-right: 20px;
+  border-radius: 5px;
+}
+
+.album-title {
+  font-weight: bold;
+  font-size: 28px;
+}
+
+.album-artist {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.transparent-button {
+  background-color: transparent;
+}
+
+menubutton {
+  background-color: transparent;
+}
+
+menubutton > button {
+  background-color: transparent;
+}
+
+.album-track-list {
+  background-color: transparent;
+}
+
+.track-title {
+  font-weight: bold;
+}
+
+.artist-noimage {
+  border-radius: 170px;
+  background-color: #f6f6f6;
+}
+
+.artist-icon {
+  color: #a4a3a3;
+}
+
+.file-list {
+  background-color: transparent;
+}
+
+.track-list {
+  background-color: transparent;
+}
+
+.subtitle {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.disc {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.current-track-title {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.current-track-artist {
+  font-size: 18px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.artist-name {
+  font-size: 24px;
+}
+
+.spinrow {
+  border: none;
+  box-shadow: none;
+}
+
+.spinrow:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.tab {
+  background-color: transparent;
+}
+
+.tab:hover {
+  background-color: #f6f6f6;
+}

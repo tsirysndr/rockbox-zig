@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Rockbox
+GenericName=Rockbox
+Comment=Rockbox is a GTK frontend for the Rockbox Media Player
+Exec=rockbox-gtk
+Icon=@APP_ID@
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;Music;Audio;AudioVideo;
+Keywords=music;player;media;audio;playlist;
+StartupNotify=true

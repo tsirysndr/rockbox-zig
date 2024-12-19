@@ -1,5 +1,6 @@
 use std::{
     fs,
+    pin::Pin,
     sync::{mpsc::Sender, Arc, Mutex},
 };
 
@@ -7,9 +8,13 @@ use crate::{
     api::rockbox::v1alpha1::{playback_service_server::PlaybackService, *},
     check_and_load_player, read_files, rockbox_url, AUDIO_EXTENSIONS,
 };
+use rockbox_graphql::schema;
+use rockbox_graphql::schema::objects::track::Track;
+use rockbox_graphql::simplebroker::SimpleBroker;
 use rockbox_library::repo;
 use rockbox_sys::{self as rb, events::RockboxCommand, types::audio_status::AudioStatus};
 use sqlx::Sqlite;
+use tokio_stream::{Stream, StreamExt};
 
 pub struct Playback {
     cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
@@ -138,6 +143,21 @@ impl PlaybackService for Playback {
             .json::<Option<rb::types::mp3_entry::Mp3Entry>>()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(track) = track.as_ref() {
+            let hash = format!("{:x}", md5::compute(track.path.as_bytes()));
+            let metadata = repo::track::find_by_md5(self.pool.clone(), &hash)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            if let Some(metadata) = metadata {
+                let mut track = track.clone();
+                track.album_art = metadata.album_art;
+                track.album_id = Some(metadata.album_id);
+                track.artist_id = Some(metadata.artist_id);
+                return Ok(tonic::Response::new(track.into()));
+            }
+        }
+
         Ok(tonic::Response::new(track.into()))
     }
 
@@ -218,7 +238,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -227,7 +248,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -239,7 +261,8 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
@@ -268,7 +291,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -277,7 +301,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -289,7 +314,8 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
@@ -362,7 +388,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -371,7 +398,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -383,7 +411,8 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
@@ -445,7 +474,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -454,7 +484,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -466,7 +497,8 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
@@ -494,7 +526,8 @@ impl PlaybackService for Playback {
         check_and_load_player!(response, tracks, shuffle.unwrap_or_default());
 
         let url = format!("{}/playlists", rockbox_url());
-        self.client
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -503,7 +536,8 @@ impl PlaybackService for Playback {
 
         if let Some(true) = shuffle {
             let url = format!("{}/playlists/shuffle", rockbox_url());
-            self.client
+            let client = reqwest::Client::new();
+            client
                 .put(&url)
                 .send()
                 .await
@@ -515,12 +549,75 @@ impl PlaybackService for Playback {
             None => format!("{}/playlists/start", rockbox_url()),
         };
 
-        self.client
+        let client = reqwest::Client::new();
+        client
             .put(&url)
             .send()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         Ok(tonic::Response::new(PlayAllTracksResponse::default()))
+    }
+
+    type StreamCurrentTrackStream = Pin<
+        Box<dyn Stream<Item = Result<CurrentTrackResponse, tonic::Status>> + Send + Sync + 'static>,
+    >;
+
+    async fn stream_current_track(
+        &self,
+        _request: tonic::Request<StreamCurrentTrackRequest>,
+    ) -> Result<tonic::Response<Self::StreamCurrentTrackStream>, tonic::Status> {
+        let mut stream = SimpleBroker::<Track>::subscribe();
+        let output = async_stream::try_stream! {
+            while let Some(track) = stream.next().await {
+                yield track.into();
+            }
+        };
+
+        Ok(tonic::Response::new(
+            Box::pin(output) as Self::StreamCurrentTrackStream
+        ))
+    }
+
+    type StreamStatusStream =
+        Pin<Box<dyn Stream<Item = Result<StatusResponse, tonic::Status>> + Send + Sync + 'static>>;
+
+    async fn stream_status(
+        &self,
+        _request: tonic::Request<StreamStatusRequest>,
+    ) -> Result<tonic::Response<Self::StreamStatusStream>, tonic::Status> {
+        let mut stream = SimpleBroker::<schema::objects::audio_status::AudioStatus>::subscribe();
+        let output = async_stream::try_stream! {
+            while let Some(status) = stream.next().await {
+                yield status.into();
+            }
+        };
+
+        Ok(tonic::Response::new(
+            Box::pin(output) as Self::StreamStatusStream
+        ))
+    }
+
+    type StreamPlaylistStream = Pin<
+        Box<dyn Stream<Item = Result<PlaylistResponse, tonic::Status>> + Send + Sync + 'static>,
+    >;
+
+    async fn stream_playlist(
+        &self,
+        _request: tonic::Request<StreamPlaylistRequest>,
+    ) -> Result<tonic::Response<Self::StreamPlaylistStream>, tonic::Status> {
+        let mut stream = SimpleBroker::<schema::objects::playlist::Playlist>::subscribe();
+        let output = async_stream::try_stream! {
+            while let Some(playlist) = stream.next().await {
+                yield PlaylistResponse {
+                    index: playlist.index,
+                    amount: playlist.amount,
+                    tracks: playlist.tracks.into_iter().map(|t| t.into()).collect(),
+                };
+            }
+        };
+        Ok(tonic::Response::new(
+            Box::pin(output) as Self::StreamPlaylistStream
+        ))
     }
 }

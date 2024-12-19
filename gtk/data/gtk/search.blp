@@ -1,0 +1,63 @@
+using Gtk 4.0;
+
+template $Search : Box {
+  hexpand: true;
+  orientation: vertical;
+  vexpand: true;
+
+  Box tabs {
+    orientation: horizontal;
+    hexpand: true;
+    spacing: 8;
+    halign: center;
+    margin-top: 20;
+    margin-bottom: 10;
+    
+    Button albums {
+      label: _("Albums");
+      action-name: "app.on_activate_albums";
+    }
+
+    Button artists {
+      label: _("Artists");
+      action-name: "app.on_activate_artists";
+      
+      styles [
+        "tab"
+      ]
+    }
+    
+    Button tracks {
+      label: _("Tracks");
+      action-name: "app.on_activate_tracks";
+
+      styles [
+        "tab"
+      ]
+    }
+
+  } 
+
+  ScrolledWindow albums_scrolled_window {
+    visible: true;
+    vexpand: true;
+    
+    $Albums album_results { }
+  }
+
+  ScrolledWindow artists_scrolled_window {
+    visible: false;
+    vexpand: true;
+
+    $Artists artist_results { }
+  }
+
+
+  ScrolledWindow tracks_scrolled_window {
+    visible: false;
+    vexpand: true;
+
+    $Songs track_results {}
+  }
+
+}

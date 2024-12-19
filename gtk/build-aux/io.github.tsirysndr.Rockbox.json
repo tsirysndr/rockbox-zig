@@ -1,0 +1,76 @@
+{
+  "id": "io.github.tsirysndr.Rockbox",
+  "runtime": "org.gnome.Platform",
+  "runtime-version": "47",
+  "sdk": "org.gnome.Sdk",
+  "sdk-extensions": [
+    "org.freedesktop.Sdk.Extension.rust-stable",
+    "org.freedesktop.Sdk.Extension.llvm18"
+  ],
+  "command": "rockbox-gtk",
+  "tags": [
+    "nightly"
+  ],
+  "finish-args": [
+    "--share=network",
+    "--share=ipc",
+    "--socket=fallback-x11",
+    "--socket=wayland",
+    "--device=dri",
+    "--socket=pulseaudio",
+    "--filesystem=host",
+    "--filesystem=xdg-run/gvfsd",
+    "--filesystem=xdg-music"
+  ],
+  "build-options": {
+    "append-path": "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm18/bin",
+    "env": {
+      "RUSTFLAGS": "-C force-frame-pointers=yes -C symbol-mangling-version=v0 -C linker=clang -C link-arg=-fuse-ld=/usr/lib/sdk/rust-stable/bin/mold",
+      "CMAKE_BUILD_PARALLEL_LEVEL": "8"
+    },
+    "build-args": [
+      "--share=network"
+    ]
+  },
+  "modules": [
+    {
+      "name": "protoc",
+      "buildsystem": "cmake",
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/protocolbuffers/protobuf",
+          "tag": "v29.2"
+        }
+      ]
+    },
+    {
+      "name": "blueprint-compiler",
+      "buildsystem": "meson",
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://gitlab.gnome.org/jwestman/blueprint-compiler",
+          "tag": "v0.14.0"
+        }
+      ],
+      "cleanup": [
+        "*"
+      ]
+    },
+    {
+      "name": "rockbox",
+      "buildsystem": "meson",
+      "run-tests": false,
+      "config-opts": [
+        "-Dprofile=development"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "../"
+        }
+      ]
+    }
+  ]
+}

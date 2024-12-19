@@ -1,0 +1,90 @@
+using Gtk 4.0;
+
+template $CurrentPlaylist : Box {
+    orientation: horizontal;
+    hexpand: true;
+    margin-top: 15;
+    margin-bottom: 15;
+
+    Box {
+        orientation: vertical;
+        halign: center;
+        valign: center;
+        hexpand: true;
+
+        Box {
+            halign: center;
+            valign: center;
+            
+            Image album_cover {
+              width-request: 300;
+              height-request: 300;
+              resource: "/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg";
+            }
+        }
+
+        Box {
+            orientation: vertical;
+            halign: center;
+            hexpand: true;
+            margin-top: 20;
+
+            Label track_title {
+              halign: center;
+              margin-bottom: 5;
+
+              styles [
+                "current-track-title"
+              ]
+            }
+
+            Label track_artist {
+              halign: center;
+              
+              styles [
+                "current-track-artist"
+              ]
+            }
+            
+            Label track_index {
+              halign: center;
+              margin-top: 10;
+            }
+        }
+    }
+    
+    ScrolledWindow scrolled_window {
+        hscrollbar-policy: never;
+
+        Box {
+          orientation: vertical;
+          hexpand: true;
+        
+          Box now_playing {
+            orientation: vertical;
+            margin-bottom: 15;
+            halign: start;
+            hexpand: true;
+          }
+
+          Label next_tracks_label {
+            halign: start;
+            label: "Next tracks";
+            margin-start: 10;
+
+            styles [
+              "bold"
+            ]
+          }
+
+          ListBox next_tracks {
+            hexpand: true;
+            selection-mode: none;
+
+            styles [
+              "track-list"
+            ]
+          }
+        }
+    }
+}

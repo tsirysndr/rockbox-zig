@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message Track {
+  string id = 1;
+  string path = 2;
+  string title = 3;
+  string artist = 4;
+  string album = 5;
+  string album_artist = 6;
+  uint32 bitrate = 7;
+  string composer = 8;
+  uint32 disc_number = 9;
+  uint32 filesize = 10;
+  uint32 frequency = 11;
+  uint32 length = 12;
+  uint32 track_number = 13;
+  uint32 year = 14;
+  string year_string = 15;
+  string genre = 16;
+  string md5 = 17;
+  optional string album_art = 18;
+  optional string artist_id = 19;
+  optional string album_id = 20;
+  optional string genre_id = 21;
+  string created_at = 22;
+  string updated_at = 23;
+}
+
+message Artist {
+  string id = 1;
+  string name = 2;
+  optional string bio = 3;
+  optional string image = 4;
+  repeated Album albums = 5;
+  repeated Track tracks = 6;
+}
+
+message Album {
+  string id = 1;
+  string title = 2;
+  string artist = 3;
+  uint32 year = 4;
+  string year_string = 5;
+  optional string album_art = 6;
+  string md5 = 7;
+  string artist_id = 8;
+  repeated Track tracks = 9;
+}
+
+message GetAlbumRequest {
+  string id = 1;
+}
+
+message GetAlbumResponse {
+  optional Album album = 1;
+}
+
+message GetArtistRequest {
+  string id = 1;
+}
+
+message GetArtistResponse {
+  optional Artist artist = 1;
+}
+
+message GetTrackRequest {
+  string id = 1;
+}
+
+message GetTrackResponse {
+  optional Track track = 1;
+}
+
+message GetAlbumsRequest {}
+
+message GetAlbumsResponse {
+  repeated Album albums = 1;
+}
+
+message GetArtistsRequest {}
+
+message GetArtistsResponse {
+  repeated Artist artists = 1;
+}
+
+message GetTracksRequest {}
+
+message GetTracksResponse {
+  repeated Track tracks = 1;
+}
+
+message LikeTrackRequest {
+  string id = 1;
+}
+
+message LikeTrackResponse {}
+
+message LikeAlbumRequest {
+  string id = 1;
+}
+
+message LikeAlbumResponse {}
+
+message UnlikeTrackRequest {
+  string id = 1;
+}
+
+message UnlikeTrackResponse {}
+
+message UnlikeAlbumRequest {
+  string id = 1;
+}
+
+message UnlikeAlbumResponse {}
+
+message GetLikedTracksRequest {}
+
+message GetLikedTracksResponse {
+  repeated Track tracks = 1;
+}
+
+message GetLikedAlbumsRequest {}
+
+message GetLikedAlbumsResponse {
+  repeated Album albums = 1;
+}
+
+message ScanLibraryRequest {
+  optional string path = 1;
+}
+
+message ScanLibraryResponse {}
+
+message SearchRequest {
+  string term = 1;
+}
+
+message SearchResponse {
+  repeated Track tracks = 1;
+  repeated Album albums = 2;
+  repeated Artist artists = 3;
+}
+
+service LibraryService {
+  rpc GetAlbums(GetAlbumsRequest) returns (GetAlbumsResponse);
+  rpc GetArtists(GetArtistsRequest) returns (GetArtistsResponse);
+  rpc GetTracks(GetTracksRequest) returns (GetTracksResponse);
+  rpc GetAlbum(GetAlbumRequest) returns (GetAlbumResponse);
+  rpc GetArtist(GetArtistRequest) returns (GetArtistResponse);
+  rpc GetTrack(GetTrackRequest) returns (GetTrackResponse);
+  rpc LikeTrack(LikeTrackRequest) returns (LikeTrackResponse);
+  rpc UnlikeTrack(UnlikeTrackRequest) returns (UnlikeTrackResponse);
+  rpc LikeAlbum(LikeAlbumRequest) returns (LikeAlbumResponse);
+  rpc UnlikeAlbum(UnlikeAlbumRequest) returns (UnlikeAlbumResponse);
+  rpc GetLikedTracks(GetLikedTracksRequest) returns (GetLikedTracksResponse);
+  rpc GetLikedAlbums(GetLikedAlbumsRequest) returns (GetLikedAlbumsResponse);
+  rpc ScanLibrary(ScanLibraryRequest) returns (ScanLibraryResponse);
+  rpc Search(SearchRequest) returns (SearchResponse);
+}

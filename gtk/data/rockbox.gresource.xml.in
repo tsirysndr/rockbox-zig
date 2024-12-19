@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="@PREFIX@/">
+    <file compressed="true" preprocess="xml-stripblanks" alias="metainfo.xml">@APP_ID@.metainfo.xml</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/album_details.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/album_tracks.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/albums.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/artist.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/artist_details.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/artists.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/current_playlist.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/file.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/files.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/likes.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/media_controls.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/preferences.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/search.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/song.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/songs.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/window.ui</file>
+    <file>icons/jpg/albumart.jpg</file>
+    <file>icons/jpg/disc.png</file>
+  </gresource>
+  <gresource prefix="@PREFIX@/icons/scalable/categories/">
+    <file alias="artist-symbolic.svg">icons/svg/artist-symbolic.svg</file>
+    <file alias="disc-symbolic.svg">icons/svg/disc-symbolic.svg</file>
+    <file alias="directory-symbolic.svg">icons/svg/directory-symbolic.svg</file>
+    <file alias="harddrive-symbolic.svg">icons/svg/harddrive-symbolic.svg</file>
+    <file alias="heart-outline-symbolic.svg">icons/svg/heart-outline-symbolic.svg</file>
+    <file alias="heart-symbolic.svg">icons/svg/heart-symbolic.svg</file>
+    <file alias="music-symbolic.svg">icons/svg/music-symbolic.svg</file>
+    <file alias="music-alt-symbolic.svg">icons/svg/music-alt-symbolic.svg</file>
+    <file alias="options-symbolic.svg">icons/svg/options-symbolic.svg</file>
+    <file alias="chevronup-symbolic.svg">icons/svg/chevronup-symbolic.svg</file>
+    <file alias="chevrondown-symbolic.svg">icons/svg/chevrondown-symbolic.svg</file>
+    <file alias="close-alt-symbolic.svg">icons/svg/close-alt-symbolic.svg</file>
+  </gresource>
+</gresources>

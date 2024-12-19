@@ -1,0 +1,247 @@
+using Gtk 4.0;
+
+template $MediaControls : Box {
+  orientation: horizontal;
+  spacing: 10;
+  margin-start: 12;
+  margin-end: 12;
+  valign: center;
+
+  Box {
+    margin-top: 32;
+    margin-bottom: 32;
+    
+    Button shuffle_button {
+      icon-name: "media-playlist-shuffle-symbolic";
+      action-name: "app.shuffle";
+      tooltip-text: _("Shuffle");
+
+      styles [
+        "inactive-button"
+      ]
+    }
+
+    styles [
+      "button-box"
+    ]
+  }
+
+  Button previous_button {
+    icon-name: "media-skip-backward-symbolic";
+    action-name: "app.previous";
+    tooltip-text: _("Previous");
+
+    styles [
+      "media-control-button"
+    ]
+  }
+
+  Button play_pause_button {
+    action-name: "app.play_pause";
+    tooltip-text: _("Play");
+
+    child: Image play_icon {
+      icon-name: "media-playback-start-symbolic";
+      pixel-size: 30;
+    };
+
+    styles [
+      "media-control-button",
+    ]
+  }
+
+  Button next_button {
+    icon-name: "media-skip-forward-symbolic";
+    action-name: "app.next";
+    tooltip-text: _("Next");
+
+    styles [
+      "media-control-button"
+    ]
+  }
+
+  Box {
+    margin-top: 32;
+    margin-bottom: 32;
+
+    Button repeat_button {
+      icon-name: "media-playlist-repeat-symbolic";
+      action-name: "app.repeat";
+      tooltip-text: _("Repeat");
+
+      styles [
+        "inactive-button"
+      ]
+    }
+
+    styles [
+      "button-box"
+    ]
+  }
+
+  Box {
+    margin-start: 10;
+
+    Image album_art {
+      width-request: 68;
+      height-request: 68;
+      resource: "/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg";
+    }
+
+    styles [
+      "media-album-art"
+    ]
+  }
+  
+
+  Box current_song_details {
+    hexpand: true;
+    orientation: vertical;
+    spacing: 0;
+    valign: center;
+    margin-top: 17;
+    margin-end: 10;
+
+    Box media_current_song_box {
+      hexpand: true;
+      orientation: horizontal;
+      spacing: 10;
+      valign: center;
+
+      Box media_control_bar_current_song {
+        hexpand: true;
+        orientation: vertical;
+        spacing: 0;
+        valign: center;
+
+        Box {
+          hexpand: true;
+          orientation: horizontal;
+          halign: fill;
+          
+          Box {
+            hexpand: true;
+            halign: fill;
+
+            Label title {
+              label: "No song playing";
+              halign: center;
+              hexpand: true;
+              margin-start: 80;
+
+              styles [
+                "media-title"
+              ]
+            }
+          }
+
+          Button heart_button {
+            tooltip-text: _("Like");
+            child: Image heart_icon {
+              icon-name: "heart-outline-symbolic";
+              pixel-size: 24;
+            };
+
+            action-name: "app.like";
+            halign: end;
+            width-request: 30;
+            height-request: 30;
+            visible: false;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          MenuButton more_button {
+            tooltip-text: _("More");
+            menu-model: context_menu;
+            visible: false;
+            child: Image {
+              icon-name: "options-symbolic";
+              pixel-size: 24;
+            };
+
+            halign: end;
+            width-request: 30;
+            height-request: 30;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+        }
+
+        Label artist_album {
+          label: "";
+          halign: center;
+          max-width-chars: 60;
+          wrap: true;
+          wrap-mode: word_char;
+          natural-wrap-mode: word;
+          margin-bottom: 3;
+        }
+      }
+    }
+      
+    Box media_control_bar_progress {
+      hexpand: true;
+      valign: center;
+      orientation: horizontal;
+      spacing: 5;
+      visible: false;
+      margin-bottom: 5;
+
+      Label elapsed {
+        label: "00:00";
+        halign: end;
+        margin-start: 5;
+
+        styles [
+          "media-time"
+        ]
+      }
+
+      Scale progress_bar {
+        hexpand: true;
+        adjustment: Adjustment {
+          lower: 0;
+          upper: 100;
+          step-increment: 1;
+        };
+        tooltip-text: _("Progress");
+      }
+
+      Label duration {
+        label: "00:00";
+        halign: end;
+        margin-end: 5;
+
+        styles [
+          "media-time"
+        ]
+      }
+    }
+  }
+
+  Box {  
+    Button playlist_button {
+      icon-name: "chevronup-symbolic";
+      action-name: "app.show-playlist";
+      tooltip-text: _("Show Play Queue");
+      visible: false;
+
+      styles [
+        "media-control-button"
+      ]
+    }
+  }
+}
+
+menu context_menu {
+  section {
+    item (_("Go to Artist"), "app.go-to-artist")
+    item (_("Go to Album"), "app.go-to-album")
+  }
+}

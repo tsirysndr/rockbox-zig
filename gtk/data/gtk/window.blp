@@ -1,0 +1,410 @@
+
+using Gtk 4.0;
+using Adw 1;
+
+Adw.StatusPage notice_no_results {
+  icon-name: "system-search-symbolic";
+  title: _("No Songs Found");
+  description: _("Try a different search");
+  vexpand: true;
+  valign: center;
+}
+
+template $RbApplicationWindow : Adw.ApplicationWindow {
+  title: _("Rockbox");
+  width-request: 980;
+  height-request: 700;
+
+  Adw.Breakpoint {
+    condition ("max-width: 564px")
+
+    setters {
+      overlay_split_view.collapsed: true;
+    }
+  }
+
+  Adw.ToastOverlay toast_overlay {
+    Adw.NavigationView navigation_view {
+      Adw.NavigationPage library_page {
+        title: _("Albums");
+
+        Adw.OverlaySplitView overlay_split_view {
+          sidebar-width-fraction: .2;
+
+          [sidebar]
+          Adw.NavigationPage sidebar_navigation_page {
+            title: _("Rockbox");
+
+            Adw.ToolbarView {
+              [top]
+              Adw.HeaderBar {
+                [start]
+                Button {
+                  icon-name: "sidebar-show-symbolic";
+                  action-name: "win.show_sidebar";
+                  tooltip-text: _("Toggle Sidebar");
+                }
+              }
+
+              ScrolledWindow {
+                hscrollbar-policy: never;
+
+                ListBox sidebar {
+                  Box albums_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    margin-end: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "disc-symbolic";
+                      pixel-size: 20;
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Albums");
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  Box artists_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "artist-symbolic";
+                      pixel-size: 20;
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Artists");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  Box songs_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "music-symbolic";
+                      pixel-size: 20;
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Songs");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  Box likes_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "heart-outline-symbolic";
+                      pixel-size: 20;
+                      margin-top: 3;
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Likes");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  Box files_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "harddrive-symbolic";
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Files");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
+
+                  styles [
+                    "navigation-sidebar"
+                  ]
+                }
+              }
+            }
+          }
+
+          Adw.ToolbarView library_view {
+            [top]
+            Adw.HeaderBar header_bar {
+              show-back-button: true;
+
+              [start]
+              Button show_sidebar_button {
+                icon-name: "sidebar-show-symbolic";
+                action-name: "win.show_sidebar";
+                tooltip-text: _("Toggle Sidebar");
+                visible: bind overlay_split_view.show-sidebar inverted;
+              }
+
+              [start]
+              Button go_back_button {
+                tooltip-text: _("Go Back");
+                icon-name: "go-previous-symbolic";
+                action-name: "win.go_back";
+                visible: false;
+              }
+              
+              [start]
+              Button play_all_button {
+                tooltip-text: _("Play All Songs");
+                icon-name: "media-playback-start-symbolic";
+                action-name: "app.play_all";
+                visible: false;
+              }
+              
+              [start]
+              Button shuffle_all_button {
+                tooltip-text: _("Shuffle All Songs");
+                icon-name: "media-playlist-shuffle-symbolic";
+                action-name: "app.shuffle_all";
+                visible: false;
+              }
+
+              [end]
+              MenuButton primary_menu_button {
+                tooltip-text: _("Main Menu");
+                icon-name: "open-menu-symbolic";
+                menu-model: primary_menu;
+              }
+
+              [end]
+              ToggleButton search_button {
+                tooltip-text: _("Search");
+                icon-name: "system-search-symbolic";
+                action-name: "win.toggle_search";
+              }
+            }
+
+            [top]
+            SearchBar search_bar {
+              search-mode-enabled: bind search_button.active bidirectional;
+              key-capture-widget: navigation_view;
+
+              Adw.Clamp {
+                maximum-size: 500;
+                tightening-threshold: 500;
+
+                SearchEntry search_entry {
+                  placeholder-text: _("Search");
+                  hexpand: true;
+
+                  ShortcutController {
+                    Shortcut {
+                      trigger: "Escape";
+                      action: "action(win.toggle_search)";
+                    }
+                  }
+                }
+              }
+            }
+
+            Overlay library_overlay {
+                Adw.ViewStack main_stack {
+
+                  Adw.ViewStackPage albums_page {
+                    name: "albums-page";
+                    title: _("Albums");
+                    child: ScrolledWindow albums_scrolled_window {
+                      $Albums albums {}
+                    };
+                  }
+                  
+                  Adw.ViewStackPage placeholder_page {
+                    name: "placeholder-page";
+                    title: _("Rockbox");
+                    child: Box placeholder {
+                       hexpand: true;
+                       vexpand: true;
+                       halign: center;
+                       valign: center;
+                       orientation: vertical;
+              
+                       Image {
+                          resource: "/io/github/tsirysndr/Rockbox/icons/jpg/disc.png";
+                          width-request: 300;
+                          height-request: 300;
+                          margin-top: 20;
+                       }
+
+                       Label oops_message {
+                          label: _("Oops! Can't connect to rockbox daemon.");
+                          halign: center;
+                          margin-bottom: 10;
+
+                          styles [
+                            "bold" 
+                          ]
+                       }
+
+                       Label {
+                          use-markup: true;
+                          label: _("Please make sure it's running. Rockbox CLI installation instructions can be found <a href='https://github.com/tsirysndr/rockbox-zig?tab=readme-ov-file#-installation'>here</a>");
+                          halign: center;
+                       }
+                       
+                       Label {
+                          label: _("Execute the following command in your terminal to start the daemon:");
+                          halign: center;
+                       }
+
+                        Adw.Clamp {
+                            maximum-size: 400;
+                            margin-top: 15;
+                            
+                            Adw.PreferencesGroup {
+                              Adw.ActionRow {
+                                title: _("rockbox start");
+                                
+                                styles [
+                                  "monospace"
+                                ]
+
+                                Button {
+                                    valign: center;
+                                    icon-name: "edit-copy-symbolic";
+                                    tooltip-text: _("Copy");
+                                    action-name: "app.copy_command";
+                                    
+                                    styles [
+                                      "transparent-button"
+                                    ]
+                                }
+
+                              }
+                            }
+                        }
+
+                    };
+                  }
+
+                  Adw.ViewStackPage album_details_page {
+                    name: "album-details-page";
+                    title: _("Album");
+                    child: ScrolledWindow  {
+                      $AlbumDetails album_details {}
+                    };
+                  }
+
+                  Adw.ViewStackPage songs_page {
+                    name: "songs-page";
+                    title: _("Songs");
+                    child: ScrolledWindow songs_scrolled_window {
+                      $Songs songs {}
+                    };
+                  }
+
+                  Adw.ViewStackPage artists_page {
+                    name: "artists-page";
+                    title: _("Artists");
+                    child: ScrolledWindow  artists_scrolled_window {
+                      $Artists artists {}
+                    };
+                  }
+
+                  Adw.ViewStackPage artist_details_page {
+                    name: "artist-details-page";
+                    title: _("Artist");
+                    child: ScrolledWindow  {
+                      $ArtistDetails artist_details {}
+                    };
+                  }
+
+                  Adw.ViewStackPage likes_page {
+                    name: "likes-page";
+                    title: _("Likes");
+                    child: ScrolledWindow likes_scrolled_window {
+                      $Likes likes {}
+                    };
+                  }
+
+                  Adw.ViewStackPage files_page {
+                    name: "files-page";
+                    title: _("Files");
+                    child: ScrolledWindow  {
+                      $Files files {}
+                    };
+                  }
+                  
+                  Adw.ViewStackPage current_playlist_page {
+                    name: "current-playlist-page";
+                    title: _("Play Queue");
+                    child: $CurrentPlaylist current_playlist {};
+                  }
+                  
+                  Adw.ViewStackPage artist_tracks_page {
+                    name: "artist-tracks-page";
+                    title: _("Artist Tracks");
+                    child: ScrolledWindow  artist_tracks_scrolled_window {
+                      $Songs artist_tracks {}
+                    };
+                  }
+                  
+                  Adw.ViewStackPage search_page {
+                    name: "search-page";
+                    title: _("Search Results");
+                    child: $Search search {};
+                  }
+
+                }
+            }
+
+            [bottom]
+            $MediaControls media_control_bar {}
+          }
+        }
+      }
+    }
+  }
+}
+
+menu primary_menu {
+  section {
+    item {
+      label: _("Refresh Library");
+      action: "app.refresh_library";
+    }
+
+  }
+
+  section {
+    item (_("Preferences"), "app.preferences")
+    item (_("Keyboard Shortcuts"), "win.show-help-overlay")
+    item (_("About Rockbox"), "app.about")
+  }
+}
+

@@ -1,0 +1,472 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $RbPreferencesDialog: Adw.PreferencesDialog {
+  search-enabled: true;
+
+  Adw.PreferencesPage {
+    name: "general";
+    title: _("General");
+    icon-name: "preferences-system-symbolic";
+
+    Adw.PreferencesGroup library_group {
+      title: _("Library");
+
+      Adw.PreferencesRow {
+         title: _("Library location");
+         
+         Box {
+            orientation: horizontal;
+            spacing: 10;
+            margin-start: 10;
+            margin-end: 10;
+            margin-top: 10;
+            margin-bottom: 10;
+
+            Label library_location_label {
+              halign: start;
+              hexpand: true;
+              label: "Music";
+            }
+
+            Button directory_picker_button {
+              icon-name: "folder-symbolic";
+              valign: center;
+              halign: end;
+              hexpand: false;
+            }
+         }
+
+      }
+
+
+    }
+
+    Adw.PreferencesGroup sound_group {
+      title: _("Sound");
+      
+      Adw.SpinRow bass {
+        title: _("Bass");
+        name: "bass";
+        adjustment: Adjustment {
+          lower: -24;
+          upper: 24;
+          step-increment: 1;
+          value: 0;
+        };
+        
+      }
+      
+      Adw.SpinRow treble {
+        title: _("Treble");
+        name: "treble";
+        adjustment: Adjustment {
+          lower: -24;
+          upper: 24;
+          step-increment: 1;
+          value: 0;
+        };
+
+      }
+      
+      Adw.SpinRow balance {
+        title: _("Balance");
+        name: "balance";
+        adjustment: Adjustment {
+          lower: -100;
+          upper: 100;
+          step-increment: 1;
+          value: 0;
+        };
+
+      }
+      
+      Adw.SwitchRow enable_equalizer {
+        title: _("Equalizer");
+      }
+
+      Adw.PreferencesRow { 
+        Box {
+          orientation: horizontal;
+          spacing: 10;
+          margin-start: 10;
+          margin-end: 10;
+          margin-top: 10;
+          margin-bottom: 10;
+          valign: center;
+          halign: center;
+          hexpand: true;
+
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+            
+
+            Scale equalizer_band_1 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label{
+              label: _("1 Hz");
+              halign: center;
+            }
+          }
+ 
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+
+            Scale equalizer_band_2 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label {
+              label: _("64 Hz");
+              halign: center;
+            }
+          }
+
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+
+            Scale equalizer_band_3 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label {
+              label: _("125 Hz");
+              halign: center;
+            }
+          }
+
+        
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+
+            Scale equalizer_band_4 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label {
+              label: _("250 Hz");
+              halign: center;
+            }
+          }
+
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+
+            Scale equalizer_band_5 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label {
+              label: _("500 Hz");
+              halign: center;
+            }
+          }
+
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+
+            Scale equalizer_band_6 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label {
+              label: _("1 kHz");
+              halign: center;
+            }
+          }
+
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+
+            Scale equalizer_band_7 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label {
+              label: _("2 kHz");
+              halign: center;
+            }
+          }
+
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+
+            Scale equalizer_band_8 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label {
+              label: _("4 kHz");
+              halign: center;
+            }
+          }
+
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+
+            Scale equalizer_band_9 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label {
+              label: _("8 kHz");
+              halign: center;
+            }
+          }
+
+          Box {
+            orientation: vertical;
+            halign: center;
+            vexpand: true;
+            spacing: 5;
+
+            Scale equalizer_band_10 {
+              orientation: vertical;
+              inverted: true;
+              vexpand: true;
+              height-request: 200;
+              adjustment: Adjustment {
+                lower: -24;
+                upper: 24;
+                step-increment: 0.1;
+                value: 0.0;
+              };
+            }
+
+            Label {
+              label: _("16 kHz");
+              halign: center;
+            }
+          }
+
+        }
+      }
+    }
+
+    Adw.PreferencesGroup playback_group {
+      title: _("Playback");
+      
+      Adw.ComboRow repeat {
+        title: _("Repeat");
+        model: repeat_model;
+      }
+
+      Adw.SwitchRow shuffle {
+        title: _("Shuffle");
+      }
+      
+      Adw.SwitchRow fade_on_stop {
+        title: _("Fade on Stop/Pause");
+      }
+        
+      Adw.ComboRow crossfade {
+        title: _("Crossfade");
+        model: crossfade_model;
+      }
+
+      Adw.SpinRow fade_in_delay {
+        title: _("Fade-In Delay");
+        adjustment: Adjustment {
+          lower: 0;
+          upper: 14;
+          step-increment: 1.0;
+          value: 0.0;
+        };
+
+      }
+
+      Adw.SpinRow fade_in_duration{
+        title: _("Fade-In Duration");
+        adjustment: Adjustment {
+          lower: 0;
+          upper: 14;
+          step-increment: 1.0;
+          value: 0.0;
+        };
+
+      }
+
+      Adw.SpinRow fade_out_delay {
+        title: _("Fade-Out Delay");
+        adjustment: Adjustment {
+          lower: 0;
+          upper: 14;
+          step-increment: 1.0;
+          value: 0.0;
+        };
+
+
+      }
+
+      Adw.SpinRow fade_out_duration {
+        title: _("Fade-Out Duration");
+        adjustment: Adjustment {
+          lower: 0;
+          upper: 14;
+          step-increment: 1.0;
+          value: 0.0;
+        };
+
+
+      }
+    
+      Adw.ComboRow fade_out_mode {
+        title: _("Fade-Out Mode");
+        model: fade_out_mode_model;
+      }
+
+      Adw.ComboRow replaygain {
+        title: _("Replaygain");
+        model: replaygain_model;
+      }
+    }
+
+  }
+}
+
+Gtk.StringList repeat_model {
+  strings [
+    'Off',
+    'All',
+    'One',
+    'Shuffle',
+    'A-B'
+  ]
+}
+
+Gtk.StringList crossfade_model {
+  strings [
+    'Off',
+    'Automatic Track Change Only',
+    'Manual Track Change Only',
+    'Shuffle',
+    'Shuffle or Manual Track Skip',
+    'Always'
+  ]
+}
+
+Gtk.StringList fade_out_mode_model {
+  strings [
+    'Mix',
+    'Crossfade'
+  ]
+}
+
+Gtk.StringList replaygain_model {
+  strings [
+    'Track Gain',
+    'Album Gain',
+    'Track Gain if Shuffling',
+    'Off'
+  ]
+}

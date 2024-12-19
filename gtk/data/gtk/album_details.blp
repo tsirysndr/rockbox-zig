@@ -1,0 +1,215 @@
+using Gtk 4.0;
+
+template $AlbumDetails : Box {
+  hexpand: true;
+  orientation: vertical;
+  spacing: 0;
+  margin-start: 25;
+  margin-end: 25;
+  margin-top: 25;
+  margin-bottom: 25;
+
+  Box album_info {
+    orientation: horizontal;
+    spacing: 0;
+
+    Box {
+      Image album_cover {
+        halign: start;
+        valign: start;
+        width-request: 230;
+        height-request: 230;
+        resource: "/io/github/tsirysndr/Rockbox/icons/jpg/albumart.jpg";
+      }
+      
+      styles [
+        "album-cover"
+      ]
+    }
+
+    Box album_details {
+      orientation: vertical;
+      spacing: 0;
+      hexpand: true;
+      valign: center;
+
+      Label album_title {
+         label: "";
+         halign: start;
+         max-width-chars: 200;
+         wrap: true;
+         wrap-mode: word_char;
+         natural-wrap-mode: word;
+         margin-bottom: 3;
+         margin-start: 20;
+
+         styles [
+           "album-title"
+         ]
+      }
+
+      Label album_artist {
+         label: "";
+         halign: start;
+         max-width-chars: 200;
+         wrap: true;
+         wrap-mode: word_char;
+         natural-wrap-mode: word;
+         margin-start: 20;
+
+         styles [
+           "album-artist"
+         ]
+      }
+
+      Label album_tracks {
+         label: "";
+         halign: start;
+         margin-top: 25;
+         margin-start: 20;
+
+         styles [
+           "album-tracks"
+         ]
+      }
+
+      Label album_year {
+         label: "";
+         halign: start;
+         margin-top: 5;
+         margin-bottom: 15;
+         margin-start: 20;
+
+         styles [
+           "album-year"
+         ]
+      }
+
+      Box album_actions {
+        orientation: horizontal;
+        spacing: 0;
+        halign: start;
+        valign: center;
+
+        Box {
+          orientation: vertical;
+          margin-end: 10;
+
+          Button album_play_button {
+            tooltip-text: _("Play album");
+            icon-name: "media-playback-start-symbolic";
+            action-name: "app.play-album";
+            halign: center;
+            valign: center;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          Button {
+            label: "Play";
+            action-name: "app.play-album";
+            halign: center;
+            valign: center;
+            
+            styles [
+              "transparent-button"
+            ]
+          }
+        }
+
+        Box {
+          orientation: vertical;
+          margin-end: 10; 
+            
+          Button album_shuffle_button {
+            tooltip-text: _("Shuffle album");
+            icon-name: "media-playlist-shuffle-symbolic";
+            action-name: "app.shuffle-album";
+            halign: center;
+            valign: center;
+            margin-end: 0;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+        
+        
+          Button {
+            label: "Shuffle";
+            action-name: "app.shuffle-album";
+            halign: center;
+            valign: center;
+            
+            styles [
+              "transparent-button"
+            ]
+          }
+        }
+
+
+        Box {
+          orientation: vertical;
+          margin-end: 10;
+
+          MenuButton album_more_button {
+            tooltip-text: _("More");
+            menu-model: context_menu;
+            child: Image {
+              icon-name: "options-symbolic";
+              pixel-size: 24;
+            };
+
+            halign: center;
+            valign: center;
+            margin-end: 0;
+            margin-start: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+
+            styles [
+              "transparent-button"
+            ]
+          }
+
+          MenuButton {
+            label: "More";
+            menu-model: context_menu;
+            halign: center;
+            valign: center;
+            
+            styles [
+              "transparent-button"
+            ]
+          }
+
+        }
+
+      }
+    }
+  }
+
+  Box album_tracklist {
+    hexpand: true;
+    halign: fill;
+    orientation: vertical;
+  }
+}
+
+menu context_menu {
+  section {
+    item (_("Play Next"), "app.album.play-next")
+    item (_("Play Last"), "app.album.play-last")
+    item (_("Add Shuffled"), "app.album.add-shuffled")
+    item (_("Play Last Shuffled"), "app.album.play-last-shuffled")
+    item (_("Play Shuffled"), "app.album.play-shuffled")
+  }
+}
