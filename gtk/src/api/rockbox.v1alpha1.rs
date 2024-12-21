@@ -4316,11 +4316,8 @@ pub struct StartResponse {}
 pub struct SyncRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SyncResponse {}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RemoveAllTracksRequest {
-    #[prost(int32, repeated, tag = "1")]
-    pub positions: ::prost::alloc::vec::Vec<i32>,
-}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct RemoveAllTracksRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct RemoveAllTracksResponse {}
 #[derive(Clone, PartialEq, ::prost::Message)]

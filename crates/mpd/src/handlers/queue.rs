@@ -342,7 +342,7 @@ pub async fn handle_clear(
     *idle = true;
 
     ctx.playlist
-        .remove_all_tracks(RemoveAllTracksRequest { positions: vec![] })
+        .remove_all_tracks(RemoveAllTracksRequest {})
         .await?;
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;

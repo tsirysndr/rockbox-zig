@@ -70,9 +70,7 @@ message SyncRequest {}
 
 message SyncResponse {}
 
-message RemoveAllTracksRequest {
-  repeated int32 positions = 1;
-}
+message RemoveAllTracksRequest {}
 
 message RemoveAllTracksResponse {}
 
