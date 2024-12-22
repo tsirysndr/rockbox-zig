@@ -49,7 +49,7 @@ docker run \
 Run the following commands to build the project:
 
 ```sh
-sudo apt-get install libusb-dev libsdl1.2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler
+sudo apt-get install libusb-dev libsdl1.2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler cmake
 mkdir -p build && cd build
 ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=$HOME/.local
 make zig

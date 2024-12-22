@@ -19,7 +19,8 @@ RUN apt-get update && apt-get install -y build-essential \
   wget \
   zip \
   unzip \
-  protobuf-compiler
+  protobuf-compiler \
+  cmake
 
 RUN curl -Ssf https://pkgx.sh | sh
 
