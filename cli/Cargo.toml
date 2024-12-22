@@ -5,7 +5,7 @@ version = "0.1.0"
 
 [dependencies]
 anyhow = "1.0.91"
-clap = "4.5.20"
+clap = "4.5.16"
 opener = "0.7.2"
 owo-colors = "4.1.0"
 prost = "0.13.2"
@@ -13,6 +13,11 @@ tokio = { version = "1.36.0", features = ["full"] }
 tonic = "0.12.3"
 tonic-reflection = "0.12.3"
 tonic-web = "0.12.3"
+flate2 = { version = "1.0.30", default-features = false }
+zip = { version = "=2.1.6", default-features = false, features = [
+  "deflate-flate2",
+] }
+deno = { path = "../deno/cli", features = ["upgrade", "__vendored_zlib_ng"] } # a custom fork of Deno with Rockbox extension
 
 [build-dependencies]
 tonic-build = "0.12.3"

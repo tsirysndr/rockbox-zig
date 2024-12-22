@@ -12,7 +12,7 @@ gtk = { version = "0.9", package = "gtk4", features = ["gnome_46"] }
 gtk-blueprint = "0.2.0"
 md5 = "0.7.0"
 prost = "0.13.2"
-reqwest = { version = "0.12.7", features = [
+reqwest = { version = "0.12.5", features = [
   "rustls-tls",
   "json",
   "blocking",

@@ -2,7 +2,7 @@ use anyhow::Error;
 use clap::{arg, Command};
 use owo_colors::OwoColorize;
 
-use cmd::{community::*, scan::*, start::*, webui::*};
+use cmd::{community::*, repl::*, scan::*, start::*, webui::*};
 
 pub mod cmd;
 
@@ -40,6 +40,11 @@ fn cli() -> Command {
                 .about("Open the Rockbox web UI in your browser")
                 .visible_alias("web"),
         )
+        .subcommand(
+            Command::new("repl")
+                .about("Start the Rockbox REPL")
+                .visible_alias("shell"),
+        )
 }
 
 #[tokio::main]
@@ -59,6 +64,9 @@ async fn main() -> Result<(), Error> {
         }
         Some(("webui", _)) => {
             webui()?;
+        }
+        Some(("repl", _)) => {
+            repl();
         }
         _ => {
             start()?;
