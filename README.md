@@ -67,7 +67,7 @@ MacOS, currently not supported, but you can run in a docker container.
 
 ## 📦 Downloads
 
-- `Linux`: intel: [rockbox_2024.12.19_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.12.19/rockbox_2024.12.19_x86_64-linux.tar.gz) arm64: [rockbox_2024.12.19_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.12.19/rockbox_2024.12.19_aarch64-linux.tar.gz)
+- `Linux`: intel: [rockbox_2024.12.22_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.12.22/rockbox_2024.12.22_x86_64-linux.tar.gz) arm64: [rockbox_2024.12.22_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.12.22/rockbox_2024.12.22_aarch64-linux.tar.gz)
 
 
 ## ✨ Features
@@ -80,6 +80,7 @@ MacOS, currently not supported, but you can run in a docker container.
 - [x] Web Client (React)
 - [x] Fast search engine, built with [Tantivy](https://github.com/quickwit-oss/tantivy)
 - [x] Desktop Client (Electron/Gtk)
+- [x] Rockbox REPL
 - [ ] Terminal Client (TUI)
 - [ ] Android Library
 - [ ] Mobile version (React Native)
