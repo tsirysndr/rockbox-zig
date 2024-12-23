@@ -1,0 +1,13 @@
+[package]
+name = "rockbox-audio"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["staticlib", "lib"]
+
+[dependencies]
+libc.workspace = true

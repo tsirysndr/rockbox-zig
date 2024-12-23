@@ -8163,6 +8163,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-audio"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rockbox-chromecast"
 version = "0.1.0"
 dependencies = [
