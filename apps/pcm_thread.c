@@ -78,8 +78,7 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
         if (!new_buffer || pcm_data_size == 0) {
             free(stream);
             free(conv_buffer);
-            SDL_Delay(10); // Short delay before retrying to prevent busy looping
-            continue;
+            break;
         }
 
         pcm_play_dma_status_callback(PCM_DMAST_STARTED);
