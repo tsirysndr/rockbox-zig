@@ -1,3 +1,4 @@
+use std::env;
 use std::io::Write;
 use std::{fs::OpenOptions, path::Path};
 
@@ -5,6 +6,12 @@ const FIFO_PATH: &str = "/tmp/rockbox_audio_fifo";
 
 #[no_mangle]
 pub extern "C" fn process_pcm_buffer(data: *mut u8, size: usize) -> i32 {
+    if let Ok(var) = env::var("ROCKBOX_AUDIO_FIFO") {
+        if var.as_str() == "0" {
+            return 0;
+        }
+    }
+
     if !Path::new(FIFO_PATH).exists() {
         let cstr_path = std::ffi::CString::new(FIFO_PATH).unwrap();
         unsafe {
