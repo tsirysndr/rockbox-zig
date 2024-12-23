@@ -151,6 +151,10 @@ void pull_audio_data() {
     size_t data_size = 0;
     process_audio(cvt_status > 0 ? &cvt : NULL, data, &data_size);
 
+    if (data_size == 0)  {
+      free(data);
+      return;
+    }
     process_pcm_buffer(data, data_size);
 
     if (cvt_status > 0 && cvt.buf) {
@@ -166,7 +170,7 @@ void pull_audio_data() {
 static void pcm_thread(void) {
     while (true) {
         pull_audio_data();
-        sleep(HZ / 10); // Adjust sleep to match audio buffer requirements
+        sleep(HZ); 
     }
 }
 
