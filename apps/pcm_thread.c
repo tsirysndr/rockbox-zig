@@ -69,7 +69,7 @@ static void convert_audio_format(const void *input, uint8_t *output, size_t size
  */
 static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
     const void *pcm_data = NULL;
-    size_t pcm_data_size = BUFFER_SIZE;
+    size_t pcm_data_size = 0;
     bool new_buffer = false;
 
     uint8_t *stream = (uint8_t *)malloc(BUFFER_SIZE);
@@ -113,12 +113,14 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
 
         memcpy(data + *data_size, conv_buffer, converted_size);
         *data_size += converted_size;
+        
+        debugfn("Processed chunk size", chunksize);
+        debugfn("Processed total data size", *data_size);
+        debugfn("Processed remaining size", remaining);
 
         curr_data += chunk_size;
         remaining -= chunk_size;
 
-        debugfn("Processed chunk size", converted_size);
-        debugfn("Processed total data size", *data_size);
     }
 
     free(stream);
