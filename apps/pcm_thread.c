@@ -65,7 +65,7 @@ static void convert_audio_format(const void *input, uint8_t *output, size_t size
     }
 }
 
-q/**
+/**
  * Process audio data, handling conversion and buffering.
  */
 static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
