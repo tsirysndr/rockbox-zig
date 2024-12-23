@@ -1,24 +1,3 @@
-/***************************************************************************
- *             __________               __   ___.
- *   Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
- *   Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
- *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
- *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
- *                     \/            \/     \/    \/            \/
- * $Id$
- *
- * Copyright (C) 2024 - Tsiry Sandratraina
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
- * KIND, either express or implied.
- *
- ****************************************************************************/
-
 #include "config.h"
 #include "kernel.h"
 #include "logf.h"
@@ -34,6 +13,7 @@
 #include <string.h>
 
 #define BUFFER_SIZE 524000
+#define CIRCULAR_BUFFER_SIZE (BUFFER_SIZE * 2) // Double buffer size for circular buffer
 
 bool pcm_thread_is_initialized = false;
 
@@ -44,6 +24,46 @@ unsigned int pcm_thread_id = 0;
 
 extern void process_pcm_buffer(Uint8 *data, size_t size);
 extern void debugfn(const char *args, int value);
+
+/**
+ * Circular buffer structure.
+ */
+typedef struct {
+    Uint8 buffer[CIRCULAR_BUFFER_SIZE];
+    size_t head;
+    size_t tail;
+    size_t size;
+} CircularBuffer;
+
+static CircularBuffer circular_buffer = { .head = 0, .tail = 0, .size = 0 };
+
+/**
+ * Write data to the circular buffer.
+ */
+static void circular_buffer_write(CircularBuffer *cb, const Uint8 *data, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        cb->buffer[cb->head] = data[i];
+        cb->head = (cb->head + 1) % CIRCULAR_BUFFER_SIZE;
+        if (cb->size < CIRCULAR_BUFFER_SIZE) {
+            cb->size++;
+        } else {
+            cb->tail = (cb->tail + 1) % CIRCULAR_BUFFER_SIZE; // Overwrite oldest data
+        }
+    }
+}
+
+/**
+ * Read data from the circular buffer.
+ */
+static size_t circular_buffer_read(CircularBuffer *cb, Uint8 *data, size_t size) {
+    size_t bytes_read = 0;
+    while (bytes_read < size && cb->size > 0) {
+        data[bytes_read++] = cb->buffer[cb->tail];
+        cb->tail = (cb->tail + 1) % CIRCULAR_BUFFER_SIZE;
+        cb->size--;
+    }
+    return bytes_read;
+}
 
 /**
  * Convert audio format using SDL_AudioCVT.
@@ -111,16 +131,10 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
             converted_size = chunk_size;
         }
 
-        memcpy(data + *data_size, conv_buffer, converted_size);
-        *data_size += converted_size;
-        
-        debugfn("Processed chunk size", chunk_size);
-        debugfn("Processed total data size", *data_size);
-        debugfn("Processed remaining size", remaining);
+        circular_buffer_write(&circular_buffer, conv_buffer, converted_size);
 
         curr_data += chunk_size;
         remaining -= chunk_size;
-
     }
 
     free(stream);
@@ -131,7 +145,7 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
  * Pull audio data and process it for playback.
  */
 void pull_audio_data() {
-    const size_t THRESHOLD = 512 * 1024; // 512 KB;
+    const size_t THRESHOLD = 512 * 1024; // 512 KB
     Uint8 *data = (Uint8 *)malloc(THRESHOLD); // Allocate enough space for output audio
     if (!data) {
         logf("Memory allocation failed in pull_audio_data");
@@ -151,15 +165,18 @@ void pull_audio_data() {
     }
 
     size_t data_size = 0;
-    
     process_audio(cvt_status > 0 ? &cvt : NULL, data, &data_size);
 
-    if (data_size == 0)  {
-      free(data);
-      return;
+    size_t bytes_to_read = data_size;
+    while (bytes_to_read > 0) {
+        size_t chunk_size = circular_buffer_read(&circular_buffer, data, THRESHOLD);
+        if (chunk_size > 0) {
+            process_pcm_buffer(data, chunk_size);
+            bytes_to_read -= chunk_size;
+        } else {
+            break; // No more data to read
+        }
     }
-
-    process_pcm_buffer(data, data_size);
 
     if (cvt_status > 0 && cvt.buf) {
         free(cvt.buf);
@@ -174,7 +191,7 @@ void pull_audio_data() {
 static void pcm_thread(void) {
     while (true) {
         pull_audio_data();
-        sleep(HZ / 2); 
+        sleep(HZ / 2);
     }
 }
 
@@ -197,4 +214,3 @@ void INIT_ATTR pcm_thread_init(void) {
 
     pcm_thread_is_initialized = true;
 }
-
