@@ -118,8 +118,6 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
       converted_size = chunk_size;
     }
 
-    debugfn("Data size: %d", *data_size);
-
     // Accumulate data into the final output
     memcpy(data + *data_size, conv_buffer, converted_size);
     *data_size += converted_size;
@@ -127,7 +125,8 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
     // Update pointers/counters
     curr_data += chunk_size;
     remaining -= chunk_size;
-    process_pcm_buffer(conv_buffer, converted_size);
+    process_pcm_buffer(data, *data_size);
+    debugfn("Data size: %d", *data_size);
   }
 
   free(stream);
