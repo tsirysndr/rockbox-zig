@@ -12,6 +12,10 @@ pub extern "C" fn process_pcm_buffer(data: *mut u8, size: usize) -> i32 {
         }
     }
 
+    if env::var("ROCKBOX_AUDIO_FIFO").is_err() {
+        return 0;
+    }
+
     if !Path::new(FIFO_PATH).exists() {
         let cstr_path = std::ffi::CString::new(FIFO_PATH).unwrap();
         unsafe {

@@ -10,4 +10,5 @@ repository.workspace = true
 crate-type = ["staticlib", "lib"]
 
 [dependencies]
+cpal = "0.15.3"
 libc.workspace = true

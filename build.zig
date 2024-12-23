@@ -4243,6 +4243,7 @@ const all_sources = [_][]const u8{
     "apps/keymaps/keymap-sdl.c",
     "apps/server_thread.c",
     "apps/broker_thread.c",
+    "apps/pcm_thread.c",
     "build/lang/lang_core.c",
 };
 
