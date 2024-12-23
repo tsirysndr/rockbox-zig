@@ -1,22 +1,8 @@
-/***************************************************************************
- *             __________               __   ___.
- *   Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
- *   Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
- *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
- *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
- *                     \/            \/     \/    \/            \/
- * $Id$
- *
- * Copyright (C) 2024 - Tsiry Sandratraina
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
- * KIND, either express or implied.
- *
+/*************************************************************************** * __________ __ ___. * Open \______ \ ____ ____ | | _\_ |__ _______ ___ * Source | 
+ _// _ \_/ ___\| |/ /| __ \ / _ \ \/ / * Jukebox | | ( <_> ) \___| < | \_\ ( <_> > < < * Firmware |____|_ /\____/ \___ >__|_ \|___ /\____/__/\_ \ * \/ \/ \/ \/ \/ 
+ * $Id$ * * Copyright (C) 2024 - Tsiry Sandratraina * * This program is free software; you can redistribute it and/or * modify it under the terms of the GNU 
+ General Public License * as published by the Free Software Foundation; either version 2 * of the License, or (at your option) any later version. * * This 
+ software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY * KIND, either express or implied. * 
  ****************************************************************************/
 
 #include "config.h"
@@ -68,63 +54,71 @@ static void convert_audio_format(const void *input, uint8_t *output, size_t size
  * Process audio data, handling conversion and buffering.
  */
 static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
-    const void *pcm_data = NULL;
-    size_t pcm_data_size = 0;
-    bool new_buffer = false;
+    const size_t THRESHOLD = 512 * 1024; // 512 KB
 
-    uint8_t *stream = (uint8_t *)malloc(BUFFER_SIZE);
-    uint8_t *conv_buffer = (uint8_t *)malloc(BUFFER_SIZE * (cvt ? cvt->len_mult : 1));
+    *data_size = 0; // Initialize data size to zero
 
-    if (!stream || !conv_buffer) {
-        logf("Memory allocation failed in process_audio");
-        free(stream);
-        free(conv_buffer);
-        return;
-    }
+    while (*data_size < THRESHOLD) {
+        const void *pcm_data = NULL;
+        size_t pcm_data_size = 0;
+        bool new_buffer = false;
 
-    *data_size = 0;
+        uint8_t *stream = (uint8_t *)malloc(BUFFER_SIZE);
+        uint8_t *conv_buffer = (uint8_t *)malloc(BUFFER_SIZE * (cvt ? cvt->len_mult : 1));
 
-    new_buffer = pcm_play_dma_complete_callback(PCM_DMAST_OK, &pcm_data, &pcm_data_size);
-
-    if (!new_buffer || pcm_data_size == 0) {
-        free(stream);
-        free(conv_buffer);
-        return;
-    }
-
-    pcm_play_dma_status_callback(PCM_DMAST_STARTED);
-
-    size_t remaining = pcm_data_size;
-    const uint8_t *curr_data = (const uint8_t *)pcm_data;
-
-    while (remaining > 0) {
-        size_t chunk_size = (remaining < BUFFER_SIZE) ? remaining : BUFFER_SIZE;
-
-        memcpy(stream, curr_data, chunk_size);
-
-        size_t converted_size = 0;
-        if (cvt && cvt->needed) {
-            convert_audio_format(stream, conv_buffer, chunk_size, cvt);
-            converted_size = (size_t)cvt->len_cvt;
-        } else {
-            memcpy(conv_buffer, stream, chunk_size);
-            converted_size = chunk_size;
+        if (!stream || !conv_buffer) {
+            logf("Memory allocation failed in process_audio");
+            free(stream);
+            free(conv_buffer);
+            return;
         }
 
-        memcpy(data + *data_size, conv_buffer, converted_size);
-        *data_size += converted_size;
-        
-        debugfn("Processed chunk size", chunk_size);
-        debugfn("Processed total data size", *data_size);
-        debugfn("Processed remaining size", remaining);
+        new_buffer = pcm_play_dma_complete_callback(PCM_DMAST_OK, &pcm_data, &pcm_data_size);
 
-        curr_data += chunk_size;
-        remaining -= chunk_size;
+        if (!new_buffer || pcm_data_size == 0) {
+            free(stream);
+            free(conv_buffer);
+            SDL_Delay(10); // Short delay before retrying to prevent busy looping
+            continue;
+        }
 
+        pcm_play_dma_status_callback(PCM_DMAST_STARTED);
+
+        size_t remaining = pcm_data_size;
+        const uint8_t *curr_data = (const uint8_t *)pcm_data;
+
+        while (remaining > 0) {
+            size_t chunk_size = (remaining < BUFFER_SIZE) ? remaining : BUFFER_SIZE;
+
+            memcpy(stream, curr_data, chunk_size);
+
+            size_t converted_size = 0;
+            if (cvt && cvt->needed) {
+                convert_audio_format(stream, conv_buffer, chunk_size, cvt);
+                converted_size = (size_t)cvt->len_cvt;
+            } else {
+                memcpy(conv_buffer, stream, chunk_size);
+                converted_size = chunk_size;
+            }
+
+            memcpy(data + *data_size, conv_buffer, converted_size);
+            *data_size += converted_size;
+
+            debugfn("Processed chunk size", chunk_size);
+            debugfn("Processed total data size", *data_size);
+            debugfn("Processed remaining size", remaining);
+
+            curr_data += chunk_size;
+            remaining -= chunk_size;
+        }
+
+        free(stream);
+        free(conv_buffer);
+
+        if (*data_size >= THRESHOLD) {
+            break;
+        }
     }
-
-    free(stream);
-    free(conv_buffer);
 }
 
 /**
