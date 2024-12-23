@@ -19,23 +19,22 @@ pub extern "C" fn process_pcm_buffer(data: *mut u8, size: usize) -> i32 {
                 return -1;
             }
         }
+    }
+    let mut fifo = match OpenOptions::new().write(true).open(FIFO_PATH) {
+        Ok(f) => f,
+        Err(_) => return -2,
+    };
 
-        let mut fifo = match OpenOptions::new().write(true).open(FIFO_PATH) {
-            Ok(f) => f,
-            Err(_) => return -2,
-        };
-
-        let pcm_data = unsafe {
-            if data.is_null() {
-                return -3;
-            }
-
-            std::slice::from_raw_parts(data, size).to_vec()
-        };
-
-        if fifo.write_all(&pcm_data).is_err() {
-            return -4;
+    let pcm_data = unsafe {
+        if data.is_null() {
+            return -3;
         }
+
+        std::slice::from_raw_parts(data, size).to_vec()
+    };
+
+    if fifo.write_all(&pcm_data).is_err() {
+        return -4;
     }
 
     return 0;
