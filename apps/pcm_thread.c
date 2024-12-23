@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 524000
 
 bool pcm_thread_is_initialized = false;
 
@@ -69,7 +69,7 @@ static void convert_audio_format(const void *input, uint8_t *output, size_t size
  */
 static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
     const void *pcm_data = NULL;
-    size_t pcm_data_size = 0;
+    size_t pcm_data_size = BUFFER_SIZE;
     bool new_buffer = false;
 
     uint8_t *stream = (uint8_t *)malloc(BUFFER_SIZE);
