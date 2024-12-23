@@ -114,7 +114,7 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
         memcpy(data + *data_size, conv_buffer, converted_size);
         *data_size += converted_size;
         
-        debugfn("Processed chunk size", chunksize);
+        debugfn("Processed chunk size", chunk_size);
         debugfn("Processed total data size", *data_size);
         debugfn("Processed remaining size", remaining);
 
