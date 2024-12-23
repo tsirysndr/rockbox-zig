@@ -152,16 +152,13 @@ void pull_audio_data() {
 
     size_t data_size = 0;
     
-    while (data_size < THRESHOLD) { 
-      process_audio(cvt_status > 0 ? &cvt : NULL, data, &data_size);
+    process_audio(cvt_status > 0 ? &cvt : NULL, data, &data_size);
 
-      if (data_size == 0)  {
-        free(data);
-        return;
-      }
+    if (data_size == 0)  {
+      free(data);
+      return;
     }
 
-    debugfn("Final size of data", data_size);
     process_pcm_buffer(data, data_size);
 
     if (cvt_status > 0 && cvt.buf) {
