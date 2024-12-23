@@ -55,6 +55,16 @@ static void convert_audio_format(const void *input, uint8_t *output, size_t size
  */
 static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
     const size_t THRESHOLD = 512 * 1024; // 512 KB
+        
+    uint8_t *stream = (uint8_t *)malloc(BUFFER_SIZE);
+    uint8_t *conv_buffer = (uint8_t *)malloc(BUFFER_SIZE * (cvt ? cvt->len_mult : 1));
+
+    if (!stream || !conv_buffer) {
+      logf("Memory allocation failed in process_audio");
+      free(stream);
+      free(conv_buffer);
+      return;
+    }
 
     *data_size = 0; // Initialize data size to zero
 
@@ -62,16 +72,6 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
         const void *pcm_data = NULL;
         size_t pcm_data_size = 0;
         bool new_buffer = false;
-
-        uint8_t *stream = (uint8_t *)malloc(BUFFER_SIZE);
-        uint8_t *conv_buffer = (uint8_t *)malloc(BUFFER_SIZE * (cvt ? cvt->len_mult : 1));
-
-        if (!stream || !conv_buffer) {
-            logf("Memory allocation failed in process_audio");
-            free(stream);
-            free(conv_buffer);
-            return;
-        }
 
         new_buffer = pcm_play_dma_complete_callback(PCM_DMAST_OK, &pcm_data, &pcm_data_size);
 
@@ -81,7 +81,7 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
               free(conv_buffer);
               return;
             }
-            SDL_Delay(10);
+            sleep(HZ); 
             continue;
         }
 
@@ -128,7 +128,7 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
  * Pull audio data and process it for playback.
  */
 void pull_audio_data() {
-    Uint8 *data = (Uint8 *)malloc(BUFFER_SIZE * 2); // Allocate enough space for output audio
+    Uint8 *data = (Uint8 *)malloc(512 * 1024); // 512 KB
     if (!data) {
         logf("Memory allocation failed in pull_audio_data");
         return;
@@ -166,10 +166,10 @@ void pull_audio_data() {
  * PCM thread main loop.
  */
 static void pcm_thread(void) {
-    while (true) {
-        pull_audio_data();
-        sleep(HZ / 2); 
-    }
+  while (true) {
+    pull_audio_data();
+    sleep(HZ);
+  }
 }
 
 /**
