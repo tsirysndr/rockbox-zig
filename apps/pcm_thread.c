@@ -12,8 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFFER_SIZE 524000
-#define CIRCULAR_BUFFER_SIZE (BUFFER_SIZE * 2) // Double buffer size for circular buffer
+#define BUFFER_SIZE 4096
+#define CIRCULAR_BUFFER_SIZE (2 * 1024 * 1024) // 2MB
 
 bool pcm_thread_is_initialized = false;
 
@@ -145,8 +145,8 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
  * Pull audio data and process it for playback.
  */
 void pull_audio_data() {
-    const size_t THRESHOLD = 512 * 1024; // 512 KB
-    Uint8 *data = (Uint8 *)malloc(THRESHOLD); // Allocate enough space for output audio
+    const size_t THRESHOLD = 2 *1024 * 1024; // 2MB 
+    Uint8 *data = (Uint8 *)malloc(BUFFER_SIZE * 2); // Allocate enough space for output audio
     if (!data) {
         logf("Memory allocation failed in pull_audio_data");
         return;
