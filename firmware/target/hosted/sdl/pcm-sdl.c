@@ -22,15 +22,15 @@
 
 #include "autoconf.h"
 
-#include "audiohw.h"
+#include <stdlib.h>
+#include <stdbool.h>
+#include <SDL.h>
 #include "config.h"
 #include "debug.h"
-#include "panic.h"
 #include "sound.h"
+#include "audiohw.h"
 #include "system.h"
-#include <SDL.h>
-#include <stdbool.h>
-#include <stdlib.h>
+#include "panic.h"
 
 #ifdef HAVE_RECORDING
 #include "audiohw.h"
@@ -39,8 +39,8 @@
 #endif
 #endif
 
-#include "pcm-internal.h"
 #include "pcm.h"
+#include "pcm-internal.h"
 #include "pcm_sampr.h"
 
 /*#define LOGF_ENABLE*/

@@ -23,12 +23,12 @@
 #include "logf.h"
 #include "system.h"
 
-#include "pcm-internal.h"
 #include "pcm.h"
+#include "pcm-internal.h"
 #include "pcm_sampr.h"
-#include <SDL.h>
-#include <stdbool.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <SDL.h>
 
 #define BYTES_PER_SAMPLE 4
 
