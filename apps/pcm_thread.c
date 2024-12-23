@@ -33,8 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// 175KB
-#define BUFFER_SIZE 179200
+#define BUFFER_SIZE 4096
 
 bool pcm_thread_is_initialized = false;
 
@@ -170,7 +169,7 @@ void pull_audio_data() {
 static void pcm_thread(void) {
     while (true) {
         pull_audio_data();
-        sleep(2 * HZ); 
+        sleep(HZ / 2); 
     }
 }
 
