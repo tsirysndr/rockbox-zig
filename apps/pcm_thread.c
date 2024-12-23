@@ -32,7 +32,7 @@
 
 #define BYTES_PER_SAMPLE 4
 
-bool pcm_is_initialized = false;
+bool pcm_thread_is_initialized = false;
 
 /* Pcm thread */
 static long pcm_stack[(DEFAULT_STACK_SIZE * 4) / sizeof(long)];
@@ -177,7 +177,7 @@ static void pcm_thread(void) {
 /* Initialize the pcm thread - called from init() in main.c */
 void INIT_ATTR pcm_thread_init(void) {
   /* Can never do this twice */
-  if (pcm_is_initialized) {
+  if (pcm_thread_is_initialized) {
     logf("pcm: already initialized");
     return;
   }
@@ -195,5 +195,5 @@ void INIT_ATTR pcm_thread_init(void) {
   sleep(HZ); /* Give it a chance to start */
 
   /* Probably safe to say */
-  pcm_is_initialized = true;
+  pcm_thread_is_initialized = true;
 }
