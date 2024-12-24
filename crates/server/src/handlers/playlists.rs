@@ -7,6 +7,7 @@ use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
 use rockbox_graphql::read_files;
 use rockbox_library::repo;
+use rockbox_network::download_tracks;
 use rockbox_sys::{
     self as rb,
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
@@ -26,13 +27,15 @@ pub async fn create_playlist(
         return Ok(());
     }
     let body = req.body.as_ref().unwrap();
-    let new_playslist: NewPlaylist = serde_json::from_str(body).unwrap();
+    let mut new_playlist: NewPlaylist = serde_json::from_str(body).unwrap();
 
-    if new_playslist.tracks.is_empty() {
+    if new_playlist.tracks.is_empty() {
         return Ok(());
     }
 
-    let dir = new_playslist.tracks[0].clone();
+    new_playlist.tracks = download_tracks(new_playlist.tracks).await?;
+
+    let dir = new_playlist.tracks[0].clone();
     let dir_parts: Vec<_> = dir.split('/').collect();
     let dir = dir_parts[0..dir_parts.len() - 1].join("/");
     let status = rb::playlist::create(&dir, None);
@@ -41,9 +44,9 @@ pub async fn create_playlist(
         return Ok(());
     }
     let start_index = rb::playlist::build_playlist(
-        new_playslist.tracks.iter().map(|t| t.as_str()).collect(),
+        new_playlist.tracks.iter().map(|t| t.as_str()).collect(),
         0,
-        new_playslist.tracks.len() as i32,
+        new_playlist.tracks.len() as i32,
     );
     res.text(&start_index.to_string());
     drop(player_mutex);

@@ -23,6 +23,7 @@ rockbox-graphql = {path = "../graphql"}
 rockbox-library = {path = "../library"}
 rockbox-mpd = {path = "../mpd"}
 rockbox-mpris = {path = "../mpris"}
+rockbox-network = { path = "../network" }
 rockbox-rpc = {path = "../rpc"}
 rockbox-search = {path = "../search"}
 rockbox-settings = {path = "../settings"}

@@ -1,0 +1,14 @@
+[package]
+name = "rockbox-network"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+dirs = "5.0.1"
+md5 = "0.7.0"
+reqwest.workspace = true
+rockbox-library = { path = "../library" }
