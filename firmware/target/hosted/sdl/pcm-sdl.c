@@ -55,7 +55,7 @@
 extern bool debug_audio;
 #endif
 
-#define PIPE_SIZE 65536;
+#define PIPE_SIZE 65536
 
 static int cvt_status = -1;
 
