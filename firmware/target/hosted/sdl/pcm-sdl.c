@@ -184,8 +184,9 @@ static void write_to_soundcard(struct pcm_udata *udata)
             }
 #endif
             if (udata->fifo != -1) {
-              write(udata->fifo, cvt.buf, cvt.len_cvt);
+              int written = write(udata->fifo, cvt.buf, cvt.len_cvt);
               fsync(udata->fifo);
+              debugfn("written", written);
             }
             free(cvt.buf);
         }
@@ -218,8 +219,9 @@ static void write_to_soundcard(struct pcm_udata *udata)
             }
 #endif
             if (udata->fifo != -1) {
-               write(udata->fifo, udata->stream, wr);
+               int written = write(udata->fifo, udata->stream, wr);
                fsync(udata->fifo);
+               debugfn("written", written);
             }
         }
     } else {
@@ -233,8 +235,9 @@ static void write_to_soundcard(struct pcm_udata *udata)
         }
 #endif
         if (udata->fifo != -1) {
-           write(udata->fifo, pcm_data, udata->num_out * pcm_sample_bytes);
+           int written = write(udata->fifo, pcm_data, udata->num_out * pcm_sample_bytes);
            fsync(udata->fifo);
+           debugfn("written", written);
         }
     }
 
