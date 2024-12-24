@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <SDL.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "config.h"
@@ -68,7 +69,7 @@ static struct pcm_udata
 #ifdef DEBUG
     FILE  *debug;
 #endif
-    FILE *fifo;
+    int fifo;
 } udata;
 
 static SDL_AudioSpec obtained;
@@ -124,9 +125,9 @@ void pcm_play_dma_stop(void)
         DEBUGF("Audio debug file closed\n");
     }
 #endif
-  if (udata.fifo != NULL) {
-      fclose(udata.fifo);
-      udata.fifo = NULL;
+  if (udata.fifo != -1) {
+      close(udata.fifo);
+      udata.fifo = -1;
   }
 }
 
@@ -138,8 +139,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
         DEBUGF("Audio debug file open\n");
     }
 #endif
-    if (udata->fifo == NULL) {
-        udata->fifo = fopen("/tmp/rockbox_fifo", "abe");
+    if (udata->fifo == -1) {
+        udata->fifo = open("/tmp/rockbox_fifo", O_WRONLY | O_NONBLOCK);
     }
 
     if (cvt.needed) {
@@ -180,8 +181,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
                fwrite(cvt.buf, sizeof(Uint8), cvt.len_cvt, udata->debug);
             }
 #endif
-            if (udata->fifo != NULL) {
-               fwrite(cvt.buf, sizeof(Uint8), cvt.len_cvt, udata->fifo);
+            if (udata->fifo != -1) {
+              write(udata->fifo, cvt.buf, cvt.len_cvt);
             }
             free(cvt.buf);
         }
@@ -213,8 +214,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
                fwrite(udata->stream, sizeof(Uint8), wr, udata->debug);
             }
 #endif
-            if (udata->fifo != NULL) {
-               fwrite(udata->stream, sizeof(Uint8), wr, udata->fifo);
+            if (udata->fifo != -1) {
+               write(udata->fifo, udata->stream, wr);
             }
         }
     } else {
@@ -227,9 +228,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
                   udata->debug);
         }
 #endif
-        if (udata->fifo != NULL) {
-           fwrite(pcm_data, sizeof(Uint8), udata->num_out * pcm_sample_bytes,
-                  udata->fifo);
+        if (udata->fifo != -1) {
+           write(udata->fifo, pcm_data, udata->num_out * pcm_sample_bytes);
         }
     }
 }
@@ -374,8 +374,8 @@ void pcm_play_dma_init(void)
       return;
     }
 
-    udata.fifo = NULL;
-    udata.fifo = fopen("/tmp/rockbox_fifo", "wbe");
+    udata.fifo = -1;
+    udata.fifo = open("/tmp/rockbox_fifo", O_WRONLY | O_NONBLOCK);
 
     /* Set 16-bit stereo audio at 44Khz */
     wanted_spec.freq = 44100;
