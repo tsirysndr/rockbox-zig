@@ -27,6 +27,8 @@
 #include <SDL.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "config.h"
 #include "debug.h"
 #include "sound.h"
