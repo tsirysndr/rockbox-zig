@@ -106,15 +106,15 @@ void pcm_dma_apply_settings(void) {
   pcm_play_unlock();
 */
 }
-
+/*
 void pcm_play_dma_start(const void *addr, size_t size) {
 
   pcm_data = addr;
   pcm_data_size = size;
-/*
+
   SDL_PauseAudio(0);
-  */
 }
+*/
 
 void pcm_play_dma_stop(void) {
   /*
