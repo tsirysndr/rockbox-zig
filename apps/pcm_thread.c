@@ -47,6 +47,7 @@ unsigned int pcm_thread_id = 0;
 
 extern void process_pcm_buffer(Uint8 *data, size_t size);
 extern void debugfn(const char *args, int value);
+extern void start_pcm_thread(void);
 
 void pcm_play_dma_start(const void *addr, size_t size) {
   pcm_data = addr;
@@ -175,10 +176,7 @@ void pull_audio_data() {
  * PCM thread main loop.
  */
 static void pcm_thread(void) {
-    while (true) {
-        pull_audio_data();
-        sleep(HZ / 5); 
-    }
+  start_pcm_thread();
 }
 
 /**

@@ -4,6 +4,19 @@ use std::{fs::OpenOptions, path::Path};
 
 const FIFO_PATH: &str = "/tmp/rockbox_audio_fifo";
 
+extern "C" {
+    fn pull_audio_data();
+}
+
+#[no_mangle]
+pub extern "C" fn start_pcm_thread() {
+    std::thread::spawn(|| loop {
+        unsafe {
+            pull_audio_data();
+        }
+    });
+}
+
 #[no_mangle]
 pub extern "C" fn process_pcm_buffer(data: *mut u8, size: usize) -> i32 {
     if let Ok(var) = env::var("ROCKBOX_AUDIO_FIFO") {
