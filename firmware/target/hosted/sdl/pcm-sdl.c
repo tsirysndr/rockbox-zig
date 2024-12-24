@@ -126,10 +126,6 @@ void pcm_play_dma_stop(void)
         DEBUGF("Audio debug file closed\n");
     }
 #endif
-  if (udata.fifo != -1) {
-      close(udata.fifo);
-      udata.fifo = -1;
-  }
 }
 
 static void write_to_soundcard(struct pcm_udata *udata)
@@ -141,7 +137,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
     }
 #endif
     if (udata->fifo == -1) {
-        udata->fifo = open("/tmp/rockbox_fifo", O_WRONLY | O_NONBLOCK);
+        udata->fifo = open("/tmp/rockbox_fifo", O_WRONLY);
     }
 
     if (cvt.needed) {
@@ -184,6 +180,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
 #endif
             if (udata->fifo != -1) {
               write(udata->fifo, cvt.buf, cvt.len_cvt);
+              fsync(udata->fifo);
             }
             free(cvt.buf);
         }
@@ -217,6 +214,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
 #endif
             if (udata->fifo != -1) {
                write(udata->fifo, udata->stream, wr);
+               fsync(udata->fifo);
             }
         }
     } else {
@@ -231,6 +229,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
 #endif
         if (udata->fifo != -1) {
            write(udata->fifo, pcm_data, udata->num_out * pcm_sample_bytes);
+           fsync(udata->fifo);
         }
     }
 }
