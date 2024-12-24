@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 8192
 
 bool pcm_thread_is_initialized = false;
 
@@ -47,7 +47,6 @@ unsigned int pcm_thread_id = 0;
 
 extern void process_pcm_buffer(Uint8 *data, size_t size);
 extern void debugfn(const char *args, int value);
-extern void start_pcm_thread(void);
 
 void pcm_play_dma_start(const void *addr, size_t size) {
   pcm_data = addr;
@@ -96,7 +95,6 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
     if (!new_buffer || pcm_data_size == 0) {
         free(stream);
         free(conv_buffer);
-        sleep(HZ);
         return;
     }
 
@@ -171,14 +169,16 @@ void pull_audio_data() {
     }
 
     free(data);
-    sleep(HZ / 2);
 }
 
 /**
  * PCM thread main loop.
  */
 static void pcm_thread(void) {
-  start_pcm_thread();
+    while (true) {
+        pull_audio_data();
+        sleep(HZ); 
+    }
 }
 
 /**
