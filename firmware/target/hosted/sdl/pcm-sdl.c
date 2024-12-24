@@ -368,6 +368,8 @@ void pcm_play_dma_init(void)
         DEBUGF("Audio debug file open\n");
     }
 #endif
+    unlink("/tmp/rockbox_fifo");
+
     if (mkfifo("/tmp/rockbox_fifo", 0666) < 0) {
       DEBUGF("Could not create fifo\n");
       return;
