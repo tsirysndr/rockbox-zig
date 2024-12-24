@@ -256,7 +256,8 @@ void pcm_init(void)
     pcm_set_frequency(HW_SAMPR_DEFAULT);
 
     logf(" pcm_play_dma_init");
-    pcm_play_dma_init();
+    // disable pcm dma init
+    // pcm_play_dma_init();
 }
 
 /* Finish delayed init */
