@@ -9,12 +9,13 @@ use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-const BUFFER_DURATION_SECS: f32 = 20.0; // Increased buffer size
-const MIN_BUFFER_FILL_PERCENT: f32 = 0.9; // Start playback when buffer is 80% full
+const BUFFER_DURATION_SECS: f32 = 60.0; // Increased buffer size
+const MIN_BUFFER_FILL_PERCENT: f32 = 0.5; // Start playback when buffer is 80% full
 
 struct RingBuffer {
     buffer: VecDeque<f32>,
     capacity: usize,
+    ready: bool,
 }
 
 impl RingBuffer {
@@ -22,6 +23,7 @@ impl RingBuffer {
         Self {
             buffer: VecDeque::with_capacity(capacity),
             capacity,
+            ready: false,
         }
     }
 
@@ -46,6 +48,18 @@ impl RingBuffer {
 
     fn capacity(&self) -> usize {
         self.capacity
+    }
+
+    fn is_ready(&self) -> bool {
+        self.ready
+    }
+
+    fn set_ready(&mut self, ready: bool) {
+        self.ready = ready;
+    }
+
+    fn current_size(&self) -> usize {
+        self.buffer.len()
     }
 }
 
@@ -153,7 +167,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (stop_tx, stop_rx) = mpsc::channel();
     let (ready_tx, ready_rx) = mpsc::channel();
 
+    let ring_buffer_clone = ring_buffer.clone();
     // Spawn audio playback thread
+
     let play_thread = thread::spawn(move || {
         let mut output_buffer = vec![0.0f32; chunk_samples];
 
@@ -162,6 +178,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 &config,
                 move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
                     let mut ring_buffer = ring_buffer_player.lock().unwrap();
+                    if !ring_buffer.is_ready() {
+                        return;
+                    }
                     let read = ring_buffer.read_chunk(data);
 
                     // Fill remaining with silence if buffer underrun
@@ -174,8 +193,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .expect("Failed to build output stream");
 
-        // Wait for buffer to fill initially
-        ready_rx.recv().unwrap();
+        // Wait for buffer to fill initially/
+        // ready_rx.recv().unwrap();
+
+        println!("Waiting for buffer fill");
+        std::thread::sleep(Duration::from_secs(20));
+
+        let mut mutex = ring_buffer_clone.lock().unwrap();
+        mutex.set_ready(true);
+        drop(mutex);
+
+        println!("Starting playback");
         stream.play().expect("Failed to play stream");
 
         // Wait for stop signal
@@ -200,6 +228,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Ok(bytes_read) => {
                 conversion_buffer.clear();
+                println!(">> bytes read {}", bytes_read);
+                println!(">> input chunk {}", chunk_bytes);
 
                 // Convert bytes to samples in chunks
                 for chunk in input_chunk[..bytes_read].chunks_exact(bytes_per_sample) {
@@ -216,6 +246,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 loop {
                     let mut ring_buffer = ring_buffer.lock().unwrap();
                     let written = ring_buffer.write_chunk(&conversion_buffer);
+                    println!(
+                        "Writing to ring buffer {} - {}",
+                        ring_buffer.current_size(),
+                        conversion_buffer.len()
+                    );
 
                     if written == conversion_buffer.len() {
                         // Check if we should start playback
@@ -230,7 +265,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
 
                     drop(ring_buffer);
-                    thread::sleep(Duration::from_millis(1));
                 }
 
                 samples_played += conversion_buffer.len();
