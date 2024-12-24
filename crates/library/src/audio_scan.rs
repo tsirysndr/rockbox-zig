@@ -14,9 +14,9 @@ use sqlx::{Pool, Sqlite};
 use std::path::PathBuf;
 use tokio::fs;
 
-const AUDIO_EXTENSIONS: [&str; 17] = [
-    "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",
-    "spx", "sid", "ape", "wma",
+const AUDIO_EXTENSIONS: [&str; 18] = [
+    "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "aif", "ac3",
+    "opus", "spx", "sid", "ape", "wma",
 ];
 
 pub fn scan_audio_files(
@@ -44,111 +44,7 @@ pub fn scan_audio_files(
                 {
                     continue;
                 }
-                let filename = path.split('/').last().unwrap();
-                let dir = path.replace(filename, "");
-                println!(
-                    "{} {}{}",
-                    "Found".bright_green(),
-                    dir,
-                    filename.bright_yellow()
-                );
-                let entry = rb::metadata::get_metadata(-1, path);
-
-                let track_hash = format!("{:x}", md5::compute(entry.path.as_bytes()));
-                let artist_id = cuid::cuid1()?;
-                let album_id = cuid::cuid1()?;
-                let album_md5 = format!(
-                    "{:x}",
-                    md5::compute(
-                        format!("{}{}{}", entry.albumartist, entry.album, entry.year).as_bytes()
-                    )
-                );
-
-                let artist_id = repo::artist::save(
-                    pool.clone(),
-                    Artist {
-                        id: artist_id.clone(),
-                        name: match entry.albumartist.is_empty() {
-                            true => entry.artist.clone(),
-                            false => entry.albumartist.clone(),
-                        },
-                        bio: None,
-                        image: None,
-                    },
-                )
-                .await?;
-
-                let album_art = extract_and_save_album_cover(&entry.path)?;
-                let album_id = repo::album::save(
-                    pool.clone(),
-                    Album {
-                        id: album_id,
-                        title: entry.album.clone(),
-                        artist: match entry.albumartist.is_empty() {
-                            true => entry.artist.clone(),
-                            false => entry.albumartist.clone(),
-                        },
-                        year: entry.year as u32,
-                        year_string: entry.year_string.clone(),
-                        album_art: album_art.clone(),
-                        md5: album_md5,
-                        artist_id: artist_id.clone(),
-                    },
-                )
-                .await?;
-
-                let track_id = repo::track::save(
-                    pool.clone(),
-                    Track {
-                        id: cuid::cuid1()?,
-                        path: entry.path.clone(),
-                        title: entry.title,
-                        artist: entry.artist.clone(),
-                        album: entry.album,
-                        genre: match entry.genre_string.as_str() {
-                            "" => None,
-                            _ => Some(entry.genre_string),
-                        },
-                        year: Some(entry.year as u32),
-                        track_number: Some(entry.tracknum as u32),
-                        disc_number: entry.discnum as u32,
-                        year_string: Some(entry.year_string),
-                        composer: entry.composer,
-                        album_artist: entry.albumartist.clone(),
-                        bitrate: entry.bitrate,
-                        frequency: entry.frequency as u32,
-                        filesize: entry.filesize as u32,
-                        length: entry.length as u32,
-                        md5: track_hash,
-                        created_at: Utc::now(),
-                        updated_at: Utc::now(),
-                        artist_id: artist_id.clone(),
-                        album_id: album_id.clone(),
-                        album_art,
-                        ..Default::default()
-                    },
-                )
-                .await?;
-
-                repo::album_tracks::save(
-                    pool.clone(),
-                    AlbumTracks {
-                        id: cuid::cuid1()?,
-                        album_id,
-                        track_id: track_id.clone(),
-                    },
-                )
-                .await?;
-
-                repo::artist_tracks::save(
-                    pool.clone(),
-                    ArtistTracks {
-                        id: cuid::cuid1()?,
-                        artist_id,
-                        track_id,
-                    },
-                )
-                .await?;
+                save_audio_metadata(pool.clone(), path).await?;
 
                 let path = path.into();
                 result.push(path);
@@ -164,4 +60,118 @@ pub fn scan_audio_files(
 
         Ok(result)
     })
+}
+
+pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), Error> {
+    if !AUDIO_EXTENSIONS
+        .into_iter()
+        .any(|ext| path.ends_with(&format!(".{}", ext)))
+    {
+        return Ok(());
+    }
+
+    let filename = path.split('/').last().unwrap();
+    let dir = path.replace(filename, "");
+    println!(
+        "{} {}{}",
+        "Found".bright_green(),
+        dir,
+        filename.bright_yellow()
+    );
+    let entry = rb::metadata::get_metadata(-1, path);
+
+    let track_hash = format!("{:x}", md5::compute(entry.path.as_bytes()));
+    let artist_id = cuid::cuid1()?;
+    let album_id = cuid::cuid1()?;
+    let album_md5 = format!(
+        "{:x}",
+        md5::compute(format!("{}{}{}", entry.albumartist, entry.album, entry.year).as_bytes())
+    );
+    let artist_id = repo::artist::save(
+        pool.clone(),
+        Artist {
+            id: artist_id.clone(),
+            name: match entry.albumartist.is_empty() {
+                true => entry.artist.clone(),
+                false => entry.albumartist.clone(),
+            },
+            bio: None,
+            image: None,
+        },
+    )
+    .await?;
+
+    let album_art = extract_and_save_album_cover(&entry.path)?;
+    let album_id = repo::album::save(
+        pool.clone(),
+        Album {
+            id: album_id,
+            title: entry.album.clone(),
+            artist: match entry.albumartist.is_empty() {
+                true => entry.artist.clone(),
+                false => entry.albumartist.clone(),
+            },
+            year: entry.year as u32,
+            year_string: entry.year_string.clone(),
+            album_art: album_art.clone(),
+            md5: album_md5,
+            artist_id: artist_id.clone(),
+        },
+    )
+    .await?;
+
+    let track_id = repo::track::save(
+        pool.clone(),
+        Track {
+            id: cuid::cuid1()?,
+            path: entry.path.clone(),
+            title: entry.title,
+            artist: entry.artist.clone(),
+            album: entry.album,
+            genre: match entry.genre_string.as_str() {
+                "" => None,
+                _ => Some(entry.genre_string),
+            },
+            year: Some(entry.year as u32),
+            track_number: Some(entry.tracknum as u32),
+            disc_number: entry.discnum as u32,
+            year_string: Some(entry.year_string),
+            composer: entry.composer,
+            album_artist: entry.albumartist.clone(),
+            bitrate: entry.bitrate,
+            frequency: entry.frequency as u32,
+            filesize: entry.filesize as u32,
+            length: entry.length as u32,
+            md5: track_hash,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            artist_id: artist_id.clone(),
+            album_id: album_id.clone(),
+            album_art,
+            ..Default::default()
+        },
+    )
+    .await?;
+
+    repo::album_tracks::save(
+        pool.clone(),
+        AlbumTracks {
+            id: cuid::cuid1()?,
+            album_id,
+            track_id: track_id.clone(),
+        },
+    )
+    .await?;
+
+    repo::artist_tracks::save(
+        pool.clone(),
+        ArtistTracks {
+            id: cuid::cuid1()?,
+            artist_id,
+            track_id,
+        },
+    )
+    .await?;
+
+    Ok(())
 }

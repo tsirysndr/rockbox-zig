@@ -8306,6 +8306,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-network"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dirs",
+ "md5",
+ "reqwest",
+ "rockbox-library",
+]
+
+[[package]]
 name = "rockbox-rpc"
 version = "0.1.0"
 dependencies = [
@@ -8365,6 +8376,7 @@ dependencies = [
  "rockbox-library",
  "rockbox-mpd",
  "rockbox-mpris",
+ "rockbox-network",
  "rockbox-rpc",
  "rockbox-search",
  "rockbox-settings",
