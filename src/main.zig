@@ -9,7 +9,9 @@ extern fn parse_args(argc: usize, argv: [*]const [*]const u8) c_int;
 
 pub fn main() !void {
     // delete /tmp/rockbox_fifo if it exists
-    _ = try std.fs.deleteFileAbsolute("/tmp/rockbox_fifo");
+    std.fs.deleteFileAbsolute("/tmp/rockbox_fifo") catch |err| {
+        if (err != error.FileNotFound) {}
+    };
 
     const args = try std.process.argsAlloc(std.heap.page_allocator);
     defer std.process.argsFree(std.heap.page_allocator, args);
