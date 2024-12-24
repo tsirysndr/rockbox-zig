@@ -224,7 +224,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
                   udata->debug);
         }
 #endif
-      write(udata->fifo_fd, udata->stream, udata->num_out * pcm_sample_bytes);
+      write(udata->fifo_fd, pcm_data, udata->num_out * pcm_sample_bytes);
     }
 }
 
