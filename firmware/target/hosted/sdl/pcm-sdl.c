@@ -372,7 +372,6 @@ void pcm_play_dma_init(void)
       DEBUGF("Could not create fifo\n");
       return;
     }
-  }
 
     udata.fifo = NULL;
     udata.fifo = fopen("/tmp/rockbox_fifo", "wbe");
