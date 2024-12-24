@@ -48,11 +48,6 @@ unsigned int pcm_thread_id = 0;
 extern void process_pcm_buffer(Uint8 *data, size_t size);
 extern void debugfn(const char *args, int value);
 
-void pcm_play_dma_start(const void *addr, size_t size) {
-  pcm_data = addr;
-  pcm_data_size = size;
-}
-
 /**
  * Convert audio format using SDL_AudioCVT.
  */
