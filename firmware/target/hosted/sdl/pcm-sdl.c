@@ -55,6 +55,8 @@
 extern bool debug_audio;
 #endif
 
+#define PIPE_SIZE 65536;
+
 static int cvt_status = -1;
 
 static const void *pcm_data;
@@ -140,6 +142,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
 #endif
     if (udata->fifo == -1) {
         udata->fifo = open("/tmp/rockbox_fifo", O_WRONLY | O_NONBLOCK);
+        fcntl(udata.fifo, F_SETPIPE_SZ, PIPE_SIZE);
     }
 
     if (cvt.needed) {
@@ -383,6 +386,8 @@ void pcm_play_dma_init(void)
 
     udata.fifo = -1;
     udata.fifo = open("/tmp/rockbox_fifo", O_WRONLY | O_NONBLOCK);
+
+    fcntl(udata.fifo, F_SETPIPE_SZ, PIPE_SIZE);
 
     /* Set 16-bit stereo audio at 44Khz */
     wanted_spec.freq = 44100;
