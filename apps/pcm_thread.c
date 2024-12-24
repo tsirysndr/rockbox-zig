@@ -96,6 +96,7 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
     if (!new_buffer || pcm_data_size == 0) {
         free(stream);
         free(conv_buffer);
+        sleep(HZ);
         return;
     }
 
@@ -170,6 +171,7 @@ void pull_audio_data() {
     }
 
     free(data);
+    sleep(HZ / 2);
 }
 
 /**
