@@ -93,9 +93,6 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
 
     new_buffer = pcm_play_dma_complete_callback(PCM_DMAST_OK, &pcm_data, &pcm_data_size);
 
-    debugfn("new_buffer", new_buffer);
-    debugfn("pcm_data_size", pcm_data_size);
-
     if (!new_buffer || pcm_data_size == 0) {
         free(stream);
         free(conv_buffer);
@@ -139,7 +136,7 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
  * Pull audio data and process it for playback.
  */
 void pull_audio_data() {
-    Uint8 *data = (Uint8 *)malloc(BUFFER_SIZE * 2); // Allocate enough space for output audio
+    Uint8 *data = (Uint8 *)malloc(512 * 1024); // Allocate enough space for output audio
     if (!data) {
         logf("Memory allocation failed in pull_audio_data");
         return;
@@ -157,14 +154,22 @@ void pull_audio_data() {
         }
     }
 
-    size_t data_size = 0;
-    process_audio(cvt_status > 0 ? &cvt : NULL, data, &data_size);
+    size_t final_data_size = 0;
+    size_t threshold = 512 * 1024;
+    
+    while (final_data_size < threeshold) {
+      size_t data_size = 0;
+      process_audio(cvt_status > 0 ? &cvt : NULL, data, &data_size);
 
-    if (data_size == 0)  {
-      free(data);
-      return;
+      if (data_size == 0)  {
+        free(data);
+        return;
+      }
+      final_data_size +=data_size;
+    debugfn("Final data size", final_data_size);
     }
-    process_pcm_buffer(data, data_size);
+
+    process_pcm_buffer(data, final_data_size);
 
     if (cvt_status > 0 && cvt.buf) {
         free(cvt.buf);
@@ -179,7 +184,7 @@ void pull_audio_data() {
 static void pcm_thread(void) {
     while (true) {
         pull_audio_data();
-        sleep(2 * HZ); 
+        sleep(HZ / 4); 
     }
 }
 
