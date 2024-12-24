@@ -25,6 +25,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <SDL.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "config.h"
 #include "debug.h"
 #include "sound.h"
@@ -51,6 +55,8 @@
 extern bool debug_audio;
 #endif
 
+#define PIPE_SIZE 65536
+
 static int cvt_status = -1;
 
 static const void *pcm_data;
@@ -66,12 +72,15 @@ static struct pcm_udata
 #ifdef DEBUG
     FILE  *debug;
 #endif
+    int fifo;
 } udata;
 
 static SDL_AudioSpec obtained;
 static SDL_AudioCVT cvt;
 static int audio_locked = 0;
 static SDL_mutex *audio_lock;
+
+extern void debugfn(const char *args, int value);
 
 void pcm_play_lock(void)
 {
@@ -131,6 +140,11 @@ static void write_to_soundcard(struct pcm_udata *udata)
         DEBUGF("Audio debug file open\n");
     }
 #endif
+    if (udata->fifo == -1) {
+        udata->fifo = open("/tmp/rockbox_fifo", O_WRONLY | O_NONBLOCK);
+        fcntl(udata->fifo, F_SETPIPE_SZ, PIPE_SIZE);
+    }
+
     if (cvt.needed) {
         Uint32 rd = udata->num_in;
         Uint32 wr = (double)rd * cvt.len_ratio;
@@ -169,6 +183,11 @@ static void write_to_soundcard(struct pcm_udata *udata)
                fwrite(cvt.buf, sizeof(Uint8), cvt.len_cvt, udata->debug);
             }
 #endif
+            if (udata->fifo != -1) {
+              int written = write(udata->fifo, cvt.buf, cvt.len_cvt);
+              fsync(udata->fifo);
+              debugfn("written", written);
+            }
             free(cvt.buf);
         }
         else {
@@ -199,6 +218,11 @@ static void write_to_soundcard(struct pcm_udata *udata)
                fwrite(udata->stream, sizeof(Uint8), wr, udata->debug);
             }
 #endif
+            if (udata->fifo != -1) {
+               int written = write(udata->fifo, udata->stream, wr);
+               fsync(udata->fifo);
+               debugfn("written", written);
+            }
         }
     } else {
         udata->num_in = udata->num_out = MIN(udata->num_in, udata->num_out);
@@ -210,11 +234,21 @@ static void write_to_soundcard(struct pcm_udata *udata)
                   udata->debug);
         }
 #endif
+        if (udata->fifo != -1) {
+           int written = write(udata->fifo, pcm_data, udata->num_out * pcm_sample_bytes);
+           fsync(udata->fifo);
+           debugfn("written", written);
+        }
     }
+
+    close(udata->fifo);
+    udata->fifo = -1;
 }
 
 static void sdl_audio_callback(struct pcm_udata *udata, Uint8 *stream, int len)
 {
+    debugfn("stream len", len);
+
     logf("sdl_audio_callback: len %d, pcm %d\n", len, pcm_data_size);
 
     bool new_buffer = false;
@@ -347,11 +381,23 @@ void pcm_play_dma_init(void)
         DEBUGF("Audio debug file open\n");
     }
 #endif
+
+    if (mkfifo("/tmp/rockbox_fifo", 0666) < 0) {
+      DEBUGF("Could not create fifo\n");
+      return;
+    }
+
+    udata.fifo = -1;
+    udata.fifo = open("/tmp/rockbox_fifo", O_WRONLY | O_NONBLOCK);
+
+    fcntl(udata.fifo, F_SETPIPE_SZ, PIPE_SIZE);
+
     /* Set 16-bit stereo audio at 44Khz */
     wanted_spec.freq = 44100;
     wanted_spec.format = AUDIO_S16SYS;
     wanted_spec.channels = 2;
-    wanted_spec.samples = 2048;
+    // wanted_spec.samples = 2048;
+    wanted_spec.samples = 17640;
     wanted_spec.callback =
         (void (SDLCALL *)(void *userdata,
             Uint8 *stream, int len))sdl_audio_callback;

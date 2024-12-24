@@ -432,6 +432,7 @@ zig: $(BUILDDIR)/apps/recorder/jpeg_load.o $(BUILDDIR)/lang/lang.h $(BUILDDIR)/l
 	cd .. \
 	&& cargo build -p rockbox-cli --release \
 	&& cargo build -p rockbox-server --release \
+	&& cargo build -p rockbox-audio --release \
 	&& cargo build -p rockbox --release \
 	&& zig build all
 help:
