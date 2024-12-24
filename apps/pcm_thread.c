@@ -157,7 +157,7 @@ void pull_audio_data() {
     size_t final_data_size = 0;
     size_t threshold = 512 * 1024;
     
-    while (final_data_size < threeshold) {
+    while (final_data_size < threshold) {
       size_t data_size = 0;
       process_audio(cvt_status > 0 ? &cvt : NULL, data, &data_size);
 
