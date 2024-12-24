@@ -78,6 +78,8 @@ static SDL_AudioCVT cvt;
 static int audio_locked = 0;
 static SDL_mutex *audio_lock;
 
+extern void debugfn(const char *args, int value);
+
 void pcm_play_lock(void)
 {
     if (++audio_locked == 1)
@@ -239,6 +241,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
 
 static void sdl_audio_callback(struct pcm_udata *udata, Uint8 *stream, int len)
 {
+    debugfn("stream len", len);
+
     logf("sdl_audio_callback: len %d, pcm %d\n", len, pcm_data_size);
 
     bool new_buffer = false;
