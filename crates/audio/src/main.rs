@@ -1,16 +1,16 @@
+use std::collections::VecDeque;
 use std::env;
 use std::fs::File;
-use std::io::{Read, ErrorKind};
+use std::io::{ErrorKind, Read};
 use std::path::Path;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
-use std::collections::VecDeque;
 use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-const BUFFER_DURATION_SECS: f32 = 4.0; // Increased buffer size
-const MIN_BUFFER_FILL_PERCENT: f32 = 0.5; // Start playback when buffer is 50% full
+const BUFFER_DURATION_SECS: f32 = 10.0; // Increased buffer size
+const MIN_BUFFER_FILL_PERCENT: f32 = 0.8; // Start playback when buffer is 80% full
 
 struct RingBuffer {
     buffer: VecDeque<f32>,
@@ -137,9 +137,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("Failed to get default output device");
 
     // Calculate buffer sizes
-    let total_buffer_samples = (format.sample_rate as f32 * BUFFER_DURATION_SECS * format.channels as f32) as usize;
+    let total_buffer_samples =
+        (format.sample_rate as f32 * BUFFER_DURATION_SECS * format.channels as f32) as usize;
     let chunk_samples = format.sample_rate as usize / 10 * format.channels as usize; // 100ms chunks
-    
+
     let config = cpal::StreamConfig {
         channels: format.channels,
         sample_rate: cpal::SampleRate(format.sample_rate),
@@ -155,14 +156,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Spawn audio playback thread
     let play_thread = thread::spawn(move || {
         let mut output_buffer = vec![0.0f32; chunk_samples];
-        
+
         let stream = device
             .build_output_stream(
                 &config,
                 move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
                     let mut ring_buffer = ring_buffer_player.lock().unwrap();
                     let read = ring_buffer.read_chunk(data);
-                    
+
                     // Fill remaining with silence if buffer underrun
                     if read < data.len() {
                         data[read..].fill(0.0);
@@ -199,7 +200,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Ok(bytes_read) => {
                 conversion_buffer.clear();
-                
+
                 // Convert bytes to samples in chunks
                 for chunk in input_chunk[..bytes_read].chunks_exact(bytes_per_sample) {
                     let sample = convert_sample(chunk, &format);
@@ -215,16 +216,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 loop {
                     let mut ring_buffer = ring_buffer.lock().unwrap();
                     let written = ring_buffer.write_chunk(&conversion_buffer);
-                    
+
                     if written == conversion_buffer.len() {
                         // Check if we should start playback
-                        if !is_playing && (ring_buffer.available() as f32 / ring_buffer.capacity() as f32) >= MIN_BUFFER_FILL_PERCENT {
+                        if !is_playing
+                            && (ring_buffer.available() as f32 / ring_buffer.capacity() as f32)
+                                >= MIN_BUFFER_FILL_PERCENT
+                        {
                             ready_tx.send(()).unwrap();
                             is_playing = true;
                         }
                         break;
                     }
-                    
+
                     drop(ring_buffer);
                     thread::sleep(Duration::from_millis(1));
                 }
