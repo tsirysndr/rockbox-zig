@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFFER_SIZE 8192
+#define BUFFER_SIZE 4096
 
 bool pcm_thread_is_initialized = false;
 
@@ -49,7 +49,6 @@ extern void process_pcm_buffer(Uint8 *data, size_t size);
 extern void debugfn(const char *args, int value);
 
 void pcm_play_dma_start(const void *addr, size_t size) {
-
   pcm_data = addr;
   pcm_data_size = size;
 }
@@ -136,7 +135,7 @@ static void process_audio(SDL_AudioCVT *cvt, Uint8 *data, size_t *data_size) {
  * Pull audio data and process it for playback.
  */
 void pull_audio_data() {
-    Uint8 *data = (Uint8 *)malloc(512 * 1024); // Allocate enough space for output audio
+    Uint8 *data = (Uint8 *)malloc(BUFFER_SIZE); // Allocate enough space for output audio
     if (!data) {
         logf("Memory allocation failed in pull_audio_data");
         return;
@@ -154,10 +153,7 @@ void pull_audio_data() {
         }
     }
 
-    size_t final_data_size = 0;
-    size_t threshold = 512 * 1024;
     
-    while (final_data_size < threshold) {
       size_t data_size = 0;
       process_audio(cvt_status > 0 ? &cvt : NULL, data, &data_size);
 
@@ -165,11 +161,8 @@ void pull_audio_data() {
         free(data);
         return;
       }
-      final_data_size +=data_size;
-    debugfn("Final data size", final_data_size);
-    }
 
-    process_pcm_buffer(data, final_data_size);
+    process_pcm_buffer(data, data_size);
 
     if (cvt_status > 0 && cvt.buf) {
         free(cvt.buf);
@@ -184,7 +177,7 @@ void pull_audio_data() {
 static void pcm_thread(void) {
     while (true) {
         pull_audio_data();
-        sleep(HZ / 4); 
+        sleep(HZ / 5); 
     }
 }
 
