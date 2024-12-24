@@ -9,8 +9,8 @@ use std::time::Duration;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
-const BUFFER_DURATION_SECS: f32 = 10.0; // Increased buffer size
-const MIN_BUFFER_FILL_PERCENT: f32 = 0.8; // Start playback when buffer is 80% full
+const BUFFER_DURATION_SECS: f32 = 20.0; // Increased buffer size
+const MIN_BUFFER_FILL_PERCENT: f32 = 0.9; // Start playback when buffer is 80% full
 
 struct RingBuffer {
     buffer: VecDeque<f32>,
