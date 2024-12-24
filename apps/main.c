@@ -93,7 +93,6 @@
 
 #include "audio_thread.h"
 #include "broker_thread.h"
-#include "pcm_thread.h"
 #include "playback.h"
 #include "server_thread.h"
 #include "tdspeed.h"
@@ -438,7 +437,6 @@ static void init(void) {
 #ifdef ROCKBOX_SERVER
   server_init();
   broker_init();
-  pcm_thread_init();
 #endif
 }
 
