@@ -27,7 +27,6 @@
 #include <SDL.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include "config.h"
 #include "debug.h"
 #include "sound.h"
@@ -369,7 +368,6 @@ void pcm_play_dma_init(void)
         DEBUGF("Audio debug file open\n");
     }
 #endif
-    unlink("/tmp/rockbox_fifo");
 
     if (mkfifo("/tmp/rockbox_fifo", 0666) < 0) {
       DEBUGF("Could not create fifo\n");
