@@ -126,7 +126,6 @@ void pcm_play_dma_stop(void)
         DEBUGF("Audio debug file closed\n");
     }
 #endif
-  close(udata.fifo_fd);
   unlink("/tmp/rockbox_fifo");
 }
 
@@ -136,6 +135,12 @@ static void write_to_soundcard(struct pcm_udata *udata)
     if (debug_audio && (udata->debug == NULL)) {
         udata->debug = fopen("audiodebug.raw", "abe");
         DEBUGF("Audio debug file open\n");
+    }
+
+    udata->fifo_fd = open("/tmp/rockbox_fifo", O_WRONLY);
+    if (udata->fifo_fd == -1) {
+      perror("open");
+      return;
     }
 #endif
     if (cvt.needed) {
