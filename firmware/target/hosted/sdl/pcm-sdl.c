@@ -75,48 +75,57 @@ static SDL_mutex *audio_lock;
 extern void process_pcm_buffer(Uint8 *data, size_t size);
 
 void pcm_play_lock(void) {
-  if (++audio_locked == 1)
+  /*
+   if (++audio_locked == 1)
     SDL_LockMutex(audio_lock);
+*/
 }
 
 void pcm_play_unlock(void) {
-  if (--audio_locked == 0)
+  /*
+   if (--audio_locked == 0)
     SDL_UnlockMutex(audio_lock);
+*/
 }
 
 static void pcm_dma_apply_settings_nolock(void) {
-  cvt_status =
+  /*
+   cvt_status =
       SDL_BuildAudioCVT(&cvt, AUDIO_S16SYS, 2, pcm_sampr, obtained.format,
                         obtained.channels, obtained.freq);
 
   if (cvt_status < 0) {
     cvt.len_ratio = (double)obtained.freq / (double)pcm_sampr;
-  }
+  }*/
 }
 
 void pcm_dma_apply_settings(void) {
+ /*
   pcm_play_lock();
   pcm_dma_apply_settings_nolock();
   pcm_play_unlock();
+*/
 }
 
 void pcm_play_dma_start(const void *addr, size_t size) {
-
+/*
   pcm_data = addr;
   pcm_data_size = size;
 
   SDL_PauseAudio(0);
+  */
 }
 
 void pcm_play_dma_stop(void) {
-  SDL_PauseAudio(1);
+  /*
+   * SDL_PauseAudio(1);
 #ifdef DEBUG
   if (udata.debug != NULL) {
     fclose(udata.debug);
     udata.debug = NULL;
     DEBUGF("Audio debug file closed\n");
   }
-#endif
+#endif*/
 }
 
 static void write_to_soundcard(struct pcm_udata *udata) {
@@ -157,7 +166,7 @@ static void write_to_soundcard(struct pcm_udata *udata) {
       udata->num_in = cvt.len / pcm_sample_bytes;
       udata->num_out = cvt.len_cvt / pcm_sample_bytes;
 
-      process_pcm_buffer(cvt.buf, (size_t)cvt.len_cvt);
+      // process_pcm_buffer(cvt.buf, (size_t)cvt.len_cvt);
 
 #ifdef DEBUG
       if (udata->debug != NULL) {
@@ -186,7 +195,7 @@ static void write_to_soundcard(struct pcm_udata *udata) {
       }
       }
 
-      process_pcm_buffer(udata->stream, (size_t)wr);
+      // process_pcm_buffer(udata->stream, (size_t)wr);
 #ifdef DEBUG
       if (udata->debug != NULL) {
         fwrite(udata->stream, sizeof(Uint8), wr, udata->debug);
@@ -196,7 +205,7 @@ static void write_to_soundcard(struct pcm_udata *udata) {
   } else {
     udata->num_in = udata->num_out = MIN(udata->num_in, udata->num_out);
     pcm_copy_buffer(udata->stream, pcm_data, udata->num_out * pcm_sample_bytes);
-    process_pcm_buffer(pcm_data, (size_t)udata->num_out * pcm_sample_bytes);
+    // process_pcm_buffer(pcm_data, (size_t)udata->num_out * pcm_sample_bytes);
 #ifdef DEBUG
     if (udata->debug != NULL) {
       fwrite(pcm_data, sizeof(Uint8), udata->num_out * pcm_sample_bytes,
@@ -295,7 +304,9 @@ unsigned long spdif_measure_frequency(void) { return 0; }
 
 #endif /* HAVE_RECORDING */
 
-void pcm_play_dma_init(void) {
+void pcm_play_dma_init(void) {}
+
+void pcm_play_dma_init_(void) {
   if (SDL_InitSubSystem(SDL_INIT_AUDIO)) {
     DEBUGF("Could not initialize SDL audio subsystem!\n");
     return;
