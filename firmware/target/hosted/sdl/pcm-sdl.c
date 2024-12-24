@@ -385,7 +385,7 @@ void pcm_play_dma_init(void)
     wanted_spec.format = AUDIO_S16SYS;
     wanted_spec.channels = 2;
     // wanted_spec.samples = 2048;
-    wanted_spec.samples = 176 * 1024;
+    wanted_spec.samples = 8192;
     wanted_spec.callback =
         (void (SDLCALL *)(void *userdata,
             Uint8 *stream, int len))sdl_audio_callback;
