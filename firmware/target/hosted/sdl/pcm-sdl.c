@@ -137,7 +137,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
     }
 #endif
     if (udata->fifo == -1) {
-        udata->fifo = open("/tmp/rockbox_fifo", O_RDWR | O_NONBLOCK);
+        udata->fifo = open("/tmp/rockbox_fifo", O_WRONLY | O_NONBLOCK);
     }
 
     if (cvt.needed) {
@@ -232,6 +232,9 @@ static void write_to_soundcard(struct pcm_udata *udata)
            fsync(udata->fifo);
         }
     }
+
+    close(udata->fifo);
+    udata->fifo = -1;
 }
 
 static void sdl_audio_callback(struct pcm_udata *udata, Uint8 *stream, int len)
@@ -375,7 +378,7 @@ void pcm_play_dma_init(void)
     }
 
     udata.fifo = -1;
-    udata.fifo = open("/tmp/rockbox_fifo", O_RDWR | O_NONBLOCK);
+    udata.fifo = open("/tmp/rockbox_fifo", O_WRONLY | O_NONBLOCK);
 
     /* Set 16-bit stereo audio at 44Khz */
     wanted_spec.freq = 44100;
