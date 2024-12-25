@@ -66,6 +66,7 @@ pub struct Mp3Entry {
     pub artist_id: Option<String>,
     pub genre_id: Option<String>,
     pub album_art: Option<String>,
+    pub id: Option<String>,
 }
 
 impl From<crate::Mp3Entry> for Mp3Entry {

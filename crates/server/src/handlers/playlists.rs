@@ -320,6 +320,7 @@ pub async fn current_playlist(
         entry.album_id = track.as_ref().map(|t| t.album_id.clone());
         entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
         entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
+        entry.id = track.as_ref().map(|t| t.id.clone());
 
         metadata_cache.insert(hash, entry.clone());
         entries.push(entry);
@@ -379,6 +380,7 @@ pub async fn get_playlist(ctx: &Context, _req: &Request, res: &mut Response) -> 
         entry.album_id = track.as_ref().map(|t| t.album_id.clone());
         entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
         entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
+        entry.id = track.as_ref().map(|t| t.id.clone());
 
         metadata_cache.insert(hash, entry.clone());
         entries.push(entry);

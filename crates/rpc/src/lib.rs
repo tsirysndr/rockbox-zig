@@ -72,8 +72,10 @@ pub mod api {
                 let album_id = mp3entry.album_id.unwrap_or_default();
                 let artist_id = mp3entry.artist_id.unwrap_or_default();
                 let album_art = mp3entry.album_art;
+                let id = mp3entry.id.unwrap_or_default();
 
                 CurrentTrackResponse {
+                    id,
                     title,
                     artist,
                     album,
@@ -98,7 +100,6 @@ pub mod api {
                     album_id,
                     artist_id,
                     album_art,
-                    id: "".into(),
                 }
             }
         }
