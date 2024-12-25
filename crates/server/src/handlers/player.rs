@@ -9,6 +9,7 @@ use anyhow::Error;
 use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
 use rockbox_chromecast::Chromecast;
+use rockbox_library::repo;
 use rockbox_sys::{
     self as rb,
     types::{audio_status::AudioStatus, mp3_entry::Mp3Entry},
@@ -177,7 +178,17 @@ pub async fn current_track(ctx: &Context, _req: &Request, res: &mut Response) ->
         return Ok(());
     }
 
-    let track = rb::playback::current_track();
+    let mut track = rb::playback::current_track();
+    let path: Option<String> = track.as_ref().map(|t| t.path.clone());
+    if let Some(path) = path {
+        let hash = format!("{:x}", md5::compute(path.as_bytes()));
+        if let Some(metadata) = repo::track::find_by_md5(ctx.pool.clone(), &hash).await? {
+            track.as_mut().unwrap().id = Some(metadata.id);
+            track.as_mut().unwrap().album_art = metadata.album_art;
+            track.as_mut().unwrap().album_id = Some(metadata.album_id);
+            track.as_mut().unwrap().artist_id = Some(metadata.artist_id);
+        }
+    }
     res.json(&track);
 
     drop(player_mutex);
@@ -193,7 +204,17 @@ pub async fn next_track(ctx: &Context, _req: &Request, res: &mut Response) -> Re
         return Ok(());
     }
 
-    let track = rb::playback::next_track();
+    let mut track = rb::playback::next_track();
+    let path: Option<String> = track.as_ref().map(|t| t.path.clone());
+    if let Some(path) = path {
+        let hash = format!("{:x}", md5::compute(path.as_bytes()));
+        if let Some(metadata) = repo::track::find_by_md5(ctx.pool.clone(), &hash).await? {
+            track.as_mut().unwrap().id = Some(metadata.id);
+            track.as_mut().unwrap().album_art = metadata.album_art;
+            track.as_mut().unwrap().album_id = Some(metadata.album_id);
+            track.as_mut().unwrap().artist_id = Some(metadata.artist_id);
+        }
+    }
     res.json(&track);
 
     drop(player_mutex);
