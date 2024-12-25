@@ -68,7 +68,7 @@ fn get_file_extension(mime: &str) -> Result<&str, Error> {
         "audio/aiff" => Ok("aiff"),
         "audio/x-aiff" => Ok("aiff"),
         "audio/ac3" => Ok("ac3"),
-        "audio/audio.vnd.dd-raw" => Ok("ac3"),
+        "audio/vnd.dolby.dd-raw" => Ok("ac3"),
         "audio/opus" => Ok("opus"),
         "audio/x-speex" => Ok("spx"),
         "audio/prs.sid" => Ok("sid"),
