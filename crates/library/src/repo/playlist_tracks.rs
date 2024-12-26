@@ -47,7 +47,7 @@ pub async fn find_by_playlist(
 }
 
 pub async fn delete(pool: Pool<Sqlite>, id: &str) -> Result<(), sqlx::Error> {
-    sqlx::query(r#"DELTE FROM playlist_tracks WHERE id = $1"#)
+    sqlx::query(r#"DELETE FROM playlist_tracks WHERE id = $1"#)
         .bind(id)
         .execute(&pool)
         .await?;
