@@ -46,10 +46,49 @@ docker run \
     tsiry/rockbox:latest
 ```
 
+## Requirements
+
 Run the following commands to build the project:
+Before building the project, you need to install the necessary dependencies for your operating system.
+
+### On Ubuntu/Debian
+
+```bash
+sudo apt-get install libusb-dev libsdl1.2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler cmake
+```
+
+### On Fedora40/41:
 
 ```sh
-sudo apt-get install libusb-dev libsdl1.2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler cmake
+sudo dnf install libusb1-devel SDL-devel freetype-devel libunwind-devel zip protobuf-compiler cmake
+sudo ln -s /lib64/libusb-1.0.so /usr/lib64/libusb.so
+```
+
+### Build Instructions
+
+1. Clone the repository
+
+```sh
+git clone https://github.com/tsirysndr/rockbox-zig.git
+git submodule update --init --recursive
+```
+
+2. Navigate to the project directory
+
+```sh
+cd rockbox-zig
+```
+
+3. Build the webui
+```sh
+cd webui/rockbox
+deno install
+deno run build
+```
+
+4. Run the following command to build the project
+
+```sh
 mkdir -p build && cd build
 ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=$HOME/.local
 make zig
@@ -68,7 +107,6 @@ MacOS, currently not supported, but you can run in a docker container.
 ## 📦 Downloads
 
 - `Linux`: intel: [rockbox_2024.12.25_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.12.25/rockbox_2024.12.25_x86_64-linux.tar.gz) arm64: [rockbox_2024.12.25_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.12.25/rockbox_2024.12.25_aarch64-linux.tar.gz)
-
 
 ## ✨ Features
 
@@ -100,7 +138,7 @@ MacOS, currently not supported, but you can run in a docker container.
 ## 🧑‍🔬 Architecture
 
 ![architecture](./docs/rockbox-arch.png)
-  
+
 ## 📚 GraphQL API
 
 Open [http://localhost:6062/graphiql](http://localhost:6062/graphiql) in your browser.
@@ -108,7 +146,7 @@ Open [http://localhost:6062/graphiql](http://localhost:6062/graphiql) in your br
 <p style="margin-top: 20px; margin-bottom: 20px;">
  <img src="./docs/graphql.png" width="100%" />
 </p>
-  
+
 ## 📚 HTTP API
 
 Open [http://localhost:6063](http://localhost:6063) in your browser.
