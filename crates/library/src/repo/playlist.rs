@@ -7,15 +7,19 @@ pub async fn save(pool: Pool<Sqlite>, playlist: Playlist) -> Result<(), sqlx::Er
         INSERT INTO playlist (
             id,
             name,
+            image,
+            description,
             folder_id,
             created_at,
             updated_at
         )
-        VALUES ($1, $2, $3, $4, $5)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
     "#,
     )
     .bind(&playlist.id)
     .bind(&playlist.name)
+    .bind(&playlist.image)
+    .bind(&playlist.description)
     .bind(&playlist.folder_id)
     .bind(playlist.created_at)
     .bind(playlist.updated_at)
