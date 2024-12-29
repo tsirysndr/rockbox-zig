@@ -6,22 +6,23 @@ use anyhow::Error;
 use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
 use rockbox_graphql::read_files;
-use rockbox_library::repo;
+use rockbox_library::{entity, repo};
 use rockbox_network::download_tracks;
+use rockbox_sys::types::mp3_entry::Mp3Entry;
 use rockbox_sys::{
     self as rb,
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
     PLAYLIST_INSERT_LAST, PLAYLIST_INSERT_LAST_SHUFFLED,
 };
 use rockbox_traits::types::track::Track;
-use rockbox_types::{DeleteTracks, InsertTracks, NewPlaylist, StatusCode};
+use rockbox_types::{DeleteTracks, InsertTracks, NewPlaylist, PlaylistUpdate, StatusCode};
+use serde_json::json;
 
 pub async fn create_playlist(
-    _ctx: &Context,
+    ctx: &Context,
     req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     if req.body.is_none() {
         res.set_status(400);
         return Ok(());
@@ -29,11 +30,56 @@ pub async fn create_playlist(
     let body = req.body.as_ref().unwrap();
     let mut new_playlist: NewPlaylist = serde_json::from_str(body).unwrap();
 
+    if let Some(playlist_name) = new_playlist.name.as_ref() {
+        if playlist_name.is_empty() {
+            res.set_status(400);
+            return Ok(());
+        }
+        let playlist_id = repo::playlist::save(
+            ctx.pool.clone(),
+            entity::playlist::Playlist {
+                id: cuid::cuid1()?,
+                name: playlist_name.clone(),
+                folder_id: new_playlist.folder_id,
+                created_at: chrono::Utc::now(),
+                updated_at: chrono::Utc::now(),
+                ..Default::default()
+            },
+        )
+        .await?;
+
+        let tracks = download_tracks(new_playlist.tracks).await?;
+        for (position, track_path) in tracks.iter().enumerate() {
+            let hash = format!("{:x}", md5::compute(track_path.as_bytes()));
+            let track = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
+            if track.is_none() {
+                continue;
+            }
+            repo::playlist_tracks::save(
+                ctx.pool.clone(),
+                entity::playlist_tracks::PlaylistTracks {
+                    id: cuid::cuid1()?,
+                    playlist_id: playlist_id.clone(),
+                    track_id: track.unwrap().id,
+                    position: position as u32,
+                    created_at: chrono::Utc::now(),
+                },
+            )
+            .await?;
+        }
+
+        res.set_status(200);
+        res.text("0");
+        return Ok(());
+    }
+
     if new_playlist.tracks.is_empty() {
         return Ok(());
     }
 
     new_playlist.tracks = download_tracks(new_playlist.tracks).await?;
+
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
 
     let dir = new_playlist.tracks[0].clone();
     let dir_parts: Vec<_> = dir.split('/').collect();
@@ -143,10 +189,37 @@ pub async fn resume_track(
 }
 
 pub async fn get_playlist_tracks(
-    _ctx: &Context,
-    _req: &Request,
+    ctx: &Context,
+    req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
+    let playlist_id = &req.params[0];
+
+    if playlist_id != "current" {
+        let tracks = repo::playlist_tracks::find_by_playlist(ctx.pool.clone(), playlist_id).await?;
+        let mut entries: Vec<Mp3Entry> = vec![];
+
+        for track in tracks {
+            entries.push(Mp3Entry {
+                id: Some(track.id),
+                path: track.path,
+                title: track.title,
+                artist: track.artist,
+                album: track.album,
+                length: track.length as u64,
+                tracknum: track.track_number.unwrap_or_default() as i32,
+                album_art: track.album_art,
+                artist_id: Some(track.artist_id),
+                album_id: Some(track.album_id),
+                filesize: track.filesize as u64,
+                frequency: track.frequency as u64,
+                ..Default::default()
+            });
+        }
+        res.json(&entries);
+        return Ok(());
+    }
+
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let mut entries = vec![];
     let amount = rb::playlist::amount();
@@ -164,6 +237,45 @@ pub async fn get_playlist_tracks(
 }
 
 pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let playlist_id = &req.params[0];
+    if playlist_id != "current" {
+        let req_body = req.body.as_ref().unwrap();
+        let mut tracklist: InsertTracks = serde_json::from_str(&req_body)?;
+        let tracks = download_tracks(tracklist.tracks).await?;
+
+        if let Some(dir) = &tracklist.directory {
+            tracklist.tracks = read_files(dir.clone()).await?;
+        }
+
+        let playlist = repo::playlist::find(ctx.pool.clone(), playlist_id).await?;
+        if playlist.is_none() {
+            res.set_status(404);
+            return Ok(());
+        }
+
+        for track_path in tracks {
+            let current_tracks =
+                repo::playlist_tracks::find_by_playlist(ctx.pool.clone(), playlist_id).await?;
+            let hash = format!("{:x}", md5::compute(track_path.as_bytes()));
+
+            if let Some(track) = repo::track::find_by_md5(ctx.pool.clone(), &hash).await? {
+                repo::playlist_tracks::save(
+                    ctx.pool.clone(),
+                    entity::playlist_tracks::PlaylistTracks {
+                        id: cuid::cuid1()?,
+                        playlist_id: playlist_id.clone(),
+                        track_id: track.id,
+                        position: current_tracks.len() as u32,
+                        created_at: chrono::Utc::now(),
+                    },
+                )
+                .await?;
+            }
+        }
+        res.text("0");
+        return Ok(());
+    }
+
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let req_body = req.body.as_ref().unwrap();
     let mut tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
@@ -262,6 +374,24 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
 }
 
 pub async fn remove_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let playlist_id = &req.params[0];
+    if playlist_id != "current" {
+        let req_body = req.body.as_ref().unwrap();
+        let params = serde_json::from_str::<DeleteTracks>(&req_body)?;
+
+        if params.positions.is_empty() {
+            res.text("0");
+            return Ok(());
+        }
+
+        for position in params.positions {
+            repo::playlist_tracks::delete_track_at(ctx.pool.clone(), playlist_id, position as u32)
+                .await?;
+        }
+        res.text("0");
+        return Ok(());
+    }
+
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let player = ctx.player.lock().unwrap();
 
@@ -332,7 +462,45 @@ pub async fn current_playlist(
     Ok(())
 }
 
-pub async fn get_playlist(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn get_playlist(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let playlist_id = &req.params[0];
+    if playlist_id != "current" {
+        let playlist = repo::playlist::find(ctx.pool.clone(), playlist_id).await?;
+        if playlist.is_none() {
+            res.set_status(404);
+            return Ok(());
+        }
+
+        let playlist = playlist.unwrap();
+
+        let tracks = repo::playlist_tracks::find_by_playlist(ctx.pool.clone(), playlist_id).await?;
+        let mut entries: Vec<Mp3Entry> = vec![];
+        for track in tracks.clone() {
+            let mut entry = rb::metadata::get_metadata(-1, &track.path);
+            entry.album_art = track.album_art;
+            entry.album_id = Some(track.album_id);
+            entry.artist_id = Some(track.artist_id);
+            entry.genre_id = Some(track.genre_id);
+            entry.id = Some(track.id);
+            entries.push(entry);
+        }
+
+        let result = PlaylistInfo {
+            id: Some(playlist.id),
+            amount: tracks.len() as i32,
+            entries,
+            name: Some(playlist.name),
+            folder_id: playlist.folder_id,
+            image: playlist.image,
+            description: playlist.description,
+            created_at: Some(playlist.created_at.to_rfc3339()),
+            updated_at: Some(playlist.updated_at.to_rfc3339()),
+            ..Default::default()
+        };
+        res.json(&result);
+        return Ok(());
+    }
+
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let mut player = ctx.player.lock().unwrap();
 
@@ -396,6 +564,109 @@ pub async fn get_playlist(ctx: &Context, _req: &Request, res: &mut Response) -> 
     result.entries = entries;
 
     res.json(&result);
+    drop(player_mutex);
+    Ok(())
+}
+
+pub async fn delete_playlist(
+    ctx: &Context,
+    req: &Request,
+    res: &mut Response,
+) -> Result<(), Error> {
+    let playlist_id = &req.params[0];
+    repo::playlist::delete(ctx.pool.clone(), playlist_id).await?;
+    repo::playlist_tracks::delete_by_playlist(ctx.pool.clone(), playlist_id).await?;
+    res.json(&json!({ "id": playlist_id }));
+    Ok(())
+}
+
+pub async fn update_playlist(
+    ctx: &Context,
+    req: &Request,
+    res: &mut Response,
+) -> Result<(), Error> {
+    let playlist_id = &req.params[0];
+    if req.body.is_none() {
+        res.set_status(400);
+        return Ok(());
+    }
+
+    let body = req.body.as_ref().unwrap();
+    let playlist: PlaylistUpdate = serde_json::from_str(body)?;
+    repo::playlist::update(
+        ctx.pool.clone(),
+        entity::playlist::Playlist {
+            id: playlist_id.clone(),
+            name: playlist.name.unwrap_or_default(),
+            folder_id: playlist.folder_id,
+            ..Default::default()
+        },
+    )
+    .await?;
+
+    res.json(&json!({ "id": playlist_id }));
+    Ok(())
+}
+
+pub async fn get_playlists(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let folder_id = req.query_params.get("folder_id");
+    let folder_id = folder_id.map(|f| f.as_str().unwrap());
+    let playlist = repo::playlist::find_by_folder(ctx.pool.clone(), folder_id).await?;
+    res.json(&playlist);
+    Ok(())
+}
+
+pub async fn play_playlist(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+    let playlist_id = &req.params[0];
+    let tracks = repo::playlist_tracks::find_by_playlist(ctx.pool.clone(), playlist_id).await?;
+
+    if tracks.is_empty() {
+        res.set_status(200);
+        return Ok(());
+    }
+
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
+
+    let dir = tracks[0].clone();
+    let dir = dir.path.clone();
+    let dir_parts: Vec<_> = dir.split('/').collect();
+    let dir = dir_parts[0..dir_parts.len() - 1].join("/");
+    let status = rb::playlist::create(&dir, None);
+    if status == -1 {
+        res.set_status(500);
+        return Ok(());
+    }
+    rb::playlist::build_playlist(
+        tracks.iter().map(|t| t.path.as_str()).collect(),
+        0,
+        tracks.len() as i32,
+    );
+
+    let shuffle = match req.query_params.get("shuffle") {
+        Some(shuffle) => shuffle.as_str().unwrap_or("0").parse().unwrap_or(0),
+        None => 0,
+    };
+
+    if shuffle == 1 {
+        let seed = rb::system::current_tick();
+        rb::playlist::shuffle(seed as i32, 0);
+    }
+
+    let start_index = match req.query_params.get("start_index") {
+        Some(start_index) => start_index.as_str().unwrap_or("0").parse().unwrap_or(0),
+        None => 0,
+    };
+    let elapsed = match req.query_params.get("elapsed") {
+        Some(elapsed) => elapsed.as_str().unwrap_or("0").parse().unwrap_or(0),
+        None => 0,
+    };
+    let offset = match req.query_params.get("offset") {
+        Some(offset) => offset.as_str().unwrap_or("0").parse().unwrap_or(0),
+        None => 0,
+    };
+    rb::playlist::start(start_index, elapsed, offset);
+
+    res.set_status(200);
     drop(player_mutex);
     Ok(())
 }

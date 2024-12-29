@@ -82,6 +82,7 @@ pub extern "C" fn start_server() {
     app.put("/player/volume", adjust_volume);
 
     app.post("/playlists", create_playlist);
+    app.get("/playlists", get_playlists);
     app.put("/playlists/start", start_playlist);
     app.put("/playlists/shuffle", shuffle_playlist);
     app.get("/playlists/amount", get_playlist_amount);
@@ -91,6 +92,15 @@ pub extern "C" fn start_server() {
     app.post("/playlists/:id/tracks", insert_tracks);
     app.delete("/playlists/:id/tracks", remove_tracks);
     app.get("/playlists/:id", get_playlist);
+    app.put("/playlists/:id", update_playlist);
+    app.delete("/playlists/:id", delete_playlist);
+    app.put("/playlists/:id/play", play_playlist);
+
+    app.post("/folders", create_folder);
+    app.get("/folders", get_folders);
+    app.get("/folders/:id", get_folder);
+    app.put("/folders/:id", update_folder);
+    app.delete("/folders/:id", delete_folder);
 
     app.get("/tracks", get_tracks);
     app.get("/tracks/:id", get_track);
@@ -346,6 +356,7 @@ pub extern "C" fn start_broker() {
                 .into_iter()
                 .map(|t| t.into())
                 .collect(),
+            ..Default::default()
         });
 
         thread::sleep(std::time::Duration::from_millis(100));

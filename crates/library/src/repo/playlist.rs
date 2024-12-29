@@ -1,7 +1,7 @@
 use crate::entity::playlist::Playlist;
 use sqlx::{Pool, Sqlite};
 
-pub async fn save(pool: Pool<Sqlite>, playlist: Playlist) -> Result<(), sqlx::Error> {
+pub async fn save(pool: Pool<Sqlite>, playlist: Playlist) -> Result<String, sqlx::Error> {
     sqlx::query(
         r#"
         INSERT INTO playlist (
@@ -25,7 +25,7 @@ pub async fn save(pool: Pool<Sqlite>, playlist: Playlist) -> Result<(), sqlx::Er
     .bind(playlist.updated_at)
     .execute(&pool)
     .await?;
-    Ok(())
+    Ok(playlist.id)
 }
 
 pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Playlist>, sqlx::Error> {
@@ -37,11 +37,11 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Playlist>, sqlx
 
 pub async fn find_by_folder(
     pool: Pool<Sqlite>,
-    folder_id: &str,
+    folder_id: Option<&str>,
 ) -> Result<Vec<Playlist>, sqlx::Error> {
     sqlx::query_as::<_, Playlist>(
         r#"
-            SELECT * FROM playlist WHERE folder_id = $1 ORDER BY name ASC   
+            SELECT * FROM playlist WHERE folder_id IS $1 ORDER BY name ASC   
          "#,
     )
     .bind(folder_id)
@@ -64,17 +64,25 @@ pub async fn delete(pool: Pool<Sqlite>, id: &str) -> Result<(), sqlx::Error> {
 }
 
 pub async fn update(pool: Pool<Sqlite>, playlist: Playlist) -> Result<(), sqlx::Error> {
+    let name = match playlist.name.is_empty() {
+        true => None,
+        false => Some(&playlist.name),
+    };
     sqlx::query(
         r#"
         UPDATE playlist SET
             name = $2,
-            updated_at = $3,
-            folder_id = $4
+            description = $3,
+            image = $4,
+            updated_at = $5,
+            folder_id = $6
         WHERE id = $1
     "#,
     )
     .bind(&playlist.id)
-    .bind(&playlist.name)
+    .bind(name)
+    .bind(playlist.description)
+    .bind(playlist.image)
     .bind(chrono::Utc::now())
     .bind(&playlist.folder_id)
     .execute(&pool)

@@ -300,7 +300,10 @@ pub async fn handle_delete(
         let range: Vec<i32> = arg.split(':').map(|x| x.parse::<i32>().unwrap()).collect();
         let positions: Vec<i32> = (range[0]..=range[1]).collect();
         ctx.playlist
-            .remove_tracks(RemoveTracksRequest { positions })
+            .remove_tracks(RemoveTracksRequest {
+                positions,
+                playlist_id: None,
+            })
             .await?;
         if !ctx.batch {
             stream.write_all(b"OK\n").await?;
@@ -319,7 +322,10 @@ pub async fn handle_delete(
         }
     };
     ctx.playlist
-        .remove_tracks(RemoveTracksRequest { positions })
+        .remove_tracks(RemoveTracksRequest {
+            positions,
+            playlist_id: None,
+        })
         .await?;
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;
@@ -342,7 +348,7 @@ pub async fn handle_clear(
     *idle = true;
 
     ctx.playlist
-        .remove_all_tracks(RemoveAllTracksRequest {})
+        .remove_all_tracks(RemoveAllTracksRequest { playlist_id: None })
         .await?;
     if !ctx.batch {
         stream.write_all(b"OK\n").await?;

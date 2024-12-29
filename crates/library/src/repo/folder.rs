@@ -1,7 +1,7 @@
 use crate::entity::folder::Folder;
 use sqlx::{types::chrono, Pool, Sqlite};
 
-pub async fn save(pool: Pool<Sqlite>, folder: Folder) -> Result<(), sqlx::Error> {
+pub async fn save(pool: Pool<Sqlite>, folder: Folder) -> Result<String, sqlx::Error> {
     sqlx::query(
         r#"
         INSERT INTO folder (
@@ -13,13 +13,13 @@ pub async fn save(pool: Pool<Sqlite>, folder: Folder) -> Result<(), sqlx::Error>
         VALUES ($1, $2, $3, $4)
     "#,
     )
-    .bind(folder.id)
+    .bind(&folder.id)
     .bind(&folder.name)
     .bind(folder.created_at)
     .bind(folder.updated_at)
     .execute(&pool)
     .await?;
-    Ok(())
+    Ok(folder.id)
 }
 
 pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Folder>, sqlx::Error> {
@@ -31,9 +31,9 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Folder>, sqlx::
 
 pub async fn find_by_parent(
     pool: Pool<Sqlite>,
-    parent_id: &str,
+    parent_id: Option<&str>,
 ) -> Result<Vec<Folder>, sqlx::Error> {
-    sqlx::query_as::<_, Folder>(r#"SELECT * FROM folder WHERE parent_id = $1"#)
+    sqlx::query_as::<_, Folder>(r#"SELECT * FROM folder WHERE parent_id IS $1 ORDER BY name ASC"#)
         .bind(parent_id)
         .fetch_all(&pool)
         .await
@@ -54,6 +54,10 @@ pub async fn delete(pool: Pool<Sqlite>, id: &str) -> Result<(), sqlx::Error> {
 }
 
 pub async fn update(pool: Pool<Sqlite>, folder: Folder) -> Result<(), sqlx::Error> {
+    let name = match folder.name.is_empty() {
+        true => None,
+        false => Some(&folder.name),
+    };
     sqlx::query(
         r#"
             UPDATE folder SET
@@ -64,7 +68,7 @@ pub async fn update(pool: Pool<Sqlite>, folder: Folder) -> Result<(), sqlx::Erro
         "#,
     )
     .bind(&folder.id)
-    .bind(&folder.name)
+    .bind(name)
     .bind(chrono::Utc::now())
     .bind(&folder.parent_id)
     .execute(&pool)
