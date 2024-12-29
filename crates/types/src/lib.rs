@@ -11,6 +11,7 @@ pub mod device;
 pub struct NewPlaylist {
     pub name: Option<String>,
     pub tracks: Vec<String>,
+    pub folder_id: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -67,4 +68,33 @@ pub struct ReplaygainSettings {
     pub preamp: i32,
     pub peak: i32,
     pub clip: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Folder {
+    pub name: String,
+    pub parent_id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FolderUpdate {
+    pub name: Option<String>,
+    pub parent_id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PlaylistUpdate {
+    pub name: Option<String>,
+    pub folder_id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Playlist {
+    pub id: String,
+    pub name: String,
+    pub created_at: u64,
+    pub updated_at: u64,
+    pub folder_id: Option<String>,
+    pub image: Option<String>,
+    pub description: Option<String>,
 }

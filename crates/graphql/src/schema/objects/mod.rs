@@ -5,6 +5,7 @@ pub mod compressor_settings;
 pub mod device;
 pub mod entry;
 pub mod eq_band_setting;
+pub mod folder;
 pub mod new_global_settings;
 pub mod playlist;
 pub mod replaygain_settings;

@@ -24,6 +24,13 @@ pub struct PlaylistInfo {
     pub control_filename: String, // char control_filename[sizeof(PLAYLIST_CONTROL_FILE) + 8]
     pub dcfrefs_handle: i32,      // int dcfrefs_handle
     pub entries: Vec<Mp3Entry>,
+    pub name: Option<String>,
+    pub created_at: Option<String>,
+    pub updated_at: Option<String>,
+    pub folder_id: Option<String>,
+    pub image: Option<String>,
+    pub description: Option<String>,
+    pub id: Option<String>,
 }
 
 impl From<crate::PlaylistInfo> for PlaylistInfo {
@@ -56,6 +63,7 @@ impl From<crate::PlaylistInfo> for PlaylistInfo {
             },
             dcfrefs_handle: info.dcfrefs_handle,
             entries: vec![],
+            ..Default::default()
         }
     }
 }
