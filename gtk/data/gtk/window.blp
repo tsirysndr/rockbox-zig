@@ -130,6 +130,26 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                       wrap-mode: char;
                     }
                   }
+                  
+                  Box playlists_row_box {
+                    margin-top: 12;
+                    margin-bottom: 12;
+                    margin-start: 6;
+                    spacing: 10;
+
+                    Image {
+                      icon-name: "playlist-symbolic";
+                      pixel-size: 20;
+                    }
+
+                    Label {
+                      halign: start;
+                      label: _("Playlists");
+                      margin-end: 6;
+                      wrap: true;
+                      wrap-mode: char;
+                    }
+                  }
 
                   Box files_row_box {
                     margin-top: 12;
@@ -149,7 +169,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                       wrap-mode: char;
                     }
                   }
-
+                  
                   styles [
                     "navigation-sidebar"
                   ]
@@ -176,6 +196,14 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                 tooltip-text: _("Go Back");
                 icon-name: "go-previous-symbolic";
                 action-name: "win.go_back";
+                visible: false;
+              }
+              
+              [start]
+              MenuButton new_playlist_menu_button {
+                tooltip-text: _("Create Playlist or Folder");
+                icon-name: "list-add-symbolic";
+                menu-model: new_playlist_menu;
                 visible: false;
               }
               
@@ -379,6 +407,22 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                     title: _("Search Results");
                     child: $Search search {};
                   }
+                  
+                  Adw.ViewStackPage playlists_page {
+                    name: "playlists-page";
+                    title: _("Playlists");
+                    child: ScrolledWindow  {
+                      $Playlists playlists {}
+                    };
+                  }
+                  
+                  Adw.ViewStackPage playlist_details_page {
+                    name: "playlist-details-page";
+                    title: _("Playlist");
+                    child: ScrolledWindow  {
+                      $PlaylistDetails playlist_details {}
+                    };
+                  }
 
                 }
             }
@@ -408,3 +452,9 @@ menu primary_menu {
   }
 }
 
+menu new_playlist_menu {
+  section {
+    item (_("Create Playlist"), "app.create_playlist")  
+    item (_("Create Folder"), "app.create_folder")  
+  }
+}

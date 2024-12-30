@@ -5,5 +5,7 @@ pub mod artists;
 pub mod current_playlist;
 pub mod files;
 pub mod likes;
+pub mod playlist_details;
+pub mod playlists;
 pub mod search;
 pub mod songs;

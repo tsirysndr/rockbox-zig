@@ -239,6 +239,7 @@ mod imp {
                     library_page_ref.set_title("Album");
                     go_back_button_ref.set_visible(true);
                     album_details_ref.imp().hide_top_buttons(true);
+                    album_details_ref.imp().hide_playlist_buttons(true);
                     state.push_navigation("Album", "album-details-page");
                     album_details_ref.imp().load_album(album_id);
                 }
@@ -863,9 +864,15 @@ impl MediaControls {
                 let current_playlist = self.imp().current_playlist.borrow();
                 let current_playlist_ref = current_playlist.as_ref().unwrap();
 
-                if state.current_page().1 == "likes-page" || state.current_page().1 == "songs-page"
+                if state.current_page().1 == "likes-page"
+                    || state.current_page().1 == "songs-page"
+                    || state.current_page().1 == "playlist-details-page"
                 {
                     current_playlist_ref.hide_top_buttons(false);
+                }
+
+                if state.current_page().1 == "playlists-page" {
+                    current_playlist_ref.hide_playlist_buttons(false);
                 }
 
                 if state.current_page().1 == "files-page"
@@ -894,6 +901,7 @@ impl MediaControls {
                 let current_playlist = self.imp().current_playlist.borrow();
                 let current_playlist_ref = current_playlist.as_ref().unwrap();
                 current_playlist_ref.hide_top_buttons(true);
+                current_playlist_ref.hide_playlist_buttons(true);
                 current_playlist_ref.load_current_track();
                 current_playlist_ref.load_current_playlist();
                 self.imp().playlist_displayed.set(true);
@@ -930,6 +938,7 @@ impl MediaControls {
         library_page_ref.set_title("Artist");
         go_back_button_ref.set_visible(true);
         artist_details_ref.imp().hide_top_buttons(true);
+        artist_details_ref.imp().hide_playlist_buttons(true);
         artist_details_ref.imp().load_artist(current_artist_id_ref);
         state.push_navigation("Artist", "artist-details-page");
     }
@@ -962,6 +971,7 @@ impl MediaControls {
             go_back_button_ref.set_visible(true);
             state.push_navigation("Album", "album-details-page");
             album_details_ref.imp().hide_top_buttons(true);
+            album_details_ref.imp().hide_playlist_buttons(true);
             album_details_ref.imp().load_album(album_id);
         }
     }

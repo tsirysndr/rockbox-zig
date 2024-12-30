@@ -291,6 +291,7 @@ impl Song {
                 client
                     .remove_tracks(RemoveTracksRequest {
                         positions: vec![index],
+                        ..Default::default()
                     })
                     .await?;
                 Ok::<(), Error>(())
