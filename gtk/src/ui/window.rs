@@ -3,10 +3,9 @@ use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClien
 use crate::api::rockbox::v1alpha1::system_service_client::SystemServiceClient;
 use crate::api::rockbox::v1alpha1::{
     GetGlobalStatusRequest, GetGlobalStatusResponse, PlayAllTracksRequest, PlayLikedTracksRequest,
-    ScanLibraryRequest, SearchRequest, SearchResponse,
+    ScanLibraryRequest, SearchResponse,
 };
 use crate::app::RbApplication;
-use crate::config;
 use crate::state::AppState;
 use crate::types::track::Track;
 use crate::ui::media_controls::MediaControls;
@@ -17,12 +16,13 @@ use crate::ui::pages::current_playlist::CurrentPlaylist;
 use crate::ui::pages::search::Search;
 use crate::ui::pages::songs::Songs;
 use crate::ui::pages::{artists::Artists, files::Files, likes::Likes};
+use crate::ui::pages::{playlist_details::PlaylistDetails, playlists::Playlists};
 use crate::ui::{about_dialog, preferences_dialog};
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{
-    NavigationPage, NavigationView, OverlaySplitView, StatusPage, TabBar, TabView, ToastOverlay,
-    ViewStack, ViewStackPage,
+    NavigationPage, NavigationView, OverlaySplitView, StatusPage, ToastOverlay, ViewStack,
+    ViewStackPage,
 };
 use anyhow::Error;
 use glib::subclass;
@@ -37,6 +37,7 @@ use std::thread;
 use tokio::sync::mpsc;
 
 mod imp {
+
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -44,6 +45,8 @@ mod imp {
     pub struct RbApplicationWindow {
         #[template_child]
         pub show_sidebar_button: TemplateChild<Button>,
+        #[template_child]
+        pub new_playlist_menu_button: TemplateChild<MenuButton>,
         #[template_child]
         pub primary_menu_button: TemplateChild<MenuButton>,
         #[template_child]
@@ -76,6 +79,8 @@ mod imp {
         pub songs_row_box: TemplateChild<Box>,
         #[template_child]
         pub likes_row_box: TemplateChild<Box>,
+        #[template_child]
+        pub playlists_row_box: TemplateChild<Box>,
         #[template_child]
         pub files_row_box: TemplateChild<Box>,
 
@@ -127,6 +132,14 @@ mod imp {
         pub album_details_page: TemplateChild<ViewStackPage>,
         #[template_child]
         pub album_details: TemplateChild<AlbumDetails>,
+        #[template_child]
+        pub playlist_details_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub playlist_details: TemplateChild<PlaylistDetails>,
+        #[template_child]
+        pub playlists_page: TemplateChild<ViewStackPage>,
+        #[template_child]
+        pub playlists: TemplateChild<Playlists>,
         #[template_child]
         pub search_page: TemplateChild<ViewStackPage>,
         #[template_child]
@@ -224,6 +237,18 @@ mod imp {
                 win.clipboard().set_text(CMD);
                 win.add_message_toast("Copied to clipboard");
             });
+
+            klass.install_action(
+                "app.create_playlist",
+                None,
+                move |win, _action, _parameter| {},
+            );
+
+            klass.install_action(
+                "app.create_folder",
+                None,
+                move |win, _action, _parameter| {},
+            );
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
@@ -423,6 +448,9 @@ mod imp {
                             let shuffle_all_button = self_.shuffle_all_button.get();
                             play_all_button.set_visible(false);
                             shuffle_all_button.set_visible(false);
+
+                            let new_playlist_menu_button = self_.new_playlist_menu_button.get();
+                            new_playlist_menu_button.set_visible(false);
                         }
                         "Artists" => {
                             let main_stack = self_.main_stack.get();
@@ -436,6 +464,9 @@ mod imp {
                             let shuffle_all_button = self_.shuffle_all_button.get();
                             play_all_button.set_visible(false);
                             shuffle_all_button.set_visible(false);
+
+                            let new_playlist_menu_button = self_.new_playlist_menu_button.get();
+                            new_playlist_menu_button.set_visible(false);
                         }
                         "Songs" => {
                             let main_stack = self_.main_stack.get();
@@ -447,6 +478,9 @@ mod imp {
                             state.new_navigation_from("Songs", "songs-page");
                             let play_all_button = self_.play_all_button.get();
                             let shuffle_all_button = self_.shuffle_all_button.get();
+
+                            let new_playlist_menu_button = self_.new_playlist_menu_button.get();
+                            new_playlist_menu_button.set_visible(false);
 
                             if !state.tracks().is_empty() {
                                 play_all_button.set_visible(true);
@@ -465,6 +499,9 @@ mod imp {
                             let shuffle_all_button = self_.shuffle_all_button.get();
                             play_all_button.set_visible(true);
                             shuffle_all_button.set_visible(true);
+
+                            let new_playlist_menu_button = self_.new_playlist_menu_button.get();
+                            new_playlist_menu_button.set_visible(false);
 
                             let likes = self_.likes.get();
                             glib::idle_add_local(move || {
@@ -491,6 +528,25 @@ mod imp {
                             let shuffle_all_button = self_.shuffle_all_button.get();
                             play_all_button.set_visible(false);
                             shuffle_all_button.set_visible(false);
+
+                            let new_playlist_menu_button = self_.new_playlist_menu_button.get();
+                            new_playlist_menu_button.set_visible(false);
+                        }
+                        "Playlists" => {
+                            let main_stack = self_.main_stack.get();
+                            if !self_.show_placeholder.get() {
+                                main_stack.set_visible_child_name("playlists-page");
+                            }
+                            let library_page = self_.library_page.get();
+                            library_page.set_title("Playlists");
+                            state.new_navigation_from("Playlists", "playlists-page");
+                            let play_all_button = self_.play_all_button.get();
+                            let shuffle_all_button = self_.shuffle_all_button.get();
+                            play_all_button.set_visible(false);
+                            shuffle_all_button.set_visible(false);
+
+                            let new_playlist_menu_button = self_.new_playlist_menu_button.get();
+                            new_playlist_menu_button.set_visible(true);
                         }
                         _ => {}
                     }
@@ -569,6 +625,8 @@ mod imp {
 
                 library_page.set_title("Search Results");
                 go_back_button.set_visible(true);
+                self.hide_top_buttons(true);
+                self.hide_playlist_buttons(true);
                 state.push_navigation("Search", "search-page");
                 let self_weak = self.downgrade();
 
@@ -592,6 +650,11 @@ mod imp {
             let shuffle_all_button = self.shuffle_all_button.get();
             play_all_button.set_visible(!hide);
             shuffle_all_button.set_visible(!hide);
+        }
+
+        pub fn hide_playlist_buttons(&self, hide: bool) {
+            let new_playlist_menu_button = self.new_playlist_menu_button.get();
+            new_playlist_menu_button.set_visible(!hide);
         }
 
         fn go_back(&self) {
@@ -658,6 +721,12 @@ mod imp {
                 self.hide_top_buttons(false);
             } else {
                 self.hide_top_buttons(true);
+            }
+
+            if current_page.1 == "playlists-page" {
+                self.hide_playlist_buttons(false);
+            } else {
+                self.hide_playlist_buttons(true);
             }
         }
 
@@ -834,6 +903,7 @@ impl RbApplicationWindow {
         let go_back_button = window.imp().go_back_button.get();
         let play_all_button = window.imp().play_all_button.get();
         let shuffle_all_button = window.imp().shuffle_all_button.get();
+        let new_playlist_menu_button = window.imp().new_playlist_menu_button.get();
         let songs = window.imp().songs.get();
         let artist_tracks = window.imp().artist_tracks.get();
         let search = window.imp().search.get();
@@ -905,6 +975,10 @@ impl RbApplicationWindow {
             .imp()
             .shuffle_all_button
             .replace(Some(shuffle_all_button.clone()));
+        artist_details
+            .imp()
+            .new_playlist_menu_button
+            .replace(Some(new_playlist_menu_button.clone()));
 
         album_details
             .imp()
@@ -914,6 +988,10 @@ impl RbApplicationWindow {
             .imp()
             .shuffle_all_button
             .replace(Some(shuffle_all_button.clone()));
+        album_details
+            .imp()
+            .new_playlist_menu_button
+            .replace(Some(new_playlist_menu_button.clone()));
 
         current_playlist
             .imp()
@@ -923,6 +1001,10 @@ impl RbApplicationWindow {
             .imp()
             .shuffle_all_button
             .replace(Some(shuffle_all_button.clone()));
+        current_playlist
+            .imp()
+            .new_playlist_menu_button
+            .replace(Some(new_playlist_menu_button.clone()));
 
         media_control_bar
             .imp()

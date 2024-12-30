@@ -14,6 +14,10 @@
     <file compressed="true" preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/likes.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/media_controls.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/playlist.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/playlist_folder.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/playlists.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/playlist_details.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/preferences.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/search.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/song.ui</file>
@@ -34,6 +38,7 @@
     <file alias="options-symbolic.svg">icons/svg/options-symbolic.svg</file>
     <file alias="chevronup-symbolic.svg">icons/svg/chevronup-symbolic.svg</file>
     <file alias="chevrondown-symbolic.svg">icons/svg/chevrondown-symbolic.svg</file>
+    <file alias="playlist-symbolic.svg">icons/svg/playlist-symbolic.svg</file>
     <file alias="close-alt-symbolic.svg">icons/svg/close-alt-symbolic.svg</file>
   </gresource>
 </gresources>

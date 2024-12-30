@@ -1,0 +1,15 @@
+
+using Gtk 4.0;
+
+template $Playlists : Box {
+  ListBox playlists {
+    hexpand: true;
+    margin-top: 15;
+    margin-bottom: 15;
+    selection-mode: none;
+
+    styles [
+     "file-list"
+    ]
+  }
+}

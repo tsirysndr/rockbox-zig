@@ -46,6 +46,7 @@ mod imp {
         pub size: Cell<usize>,
         pub play_all_button: RefCell<Option<gtk::Button>>,
         pub shuffle_all_button: RefCell<Option<gtk::Button>>,
+        pub new_playlist_menu_button: RefCell<Option<gtk::MenuButton>>,
     }
 
     #[glib::object_subclass]
@@ -227,6 +228,12 @@ impl CurrentPlaylist {
         let shuffle_all_button_ref = shuffle_all_button.as_ref();
         play_all_button_ref.unwrap().set_visible(!hide);
         shuffle_all_button_ref.unwrap().set_visible(!hide);
+    }
+
+    pub fn hide_playlist_buttons(&self, hide: bool) {
+        let new_playlist_menu_button = self.imp().new_playlist_menu_button.borrow();
+        let new_playlist_menu_button_ref = new_playlist_menu_button.as_ref();
+        new_playlist_menu_button_ref.unwrap().set_visible(!hide);
     }
 
     pub fn load_current_track(&self) {

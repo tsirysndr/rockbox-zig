@@ -1,0 +1,63 @@
+
+using Gtk 4.0;
+
+template $Playlist : Box {
+  orientation: horizontal;
+  spacing: 10;
+  halign: fill;
+  valign: center;
+  hexpand: true;
+  margin-start: 15;
+  margin-end: 15;
+  
+  Box row {
+      orientation: horizontal;
+      halign: fill;
+      valign: fill;
+      margin-top: 5;
+      margin-bottom: 5;
+  
+      Image playlist_icon {
+        icon-name: "playlist-symbolic";
+        pixel-size: 20;
+      }
+
+      Label playlist_name {
+        halign: start;
+        valign: center;
+        hexpand: true;
+        margin-start: 10;
+      }
+  }
+  
+  MenuButton playlist_menu {
+    tooltip-text: _("More");
+    menu-model: playlist_context_menu;
+    child: Image {
+      icon-name: "options-symbolic";
+      pixel-size: 24;
+    };
+
+    halign: center;
+    valign: center;
+    width-request: 40;
+    height-request: 40;
+
+    styles [
+      "transparent-button"
+    ]
+  }
+
+}
+
+menu playlist_context_menu {
+  section {
+    item (_("Play Now"), "app.playlist.play")
+    item (_("Play Next"), "app.playlist.play-next")
+    item (_("Play Last"), "app.playlist.play-last")
+    item (_("Add Shuffled"), "app.playlist.add-shuffled")
+    item (_("Play Last Shuffled"), "app.playlist.play-last-shuffled")
+    item (_("Play Shuffled"), "app.playlist.play-shuffled")
+  }
+}
+
