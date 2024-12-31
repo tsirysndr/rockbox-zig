@@ -34,6 +34,70 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             Self::bind_template(klass);
+
+            klass.install_action(
+                "app.playlist.play-now",
+                None,
+                move |playlist, _action, _target| {
+                    playlist.play_now(false);
+                },
+            );
+
+            klass.install_action(
+                "app.playlist.play-next",
+                None,
+                move |playlist, _action, _target| {
+                    playlist.play_next();
+                },
+            );
+
+            klass.install_action(
+                "app.playlist.play-last",
+                None,
+                move |playlist, _action, _target| {
+                    playlist.play_next();
+                },
+            );
+
+            klass.install_action(
+                "app.playlist.add-shuffled",
+                None,
+                move |playlist, _action, _target| {
+                    playlist.add_shuffled();
+                },
+            );
+
+            klass.install_action(
+                "app.playlist.play-last-shuffled",
+                None,
+                move |playlist, _action, _target| {
+                    playlist.play_last_shuffled();
+                },
+            );
+
+            klass.install_action(
+                "app.playlist.play-shuffled",
+                None,
+                move |playlist, _action, _target| {
+                    playlist.play_now(true);
+                },
+            );
+
+            klass.install_action(
+                "app.playlist.edit",
+                None,
+                move |playlist, _action, _target| {
+                    playlist.edit();
+                },
+            );
+
+            klass.install_action(
+                "app.playlist.delete",
+                None,
+                move |playlist, _action, _target| {
+                    playlist.delete();
+                },
+            );
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
@@ -61,4 +125,18 @@ impl Playlist {
     pub fn new() -> Self {
         glib::Object::new()
     }
+
+    pub fn play_now(&self, _shuffle: bool) {}
+
+    pub fn play_next(&self) {}
+
+    pub fn play_last(&self) {}
+
+    pub fn add_shuffled(&self) {}
+
+    pub fn play_last_shuffled(&self) {}
+
+    pub fn edit(&self) {}
+
+    pub fn delete(&self) {}
 }

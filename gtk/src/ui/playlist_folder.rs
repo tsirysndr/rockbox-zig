@@ -34,6 +34,30 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             Self::bind_template(klass);
+
+            klass.install_action(
+                "app.folder.rename",
+                None,
+                move |folder, _action, _target| {
+                    folder.rename();
+                },
+            );
+
+            klass.install_action(
+                "app.folder.delete",
+                None,
+                move |folder, _action, _target| {
+                    folder.delete();
+                },
+            );
+
+            klass.install_action(
+                "app.folder.create-playlist",
+                None,
+                move |folder, _action, _target| {
+                    folder.create_playlist();
+                },
+            );
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
@@ -61,4 +85,10 @@ impl PlaylistFolder {
     pub fn new() -> Self {
         glib::Object::new()
     }
+
+    pub fn rename(&self) {}
+
+    pub fn delete(&self) {}
+
+    pub fn create_playlist(&self) {}
 }
