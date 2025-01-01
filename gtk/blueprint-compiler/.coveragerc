@@ -1,0 +1,6 @@
+[report]
+exclude_lines =
+    pragma: no cover
+    raise AssertionError
+    raise NotImplementedError
+    raise CompilerBugError

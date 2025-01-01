@@ -1,0 +1,10 @@
+using Gtk 4.0;
+
+template $TestTemplate: ApplicationWindow {
+  test-property: "Hello, world";
+  test-signal => $on_test_signal();
+}
+
+Dialog {
+  transient-for: template;
+}

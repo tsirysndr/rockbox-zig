@@ -1,0 +1,9 @@
+using Gtk 4.0;
+
+Overlay {
+  Label label {}
+}
+
+Label {
+  label: bind label.parent as <Overlay>.child as <Label>.label;
+}

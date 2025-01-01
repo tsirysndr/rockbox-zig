@@ -1,0 +1,21 @@
+using Gtk 4.0;
+
+Box {
+  accessibility {
+    label: _("Hello, world!");
+
+    labelled-by: [
+      my_label1,
+      my_label2,
+      my_label3,
+    ];
+
+    checked: true;
+  }
+}
+
+Label my_label1 {}
+
+Label my_label2 {}
+
+Label my_label3 {}

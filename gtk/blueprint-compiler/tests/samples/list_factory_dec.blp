@@ -1,0 +1,11 @@
+using Gtk 4.0;
+
+ListView {
+  factory: BuilderListItemFactory list_item_factory {
+    template ListItem {
+      child: Label {
+        label: bind template.item as <$MyObject>.name;
+      };
+    }
+  };
+}

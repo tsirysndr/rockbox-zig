@@ -7,9 +7,11 @@ use rockbox_sys::{
     events::RockboxCommand,
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
 };
+use sqlx::{Pool, Sqlite};
 
 use crate::{
-    rockbox_url, schema::objects::playlist::Playlist, simplebroker::SimpleBroker, types::StatusCode,
+    rockbox_url, schema::objects::folder::Folder, schema::objects::playlist::Playlist,
+    simplebroker::SimpleBroker, types::StatusCode,
 };
 
 #[derive(Default)]
@@ -31,6 +33,7 @@ impl PlaylistQuery {
             seed: response.seed,
             last_shuffled_start: response.last_shuffled_start,
             tracks: response.entries.into_iter().map(|t| t.into()).collect(),
+            ..Default::default()
         })
     }
 
@@ -56,6 +59,85 @@ impl PlaylistQuery {
         let response = client.get(&url).send().await?;
         let response = response.json::<PlaylistAmount>().await?;
         Ok(response.amount)
+    }
+
+    async fn playlist(&self, _ctx: &Context<'_>, id: String) -> Result<Playlist, Error> {
+        let url = format!("{}/playlists/{}", rockbox_url(), id);
+        let client = reqwest::Client::new();
+        let response = client.get(url).send().await?;
+        let response = response.json::<PlaylistInfo>().await?;
+        Ok(Playlist {
+            amount: response.amount,
+            index: response.index,
+            max_playlist_size: response.max_playlist_size,
+            first_index: response.first_index,
+            last_insert_pos: response.last_insert_pos,
+            seed: response.seed,
+            last_shuffled_start: response.last_shuffled_start,
+            tracks: response.entries.into_iter().map(|t| t.into()).collect(),
+            name: response.name,
+            description: response.description,
+            image: response.image,
+            created_at: response.created_at,
+            updated_at: response.updated_at,
+            id: response.id,
+            ..Default::default()
+        })
+    }
+
+    async fn playlists(
+        &self,
+        ctx: &Context<'_>,
+        folder_id: Option<String>,
+    ) -> Result<Vec<Playlist>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let playlists = repo::playlist::find_by_folder(pool.clone(), folder_id).await?;
+        Ok(playlists
+            .into_iter()
+            .map(|p| Playlist {
+                id: Some(p.id),
+                name: Some(p.name),
+                folder_id: p.folder_id,
+                description: p.description,
+                image: p.image,
+                created_at: Some(p.created_at.to_rfc3339()),
+                updated_at: Some(p.updated_at.to_rfc3339()),
+                ..Default::default()
+            })
+            .collect())
+    }
+
+    async fn folder(&self, ctx: &Context<'_>, id: String) -> Result<Option<Folder>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let folder = repo::folder::find(pool.clone(), &id).await?;
+
+        Ok(folder.map(|f| Folder {
+            id: f.id,
+            name: f.name,
+            parent_id: f.parent_id,
+            created_at: f.created_at.to_rfc3339(),
+            updated_at: f.updated_at.to_rfc3339(),
+        }))
+    }
+
+    async fn folders(
+        &self,
+        ctx: &Context<'_>,
+        parent_id: Option<String>,
+    ) -> Result<Vec<Folder>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let folders = repo::folder::find_by_parent(pool.clone(), parent_id).await?;
+        let folders = folders
+            .into_iter()
+            .map(|f| Folder {
+                id: f.id,
+                name: f.name,
+                parent_id: f.parent_id,
+                created_at: f.created_at.to_rfc3339(),
+                updated_at: f.updated_at.to_rfc3339(),
+            })
+            .collect();
+        Ok(folders)
     }
 }
 
@@ -117,9 +199,15 @@ impl PlaylistMutation {
         Ok(0)
     }
 
-    async fn playlist_remove_track(&self, ctx: &Context<'_>, index: i32) -> Result<i32, Error> {
+    async fn playlist_remove_track(
+        &self,
+        ctx: &Context<'_>,
+        index: i32,
+        playlist_id: Option<String>,
+    ) -> Result<i32, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let playlist_id = playlist_id.unwrap_or("current".to_string());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
         let body = serde_json::json!({
             "positions": vec![index],
         });
@@ -131,12 +219,17 @@ impl PlaylistMutation {
         "playlist sync".to_string()
     }
 
-    async fn playlist_remove_all_tracks(&self, ctx: &Context<'_>) -> Result<i32, Error> {
+    async fn playlist_remove_all_tracks(
+        &self,
+        ctx: &Context<'_>,
+        playlist_id: Option<String>,
+    ) -> Result<i32, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
         let body = serde_json::json!({
             "positions": [],
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let playlist_id = playlist_id.unwrap_or("current".to_string());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
         let response = client.delete(&url).json(&body).send().await?;
         let start_index = response.text().await?.parse()?;
         Ok(start_index)
@@ -163,7 +256,7 @@ impl PlaylistMutation {
     async fn insert_tracks(
         &self,
         ctx: &Context<'_>,
-        _playlist_id: Option<String>,
+        playlist_id: Option<String>,
         position: i32,
         tracks: Vec<String>,
     ) -> Result<i32, Error> {
@@ -172,7 +265,8 @@ impl PlaylistMutation {
             "position": position,
             "tracks": tracks,
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let playlist_id = playlist_id.unwrap_or("current".to_string());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
         let response = client.post(&url).json(&body).send().await?;
         let start_index = response.text().await?.parse()?;
         Ok(start_index)
@@ -181,7 +275,7 @@ impl PlaylistMutation {
     async fn insert_directory(
         &self,
         ctx: &Context<'_>,
-        _playlist_id: Option<String>,
+        playlist_id: Option<String>,
         position: i32,
         directory: String,
     ) -> Result<i32, Error> {
@@ -191,7 +285,8 @@ impl PlaylistMutation {
             "tracks": [],
             "directory": directory,
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let playlist_id = playlist_id.unwrap_or("current".to_string());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
         let response = client.post(&url).json(&body).send().await?;
         let start_index = response.text().await?.parse()?;
         Ok(start_index)
@@ -213,6 +308,7 @@ impl PlaylistMutation {
         ctx: &Context<'_>,
         album_id: String,
         position: i32,
+        playlist_id: Option<String>,
     ) -> Result<i32, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
         let pool = ctx.data::<sqlx::Pool<sqlx::Sqlite>>()?;
@@ -222,7 +318,8 @@ impl PlaylistMutation {
             "position": position,
             "tracks": tracks,
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let playlist_id = playlist_id.unwrap_or("current".to_string());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
         let response = client.post(&url).json(&body).send().await?;
         let start_index = response.text().await?.parse()?;
         Ok(start_index)
@@ -234,6 +331,106 @@ impl PlaylistMutation {
         let response = client.put(&url).send().await?;
         let ret = response.text().await?.parse()?;
         Ok(ret)
+    }
+
+    async fn create_folder(
+        &self,
+        _ctx: &Context<'_>,
+        name: String,
+        parent_id: Option<String>,
+    ) -> Result<Folder, Error> {
+        let url = format!("{}/folders", rockbox_url());
+        let body = match parent_id {
+            Some(parent_id) => serde_json::json!({
+            "name": name,
+            "parent_id": parent_id,
+            }),
+            None => serde_json::json!({
+                "name": name,
+            }),
+        };
+        let client = reqwest::Client::new();
+        let response = client.post(&url).json(&body).send().await?;
+        let response = response.json::<Folder>().await?;
+        Ok(response)
+    }
+
+    async fn remove_folder(&self, _ctx: &Context<'_>, id: String) -> Result<String, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/folders/{}", rockbox_url(), id);
+        client.delete(&url).send().await?;
+        Ok(id)
+    }
+
+    async fn remove_playlist(&self, _ctx: &Context<'_>, id: String) -> Result<String, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/playlists/{}", rockbox_url(), id);
+        client.delete(&url).send().await?;
+        Ok(id)
+    }
+
+    async fn rename_folder(
+        &self,
+        _ctx: &Context<'_>,
+        id: String,
+        name: String,
+    ) -> Result<String, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/folders/{}", rockbox_url(), id);
+        client
+            .put(&url)
+            .json(&serde_json::json!({"name": name}))
+            .send()
+            .await?;
+        Ok(id)
+    }
+
+    async fn rename_playlist(
+        &self,
+        _ctx: &Context<'_>,
+        id: String,
+        name: String,
+    ) -> Result<String, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/playlists/{}", rockbox_url(), id);
+        client
+            .put(&url)
+            .json(&serde_json::json!({"name": name}))
+            .send()
+            .await?;
+        Ok(id)
+    }
+
+    async fn move_folder(
+        &self,
+        _ctx: &Context<'_>,
+        folder_id: String,
+        destination: String,
+    ) -> Result<String, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/folders/{}", rockbox_url(), folder_id);
+        client
+            .put(&url)
+            .json(&serde_json::json!({"parent_id": destination}))
+            .send()
+            .await?;
+        Ok(folder_id)
+    }
+
+    async fn move_playlist(
+        &self,
+        _ctx: &Context<'_>,
+        playlist_id: String,
+        destination: String,
+    ) -> Result<String, Error> {
+        let client = reqwest::Client::new();
+        let url = format!("{}/playlists/{}", rockbox_url(), playlist_id);
+        client
+            .put(&url)
+            .json(&serde_json::json!({"folder_id": destination}))
+            .send()
+            .await?;
+        Ok(playlist_id)
     }
 }
 
