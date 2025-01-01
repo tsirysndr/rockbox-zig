@@ -35,7 +35,7 @@ pub async fn get_folder(ctx: &Context, req: &Request, res: &mut Response) -> Res
 
 pub async fn get_folders(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let parent_id = req.query_params.get("parent_id");
-    let parent_id = parent_id.map(|s| s.as_str().unwrap());
+    let parent_id = parent_id.map(|s| s.as_str().unwrap().to_string());
     let folders = repo::folder::find_by_parent(ctx.pool.clone(), parent_id).await?;
     res.json(&folders);
     Ok(())

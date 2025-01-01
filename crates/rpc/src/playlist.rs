@@ -426,21 +426,7 @@ impl PlaylistService for Playlist {
         request: tonic::Request<GetPlaylistsRequest>,
     ) -> Result<tonic::Response<GetPlaylistsResponse>, tonic::Status> {
         let request = request.into_inner();
-        let url = match request.folder_id {
-            Some(folder_id) => match folder_id.is_empty() {
-                false => format!("{}/playlists?folder_id={}", rockbox_url(), folder_id),
-                true => format!("{}/playlists", rockbox_url()),
-            },
-            None => format!("{}/playlists", rockbox_url()),
-        };
-        let client = reqwest::Client::new();
-        let response = client
-            .get(url)
-            .send()
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let playlists = response
-            .json::<Vec<rockbox_types::Playlist>>()
+        let playlists = repo::playlist::find_by_folder(self.pool.clone(), request.folder_id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
         let playlists = playlists
@@ -451,12 +437,8 @@ impl PlaylistService for Playlist {
                 folder_id: playlist.folder_id,
                 image: playlist.image,
                 description: playlist.description,
-                created_at: chrono::DateTime::from_timestamp(playlist.created_at as i64, 0)
-                    .unwrap()
-                    .to_rfc3339(),
-                updated_at: chrono::DateTime::from_timestamp(playlist.updated_at as i64, 0)
-                    .unwrap()
-                    .to_rfc3339(),
+                created_at: playlist.created_at.to_rfc3339(),
+                updated_at: playlist.updated_at.to_rfc3339(),
                 ..Default::default()
             })
             .collect::<Vec<GetPlaylistResponse>>();
@@ -522,21 +504,7 @@ impl PlaylistService for Playlist {
         request: tonic::Request<GetFoldersRequest>,
     ) -> Result<tonic::Response<GetFoldersResponse>, tonic::Status> {
         let request = request.into_inner();
-        let url = match request.parent_id {
-            Some(parent_id) => match parent_id.is_empty() {
-                false => format!("{}/folders?parent_id={}", rockbox_url(), parent_id),
-                true => format!("{}/folder", rockbox_url()),
-            },
-            None => format!("{}/folders", rockbox_url()),
-        };
-        let client = reqwest::Client::new();
-        let response = client
-            .get(url)
-            .send()
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let folders = response
-            .json::<Vec<Folder>>()
+        let folders = repo::folder::find_by_parent(self.pool.clone(), request.parent_id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
         let folders = folders

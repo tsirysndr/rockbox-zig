@@ -31,7 +31,7 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Folder>, sqlx::
 
 pub async fn find_by_parent(
     pool: Pool<Sqlite>,
-    parent_id: Option<&str>,
+    parent_id: Option<String>,
 ) -> Result<Vec<Folder>, sqlx::Error> {
     sqlx::query_as::<_, Folder>(r#"SELECT * FROM folder WHERE parent_id IS $1 ORDER BY name ASC"#)
         .bind(parent_id)

@@ -37,7 +37,7 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Playlist>, sqlx
 
 pub async fn find_by_folder(
     pool: Pool<Sqlite>,
-    folder_id: Option<&str>,
+    folder_id: Option<String>,
 ) -> Result<Vec<Playlist>, sqlx::Error> {
     sqlx::query_as::<_, Playlist>(
         r#"
