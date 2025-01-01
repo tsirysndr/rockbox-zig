@@ -1,0 +1,10 @@
+using Gtk 4.0;
+
+Entry {
+  activate => $click(button);
+}
+
+Button button {
+  clicked => $on_button_clicked() swapped after;
+  notify::visible => $on_button_notify_visible();
+}

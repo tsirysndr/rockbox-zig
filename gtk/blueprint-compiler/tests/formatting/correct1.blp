@@ -1,0 +1,69 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $MyTemplate: Label {
+  /**
+   * A list of strings.
+   */
+  StringList {
+    // comment
+    strings [
+      "Hello",
+      C_("Greeting", "World"),
+    ]
+  }
+
+  object: Button {
+    label: "Click me";
+  };
+
+  flags: a | b;
+
+  [child]
+  Label {}
+
+  [child]
+  Label label2 {}
+
+  // Single line comment.
+
+  /**
+   * Multiline comment.
+   */
+  // Single line comment.
+  value: bind (1.0) as <double>;
+  as: 1;
+  signal => $on_signal() after; // Inline comment
+  type_value: typeof<$MyTemplate>;
+}
+
+Dialog {
+  [action response=ok]
+  $MyButton {}
+}
+
+menu menu {
+  item ("test")
+
+  item {
+    label: "test";
+  }
+
+  item ("test")
+}
+
+Adw.MessageDialog {
+  responses [
+    save: "Save" suggested disabled,
+  ]
+}
+
+Adw.Breakpoint {
+  condition ("width < 100")
+
+  setters {
+    label2.label: _("Hello, world!");
+    label2.visible: false;
+    label2.extra-menu: null;
+  }
+}

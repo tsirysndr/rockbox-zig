@@ -1,0 +1,15 @@
+using Gtk 4.0;
+using GObject 2.0;
+
+GObject.Object {
+  /* multiline-style comment 1 */
+}
+
+Gtk.Label {
+  /* Translators: multiline-style comment 2 */
+  label: _("Test"); // single-line comment
+  /**/ visible: false; /**/
+}
+
+/* Note: The output XML does not need to contain translator comments. The
+   translation tooling reads blueprint files, not the generated files. */

@@ -1,0 +1,16 @@
+__pycache__
+/build
+/dist
+*.egg-info
+blueprint-compiler.pc
+
+/.coverage
+/htmlcov
+coverage.xml
+.mypy_cache
+/blueprint-regression-tests
+
+/corpus
+/crashes
+
+.vscode
