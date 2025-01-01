@@ -670,6 +670,12 @@ mod imp {
                 return;
             }
 
+            if current_page.1 == "playlists-page" && poped_page.1 == "playlists-page" {
+                let playlists = self.playlists.get();
+                playlists.go_back();
+                return;
+            }
+
             if poped_page.1 == "search-page" {
                 let search_bar = self.search_bar.get();
                 search_bar.set_search_mode(false);
@@ -715,6 +721,13 @@ mod imp {
                 go_back_button.set_visible(
                     current_path != *music_directory_ref && current_path != *default_string,
                 );
+            }
+
+            if current_page.1 == "playlists-page"
+                && (poped_page.1 == "album-details-page" || poped_page.1 == "artist-details-page")
+            {
+                let current_playlist_folder = state.current_playlist_folder();
+                go_back_button.set_visible(current_playlist_folder.is_some());
             }
 
             if current_page.1 == "songs-page" || current_page.1 == "likes-page" {
@@ -910,6 +923,7 @@ impl RbApplicationWindow {
         let album_results = search.imp().album_results.get();
         let artist_results = search.imp().artist_results.get();
         let track_results = search.imp().track_results.get();
+        let playlists = window.imp().playlists.get();
 
         songs.imp().likes_page.replace(Some(likes.clone()));
         track_results.imp().likes_page.replace(Some(likes.clone()));
@@ -930,6 +944,7 @@ impl RbApplicationWindow {
         album_results.imp().state.set(Some(&state));
         albums.imp().state.set(Some(&state));
         search.imp().state.set(Some(&state));
+        playlists.imp().state.set(Some(&state));
 
         artist_results.imp().search_mode.set(true);
         album_results.imp().search_mode.set(true);
@@ -1048,6 +1063,10 @@ impl RbApplicationWindow {
 
         files.imp().set_main_stack(main_stack.clone());
         files
+            .imp()
+            .set_go_back_button(window.imp().go_back_button.get().clone());
+
+        playlists
             .imp()
             .set_go_back_button(window.imp().go_back_button.get().clone());
 

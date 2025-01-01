@@ -610,7 +610,7 @@ pub async fn update_playlist(
 
 pub async fn get_playlists(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let folder_id = req.query_params.get("folder_id");
-    let folder_id = folder_id.map(|f| f.as_str().unwrap());
+    let folder_id = folder_id.map(|f| f.as_str().unwrap().to_string());
     let playlist = repo::playlist::find_by_folder(ctx.pool.clone(), folder_id).await?;
     res.json(&playlist);
     Ok(())

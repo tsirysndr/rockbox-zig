@@ -9,6 +9,8 @@ use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
 use gtk::glib;
+use gtk::glib::property::PropertySet;
+use gtk::prelude::WidgetExt;
 use gtk::{Button, CompositeTemplate, ListBox};
 use std::cell::RefCell;
 use std::env;
@@ -71,6 +73,12 @@ mod imp {
 
     impl WidgetImpl for Playlists {}
     impl BoxImpl for Playlists {}
+
+    impl Playlists {
+        pub fn set_go_back_button(&self, go_back_button: Button) {
+            *self.go_back_button.borrow_mut() = Some(go_back_button);
+        }
+    }
 }
 
 glib::wrapper! {
@@ -85,6 +93,8 @@ impl Playlists {
     }
 
     pub fn load_playlists(&self, folder: Option<String>) {
+        println!(">> load_playlists: {:?}", folder);
+
         let rt = tokio::runtime::Runtime::new().unwrap();
         let parent_id = folder.clone();
         let folder_id = folder.clone();
@@ -98,10 +108,29 @@ impl Playlists {
             Ok::<GetFoldersResponse, Error>(response)
         });
 
+        let playlists = self.imp().playlists.get();
+
+        while let Some(playlist) = playlists.first_child() {
+            playlists.remove(&playlist);
+        }
+
+        let state = self.imp().state.upgrade().unwrap();
+
         if let Ok(response) = response {
             for entry in response.folders {
                 let folder = PlaylistFolder::new();
                 folder.imp().folder_name.set_text(&entry.name);
+                folder.imp().state.set(Some(&state));
+                folder.imp().folder_id.replace(entry.id.clone());
+                folder.imp().parent_id.replace(entry.parent_id.clone());
+                folder
+                    .imp()
+                    .go_back_button
+                    .replace(self.imp().go_back_button.borrow().clone());
+                folder
+                    .imp()
+                    .playlists
+                    .replace(Some(self.imp().playlists.clone()));
                 self.imp().playlists.append(&folder);
             }
         }
@@ -120,9 +149,23 @@ impl Playlists {
             for entry in response.playlists {
                 let playlist = Playlist::new();
                 playlist.imp().playlist_name.set_text(&entry.name);
+                playlist.imp().state.set(Some(&state));
                 self.imp().playlists.append(&playlist);
             }
         }
+    }
+
+    pub fn go_back(&self) {
+        let state = self.imp().state.upgrade().unwrap();
+        let parent_folder = state.parent_playlist_folder();
+
+        if parent_folder.is_none() {
+            let go_back_button = self.imp().go_back_button.borrow();
+            let go_back_button = go_back_button.clone().unwrap();
+            go_back_button.set_visible(false);
+        }
+
+        self.load_playlists(parent_folder);
     }
 }
 

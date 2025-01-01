@@ -6,8 +6,8 @@ pub struct Folder {
     pub id: String,
     pub name: String,
     pub parent_id: Option<String>,
-    pub created_at: u64,
-    pub updated_at: u64,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 #[Object]
@@ -24,11 +24,11 @@ impl Folder {
         self.parent_id.clone()
     }
 
-    async fn created_at(&self) -> u64 {
-        self.created_at
+    async fn created_at(&self) -> &str {
+        &self.created_at
     }
 
-    async fn updated_at(&self) -> u64 {
-        self.updated_at
+    async fn updated_at(&self) -> &str {
+        &self.updated_at
     }
 }

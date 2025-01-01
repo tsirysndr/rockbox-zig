@@ -7,6 +7,7 @@ use rockbox_sys::{
     events::RockboxCommand,
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
 };
+use sqlx::{Pool, Sqlite};
 
 use crate::{
     rockbox_url, schema::objects::folder::Folder, schema::objects::playlist::Playlist,
@@ -86,17 +87,12 @@ impl PlaylistQuery {
 
     async fn playlists(
         &self,
-        _ctx: &Context<'_>,
+        ctx: &Context<'_>,
         folder_id: Option<String>,
     ) -> Result<Vec<Playlist>, Error> {
-        let url = match folder_id {
-            Some(folder_id) => format!("{}/playlists?folder_id={}", rockbox_url(), folder_id),
-            None => format!("{}/playlists", rockbox_url()),
-        };
-        let client = reqwest::Client::new();
-        let response = client.get(url).send().await?;
-        let response = response.json::<Vec<rockbox_types::Playlist>>().await?;
-        Ok(response
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let playlists = repo::playlist::find_by_folder(pool.clone(), folder_id).await?;
+        Ok(playlists
             .into_iter()
             .map(|p| Playlist {
                 id: Some(p.id),
@@ -104,42 +100,44 @@ impl PlaylistQuery {
                 folder_id: p.folder_id,
                 description: p.description,
                 image: p.image,
-                created_at: Some(
-                    chrono::DateTime::from_timestamp(p.created_at as i64, 0)
-                        .unwrap()
-                        .to_rfc3339(),
-                ),
-                updated_at: Some(
-                    chrono::DateTime::from_timestamp(p.updated_at as i64, 0)
-                        .unwrap()
-                        .to_rfc3339(),
-                ),
+                created_at: Some(p.created_at.to_rfc3339()),
+                updated_at: Some(p.updated_at.to_rfc3339()),
                 ..Default::default()
             })
             .collect())
     }
 
-    async fn folder(&self, _ctx: &Context<'_>, id: String) -> Result<Folder, Error> {
-        let url = format!("{}/folders/{}", rockbox_url(), id);
-        let client = reqwest::Client::new();
-        let response = client.get(url).send().await?;
-        let response = response.json::<Folder>().await?;
-        Ok(response)
+    async fn folder(&self, ctx: &Context<'_>, id: String) -> Result<Option<Folder>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let folder = repo::folder::find(pool.clone(), &id).await?;
+
+        Ok(folder.map(|f| Folder {
+            id: f.id,
+            name: f.name,
+            parent_id: f.parent_id,
+            created_at: f.created_at.to_rfc3339(),
+            updated_at: f.updated_at.to_rfc3339(),
+        }))
     }
 
     async fn folders(
         &self,
-        _ctx: &Context<'_>,
+        ctx: &Context<'_>,
         parent_id: Option<String>,
     ) -> Result<Vec<Folder>, Error> {
-        let url = match parent_id {
-            Some(parent_id) => format!("{}/folders?parent_id={}", rockbox_url(), parent_id),
-            None => format!("{}/folders", rockbox_url()),
-        };
-        let client = reqwest::Client::new();
-        let response = client.get(url).send().await?;
-        let response = response.json::<Vec<Folder>>().await?;
-        Ok(response)
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let folders = repo::folder::find_by_parent(pool.clone(), parent_id).await?;
+        let folders = folders
+            .into_iter()
+            .map(|f| Folder {
+                id: f.id,
+                name: f.name,
+                parent_id: f.parent_id,
+                created_at: f.created_at.to_rfc3339(),
+                updated_at: f.updated_at.to_rfc3339(),
+            })
+            .collect();
+        Ok(folders)
     }
 }
 
