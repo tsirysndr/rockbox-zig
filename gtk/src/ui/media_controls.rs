@@ -881,6 +881,13 @@ impl MediaControls {
                 {
                     go_back_button_ref.set_visible(true);
                 }
+
+                if state.current_page().1 == "playlists-page"
+                    && state.parent_playlist_folder().is_some()
+                {
+                    go_back_button_ref.set_visible(true);
+                }
+
                 current_playlist_ref.load_current_track();
                 current_playlist_ref.load_current_playlist();
                 current_playlist_ref.imp().size.set(10);

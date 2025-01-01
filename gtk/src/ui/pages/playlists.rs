@@ -93,8 +93,6 @@ impl Playlists {
     }
 
     pub fn load_playlists(&self, folder: Option<String>) {
-        println!(">> load_playlists: {:?}", folder);
-
         let rt = tokio::runtime::Runtime::new().unwrap();
         let parent_id = folder.clone();
         let folder_id = folder.clone();

@@ -531,6 +531,15 @@ mod imp {
 
                             let new_playlist_menu_button = self_.new_playlist_menu_button.get();
                             new_playlist_menu_button.set_visible(false);
+
+                            let default_string = String::from("");
+                            let go_back_button = self_.go_back_button.get();
+                            let current_path = state.current_path().unwrap_or(String::from(""));
+                            let music_directory = state.music_directory();
+
+                            go_back_button.set_visible(
+                                current_path != music_directory.unwrap_or(default_string),
+                            );
                         }
                         "Playlists" => {
                             let main_stack = self_.main_stack.get();
@@ -547,6 +556,9 @@ mod imp {
 
                             let new_playlist_menu_button = self_.new_playlist_menu_button.get();
                             new_playlist_menu_button.set_visible(true);
+
+                            let go_back_button = self_.go_back_button.get();
+                            go_back_button.set_visible(state.current_playlist_folder().is_some());
                         }
                         _ => {}
                     }
@@ -562,8 +574,10 @@ mod imp {
                     state.set_search_mode(false);
                 }
 
-                let go_back_button = self_.go_back_button.get();
-                go_back_button.set_visible(false);
+                if label.as_str() != "Files" && label.as_str() != "Playlists" {
+                    let go_back_button = self_.go_back_button.get();
+                    go_back_button.set_visible(false);
+                }
             });
         }
     }
@@ -719,7 +733,7 @@ mod imp {
                 let music_directory_ref = music_directory.as_ref().unwrap_or(&default_string);
 
                 go_back_button.set_visible(
-                    current_path != *music_directory_ref && current_path != *default_string,
+                    current_path != *music_directory_ref && current_path != default_string,
                 );
             }
 
