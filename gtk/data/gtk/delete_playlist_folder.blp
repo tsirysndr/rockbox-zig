@@ -1,0 +1,32 @@
+
+using Gtk 4.0;
+using Adw 1;
+
+template $DeletePlaylistFolderDialog: Adw.Dialog {
+  title: _("Delete Folder");
+  
+  Adw.ToolbarView {
+    
+    [top]
+    Adw.HeaderBar {
+      Button {
+        label: _("Delete");
+        action-name: "app.delete_playlist_folder_dialog.delete";
+      }
+    }
+    
+    Box {
+      hexpand: true;
+      margin-start: 30;
+      margin-end: 30;
+      margin-top: 30;
+      margin-bottom: 30;
+      
+      Label {
+        label: _("This permanently deletes your folder and all playlists in it.");
+      }
+    }
+
+  }
+}
+
