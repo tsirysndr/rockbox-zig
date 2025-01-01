@@ -1,0 +1,12 @@
+5,3,7,Duplicate property 'visible'
+8,3,6,Duplicate styles block
+12,5,5,Duplicate accessibility attribute 'label'
+14,3,13,Duplicate accessibility block
+21,3,8,Duplicate suffixes block
+22,3,8,Duplicate patterns block
+23,3,10,Duplicate mime-types block
+29,5,11,Duplicate layout property 'orientation'
+31,3,6,Duplicate layout block
+34,3,5,Duplicate items block
+39,3,7,Duplicate widgets block
+44,3,7,Duplicate strings block

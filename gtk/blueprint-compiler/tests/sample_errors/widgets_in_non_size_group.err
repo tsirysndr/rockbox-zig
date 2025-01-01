@@ -1,0 +1,1 @@
+4,3,7,Gtk.Button is not a Gtk.SizeGroup, so it doesn't have size group properties

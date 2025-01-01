@@ -1,0 +1,12 @@
+using Gtk 4.0;
+
+StringList greetings {
+  strings [
+    "Hello, world!",
+    _("Hello!"),
+  ]
+}
+
+DropDown {
+  model: greetings;
+}

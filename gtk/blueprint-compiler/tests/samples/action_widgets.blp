@@ -1,0 +1,25 @@
+using Gtk 4.0;
+
+Dialog {
+  [action response=cancel]
+  Button cancel_button {
+    label: _("Cancel");
+  }
+
+  [action response=9]
+  Button custom_response_button {
+    label: _("Reinstall Windows");
+  }
+
+  [action response=ok default]
+  Button ok_button {
+    label: _("Ok");
+  }
+}
+
+InfoBar {
+  [action response=ok]
+  Button ok_info_button {
+    label: _("Ok");
+  }
+}

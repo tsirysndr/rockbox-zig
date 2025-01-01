@@ -1,0 +1,1 @@
+5,3,13,GObject.Object is not a Gtk.Widget, so it doesn't have accessibility properties

@@ -1,0 +1,28 @@
+using Gtk 4.0;
+
+menu my-menu {
+  submenu {
+    section {
+      label: "test section";
+    }
+
+    item {
+      label: C_("context", "test translated item");
+    }
+
+    item {
+      label: "test item shorthand 1";
+    }
+
+    item {
+      label: "test item shorthand 2";
+      action: "app.test-action";
+    }
+
+    item {
+      label: "test item shorthand 3";
+      action: "app.test-action";
+      icon: "test-symbolic";
+    }
+  }
+}

@@ -1,0 +1,9 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.MessageDialog {
+  responses [
+    cancel: _("Cancel") disabled disabled,
+    ok: _("Ok") destructive suggested,
+  ]
+}

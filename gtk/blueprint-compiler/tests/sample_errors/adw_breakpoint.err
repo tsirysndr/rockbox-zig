@@ -1,0 +1,4 @@
+8,11,3,Class Gtk.Label does not have a property called foo
+9,5,13,Could not find object with ID not_an_object
+10,11,3,Class Gtk.Label does not have a property called foo
+10,5,17,Duplicate setter for label.foo
