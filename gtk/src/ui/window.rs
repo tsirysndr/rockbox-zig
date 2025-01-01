@@ -18,6 +18,7 @@ use crate::ui::pages::songs::Songs;
 use crate::ui::pages::{artists::Artists, files::Files, likes::Likes};
 use crate::ui::pages::{playlist_details::PlaylistDetails, playlists::Playlists};
 use crate::ui::{about_dialog, preferences_dialog};
+use crate::ui::{new_playlist::NewPlaylistDialog, new_playlist_folder::NewPlaylistFolderDialog};
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{
@@ -37,7 +38,6 @@ use std::thread;
 use tokio::sync::mpsc;
 
 mod imp {
-
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -241,13 +241,19 @@ mod imp {
             klass.install_action(
                 "app.create_playlist",
                 None,
-                move |win, _action, _parameter| {},
+                move |win, _action, _parameter| {
+                    let new_playlist_dialog = NewPlaylistDialog::default();
+                    new_playlist_dialog.present(Some(win));
+                },
             );
 
             klass.install_action(
                 "app.create_folder",
                 None,
-                move |win, _action, _parameter| {},
+                move |win, _action, _parameter| {
+                    let new_playlist_folder_dialog = NewPlaylistFolderDialog::default();
+                    new_playlist_folder_dialog.present(Some(win));
+                },
             );
         }
 

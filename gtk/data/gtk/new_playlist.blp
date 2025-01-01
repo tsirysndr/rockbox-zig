@@ -1,0 +1,30 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $NewPlaylistDialog: Adw.Dialog {
+  title: _("Create New Playlist");
+  width-request: 400;
+  
+  Adw.ToolbarView {
+    
+    [top]
+    Adw.HeaderBar {
+      Button {
+        label: _("Create New");
+        action-name: "app.new_playlist_dialog.create";
+      }
+    }
+
+    Adw.PreferencesPage {
+      Adw.PreferencesGroup {
+        hexpand: true;
+
+        Adw.EntryRow name {
+          title: _("Title");
+        }
+      }
+    } 
+  }
+
+}
+

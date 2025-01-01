@@ -1,4 +1,6 @@
 use crate::state::AppState;
+use crate::ui::{delete_playlist::DeletePlaylistDialog, edit_playlist::EditPlaylistDialog};
+use adw::prelude::*;
 use adw::subclass::prelude::*;
 use glib::subclass;
 use gtk::glib;
@@ -6,7 +8,6 @@ use gtk::{Button, CompositeTemplate, Image, Label, MenuButton};
 use std::cell::RefCell;
 
 mod imp {
-
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -87,7 +88,8 @@ mod imp {
                 "app.playlist.edit",
                 None,
                 move |playlist, _action, _target| {
-                    playlist.edit();
+                    let edit_playlist_dialog = EditPlaylistDialog::default();
+                    edit_playlist_dialog.present(Some(playlist));
                 },
             );
 
@@ -95,7 +97,8 @@ mod imp {
                 "app.playlist.delete",
                 None,
                 move |playlist, _action, _target| {
-                    playlist.delete();
+                    let delete_playlist_dialog = DeletePlaylistDialog::default();
+                    delete_playlist_dialog.present(Some(playlist));
                 },
             );
         }
@@ -135,8 +138,4 @@ impl Playlist {
     pub fn add_shuffled(&self) {}
 
     pub fn play_last_shuffled(&self) {}
-
-    pub fn edit(&self) {}
-
-    pub fn delete(&self) {}
 }

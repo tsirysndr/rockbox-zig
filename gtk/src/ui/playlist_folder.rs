@@ -3,7 +3,12 @@ use crate::api::rockbox::v1alpha1::{
     GetFoldersRequest, GetFoldersResponse, GetPlaylistsRequest, GetPlaylistsResponse,
 };
 use crate::state::AppState;
+use crate::ui::edit_playlist_folder::EditPlaylistFolderDialog;
 use crate::ui::playlist::Playlist;
+use crate::ui::{
+    delete_playlist_folder::DeletePlaylistFolderDialog, new_playlist::NewPlaylistDialog,
+};
+use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
@@ -14,7 +19,6 @@ use std::cell::RefCell;
 use std::env;
 
 mod imp {
-
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -50,7 +54,8 @@ mod imp {
                 "app.folder.rename",
                 None,
                 move |folder, _action, _target| {
-                    folder.rename();
+                    let edit_playlist_folder_dialog = EditPlaylistFolderDialog::default();
+                    edit_playlist_folder_dialog.present(Some(folder));
                 },
             );
 
@@ -58,7 +63,8 @@ mod imp {
                 "app.folder.delete",
                 None,
                 move |folder, _action, _target| {
-                    folder.delete();
+                    let delete_playlist_folder_dialog = DeletePlaylistFolderDialog::default();
+                    delete_playlist_folder_dialog.present(Some(folder));
                 },
             );
 
@@ -66,7 +72,8 @@ mod imp {
                 "app.folder.create-playlist",
                 None,
                 move |folder, _action, _target| {
-                    folder.create_playlist();
+                    let new_playlist_dialog = NewPlaylistDialog::default();
+                    new_playlist_dialog.present(Some(folder));
                 },
             );
         }
@@ -174,12 +181,6 @@ impl PlaylistFolder {
             }
         }
     }
-
-    pub fn rename(&self) {}
-
-    pub fn delete(&self) {}
-
-    pub fn create_playlist(&self) {}
 }
 
 fn build_url() -> String {

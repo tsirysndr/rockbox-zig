@@ -1,0 +1,31 @@
+
+using Gtk 4.0;
+using Adw 1;
+
+template $EditPlaylistFolderDialog: Adw.Dialog {
+  title: _("Rename Folder");
+  width-request: 400;
+
+  Adw.ToolbarView {
+    
+    [top]
+    Adw.HeaderBar {
+      Button {
+        label: _("Save");
+        action-name: "app.edit_playlist_folder_dialog.save";
+      }
+    }
+    
+    Adw.PreferencesPage {
+      Adw.PreferencesGroup {
+        hexpand: true;
+
+        Adw.EntryRow name {
+          title: _("Title");
+        }
+      }
+    } 
+  }
+
+}
+

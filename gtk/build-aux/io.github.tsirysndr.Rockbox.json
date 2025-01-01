@@ -49,9 +49,8 @@
       "buildsystem": "meson",
       "sources": [
         {
-          "type": "git",
-          "url": "https://gitlab.gnome.org/jwestman/blueprint-compiler",
-          "tag": "v0.14.0"
+          "type": "dir",
+          "path": "../blueprint-compiler"
         }
       ],
       "cleanup": [
