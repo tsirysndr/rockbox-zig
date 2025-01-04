@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fs};
 
 use anyhow::Error;
+use mpd_filters::{Expression, Parser, SqlOptions, ToSql};
 use regex::Regex;
 use rockbox_library::{entity::track::Track, repo};
 use rockbox_rpc::api::rockbox::v1alpha1::{
@@ -17,13 +18,28 @@ use crate::Context;
 
 pub async fn handle_list_album(
     ctx: &mut Context,
-    _request: &str,
+    request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    let response = ctx.library.get_albums(GetAlbumsRequest {}).await?;
-    let response = response.into_inner();
-    let response = response
-        .albums
+    let query = request.replace("list album", "").replace("list Album", "");
+    let query = query.trim();
+    let query = query.trim_matches('"');
+    let query = query.replace(r#"\\"#, r#"\"#);
+    let mut albums = repo::album::all(ctx.pool.clone()).await?;
+
+    if !query.is_empty() {
+        let mut columns = HashMap::new();
+        columns.insert("AlbumArtist".to_string(), "artist".to_string());
+        let opts = SqlOptions {
+            columns,
+            ..Default::default()
+        };
+        let mut parser = Parser::new(&query);
+        let expr = parser.parse().map_err(|e| Error::msg(e))?;
+        albums = repo::album::filter(ctx.pool.clone(), expr.to_sql(opts)).await?;
+    }
+
+    let response = albums
         .iter()
         .map(|x| format!("Album: {}\n", x.title))
         .collect::<String>();
@@ -308,6 +324,54 @@ pub async fn handle_find_title(
     }
 
     Ok(response)
+}
+
+pub async fn handle_find(
+    ctx: &mut Context,
+    request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    let arg = request.replace("find ", "");
+    let arg = arg.trim();
+    let arg = arg.trim_matches('"');
+    let arg = arg.replace(r#"\\"#, r#"\"#);
+    let mut parser = Parser::new(&arg);
+    match parser.parse() {
+        Ok(expr) => {
+            execute(ctx, &expr, stream).await?;
+        }
+        Err(e) => return Err(Error::msg(e)),
+    }
+    Ok("".to_string())
+}
+
+async fn execute(
+    ctx: &mut Context,
+    expr: &Expression,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<(), Error> {
+    let mut columns = HashMap::new();
+    columns.insert("Title".to_string(), "title".to_string());
+    columns.insert("Artist".to_string(), "artist".to_string());
+    columns.insert("Album".to_string(), "album".to_string());
+    columns.insert("AlbumArtist".to_string(), "album_artist".to_string());
+    columns.insert("File".to_string(), "path".to_string());
+
+    let opts = SqlOptions {
+        columns,
+        file_prefix: Some(match get_music_dir()?.ends_with("/") {
+            true => get_music_dir()?,
+            false => format!("{}/", get_music_dir()?),
+        }),
+    };
+
+    let tracks = repo::track::filter(ctx.pool.clone(), expr.to_sql(opts)).await?;
+    let mut response: String = "".to_string();
+
+    build_file_metadata(tracks, &mut response).await?;
+
+    stream.write_all(response.as_bytes()).await?;
+    Ok(())
 }
 
 async fn build_file_metadata(tracks: Vec<Track>, response: &mut String) -> Result<(), Error> {
