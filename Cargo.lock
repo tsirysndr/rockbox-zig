@@ -6461,6 +6461,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b52c1b33ff98142aecea13138bd399b68aa7ab5d9546c300988c345004001eea"
 
 [[package]]
+name = "mpd-filters"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7eb2e475f48badcbc49071775ef85f0f750d4f45bbccabb5b791e92338f9738"
+
+[[package]]
 name = "mpris-server"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8280,6 +8286,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "futures",
+ "mpd-filters",
  "regex",
  "rockbox-graphql",
  "rockbox-library",
