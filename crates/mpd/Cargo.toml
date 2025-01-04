@@ -7,7 +7,7 @@ version = "0.1.0"
 anyhow = "1.0.93"
 chrono = "0.4.38"
 futures.workspace = true
-mpd-filters = "0.1.0"
+mpd-filters = "0.4.1"
 regex = "1.11.1"
 rockbox-graphql = {path = "../graphql"}
 rockbox-library = {path = "../library"}

@@ -37,6 +37,21 @@ pub async fn save(pool: Pool<Sqlite>, album: Album) -> Result<String, sqlx::Erro
     }
 }
 
+pub async fn filter(
+    pool: Pool<Sqlite>,
+    r#where: (String, Vec<String>),
+) -> Result<Vec<Album>, sqlx::Error> {
+    let sql = format!("SELECT * FROM album WHERE {}", r#where.0);
+    let mut query = sqlx::query_as(&sql);
+
+    for value in r#where.1 {
+        query = query.bind(value.clone());
+    }
+
+    let result = query.fetch_all(&pool).await?;
+    Ok(result)
+}
+
 pub async fn find_by_md5(pool: Pool<Sqlite>, md5: &str) -> Result<Option<Album>, sqlx::Error> {
     match sqlx::query_as::<_, Album>(
         r#"

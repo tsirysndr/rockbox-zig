@@ -135,6 +135,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "clear" => handle_clear(&mut ctx, &request, &mut stream).await?,
             "move" => handle_move(&mut ctx, &request, &mut stream).await?,
             "list album" => handle_list_album(&mut ctx, &request, &mut stream).await?,
+            "list albumartist" => handle_list_artist(&mut ctx, &request, &mut stream).await?,
             "list artist" => handle_list_artist(&mut ctx, &request, &mut stream).await?,
             "list title" => handle_list_title(&mut ctx, &request, &mut stream).await?,
             "update" => handle_rescan(&mut ctx, &request, &mut stream).await?,

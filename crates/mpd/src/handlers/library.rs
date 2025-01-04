@@ -1,8 +1,7 @@
 use std::{collections::HashMap, fs};
 
 use anyhow::Error;
-use futures::future::{BoxFuture, FutureExt};
-use mpd_filters::{Expression, LogicalOp, Operator, Parser};
+use mpd_filters::{Expression, Parser, SqlOptions, ToSql};
 use regex::Regex;
 use rockbox_library::{entity::track::Track, repo};
 use rockbox_rpc::api::rockbox::v1alpha1::{
@@ -19,13 +18,28 @@ use crate::Context;
 
 pub async fn handle_list_album(
     ctx: &mut Context,
-    _request: &str,
+    request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    let response = ctx.library.get_albums(GetAlbumsRequest {}).await?;
-    let response = response.into_inner();
-    let response = response
-        .albums
+    let query = request.replace("list album", "").replace("list Album", "");
+    let query = query.trim();
+    let query = query.trim_matches('"');
+    let query = query.replace(r#"\\"#, r#"\"#);
+    let mut albums = repo::album::all(ctx.pool.clone()).await?;
+
+    if !query.is_empty() {
+        let mut columns = HashMap::new();
+        columns.insert("AlbumArtist".to_string(), "artist".to_string());
+        let opts = SqlOptions {
+            columns,
+            ..Default::default()
+        };
+        let mut parser = Parser::new(&query);
+        let expr = parser.parse().map_err(|e| Error::msg(e))?;
+        albums = repo::album::filter(ctx.pool.clone(), expr.to_sql(opts)).await?;
+    }
+
+    let response = albums
         .iter()
         .map(|x| format!("Album: {}\n", x.title))
         .collect::<String>();
@@ -320,7 +334,8 @@ pub async fn handle_find(
     let arg = request.replace("find ", "");
     let arg = arg.trim();
     let arg = arg.trim_matches('"');
-    let mut parser = Parser::new(arg);
+    let arg = arg.replace(r#"\\"#, r#"\"#);
+    let mut parser = Parser::new(&arg);
     match parser.parse() {
         Ok(expr) => {
             execute(ctx, &expr, stream).await?;
@@ -330,89 +345,33 @@ pub async fn handle_find(
     Ok("".to_string())
 }
 
-fn execute<'a>(
-    ctx: &'a mut Context,
-    expr: &'a Expression,
-    stream: &'a mut BufReader<TcpStream>,
-) -> BoxFuture<'a, Result<(), Error>> {
-    async move {
-        match expr {
-            Expression::Comparaison { field, op, value } => {
-                evaluate_comparaison(ctx, field, op, value, stream).await?
-            }
-            Expression::Logical { left, op, right } => {
-                evaluate_logical(ctx, left, op, right, stream).await?
-            }
-            Expression::Group(expr) => execute(ctx, expr, stream).await?,
-        };
-        Ok(())
-    }
-    .boxed()
-}
-
-async fn evaluate_comparaison(
+async fn execute(
     ctx: &mut Context,
-    field: &str,
-    _op: &Operator,
-    value: &str,
+    expr: &Expression,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<(), Error> {
-    match field {
-        "Artist" => {
-            let tracks = repo::track::find_by_artist(ctx.pool.clone(), value).await?;
-            let mut response: String = "".to_string();
+    let mut columns = HashMap::new();
+    columns.insert("Title".to_string(), "title".to_string());
+    columns.insert("Artist".to_string(), "artist".to_string());
+    columns.insert("Album".to_string(), "album".to_string());
+    columns.insert("AlbumArtist".to_string(), "album_artist".to_string());
+    columns.insert("File".to_string(), "path".to_string());
 
-            build_file_metadata(tracks, &mut response).await?;
+    let opts = SqlOptions {
+        columns,
+        file_prefix: Some(match get_music_dir()?.ends_with("/") {
+            true => get_music_dir()?,
+            false => format!("{}/", get_music_dir()?),
+        }),
+    };
 
-            stream.write_all(response.as_bytes()).await?;
-        }
-        "Album" => {
-            let tracks = repo::track::find_by_album(ctx.pool.clone(), value).await?;
-            let mut response: String = "".to_string();
+    let tracks = repo::track::filter(ctx.pool.clone(), expr.to_sql(opts)).await?;
+    let mut response: String = "".to_string();
 
-            build_file_metadata(tracks, &mut response).await?;
+    build_file_metadata(tracks, &mut response).await?;
 
-            stream.write_all(response.as_bytes()).await?;
-        }
-        "Title" => {
-            let tracks = repo::track::find_by_title(ctx.pool.clone(), value).await?;
-            let mut response: String = "".to_string();
-
-            build_file_metadata(tracks, &mut response).await?;
-
-            stream.write_all(response.as_bytes()).await?;
-        }
-        "File" => {
-            let music_dir = get_music_dir()?;
-            let path = format!(
-                "{}/{}",
-                music_dir,
-                value.trim_matches('\'').replace("\\", "")
-            );
-            let tracks = repo::track::find_by_path(ctx.pool.clone(), &path).await?;
-            let mut response: String = "".to_string();
-
-            let tracks = match tracks {
-                Some(track) => vec![track],
-                None => vec![],
-            };
-            build_file_metadata(tracks, &mut response).await?;
-
-            stream.write_all(response.as_bytes()).await?;
-        }
-        _ => {}
-    }
+    stream.write_all(response.as_bytes()).await?;
     Ok(())
-}
-
-async fn evaluate_logical(
-    _ctx: &mut Context,
-    _left: &Expression,
-    _op: &LogicalOp,
-    _right: &Expression,
-    _stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
-    todo!()
 }
 
 async fn build_file_metadata(tracks: Vec<Track>, response: &mut String) -> Result<(), Error> {

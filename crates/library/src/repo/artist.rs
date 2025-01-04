@@ -66,6 +66,21 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Artist>, Error>
     }
 }
 
+pub async fn filter(
+    pool: Pool<Sqlite>,
+    r#where: (String, Vec<String>),
+) -> Result<Vec<Artist>, Error> {
+    let sql = format!("SELECT * FROM artist WHERE {}", r#where.0);
+    let mut query = sqlx::query_as(&sql);
+
+    for value in r#where.1 {
+        query = query.bind(value.clone());
+    }
+
+    let result = query.fetch_all(&pool).await?;
+    Ok(result)
+}
+
 pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Artist>, Error> {
     match sqlx::query_as::<_, Artist>(
         r#"

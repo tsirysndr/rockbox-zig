@@ -72,6 +72,21 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Track>, Error> 
     Ok(result)
 }
 
+pub async fn filter(
+    pool: Pool<Sqlite>,
+    r#where: (String, Vec<String>),
+) -> Result<Vec<Track>, Error> {
+    let sql = format!("SELECT * FROM track WHERE {}", r#where.0);
+    let mut query = sqlx::query_as(&sql);
+
+    for value in r#where.1 {
+        query = query.bind(value.clone());
+    }
+
+    let result = query.fetch_all(&pool).await?;
+    Ok(result)
+}
+
 pub async fn find_by_md5(pool: Pool<Sqlite>, md5: &str) -> Result<Option<Track>, Error> {
     let result: Option<Track> = sqlx::query_as("SELECT * FROM track WHERE md5 = $1")
         .bind(md5)
