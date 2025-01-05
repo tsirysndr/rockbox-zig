@@ -65,3 +65,14 @@ pub async fn handle_commands(
     }
     Ok(COMMANDS.to_string())
 }
+
+pub async fn handle_binarylimit(
+    ctx: &mut Context,
+    _request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    if !ctx.batch {
+        stream.write_all("OK\n".as_bytes()).await?;
+    }
+    Ok("OK\n".to_string())
+}

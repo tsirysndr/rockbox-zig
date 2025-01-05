@@ -16,7 +16,7 @@ use handlers::{
         handle_add, handle_addid, handle_clear, handle_delete, handle_move, handle_playlistinfo,
         handle_shuffle,
     },
-    system::{handle_commands, handle_decoders, handle_idle, handle_noidle},
+    system::{handle_binarylimit, handle_commands, handle_decoders, handle_idle, handle_noidle},
 };
 use kv::{build_tracks_kv, KV};
 use rockbox_graphql::{
@@ -160,6 +160,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "find artist" => handle_find_artist(&mut ctx, &request, &mut stream).await?,
             "find album" => handle_find_album(&mut ctx, &request, &mut stream).await?,
             "find title" => handle_find_title(&mut ctx, &request, &mut stream).await?,
+            "binarylimit" => handle_binarylimit(&mut ctx, &request, &mut stream).await?,
             "commands" => handle_commands(&mut ctx, &request, &mut stream).await?,
             "command_list_begin" => {
                 handle_command_list_begin(&mut ctx, &request, &mut stream).await?
