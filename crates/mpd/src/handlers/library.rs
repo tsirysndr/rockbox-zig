@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs};
 
 use anyhow::Error;
-use mpd_filters::{Expression, Parser, SqlOptions, ToSql};
+use mpd_filters::{Expression, Operator, Parser, SqlOptions, ToSql};
 use regex::Regex;
 use rockbox_library::{entity::track::Track, repo};
 use rockbox_rpc::api::rockbox::v1alpha1::{
@@ -95,7 +95,7 @@ pub async fn handle_search(
     request: &str,
     stream: &mut BufReader<TcpStream>,
 ) -> Result<String, Error> {
-    let term = request
+    let mut term = request
         .trim_matches('"')
         .replace("search Album", "")
         .replace("search Artist", "")
@@ -105,6 +105,20 @@ pub async fn handle_search(
         .replace("search title", "")
         .trim()
         .to_string();
+
+    if term.starts_with("search ") {
+        let query = &term[7..];
+        term = query.to_string();
+        term = term.trim().to_string();
+        term = term.trim_matches('"').to_string();
+    }
+
+    if term.starts_with("((") {
+        let mut parser = Parser::new(&term);
+        let expr = parser.parse().map_err(|e| Error::msg(e))?;
+        evaluate_search_expression(ctx, expr, stream).await?;
+    }
+
     let response = ctx.library.search(SearchRequest { term }).await?;
     let response = response.into_inner();
 
@@ -416,4 +430,53 @@ async fn build_file_metadata(tracks: Vec<Track>, response: &mut String) -> Resul
 
     response.push_str("OK\n");
     Ok(())
+}
+
+async fn evaluate_search_expression(
+    ctx: &mut Context,
+    expr: Expression,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<Vec<Track>, Error> {
+    let mut tracks = repo::track::all(ctx.pool.clone()).await?;
+    match expr {
+        Expression::Group(expr) => {
+            let inner_expr = *expr;
+            match inner_expr {
+                Expression::Group(inner_expr) => {
+                    let final_expr = *inner_expr;
+                    match final_expr {
+                        Expression::Comparaison { field, op, value } => match op {
+                            Operator::Equals => {}
+                            Operator::Matches => {}
+                            _ => {
+                                stream
+                                    .write_all(b"ACK [2@0] {search} Invalid expression\n")
+                                    .await?;
+                                return Err(Error::msg("Invalid expression"));
+                            }
+                        },
+                        _ => {
+                            stream
+                                .write_all(b"ACK [2@0] {search} Invalid expression\n")
+                                .await?;
+                            return Err(Error::msg("Invalid expression"));
+                        }
+                    }
+                }
+                _ => {
+                    stream
+                        .write_all(b"ACK [2@0] {search} Invalid expression\n")
+                        .await?;
+                    return Err(Error::msg("Invalid expression"));
+                }
+            }
+        }
+        _ => {
+            stream
+                .write_all(b"ACK [2@0] {search} Invalid expression\n")
+                .await?;
+            return Err(Error::msg("Invalid expression"));
+        }
+    }
+    Ok(tracks)
 }

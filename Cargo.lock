@@ -6814,9 +6814,9 @@ checksum = "b52c1b33ff98142aecea13138bd399b68aa7ab5d9546c300988c345004001eea"
 
 [[package]]
 name = "mpd-filters"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "029e541ef2a61b89028cde291b2497891cf093f97979293ffb16fb6b8814f6d8"
+checksum = "0bc6ed3f4535457d087b64d97815b5d947499a5e4767caf7d2c53b77a42512c0"
 
 [[package]]
 name = "mpris-server"
