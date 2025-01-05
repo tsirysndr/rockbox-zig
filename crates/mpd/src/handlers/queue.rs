@@ -251,11 +251,12 @@ pub async fn handle_playlistinfo(
         .map(|x| {
             index += 1;
             format!(
-                "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTime: {}\nPos: {}\nDisc: {}\nDate: {}\nAlbumArtist: {}\nTrack: {}\nId: {}\n",
+                "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTime: {}\nDuration: {}\nPos: {}\nDisc: {}\nDate: {}\nAlbumArtist: {}\nTrack: {}\nId: {}\n",
                 x.path,
                 x.title,
                 x.artist,
                 x.album,
+                (x.length / 1000) as u32,
                 (x.length / 1000) as u32,
                 index,
                 x.discnum,

@@ -1299,31 +1299,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bon"
-version = "3.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe7acc34ff59877422326db7d6f2d845a582b16396b6b08194942bf34c6528ab"
-dependencies = [
- "bon-macros",
- "rustversion",
-]
-
-[[package]]
-name = "bon-macros"
-version = "3.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4159dd617a7fbc9be6a692fe69dc2954f8e6bb6bb5e4d7578467441390d77fd0"
-dependencies = [
- "darling",
- "ident_case",
- "prettyplease",
- "proc-macro2",
- "quote",
- "rustversion",
- "syn 2.0.91",
-]
-
-[[package]]
 name = "boxed_error"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1706,7 +1681,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3538270d33cc669650c4b093848450d380def10c331d38c768e34cac80576e6e"
 dependencies = [
  "termcolor",
- "unicode-width 0.1.13",
+ "unicode-width",
 ]
 
 [[package]]
@@ -1788,7 +1763,7 @@ version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4be93df536dfbcbd39ff7c129635da089901116b88bfc29ec1acb9b56f8ff35"
 dependencies = [
- "unicode-width 0.1.13",
+ "unicode-width",
  "vte",
 ]
 
@@ -1900,19 +1875,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a97769d94ddab943e4510d138150169a2758b5ef3eb191a9ee688de3e23ef7b3"
 dependencies = [
  "cfg-if 1.0.0",
-]
-
-[[package]]
-name = "crossbeam"
-version = "0.8.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1137cd7e7fc0fb5d3c5a8678be38ec56e819125d8d7907411fe24ccb943faca8"
-dependencies = [
- "crossbeam-channel",
- "crossbeam-deque",
- "crossbeam-epoch",
- "crossbeam-queue",
- "crossbeam-utils",
 ]
 
 [[package]]
@@ -2360,7 +2322,7 @@ dependencies = [
  "swc_visit_macros",
  "text_lines",
  "thiserror 2.0.9",
- "unicode-width 0.1.13",
+ "unicode-width",
  "url",
 ]
 
@@ -3759,7 +3721,7 @@ dependencies = [
  "indexmap 2.5.0",
  "rustc-hash 1.1.0",
  "serde",
- "unicode-width 0.1.13",
+ "unicode-width",
 ]
 
 [[package]]
@@ -3811,7 +3773,7 @@ dependencies = [
  "pulldown-cmark",
  "regex",
  "serde",
- "unicode-width 0.1.13",
+ "unicode-width",
 ]
 
 [[package]]
@@ -8399,24 +8361,24 @@ checksum = "9c8a99fddc9f0ba0a85884b8d14e3592853e787d581ca1816c91349b10e4eeab"
 
 [[package]]
 name = "ratatui"
-version = "0.29.0"
+version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eabd94c2f37801c20583fc49dd5cd6b0ba68c716787c2dd6ed18571e1e63117b"
+checksum = "fdef7f9be5c0122f890d58bdf4d964349ba6a6161f705907526d891efabba57d"
 dependencies = [
  "bitflags 2.6.0",
  "cassowary",
  "compact_str",
  "crossterm",
- "indoc",
  "instability",
  "itertools 0.13.0",
  "lru",
  "paste",
  "strum 0.26.3",
+ "strum_macros 0.26.4",
  "time",
  "unicode-segmentation",
  "unicode-truncate",
- "unicode-width 0.2.0",
+ "unicode-width",
 ]
 
 [[package]]
@@ -8685,18 +8647,16 @@ dependencies = [
 
 [[package]]
 name = "rmpc"
-version = "0.7.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
  "bitflags 2.6.0",
- "bon",
  "chrono",
  "clap",
  "clap_complete",
  "clap_mangen",
  "color_quant",
- "crossbeam",
  "crossterm",
  "derive_more 1.0.0",
  "either",
@@ -9340,7 +9300,7 @@ dependencies = [
  "nix 0.27.1",
  "radix_trie",
  "unicode-segmentation",
- "unicode-width 0.1.13",
+ "unicode-width",
  "utf8parse",
  "winapi",
 ]
@@ -10394,7 +10354,7 @@ dependencies = [
  "swc_eq_ignore_macros",
  "swc_visit",
  "tracing",
- "unicode-width 0.1.13",
+ "unicode-width",
  "url",
 ]
 
@@ -10807,9 +10767,9 @@ dependencies = [
 
 [[package]]
 name = "sysinfo"
-version = "0.32.1"
+version = "0.31.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c33cd241af0f2e9e3b5c32163b873b29956890b5342e6745b917ce9d490f4af"
+checksum = "355dbe4f8799b304b05e1b0f05fc59b2a18d36645cf169607da45bde2f69a1be"
 dependencies = [
  "core-foundation-sys",
  "libc",
@@ -11120,7 +11080,7 @@ checksum = "23d434d3f8967a09480fb04132ebe0a3e088c173e6d0ee7897abbdf4eab0f8b9"
 dependencies = [
  "smawk",
  "unicode-linebreak",
- "unicode-width 0.1.13",
+ "unicode-width",
 ]
 
 [[package]]
@@ -11238,7 +11198,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b3f46f0549180b9c6f7f76270903f1a06867c43a03998b99dce81aa1760c3b2"
 dependencies = [
- "unicode-width 0.1.13",
+ "unicode-width",
 ]
 
 [[package]]
@@ -11780,7 +11740,7 @@ checksum = "b3644627a5af5fa321c95b9b235a72fd24cd29c648c2c379431e6628655627bf"
 dependencies = [
  "itertools 0.13.0",
  "unicode-segmentation",
- "unicode-width 0.1.13",
+ "unicode-width",
 ]
 
 [[package]]
@@ -11788,12 +11748,6 @@ name = "unicode-width"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0336d538f7abc86d282a4189614dfaa90810dfc2c6f6427eaf88e16311dd225d"
-
-[[package]]
-name = "unicode-width"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fc81956842c57dac11422a97c3b8195a1ff727f06e85c84ed2e8aa277c9a0fd"
 
 [[package]]
 name = "unicode-xid"
