@@ -33,6 +33,7 @@ blueprints = custom_target(
     'gtk/playlist_details.blp',
     'gtk/preferences.blp',
     'gtk/search.blp',
+    'gtk/show_all_playlists.blp',
     'gtk/song.blp',
     'gtk/songs.blp',
     'gtk/window.blp',

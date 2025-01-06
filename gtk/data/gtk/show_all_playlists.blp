@@ -1,0 +1,38 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $ShowAllPlaylistsDialog: Adw.Dialog {
+  title: _("Add To Playlist");
+  width-request: 400;
+  
+  Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+    }
+
+    Box {
+      orientation: vertical;
+      hexpand: true;
+      margin-start: 30;
+      margin-end: 30;
+      margin-bottom: 30;
+
+
+      SearchBar search_bar {
+        search-mode-enabled: true; 
+        Adw.Clamp {
+          maximum-size: 300;
+          tightening-threshold: 300;
+
+          SearchEntry search_entry {
+            placeholder-text: _("Search");
+            hexpand: true;
+          }
+        }
+      }
+
+    } 
+  }
+
+}
+

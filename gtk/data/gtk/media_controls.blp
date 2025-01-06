@@ -241,6 +241,13 @@ template $MediaControls : Box {
 
 menu context_menu {
   section {
+    submenu {
+      label: _("Add to Playlist");
+
+      item (_("Create New Playlist"), "app.add-to-new-playlist")
+      item (_("Show All Playlists"), "app.show-all-playlists")
+    }
+
     item (_("Go to Artist"), "app.go-to-artist")
     item (_("Go to Album"), "app.go-to-album")
   }

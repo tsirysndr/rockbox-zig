@@ -26,6 +26,7 @@
     <file compressed="true" preprocess="xml-stripblanks">gtk/playlist_details.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/preferences.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/search.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">gtk/show_all_playlists.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/song.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/songs.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/window.ui</file>

@@ -135,3 +135,7 @@ menubutton > button {
 .tab:hover {
   background-color: #f6f6f6;
 }
+
+.search {
+  background-color: transparent;
+}

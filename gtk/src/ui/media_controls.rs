@@ -15,6 +15,7 @@ use crate::api::rockbox::v1alpha1::{
 use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::types::track::Track;
+use crate::ui::new_playlist::NewPlaylistDialog;
 use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::artist_details::ArtistDetails;
 use crate::ui::pages::current_playlist::CurrentPlaylist;
@@ -28,9 +29,8 @@ use gtk::{Button, CompositeTemplate, Image, Label, MenuButton, Scale, SearchBar}
 use std::cell::{Cell, RefCell};
 use tokio::sync::mpsc;
 
-use super::pages::current_playlist;
-
 mod imp {
+    use crate::ui::show_all_playlists::ShowAllPlaylistsDialog;
 
     use super::*;
 
@@ -164,6 +164,24 @@ mod imp {
                 None,
                 move |media_controls, _action, _target| {
                     media_controls.go_to_album();
+                },
+            );
+
+            klass.install_action(
+                "app.add-to-new-playlist",
+                None,
+                move |media_controls, _action, _target| {
+                    let new_playlist_dialog = NewPlaylistDialog::default();
+                    new_playlist_dialog.present(Some(media_controls));
+                },
+            );
+
+            klass.install_action(
+                "app.show-all-playlists",
+                None,
+                move |media_controls, _action, _target| {
+                    let show_all_playlists_dialog = ShowAllPlaylistsDialog::default();
+                    show_all_playlists_dialog.present(Some(media_controls));
                 },
             );
         }

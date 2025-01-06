@@ -18,6 +18,8 @@ use std::{env, thread};
 
 mod imp {
 
+    use crate::ui::show_all_playlists::ShowAllPlaylistsDialog;
+
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -85,6 +87,21 @@ mod imp {
             klass.install_action("app.dir.play", None, move |file, _action, _target| {
                 file.play(false);
             });
+
+            klass.install_action(
+                "app.dir.add-to-new-playlist",
+                None,
+                move |_file, _action, _target| {},
+            );
+
+            klass.install_action(
+                "app.dir.show-all-playlists",
+                None,
+                move |file, _action, _target| {
+                    let show_all_playlists_dialog = ShowAllPlaylistsDialog::default();
+                    show_all_playlists_dialog.present(Some(file));
+                },
+            );
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
