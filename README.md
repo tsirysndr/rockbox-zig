@@ -119,7 +119,7 @@ MacOS, currently not supported, but you can run in a docker container.
 - [x] Fast search engine, built with [Tantivy](https://github.com/quickwit-oss/tantivy)
 - [x] Desktop Client (Electron/Gtk)
 - [x] Rockbox REPL
-- [ ] Terminal Client (TUI)
+- [x] Terminal Client (TUI)
 - [ ] Android Library
 - [ ] Mobile version (React Native)
 - [ ] Stream from Youtube (audio only)
