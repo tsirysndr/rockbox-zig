@@ -13,8 +13,8 @@ use handlers::{
         handle_seekid, handle_setvol, handle_single, handle_status, handle_toggle,
     },
     queue::{
-        handle_add, handle_addid, handle_clear, handle_delete, handle_move, handle_playlistinfo,
-        handle_shuffle,
+        handle_add, handle_addid, handle_clear, handle_delete, handle_deleteid, handle_move,
+        handle_playlistinfo, handle_shuffle,
     },
     system::{handle_binarylimit, handle_commands, handle_decoders, handle_idle, handle_noidle},
 };
@@ -130,6 +130,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "shuffle" => handle_shuffle(&mut ctx, &request, &mut stream).await?,
             "add" => handle_add(&mut ctx, &request, &mut stream).await?,
             "addid" => handle_addid(&mut ctx, &request, &mut stream).await?,
+            "deleteid" => handle_deleteid(&mut ctx, &request, &mut stream).await?,
             "playlistinfo" => handle_playlistinfo(&mut ctx, &request, &mut stream).await?,
             "delete" => handle_delete(&mut ctx, &request, &mut stream).await?,
             "clear" => handle_clear(&mut ctx, &request, &mut stream).await?,

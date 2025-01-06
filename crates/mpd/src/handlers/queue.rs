@@ -276,6 +276,51 @@ pub async fn handle_playlistinfo(
     Ok(response)
 }
 
+pub async fn handle_deleteid(
+    ctx: &mut Context,
+    request: &str,
+    stream: &mut BufReader<TcpStream>,
+) -> Result<String, Error> {
+    let mut idle = ctx.idle.lock().await;
+    *idle = true;
+
+    let arg = request.split_whitespace().last();
+    if arg.is_none() {
+        if !ctx.batch {
+            stream
+                .write_all(b"ACK [2@0] {deleteid} missing argument\n")
+                .await?;
+        }
+        return Ok("ACK [2@0] {deleteid} missing argument\n".to_string());
+    }
+    let arg = arg.unwrap();
+    let arg = arg.trim();
+    let arg = arg.trim_matches('"');
+    let positions = match arg.parse::<i32>() {
+        Ok(x) => vec![x - 1],
+        Err(_) => {
+            if !ctx.batch {
+                stream
+                    .write_all(b"ACK [2@0] {deleteid} invalid argument\n")
+                    .await?;
+            }
+            return Ok("ACK [2@0] {deleteid} invalid argument\n".to_string());
+        }
+    };
+    ctx.playlist
+        .remove_tracks(RemoveTracksRequest { positions })
+        .await?;
+    if !ctx.batch {
+        stream.write_all(b"OK\n").await?;
+    }
+
+    match ctx.event_sender.send("playlist".to_string()) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
+    Ok("OK\n".to_string())
+}
+
 pub async fn handle_delete(
     ctx: &mut Context,
     request: &str,
