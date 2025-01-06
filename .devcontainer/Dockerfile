@@ -1,4 +1,4 @@
-FROM rust:1.81-bookworm
+FROM rust:1.83-bookworm
 
 RUN apt-get update && apt-get install -y apt-utils && \
   apt-get install -y build-essential \
@@ -12,7 +12,9 @@ RUN apt-get update && apt-get install -y apt-utils && \
   git \
   protobuf-compiler \
   locales \
-  vim
+  vim \
+  cmake \
+  flatpak
 
 RUN locale-gen en_US.UTF-8
 
@@ -34,7 +36,7 @@ RUN curl -fsSL https://bun.sh/install | bash
 
 ENV PATH=/root/.bun/bin:$PATH
 
-RUN pkgx install node protoc buf
+RUN pkgx install node protoc buf deno
 
 ENV LANG=en_US.UTF-8
 
