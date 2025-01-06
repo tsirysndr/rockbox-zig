@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs};
 
 use anyhow::Error;
-use mpd_filters::{Expression, Operator, Parser, SqlOptions, ToSql};
+use mpd_filters::{Expression, Parser, SqlOptions, ToSql};
 use regex::Regex;
 use rockbox_library::{entity::track::Track, repo};
 use rockbox_rpc::api::rockbox::v1alpha1::{
@@ -113,10 +113,29 @@ pub async fn handle_search(
         term = term.trim_matches('"').to_string();
     }
 
-    if term.starts_with("((") {
-        let mut parser = Parser::new(&term);
-        let expr = parser.parse().map_err(|e| Error::msg(e))?;
-        evaluate_search_expression(ctx, expr, stream).await?;
+    let mut parser = Parser::new(&term);
+    if let Ok(expr) = parser.parse() {
+        let response = evaluate_search_expression(ctx, &expr, false)
+            .await?
+            .iter()
+            .map(|x| {
+                format!(
+                "file: {}\nArtist: {}\nAlbum: {}\nTitle: {}\nTrack: {}\nTime: {}\nDuration: {}\n",
+                x.path,
+                x.artist,
+                x.album,
+                x.title,
+                x.track_number.unwrap_or_default(),
+                (x.length / 1000) as u32,
+                x.length / 1000
+            )
+            })
+            .collect::<String>();
+        let response = format!("{}OK\n", response);
+        if !ctx.batch {
+            stream.write_all(response.as_bytes()).await?;
+        }
+        return Ok(response);
     }
 
     let response = ctx.library.search(SearchRequest { term }).await?;
@@ -379,13 +398,55 @@ async fn execute(
         }),
     };
 
-    let tracks = repo::track::filter(ctx.pool.clone(), expr.to_sql(opts)).await?;
+    let query = expr.to_sql(opts);
+
+    let tracks = match !query.0.contains(" REGEXP") {
+        true => repo::track::filter(ctx.pool.clone(), query).await?,
+        false => evaluate_search_expression(ctx, expr, true).await?,
+    };
+
     let mut response: String = "".to_string();
 
     build_file_metadata(tracks, &mut response).await?;
 
     stream.write_all(response.as_bytes()).await?;
     Ok(())
+}
+
+async fn evaluate_search_expression(
+    ctx: &mut Context,
+    expr: &Expression,
+    case_sensitive: bool,
+) -> Result<Vec<Track>, Error> {
+    let mut tracks = repo::track::all(ctx.pool.clone()).await?;
+    tracks = tracks
+        .into_iter()
+        .filter(|track| {
+            let mut record = HashMap::new();
+            record.insert("title".to_string(), track.title.clone());
+            record.insert("artist".to_string(), track.artist.clone());
+            record.insert("album".to_string(), track.album.clone());
+            record.insert("album_artist".to_string(), track.album_artist.clone());
+            record.insert("file".to_string(), track.path.clone());
+            record.insert("filename".to_string(), track.path.clone());
+            record.insert(
+                "genre".to_string(),
+                track.genre.clone().unwrap_or("".to_string()),
+            );
+            record.insert("Title".to_string(), track.title.clone());
+            record.insert("Artist".to_string(), track.artist.clone());
+            record.insert("Album".to_string(), track.album.clone());
+            record.insert("AlbumArtist".to_string(), track.album_artist.clone());
+            record.insert("File".to_string(), track.path.clone());
+            record.insert("Filename".to_string(), track.path.clone());
+            record.insert(
+                "Genre".to_string(),
+                track.genre.clone().unwrap_or("".to_string()),
+            );
+            expr.evaluate(&record, case_sensitive)
+        })
+        .collect();
+    Ok(tracks)
 }
 
 async fn build_file_metadata(tracks: Vec<Track>, response: &mut String) -> Result<(), Error> {
@@ -430,53 +491,4 @@ async fn build_file_metadata(tracks: Vec<Track>, response: &mut String) -> Resul
 
     response.push_str("OK\n");
     Ok(())
-}
-
-async fn evaluate_search_expression(
-    ctx: &mut Context,
-    expr: Expression,
-    stream: &mut BufReader<TcpStream>,
-) -> Result<Vec<Track>, Error> {
-    let mut tracks = repo::track::all(ctx.pool.clone()).await?;
-    match expr {
-        Expression::Group(expr) => {
-            let inner_expr = *expr;
-            match inner_expr {
-                Expression::Group(inner_expr) => {
-                    let final_expr = *inner_expr;
-                    match final_expr {
-                        Expression::Comparaison { field, op, value } => match op {
-                            Operator::Equals => {}
-                            Operator::Matches => {}
-                            _ => {
-                                stream
-                                    .write_all(b"ACK [2@0] {search} Invalid expression\n")
-                                    .await?;
-                                return Err(Error::msg("Invalid expression"));
-                            }
-                        },
-                        _ => {
-                            stream
-                                .write_all(b"ACK [2@0] {search} Invalid expression\n")
-                                .await?;
-                            return Err(Error::msg("Invalid expression"));
-                        }
-                    }
-                }
-                _ => {
-                    stream
-                        .write_all(b"ACK [2@0] {search} Invalid expression\n")
-                        .await?;
-                    return Err(Error::msg("Invalid expression"));
-                }
-            }
-        }
-        _ => {
-            stream
-                .write_all(b"ACK [2@0] {search} Invalid expression\n")
-                .await?;
-            return Err(Error::msg("Invalid expression"));
-        }
-    }
-    Ok(tracks)
 }
