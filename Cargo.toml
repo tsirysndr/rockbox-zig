@@ -6,6 +6,7 @@ members = [
   "webui",
 ]
 resolver = "2"
+exclude = ["rmpc"]
 
 [workspace.package]
 authors = ["Tsiry Sandratraina <tsiry.sndr@fluentci.io"]

@@ -140,6 +140,7 @@ pub async fn handle_status(
         (current_track.length / 1000) as i64
     );
     let elapsed = (current_track.elapsed / 1000) as i64;
+    let duration = (current_track.length / 1000) as i64;
 
     let single = ctx.single.lock().await;
     let single = single.as_str().replace("\"", "");
@@ -149,8 +150,8 @@ pub async fn handle_status(
     let current_playlist = ctx.current_playlist.lock().await;
     if current_playlist.is_none() {
         let response = format!(
-            "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplaylistlength: 0\nsong: 0\nvolume: {}\naudio: {}\nbitrate: {}\nOK\n",
-            status, repeat, single, random, time, elapsed, volume, audio, bitrate,
+            "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nduration: {}\nplaylistlength: 0\nsong: 0\nvolume: {}\naudio: {}\nbitrate: {}\nOK\n",
+            status, repeat, single, random, time, elapsed, duration, volume, audio, bitrate,
         );
         if !ctx.batch {
             stream.write_all(response.as_bytes()).await?;
@@ -163,8 +164,8 @@ pub async fn handle_status(
     let song = current_playlist.index;
 
     let response = format!(
-        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nplaylist: {}\nplaylistlength: {}\nsong: {}\nsongid: {}\nvolume: {}\naudio: {}\nbitrate: {}\nnextsong: {}\nnextsongid: {}\nOK\n",
-        status, repeat, single, random, time, elapsed, playlistlength + 1, playlistlength, song, song + 1, volume, audio, bitrate,
+        "state: {}\nrepeat: {}\nsingle: {}\nrandom: {}\ntime: {}\nelapsed: {}\nduration: {}\nplaylist: {}\nplaylistlength: {}\nsong: {}\nsongid: {}\nvolume: {}\naudio: {}\nbitrate: {}\nnextsong: {}\nnextsongid: {}\nOK\n",
+        status, repeat, single, random, time, elapsed, duration, playlistlength + 1, playlistlength, song, song + 1, volume, audio, bitrate,
         song + 1, song + 2,
     );
 
@@ -480,7 +481,7 @@ pub async fn handle_currentsong(
 
     if current_playlist.is_none() {
         let response = format!(
-            "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTrack: {}\nDate: {}\nTime: {}\nPos: 0\nOK\n",
+            "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTrack: {}\nDate: {}\nTime: {}\nPos: 0\nDuration: {}\nOK\n",
             current.path,
             current.title,
             current.artist,
@@ -488,6 +489,7 @@ pub async fn handle_currentsong(
             current.tracknum,
             current.year,
             (current.elapsed / 1000) as i64,
+            (current.length / 1000) as i64,
         );
         if !ctx.batch {
             stream.write_all(response.as_bytes()).await?;
@@ -497,7 +499,7 @@ pub async fn handle_currentsong(
 
     let current_playlist = current_playlist.as_ref().unwrap();
     let response = format!(
-        "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTrack: {}\nDate: {}\nTime: {}\nPos: {}\nOK\n",
+        "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTrack: {}\nDate: {}\nTime: {}\nPos: {}\nduration: {}\nOK\n",
         current.path,
         current.title,
         current.artist,
@@ -506,6 +508,7 @@ pub async fn handle_currentsong(
         current.year,
         (current.elapsed / 1000) as i64,
         current_playlist.index,
+        (current.length / 1000) as i64,
     );
     if !ctx.batch {
         stream.write_all(response.as_bytes()).await?;

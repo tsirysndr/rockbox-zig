@@ -13,10 +13,10 @@ use handlers::{
         handle_seekid, handle_setvol, handle_single, handle_status, handle_toggle,
     },
     queue::{
-        handle_add, handle_addid, handle_clear, handle_delete, handle_move, handle_playlistinfo,
-        handle_shuffle,
+        handle_add, handle_addid, handle_clear, handle_delete, handle_deleteid, handle_move,
+        handle_playlistinfo, handle_shuffle,
     },
-    system::{handle_commands, handle_decoders, handle_idle, handle_noidle},
+    system::{handle_binarylimit, handle_commands, handle_decoders, handle_idle, handle_noidle},
 };
 use kv::{build_tracks_kv, KV};
 use rockbox_graphql::{
@@ -130,6 +130,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "shuffle" => handle_shuffle(&mut ctx, &request, &mut stream).await?,
             "add" => handle_add(&mut ctx, &request, &mut stream).await?,
             "addid" => handle_addid(&mut ctx, &request, &mut stream).await?,
+            "deleteid" => handle_deleteid(&mut ctx, &request, &mut stream).await?,
             "playlistinfo" => handle_playlistinfo(&mut ctx, &request, &mut stream).await?,
             "delete" => handle_delete(&mut ctx, &request, &mut stream).await?,
             "clear" => handle_clear(&mut ctx, &request, &mut stream).await?,
@@ -160,6 +161,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "find artist" => handle_find_artist(&mut ctx, &request, &mut stream).await?,
             "find album" => handle_find_album(&mut ctx, &request, &mut stream).await?,
             "find title" => handle_find_title(&mut ctx, &request, &mut stream).await?,
+            "binarylimit" => handle_binarylimit(&mut ctx, &request, &mut stream).await?,
             "commands" => handle_commands(&mut ctx, &request, &mut stream).await?,
             "command_list_begin" => {
                 handle_command_list_begin(&mut ctx, &request, &mut stream).await?
