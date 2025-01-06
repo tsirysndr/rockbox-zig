@@ -106,7 +106,7 @@ MacOS, currently not supported, but you can run in a docker container.
 
 ## 📦 Downloads
 
-- `Linux`: intel: [rockbox_2024.12.25_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.12.25/rockbox_2024.12.25_x86_64-linux.tar.gz) arm64: [rockbox_2024.12.25_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2024.12.25/rockbox_2024.12.25_aarch64-linux.tar.gz)
+- `Linux`: intel: [rockbox_2025.01.06_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.06/rockbox_2025.01.06_x86_64-linux.tar.gz) arm64: [rockbox_2025.01.06_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.06/rockbox_2025.01.06_aarch64-linux.tar.gz)
 
 ## ✨ Features
 
