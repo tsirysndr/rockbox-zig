@@ -1,8 +1,5 @@
 use anyhow::Error;
-use tokio::{
-    io::{AsyncWriteExt, BufReader},
-    net::TcpStream,
-};
+use tokio::sync::mpsc::Sender;
 
 use crate::{parse_command, setup_context, Context};
 
@@ -28,7 +25,7 @@ use super::{
 pub async fn handle_command_list_begin(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let mut ctx = setup_context(true, Some(ctx.clone())).await?;
 
@@ -40,10 +37,10 @@ pub async fn handle_command_list_begin(
     let mut response = String::new();
     for request in commands {
         let command = parse_command(&request)?;
-        response.push_str(&match_command(&command, &mut ctx, request, stream).await?);
+        response.push_str(&match_command(&command, &mut ctx, request, tx.clone()).await?);
     }
 
-    stream.write_all(response.as_bytes()).await?;
+    tx.send(response.clone()).await?;
 
     Ok(response)
 }
@@ -51,7 +48,7 @@ pub async fn handle_command_list_begin(
 pub async fn handle_command_list_ok_begin(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let mut ctx = setup_context(true, Some(ctx.clone())).await?;
 
@@ -64,12 +61,12 @@ pub async fn handle_command_list_ok_begin(
 
     for request in commands {
         let command = parse_command(&request)?;
-        response.push_str(&match_command(&command, &mut ctx, request, stream).await?);
+        response.push_str(&match_command(&command, &mut ctx, request, tx.clone()).await?);
     }
 
     let mut response = response.replace("OK\n", "list_OK\n");
     response.push_str("OK\n");
-    stream.write_all(response.as_bytes()).await?;
+    tx.send(response.clone()).await?;
     Ok(response)
 }
 
@@ -77,59 +74,58 @@ pub async fn match_command(
     command: &str,
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     match command {
-        "play" => handle_play(ctx, request, stream).await,
-        "pause" => handle_pause(ctx, request, stream).await,
-        "toggle" => handle_toggle(ctx, request, stream).await,
-        "next" => handle_next(ctx, request, stream).await,
-        "previous" => handle_previous(ctx, request, stream).await,
-        "playid" => handle_playid(ctx, request, stream).await,
-        "seek" => handle_seek(ctx, request, stream).await,
-        "seekid" => handle_seekid(ctx, request, stream).await,
-        "seekcur" => handle_seekcur(ctx, request, stream).await,
-        "random" => handle_random(ctx, request, stream).await,
-        "repeat" => handle_repeat(ctx, request, stream).await,
-        "getvol" => handle_getvol(ctx, request, stream).await,
-        "setvol" => handle_setvol(ctx, request, stream).await,
-        "volume" => handle_setvol(ctx, request, stream).await,
-        "single" => handle_single(ctx, request, stream).await,
-        "shuffle" => handle_shuffle(ctx, request, stream).await,
-        "add" => handle_add(ctx, request, stream).await,
-        "addid" => handle_addid(ctx, request, stream).await,
-        "playlistinfo" => handle_playlistinfo(ctx, request, stream).await,
-        "delete" => handle_delete(ctx, request, stream).await,
-        "clear" => handle_clear(ctx, request, stream).await,
-        "move" => handle_move(ctx, request, stream).await,
-        "list album" => handle_list_album(ctx, request, stream).await,
-        "list artist" => handle_list_artist(ctx, request, stream).await,
-        "list title" => handle_list_title(ctx, request, stream).await,
-        "update" => handle_rescan(ctx, request, stream).await,
-        "search" => handle_search(ctx, request, stream).await,
-        "rescan" => handle_rescan(ctx, request, stream).await,
-        "status" => handle_status(ctx, request, stream).await,
-        "currentsong" => handle_currentsong(ctx, request, stream).await,
-        "config" => handle_config(ctx, request, stream).await,
-        "tagtypes " => handle_tagtypes(ctx, request, stream).await,
-        "tagtypes clear" => handle_tagtypes_clear(ctx, request, stream).await,
-        "tagtypes enable" => handle_tagtypes_enable(ctx, request, stream).await,
-        "stats" => handle_stats(ctx, request, stream).await,
-        "plchanges" => handle_playlistinfo(ctx, request, stream).await,
-        "outputs" => handle_outputs(ctx, request, stream).await,
-        "decoders" => handle_decoders(ctx, request, stream).await,
-        "lsinfo" => handle_lsinfo(ctx, request, stream).await,
-        "listall" => handle_listall(ctx, request, stream).await,
-        "listallinfo" => handle_listallinfo(ctx, request, stream).await,
-        "listfiles" => handle_listfiles(ctx, request, stream).await,
-        "find artist" => handle_find_artist(ctx, request, stream).await,
-        "find album" => handle_find_album(ctx, request, stream).await,
-        "find title" => handle_find_title(ctx, request, stream).await,
+        "play" => handle_play(ctx, request, tx.clone()).await,
+        "pause" => handle_pause(ctx, request, tx.clone()).await,
+        "toggle" => handle_toggle(ctx, request, tx.clone()).await,
+        "next" => handle_next(ctx, request, tx.clone()).await,
+        "previous" => handle_previous(ctx, request, tx.clone()).await,
+        "playid" => handle_playid(ctx, request, tx.clone()).await,
+        "seek" => handle_seek(ctx, request, tx.clone()).await,
+        "seekid" => handle_seekid(ctx, request, tx.clone()).await,
+        "seekcur" => handle_seekcur(ctx, request, tx.clone()).await,
+        "random" => handle_random(ctx, request, tx.clone()).await,
+        "repeat" => handle_repeat(ctx, request, tx.clone()).await,
+        "getvol" => handle_getvol(ctx, request, tx.clone()).await,
+        "setvol" => handle_setvol(ctx, request, tx.clone()).await,
+        "volume" => handle_setvol(ctx, request, tx.clone()).await,
+        "single" => handle_single(ctx, request, tx.clone()).await,
+        "shuffle" => handle_shuffle(ctx, request, tx.clone()).await,
+        "add" => handle_add(ctx, request, tx.clone()).await,
+        "addid" => handle_addid(ctx, request, tx.clone()).await,
+        "playlistinfo" => handle_playlistinfo(ctx, request, tx.clone()).await,
+        "delete" => handle_delete(ctx, request, tx.clone()).await,
+        "clear" => handle_clear(ctx, request, tx.clone()).await,
+        "move" => handle_move(ctx, request, tx.clone()).await,
+        "list album" => handle_list_album(ctx, request, tx.clone()).await,
+        "list artist" => handle_list_artist(ctx, request, tx.clone()).await,
+        "list title" => handle_list_title(ctx, request, tx.clone()).await,
+        "update" => handle_rescan(ctx, request, tx.clone()).await,
+        "search" => handle_search(ctx, request, tx.clone()).await,
+        "rescan" => handle_rescan(ctx, request, tx.clone()).await,
+        "status" => handle_status(ctx, request, tx.clone()).await,
+        "currentsong" => handle_currentsong(ctx, request, tx.clone()).await,
+        "config" => handle_config(ctx, request, tx.clone()).await,
+        "tagtypes " => handle_tagtypes(ctx, request, tx.clone()).await,
+        "tagtypes clear" => handle_tagtypes_clear(ctx, request, tx.clone()).await,
+        "tagtypes enable" => handle_tagtypes_enable(ctx, request, tx.clone()).await,
+        "stats" => handle_stats(ctx, request, tx.clone()).await,
+        "plchanges" => handle_playlistinfo(ctx, request, tx.clone()).await,
+        "outputs" => handle_outputs(ctx, request, tx.clone()).await,
+        "decoders" => handle_decoders(ctx, request, tx.clone()).await,
+        "lsinfo" => handle_lsinfo(ctx, request, tx.clone()).await,
+        "listall" => handle_listall(ctx, request, tx.clone()).await,
+        "listallinfo" => handle_listallinfo(ctx, request, tx.clone()).await,
+        "listfiles" => handle_listfiles(ctx, request, tx.clone()).await,
+        "find artist" => handle_find_artist(ctx, request, tx.clone()).await,
+        "find album" => handle_find_album(ctx, request, tx.clone()).await,
+        "find title" => handle_find_title(ctx, request, tx.clone()).await,
         _ => {
             println!("Unhandled command: {}", request);
             if !ctx.batch {
-                stream
-                    .write_all(b"ACK [5@0] {unhandled} unknown command\n")
+                tx.send("ACK [5@0] {unhandled} unknown command\n".to_string())
                     .await?;
             }
             Ok("ACK [5@0] {unhandled} unknown command\n".to_string())

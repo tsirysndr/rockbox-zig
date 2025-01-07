@@ -1,8 +1,7 @@
+use std::os::unix::thread;
+
 use anyhow::Error;
-use tokio::{
-    io::{AsyncWriteExt, BufReader},
-    net::TcpStream,
-};
+use tokio::sync::mpsc::Sender;
 
 use crate::{
     consts::{COMMANDS, DECODERS},
@@ -10,36 +9,33 @@ use crate::{
 };
 
 pub async fn handle_idle(
-    _ctx: &mut Context,
+    ctx: &mut Context,
     _request: &str,
-    _stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
-    // TODO: Implement idle
-    /*
-        let idle = ctx.idle.lock().await;
+    let receiver = ctx.event_receiver.clone();
 
-        if *idle {
-            stream
-                .write_all(b"changed: player\nchanged: playlist\nOK\n")
-                .await?;
-            return Ok("changed: player\nchanged: playlist\nOK\n".to_string());
+    tokio::spawn(async move {
+        let mut rx = receiver.lock().await;
+        while let Ok(event) = rx.recv().await {
+            tx.send(format!("changed: {}\nOK\n", event.to_string()))
+                .await?
         }
-    */
+        Ok::<(), Error>(())
+    });
+
     Ok("".to_string())
 }
 
 pub async fn handle_noidle(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
-    ctx.idle_state.send(false)?;
-    let mut idle = ctx.idle.lock().await;
-    *idle = false;
-
+    // TODO: Implement this
     let response = "OK\n".to_string();
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
     Ok(response)
 }
@@ -47,10 +43,10 @@ pub async fn handle_noidle(
 pub async fn handle_decoders(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     if !ctx.batch {
-        stream.write_all(DECODERS.as_bytes()).await?;
+        tx.send(DECODERS.to_string()).await?;
     }
     Ok(DECODERS.to_string())
 }
@@ -58,10 +54,10 @@ pub async fn handle_decoders(
 pub async fn handle_commands(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     if !ctx.batch {
-        stream.write_all(COMMANDS.as_bytes()).await?;
+        tx.send(COMMANDS.to_string()).await?;
     }
     Ok(COMMANDS.to_string())
 }
@@ -69,10 +65,10 @@ pub async fn handle_commands(
 pub async fn handle_binarylimit(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     if !ctx.batch {
-        stream.write_all("OK\n".as_bytes()).await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }

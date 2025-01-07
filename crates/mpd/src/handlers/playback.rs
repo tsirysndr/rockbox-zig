@@ -3,26 +3,25 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
     AdjustVolumeRequest, NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest,
     SaveSettingsRequest, StartRequest,
 };
-use tokio::{
-    io::{AsyncWriteExt, BufReader},
-    net::TcpStream,
-};
+use tokio::sync::mpsc::Sender;
 
 use crate::Context;
+
+use super::Subsystem;
 
 pub async fn handle_play(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     ctx.playback.resume(ResumeRequest {}).await?;
-    match ctx.event_sender.send("player".to_string()) {
+    match ctx.event_sender.send(Subsystem::Player) {
         Ok(_) => {}
         Err(_) => {}
     }
 
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
     Ok("OK\n".to_string())
@@ -31,7 +30,7 @@ pub async fn handle_play(
 pub async fn handle_pause(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let playback_status = ctx.playback_status.lock().await;
     let status = playback_status.as_ref().map(|x| x.status);
@@ -44,13 +43,12 @@ pub async fn handle_pause(
             ctx.playback.resume(ResumeRequest {}).await?;
         }
         _ => {
-            stream
-                .write_all(b"ACK [2@0] {pause} no song is playing\n")
+            tx.send("ACK [2@0] {pause} no song is playing\n".to_string())
                 .await?;
         }
     }
 
-    match ctx.event_sender.send("player".to_string()) {
+    match ctx.event_sender.send(Subsystem::Player) {
         Ok(_) => {}
         Err(_) => {}
     }
@@ -61,7 +59,7 @@ pub async fn handle_pause(
 pub async fn handle_toggle(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let playback_status = ctx.playback_status.lock().await;
     let playback_status = playback_status.as_ref().map(|x| x.status);
@@ -74,13 +72,12 @@ pub async fn handle_toggle(
             ctx.playback.resume(ResumeRequest {}).await?;
         }
         _ => {
-            stream
-                .write_all(b"ACK [2@0] {toggle} no song is playing\n")
+            tx.send("ACK [2@0] {toggle} no song is playing\n".to_string())
                 .await?;
         }
     }
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -88,7 +85,7 @@ pub async fn handle_toggle(
 pub async fn handle_status(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let playback_status = ctx.playback_status.lock().await;
     let playback_status = playback_status.as_ref().map(|x| x.status);
@@ -127,7 +124,7 @@ pub async fn handle_status(
             status, repeat, random, volume,
         );
         if !ctx.batch {
-            stream.write_all(response.as_bytes()).await?;
+            tx.send(response.clone()).await?;
         }
         return Ok(response);
     }
@@ -154,7 +151,7 @@ pub async fn handle_status(
             status, repeat, single, random, time, elapsed, duration, volume, audio, bitrate,
         );
         if !ctx.batch {
-            stream.write_all(response.as_bytes()).await?;
+            tx.send(response.clone()).await?;
         }
         return Ok(response);
     }
@@ -170,7 +167,7 @@ pub async fn handle_status(
     );
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
     Ok(response)
 }
@@ -178,15 +175,15 @@ pub async fn handle_status(
 pub async fn handle_next(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     ctx.playback.next(NextRequest {}).await?;
-    match ctx.event_sender.send("player".to_string()) {
+    match ctx.event_sender.send(Subsystem::Player) {
         Ok(_) => {}
         Err(_) => {}
     }
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -194,16 +191,16 @@ pub async fn handle_next(
 pub async fn handle_previous(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     ctx.playback.previous(PreviousRequest {}).await?;
-    match ctx.event_sender.send("player".to_string()) {
+    match ctx.event_sender.send(Subsystem::Player) {
         Ok(_) => {}
         Err(_) => {}
     }
 
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
     Ok("OK\n".to_string())
@@ -212,13 +209,12 @@ pub async fn handle_previous(
 pub async fn handle_playid(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
 
     if arg.is_none() {
-        stream
-            .write_all(b"ACK [2@0] {playid} incorrect arguments\n")
+        tx.send("ACK [2@0] {playid} incorrect arguments\n".to_string())
             .await?;
         return Ok("ACK [2@0] {playid} incorrect arguments\n".to_string());
     }
@@ -229,8 +225,7 @@ pub async fn handle_playid(
     let arg = arg.parse::<i32>();
 
     if arg.is_err() {
-        stream
-            .write_all(b"ACK [2@0] {playid} incorrect arguments\n")
+        tx.send("ACK [2@0] {playid} incorrect arguments\n".to_string())
             .await?;
         return Ok("ACK [2@0] {playid} incorrect arguments\n".to_string());
     }
@@ -245,7 +240,7 @@ pub async fn handle_playid(
         .await?;
 
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
     Ok("OK\n".to_string())
@@ -254,13 +249,13 @@ pub async fn handle_playid(
 pub async fn handle_seek(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     // TODO: Implement seek
     println!("{}", request);
 
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
     Ok("OK\n".to_string())
@@ -269,13 +264,13 @@ pub async fn handle_seek(
 pub async fn handle_seekid(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     // TODO: Implement seekid
     println!("{}", request);
 
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
     Ok("OK\n".to_string())
@@ -284,12 +279,11 @@ pub async fn handle_seekid(
 pub async fn handle_seekcur(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
-        stream
-            .write_all(b"ACK [2@0] {seekcur} incorrect arguments\n")
+        tx.send("ACK [2@0] {seekcur} incorrect arguments\n".to_string())
             .await?;
         return Ok("ACK [2@0] {seekcur} incorrect arguments\n".to_string());
     }
@@ -304,13 +298,13 @@ pub async fn handle_seekcur(
         })
         .await?;
 
-    match ctx.event_sender.send("player".to_string()) {
+    match ctx.event_sender.send(Subsystem::Player) {
         Ok(_) => {}
         Err(_) => {}
     }
 
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -318,13 +312,12 @@ pub async fn handle_seekcur(
 pub async fn handle_random(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {random} incorrect arguments\n")
+            tx.send("ACK [2@0] {random} incorrect arguments\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {random} incorrect arguments\n".to_string());
@@ -337,7 +330,7 @@ pub async fn handle_random(
         })
         .await?;
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -345,13 +338,12 @@ pub async fn handle_random(
 pub async fn handle_repeat(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {repeat} incorrect arguments\n")
+            tx.send("ACK [2@0] {repeat} incorrect arguments\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {repeat} incorrect arguments\n".to_string());
@@ -367,8 +359,7 @@ pub async fn handle_repeat(
         },
         _ => {
             if !ctx.batch {
-                stream
-                    .write_all(b"ACK [2@0] {repeat} incorrect arguments\n")
+                tx.send("ACK [2@0] {repeat} incorrect arguments\n".to_string())
                     .await?;
             }
             return Ok("ACK [2@0] {repeat} incorrect arguments\n".to_string());
@@ -381,7 +372,7 @@ pub async fn handle_repeat(
         })
         .await?;
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -389,7 +380,7 @@ pub async fn handle_repeat(
 pub async fn handle_getvol(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let settings = rockbox_sys::settings::get_global_settings();
     let volume = settings.volume;
@@ -401,7 +392,7 @@ pub async fn handle_getvol(
     let response = format!("volume: {}\nOK\n", volume);
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -410,15 +401,14 @@ pub async fn handle_getvol(
 pub async fn handle_setvol(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let settings = rockbox_sys::settings::get_global_settings();
     let volume = settings.volume as i32;
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {setvol} incorrect arguments\n")
+            tx.send("ACK [2@0] {setvol} incorrect arguments\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {setvol} incorrect arguments\n".to_string());
@@ -435,7 +425,7 @@ pub async fn handle_setvol(
         .adjust_volume(AdjustVolumeRequest { steps })
         .await?;
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -443,13 +433,12 @@ pub async fn handle_setvol(
 pub async fn handle_single(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {single} incorrect arguments\n")
+            tx.send("ACK [2@0] {single} incorrect arguments\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {single} incorrect arguments\n".to_string());
@@ -458,7 +447,7 @@ pub async fn handle_single(
     let mut single = ctx.single.lock().await;
     *single = arg.unwrap().to_string();
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -466,13 +455,13 @@ pub async fn handle_single(
 pub async fn handle_currentsong(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let current = ctx.current_track.lock().await;
     if current.is_none() {
         let response = "OK\n".to_string();
         if !ctx.batch {
-            stream.write_all(response.as_bytes()).await?;
+            tx.send(response.clone()).await?;
         }
         return Ok(response);
     }
@@ -492,7 +481,7 @@ pub async fn handle_currentsong(
             (current.length / 1000) as i64,
         );
         if !ctx.batch {
-            stream.write_all(response.as_bytes()).await?;
+            tx.send(response.clone()).await?;
         }
         return Ok(response);
     }
@@ -511,7 +500,7 @@ pub async fn handle_currentsong(
         (current.length / 1000) as i64,
     );
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
     Ok(response)
 }
@@ -519,13 +508,13 @@ pub async fn handle_currentsong(
 pub async fn handle_outputs(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let response =
         "outputid: 0\noutputname: default detected output\nplugin: pulse\noutputenabled: 1\nOK\n"
             .to_string();
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
     Ok(response)
 }

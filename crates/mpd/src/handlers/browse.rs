@@ -5,15 +5,12 @@ use anyhow::Error;
 use regex::Regex;
 use rockbox_library::repo;
 use rockbox_settings::get_music_dir;
-use tokio::{
-    io::{AsyncWriteExt, BufReader},
-    net::TcpStream,
-};
+use tokio::sync::mpsc::Sender;
 
 pub async fn handle_lsinfo(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     repo::track::all(ctx.pool.clone()).await?;
 
@@ -33,8 +30,7 @@ pub async fn handle_lsinfo(
     // verify if path is a file or directory or doesn't exist
     if fs::metadata(path).is_err() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [50@0] {lsinfo} No such file or directory\n")
+            tx.send("ACK [50@0] {lsinfo} No such file or directory\n".to_string())
                 .await?;
         }
         return Ok("ACK [50@0] {lsinfo} No such file or directory\n".to_string());
@@ -53,7 +49,7 @@ pub async fn handle_lsinfo(
     }
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -62,7 +58,7 @@ pub async fn handle_lsinfo(
 pub async fn handle_listall(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let mut response: String = "".to_string();
     let music_dir = get_music_dir()?;
@@ -74,7 +70,7 @@ pub async fn handle_listall(
     }
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -83,7 +79,7 @@ pub async fn handle_listall(
 pub async fn handle_listallinfo(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     repo::track::all(ctx.pool.clone()).await?;
     let music_dir = get_music_dir()?;
@@ -92,8 +88,7 @@ pub async fn handle_listallinfo(
     // verify if path is a file or directory or doesn't exist
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [50@0] {lsinfo} No such file or directory\n")
+            tx.send("ACK [50@0] {lsinfo} No such file or directory\n".to_string())
                 .await?;
         }
         return Ok("ACK [50@0] {lsinfo} No such file or directory\n".to_string());
@@ -106,7 +101,7 @@ pub async fn handle_listallinfo(
     response.push_str("OK\n");
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -115,7 +110,7 @@ pub async fn handle_listallinfo(
 pub async fn handle_listfiles(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let request = request.trim();
     let re = Regex::new(r#"^([\w-]+)(?:\s+"([^"]*)")?$"#).unwrap();
@@ -133,8 +128,7 @@ pub async fn handle_listfiles(
     // verify if path is a file or directory or doesn't exist
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [50@0] {lsinfo} No such file or directory\n")
+            tx.send("ACK [50@0] {lsinfo} No such file or directory\n".to_string())
                 .await?;
         }
         return Ok("ACK [50@0] {lsinfo} No such file or directory\n".to_string());
@@ -153,7 +147,7 @@ pub async fn handle_listfiles(
     }
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
