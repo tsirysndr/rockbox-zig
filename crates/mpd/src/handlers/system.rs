@@ -8,6 +8,8 @@ use crate::{
     Context,
 };
 
+use super::Subsystem;
+
 pub async fn handle_idle(
     ctx: &mut Context,
     _request: &str,
@@ -18,8 +20,10 @@ pub async fn handle_idle(
     tokio::spawn(async move {
         let mut rx = receiver.lock().await;
         while let Ok(event) = rx.recv().await {
-            tx.send(format!("changed: {}\nOK\n", event.to_string()))
-                .await?
+            if event == Subsystem::NoIdle {
+                break;
+            }
+            tx.send(format!("changed: {}\n", event.to_string())).await?;
         }
         Ok::<(), Error>(())
     });
@@ -32,7 +36,8 @@ pub async fn handle_noidle(
     _request: &str,
     tx: Sender<String>,
 ) -> Result<String, Error> {
-    // TODO: Implement this
+    ctx.event_sender.send(Subsystem::NoIdle)?;
+
     let response = "OK\n".to_string();
     if !ctx.batch {
         tx.send(response.clone()).await?;

@@ -5,7 +5,7 @@ pub mod playback;
 pub mod queue;
 pub mod system;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Subsystem {
     Database,
     Update,
@@ -21,6 +21,7 @@ pub enum Subsystem {
     Message,
     Neighbor,
     Mount,
+    NoIdle,
 }
 
 impl ToString for Subsystem {
@@ -40,6 +41,7 @@ impl ToString for Subsystem {
             Subsystem::Message => "message".to_string(),
             Subsystem::Neighbor => "neighbor".to_string(),
             Subsystem::Mount => "mount".to_string(),
+            Subsystem::NoIdle => "noidle".to_string(),
         }
     }
 }
