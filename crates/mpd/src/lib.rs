@@ -17,6 +17,7 @@ use handlers::{
         handle_playlistinfo, handle_shuffle,
     },
     system::{handle_binarylimit, handle_commands, handle_decoders, handle_idle, handle_noidle},
+    Subsystem,
 };
 use kv::{build_tracks_kv, KV};
 use rockbox_graphql::{
@@ -36,7 +37,7 @@ use std::{env, sync::Arc, thread, time::Duration};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
-    sync::{broadcast, watch, Mutex},
+    sync::{broadcast, Mutex},
 };
 use tokio_stream::StreamExt;
 use tonic::transport::Channel;
@@ -56,17 +57,16 @@ pub struct Context {
     pub system: SystemServiceClient<Channel>,
     pub single: Arc<Mutex<String>>,
     pub batch: bool,
-    pub idle_state: Arc<watch::Sender<bool>>,
-    pub idle_cancel: watch::Receiver<bool>,
-    pub event_sender: broadcast::Sender<String>,
+    pub event_sender: broadcast::Sender<Subsystem>,
+    pub event_receiver: Arc<Mutex<broadcast::Receiver<Subsystem>>>,
     pub current_track: Arc<Mutex<Option<Track>>>,
     pub current_playlist: Arc<Mutex<Option<Playlist>>>,
     pub playback_status: Arc<Mutex<Option<AudioStatus>>>,
     pub pool: Pool<Sqlite>,
     pub kv: Arc<Mutex<KV<entity::track::Track>>>,
     pub current_settings: Arc<Mutex<UserSettings>>,
-    pub idle: Arc<Mutex<bool>>,
 }
+
 pub struct MpdServer {}
 
 impl MpdServer {
@@ -100,10 +100,23 @@ impl MpdServer {
 
 pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Error> {
     let mut buf = [0; 4096];
-    let mut stream = tokio::io::BufReader::new(stream);
-    stream.write_all(b"OK MPD 0.23.15\n").await?;
+    let (reader_stream, writer_stream) = tokio::io::split(stream);
+    let mut reader = tokio::io::BufReader::new(reader_stream);
+    let mut writer = tokio::io::BufWriter::new(writer_stream);
 
-    while let Ok(n) = stream.read(&mut buf).await {
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<String>(32);
+
+    tokio::spawn(async move {
+        while let Some(msg) = rx.recv().await {
+            writer.write_all(msg.as_bytes()).await?;
+            writer.flush().await?;
+        }
+        Ok::<(), Error>(())
+    });
+
+    tx.send("OK MPD 0.23.15\n".to_string()).await?;
+
+    while let Ok(n) = reader.read(&mut buf).await {
         if n == 0 {
             break;
         }
@@ -112,72 +125,71 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
         println!("request: {}", request);
 
         match command.as_str() {
-            "play" => handle_play(&mut ctx, &request, &mut stream).await?,
-            "pause" => handle_pause(&mut ctx, &request, &mut stream).await?,
-            "toggle" => handle_toggle(&mut ctx, &request, &mut stream).await?,
-            "next" => handle_next(&mut ctx, &request, &mut stream).await?,
-            "previous" => handle_previous(&mut ctx, &request, &mut stream).await?,
-            "playid" => handle_playid(&mut ctx, &request, &mut stream).await?,
-            "seek" => handle_seek(&mut ctx, &request, &mut stream).await?,
-            "seekid" => handle_seekid(&mut ctx, &request, &mut stream).await?,
-            "seekcur" => handle_seekcur(&mut ctx, &request, &mut stream).await?,
-            "random" => handle_random(&mut ctx, &request, &mut stream).await?,
-            "repeat" => handle_repeat(&mut ctx, &request, &mut stream).await?,
-            "getvol" => handle_getvol(&mut ctx, &request, &mut stream).await?,
-            "setvol" => handle_setvol(&mut ctx, &request, &mut stream).await?,
-            "volume" => handle_setvol(&mut ctx, &request, &mut stream).await?,
-            "single" => handle_single(&mut ctx, &request, &mut stream).await?,
-            "shuffle" => handle_shuffle(&mut ctx, &request, &mut stream).await?,
-            "add" => handle_add(&mut ctx, &request, &mut stream).await?,
-            "addid" => handle_addid(&mut ctx, &request, &mut stream).await?,
-            "deleteid" => handle_deleteid(&mut ctx, &request, &mut stream).await?,
-            "playlistinfo" => handle_playlistinfo(&mut ctx, &request, &mut stream).await?,
-            "delete" => handle_delete(&mut ctx, &request, &mut stream).await?,
-            "clear" => handle_clear(&mut ctx, &request, &mut stream).await?,
-            "move" => handle_move(&mut ctx, &request, &mut stream).await?,
-            "list album" => handle_list_album(&mut ctx, &request, &mut stream).await?,
-            "list albumartist" => handle_list_artist(&mut ctx, &request, &mut stream).await?,
-            "list artist" => handle_list_artist(&mut ctx, &request, &mut stream).await?,
-            "list title" => handle_list_title(&mut ctx, &request, &mut stream).await?,
-            "update" => handle_rescan(&mut ctx, &request, &mut stream).await?,
-            "search" => handle_search(&mut ctx, &request, &mut stream).await?,
-            "rescan" => handle_rescan(&mut ctx, &request, &mut stream).await?,
-            "status" => handle_status(&mut ctx, &request, &mut stream).await?,
-            "currentsong" => handle_currentsong(&mut ctx, &request, &mut stream).await?,
-            "config" => handle_config(&mut ctx, &request, &mut stream).await?,
-            "tagtypes " => handle_tagtypes(&mut ctx, &request, &mut stream).await?,
-            "tagtypes clear" => handle_clear(&mut ctx, &request, &mut stream).await?,
-            "tagtypes enable" => handle_tagtypes_enable(&mut ctx, &request, &mut stream).await?,
-            "stats" => handle_stats(&mut ctx, &request, &mut stream).await?,
-            "plchanges" => handle_playlistinfo(&mut ctx, &request, &mut stream).await?,
-            "outputs" => handle_outputs(&mut ctx, &request, &mut stream).await?,
-            "idle" => handle_idle(&mut ctx, &request, &mut stream).await?,
-            "noidle" => handle_noidle(&mut ctx, &request, &mut stream).await?,
-            "decoders" => handle_decoders(&mut ctx, &request, &mut stream).await?,
-            "lsinfo" => handle_lsinfo(&mut ctx, &request, &mut stream).await?,
-            "listall" => handle_listall(&mut ctx, &request, &mut stream).await?,
-            "listallinfo" => handle_listallinfo(&mut ctx, &request, &mut stream).await?,
-            "listfiles" => handle_listfiles(&mut ctx, &request, &mut stream).await?,
-            "find artist" => handle_find_artist(&mut ctx, &request, &mut stream).await?,
-            "find album" => handle_find_album(&mut ctx, &request, &mut stream).await?,
-            "find title" => handle_find_title(&mut ctx, &request, &mut stream).await?,
-            "binarylimit" => handle_binarylimit(&mut ctx, &request, &mut stream).await?,
-            "commands" => handle_commands(&mut ctx, &request, &mut stream).await?,
+            "play" => handle_play(&mut ctx, &request, tx.clone()).await?,
+            "pause" => handle_pause(&mut ctx, &request, tx.clone()).await?,
+            "toggle" => handle_toggle(&mut ctx, &request, tx.clone()).await?,
+            "next" => handle_next(&mut ctx, &request, tx.clone()).await?,
+            "previous" => handle_previous(&mut ctx, &request, tx.clone()).await?,
+            "playid" => handle_playid(&mut ctx, &request, tx.clone()).await?,
+            "seek" => handle_seek(&mut ctx, &request, tx.clone()).await?,
+            "seekid" => handle_seekid(&mut ctx, &request, tx.clone()).await?,
+            "seekcur" => handle_seekcur(&mut ctx, &request, tx.clone()).await?,
+            "random" => handle_random(&mut ctx, &request, tx.clone()).await?,
+            "repeat" => handle_repeat(&mut ctx, &request, tx.clone()).await?,
+            "getvol" => handle_getvol(&mut ctx, &request, tx.clone()).await?,
+            "setvol" => handle_setvol(&mut ctx, &request, tx.clone()).await?,
+            "volume" => handle_setvol(&mut ctx, &request, tx.clone()).await?,
+            "single" => handle_single(&mut ctx, &request, tx.clone()).await?,
+            "shuffle" => handle_shuffle(&mut ctx, &request, tx.clone()).await?,
+            "add" => handle_add(&mut ctx, &request, tx.clone()).await?,
+            "addid" => handle_addid(&mut ctx, &request, tx.clone()).await?,
+            "deleteid" => handle_deleteid(&mut ctx, &request, tx.clone()).await?,
+            "playlistinfo" => handle_playlistinfo(&mut ctx, &request, tx.clone()).await?,
+            "delete" => handle_delete(&mut ctx, &request, tx.clone()).await?,
+            "clear" => handle_clear(&mut ctx, &request, tx.clone()).await?,
+            "move" => handle_move(&mut ctx, &request, tx.clone()).await?,
+            "list album" => handle_list_album(&mut ctx, &request, tx.clone()).await?,
+            "list albumartist" => handle_list_artist(&mut ctx, &request, tx.clone()).await?,
+            "list artist" => handle_list_artist(&mut ctx, &request, tx.clone()).await?,
+            "list title" => handle_list_title(&mut ctx, &request, tx.clone()).await?,
+            "update" => handle_rescan(&mut ctx, &request, tx.clone()).await?,
+            "search" => handle_search(&mut ctx, &request, tx.clone()).await?,
+            "rescan" => handle_rescan(&mut ctx, &request, tx.clone()).await?,
+            "status" => handle_status(&mut ctx, &request, tx.clone()).await?,
+            "currentsong" => handle_currentsong(&mut ctx, &request, tx.clone()).await?,
+            "config" => handle_config(&mut ctx, &request, tx.clone()).await?,
+            "tagtypes " => handle_tagtypes(&mut ctx, &request, tx.clone()).await?,
+            "tagtypes clear" => handle_clear(&mut ctx, &request, tx.clone()).await?,
+            "tagtypes enable" => handle_tagtypes_enable(&mut ctx, &request, tx.clone()).await?,
+            "stats" => handle_stats(&mut ctx, &request, tx.clone()).await?,
+            "plchanges" => handle_playlistinfo(&mut ctx, &request, tx.clone()).await?,
+            "outputs" => handle_outputs(&mut ctx, &request, tx.clone()).await?,
+            "idle" => handle_idle(&mut ctx, &request, tx.clone()).await?,
+            "noidle" => handle_noidle(&mut ctx, &request, tx.clone()).await?,
+            "decoders" => handle_decoders(&mut ctx, &request, tx.clone()).await?,
+            "lsinfo" => handle_lsinfo(&mut ctx, &request, tx.clone()).await?,
+            "listall" => handle_listall(&mut ctx, &request, tx.clone()).await?,
+            "listallinfo" => handle_listallinfo(&mut ctx, &request, tx.clone()).await?,
+            "listfiles" => handle_listfiles(&mut ctx, &request, tx.clone()).await?,
+            "find artist" => handle_find_artist(&mut ctx, &request, tx.clone()).await?,
+            "find album" => handle_find_album(&mut ctx, &request, tx.clone()).await?,
+            "find title" => handle_find_title(&mut ctx, &request, tx.clone()).await?,
+            "binarylimit" => handle_binarylimit(&mut ctx, &request, tx.clone()).await?,
+            "commands" => handle_commands(&mut ctx, &request, tx.clone()).await?,
             "command_list_begin" => {
-                handle_command_list_begin(&mut ctx, &request, &mut stream).await?
+                handle_command_list_begin(&mut ctx, &request, tx.clone()).await?
             }
             "command_list_ok_begin" => {
-                handle_command_list_ok_begin(&mut ctx, &request, &mut stream).await?
+                handle_command_list_ok_begin(&mut ctx, &request, tx.clone()).await?
             }
             _ => {
                 if command.starts_with("find ") {
-                    handle_find(&mut ctx, &request, &mut stream).await?;
+                    handle_find(&mut ctx, &request, tx.clone()).await?;
                     return Ok(());
                 }
                 println!("Unhandled command: {}", command);
                 println!("Unhandled request: {}", request);
-                stream
-                    .write_all(b"ACK [5@0] {unhandled} unknown command\n")
+                tx.send("ACK [5@0] {unhandled} unknown command\n".to_string())
                     .await?;
                 "ACK [5@0] {unhandled} unknown command\n".to_string()
             }
@@ -223,8 +235,7 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
     let playlist = PlaylistServiceClient::connect(url.clone()).await?;
     let system = SystemServiceClient::connect(url.clone()).await?;
 
-    let (event_sender, _) = broadcast::channel(16);
-    let (idle_state, idle_cancel) = watch::channel(false);
+    let (event_sender, event_receiver) = broadcast::channel(16);
 
     Ok(Context {
         library,
@@ -235,17 +246,13 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
         system,
         single: Arc::new(Mutex::new("\"0\"".to_string())),
         batch,
-        idle_state: match ctx {
-            Some(ref ctx) => ctx.clone().idle_state,
-            None => Arc::new(idle_state),
-        },
-        idle_cancel: match ctx {
-            Some(ref ctx) => ctx.clone().idle_cancel,
-            None => idle_cancel,
-        },
         event_sender: match ctx {
             Some(ref ctx) => ctx.clone().event_sender,
             None => event_sender,
+        },
+        event_receiver: match ctx {
+            Some(ref ctx) => ctx.clone().event_receiver,
+            None => Arc::new(Mutex::new(event_receiver)),
         },
         current_track: match ctx {
             Some(ref ctx) => ctx.clone().current_track,
@@ -262,7 +269,6 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
         pool,
         kv,
         current_settings: Arc::new(Mutex::new(rockbox_sys::settings::get_global_settings())),
-        idle: Arc::new(Mutex::new(false)),
     })
 }
 
@@ -304,12 +310,12 @@ pub fn listen_events(ctx: Context) {
                 || current_playlist.is_none()
             {
                 let ctx = ctx_clone.clone();
-                thread::spawn(move || {
-                    thread::sleep(std::time::Duration::from_millis(500));
-                    let rt = tokio::runtime::Runtime::new().unwrap();
-                    let mut idle = rt.block_on(ctx.idle.lock());
-                    *idle = true;
-                });
+                match ctx.event_sender.send(Subsystem::Playlist) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        eprintln!("Error: {}", e)
+                    }
+                }
             }
 
             *current_playlist = Some(playlist);
@@ -327,12 +333,12 @@ pub fn listen_events(ctx: Context) {
                 && playback_status.as_ref().unwrap().status != status.status
             {
                 let ctx = another_ctx.clone();
-                thread::spawn(move || {
-                    thread::sleep(std::time::Duration::from_millis(500));
-                    let rt = tokio::runtime::Runtime::new().unwrap();
-                    let mut idle = rt.block_on(ctx.idle.lock());
-                    *idle = true;
-                });
+                match ctx.event_sender.send(Subsystem::Player) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        eprintln!("Error: {}", e)
+                    }
+                }
             }
             *playback_status = Some(status);
         }

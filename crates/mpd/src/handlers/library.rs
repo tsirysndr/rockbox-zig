@@ -9,17 +9,14 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
     ScanLibraryRequest, SearchRequest,
 };
 use rockbox_settings::get_music_dir;
-use tokio::{
-    io::{AsyncWriteExt, BufReader},
-    net::TcpStream,
-};
+use tokio::sync::mpsc::Sender;
 
 use crate::Context;
 
 pub async fn handle_list_album(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let query = request.replace("list album", "").replace("list Album", "");
     let query = query.trim();
@@ -46,7 +43,7 @@ pub async fn handle_list_album(
     let response = format!("{}OK\n", response);
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -55,7 +52,7 @@ pub async fn handle_list_album(
 pub async fn handle_list_artist(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let response = ctx.library.get_artists(GetArtistsRequest {}).await?;
     let response = response.into_inner();
@@ -66,7 +63,7 @@ pub async fn handle_list_artist(
         .collect::<String>();
     let response = format!("{}OK\n", response);
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
     Ok(response)
 }
@@ -74,7 +71,7 @@ pub async fn handle_list_artist(
 pub async fn handle_list_title(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let response = ctx.library.get_tracks(GetTracksRequest {}).await?;
     let response = response.into_inner();
@@ -85,7 +82,7 @@ pub async fn handle_list_title(
         .collect::<String>();
     let response = format!("{}OK\n", response);
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
     Ok(response)
 }
@@ -93,7 +90,7 @@ pub async fn handle_list_title(
 pub async fn handle_search(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let mut term = request
         .trim_matches('"')
@@ -133,7 +130,7 @@ pub async fn handle_search(
             .collect::<String>();
         let response = format!("{}OK\n", response);
         if !ctx.batch {
-            stream.write_all(response.as_bytes()).await?;
+            tx.send(response.clone()).await?;
         }
         return Ok(response);
     }
@@ -159,7 +156,7 @@ pub async fn handle_search(
         .collect::<String>();
     let response = format!("{}OK\n", response);
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
     Ok(response)
 }
@@ -167,7 +164,7 @@ pub async fn handle_search(
 pub async fn handle_rescan(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let response = ctx
         .settings
@@ -188,7 +185,7 @@ pub async fn handle_rescan(
         .await?;
 
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -196,11 +193,11 @@ pub async fn handle_rescan(
 pub async fn handle_config(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let response = "ACK [4@0] {config} Command only permitted to local clients";
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.to_string()).await?;
     }
 
     Ok(response.to_string())
@@ -209,14 +206,14 @@ pub async fn handle_config(
 pub async fn handle_tagtypes(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let response = format!(
         "Tagtype: Artist\nTagtype: Album\nTagtype: Title\nTagtype: Track\nTagtype: Date\nOK\n"
     );
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -225,12 +222,12 @@ pub async fn handle_tagtypes(
 pub async fn handle_tagtypes_clear(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let response = format!("OK\n");
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -239,12 +236,12 @@ pub async fn handle_tagtypes_clear(
 pub async fn handle_tagtypes_enable(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let response = format!("OK\n");
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.to_string()).await?;
     }
 
     Ok("".to_string())
@@ -253,7 +250,7 @@ pub async fn handle_tagtypes_enable(
 pub async fn handle_stats(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let response = ctx.library.get_albums(GetAlbumsRequest {}).await?;
     let response = response.into_inner();
@@ -270,7 +267,7 @@ pub async fn handle_stats(
     );
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -279,7 +276,7 @@ pub async fn handle_stats(
 pub async fn handle_find_artist(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let re = Regex::new(r#"(?i)(artist|album|date)\s+\"([^\"]+)\""#).unwrap();
     let mut fields = HashMap::new();
@@ -309,7 +306,7 @@ pub async fn handle_find_artist(
     build_file_metadata(tracks, &mut response).await?;
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -318,7 +315,7 @@ pub async fn handle_find_artist(
 pub async fn handle_find_album(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let arg = request.replace("find album ", "").replace("find Album", "");
     let arg = arg.trim();
@@ -330,7 +327,7 @@ pub async fn handle_find_album(
     build_file_metadata(tracks, &mut response).await?;
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -339,7 +336,7 @@ pub async fn handle_find_album(
 pub async fn handle_find_title(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let arg = request
         .replace("find title ", "")
@@ -353,7 +350,7 @@ pub async fn handle_find_title(
     build_file_metadata(tracks, &mut response).await?;
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -362,7 +359,7 @@ pub async fn handle_find_title(
 pub async fn handle_find(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let arg = request.replace("find ", "");
     let arg = arg.trim();
@@ -371,18 +368,14 @@ pub async fn handle_find(
     let mut parser = Parser::new(&arg);
     match parser.parse() {
         Ok(expr) => {
-            execute(ctx, &expr, stream).await?;
+            execute(ctx, &expr, tx).await?;
         }
         Err(e) => return Err(Error::msg(e)),
     }
     Ok("".to_string())
 }
 
-async fn execute(
-    ctx: &mut Context,
-    expr: &Expression,
-    stream: &mut BufReader<TcpStream>,
-) -> Result<(), Error> {
+async fn execute(ctx: &mut Context, expr: &Expression, tx: Sender<String>) -> Result<(), Error> {
     let mut columns = HashMap::new();
     columns.insert("Title".to_string(), "title".to_string());
     columns.insert("Artist".to_string(), "artist".to_string());
@@ -408,8 +401,7 @@ async fn execute(
     let mut response: String = "".to_string();
 
     build_file_metadata(tracks, &mut response).await?;
-
-    stream.write_all(response.as_bytes()).await?;
+    tx.send(response).await?;
     Ok(())
 }
 

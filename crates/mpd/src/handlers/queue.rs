@@ -1,33 +1,27 @@
 use std::fs;
 
-use crate::{consts::PLAYLIST_INSERT_LAST, Context};
+use crate::{consts::PLAYLIST_INSERT_LAST, handlers::Subsystem, Context};
 use anyhow::Error;
 use regex::Regex;
 use rockbox_rpc::api::rockbox::v1alpha1::{
     GetGlobalSettingsRequest, InsertDirectoryRequest, InsertTracksRequest, RemoveAllTracksRequest,
     RemoveTracksRequest, ShufflePlaylistRequest, StartRequest,
 };
-use tokio::{
-    io::{AsyncWriteExt, BufReader},
-    net::TcpStream,
-};
+use tokio::sync::mpsc::Sender;
 
 pub async fn handle_shuffle(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
-    let mut idle = ctx.idle.lock().await;
-    *idle = true;
-
     ctx.playlist
         .shuffle_playlist(ShufflePlaylistRequest { start_index: 0 })
         .await?;
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
-    match ctx.event_sender.send("playlist".to_string()) {
+    match ctx.event_sender.send(Subsystem::Playlist) {
         Ok(_) => {}
         Err(_) => {}
     }
@@ -38,11 +32,8 @@ pub async fn handle_shuffle(
 pub async fn handle_add(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
-    let mut idle = ctx.idle.lock().await;
-    *idle = true;
-
     let response = ctx
         .settings
         .get_global_settings(GetGlobalSettingsRequest {})
@@ -55,8 +46,7 @@ pub async fn handle_add(
     let captures = re.captures(request);
     if captures.is_none() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {add} missing argument\n")
+            tx.send("ACK [2@0] {add} missing argument\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {add} missing argument\n".to_string());
@@ -71,8 +61,7 @@ pub async fn handle_add(
 
     if path.is_empty() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {add} missing argument\n")
+            tx.send("ACK [2@0] {add} missing argument\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {add} missing argument\n".to_string());
@@ -86,8 +75,7 @@ pub async fn handle_add(
     // verify if path is a file or directory or doesn't exist
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [50@0] {add} No such file or directory\n")
+            tx.send("ACK [50@0] {add} No such file or directory\n".to_string())
                 .await?;
         }
         return Ok("ACK [50@0] {add} No such file or directory\n".to_string());
@@ -120,10 +108,10 @@ pub async fn handle_add(
     }
 
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
-    match ctx.event_sender.send("playlist".to_string()) {
+    match ctx.event_sender.send(Subsystem::Playlist) {
         Ok(_) => {}
         Err(_) => {}
     }
@@ -134,11 +122,8 @@ pub async fn handle_add(
 pub async fn handle_addid(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
-    let mut idle = ctx.idle.lock().await;
-    *idle = true;
-
     let response = ctx
         .settings
         .get_global_settings(GetGlobalSettingsRequest {})
@@ -154,8 +139,7 @@ pub async fn handle_addid(
 
     if captures.is_none() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {add} missing argument\n")
+            tx.send("ACK [2@0] {add} missing argument\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {add} missing argument\n".to_string());
@@ -170,8 +154,7 @@ pub async fn handle_addid(
 
     if path.is_empty() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {add} missing argument\n")
+            tx.send("ACK [2@0] {add} missing argument\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {add} missing argument\n".to_string());
@@ -185,8 +168,7 @@ pub async fn handle_addid(
     // verify if path is a file or directory or doesn't exist
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [50@0] {add} No such file or directory\n")
+            tx.send("ACK [50@0] {add} No such file or directory\n".to_string())
                 .await?;
         }
         return Ok("ACK [50@0] {add} No such file or directory\n".to_string());
@@ -205,8 +187,7 @@ pub async fn handle_addid(
     if fs::metadata(&path)?.is_dir() {
         // return error if directory, invalid for addid
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {addid} invalid argument\n")
+            tx.send("ACK [2@0] {addid} invalid argument\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {addid} invalid argument\n".to_string());
@@ -218,10 +199,10 @@ pub async fn handle_addid(
     }
 
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
-    match ctx.event_sender.send("playlist".to_string()) {
+    match ctx.event_sender.send(Subsystem::Playlist) {
         Ok(_) => {}
         Err(_) => {}
     }
@@ -232,13 +213,13 @@ pub async fn handle_addid(
 pub async fn handle_playlistinfo(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     let current_playlist = ctx.current_playlist.lock().await;
 
     if current_playlist.is_none() {
         if !ctx.batch {
-            stream.write_all(b"OK\n").await?;
+            tx.send("OK\n".to_string()).await?;
         }
         return Ok("OK\n".to_string());
     }
@@ -270,7 +251,7 @@ pub async fn handle_playlistinfo(
     let response = format!("{}OK\n", response);
 
     if !ctx.batch {
-        stream.write_all(response.as_bytes()).await?;
+        tx.send(response.clone()).await?;
     }
 
     Ok(response)
@@ -279,16 +260,12 @@ pub async fn handle_playlistinfo(
 pub async fn handle_deleteid(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
-    let mut idle = ctx.idle.lock().await;
-    *idle = true;
-
     let arg = request.split_whitespace().last();
     if arg.is_none() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {deleteid} missing argument\n")
+            tx.send("ACK [2@0] {deleteid} missing argument\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {deleteid} missing argument\n".to_string());
@@ -300,8 +277,7 @@ pub async fn handle_deleteid(
         Ok(x) => vec![x - 1],
         Err(_) => {
             if !ctx.batch {
-                stream
-                    .write_all(b"ACK [2@0] {deleteid} invalid argument\n")
+                tx.send("ACK [2@0] {deleteid} invalid argument\n".to_string())
                     .await?;
             }
             return Ok("ACK [2@0] {deleteid} invalid argument\n".to_string());
@@ -311,10 +287,10 @@ pub async fn handle_deleteid(
         .remove_tracks(RemoveTracksRequest { positions })
         .await?;
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
-    match ctx.event_sender.send("playlist".to_string()) {
+    match ctx.event_sender.send(Subsystem::Playlist) {
         Ok(_) => {}
         Err(_) => {}
     }
@@ -324,16 +300,12 @@ pub async fn handle_deleteid(
 pub async fn handle_delete(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
-    let mut idle = ctx.idle.lock().await;
-    *idle = true;
-
     let arg = request.split_whitespace().last();
     if arg.is_none() {
         if !ctx.batch {
-            stream
-                .write_all(b"ACK [2@0] {delete} missing argument\n")
+            tx.send("ACK [2@0] {delete} missing argument\n".to_string())
                 .await?;
         }
         return Ok("ACK [2@0] {delete} missing argument\n".to_string());
@@ -349,7 +321,7 @@ pub async fn handle_delete(
             .remove_tracks(RemoveTracksRequest { positions })
             .await?;
         if !ctx.batch {
-            stream.write_all(b"OK\n").await?;
+            tx.send("OK\n".to_string()).await?;
         }
         return Ok("OK\n".to_string());
     }
@@ -357,8 +329,7 @@ pub async fn handle_delete(
         Ok(x) => vec![x],
         Err(_) => {
             if !ctx.batch {
-                stream
-                    .write_all(b"ACK [2@0] {delete} invalid argument\n")
+                tx.send("ACK [2@0] {delete} invalid argument\n".to_string())
                     .await?;
             }
             return Ok("ACK [2@0] {delete} invalid argument\n".to_string());
@@ -368,10 +339,10 @@ pub async fn handle_delete(
         .remove_tracks(RemoveTracksRequest { positions })
         .await?;
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
-    match ctx.event_sender.send("playlist".to_string()) {
+    match ctx.event_sender.send(Subsystem::Playlist) {
         Ok(_) => {}
         Err(_) => {}
     }
@@ -382,19 +353,16 @@ pub async fn handle_delete(
 pub async fn handle_clear(
     ctx: &mut Context,
     _request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
-    let mut idle = ctx.idle.lock().await;
-    *idle = true;
-
     ctx.playlist
         .remove_all_tracks(RemoveAllTracksRequest {})
         .await?;
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
 
-    match ctx.event_sender.send("playlist".to_string()) {
+    match ctx.event_sender.send(Subsystem::Playlist) {
         Ok(_) => {}
         Err(_) => {}
     }
@@ -405,11 +373,11 @@ pub async fn handle_clear(
 pub async fn handle_move(
     ctx: &mut Context,
     request: &str,
-    stream: &mut BufReader<TcpStream>,
+    tx: Sender<String>,
 ) -> Result<String, Error> {
     println!("{}", request);
     if !ctx.batch {
-        stream.write_all(b"OK\n").await?;
+        tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
 }
