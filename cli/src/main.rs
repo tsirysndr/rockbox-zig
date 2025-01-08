@@ -1,8 +1,10 @@
+use std::ffi::OsString;
+
 use anyhow::Error;
 use clap::{arg, Command};
 use owo_colors::OwoColorize;
 
-use cmd::{community::*, repl::*, scan::*, start::*, webui::*};
+use cmd::{community::*, repl::*, run::*, scan::*, start::*, webui::*};
 
 pub mod cmd;
 
@@ -46,10 +48,30 @@ fn cli() -> Command {
                 .about("Start the Rockbox REPL")
                 .visible_alias("shell"),
         )
+        .subcommand(
+            Command::new("run")
+                .arg(arg!(<FILE> "JavaScript or TypeScript file to run"))
+                .about("Run a JavaScript or TypeScript program")
+                .visible_alias("x"),
+        )
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    let args = std::env::args().collect::<Vec<String>>();
+    if args.len() > 1 && args[1] == "run" {
+        let _args = args
+            .into_iter()
+            .map(|s| match s.as_str() {
+                "rockbox" => "deno".into(),
+                _ => s.into(),
+            })
+            .collect::<Vec<OsString>>();
+
+        run(_args);
+        return Ok(());
+    }
+
     let matches = cli().get_matches();
 
     match matches.subcommand() {
