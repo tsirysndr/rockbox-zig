@@ -27,9 +27,8 @@ pub fn install_rockboxd() -> Result<(), Error> {
 }
 
 pub fn wait_for_rockboxd(port: u32, timeout: Option<u32>) -> Result<(), Error> {
-    setup_pkgx()?;
     let cmd = format!(
-        "pkgx deno run -A npm:wait-port localhost:{} -t {}",
+        "rockbox run -A npm:wait-port localhost:{} -t {}",
         port,
         timeout.unwrap_or(60) * 1000
     );

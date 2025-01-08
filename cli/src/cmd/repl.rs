@@ -5,8 +5,9 @@ macro_rules! svec {
 }
 
 pub fn repl() {
-    let handle = thread::spawn(|| {
-        deno::cli(svec!["deno", "repl", "-A"]);
+    let handle = thread::spawn(|| match deno::cli(svec!["deno", "repl", "-A"]) {
+        Ok(_) => {}
+        Err(_) => {}
     });
     handle.join().unwrap();
 }
