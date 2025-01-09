@@ -284,7 +284,10 @@ pub async fn handle_deleteid(
         }
     };
     ctx.playlist
-        .remove_tracks(RemoveTracksRequest { positions })
+        .remove_tracks(RemoveTracksRequest {
+            positions,
+            playlist_id: None,
+        })
         .await?;
     if !ctx.batch {
         tx.send("OK\n".to_string()).await?;
