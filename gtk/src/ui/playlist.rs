@@ -111,6 +111,18 @@ mod imp {
     impl ObjectImpl for Playlist {
         fn constructed(&self) {
             self.parent_constructed();
+            let self_weak = self.downgrade();
+            let click = gtk::GestureClick::new();
+            click.connect_released(move |_, _, _, _| {
+                if let Some(self_) = self_weak.upgrade() {
+                    let go_back_button = self_.go_back_button.borrow();
+                    if let Some(go_back_button) = go_back_button.as_ref() {
+                        go_back_button.set_visible(true);
+                    }
+                }
+            });
+
+            self.row.add_controller(click);
         }
     }
 
