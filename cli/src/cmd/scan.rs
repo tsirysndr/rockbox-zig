@@ -10,7 +10,7 @@ use super::start::*;
 
 pub async fn scan(path: Option<String>) -> Result<(), Error> {
     install_rockboxd()?;
-    let handle = thread::spawn(|| match start() {
+    let handle = thread::spawn(|| match start(false) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("Failed to start Rockbox server: {}", e);
