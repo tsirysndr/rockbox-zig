@@ -83,7 +83,7 @@ async fn main() -> Result<(), Error> {
             community();
         }
         Some(("start", _)) => {
-            start()?;
+            start(true)?;
         }
         Some(("webui", _)) => {
             webui()?;
@@ -95,7 +95,7 @@ async fn main() -> Result<(), Error> {
             rmpc::main_tui()?;
         }
         _ => {
-            start()?;
+            start(true)?;
         }
     }
     Ok(())

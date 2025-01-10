@@ -11,7 +11,7 @@ pub fn webui() -> Result<(), Error> {
     let port = env::var("ROCKBOX_UI_PORT").unwrap_or_else(|_| "6062".to_string());
     install_rockboxd()?;
 
-    let handle = thread::spawn(|| match start() {
+    let handle = thread::spawn(|| match start(false) {
         Ok(_) => {}
         Err(e) => {
             eprintln!("Failed to start Rockbox server: {}", e);

@@ -3,7 +3,7 @@ use std::{env, process::Command};
 use anyhow::Error;
 use rockbox::{install_rockboxd, wait_for_rockboxd};
 
-pub fn start() -> Result<(), Error> {
+pub fn start(with_ui: bool) -> Result<(), Error> {
     let video_driver = std::env::var("SDL_VIDEODRIVER").unwrap_or_else(|_| "dummy".to_string());
 
     let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
@@ -13,7 +13,9 @@ pub fn start() -> Result<(), Error> {
 
     // try to connect to mpd_port to see if mpd server is already running
     if wait_for_rockboxd(mpd_port.parse()?, Some(1)).is_ok() {
-        rmpc::main_tui()?;
+        if with_ui {
+            rmpc::main_tui()?;
+        }
         return Ok(());
     }
 
