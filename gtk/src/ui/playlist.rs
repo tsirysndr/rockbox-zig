@@ -1,4 +1,5 @@
 use crate::state::AppState;
+use crate::ui::pages::playlist_details::PlaylistDetails;
 use crate::ui::{delete_playlist::DeletePlaylistDialog, edit_playlist::EditPlaylistDialog};
 use adw::prelude::*;
 use adw::subclass::prelude::*;
@@ -8,6 +9,7 @@ use gtk::{Button, CompositeTemplate, Image, Label, MenuButton};
 use std::cell::RefCell;
 
 mod imp {
+
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -25,6 +27,7 @@ mod imp {
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub go_back_button: RefCell<Option<Button>>,
         pub state: glib::WeakRef<AppState>,
+        pub playlist_details: RefCell<Option<PlaylistDetails>>,
     }
 
     #[glib::object_subclass]
@@ -115,6 +118,12 @@ mod imp {
             let click = gtk::GestureClick::new();
             click.connect_released(move |_, _, _, _| {
                 if let Some(self_) = self_weak.upgrade() {
+                    let main_stack = self_.main_stack.borrow();
+                    let main_stack_ref = main_stack.as_ref().unwrap();
+                    main_stack_ref.set_visible_child_name("playlist-details-page");
+                    let state = self_.state.upgrade().unwrap();
+                    state.push_navigation("Playlist", "playlist-details-page");
+
                     let go_back_button = self_.go_back_button.borrow();
                     if let Some(go_back_button) = go_back_button.as_ref() {
                         go_back_button.set_visible(true);

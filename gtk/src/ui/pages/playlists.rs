@@ -3,6 +3,7 @@ use crate::api::rockbox::v1alpha1::{
     GetFoldersRequest, GetFoldersResponse, GetPlaylistsRequest, GetPlaylistsResponse,
 };
 use crate::state::AppState;
+use crate::ui::pages::playlist_details::PlaylistDetails;
 use crate::ui::playlist::Playlist;
 use crate::ui::playlist_folder::PlaylistFolder;
 use adw::subclass::prelude::*;
@@ -28,6 +29,7 @@ mod imp {
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub go_back_button: RefCell<Option<Button>>,
         pub state: glib::WeakRef<AppState>,
+        pub playlist_details: RefCell<Option<PlaylistDetails>>,
     }
 
     #[glib::object_subclass]
@@ -148,6 +150,10 @@ impl Playlists {
                 let playlist = Playlist::new();
                 playlist.imp().playlist_name.set_text(&entry.name);
                 playlist.imp().state.set(Some(&state));
+                playlist
+                    .imp()
+                    .playlist_details
+                    .replace(self.imp().playlist_details.borrow().clone());
                 self.imp().playlists.append(&playlist);
             }
         }

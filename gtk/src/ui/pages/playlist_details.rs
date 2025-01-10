@@ -2,7 +2,7 @@ use crate::state::AppState;
 use adw::subclass::prelude::*;
 use glib::subclass;
 use gtk::glib;
-use gtk::{Button, CompositeTemplate};
+use gtk::{Button, CompositeTemplate, ListBox};
 use std::cell::RefCell;
 
 mod imp {
@@ -12,6 +12,9 @@ mod imp {
     #[derive(Debug, Default, CompositeTemplate)]
     #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/playlist_details.ui")]
     pub struct PlaylistDetails {
+        #[template_child]
+        pub tracks: TemplateChild<ListBox>,
+
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub go_back_button: RefCell<Option<Button>>,
         pub state: glib::WeakRef<AppState>,
@@ -52,4 +55,6 @@ impl PlaylistDetails {
     pub fn new() -> Self {
         glib::Object::new()
     }
+
+    pub fn load_tracks(&self) {}
 }

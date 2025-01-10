@@ -1089,6 +1089,10 @@ impl RbApplicationWindow {
         playlists
             .imp()
             .set_go_back_button(window.imp().go_back_button.get().clone());
+        playlists
+            .imp()
+            .playlist_details
+            .replace(Some(window.imp().playlist_details.get().clone()));
 
         album_results.imp().set_main_stack(main_stack.clone());
         album_results.imp().set_library_page(library_page.clone());
