@@ -986,6 +986,7 @@ impl RbApplicationWindow {
         let artist_results = search.imp().artist_results.get();
         let track_results = search.imp().track_results.get();
         let playlists = window.imp().playlists.get();
+        let playlist_details = window.imp().playlist_details.get();
 
         songs.imp().likes_page.replace(Some(likes.clone()));
         track_results.imp().likes_page.replace(Some(likes.clone()));
@@ -1007,6 +1008,7 @@ impl RbApplicationWindow {
         albums.imp().state.set(Some(&state));
         search.imp().state.set(Some(&state));
         playlists.imp().state.set(Some(&state));
+        playlist_details.imp().state.set(Some(&state));
 
         artist_results.imp().search_mode.set(true);
         album_results.imp().search_mode.set(true);
