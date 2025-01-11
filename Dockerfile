@@ -34,9 +34,9 @@ RUN mkdir -p build
 
 WORKDIR /app/webui/rockbox
 
-RUN bun install
+RUN deno install
 
-RUN bun run build
+RUN deno run build
 
 WORKDIR /app/build
 
@@ -50,7 +50,7 @@ ENV PATH=/root/.local/bin:${PATH}
 
 WORKDIR /app
 
-RUN fluentci run --wasm . release
+RUN [ -n "$TAG" ] && fluentci run --wasm . release  ; exit 0
 
 FROM debian:bookworm
 
