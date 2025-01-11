@@ -31,6 +31,7 @@ mod imp {
         pub state: glib::WeakRef<AppState>,
         pub playlist_details: RefCell<Option<PlaylistDetails>>,
         pub playlist_id: RefCell<Option<String>>,
+        pub library_page: RefCell<Option<adw::NavigationPage>>,
     }
 
     #[glib::object_subclass]
@@ -131,6 +132,8 @@ mod imp {
             let click = gtk::GestureClick::new();
             click.connect_released(move |_, _, _, _| {
                 if let Some(self_) = self_weak.upgrade() {
+                    let library_page = self_.library_page.borrow();
+                    let library_page = library_page.as_ref().unwrap();
                     let main_stack = self_.main_stack.borrow();
                     let main_stack_ref = main_stack.as_ref().unwrap();
                     main_stack_ref.set_visible_child_name("playlist-details-page");
@@ -147,6 +150,8 @@ mod imp {
                         let playlist_id = playlist_id.as_ref().unwrap();
                         playlist_details.load_tracks(playlist_id.clone());
                     }
+                    let playlist_name = self.playlist_name.text();
+                    library_page.set_title(playlist_name.as_str());
                 }
             });
 

@@ -41,6 +41,7 @@ mod imp {
         pub folder_id: RefCell<String>,
         pub parent_id: RefCell<Option<String>>,
         pub state: glib::WeakRef<AppState>,
+        pub library_page: RefCell<Option<adw::NavigationPage>>,
     }
 
     #[glib::object_subclass]
@@ -111,6 +112,8 @@ mod imp {
             let click = gtk::GestureClick::new();
             click.connect_released(move |_, _, _, _| {
                 if let Some(self_) = self_weak.upgrade() {
+                    let library_page = self_.library_page.borrow();
+                    let library_page = library_page.as_ref().unwrap();
                     let folder_id = self_.folder_id.borrow();
                     let parent_id = self_.parent_id.borrow();
                     let folder_id = folder_id.clone();
@@ -127,6 +130,8 @@ mod imp {
                     if let Some(go_back_button) = go_back_button.as_ref() {
                         go_back_button.set_visible(true);
                     }
+                    let folder_name = self.folder_name.text();
+                    library_page.set_title(folder_name.as_str());
                 }
             });
 

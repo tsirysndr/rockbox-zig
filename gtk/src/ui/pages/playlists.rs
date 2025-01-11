@@ -30,6 +30,7 @@ mod imp {
         pub go_back_button: RefCell<Option<Button>>,
         pub state: glib::WeakRef<AppState>,
         pub playlist_details: RefCell<Option<PlaylistDetails>>,
+        pub library_page: RefCell<Option<adw::NavigationPage>>,
     }
 
     #[glib::object_subclass]
@@ -115,6 +116,7 @@ impl Playlists {
         }
 
         let state = self.imp().state.upgrade().unwrap();
+        let library_page = self.imp().library_page.borrow();
 
         if let Ok(response) = response {
             for entry in response.folders {
@@ -131,6 +133,7 @@ impl Playlists {
                     .imp()
                     .playlists
                     .replace(Some(self.imp().playlists.clone()));
+                folder.imp().library_page.replace(library_page.clone());
                 self.imp().playlists.append(&folder);
             }
         }
@@ -147,6 +150,7 @@ impl Playlists {
 
         if let Ok(response) = response {
             let main_stack = self.imp().main_stack.borrow();
+            let go_back_button = self.imp().go_back_button.borrow();
             for entry in response.playlists {
                 let playlist = Playlist::new();
                 playlist.imp().playlist_name.set_text(&entry.name);
@@ -157,6 +161,11 @@ impl Playlists {
                     .replace(self.imp().playlist_details.borrow().clone());
                 playlist.imp().playlist_id.replace(Some(entry.id.clone()));
                 playlist.imp().main_stack.replace(main_stack.clone());
+                playlist.imp().library_page.replace(library_page.clone());
+                playlist
+                    .imp()
+                    .go_back_button
+                    .replace(go_back_button.clone());
                 self.imp().playlists.append(&playlist);
             }
         }
