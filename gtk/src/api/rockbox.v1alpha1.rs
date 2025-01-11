@@ -4338,6 +4338,8 @@ pub struct CreatePlaylistRequest {
     pub name: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(string, repeated, tag = "2")]
     pub tracks: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "3")]
+    pub folder_id: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct CreatePlaylistResponse {

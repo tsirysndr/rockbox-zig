@@ -1,8 +1,13 @@
+use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
+use crate::api::rockbox::v1alpha1::RenamePlaylistRequest;
+use crate::state::AppState;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
+use anyhow::Error;
 use glib::subclass;
 use gtk::{glib, CompositeTemplate};
 use std::env;
+use std::thread;
 
 mod imp {
 
@@ -10,7 +15,12 @@ mod imp {
 
     #[derive(Debug, Default, CompositeTemplate)]
     #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/edit_playlist.ui")]
-    pub struct EditPlaylistDialog {}
+    pub struct EditPlaylistDialog {
+        #[template_child]
+        pub name: TemplateChild<adw::EntryRow>,
+
+        pub state: glib::WeakRef<AppState>,
+    }
 
     #[glib::object_subclass]
     impl ObjectSubclass for EditPlaylistDialog {
@@ -25,7 +35,9 @@ mod imp {
                 "app.edit_playlist_dialog.save",
                 None,
                 move |dialog, _action, _target| {
-                    dialog.close();
+                    if dialog.rename_playlist().is_ok() {
+                        dialog.close();
+                    }
                 },
             );
         }
@@ -54,6 +66,32 @@ glib::wrapper! {
 impl Default for EditPlaylistDialog {
     fn default() -> Self {
         glib::Object::new()
+    }
+}
+
+#[gtk::template_callbacks]
+impl EditPlaylistDialog {
+    fn rename_playlist(&self) -> Result<(), Error> {
+        let state = self.imp().state.upgrade().unwrap();
+        let id = state.selected_playlist().unwrap();
+        let name = self.imp().name.text().trim().to_string();
+
+        if name.is_empty() {
+            return Err(anyhow::anyhow!("Name cannot be empty"));
+        }
+
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let result = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .rename_playlist(RenamePlaylistRequest { id, name })
+                    .await?;
+                Ok::<_, Error>(())
+            });
+        });
+        Ok(())
     }
 }
 

@@ -95,6 +95,15 @@ mod imp {
                 None,
                 move |song, _action, _target| {
                     let new_playlist_dialog = NewPlaylistDialog::default();
+                    let self_ = imp::Song::from_obj(song);
+                    let state = self_.state.upgrade().unwrap();
+                    new_playlist_dialog.imp().state.set(Some(&state));
+                    let track = self_.track.borrow().as_ref();
+                    let track = track.unwrap();
+                    new_playlist_dialog
+                        .imp()
+                        .song_path
+                        .replace(Some(track.path.clone()));
                     new_playlist_dialog.present(Some(song));
                 },
             );

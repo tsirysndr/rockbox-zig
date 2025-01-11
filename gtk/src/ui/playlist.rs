@@ -10,6 +10,8 @@ use std::cell::RefCell;
 
 mod imp {
 
+    use crate::ui::pages::playlist_details;
+
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -28,6 +30,7 @@ mod imp {
         pub go_back_button: RefCell<Option<Button>>,
         pub state: glib::WeakRef<AppState>,
         pub playlist_details: RefCell<Option<PlaylistDetails>>,
+        pub playlist_id: RefCell<Option<String>>,
     }
 
     #[glib::object_subclass]
@@ -92,6 +95,10 @@ mod imp {
                 None,
                 move |playlist, _action, _target| {
                     let edit_playlist_dialog = EditPlaylistDialog::default();
+                    let self_ = imp::Playlist::from_obj(playlist);
+                    let state = self_.state.upgrade().unwrap();
+                    state.set_selected_playlist(self_.playlist_id.borrow());
+                    edit_playlist_dialog.imp().state.set(Some(&state));
                     edit_playlist_dialog.present(Some(playlist));
                 },
             );
@@ -101,6 +108,10 @@ mod imp {
                 None,
                 move |playlist, _action, _target| {
                     let delete_playlist_dialog = DeletePlaylistDialog::default();
+                    let self_ = imp::Playlist::from_obj(playlist);
+                    let state = self_.state.upgrade().unwrap();
+                    state.set_selected_playlist(self_.playlist_id.borrow());
+                    delete_playlist_dialog.imp().state.set(Some(&state));
                     delete_playlist_dialog.present(Some(playlist));
                 },
             );
@@ -127,6 +138,12 @@ mod imp {
                     let go_back_button = self_.go_back_button.borrow();
                     if let Some(go_back_button) = go_back_button.as_ref() {
                         go_back_button.set_visible(true);
+                    }
+                    let playlist_details = self_.playlist_details.borrow();
+                    if let Some(playlist_details) = playlist_details.as_ref() {
+                        let playlist_id = self_.playlist_id.borrow();
+                        let playlist_id = playlist_id.as_ref().unwrap();
+                        playlist_details.load_tracks(*playlist_id);
                     }
                 }
             });

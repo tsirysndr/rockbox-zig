@@ -1,15 +1,22 @@
+use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
+use crate::api::rockbox::v1alpha1::RemovePlaylistRequest;
+use crate::state::AppState;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
+use anyhow::Error;
 use glib::subclass;
 use gtk::{glib, CompositeTemplate};
 use std::env;
+use std::thread;
 
 mod imp {
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
     #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/delete_playlist.ui")]
-    pub struct DeletePlaylistDialog {}
+    pub struct DeletePlaylistDialog {
+        pub state: glib::WeakRef<AppState>,
+    }
 
     #[glib::object_subclass]
     impl ObjectSubclass for DeletePlaylistDialog {
@@ -24,6 +31,7 @@ mod imp {
                 "app.delete_playlist_dialog.delete",
                 None,
                 move |dialog, _action, _target| {
+                    dialog.delete_playlist();
                     dialog.close();
                 },
             );
@@ -53,6 +61,23 @@ glib::wrapper! {
 impl Default for DeletePlaylistDialog {
     fn default() -> Self {
         glib::Object::new()
+    }
+}
+
+#[gtk::template_callbacks]
+impl DeletePlaylistDialog {
+    fn delete_playlist(&self) {
+        let state = self.imp().state.upgrade().unwrap();
+        let id = state.selected_playlist().unwrap();
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let result = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client.remove_playlist(RemovePlaylistRequest { id }).await?;
+                Ok::<_, Error>(())
+            });
+        });
     }
 }
 

@@ -1,16 +1,27 @@
+use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
+use crate::api::rockbox::v1alpha1::CreatePlaylistRequest;
+use crate::state::AppState;
+use adw::prelude::*;
 use adw::subclass::prelude::*;
+use anyhow::Error;
 use glib::subclass;
 use gtk::{glib, CompositeTemplate};
+use std::cell::RefCell;
 use std::env;
-use adw::prelude::*;
+use std::thread;
 
 mod imp {
-
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
     #[template(resource = "/io/github/tsirysndr/Rockbox/gtk/new_playlist.ui")]
-    pub struct NewPlaylistDialog {}
+    pub struct NewPlaylistDialog {
+        #[template_child]
+        pub name: TemplateChild<adw::EntryRow>,
+
+        pub state: glib::WeakRef<AppState>,
+        pub song_path: RefCell<Option<String>>,
+    }
 
     #[glib::object_subclass]
     impl ObjectSubclass for NewPlaylistDialog {
@@ -25,7 +36,9 @@ mod imp {
                 "app.new_playlist_dialog.create",
                 None,
                 move |dialog, _action, _target| {
-                    dialog.close();
+                    if dialog.create_playlist().is_ok() {
+                        dialog.close();
+                    }
                 },
             );
         }
@@ -54,6 +67,45 @@ glib::wrapper! {
 impl Default for NewPlaylistDialog {
     fn default() -> Self {
         glib::Object::new()
+    }
+}
+
+#[gtk::template_callbacks]
+impl NewPlaylistDialog {
+    fn create_playlist(&self) -> Result<(), Error> {
+        let song_path = self.imp().song_path.borrow();
+        let song_path = song_path.as_ref();
+        let state = self.imp().state.upgrade().unwrap();
+        let folder_id = state.selected_playlist_folder();
+        let name = self.imp().name.text().to_string();
+
+        if name.is_empty() {
+            return Err(anyhow::anyhow!("Name cannot be empty"));
+        }
+
+        let name = Some(name);
+        let tracks = match song_path {
+            Some(song_path) => vec![song_path.clone()],
+            None => vec![],
+        };
+
+        thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            let url = build_url();
+            let result = rt.block_on(async {
+                let mut client = PlaylistServiceClient::connect(url).await?;
+                client
+                    .create_playlist(CreatePlaylistRequest {
+                        name,
+                        tracks,
+                        folder_id,
+                    })
+                    .await?;
+
+                Ok::<_, Error>(())
+            });
+        });
+        Ok(())
     }
 }
 

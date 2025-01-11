@@ -135,6 +135,8 @@ mod imp {
         #[template_child]
         pub playlist_details_page: TemplateChild<ViewStackPage>,
         #[template_child]
+        pub playlist_details_scrolled_window: TemplateChild<ScrolledWindow>,
+        #[template_child]
         pub playlist_details: TemplateChild<PlaylistDetails>,
         #[template_child]
         pub playlists_page: TemplateChild<ViewStackPage>,
@@ -243,6 +245,9 @@ mod imp {
                 None,
                 move |win, _action, _parameter| {
                     let new_playlist_dialog = NewPlaylistDialog::default();
+                    let self_ = imp::RbApplicationWindow::from_obj(win);
+                    let state = self_.state.upgrade().unwrap();
+                    new_playlist_dialog.imp().state.set(Some(&state));
                     new_playlist_dialog.present(Some(win));
                 },
             );
@@ -252,6 +257,9 @@ mod imp {
                 None,
                 move |win, _action, _parameter| {
                     let new_playlist_folder_dialog = NewPlaylistFolderDialog::default();
+                    let self_ = imp::RbApplicationWindow::from_obj(win);
+                    let state = self_.state.upgrade().unwrap();
+                    new_playlist_folder_dialog.imp().state.set(Some(&state));
                     new_playlist_folder_dialog.present(Some(win));
                 },
             );
@@ -415,6 +423,40 @@ mod imp {
                             .likes
                             .imp()
                             .create_songs_widgets(Some(next_likes), None);
+                    }
+                });
+
+            let weak_self = self.downgrade();
+            self.playlist_details_scrolled_window
+                .connect_edge_reached(move |_, pos| {
+                    if pos == gtk::PositionType::Bottom {
+                        let self_ = match weak_self.upgrade() {
+                            Some(self_) => self_,
+                            None => return,
+                        };
+                        let size = self_.playlist_details.imp().size.get();
+                        let all_songs = self_.playlist_details.imp().all_tracks.borrow();
+                        let next_range_end = (size + 3).min(all_songs.len());
+
+                        if size >= all_songs.len() {
+                            return;
+                        }
+
+                        let next_songs = all_songs[size..next_range_end].to_vec();
+
+                        if next_songs.is_empty() {
+                            return;
+                        }
+
+                        self_
+                            .playlist_details
+                            .imp()
+                            .size
+                            .set(size + next_songs.len());
+                        self_
+                            .playlist_details
+                            .imp()
+                            .create_songs_widgets(Some(next_songs), None);
                     }
                 });
 

@@ -419,7 +419,7 @@ template $RbApplicationWindow : Adw.ApplicationWindow {
                   Adw.ViewStackPage playlist_details_page {
                     name: "playlist-details-page";
                     title: _("Playlist");
-                    child: ScrolledWindow  {
+                    child: ScrolledWindow  playlist_details_scrolled_window {
                       $PlaylistDetails playlist_details {}
                     };
                   }

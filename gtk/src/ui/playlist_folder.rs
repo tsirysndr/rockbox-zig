@@ -19,6 +19,8 @@ use std::cell::RefCell;
 use std::env;
 
 mod imp {
+    use std::borrow::Borrow;
+
     use super::*;
 
     #[derive(Debug, Default, CompositeTemplate)]
@@ -55,6 +57,10 @@ mod imp {
                 None,
                 move |folder, _action, _target| {
                     let edit_playlist_folder_dialog = EditPlaylistFolderDialog::default();
+                    let self_ = imp::PlaylistFolder::from_obj(folder);
+                    let state = self_.state.upgrade().unwrap();
+                    state.set_selected_playlist_folder(self_.folder_id.borrow());
+                    edit_playlist_folder_dialog.imp().state.set(Some(&state));
                     edit_playlist_folder_dialog.present(Some(folder));
                 },
             );
@@ -64,6 +70,10 @@ mod imp {
                 None,
                 move |folder, _action, _target| {
                     let delete_playlist_folder_dialog = DeletePlaylistFolderDialog::default();
+                    let self_ = imp::PlaylistFolder::from_obj(folder);
+                    let state = self_.state.upgrade().unwrap();
+                    state.set_selected_playlist_folder(self_.folder_id.borrow());
+                    delete_playlist_folder_dialog.imp().state.set(Some(&state));
                     delete_playlist_folder_dialog.present(Some(folder));
                 },
             );
@@ -73,6 +83,10 @@ mod imp {
                 None,
                 move |folder, _action, _target| {
                     let new_playlist_dialog = NewPlaylistDialog::default();
+                    let self_ = imp::PlaylistFolder::from_obj(folder);
+                    let state = self_.state.upgrade().unwrap();
+                    state.set_selected_playlist_folder(self_.folder_id.borrow());
+                    new_playlist_dialog.imp().state.set(Some(&state));
                     new_playlist_dialog.present(Some(folder));
                 },
             );
@@ -100,7 +114,9 @@ mod imp {
                     state.set_current_playlist_folder(folder_id.clone().as_str());
                     state.set_parent_playlist_folder(parent_id.clone());
 
-                    obj.load_playlists(Some(folder_id));
+                    obj.load_playlists(Some(folder_id.clone()));
+                    state.set_selected_playlist_folder(Some(folder_id));
+
                     let go_back_button = self_.go_back_button.borrow();
                     if let Some(go_back_button) = go_back_button.as_ref() {
                         go_back_button.set_visible(true);

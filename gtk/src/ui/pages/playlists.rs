@@ -154,6 +154,7 @@ impl Playlists {
                     .imp()
                     .playlist_details
                     .replace(self.imp().playlist_details.borrow().clone());
+                playlist.imp().playlist_id.replace(Some(entry.id.clone()));
                 self.imp().playlists.append(&playlist);
             }
         }

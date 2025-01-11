@@ -29,6 +29,8 @@ mod imp {
         pub artists: RefCell<Vec<RockboxArtist>>,
         pub current_playlist_folder: RefCell<Option<String>>,
         pub parent_playlist_folder: RefCell<Option<String>>,
+        pub selected_playlist: RefCell<Option<String>>,
+        pub selected_playlist_folder: RefCell<Option<String>>,
     }
 
     #[glib::object_subclass]
@@ -65,6 +67,8 @@ impl AppState {
         obj.imp().tracks.replace(Vec::new());
         obj.imp().current_playlist_folder.replace(None);
         obj.imp().parent_playlist_folder.replace(None);
+        obj.imp().selected_playlist.replace(None);
+        obj.imp().selected_playlist_folder.replace(None);
         obj
     }
 
@@ -124,6 +128,16 @@ impl AppState {
         self_.parent_playlist_folder.borrow().clone()
     }
 
+    pub fn selected_playlist_folder(&self) -> Option<String> {
+        let self_ = imp::AppState::from_obj(self);
+        self_.selected_playlist_folder.borrow().clone()
+    }
+
+    pub fn selected_playlist(&self) -> Option<String> {
+        let self_ = imp::AppState::from_obj(self);
+        self_.selected_playlist.borrow().clone()
+    }
+
     pub fn music_directory(&self) -> Option<String> {
         let self_ = imp::AppState::from_obj(self);
         self_.music_directory.borrow().clone()
@@ -142,6 +156,16 @@ impl AppState {
     pub fn set_parent_playlist_folder(&self, folder_id: Option<String>) {
         let self_ = imp::AppState::from_obj(self);
         *self_.parent_playlist_folder.borrow_mut() = folder_id;
+    }
+
+    pub fn set_selected_playlist(&self, playlist_id: Option<String>) {
+        let self_ = imp::AppState::from_obj(self);
+        *self_.selected_playlist.borrow_mut() = playlist_id;
+    }
+
+    pub fn set_selected_playlist_folder(&self, folder_id: Option<String>) {
+        let self_ = imp::AppState::from_obj(self);
+        *self_.selected_playlist_folder.borrow_mut() = folder_id;
     }
 
     pub fn set_music_directory(&self, path: &str) {
