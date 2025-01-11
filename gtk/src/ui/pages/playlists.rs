@@ -146,6 +146,7 @@ impl Playlists {
         });
 
         if let Ok(response) = response {
+            let main_stack = self.imp().main_stack.borrow();
             for entry in response.playlists {
                 let playlist = Playlist::new();
                 playlist.imp().playlist_name.set_text(&entry.name);
@@ -155,6 +156,7 @@ impl Playlists {
                     .playlist_details
                     .replace(self.imp().playlist_details.borrow().clone());
                 playlist.imp().playlist_id.replace(Some(entry.id.clone()));
+                playlist.imp().main_stack.replace(main_stack.clone());
                 self.imp().playlists.append(&playlist);
             }
         }
