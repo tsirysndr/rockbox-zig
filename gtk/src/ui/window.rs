@@ -1138,7 +1138,7 @@ impl RbApplicationWindow {
             .playlist_details
             .replace(Some(window.imp().playlist_details.get().clone()));
         playlists.imp().main_stack.replace(Some(main_stack.clone()));
-        artists
+        playlists
             .imp()
             .library_page
             .replace(Some(library_page.clone()));
