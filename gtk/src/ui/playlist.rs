@@ -97,7 +97,8 @@ mod imp {
                     let edit_playlist_dialog = EditPlaylistDialog::default();
                     let self_ = imp::Playlist::from_obj(playlist);
                     let state = self_.state.upgrade().unwrap();
-                    state.set_selected_playlist(self_.playlist_id.borrow());
+                    let playlist_id = self_.playlist_id.borrow();
+                    state.set_selected_playlist(playlist_id.clone());
                     edit_playlist_dialog.imp().state.set(Some(&state));
                     edit_playlist_dialog.present(Some(playlist));
                 },
@@ -110,7 +111,8 @@ mod imp {
                     let delete_playlist_dialog = DeletePlaylistDialog::default();
                     let self_ = imp::Playlist::from_obj(playlist);
                     let state = self_.state.upgrade().unwrap();
-                    state.set_selected_playlist(self_.playlist_id.borrow());
+                    let playlist_id = self_.playlist_id.borrow();
+                    state.set_selected_playlist(playlist_id.clone());
                     delete_playlist_dialog.imp().state.set(Some(&state));
                     delete_playlist_dialog.present(Some(playlist));
                 },
@@ -143,7 +145,7 @@ mod imp {
                     if let Some(playlist_details) = playlist_details.as_ref() {
                         let playlist_id = self_.playlist_id.borrow();
                         let playlist_id = playlist_id.as_ref().unwrap();
-                        playlist_details.load_tracks(*playlist_id);
+                        playlist_details.load_tracks(playlist_id.clone());
                     }
                 }
             });

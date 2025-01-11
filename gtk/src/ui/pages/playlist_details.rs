@@ -26,7 +26,6 @@ mod imp {
 
         pub main_stack: RefCell<Option<adw::ViewStack>>,
         pub go_back_button: RefCell<Option<Button>>,
-        pub state: glib::WeakRef<AppState>,
         pub all_tracks: RefCell<Vec<Track>>,
         pub size: Cell<usize>,
         pub state: glib::WeakRef<AppState>,
@@ -153,14 +152,38 @@ impl PlaylistDetails {
 
         if let Ok(response) = response_ {
             let state = self.imp().state.upgrade().unwrap();
-            state.set_tracks(response.tracks.clone());
+            state.set_tracks(
+                response
+                    .tracks
+                    .into_iter()
+                    .map(|track| Track {
+                        id: track.id.clone(),
+                        path: track.path.clone(),
+                        title: track.title.clone(),
+                        artist: track.artist.clone(),
+                        album: track.album.clone(),
+                        album_art: track.album_art.clone(),
+                        album_artist: track.album_artist.clone(),
+                        bitrate: track.bitrate.clone(),
+                        composer: track.composer.clone(),
+                        filesize: track.filesize.clone() as u32,
+                        disc_number: track.discnum.clone() as u32,
+                        frequency: track.frequency.clone() as u32,
+                        length: track.length.clone() as u32,
+                        artist_id: Some(track.artist_id.clone()),
+                        album_id: Some(track.album_id.clone()),
+                        ..Default::default()
+                    })
+                    .collect(),
+            );
 
             let tracks = self.imp().tracks.clone();
             while let Some(row) = tracks.first_child() {
                 tracks.remove(&row);
             }
 
-            self.imp().all_tracks.replace(response.tracks.clone());
+            let tracks = state.tracks();
+            self.imp().all_tracks.replace(tracks.clone());
             self.imp().create_songs_widgets(None, Some(20));
         }
     }

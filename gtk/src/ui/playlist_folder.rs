@@ -59,7 +59,9 @@ mod imp {
                     let edit_playlist_folder_dialog = EditPlaylistFolderDialog::default();
                     let self_ = imp::PlaylistFolder::from_obj(folder);
                     let state = self_.state.upgrade().unwrap();
-                    state.set_selected_playlist_folder(self_.folder_id.borrow());
+                    let folder_id = self_.folder_id.borrow();
+                    let folder_id = folder_id.clone();
+                    state.set_selected_playlist_folder(Some(folder_id));
                     edit_playlist_folder_dialog.imp().state.set(Some(&state));
                     edit_playlist_folder_dialog.present(Some(folder));
                 },
@@ -72,7 +74,9 @@ mod imp {
                     let delete_playlist_folder_dialog = DeletePlaylistFolderDialog::default();
                     let self_ = imp::PlaylistFolder::from_obj(folder);
                     let state = self_.state.upgrade().unwrap();
-                    state.set_selected_playlist_folder(self_.folder_id.borrow());
+                    let folder_id = self_.folder_id.borrow();
+                    let folder_id = folder_id.clone();
+                    state.set_selected_playlist_folder(Some(folder_id));
                     delete_playlist_folder_dialog.imp().state.set(Some(&state));
                     delete_playlist_folder_dialog.present(Some(folder));
                 },
@@ -85,7 +89,9 @@ mod imp {
                     let new_playlist_dialog = NewPlaylistDialog::default();
                     let self_ = imp::PlaylistFolder::from_obj(folder);
                     let state = self_.state.upgrade().unwrap();
-                    state.set_selected_playlist_folder(self_.folder_id.borrow());
+                    let folder_id = self_.folder_id.borrow();
+                    let folder_id = folder_id.clone();
+                    state.set_selected_playlist_folder(Some(folder_id));
                     new_playlist_dialog.imp().state.set(Some(&state));
                     new_playlist_dialog.present(Some(folder));
                 },

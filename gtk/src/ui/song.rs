@@ -98,8 +98,8 @@ mod imp {
                     let self_ = imp::Song::from_obj(song);
                     let state = self_.state.upgrade().unwrap();
                     new_playlist_dialog.imp().state.set(Some(&state));
-                    let track = self_.track.borrow().as_ref();
-                    let track = track.unwrap();
+                    let track = self_.track.borrow();
+                    let track = track.as_ref().unwrap();
                     new_playlist_dialog
                         .imp()
                         .song_path
