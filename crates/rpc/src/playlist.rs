@@ -238,6 +238,7 @@ impl PlaylistService for Playlist {
         let body = serde_json::json!({
             "name": request.name,
             "tracks": request.tracks,
+            "folder_id": request.folder_id,
         });
 
         let url = format!("{}/playlists", rockbox_url());

@@ -35,15 +35,11 @@ message GetDisplayIndexResponse {}
 
 message AmountRequest {}
 
-message AmountResponse {
-  int32 amount = 1;
-}
+message AmountResponse { int32 amount = 1; }
 
 message PlaylistResumeRequest {}
 
-message PlaylistResumeResponse {
-  int32 code = 1;
-}
+message PlaylistResumeResponse { int32 code = 1; }
 
 message ResumeTrackRequest {
   int32 start_index = 1;
@@ -74,20 +70,17 @@ message RemoveAllTracksRequest {}
 
 message RemoveAllTracksResponse {}
 
-message RemoveTracksRequest {
-  repeated int32 positions = 1;
-}
+message RemoveTracksRequest { repeated int32 positions = 1; }
 
 message RemoveTracksResponse {}
 
 message CreatePlaylistRequest {
   string name = 1;
   repeated string tracks = 2;
+  optional string folder_id = 3;
 }
 
-message CreatePlaylistResponse {
-  int32 start_index = 1;
-}
+message CreatePlaylistResponse { int32 start_index = 1; }
 
 message InsertTracksRequest {
   optional string playlist_id = 1;
@@ -133,9 +126,7 @@ message InsertArtistTracksRequest {
 
 message InsertArtistTracksResponse {}
 
-message ShufflePlaylistRequest {
-  int32 start_index = 1;
-}
+message ShufflePlaylistRequest { int32 start_index = 1; }
 
 message ShufflePlaylistResponse {}
 
@@ -144,20 +135,25 @@ service PlaylistService {
   rpc GetResumeInfo(GetResumeInfoRequest) returns (GetResumeInfoResponse) {}
   rpc GetTrackInfo(GetTrackInfoRequest) returns (GetTrackInfoResponse) {}
   rpc GetFirstIndex(GetFirstIndexRequest) returns (GetFirstIndexResponse) {}
-  rpc GetDisplayIndex(GetDisplayIndexRequest) returns (GetDisplayIndexResponse) {}
+  rpc GetDisplayIndex(GetDisplayIndexRequest)
+      returns (GetDisplayIndexResponse) {}
   rpc Amount(AmountRequest) returns (AmountResponse) {}
   rpc PlaylistResume(PlaylistResumeRequest) returns (PlaylistResumeResponse) {}
   rpc ResumeTrack(ResumeTrackRequest) returns (ResumeTrackResponse) {}
   rpc SetModified(SetModifiedRequest) returns (SetModifiedResponse) {}
   rpc Start(StartRequest) returns (StartResponse) {}
   rpc Sync(SyncRequest) returns (SyncResponse) {}
-  rpc RemoveAllTracks(RemoveAllTracksRequest) returns (RemoveAllTracksResponse) {}
+  rpc RemoveAllTracks(RemoveAllTracksRequest)
+      returns (RemoveAllTracksResponse) {}
   rpc RemoveTracks(RemoveTracksRequest) returns (RemoveTracksResponse) {}
   rpc CreatePlaylist(CreatePlaylistRequest) returns (CreatePlaylistResponse) {}
   rpc InsertTracks(InsertTracksRequest) returns (InsertTracksResponse) {}
-  rpc InsertDirectory(InsertDirectoryRequest) returns (InsertDirectoryResponse) {}
+  rpc InsertDirectory(InsertDirectoryRequest)
+      returns (InsertDirectoryResponse) {}
   rpc InsertPlaylist(InsertPlaylistRequest) returns (InsertPlaylistResponse) {}
   rpc InsertAlbum(InsertAlbumRequest) returns (InsertAlbumResponse) {}
-  rpc InsertArtistTracks(InsertArtistTracksRequest) returns (InsertArtistTracksResponse) {}
-  rpc ShufflePlaylist(ShufflePlaylistRequest) returns (ShufflePlaylistResponse) {}
+  rpc InsertArtistTracks(InsertArtistTracksRequest)
+      returns (InsertArtistTracksResponse) {}
+  rpc ShufflePlaylist(ShufflePlaylistRequest)
+      returns (ShufflePlaylistResponse) {}
 }
