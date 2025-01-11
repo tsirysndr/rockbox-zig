@@ -130,7 +130,7 @@ mod imp {
                     if let Some(go_back_button) = go_back_button.as_ref() {
                         go_back_button.set_visible(true);
                     }
-                    let folder_name = self.folder_name.text();
+                    let folder_name = self_.folder_name.text();
                     library_page.set_title(folder_name.as_str());
                 }
             });

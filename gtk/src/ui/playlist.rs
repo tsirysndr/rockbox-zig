@@ -150,7 +150,7 @@ mod imp {
                         let playlist_id = playlist_id.as_ref().unwrap();
                         playlist_details.load_tracks(playlist_id.clone());
                     }
-                    let playlist_name = self.playlist_name.text();
+                    let playlist_name = self_.playlist_name.text();
                     library_page.set_title(playlist_name.as_str());
                 }
             });
