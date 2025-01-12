@@ -394,6 +394,33 @@ impl PlaylistService for Playlist {
         request: tonic::Request<GetPlaylistRequest>,
     ) -> Result<tonic::Response<GetPlaylistResponse>, tonic::Status> {
         let request = request.into_inner();
+
+        if request.playlist_id.as_str() != "current" {
+            let tracks =
+                repo::playlist_tracks::find_by_playlist(self.pool.clone(), &request.playlist_id)
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            let playlist = repo::playlist::find(self.pool.clone(), &request.playlist_id)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+            if let Some(playlist) = playlist {
+                return Ok(tonic::Response::new(GetPlaylistResponse {
+                    id: playlist.id,
+                    amount: tracks.len() as i32,
+                    name: playlist.name,
+                    folder_id: playlist.folder_id,
+                    created_at: playlist.created_at.to_rfc3339(),
+                    updated_at: playlist.updated_at.to_rfc3339(),
+                    tracks: tracks
+                        .into_iter()
+                        .map(|track| CurrentTrackResponse::from(track))
+                        .collect(),
+                    ..Default::default()
+                }));
+            }
+        }
+
         let url = format!("{}/playlists/{}", rockbox_url(), request.playlist_id);
         let client = reqwest::Client::new();
         let response = client

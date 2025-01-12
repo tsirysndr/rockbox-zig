@@ -23,6 +23,7 @@ pub mod api {
     #[path = ""]
     pub mod rockbox {
         use rockbox_graphql::schema;
+        use rockbox_library::entity;
         use rockbox_sys::types::{
             mp3_entry::Mp3Entry,
             system_status::SystemStatus,
@@ -45,6 +46,39 @@ pub mod api {
         pub mod v1alpha1;
 
         pub(crate) const FILE_DESCRIPTOR_SET: &[u8] = include_bytes!("api/rockbox_descriptor.bin");
+
+        impl From<entity::track::Track> for CurrentTrackResponse {
+            fn from(track: entity::track::Track) -> Self {
+                let id = track.id;
+                let title = track.title;
+                let artist = track.artist;
+                let album = track.album;
+                let genre = track.genre.unwrap_or_default();
+                let path = track.path;
+                let album_art = track.album_art;
+                let album_id = track.album_id;
+                let artist_id = track.artist_id;
+                let length = track.length as u64;
+                let filesize = track.filesize as u64;
+                let bitrate = track.bitrate;
+                let frequency = track.frequency as u64;
+
+                CurrentTrackResponse {
+                    id,
+                    title,
+                    artist,
+                    album,
+                    genre,
+                    path,
+                    album_art,
+                    length,
+                    filesize,
+                    bitrate,
+                    frequency,
+                    ..Default::default()
+                }
+            }
+        }
 
         impl From<Mp3Entry> for CurrentTrackResponse {
             fn from(mp3entry: Mp3Entry) -> Self {
