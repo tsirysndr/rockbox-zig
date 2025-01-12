@@ -1,0 +1,17 @@
+using Gtk 4.0;
+
+menu my-menu {
+  submenu {
+    section {
+      label: "test section";
+    }
+
+    item {
+      label: C_("context", "test translated item");
+    }
+
+    item ("test item shorthand 1")
+    item ("test item shorthand 2", "app.test-action")
+    item ("test item shorthand 3", "app.test-action", "test-symbolic")
+  }
+}

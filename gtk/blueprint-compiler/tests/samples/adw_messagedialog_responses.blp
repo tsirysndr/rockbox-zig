@@ -1,0 +1,10 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.MessageDialog {
+  responses [
+    cancel: _("Cancel"),
+    discard: _("Discard") destructive,
+    save: "Save" suggested disabled,
+  ]
+}

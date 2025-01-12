@@ -1,6 +1,6 @@
 use std::sync::{mpsc::Sender, Arc, Mutex};
 
-use rockbox_library::repo;
+use rockbox_library::{entity::folder::Folder, repo};
 use rockbox_sys::{
     events::RockboxCommand,
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
@@ -197,12 +197,14 @@ impl PlaylistService for Playlist {
 
     async fn remove_all_tracks(
         &self,
-        _request: tonic::Request<RemoveAllTracksRequest>,
+        request: tonic::Request<RemoveAllTracksRequest>,
     ) -> Result<tonic::Response<RemoveAllTracksResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let playlist_id = request.playlist_id.unwrap_or("current".to_string());
         let body = serde_json::json!({
             "positions": [],
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
         self.client
             .delete(&url)
             .json(&body)
@@ -217,10 +219,11 @@ impl PlaylistService for Playlist {
         request: tonic::Request<RemoveTracksRequest>,
     ) -> Result<tonic::Response<RemoveTracksResponse>, tonic::Status> {
         let request = request.into_inner();
+        let playlist_id = request.playlist_id.unwrap_or("current".to_string());
         let body = serde_json::json!({
             "positions": request.positions,
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
         self.client
             .delete(&url)
             .json(&body)
@@ -235,11 +238,17 @@ impl PlaylistService for Playlist {
         request: tonic::Request<CreatePlaylistRequest>,
     ) -> Result<tonic::Response<CreatePlaylistResponse>, tonic::Status> {
         let request = request.into_inner();
-        let body = serde_json::json!({
-            "name": request.name,
-            "tracks": request.tracks,
-            "folder_id": request.folder_id,
-        });
+        let body = match request.name {
+            Some(name) => serde_json::json!({
+                "name": name,
+                "tracks": request.tracks,
+                "folder_id": request.folder_id,
+            }),
+            None => serde_json::json!({
+                "tracks": request.tracks,
+                "folder_id": request.folder_id,
+            }),
+        };
 
         let url = format!("{}/playlists", rockbox_url());
         let response = self
@@ -263,12 +272,14 @@ impl PlaylistService for Playlist {
         request: tonic::Request<InsertTracksRequest>,
     ) -> Result<tonic::Response<InsertTracksResponse>, tonic::Status> {
         let request = request.into_inner();
+        let playlist_id = request.playlist_id.unwrap_or("current".to_string());
         let body = serde_json::json!({
             "position": request.position,
             "tracks": request.tracks,
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
-        self.client
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
+        let client = reqwest::Client::new();
+        client
             .post(&url)
             .json(&body)
             .send()
@@ -282,12 +293,13 @@ impl PlaylistService for Playlist {
         request: tonic::Request<InsertDirectoryRequest>,
     ) -> Result<tonic::Response<InsertDirectoryResponse>, tonic::Status> {
         let request = request.into_inner();
+        let playlist_id = request.playlist_id.unwrap_or("current".to_string());
         let body = serde_json::json!({
             "position": request.position,
             "tracks": [],
             "directory": request.directory,
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
         self.client
             .post(&url)
             .json(&body)
@@ -337,7 +349,9 @@ impl PlaylistService for Playlist {
             "position": position,
             "tracks": tracks,
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let playlist_id = request.playlist_id.unwrap_or("current".to_string());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
+
         self.client
             .post(&url)
             .json(&body)
@@ -363,7 +377,8 @@ impl PlaylistService for Playlist {
             "position": position,
             "tracks": tracks,
         });
-        let url = format!("{}/playlists/current/tracks", rockbox_url());
+        let playlist_id = request.playlist_id.unwrap_or("current".to_string());
+        let url = format!("{}/playlists/{}/tracks", rockbox_url(), playlist_id);
         self.client
             .post(&url)
             .json(&body)
@@ -372,5 +387,255 @@ impl PlaylistService for Playlist {
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         Ok(tonic::Response::new(InsertArtistTracksResponse::default()))
+    }
+
+    async fn get_playlist(
+        &self,
+        request: tonic::Request<GetPlaylistRequest>,
+    ) -> Result<tonic::Response<GetPlaylistResponse>, tonic::Status> {
+        let request = request.into_inner();
+
+        if request.playlist_id.as_str() != "current" {
+            let tracks =
+                repo::playlist_tracks::find_by_playlist(self.pool.clone(), &request.playlist_id)
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            let playlist = repo::playlist::find(self.pool.clone(), &request.playlist_id)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+            if let Some(playlist) = playlist {
+                return Ok(tonic::Response::new(GetPlaylistResponse {
+                    id: playlist.id,
+                    amount: tracks.len() as i32,
+                    name: playlist.name,
+                    folder_id: playlist.folder_id,
+                    created_at: playlist.created_at.to_rfc3339(),
+                    updated_at: playlist.updated_at.to_rfc3339(),
+                    tracks: tracks
+                        .into_iter()
+                        .map(|track| CurrentTrackResponse::from(track))
+                        .collect(),
+                    ..Default::default()
+                }));
+            }
+        }
+
+        let url = format!("{}/playlists/{}", rockbox_url(), request.playlist_id);
+        let client = reqwest::Client::new();
+        let response = client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let playlist = response
+            .json::<PlaylistInfo>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks = playlist
+            .entries
+            .iter()
+            .map(|track| CurrentTrackResponse::from(track.clone()))
+            .collect::<Vec<CurrentTrackResponse>>();
+        Ok(tonic::Response::new(GetPlaylistResponse {
+            id: playlist.id.unwrap_or_default(),
+            amount: playlist.amount,
+            name: playlist.name.unwrap_or_default(),
+            folder_id: playlist.folder_id,
+            created_at: playlist.created_at.unwrap_or_default(),
+            updated_at: playlist.updated_at.unwrap_or_default(),
+            tracks,
+            ..Default::default()
+        }))
+    }
+    async fn get_playlists(
+        &self,
+        request: tonic::Request<GetPlaylistsRequest>,
+    ) -> Result<tonic::Response<GetPlaylistsResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let playlists = repo::playlist::find_by_folder(self.pool.clone(), request.folder_id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let playlists = playlists
+            .into_iter()
+            .map(|playlist| GetPlaylistResponse {
+                id: playlist.id,
+                name: playlist.name,
+                folder_id: playlist.folder_id,
+                image: playlist.image,
+                description: playlist.description,
+                created_at: playlist.created_at.to_rfc3339(),
+                updated_at: playlist.updated_at.to_rfc3339(),
+                ..Default::default()
+            })
+            .collect::<Vec<GetPlaylistResponse>>();
+        Ok(tonic::Response::new(GetPlaylistsResponse { playlists }))
+    }
+
+    async fn create_folder(
+        &self,
+        request: tonic::Request<CreateFolderRequest>,
+    ) -> Result<tonic::Response<CreateFolderResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!("{}/folders", rockbox_url());
+        let body = match request.parent_id {
+            Some(parent_id) => serde_json::json!({
+            "name": request.name,
+            "parent_id": parent_id,
+            }),
+            None => serde_json::json!({
+                "name": request.name,
+            }),
+        };
+        let client = reqwest::Client::new();
+        let response = client
+            .post(&url)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let response = response
+            .json::<Folder>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let folder_id = response.id;
+
+        Ok(tonic::Response::new(CreateFolderResponse { folder_id }))
+    }
+
+    async fn get_folder(
+        &self,
+        request: tonic::Request<GetFolderRequest>,
+    ) -> Result<tonic::Response<GetFolderResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!("{}/folders/{}", rockbox_url(), request.id);
+        let client = reqwest::Client::new();
+        let response = client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let folder = response
+            .json::<Folder>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(GetFolderResponse {
+            id: folder.id,
+            name: folder.name,
+            parent_id: folder.parent_id,
+        }))
+    }
+
+    async fn get_folders(
+        &self,
+        request: tonic::Request<GetFoldersRequest>,
+    ) -> Result<tonic::Response<GetFoldersResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let folders = repo::folder::find_by_parent(self.pool.clone(), request.parent_id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let folders = folders
+            .into_iter()
+            .map(|folder| GetFolderResponse {
+                id: folder.id,
+                name: folder.name,
+                parent_id: folder.parent_id,
+            })
+            .collect::<Vec<GetFolderResponse>>();
+        Ok(tonic::Response::new(GetFoldersResponse { folders }))
+    }
+
+    async fn remove_folder(
+        &self,
+        request: tonic::Request<RemoveFolderRequest>,
+    ) -> Result<tonic::Response<RemoveFolderResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!("{}/folders/{}", rockbox_url(), request.id);
+        let client = reqwest::Client::new();
+        client
+            .delete(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(RemoveFolderResponse::default()))
+    }
+
+    async fn remove_playlist(
+        &self,
+        request: tonic::Request<RemovePlaylistRequest>,
+    ) -> Result<tonic::Response<RemovePlaylistResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!("{}/playlists/{}", rockbox_url(), request.id);
+        let client = reqwest::Client::new();
+        client
+            .delete(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(RemovePlaylistResponse::default()))
+    }
+
+    async fn rename_playlist(
+        &self,
+        request: tonic::Request<RenamePlaylistRequest>,
+    ) -> Result<tonic::Response<RenamePlaylistResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!("{}/playlists/{}", rockbox_url(), request.id);
+        let client = reqwest::Client::new();
+        client
+            .put(&url)
+            .json(&serde_json::json!({"name": request.name}))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(RenamePlaylistResponse::default()))
+    }
+
+    async fn rename_folder(
+        &self,
+        request: tonic::Request<RenameFolderRequest>,
+    ) -> Result<tonic::Response<RenameFolderResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!("{}/folders/{}", rockbox_url(), request.id);
+        let client = reqwest::Client::new();
+        client
+            .put(&url)
+            .json(&serde_json::json!({"name": request.name}))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(RenameFolderResponse::default()))
+    }
+
+    async fn move_playlist(
+        &self,
+        request: tonic::Request<MovePlaylistRequest>,
+    ) -> Result<tonic::Response<MovePlaylistResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!("{}/playlists/{}", rockbox_url(), request.playlist_id);
+        let client = reqwest::Client::new();
+        client
+            .put(&url)
+            .json(&serde_json::json!({"folder_id": request.folder_id}))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(MovePlaylistResponse::default()))
+    }
+
+    async fn move_folder(
+        &self,
+        request: tonic::Request<MoveFolderRequest>,
+    ) -> Result<tonic::Response<MoveFolderResponse>, tonic::Status> {
+        let request = request.into_inner();
+        let url = format!("{}/folders/{}", rockbox_url(), request.folder_id);
+        let client = reqwest::Client::new();
+        client
+            .put(&url)
+            .json(&serde_json::json!({"parent_id": request.parent_id}))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(MoveFolderResponse::default()))
     }
 }

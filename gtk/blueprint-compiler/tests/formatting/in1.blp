@@ -1,0 +1,1 @@
+using Gtk 4.0;using Adw 1;Overlay{Label label{label:_("'Hello World!' \"\n\t\"");}[overlay]Button{notify::icon-name=>$on_icon_name_changed(label)swapped;styles["destructive"]}visible:bind $isVisible(label.visible,my-menu)as<bool>;width-request:bind label.width-request no-sync-create;}menu my-menu{item(_("Label"), "action-name", "icon-name")item{action:"win.format";}}

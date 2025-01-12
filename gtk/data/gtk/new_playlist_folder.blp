@@ -1,0 +1,30 @@
+
+using Gtk 4.0;
+using Adw 1;
+
+template $NewPlaylistFolderDialog: Adw.Dialog {
+  title: _("New Folder");
+  width-request: 400;
+  
+  Adw.ToolbarView {
+    
+    [top]
+    Adw.HeaderBar {
+      Button {
+        label: _("Save");
+        action-name: "app.new_playlist_folder_dialog.create";
+      }
+    }
+    
+    Adw.PreferencesPage {
+      Adw.PreferencesGroup {
+        hexpand: true;
+
+        Adw.EntryRow name {
+          title: _("Title");
+        }
+      }
+    }
+
+  }
+}

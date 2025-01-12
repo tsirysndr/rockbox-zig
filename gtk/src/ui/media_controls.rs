@@ -15,6 +15,7 @@ use crate::api::rockbox::v1alpha1::{
 use crate::state::AppState;
 use crate::time::format_milliseconds;
 use crate::types::track::Track;
+use crate::ui::new_playlist::NewPlaylistDialog;
 use crate::ui::pages::album_details::AlbumDetails;
 use crate::ui::pages::artist_details::ArtistDetails;
 use crate::ui::pages::current_playlist::CurrentPlaylist;
@@ -28,9 +29,8 @@ use gtk::{Button, CompositeTemplate, Image, Label, MenuButton, Scale, SearchBar}
 use std::cell::{Cell, RefCell};
 use tokio::sync::mpsc;
 
-use super::pages::current_playlist;
-
 mod imp {
+    use crate::ui::show_all_playlists::ShowAllPlaylistsDialog;
 
     use super::*;
 
@@ -166,6 +166,24 @@ mod imp {
                     media_controls.go_to_album();
                 },
             );
+
+            klass.install_action(
+                "app.add-to-new-playlist",
+                None,
+                move |media_controls, _action, _target| {
+                    let new_playlist_dialog = NewPlaylistDialog::default();
+                    new_playlist_dialog.present(Some(media_controls));
+                },
+            );
+
+            klass.install_action(
+                "app.show-all-playlists",
+                None,
+                move |media_controls, _action, _target| {
+                    let show_all_playlists_dialog = ShowAllPlaylistsDialog::default();
+                    show_all_playlists_dialog.present(Some(media_controls));
+                },
+            );
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
@@ -239,6 +257,7 @@ mod imp {
                     library_page_ref.set_title("Album");
                     go_back_button_ref.set_visible(true);
                     album_details_ref.imp().hide_top_buttons(true);
+                    album_details_ref.imp().hide_playlist_buttons(true);
                     state.push_navigation("Album", "album-details-page");
                     album_details_ref.imp().load_album(album_id);
                 }
@@ -863,9 +882,15 @@ impl MediaControls {
                 let current_playlist = self.imp().current_playlist.borrow();
                 let current_playlist_ref = current_playlist.as_ref().unwrap();
 
-                if state.current_page().1 == "likes-page" || state.current_page().1 == "songs-page"
+                if state.current_page().1 == "likes-page"
+                    || state.current_page().1 == "songs-page"
+                    || state.current_page().1 == "playlist-details-page"
                 {
                     current_playlist_ref.hide_top_buttons(false);
+                }
+
+                if state.current_page().1 == "playlists-page" {
+                    current_playlist_ref.hide_playlist_buttons(false);
                 }
 
                 if state.current_page().1 == "files-page"
@@ -874,6 +899,13 @@ impl MediaControls {
                 {
                     go_back_button_ref.set_visible(true);
                 }
+
+                if state.current_page().1 == "playlists-page"
+                    && state.parent_playlist_folder().is_some()
+                {
+                    go_back_button_ref.set_visible(true);
+                }
+
                 current_playlist_ref.load_current_track();
                 current_playlist_ref.load_current_playlist();
                 current_playlist_ref.imp().size.set(10);
@@ -894,6 +926,7 @@ impl MediaControls {
                 let current_playlist = self.imp().current_playlist.borrow();
                 let current_playlist_ref = current_playlist.as_ref().unwrap();
                 current_playlist_ref.hide_top_buttons(true);
+                current_playlist_ref.hide_playlist_buttons(true);
                 current_playlist_ref.load_current_track();
                 current_playlist_ref.load_current_playlist();
                 self.imp().playlist_displayed.set(true);
@@ -930,6 +963,7 @@ impl MediaControls {
         library_page_ref.set_title("Artist");
         go_back_button_ref.set_visible(true);
         artist_details_ref.imp().hide_top_buttons(true);
+        artist_details_ref.imp().hide_playlist_buttons(true);
         artist_details_ref.imp().load_artist(current_artist_id_ref);
         state.push_navigation("Artist", "artist-details-page");
     }
@@ -962,6 +996,7 @@ impl MediaControls {
             go_back_button_ref.set_visible(true);
             state.push_navigation("Album", "album-details-page");
             album_details_ref.imp().hide_top_buttons(true);
+            album_details_ref.imp().hide_playlist_buttons(true);
             album_details_ref.imp().load_album(album_id);
         }
     }

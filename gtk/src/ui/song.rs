@@ -7,6 +7,8 @@ use crate::api::rockbox::v1alpha1::{
 };
 use crate::constants::*;
 use crate::state::AppState;
+use crate::ui::new_playlist::NewPlaylistDialog;
+use adw::prelude::*;
 use adw::subclass::prelude::*;
 use anyhow::Error;
 use glib::subclass;
@@ -18,6 +20,8 @@ use std::env;
 use std::thread;
 
 mod imp {
+
+    use crate::ui::show_all_playlists::ShowAllPlaylistsDialog;
 
     use super::*;
 
@@ -85,6 +89,33 @@ mod imp {
             klass.install_action("app.remove-song", None, move |song, _action, _target| {
                 song.remove_song_from_playlist();
             });
+
+            klass.install_action(
+                "app.add-to-new-playlist",
+                None,
+                move |song, _action, _target| {
+                    let new_playlist_dialog = NewPlaylistDialog::default();
+                    let self_ = imp::Song::from_obj(song);
+                    let state = self_.state.upgrade().unwrap();
+                    new_playlist_dialog.imp().state.set(Some(&state));
+                    let track = self_.track.borrow();
+                    let track = track.as_ref().unwrap();
+                    new_playlist_dialog
+                        .imp()
+                        .song_path
+                        .replace(Some(track.path.clone()));
+                    new_playlist_dialog.present(Some(song));
+                },
+            );
+
+            klass.install_action(
+                "app.show-all-playlists",
+                None,
+                move |song, _action, _target| {
+                    let show_all_playlists_dialog = ShowAllPlaylistsDialog::default();
+                    show_all_playlists_dialog.present(Some(song));
+                },
+            );
         }
 
         fn instance_init(obj: &subclass::InitializingObject<Self>) {
@@ -291,6 +322,7 @@ impl Song {
                 client
                     .remove_tracks(RemoveTracksRequest {
                         positions: vec![index],
+                        ..Default::default()
                     })
                     .await?;
                 Ok::<(), Error>(())

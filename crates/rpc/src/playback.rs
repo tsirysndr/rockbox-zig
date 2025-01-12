@@ -325,9 +325,28 @@ impl PlaybackService for Playback {
 
     async fn play_playlist(
         &self,
-        _request: tonic::Request<PlayPlaylistRequest>,
+        request: tonic::Request<PlayPlaylistRequest>,
     ) -> Result<tonic::Response<PlayPlaylistResponse>, tonic::Status> {
-        todo!()
+        let request = request.into_inner();
+        let playlist_id = request.playlist_id;
+        let shuffle = match request.shuffle {
+            Some(true) => 1,
+            Some(false) => 0,
+            None => 0,
+        };
+        let url = format!(
+            "{}/playlists/{}/play?shuffle={}",
+            rockbox_url(),
+            playlist_id,
+            shuffle
+        );
+        let client = reqwest::Client::new();
+        client
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(PlayPlaylistResponse::default()))
     }
 
     async fn play_directory(

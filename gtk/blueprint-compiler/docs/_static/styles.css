@@ -1,0 +1,24 @@
+.experimental-admonition {
+  display: flex;
+  align-items: center;
+}
+
+.experimental-admonition img {
+  width: 64px;
+}
+
+p.grammar-block {
+  font-family: var(--font-stack--monospace);
+  white-space: pre;
+  overflow: auto;
+  font-size: var(--code-font-size);
+  padding: .625rem .875rem;
+  line-height: 1.5;
+  background: #f8f8f8;
+  border-radius: .2rem;
+}
+
+body:not([data-theme="light"]) .grammar-block {
+  background: #202020;
+  color: #d0d0d0;
+}

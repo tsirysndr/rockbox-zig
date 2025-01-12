@@ -35,15 +35,11 @@ message GetDisplayIndexResponse {}
 
 message AmountRequest {}
 
-message AmountResponse {
-  int32 amount = 1;
-}
+message AmountResponse { int32 amount = 1; }
 
 message PlaylistResumeRequest {}
 
-message PlaylistResumeResponse {
-  int32 code = 1;
-}
+message PlaylistResumeResponse { int32 code = 1; }
 
 message ResumeTrackRequest {
   int32 start_index = 1;
@@ -70,24 +66,24 @@ message SyncRequest {}
 
 message SyncResponse {}
 
-message RemoveAllTracksRequest {}
+message RemoveAllTracksRequest { optional string playlist_id = 1; }
 
 message RemoveAllTracksResponse {}
 
 message RemoveTracksRequest {
   repeated int32 positions = 1;
+  optional string playlist_id = 2;
 }
 
 message RemoveTracksResponse {}
 
 message CreatePlaylistRequest {
-  string name = 1;
+  optional string name = 1;
   repeated string tracks = 2;
+  optional string folder_id = 3;
 }
 
-message CreatePlaylistResponse {
-  int32 start_index = 1;
-}
+message CreatePlaylistResponse { int32 start_index = 1; }
 
 message InsertTracksRequest {
   optional string playlist_id = 1;
@@ -121,6 +117,7 @@ message InsertAlbumRequest {
   int32 position = 1;
   string album_id = 2;
   optional bool shuffle = 3;
+  optional string playlist_id = 4;
 }
 
 message InsertAlbumResponse {}
@@ -129,35 +126,127 @@ message InsertArtistTracksRequest {
   int32 position = 1;
   string artist_id = 2;
   optional bool shuffle = 3;
+  optional string playlist_id = 4;
 }
 
 message InsertArtistTracksResponse {}
 
-message ShufflePlaylistRequest {
-  int32 start_index = 1;
-}
+message ShufflePlaylistRequest { int32 start_index = 1; }
 
 message ShufflePlaylistResponse {}
+
+message GetPlaylistRequest { string playlist_id = 1; }
+
+message GetPlaylistResponse {
+  string id = 1;
+  string name = 2;
+  optional string folder_id = 3;
+  optional string image = 4;
+  optional string description = 5;
+  int32 amount = 6;
+  string created_at = 7;
+  string updated_at = 8;
+  repeated rockbox.v1alpha1.CurrentTrackResponse tracks = 9;
+}
+
+message CreateFolderRequest {
+  string name = 1;
+  optional string parent_id = 2;
+}
+
+message CreateFolderResponse { string folder_id = 1; }
+
+message GetFolderRequest { string id = 1; }
+
+message GetFolderResponse {
+  string id = 1;
+  string name = 2;
+  optional string parent_id = 3;
+}
+
+message GetFoldersRequest { optional string parent_id = 1; }
+
+message GetFoldersResponse {
+  repeated rockbox.v1alpha1.GetFolderResponse folders = 1;
+}
+
+message RemoveFolderRequest { string id = 1; }
+
+message RemoveFolderResponse {}
+
+message RemovePlaylistRequest { string id = 1; }
+
+message RemovePlaylistResponse {}
+
+message RenamePlaylistRequest {
+  string id = 1;
+  string name = 2;
+}
+
+message RenamePlaylistResponse {}
+
+message RenameFolderRequest {
+  string id = 1;
+  string name = 2;
+}
+
+message RenameFolderResponse {}
+
+message MovePlaylistRequest {
+  string playlist_id = 1;
+  string folder_id = 2;
+}
+
+message MovePlaylistResponse {}
+
+message MoveFolderRequest {
+  string folder_id = 1;
+  string parent_id = 2;
+}
+
+message MoveFolderResponse {}
+
+message GetPlaylistsRequest { optional string folder_id = 1; }
+
+message GetPlaylistsResponse {
+  repeated rockbox.v1alpha1.GetPlaylistResponse playlists = 1;
+}
 
 service PlaylistService {
   rpc GetCurrent(GetCurrentRequest) returns (GetCurrentResponse) {}
   rpc GetResumeInfo(GetResumeInfoRequest) returns (GetResumeInfoResponse) {}
   rpc GetTrackInfo(GetTrackInfoRequest) returns (GetTrackInfoResponse) {}
   rpc GetFirstIndex(GetFirstIndexRequest) returns (GetFirstIndexResponse) {}
-  rpc GetDisplayIndex(GetDisplayIndexRequest) returns (GetDisplayIndexResponse) {}
+  rpc GetDisplayIndex(GetDisplayIndexRequest)
+      returns (GetDisplayIndexResponse) {}
   rpc Amount(AmountRequest) returns (AmountResponse) {}
   rpc PlaylistResume(PlaylistResumeRequest) returns (PlaylistResumeResponse) {}
   rpc ResumeTrack(ResumeTrackRequest) returns (ResumeTrackResponse) {}
   rpc SetModified(SetModifiedRequest) returns (SetModifiedResponse) {}
   rpc Start(StartRequest) returns (StartResponse) {}
   rpc Sync(SyncRequest) returns (SyncResponse) {}
-  rpc RemoveAllTracks(RemoveAllTracksRequest) returns (RemoveAllTracksResponse) {}
+  rpc RemoveAllTracks(RemoveAllTracksRequest)
+      returns (RemoveAllTracksResponse) {}
   rpc RemoveTracks(RemoveTracksRequest) returns (RemoveTracksResponse) {}
   rpc CreatePlaylist(CreatePlaylistRequest) returns (CreatePlaylistResponse) {}
   rpc InsertTracks(InsertTracksRequest) returns (InsertTracksResponse) {}
-  rpc InsertDirectory(InsertDirectoryRequest) returns (InsertDirectoryResponse) {}
+  rpc InsertDirectory(InsertDirectoryRequest)
+      returns (InsertDirectoryResponse) {}
   rpc InsertPlaylist(InsertPlaylistRequest) returns (InsertPlaylistResponse) {}
   rpc InsertAlbum(InsertAlbumRequest) returns (InsertAlbumResponse) {}
-  rpc InsertArtistTracks(InsertArtistTracksRequest) returns (InsertArtistTracksResponse) {}
-  rpc ShufflePlaylist(ShufflePlaylistRequest) returns (ShufflePlaylistResponse) {}
+  rpc InsertArtistTracks(InsertArtistTracksRequest)
+      returns (InsertArtistTracksResponse) {}
+  rpc ShufflePlaylist(ShufflePlaylistRequest)
+      returns (ShufflePlaylistResponse) {}
+  rpc GetPlaylist(GetPlaylistRequest) returns (GetPlaylistResponse) {}
+  rpc GetPlaylists(GetPlaylistsRequest) returns (GetPlaylistsResponse) {}
+  rpc CreateFolder(CreateFolderRequest) returns (CreateFolderResponse) {}
+  rpc GetFolder(GetFolderRequest) returns (GetFolderResponse) {}
+  rpc GetFolders(GetFoldersRequest) returns (GetFoldersResponse) {}
+  rpc RemoveFolder(RemoveFolderRequest) returns (RemoveFolderResponse) {}
+  rpc RemovePlaylist(RemovePlaylistRequest) returns (RemovePlaylistResponse) {}
+  rpc RenamePlaylist(RenamePlaylistRequest) returns (RenamePlaylistResponse) {}
+  rpc RenameFolder(RenameFolderRequest) returns (RenameFolderResponse) {}
+  rpc MovePlaylist(MovePlaylistRequest) returns (MovePlaylistResponse) {}
+  rpc MoveFolder(MoveFolderRequest) returns (MoveFolderResponse) {}
 }

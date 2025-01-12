@@ -1,0 +1,12 @@
+using Gtk 4.0;
+using Adw 1;
+
+Label label {}
+
+Adw.Breakpoint {
+  setters {
+    label.foo: "bar";
+    not_an_object.visible: true;
+    label.foo: "baz";
+  }
+}

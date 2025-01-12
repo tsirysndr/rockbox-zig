@@ -1,0 +1,59 @@
+stages:
+- build
+- pages
+
+build:
+  image: registry.gitlab.gnome.org/jwestman/blueprint-compiler
+  stage: build
+  script:
+    - black --check --diff ./ tests
+    - isort --check --diff --profile black ./ tests
+    - mypy --python-version=3.9 blueprintcompiler/
+    - G_DEBUG=fatal-warnings xvfb-run coverage run -m unittest
+    - coverage report
+    - coverage html
+    - coverage xml
+    - meson _build -Ddocs=true --prefix=/usr
+    - ninja -C _build
+    - ninja -C _build install
+    - ninja -C _build docs/en
+    - git clone https://gitlab.gnome.org/jwestman/blueprint-regression-tests.git
+    - cd blueprint-regression-tests
+    - git checkout 5f9e155c1333e84e6f683cdb26b02a5925fd8db3
+    - ./test.sh
+    - cd ..
+  coverage: '/TOTAL.*\s([.\d]+)%/'
+  artifacts:
+    paths:
+      - _build
+      - htmlcov
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+fuzz:
+  image: registry.gitlab.gnome.org/jwestman/blueprint-compiler
+  stage: build
+  script:
+    - meson _build
+    - ninja -C _build install
+    - ./tests/fuzz.sh 5000
+  artifacts:
+    when: always
+    paths:
+      - corpus
+      - crashes
+
+pages:
+  stage: pages
+  dependencies:
+    - build
+  script:
+    - mv _build/docs/en public
+    - mv htmlcov public/coverage
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

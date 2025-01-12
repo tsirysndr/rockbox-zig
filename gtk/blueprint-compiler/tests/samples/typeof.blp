@@ -1,0 +1,11 @@
+using Gtk 4.0;
+using GObject 2.0;
+using Gio 2.0;
+
+Gio.ListStore {
+  item-type: typeof<GObject.Object>;
+}
+
+Gio.ListStore {
+  item-type: typeof<$MyObject>;
+}
