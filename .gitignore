@@ -10,6 +10,8 @@
 *~
 *.ui
 
+.hermit/
+
 __pycache__
 
 # Don't exclude zig files
