@@ -33,6 +33,8 @@ enum image_type {
     IMAGE_PPM,
 #endif
     IMAGE_GIF,
+    IMAGE_JPEG_PROGRESSIVE,
+
     MAX_IMAGE_TYPES
 };
 

@@ -110,10 +110,10 @@ static int img_mem(int ds)
 }
 
 static int load_image(char *filename, struct image_info *info,
-                      unsigned char *buf, ssize_t *buf_size)
+                      unsigned char *buf, ssize_t *buf_size,
+                      int offset, int filesize)
 {
     int fd;
-    int filesize;
     unsigned char* buf_jpeg; /* compressed JPEG image */
     int status;
     struct jpeg *p_jpg = &jpg;
@@ -127,7 +127,15 @@ static int load_image(char *filename, struct image_info *info,
         rb->splashf(HZ, "err opening %s: %d", filename, fd);
         return PLUGIN_ERROR;
     }
-    filesize = rb->filesize(fd);
+
+    if (offset)
+    {
+        rb->lseek(fd, offset, SEEK_SET);
+    }
+    else
+    {
+        filesize = rb->filesize(fd);
+    }
 
     /* allocate JPEG buffer */
     buf_jpeg = buf;
@@ -170,8 +178,12 @@ static int load_image(char *filename, struct image_info *info,
 
     if (status < 0 || (status & (DQT | SOF0)) != (DQT | SOF0))
     {   /* bad format or minimum components not contained */
+#ifndef HAVE_LCD_COLOR
         rb->splashf(HZ, "unsupported %d", status);
         return PLUGIN_ERROR;
+#else
+        return PLUGIN_JPEG_PROGRESSIVE;
+#endif
     }
 
     if (!(status & DHT)) /* if no Huffman table present: */

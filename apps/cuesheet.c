@@ -231,15 +231,14 @@ bool parse_cuesheet(struct cuesheet_file *cue_file, struct cuesheet *cue)
             char_enc = CHAR_ENC_UTF_8;
             bom_read = BOM_UTF_8_SIZE;
         }
-        else if(!memcmp(line, BOM_UTF_16_LE, BOM_UTF_16_SIZE))
+        else
         {
-            char_enc = CHAR_ENC_UTF_16_LE;
-            bom_read = BOM_UTF_16_SIZE;
-        }
-        else if(!memcmp(line, BOM_UTF_16_BE, BOM_UTF_16_SIZE))
-        {
-            char_enc = CHAR_ENC_UTF_16_BE;
-            bom_read = BOM_UTF_16_SIZE;
+            bool le;
+            if (utf16_has_bom(line, &le))
+            {
+                char_enc = le ? CHAR_ENC_UTF_16_LE : CHAR_ENC_UTF_16_BE;
+                bom_read = BOM_UTF_16_SIZE;
+            }
         }
     }
 
@@ -266,7 +265,7 @@ bool parse_cuesheet(struct cuesheet_file *cue_file, struct cuesheet *cue)
     {
         if (char_enc == CHAR_ENC_UTF_16_LE)
         {
-            s = utf16LEdecode(line, utf16_buf, line_len);
+            s = utf16decode(line, utf16_buf, line_len>>1, sizeof(utf16_buf) - 1, true);
             /* terminate the string at the newline */
             *s = '\0';
             strcpy(line, utf16_buf);
@@ -276,7 +275,7 @@ bool parse_cuesheet(struct cuesheet_file *cue_file, struct cuesheet *cue)
         }
         else if (char_enc == CHAR_ENC_UTF_16_BE)
         {
-            s = utf16BEdecode(line, utf16_buf, line_len);
+            s = utf16decode(line, utf16_buf, line_len>>1, sizeof(utf16_buf) - 1, false);
             *s = '\0';
             strcpy(line, utf16_buf);
         }
@@ -315,7 +314,6 @@ bool parse_cuesheet(struct cuesheet_file *cue_file, struct cuesheet *cue)
                 break;
 
             size_t count = MAX_NAME*3 + 1;
-            size_t count8859 = MAX_NAME;
 
             switch (option)
             {
@@ -340,7 +338,6 @@ bool parse_cuesheet(struct cuesheet_file *cue_file, struct cuesheet *cue)
 
                     dest = cue->file;
                     count = MAX_PATH;
-                    count8859 = MAX_PATH/3;
                     break;
                 case eCS_TRACK:
                     /*Fall-Through*/
@@ -358,8 +355,8 @@ bool parse_cuesheet(struct cuesheet_file *cue_file, struct cuesheet *cue)
             {
                 if (char_enc == CHAR_ENC_ISO_8859_1)
                 {
-                    dest = iso_decode(string, dest, -1,
-                        MIN(strlen(string), count8859));
+                    dest = iso_decode_ex(string, dest, -1,
+                        strlen(string), count - 1);
                     *dest = '\0';
                 }
                 else

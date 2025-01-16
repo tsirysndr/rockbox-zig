@@ -46,6 +46,8 @@
 #include "settings.h"
 #include "audiohw.h"
 
+#include <stdio.h>
+
 #ifdef HAVE_TAGCACHE
 #include "tagcache.h"
 #endif
@@ -58,8 +60,8 @@
 #include "pcm_mixer.h"
 #endif
 
-#ifdef SIMULATOR
-#include <strings.h>
+#if defined(SIMULATOR) || defined(SDLAPP)
+#include <strings.h>  /* For strncasecmp() */
 #endif
 
 /* TODO: The audio thread really is doing multitasking of acting like a
@@ -346,6 +348,11 @@ static int  codec_skip_status;
 static bool codec_seeking = false;          /* Codec seeking ack expected? */
 static unsigned int position_key = 0;
 
+#if (CONFIG_STORAGE & STORAGE_ATA)
+#define PLAYBACK_LOG_BUFSZ (MAX_PATH * 10)
+static int playback_log_handle = 0; /* core_alloc handle for playback log buffer */
+#endif
+
 /* Forward declarations */
 enum audio_start_playback_flags
 {
@@ -426,6 +433,30 @@ static inline struct mp3entry * id3_get(enum audio_id3_types id3_num)
     default:
         return &static_id3_entries[id3_num];
     }
+}
+
+struct mp3entry* get_temp_mp3entry(struct mp3entry *free)
+{
+    /* free should be NULL on first call pass back the returned mp3entry to unlock */
+    enum audio_id3_types id3_num = UNBUFFERED_ID3;
+    /* playback hasn't started return NEXTTRACK_ID3 (statically allocated) */
+    if (!audio_scratch_memory)
+        id3_num = NEXTTRACK_ID3;
+
+    if (free)
+    {
+        /* scratch_mem_init() has to aquire the lock
+         * to change id3_num via audio_scratch_memory.. */
+        if (free == id3_get(id3_num))
+            id3_mutex_unlock();
+
+        return NULL;
+    }
+    id3_mutex_lock();
+
+    struct mp3entry *temp_id3 = id3_get(id3_num);
+    wipe_mp3entry(temp_id3);
+    return temp_id3;
 }
 
 /* Copy an mp3entry into one of the mp3 entries */
@@ -1205,6 +1236,104 @@ static void audio_handle_track_load_status(int trackstat)
     }
 }
 
+void allocate_playback_log(void) INIT_ATTR;
+void allocate_playback_log(void)
+{
+#if (CONFIG_STORAGE & STORAGE_ATA)
+    if (global_settings.playback_log && playback_log_handle == 0)
+    {
+        playback_log_handle = core_alloc(PLAYBACK_LOG_BUFSZ);
+        if (playback_log_handle > 0)
+        {
+            DEBUGF("%s Allocated %d bytes\n", __func__, PLAYBACK_LOG_BUFSZ); 
+            char *buf = core_get_data(playback_log_handle);
+            buf[0] = '\0';
+            return;
+        }
+    }
+#endif
+}
+
+void add_playbacklog(struct mp3entry *id3)
+{
+    if (!global_settings.playback_log)
+        return;
+    ssize_t used = 0;
+    unsigned long timestamp = current_tick * (1000 / HZ); /* milliseconds */
+#if (CONFIG_STORAGE & STORAGE_ATA)
+    char *buf = NULL;
+    ssize_t bufsz;
+
+    /* if the user just enabled playback logging rather than stopping playback
+     * to allocate a buffer or if buffer too large just flush direct to disk
+     * buffer will attempt to be allocated next start-up */
+    if (playback_log_handle > 0)
+    {
+        buf = core_get_data(playback_log_handle);
+        used = strlen(buf);
+        bufsz = PLAYBACK_LOG_BUFSZ - used;
+        buf += used;
+        DEBUGF("%s Used %lu Remain: %lu\n", __func__, used, bufsz);
+    }
+#endif
+    if (id3 && id3->elapsed > 500) /* 500 ms*/
+    {
+#if     CONFIG_RTC
+        timestamp = mktime(get_time());
+#endif
+#if (CONFIG_STORAGE & STORAGE_ATA)
+        if (buf)  /* we have a buffer allocd from core */
+        {
+            /*10:10:10:MAX_PATH\n*/
+            ssize_t entrylen = snprintf(buf, bufsz,"%lu:%ld:%ld:%s\n",
+                    timestamp, (long)id3->elapsed, (long)id3->length, id3->path);
+
+            if (entrylen < bufsz)
+            {
+                DEBUGF("BUFFERED: time: %lu elapsed %ld/%ld saving file: %s\n",
+                                timestamp, id3->elapsed, id3->length, id3->path);
+                return; /* succeed or snprintf fail return */
+            }
+            buf[0] = '\0';
+        }
+        /* that didn't fit, flush buffer & write this entry to disk */
+#endif
+    }
+    else
+        id3 = NULL;
+
+    if (id3 || used > 0) /* flush */
+    {
+        DEBUGF("Opening %s \n", ROCKBOX_DIR "/playback.log");
+        int fd = open(ROCKBOX_DIR "/playback.log", O_WRONLY|O_CREAT|O_APPEND, 0666);
+        if (fd < 0)
+        {
+            return; /* failure */
+        }
+#if (CONFIG_STORAGE & STORAGE_ATA)
+        if (buf) /* we have a buffer allocd from core */
+        {
+            buf = core_get_data_pinned(playback_log_handle); /* we might yield - pin it*/
+            write(fd, buf, used);
+            DEBUGF("%s Writing %lu bytes of buf:\n%s\n", __func__, used, buf);
+            buf[0] = '\0';
+            core_put_data_pinned(buf);
+        }
+#endif
+        if (id3)
+        {
+            /* we have the timestamp from when we tried to add to buffer */
+            DEBUGF("LOGGED: time: %lu elapsed %ld/%ld saving file: %s\n",
+                                timestamp, id3->elapsed, id3->length, id3->path);
+            fdprintf(fd, "%lu:%ld:%ld:%s\n",
+                    timestamp, (long)id3->elapsed, (long)id3->length, id3->path);
+        }
+
+        close(fd);
+        return;
+    }
+}
+
 /* Send track events that use a struct track_event for data */
 static void send_track_event(unsigned int id, unsigned int flags,
                              struct mp3entry *id3)
@@ -1222,9 +1351,9 @@ static void audio_playlist_track_finish(void)
     struct mp3entry *id3 = valid_mp3entry(ply_id3);
 
     playlist_update_resume_info(filling == STATE_ENDED ? NULL : id3);
-
     if (id3)
     {
+        add_playbacklog(id3);
         send_track_event(PLAYBACK_EVENT_TRACK_FINISH,
                          track_event_flags, id3);
     }
@@ -1793,7 +1922,7 @@ static int audio_load_albumart(struct track_info *infop,
         /* We can only decode jpeg for embedded AA */
         if (global_settings.album_art != AA_OFF &&
             hid < 0 && hid != ERR_BUFFER_FULL &&
-            track_id3->has_embedded_albumart && track_id3->albumart.type == AA_TYPE_JPG)
+            track_id3->has_embedded_albumart && (track_id3->albumart.type & AA_CLEAR_FLAGS_MASK) == AA_TYPE_JPG)
         {
             if (is_current_track)
                 clear_last_folder_album_art();
@@ -2986,6 +3115,7 @@ static void audio_stop_playback(void)
     /* Go idle */
     filling = STATE_IDLE;
     cancel_cpu_boost();
+    add_playbacklog(NULL);
 }
 
 /* Pause the playback of the current track
@@ -3989,7 +4119,13 @@ size_t audio_get_filebuflen(void)
 
 /* How many tracks exist on the buffer - full or partial */
 unsigned int audio_track_count(void)
+#ifndef __APPLE__
     __attribute__((alias("track_list_count")));
+#else
+{
+   return track_list_count();
+}
+#endif
 
 /* Return total ringbuffer space occupied - ridx to widx */
 long audio_filebufused(void)

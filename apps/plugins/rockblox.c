@@ -471,6 +471,15 @@
 
 #elif CONFIG_KEYPAD == SDL_PAD
 /* use SDL keys */
+#elif CONFIG_KEYPAD == MA_PAD
+#define ROCKBLOX_OFF            (BUTTON_BACK|BUTTON_REPEAT)
+#define ROCKBLOX_ROTATE_CCW     BUTTON_UP
+#define ROCKBLOX_ROTATE_CW      BUTTON_DOWN
+#define ROCKBLOX_DOWN           BUTTON_PLAY
+#define ROCKBLOX_LEFT           BUTTON_LEFT
+#define ROCKBLOX_RIGHT          BUTTON_RIGHT
+#define ROCKBLOX_DROP           BUTTON_MENU
+#define ROCKBLOX_RESTART        BUTTON_BACK
 
 #else
 #error No keymap defined!
@@ -1508,7 +1517,7 @@ static int rockblox_loop (void)
                 rb->sleep(HZ/10);
             /* Turn off backlight timeout */
             backlight_ignore_timeout();
-            
+
             /* get rid of the splash text */
             rb->lcd_bitmap (rockblox_background, 0, 0, LCD_WIDTH, LCD_HEIGHT);
             show_details ();

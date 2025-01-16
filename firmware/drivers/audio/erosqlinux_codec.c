@@ -20,7 +20,7 @@
  * KIND, either express or implied.
  *
  ****************************************************************************/
-//#define LOGF_ENABLE
+// #define LOGF_ENABLE
 
 #include "config.h"
 #include "audio.h"
@@ -53,11 +53,29 @@
    BUFFER_BYTES: [4096 524288]
    TICK_TIME: ALL
 
- Mixer controls:
+ Mixer controls (v1):
 
      numid=1,iface=MIXER,name='Output Port Switch'
       ; type=INTEGER,access=rw------,values=1,min=0,max=5,step=0
       : values=4
+
+  Mixer controls (v2+):
+
+     numid=3,iface=MIXER,name='ES9018_K2M Digital Filter'
+       ; type=INTEGER,access=rw------,values=1,min=0,max=4,step=0
+       : values=0
+     numid=1,iface=MIXER,name='Left Playback Volume'
+       ; type=INTEGER,access=rw------,values=1,min=0,max=255,step=0
+       : values=0
+     numid=4,iface=MIXER,name='Output Port Switch'
+       ; type=INTEGER,access=rw------,values=1,min=0,max=5,step=0
+       : values=0
+     numid=2,iface=MIXER,name='Right Playback Volume'
+       ; type=INTEGER,access=rw------,values=1,min=0,max=255,step=0
+       : values=0
+     numid=5,iface=MIXER,name='isDSD'
+       ; type=BOOLEAN,access=rw------,values=1
+       : values=off
 */
 
 static int hw_init = 0;
@@ -67,6 +85,8 @@ static long int vol_r_hw = 255;
 static long int last_ps = -1;
 
 static int muted = -1;
+
+extern int hwver;
 
 void audiohw_mute(int mute)
 {
@@ -116,11 +136,11 @@ void erosq_set_output(int ps)
 
     if (last_ps != ps)
     {
-        logf("set out %d/%d", ps, last_ps);
+        logf("set out %d/%ld", ps, last_ps);
         /* Output port switch */
         last_ps = ps;
         alsa_controls_set_ints("Output Port Switch", 1, &last_ps);
-	audiohw_set_volume(vol_l_hw, vol_r_hw);
+        audiohw_set_volume(vol_l_hw, vol_r_hw);
     }
 }
 
@@ -129,6 +149,13 @@ void audiohw_preinit(void)
     logf("hw preinit");
     alsa_controls_init("default");
     hw_init = 1;
+
+    /* See if we have hw2 or later */
+    if (alsa_controls_find("Left Playback Volume") == -1)
+        hwver = 1;
+    else if (hwver == 1)
+        hwver = 23;
+
     audiohw_mute(false);  /* No need to stay muted */
 }
 
@@ -154,16 +181,16 @@ void audiohw_set_frequency(int fsel)
 const int min_pcm = -740;
 const int max_pcm = 0;
 
-void audiohw_set_volume(int vol_l, int vol_r)
+static void audiohw_set_volume_v1(int vol_l, int vol_r)
 {
-    logf("hw vol %d %d", vol_l, vol_r);
-
     long l,r;
 
     vol_l_hw = vol_l;
     vol_r_hw = vol_r;
 
-    if (lineout_inserted()) {
+    logf("set_volume_v1 %d, %d", vol_l, vol_r);
+
+    if (lineout_inserted() && !headphones_inserted()) {
         /* On the EROS Q/K hardware, full scale line out is _very_ hot
            at ~5.8Vpp. As the hardware provides no way to reduce
            output gain, we have to back off on the PCM signal
@@ -180,23 +207,75 @@ void audiohw_set_volume(int vol_l, int vol_r)
     pcm_set_mixer_volume(sw_volume_l / 20, sw_volume_r / 20);
 }
 
+static void audiohw_set_volume_v2(int vol_l, int vol_r)
+{
+    long l,r;
+
+    vol_l_hw = vol_l;
+    vol_r_hw = vol_r;
+
+    logf("set_volume_v2 %d, %d", vol_l, vol_r);
+
+    if (lineout_inserted() && !headphones_inserted()) {
+        // was l = r = ... syntax.
+        // for some reason r channel was not getting set
+        // and was quiet...?
+        l = -1 * (global_settings.volume_limit * 10) / 5;
+        r = l;
+    } else {
+        // never save volume as positive, we will
+        // just oscillate between positive and negative then
+        l = -1 * vol_l_hw / 5;
+        r = -1 * vol_r_hw / 5;
+    }
+
+    if (!hw_init)
+       return;
+
+    alsa_controls_set_ints("Left Playback Volume", 1, &l);
+    alsa_controls_set_ints("Right Playback Volume", 1, &r);
+
+    /* Dial back PCM mixer to avoid compression */
+    pcm_set_mixer_volume(global_settings.volume_limit / 2, global_settings.volume_limit / 2);
+}
+
+void audiohw_set_volume(int vol_l, int vol_r)
+{
+    if (hwver >= 2) {
+        audiohw_set_volume_v2(vol_l, vol_r);
+    } else {
+        audiohw_set_volume_v1(vol_l, vol_r);
+    }
+}
+
 void audiohw_set_lineout_volume(int vol_l, int vol_r)
 {
     long l,r;
 
-    logf("lo vol %d %d", vol_l, vol_r);
-
     (void)vol_l;
     (void)vol_r;
 
-    if (lineout_inserted()) {
-        l = r = global_settings.volume_limit * 10;
-    } else {
-        l = vol_l_hw;
-        r = vol_r_hw;
-    }
+    if (lineout_inserted() && !headphones_inserted()) {
+        // was l = r = ... syntax.
+        // for some reason r channel was not getting set
+        // and was quiet...?
+        l = global_settings.volume_limit * 10;
+        r = l;
+        logf("lo vol %ld %ld", l, r);
 
-    int sw_volume_l = l <= min_pcm ? min_pcm : MIN(l, max_pcm);
-    int sw_volume_r = r <= min_pcm ? min_pcm : MIN(r, max_pcm);
-    pcm_set_mixer_volume(sw_volume_l / 20, sw_volume_r / 20);
+        if (hw_init){
+            if (hwver >= 2) {
+                l /= 5;
+                l = l * -1;
+                r /= 5;
+                r = r * -1;
+                alsa_controls_set_ints("Left Playback Volume", 1, &l);
+                alsa_controls_set_ints("Right Playback Volume", 1, &r);
+            } else {
+                int sw_volume_l = l <= min_pcm ? min_pcm : MIN(l, max_pcm);
+                int sw_volume_r = r <= min_pcm ? min_pcm : MIN(r, max_pcm);
+                pcm_set_mixer_volume(sw_volume_l / 20, sw_volume_r / 20);
+            }
+        }
+    }
 }

@@ -108,8 +108,22 @@ default_interrupt(INT_IRQ61);
 default_interrupt(INT_IRQ62);
 default_interrupt(INT_IRQ63);
 
-
 static int current_irq;
+
+static struct clocking_mode clk_modes[] =
+{
+   /* cdiv  hdiv  hprat  hsdiv */    /* CClk  HClk  PClk  SM1Clk  FPS */
+    { 1,    2,    2,     4 },        /* 216   108   54    27      42  */
+#ifdef HAVE_ADJUSTABLE_CPU_FREQ
+    { 4,    4,    2,     2 },        /* 54    54    27    27      21  */
+#endif
+};
+#define N_CLK_MODES (sizeof(clk_modes) / sizeof(struct clocking_mode))
+
+enum {
+    CLK_BOOST = 0,
+    CLK_UNBOOST = N_CLK_MODES - 1,
+};
 
 
 void INT_TIMER(void) ICODE_ATTR;
@@ -157,9 +171,10 @@ void irq_handler(void)
     asm volatile(   "stmfd sp!, {r0-r7, ip, lr} \n"   /* Store context */
                     "sub   sp, sp, #8           \n"); /* Reserve stack */
 
-    void* dummy = VIC0ADDRESS;
-    dummy = VIC1ADDRESS;
-    (void)dummy;
+    const void* dummy0 = VIC0ADDRESS;
+    (void)dummy0;
+    const void* dummy1 = VIC1ADDRESS;
+    (void)dummy1;
     uint32_t irqs0 = VIC0IRQSTATUS;
     uint32_t irqs1 = VIC1IRQSTATUS;
     for (current_irq = 0; irqs0; current_irq++, irqs0 >>= 1)
@@ -183,20 +198,16 @@ void fiq_dummy(void)
     );
 }
 
-static struct clocking_mode clk_modes[] =
+static void vic_init(void)
 {
-   /* cdiv  hdiv  hprat  hsdiv */    /* CClk  HClk  PClk  SM1Clk  FPS */
-    { 1,    2,    2,     4 },        /* 216   108   54    27      42  */
-#ifdef HAVE_ADJUSTABLE_CPU_FREQ
-    { 4,    4,    2,     2 },        /* 54    54    27    27      21  */
-#endif
-};
-#define N_CLK_MODES (sizeof(clk_modes) / sizeof(struct clocking_mode))
-
-enum {
-    CLK_BOOST = 0,
-    CLK_UNBOOST = N_CLK_MODES - 1,
-};
+    /* reset VIC controller */
+    VIC0INTENCLEAR = ~0;
+    VIC1INTENCLEAR = ~0;
+    VIC0ADDRESS = (void*)0xffffffff;
+    VIC1ADDRESS = (void*)0xffffffff;
+    VIC0EDGE1 = ~0;
+    VIC1EDGE1 = ~0;
+}
 
 void system_init(void)
 {
@@ -217,24 +228,28 @@ void system_init(void)
 #endif
     gpio_init();
     eint_init();
+    vic_init();
     dma_init();
 #ifdef HAVE_SERIAL
     uart_init();
 #endif
+
     VIC0INTENABLE = 1 << IRQ_WHEEL;
-    VIC0INTENABLE = 1 << IRQ_ATA;
-    VIC1INTENABLE = 1 << (IRQ_MMC - 32);
     VIC0INTENABLE = 1 << IRQ_TIMER;
     VIC0INTENABLE = 1 << IRQ_TIMER32;
+#if defined(IPOD_6G)
+    VIC0INTENABLE = 1 << IRQ_ATA;
+    VIC1INTENABLE = 1 << (IRQ_MMC - 32);
+#endif
 }
 
 void system_reboot(void)
 {
     /* Reset the SoC */
     asm volatile("msr CPSR_c, #0xd3   \n"
-                 "mov r0, #0x100000   \n"
-                 "mov r1, #0x3c800000 \n"
-                 "str r0, [r1]        \n");
+                 "mov r0, #0x100000   \n");
+
+    asm volatile("str r0, [%0]        \n" : : "r"(WDT_BASE));
 
     /* Wait for reboot to kick in */
     while(1);
@@ -262,13 +277,13 @@ void set_cpu_frequency(long frequency)
 
     if (frequency == CPUFREQ_MAX)
     {
-        pmu_write(0x1e, 0x13);  /* Vcore = 1100 mV */
+        pmu_set_cpu_voltage(true); /* high */
         set_clocking_level(CLK_BOOST);
     }
     else
     {
         set_clocking_level(CLK_UNBOOST);
-        pmu_write(0x1e, 0xf);   /* Vcore = 1000 mV */
+        pmu_set_cpu_voltage(false); /* low */
     }
 
     cpu_frequency = frequency;
@@ -280,8 +295,13 @@ static void set_page_tables(void)
     /* map RAM to itself and enable caching for it */
     map_section(0, 0, 0x380, CACHE_ALL);
 
+#ifdef IPOD_NANO4G
+    /* map system vector addresses to IRAM0 */
+    map_section(IRAM0_ORIG, 0, 1, CACHE_ALL);
+#endif
+
     /* disable caching for I/O area */
-    map_section(0x38000000, 0x38000000, 0x80, CACHE_NONE);
+    map_section(IO_BASE, IO_BASE, 0x80, CACHE_NONE);
 
     /* map RAM uncached addresses */
     map_section(0, S5L8702_UNCACHED_ADDR(0x0), 0x380, CACHE_NONE);
@@ -302,19 +322,61 @@ static void syscon_preinit(void)
     /* after ROM boot, CG16_SYS is using PLL0 @108 MHz
        CClk = 108 MHz, HClk = 54 MHz, PClk = 27 MHz */
 
+#if CONFIG_CPU == S5L8702
     CLKCON0 &= ~CLKCON0_SDR_DISABLE_BIT;
+#elif CONFIG_CPU == S5L8720
+    int sec_epoch = soc_get_sec_epoch();
+
+    PWRCON(0) = 0x327e5;
+    PWRCON(1) = 0xfe2bed6d;
+    PWRCON(2) = 0x73;
+    PWRCON(3) = 0xff;
+    PWRCON(4) = 0xdcf779;
+
+    if (sec_epoch)
+        CLKCON0 &= ~CLKCON0_SDR_DISABLE_BIT;
+    else
+        CLKCON0 |= CLKCON0_SDR_DISABLE_BIT;
+#endif
 
     PLLMODE &= ~PLLMODE_OSCSEL_BIT; /* CG16_SEL_OSC = OSC0 */
+
+#if CONFIG_CPU == S5L8702
     cg16_config(&CG16_SYS, true, CG16_SEL_OSC, 1, 1);
     soc_set_system_divs(1, 1, 1);
+#elif CONFIG_CPU == S5L8720
+    cg16_config(&CG16_SYS, true, CG16_SEL_OSC, 1, 1, 0x0);
+    // soc_set_system_divs(1, 1, 1);
+
+    CLKCON1 = 0;
+    while (CLKCON1);
+#endif
 
     /* stop all PLLs */
     for (int pll = 0; pll < 3; pll++)
         pll_onoff(pll, false);
 
+#if CONFIG_CPU == S5L8702
     pll_config(2, PLLOP_DM, 1, 36, 1, 32400);
     pll_onoff(2, true);
     soc_set_system_divs(1, 2, 2 /*hprat*/);
+#elif CONFIG_CPU == S5L8720
+    PLLUNK3C = 0;
+
+    pll_config(0, PLLOP_DM, sec_epoch ? 6 : 3, 133, 1, 39900);
+    pll_onoff(0, true);
+
+    // soc_set_system_divs(1, 2, 1 /*hprat*/);
+
+    // XXX: Without this, SDRAM does not work!
+    uint32_t val = 0x404040;
+    CLKCON1 = val;
+    while (CLKCON1 != val);
+
+    CLKCON0 |= CLKCON0_UNK30_BIT;
+#endif
+
+#if CONFIG_CPU == S5L8702
     cg16_config(&CG16_SYS,   true,  CG16_SEL_PLL2, 1, 1);
     cg16_config(&CG16_2L,    false, CG16_SEL_OSC,  1, 1);
     cg16_config(&CG16_SVID,  false, CG16_SEL_OSC,  1, 1);
@@ -323,26 +385,54 @@ static void syscon_preinit(void)
     cg16_config(&CG16_AUD2,  false, CG16_SEL_OSC,  1, 1);
     cg16_config(&CG16_RTIME, true,  CG16_SEL_OSC,  1, 1);
     cg16_config(&CG16_5L,    false, CG16_SEL_OSC,  1, 1);
+#elif CONFIG_CPU == S5L8720
+    cg16_config(&CG16_SYS,   true,  CG16_SEL_PLL0, 1, 1, 0x0);
+    cg16_config(&CG16_LCD,   false, CG16_SEL_OSC,  1, 1, 0x0);
+    cg16_config(&CG16_SVID,  false, CG16_SEL_OSC,  1, 1, 0x0);
+    cg16_config(&CG16_AUD0,  false, CG16_SEL_OSC,  1, 1, CG16_UNK14_BIT);
+    cg16_config(&CG16_AUD1,  false, CG16_SEL_OSC,  1, 1, CG16_UNK14_BIT);
+    cg16_config(&CG16_AUD2,  false, CG16_SEL_OSC,  1, 1, CG16_UNK14_BIT);
+    // TODO: configure a 12 MHz ECLK for all targets, so the timer settings will be the same.
+    // cg16_config(&CG16_RTIME, true,  CG16_SEL_OSC,  (S5L8720_OSC0_HZ / ECLK), 1, 0);
+    cg16_config(&CG16_RTIME, true,  CG16_SEL_OSC,  1, 1, 0x0);
+    cg16_config(&CG16_5L,    false, CG16_SEL_OSC,  1, 1, 0x0);
+    cg16_config(&CG16_6L,    false, CG16_SEL_OSC,  1, 1, 0x0);
+#endif
 
     soc_set_hsdiv(1);
 
+#if CONFIG_CPU == S5L8702
     PWRCON_AHB = ~((1 << CLOCKGATE_SMx) |
                    (1 << CLOCKGATE_SM1));
     PWRCON_APB = ~((1 << (CLOCKGATE_TIMER - 32)) |
                    (1 << (CLOCKGATE_GPIO - 32)));
+#endif
 }
 
 static void miu_preinit(bool selfrefreshing)
 {
+#if CONFIG_CPU == S5L8702
     if (selfrefreshing)
         MIUCON = 0x11;      /* TBC: self-refresh -> IDLE */
 
+#ifdef IPOD_6G
     MIUCON = 0x80D;         /* remap = 1 (IRAM mapped to 0x0),
                                TBC: SDRAM bank and column configuration */
+#elif defined(IPOD_NANO3G)
+    MIUCON = 0x1000100D;
+#endif
+
     MIU_REG(0xF0) = 0x0;
 
+#ifdef IPOD_6G
     MIUAREF = 0x6105D;      /* Auto-Refresh enabled,
                                Row refresh interval = 0x5d/12MHz = 7.75 uS */
+#elif defined(IPOD_NANO3G)
+    MIUAREF = 0x4105D;
+#endif
+    // TODO?
+    // MIUAREF = 0x5D;
+
     MIUSDPARA = 0x1FB621;
 
     MIU_REG(0x200) = 0x1845;
@@ -353,8 +443,8 @@ static void miu_preinit(bool selfrefreshing)
     MIU_REG(0x224) = 0x1845;
     MIU_REG(0x230) = 0x1885;
     MIU_REG(0x234) = 0x1885;
-    MIU_REG(0x14) = 0x19;       /* 2^19 = 0x2000000 = SDRAMSIZE (32Mb) */
-    MIU_REG(0x18) = 0x19;       /* 2^19 = 0x2000000 = SDRAMSIZE (32Mb) */
+    MIU_REG(0x14) = 0x19;       /* TBC: 2^19 = 0x2000000 = SDRAMSIZE (32Mb) */
+    MIU_REG(0x18) = 0x19;       /* TBC: 2^19 = 0x2000000 = SDRAMSIZE (32Mb) */
     MIU_REG(0x1C) = 0x790682B;
     MIU_REG(0x314) &= ~0x10;
 
@@ -394,23 +484,108 @@ static void miu_preinit(bool selfrefreshing)
     }
 
     MIUAREF |= 0x61000;   /* Auto-refresh enabled */
+#elif CONFIG_CPU == S5L8720
+    // TODO: There are things wrong, copying from spireader
+    GPIOUNK384 = 0;
+
+    MIU_REG(0) = 1;
+    MIU_REG(0x100) = 0x1030;
+    MIU_REG(0x11C) = 0xFF;
+    MIU_REG(0x120) = 0xFF;
+
+    MIU_REG(0x114) = 0x8AAC25;
+    MIU_REG(0x124) = 0x50D67E5;
+    MIU_REG(0x118) = 0x8;
+    MIU_REG(0x108) = 0x2000B;
+    MIU_REG(0x148) = 0x4;
+    MIU_REG(0x14C) = 0x0;
+
+    MIU_REG(0x140) = 0x3B3B2;
+    while (!(MIU_REG(0x140) & 0x2));
+    MIU_REG(0x140) = 0x3B3B3;
+
+    //while ((MIU_REG(0x144) & 0x3) != 3);       // TBC
+    while (~MIU_REG(0x144) & 0x3);       // TBC
+    MIU_REG(0x140) = ((MIU_REG(0x144) << 2) & 0x0ff00000) + 0xff53b3b0;
+    MIU_REG(0x150) = 0x10;
+
+    if (selfrefreshing) {
+        MIUCOM = 0x11;      /* TBC: self-refresh -> IDLE */      // XXX: the s5l8702 does MIU_REG(0) = MIUCO_N_ = 0x11
+    }
+    else {
+        MIUCOM = 0x33;      /* No action CMD */
+        MIUCOM = 0x233;     /* Precharge all banks CMD */
+        while (MIUCOM & 0x110000);
+        MIUCOM = 0x33;
+        MIUCOM = 0x33;
+        MIUCOM = 0x33;
+        MIUCOM = 0x333;     /* Auto-refresh CMD */
+        while (MIUCOM & 0x110000);
+        MIUCOM = 0x33;
+        MIUCOM = 0x33;
+        MIUCOM = 0x33;
+        MIUCOM = 0x333;     /* Auto-refresh CMD */
+        while (MIUCOM & 0x110000);
+        MIUCOM = 0x33;
+        MIUCOM = 0x33;
+        MIUCOM = 0x33;
+        MIUMRS = 0x33;      /* MRS: Bust Length = 8, CAS = 3 */
+        MIUCOM = 0x133;     /* Mode Register Set CMD */
+        while (MIUCOM & 0x110000);
+        MIUCOM = 0x33;
+        MIUCOM = 0x33;
+        MIUCOM = 0x33;
+        MIUMRS = 0x8040;    /* EMRS: Strength = 1/4, Self refresh area = Full */
+        MIUCOM = 0x133;     /* Mode Register Set CMD */
+        while (MIUCOM & 0x110000);
+        MIUCOM = 0x33;
+        MIUCOM = 0x33;
+        // MIUCOM = 0x33;
+    }
+
+    MIUCOM = 0x33;
+
+    MIU_REG(0x10C) = 0x40;
+    MIU_REG(0x100) |= 0x9100000;
+    MIU_REG(0x11C) = 0x19;
+    MIU_REG(0x120) = 0x1;
+    MIU_REG(0x108) = 0x2100B;            // TBC: MIUAREF?, 0xb/12MHz = 1 uS, 0xb/24MHz = 0.5uS
+    MIU_REG(0x8) = 0x1;
+
+    UNK3E000008 = 0x1f;
+#endif
 }
 
 /* Preliminary HW initialization */
 void system_preinit(void)
 {
-    bool gpio3out, coldboot;
+    bool hibernated;        // TODO: hibernated -> resuming, or perhaps better warmboot
+#if CONFIG_CPU == S5L8720
+    uint32_t boot_config;
+
+    /* Read boot configuration on PDAT3:
+     *  [7:5] -> select 2nd boot media (NOR0, NOR1 or NAND)
+     *  [4:3] -> unknown
+     *  [2]   -> unknown
+     */
+    PCON3 &= ~0xffffff00;
+    udelay(1000);
+    boot_config = PDAT3 >> 2;
+#endif
 
     syscon_preinit();
     gpio_preinit();
     i2c_preinit(0);
 
-    /* get (previously) configured output selection for GPIO3 */
-    gpio3out = (pmu_rd(PCF5063X_REG_GPIO3CFG) & 7);
-    /* coldboot: when set, device has been in NoPower state */
-    coldboot = (pmu_rd(PCF5063X_REG_OOCSHDWN) & PCF5063X_OOCSHDWN_COLDBOOT);
+#if CONFIG_CPU == S5L8720
+    /* TBC: store boot config into a PMU memory register */
+    pmu_wr(0x7f, boot_config);
+#endif
+    hibernated = pmu_is_hibernated();
+
     pmu_preinit();
 
-    miu_preinit(!coldboot && !gpio3out);
+    miu_preinit(hibernated);
 }
-#endif
+
+#endif /* BOOTLOADER */

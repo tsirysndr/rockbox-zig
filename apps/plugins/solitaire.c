@@ -761,6 +761,25 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define HK_REM2CUR      "PLAY"
 #   define HK_CUR2STACK    "MENU.."
 #   define HK_REM2STACK    "RIGHT.."
+#elif CONFIG_KEYPAD == MA_PAD
+#   define SOL_QUIT         (BUTTON_LEFT|BUTTON_REPEAT)
+#   define SOL_UP           BUTTON_UP
+#   define SOL_DOWN         BUTTON_DOWN
+#   define SOL_LEFT         BUTTON_LEFT
+#   define SOL_RIGHT        BUTTON_RIGHT
+#   define SOL_MOVE_PRE     BUTTON_MENU
+#   define SOL_MOVE         (BUTTON_MENU|BUTTON_REPEAT)
+#   define SOL_DRAW         BUTTON_PLAY
+#   define SOL_REM2CUR      (BUTTON_MENU|BUTTON_DOWN)
+#   define SOL_CUR2STACK_PRE BUTTON_BACK
+#   define SOL_CUR2STACK    (BUTTON_BACK|BUTTON_REPEAT)
+#   define SOL_REM2STACK    (BUTTON_MENU|BUTTON_UP)
+#   define HK_MOVE          "MENU"
+#   define HK_DRAW          "PLAY"
+#   define HK_REM2CUR       "MENU+DOWN"
+#   define HK_CUR2STACK     "BACK"
+#   define HK_REM2STACK     "MENU+UP"
+
 
 #else
 #error No keymap defined!

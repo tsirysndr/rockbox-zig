@@ -70,7 +70,7 @@
       flushed to disk when required.
  */
 
-//#define LOGF_ENABLE
+// #define LOGF_ENABLE
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -138,9 +138,10 @@
  * v4 added the (F)lags command.
  * v5 added index to the (C)lear command. Added PLAYLIST_INSERT_LAST_ROTATED (-8) as
  *    a supported position for (A)dd or (Q)eue commands.
+ * v6 removed the (C)lear command.
  */
 #define PLAYLIST_CONTROL_FILE_MIN_VERSION   2
-#define PLAYLIST_CONTROL_FILE_VERSION       5
+#define PLAYLIST_CONTROL_FILE_VERSION       6
 
 #define PLAYLIST_COMMAND_SIZE (MAX_PATH+12)
 
@@ -174,6 +175,8 @@
 #define PLAYLIST_SKIPPED                0x10000000
 
 static struct playlist_info current_playlist;
+static struct playlist_info on_disk_playlist;
+
 /* REPEAT_ONE support function from playback.c */
 extern bool audio_pending_track_skip_is_manual(void);
 static inline bool is_manual_skip(void)
@@ -347,14 +350,7 @@ static int convert_m3u_name(char* buf, int buf_len, int buf_max, char* temp)
     buf_len = i;
     dest = temp;
 
-    /* Convert char by char, so as to not overflow temp (iso_decode should
-     * preferably handle this). No more than 4 bytes should be generated for
-     * each input char.
-     */
-    for (i = 0; i < buf_len && dest < (temp + buf_max - 4); i++)
-    {
-        dest = iso_decode(&buf[i], dest, -1, 1);
-    }
+    dest = iso_decode_ex(buf, dest, -1, buf_len, buf_max - 1);
 
     *dest = 0;
     strcpy(buf, temp);
@@ -366,6 +362,9 @@ static int convert_m3u_name(char* buf, int buf_len, int buf_max, char* temp)
  */
 static void create_control_unlocked(struct playlist_info* playlist)
 {
+    if (playlist == &current_playlist && file_exists(PLAYLIST_CONTROL_FILE))
+        rename(PLAYLIST_CONTROL_FILE, PLAYLIST_CONTROL_FILE".old");
+
     playlist->control_fd = open(playlist->control_filename,
                                 O_CREAT|O_RDWR|O_TRUNC, 0666);
 
@@ -436,9 +435,6 @@ static int update_control_unlocked(struct playlist_info* playlist,
     case PLAYLIST_COMMAND_RESET:
         result = write(fd, "R\n", 2);
         break;
-    case PLAYLIST_COMMAND_CLEAR:
-        result = fdprintf(fd, "C:%d\n", i1);
-        break;
     case PLAYLIST_COMMAND_FLAGS:
         result = fdprintf(fd, "F:%u:%u\n", i1, i2);
         break;
@@ -480,11 +476,7 @@ static void update_playlist_filename_unlocked(struct playlist_info* playlist,
 static void empty_playlist_unlocked(struct playlist_info* playlist, bool resume)
 {
     pl_close_playlist(playlist);
-
-    if(playlist->control_fd >= 0)
-    {
-        close(playlist->control_fd);
-    }
+    pl_close_control(playlist);
 
     playlist->filename[0] = '\0';
 
@@ -493,8 +485,6 @@ static void empty_playlist_unlocked(struct playlist_info* playlist, bool resume)
     playlist->utf8 = true;
     playlist->control_created = false;
     playlist->flags = 0;
-
-    playlist->control_fd = -1;
 
     playlist->index = 0;
     playlist->first_index = 0;
@@ -595,6 +585,8 @@ static ssize_t format_track_path(char *dest, char *src, int buf_length,
         dir = PATH_ROOTSTR;
         dlen = -1u;
     }
+
+    logf("dir: %s", dir);
 
     len = path_append_ex(dest, dir, dlen, src, buf_length);
     if (len >= (size_t)buf_length)
@@ -1174,8 +1166,31 @@ static int create_and_play_dir(int direction, bool play_last)
  */
 static int remove_all_tracks_unlocked(struct playlist_info *playlist, bool write)
 {
+    char filename[MAX_PATH];
+    int seek_pos = -1;
+
     if (playlist->amount <= 0)
         return 0;
+
+    if (write) /* Write control file commands to disk */
+    {
+        if (playlist->control_fd < 0)
+            return -1;
+
+        if (get_track_filename(playlist, playlist->index,
+                               filename, sizeof(filename)) != 0)
+            return -1;
+
+        /* Start over with fresh control file for emptied dynamic playlist */
+        pl_close_control(playlist);
+        create_control_unlocked(playlist);
+        update_control_unlocked(playlist, PLAYLIST_COMMAND_PLAYLIST,
+                                PLAYLIST_CONTROL_FILE_VERSION, -1,
+                                "", "", NULL);
+        update_control_unlocked(playlist, PLAYLIST_COMMAND_QUEUE,
+                                0, 0, filename, NULL, &seek_pos);
+        sync_control_unlocked(playlist);
+    }
 
     /* Move current track down to position 0 */
     playlist->indices[0] = playlist->indices[playlist->index];
@@ -1190,22 +1205,25 @@ static int remove_all_tracks_unlocked(struct playlist_info *playlist, bool write
 
     /* Update playlist state as if by remove_track_unlocked() */
     playlist->first_index = 0;
+    playlist->index = 0;
     playlist->amount = 1;
     playlist->indices[0] |= PLAYLIST_QUEUED;
+    playlist->flags = 0; /* Reset dirplay and modified flags */
 
     if (playlist->last_insert_pos == 0)
         playlist->last_insert_pos = -1;
     else
         playlist->last_insert_pos = 0;
 
-    if (write && playlist->control_fd >= 0)
-    {
-        update_control_unlocked(playlist, PLAYLIST_COMMAND_CLEAR,
-                                playlist->index, -1, NULL, NULL, NULL);
-        sync_control_unlocked(playlist);
-    }
+    if (seek_pos == -1)
+        return 0;
 
-    playlist->index = 0;
+    /* Update seek offset so it points into the new control file. */
+    playlist->indices[0] &= ~PLAYLIST_INSERT_TYPE_MASK & ~PLAYLIST_SEEK_MASK;
+    playlist->indices[0] |= PLAYLIST_INSERT_TYPE_INSERT | seek_pos;
+
+    /* Cut connection to playlist file */
+    update_playlist_filename_unlocked(playlist, "", "");
 
     return 0;
 }
@@ -1914,12 +1932,19 @@ void playlist_init(void)
 {
     int handle;
     struct playlist_info* playlist = &current_playlist;
-    mutex_init(&playlist->mutex);
+    mutex_init(&current_playlist.mutex);
+    mutex_init(&on_disk_playlist.mutex);
 
-    strmemccpy(playlist->control_filename, PLAYLIST_CONTROL_FILE,
-            sizeof(playlist->control_filename));
-    playlist->fd = -1;
-    playlist->control_fd = -1;
+    strmemccpy(current_playlist.control_filename, PLAYLIST_CONTROL_FILE,
+               sizeof(current_playlist.control_filename));
+
+    strmemccpy(on_disk_playlist.control_filename, PLAYLIST_CONTROL_FILE ".tmp",
+               sizeof(on_disk_playlist.control_filename));
+
+    current_playlist.fd = -1;
+    on_disk_playlist.fd = -1;
+    current_playlist.control_fd = -1;
+    on_disk_playlist.control_fd = -1;
     playlist->max_playlist_size = global_settings.max_files_in_playlist;
 
     handle = core_alloc_ex(playlist->max_playlist_size * sizeof(*playlist->indices), &ops);
@@ -1978,51 +2003,52 @@ int playlist_amount(void)
     return playlist_amount_ex(NULL);
 }
 
-/*
- * Create a new playlist  If playlist is not NULL then we're loading a
- * playlist off disk for viewing/editing.  The index_buffer is used to store
- * playlist indices (required for and only used if !current playlist).  The
- * temp_buffer (if not NULL) is used as a scratchpad when loading indices.
+/* Return desired index buffer size for loading a playlist from disk,
+ * as determined by the user's 'max files in playlist' setting.
  *
- * XXX: This is really only usable by the playlist viewer. Never pass
- *      playlist == NULL, that cannot and will not work.
+ * Buffer size is constrained by given max_sz.
  */
-int playlist_create_ex(struct playlist_info* playlist,
-                       const char* dir, const char* file,
-                       void* index_buffer, int index_buffer_size,
-                       void* temp_buffer, int temp_buffer_size)
+size_t playlist_get_index_bufsz(size_t max_sz)
 {
-    /* Initialize playlist structure */
-    int r = rand() % 10;
+    size_t index_buffer_size = (global_settings.max_files_in_playlist *
+                                sizeof(*on_disk_playlist.indices));
 
-    /* Use random name for control file */
-    snprintf(playlist->control_filename, sizeof(playlist->control_filename),
-             "%s.%d", PLAYLIST_CONTROL_FILE, r);
-    playlist->fd = -1;
-    playlist->control_fd = -1;
+    return index_buffer_size > max_sz ? max_sz : index_buffer_size;
+}
 
+/*
+ * Load a playlist off disk for viewing/editing.
+ * This will close a previously loaded playlist and its control file,
+ * if one has been left open.
+ *
+ * The index_buffer is used to store playlist indices. If no index buffer is
+ * provided, the current playlist's index buffer is shared.
+ * FIXME: When using the shared buffer, you must ensure that playback is
+ *        stopped and that no other playlist will be started while this
+ *        one is loaded. The current playlist's indices will be trashed!
+ *
+ * The temp_buffer (if not NULL) is used as a scratchpad when loading indices.
+ */
+struct playlist_info* playlist_load(const char* dir, const char* file,
+                                    void* index_buffer, int index_buffer_size,
+                                    void* temp_buffer, int temp_buffer_size)
+{
+    struct playlist_info* playlist = &on_disk_playlist;
     if (index_buffer)
     {
-        int num_indices = index_buffer_size /
-            playlist_get_required_bufsz(playlist, false, 1);
+        int num_indices = index_buffer_size / sizeof(*playlist->indices);
 
         if (num_indices > global_settings.max_files_in_playlist)
             num_indices = global_settings.max_files_in_playlist;
 
         playlist->max_playlist_size = num_indices;
         playlist->indices = index_buffer;
-#ifdef HAVE_DIRCACHE
-        playlist->dcfrefs_handle = 0;
-#endif
     }
     else
     {
-        /* FIXME not sure if it's safe to share index buffers */
         playlist->max_playlist_size = current_playlist.max_playlist_size;
         playlist->indices = current_playlist.indices;
-#ifdef HAVE_DIRCACHE
-        playlist->dcfrefs_handle = 0;
-#endif
+        current_playlist.started = false;
     }
 
     new_playlist_unlocked(playlist, dir, file);
@@ -2031,11 +2057,11 @@ int playlist_create_ex(struct playlist_info* playlist,
     if (file)
         add_indices_to_playlist(playlist, temp_buffer, temp_buffer_size);
 
-    return 0;
+    return playlist;
 }
 
 /*
- * Create new playlist
+ * Create new (current) playlist
  */
 int playlist_create(const char *dir, const char *file)
 {
@@ -2313,23 +2339,6 @@ char *playlist_get_name(const struct playlist_info* playlist, char *buf,
         return NULL;
 
     return buf;
-}
-
-/* return size of buffer needed for playlist to initialize num_indices entries */
-size_t playlist_get_required_bufsz(struct playlist_info* playlist,
-                                             bool include_namebuf,
-                                                   int num_indices)
-{
-    size_t namebuf = 0;
-
-    if (!playlist)
-        playlist = &current_playlist;
-
-    size_t unit_size = sizeof (*playlist->indices);
-    if (include_namebuf)
-        namebuf = AVERAGE_FILENAME_LENGTH * global_settings.max_files_in_dir;
-
-    return (num_indices * unit_size) + namebuf;
 }
 
 /* Get resume info for current playing song.  If return value is -1 then
@@ -2657,7 +2666,11 @@ int playlist_insert_track(struct playlist_info* playlist, const char *filename,
 bool playlist_modified(const struct playlist_info* playlist)
 {
     if (!playlist)
+    {
         playlist = &current_playlist;
+        if (!current_playlist.control_created)
+            return global_status.resume_modified;
+    }
 
     return !!(playlist->flags & PLAYLIST_FLAG_MODIFIED);
 }
@@ -3168,6 +3181,9 @@ int playlist_resume(void)
 
     empty_playlist_unlocked(playlist, true);
 
+    if (!file_exists(playlist->control_filename))
+        goto out;
+
     playlist->control_fd = open(playlist->control_filename, O_RDWR);
     if (playlist->control_fd < 0)
     {
@@ -3407,6 +3423,8 @@ int playlist_resume(void)
                         playlist->last_insert_pos = -1;
                         break;
                     }
+                    /* FIXME: Deprecated.
+                     * Adjust PLAYLIST_CONTROL_FILE_MIN_VERSION after removal */
                     case PLAYLIST_COMMAND_CLEAR:
                     {
                         if (strp[0])
@@ -3522,6 +3540,9 @@ int playlist_resume(void)
         }
     }
 
+    if (global_status.resume_index != -1)
+        playlist->index = global_status.resume_index;
+
 out:
     playlist_write_unlock(playlist);
     dc_thread_start(playlist, true);
@@ -3567,7 +3588,10 @@ int playlist_set_current(struct playlist_info* playlist)
     int result = -1;
 
     if (!playlist || (check_control(playlist) < 0))
+    {
+        playlist_close(playlist);
         return result;
+    }
 
     dc_thread_stop(&current_playlist);
     playlist_write_lock(&current_playlist);
@@ -3578,7 +3602,10 @@ int playlist_set_current(struct playlist_info* playlist)
         sizeof(current_playlist.filename));
 
     current_playlist.utf8 = playlist->utf8;
+
+    /* Transfer ownership of fd to current playlist */
     current_playlist.fd = playlist->fd;
+    playlist->fd = -1;
 
     pl_close_control(playlist);
     pl_close_control(&current_playlist);
@@ -3744,11 +3771,14 @@ int playlist_update_resume_info(const struct mp3entry* id3)
 {
     struct playlist_info* playlist = &current_playlist;
 
+    bool pl_modified = (PLAYLIST_FLAG_MODIFIED ==
+                        (playlist->flags & PLAYLIST_FLAG_MODIFIED));
     if (id3)
     {
         if (global_status.resume_index  != playlist->index ||
             global_status.resume_elapsed != id3->elapsed ||
-            global_status.resume_offset != id3->offset)
+            global_status.resume_offset != id3->offset ||
+            global_status.resume_modified != pl_modified)
         {
             unsigned int crc = playlist_get_filename_crc32(playlist,
                                                            playlist->index);
@@ -3756,6 +3786,7 @@ int playlist_update_resume_info(const struct mp3entry* id3)
             global_status.resume_crc32 = crc;
             global_status.resume_elapsed = id3->elapsed;
             global_status.resume_offset = id3->offset;
+            global_status.resume_modified = pl_modified;
             status_save();
         }
     }
@@ -3765,6 +3796,7 @@ int playlist_update_resume_info(const struct mp3entry* id3)
         global_status.resume_crc32 = -1;
         global_status.resume_elapsed = -1;
         global_status.resume_offset = -1;
+        global_status.resume_modified = false;
         status_save();
         return -1;
     }
@@ -3970,11 +4002,12 @@ static int pl_save_update_control(struct playlist_info* playlist,
         playlist->last_insert_pos = rotate_index(playlist, playlist->last_insert_pos);
         playlist->first_index = 0;
     }
-    
+
     for (int index = 0; index < playlist->amount; ++index)
     {
         /* We only need to update queued files */
-        if (!(playlist->indices[index] & PLAYLIST_QUEUED))
+        if (!(playlist->indices[index] & PLAYLIST_INSERT_TYPE_MASK &&
+              playlist->indices[index] & PLAYLIST_QUEUED))
             continue;
 
         /* Read filename from old control file */
@@ -4073,7 +4106,8 @@ int playlist_save(struct playlist_info* playlist, char *filename)
     for (int i = playlist->amount - 1; i >= 0; i--)
         if (playlist->indices[i] & PLAYLIST_QUEUED)
         {
-            if (reload_tracks || (reload_tracks = (confirm_remove_queued_yesno() == YESNO_YES)))
+            if (reload_tracks || (reload_tracks =
+                (yesno_pop(ID2P(LANG_REMOVE_QUEUED_TRACKS)))))
                 remove_track_unlocked(playlist, i, false);
             else
                 break;

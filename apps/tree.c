@@ -112,13 +112,47 @@ struct entry* tree_get_entry_at(struct tree_context *t, int index)
     return &entries[index];
 }
 
+static struct entry *tree_get_valid_entry_at(const char* funcname,
+                                             struct tree_context *t, int index)
+{
+    struct entry *entry = tree_get_entry_at(t, index);
+    if (!entry)
+        panicf("Invalid tree entry %s", funcname);
+    /*DEBUGF("%s tc: %x idx: %d\n", funcname, t, index);*/
+    return entry;
+}
+
+static bool ext_stripit(bool isdir, int attr, int dirfilter)
+{
+    if(!isdir)
+    {
+        switch(global_settings.show_filename_ext)
+        {
+            case 0:
+                /* show file extension: off */
+                return true;
+                break;
+            case 1:
+                /* show file extension: on */
+                break;
+            case 2:
+                /* show file extension: only unknown types */
+                return filetype_supported(attr);
+            case 3:
+            default:
+                /* show file extension: only when viewing all */
+                return (dirfilter != SHOW_ID3DB && dirfilter != SHOW_ALL);
+        }
+    }
+    return false;
+}
+
 static const char* tree_get_filename(int selected_item, void *data,
                                      char *buffer, size_t buffer_len)
 {
     struct tree_context * local_tc=(struct tree_context *)data;
     char *name;
     int attr=0;
-    bool stripit = false;
 #ifdef HAVE_TAGCACHE
     bool id3db = *(local_tc->dirfilter) == SHOW_ID3DB;
 
@@ -129,38 +163,13 @@ static const char* tree_get_filename(int selected_item, void *data,
     else
 #endif
     {
-        struct entry *entry = tree_get_entry_at(local_tc, selected_item);
-        if (!entry)
-            panicf("Invalid tree entry %s", __func__);
+        struct entry *entry =
+                     tree_get_valid_entry_at(__func__, local_tc, selected_item);
         name = entry->name;
         attr = entry->attr;
     }
 
-    if(!(attr & ATTR_DIRECTORY))
-    {
-        switch(global_settings.show_filename_ext)
-        {
-            case 0:
-                /* show file extension: off */
-                stripit = true;
-                break;
-            case 1:
-                /* show file extension: on */
-                break;
-            case 2:
-                /* show file extension: only unknown types */
-                stripit = filetype_supported(attr);
-                break;
-            case 3:
-            default:
-                /* show file extension: only when viewing all */
-                stripit = (*(local_tc->dirfilter) != SHOW_ID3DB) &&
-                          (*(local_tc->dirfilter) != SHOW_ALL);
-                break;
-        }
-    }
-
-    if(stripit)
+    if(ext_stripit((attr & ATTR_DIRECTORY), attr, *(local_tc->dirfilter)))
     {
         return(strip_extension(buffer, buffer_len, name));
     }
@@ -173,9 +182,8 @@ static int tree_get_filecolor(int selected_item, void * data)
     if (*tc.dirfilter == SHOW_ID3DB)
         return -1;
     struct tree_context * local_tc=(struct tree_context *)data;
-    struct entry *entry = tree_get_entry_at(local_tc, selected_item);
-    if (!entry)
-        panicf("Invalid tree entry %s", __func__);
+    struct entry *entry =
+                     tree_get_valid_entry_at(__func__, local_tc, selected_item);
 
     return filetype_get_color(entry->name, entry->attr);
 }
@@ -192,9 +200,8 @@ static enum themable_icons tree_get_fileicon(int selected_item, void * data)
     else
 #endif
     {
-        struct entry *entry = tree_get_entry_at(local_tc, selected_item);
-        if (!entry)
-            panicf("Invalid tree entry %s", __func__);
+        struct entry *entry =
+                     tree_get_valid_entry_at(__func__, local_tc, selected_item);
 
         return filetype_get_icon(entry->attr);
     }
@@ -205,6 +212,7 @@ static int tree_voice_cb(int selected_item, void * data)
     struct tree_context * local_tc=(struct tree_context *)data;
     char *name;
     int attr=0;
+    int customaction = ONPLAY_NO_CUSTOMACTION;
 #ifdef HAVE_TAGCACHE
     bool id3db = *(local_tc->dirfilter) == SHOW_ID3DB;
     char buf[AVERAGE_FILENAME_LENGTH*2];
@@ -213,14 +221,13 @@ static int tree_voice_cb(int selected_item, void * data)
     {
         attr = tagtree_get_attr(local_tc);
         name = tagtree_get_entry_name(local_tc, selected_item, buf, sizeof(buf));
+        customaction = tagtree_get_custom_action(local_tc);
     }
     else
 #endif
     {
-        struct entry *entry = tree_get_entry_at(local_tc, selected_item);
-        if (!entry)
-            panicf("Invalid tree entry %s", __func__);
-
+        struct entry *entry =
+                     tree_get_valid_entry_at(__func__, local_tc, selected_item);
         name = entry->name;
         attr = entry->attr;
     }
@@ -245,7 +252,7 @@ static int tree_voice_cb(int selected_item, void * data)
                 did_clip = false;
         }
     }
-    bool spell_name = false;
+    bool spell_name = (customaction == ONPLAY_CUSTOMACTION_FIRSTLETTER);
     if(!did_clip)
     {
         /* say the number or spell if required or as a fallback */
@@ -276,38 +283,17 @@ static int tree_voice_cb(int selected_item, void * data)
 
     /* spell name AFTER voicing filetype */
     if (spell_name) {
-        bool stripit = false;
-        char *ext = NULL;
+            bool stripit = ext_stripit(is_dir, attr, *(local_tc->dirfilter));
+            char *ext = NULL;
 
-        /* Don't spell the extension if it's not displayed */
-        if (!is_dir) {
-            switch(global_settings.show_filename_ext) {
-            case 0:
-                /* show file extension: off */
-                stripit = true;
-                break;
-            case 1:
-                /* show file extension: on */
-                stripit = false;
-                break;
-            case 2:
-                /* show file extension: only unknown types */
-                stripit = filetype_supported(attr);
-                break;
-            case 3:
-            default:
-                /* show file extension: only when viewing all */
-                stripit = (*(local_tc->dirfilter) != SHOW_ID3DB) &&
-                          (*(local_tc->dirfilter) != SHOW_ALL);
-                break;
-            }
+            /* Don't spell the extension if it's not displayed */
 
             if (stripit) {
                 ext = strrchr(name, '.');
                 if (ext)
                     *ext = 0;
             }
-        }
+
         talk_spell(name, true);
 
         if (stripit && ext)
@@ -339,7 +325,6 @@ void tree_init(void)
     check_rockboxdir();
     strcpy(tc.currdir, "/");
 }
-
 
 struct tree_context* tree_get_context(void)
 {
@@ -696,6 +681,12 @@ void set_current_file(const char *path)
 }
 
 
+static int exit_to_new_screen(int screen)
+{
+    gui_synclist_scroll_stop(&tree_lists);
+    return screen;
+}
+
 /* main loop, handles key events */
 static int dirbrowse(void)
 {
@@ -728,12 +719,12 @@ static int dirbrowse(void)
     numentries = update_dir();
     reload_dir = false;
     if (numentries == -1)
-        return GO_TO_PREVIOUS;  /* currdir is not a directory */
+        return exit_to_new_screen(GO_TO_PREVIOUS);  /* currdir is not a directory */
 
     if (*tc.dirfilter > NUM_FILTER_MODES && numentries==0)
     {
         splash(HZ*2, ID2P(LANG_NO_FILES));
-        return GO_TO_PREVIOUS;  /* No files found for rockbox_browse() */
+        return exit_to_new_screen(GO_TO_PREVIOUS);  /* No files found for rockbox_browse() */
     }
 
     while(tc.browse && tc.is_browsing) {
@@ -768,16 +759,14 @@ static int dirbrowse(void)
                     break;
                 if (tc.browse->flags & BROWSE_SELECTONLY)
                 {
-                    struct entry *entry = tree_get_entry_at(&tc, tc.selected_item);
-                    if (!entry)
-                        panicf("Invalid tree entry %s", __func__);
-
+                    struct entry *entry =
+                       tree_get_valid_entry_at(__func__, &tc, tc.selected_item);
                     short attr = entry->attr;
                     if(!(attr & ATTR_DIRECTORY))
                     {
                         tc.browse->flags |= BROWSE_SELECTED;
                         get_current_file(tc.browse->buf, tc.browse->bufsize);
-                        return GO_TO_PREVIOUS;
+                        return exit_to_new_screen(GO_TO_PREVIOUS);
                     }
                 }
 #ifdef HAVE_TAGCACHE
@@ -788,12 +777,12 @@ static int dirbrowse(void)
                 {
                     case GO_TO_FILEBROWSER: reload_dir = true; break;
                     case GO_TO_PLUGIN:
-                        return GO_TO_PLUGIN;
+                        return exit_to_new_screen(GO_TO_PLUGIN);
                     case GO_TO_WPS:
-                        return GO_TO_WPS;
+                        return exit_to_new_screen(GO_TO_WPS);
 #if CONFIG_TUNER
                     case GO_TO_FM:
-                        return GO_TO_FM;
+                        return exit_to_new_screen(GO_TO_FM);
 #endif
                     case GO_TO_ROOT: exit_func = true; break;
                     default:
@@ -803,6 +792,7 @@ static int dirbrowse(void)
                 break;
 
             case ACTION_STD_CANCEL:
+                exit_to_new_screen(0);
                 if (*tc.dirfilter > NUM_FILTER_MODES && tc.dirlevel < 1) {
                     exit_func = true;
                     break;
@@ -813,7 +803,7 @@ static int dirbrowse(void)
                     if (oldbutton == ACTION_TREE_PGLEFT)
                         break;
                     else
-                        return GO_TO_ROOT;
+                        return exit_to_new_screen(GO_TO_ROOT);
                 }
 
 #ifdef HAVE_TAGCACHE
@@ -833,16 +823,16 @@ static int dirbrowse(void)
                 break;
 
             case ACTION_STD_MENU:
-                return GO_TO_ROOT;
+                return exit_to_new_screen(GO_TO_ROOT);
                 break;
 
 #ifdef HAVE_RECORDING
             case ACTION_STD_REC:
-                return GO_TO_RECSCREEN;
+                return exit_to_new_screen(GO_TO_RECSCREEN);
 #endif
 
             case ACTION_TREE_WPS:
-                return GO_TO_PREVIOUS_MUSIC;
+                return exit_to_new_screen(GO_TO_PREVIOUS_MUSIC);
                 break;
 #ifdef HAVE_QUICKSCREEN
             case ACTION_STD_QUICKSCREEN:
@@ -867,7 +857,7 @@ static int dirbrowse(void)
                     if (shortcut_ret == GO_TO_PREVIOUS)
                         global_status.last_screen = last_screen;
                     else
-                        return shortcut_ret;
+                        return exit_to_new_screen(shortcut_ret);
                 }
                 else if (enter_shortcuts_menu) /* currently disabled */
                 {
@@ -913,15 +903,14 @@ static int dirbrowse(void)
                             attr = ATTR_DIRECTORY;
                             tagtree_get_entry_name(&tc, tc.selected_item,
                                                    buf, sizeof(buf));
-                            fix_path_part(buf, 0, sizeof(buf));
+                            fix_path_part(buf, 0, sizeof(buf) - 1);
                         }
                     }
                     else
 #endif
                     {
-                        struct entry *entry = tree_get_entry_at(&tc, tc.selected_item);
-                        if (!entry)
-                            panicf("Invalid tree entry %s", __func__);
+                        struct entry *entry =
+                         tree_get_valid_entry_at(__func__, &tc, tc.selected_item);
 
                         attr = entry->attr;
 
@@ -933,7 +922,7 @@ static int dirbrowse(void)
                 switch (onplay_result)
                 {
                     case ONPLAY_MAINMENU:
-                        return GO_TO_ROOT;
+                        return exit_to_new_screen(GO_TO_ROOT);
                         break;
 
                     case ONPLAY_OK:
@@ -945,11 +934,11 @@ static int dirbrowse(void)
                         break;
 
                     case ONPLAY_START_PLAY:
-                        return GO_TO_WPS;
+                        return exit_to_new_screen(GO_TO_WPS);
                         break;
 
                     case ONPLAY_PLUGIN:
-                        return GO_TO_PLUGIN;
+                        return exit_to_new_screen(GO_TO_PLUGIN);
                         break;
                 }
                 break;
@@ -1002,7 +991,7 @@ static int dirbrowse(void)
                 break;
         }
         if (start_wps)
-            return GO_TO_WPS;
+            return exit_to_new_screen(GO_TO_WPS);
         if (button && !IS_SYSEVENT(button))
         {
             storage_spin();
@@ -1041,9 +1030,11 @@ static int dirbrowse(void)
         }
 
         if (exit_func)
-            return GO_TO_PREVIOUS;
+            return exit_to_new_screen(GO_TO_PREVIOUS);
 
         if (restore || reload_dir) {
+            FOR_NB_SCREENS(i)
+                screens[i].scroll_stop();
             /* restore display */
             numentries = update_dir();
             reload_dir = false;
@@ -1054,25 +1045,12 @@ static int dirbrowse(void)
             }
         }
     }
-    return GO_TO_ROOT;
+    return exit_to_new_screen(GO_TO_ROOT);
 }
 
 int create_playlist(void)
 {
     bool ret;
-#if 0 /* handled in catalog_add_to_a_playlist() */
-    char filename[MAX_PATH + 16]; /* add enough space for extension */
-    const char *playlist_dir = catalog_get_directory();
-    if (tc.currdir[1] && strcmp(tc.currdir, playlist_dir) != 0)
-        snprintf(filename, sizeof filename, "%s.m3u8", tc.currdir);
-    else
-        snprintf(filename, sizeof filename, "%s/all.m3u8", playlist_dir);
-
-    if (kbd_input(filename, MAX_PATH, NULL))
-        return 0;
-    splashf(0, "%s %s", str(LANG_CREATING), filename);
-#endif
-
     trigger_cpu_boost();
     ret = catalog_add_to_a_playlist(tc.currdir, ATTR_DIRECTORY, true, NULL, NULL);
     cancel_cpu_boost();
@@ -1088,8 +1066,14 @@ int rockbox_browse(struct browse_context *browse)
 {
     tc.is_browsing = (browse != NULL);
     int ret_val = 0;
-    int dirfilter = tc.is_browsing ? browse->dirfilter : SHOW_ALL;
-
+    int dirfilter = SHOW_ALL;
+    if (tc.is_browsing)
+        dirfilter = browse->dirfilter;
+    else
+    {
+        DEBUGF("%s browse is [NULL] \n", __func__);
+        browse = tc.browse;
+    }
     if (backup_count >= NUM_TC_BACKUP)
         return GO_TO_PREVIOUS;
     if (backup_count >= 0)

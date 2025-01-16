@@ -82,8 +82,13 @@ struct wps_token {
     bool next;
 };
 
-char* get_dir(char* buf, int buf_size, const char* path, int level);
+struct wps_subline_timeout {
+    unsigned long next_tick;
+    unsigned short hide;
+    unsigned short show;
+};
 
+char* get_dir(char* buf, int buf_size, const char* path, int level);
 
 struct skin_token_list {
     OFFSETTYPE(struct wps_token *) token;
@@ -91,15 +96,15 @@ struct skin_token_list {
 };
 
 struct gui_img {
-    short int x;                  /* x-pos */
-    short int y;                  /* y-pos */
-    short int num_subimages;      /* number of sub-images */
-    short int subimage_height;    /* height of each sub-image */
+    int16_t x;                  /* x-pos */
+    int16_t y;                  /* y-pos */
+    int16_t num_subimages;      /* number of sub-images */
+    int16_t subimage_height;    /* height of each sub-image */
     struct bitmap bm;
     int buflib_handle;
     OFFSETTYPE(char*) label;
-    bool loaded;            /* load state */
     int display;
+    bool loaded;            /* load state */
     bool using_preloaded_icons; /* using the icon system instead of a bmp */
     bool is_9_segment;
     bool dither;
@@ -107,41 +112,41 @@ struct gui_img {
 
 struct image_display {
     OFFSETTYPE(char*) label;
-    int subimage;
     OFFSETTYPE(struct wps_token*) token; /* the token to get the subimage number from */
-    int offset; /* offset into the bitmap strip to start */
+    int16_t subimage;
+    int16_t offset; /* offset into the bitmap strip to start */
 };
 
 struct progressbar {
     enum skin_token_type type;
+    bool  follow_lang_direction;
+    bool horizontal;
+    char setting_offset;
     /* regular pb */
-    short x;
+    int16_t x;
     /* >=0: explicitly set in the tag -> y-coord within the viewport
        <0 : not set in the tag -> negated 1-based line number within
             the viewport. y-coord will be computed based on the font height */
-    short y;
-    short width;
-    short height;
-    bool  follow_lang_direction;
+    int16_t y;
+    int16_t width;
+    int16_t height;
 
     OFFSETTYPE(struct gui_img *) image;
-
     bool invert_fill_direction;
     bool nofill;
     bool noborder;
     bool nobar;
     OFFSETTYPE(struct gui_img *) slider;
-    bool horizontal;
-    char setting_offset;
+
     OFFSETTYPE(struct gui_img *) backdrop;
     const struct settings_list *setting;
 };
 
 struct draw_rectangle {
-    int x;
-    int y;
-    int width;
-    int height;
+    int16_t x;
+    int16_t y;
+    int16_t width;
+    int16_t height;
     unsigned start_colour;
     unsigned end_colour;
 };
@@ -185,10 +190,10 @@ struct gradient_config {
 struct skin_viewport {
     struct viewport vp;   /* The LCD viewport struct */
     struct frame_buffer_t framebuf; /* holds reference to current framebuffer */
+    OFFSETTYPE(char*) label;
+    int16_t parsed_fontid;
     char hidden_flags;
     bool is_infovp;
-    OFFSETTYPE(char*) label;
-    int   parsed_fontid;
 #if (LCD_DEPTH > 1) || (defined(HAVE_REMOTE_LCD) && (LCD_REMOTE_DEPTH > 1))
     bool output_to_backdrop_buffer;
     bool fgbg_changed;
@@ -205,22 +210,23 @@ struct viewport_colour {
 struct touchregion {
     OFFSETTYPE(char*) label;            /* label to identify this region */
     OFFSETTYPE(struct skin_viewport*) wvp;/* The viewport this region is in */
-    short int x;             /* x-pos */
-    short int y;             /* y-pos */
-    short int width;         /* width */
-    short int height;        /* height */
-    short int wpad;          /* padding to width */
-    short int hpad;          /* padding to height */
+    int16_t x;             /* x-pos */
+    int16_t y;             /* y-pos */
+    int16_t width;         /* width */
+    int16_t height;        /* height */
+    int16_t wpad;          /* padding to width */
+    int16_t hpad;          /* padding to height */
     bool reverse_bar;        /* if true 0% is the left or top */
     bool allow_while_locked;
+    bool armed;              /* A region is armed on press. Only armed regions are triggered
+                                on repeat or release. */
     enum {
         PRESS,               /* quick press only */
         LONG_PRESS,          /* Long press without repeat */
         REPEAT,              /* long press allowing repeats */
     } press_length;
     int action;              /* action this button will return */
-    bool armed;              /* A region is armed on press. Only armed regions are triggered
-                                on repeat or release. */
+
     union {                  /* Extra data, action dependant */
         struct touchsetting {
             const struct settings_list *setting; /* setting being controlled */
@@ -234,8 +240,6 @@ struct touchregion {
     long last_press;        /* last tick this was pressed */
     OFFSETTYPE(struct progressbar*) bar;
 };
-
-
 
 struct touchregion_lastpress {
     OFFSETTYPE(struct touchregion *) region;
@@ -265,10 +269,10 @@ struct playlistviewer {
 
 struct skin_albumart {
     /* Album art support */
-    int x;
-    int y;
-    int width;
-    int height;
+    int16_t x;
+    int16_t y;
+    int16_t width;
+    int16_t height;
 
     unsigned char xalign; /* WPS_ALBUMART_ALIGN_LEFT, _CENTER, _RIGHT */
     unsigned char yalign; /* WPS_ALBUMART_ALIGN_TOP, _CENTER, _BOTTOM */
@@ -308,24 +312,24 @@ struct logical_if {
 };
 
 struct substring {
-    int start;
-    int length;
+    int16_t start;
+    int16_t length;
     bool expect_number;
     OFFSETTYPE(struct wps_token *) token;
 };
 
 struct listitem {
     bool wrap;
-    short offset;
+    int16_t offset;
 };
 
 struct listitem_viewport_cfg {
     struct wps_data *data;
     OFFSETTYPE(char *)   label;
-    int     width;
-    int     height;
-    int     xmargin;
-    int     ymargin;
+    int16_t     width;
+    int16_t     height;
+    int16_t     xmargin;
+    int16_t     ymargin;
     bool    tile;
     struct skin_viewport selected_item_vp;
 };
@@ -357,23 +361,23 @@ struct wps_data
 
     OFFSETTYPE(struct skin_element *) tree;
     OFFSETTYPE(struct skin_token_list *) images;
-    OFFSETTYPE(int *) font_ids;
-    int font_count;
+    OFFSETTYPE(int16_t *) font_ids;
+    int16_t font_count;
 #ifdef HAVE_BACKDROP_IMAGE
-    int backdrop_id;
+    int16_t backdrop_id;
     bool use_extra_framebuffer;
 #endif
 
 #ifdef HAVE_TOUCHSCREEN
-    OFFSETTYPE(struct skin_token_list *) touchregions;
     bool touchscreen_locked;
+    OFFSETTYPE(struct skin_token_list *) touchregions;
 #endif
 #ifdef HAVE_ALBUMART
     OFFSETTYPE(struct skin_albumart *) albumart;
     int    playback_aa_slot;
     /* copy of albumart to survive skin resets, used to check if albumart
      * dimensions changed on skin change */
-    short last_albumart_width, last_albumart_height;
+    int16_t last_albumart_width, last_albumart_height;
 #endif
 
 #ifdef HAVE_SKIN_VARIABLES

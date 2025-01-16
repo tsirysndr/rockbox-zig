@@ -49,9 +49,12 @@
 #include "audio.h"
 #define lang_is_rtl() (false)
 #define DEBUGF printf
+#define splashf(...)
 #endif /*WPSEDITOR*/
 #else
 #include "debug.h"
+#include "splash.h"
+#include "lang.h"
 #include "language.h"
 #endif /*__PCTOOL__*/
 
@@ -395,16 +398,18 @@ static int parse_image_load(struct skin_element *element,
         subimages = get_param(element, 2)->data.number;
     else if (element->params_count > 3)
     {
-        struct skin_tag_parameter *param2 = get_param(element, 2);
-        struct skin_tag_parameter *param3 = get_param(element, 3);
-        if (param2->type == PERCENT)
-            x = param2->data.number * curr_vp->vp.width / 1000;
+        struct skin_tag_parameter *param;
+        param = get_param(element, 2);
+        if (param->type == PERCENT)
+            x = param->data.number * curr_vp->vp.width / 1000;
         else
-            x = param2->data.number;
-        if (param3->type == PERCENT)
-            y = param3->data.number * curr_vp->vp.height / 1000;
+            x = param->data.number;
+
+        param = get_param(element, 3);
+        if (param->type == PERCENT)
+            y = param->data.number * curr_vp->vp.height / 1000;
         else
-            y = param3->data.number;
+            y = param->data.number;
 
         if (element->params_count == 5)
             subimages = get_param(element, 4)->data.number;
@@ -486,7 +491,7 @@ static int parse_font_load(struct skin_element *element,
 #endif
     /* make sure the filename contains .fnt,
      * we dont actually use it, but require it anyway */
-    ptr = strchr(filename, '.');
+    ptr = strrchr(filename, '.');
     if (!ptr || strncmp(ptr, ".fnt", 4))
         return WPS_ERROR_INVALID_PARAM;
     skinfonts[id-2].id = -1;
@@ -924,7 +929,8 @@ static int parse_timeout_tag(struct skin_element *element,
 {
     (void)wps_data;
     int val = 0;
-    if (element->params_count == 0)
+    int params_count = element->params_count;
+    if (params_count == 0)
     {
         switch (token->type)
         {
@@ -940,7 +946,26 @@ static int parse_timeout_tag(struct skin_element *element,
         }
     }
     else
+    {
         val = get_param(element, 0)->data.number;
+        if (token->type == SKIN_TOKEN_SUBLINE_TIMEOUT && params_count == 2)
+        {
+            struct wps_subline_timeout *st = skin_buffer_alloc(sizeof(*st));
+            if (st)
+            {
+                st->show = val;
+                st->hide = get_param(element, 1)->data.number;
+#ifndef __PCTOOL__
+                st->next_tick = current_tick; /* show immediately the first time */
+#else
+                st->next_tick = 0; /* checkwps doesn't have current_tick */
+#endif
+                token->type = SKIN_TOKEN_SUBLINE_TIMEOUT_HIDE;
+                token->value.data = PTRTOSKINOFFSET(skin_buffer, st);
+                return 0;
+            }
+        }
+    }
     token->value.i = val * TIMEOUT_UNIT;
     return 0;
 }
@@ -1249,7 +1274,8 @@ static int parse_progressbar_tag(struct skin_element* element,
     else if (token->type == SKIN_TOKEN_LIST_NEEDS_SCROLLBAR)
         token->type = SKIN_TOKEN_LIST_SCROLLBAR;
     else if (token->type == SKIN_TOKEN_SETTING)
-	token->type = SKIN_TOKEN_SETTINGBAR;
+        token->type = SKIN_TOKEN_SETTINGBAR;
+
     pb->type = token->type;
 
 #ifdef HAVE_TOUCHSCREEN
@@ -1313,6 +1339,106 @@ static int parse_progressbar_tag(struct skin_element* element,
     return 0;
 }
 
+static int parse_filetext(struct skin_element *element,
+                            struct wps_token *token,
+                            struct wps_data *wps_data)
+{
+    (void)wps_data;
+    const char* filename;
+    char buf[MAX_PATH];
+    char *buf_start = buf;
+    int fd;
+    int line = 0;
+    const char *search_text = NULL;
+    int search_len = 0;
+
+    /* format: %ft(filename[,line|search text]) */
+    filename = get_param_text(element, 0);
+
+    if (element->params_count == 2)
+    {
+        struct skin_tag_parameter *param1 = get_param(element, 1);
+        if (param1->type == INTEGER)
+            line = param1->data.number;
+        else if (param1->type == STRING)
+        {
+            search_text = get_param_text(element, 1);
+            line = 0x3FF; /* 1k lines is a pretty large file */
+            search_len = strlen(search_text);
+            DEBUGF("%s: found search text %s\n", __func__, search_text);
+        }
+        else
+            return WPS_ERROR_INVALID_PARAM;
+    }
+    else if (element->params_count != 1)
+    {
+        DEBUGF("%s(file, line): %s Error: param count %d\n",
+                  __func__, filename, element->params_count);
+        return WPS_ERROR_INVALID_PARAM;
+    }
+
+    while(*filename == PATH_SEPCH) /* no absolute paths! */
+        filename++;
+
+    path_append(buf, ROCKBOX_DIR, filename, sizeof(buf));
+    DEBUGF("%s %s[%d]\n", __func__, buf, line);
+
+    if (line > 0x3FF || (fd = open_utf8(buf, O_RDONLY)) < 0)
+    {
+        DEBUGF("%s: Error Opening %s\n", __func__, buf);
+        goto failure;
+    }
+
+    int rd = 0;
+    while (line >= 0)
+    {
+        if ((rd = read_line(fd, buf, sizeof(buf))) <= 0)
+            break;
+        if (search_text && strncasecmp(buf, search_text, search_len) == 0)
+        {
+            buf_start += search_len;
+            rd -= search_len;
+            DEBUGF("%s: found '%s' Reading '%s'\n", __func__, search_text, buf);
+            break;
+        }
+        line--;
+    }
+
+    if (rd <= 0) /* empty line? */
+    {
+        DEBUGF("%s: Error(%d) Reading %s\n", __func__, rd, filename);
+        goto failure;
+    }
+
+    if (element->is_conditional)
+    {
+        buf_start = buf;
+        rd = 1; /* just alloc enough for the conditional to work*/
+    }
+
+    buf_start[rd] = '\0';
+
+    char * skinbuf = skin_buffer_alloc(rd+1);
+
+    if (!skinbuf)
+    {
+        DEBUGF("%s: Error No Buffer %s\n", __func__, filename);
+        close(fd);
+        return WPS_ERROR_INVALID_PARAM;
+    }
+    strcpy(skinbuf, buf_start);
+    close(fd);
+    token->value.data = PTRTOSKINOFFSET(skin_buffer, skinbuf);
+    token->type = SKIN_TOKEN_STRING;
+    return 0;
+failure:
+    element->type = COMMENT;
+    element->data = INVALID_OFFSET;
+    token->type = SKIN_TOKEN_NO_TOKEN;
+    token->value.data = INVALID_OFFSET;
+    return 0;
+}
+
 #ifdef HAVE_ALBUMART
 static int parse_albumart_load(struct skin_element* element,
                                struct wps_token *token,
@@ -1327,32 +1453,35 @@ static int parse_albumart_load(struct skin_element* element,
         return -1;
 
     /* reset albumart info in wps */
-    aa->width = -1;
-    aa->height = -1;
     aa->xalign = WPS_ALBUMART_ALIGN_CENTER; /* default */
     aa->yalign = WPS_ALBUMART_ALIGN_CENTER; /* default */
 
-    struct skin_tag_parameter *param0 = get_param(element, 0);
-    struct skin_tag_parameter *param1 = get_param(element, 1);
-    struct skin_tag_parameter *param2 = get_param(element, 2);
-    struct skin_tag_parameter *param3 = get_param(element, 3);
+    struct skin_tag_parameter *param;
 
-    aa->x = param0->data.number;
-    aa->y = param1->data.number;
-    aa->width = param2->data.number;
-    aa->height = param3->data.number;
+    param = get_param(element, 0);
+    if (!isdefault(param) && param->type == PERCENT)
+        aa->x = param->data.number * curr_vp->vp.width / 1000;
+    else
+        aa->x = param->data.number;
 
-    if (!isdefault(param0) && param0->type == PERCENT)
-        aa->x = param0->data.number * curr_vp->vp.width / 1000;
+    param = get_param(element, 1);
+    if (!isdefault(param) && param->type == PERCENT)
+        aa->y = param->data.number * curr_vp->vp.height / 1000;
+    else
+        aa->y = param->data.number;
 
-    if (!isdefault(param1) && param1->type == PERCENT)
-        aa->y = param1->data.number * curr_vp->vp.height / 1000;
+    param = get_param(element, 2);
+    if (!isdefault(param) && param->type == PERCENT)
+        aa->width = param->data.number * curr_vp->vp.width / 1000;
+    else
+        aa->width = param->data.number;
 
-    if (!isdefault(param2) && param2->type == PERCENT)
-        aa->width = param2->data.number * curr_vp->vp.width / 1000;
+    param = get_param(element, 3);
 
-    if (!isdefault(param3) && param3->type == PERCENT)
-        aa->height = param3->data.number * curr_vp->vp.height / 1000;
+    if (!isdefault(param) && param->type == PERCENT)
+        aa->height = param->data.number * curr_vp->vp.height / 1000;
+    else
+        aa->height = param->data.number;
 
     aa->draw_handle = -1;
 
@@ -1379,21 +1508,18 @@ static int parse_albumart_load(struct skin_element* element,
 
     if (element->params_count > 4 && !isdefault(get_param(element, 4)))
     {
-        switch (*get_param_text(element, 4))
+        switch (tolower(*get_param_text(element, 4)))
         {
             case 'l':
-            case 'L':
                 if (swap_for_rtl)
                     aa->xalign = WPS_ALBUMART_ALIGN_RIGHT;
                 else
                     aa->xalign = WPS_ALBUMART_ALIGN_LEFT;
                 break;
             case 'c':
-            case 'C':
                 aa->xalign = WPS_ALBUMART_ALIGN_CENTER;
                 break;
             case 'r':
-            case 'R':
                 if (swap_for_rtl)
                     aa->xalign = WPS_ALBUMART_ALIGN_LEFT;
                 else
@@ -1403,18 +1529,15 @@ static int parse_albumart_load(struct skin_element* element,
     }
     if (element->params_count > 5 && !isdefault(get_param(element, 5)))
     {
-        switch (*get_param_text(element, 5))
+        switch (tolower(*get_param_text(element, 5)))
         {
             case 't':
-            case 'T':
                 aa->yalign = WPS_ALBUMART_ALIGN_TOP;
                 break;
             case 'c':
-            case 'C':
                 aa->yalign = WPS_ALBUMART_ALIGN_CENTER;
                 break;
             case 'b':
-            case 'B':
                 aa->yalign = WPS_ALBUMART_ALIGN_BOTTOM;
                 break;
         }
@@ -1606,7 +1729,7 @@ static int touchregion_setup_setting(struct skin_element *element, int param_no,
             break;
         case F_T_INT:
         case F_T_UINT:
-            if (setting->cfg_vals == NULL)
+            if (setting_get_cfgvals(setting) == NULL)
             {
                 touchsetting->value.number = atoi(text);
             }
@@ -1851,7 +1974,7 @@ void skin_data_free_buflib_allocs(struct wps_data *wps_data)
         goto abort;
 
     struct skin_token_list *list = SKINOFFSETTOPTR(skin_buffer, wps_data->images);
-    int *font_ids = SKINOFFSETTOPTR(skin_buffer, wps_data->font_ids);
+    int16_t *font_ids = SKINOFFSETTOPTR(skin_buffer, wps_data->font_ids);
     while (list)
     {
         struct wps_token *token = SKINOFFSETTOPTR(skin_buffer, list->token);
@@ -2041,7 +2164,7 @@ static bool load_skin_bitmaps(struct wps_data *wps_data, char *bmpdir)
                         token = SKINOFFSETTOPTR(skin_buffer, imglist->token);
                         if (token) {
                             img = (struct gui_img*)SKINOFFSETTOPTR(skin_buffer, token->value.data);
-                            if (img && !strcmp(path, img->bm.data))
+                            if (img && img->bm.data && !strcmp(path, img->bm.data))
                             {
                                 img->loaded = true;
                                 img->buflib_handle = handle;
@@ -2069,7 +2192,7 @@ static bool load_skin_bitmaps(struct wps_data *wps_data, char *bmpdir)
 static bool skin_load_fonts(struct wps_data *data)
 {
     /* don't spit out after the first failue to aid debugging */
-    int id_array[MAXUSERFONTS];
+    int16_t id_array[MAXUSERFONTS];
     int font_count = 0;
     bool success = true;
     struct skin_element *vp_list;
@@ -2102,6 +2225,7 @@ static bool skin_load_fonts(struct wps_data *data)
         {
             if (success)
             {
+                splashf(HZ, str(LANG_FONT_LOAD_ERROR), "(no name)");
                 DEBUGF("font %d not specified\n", font_id);
             }
             success = false;
@@ -2126,6 +2250,7 @@ static bool skin_load_fonts(struct wps_data *data)
 
         if (font->id < 0)
         {
+            splashf(HZ, str(LANG_FONT_LOAD_ERROR), font->name);
             DEBUGF("Unable to load font %d: '%s'\n", font_id, font->name);
             font->name = NULL; /* to stop trying to load it again if we fail */
             success = false;
@@ -2137,7 +2262,7 @@ static bool skin_load_fonts(struct wps_data *data)
     }
     if (font_count)
     {
-        int *font_ids = skin_buffer_alloc(font_count * sizeof(int));
+        int16_t *font_ids = skin_buffer_alloc(font_count * sizeof(font_ids[0]));
         if (!success || font_ids == NULL)
         {
             while (font_count > 0)
@@ -2148,7 +2273,7 @@ static bool skin_load_fonts(struct wps_data *data)
             data->font_ids = PTRTOSKINOFFSET(skin_buffer, NULL);
             return false;
         }
-        memcpy(font_ids, id_array, sizeof(int)*font_count);
+        memcpy(font_ids, id_array, sizeof(font_ids[0])*font_count);
         data->font_count = font_count;
         data->font_ids = PTRTOSKINOFFSET(skin_buffer, font_ids);
     }
@@ -2373,6 +2498,9 @@ static int skin_element_callback(struct skin_element* element, void* data)
                 case SKIN_TOKEN_FILE_DIRECTORY:
                     token->value.i = get_param(element, 0)->data.number;
                     break;
+                case SKIN_TOKEN_FILE_TEXT:
+                    function = parse_filetext;
+                    break;
 #ifdef HAVE_BACKDROP_IMAGE
                 case SKIN_TOKEN_VIEWPORT_FGCOLOUR:
                 case SKIN_TOKEN_VIEWPORT_BGCOLOUR:
@@ -2452,6 +2580,9 @@ static int skin_element_callback(struct skin_element* element, void* data)
             if ( *(element->tag->name) == 'I' || *(element->tag->name) == 'F' ||
                  *(element->tag->name) == 'D')
                 token->next = true;
+            else if ( token->type == SKIN_TOKEN_TRACK_LENGTH && *(element->tag->name) == 'P')
+                token->next = true;
+
             if (follow_lang_direction > 0 )
                 follow_lang_direction--;
             break;

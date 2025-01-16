@@ -25,8 +25,13 @@
 
 #include <stdbool.h>
 #include "config.h"
+#include "SDL.h"
 
 extern int sdl_app_has_input_focus;
+
+#ifdef __APPLE__
+int sdl_event_filter(void *userdata, SDL_Event * event);
+#endif
 
 bool button_hold(void);
 #undef button_init_device

@@ -20,7 +20,7 @@
  ****************************************************************************/
 /*
  * Parts of this code has been stolen from the Ample project and was written
- * by David H�deman. It has since been extended and enhanced pretty much by
+ * by David Härdeman. It has since been extended and enhanced pretty much by
  * all sorts of friendly Rockbox people.
  *
  */
@@ -45,6 +45,7 @@
 #include "mp3data.h"
 #include "metadata_common.h"
 #include "metadata_parsers.h"
+#include "embedded_metadata.h"
 #include "misc.h"
 
 static unsigned long unsync(unsigned long b0,
@@ -161,7 +162,8 @@ struct tag_resolver {
 
 static bool global_ff_found;
 
-static int unsynchronize(char* tag, int len, bool *ff_found)
+#define unsynchronize id3_unsynchronize
+int id3_unsynchronize(char* tag, int len, bool *ff_found)
 {
     int i;
     unsigned char c;
@@ -299,9 +301,7 @@ static int parsealbumart( struct mp3entry* entry, char* tag, int bufferpos )
     if(entry->has_embedded_albumart)
         return bufferpos;
 
-    /* we currently don't support unsynchronizing albumart */
-    if (entry->albumart.type == AA_TYPE_UNSYNC)
-        return bufferpos;
+    bool unsync = entry->albumart.type == AA_FLAG_ID3_UNSYNC;
 
     entry->albumart.type = AA_TYPE_UNKNOWN;
 
@@ -353,6 +353,10 @@ static int parsealbumart( struct mp3entry* entry, char* tag, int bufferpos )
         /* fixup offset&size for image data */
         entry->albumart.pos  += tag - start;
         entry->albumart.size -= tag - start;
+        if (unsync)
+        {
+            entry->albumart.type |= AA_FLAG_ID3_UNSYNC;
+        }
         /* check for malformed tag with no picture data */
         entry->has_embedded_albumart = (entry->albumart.size != 0);
     }
@@ -361,7 +365,7 @@ static int parsealbumart( struct mp3entry* entry, char* tag, int bufferpos )
 }
 #endif
 
-/* parse user defined text, looking for album artist and replaygain 
+/* parse user defined text, looking for album artist and replaygain
  * information.
  */
 static int parseuser( struct mp3entry* entry, char* tag, int bufferpos )
@@ -399,7 +403,7 @@ static int parserva2( struct mp3entry* entry, char* tag, int bufferpos)
     /* Only parse RVA2 replaygain tags if tag version == 2.4 and channel
      * type is master volume.
      */
-    if (entry->id3version == ID3_VER_2_4 && end_pos < bufferpos 
+    if (entry->id3version == ID3_VER_2_4 && end_pos < bufferpos
             && *value++ == 1) {
         long gain = 0;
         long peak = 0;
@@ -410,12 +414,12 @@ static int parserva2( struct mp3entry* entry, char* tag, int bufferpos)
         /* The RVA2 specification is unclear on some things (id string and
          * peak volume), but this matches how Quod Libet use them.
          */
-            
+
         gain = (int16_t) ((value[0] << 8) | value[1]);
         value += 2;
         peakbits = *value++;
         peakbytes = (peakbits + 7) / 8;
-    
+
         /* Only use the topmost 24 bits for peak volume */
         if (peakbytes > 3) {
             peakbytes = 3;
@@ -429,14 +433,14 @@ static int parserva2( struct mp3entry* entry, char* tag, int bufferpos)
                 peak <<= 8;
                 peak += *value++;
             }
-    
+
             peak <<= shift;
-    
+
             if (peakbits > 24) {
                 peak += *value >> (8 - shift);
             }
         }
-    
+
         static const char *tg_options[] = {"album", "track", NULL};
         int tg_op = string_option(tag, tg_options, true);
         if (tg_op == 0) { /*album*/
@@ -462,7 +466,7 @@ static int parsembtid( struct mp3entry* entry, char* tag, int bufferpos )
     int desc_len = strlen(tag);
     /*DEBUGF("MBID len: %d\n", desc_len);*/
     /* Musicbrainz track IDs are always 36 chars long */
-    const size_t mbtid_len = 36; 
+    const size_t mbtid_len = 36;
 
     if ((tag - entry->id3v2buf + desc_len + 2) < bufferpos)
     {
@@ -501,8 +505,8 @@ static const struct tag_resolver taglist[] = {
     { "TP2",  3, offsetof(struct mp3entry, albumartist), NULL, false },
     { "TIT1", 4, offsetof(struct mp3entry, grouping), NULL, false },
     { "TT1",  3, offsetof(struct mp3entry, grouping), NULL, false },
-    { "COMM", 4, offsetof(struct mp3entry, comment), NULL, false }, 
-    { "COM",  3, offsetof(struct mp3entry, comment), NULL, false }, 
+    { "COMM", 4, offsetof(struct mp3entry, comment), NULL, false },
+    { "COM",  3, offsetof(struct mp3entry, comment), NULL, false },
     { "TCON", 4, offsetof(struct mp3entry, genre_string), &parsegenre, false },
     { "TCO",  3, offsetof(struct mp3entry, genre_string), &parsegenre, false },
 #ifdef HAVE_ALBUMART
@@ -539,84 +543,84 @@ static int unicode_len(char encoding, const void* string)
     return len;
 }
 
-/* Checks to see if the passed in string is a 16-bit wide Unicode v2
+/* Checks if passed string can be treated as utf-8 string and process it accordingly */
+static bool parse_as_utf8(char* string, int *len)
+{
+    switch (string[0])
+    {
+        case 0x01: /* Unicode with or without BOM */
+        case 0x02:
+            return false;
+
+        case 0x00: /* Type 0x00 is ordinary ISO 8859-1 */
+            if (get_codepage() != UTF_8)
+                return false;
+        // fallthrough
+        case 0x03: /* UTF-8 encoded string */
+            (*len)--;
+            memmove(string, string + 1, *len);
+            return true;
+
+        default: /* Plain old string */
+            if (get_codepage() == UTF_8)
+            {
+                return true;
+            }
+            return false;
+    }
+}
+
+/* Must be called after parse_as_utf8. Checks to see if the passed in string is a 16-bit wide Unicode v2
    string.  If it is, we convert it to a UTF-8 string.  If it's not unicode,
-   we convert from the default codepage */
-static int unicode_munge(char* string, char* utf8buf, int *len) {
-    long tmp;
-    bool le = false;
-    int i = 0;
-    unsigned char *str = (unsigned char *)string;
-    int templen = 0;
-    unsigned char* utf8 = (unsigned char *)utf8buf;
+   we convert from the default codepage
+   NOTE: real UTF-8 buffer size is expected to be utf8buf_size + 1 (additional byte for string terminator) */
+static void unicode_munge(unsigned char* string, unsigned char* utf8buf, int *len, int utf8buf_size) {
+    unsigned char *str = string;
+    unsigned char* utf8 = utf8buf;
 
     switch (str[0]) {
-        case 0x00: /* Type 0x00 is ordinary ISO 8859-1 */
-            str++;
-            (*len)--;
-            utf8 = iso_decode(str, utf8, -1, *len);
-            *utf8 = 0;
-            *len = (intptr_t)utf8 - (intptr_t)utf8buf;
-            break;
-
         case 0x01: /* Unicode with or without BOM */
         case 0x02:
             (*len)--;
             str++;
-
+            bool le;
+            int i = 0;
             /* Handle frames with more than one string
                (needed for TXXX frames).*/
             do {
-                tmp = bytes2int(0, 0, str[0], str[1]);
-
-                /* Now check if there is a BOM
-                   (zero-width non-breaking space, 0xfeff)
-                   and if it is in little or big endian format */
-                if(tmp == 0xfffe) { /* Little endian? */
-                    le = true;
-                    str += 2;
-                    (*len)-=2;
-                } else if(tmp == 0xfeff) { /* Big endian? */
-                    str += 2;
-                    (*len)-=2;
-                } else
-                /* If there is no BOM (which is a specification violation),
-                   let's try to guess it. If one of the bytes is 0x00, it is
-                   probably the most significant one. */
-                    if(str[1] == 0)
-                        le = true;
+                if (utf16_has_bom(str, &le))
+                {
+                    str += BOM_UTF_16_SIZE;
+                    *len -= BOM_UTF_16_SIZE;
+                }
+                string = str;
 
                 while ((i < *len) && (str[0] || str[1])) {
-                    if(le)
-                        utf8 = utf16LEdecode(str, utf8, 1);
-                    else
-                        utf8 = utf16BEdecode(str, utf8, 1);
-
                     str+=2;
                     i += 2;
                 }
 
+                utf8 = utf16decode(string, utf8, (str-string)>>1 /*(str-string)/2*/, utf8buf_size, le);
                 *utf8++ = 0; /* Terminate the string */
-                templen += (strlen(&utf8buf[templen]) + 1);
+                utf8buf_size -= utf8 - utf8buf;
                 str += 2;
-                i+=2;
-            } while(i < *len);
-            *len = templen - 1;
+                i += 2;
+            } while(i < *len && utf8buf_size > 0);
+            *len = utf8 - utf8buf  - 1;
             break;
 
-        case 0x03: /* UTF-8 encoded string */
-            for(i=0; i < *len; i++)
-                utf8[i] = str[i+1];
+        /* case 0x03:  UTF-8 encoded string handled by parse_as_utf8 */
+
+        case 0x00: /* Type 0x00 is ordinary ISO 8859-1 */
+            str++;
             (*len)--;
-            break;
-
+        //fallthrough
         default: /* Plain old string */
-            utf8 = iso_decode(str, utf8, -1, *len);
+            utf8 = iso_decode_ex(str, utf8, -1, *len, utf8buf_size);
             *utf8 = 0;
-            *len = (intptr_t)utf8 - (intptr_t)utf8buf;
+            *len = utf8 - utf8buf;
             break;
     }
-    return 0;
 }
 
 /*
@@ -703,6 +707,54 @@ bool setid3v1title(int fd, struct mp3entry *entry)
     return true;
 }
 
+static bool is_cuesheet(char *tag, unsigned char *char_enc, unsigned char *cuesheet_offset)
+{
+    *char_enc = CHAR_ENC_ISO_8859_1;
+    /* [enc type]+"CUESHEET\0" = 10 */
+    *cuesheet_offset = 10;
+    const char* key = "CUESHEET";
+    const int key_size = 8;
+    // check and skip encoding type
+    switch (*(tag++))
+    {
+        case 0x01:
+        {
+            bool le;
+            if (!utf16_has_bom(tag, &le))
+                return false;
+
+            *char_enc = le ? CHAR_ENC_UTF_16_LE: CHAR_ENC_UTF_16_BE;
+            tag+= BOM_UTF_16_SIZE;
+            /* \1 + BOM(2) + C0U0E0S0H0E0E0T000 = 21 */
+            *cuesheet_offset = 21;
+            break;
+        }
+
+        case 0x02:
+            *char_enc = CHAR_ENC_UTF_16_BE;
+            /* \2 + 0C0U0E0S0H0E0E0T00 = 19 */
+            *cuesheet_offset = 19;
+            break;
+
+        case 0x03:
+            *char_enc = CHAR_ENC_UTF_8;
+        //fallthrough
+        case 0x00:
+            return !strncmp(tag, key, key_size);
+
+        default:
+            return false;
+    }
+
+    // check if UTF-16 string is variation of C0U0E0S0H0E0E0T or 0C0U0E0S0H0E0E0T
+    for (int i =0; i < key_size; ++i)
+    {
+        const char* utf16_char = &tag[(i << 1)];
+        if (*utf16_char + *(utf16_char + 1) != key[i])
+            return false;
+    }
+    return true;
+}
 
 /*
  * Sets the title of an MP3 entry based on its ID3v2 tag.
@@ -725,12 +777,12 @@ void setid3v2title(int fd, struct mp3entry *entry)
     unsigned char version;
     char *buffer = entry->id3v2buf;
     int bytesread = 0;
-    int buffersize = sizeof(entry->id3v2buf);
+    int buffersize;
     unsigned char global_flags;
     int flags;
     bool global_unsynch = false;
     bool unsynch = false;
-    int i, j;
+    int i;
     int rc;
     bool itunes_gapless = false;
 
@@ -812,11 +864,26 @@ void setid3v2title(int fd, struct mp3entry *entry)
         global_unsynch = true;
     }
 
+    bool limit_tag_size = false;
+    uint32_t initial_pos = lseek(fd, 0, SEEK_CUR);
+    int  initial_size = size;
+
+retry_with_limit:
+    buffersize = sizeof(entry->id3v2buf) + sizeof(entry->id3v1buf);
+
+    if (limit_tag_size)
+    {
+        bufferpos = 0;
+        size = initial_size;
+        lseek(fd, initial_pos, SEEK_SET);
+        memset(buffer, 0, buffersize);
+    }
+
     /*
      * We must have at least minframesize bytes left for the
      * remaining frames to be interesting
      */
-    while (size >= minframesize && bufferpos < buffersize - 1) {
+    while (size >= minframesize) {
         flags = 0;
 
         /* Read frame header and check length */
@@ -895,13 +962,13 @@ void setid3v2title(int fd, struct mp3entry *entry)
                 }
             }
         }
-        
+
         if (framelen == 0)
             continue;
 
         if (framelen < 0)
             return;
-        
+
         /* Keep track of the remaining frame size */
         totframelen = framelen;
 
@@ -913,7 +980,7 @@ void setid3v2title(int fd, struct mp3entry *entry)
         /* Limit the maximum length of an id3 data item to ID3V2_MAX_ITEM_SIZE
            bytes. This reduces the chance that the available buffer is filled
            by single metadata items like large comments. */
-        if (ID3V2_MAX_ITEM_SIZE < framelen)
+        if (limit_tag_size && ID3V2_MAX_ITEM_SIZE < framelen)
             framelen = ID3V2_MAX_ITEM_SIZE;
 
         logf("id3v2 frame: %.4s", header);
@@ -951,7 +1018,16 @@ void setid3v2title(int fd, struct mp3entry *entry)
 
             if( !memcmp( header, tr->tag, tr->tag_length ) ) {
 
-                /* found a tag matching one in tagList, and not yet filled */
+                if (bufferpos >= buffersize - 1)
+                {
+                    if (limit_tag_size)
+                        return;
+
+                    limit_tag_size = true;
+                    goto retry_with_limit;
+                }
+
+                /* found a tag matching one in tagList */
                 tag = buffer + bufferpos;
 
                 if(global_unsynch && version <= ID3_VER_2_3)
@@ -967,13 +1043,12 @@ void setid3v2title(int fd, struct mp3entry *entry)
                 if(unsynch || (global_unsynch && version >= ID3_VER_2_4))
                     bytesread = unsynchronize_frame(tag, bytesread);
 
-                /* the COMM frame has a 3 char field to hold an ISO-639-1 
+                /* the COMM frame has a 3 char field to hold an ISO-639-1
                  * language string and an optional short description;
                  * remove them so unicode_munge can work correctly
                  */
 
-                if((tr->tag_length == 4 && !memcmp( header, "COMM", 4)) ||
-                   (tr->tag_length == 3 && !memcmp( header, "COM", 3))) {
+                if (tr->offset == offsetof(struct mp3entry, comment)) {
                     int offset;
                     if (buffersize - bufferpos <= 4)
                         return; /* Error ?? */
@@ -996,60 +1071,43 @@ void setid3v2title(int fd, struct mp3entry *entry)
                 /* Attempt to parse Unicode string only if the tag contents
                    aren't binary */
                 if(!tr->binary) {
-                    /* UTF-8 could potentially be 3 times larger */
-                    /* so we need to create a new buffer         */
-                    char utf8buf[(3 * bytesread) + 1];
-
-                    unicode_munge( tag, utf8buf, &bytesread );
-
-                    if(bytesread >= buffersize - bufferpos)
-                        bytesread = buffersize - bufferpos - 1;
-
                     if ( /* Is it an embedded cuesheet? */
-                       (tr->tag_length == 4 && !memcmp(header, "TXXX", 4)) &&
-                       (bytesread >= 14 && !strncmp(utf8buf, "CUESHEET", 8))
+                       (ptag == NULL && tr->tag_length == 4 && !memcmp(header, "TXXX", 4)) &&
+                       (bytesread >= 14)
                     ) {
-                        unsigned char char_enc = 0;
-                        /* [enc type]+"CUESHEET\0" = 10 */
-                        unsigned char cuesheet_offset = 10;
-                        switch (tag[0]) {
-                            case 0x00:
-                                char_enc = CHAR_ENC_ISO_8859_1;
-                                break;
-                            case 0x01:
-                                tag++;
-                                if (!memcmp(tag,
-                                   BOM_UTF_16_BE, BOM_UTF_16_SIZE)) {
-                                    char_enc = CHAR_ENC_UTF_16_BE;
-                                } else if (!memcmp(tag,
-                                          BOM_UTF_16_LE, BOM_UTF_16_SIZE)) {
-                                    char_enc = CHAR_ENC_UTF_16_LE;
-                                }
-                                /* \1 + BOM(2) + C0U0E0S0H0E0E0T000 = 21 */
-                                cuesheet_offset = 21;
-                                break;
-                            case 0x02:
-                                char_enc = CHAR_ENC_UTF_16_BE;
-                                /* \2 + 0C0U0E0S0H0E0E0T00 = 19 */
-                                cuesheet_offset = 19;
-                                break;
-                            case 0x03:
-                                char_enc = CHAR_ENC_UTF_8;
-                                break;
+                        unsigned char char_enc;
+                        unsigned char cuesheet_offset;
+                        if (is_cuesheet(tag, &char_enc, &cuesheet_offset))
+                        {
+                            if (char_enc > 0) {
+                                entry->has_embedded_cuesheet = true;
+                                entry->embedded_cuesheet.pos = lseek(fd, 0, SEEK_CUR)
+                                    - framelen + cuesheet_offset;
+                                entry->embedded_cuesheet.size = totframelen
+                                    - cuesheet_offset;
+                                entry->embedded_cuesheet.encoding = char_enc;
+                            }
+                            break;
                         }
-                        if (char_enc > 0) {
-                            entry->has_embedded_cuesheet = true;
-                            entry->embedded_cuesheet.pos = lseek(fd, 0, SEEK_CUR)
-                                - framelen + cuesheet_offset;
-                            entry->embedded_cuesheet.size = totframelen
-                                - cuesheet_offset;
-                            entry->embedded_cuesheet.encoding = char_enc;
-                        }
-                        break;
                     }
 
-                    for (j = 0; j < bytesread; j++)
-                        tag[j] = utf8buf[j];
+                    if (!parse_as_utf8(tag, &bytesread))
+                    {
+                        /* UTF-8 could potentially be 3 times larger */
+                        /* so we need to create a new buffer         */
+                        int utf8_size = (3 * bytesread);
+                        if (utf8_size > ID3V2_BUF_SIZE)
+                        {
+                            //limit stack allocation to avoid stack overflow
+                            utf8_size = ID3V2_BUF_SIZE;
+                        }
+                        unsigned char utf8buf[utf8_size + 1];
+                        unicode_munge( (unsigned char *)tag, utf8buf, &bytesread, utf8_size);
+                        if(bytesread >= buffersize - bufferpos)
+                            bytesread = buffersize - bufferpos - 1;
+
+                        memcpy(tag, utf8buf, bytesread);
+                    }
 
                     /* remove trailing spaces */
                     while ( bytesread > 0 && isspace(tag[bytesread-1]))
@@ -1061,7 +1119,6 @@ void setid3v2title(int fd, struct mp3entry *entry)
                     break;
 
                 tag[bytesread] = 0;
-                bufferpos += bytesread + 1;
 
                 /* parse the tag if it contains iTunes gapless info */
                 if (itunes_gapless)
@@ -1069,7 +1126,10 @@ void setid3v2title(int fd, struct mp3entry *entry)
                     itunes_gapless = false;
                     entry->lead_trim = get_itunes_int32(tag, 1);
                     entry->tail_trim = get_itunes_int32(tag, 2);
+                    break;
                 }
+
+                bufferpos += bytesread + 1;
 
                 /* Note that parser functions sometimes set *ptag to NULL, so
                  * the "!*ptag" check here doesn't always have the desired
@@ -1086,14 +1146,11 @@ void setid3v2title(int fd, struct mp3entry *entry)
                     ((tr->tag_length == 4 && !memcmp( header, "APIC", 4)) ||
                      (tr->tag_length == 3 && !memcmp( header, "PIC" , 3))))
                 {
-                    if (unsynch || (global_unsynch && version <= ID3_VER_2_3))
-                        entry->albumart.type = AA_TYPE_UNSYNC;
-                    else
-                    {
-                        entry->albumart.pos = lseek(fd, 0, SEEK_CUR) - framelen;
-                        entry->albumart.size = totframelen;
-                        entry->albumart.type = AA_TYPE_UNKNOWN;
-                    }
+                    entry->albumart.pos = lseek(fd, 0, SEEK_CUR) - framelen;
+                    entry->albumart.size = totframelen;
+                    entry->albumart.type = (unsynch || (global_unsynch && version <= ID3_VER_2_3))
+                                           ? AA_FLAG_ID3_UNSYNC
+                                           : AA_TYPE_UNKNOWN;
                 }
 #endif
                 if( tr->ppFunc )
@@ -1103,7 +1160,7 @@ void setid3v2title(int fd, struct mp3entry *entry)
         }
 
         if( i == TAGLIST_SIZE ) {
-            /* no tag in tagList was found, or it was a repeat.
+            /* no tag in tagList was found,
                skip it using the total size */
 
             if(global_unsynch && version <= ID3_VER_2_3) {

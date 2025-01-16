@@ -72,6 +72,10 @@
 #define S5L8700      8700
 #define S5L8701      8701
 #define S5L8702      8702
+#define S5L8720      8720
+#define S5L8723      8723
+#define S5L8730      8730
+#define S5L8740      8740
 #define JZ4732       4732
 #define JZ4760B     47602
 #define AS3525       3525
@@ -246,7 +250,7 @@
 #define LCD_MINI2440  37 /* as used by the Mini2440 */
 #define LCD_HDD6330   38 /* as used by the Philips HDD6330 */
 #define LCD_VIBE500   39 /* as used by the Packard Bell Vibe 500 */
-#define LCD_IPOD6G    40 /* as used by the iPod Nano 2nd Generation */
+#define LCD_IPOD6GNANO3G4G   40 /* as used by the iPod Classic, Nano 3G and Nano 4G */
 #define LCD_FUZEPLUS  41
 #define LCD_SPFD5420A 42 /* rk27xx */
 #define LCD_CLIPZIP   43 /* as used by the Sandisk Sansa Clip Zip */
@@ -350,6 +354,8 @@ Lyre prototype 1 */
 #define RTC_JZ4760   22 /* Ingenic Jz4760 */
 #define RTC_X1000    23 /* Ingenic X1000 */
 #define RTC_CONNECT  24 /* Sansa Connect AVR */
+#define RTC_NANO3G   25 /* Dialog Semiconductor D1671 ??? */
+#define RTC_NANO4G   26 /* Dialog Semiconductor D1759 ??? */
 
 /* USB On-the-go */
 #define USBOTG_M66591   6591 /* M:Robe 500 */
@@ -666,9 +672,12 @@ Lyre prototype 1 */
 #define CPU_PP502x
 #endif
 
-/* define for all cpus from S5L870X family */
-#if (CONFIG_CPU == S5L8700) || (CONFIG_CPU == S5L8701) || (CONFIG_CPU == S5L8702)
-#define CPU_S5L870X
+/* define for all cpus from S5L87XX family */
+#if (CONFIG_CPU == S5L8700) || (CONFIG_CPU == S5L8701) \
+    || (CONFIG_CPU == S5L8702) || (CONFIG_CPU == S5L8720) \
+    || (CONFIG_CPU == S5L8723) || (CONFIG_CPU == S5L8730) \
+    || (CONFIG_CPU == S5L8740)
+#define CPU_S5L87XX
 #endif
 
 /* define for all cpus from TCC780 family */
@@ -924,6 +933,13 @@ Lyre prototype 1 */
 
 #define NUM_VOLUMES (NUM_DRIVES * NUM_VOLUMES_PER_DRIVE)
 
+/* Sanity check sector size options */
+#if defined(MAX_VARIABLE_LOG_SECTOR) && defined(MAX_VIRT_SECTOR_SIZE)
+#if (MAX_VIRT_SECTOR_SIZE < MAX_VARIABLE_LOG_SECTOR)
+#error "optional MAX_VIRT_SECTOR_SIZE must be at least as large as MAX_VARIABLE_LOG_SECTOR"
+#endif
+#endif
+
 #if defined(BOOTLOADER) && defined(HAVE_ADJUSTABLE_CPU_FREQ)
 /* Bootloaders don't use CPU frequency adjustment */
 #undef HAVE_ADJUSTABLE_CPU_FREQ
@@ -956,7 +972,7 @@ Lyre prototype 1 */
 /* Priority in bootloader is wanted */
 #define HAVE_PRIORITY_SCHEDULING
 
-#if (CONFIG_CPU == S5L8702)
+#if (CONFIG_CPU == S5L8702) || (CONFIG_CPU == S5L8720)
 #define USB_DRIVER_CLOSE
 #else
 #define USB_STATUS_BY_EVENT
@@ -1022,7 +1038,7 @@ Lyre prototype 1 */
 
 #if defined(HAVE_USBSTACK) || (CONFIG_CPU == JZ4732) || (CONFIG_CPU == JZ4760B) \
     || (CONFIG_CPU == AS3525) || (CONFIG_CPU == AS3525v2) \
-    || defined(CPU_S5L870X) || (CONFIG_CPU == S3C2440) \
+    || defined(CPU_S5L87XX) || (CONFIG_CPU == S3C2440) \
     || defined(APPLICATION) || (CONFIG_CPU == PP5002) \
     || (CONFIG_CPU == RK27XX) || (CONFIG_CPU == IMX233) ||              \
     (defined(HAVE_LCD_COLOR) && (LCD_STRIDEFORMAT == HORIZONTAL_STRIDE))
@@ -1111,7 +1127,7 @@ Lyre prototype 1 */
     (CONFIG_CPU == PNX0101) || \
     (CONFIG_CPU == TCC7801) || \
     (CONFIG_CPU == IMX233 && !defined(PLUGIN) && !defined(CODEC)) || /* IMX233: core only */ \
-    defined(CPU_S5L870X)) || /* Samsung S5L8700: core, plugins, codecs */ \
+    defined(CPU_S5L87XX)) || /* Samsung S5L87XX: core, plugins, codecs */ \
     ((CONFIG_CPU == JZ4732 || CONFIG_CPU == JZ4760B) && !defined(PLUGIN) && !defined(CODEC)) /* Jz47XX: core only */
 #define ICODE_ATTR      __attribute__ ((section(".icode")))
 #define ICONST_ATTR     __attribute__ ((section(".irodata")))
@@ -1259,10 +1275,8 @@ Lyre prototype 1 */
 # define INCLUDE_TIMEOUT_API
 #endif
 
-#ifndef SIMULATOR
-#if defined(HAVE_USBSTACK) || (CONFIG_STORAGE & STORAGE_NAND) || (CONFIG_STORAGE & STORAGE_RAMDISK)
+#if (!defined(SIMULATOR) && !defined(HAVE_HOSTFS) && !(CONFIG_STORAGE & STORAGE_HOSTFS))
 #define STORAGE_GET_INFO
-#endif
 #endif
 
 #if defined(HAVE_SIGALTSTACK_THREADS)

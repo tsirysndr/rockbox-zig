@@ -134,7 +134,7 @@ struct list_selection_color
     unsigned bg_color;
     /* To enable:
      * call gui_synclist_set_sel_color(gui_synclist*, list_selection_color*)
-     * If using the default viewport you should call 
+     * If using the default viewport you should call
      * gui_synclist_set_sel_color(gui_synclist*, NULL) when finished */
 };
 #endif
@@ -264,8 +264,8 @@ extern bool list_do_action(int context, int timeout,
 
 
 /** Simplelist implementation.
-    USe this if you dont need to reimplement the list code, 
-    and just need to show a list 
+    USe this if you dont need to reimplement the list code,
+    and just need to show a list
  **/
 
 struct simplelist_info {
@@ -282,7 +282,7 @@ struct simplelist_info {
                        was exited with ACTION_STD_CANCEL                  */
     int (*action_callback)(int action, struct gui_synclist *lists); /* can be NULL */
         /* action_callback notes:
-            action == the action pressed by the user 
+            action == the action pressed by the user
                 _after_ gui_synclist_do_button returns.
             lists == the lists struct so the callback can get selection and count etc. */
     enum themable_icons title_icon;
@@ -306,14 +306,14 @@ struct simplelist_info {
 /** The next three functions are used if the text is mostly static.
     These should be called in the action callback for the list.
  **/
-/* set the amount of lines shown in the list
+/* reset the amount of lines shown in the list to 0
    Only needed if simplelist_info.get_name == NULL */
-void simplelist_set_line_count(int lines);
+void simplelist_reset_lines(void);
 /* get the current amount of lines shown */
 int simplelist_get_line_count(void);
 /* add a line in the list. */
-void simplelist_addline(const char *fmt, ...);
-
+void simplelist_addline(const char *fmt, ...) ATTRIBUTE_PRINTF(1,2);
+void simplelist_setline(const char *text);
 /* setup the info struct. members not setup in this function need to be assigned manually
    members set in this function:
     info.selection_size = 1;

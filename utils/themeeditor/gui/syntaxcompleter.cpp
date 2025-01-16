@@ -50,7 +50,7 @@ SyntaxCompleter::SyntaxCompleter(CodeEditor *parent) :
         QStringList tag;
         tag.append(split[0].trimmed());
         tag.append(split[1].trimmed());
-        tags.insertMulti(split[0].trimmed().toLower(), tag);
+        tags.insert(split[0].trimmed().toLower(), tag);
     }
 
     filter("");
@@ -61,7 +61,7 @@ void SyntaxCompleter::filter(QString text)
 {
     clear();
 
-    for(QMap<QString, QStringList>::iterator i = tags.begin()
+    for(QMultiMap<QString, QStringList>::iterator i = tags.begin()
         ; i != tags.end(); i++)
     {
         if(text.length() == 1)

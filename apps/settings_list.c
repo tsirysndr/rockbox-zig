@@ -102,7 +102,7 @@
 /* Use for int settings which use the set_sound() function to set them */
 #define SOUND_SETTING(flags,var,lang_id,name,setting)                      \
             {flags|F_T_INT|F_T_SOUND|F_SOUNDSETTING|F_ALLOW_ARBITRARY_VALS, &global_settings.var, \
-                lang_id, NODEFAULT,name,NULL,                              \
+                lang_id, NODEFAULT,name,                              \
                 {.sound_setting=(struct sound_setting[]){{setting}}} }
 
 /* Use for bool variables which don't use LANG_SET_BOOL_YES and LANG_SET_BOOL_NO
@@ -114,8 +114,8 @@
  */
 #define BOOL_SETTING(flags,var,lang_id,default,name,cfgvals,yes_id,no_id,cb)\
             {flags|F_BOOL_SETTING, &global_settings.var,                    \
-                lang_id, BOOL(default),name,cfgvals,                        \
-                {.bool_setting=(struct bool_setting[]){{cb,yes_id,no_id}}} }
+                lang_id, BOOL(default),name,                                \
+                {.bool_setting=(struct bool_setting[]){{cb,yes_id,no_id,cfgvals}}} }
 
 /* bool setting which does use LANG_YES and _NO and save as "off,on" */
 #define OFFON_SETTING(flags,var,lang_id,default,name,cb)                    \
@@ -126,7 +126,7 @@
     (Use NVRAM() in the flags to save to the nvram (or nvram.bin file) */
 #define SYSTEM_SETTING(flags,var,default)                           \
             {flags|F_T_INT, &global_status.var,-1, INT(default),    \
-                NULL, NULL, UNUSED}
+                NULL, UNUSED}
 
 /* setting which stores as a filename (or another string) in the .cfgvals
     The string must be a char array (which all of our string settings are),
@@ -137,14 +137,14 @@
  */
 #define TEXT_SETTING(flags,var,name,default,prefix,suffix)      \
             {flags|F_T_UCHARPTR, &global_settings.var,-1,           \
-                CHARPTR(default),name,NULL,                         \
+                CHARPTR(default),name,                              \
                 {.filename_setting=                                 \
                     (struct filename_setting[]){                    \
                         {prefix,suffix,sizeof(global_settings.var)}}} }
 
 #define DIRECTORY_SETTING(flags,var,lang_id,name,default) \
     {flags|F_DIRNAME|F_T_UCHARPTR, &global_settings.var, lang_id, \
-     CHARPTR(default), name, NULL, \
+     CHARPTR(default), name, \
      {.filename_setting=(struct filename_setting[]){ \
          {NULL, NULL, sizeof(global_settings.var)}}}}
 
@@ -153,9 +153,9 @@
     screen. These can either be literal strings, or ID2P(LANG_*) */
 #define CHOICE_SETTING(flags,var,lang_id,default,name,cfg_vals,cb,count,...)   \
             {flags|F_CHOICE_SETTING|F_T_INT,  &global_settings.var, lang_id,   \
-                INT(default), name, cfg_vals,                                  \
+                INT(default), name,                                  \
                 {.choice_setting = (struct choice_setting[]){                  \
-                    {cb, count, {.desc = (const unsigned char*[])              \
+                    {cb, count, cfg_vals, {.desc = (const unsigned char*[])              \
                         {__VA_ARGS__}}}}}}
 
 /* Similar to above, except the strings to display are taken from cfg_vals,
@@ -164,9 +164,9 @@
                                                                 cb,count,...)  \
             {flags|F_CHOICE_SETTING|F_T_INT|F_CHOICETALKS,                     \
                 &global_settings.var, lang_id,                                 \
-                INT(default), name, cfg_vals,                                  \
+                INT(default), name,                                            \
                 {.choice_setting = (struct choice_setting[]){                  \
-                    {cb, count, {.talks = (const int[]){__VA_ARGS__}}}}}}
+                    {cb, count, cfg_vals, {.talks = (const int[]){__VA_ARGS__}}}}}}
 
 /*  for settings which use the set_int() setting screen.
     unit is the UNIT_ define to display/talk.
@@ -175,37 +175,37 @@
 #define INT_SETTING(flags, var, lang_id, default, name,                 \
                     unit, min, max, step, formatter, get_talk_id, cb)   \
             {flags|F_INT_SETTING|F_T_INT, &global_settings.var,         \
-                lang_id, INT(default), name, NULL,                      \
+                lang_id, INT(default), name,                            \
                  {.int_setting = (struct int_setting[]){                \
                     {cb, unit, step, min, max, formatter, get_talk_id}}}}
 #define INT_SETTING_NOWRAP(flags, var, lang_id, default, name,             \
                     unit, min, max, step, formatter, get_talk_id, cb)      \
             {flags|F_INT_SETTING|F_T_INT|F_NO_WRAP, &global_settings.var,  \
-                lang_id, INT(default), name, NULL,                         \
+                lang_id, INT(default), name,                               \
                  {.int_setting = (struct int_setting[]){                   \
                     {cb, unit, step, min, max, formatter, get_talk_id}}}}
 
 #define TABLE_SETTING(flags, var, lang_id, default, name, cfg_vals, \
                       unit, formatter, get_talk_id, cb, count, ...) \
             {flags|F_TABLE_SETTING|F_T_INT, &global_settings.var,   \
-                lang_id, INT(default), name, cfg_vals,              \
+                lang_id, INT(default), name,                        \
                 {.table_setting = (struct table_setting[]) {        \
                     {cb, formatter, get_talk_id, unit, count,       \
-                    (const int[]){__VA_ARGS__}}}}}
+                    cfg_vals, (const int[]){__VA_ARGS__}}}}}
 
 #define TABLE_SETTING_LIST(flags, var, lang_id, default, name, cfg_vals, \
                       unit, formatter, get_talk_id, cb, count, list) \
             {flags|F_TABLE_SETTING|F_T_INT, &global_settings.var,   \
-                lang_id, INT(default), name, cfg_vals,              \
+                lang_id, INT(default), name,                        \
                 {.table_setting = (struct table_setting[]) {        \
-                    {cb, formatter, get_talk_id, unit, count, list}}}}
+                    {cb, formatter, get_talk_id, unit, count, cfg_vals, list}}}}
 
 #define CUSTOM_SETTING(flags, var, lang_id, default, name,              \
                        load_from_cfg, write_to_cfg,                     \
                        is_change, set_default)                          \
             {flags|F_CUSTOM_SETTING|F_T_CUSTOM|F_BANFROMQS,             \
                 &global_settings.var, lang_id,                          \
-                {.custom = (void*)default}, name, NULL,                 \
+                {.custom = (void*)default}, name,                       \
             {.custom_setting = (struct custom_setting[]){               \
         {load_from_cfg, write_to_cfg, is_change, set_default}}}}
 
@@ -819,7 +819,7 @@ static void volume_limit_set_default(void* setting, void* defaultval)
 }
 
 #if defined(HAVE_EROS_QN_CODEC)
-static void stereosw_apply(int arg)
+static void hp_lo_select_apply(int arg)
 {
     (void)arg;
 
@@ -976,6 +976,7 @@ const struct settings_list settings[] = {
     SYSTEM_SETTING(NVRAM(4), resume_crc32, -1),
     SYSTEM_SETTING(NVRAM(4), resume_elapsed, -1),
     SYSTEM_SETTING(NVRAM(4), resume_offset, -1),
+    SYSTEM_SETTING(NVRAM(4), resume_modified, false),
     CHOICE_SETTING(F_CB_ON_SELECT_ONLY|F_CB_ONLY_IF_CHANGED, repeat_mode,
                    LANG_REPEAT, REPEAT_OFF, "repeat", "off,all,one,shuffle"
 #ifdef AB_REPEAT_ENABLE
@@ -998,7 +999,7 @@ const struct settings_list settings[] = {
                   play_frequency, LANG_FREQUENCY, 0, "playback frequency", "auto",
                   UNIT_KHZ, formatter_freq_unit_0_is_auto,
                   getlang_freq_unit_0_is_auto,
-                  playback_frequency_callback,
+                  playback_frequency_callback, 
 #if HAVE_PLAY_FREQ >= 192
                   7,0,SAMPR_44,SAMPR_48,SAMPR_88,SAMPR_96,SAMPR_176,SAMPR_192),
 #elif HAVE_PLAY_FREQ >= 96
@@ -1023,7 +1024,7 @@ const struct settings_list settings[] = {
 #ifdef HAVE_LCD_CONTRAST
     /* its easier to leave this one un-macro()ed for the time being */
     { F_T_INT|F_DEF_ISFUNC|F_INT_SETTING, &global_settings.contrast,
-        LANG_CONTRAST, FUNCTYPE(lcd_default_contrast), "contrast", NULL , {
+        LANG_CONTRAST, FUNCTYPE(lcd_default_contrast), "contrast", {
             .int_setting = (struct int_setting[]) {
                 { .option_callback = lcd_set_contrast,
                   .unit = UNIT_INT, .step = 1,
@@ -1097,7 +1098,7 @@ const struct settings_list settings[] = {
                   -1,0,1,2,3,4,5,7,9,11,13,16,20,25,30),
 #ifdef HAVE_LCD_COLOR
     {F_T_INT|F_RGB|F_THEMESETTING ,&global_settings.list_separator_color,-1,
-        INT(DEFAULT_THEME_SEPARATOR),"list separator color",NULL,UNUSED},
+        INT(DEFAULT_THEME_SEPARATOR),"list separator color",UNUSED},
 #endif
 #endif
     CHOICE_SETTING(F_THEMESETTING, volume_type, LANG_VOLUME_DISPLAY, 0,
@@ -1153,7 +1154,7 @@ const struct settings_list settings[] = {
     /* its easier to leave this one un-macro()ed for the time being */
     { F_T_INT|F_DEF_ISFUNC|F_INT_SETTING, &global_settings.battery_capacity,
         LANG_BATTERY_CAPACITY, FUNCTYPE(battery_default_capacity),
-        "battery capacity", NULL , {
+        "battery capacity" , {
             .int_setting = (struct int_setting[]) {
                 { .option_callback = set_battery_capacity,
                   .unit = UNIT_MAH, .step = BATTERY_CAPACITY_INC,
@@ -1184,7 +1185,7 @@ const struct settings_list settings[] = {
                   true, "accessory power supply", accessory_supply_set),
 #endif
 #ifdef HAVE_LINEOUT_POWEROFF
-    OFFON_SETTING(0, lineout_active, LANG_LINEOUT_ONOFF,
+    OFFON_SETTING(0, lineout_active, LANG_LINEOUT,
                   true, "lineout", lineout_set),
 #endif
     /* tuner */
@@ -1345,17 +1346,15 @@ const struct settings_list settings[] = {
 #ifdef HAVE_LCD_COLOR
 
     {F_T_INT|F_RGB|F_THEMESETTING ,&global_settings.fg_color,-1,
-        INT(DEFAULT_THEME_FOREGROUND),"foreground color",NULL,UNUSED},
+        INT(DEFAULT_THEME_FOREGROUND),"foreground color",UNUSED},
     {F_T_INT|F_RGB|F_THEMESETTING ,&global_settings.bg_color,-1,
-        INT(DEFAULT_THEME_BACKGROUND),"background color",NULL,UNUSED},
+        INT(DEFAULT_THEME_BACKGROUND),"background color",UNUSED},
     {F_T_INT|F_RGB|F_THEMESETTING ,&global_settings.lss_color,-1,
-        INT(DEFAULT_THEME_SELECTOR_START),"line selector start color",NULL,
-        UNUSED},
+        INT(DEFAULT_THEME_SELECTOR_START),"line selector start color",UNUSED},
     {F_T_INT|F_RGB|F_THEMESETTING ,&global_settings.lse_color,-1,
-        INT(DEFAULT_THEME_SELECTOR_END),"line selector end color",NULL,UNUSED},
+        INT(DEFAULT_THEME_SELECTOR_END),"line selector end color",UNUSED},
     {F_T_INT|F_RGB|F_THEMESETTING ,&global_settings.lst_color,-1,
-        INT(DEFAULT_THEME_SELECTOR_TEXT),"line selector text color",NULL,
-        UNUSED},
+        INT(DEFAULT_THEME_SELECTOR_TEXT),"line selector text color",UNUSED},
 
 #endif
     /* more playback */
@@ -1463,9 +1462,9 @@ const struct settings_list settings[] = {
                 UNIT_PM_TICK, 1, 0x7e, 1, NULL, NULL,NULL),
     OFFON_SETTING(0,peak_meter_dbfs,LANG_PM_DBFS,true,"peak meter dbfs",NULL),
     {F_T_INT, &global_settings.peak_meter_min, LANG_PM_MIN,INT(60),
-        "peak meter min", NULL, UNUSED},
+        "peak meter min", UNUSED},
     {F_T_INT, &global_settings.peak_meter_max, LANG_PM_MAX,INT(0),
-        "peak meter max", NULL, UNUSED},
+        "peak meter max", UNUSED},
 #ifdef HAVE_RECORDING
     OFFON_SETTING(0, peak_meter_clipcounter, LANG_PM_CLIPCOUNTER, false,
                   "peak meter clipcounter", NULL),
@@ -1511,23 +1510,22 @@ const struct settings_list settings[] = {
                          TALK_ID(650, UNIT_MB), TALK_ID(700, UNIT_MB),
                          TALK_ID(1024, UNIT_MB), TALK_ID(1536, UNIT_MB),
                          TALK_ID(1792, UNIT_MB)),
-    {F_T_INT|F_RECSETTING, &global_settings.rec_channels, LANG_CHANNELS, INT(0),
-     "rec channels","stereo,mono",UNUSED},
-    {F_T_INT|F_RECSETTING, &global_settings.rec_mono_mode,
-     LANG_RECORDING_MONO_MODE, INT(0), "rec mono mode","L+R,L,R",UNUSED},
+    {F_T_INT|F_RECSETTING|F_HAS_CFGVALS, &global_settings.rec_channels, LANG_CHANNELS, INT(0),
+     "rec channels",{.cfg_vals="stereo,mono"}},
+    {F_T_INT|F_RECSETTING|F_HAS_CFGVALS, &global_settings.rec_mono_mode,
+     LANG_RECORDING_MONO_MODE, INT(0), "rec mono mode",{.cfg_vals="L+R,L,R"}},
     CHOICE_SETTING(F_RECSETTING, rec_split_type, LANG_SPLIT_TYPE, 0,
                    "rec split type", "Split,Stop,Shutdown", NULL, 3,
                    ID2P(LANG_START_NEW_FILE), ID2P(LANG_STOP_RECORDING),ID2P(LANG_STOP_RECORDING_AND_SHUTDOWN)),
     CHOICE_SETTING(F_RECSETTING, rec_split_method, LANG_SPLIT_MEASURE, 0,
                    "rec split method", "Time,Filesize", NULL, 2,
                    ID2P(LANG_TIME), ID2P(LANG_FILESIZE)),
-    {F_T_INT|F_RECSETTING, &global_settings.rec_source, LANG_RECORDING_SOURCE,
+    {F_T_INT|F_RECSETTING|F_HAS_CFGVALS, &global_settings.rec_source, LANG_RECORDING_SOURCE,
         INT(0), "rec source",
-        &HAVE_MIC_REC_(",mic")
+        {.cfg_vals=&HAVE_MIC_REC_(",mic")
         HAVE_LINE_REC_(",line")
         HAVE_SPDIF_REC_(",spdif")
-        HAVE_FMRADIO_REC_(",fmradio")[1],
-        UNUSED},
+        HAVE_FMRADIO_REC_(",fmradio")[1]}},
     INT_SETTING(F_TIME_SETTING | F_RECSETTING, rec_prerecord_time,
                 LANG_RECORD_PRERECORD_TIME, 0,
                 "prerecording time", UNIT_SEC, 0, 30, 1,
@@ -1549,31 +1547,31 @@ const struct settings_list settings[] = {
 #ifdef DEFAULT_REC_MIC_GAIN
     {F_T_INT|F_RECSETTING,&global_settings.rec_mic_gain,
         LANG_GAIN,INT(DEFAULT_REC_MIC_GAIN),
-        "rec mic gain",NULL,UNUSED},
+        "rec mic gain",UNUSED},
 #endif /* DEFAULT_REC_MIC_GAIN */
 #ifdef DEFAULT_REC_LEFT_GAIN
     {F_T_INT|F_RECSETTING,&global_settings.rec_left_gain,
         LANG_GAIN_LEFT,INT(DEFAULT_REC_LEFT_GAIN),
-        "rec left gain",NULL,UNUSED},
+        "rec left gain",UNUSED},
 #endif /* DEFAULT_REC_LEFT_GAIN */
 #ifdef DEFAULT_REC_RIGHT_GAIN
     {F_T_INT|F_RECSETTING,&global_settings.rec_right_gain,LANG_GAIN_RIGHT,
         INT(DEFAULT_REC_RIGHT_GAIN),
-        "rec right gain",NULL,UNUSED},
+        "rec right gain",UNUSED},
 #endif /* DEFAULT_REC_RIGHT_GAIN */
-    {F_T_INT|F_RECSETTING,&global_settings.rec_frequency,
+    {F_T_INT|F_RECSETTING|F_HAS_CFGVALS,&global_settings.rec_frequency,
         LANG_FREQUENCY,INT(REC_FREQ_DEFAULT),
-        "rec frequency",REC_FREQ_CFG_VAL_LIST,UNUSED},
-    {F_T_INT|F_RECSETTING,&global_settings.rec_format,
+        "rec frequency",{.cfg_vals=REC_FREQ_CFG_VAL_LIST}},
+    {F_T_INT|F_RECSETTING|F_HAS_CFGVALS,&global_settings.rec_format,
         LANG_FORMAT,INT(REC_FORMAT_DEFAULT),
-        "rec format",REC_FORMAT_CFG_VAL_LIST,UNUSED},
+        "rec format",{.cfg_vals=REC_FORMAT_CFG_VAL_LIST}},
     /** Encoder settings start - keep these together **/
     /* aiff_enc */
     /* (no settings yet) */
     /* mp3_enc */
-    {F_T_INT|F_RECSETTING, &global_settings.mp3_enc_config.bitrate,-1,
+    {F_T_INT|F_RECSETTING|F_HAS_CFGVALS, &global_settings.mp3_enc_config.bitrate,-1,
         INT(MP3_ENC_BITRATE_CFG_DEFAULT),
-        "mp3_enc bitrate",MP3_ENC_BITRATE_CFG_VALUE_LIST,UNUSED},
+        "mp3_enc bitrate",{.cfg_vals=MP3_ENC_BITRATE_CFG_VALUE_LIST}},
     /* wav_enc */
     /* (no settings yet) */
     /* wavpack_enc */
@@ -1838,7 +1836,7 @@ const struct settings_list settings[] = {
     OFFON_SETTING(F_BANFROMQS, tagcache_autoupdate, LANG_TAGCACHE_AUTOUPDATE, false,
                   "tagcache_autoupdate", NULL),
 #endif
-    CHOICE_SETTING(F_TEMPVAR, default_codepage, LANG_DEFAULT_CODEPAGE, 0,
+    CHOICE_SETTING(F_TEMPVAR, default_codepage, LANG_DEFAULT_CODEPAGE, 14,
                    "default codepage",
                    /* The order must match with that in unicode.c */
                    "iso8859-1,iso8859-7,iso8859-8,cp1251,iso8859-11,cp1256,"
@@ -1891,7 +1889,7 @@ const struct settings_list settings[] = {
 #ifdef HAVE_BACKLIGHT
     CHOICE_SETTING(0, backlight_on_button_hold,
                    LANG_BACKLIGHT_ON_BUTTON_HOLD,
-#ifdef HAS_BUTTON_HOLD
+#ifdef HAS_BUTTON_HOLD                   
                    1,
 #else
                    0,
@@ -1919,15 +1917,15 @@ const struct settings_list settings[] = {
 
 #ifdef HAVE_AGC
     {F_T_INT,&global_settings.rec_agc_preset_mic,LANG_RECORDING_AGC_PRESET,
-        INT(1),"agc mic preset",NULL,UNUSED},
+        INT(1),"agc mic preset",UNUSED},
     {F_T_INT,&global_settings.rec_agc_preset_line,LANG_RECORDING_AGC_PRESET,
-        INT(1),"agc line preset",NULL,UNUSED},
+        INT(1),"agc line preset",UNUSED},
     {F_T_INT,&global_settings.rec_agc_maxgain_mic,-1,INT(104),
-        "agc maximum mic gain",NULL,UNUSED},
+        "agc maximum mic gain",UNUSED},
     {F_T_INT,&global_settings.rec_agc_maxgain_line,-1,INT(96),
-        "agc maximum line gain",NULL,UNUSED},
-    {F_T_INT,&global_settings.rec_agc_cliptime,LANG_RECORDING_AGC_CLIPTIME,
-        INT(1),"agc cliptime","0.2 s,0.4 s,0.6 s,0.8 s,1 s",UNUSED},
+        "agc maximum line gain",UNUSED},
+    {F_T_INT|F_HAS_CFGVALS,&global_settings.rec_agc_cliptime,LANG_RECORDING_AGC_CLIPTIME,
+        INT(1),"agc cliptime", {.cfg_vals = "0.2 s,0.4 s,0.6 s,0.8 s,1 s"}},
 #endif
 
 #ifdef HAVE_REMOTE_LCD
@@ -2050,8 +2048,8 @@ const struct settings_list settings[] = {
     SYSTEM_SETTING(NVRAM(1),last_screen,-1),
 #if defined(HAVE_RTC_ALARM) && \
     (defined(HAVE_RECORDING) || CONFIG_TUNER)
-    {F_T_INT, &global_settings.alarm_wake_up_screen, LANG_ALARM_WAKEUP_SCREEN,
-        INT(ALARM_START_WPS), "alarm wakeup screen", ALARM_SETTING_TEXT,UNUSED},
+    {F_T_INT|F_HAS_CFGVALS, &global_settings.alarm_wake_up_screen, LANG_ALARM_WAKEUP_SCREEN,
+        INT(ALARM_START_WPS), "alarm wakeup screen", {.cfg_vals=ALARM_SETTING_TEXT}},
 #endif /* HAVE_RTC_ALARM */
 
     /* Customizable icons */
@@ -2225,8 +2223,6 @@ const struct settings_list settings[] = {
     VIEWPORT_SETTING(remote_ui_vp_config, "remote ui viewport"),
 #endif
 
-    TEXT_SETTING(F_THEMESETTING, player_name, "player name", "", NULL, NULL),
-
 #ifdef HAVE_MORSE_INPUT
     OFFON_SETTING(0, morse_input, LANG_MORSE_INPUT, false, "morse input", NULL),
 #endif
@@ -2315,10 +2311,11 @@ const struct settings_list settings[] = {
                   true, "clear settings on hold", NULL),
 #endif
 #if defined(HAVE_EROS_QN_CODEC)
-    CHOICE_SETTING(0, stereosw_mode, LANG_STEREOSW_MODE, 0, "stereo switch mode",
-    "normal,reverse,always0,always1", stereosw_apply, 4,
-    ID2P(LANG_NORMAL), ID2P(LANG_REVERSE), ID2P(LANG_ALWAYS_ZERO), ID2P(LANG_ALWAYS_ONE)),
+    CHOICE_SETTING(0, hp_lo_select, LANG_HP_LO_SELECT, 0, "headphone lineout select",
+    "auto,headphone,lineout", hp_lo_select_apply, 3,
+    ID2P(LANG_AUTO), ID2P(LANG_HEADPHONE), ID2P(LANG_LINEOUT)),
 #endif
+    OFFON_SETTING(0, playback_log, LANG_LOGGING, false, "play log", NULL),
 };
 
 const int nb_settings = sizeof(settings)/sizeof(*settings);

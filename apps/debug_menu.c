@@ -136,8 +136,8 @@
 #include "rb-loader.h"
 #endif
 
-#if defined(IPOD_6G)
-#include "nor-target.h"
+#if defined(IPOD_6G) && !defined(SIMULATOR)
+#include "norboot-target.h"
 #endif
 
 #define SCREEN_MAX_CHARS (LCD_WIDTH / SYSFONT_WIDTH)
@@ -565,12 +565,12 @@ static const char* dbg_partitions_getname(int selected_item, void *data,
     // XXX and if mounted, show free info...
     if (selected_item%2)
     {
-        snprintf(buffer, buffer_len, "   T:%x %llu MB", p.type,
-                 (uint64_t)(p.size / ( 2048 / ( SECTOR_SIZE / 512 ))));
+        snprintf(buffer, buffer_len, "   T:%x %lu MB", p.type,
+                 (unsigned long)(p.size / ( 2048 / ( SECTOR_SIZE / 512 ))));
     }
     else
     {
-        snprintf(buffer, buffer_len, "P%d: S:%llx", partition, (uint64_t)p.start);
+        snprintf(buffer, buffer_len, "P%d: S:%llx", partition, (unsigned long long)p.start);
     }
     return buffer;
 }
@@ -1278,7 +1278,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
         }
 #endif
 
-        simplelist_set_line_count(0);
+        simplelist_reset_lines();
 
         card = card_get_info(*cardnum);
 
@@ -1318,8 +1318,8 @@ static int disk_callback(int btn, struct gui_synclist *lists)
 #if (CONFIG_STORAGE & STORAGE_SD)
                     "O=%c%c",
                     (int) card_extract_bits(card->cid, 127, 8),
-                    card_extract_bits(card->cid, 119, 8),
-                    card_extract_bits(card->cid, 111, 8)
+                    (int) card_extract_bits(card->cid, 119, 8),
+                    (int) card_extract_bits(card->cid, 111, 8)
 #elif (CONFIG_STORAGE & STORAGE_MMC)
                     "O=%04x",
                     (int) card_extract_bits(card->cid, 127, 8),
@@ -1364,7 +1364,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
                     ver = "Unknown";
                     break;
             }
-            simplelist_addline("SDVer: %s\n", ver);
+            simplelist_addline("SDVer: %s", ver);
             if (csd_structure == 0) /* CSD version 1.0 */
 #endif
             {
@@ -1380,7 +1380,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
         }
         else if (card->initialized == 0)
         {
-            simplelist_addline("Not Found!");
+            simplelist_setline("Not Found!");
         }
 #if (CONFIG_STORAGE & STORAGE_SD)
         else /* card->initialized < 0 */
@@ -1408,7 +1408,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
     bool timing_info_present = false;
     (void)btn;
 
-    simplelist_set_line_count(0);
+    simplelist_reset_lines();
 
     for (i=0; i < 20; i++)
         ((unsigned short*)buf)[i]=htobe16(identify_info[i+27]);
@@ -1430,38 +1430,43 @@ static int disk_callback(int btn, struct gui_synclist *lists)
     simplelist_addline(
              "Firmware: %s", buf);
 
-    uint64_t total_sectors = identify_info[60] | (identify_info[61] << 16);
+    uint64_t total_sectors = (identify_info[61] << 16) | identify_info[60];
 #ifdef HAVE_LBA48
-    if (identify_info[83] & 0x0400
-        && total_sectors == 0x0FFFFFFF)
-        total_sectors = identify_info[100] | (identify_info[101] << 16) | ((uint64_t)identify_info[102] << 32) | ((uint64_t)identify_info[103] << 48);
+    if (identify_info[83] & 0x0400 && total_sectors == 0x0FFFFFFF)
+        total_sectors = ((uint64_t)identify_info[103] << 48) |
+                ((uint64_t)identify_info[102] << 32) |
+                ((uint64_t)identify_info[101] << 16) |
+                identify_info[100];
 #endif
 
     uint32_t sector_size;
 
     /* Logical sector size > 512B ? */
-    if ((identify_info[106] & 0xd000) == 0x5000)
-        sector_size = identify_info[117] | (identify_info[118] << 16);
+    if ((identify_info[106] & 0xd000) == 0x5000) /* B14, B12 */
+        sector_size = (identify_info[117] | (identify_info[118] << 16)) * 2;
     else
-        sector_size = SECTOR_SIZE;
+        sector_size = 512;
 
     total_sectors *= sector_size;   /* Convert to bytes */
     total_sectors /= (1024 * 1024); /* Convert to MB */
 
-    simplelist_addline("Size: %llu MB", total_sectors);
-    simplelist_addline("Logical sector size: %u B", sector_size);
+    simplelist_addline("Size: %lu MB", (unsigned long)total_sectors);
+    simplelist_addline("Logical sector size: %lu B", sector_size);
+#ifdef MAX_VIRT_SECTOR_SIZE
+    simplelist_addline("Sector multiplier: %u", disk_get_sector_multiplier());
+#endif
 
-    if((identify_info[106] & 0xe000) == 0x6000)
+    if((identify_info[106] & 0xe000) == 0x6000) /* B14, B13 */
         sector_size *= BIT_N(identify_info[106] & 0x000f);
     simplelist_addline(
-            "Physical sector size: %d B", sector_size);
+            "Physical sector size: %lu B", sector_size);
 
 #ifndef HAVE_MULTIVOLUME
     // XXX this needs to be fixed for multi-volume setups
     sector_t free;
     volume_size( IF_MV(0,) NULL, &free );
     simplelist_addline(
-             "Free: %llu MB", free / 1024);
+            "Free: %lu MB", (unsigned long)(free / 1024));
 #endif
 
     simplelist_addline("SSD detected: %s", ata_disk_isssd() ? "yes" : "no");
@@ -1476,6 +1481,8 @@ static int disk_callback(int btn, struct gui_synclist *lists)
     i = identify_info[83] & (1<<9);
     simplelist_addline(
              "Noise mgmt: %s", i ? "enabled" : "unsupported");
+    simplelist_addline(
+             "Flush cache: %s", identify_info[83] & (1<<13) ? "extended" : identify_info[83] & (1<<12) ? "standard" : identify_info[80] >= (1<<5) ? "ATA-5" : "unsupported");
     i = identify_info[82] & (1<<6);
     simplelist_addline(
              "Read-ahead: %s", i ? "enabled" : "unsupported");
@@ -1487,7 +1494,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
                  (identify_info[64] & (1<<1))     , &atanums[4*2]);
     }
     else {
-        simplelist_addline(
+        simplelist_setline(
                  "No PIO mode info");
     }
     timing_info_present = identify_info[53] & (1<<1);
@@ -1497,7 +1504,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
                  identify_info[67],
                  identify_info[68] );
     } else {
-        simplelist_addline(
+        simplelist_setline(
                  "No timing info");
     }
 
@@ -1514,7 +1521,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
                  identify_info[66] );
     }
     else {
-        simplelist_addline(
+        simplelist_setline(
                 "No MDMA mode info");
     }
     if (identify_info[53] & (1<<2)) {
@@ -1529,8 +1536,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
                  (identify_info[88] & (1<<6)) >> 5, &atanums[6*2]);
     }
     else {
-        simplelist_addline(
-                "No UDMA mode info");
+        simplelist_setline("No UDMA mode info");
     }
 #endif /* HAVE_ATA_DMA */
     timing_info_present = identify_info[53] & (1<<1);
@@ -1542,16 +1548,16 @@ static int disk_callback(int btn, struct gui_synclist *lists)
         simplelist_addline(
                 "IORDY disable: %s", i ? "yes" : "no");
     } else {
-        simplelist_addline(
-                "No timing info");
+        simplelist_setline("No timing info");
     }
     simplelist_addline(
              "Cluster size: %d bytes", volume_get_cluster_size(IF_MV(0)));
 #ifdef HAVE_ATA_DMA
     i = ata_get_dma_mode();
     if (i == 0) {
-        simplelist_addline(
-                 "DMA not enabled");
+        simplelist_setline("DMA not enabled");
+    } else if (i == 0xff) {
+        simplelist_setline("CE-ATA mode");
     } else {
         simplelist_addline(
                  "DMA mode: %s %c",
@@ -1559,9 +1565,9 @@ static int disk_callback(int btn, struct gui_synclist *lists)
                 '0' + (i & 7));
     }
 #endif /* HAVE_ATA_DMA */
-    i = identify_info[0] & (1 << 15);
+    i = identify_info[83] & (1 << 2);
     simplelist_addline(
-            "CF compatible: %s", i ? "yes" : "no");
+            "CFA compatible: %s", i ? "yes" : "no");
     i = identify_info[0] & (1 << 6);
     simplelist_addline(
             "Fixed device: %s", i ? "yes" : "no");
@@ -1744,12 +1750,12 @@ static int ata_smart_callback(int btn, struct gui_synclist *lists)
         int rc;
         memset(&smart_data, 0, sizeof(struct ata_smart_values));
         rc = ata_read_smart(&smart_data);
-        simplelist_set_line_count(0);
+        simplelist_reset_lines();
         if (rc == 0)
         {
             int i;
             char buf[SIMPLELIST_MAX_LINELENGTH];
-            simplelist_addline("Id  Name:  Current,Worst  Raw");
+            simplelist_setline("Id  Name:  Current,Worst  Raw");
             for (i = 0; i < NUMBER_ATA_SMART_ATTRIBUTES; i++)
             {
                 if (ata_smart_attr_to_string(
@@ -1795,7 +1801,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
     simplelist_addline("Model: %s", info.product);
     simplelist_addline("Firmware: %s", info.revision);
     simplelist_addline(
-            "Size: %lld MB", (uint64_t)(info.num_sectors*(info.sector_size/512)/2048));
+            "Size: %lu MB", (unsigned long)(info.num_sectors*(info.sector_size/512)/2048));
     sector_t free;
     volume_size( IF_MV(0,) NULL, &free );
     simplelist_addline(
@@ -1881,23 +1887,20 @@ static int dircache_callback(int btn, struct gui_synclist *lists)
         }
     }
 
-    simplelist_set_line_count(0);
+    simplelist_reset_lines();
 
     simplelist_addline("Cache status: %s", info.statusdesc);
-    simplelist_addline("Last size: %lu B", info.last_size);
-    simplelist_addline("Size: %lu B", info.size);
+    simplelist_addline("Last size: %zu B", info.last_size);
+    simplelist_addline("Size: %zu B", info.size);
     unsigned int utilized = info.size ? 1000ull*info.sizeused / info.size : 0;
-    simplelist_addline("Used: %lu B (%u.%u%%)", info.sizeused,
+    simplelist_addline("Used: %zu B (%u.%u%%)", info.sizeused,
                        utilized / 10, utilized % 10);
-    simplelist_addline("Limit: %lu B", info.size_limit);
-    simplelist_addline("Reserve: %lu/%lu B", info.reserve_used, info.reserve);
+    simplelist_addline("Limit: %zu B", info.size_limit);
+    simplelist_addline("Reserve: %zu/%zu B", info.reserve_used, info.reserve);
     long ticks = ALIGN_UP(info.build_ticks, HZ / 10);
     simplelist_addline("Scanning took: %ld.%ld s",
                        ticks / HZ, (ticks*10 / HZ) % 10);
     simplelist_addline("Entry count: %u", info.entry_count);
-
-    if (btn == ACTION_NONE)
-        btn = ACTION_REDRAW;
 
     return btn;
 }
@@ -1906,7 +1909,7 @@ static bool dbg_dircache_info(void)
 {
     struct simplelist_info info;
     int syncbuild = 0;
-    simplelist_info_init(&info, "Dircache Info", 8, &syncbuild);
+    simplelist_info_init(&info, "Dircache Info", 0, &syncbuild);
     info.action_callback = dircache_callback;
     info.scroll_all = true;
     return simplelist_show_list(&info);
@@ -1922,11 +1925,11 @@ static int database_callback(int btn, struct gui_synclist *lists)
     static bool synced = false;
     static int update_entries = 0;
 
-    simplelist_set_line_count(0);
+    simplelist_reset_lines();
 
     simplelist_addline("Initialized: %s",
              stat->initialized ? "Yes" : "No");
-    simplelist_addline("DB Ready: %s",
+    simplelist_addline("DB %s: %s", "Ready",
              stat->ready ? "Yes" : "No");
     simplelist_addline("DB Path: %s", stat->db_path);
     simplelist_addline("RAM Cache: %s",
@@ -1935,10 +1938,11 @@ static int database_callback(int btn, struct gui_synclist *lists)
              stat->ramcache_used, stat->ramcache_allocated);
     simplelist_addline("Total entries: %d",
                        stat->total_entries);
-    simplelist_addline("Progress: %d%% (%d entries)",
-             stat->progress, stat->processed_entries);
-    simplelist_addline("Curfile: %s",
-                       stat->curentry ? stat->curentry : "---");
+    simplelist_setline("Progress:");
+    simplelist_addline(" %d%% (%d entries)",
+                       stat->progress, stat->processed_entries);
+    simplelist_setline("Curfile:");
+    simplelist_addline(" %s", stat->curentry ? stat->curentry : "---");
     simplelist_addline("Commit step: %d",
              stat->commit_step);
     simplelist_addline("Commit delayed: %s",
@@ -1974,7 +1978,7 @@ static int database_callback(int btn, struct gui_synclist *lists)
 static bool dbg_tagcache_info(void)
 {
     struct simplelist_info info;
-    simplelist_info_init(&info, "Database Info", 8, NULL);
+    simplelist_info_init(&info, "Database Info", 0, NULL);
     info.action_callback = database_callback;
     info.scroll_all = true;
 
@@ -2134,7 +2138,8 @@ static int radio_callback(int btn, struct gui_synclist *lists)
     (void)lists;
     if (btn == ACTION_STD_CANCEL)
         return btn;
-    simplelist_set_line_count(1);
+    simplelist_reset_lines();
+    simplelist_setline("HW detected: yes");
 
 #if (CONFIG_TUNER & LV24020LP)
     simplelist_addline(
@@ -2155,7 +2160,7 @@ static int radio_callback(int btn, struct gui_synclist *lists)
 #if (CONFIG_TUNER & TEA5767)
     struct tea5767_dbg_info nfo;
     tea5767_dbg_info(&nfo);
-    simplelist_addline("Philips regs:");
+    simplelist_setline("Philips regs:");
     simplelist_addline(
              "   %s: %02X %02X %02X %02X %02X", "Read",
              (unsigned)nfo.read_regs[0], (unsigned)nfo.read_regs[1],
@@ -2172,7 +2177,7 @@ static int radio_callback(int btn, struct gui_synclist *lists)
     {
         struct si4700_dbg_info nfo;
         si4700_dbg_info(&nfo);
-        simplelist_addline("SI4700 regs:");
+        simplelist_setline("SI4700 regs:");
         for (int i = 0; i < 16; i += 4) {
             simplelist_addline("%02X: %04X %04X %04X %04X",
                 i, nfo.regs[i], nfo.regs[i+1], nfo.regs[i+2], nfo.regs[i+3]);
@@ -2184,7 +2189,7 @@ static int radio_callback(int btn, struct gui_synclist *lists)
     {
         struct rda5802_dbg_info nfo;
         rda5802_dbg_info(&nfo);
-        simplelist_addline("RDA5802 regs:");
+        simplelist_setline("RDA5802 regs:");
         for (int i = 0; i < 16; i += 4) {
             simplelist_addline("%02X: %04X %04X %04X %04X",
                 i, nfo.regs[i], nfo.regs[i+1], nfo.regs[i+2], nfo.regs[i+3]);
@@ -2196,8 +2201,8 @@ static int radio_callback(int btn, struct gui_synclist *lists)
     {
         struct stfm1000_dbg_info nfo;
         stfm1000_dbg_info(&nfo);
-        simplelist_addline("STFM1000 regs:");
-        simplelist_addline("chipid: 0x%x", nfo.chipid);
+        simplelist_setline("STFM1000 regs:");
+        simplelist_addline("chipid: 0x%lx", nfo.chipid);
     }
 #endif /* STFM1000 */
 #if (CONFIG_TUNER & TEA5760)
@@ -2205,7 +2210,7 @@ static int radio_callback(int btn, struct gui_synclist *lists)
     {
         struct tea5760_dbg_info nfo;
         tea5760_dbg_info(&nfo);
-        simplelist_addline("TEA5760 regs:");
+        simplelist_setline("TEA5760 regs:");
         for (int i = 0; i < 16; i += 4) {
             simplelist_addline("%02X: %02X %02X %02X %02X",
                 i, nfo.read_regs[i], nfo.read_regs[i+1], nfo.read_regs[i+2], nfo.read_regs[i+3]);
@@ -2242,10 +2247,9 @@ static bool dbg_fm_radio(void)
     tuner_type = tuner_detect_type();
 #endif
     info.scroll_all = true;
-    simplelist_info_init(&info, "FM Radio", 1, NULL);
-    simplelist_set_line_count(0);
-    simplelist_addline("HW detected: %s",
-                       radio_hardware_present() ? "yes" : "no");
+    simplelist_info_init(&info, "FM Radio", 0, NULL);
+    simplelist_reset_lines();
+    simplelist_setline("HW detected: no");
 
     info.action_callback = radio_hardware_present()?radio_callback : NULL;
     return simplelist_show_list(&info);
@@ -2454,69 +2458,48 @@ static bool dbg_scrollwheel(void)
 }
 #endif
 
-static const char* dbg_talk_get_name(int selected_item, void *data,
-                                     char *buffer, size_t buffer_len)
-{
-    struct talk_debug_data *talk_data = data;
-    switch(selected_item)
-    {
-        case 0:
-            if (talk_data->status != TALK_STATUS_ERR_NOFILE)
-                snprintf(buffer, buffer_len, "Current voice file: %s",
-                            talk_data->voicefile);
-            else
-                buffer = "No voice information available";
-            break;
-        case 1:
-            if (talk_data->status != TALK_STATUS_OK)
-                snprintf(buffer, buffer_len, "Talk Status: ERR (%i)",
-                            talk_data->status);
-            else
-                buffer = "Talk Status: OK";
-            break;
-        case 2:
-            snprintf(buffer, buffer_len, "Number of (empty) clips in voice file: (%d) %d",
-                    talk_data->num_empty_clips, talk_data->num_clips);
-            break;
-        case 3:
-            snprintf(buffer, buffer_len, "Min/Avg/Max size of clips: %d / %d / %d",
-                    talk_data->min_clipsize, talk_data->avg_clipsize, talk_data->max_clipsize);
-            break;
-        case 4:
-            snprintf(buffer, buffer_len, "Memory allocated: %ld.%02ld KB",
-                    talk_data->memory_allocated / 1024, talk_data->memory_allocated % 1024);
-            break;
-        case 5:
-            snprintf(buffer, buffer_len, "Memory used: %ld.%02ld KB",
-                    talk_data->memory_used / 1024, talk_data->memory_used % 1024);
-            break;
-        case 6:
-            snprintf(buffer, buffer_len, "Number of clips in cache: %d",
-                    talk_data->cached_clips);
-            break;
-        case 7:
-            snprintf(buffer, buffer_len, "Cache hits / misses: %d / %d",
-                    talk_data->cache_hits, talk_data->cache_misses);
-            break;
-        default:
-            buffer = "TODO";
-            break;
-    }
-
-    return buffer;
-}
-
 static bool dbg_talk(void)
 {
     struct simplelist_info list;
     struct talk_debug_data data;
-    if (talk_get_debug_data(&data))
-        simplelist_info_init(&list, "Voice Information:", 8, &data);
-    else
-        simplelist_info_init(&list, "Voice Information:", 2, &data);
+    talk_get_debug_data(&data);
+
+    simplelist_info_init(&list, "Voice Information:", 0, NULL);
+
     list.scroll_all = true;
     list.timeout = HZ;
-    list.get_name = dbg_talk_get_name;
+
+    simplelist_reset_lines();
+
+    simplelist_setline("Current voice file:");
+    if (data.status != TALK_STATUS_ERR_NOFILE)
+        simplelist_addline(" %s", data.voicefile);
+    else
+        simplelist_setline(" No voice information available");
+
+    if (data.status != TALK_STATUS_OK)
+    {
+        simplelist_addline("Talk Status: ERR (%i)",
+                    data.status);
+        return simplelist_show_list(&list);
+    }
+    else
+        simplelist_setline("Talk Status: OK");
+    simplelist_setline("Number of (empty) clips in voice file:");
+    simplelist_addline(" (%d) %d", data.num_empty_clips, data.num_clips);
+    simplelist_setline("Min/Avg/Max size of clips:");
+    simplelist_addline(" %d / %d / %d",
+                    data.min_clipsize, data.avg_clipsize, data.max_clipsize);
+    simplelist_setline("Memory allocated:");
+    simplelist_addline(" %ld.%02ld KB",
+                    data.memory_allocated / 1024, data.memory_allocated % 1024);
+    simplelist_addline("Memory used:");
+    simplelist_addline(" %ld.%02ld KB",
+                       data.memory_used / 1024, data.memory_used % 1024);
+    simplelist_setline("Number of clips in cache:");
+    simplelist_addline(" %d", data.cached_clips);
+    simplelist_setline("Cache hits / misses:");
+    simplelist_addline("%d / %d", data.cache_hits, data.cache_misses);
 
     return simplelist_show_list(&list);
 }
@@ -2590,19 +2573,19 @@ static bool dbg_boot_data(void)
 {
     struct simplelist_info info;
     info.scroll_all = true;
-    simplelist_info_init(&info, "Boot data", 1, NULL);
-    simplelist_set_line_count(0);
+    simplelist_info_init(&info, "Boot data", 0, NULL);
+    simplelist_reset_lines();
 
     if (!boot_data_valid)
     {
-        simplelist_addline("Boot data invalid");
+        simplelist_setline("Boot data invalid");
         simplelist_addline("Magic[0]: %08lx", boot_data.magic[0]);
         simplelist_addline("Magic[1]: %08lx", boot_data.magic[1]);
         simplelist_addline("Length: %lu", boot_data.length);
     }
     else
     {
-        simplelist_addline("Boot data valid");
+        simplelist_setline("Boot data valid");
         simplelist_addline("Version: %d", (int)boot_data.version);
 
         if (boot_data.version == 0)
@@ -2614,10 +2597,11 @@ static bool dbg_boot_data(void)
             simplelist_addline("Boot drive: %d", (int)boot_data.boot_drive);
             simplelist_addline("Boot partition: %d", (int)boot_data.boot_partition);
         }
-        simplelist_addline("Boot path: %s%s/%s", root_realpath(), BOOTDIR, BOOTFILE);
+        simplelist_setline("Boot path:");
+        simplelist_addline(" %s%s/%s", root_realpath(), BOOTDIR, BOOTFILE);
     }
 
-    simplelist_addline("Bootdata RAW:");
+    simplelist_setline("Bootdata RAW:");
     for (size_t i = 0; i < boot_data.length; i += 4)
     {
         simplelist_addline("%02x: %02x %02x %02x %02x", i,
@@ -2634,19 +2618,20 @@ static bool dbg_device_data(void)
 {
     struct simplelist_info info;
     info.scroll_all = true;
-    simplelist_info_init(&info, "Device data", 1, NULL);
-    simplelist_set_line_count(0);
+    simplelist_info_init(&info, "Device data", 0, NULL);
+    simplelist_reset_lines();
 
-    simplelist_addline("Device data");
+    simplelist_setline("Device data");
 
 #if defined(EROS_QN)
-    simplelist_addline("Lcd Version: %d", (int)device_data.lcd_version);
+    simplelist_addline("Hardware Revision: %d", (int)device_data.hw_rev);
 #endif
+    simplelist_addline("Struct Ver: %d", (int)device_data.version);
 
-    simplelist_addline("Device data RAW:");
+    simplelist_setline("Device data RAW:");
     for (size_t i = 0; i < device_data.length; i += 4)
     {
-        simplelist_addline("%02x: %02x %02x %02x %02x", i,
+        simplelist_addline("%02zx: %02x %02x %02x %02x", i,
                            device_data.payload[i + 0], device_data.payload[i + 1],
                            device_data.payload[i + 2], device_data.payload[i + 3]);
     }
@@ -2657,64 +2642,50 @@ static bool dbg_device_data(void)
 
 
 #if defined(IPOD_6G) && !defined(SIMULATOR)
-#define SYSCFG_MAX_ENTRIES 9 // 9 on iPod Classic/6G
-
 static bool dbg_syscfg(void) {
     struct simplelist_info info;
-    struct SysCfgHeader syscfg_hdr;
-    size_t syscfg_hdr_size = sizeof(struct SysCfgHeader);
-    size_t syscfg_entry_size = sizeof(struct SysCfgEntry);
-    struct SysCfgEntry syscfg_entries[SYSCFG_MAX_ENTRIES];
+    struct SysCfg syscfg;
 
-    simplelist_info_init(&info, "SysCfg NOR contents", 1, NULL);
-    simplelist_set_line_count(0);
+    simplelist_info_init(&info, "SysCfg NOR contents", 0, NULL);
+    simplelist_reset_lines();
 
-    bootflash_init(SPI_PORT);
-    bootflash_read(SPI_PORT, 0, syscfg_hdr_size, &syscfg_hdr);
+    const ssize_t result = syscfg_read(&syscfg);
 
-    if (syscfg_hdr.magic != SYSCFG_MAGIC) {
-        simplelist_addline("SCfg magic not found");
-        bootflash_close(SPI_PORT);
+    if (result == -1) {
+        simplelist_setline("SCfg magic not found");
         return simplelist_show_list(&info);
     }
 
-    simplelist_addline("Total size: %u bytes, %u entries", syscfg_hdr.size, syscfg_hdr.num_entries);
+    simplelist_addline("Total size: %lu bytes, %lu entries", syscfg.header.size, syscfg.header.num_entries);
 
-    size_t calculated_syscfg_size = syscfg_hdr_size + syscfg_entry_size * syscfg_hdr.num_entries;
-
-    if (syscfg_hdr.size != calculated_syscfg_size) {
-        simplelist_addline("Wrong size: expected %u, got %u", calculated_syscfg_size, syscfg_hdr.size);
-        bootflash_close(SPI_PORT);
+    if (result > 0) {
+        simplelist_addline("Wrong size: expected %ld, got %lu", result, syscfg.header.size);
         return simplelist_show_list(&info);
     }
 
-    if (syscfg_hdr.num_entries > SYSCFG_MAX_ENTRIES) {
+    if (syscfg.header.num_entries > SYSCFG_MAX_ENTRIES) {
         simplelist_addline("Too many entries, showing only first %u", SYSCFG_MAX_ENTRIES);
     }
 
-    size_t syscfg_num_entries = MIN(syscfg_hdr.num_entries, SYSCFG_MAX_ENTRIES);
-    size_t syscfg_entries_size = syscfg_entry_size * syscfg_num_entries;
-
-    bootflash_read(SPI_PORT, syscfg_hdr_size, syscfg_entries_size, &syscfg_entries);
-    bootflash_close(SPI_PORT);
+    const size_t syscfg_num_entries = MIN(syscfg.header.num_entries, SYSCFG_MAX_ENTRIES);
 
     for (size_t i = 0; i < syscfg_num_entries; i++) {
-        struct SysCfgEntry* entry = &syscfg_entries[i];
-        char* tag = (char *)&entry->tag;
-        uint32_t* data32 = (uint32_t *)entry->data;
+        const struct SysCfgEntry* entry = &syscfg.entries[i];
+        const char* tag = (char *)&entry->tag;
+        const uint32_t* data32 = (uint32_t *)entry->data;
 
         switch (entry->tag) {
             case SYSCFG_TAG_SRNM:
                 simplelist_addline("Serial number (SrNm): %s", entry->data);
                 break;
             case SYSCFG_TAG_FWID:
-                simplelist_addline("Firmware ID (FwId): %07X", data32[1] & 0x0FFFFFFF);
+                simplelist_addline("Firmware ID (FwId): %07lX", data32[1] & 0x0FFFFFFF);
                 break;
             case SYSCFG_TAG_HWID:
-                simplelist_addline("Hardware ID (HwId): %08X", data32[0]);
+                simplelist_addline("Hardware ID (HwId): %08lX", data32[0]);
                 break;
             case SYSCFG_TAG_HWVR:
-                simplelist_addline("Hardware version (HwVr): %06X", data32[1]);
+                simplelist_addline("Hardware version (HwVr): %06lX", data32[1]);
                 break;
             case SYSCFG_TAG_CODC:
                 simplelist_addline("Codec (Codc): %s", entry->data);
@@ -2729,10 +2700,10 @@ static bool dbg_syscfg(void) {
                 simplelist_addline("Model number (Mod#): %s", entry->data);
                 break;
             case SYSCFG_TAG_REGN:
-                simplelist_addline("Sales region (Regn): %08X %08X", data32[0], data32[1]);
+                simplelist_addline("Sales region (Regn): %08lX %08lX", data32[0], data32[1]);
                 break;
             default:
-                simplelist_addline("%c%c%c%c: %08X %08X %08X %08X",
+                simplelist_addline("%c%c%c%c: %08lX %08lX %08lX %08lX",
                     tag[3], tag[2], tag[1], tag[0],
                     data32[0], data32[1], data32[2], data32[3]
                 );
@@ -2757,7 +2728,7 @@ static const struct {
 #endif
 #if defined(CPU_COLDFIRE) || defined(CPU_PP) \
     || CONFIG_CPU == S3C2440 || CONFIG_CPU == IMX31L || CONFIG_CPU == AS3525 \
-    || CONFIG_CPU == DM320 || defined(CPU_S5L870X) || CONFIG_CPU == AS3525v2 \
+    || CONFIG_CPU == DM320 || defined(CPU_S5L87XX) || CONFIG_CPU == AS3525v2 \
     || CONFIG_CPU == RK27XX || CONFIG_CPU == JZ4760B
         { "View I/O ports", dbg_ports },
 #endif

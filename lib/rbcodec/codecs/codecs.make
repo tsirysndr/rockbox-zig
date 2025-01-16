@@ -26,16 +26,19 @@ CODECFLAGS := $(CFLAGS) $(RBCODEC_CFLAGS) -fstrict-aliasing \
 			 -I$(RBCODECLIB_DIR)/codecs -I$(RBCODECLIB_DIR)/codecs/lib -DCODEC
 
 ifdef APP_TYPE
- CODECLDFLAGS = $(SHARED_LDFLAGS) -Wl,--gc-sections -Wl,-Map,$(CODECDIR)/$*.map
+ CODECLDFLAGS = $(SHARED_LDFLAGS)
+ ifneq ($(UNAME), Darwin)
+  CODECLDFLAGS += -Wl,--gc-sections
+ endif
  CODECFLAGS += $(SHARED_CFLAGS) # <-- from Makefile
 else
- CODECLDFLAGS = -T$(CODECLINK_LDS) -Wl,--gc-sections -Wl,-Map,$(CODECDIR)/$*.map
+ CODECLDFLAGS = -T$(CODECLINK_LDS) -Wl,--gc-sections
 endif
-CODECLDFLAGS += $(GLOBAL_LDOPTS)
+CODECLDFLAGS += -Wl,$(LDMAP_OPT),$(CODECDIR)/$*.map $(GLOBAL_LDOPTS)
 
 ifdef USE_LTO
- CODECLDFLAGS += -flto -fno-builtin -ffreestanding
- CODECFLAGS += -flto -fno-builtin -ffreestanding
+ CODECLDFLAGS += -fno-builtin -ffreestanding
+ CODECFLAGS += -fno-builtin -ffreestanding
  CODECLDFLAGS += -e __header
 endif
 

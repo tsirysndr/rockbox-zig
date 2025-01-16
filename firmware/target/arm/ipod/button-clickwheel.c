@@ -42,7 +42,7 @@
 #ifdef IPOD_NANO2G
 #include "pmu-target.h"
 #endif
-#ifdef IPOD_6G
+#if defined(IPOD_6G) || defined(IPOD_NANO3G) || defined(IPOD_NANO4G)
 #include "pmu-target.h"
 #include "clocking-s5l8702.h"
 #endif
@@ -53,7 +53,7 @@
 
 #ifdef CPU_PP
 #define CLICKWHEEL_DATA   (*(volatile unsigned long*)(0x7000c140))
-#elif CONFIG_CPU==S5L8701 || CONFIG_CPU==S5L8702
+#elif CONFIG_CPU==S5L8701 || CONFIG_CPU==S5L8702 || CONFIG_CPU==S5L8720
 #define CLICKWHEEL_DATA   WHEELRX
 #else
 #error CPU architecture not supported!
@@ -87,7 +87,7 @@ static int int_btn = BUTTON_NONE;
     static bool send_events = true;
 #endif
 
-#if CONFIG_CPU==S5L8701 || CONFIG_CPU==S5L8702
+#if CONFIG_CPU==S5L8701 || CONFIG_CPU==S5L8702 || CONFIG_CPU==S5L8720
 static struct semaphore button_init_wakeup;
 #endif
 
@@ -223,7 +223,7 @@ static inline int ipod_4g_button_read(void)
                         if (send_events) 
 #endif
                         /* The queue should have no other events when scrolling */
-                        if (queue_empty(&button_queue))
+                        if (button_queue_empty())
                         {
                             /* each WHEEL_SENSITIVITY clicks = scrolling 1 item */
                             accumulated_wheel_delta /= WHEEL_SENSITIVITY;
@@ -232,11 +232,11 @@ static inline int ipod_4g_button_read(void)
                             /* always use acceleration mode (1<<31) */
                             /* always set message post count to (1<<24) for iPod */
                             /* this way the scrolling is always calculated from wheel_velocity */
-                            queue_post(&button_queue, wheel_keycode | repeat, 
+                            button_queue_post(wheel_keycode | repeat, 
                                        (1<<31) | (1 << 24) | wheel_velocity);
                                        
 #else
-                            queue_post(&button_queue, wheel_keycode | repeat, 
+                            button_queue_post(wheel_keycode | repeat, 
                                        (accumulated_wheel_delta << 16) | new_wheel_value);
 #endif
                             accumulated_wheel_delta = 0;
@@ -267,7 +267,7 @@ static inline int ipod_4g_button_read(void)
             outl(inl(0x7000c104) | 0x04000000, 0x7000c104);
             outl(inl(0x7000c100) | 0x60000000, 0x7000c100);
         }
-#if CONFIG_CPU==S5L8701 || CONFIG_CPU==S5L8702
+#if CONFIG_CPU==S5L8701 || CONFIG_CPU==S5L8702 || CONFIG_CPU==S5L8720
         else if ((status & 0x8000FFFF) == 0x8000023A)
         {
             if (status & 0x00010000)
@@ -327,7 +327,13 @@ void ipod_4g_button_int(void)
 void button_init_device(void)
 {
     opto_i2c_init();
-    
+
+    /* fixes first button press being ignored */
+#if defined(IPOD_4G) || defined(IPOD_COLOR)
+    outl(inl(0x7000c100) & ~0x60000000, 0x7000c100);
+    outl(inl(0x7000c104) | 0x04000000, 0x7000c104);
+    outl(inl(0x7000c100) | 0x60000000, 0x7000c100);
+#endif
     /* hold button - enable as input */
     GPIOA_ENABLE |= 0x20;
     GPIOA_OUTPUT_EN &= ~0x20; 
@@ -373,9 +379,9 @@ static void s5l_clickwheel_init(void)
     WHEELTX = 0x8000023A;
     WHEEL04 |= 1;
     PDAT10 &= ~2;
-#elif CONFIG_CPU==S5L8702
+#elif CONFIG_CPU==S5L8702 || CONFIG_CPU==S5L8720
     clockgate_enable(CLOCKGATE_CWHEEL, true);
-    PCONE = (PCONE & ~0x00ffff00) | 0x00222200;
+    PCON14 = (PCON14 & ~0x00ffff00) | 0x00222200;
     WHEEL00 = 0; /* stop s5l8702 controller */
     WHEELINT = 7;
     WHEEL10 = 1;
@@ -404,7 +410,7 @@ bool button_hold(void)
         PCON15 = PCON15 & ~0xffff0000;
     else PCON15 = (PCON15 & ~0xffff0000) | 0x22220000;
     return value;
-#elif CONFIG_CPU==S5L8702
+#elif CONFIG_CPU==S5L8702 || CONFIG_CPU==S5L8720
     return pmu_holdswitch_locked();
 #endif
 }
@@ -413,8 +419,8 @@ bool headphones_inserted(void)
 {
 #if CONFIG_CPU==S5L8701
     return ((PDAT14 & (1 << 5)) != 0);
-#elif CONFIG_CPU==S5L8702
-    return ((PDATA & (1 << 6)) != 0);
+#elif CONFIG_CPU==S5L8702 || CONFIG_CPU==S5L8720
+    return ((PDAT10 & (1 << 6)) != 0);
 #endif
 }
 #endif
@@ -447,9 +453,9 @@ int button_read_device(void)
             WHEEL00 = 0;
             WHEEL10 = 0;
             PWRCONEXT |= 1;
-#elif CONFIG_CPU==S5L8702
+#elif CONFIG_CPU==S5L8702 || CONFIG_CPU==S5L8720
             WHEEL00 = 0;
-            PCONE = (PCONE & ~0x00ffff00) | 0x000e0e00;
+            PCON14 = (PCON14 & ~0x00ffff00) | 0x000e0e00;
             clockgate_enable(CLOCKGATE_CWHEEL, false);
 #endif
         }
@@ -462,7 +468,7 @@ int button_read_device(void)
 #elif CONFIG_CPU==S5L8701
             /*pmu_ldo_power_on(1);*/ /* enable clickwheel power supply */
             s5l_clickwheel_init();
-#elif CONFIG_CPU==S5L8702
+#elif CONFIG_CPU==S5L8702 || CONFIG_CPU==S5L8720
             s5l_clickwheel_init();
 #endif
         }

@@ -214,12 +214,17 @@
 #define HAVE_HARDWARE_CLICK
 
 /* define this if the device has larger sectors when accessed via USB */
-/* (only relevant in disk.c, fat.c now always supports large virtual sectors) */
-#define MAX_LOG_SECTOR_SIZE 2048
+#define MAX_VIRT_SECTOR_SIZE 2048
+
+/* If we have no valid paritions, advertise this as our sector size */
+#define DEFAULT_VIRT_SECTOR_SIZE 2048
 
 /* define this if the hard drive uses large physical sectors (ATA-7 feature) */
 /* and doesn't handle them in the drive firmware */
 #define MAX_PHYS_SECTOR_SIZE 1024
+
+/* define this if we want to support 512n and 4Kn drives */
+//#define MAX_VARIABLE_LOG_SECTOR 4096
 
 #define BOOTFILE_EXT "ipod"
 #define BOOTFILE "rockbox." BOOTFILE_EXT

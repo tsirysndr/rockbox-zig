@@ -35,6 +35,7 @@
 #include "rbunicode.h"
 #include "debug.h"
 #include "panic.h"
+#include "disk.h"
 /*#define LOGF_ENABLE*/
 #include "logf.h"
 
@@ -162,9 +163,15 @@ union raw_dirent
 #define FAT_NTRES_LC_NAME           0x08
 #define FAT_NTRES_LC_EXT            0x10
 
-#define CLUSTERS_PER_FAT_SECTOR     (SECTOR_SIZE / 4)
-#define CLUSTERS_PER_FAT16_SECTOR   (SECTOR_SIZE / 2)
-#define DIR_ENTRIES_PER_SECTOR      (SECTOR_SIZE / DIR_ENTRY_SIZE)
+#if defined(MAX_VIRT_SECTOR_SIZE) || defined(MAX_VARIABLE_LOG_SECTOR)
+#define LOG_SECTOR_SIZE(bpb) fat_bpb->sector_size
+#else
+#define LOG_SECTOR_SIZE(bpb) SECTOR_SIZE
+#endif
+
+#define CLUSTERS_PER_FAT_SECTOR     (LOG_SECTOR_SIZE(fat_bpb) / 4)
+#define CLUSTERS_PER_FAT16_SECTOR   (LOG_SECTOR_SIZE(fat_bpb) / 2)
+#define DIR_ENTRIES_PER_SECTOR      (LOG_SECTOR_SIZE(fat_bpb) / DIR_ENTRY_SIZE)
 #define DIR_ENTRY_SIZE              32
 #define FAT_BAD_MARK                0x0ffffff7
 #define FAT_EOF_MARK                0x0ffffff8
@@ -208,8 +215,10 @@ struct bpb;
 static void update_fsinfo32(struct bpb *fat_bpb);
 
 /* Note: This struct doesn't hold the raw values after mounting if
- * bpb_bytspersec isn't 512. All sector counts are normalized to 512 byte
- * physical sectors. */
+ * bpb_bytspersec isn't the same as the underlying device's logical
+   sector size.  Sector counts are then normalized to that sector
+   size.
+*/
 static struct bpb
 {
     unsigned long bpb_bytspersec; /* Bytes per sector, typically 512 */
@@ -263,12 +272,25 @@ static struct bpb
     int  BPB_FN_DECL(update_fat_entry, unsigned long, unsigned long);
     void BPB_FN_DECL(fat_recalc_free_internal);
 #endif /* HAVE_FAT16SUPPORT */
-
+#if defined(MAX_VIRT_SECTOR_SIZE) || defined(MAX_VARIABLE_LOG_SECTOR)
+    uint16_t sector_size;
+#endif
 } fat_bpbs[NUM_VOLUMES]; /* mounted partition info */
 
 #ifdef STORAGE_NEEDS_BOUNCE_BUFFER
+#if defined(MAX_VIRT_SECTOR_SIZE)
+#define BOUNCE_SECTOR_SIZE MAX_VIRT_SECTOR_SIZE
+#elif defined(MAX_VARIABLE_LOG_SECTOR)
+#define BOUNCE_SECTOR_SIZE MAX_VARIABLE_LOG_SECTOR
+#elif defined(MAX_PHYS_SECTOR_SIZE)
+#define BOUNCE_SECTOR_SIZE MAX_PHYS_SECTOR_SIZE
+#else
+#define BOUNCE_SECTOR_SIZE SECTOR_SIZE
+#endif
+#ifndef FAT_BOUNCE_SECTORS
 #define FAT_BOUNCE_SECTORS 10
-static uint8_t fat_bounce_buffers[NUM_VOLUMES][SECTOR_SIZE*FAT_BOUNCE_SECTORS] STORAGE_ALIGN_ATTR;
+#endif
+static uint8_t fat_bounce_buffers[NUM_VOLUMES][BOUNCE_SECTOR_SIZE*FAT_BOUNCE_SECTORS] STORAGE_ALIGN_ATTR;
 #define FAT_BOUNCE_BUFFER(bpb) \
     (fat_bounce_buffers[IF_MV_VOL((bpb)->volume)])
 #endif
@@ -394,7 +416,7 @@ static void raw_dirent_set_fstclus(union raw_dirent *ent, long fstclus)
 
 static int bpb_is_sane(struct bpb *fat_bpb)
 {
-    if (fat_bpb->bpb_bytspersec % SECTOR_SIZE)
+    if (fat_bpb->bpb_bytspersec % LOG_SECTOR_SIZE(fat_bpb))
     {
         DEBUGF("%s() - Error: sector size is not sane (%lu)\n",
                __func__, fat_bpb->bpb_bytspersec);
@@ -402,9 +424,9 @@ static int bpb_is_sane(struct bpb *fat_bpb)
     }
 
     /* The fat_bpb struct does not hold the raw value of bpb_bytspersec, the
-     * value is multiplied in cases where bpb_bytspersec != SECTOR_SIZE. We need
+     * value is multiplied in cases where bpb_bytspersec != sector_size. We need
      * to undo that multiplication before we do the sanity check. */
-    unsigned long secmult = fat_bpb->bpb_bytspersec / SECTOR_SIZE;
+    unsigned long secmult = fat_bpb->bpb_bytspersec / LOG_SECTOR_SIZE(fat_bpb);
 
     if (fat_bpb->bpb_secperclus * fat_bpb->bpb_bytspersec / secmult > 128*1024ul)
     {
@@ -1141,7 +1163,7 @@ static int fat_mount_internal(struct bpb *fat_bpb)
     }
 
     fat_bpb->bpb_bytspersec = BYTES2INT16(buf, BPB_BYTSPERSEC);
-    unsigned long secmult = fat_bpb->bpb_bytspersec / SECTOR_SIZE;
+    unsigned long secmult = fat_bpb->bpb_bytspersec / LOG_SECTOR_SIZE(fat_bpb);
     /* Sanity check is performed later */
 
     fat_bpb->bpb_secperclus = secmult * buf[BPB_SECPERCLUS];
@@ -1426,7 +1448,7 @@ static int fat_extend_dir(struct bpb *fat_bpb, struct fat_filestr *dirstr)
             FAT_ERROR(-2);
         }
 
-        memset(sec, 0, SECTOR_SIZE);
+        memset(sec, 0, LOG_SECTOR_SIZE(fat_bpb));
         dc_dirty_buf(sec);
         dc_unlock_cache();
     }
@@ -1568,7 +1590,7 @@ static int write_longname(struct bpb *fat_bpb, struct fat_filestr *parentstr,
                           union raw_dirent *srcent, uint8_t attr,
                           unsigned int flags)
 {
-    DEBUGF("%s(file:%lx, first:%d, num:%d, name:%s)\n", __func__,
+    DEBUGF("%s(file:0x%lx, first:%d, num:%d, name:%s)\n", __func__,
            file->firstcluster, file->e.entry - file->e.entries + 1,
            file->e.entries, name);
 
@@ -1981,6 +2003,15 @@ static int free_cluster_chain(struct bpb *fat_bpb, long startcluster)
 
 /** File entity functions **/
 
+#if defined(MAX_VARIABLE_LOG_SECTOR)
+int fat_file_sector_size(const struct fat_file *file)
+{
+    const struct bpb *fat_bpb = FAT_BPB(file->volume);
+
+    return LOG_SECTOR_SIZE(fat_bpb);
+}
+#endif
+
 int fat_create_file(struct fat_file *parent, const char *name,
                     uint8_t attr, struct fat_file *file,
                     struct fat_direntry *fatent)
@@ -2362,11 +2393,11 @@ int fat_closewrite(struct fat_filestr *filestr, uint32_t size,
             count++;
         }
 
-        uint32_t len = count * fat_bpb->bpb_secperclus * SECTOR_SIZE;
+        uint32_t len = count * fat_bpb->bpb_secperclus * LOG_SECTOR_SIZE(fat_bpb);
         DEBUGF("File is %lu clusters (chainlen=%lu, size=%lu)\n",
                count, len, size );
 
-        if (len > size + fat_bpb->bpb_secperclus * SECTOR_SIZE)
+        if (len > size + fat_bpb->bpb_secperclus * LOG_SECTOR_SIZE(fat_bpb))
             panicf("Cluster chain is too long\n");
 
         if (len < size)
@@ -2386,7 +2417,7 @@ void fat_filestr_init(struct fat_filestr *fatstr, struct fat_file *file)
     fat_rewind(fatstr);
 }
 
-unsigned long fat_query_sectornum(const struct fat_filestr *filestr)
+sector_t fat_query_sectornum(const struct fat_filestr *filestr)
 {
     /* return next sector number to be transferred */
     struct bpb * const fat_bpb = FAT_BPB(filestr->fatfilep->volume);
@@ -2429,22 +2460,22 @@ static long transfer(struct bpb *fat_bpb, sector_t start, long count,
     if(UNLIKELY(STORAGE_OVERLAP((uintptr_t)buf))) {
         void* xfer_buf = FAT_BOUNCE_BUFFER(fat_bpb);
         while(count > 0) {
-            int xfer_count = MIN(count, FAT_BOUNCE_SECTORS);
+            int xfer_count = MIN(count*LOG_SECTOR_SIZE(fat_bpb), (FAT_BOUNCE_SECTORS * BOUNCE_SECTOR_SIZE)) / LOG_SECTOR_SIZE(fat_bpb);
 
             if(write) {
-                memcpy(xfer_buf, buf, xfer_count * SECTOR_SIZE);
+                memcpy(xfer_buf, buf, xfer_count * LOG_SECTOR_SIZE(fat_bpb));
                 rc = storage_write_sectors(IF_MD(fat_bpb->drive,)
                                            start + fat_bpb->startsector, xfer_count, xfer_buf);
             } else {
                 rc = storage_read_sectors(IF_MD(fat_bpb->drive,)
                                           start + fat_bpb->startsector, xfer_count, xfer_buf);
-                memcpy(buf, xfer_buf, xfer_count * SECTOR_SIZE);
+                memcpy(buf, xfer_buf, xfer_count * LOG_SECTOR_SIZE(fat_bpb));
             }
 
             if(rc < 0)
                 break;
 
-            buf += xfer_count * SECTOR_SIZE;
+            buf += xfer_count * LOG_SECTOR_SIZE(fat_bpb);
             start += xfer_count;
             count -= xfer_count;
         }
@@ -2463,8 +2494,8 @@ static long transfer(struct bpb *fat_bpb, sector_t start, long count,
 
     if (rc < 0)
     {
-        DEBUGF("Couldn't %s sector %lx (err %ld)\n",
-               write ? "write":"read", start, rc);
+        DEBUGF("Couldn't %s sector %llx (err %ld)\n",
+               write ? "write":"read", (uint64_t)start, rc);
         return rc;
     }
 
@@ -2491,7 +2522,7 @@ long fat_readwrite(struct fat_filestr *filestr, unsigned long sectorcount,
     long          clusternum = filestr->clusternum;
     unsigned long sectornum  = filestr->sectornum;
 
-    DEBUGF("%s(file:%lx,count:0x%lx,buf:%lx,%s)\n", __func__,
+    DEBUGF("%s(file:0x%lx,count:0x%lx,buf:%lx,%s)\n", __func__,
            file->firstcluster, sectorcount, (long)buf,
            write ? "write":"read");
     DEBUGF("%s: sec:%llx numsec:%ld eof:%d\n", __func__,
@@ -2571,7 +2602,7 @@ long fat_readwrite(struct fat_filestr *filestr, unsigned long sectorcount,
                 FAT_ERROR(rc * 10 - 2);
 
             transferred += count;
-            buf += count * SECTOR_SIZE;
+            buf += count * LOG_SECTOR_SIZE(fat_bpb);
             count = 0;
         }
 
@@ -2744,6 +2775,10 @@ int fat_readdir(struct fat_filestr *dirstr, struct fat_dirscan_info *scan,
 
     scan->entries = 0;
 
+#if defined(MAX_VIRT_SECTOR_SIZE) || defined(MAX_VARIABLE_LOG_SECTOR)
+    struct bpb *fat_bpb = FAT_BPB(dirstr->fatfilep->volume);
+#endif
+
     while (1)
     {
         unsigned int direntry = ++scan->entry;
@@ -2863,7 +2898,6 @@ void fat_rewinddir(struct fat_dirscan_info *scan)
     scan->entries = 0;
 }
 
-
 /** Mounting and unmounting functions **/
 
 bool fat_ismounted(IF_MV_NONVOID(int volume))
@@ -2886,6 +2920,9 @@ int fat_mount(IF_MV(int volume,) IF_MD(int drive,) unsigned long startsector)
 #endif
 #ifdef HAVE_MULTIDRIVE
     fat_bpb->drive       = drive;
+#endif
+#if defined(MAX_VIRT_SECTOR_SIZE) || defined(MAX_VARIABLE_LOG_SECTOR)
+    fat_bpb->sector_size = disk_get_log_sector_size(IF_MD(drive));
 #endif
 
     rc = fat_mount_internal(fat_bpb);
@@ -2926,7 +2963,10 @@ int fat_unmount(IF_MV_NONVOID(int volume))
 
 /** Debug screen stuff **/
 
-#ifdef MAX_LOG_SECTOR_SIZE
+#if defined(MAX_VIRT_SECTOR_SIZE) || defined(MAX_VARIABLE_LOG_SECTOR)
+/* This isn't necessarily the same as storage's logical sector size;
+   we can have situations where the filesystem (and partition table)
+   uses a larger "virtual sector" than the underlying storage device */
 int fat_get_bytes_per_sector(IF_MV_NONVOID(int volume))
 {
     int bytes = 0;
@@ -2937,7 +2977,7 @@ int fat_get_bytes_per_sector(IF_MV_NONVOID(int volume))
 
     return bytes;
 }
-#endif /* MAX_LOG_SECTOR_SIZE */
+#endif /* MAX_VIRT_SECTOR_SIZE || MAX_VARIAGLE_LOG_SECTOR */
 
 unsigned int fat_get_cluster_size(IF_MV_NONVOID(int volume))
 {
@@ -2945,7 +2985,7 @@ unsigned int fat_get_cluster_size(IF_MV_NONVOID(int volume))
 
     struct bpb * const fat_bpb = FAT_BPB(volume);
     if (fat_bpb)
-        size = fat_bpb->bpb_secperclus * SECTOR_SIZE;
+        size = fat_bpb->bpb_secperclus * LOG_SECTOR_SIZE(fat_bpb);
 
     return size;
 }
@@ -2967,7 +3007,7 @@ bool fat_size(IF_MV(int volume,) sector_t *size, sector_t *free)
     if (!fat_bpb)
         return false;
 
-    unsigned long factor = fat_bpb->bpb_secperclus * SECTOR_SIZE / 1024;
+    unsigned long factor = fat_bpb->bpb_secperclus * LOG_SECTOR_SIZE(fat_bpb) / 1024;
 
     if (size) *size = fat_bpb->dataclusters * factor;
     if (free) *free = fat_bpb->fsinfo.freecount * factor;

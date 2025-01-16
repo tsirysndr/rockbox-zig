@@ -4,8 +4,8 @@ snprintf.c
 
 #if defined(IPOD_NANO2G)
 ipodnano2g.c
-#elif defined(IPOD_6G)
-ipod6g.c
+#elif defined(IPOD_6G) || defined(IPOD_NANO3G) || defined(IPOD_NANO4G)
+ipod-s5l87xx.c
 #elif defined(IPOD_ARCH)
 ipod.c
 #elif defined(GIGABEAT_F)

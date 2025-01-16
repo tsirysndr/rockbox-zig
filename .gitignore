@@ -13,6 +13,7 @@
 .hermit/
 
 __pycache__
+.DS_STORE
 
 # Don't exclude zig files
 !build.zig
@@ -80,7 +81,9 @@ target
 
 # /utils/
 /utils/Makefile
-/utils/rbutil
+
+# skin updater
+/utils/skinupdater/skinupdater
 
 # /utils/ipodpatcher/
 /utils/ipodpatcher/ipodpatcher
@@ -90,6 +93,9 @@ target
 
 # /utils/bspatch/
 /utils/bspatch/bspatch
+
+# imxtools
+/utils/imxtools/scsitools/scsitool
 
 # /utils/rbutilqt/
 /utils/rbutilqt/build
@@ -124,6 +130,7 @@ target
 /tools/generate_rocklatin
 /tools/descramble
 /tools/convbdf
+/tools/convttf
 /tools/bmp2rb
 /tools/codepages
 /tools/rdf2binary
@@ -143,6 +150,7 @@ target
 /tools/iaudio_bl_flash.h
 /tools/.vagrant
 /tools/*-console.log
+/tools/*.dSYM
 
 # /tools/database/
 /tools/database/database

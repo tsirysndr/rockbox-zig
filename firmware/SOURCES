@@ -74,6 +74,7 @@ target/hosted/sdl/lcd-bitmap.c
 target/hosted/sdl/lcd-remote-bitmap.c
 #endif
 target/hosted/sdl/lcd-sdl.c
+target/hosted/sdl/window-sdl.c
 target/hosted/sdl/system-sdl.c
 #ifdef HAVE_SDL_THREADS
 target/hosted/sdl/filesystem-sdl.c
@@ -338,6 +339,7 @@ backlight-sw-fading.c
 /* Misc. */
 drivers/led.c
 drivers/button.c
+drivers/button_queue.c
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
 #ifdef HAVE_DAC3550A
 drivers/audio/dac3550a.c
@@ -524,9 +526,6 @@ drivers/audio/cs4398.c
 drivers/audio/es9018.c
 #elif defined (HAVE_ES9218)
 drivers/audio/es9218.c
-#elif defined (HAVE_EROS_QN_CODEC)
-drivers/audio/eros_qn_codec.c
-drivers/audio/es9018k2m.c
 #endif /* defined(HAVE_*) */
 #else /* PLATFORM_HOSTED */
 #if defined(SAMSUNG_YPR0) && defined(HAVE_AS3514)
@@ -560,6 +559,12 @@ target/hosted/sdl/pcm-sdl.c
 #endif /* (CONFIG_PLATFORM & PLATFORM_NATIVE) */
 
 #endif /* !defined(BOOTLOADER) */
+
+/* build erosqn codec in bootloader for detection */
+#if defined(HAVE_EROS_QN_CODEC) && !defined(SIMULATOR)
+drivers/audio/eros_qn_codec.c
+drivers/audio/es9018k2m.c
+#endif /* defined(HAVE_EROSQN_CODEC) */
 
 /* WiFi */
 #if !defined(BOOTLOADER)
@@ -596,9 +601,12 @@ target/arm/bits-armv4.S
 #  if CONFIG_CPU == IMX233 || CONFIG_CPU == DM320 \
    || CONFIG_CPU == AS3525 || CONFIG_CPU == AS3525v2 \
    || CONFIG_CPU == S3C2440 || CONFIG_CPU == TCC7801 \
-   || defined(CPU_S5L870X)
+   || defined(CPU_S5L87XX)
 target/arm/mmu-arm.S
 #  endif
+# elif ARM_ARCH == 6
+target/arm/bits-armv6.S
+target/arm/mmu-armv6.S
 # endif
 target/arm/system-arm.c
 
@@ -730,6 +738,38 @@ target/arm/as3525/pcm-as3525.c
 #endif /* BOOTLOADER */
 #endif /* CONFIG_CPU == AS3525 */
 
+#if CONFIG_CPU == S5L8702 || CONFIG_CPU == S5L8720
+target/arm/ipod/button-clickwheel.c
+target/arm/s5l8702/kernel-s5l8702.c
+target/arm/s5l8702/system-s5l8702.c
+target/arm/s5l8702/timer-s5l8702.c
+target/arm/s5l8702/gpio-s5l8702.c
+target/arm/s5l8702/pl080.c
+target/arm/s5l8702/dma-s5l8702.c
+target/arm/s5l8702/clocking-s5l8702.c
+#if 0 // TODO
+target/arm/s5l8702/postmortemstub.S
+#endif
+#ifndef BOOTLOADER
+target/arm/s5l8702/pcm-s5l8702.c
+target/arm/s5l8702/debug-s5l8702.c
+#endif
+#if !defined(BOOTLOADER) || defined(HAVE_BOOTLOADER_USB_MODE)
+target/arm/s5l8702/usb-s5l8702.c
+#endif
+#ifdef HAVE_SERIAL
+target/arm/uc87xx.c
+target/arm/s5l8702/uart-s5l8702.c
+#endif
+target/arm/s5l8702/crypto-s5l8702.c
+#if CONFIG_CPU == S5L8702
+target/arm/s5l8702/spi-s5l8702.c
+target/arm/s5l8702/norboot-s5l8702.c
+#elif CONFIG_CPU == S5L8720
+/* target/arm/s5l8702/nandboot-s5l8702.c */
+#endif
+#endif /* S5L8702 || S5L8720 */
+
 #if defined(CPU_PP)
 target/arm/pp/i2s-pp.c
 target/arm/pp/kernel-pp.c
@@ -781,7 +821,7 @@ target/arm/tcc780x/crt0.S
 target/arm/imx31/crt0.S
 #elif CONFIG_CPU==S5L8700 || CONFIG_CPU==S5L8701
 target/arm/s5l8700/crt0.S
-#elif CONFIG_CPU==S5L8702
+#elif CONFIG_CPU==S5L8702 || CONFIG_CPU==S5L8720
 target/arm/s5l8702/crt0.S
 #elif CONFIG_CPU==IMX233
 target/arm/imx233/crt0.S
@@ -843,6 +883,9 @@ target/arm/rk27xx/ihifi2/lcd-ihifi770.c
 target/arm/rk27xx/ihifi2/lcd-ihifi770c.c
 #elif CONFIG_LCD == LCD_IHIFI800
 target/arm/rk27xx/ihifi2/lcd-ihifi800.c
+#elif CONFIG_LCD == LCD_IPOD6GNANO3G4G
+target/arm/s5l8702/lcd-s5l8702.c
+target/arm/s5l8702/lcd-asm-s5l8702.S
 #endif
 
 /* USB Stack */
@@ -1151,8 +1194,6 @@ target/arm/s3c2440/gigabeat-fx/wmcodec-meg-fx.c
 
 #ifdef GIGABEAT_S
 drivers/lcd-memframe.c
-target/arm/bits-armv6.S
-target/arm/mmu-armv6.S
 target/arm/imx31/ata-imx31.c
 target/arm/imx31/avic-imx31.c
 target/arm/imx31/ccm-imx31.c
@@ -1533,6 +1574,7 @@ target/arm/s5l8700/udacodec-meizu.c
 #ifdef IPOD_NANO2G
 target/arm/ipod/button-clickwheel.c
 target/arm/s5l8700/postmortemstub.S
+target/arm/s5l8700/usb-s5l8701.c
 target/arm/s5l8700/ipodnano2g/backlight-nano2g.c
 target/arm/s5l8700/ipodnano2g/lcd-nano2g.c
 target/arm/s5l8700/ipodnano2g/lcd-asm-nano2g.S
@@ -1541,10 +1583,11 @@ target/arm/s5l8700/ipodnano2g/power-nano2g.c
 target/arm/s5l8700/ipodnano2g/ftl-nano2g.c
 target/arm/s5l8700/ipodnano2g/nand-nano2g.c
 target/arm/s5l8700/ipodnano2g/pmu-nano2g.c
+#if (CONFIG_RTC == RTC_NANO2G)
 target/arm/s5l8700/ipodnano2g/rtc-nano2g.c
-target/arm/s5l8700/usb-s5l8701.c
+#endif
 #ifdef HAVE_SERIAL
-target/arm/uc870x.c
+target/arm/uc87xx.c
 target/arm/s5l8700/uart-s5l8701.c
 target/arm/s5l8700/ipodnano2g/serial-nano2g.c
 #endif
@@ -1552,44 +1595,24 @@ target/arm/s5l8700/ipodnano2g/serial-nano2g.c
 target/arm/s5l8700/ipodnano2g/audio-nano2g.c
 target/arm/s5l8700/ipodnano2g/piezo-nano2g.c
 #endif
-#endif
+#endif /* IPOD_NANO2G */
 
 #ifdef IPOD_6G
-target/arm/ipod/button-clickwheel.c
-target/arm/s5l8702/ipod6g/storage_ata-6g.c
+target/arm/s5l8702/ipod6g/lcd-6g.c
 target/arm/s5l8702/ipod6g/backlight-6g.c
+target/arm/s5l8702/ipod6g/piezo-6g.c
+target/arm/s5l8702/ipod6g/pmu-6g.c
+target/arm/s5l8702/ipod6g/adc-6g.c
 target/arm/s5l8702/ipod6g/powermgmt-6g.c
 target/arm/s5l8702/ipod6g/power-6g.c
-target/arm/s5l8702/kernel-s5l8702.c
-target/arm/s5l8702/system-s5l8702.c
-target/arm/s5l8702/timer-s5l8702.c
-target/arm/s5l8702/gpio-s5l8702.c
-target/arm/s5l8702/pl080.c
-target/arm/s5l8702/dma-s5l8702.c
-target/arm/s5l8702/clocking-s5l8702.c
-target/arm/s5l8702/ipod6g/lcd-6g.c
-target/arm/s5l8702/ipod6g/lcd-asm-6g.S
-target/arm/s5l8702/ipod6g/piezo-6g.c
-target/arm/s5l8702/spi-s5l8702.c
-target/arm/s5l8702/crypto-s5l8702.c
-target/arm/s5l8702/nor-s5l8702.c
-#if 0 //TODO
-target/arm/s5l8702/postmortemstub.S
-#endif
-target/arm/s5l8702/ipod6g/pmu-6g.c
+target/arm/s5l8702/ipod6g/storage_ata-6g.c
+#if (CONFIG_RTC == RTC_NANO2G)
 target/arm/s5l8702/ipod6g/rtc-6g.c
-target/arm/s5l8702/ipod6g/adc-6g.c
-#if !defined(BOOTLOADER) || defined(HAVE_BOOTLOADER_USB_MODE)
-target/arm/s5l8702/usb-s5l8702.c
 #endif
 #ifdef HAVE_SERIAL
-target/arm/uc870x.c
-target/arm/s5l8702/uart-s5l8702.c
 target/arm/s5l8702/ipod6g/serial-6g.c
 #endif
 #ifndef BOOTLOADER
-target/arm/s5l8702/debug-s5l8702.c
-target/arm/s5l8702/pcm-s5l8702.c
 target/arm/s5l8702/ipod6g/audio-6g.c
 target/arm/s5l8702/ipod6g/cscodec-6g.c
 #endif /* BOOTLOADER */
@@ -1975,6 +1998,9 @@ drivers/i2c-async.c
 #endif
 #ifdef HAVE_AXP_PMU
 drivers/axp-pmu.c
+#endif
+#ifdef HAVE_AXP2101_ADDON
+drivers/axp-2101.c
 #endif
 #ifdef HAVE_FT6x06
 drivers/ft6x06.c

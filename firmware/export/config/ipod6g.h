@@ -12,7 +12,9 @@
 /* define this if you use an ATA controller */
 #define CONFIG_STORAGE STORAGE_ATA
 
-#define HAVE_ATA_DMA 
+#define STORAGE_NEEDS_BOUNCE_BUFFER
+
+#define HAVE_ATA_DMA
 #define ATA_MAX_UDMA 4
 #define ATA_MAX_MWDMA 2
 
@@ -119,7 +121,7 @@
 /* Define if the device can wake from an RTC alarm */
 //#define HAVE_RTC_ALARM
 
-#define CONFIG_LCD LCD_IPOD6G
+#define CONFIG_LCD LCD_IPOD6GNANO3G4G
 
 /* Define the type of audio codec */
 #define HAVE_CS42L55
@@ -139,7 +141,7 @@
 
 /* 6g has a standard battery of 550mAh, except for the thick 6g (2007 160gb)
  * which has a standard battery of 850mAh.
- * 
+ *
  * It's possible to buy 3rd party batteries up to 3000mAh.
  */
 #define BATTERY_CAPACITY_DEFAULT 550 /* default battery capacity */
@@ -178,7 +180,7 @@
 #define HAVE_USB_CHARGING_ENABLE
 
 /* The size of the flash ROM */
-#define FLASH_SIZE 0x1000000
+#define FLASH_SIZE 0x100000
 
 /* Define this to the CPU frequency */
 #define CPU_FREQ        216000000
@@ -189,17 +191,19 @@
 /* Define this if you can read an absolute wheel position */
 #define HAVE_WHEEL_POSITION
 
-#define SECTOR_SIZE 4096
-
 #define HAVE_ATA_SMART
 
 /* define this if the device has larger sectors when accessed via USB */
-/* (only relevant in disk.c, fat.c now always supports large virtual sectors) */
-//#define MAX_LOG_SECTOR_SIZE 4096
+#define MAX_VIRT_SECTOR_SIZE 4096
 
-/* define this if the hard drive uses large physical sectors (ATA-7 feature) */
-/* and doesn't handle them in the drive firmware */
-//#define MAX_PHYS_SECTOR_SIZE 4096
+/* If we have no valid paritions, advertise this as our sector size */
+#define DEFAULT_VIRT_SECTOR_SIZE 4096
+
+/* This is the minimum access size for the device, even if it's larger than the logical sector size */
+#define MAX_PHYS_SECTOR_SIZE 4096
+
+/* define this if we want to support 512n and 4Kn drives */
+//#define MAX_VARIABLE_LOG_SECTOR 4096
 
 #define HAVE_HARDWARE_CLICK
 
@@ -209,9 +213,6 @@
 #define BOOTFILE_EXT "ipod"
 #define BOOTFILE "rockbox." BOOTFILE_EXT
 #define BOOTDIR "/.rockbox"
-
-/* Alternative bootfile extension - this is for encrypted images */
-#define BOOTFILE_EXT2 "ipodx"
 
 /* Define this for FM radio input available */
 #define HAVE_FMRADIO_IN

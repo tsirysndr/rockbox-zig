@@ -423,7 +423,7 @@ bool catalog_pick_new_playlist_name(char *pl_name, size_t buf_size,
         if (!curr_pl_name || strcmp(curr_pl_name, pl_name))
         {
             if (file_exists(pl_name))
-                do_save = confirm_overwrite_yesno() == YESNO_YES;
+                do_save = yesno_pop(ID2P(LANG_REALLY_OVERWRITE));
 
             if (do_save) /* delete bookmark file unrelated to new playlist */
             {
@@ -443,6 +443,7 @@ bool catalog_add_to_a_playlist(const char* sel, int sel_attr,
 {
     int result;
     char playlist[MAX_PATH + 7]; /* room for /.m3u8\0*/
+    size_t basename_start;
     if ((browser_status & CATBROWSE_PLAYLIST) == CATBROWSE_PLAYLIST)
         return false;
 
@@ -468,7 +469,10 @@ bool catalog_add_to_a_playlist(const char* sel, int sel_attr,
                                          ".m3u8", 1 IF_CNFN_NUM_(, NULL));
             else
             {
+                basename_start = strlen(playlist) + 1;
                 strlcat(playlist, name, sizeof(playlist));
+                fix_path_part(playlist, basename_start,
+                              sizeof(playlist) - 1 - basename_start) ;
                 apply_playlist_extension(playlist, sizeof(playlist));
             }
         }

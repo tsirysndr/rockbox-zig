@@ -1984,7 +1984,7 @@
   </source>
   <dest>
     *: "데이터베이스 구축하는 중... %d 찾았음 (돌아오려면 OFF)"
-    gigabeat*,iaudiom5,iaudiox5,mrobe100,samsungyh*: "데이터베이스 구축하는 중... %d found (돌아오려면 LEFT)"
+    gigabeat*,iaudiom5,iaudiox5,mrobe100,samsungyh*: "데이터베이스 구축하는 중... %d 찾았음 (돌아오려면 LEFT)"
     gogearsa9200: "데이터베이스 구축하는 중... %d 찾았음 (돌아오려면 REW)"
     ipod*,iriverh10,iriverh10_5gb,sansac200*,sansae200*,sansafuze*,vibe500: "데이터베이스 구축하는 중... %d 찾았음 (돌아오려면 PREV)"
     iriverh100,iriverh120,iriverh300: "데이터베이스 구축하는 중... %d 찾았음 (돌아오려면 STOP)"
@@ -4213,7 +4213,7 @@
     *: "Voice"
   </source>
   <dest>
-    *: "음섬"
+    *: "음성"
   </dest>
   <voice>
     *: "음성"
@@ -8751,20 +8751,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_GAIN
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Gain"
-  </source>
-  <dest>
-    *: "게인"
-  </dest>
-  <voice>
-    *: "게인"
-  </voice>
-</phrase>
-<phrase>
   id: VOICE_OF
   desc: spoken only, as in 3/8 => 3 of 8
   user: core
@@ -10810,23 +10796,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_LINEOUT_ONOFF
-  desc: in system settings menu
-  user: core
-  <source>
-    *: none
-    lineout_poweroff: "Line Out"
-  </source>
-  <dest>
-    *: none
-    lineout_poweroff: "라인 아웃"
-  </dest>
-  <voice>
-    *: none
-    lineout_poweroff: "라인 아웃"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_HOTKEY
   desc: hotkey menu
   user: core
@@ -12029,20 +11998,6 @@
   </dest>
   <voice>
     *: "최대 볼륨 제한"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_EQUALIZER_BAND_Q
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Q"
-  </source>
-  <dest>
-    *: "Q"
-  </dest>
-  <voice>
-    *: "Q"
   </voice>
 </phrase>
 <phrase>
@@ -16256,62 +16211,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_STEREOSW_MODE
-  desc: Stereo Switch Mode
-  user: core
-  <source>
-    *: "Stereo Switch Mode"
-  </source>
-  <dest>
-    *: "스테레오 스위치 모드"
-  </dest>
-  <voice>
-    *: "스테레오 스위치 모드"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_REVERSE
-  desc: in settings_menu
-  user: core
-  <source>
-    *: "Reverse"
-  </source>
-  <dest>
-    *: "왕복"
-  </dest>
-  <voice>
-    *: "왕복"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALWAYS_ZERO
-  desc: in settings_menu
-  user: core
-  <source>
-    *: "Always 0"
-  </source>
-  <dest>
-    *: "항상 0"
-  </dest>
-  <voice>
-    *: "항상 0"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALWAYS_ONE
-  desc: in settings_menu
-  user: core
-  <source>
-    *: "Always 1"
-  </source>
-  <dest>
-    *: "항상 1"
-  </dest>
-  <voice>
-    *: "항상 1"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_LEGAL_NOTICES
   desc: in system menu
   user: core
@@ -16505,5 +16404,154 @@
   </dest>
   <voice>
     *: "태그 제목"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESET_EQUALIZER
+  desc: in the equalizer settings menu
+  user: core
+  <source>
+    *: "Reset EQ"
+  </source>
+  <dest>
+    *: "EQ 재설정"
+  </dest>
+  <voice>
+    *: "EQ 재설정"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISC
+  desc: Shown in WPS (for multidisc albums)
+  user: core
+  <source>
+    *: "Disc"
+  </source>
+  <dest>
+    *: "디스크"
+  </dest>
+  <voice>
+    *: "디스크"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEW_ALBUMART
+  desc: WPS context menu
+  user: core
+  <source>
+    *: "View Album Art"
+  </source>
+  <dest>
+    *: "앨범 아트 보기"
+  </dest>
+  <voice>
+    *: "앨범 아트 보기"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HP_LO_SELECT
+  desc: Output Select
+  user: core
+  <source>
+    *: none
+    erosqnative: "Output Select"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "출력 선택"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "출력 선택"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HEADPHONE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative: "Headphone"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "헤드폰"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "헤드폰"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LINEOUT
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative,lineout_poweroff: "Line Out"
+  </source>
+  <dest>
+    *: none
+    erosqnative,lineout_poweroff: "라인 아웃"
+  </dest>
+  <voice>
+    *: none
+    erosqnative,lineout_poweroff: "라인 아웃"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FONT_LOAD_ERROR
+  desc: Displayed when font loading fails
+  user: core
+  <source>
+    *: "Unable to load font: (%s)"
+  </source>
+  <dest>
+    *: "글꼴을 로드할 수 없음: (%s)"
+  </dest>
+  <voice>
+    *: "저장된 트랙"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LOGGING
+  desc: playback logging
+  user: core
+  <source>
+    *: "Logging"
+  </source>
+  <dest>
+    *: "로깅"
+  </dest>
+  <voice>
+    *: "로깅"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEWLOG
+  desc: view Log
+  user: core
+  <source>
+    *: "View log"
+  </source>
+  <dest>
+    *: "로그 보기"
+  </dest>
+  <voice>
+    *: "로그 보기"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REPLAY_FINISHED_PLAYLIST
+  desc: Resume playback of finished playlist
+  user: core
+  <source>
+    *: "Playlist finished. Play again?"
+  </source>
+  <dest>
+    *: "재생목록이 완료되었습니다. 다시 재생할까요?"
+  </dest>
+  <voice>
+    *: "재생목록이 완료되었습니다. 다시 재생할까요?"
   </voice>
 </phrase>

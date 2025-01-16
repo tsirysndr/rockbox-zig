@@ -27,7 +27,7 @@
 #include "usb_core.h"
 #endif
 
-#include "s5l8702.h"
+#include "s5l87xx.h"
 #include "clocking-s5l8702.h"
 #include "usb-designware.h"
 
@@ -69,10 +69,16 @@ void usb_dw_target_enable_clocks()
 
 void usb_dw_target_disable_clocks()
 {
+#if (CONFIG_CPU == S5L8702)
     OPHYPWR = 0xf;  /* PHY: Power down */
     udelay(10);
     ORSTCON = 7;  /* PHY: Assert Software Reset */
     udelay(10);
+#elif (CONFIG_CPU == S5L8720)
+    OPHYPWR = 0x1f;  /* PHY: Power down */
+    ORSTCON = 1;  /* PHY: Assert Software Reset */
+    udelay(1000);
+#endif
 
     clockgate_enable(CLOCKGATE_USBOTG, false);
     clockgate_enable(CLOCKGATE_USBPHY, false);

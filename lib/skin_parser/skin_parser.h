@@ -48,7 +48,7 @@ typedef long skinoffset_t;
     ((pointer) ? ((void*)pointer-(void*)base) : -1)
 /* Use this macro when declaring a variable to self-document the code.
  * type is the actual type being pointed to (i.e OFFSETTYPE(char*) foo )
- * 
+ *
  * WARNING: Don't use the PTRTOSKINOFFSET() around a function call as it wont
  * do what you expect.
  */
@@ -107,15 +107,14 @@ struct skin_tag_parameter
         DEFAULT
     } type;
 
+    char type_code;
+
     union
     {
         int number;
         OFFSETTYPE(char*) text;
         OFFSETTYPE(struct skin_element*) code;
     } data;
-
-    char type_code;
-            
 };
 
 /* Defines an element of a SKIN file,
@@ -147,11 +146,12 @@ struct skin_element
     enum skin_element_type type;
     /* Number of elements in the params array */
     char params_count;
+    bool is_conditional;
 };
 
 enum skin_cb_returnvalue
 {
-    CALLBACK_ERROR = -666,
+    CALLBACK_ERROR = -128,
     FEATURE_NOT_AVAILABLE,
     CALLBACK_OK = 0,
     /* > 0 reserved for future use */
@@ -165,7 +165,7 @@ typedef int (*skin_callback)(struct skin_element* element, void* data);
 /* Parses a WPS document and returns a list of skin_element
    structures. */
 #ifdef ROCKBOX
-struct skin_element* skin_parse(const char* document, 
+struct skin_element* skin_parse(const char* document,
                                 skin_callback callback, void* callback_data);
 #else
 struct skin_element* skin_parse(const char* document);

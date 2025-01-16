@@ -110,7 +110,7 @@ static inline int set_interrupt_status(int status, int mask)
     unsigned long cpsr;
     int oldstatus;
     /* Read the old levels and set the new ones */
-#if defined(CREATIVE_ZVM) && defined(BOOTLOADER)
+#if (defined(CREATIVE_ZVM) ||defined(CREATIVE_ZV)) && defined(BOOTLOADER)
 // FIXME:  This workaround is for a problem with inlining;
 // for some reason 'mask' gets treated as a variable/non-immediate constant
 // but only on this build.  All others (including the nearly-identical mrobe500boot) are fine
@@ -385,7 +385,7 @@ static inline uint32_t swaw32_hw(uint32_t value)
 #if defined(CPU_TCC780X) /* Single core only for now */ \
 || CONFIG_CPU == IMX31L || CONFIG_CPU == DM320 || CONFIG_CPU == AS3525 \
 || CONFIG_CPU == S3C2440 || CONFIG_CPU == S5L8701 || CONFIG_CPU == AS3525v2 \
-|| CONFIG_CPU == S5L8702
+|| CONFIG_CPU == S5L8702 || CONFIG_CPU == S5L8720
 /* Use the generic ARMv4/v5/v6 wait for IRQ */
 static inline void core_sleep(void)
 {

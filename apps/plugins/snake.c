@@ -317,6 +317,7 @@ dir is the current direction of the snake - 0=up, 1=right, 2=down, 3=left;
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
+#elif CONFIG_KEYPAD == MA_PAD
 #define SNAKE_QUIT      BUTTON_BACK
 #define SNAKE_LEFT      BUTTON_LEFT
 #define SNAKE_RIGHT     BUTTON_RIGHT

@@ -112,6 +112,7 @@ enum variables {
     var_include,
     var_rootmenu,
     var_format,
+    menu_byfirstletter,
     menu_next,
     menu_load,
     menu_reload,
@@ -173,11 +174,12 @@ struct display_format {
 static struct display_format *formats[TAGMENU_MAX_FMTS];
 static int format_count;
 
+#define MENUENTRY_MAX_NAME 64
 struct menu_entry {
-    char name[64];
+    char name[MENUENTRY_MAX_NAME];
     int type;
     struct search_instruction {
-        char name[64];
+        char name[MENUENTRY_MAX_NAME];
         int tagorder[MAX_TAGS];
         int tagorder_count;
         struct tagcache_search_clause *clause[MAX_TAGS][TAGCACHE_MAX_CLAUSES];
@@ -189,17 +191,10 @@ struct menu_entry {
 };
 
 struct menu_root {
-    char title[64];
+    char title[MENUENTRY_MAX_NAME];
     char id[MAX_MENU_ID_SIZE];
     int itemcount;
     struct menu_entry *items[TAGMENU_MAX_ITEMS];
-};
-
-struct match
-{
-    const char* str;
-    uint16_t len;
-    uint16_t symbol;
 };
 
 /* Statusbar text of the current view. */
@@ -353,12 +348,13 @@ static int get_token_str(char *buf, int size)
 static int get_tag(int *tag)
 {
     #define TAG_MATCH(str, tag) {str, sizeof(str) - 1, tag}
+    struct match {const char* str; uint16_t len; uint16_t symbol;};
     static const struct match get_tag_match[] =
     {
-        TAG_MATCH("Lm", tag_virt_length_min),
-        TAG_MATCH("Ls", tag_virt_length_sec),
-        TAG_MATCH("Pm", tag_virt_playtime_min),
-        TAG_MATCH("Ps", tag_virt_playtime_sec),
+        TAG_MATCH("lm", tag_virt_length_min),
+        TAG_MATCH("ls", tag_virt_length_sec),
+        TAG_MATCH("pm", tag_virt_playtime_min),
+        TAG_MATCH("ps", tag_virt_playtime_sec),
         TAG_MATCH("->", menu_next),
         TAG_MATCH("~>", menu_shuffle_songs),
 
@@ -404,13 +400,15 @@ static int get_tag(int *tag)
         TAG_MATCH("lastelapsed", tag_lastelapsed),
         TAG_MATCH("%menu_start", var_menu_start),
 
+        TAG_MATCH("%byfirstletter", menu_byfirstletter),
         TAG_MATCH("canonicalartist", tag_virt_canonicalartist),
+
         TAG_MATCH("", 0) /* sentinel */
     };
     #undef TAG_MATCH
     const size_t max_cmd_sz = 32; /* needs to be >= to len of longest tagstr */
     const char *tagstr;
-    unsigned int tagstr_len;
+    uint16_t tagstr_len;
     const struct match *match;
 
     /* Find the start. */
@@ -1056,8 +1054,70 @@ int tagtree_import(void)
     return 0;
 }
 
-static bool parse_menu(const char *filename);
+static bool alloc_menu_parse_buf(char *buf, int type)
+{
+    /* allocate a new menu item (if needed) initialize it with data parsed
+       from buf Note: allows setting menu type, type ignored when < 0
+    */
+    /* Allocate */
+    if (menu->items[menu->itemcount] == NULL)
+        menu->items[menu->itemcount] = tagtree_alloc0(sizeof(struct menu_entry));
+    if (!menu->items[menu->itemcount])
+    {
+        logf("tagtree failed to allocate %s", "menu items");
+        return false;
+    }
 
+    /* Initialize */
+    core_pin(tagtree_handle);
+    if (parse_search(menu->items[menu->itemcount], buf))
+    {
+        if (type >= 0)
+            menu->items[menu->itemcount]->type = type;
+        menu->itemcount++;
+    }
+    core_unpin(tagtree_handle);
+    return true;
+}
+
+static void build_firstletter_menu(char *buf, size_t bufsz)
+{
+#if 0 /* GCC complains about this I can't find a definitive answer */
+    const char *subitem = buf;
+    size_t l = strlen(buf) + 1;
+    buf+=l;
+    bufsz-=l;
+#else
+    char subitem[32]; /* canonicalartist longest subitem we expect add a bit extra..*/
+    strmemccpy(subitem, buf, sizeof(subitem));
+#endif
+
+    const char * const fmt ="\"%s\"-> %s ? %s %c\"%c\"-> %s =\"fmt_title\"";
+    const char * const showsub = /* album subitem for canonicalartist */
+        ((strcasestr(subitem, "artist") == NULL) ? "title" : "album -> title");
+
+    /* Numeric ex: "Numeric" -> album ? album < "A" -> title = "fmt_title" */
+    snprintf(buf, bufsz, fmt,
+            str(LANG_DISPLAY_NUMERIC), subitem, subitem,'<', 'A', showsub);
+
+    if (!alloc_menu_parse_buf(buf, menu_byfirstletter))
+    {
+        return;
+    }
+
+    for (int i = 0; i < 26; i++)
+    {
+        snprintf(buf, bufsz, fmt, "#", subitem, subitem,'^', 'A' + i, showsub);
+        buf[1] = 'A' + i; /* overwrite the placeholder # with the current letter */
+        /* ex: "A" -> title ? title ^ "A" -> title = "fmt_title" */
+        if (!alloc_menu_parse_buf(buf, menu_byfirstletter))
+        {
+            return;
+        }
+    }
+}
+
+static bool parse_menu(const char *filename);
 static int parse_line(int n, char *buf, void *parameters)
 {
     char data[256];
@@ -1127,7 +1187,7 @@ static int parse_line(int n, char *buf, void *parameters)
                     logf("Load menu fail: %s", data);
                 }
                 break;
-
+            case menu_byfirstletter: /* Fallthrough */
             case var_menu_start:
                 if (menu_count >= TAGMENU_MAX_MENUS)
                 {
@@ -1169,6 +1229,19 @@ static int parse_line(int n, char *buf, void *parameters)
                     return 0;
                 }
                 logf("menu: %s", menu->title);
+
+                if (variable == menu_byfirstletter)
+                {
+                    if (get_token_str(data, sizeof(data)) < 0)
+                    {
+                        logf("%%firstletter_menu has no subitem"); /*artist,album*/
+                        return 0;
+                    }
+                    logf("A-Z Menu subitem: %s", data);
+                    read_menu = false;
+                    build_firstletter_menu(data, sizeof(data));
+                    break;
+                }
                 read_menu = true;
                 break;
 
@@ -1202,18 +1275,10 @@ static int parse_line(int n, char *buf, void *parameters)
         return 0;
     }
 
-    /* Allocate */
-    if (menu->items[menu->itemcount] == NULL)
-        menu->items[menu->itemcount] = tagtree_alloc0(sizeof(struct menu_entry));
-    if (!menu->items[menu->itemcount])
+    if (!alloc_menu_parse_buf(buf, -1))
     {
-        logf("tagtree failed to allocate %s", "menu items");
         return -2;
     }
-    core_pin(tagtree_handle);
-    if (parse_search(menu->items[menu->itemcount], buf))
-        menu->itemcount++;
-    core_unpin(tagtree_handle);
 
     return 0;
 }
@@ -1449,6 +1514,7 @@ static void tcs_get_basename(struct tagcache_search *tcs, bool is_basename)
 
 static int retrieve_entries(struct tree_context *c, int offset, bool init)
 {
+    logf( "%s", __func__);
     char tcs_buf[TAGCACHE_BUFSZ];
     const long tcs_bufsz = sizeof(tcs_buf);
     struct tagcache_search tcs;
@@ -1817,6 +1883,12 @@ static int load_root(struct tree_context *c)
                 dptr->newtable = TABLE_NAVIBROWSE;
                 dptr->extraseek = i;
                 dptr->customaction = ONPLAY_CUSTOMACTION_SHUFFLE_SONGS;
+                break;
+
+            case menu_byfirstletter:
+                dptr->newtable = TABLE_NAVIBROWSE;
+                dptr->extraseek = i;
+                dptr->customaction = ONPLAY_CUSTOMACTION_FIRSTLETTER;
                 break;
         }
 

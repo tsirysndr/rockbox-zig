@@ -201,6 +201,9 @@ static inline int printcells(struct screen *display, char* buffer,
             buftext = &buffer[sidx[i]];
             display->put_line(x + offw + offx, ny, linedes, "$t", buftext);
             vp->width += COLUMN_ENDLEN + 1;
+            if (vp->width > vp_w)
+                vp->width = vp_w;
+
             draw_selector(display, linedes, selected_flag, i, separator, x, ny, nw, height);
         }
         x = nx;
@@ -403,6 +406,8 @@ static void printcell_listdraw_fn(struct list_putlineinfo_t *list_info)
     if (colxw > 0) /* draw selector for first column (title or items) */
     {
         vp->width += COLUMN_ENDLEN + 1;
+        if (vp->width > vp_w)
+            vp->width = vp_w;
         draw_selector(display, linedes, selected_flag, 0,
                       separator, nx, y, nw, linedes->height);
     }
@@ -525,6 +530,12 @@ int printcell_set_columns(struct gui_synclist *gui_list,
     if (title == NULL)
         title = "$PRINTCELL NOT SETUP";
 
+    uint16_t sidx[PRINTCELL_MAX_COLUMNS]; /* starting position of column in title string */
+    int width, height, user_minwidth;
+    int i = 0;
+    size_t j = 0;
+    rb->memset(&printcell, 0, sizeof(struct printcell_info_t));
+
     if (pcs == NULL) /* DEFAULTS */
     {
 #if LCD_DEPTH > 1
@@ -533,23 +544,20 @@ int printcell_set_columns(struct gui_synclist *gui_list,
 #else
         bool sep = (rb->global_settings->cursor_style == 0);
 #endif
-        pcs = &(struct printcell_settings){ .cell_separator = sep,
-                                            .title_delimeter = '$',
-                                            .text_delimeter = '$',
-                                            .hidecol_flags = 0};
+        printcell.separator = sep;
+        printcell.titlesep  = '$';
+        printcell.colsep    = '$';
+        printcell.hidecol_flags = 0;
     }
-
-    uint16_t sidx[PRINTCELL_MAX_COLUMNS]; /* starting position of column in title string */
-    int width, height, user_minwidth;
-    int i = 0;
-    size_t j = 0;
-    rb->memset(&printcell, 0, sizeof(struct printcell_info_t));
-
+    else
+    {
+        printcell.separator = pcs->cell_separator;
+        printcell.titlesep  = pcs->title_delimeter;
+        printcell.colsep    = pcs->text_delimeter;
+        printcell.hidecol_flags = pcs->hidecol_flags;
+    }
     printcell.gui_list = gui_list;
-    printcell.separator = pcs->cell_separator;
-    printcell.titlesep  = pcs->title_delimeter;
-    printcell.colsep    = pcs->text_delimeter;
-    printcell.hidecol_flags = pcs->hidecol_flags;
+
 
     int ch = printcell.titlesep; /* first column $ is optional */
 

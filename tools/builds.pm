@@ -439,7 +439,11 @@ $releasenotes="/wiki/ReleaseNotes315";
     },
     'creativezen' => {
         name => 'Creative Zen',
-        status => 2
+        status => 2,
+    },
+    'creativezenv' => {
+        name => 'Creative Zen V',
+        status => 1,
     },
     'creativezenmozaic' => {
         name => 'Creative Zen Mozaic',
@@ -703,19 +707,19 @@ sub simbuilds {
 	    'gtts' => '-l es',
             'piper' => 'es_ES-sharvard-medium.onnx',
 	},
-        'enabled' => 0,
+        'enabled' => 1,
     },
     'espanol-mx' => {
 	'lang' => 'espanol',
 	'name' => 'Spanish (Mexican)',
         'short' => 'es-mx',
-        'defengine' => 'espeak',
+        'defengine' => 'piper',
 	'engines' => {
 	    'espeak' => '-ves -k 6',
             'gtts' => '-l es -t mx',
-            # No piper voice yet.
+            'piper' => 'es_MX-claude-high.onnx',
 	},
-        'enabled' => 0,
+        'enabled' => 1,
     },
     'francais' => {
 	'lang' => 'francais',

@@ -354,6 +354,14 @@ struct mpeg_settings settings;
 #define MPEG_START_TIME_DOWN        BUTTON_DOWN
 #define MPEG_START_TIME_EXIT        BUTTON_POWER
 
+#elif CONFIG_KEYPAD == MA_PAD
+#define MPEG_START_TIME_SELECT      BUTTON_PLAY
+#define MPEG_START_TIME_LEFT        BUTTON_LEFT
+#define MPEG_START_TIME_RIGHT       BUTTON_RIGHT
+#define MPEG_START_TIME_UP          BUTTON_UP
+#define MPEG_START_TIME_DOWN        BUTTON_DOWN
+#define MPEG_START_TIME_EXIT        BUTTON_BACK
+
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 #define MPEG_START_TIME_EXIT        BUTTON_POWER
 
@@ -772,7 +780,7 @@ static void get_start_time_lcd_enable_hook(unsigned short id, void *param)
 {
     (void)id;
     (void)param;
-    rb->queue_post(rb->button_queue, LCD_ENABLE_EVENT_0, 0);
+    rb->button_queue_post(LCD_ENABLE_EVENT_0, 0);
 }
 #endif /* HAVE_LCD_ENABLE */
 

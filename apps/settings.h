@@ -218,8 +218,8 @@ enum {  ALARM_START_WPS = 0,
    This helps to save space for menus and options. */
 
 #define VIRT_SIZE 0xFFFF /* more than enough for our string ID range */
-#if defined(CPU_S5L870X)
-/* the S5L870X has IRAM at 0, so we use 0xffff bytes right after that */
+#if defined(CPU_S5L87XX)
+/* the S5L87XX has IRAM at 0, so we use 0xffff bytes right after that */
 #define VIRT_PTR ((unsigned char*)0x40000)
 #elif CONFIG_CPU==DM320
 /* the DM320 has IRAM at 0, so we use 0xffff bytes right after that */
@@ -316,7 +316,7 @@ void set_file(const char* filename, char* setting, const int maxlen);
 bool set_option(const char* string, const void* variable, enum optiontype type,
                 const struct opt_items* options, int numoptions, void (*function)(int));
 
-
+const char* setting_get_cfgvals(const struct settings_list *setting);
 
 /** global_settings and global_status struct definitions **/
 
@@ -340,6 +340,7 @@ struct system_status
     int last_volume_change; /* tick the last volume change happened. skins use this */
     int font_id[NB_SCREENS]; /* font id of the settings font for each screen */
 
+    bool resume_modified; /* playlist is modified (=> warn before erase) */
 };
 
 struct user_settings
@@ -811,7 +812,6 @@ struct user_settings
 #ifdef HAVE_REMOTE_LCD
     unsigned char remote_ui_vp_config[64]; /* viewport string for the remote lists */
 #endif
-    char player_name[64];  /* Name of the local player */
 
     struct compressor_settings compressor_settings;
 
@@ -909,8 +909,9 @@ struct user_settings
     bool clear_settings_on_hold;
 #endif
 #if defined(HAVE_EROS_QN_CODEC)
-    int stereosw_mode; /* indicates normal, reverse, always 0, always 1 operation */
+    int hp_lo_select; /* indicates automatic, headphone-only, or lineout-only operation */
 #endif
+    bool playback_log; /* ROCKBOX_DIR/playback.log for tracks played */
 };
 
 /** global variables **/

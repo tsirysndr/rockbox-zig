@@ -20,6 +20,7 @@
  ****************************************************************************/
 #include "plugin.h"
 #include "lib/mul_id3.h"
+#include "lib/simple_viewer.h"
 
 #if !defined(ARRAY_SIZE)
     #define ARRAY_SIZE(x) (sizeof((x)) / sizeof((x)[0]))
@@ -186,12 +187,35 @@ static int browse_file_or_dir(struct dir_stats *stats)
             continue;
         switch(button)
         {
-            case ACTION_STD_OK:
+            case ACTION_STD_OK:;
+                int sel_pos = rb->gui_synclist_get_sel_pos(&properties_lists);
+
+                /* "Show Track Info..." selected? */
                 if ((props_type == PROPS_PLAYLIST || props_type == PROPS_DIR) &&
-                      rb->gui_synclist_get_sel_pos(&properties_lists)
-                        == (props_type == PROPS_DIR ?
-                            ARRAY_SIZE(props_dir) : ARRAY_SIZE(props_file)) - 2)
+                    sel_pos == (props_type == PROPS_DIR ?
+                                ARRAY_SIZE(props_dir) : ARRAY_SIZE(props_file)) - 2)
                     return -1;
+                else
+                {
+                    /* Display field in fullscreen */
+                    FOR_NB_SCREENS(i)
+                        rb->viewportmanager_theme_enable(i, false, NULL);
+                    if (props_type == PROPS_DIR)
+                        view_text((char *) p2str(props_dir[sel_pos]),
+                                  (char *)       props_dir[sel_pos + 1]);
+                    else
+                        view_text((char *) p2str(props_file[sel_pos]),
+                                  (char *)       props_file[sel_pos + 1]);
+                    FOR_NB_SCREENS(i)
+                        rb->viewportmanager_theme_undo(i, false);
+
+                    rb->gui_synclist_set_title(&properties_lists,
+                               rb->str(props_type == PROPS_DIR ?
+                                       LANG_PROPERTIES_DIRECTORY_PROPERTIES :
+                                       LANG_PROPERTIES_FILE_PROPERTIES),
+                               NOICON);
+                    rb->gui_synclist_draw(&properties_lists);
+                }
                 break;
             case ACTION_STD_CANCEL:
                 return 0;
@@ -339,12 +363,15 @@ enum plugin_status plugin_start(const void* parameter)
         }
     }
     else if (props_type == PROPS_ID3)
-        ret = rb->browse_id3(&id3, 0, 0, &tm, 1);   /* Track Info for single file */
+        /* Track Info for single file */
+        ret = rb->browse_id3(&id3, 0, 0, &tm, 1, &view_text);
     else if (props_type == PROPS_MUL_ID3)
-        ret = rb->browse_id3(&id3, 0, 0, NULL, mul_id3_count); /* database tracks */
+        /* database tracks */
+        ret = rb->browse_id3(&id3, 0, 0, NULL, mul_id3_count, &view_text);
     else if ((ret = browse_file_or_dir(&stats)) < 0)
-        ret = assemble_track_info(file, &stats) ?    /* playlist or folder tracks */
-              rb->browse_id3(&id3, 0, 0, NULL, mul_id3_count) :
+        ret = assemble_track_info(file, &stats) ?
+              /* playlist or folder tracks */
+              rb->browse_id3(&id3, 0, 0, NULL, mul_id3_count, &view_text) :
               (stats.canceled ? 0 : -1);
 
     return ret == -1 ? PLUGIN_ERROR : ret == 1 ? PLUGIN_USB_CONNECTED : PLUGIN_OK;

@@ -152,14 +152,14 @@
  */
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include "config.h"
 
 #define CLOCKING_DEBUG
 
-#if defined(IPOD_6G)
-/* iPod Classic target */
-#define S5L8702_OSC0_HZ         12000000  /* external OSC */
-#define S5L8702_OSC1_HZ         32768     /* from PMU */
+#if defined(IPOD_6G) || defined(IPOD_NANO3G)
+#define S5L8702_OSC0_HZ         12000000  /* crystal */
+#define S5L8702_OSC1_HZ         32768     /* crystal (n3g), from PMU (6g) */
 
 #define S5L8702_ALTOSC0_HZ      0   /* TBC */
 #define S5L8702_ALTOSC1_HZ      0   /* TBC */
@@ -169,203 +169,32 @@
 /* TBC: OSC0*2 ???, 24 MHz Xtal ???, USB ??? */
 #define S5L8702_UNKOSC_HZ       24000000
 
+#elif defined(IPOD_NANO4G)
+#define S5L8702_OSC0_HZ         (soc_get_sec_epoch() ? 24000000 : 12000000)
+#define S5L8702_OSC1_HZ         32768     /* from ??? */
+
+// TBC:
+#define S5L8702_ALTOSC0_HZ      0   /* TBC */
+#define S5L8702_ALTOSC1_HZ      0   /* TBC */
+
+// TBC:
+/* this clock is selected when CG16_UNKOSC_BIT is set,
+   ignoring PLLMODE_CLKSEL and CG16_SEL settings */
+/* TBC: OSC0*2 ???, 24 MHz Xtal ???, USB ??? */
+#define S5L8702_UNKOSC_HZ       48000000
+
 #else
 /* s5l8702 ROMBOOT */
-#define S5L8702_OSC0_HZ         (soc_get_osc0())  /* external OSC */
-#define S5L8702_OSC1_HZ         32768             /* from PMU */
+#define S5L8702_OSC0_HZ         (soc_get_sec_epoch() ? 24000000 : 12000000)
+#define S5L8702_OSC1_HZ         32768
 
-#define S5L8702_ALTOSC0_HZ      1800000
+#define S5L8702_ALTOSC0_HZ      1800000             // TODO: see if this depends on the sec_epoch
 #define S5L8702_ALTOSC1_HZ      27000000
+
+#define S5L8702_UNKOSC_HZ       (S5L8702_OSC0_HZ*2) /* TBC */
 #endif
 
-/* TODO: join all these definitions in an unique place */
-#if 1
-#include "s5l8702.h"
-#else
-#define CLKCON0     (*((volatile uint32_t*)(0x3C500000)))
-#define CLKCON1     (*((volatile uint32_t*)(0x3C500004)))
-#define CLKCON2     (*((volatile uint32_t*)(0x3C500008)))
-#define CLKCON3     (*((volatile uint32_t*)(0x3C50000C)))
-#define CLKCON4     (*((volatile uint32_t*)(0x3C500010)))
-#define CLKCON5     (*((volatile uint32_t*)(0x3C500014)))
-#define PLL0PMS     (*((volatile uint32_t*)(0x3C500020)))
-#define PLL1PMS     (*((volatile uint32_t*)(0x3C500024)))
-#define PLL2PMS     (*((volatile uint32_t*)(0x3C500028)))
-#define PLL0LCNT    (*((volatile uint32_t*)(0x3C500030)))
-#define PLL1LCNT    (*((volatile uint32_t*)(0x3C500034)))
-#define PLL2LCNT    (*((volatile uint32_t*)(0x3C500038)))
-#define PLLLOCK     (*((volatile uint32_t*)(0x3C500040)))
-#define PLLMODE     (*((volatile uint32_t*)(0x3C500044)))
-#define PWRCON(i)   (*((volatile uint32_t*)(0x3C500048 + ((i)*4)))) /*i=1,2*/
-#endif
-
-/* TBC: ATM i am assuming that PWRCON_AHB/APB registers are clockgates
- * for SoC internal controllers sitting on AHB/APB buses, this is based
- * on other similar SoC documentation and experimental results for many
- * (not all) s5l8702 controllers.
- */
-#define PWRCON_AHB  (*((uint32_t volatile*)(0x3C500048)))
-#define PWRCON_APB  (*((uint32_t volatile*)(0x3C50004c)))
-
-#define PLLPMS(i)   (*((volatile uint32_t*)(0x3C500020 + ((i) * 4))))
-#define PLLCNT(i)   (*((volatile uint32_t*)(0x3C500030 + ((i) * 4))))
-#define PLLMOD2     (*((volatile uint32_t*)(0x3C500060)))
-#define PLLCNT_MSK  0x3fffff
-
-/* TBC: Clk_SM1 = HClk / (SM1_DIV[3:0] + 1) */
-#define SM1_DIV     (*((volatile uint32_t*)(0x38501000)))
-
-
-/* CG16_x: for readability and debug, these gates are defined as
- * 16-bit registers, on HW they are really halves of 32-bit registers.
- * Some functionallity is not available on all CG16 gates (when so,
- * related bits are read-only and fixed to 0).
- *
- *                CLKCONx   DIV1    DIV2    UNKOSC   UNK14
- *  CG16_SYS      0L        +
- *  CG16_2L       2L        +               +(TBC)   +(TBC)
- *  CG16_SVID     2H        +               +(TBC)
- *  CG16_AUD0     3L        +       +
- *  CG16_AUD1     3H        +       +
- *  CG16_AUD2     4L        +       +
- *  CG16_RTIME    4H        +       +       +
- *  CG16_5L       5L        +
- *
- * Not all gates are fully tested, this information is mainly based
- * on experimental test using emCORE:
- *  - CG16_SYS and CG16_RTIME were tested mainly using time benchs.
- *  - EClk is used as a fixed clock (not depending on CPU/AHB/APB
- *    settings) for the timer contrller. MIU_Clk is used by the MIU
- *    controller to generate the DRAM refresh signals.
- *  - AUDxClk are a source selection for I2Sx modules, so they can
- *    can be scaled and routed to the I2S GPIO ports, where they
- *    were sampled (using emCORE) to inspect how they behave.
- *  - CG16_SVID seem to be used for external video, this info is
- *    based on OF diagnostics reverse engineering.
- *  - CG16_2L an CG16_5L usage is unknown.
- */
-#define CG16_SYS        (*((volatile uint16_t*)(0x3C500000)))
-#define CG16_2L         (*((volatile uint16_t*)(0x3C500008)))
-#define CG16_SVID       (*((volatile uint16_t*)(0x3C50000A)))
-#define CG16_AUD0       (*((volatile uint16_t*)(0x3C50000C)))
-#define CG16_AUD1       (*((volatile uint16_t*)(0x3C50000E)))
-#define CG16_AUD2       (*((volatile uint16_t*)(0x3C500010)))
-#define CG16_RTIME      (*((volatile uint16_t*)(0x3C500012)))
-#define CG16_5L         (*((volatile uint16_t*)(0x3C500014)))
-
-/* CG16 output frequency =
-   !DISABLE_BIT * SEL_x frequency / DIV1+1 / DIV2+1 */
-#define CG16_DISABLE_BIT    (1 << 15)   /* mask clock output */
-#define CG16_UNK14_BIT      (1 << 14)   /* writable on CG16_2L */
-
-#define CG16_SEL_POS        12          /* source clock selection */
-#define CG16_SEL_MSK        0x3
-#define CG16_SEL_OSC        0
-#define CG16_SEL_PLL0       1
-#define CG16_SEL_PLL1       2
-#define CG16_SEL_PLL2       3
-
-#define CG16_UNKOSC_BIT     (1 << 11)
-
-#define CG16_DIV2_POS       4           /* 2nd divisor */
-#define CG16_DIV2_MSK       0xf
-
-#define CG16_DIV1_POS       0           /* 1st divisor */
-#define CG16_DIV1_MSK       0xf
-
-/*
- *  CLKCON0
- */
-#define CLKCON0_SDR_DISABLE_BIT (1 << 31)
-
-/*
- *  CLKCON1
- */
-/* CPU/AHB/APB real_divisor =
-   xDIV_EN_BIT ? 2*(reg_value+1) : 1 */
-#define CLKCON1_CDIV_POS        24
-#define CLKCON1_CDIV_MSK        0x1f
-#define CLKCON1_CDIV_EN_BIT     (1 << 30)
-
-#define CLKCON1_HDIV_POS        16
-#define CLKCON1_HDIV_MSK        0x1f
-#define CLKCON1_HDIV_EN_BIT     (1 << 22)
-
-#define CLKCON1_PDIV_POS        8
-#define CLKCON1_PDIV_MSK        0x1f
-#define CLKCON1_PDIV_EN_BIT     (1 << 14)
-
-/* AHB/APB ratio: must be written when HDIV and/or PDIV
-   are modified, real_ratio = reg_value + 1 */
-#define CLKCON1_HPRAT_POS       0
-#define CLKCON1_HPRAT_MSK       0x3f
-
-/*
- *  CLKCON5
- */
-/* TBC: this bit selects a clock routed (at least) to all I2S modules
- * (AUDAUX_Clk, see i2s-s5l8702.h), it can be selected as a source
- * for CODEC_CLK (MCLK), on iPod Classic AUDAUX_Clk is:
- *  0 -> 12 MHz (TBC: OSC0 ???)
- *  1 -> 24 MHz (TBC: 2*OSC0 ???)
- */
-#define CLKCON5_AUDAUXCLK_BIT   (1 << 31)
-
-/*
- *  PLLnPMS
- */
-#define PLLPMS_PDIV_POS         24      /* pre-divider */
-#define PLLPMS_PDIV_MSK         0x3f
-#define PLLPMS_MDIV_POS         8       /* main divider */
-#define PLLPMS_MDIV_MSK         0xff
-#define PLLPMS_SDIV_POS         0       /* post-divider (2^S) */
-#define PLLPMS_SDIV_MSK         0x7
-
-/*
- *  PLLLOCK
- */
-/* Start status:
-   0 -> in progress, 1 -> locked */
-#define PLLLOCK_LCK_BIT(n)      (1 << (n))
-
-/* Lock status for Divisor Mode (DM):
-   0 -> DM unlocked, 1 -> DM locked */
-#define PLLLOCK_DMLCK_BIT(n)    (1 << (4 + (n)))
-
-/*
- *  PLLMODE
- */
-/* Enable PLL0,1,2:
-   0 -> turned off, 1 -> turned on */
-#define PLLMODE_EN_BIT(n)       (1 << (n))
-
-/* Select PMS mode for PLL0,1:
-   0 -> mutiply mode (MM), 1 -> divide mode (DM) */
-#define PLLMODE_PMSMOD_BIT(n)   (1 << (4 + (n)))
-
-/* Select DMOSC for PLL2:
-   0 -> DMOSC_STD, 1 -> DMOSC_ALT */
-#define PLLMODE_PLL2DMOSC_BIT   (1 << 6)
-
-/* Select oscilator for CG16_SEL_OSC source:
-   0 -> S5L8702_OSC0, 1 -> S5L8702_OSC1 */
-#define PLLMODE_OSCSEL_BIT      (1 << 8)
-
-/* Select PLLxClk (a.k.a. "slow mode" (see s3c2440-DS) for PLL0,1,2:
-   O -> S5L8702_OSC1, 1 -> PLLxFreq */
-#define PLLMODE_PLLOUT_BIT(n)   (1 << (16 + (n)))
-
-/*
- *  PLLMOD2
- */
-/* Selects ALTOSCx for PLL0,1,2 when DMOSC == DMOSC_ALT:
-   0 -> S5L8702_ALTOSC0, 1 -> S5L8702_ALTOSC1 */
-#define PLLMOD2_ALTOSC_BIT(n)   (1 << (n))
-
-/* Selects DMOSC for PLL0,1:
-   0 -> DMOSC_STD, 1 -> DMOSC_ALT */
-#define PLLMOD2_DMOSC_BIT(n)    (1 << (4 + (n)))
-
+#include "s5l87xx.h"
 
 /* See s3c2440-DS (figure 7.2) for similar SoC reference.
  *
@@ -427,6 +256,9 @@ void clocking_init(struct clocking_mode *modes, int init_level);
 void set_clocking_level(int level);
 unsigned get_system_freqs(unsigned *cclk, unsigned *hclk, unsigned *pclk);
 void clockgate_enable(int gate, bool enable);
+#if CONFIG_CPU == S5L8720
+int soc_get_sec_epoch(void);
+#endif
 
 /* debug */
 unsigned pll_get_cfg_freq(int pll);
@@ -435,19 +267,22 @@ unsigned soc_get_oscsel_freq(void);
 int soc_get_hsdiv(void);
 
 #ifdef BOOTLOADER
-#include <stdbool.h>
-
 void usec_timer_init(void);
 
 void soc_set_system_divs(unsigned cdiv, unsigned hdiv, unsigned hprat);
 unsigned soc_get_system_divs(unsigned *cdiv, unsigned *hdiv, unsigned *pdiv);
 void soc_set_hsdiv(int hsdiv);
 
+#if CONFIG_CPU == S5L8702
 void cg16_config(volatile uint16_t* cg16,
                     bool onoff, int clksel, int div1, int div2);
+#elif CONFIG_CPU == S5L8720
+void cg16_config(volatile uint16_t* cg16,
+                    bool onoff, int clksel, int div1, int div2, int flags);
+#endif
 
 int pll_config(int pll, int op_mode, int p, int m, int s, int lock_time);
 int pll_onoff(int pll, bool onoff);
-#endif
+#endif /* BOOTLOADER */
 
 #endif /* __CLOCKING_S5L8702_H */

@@ -1,10 +1,10 @@
 /***************************************************************************
- *             __________               __   ___.                  
- *   Open      \______   \ ____   ____ |  | _\_ |__   _______  ___  
- *   Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /  
- *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <   
- *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \  
- *                     \/            \/     \/    \/            \/ 
+ *             __________               __   ___.
+ *   Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
+ *   Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
+ *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
+ *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
+ *                     \/            \/     \/    \/            \/
  * $Id$
  *
  * Copyright (C) 2006 by Daniel Everton <dan@iocaine.org>
@@ -32,7 +32,8 @@
 #include "thread-sdl.h"
 #include "system-sdl.h"
 #include "sim-ui-defines.h"
-#include "lcd-sdl.h"
+#include "window-sdl.h"
+#include "button-sdl.h"
 #include "lcd-bitmap.h"
 #ifdef HAVE_REMOTE_LCD
 #include "lcd-remote-bitmap.h"
@@ -44,22 +45,18 @@
 #include <glib.h>
 #include <glib-object.h>
 #include "maemo-thread.h"
-
 #endif
 
 #define SIMULATOR_DEFAULT_ROOT "simdisk"
-
-SDL_Surface    *gui_surface;
 
 bool            background = true;          /* use backgrounds by default */
 #ifdef HAVE_REMOTE_LCD
 bool            showremote = true;          /* include remote by default */
 #endif
 bool            mapping = false;
+const char      *audiodev = NULL;
 bool            debug_buttons = false;
 
-bool            lcd_display_redraw = true;  /* Used for player simulator */
-char            having_new_lcd = true;      /* Used for player simulator */
 bool            sim_alarm_wakeup = false;
 const char     *sim_root_dir = SIMULATOR_DEFAULT_ROOT;
 
@@ -72,73 +69,27 @@ bool debug_audio = false;
 bool debug_wps = false;
 int wps_verbose_level = 3;
 
+#ifndef __APPLE__ /* MacOS requires events to be handled on main thread */
 /*
  * This thread will read the buttons in an interrupt like fashion, and
  * also initializes SDL_INIT_VIDEO and the surfaces
  *
  * it must be done in the same thread (at least on windows) because events only
- * work in the thread which called SDL_Init(SubSystem) with SDL_INIT_VIDEO
+ * work in the thread that called SDL_InitSubSystem(SDL_INIT_VIDEO)
  *
  * This is an SDL thread and relies on preemptive behavoir of the host
  **/
 static int sdl_event_thread(void * param)
 {
+#ifdef __WIN32 /* Fails on Linux and MacOS */
+    SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
     SDL_InitSubSystem(SDL_INIT_VIDEO);
+    sdl_window_setup();
+#endif
 
 #if (CONFIG_PLATFORM & PLATFORM_MAEMO)
     SDL_sem *wait_for_maemo_startup;
 #endif
-    SDL_Surface *picture_surface = NULL;
-    int width, height;
-    int depth;
-    Uint32 flags;
-
-    /* Try and load the background image. If it fails go without */
-    if (background) {
-        picture_surface = SDL_LoadBMP("UI256.bmp");
-        if (picture_surface == NULL) {
-            background = false;
-            DEBUGF("warn: %s\n", SDL_GetError());
-        }
-    }
-    
-    /* Set things up */
-    if (background)
-    {
-        width = UI_WIDTH;
-        height = UI_HEIGHT;
-    } 
-    else 
-    {
-#ifdef HAVE_REMOTE_LCD
-        if (showremote)
-        {
-            width = SIM_LCD_WIDTH > SIM_REMOTE_WIDTH ? SIM_LCD_WIDTH : SIM_REMOTE_WIDTH;
-            height = SIM_LCD_HEIGHT + SIM_REMOTE_HEIGHT;
-        }
-        else
-#endif
-        {
-            width = SIM_LCD_WIDTH;
-            height = SIM_LCD_HEIGHT;
-        }
-    }
-
-    depth = LCD_DEPTH;
-    if (depth < 8)
-        depth = 16;
-
-    flags = SDL_HWSURFACE|SDL_DOUBLEBUF;
-#if (CONFIG_PLATFORM & (PLATFORM_MAEMO|PLATFORM_PANDORA))
-    /* Fullscreen mode for maemo app */
-    flags |= SDL_FULLSCREEN;
-#endif
-
-    SDL_WM_SetCaption(UI_TITLE, NULL);
-
-    if ((gui_surface = SDL_SetVideoMode(width * display_zoom, height * display_zoom, depth, flags)) == NULL) {
-        panicf("%s", SDL_GetError());
-    }
 
 #if (CONFIG_PLATFORM & (PLATFORM_MAEMO|PLATFORM_PANDORA))
     /* SDL touch screen fix: Work around a SDL assumption that returns
@@ -152,14 +103,10 @@ static int sdl_event_thread(void * param)
     SDL_SetCursor(hiddenCursor);
 #endif
 
-    if (background && picture_surface != NULL)
-        SDL_BlitSurface(picture_surface, NULL, gui_surface, NULL);
-
 #if (CONFIG_PLATFORM & PLATFORM_MAEMO)
     /* start maemo thread: Listen to display on/off events and battery monitoring */
     wait_for_maemo_startup = SDL_CreateSemaphore(0); /* 0-count so it blocks */
-    SDL_Thread *maemo_thread = SDL_CreateThread(maemo_thread_func, wait_for_maemo_startup);
-
+    SDL_Thread *maemo_thread = SDL_CreateThread(maemo_thread_func, NULL, wait_for_maemo_startup);
     SDL_SemWait(wait_for_maemo_startup);
     SDL_DestroySemaphore(wait_for_maemo_startup);
 #endif
@@ -167,8 +114,7 @@ static int sdl_event_thread(void * param)
     /* let system_init proceed */
     SDL_SemPost((SDL_sem *)param);
 
-    /*
-     * finally enter the button loop */
+    /* finally enter the button loop */
     gui_message_loop();
 
 #if (CONFIG_PLATFORM & PLATFORM_MAEMO5)
@@ -184,9 +130,6 @@ static int sdl_event_thread(void * param)
     SDL_FreeCursor(hiddenCursor);
 #endif
 
-    if(picture_surface)
-        SDL_FreeSurface(picture_surface);
-
     /* Order here is relevent to prevent deadlocks and use of destroyed
        sync primitives by kernel threads */
 #ifdef HAVE_SDL_THREADS
@@ -194,6 +137,7 @@ static int sdl_event_thread(void * param)
 #endif
     return 0;
 }
+#endif
 
 static bool quitting;
 
@@ -214,6 +158,9 @@ void power_off(void)
     /* since sim_thread_shutdown() grabs the mutex we need to let it free,
      * otherwise SDL_WaitThread will deadlock */
     struct thread_entry* t = sim_thread_unlock();
+
+    if (!evt_thread) /* no event thread on MacOS */
+        sim_thread_shutdown();
 #endif
     /* wait for event thread to finish */
     SDL_WaitThread(evt_thread, NULL);
@@ -231,7 +178,18 @@ void power_off(void)
 
 void sim_do_exit()
 {
+#ifdef SIMULATOR
+    extern SDL_Cursor *sdl_focus_cursor;
+    extern SDL_Cursor *sdl_arrow_cursor;
+    if (sdl_focus_cursor)
+        SDL_FreeCursor(sdl_focus_cursor);
+    if (sdl_arrow_cursor)
+        SDL_FreeCursor(sdl_arrow_cursor);
+#endif
+
     sim_kernel_shutdown();
+    SDL_UnlockMutex(window_mutex);
+    SDL_DestroyMutex(window_mutex);
 
     SDL_Quit();
     exit(EXIT_SUCCESS);
@@ -251,18 +209,36 @@ void system_init(void)
     g_type_init();
 #endif
 
-    if (SDL_Init(SDL_INIT_TIMER))
+    if (SDL_InitSubSystem(SDL_INIT_TIMER))
         panicf("%s", SDL_GetError());
 
+#ifdef SIMULATOR
+    {
+        SDL_version compiled;
+        SDL_version linked;
+
+        SDL_VERSION(&compiled);
+        SDL_GetVersion(&linked);
+        printf("Rockbox compiled with SDL %u.%u.%u but running on SDL %u.%u.%u\n",
+               compiled.major, compiled.minor, compiled.patch,
+               linked.major, linked.minor, linked.patch);
+    }
+#endif
+
+#ifndef __WIN32  /* Fails on Windows */
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
+    sdl_window_setup();
+#endif
+
+#ifndef __APPLE__ /* MacOS requires events to be handled on main thread */
     s = SDL_CreateSemaphore(0); /* 0-count so it blocks */
-
-    evt_thread = SDL_CreateThread(sdl_event_thread, s);
-
-    /* wait for sdl_event_thread to run so that it can initialize the surfaces
-     * and video subsystem needed for SDL events */
+    evt_thread = SDL_CreateThread(sdl_event_thread, NULL, s);
     SDL_SemWait(s);
     /* cleanup */
     SDL_DestroySemaphore(s);
+#else
+    SDL_AddEventWatch(sdl_event_filter, NULL);
+#endif
 }
 
 
@@ -303,29 +279,29 @@ int hostfs_flush(void)
 
 void sys_handle_argv(int argc, char *argv[])
 {
-    if (argc >= 1) 
+    if (argc >= 1)
     {
         int x;
-        for (x = 1; x < argc; x++) 
+        for (x = 1; x < argc; x++)
         {
 #ifdef DEBUG
-            if (!strcmp("--debugaudio", argv[x])) 
+            if (!strcmp("--debugaudio", argv[x]))
             {
                 debug_audio = true;
                 printf("Writing debug audio file.\n");
             }
-            else 
+            else
 #endif
                 if (!strcmp("--debugwps", argv[x]))
             {
                 debug_wps = true;
                 printf("WPS debug mode enabled.\n");
-            } 
+            }
             else if (!strcmp("--nobackground", argv[x]))
             {
                 background = false;
                 printf("Disabling background image.\n");
-            } 
+            }
 #ifdef HAVE_REMOTE_LCD
             else if (!strcmp("--noremote", argv[x]))
             {
@@ -334,11 +310,6 @@ void sys_handle_argv(int argc, char *argv[])
                 printf("Disabling remote image.\n");
             }
 #endif
-            else if (!strcmp("--old_lcd", argv[x]))
-            {
-                having_new_lcd = false;
-                printf("Using old LCD layout.\n");
-            }
             else if (!strcmp("--zoom", argv[x]))
             {
                 x++;
@@ -346,7 +317,7 @@ void sys_handle_argv(int argc, char *argv[])
                     display_zoom=atof(argv[x]);
                 else
                     display_zoom = 2;
-                printf("Window zoom is %d\n", display_zoom);
+                printf("Window zoom is %f\n", display_zoom);
             }
             else if (!strcmp("--alarm", argv[x]))
             {
@@ -372,7 +343,16 @@ void sys_handle_argv(int argc, char *argv[])
                     debug_buttons = true;
                     printf("Printing background button clicks.\n");
             }
-            else 
+            else if (!strcmp("--audiodev", argv[x]))
+            {
+                x++;
+                if (x < argc)
+                {
+                    audiodev = argv[x];
+                    printf("Audio device: '%s'\n", audiodev);
+                }
+            }
+            else
             {
                 printf("rockboxui\n");
                 printf("Arguments:\n");
@@ -384,11 +364,11 @@ void sys_handle_argv(int argc, char *argv[])
 #ifdef HAVE_REMOTE_LCD
                 printf("  --noremote \t Disable the remote image (will disable backgrounds)\n");
 #endif
-                printf("  --old_lcd \t [Player] simulate old playermodel (ROM version<4.51)\n");
                 printf("  --zoom [VAL]\t Window zoom (will disable backgrounds)\n");
                 printf("  --alarm \t Simulate a wake-up on alarm\n");
                 printf("  --root [DIR]\t Set root directory\n");
                 printf("  --mapping \t Output coordinates and radius for mapping backgrounds\n");
+                printf("  --audiodev [NAME] \t Audio device name to use\n");
                 exit(0);
             }
         }

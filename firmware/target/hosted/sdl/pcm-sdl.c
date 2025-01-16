@@ -1,10 +1,10 @@
 /***************************************************************************
- *             __________               __   ___.                  
- *   Open      \______   \ ____   ____ |  | _\_ |__   _______  ___  
- *   Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /  
- *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <   
- *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \  
- *                     \/            \/     \/    \/            \/ 
+ *             __________               __   ___.
+ *   Open      \______   \ ____   ____ |  | _\_ |__   _______  ___
+ *   Source     |       _//  _ \_/ ___\|  |/ /| __ \ /  _ \  \/  /
+ *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
+ *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
+ *                     \/            \/     \/    \/            \/
  * $Id$
  *
  * Copyright (C) 2005 by Nick Lanham
@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <SDL.h>
 #include "config.h"
 #include "debug.h"
@@ -42,14 +43,17 @@
 #include "pcm.h"
 #include "pcm-internal.h"
 #include "pcm_sampr.h"
+#include "pcm_mixer.h"
 
 /*#define LOGF_ENABLE*/
 #include "logf.h"
 
 #ifdef DEBUG
-#include <stdio.h>
 extern bool debug_audio;
 #endif
+
+extern const char      *audiodev;
+
 
 static int cvt_status = -1;
 
@@ -57,6 +61,7 @@ static const void *pcm_data;
 static size_t pcm_data_size;
 static size_t pcm_sample_bytes;
 static size_t pcm_channel_bytes;
+static SDL_AudioDeviceID pcm_devid = 0;
 
 static struct pcm_udata
 {
@@ -85,8 +90,57 @@ void pcm_play_unlock(void)
         SDL_UnlockMutex(audio_lock);
 }
 
+#ifndef SDL_AUDIO_ALLOW_SAMPLES_CHANGE
+#define SDL_AUDIO_ALLOW_SAMPLES_CHANGE 0
+#endif
+
+static void sdl_audio_callback(void *handle, Uint8 *stream, int len);
 static void pcm_dma_apply_settings_nolock(void)
 {
+    SDL_AudioSpec wanted_spec;
+    wanted_spec.freq = pcm_sampr;
+    wanted_spec.format = AUDIO_S16SYS;
+    wanted_spec.channels = 2;
+    wanted_spec.samples = MIX_FRAME_SAMPLES * 2;  /* Should be 2048, ie ~5ms @44KHz */
+    wanted_spec.callback = sdl_audio_callback;
+    wanted_spec.userdata = &udata;
+    if (pcm_devid)
+        SDL_CloseAudioDevice(pcm_devid);
+
+    /* pulseaudio seems to be happier with smaller buffers */
+    if (!strcmp("pulseaudio", SDL_GetCurrentAudioDriver()))
+        wanted_spec.samples = MIX_FRAME_SAMPLES;
+
+    /* Open the audio device and start playing sound! */
+    if((pcm_devid = SDL_OpenAudioDevice(audiodev, 0, &wanted_spec, &obtained, SDL_AUDIO_ALLOW_SAMPLES_CHANGE)) == 0) {
+        panicf("Unable to open audio: %s", SDL_GetError());
+        return;
+    }
+    switch (obtained.format)
+    {
+    case AUDIO_U8:
+    case AUDIO_S8:
+        pcm_channel_bytes = 1;
+        break;
+    case AUDIO_U16LSB:
+    case AUDIO_S16LSB:
+    case AUDIO_U16MSB:
+    case AUDIO_S16MSB:
+        pcm_channel_bytes = 2;
+        break;
+    case AUDIO_S32MSB:
+    case AUDIO_S32LSB:
+    case AUDIO_F32MSB:
+    case AUDIO_F32LSB:
+        pcm_channel_bytes = 4;
+        break;
+    default:
+        panicf("Unknown sample format obtained: %u",
+                (unsigned)obtained.format);
+        return;
+    }
+    pcm_sample_bytes = obtained.channels * pcm_channel_bytes;
+
     cvt_status = SDL_BuildAudioCVT(&cvt, AUDIO_S16SYS, 2, pcm_sampr,
                     obtained.format, obtained.channels, obtained.freq);
 
@@ -104,16 +158,15 @@ void pcm_dma_apply_settings(void)
 
 void pcm_play_dma_start(const void *addr, size_t size)
 {
-
     pcm_data = addr;
     pcm_data_size = size;
 
-    SDL_PauseAudio(0);
+    SDL_PauseAudioDevice(pcm_devid, 0);
 }
 
 void pcm_play_dma_stop(void)
 {
-    SDL_PauseAudio(1);
+    SDL_PauseAudioDevice(pcm_devid, 1);
 #ifdef DEBUG
     if (udata.debug != NULL) {
         fclose(udata.debug);
@@ -170,8 +223,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
             }
 #endif
             free(cvt.buf);
-        }
-        else {
+        } else {
             /* Convert is bad, so do silence */
             Uint32 num = wr*obtained.channels;
             udata->num_in = rd;
@@ -213,9 +265,11 @@ static void write_to_soundcard(struct pcm_udata *udata)
     }
 }
 
-static void sdl_audio_callback(struct pcm_udata *udata, Uint8 *stream, int len)
+static void sdl_audio_callback(void *handle, Uint8 *stream, int len)
 {
-    logf("sdl_audio_callback: len %d, pcm %d\n", len, pcm_data_size);
+    struct pcm_udata *udata = handle;
+
+    logf("sdl_audio_callback: len %d, pcm %zd", len, pcm_data_size);
 
     bool new_buffer = false;
     udata->stream = stream;
@@ -235,6 +289,7 @@ static void sdl_audio_callback(struct pcm_udata *udata, Uint8 *stream, int len)
             DEBUGF("sdl_audio_callback: No Data.\n");
             break;
         }
+        logf("audio_callback_cont: len %d, pcm %zd", len, pcm_data_size);
 
     start:
         udata->num_in  = pcm_data_size / pcm_sample_bytes;
@@ -256,9 +311,7 @@ static void sdl_audio_callback(struct pcm_udata *udata, Uint8 *stream, int len)
 
                 if (delay > 0)
                 {
-                    SDL_UnlockMutex(audio_lock);
                     SDL_Delay(delay);
-                    SDL_LockMutex(audio_lock);
 
                     if (!pcm_is_playing())
                         break;
@@ -327,19 +380,31 @@ void pcm_play_dma_init(void)
 {
     if (SDL_InitSubSystem(SDL_INIT_AUDIO))
     {
-        DEBUGF("Could not initialize SDL audio subsystem!\n");
+        panicf("Could not initialize SDL audio subsystem!");
         return;
     }
+
+#ifdef SIMULATOR
+    int cnt = SDL_GetNumAudioDrivers();
+    printf("SDL Audio Drivers supported:\n");
+    for (int i = 0 ; i < cnt ; i++) {
+        printf("   %s %s\n", SDL_GetAudioDriver(i), SDL_GetAudioDriver(i) == SDL_GetCurrentAudioDriver() ? "(active)" : "");
+    }
+    cnt = SDL_GetNumAudioDevices(0);
+    printf("SDL Audio Devices present:\n");
+    for (int i = 0 ; i < cnt ; i++) {
+            printf("  '%s'\n", SDL_GetAudioDeviceName(i, 0));
+    }
+#endif
 
     audio_lock = SDL_CreateMutex();
 
     if (!audio_lock)
     {
-        panicf("Could not create audio_lock\n");
+        panicf("Could not create audio_lock");
         return;
     }
 
-    SDL_AudioSpec wanted_spec;
 #ifdef DEBUG
     udata.debug = NULL;
     if (debug_audio) {
@@ -347,43 +412,6 @@ void pcm_play_dma_init(void)
         DEBUGF("Audio debug file open\n");
     }
 #endif
-    /* Set 16-bit stereo audio at 44Khz */
-    wanted_spec.freq = 44100;
-    wanted_spec.format = AUDIO_S16SYS;
-    wanted_spec.channels = 2;
-    wanted_spec.samples = 2048;
-    wanted_spec.callback =
-        (void (SDLCALL *)(void *userdata,
-            Uint8 *stream, int len))sdl_audio_callback;
-    wanted_spec.userdata = &udata;
-
-    /* Open the audio device and start playing sound! */
-    if(SDL_OpenAudio(&wanted_spec, &obtained) < 0) {
-        DEBUGF("Unable to open audio: %s\n", SDL_GetError());
-        return;
-    }
-
-    switch (obtained.format)
-    {
-    case AUDIO_U8:
-    case AUDIO_S8:
-        pcm_channel_bytes = 1;
-        break;
-    case AUDIO_U16LSB:
-    case AUDIO_S16LSB:
-    case AUDIO_U16MSB:
-    case AUDIO_S16MSB:
-        pcm_channel_bytes = 2;
-        break;
-    default:
-        DEBUGF("Unknown sample format obtained: %u\n",
-                (unsigned)obtained.format);
-        return;
-    }
-
-    pcm_sample_bytes = obtained.channels * pcm_channel_bytes;
-
-    pcm_dma_apply_settings_nolock();
 }
 
 void pcm_play_dma_postinit(void)

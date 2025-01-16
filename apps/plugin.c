@@ -249,7 +249,7 @@ static const struct plugin_api rockbox_api = {
     lcd_set_mode,
 #endif
 #if defined(HAVE_LCD_ENABLE) || defined(HAVE_LCD_SLEEP)
-    &button_queue,
+    button_queue_post,
 #endif
     bidi_l2v,
     is_diacritic,
@@ -448,6 +448,7 @@ static const struct plugin_api rockbox_api = {
     talk_idarray,
     talk_file,
     talk_file_or_spell,
+    talk_fullpath,
     talk_dir_or_spell,
     talk_number,
     talk_value_decimal,
@@ -840,8 +841,7 @@ static const struct plugin_api rockbox_api = {
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
-
-    talk_fullpath,
+    add_playbacklog,
 };
 
 static int plugin_buffer_handle;
@@ -860,8 +860,16 @@ int plugin_load(const char* plugin, const void* parameter)
     const char *sepch = strrchr(plugin, PATH_SEPCH);
     bool theme_enabled = sepch && !strcmp("properties.rock", sepch + 1);
 
-    if (current_plugin_handle && pfn_tsr_exit)
-    {    /* if we have a resident old plugin and a callback */
+    if (current_plugin_handle)
+    {
+        if (!pfn_tsr_exit)
+        {
+            /* not allowing another plugin to load */
+            logf("Attempt to load plugin `%s` while another non-TSR plugin `%s` is running.", plugin, current_plugin);
+            return PLUGIN_OK;
+        }
+
+        /* if we have a resident old plugin and a callback */
         bool reenter = (strcmp(current_plugin, plugin) == 0);
         int exit_status = pfn_tsr_exit(reenter);
         if (exit_status == PLUGIN_TSR_CONTINUE)
@@ -906,6 +914,7 @@ int plugin_load(const char* plugin, const void* parameter)
         )
     {
         lc_close(current_plugin_handle);
+        current_plugin_handle = NULL;
         splash(HZ*2, ID2P(LANG_PLUGIN_WRONG_MODEL));
         return -1;
     }
@@ -914,6 +923,7 @@ int plugin_load(const char* plugin, const void* parameter)
         p_hdr->api_size > sizeof(struct plugin_api))
     {
         lc_close(current_plugin_handle);
+        current_plugin_handle = NULL;
         splash(HZ*2, ID2P(LANG_PLUGIN_WRONG_VERSION));
         return -1;
     }

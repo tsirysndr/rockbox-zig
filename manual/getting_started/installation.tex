@@ -274,7 +274,7 @@ of before installing.
 Rockbox supports very large drive capacities when used with GPT partitioning on devices that utilize ATA storage, but due to the limitations of the FAT32 filesystem, individual paritions cannot exceed 2TiB. Additionally, there may be underlying platform limitations that make it difficult, if not impossible, utilize a drive larger than some arbitrary size or boot from a drive using GPT partitioning.
 
 \opt{ipod6g}{
-For example, the stock Apple firmware on earlier 6th generation iPod Classic models\footnote{MB029, MB145, MB147, MB150} is limited to drives no larger than 128GiB, and booting into the Apple firmware firmware with larger drive sizes will result in massive data corruption.  Later 6th generation iPod Classic models\footnote{MB562, MB565, MC293, MC297} (sometimes referred to as ``7th gen'') do not have this issue.  Rockbox itself will function correctly on all 6th/7th generation iPod Classi models.
+For example, the stock Apple firmware on earlier 6th generation iPod Classic models\footnote{MB029, MB145, MB147, MB150} is limited to drives no larger than 128GiB, and booting into the Apple firmware firmware with larger drive sizes will result in massive data corruption.  Later 6th generation iPod Classic models\footnote{MB562, MB565, MC293, MC297} (sometimes referred to as ``7th gen'') do not have this issue.  Rockbox itself will function correctly on all 6th/7th generation iPod Classic models.
 }
 
 \note{In practice, no Rockbox-capable device can currently handle total drive capacities exceeding 2TiB.}
@@ -305,14 +305,15 @@ For example, the stock Apple firmware on earlier 6th generation iPod Classic mod
   robust, but tend to be expensive and not available in larger sizes.
 \item[SATA.] These are fast, reliable, and available in high capacities, but are typically optimized for high performance
   at the expense of power consumption.. However, as they implement the full ATA command set, we are able
-  to aggressively power them down when not being actively used.
+  to minimize their power consumption and power them down when not being actively used.
 \item[Single Secure Digital (SD).] While these adapters come in different form factors from multiple vendors,
   they are all based on the same basic design. The ATA command set is incompletely emulated, notably lacking
-  support for the \emph{mandatory} ATA power management commands that Rockbox uses to flush caches and safely
+  support for \emph{mandatory} ATA power management commands that Rockbox uses to safely
   transition the device in and out of low power states.  Additionally, SD cards vary widely in quality
-  and power consumption with the resultant effects on data longevity and battery life. Finally, these SD adapters do not support 2TiB or larger SDUC cards.
+  and power consumption with the resultant effects on data longevity and battery life. Finally, these SD adapters
+  do not support 2TiB or larger SDUC cards.
 \item[Dual/Quad SD.]  These are similar to the above, only allowing use of mulitiple SD cards to
-  increase the overall storage capacity. While typically described as JBOD\footnote{Just a Bunch Of Disks}, this is not accurate as each card is not individually accessable.  Instead, the adapter claims to be to be a single logical drive of the combined capacity of the individual cards in a RAID0-like manner. Consquently, if any one card fails, all data on all other cards is most likely permenantly lost.  Given the quality and power management concerns mentioned earlier, this means use of multiple SD cards in one of these adapters is the least reliable/robust and the most power hungry of the various SSD mods.  Finally, in another violation of the ATA specification, these ATA-SD adapters fail to properly support LBA48 addressing, meaning that no matter which combination of cards is used, they simply will not work if their combined capacity exceeds 2TiB.
+  increase the overall storage capacity. While typically described as JBOD\footnote{Just a Bunch Of Disks}, this is not accurate as each card is not individually accessable.  Instead, the adapter claims to be to be a single logical drive of the combined capacity of the individual cards in a RAID0-like manner. Consquently, if any one card fails, all data on all other cards may be rendered inacessible.  Given the quality concerns mentioned earlier, this means use of multiple SD cards in one of these adapters is the least reliable/robust of the various SSD mods.  Finally, in another violation of the ATA specification, these ATA-SD adapters fail to properly support LBA48 addressing, meaning that no matter what combination of cards is used, if their combined capacity exceeds 2TiB, the extra capacity will not be usable, and the device may even present as having (considerably) less space.
 \end{description}
 
 \note{All of these flash/SSD mods take up less physical space in the device enclosure than the original hard drive, so care must be taken to ensure they are securely mounted and resistant to the vibration and impacts that typically occur in portable devices.  Ribbon cables are particularly vulnerable.}

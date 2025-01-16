@@ -36,6 +36,8 @@ static struct event_queue thread_q SHAREDBSS_ATTR;
 unsigned long thread_stack[THREAD_STACK_SIZE/sizeof(long)];
 #endif
 
+static int font_h, font_w;
+
 /* the current full file name */
 static char np_file[MAX_PATH];
 static int curfile = 0, direction = DIR_NEXT, entries = 0;
@@ -43,6 +45,7 @@ static int curfile = 0, direction = DIR_NEXT, entries = 0;
 /* list of the mod files */
 static char **file_pt;
 
+static int inited = 0;
 
 /* The MP3 audio buffer which we will use as heap memory */
 static unsigned char* audio_buffer;
@@ -304,31 +307,31 @@ static void showinfo(void)
     sprintf(statustext, "Name: %s", module->songname);
     rb->lcd_putsxy(1, 1, statustext);
     sprintf(statustext, "Type: %s", module->modtype);
-    rb->lcd_putsxy(1, 11, statustext);
+    rb->lcd_putsxy(1, 1 + 1 * font_h, statustext);
 
     sprintf(statustext, "Samples: %d", module->numsmp);
-    rb->lcd_putsxy(1, 21, statustext);
+    rb->lcd_putsxy(1, 1 + 2 * font_h, statustext);
 
     if ( module->flags & UF_INST )
     {
         sprintf(statustext, "Instruments: %d", module->numins);
-        rb->lcd_putsxy(1, 31, statustext);
+        rb->lcd_putsxy(1, 1 + 3 * font_h, statustext);
     }
 
     sprintf(statustext, "pat: %03d/%03d  %2.2X",
         module->sngpos, module->numpos - 1, module->patpos);
-    rb->lcd_putsxy(1, 51, statustext);
+    rb->lcd_putsxy(1, 1 + 5 * font_h, statustext);
 
     sprintf(statustext, "spd: %d/%d",
         module->sngspd, module->bpm);
-    rb->lcd_putsxy(1, 61, statustext);
+    rb->lcd_putsxy(1, 1 + 6 * font_h, statustext);
 
     sprintf(statustext, "vol: %ddB", rb->global_settings->volume);
-    rb->lcd_putsxy(1, 71, statustext);
+    rb->lcd_putsxy(1, 1 + 7 * font_h, statustext);
 
     sprintf(statustext, "time: %d:%02d",
         (playingtime / 60) % 60, playingtime % 60);
-    rb->lcd_putsxy(1, 81, statustext);
+    rb->lcd_putsxy(1, 1 + 8 * font_h, statustext);
 
     if (module->flags & UF_NNA)
     {
@@ -342,7 +345,7 @@ static void showinfo(void)
         sprintf(statustext, "chn: %d/%d",
             module->realchn, module->numchn);
     }
-    rb->lcd_putsxy(0, 91, statustext);
+    rb->lcd_putsxy(0, 1 + 9 * font_h, statustext);
 
     rb->lcd_update();
 }
@@ -360,7 +363,7 @@ static void showsamples(void)
     for( i=0; i<MAX_LINES && i+vscroll<module->numsmp; i++ )
     {
         sprintf(statustext, "%02d %s", i+vscroll+1, module->samples[i+vscroll].samplename);
-        rb->lcd_putsxy(1, 1+(8*i), statustext);
+        rb->lcd_putsxy(1, 1+(font_h*i), statustext);
     }
     rb->lcd_update();
     screenupdated = true;
@@ -379,7 +382,7 @@ static void showinstruments(void)
     for( i=0; i<MAX_LINES && i+vscroll<module->numins; i++ )
     {
         sprintf(statustext, "%02d %s", i+vscroll+1, module->instruments[i+vscroll].insname ? module->instruments[i+vscroll].insname : "[n/a]");
-        rb->lcd_putsxy(1, 1+(8*i), statustext);
+        rb->lcd_putsxy(1, 1+(font_h*i), statustext);
     }
     rb->lcd_update();
     screenupdated = true;
@@ -406,7 +409,7 @@ static void showcomments(void)
 
         if(module->comment[i] == '\n' || j>LINE_LENGTH-1)
         {
-            rb->lcd_putsxy(1-(6*hscroll), 1+(8*k)-(8*vscroll), statustext);
+            rb->lcd_putsxy(1-(font_w*hscroll), 1+(font_h*k)-(font_h*vscroll), statustext);
             for( l=0; l<LINE_LENGTH; l++ )
             {
                 statustext[l] = 0;
@@ -417,7 +420,7 @@ static void showcomments(void)
     }
     if (j>0)
     {
-        rb->lcd_putsxy(1-(6*hscroll), 1+(8*k)-(8*vscroll), statustext);
+        rb->lcd_putsxy(1-(font_w*hscroll), 1+(font_h*k)-(font_h*vscroll), statustext);
     }
 
     rb->lcd_update();
@@ -530,7 +533,7 @@ static void applysettings(void)
     }
 #endif
 
-    if (md_mixfreq != rb->hw_freq_sampr[settings.sample_rate]) {
+    if (inited && (md_mixfreq != rb->hw_freq_sampr[settings.sample_rate])) {
         md_mixfreq = rb->hw_freq_sampr[settings.sample_rate];
 //	MikMod_Reset("");  BROKEN!
 	rb->pcm_play_stop();
@@ -886,7 +889,7 @@ static int playfile(char* filename)
                     retval = menureturn;
                 }
             }
-            rb->lcd_setfont(FONT_SYSFIXED);
+            rb->lcd_setfont(FONT_UI);
             screenupdated = false;
             break;
 
@@ -940,7 +943,7 @@ enum plugin_status plugin_start(const void* parameter)
         return PLUGIN_OK;
     }
 
-    rb->lcd_setfont(FONT_SYSFIXED);
+    rb->lcd_getstringsize("A", NULL, &font_h);
 
     rb->talk_force_shutup();
     rb->pcm_play_stop();
@@ -990,6 +993,8 @@ enum plugin_status plugin_start(const void* parameter)
         mm_errorhandler();
         return PLUGIN_ERROR;
     }
+
+    inited = 1;
 
     do
     {

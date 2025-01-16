@@ -245,8 +245,8 @@ static int alloc_and_load_cp_table(int cp, void *buf)
     return -1;
 }
 
-/* Encode a UCS value as UTF-8 and return a pointer after this UTF-8 char. */
-unsigned char* utf8encode(unsigned long ucs, unsigned char *utf8)
+/* returns number of additional bytes required in encoded string (bytes_count - 1) */
+static int utf8_ucs_get_extra_bytes_count(unsigned long ucs)
 {
     int tail = 0;
 
@@ -254,17 +254,41 @@ unsigned char* utf8encode(unsigned long ucs, unsigned char *utf8)
         while (ucs >> (5*tail + 6))
             tail++;
 
+    return tail;
+}
+
+static unsigned char * utf8encode_internal(unsigned long ucs, unsigned char *utf8, int tail)
+{
     *utf8++ = (ucs >> (6*tail)) | utf8comp[tail];
     while (tail--)
         *utf8++ = ((ucs >> (6*tail)) & (MASK ^ 0xFF)) | COMP;
-
     return utf8;
 }
 
-/* Recode an iso encoded string to UTF-8 */
-unsigned char* iso_decode(const unsigned char *iso, unsigned char *utf8,
-                          int cp, int count)
+FORCE_INLINE static unsigned char* utf8encode_ex(unsigned long ucs, unsigned char *utf8, int* utf8_size)
 {
+    const int tail = utf8_ucs_get_extra_bytes_count(ucs);
+    *utf8_size -= tail + 1;
+    return  *utf8_size < 0 ? utf8 : utf8encode_internal(ucs, utf8, tail);
+}
+
+/* Encode a UCS value as UTF-8 and return a pointer after this UTF-8 char. */
+unsigned char* utf8encode(unsigned long ucs, unsigned char *utf8)
+{
+    return utf8encode_internal(ucs, utf8, utf8_ucs_get_extra_bytes_count(ucs));
+}
+
+unsigned char* iso_decode(const unsigned char *iso, unsigned char *utf8, int cp, int count)
+{
+    return iso_decode_ex(iso, utf8, cp, count, -1);
+}
+
+/* Recode an iso encoded string to UTF-8 */
+unsigned char* iso_decode_ex(const unsigned char *iso, unsigned char *utf8, int cp, int count, int utf8_size)
+{
+    if (utf8_size == -1)
+        utf8_size = INT_MAX;
+
     uint16_t *table = NULL;
 
     cp_lock_enter();
@@ -322,11 +346,14 @@ unsigned char* iso_decode(const unsigned char *iso, unsigned char *utf8,
 
     cp_lock_leave();
 
-    while (count--) {
+    while (count-- && utf8_size > 0) {
         unsigned short ucs, tmp;
 
         if (*iso < 128 || cp == UTF_8) /* Already UTF-8 */
+        {
             *utf8++ = *iso++;
+            --utf8_size;
+        }
 
         else {
             /* tid tells us which table to use and how */
@@ -375,7 +402,8 @@ unsigned char* iso_decode(const unsigned char *iso, unsigned char *utf8,
 
             if (ucs == 0) /* unknown char, use replacement char */
                 ucs = 0xfffd;
-            utf8 = utf8encode(ucs, utf8);
+
+            utf8 = utf8encode_ex(ucs, utf8, &utf8_size);
         }
     }
 
@@ -392,49 +420,68 @@ unsigned char* iso_decode(const unsigned char *iso, unsigned char *utf8,
     return utf8;
 }
 
-/* Recode a UTF-16 string with little-endian byte ordering to UTF-8 */
-unsigned char* utf16LEdecode(const unsigned char *utf16, unsigned char *utf8,
-        int count)
+unsigned char* utf16decode(const unsigned char *utf16, unsigned char *utf8,
+        int count, int utf8_size, bool le)
 {
+    if (utf8_size == -1)
+        utf8_size = INT_MAX;
+
+    // little-endian flag is used as significant byte index
+    if (le)
+        le = 1;
+
     unsigned long ucs;
 
-    while (count > 0) {
+    while (count > 0 && utf8_size > 0) {
         /* Check for a surrogate pair */
-        if (utf16[1] >= 0xD8 && utf16[1] < 0xE0) {
-            ucs = 0x10000 + ((utf16[0] << 10) | ((utf16[1] - 0xD8) << 18)
-                    | utf16[2] | ((utf16[3] - 0xDC) << 8));
+        if (*(utf16 + le) >= 0xD8 && *(utf16 + le) < 0xE0) {
+            ucs = 0x10000 + ((utf16[1 - le] << 10) | ((utf16[le] - 0xD8) << 18)
+                  | utf16[2 + (1 - le)] | ((utf16[2 + le] - 0xDC) << 8));
             utf16 += 4;
             count -= 2;
         } else {
-            ucs = getle16(utf16);
+            ucs = utf16[le] << 8 | utf16[1 - le];
             utf16 += 2;
             count -= 1;
         }
-        utf8 = utf8encode(ucs, utf8);
+        utf8 = utf8encode_ex(ucs, utf8, &utf8_size);
     }
     return utf8;
 }
 
 /* Recode a UTF-16 string with big-endian byte ordering to UTF-8 */
+unsigned char* utf16LEdecode(const unsigned char *utf16, unsigned char *utf8,
+        int count)
+{
+    return utf16decode(utf16, utf8, count, -1, true);
+}
+
 unsigned char* utf16BEdecode(const unsigned char *utf16, unsigned char *utf8,
         int count)
 {
-    unsigned long ucs;
+    return utf16decode(utf16, utf8, count, -1, false);
+}
 
-    while (count > 0) {
-        if (*utf16 >= 0xD8 && *utf16 < 0xE0) { /* Check for a surrogate pair */
-            ucs = 0x10000 + (((utf16[0] - 0xD8) << 18) | (utf16[1] << 10)
-                    | ((utf16[2] - 0xDC) << 8) | utf16[3]);
-            utf16 += 4;
-            count -= 2;
-        } else {
-            ucs = getbe16(utf16);
-            utf16 += 2;
-            count -= 1;
-        }
-        utf8 = utf8encode(ucs, utf8);
+bool utf16_has_bom(const unsigned char *utf16, bool *le)
+{
+    unsigned long ucs = utf16[0] << 8 | utf16[1];
+
+    if (ucs == 0xFEFF) /* Check for BOM */
+    {
+        *le  = false;
+        return true;
     }
-    return utf8;
+
+    if (ucs == 0xFFFE)
+    {
+        *le = true;
+        return true;
+    }
+
+    /* If there is no BOM let's try to guess it. If one of the bytes is 0x00, it is
+       probably the most significant one. */
+    *le = utf16[1] == 0;
+    return false;
 }
 
 #if 0 /* currently unused */

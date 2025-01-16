@@ -141,10 +141,10 @@ bool playlist_dynamic_only(void);
 
 /* Exported functions for all playlists.  Pass NULL for playlist_info
    structure to work with current playlist. */
-int playlist_create_ex(struct playlist_info* playlist,
-                       const char* dir, const char* file,
-                       void* index_buffer, int index_buffer_size,
-                       void* temp_buffer, int temp_buffer_size);
+size_t playlist_get_index_bufsz(size_t max_sz);
+struct playlist_info* playlist_load(const char* dir, const char* file,
+                                    void* index_buffer, int index_buffer_size,
+                                    void* temp_buffer, int temp_buffer_size);
 int playlist_set_current(struct playlist_info* playlist);
 void playlist_close(struct playlist_info* playlist);
 void playlist_sync(struct playlist_info* playlist);
@@ -180,8 +180,6 @@ char *playlist_name(const struct playlist_info* playlist, char *buf,
                     int buf_size);
 char *playlist_get_name(const struct playlist_info* playlist, char *buf,
                         int buf_size);
-size_t playlist_get_required_bufsz(struct playlist_info* playlist,
-                                   bool include_namebuf, int num_indices);
 int playlist_get_track_info(struct playlist_info* playlist, int index,
                             struct playlist_track_info* info);
 int playlist_save(struct playlist_info* playlist, char *filename);

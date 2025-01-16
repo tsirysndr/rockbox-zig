@@ -167,7 +167,7 @@ static spx_int64_t seek_backwards(spx_ogg_sync_state *oy, spx_ogg_page *og,
                     offset = ret;
                     continue;
                 }
-            } else if (ret == -3) 
+            } else if (ret == -3)
                 return(-3);
             else if (ret<=0)
                 break;
@@ -187,8 +187,8 @@ static int speex_seek_page_granule(spx_int64_t pos, spx_int64_t curpos,
                                    spx_ogg_sync_state *oy,
                                    spx_int64_t headerssize)
 {
-    /* TODO: Someone may want to try to implement seek to packet, 
-             instead of just to page (should be more accurate, not be any 
+    /* TODO: Someone may want to try to implement seek to packet,
+             instead of just to page (should be more accurate, not be any
              faster) */
 
     spx_int64_t crofs;
@@ -201,11 +201,11 @@ static int speex_seek_page_granule(spx_int64_t pos, spx_int64_t curpos,
     spx_int64_t avgpagelen = -1;
     spx_int64_t lastgranule = -1;
 
-    if(abs(pos-curpos)>10000 && headerssize>0 && curoffset-headerssize>10000) {
+    if(llabs(pos-curpos)>10000 && headerssize>0 && curoffset-headerssize>10000) {
         /* if seeking for more that 10sec,
            headersize is known & more than 10kb is played,
            try to guess a place to seek from the number of
-           bytes playe for this position, this works best when 
+           bytes playe for this position, this works best when
            the bitrate is relativly constant.
          */
 
@@ -222,9 +222,9 @@ static int speex_seek_page_granule(spx_int64_t pos, spx_int64_t curpos,
         offset = get_next_page(oy,&og,-1);
 
         if (offset < 0) { /* could not find new page,use old offset */
-            LOGF("Seek/guess/fault:%lld->-<-%d,%lld:%lld,%d,%ld,%d\n",
+            LOGF("Seek/guess/fault:%lld->-<-%d,%lld:%lld,%d,%jd,%d\n",
                   (long long int)curpos,0, (long long int)pos,
-                  (long long int)offset,0,ci->curpos,/*stream_length*/0);
+                  (long long int)offset,0, (intmax_t) ci->curpos,/*stream_length*/0);
 
             curoffset = *curbyteoffset;
 
@@ -233,9 +233,9 @@ static int speex_seek_page_granule(spx_int64_t pos, spx_int64_t curpos,
             spx_ogg_sync_reset(oy);
         } else {
             if (spx_ogg_page_granulepos(&og) == 0 && pos > 5000) {
-                LOGF("SEEK/guess/fault:%lld->-<-%lld,%lld:%lld,%d,%ld,%d\n",
+                LOGF("SEEK/guess/fault:%lld->-<-%lld,%lld:%lld,%d,%jd,%d\n",
                      (long long int)curpos,(long long int)spx_ogg_page_granulepos(&og),
-                     (long long int)pos, (long long int)offset,0,ci->curpos,/*stream_length*/0);
+                     (long long int)pos, (long long int)offset,0, (intmax_t) ci->curpos,/*stream_length*/0);
 
                 curoffset = *curbyteoffset;
 
@@ -271,7 +271,7 @@ static int speex_seek_page_granule(spx_int64_t pos, spx_int64_t curpos,
 
             lastgranule = spx_ogg_page_granulepos(&og);
 
-            if ( ((lastgranule - (avgpagelen/4)) < pos && ( lastgranule + 
+            if ( ((lastgranule - (avgpagelen/4)) < pos && ( lastgranule +
                   avgpagelen + (avgpagelen / 4)) > pos) ||
                  lastgranule > pos) {
 
@@ -339,7 +339,7 @@ static void *process_header(spx_ogg_packet *op,
         DEBUGF("Too old bitstream");
         return NULL;
     }
-   
+
     st = speex_decoder_init(mode);
     if (!st){
         DEBUGF("Decoder init failed");

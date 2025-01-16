@@ -25,12 +25,12 @@
 #include "cpu.h"
 #include "system.h"
 
-#include "s5l8702.h"
-#include "uc870x.h"
+#include "s5l87xx.h"
+#include "uc87xx.h"
 
 
 /*
- * s5l8702 UC870X HW: 1 UARTC, 4 ports
+ * s5l8702 UC87XX HW: 1 UARTC, 4 ports
  */
 static struct uartc_port *uartc_port_l[UARTC_N_PORTS];
 const struct uartc s5l8702_uartc =
@@ -55,7 +55,7 @@ void uart_target_enable_gpio(int uart_id, int port_id)
             break;
         case 1:
             /* configure UART1 GPIO ports, including RTS/CTS signals */
-            PCOND = (PCOND & 0xff0000ff) | 0x00222200;
+            PCON13 = (PCON13 & 0xff0000ff) | 0x00222200;
             break;
         case 2:
         case 3:
@@ -74,7 +74,7 @@ void uart_target_disable_gpio(int uart_id, int port_id)
             PCON0 = (PCON0 & 0xff00ffff) | 0x00ee0000;
             break;
         case 1:
-            PCOND = (PCOND & 0xff0000ff) | 0x00eeee00;
+            PCON13 = (PCON13 & 0xff0000ff) | 0x00eeee00;
             break;
         case 2:
         case 3:

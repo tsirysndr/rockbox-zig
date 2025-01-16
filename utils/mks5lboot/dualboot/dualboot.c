@@ -25,10 +25,10 @@
 #include "system.h"
 #include "button.h"
 
-#include "s5l8702.h"
+#include "s5l87xx.h"
 #include "clocking-s5l8702.h"
 #include "spi-s5l8702.h"
-#include "nor-target.h"
+#include "norboot-target.h"
 #include "piezo.h"
 
 /* How it works:
@@ -51,7 +51,7 @@
  * - dualboot-uninstaller: uninstall RB bootloader from NOR, leaving it at
  *   it's previous (pristine) state.
  *
- * See bootloader/ipod6g.c for notes on how the RB bootloader works.
+ * See bootloader/ipod-s5l87xx.c for notes on how the RB bootloader works.
  *
  *
  *               Pristine NOR                    Rockboxed NOR

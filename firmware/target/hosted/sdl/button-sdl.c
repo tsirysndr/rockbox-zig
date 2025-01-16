@@ -31,6 +31,7 @@
 #include "backlight.h"
 #include "system.h"
 #include "button-sdl.h"
+#include "window-sdl.h"
 #include "sim_tasks.h"
 #include "buttonmap.h"
 #include "debug.h"
@@ -68,7 +69,15 @@ int remote_type(void)
 
 static int btn = 0;    /* Hopefully keeps track of currently pressed keys... */
 
+#ifdef SIMULATOR
+#include "strlcat.h"
+static bool cursor_isfocus = false;
+SDL_Cursor *sdl_focus_cursor = NULL;
+SDL_Cursor *sdl_arrow_cursor = NULL;
+#endif
+
 int sdl_app_has_input_focus = 1;
+
 #if (CONFIG_PLATFORM & PLATFORM_MAEMO)
 static int n900_updown_key_pressed = 0;
 #endif
@@ -107,6 +116,30 @@ static void touchscreen_event(int x, int y)
 }
 #endif
 
+#if defined(HAVE_SCROLLWHEEL) || ((defined(BUTTON_SCROLL_FWD) && defined(BUTTON_SCROLL_BACK)))
+static void scrollwheel_event(int x, int y)
+{
+    int new_btn = 0;
+    if (y > 0)
+        new_btn = BUTTON_SCROLL_BACK;
+    else if (y < 0)
+        new_btn = BUTTON_SCROLL_FWD;
+    else
+        return;
+
+#ifdef HAVE_BACKLIGHT
+    backlight_on();
+#endif
+#ifdef HAVE_BUTTON_LIGHT
+    buttonlight_on();
+#endif
+    reset_poweroff_timer();
+    if (new_btn && !button_queue_full())
+        button_queue_post(new_btn, 1<<24);
+
+    (void)x;
+}
+#endif
 static void mouse_event(SDL_MouseButtonEvent *event, bool button_up)
 {
 #define SQUARE(x) ((x)*(x))
@@ -118,10 +151,6 @@ static void mouse_event(SDL_MouseButtonEvent *event, bool button_up)
     if(button_up) {
         switch ( event->button )
         {
-#ifdef HAVE_SCROLLWHEEL
-        case SDL_BUTTON_WHEELUP:
-        case SDL_BUTTON_WHEELDOWN:
-#endif
         case SDL_BUTTON_MIDDLE:
         case SDL_BUTTON_RIGHT:
             button_event( event->button, false );
@@ -145,13 +174,9 @@ static void mouse_event(SDL_MouseButtonEvent *event, bool button_up)
 #endif
             break;
         }
-    } else {    /* button down */
+    } else {   /* button down */
         switch ( event->button )
         {
-#ifdef HAVE_SCROLLWHEEL
-        case SDL_BUTTON_WHEELUP:
-        case SDL_BUTTON_WHEELDOWN:
-#endif
         case SDL_BUTTON_MIDDLE:
         case SDL_BUTTON_RIGHT:
             button_event( event->button, true );
@@ -215,18 +240,41 @@ static void mouse_event(SDL_MouseButtonEvent *event, bool button_up)
 
 static bool event_handler(SDL_Event *event)
 {
-    SDLKey ev_key;
+    SDL_Keycode ev_key;
 
     switch(event->type)
     {
-    case SDL_ACTIVEEVENT:
-        if (event->active.state & SDL_APPINPUTFOCUS)
+    case SDL_WINDOWEVENT:
+        if (event->window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+            sdl_app_has_input_focus = 1;
+        else if (event->window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+            sdl_app_has_input_focus = 0;
+        else if(event->window.event == SDL_WINDOWEVENT_RESIZED)
         {
-            if (event->active.gain == 1)
-                sdl_app_has_input_focus = 1;
+            SDL_LockMutex(window_mutex);
+            sdl_window_adjustment_needed(false);
+            SDL_UnlockMutex(window_mutex);
+#if !defined (__APPLE__) && !defined(__WIN32)
+            static unsigned long last_tick;
+            if (TIME_AFTER(current_tick, last_tick + HZ/20) && !button_queue_full())
+                  button_queue_post(SDLK_UNKNOWN, 0); /* update window on main thread */
             else
-                sdl_app_has_input_focus = 0;
+                  last_tick = current_tick;
+#endif
         }
+#ifdef SIMULATOR
+        if (event->window.event == SDL_WINDOWEVENT_FOCUS_LOST
+            || event->window.event == SDL_WINDOWEVENT_LEAVE
+            || event->window.event == SDL_WINDOWEVENT_RESIZED
+            || event->window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+        {
+            if (cursor_isfocus)
+            {
+                cursor_isfocus = false;
+                SDL_SetCursor(sdl_arrow_cursor);
+            }
+        }
+#endif
         break;
     case SDL_KEYDOWN:
     case SDL_KEYUP:
@@ -255,26 +303,73 @@ static bool event_handler(SDL_Event *event)
 #endif
         button_event(ev_key, event->type == SDL_KEYDOWN);
         break;
-#ifdef HAVE_TOUCHSCREEN
+
+
+
     case SDL_MOUSEMOTION:
+    {
+#ifdef SIMULATOR
+        static uint32_t next_check = 0;
+        if (background && sdl_app_has_input_focus
+            && (TIME_AFTER(event->motion.timestamp, next_check)))
+        {
+            int x = event->motion.x;
+            int y = event->motion.y;
+
+            extern struct button_map bm[];
+            int i;
+            for (i = 0; bm[i].button; i++)
+            {
+                int xd = (x-bm[i].x)*(x-bm[i].x);
+                int yd = (y-bm[i].y)*(y-bm[i].y);
+                /* check distance from center of button < radius */
+                if ( xd + yd < bm[i].radius*bm[i].radius ) {
+                    break;
+                }
+            }
+
+            if (bm[i].button)
+            {
+                if (!cursor_isfocus)
+                {
+                    cursor_isfocus = true;
+                    SDL_SetCursor(sdl_focus_cursor);
+                }
+            }
+            else if (cursor_isfocus)
+            {
+                cursor_isfocus = false;
+                SDL_SetCursor(sdl_arrow_cursor);
+            }
+
+            next_check = event->motion.timestamp + 10; /* ms */
+        }
+#endif
+#ifdef HAVE_TOUCHSCREEN
         if (event->motion.state & SDL_BUTTON(1))
         {
-            int x = event->motion.x / display_zoom;
-            int y = event->motion.y / display_zoom;
+            int x = event->motion.x;
+            int y = event->motion.y;
             touchscreen_event(x, y);
         }
-        break;
 #endif
+        break;
 
+    }
     case SDL_MOUSEBUTTONUP:
     case SDL_MOUSEBUTTONDOWN:
     {
         SDL_MouseButtonEvent *mev = &event->button;
-        mev->x /= display_zoom;
-        mev->y /= display_zoom;
         mouse_event(mev, event->type == SDL_MOUSEBUTTONUP);
         break;
     }
+#ifdef HAVE_SCROLLWHEEL
+    case SDL_MOUSEWHEEL:
+    {
+        scrollwheel_event(event->wheel.x, event->wheel.y);
+        break;
+    }
+#endif
     case SDL_QUIT:
         /* Will post SDL_USEREVENT in shutdown_hw() if successful. */
         sdl_sys_quit();
@@ -286,6 +381,15 @@ static bool event_handler(SDL_Event *event)
 
     return false;
 }
+
+#ifdef __APPLE__
+int sdl_event_filter(void *userdata, SDL_Event * event)
+{
+    (void) userdata;
+    event_handler(event);
+    return 0;
+}
+#endif
 
 void gui_message_loop(void)
 {
@@ -306,12 +410,138 @@ void gui_message_loop(void)
     } while(!quit);
 }
 
+#if defined(SIMULATOR)
+static void show_sim_help(void)
+{
+    extern SDL_Window *sdlWindow;
+    extern struct button_map bm[];
+
+    uint32_t flags = SDL_MESSAGEBOX_INFORMATION;
+    static char helptext[4096] = {'\0'};
+
+    if (helptext[0] != '\0')
+    {
+        SDL_ShowSimpleMessageBox(flags, UI_TITLE, helptext, sdlWindow);
+        return;
+    }
+
+    const char *keyname = SDL_GetKeyName(SDLK_HELP);
+    strlcat(helptext, "Rockbox simulator\n[Key] Description\n\n[", sizeof(helptext)-1);
+    /* simulator keys */
+    #define HELPTXT(SDLK,litdesc)                       \
+        keyname = SDL_GetKeyName(SDLK);                 \
+        if (keyname[0]) {                               \
+        strlcat(helptext, keyname, sizeof(helptext)-1); \
+        strlcat(helptext, "] "litdesc"\n[", sizeof(helptext)-1);}
+    /*HELPTXT(, "");*/
+    HELPTXT(SDLK_HELP, "display this window");
+    HELPTXT(SDLK_KP_0, "screendump");
+    HELPTXT(SDLK_F5, "screendump");
+    HELPTXT(SDLK_TAB, "hide device background");
+    HELPTXT(SDLK_0, "zoom display level 1/2");
+    HELPTXT(SDLK_1, "zoom display level 1");
+    HELPTXT(SDLK_2, "zoom display level 2");
+    HELPTXT(SDLK_3, "zoom display level 3");
+    HELPTXT(SDLK_4, "toggle display quality");
+    HELPTXT(USB_KEY, "toggle USB");
+
+#ifdef HAVE_HEADPHONE_DETECTION
+    HELPTXT(SDLK_p, "toggle headphone");
+#endif
+#ifdef HAVE_LINEOUT_DETECTION
+    HELPTXT(SDLK_p, "toggle lineout");
+#endif
+#ifdef HAVE_HOTSWAP
+    HELPTXT(EXT_KEY, "toggle external drive");
+#endif
+#if (CONFIG_PLATFORM & PLATFORM_PANDORA)
+    HELPTXT(SDLK_LCTRL, "shutdown");
+#endif
+#ifdef HAS_BUTTON_HOLD
+    HELPTXT(SDLK_h, "toggle hold button");
+#endif
+#ifdef HAS_REMOTE_BUTTON_HOLD
+    HELPTXT(SDLK_j, "toggle remote hold button");
+#endif
+#if defined(IRIVER_H100_SERIES) || defined (IRIVER_H300_SERIES)
+    HELPTXT(SDLK_t, "toggle remote type");
+#endif
+#ifdef HAVE_TOUCHSCREEN
+    HELPTXT(SDLK_F4, "toggle touch mode");
+#endif
+
+    /* device specific keymap */
+    for (int i = 0; bm[i].button; i++)
+    {
+        keyname = SDL_GetKeyName(bm[i].button);
+        strlcat(helptext, keyname, sizeof(helptext)-1);
+        strlcat(helptext, "] ", sizeof(helptext)-1);
+        strlcat(helptext, bm[i].description, sizeof(helptext)-1);
+        strlcat(helptext, "\n[", sizeof(helptext)-1);
+    }
+
+    /* last one doesn't use the macro */
+    keyname = SDL_GetKeyName(SDLK_F1);
+    strlcat(helptext, keyname, sizeof(helptext)-1);
+    strlcat(helptext, "] display this window\n\n", sizeof(helptext)-1);
+
+strlcat(helptext, "Note: If you don't have a keypad\n" \
+                  "alternate keys are in uisimulator/buttonmap\n\n", sizeof(helptext)-1);
+
+    DEBUGF("[%u] characters\n%s", (unsigned int)strlen(helptext), helptext);
+    SDL_ShowSimpleMessageBox(flags, UI_TITLE, helptext, sdlWindow);
+}
+#endif
+
 static void button_event(int key, bool pressed)
 {
     int new_btn = 0;
     switch (key)
     {
 #ifdef SIMULATOR
+    case SDLK_HELP:
+    case SDLK_F1:
+        if (!pressed)
+            show_sim_help();
+        return;
+    case SDLK_TAB:
+        if (!pressed)
+        {
+            SDL_LockMutex(window_mutex);
+            background = !background;
+            sdl_window_adjustment_needed(true);
+            SDL_UnlockMutex(window_mutex);
+#if !defined(__WIN32) && !defined (__APPLE__)
+            button_queue_post(SDLK_UNKNOWN, 0); /* update window on main thread */
+#endif
+        }
+        return;
+    case SDLK_0:
+        display_zoom = 0.5;
+    case SDLK_1:
+        display_zoom = display_zoom ?: 1;
+    case SDLK_2:
+        display_zoom = display_zoom ?: 2;
+    case SDLK_3:
+        display_zoom = display_zoom ?: 3;
+    case SDLK_4:
+        if (pressed)
+        {
+            display_zoom = 0;
+            return;
+        }
+        SDL_LockMutex(window_mutex);
+        if (!display_zoom)
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,
+                        strcmp(SDL_GetHint(SDL_HINT_RENDER_SCALE_QUALITY) ?:
+                        "best", "best") ? "best": "nearest");
+
+        sdl_window_adjustment_needed(!display_zoom);
+        SDL_UnlockMutex(window_mutex);
+#if !defined(__WIN32) && !defined (__APPLE__)
+        button_queue_post(SDLK_UNKNOWN, 0); /* update window on main thread */
+#endif
+        return;
     case USB_KEY:
         if (!pressed)
         {
@@ -362,7 +592,7 @@ static void button_event(int key, bool pressed)
         }
         return;
 #endif
-        
+
 #ifdef HAS_REMOTE_BUTTON_HOLD
     case SDLK_j:
         if(pressed)
@@ -379,7 +609,7 @@ static void button_event(int key, bool pressed)
         if(pressed)
             switch(_remote_type)
             {
-                case REMOTETYPE_UNPLUGGED: 
+                case REMOTETYPE_UNPLUGGED:
                     _remote_type=REMOTETYPE_H100_LCD;
                     DEBUGF("Changed remote type to H100\n");
                     break;
@@ -399,7 +629,7 @@ static void button_event(int key, bool pressed)
         break;
 #endif
 #ifndef APPLICATION
-    case SDLK_KP0:
+    case SDLK_KP_0:
     case SDLK_F5:
         if(pressed)
         {
@@ -430,32 +660,17 @@ static void button_event(int key, bool pressed)
 #endif
         break;
     }
-    /* Call to make up for scrollwheel target implementation.  This is
-     * not handled in the main button.c driver, but on the target
-     * implementation (look at button-e200.c for example if you are trying to 
-     * figure out why using button_get_data needed a hack before).
-     */
+
 #if defined(BUTTON_SCROLL_FWD) && defined(BUTTON_SCROLL_BACK)
-    if((new_btn == BUTTON_SCROLL_FWD || new_btn == BUTTON_SCROLL_BACK) && 
+    if((new_btn == BUTTON_SCROLL_FWD || new_btn == BUTTON_SCROLL_BACK) &&
         pressed)
     {
-        /* Clear these buttons from the data - adding them to the queue is
-         *  handled in the scrollwheel drivers for the targets.  They do not
-         *  store the scroll forward/back buttons in their button data for
-         *  the button_read call.
-         */
-#ifdef HAVE_BACKLIGHT
-        backlight_on();
-#endif
-#ifdef HAVE_BUTTON_LIGHT
-        buttonlight_on();
-#endif
-        reset_poweroff_timer();
-        queue_post(&button_queue, new_btn, 1<<24);
+        scrollwheel_event(0, new_btn == BUTTON_SCROLL_FWD ? -1 : 1);
         new_btn &= ~(BUTTON_SCROLL_FWD | BUTTON_SCROLL_BACK);
     }
 #endif
 
+    /* Update global button press state */
     if (pressed)
         btn |= new_btn;
     else
@@ -496,5 +711,10 @@ int button_read_device(void)
 
 void button_init_device(void)
 {
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+#ifdef SIMULATOR
+    if (!sdl_focus_cursor)
+        sdl_focus_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    if (!sdl_arrow_cursor)
+        sdl_arrow_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+#endif
 }

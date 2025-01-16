@@ -205,6 +205,19 @@ int main(void)
     }
 #endif
 
+#if !defined(BOOTLOADER)
+    allocate_playback_log();
+    if (!file_exists(ROCKBOX_DIR"/playername.txt"))
+    {
+        int fd = open(ROCKBOX_DIR"/playername.txt", O_CREAT|O_WRONLY|O_TRUNC, 0666);
+        if(fd >= 0)
+        {
+            fdprintf(fd, "%s!", str(LANG_ROCKBOX_TITLE));
+            close(fd);
+        }
+    }
+#endif
+
 #ifdef AUTOROCK
     {
         char filename[MAX_PATH];
@@ -642,7 +655,15 @@ static void init(void)
 #elif !defined(DEBUG) && !(CONFIG_STORAGE & STORAGE_RAMDISK)
             lcd_puts(0, 2, "Rebooting in 5s");
 #endif
+            lcd_puts(0, 4, rbversion);
             lcd_update();
+
+#if defined(MAX_VIRT_SECTOR_SIZE) && defined(DEFAULT_VIRT_SECTOR_SIZE)
+#ifdef HAVE_MULTIDRIVE
+            for (int i = 0 ; i < NUM_DRIVES ; i++)
+#endif
+                disk_set_sector_multiplier(IF_MD(i,) DEFAULT_VIRT_SECTOR_SIZE/SECTOR_SIZE);
+#endif
 
 #ifndef USB_NONE
             usb_start_monitoring();
@@ -660,6 +681,7 @@ static void init(void)
                 lcd_putsf(0, 4, "Error mounting: %08x", rc);
                 lcd_update();
                 sleep(HZ*5);
+                system_reboot();
             }
 #endif
         }

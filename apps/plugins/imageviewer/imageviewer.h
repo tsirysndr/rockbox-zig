@@ -55,6 +55,7 @@ enum {
     PLUGIN_OTHER = 0x200,
     PLUGIN_ABORT,
     PLUGIN_OUTOFMEM,
+    PLUGIN_JPEG_PROGRESSIVE,
 
     ZOOM_IN,
     ZOOM_OUT,
@@ -125,7 +126,7 @@ struct image_decoder {
      * size of buf after load image. it is used to calculate min downscale.
      * return PLUGIN_ERROR for error. ui will skip to next image. */
     int (*load_image)(char *filename, struct image_info *info,
-                      unsigned char *buf, ssize_t *buf_size);
+                      unsigned char *buf, ssize_t *buf_size, int offset, int filesize);
     /* downscale loaded image by ds. use the buffer passed to load_image to
      * reszie image and/or store resized image.
      * return PLUGIN_ERROR for error. ui will skip to next image. */

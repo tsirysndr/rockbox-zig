@@ -187,7 +187,8 @@ char *output_dyn_value(char *buf,
  * returns true if the playlist should be replaced */
 bool warn_on_pl_erase(void)
 {
-    if (global_settings.warnon_erase_dynplaylist &&
+    if (global_status.resume_index != -1 &&
+        global_settings.warnon_erase_dynplaylist &&
         !global_settings.party_mode &&
         playlist_modified(NULL))
     {
@@ -1166,8 +1167,7 @@ void replaygain_update(void)
     dsp_replaygain_set_settings(&settings);
 }
 
-/* format a sound value like: -1.05 dB */
-int format_sound_value(char *buf, size_t size, int snd, int val)
+void format_sound_value_ex(char *buf, size_t buf_sz, int snd, int val, bool skin_token)
 {
     int numdec = sound_numdecimals(snd);
     const char *unit = sound_unit(snd);
@@ -1182,8 +1182,15 @@ int format_sound_value(char *buf, size_t size, int snd, int val)
     unsigned int av = abs(physval);
     unsigned int i = av / factor;
     unsigned int d = av - i*factor;
-    return snprintf(buf, size, "%c%u%.*s%.*u %s", " -"[physval < 0],
-                    i, numdec, ".", numdec, d, unit);
+
+    snprintf(buf, buf_sz, "%s%u%.*s%.*u%s%s", physval < 0 ? "-" : &" "[skin_token],
+             i, numdec, ".", numdec, d, &" "[skin_token], skin_token ? "" : unit);
+}
+
+/* format a sound value as "-1.05 dB", or " 1.05 dB" */
+void format_sound_value(char *buf, size_t buf_sz, int snd, int val)
+{
+    format_sound_value_ex(buf, buf_sz, snd, val, false);
 }
 
 #endif /* !defined(__PCTOOL__) */
@@ -1265,20 +1272,6 @@ int confirm_delete_yesno(const char *name)
     const struct text_message message = { lines, 2 };
     const struct text_message yes_message = { yes_lines, 2 };
     return gui_syncyesno_run(&message, &yes_message, NULL);
-}
-
-int confirm_overwrite_yesno(void)
-{
-    static const char *lines[] = { ID2P(LANG_REALLY_OVERWRITE) };
-    static const struct text_message message = { lines, 1 };
-    return gui_syncyesno_run(&message, NULL, NULL);
-}
-
-int confirm_remove_queued_yesno(void)
-{
-    static const char *lines[] = { ID2P(LANG_REMOVE_QUEUED_TRACKS) };
-    static const struct text_message message = { lines, 1 };
-    return gui_syncyesno_run(&message, NULL, NULL);
 }
 
 /*  time_split_units()

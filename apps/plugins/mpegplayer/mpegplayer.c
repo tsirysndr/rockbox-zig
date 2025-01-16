@@ -486,6 +486,15 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define MPEG_RW         BUTTON_LEFT
 #define MPEG_FF         BUTTON_RIGHT
 
+#elif CONFIG_KEYPAD == MA_PAD
+#define MPEG_MENU       BUTTON_MENU
+#define MPEG_STOP       BUTTON_BACK
+#define MPEG_PAUSE      BUTTON_PLAY
+#define MPEG_VOLDOWN    BUTTON_DOWN
+#define MPEG_VOLUP      BUTTON_UP
+#define MPEG_RW         BUTTON_LEFT
+#define MPEG_FF         BUTTON_RIGHT
+
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 /* use touchscreen */
 
@@ -1208,7 +1217,7 @@ static void osd_lcd_enable_hook(unsigned short id, void* param)
 {
     (void)id;
     (void)param;
-    rb->queue_post(rb->button_queue, LCD_ENABLE_EVENT_1, 0);
+    rb->button_queue_post(LCD_ENABLE_EVENT_1, 0);
 }
 #endif
 

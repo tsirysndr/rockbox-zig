@@ -38,8 +38,9 @@ char* skin_start = 0;
 static int viewport_line = 0;
 
 #ifdef ROCKBOX
-static skin_callback callback = NULL;
-static void* callback_data;
+static int empty_callback(struct skin_element* element, void* data);
+static skin_callback callback = &empty_callback;
+static void* callback_data = NULL;
 #endif
 
 /* Auxiliary parsing functions (not visible at global scope) */
@@ -71,7 +72,14 @@ static void skip_whitespace(const char** document)
 }
 
 #ifdef ROCKBOX
-struct skin_element* skin_parse(const char* document, 
+static int empty_callback(struct skin_element* element, void* data)
+{
+    (void)element;
+    (void)data;
+    return CALLBACK_OK;
+}
+
+struct skin_element* skin_parse(const char* document,
                                 skin_callback cb, void* cb_data)
 {
     callback = cb;
@@ -84,7 +92,7 @@ struct skin_element* skin_parse(const char* document)
     struct skin_element* last = NULL;
 
     const char* cursor = document; /*Keeps track of location in the document*/
-    
+
     skin_line = 1;
     skin_start = (char*)document;
     viewport_line = 0;
@@ -153,7 +161,7 @@ static struct skin_element* skin_parse_viewport(const char** document)
         }
     }
 #ifdef ROCKBOX
-    else if (callback)
+    else
     {
         if (callback(retval, callback_data) == CALLBACK_ERROR)
         {
@@ -227,7 +235,7 @@ static struct skin_element* skin_parse_viewport(const char** document)
             {
                 skip_comment(&cursor);
                 skin_line++;
-                
+
             }
             if (check_viewport(cursor))
                 break;
@@ -263,7 +271,7 @@ static struct skin_element* skin_parse_viewport(const char** document)
         {
             skip_comment(&cursor);
             skin_line++;
-            
+
         }
         if (check_viewport(cursor))
             break;
@@ -331,16 +339,10 @@ static struct skin_element* skin_parse_line_optional(const char** document,
     }
 
 #ifdef ROCKBOX
-    if (callback)
+    if (callback(retval, callback_data) == CALLBACK_ERROR)
     {
-        switch (callback(retval, callback_data))
-        {
-            case CALLBACK_ERROR:
-                skin_error(GOT_CALLBACK_ERROR, cursor);
-                return NULL;
-            default:
-                break;
-        }
+        skin_error(GOT_CALLBACK_ERROR, cursor);
+        return NULL;
     }
 #endif
 
@@ -394,7 +396,7 @@ static struct skin_element* skin_parse_line_optional(const char** document,
 
     /* Moving up the calling function's pointer */
     *document = cursor;
-    
+
     if(root)
     {
         children[0] = skin_buffer_to_offset(root);
@@ -480,13 +482,10 @@ static struct skin_element* skin_parse_sublines_optional(const char** document,
     }
 
 #ifdef ROCKBOX
-    if (callback)
+    if (callback(retval, callback_data) == CALLBACK_ERROR)
     {
-        if (callback(retval, callback_data) == CALLBACK_ERROR)
-        {
-            skin_error(GOT_CALLBACK_ERROR, *document);
-            return NULL;
-        }
+        skin_error(GOT_CALLBACK_ERROR, *document);
+        return NULL;
     }
 #endif
     *document = cursor;
@@ -499,10 +498,9 @@ static int skin_parse_tag(struct skin_element* element, const char** document)
 {
     const char* cursor = *document + 1;
     const char* bookmark;
-    char *open_square_bracket = NULL;
+    const char *open_square_bracket = NULL;
 
-    char tag_name[MAX_TAG_LENGTH];
-    char* tag_args;
+    const char* tag_args;
     const struct tag_info *tag;
     struct skin_tag_parameter* params = NULL;
 
@@ -513,31 +511,20 @@ static int skin_parse_tag(struct skin_element* element, const char** document)
     int optional = 0;
 
     /* Checking the tag name */
-    for (i=0; cursor[i] && i<MAX_TAG_LENGTH; i++)
-        tag_name[i] = cursor[i];
-
-    /* First we check the two characters after the '%', then a single char */
-    tag = NULL;
-    i = MAX_TAG_LENGTH;
-    while (!tag && i > 1)
-    {
-        tag_name[i-1] = '\0';
-        tag = find_tag(tag_name);
-        i--;
-    }
+    tag = find_tag(cursor);
 
     if(!tag)
     {
         skin_error(ILLEGAL_TAG, cursor);
         return 0;
     }
-    cursor += i;
+    cursor += tag->param_pos - 1; /*strlen(tag->name)*/;
 
     /* Copying basic tag info */
     if(element->type != CONDITIONAL && element->type != VIEWPORT)
         element->type = TAG;
     element->tag = tag;
-    tag_args = tag->params;
+    tag_args = tag->name + tag->param_pos;
     element->line = skin_line;
 
     /* Checking for the * flag */
@@ -552,15 +539,12 @@ static int skin_parse_tag(struct skin_element* element, const char** document)
        || (tag_args[0] == '|' && *cursor != ARGLISTOPENSYM)
        || (qmark && *cursor != ARGLISTOPENSYM))
     {
-        
+
 #ifdef ROCKBOX
-        if (callback)
+        if (callback(element, callback_data) == CALLBACK_ERROR)
         {
-            if (callback(element, callback_data) == CALLBACK_ERROR)
-            {
-                skin_error(GOT_CALLBACK_ERROR, cursor);
-                return 0;
-            }
+            skin_error(GOT_CALLBACK_ERROR, cursor);
+            return 0;
         }
 #endif
         *document = cursor;
@@ -634,7 +618,7 @@ static int skin_parse_tag(struct skin_element* element, const char** document)
 
         if (*tag_args == '[')
         {
-            /* we need to guess which type of param it is. 
+            /* we need to guess which type of param it is.
              * guess using this priority:
              * default > decimal/integer > single tag/code > string
              */
@@ -656,7 +640,7 @@ static int skin_parse_tag(struct skin_element* element, const char** document)
             {
                 haspercent = haspercent || (cursor[j] == '%');
                 hasdecimal = hasdecimal || (cursor[j] == '.');
-                number = number && (isdigit(cursor[j]) || 
+                number = number && (isdigit(cursor[j]) ||
                                     (cursor[j] == '.') ||
                                     (cursor[j] == '-') ||
                                     (cursor[j] == '%'));
@@ -676,12 +660,12 @@ static int skin_parse_tag(struct skin_element* element, const char** document)
             {
                 type_code = 'p';
             }
-            else if (number && 
+            else if (number &&
                      (strchr(temp_params, 'i') || strchr(temp_params, 'd')))
             {
                 type_code = strchr(temp_params, 'i') ? 'i' : 'd';
             }
-            else if (haspercent && 
+            else if (haspercent &&
                     (strchr(temp_params, 't') || strchr(temp_params, 'c')))
             {
                 type_code = strchr(temp_params, 't') ? 't' : 'c';
@@ -694,7 +678,7 @@ static int skin_parse_tag(struct skin_element* element, const char** document)
             {
                 skin_error(INSUFFICIENT_ARGS, cursor);
                 return 0;
-            }   
+            }
         }
         else
             type_code = *tag_args;
@@ -790,7 +774,7 @@ static int skin_parse_tag(struct skin_element* element, const char** document)
             params[i].type = CODE;
             params[i].data.code = skin_buffer_to_offset(child);
         }
-            
+
 
         skip_whitespace(&cursor);
 
@@ -838,13 +822,10 @@ static int skin_parse_tag(struct skin_element* element, const char** document)
         return 0;
     }
 #ifdef ROCKBOX
-    if (callback)
+    if (callback(element, callback_data) == CALLBACK_ERROR)
     {
-        if (callback(element, callback_data) == CALLBACK_ERROR)
-        {
-            skin_error(GOT_CALLBACK_ERROR, *document);
-            return 0;
-        }
+        skin_error(GOT_CALLBACK_ERROR, *document);
+        return 0;
     }
 #endif
     *document = cursor;
@@ -896,7 +877,7 @@ static int skin_parse_text(struct skin_element* element, const char** document,
     element->data = skin_buffer_to_offset(text);
     if (element->data < 0)
         return 0;
-    
+
     for(dest = 0; dest < length; dest++)
     {
         /* Advancing cursor if we've encountered an escaped character */
@@ -907,15 +888,12 @@ static int skin_parse_text(struct skin_element* element, const char** document,
         cursor++;
     }
     text[length] = '\0';
-    
+
 #ifdef ROCKBOX
-    if (callback)
+    if (callback(element, callback_data) == CALLBACK_ERROR)
     {
-        if (callback(element, callback_data) == CALLBACK_ERROR)
-        {
-            skin_error(GOT_CALLBACK_ERROR, *document);
-            return 0;
-        }
+        skin_error(GOT_CALLBACK_ERROR, *document);
+        return 0;
     }
 #endif
 
@@ -930,7 +908,7 @@ static int skin_parse_conditional(struct skin_element* element, const char** doc
     const char* bookmark;
     int children = 1;
     int i;
-    
+
 #ifdef ROCKBOX
     bool feature_available = true;
     const char *false_branch = NULL;
@@ -944,6 +922,7 @@ static int skin_parse_conditional(struct skin_element* element, const char** doc
      * value */
     element->type = TAG;
     element->line = skin_line;
+    element->is_conditional = true;
 
     /* Parsing the tag first */
     if(!skin_parse_tag(element, &cursor))
@@ -951,21 +930,18 @@ static int skin_parse_conditional(struct skin_element* element, const char** doc
 
     element->type = CONDITIONAL;
 #ifdef ROCKBOX
-    if (callback)
+    switch (callback(element, callback_data))
     {
-        switch (callback(element, callback_data))
-        {
-            case FEATURE_NOT_AVAILABLE:
-                feature_available = false;
-                break;
-            case CALLBACK_ERROR:
-                return 0;
-            default:
-                break;
-        }
+        case FEATURE_NOT_AVAILABLE:
+            feature_available = false;
+            break;
+        case CALLBACK_ERROR:
+            return 0;
+        default:
+            break;
     }
 #endif
-    
+
     /* Counting the children */
     if(*(cursor++) != ENUMLISTOPENSYM)
     {
@@ -1003,7 +979,7 @@ static int skin_parse_conditional(struct skin_element* element, const char** doc
         }
     }
 #ifdef ROCKBOX
-    if (*cursor == ENUMLISTCLOSESYM && 
+    if (*cursor == ENUMLISTCLOSESYM &&
         false_branch == NULL && !feature_available)
     {
         false_branch = cursor+1;
@@ -1021,11 +997,11 @@ static int skin_parse_conditional(struct skin_element* element, const char** doc
     cursor = bookmark;
 #endif
     /* Parsing the children */
-    
+
     /* Feature tags could end up having 0 children which breaks
      * the render in dangerous ways. Minor hack, but insert an empty
      * child.  (e.g %?xx<foo> when xx isnt available ) */
-    
+
     if (children == 0)
     {
         const char* emptyline= "";
@@ -1037,7 +1013,7 @@ static int skin_parse_conditional(struct skin_element* element, const char** doc
         children_array[0] = skin_buffer_to_offset(skin_parse_code_as_arg(&emptyline));
     }
     else
-    {    
+    {
         children_array = skin_alloc_children(children);
         if (!children_array)
             return 0;
@@ -1097,9 +1073,9 @@ static int skin_parse_comment(struct skin_element* element, const char** documen
 
     element->type = COMMENT;
     element->line = skin_line;
-#ifdef ROCKBOX 
+#ifdef ROCKBOX
     element->data = INVALID_OFFSET;
-#else    
+#else
     element->data = text = skin_alloc_string(length);
     if (!element->data)
         return 0;
@@ -1164,6 +1140,7 @@ static struct skin_element* skin_alloc_element()
     retval->params_count = 0;
     retval->children_count = 0;
     retval->data = INVALID_OFFSET;
+    retval->is_conditional = false;
 
     return retval;
 

@@ -33,7 +33,7 @@
 #include "lib/grey.h"
 #include "lib/mylcd.h"
 #include "lib/feature_wrappers.h"
-#include "lib/id3.h"
+#include "lib/simple_viewer.h"
 
 /******************************* Globals ***********************************/
 static fb_data *lcd_fb;
@@ -1878,7 +1878,7 @@ static int id3_get_index(struct mp3entry *id3)
             artist_idx = pf_idx.album_index[i].artist_idx;
 
             if(!rb->strcmp(pf_idx.album_names + album_idx, current_album) &&
-                !rb->strcmp(pf_idx.artist_names + artist_idx, current_artist))
+                !rb->strcasecmp(pf_idx.artist_names + artist_idx, current_artist))
                 return i;
         }
 
@@ -2074,6 +2074,24 @@ static inline void free_borrowed_tracks(void)
     pf_tracks.used = 0;
     pf_tracks.cur_idx = -1;
     buf_ctx_unlock();
+}
+
+/* Fills mp3entry with metadata retrieved from  RAM, if possible, or by reading from
+ * the file directly.  Note that the tagcache only stores a subset of metadata and
+ * will thus not return certain properties of the file, such as frequency, size, or
+ * codec.
+ */
+bool retrieve_id3(struct mp3entry *id3, const char* file)
+{
+#if defined (HAVE_TAGCACHE) && defined(HAVE_TC_RAMCACHE) && defined(HAVE_DIRCACHE)
+    if (rb->tagcache_fill_tags(id3, file))
+    {
+        rb->strlcpy(id3->path, file, sizeof(id3->path));
+        return true;
+    }
+#endif
+
+    return rb->get_metadata(id3, -1, file);
 }
 
 /**
@@ -4065,7 +4083,7 @@ static int show_id3_info(const char *selected_file)
     if (is_multiple_tracks)
         finalize_id3(&id3);
 
-    return rb->browse_id3(&id3, 0, 0, NULL, i) ? PLUGIN_USB_CONNECTED : 0;
+    return rb->browse_id3(&id3, 0, 0, NULL, i, &view_text) ? PLUGIN_USB_CONNECTED : 0;
 }
 
 
@@ -4176,6 +4194,9 @@ static bool context_menu_ready(void)
 #ifdef USEGSLIB
     rb->lcd_set_foreground(N_BRIGHT(0));
     rb->lcd_set_background(N_BRIGHT(255));
+#elif defined (HAVE_LCD_COLOR)
+    rb->lcd_set_background(rb->global_settings->bg_color);
+    rb->lcd_set_foreground(rb->global_settings->fg_color);
 #endif
 #endif
     insert_whole_album = (pf_state != pf_show_tracks) || show_tracks_while_browsing;
@@ -4193,6 +4214,9 @@ static void context_menu_cleanup(void)
         free_borrowed_tracks();
 #ifdef USEGSLIB
     grey_show(true);
+#elif LCD_DEPTH > 1 && defined(HAVE_LCD_COLOR)
+    rb->lcd_set_background(N_BRIGHT(0));
+    rb->lcd_set_foreground(N_BRIGHT(255));
 #endif
     mylcd_set_drawmode(DRMODE_FG);
 }

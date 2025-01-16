@@ -42,17 +42,17 @@
 #define RSSI_MAX 70
 
 /** Registers and bits **/
+#define CHIPID      0x0
 #define POWERCFG    0x2
 #define CHANNEL     0x3
 #define SYSCONFIG1  0x4
 #define SYSCONFIG2  0x5
 #define SYSCONFIG3  0x6
-#define SYSCONFIG4  0x7 /* undocumented */
-#define SYSCONFIG5  0x8 /* undocumented */
-#define SYSCONFIG6  0x9 /* undocumented */
+#define SYSCONFIG4  0x7
+#define SYSCONFIG5  0x8
+#define SYSCONFIG6  0x9 /* suspected not to exists */
 #define READCHAN    0xA
 #define STATUSRSSI  0xB
-#define IDENT       0xC
 
 
 /* POWERCFG (0x2) */
@@ -81,7 +81,7 @@
 
 /* SYSCONFIG1 (0x4) */
 #define SYSCONFIG1_DE       (0x1 << 11)
-    #define SYSCONFIG1_SOFTMUTE_EN  (0x1 << 9)
+#define SYSCONFIG1_SOFTMUTE_EN  (0x1 << 9)
 
 /* SYSCONFIG2 (0x5) */
 #define SYSCONFIG2_VOLUME   (0xF <<  0)
@@ -105,9 +105,9 @@ static uint16_t cache[16] = {
     [SYSCONFIG1] =  0x0200, /* SYSCONFIG1_SOFTMUTE_EN */
     [SYSCONFIG2] =  0x867F, /* INT_MODE (def), SEEKTH=1100b, LNA_PORT_SEL=LNAN,
                                LNA_ICSEL=3.0mA, VOLUME=max */
-    [SYSCONFIG3] =  0x8000, /* I2S slave mode */
-    [SYSCONFIG4] =  0x4712, /* undocumented, affects stereo blend */
-    [SYSCONFIG5] =  0x5EC6, /* undocumented */
+    [SYSCONFIG3] =  0x8000, /* RSVD */
+    [SYSCONFIG4] =  0x4712, /* TH_SOFRBLEND=34dB, 65M_50M MODE=65~76MHz, RSVD, SEEK_TH_OLD=4, SOFTBLEND_EN */
+    [SYSCONFIG5] =  0x5EC6, /* FREQ_DIRECT=24262kHz (unused) */
     [SYSCONFIG6] =  0x0000  /* undocumented */
 };
 
@@ -190,7 +190,21 @@ static void rda5802_sleep(int snooze)
 
 bool rda5802_detect(void)
 {
-    return ((rda5802_read_reg(IDENT) & 0xFF00) == 0x5800);
+    /* The RDA5802 has a weird wrap-around at 0x40. Upon initialisation, it will copy the Chip ID
+     * to register 0xC but since this register is also used for RDS, we cannot rely on its content
+     * until we softreset. But we cannot soft-reset until we confirm the tuner type... So we really
+     * need to register 0, which means reading 0x40 registers.
+     * NOTE: the datasheet says that it wraps around at 0x3A but this is wrong. */
+
+    /* we want to read registers 0x00/0x01, aka 0x40/0x41 because of wrapping, tuner starts reading
+     * at 0xA so we need to read 0x40 - 0xA + 2 registers, each register is two bytes. Thats
+     * (0x40 - 0xA + 2) * 2 = 0x6e bytes */
+    unsigned char buf[0x70];
+    fmradio_i2c_read(I2C_ADR, buf, sizeof(buf));
+    cache[CHIPID] = buf[0x6c] << 8 | buf[0x6d];
+    cache[1] = buf[0x6e] << 8 | buf[0x6f]; /* unknown register, maybe firmware ID or related */
+
+    return ((cache[CHIPID] & 0xFF00) == 0x5800);
  }
 
 void rda5802_init(void)

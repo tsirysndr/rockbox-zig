@@ -538,6 +538,15 @@ F3: equal to "="
 
 #elif CONFIG_KEYPAD == SDL_PAD
 /* use touchscreen */
+#elif CONFIG_KEYPAD == MA_PAD
+#define CALCULATOR_LEFT     BUTTON_LEFT
+#define CALCULATOR_RIGHT    BUTTON_RIGHT
+#define CALCULATOR_UP       BUTTON_UP
+#define CALCULATOR_DOWN     BUTTON_DOWN
+#define CALCULATOR_QUIT     (BUTTON_BACK|BUTTON_REPEAT)
+#define CALCULATOR_INPUT    BUTTON_PLAY
+#define CALCULATOR_CALC     BUTTON_MENU
+#define CALCULATOR_CLEAR    BUTTON_BACK
 
 #else
 #error No keymap defined!

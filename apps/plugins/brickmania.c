@@ -372,6 +372,13 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define SELECT      BUTTON_CENTER
 #define UP          BUTTON_TOPMIDDLE
 #define DOWN        BUTTON_BOTTOMMIDDLE
+#elif CONFIG_KEYPAD == MA_PAD
+#define QUIT        BUTTON_BACK
+#define LEFT        BUTTON_LEFT
+#define RIGHT       BUTTON_RIGHT
+#define SELECT      BUTTON_PLAY
+#define UP          BUTTON_UP
+#define DOWN        BUTTON_DOWN
 
 #else
 #error No keymap defined!
@@ -1693,7 +1700,7 @@ static void error_newround(const char * message)
     rb->splash(HZ*3,"Some error happened, so the current balls will be killed.");
     rb->splashf(HZ*3,"The reason is: %s",message);
     rb->splash(HZ*3,"Don't worry, it's my fault, you won't lose any life for this. :)");
-    newround(); 
+    newround();
 }
 
 static int brickmania_game_loop(void)
@@ -2546,7 +2553,7 @@ static int brickmania_game_loop(void)
                     resume = true;
                     return 0;
                     break;
-                
+
                 /* MI: added suicide button in case the ball gets stuck or
                  whatever */
                 case SUICIDE:

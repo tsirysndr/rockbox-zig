@@ -136,14 +136,23 @@ static enum image_type image_type = IMAGE_UNKNOWN;
 /************************* Implementation ***************************/
 
 /* Read directory contents for scrolling. */
-static void get_pic_list(void)
+static void get_pic_list(bool single_file)
 {
+    file_pt = (char **) buf;
+
+    if (single_file)
+    {
+        file_pt[0] = np_file;
+        buf_size -= sizeof(file_pt);
+        entries = 1;
+        curfile = 0;
+        return;
+    }
+
     struct tree_context *tree = rb->tree_get_context();
     struct entry *dircache = rb->tree_get_entries(tree);
     int i;
     char *pname;
-
-    file_pt = (char **) buf;
 
     /* Remove path and leave only the name.*/
     pname = rb->strrchr(np_file,'/');
@@ -717,6 +726,7 @@ static int scroll_bmp(struct image_info *info, bool initial_frame)
 #ifdef IMGVIEW_ZOOM_PRE
             if (lastbutton != IMGVIEW_ZOOM_PRE)
                 break;
+            lastbutton = button;
 #endif
             return ZOOM_IN;
             break;
@@ -725,6 +735,7 @@ static int scroll_bmp(struct image_info *info, bool initial_frame)
 #ifdef IMGVIEW_ZOOM_PRE
             if (lastbutton != IMGVIEW_ZOOM_PRE)
                 break;
+            lastbutton = button;
 #endif
             return ZOOM_OUT;
             break;
@@ -836,21 +847,21 @@ static void get_view(struct image_info *info, int *p_cx, int *p_cy)
 }
 
 /* load, decode, display the image */
-static int load_and_show(char* filename, struct image_info *info)
+static int load_and_show(char *filename, struct image_info *info,
+                         int offset, int filesize, int status)
 {
-    int status;
     int cx, cy;
     ssize_t remaining;
 
-    rb->lcd_clear_display();
-
-    /* suppress warning while running slideshow */
-    status = get_image_type(filename, iv_api.running_slideshow);
     if (status == IMAGE_UNKNOWN) {
         /* file isn't supported image file, skip this. */
         file_pt[curfile] = NULL;
         return change_filename(direction);
     }
+
+reload_decoder:
+    rb->lcd_clear_display();
+
     if (image_type != status) /* type of image is changed, load decoder. */
     {
         struct loader_info loader_info = {
@@ -877,7 +888,13 @@ static int load_and_show(char* filename, struct image_info *info)
     if (rb->button_get(false) == IMGVIEW_MENU)
         status = PLUGIN_ABORT;
     else
-        status = imgdec->load_image(filename, info, buf, &remaining);
+        status = imgdec->load_image(filename, info, buf, &remaining, offset, filesize);
+
+    if (status == PLUGIN_JPEG_PROGRESSIVE)
+    {
+        status = IMAGE_JPEG_PROGRESSIVE;
+        goto reload_decoder;
+    }
 
     if (status == PLUGIN_OUTOFMEM)
     {
@@ -1024,6 +1041,53 @@ static int load_and_show(char* filename, struct image_info *info)
     return status;
 }
 
+static bool find_album_art(int *offset, int *filesize, int *status)
+{
+#ifndef HAVE_ALBUMART
+    (void)offset;(void)filesize;(void)status;
+    return false;
+#else
+    struct mp3entry *current_track = rb->audio_current_track();
+
+    if (current_track == NULL)
+    {
+        return false;
+    }
+
+    switch (current_track->albumart.type)
+    {
+        case AA_TYPE_BMP:
+            (*status) = IMAGE_BMP;
+            break;
+        case AA_TYPE_PNG:
+            (*status) = IMAGE_PNG;
+            break;
+        case AA_TYPE_JPG:
+            (*status) = IMAGE_JPEG;
+            break;
+        default:
+            (*status) = IMAGE_UNKNOWN;
+    }
+
+    if (IMAGE_UNKNOWN == *status
+        || AA_PREFER_IMAGE_FILE == rb->global_settings->album_art)
+    {
+        if (rb->search_albumart_files(current_track, "", np_file, MAX_PATH))
+        {
+            (*status) = get_image_type(np_file, false);
+            return true;
+        }
+
+        if (*status == IMAGE_UNKNOWN)
+            return false;
+    }
+    rb->strcpy(np_file, current_track->path);
+    (*offset) = current_track->albumart.pos;
+    (*filesize) = current_track->albumart.size;
+    return true;
+#endif
+}
+
 /******************** Plugin entry point *********************/
 
 enum plugin_status plugin_start(const void* parameter)
@@ -1033,13 +1097,27 @@ enum plugin_status plugin_start(const void* parameter)
     long greysize; /* helper */
 #endif
 
-    if(!parameter) {rb->splash(HZ*2, "No file"); return PLUGIN_ERROR; }
+    int offset = 0, filesize = 0, status;
 
-    rb->strcpy(np_file, parameter);
-    if (get_image_type(np_file, false) == IMAGE_UNKNOWN)
+    bool is_album_art = false;
+    if (!parameter)
     {
-        rb->splash(HZ*2, "Unsupported file");
-        return PLUGIN_ERROR;
+        if (!find_album_art(&offset, &filesize, &status))
+        {
+            rb->splash(HZ * 2, "No file");
+            return PLUGIN_ERROR;
+        }
+
+        is_album_art = true;
+    }
+    else
+    {
+        rb->strcpy(np_file, parameter);
+        if ((status = get_image_type(np_file, false)) == IMAGE_UNKNOWN)
+        {
+            rb->splash(HZ * 2, "Unsupported file");
+            return PLUGIN_ERROR;
+        }
     }
 
 #ifdef USE_PLUG_BUF
@@ -1048,8 +1126,7 @@ enum plugin_status plugin_start(const void* parameter)
     decoder_buf = rb->plugin_get_buffer(&decoder_buf_size);
     buf = rb->plugin_get_audio_buffer(&buf_size);
 #endif
-
-    get_pic_list();
+    get_pic_list(is_album_art);
 
 #ifdef USEGSLIB
     if (!grey_init(buf, buf_size, GREY_ON_COP,
@@ -1089,8 +1166,18 @@ enum plugin_status plugin_start(const void* parameter)
 
     do
     {
-        condition = load_and_show(np_file, &image_info);
-    } while (condition >= PLUGIN_OTHER);
+        condition = load_and_show(np_file, &image_info, offset, filesize, status);
+        if (condition >= PLUGIN_OTHER)
+        {
+            if(!is_album_art)
+            {
+                /* suppress warning while running slideshow */
+                status = get_image_type(np_file, iv_api.running_slideshow);
+            }
+            continue;
+        }
+        break;
+    } while (true);
     release_decoder();
 
     if (rb->memcmp(&settings, &old_settings, sizeof (settings)))

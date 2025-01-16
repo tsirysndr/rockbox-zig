@@ -212,7 +212,8 @@ void list_draw(struct screen *display, struct gui_synclist *list)
 
     struct viewport * last_vp = display->set_viewport(parent);
     display->clear_viewport();
-    display->scroll_stop_viewport(list_text_vp);
+    if (!list->scroll_all)
+        display->scroll_stop_viewport(list_text_vp);
     *list_text_vp = *parent;
     if ((show_title = draw_title(display, list, callback_draw_item)))
     {
@@ -324,14 +325,15 @@ void list_draw(struct screen *display, struct gui_synclist *list)
         /* do the text */
         enum themable_icons icon;
         unsigned const char *s;
-        char entry_buffer[MAX_PATH];
+        extern char simplelist_buffer[SIMPLELIST_MAX_LINES * SIMPLELIST_MAX_LINELENGTH];
+        /*char entry_buffer[MAX_PATH]; use the buffer from gui/list.c instead */
         unsigned char *entry_name;
         int line = i - start;
         int line_indent = 0;
         int style = STYLE_DEFAULT;
         bool is_selected = false;
-        s = list->callback_get_item_name(i, list->data, entry_buffer,
-                                         sizeof(entry_buffer));
+        s = list->callback_get_item_name(i, list->data, simplelist_buffer,
+                                         sizeof(simplelist_buffer));
         if (P2ID((unsigned char *)s) > VOICEONLY_DELIMITER)
             entry_name = "";
         else
@@ -693,7 +695,7 @@ static int kinetic_callback(struct timeout *tmo)
 
     /* let get_action() timeout, which loads to a
      * gui_synclist_draw() call from the main thread */
-    queue_post(&button_queue, BUTTON_REDRAW, 0);
+    button_queue_post(BUTTON_REDRAW, 0);
     /* stop if the velocity hit or crossed zero */
     if (!data->velocity)
     {

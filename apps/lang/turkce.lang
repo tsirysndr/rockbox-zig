@@ -19,6 +19,7 @@
 # - Brian Cloutier
 # - Altay Oz
 # - Selami Dinçer
+# - Mustafa YILDIZ
 <phrase>
   id: LANG_SET_BOOL_YES
   desc: bool true representation
@@ -512,20 +513,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BOOKMARK_CONTEXT_DELETE
-  desc: bookmark context menu, delete this bookmark
-  user: core
-  <source>
-    *: "Delete"
-  </source>
-  <dest>
-    *: "Sil"
-  </dest>
-  <voice>
-    *: "Sil"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_AUTO_BOOKMARK_QUERY
   desc: prompt for user to decide to create an bookmark
   user: core
@@ -667,7 +654,7 @@
 </phrase>
 <phrase>
   id: LANG_CHANNEL_STEREO
-  desc: in sound_settings
+  desc: in sound_settings and radio screen
   user: core
   <source>
     *: "Stereo"
@@ -681,7 +668,7 @@
 </phrase>
 <phrase>
   id: LANG_CHANNEL_MONO
-  desc: in sound_settings
+  desc: in sound_settings and radio screen
   user: core
   <source>
     *: "Mono"
@@ -915,20 +902,6 @@
   </dest>
   <voice>
     *: "EkolayzerAyarlarına göz at"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_EQUALIZER_EDIT_MODE
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Edit mode: %s"
-  </source>
-  <dest>
-    *: "Durum: %s"
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -2146,10 +2119,10 @@
     *: "Rockbox Info"
   </source>
   <dest>
-    *: "Rockbox Bilgi:"
+    *: "Rockbox Bilgi"
   </dest>
   <voice>
-    *: "Rockbox Bilgi:"
+    *: "Rockbox Bilgi"
   </voice>
 </phrase>
 <phrase>
@@ -2160,10 +2133,10 @@
     *: "Buffer:"
   </source>
   <dest>
-    *: "Tampon: "
+    *: "Bellek:"
   </dest>
   <voice>
-    *: "Tampon: "
+    *: "Bellek boyutu"
   </voice>
 </phrase>
 <phrase>
@@ -2179,14 +2152,14 @@
   </source>
   <dest>
     *: none
-    hibylinux: "USB:"
+    hibylinux: "~USB:"
     multivolume: "HardDisk1:"
     sansac200*,sansaclipplus,sansae200*,sansafuze*: "mikroSD:"
     xduoox3: "mikroSD2:"
   </dest>
   <voice>
     *: none
-    hibylinux: "U S B"
+    hibylinux: "~U S B"
     multivolume: "Hard Disk 1"
     sansac200*,sansaclipplus,sansae200*,sansafuze*: "mikroSD"
     xduoox3: "mikroSD2"
@@ -2505,23 +2478,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BATTERY_TRICKLE_CHARGE
-  desc: in info display, shows that trickle charge is running
-  user: core
-  <source>
-    *: none
-    charging: "Battery: Trickle Chg"
-  </source>
-  <dest>
-    *: none
-    charging: "Pil yavaşça doluyor"
-  </dest>
-  <voice>
-    *: none
-    charging: "Pil yavaşça doluyor"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_WARNING_BATTERY_LOW
   desc: general warning
   user: core
@@ -2557,7 +2513,7 @@
     *: "."
   </source>
   <dest>
-    *: "."
+    *: "~."
   </dest>
   <voice>
     *: "nokta"
@@ -3339,23 +3295,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_LINEOUT_ONOFF
-  desc: in system settings menu
-  user: core
-  <source>
-    *: none
-    lineout_poweroff: "Line Out"
-  </source>
-  <dest>
-    *: none
-    lineout_poweroff: "Çıkış"
-  </dest>
-  <voice>
-    *: none
-    lineout_poweroff: "Çıkış"
-  </voice>
-</phrase>
-<phrase>
   id: VOICE_EXT_FMS
   desc: spoken only, for file extension
   user: core
@@ -3736,7 +3675,7 @@
     *: "Sonraki:"
   </dest>
   <voice>
-    *: "Sonraki:"
+    *: "Sonraki"
   </voice>
 </phrase>
 <phrase>
@@ -3886,20 +3825,6 @@
   </dest>
   <voice>
     *: "Kesme Frekansı"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_AUTOMATIC
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -4693,20 +4618,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SET_AS_PLAYLISTCAT_DIR
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SLEEP_TIMER_ON_POWER_UP
   desc: whether sleep timer starts on power up
   user: core
@@ -4734,7 +4645,7 @@
   </dest>
   <voice>
     *: none
-    rtc: "Geçerli Zaman:"
+    rtc: "Geçerli Zaman"
   </voice>
 </phrase>
 <phrase>
@@ -4814,20 +4725,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_INSERT
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_LCD_MENU
   desc: in the display sub menu
   user: core
@@ -4870,20 +4767,6 @@
   </dest>
   <voice>
     *: "Ses Dizinleri"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SET_AS_START_DIR
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -5112,20 +4995,6 @@
   <voice>
     *: none
     usb_charging_enable: "USB Bağlantısı Sırasında Şarj Et"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CATALOG_VIEW
-  desc: in onplay playlist catalogue submenu
-  user: core
-  <source>
-    *: "View Catalogue"
-  </source>
-  <dest>
-    *: "Kataloğu Görüntüle"
-  </dest>
-  <voice>
-    *: "Kataloğu Görüntüle"
   </voice>
 </phrase>
 <phrase>
@@ -5434,10 +5303,10 @@
     *: "Normal"
   </source>
   <dest>
-    *: "Normal"
+    *: "~Normal"
   </dest>
   <voice>
-    *: "Normal"
+    *: "~Normal"
   </voice>
 </phrase>
 <phrase>
@@ -5752,7 +5621,7 @@
   </dest>
   <voice>
     *: none
-    radio: "Sinyal gücü:"
+    radio: "Sinyal gücü"
   </voice>
 </phrase>
 <phrase>
@@ -5871,23 +5740,6 @@
   </dest>
   <voice>
     *: "Kredi"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALARM_MOD_SHUTDOWN
-  desc: The text that tells the user that the alarm time is ok and the device shuts off (for the RTC alarm mod).
-  user: core
-  <source>
-    *: none
-    alarm: "Alarm Set"
-  </source>
-  <dest>
-    *: none
-    alarm: "Alarm kuruldu"
-  </dest>
-  <voice>
-    *: none
-    alarm: "Alarm kuruldu"
   </voice>
 </phrase>
 <phrase>
@@ -7286,21 +7138,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SET_AS_REC_DIR
-  desc: deprecated
-  user: core
-  <source>
-    *: none
-    recording: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_MOVING
   desc:
   user: core
@@ -7539,7 +7376,7 @@
   </dest>
   <voice>
     *: none
-    remote: "(Vol- : Yeniden etkinleştir)"
+    remote: "(Ses eksi ile yeniden etkinleştir)"
   </voice>
 </phrase>
 <phrase>
@@ -7584,7 +7421,7 @@
     *: "Mod:"
   </dest>
   <voice>
-    *: "Mod:"
+    *: "Mod"
   </voice>
 </phrase>
 <phrase>
@@ -7613,20 +7450,6 @@
   </dest>
   <voice>
     *: "Devam edecek bir şey yok"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_INSERT_FIRST
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -7709,20 +7532,6 @@
   <voice>
     *: none
     serial_port: "9600"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_REPLACE
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -7988,20 +7797,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CATALOG_ADD_TO
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SHUFFLE_PLAYLIST
   desc: in playlist menu, reshuffles the order in which songs are played
   user: core
@@ -8026,7 +7821,7 @@
     *: "[Etiketlenmemiş]"
   </dest>
   <voice>
-    *: "[Etiketlenmemiş]"
+    *: "Etiketlenmemiş"
   </voice>
 </phrase>
 <phrase>
@@ -8296,7 +8091,7 @@
     *: "Boş Alan:"
   </dest>
   <voice>
-    *: "Boş Alan:"
+    *: "Boş Alan"
   </voice>
 </phrase>
 <phrase>
@@ -8311,23 +8106,6 @@
   </dest>
   <voice>
     *: "Bilgi yok"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_DB_INF
-  desc: -inf db for values below measurement
-  user: core
-  <source>
-    *: none
-    recording: "-inf"
-  </source>
-  <dest>
-    *: none
-    recording: "-sonsuz"
-  </dest>
-  <voice>
-    *: none
-    recording: "eksi sonsuz"
   </voice>
 </phrase>
 <phrase>
@@ -8575,20 +8353,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_INSERT_SHUFFLED
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_FLIP_DISPLAY
   desc: in settings_menu, option to turn display+buttos by 180 degrees
   user: core
@@ -8803,20 +8567,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_INSERT_LAST_SHUFFLED
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_REMOTE_MAIN
   desc: in record settings menu.
   user: core
@@ -8907,20 +8657,6 @@
   <voice>
     *: none
     touchscreen: "kalibre et"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALARM_MOD_KEYS
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -9860,7 +9596,7 @@
     *: "Sonraki parça:"
   </dest>
   <voice>
-    *: "Sonraki parça:"
+    *: "Sonraki parça"
   </voice>
 </phrase>
 <phrase>
@@ -9875,20 +9611,6 @@
   </dest>
   <voice>
     *: "Dizin"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_INSERT_LAST
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -10407,20 +10129,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_GAIN
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Gain"
-  </source>
-  <dest>
-    *: "Kazanç"
-  </dest>
-  <voice>
-    *: "Kazanç"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_CUESHEET_ENABLE
   desc: cuesheet support option
   user: core
@@ -10522,20 +10230,6 @@
   <voice>
     *: none
     crossfade: "Karışık"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ID3_ALBUM_GAIN
-  desc: in tag viewer
-  user: core
-  <source>
-    *: "Album Gain"
-  </source>
-  <dest>
-    *: "Albüm Kazancı"
-  </dest>
-  <voice>
-    *: "Albüm Kazancı"
   </voice>
 </phrase>
 <phrase>
@@ -11284,20 +10978,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_PLAYLIST_CONTROL_UPDATE_ERROR
-  desc: Playlist error
-  user: core
-  <source>
-    *: "Error updating playlist control file"
-  </source>
-  <dest>
-    *: "Oynatma listesi kontrol dosyası güncellenirken hata oluştu"
-  </dest>
-  <voice>
-    *: "Oynatma listesi kontrol dosyası güncellenirken hata oluştu"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_REPLAYGAIN
   desc: in replaygain
   user: core
@@ -11368,20 +11048,6 @@
   </dest>
   <voice>
     *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_EQUALIZER_BAND_Q
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Q"
-  </source>
-  <dest>
-    *: "Kalite"
-  </dest>
-  <voice>
-    *: "Kalite"
   </voice>
 </phrase>
 <phrase>
@@ -11486,37 +11152,6 @@
   </dest>
   <voice>
     *: "Konuşma Klipleri"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SCROLLBAR_POSITION
-  desc: in Settings -> General -> Display -> Status-/Scrollbar
-  user: core
-  <source>
-    *: "Scroll Bar Position"
-  </source>
-  <dest>
-    *: "Kaydırma Çubuğu Konumu"
-  </dest>
-  <voice>
-    *: "Kaydırma Çubuğu Konumu"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_RECORD_DIRECTORY
-  desc: in recording settings_menu
-  user: core
-  <source>
-    *: none
-    recording: "Directory"
-  </source>
-  <dest>
-    *: none
-    recording: "Dizin"
-  </dest>
-  <voice>
-    *: none
-    recording: "Dizin"
   </voice>
 </phrase>
 <phrase>
@@ -12065,20 +11700,6 @@
   <voice>
     *: none
     radio: "Amerika Kanada"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_STATUSBAR_CUSTOM
-  desc: if this translation is compatible with LANG_CHANNEL_CUSTOM, then please use the same translation. it can be combined later then
-  user: core
-  <source>
-    *: "Custom"
-  </source>
-  <dest>
-    *: "Özel"
-  </dest>
-  <voice>
-    *: "Özel"
   </voice>
 </phrase>
 <phrase>
@@ -12849,28 +12470,14 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_NO_VIEWERS
-  desc: text for splash to indicate that no viewers are available
-  user: core
-  <source>
-    *: "No viewers found"
-  </source>
-  <dest>
-    *: "izleyici bulunamadı"
-  </dest>
-  <voice>
-    *: "izleyici bulunamadı"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PLAYTIME_ELAPSED
   desc: playing time screen
   user: core
   <source>
-    *: "Playlist elapsed: %s / %s %ld%%"
+    *: "Playlist elapsed:"
   </source>
   <dest>
-    *: "Geçen oynatma listesi: %s / %s %ld%%"
+    *: "Geçen oynatma listesi:"
   </dest>
   <voice>
     *: "Geçen oynatma listesi"
@@ -12881,10 +12488,10 @@
   desc: playing time screen
   user: core
   <source>
-    *: "Track elapsed: %s / %s %ld%%"
+    *: "Track elapsed:"
   </source>
   <dest>
-    *: "Geçen parça: %s / %s %ld%%"
+    *: "Geçen parça:"
   </dest>
   <voice>
     *: "Geçen parça"
@@ -12892,16 +12499,16 @@
 </phrase>
 <phrase>
   id: LANG_PLAYTIME_REMAINING
-  desc: playing time screen
+  desc: deprecated
   user: core
   <source>
-    *: "Playlist remaining: %s"
+    *: ""
   </source>
   <dest>
-    *: "Kalan oynatma listesi: %s"
+    *: ""
   </dest>
   <voice>
-    *: "Kalan oynatma listesi"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -12909,10 +12516,10 @@
   desc: playing time screen
   user: core
   <source>
-    *: "Track remaining: %s"
+    *: "Track remaining:"
   </source>
   <dest>
-    *: "Kalan parça: %s"
+    *: "Kalan parça:"
   </dest>
   <voice>
     *: "Kalan parça"
@@ -12923,10 +12530,10 @@
   desc: playing time screen
   user: core
   <source>
-    *: "Track %d / %d %d%%"
+    *: "Track:"
   </source>
   <dest>
-    *: "Parça %d / %d %d%%"
+    *: "Parça:"
   </dest>
   <voice>
     *: "Parça"
@@ -12937,10 +12544,10 @@
   desc: playing time screen
   user: core
   <source>
-    *: "Storage: %s (done %s, remaining %s)"
+    *: "Storage (Done / Remaining):"
   </source>
   <dest>
-    *: "Depolama: %s (done %s, remaining %s)"
+    *: "Depolama (Biten / Kalan):"
   </dest>
   <voice>
     *: "Depolama"
@@ -12965,10 +12572,10 @@
   desc: playing time screen
   user: core
   <source>
-    *: "Average track size: %s"
+    *: "Average track size:"
   </source>
   <dest>
-    *: "Ortalama parça boyutu: %s"
+    *: "Ortalama parça boyutu:"
   </dest>
   <voice>
     *: "Ortalama parça boyutu"
@@ -12979,10 +12586,10 @@
   desc: playing time screen
   user: core
   <source>
-    *: "Average bitrate: %ld kbps"
+    *: "Average bitrate:"
   </source>
   <dest>
-    *: "Ortalama bit hızı: %ld kbps"
+    *: "Ortalama bit hızı:"
   </dest>
   <voice>
     *: "Ortalama bit hızı"
@@ -13683,7 +13290,7 @@
     *: "Seviye 10: 1 hamle / 600 dk."
   </dest>
   <voice>
-    *: "Seviye 10: 600 dakikada 1 hamle"
+    *: "Seviye 10, 600 dakikada 1 hamle"
   </voice>
 </phrase>
 <phrase>
@@ -14651,62 +14258,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_PROPERTIES_ARTIST
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_TITLE
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_ALBUM
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_DURATION
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PROPERTIES_SUBDIRS
   desc: in properties plugin
   user: core
@@ -15036,20 +14587,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CLEAR_PLAYLIST
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_HIDE_ALBUM_TITLE
   desc: in the pictureflow settings
   user: core
@@ -15159,34 +14696,6 @@
   </dest>
   <voice>
     *: "Önbellek bir sonraki yeniden başlatmada yeniden oluşturulacak"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYLIST_CLEARED
-  desc: in the pictureflow splash messages
-  user: core
-  <source>
-    *: "Playlist Cleared"
-  </source>
-  <dest>
-    *: "Oynatma Listesi Temizlendi"
-  </dest>
-  <voice>
-    *: "Oynatma Listesi Temizlendi"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ADDED_TO_PLAYLIST
-  desc: in the pictureflow splash messages
-  user: core
-  <source>
-    *: "Added to playlist"
-  </source>
-  <dest>
-    *: "Oynatma listesine eklendi"
-  </dest>
-  <voice>
-    *: "Oynatma listesine eklendi"
   </voice>
 </phrase>
 <phrase>
@@ -15732,20 +15241,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CLEAR_LIST_AND_PLAY_NEXT
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_QUEUE_MENU
   desc: in onplay menu
   user: core
@@ -15802,20 +15297,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CLEAR_LIST_AND_PLAY_SHUFFLED
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SOFTLOCK_DISABLE_ALL_NOTIFY
   desc: disable all softlock notifications
   user: core
@@ -15855,146 +15336,6 @@
   </dest>
   <voice>
     *: "Daima Otomatik Kilitleme"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYLIST_RELOAD_AFTER_SAVE
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_ALBUMARTIST
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_GENRE
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_COMMENT
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_COMPOSER
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_YEAR
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_TRACKNUM
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_DISCNUM
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_FREQUENCY
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PROPERTIES_BITRATE
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -16165,7 +15506,7 @@
     *: "Albümleri şuna göre sırala:"
   </dest>
   <voice>
-    *: "Albümleri şuna göre sırala:"
+    *: "Albümleri şuna göre sırala"
   </voice>
 </phrase>
 <phrase>
@@ -16870,5 +16211,336 @@
   </dest>
   <voice>
     *: "Türkçe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESET_EQUALIZER
+  desc: in the equalizer settings menu
+  user: core
+  <source>
+    *: "Reset EQ"
+  </source>
+  <dest>
+    *: "EQ'yu resetle"
+  </dest>
+  <voice>
+    *: "EQ'yu resetle"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_TITLEALBUM_FROMTAGS
+  desc: track display options
+  user: core
+  <source>
+    *: "Title & Album from ID3 tags"
+  </source>
+  <dest>
+    *: "ID3 etiketlerinden başlık & albüm"
+  </dest>
+  <voice>
+    *: "Etiketlerden başlık"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_TITLE_FROMTAGS
+  desc: track display options
+  user: core
+  <source>
+    *: "Title from ID3 tags"
+  </source>
+  <dest>
+    *: "ID3 etiketlerinden başlık"
+  </dest>
+  <voice>
+    *: "Etiketlerden başlık"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RANDOM_SHUFFLE_RANDOM_SELECTIVE_SONGS_SUMMARY
+  desc: a summary splash screen that appear on the database browser when you try to create a playlist from the database browser that exceeds your system limit
+  user: core
+  <source>
+    *: "Selection too big, %d random tracks will be selected"
+  </source>
+  <dest>
+    *: "Seçilenler çok fazla, %d rastgele parça seçilecek"
+  </dest>
+  <voice>
+    *: "Seçilenler çok fazla, daha az rastgele parça seçilecek"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISC
+  desc: Shown in WPS (for multidisc albums)
+  user: core
+  <source>
+    *: "Disc"
+  </source>
+  <dest>
+    *: "Disk"
+  </dest>
+  <voice>
+    *: "Disk"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LEGAL_NOTICES
+  desc: in system menu
+  user: core
+  <source>
+    *: "Legal Notices"
+  </source>
+  <dest>
+    *: "Yasal Uyarılar"
+  </dest>
+  <voice>
+    *: "Yasal Uyarılar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ERROR_FORMATSTR
+  desc: for general use
+  user: core
+  <source>
+    *: "Error: %s"
+  </source>
+  <dest>
+    *: "Hata: %s"
+  </dest>
+  <voice>
+    *: "Hata"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_SETTINGS
+  desc: mikmod plugin
+  user: core
+  <source>
+    *: "Mikmod Settings"
+  </source>
+  <dest>
+    *: "Mikmod Ayarları"
+  </dest>
+  <voice>
+    *: "Mik mod Ayarları"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_MENU
+  desc: mikmod plugin
+  user: core
+  <source>
+    *: "Mikmod Menu"
+  </source>
+  <dest>
+    *: "Mikmod Menüsü"
+  </dest>
+  <voice>
+    *: "Mik mod Menüsü"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU
+  desc: chessbox plugin
+  user: core
+  <source>
+    *: "Chessbox Menu"
+  </source>
+  <dest>
+    *: "Chessbox Menüsü"
+  </dest>
+  <voice>
+    *: "Satranç kutusu Menüsü"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_INVALID_VOICE_FILE
+  desc: played if the voice file fails to load
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Geçersiz Ses Adı"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PERCENT_FORMAT
+  desc: percent formatting ( `10%` is default ,  for `10 %` use '%ld %%' , for `%10` use '%%%ld' and so on)
+  user: core
+  <source>
+    *: "%ld%%"
+  </source>
+  <dest>
+    *: "%%%ld"
+  </dest>
+  <voice>
+    *: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHOOSE_FILE
+  desc: file_picker plugin ask user to select a file
+  user: core
+  <source>
+    *: "Choose File"
+  </source>
+  <dest>
+    *: "Dosya Seç"
+  </dest>
+  <voice>
+    *: "Dosya Seç"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISABLE_MAINMENU_SCROLLING
+  desc: Disable main menu scrolling
+  user: core
+  <source>
+    *: "Disable main menu scrolling"
+  </source>
+  <dest>
+    *: "Ana menü kaydırmasını kapat"
+  </dest>
+  <voice>
+    *: "Ana menü kaydırmasını kapat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMAINING
+  desc: Playing Time
+  user: core
+  <source>
+    *: "Remaining"
+  </source>
+  <dest>
+    *: "Kalan"
+  </dest>
+  <voice>
+    *: "Kalan"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEW_ALBUMART
+  desc: WPS context menu
+  user: core
+  <source>
+    *: "View Album Art"
+  </source>
+  <dest>
+    *: "Albüm Sanatını İncele"
+  </dest>
+  <voice>
+    *: "Albüm Sanatını İncele"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HP_LO_SELECT
+  desc: Output Select
+  user: core
+  <source>
+    *: none
+    erosqnative: "Output Select"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "Çıkış Seç"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "Çıkış Seç"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HEADPHONE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative: "Headphone"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "Kulaklık"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "Kulaklık"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LINEOUT
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative,lineout_poweroff: "Line Out"
+  </source>
+  <dest>
+    *: none
+    erosqnative,lineout_poweroff: "Ses çıkışı"
+  </dest>
+  <voice>
+    *: none
+    erosqnative,lineout_poweroff: "Ses çıkışı"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FONT_LOAD_ERROR
+  desc: Displayed when font loading fails
+  user: core
+  <source>
+    *: "Unable to load font: (%s)"
+  </source>
+  <dest>
+    *: "Font yüklenemedi: (%s)"
+  </dest>
+  <voice>
+    *: "parçalar kaydedildi"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LOGGING
+  desc: playback logging
+  user: core
+  <source>
+    *: "Logging"
+  </source>
+  <dest>
+    *: "Kaydediliyor"
+  </dest>
+  <voice>
+    *: "kayıt ediliyor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEWLOG
+  desc: view Log
+  user: core
+  <source>
+    *: "View log"
+  </source>
+  <dest>
+    *: "Kayıtları incele"
+  </dest>
+  <voice>
+    *: "Kayıtları incele"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REPLAY_FINISHED_PLAYLIST
+  desc: Resume playback of finished playlist
+  user: core
+  <source>
+    *: "Playlist finished. Play again?"
+  </source>
+  <dest>
+    *: "Dinleme listesi bitti. Yeniden dinlemek ister misin?"
+  </dest>
+  <voice>
+    *: "Dinleme listesi bitti. Yeniden dinlemek ister misin?"
   </voice>
 </phrase>

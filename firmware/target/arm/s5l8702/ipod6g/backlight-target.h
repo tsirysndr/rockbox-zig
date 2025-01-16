@@ -26,4 +26,6 @@ void backlight_hw_on(void);
 void backlight_hw_off(void);
 void backlight_hw_brightness(int brightness);
 
+void backlight_hw_kill(void);
+
 #endif
