@@ -1476,8 +1476,6 @@ pub fn build(b: *std.Build) !void {
             "apps/plugins/lib/bmp_smooth_scale.c",
             "apps/plugins/lib/kbd_helper.c",
             "apps/plugins/lib/pluginlib_touchscreen.c",
-            "apps/plugins/lib/id3.c",
-            "apps/plugins/lib/mul_id3.c",
         },
         .flags = &cflags,
     });
@@ -2940,7 +2938,7 @@ pub fn build(b: *std.Build) !void {
     exe.linkLibrary(libskinparser);
     exe.linkLibrary(libfixedpoint);
     exe.linkLibrary(libuisimulator);
-    exe.linkSystemLibrary("SDL");
+    exe.linkSystemLibrary("SDL2");
     exe.linkLibC();
 }
 
@@ -3746,7 +3744,7 @@ fn addIncludePaths(c: *std.Build.Step.Compile) void {
     c.addIncludePath(.{ .cwd_relative = "/usr/include" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/x86_64-linux-gnu" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/aarch64-linux-gnu" });
-    c.addIncludePath(.{ .cwd_relative = "/usr/include/SDL" });
+    c.addIncludePath(.{ .cwd_relative = "/usr/include/SDL2" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/export" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/drivers" });
     c.addIncludePath(.{ .cwd_relative = "./build" });
@@ -3848,6 +3846,7 @@ const libfirmware_sources = [_][]const u8{
     "firmware/target/hosted/sdl/system-sdl.c",
     "firmware/target/hosted/sdl/load_code-sdl.c",
     "firmware/target/hosted/sdl/timer-sdl.c",
+    "firmware/target/hosted/sdl/window-sdl.c",
     "firmware/target/hosted/sdl/key_to_touch-sdl.c",
     "firmware/target/hosted/sdl/app/load_code-sdl-app.c",
     "firmware/target/hosted/sdl/app/button-application.c",
@@ -3883,6 +3882,7 @@ const libfirmware_sources = [_][]const u8{
     "firmware/hangul.c",
     "firmware/lru.c",
     "firmware/screendump.c",
+    "firmware/drivers/button_queue.c",
     "firmware/drivers/lcd-24bit.c",
     "firmware/common/diacritic.c",
     "firmware/drivers/led.c",
