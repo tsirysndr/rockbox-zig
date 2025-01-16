@@ -12,7 +12,7 @@ ENV TAG=${TAG}
 
 RUN apt-get update && apt-get install -y build-essential \
   libusb-dev \
-  libsdl1.2-dev \
+  libsdl2-dev \
   libfreetype6-dev \
   libunwind-dev \
   curl \

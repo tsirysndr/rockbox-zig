@@ -54,7 +54,7 @@ Before building the project, you need to install the necessary dependencies for 
 ### On Ubuntu/Debian
 
 ```bash
-sudo apt-get install libusb-dev libsdl1.2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler cmake
+sudo apt-get install libusb-dev libsdl2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler cmake
 ```
 
 ### On Fedora40/41:
