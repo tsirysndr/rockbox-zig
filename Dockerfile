@@ -56,7 +56,7 @@ FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y \
   libusb-dev \
-  libsdl1.2-dev \
+  libsdl2-dev \
   libfreetype6-dev \
   libunwind-dev \
   alsa-utils \
