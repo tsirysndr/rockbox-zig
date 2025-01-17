@@ -94,6 +94,21 @@ mkdir -p build && cd build
 make zig
 ```
 
+### Build GUI (Gtk4)
+
+```sh
+sudo apt-get install flatpak
+flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak install --user flathub org.flatpak.Builder
+flatpak install --user flathub org.gnome.Sdk/x86_64/47
+flatpak install --user flathub org.gnome.Platform/x86_64/47
+flatpak install --user org.freedesktop.Sdk.Extension.rust-stable
+flatpak install --user org.freedesktop.Sdk.Extension.llvm18
+cd gtk
+flatpak run org.flatpak.Builder --user --disable-rofiles-fuse --repo=repo flatpak_app build-aux/io.github.tsirysndr.Rockbox.json --force-clean
+flatpak run org.flatpak.Builder --run flatpak_app build-aux/io.github.tsirysndr.Rockbox.json rockbox-gtk
+```
+
 ## 🚚 Installation
 
 with `curl` (Ubuntu/Debian):
