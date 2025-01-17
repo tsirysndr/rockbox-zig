@@ -61,7 +61,7 @@ pub fn release(_args: String) -> FnResult<String> {
     let stdout = dag()
         .pipeline("release")?
         .pkgx()?
-        .with_packages(vec!["gh", "git-scm.org"])?
+        .with_packages(vec!["gh"])?
         .with_exec(vec![
             "gh",
             "release",
