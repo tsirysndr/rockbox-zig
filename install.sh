@@ -76,18 +76,18 @@ fi
 if command -v apt-get >/dev/null 2>&1; then
     if command -v sudo >/dev/null 2>&1; then
         sudo apt-get install -y libusb-dev \
-            libsdl1.2-dev \
+            libsdl2-dev \
             libfreetype6 \
             libunwind-dev \
             alsa-utils \
-            libasound2
+            libasound2-dev
     else
         apt-get install -y libusb-dev \
-            libsdl1.2-dev \
+            libsdl2-dev \
             libfreetype6 \
             libunwind-dev \
             alsa-utils \
-            libasound2
+            libasound2-dev
     fi
 elif command -v pacman >/dev/null 2>&1; then
     if command -v sudo >/dev/null 2>&1; then
