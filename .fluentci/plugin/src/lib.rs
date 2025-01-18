@@ -26,7 +26,6 @@ pub fn build(_arg: String) -> FnResult<String> {
             "wget",
             "zip",
             "unzip",
-            "protobuf-compiler",
             "cmake",
         ])?
         .with_exec(vec![
@@ -40,6 +39,25 @@ pub fn build(_arg: String) -> FnResult<String> {
         ])?
         .with_exec(vec!["deno install"])?
         .with_exec(vec!["deno", "run", "build"])?
+        .stdout()?;
+
+    // download & install protoc
+    dag()
+        .pipeline("protoc")?
+        .pkgx()?
+        .with_exec(vec![
+            "git",
+            "clone",
+            "https://github.com/protocolbuffers/protobuf",
+        ])?
+        .with_exec(vec![
+            "cd protobuf &&",
+            "git checkout v29.2 &&",
+            "git submodule update --init --recursive &&",
+            "mkdir build &&",
+            "cd build &&",
+            "cmake .. && sudo make install -j$(nproc)",
+        ])?
         .stdout()?;
 
     dag()
