@@ -50,6 +50,8 @@ ENV PATH=/root/.local/bin:${PATH}
 
 WORKDIR /app
 
+RUN [ -n "$TAG" ] && fluentci run --wasm . release  ; exit 0
+
 FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y \
