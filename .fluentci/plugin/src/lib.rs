@@ -7,6 +7,65 @@ mod helpers;
 use helpers::detect_system;
 
 #[plugin_fn]
+pub fn build(_arg: String) -> FnResult<String> {
+    let stdout = dag()
+        .pipeline("build")?
+        .pkgx()?
+        .with_workdir("./webui/rockbox")?
+        .with_exec(vec!["sudo", "apt-get", "update"])?
+        .with_exec(vec![
+            "sudo",
+            "apt-get install",
+            "-y",
+            "build-essential",
+            "libusb-dev",
+            "libsdl2-dev",
+            "libfreetype6-dev",
+            "libunwind-dev",
+            "curl",
+            "wget",
+            "zip",
+            "unzip",
+            "protobuf-compiler",
+            "cmake",
+        ])?
+        .with_exec(vec![
+            "pkgm",
+            "install",
+            "zig@0.13.0",
+            "buf",
+            "deno",
+            "bun",
+            "node@18",
+        ])?
+        .with_exec(vec!["deno install"])?
+        .with_exec(vec!["deno", "run", "build"])?
+        .stdout()?;
+
+    dag()
+        .pipeline("mkdir")?
+        .pkgx()?
+        .with_exec(vec!["mkdir", "-p", "build"])?
+        .stdout()?;
+
+    dag()
+        .pipeline("build")
+        .pkgx()?
+        .with_workdir("build")?
+        .with_exec(vec![
+            "../tools/configure",
+            "--target=sdlapp",
+            "--type=N",
+            "--lcdwidth=320",
+            "--lcdheight=240",
+            "--prefix=/usr/local",
+        ])?
+        .with_exec(vec!["make", "zig", "-j$(nproc)"])?
+        .stdout()?;
+    Ok(stdout)
+}
+
+#[plugin_fn]
 pub fn release(_args: String) -> FnResult<String> {
     let tag = dag().get_env("TAG")?;
     let gh_token = dag().get_env("GH_TOKEN")?;
@@ -129,7 +188,7 @@ pub fn release(_args: String) -> FnResult<String> {
 }
 
 #[plugin_fn]
-pub fn build(args: String) -> FnResult<String> {
+pub fn build_docker(args: String) -> FnResult<String> {
     let version = dag()
         .get_env("BUILDX_VERSION")
         .unwrap_or("v0.17.1-desktop.1".into());
