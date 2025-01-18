@@ -14,8 +14,8 @@
 
 ![Rockbox UI](./gtk/data/screenshots/1.png)
 
-A modern take on the [Rockbox](https://www.rockbox.org) open-source firmware
-with enhancements in Zig and Rust. This project offers:
+A modern take on the [Rockbox](https://www.rockbox.org) open source high quality
+audio player with enhancements in Zig and Rust. This project offers:
 
 - gRPC & GraphQL APIs for seamless interaction and control
 - Chromecast support for streaming to your TV
@@ -48,7 +48,53 @@ docker run \
     tsiry/rockbox:latest
 ```
 
-## Requirements
+## 🚚 Installation
+
+with `apt` (Ubuntu/Debian):
+
+```sh
+echo "deb [trusted=yes] https://apt.fury.io/tsiry/ /" | sudo tee /etc/apt/sources.list.d/fury.list
+sudo apt update
+sudo apt install rockbox
+```
+
+with `curl` (Ubuntu/Debian):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
+```
+
+MacOS, currently not supported, but you can run in a docker container.
+
+## 📦 Downloads
+
+- `Linux`: intel:
+  [rockbox_2025.01.18_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.18/rockbox_2025.01.18_x86_64-linux.tar.gz)
+  arm64:
+  [rockbox_2025.01.18_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.18/rockbox_2025.01.18_aarch64-linux.tar.gz)
+
+## 🧙‍♂️ Systemd Service
+
+Rockbox daemon can be started as a systemd service. To enable and start the
+service, run the following command:
+
+```sh
+rockbox service install
+```
+
+To disable and stop the service, run the following command:
+
+```sh
+rockbox service uninstall
+```
+
+To check the status of the service, run the following command:
+
+```sh
+rockbox service status
+```
+
+## Compiling from Source
 
 Run the following commands to build the project:
 
@@ -112,44 +158,6 @@ flatpak install --user org.freedesktop.Sdk.Extension.llvm18
 cd gtk
 flatpak run org.flatpak.Builder --user --disable-rofiles-fuse --repo=repo flatpak_app build-aux/io.github.tsirysndr.Rockbox.json --force-clean
 flatpak run org.flatpak.Builder --run flatpak_app build-aux/io.github.tsirysndr.Rockbox.json rockbox-gtk
-```
-
-## 🚚 Installation
-
-with `curl` (Ubuntu/Debian):
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
-```
-
-MacOS, currently not supported, but you can run in a docker container.
-
-## 📦 Downloads
-
-- `Linux`: intel:
-  [rockbox_2025.01.18_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.18/rockbox_2025.01.18_x86_64-linux.tar.gz)
-  arm64:
-  [rockbox_2025.01.18_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.18/rockbox_2025.01.18_aarch64-linux.tar.gz)
-
-## 🧙‍♂️ Systemd Service
-
-Rockbox daemon can be started as a systemd service. To enable and start the
-service, run the following command:
-
-```sh
-rockbox service install
-```
-
-To disable and stop the service, run the following command:
-
-```sh
-rockbox service uninstall
-```
-
-To check the status of the service, run the following command:
-
-```sh
-rockbox service status
 ```
 
 ## ✨ Features
