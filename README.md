@@ -58,6 +58,24 @@ sudo apt-get update
 sudo apt-get install rockbox
 ```
 
+with `dnf` (Fedora):
+
+Add the following to `/etc/yum.repos.d/fury.repo`:
+
+```
+[fury]
+name=Gemfury Private Repo
+baseurl=https://yum.fury.io/tsiry/
+enabled=1
+gpgcheck=0
+```
+
+Then run:
+
+```sh
+dnf install rockbox
+```
+
 with `curl` (Ubuntu/Debian):
 
 ```sh
@@ -108,7 +126,7 @@ sudo apt-get install libusb-dev libsdl2-dev libfreetype6-dev libunwind-dev zip p
 ### On Fedora40/41:
 
 ```sh
-sudo dnf install libusb1-devel SDL-devel freetype-devel libunwind-devel zip protobuf-compiler cmake
+sudo dnf install libusb1-devel SDL2-devel freetype-devel libunwind-devel zip protobuf-compiler cmake
 sudo ln -s /lib64/libusb-1.0.so /usr/lib64/libusb.so
 ```
 
