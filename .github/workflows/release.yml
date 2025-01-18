@@ -1,8 +1,6 @@
 name: release
 on:
   push:
-    branches:
-      - master
     tags:
       - "*"
   workflow_dispatch:
@@ -11,7 +9,6 @@ on:
         description: "The existing tag to publish"
         type: "string"
         required: true
-  pull_request:
 
 jobs:
   publish:
@@ -30,6 +27,7 @@ jobs:
           plugin: .
           args: |
             build
+            release
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ inputs.tag || github.ref_name }}

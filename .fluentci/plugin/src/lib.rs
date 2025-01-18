@@ -78,7 +78,7 @@ pub fn build(_arg: String) -> FnResult<String> {
             "--lcdheight=240",
             "--prefix=/usr/local",
         ])?
-        .with_exec(vec!["make", "zig", "-j$(nproc)"])?
+        .with_exec(vec!["sudo", "make", "ziginstall", "-j$(nproc)"])?
         .stdout()?;
 
     Ok(stdout)
