@@ -4,7 +4,7 @@ use anyhow::Error;
 use clap::{arg, Command};
 use owo_colors::OwoColorize;
 
-use cmd::{community::*, repl::*, run::*, scan::*, start::*, webui::*};
+use cmd::{community::*, repl::*, run::*, scan::*, start::*, webui::*, service};
 
 pub mod cmd;
 
@@ -54,6 +54,22 @@ fn cli() -> Command {
                 .about("Run a JavaScript or TypeScript program")
                 .visible_alias("x"),
         )
+        .subcommand(
+            Command::new("service")
+                .about("Manage systemd service for Rockbox")
+                .subcommand(
+                    Command::new("install")
+                        .about("Install systemd service for Rockbox")
+                )
+                .subcommand(
+                    Command::new("uninstall")
+                        .about("Uninstall systemd service for Rockbox")
+                )
+                .subcommand(
+                    Command::new("status")
+                        .about("Check status of systemd service for Rockbox")
+                )
+        )
 }
 
 #[tokio::main]
@@ -94,6 +110,20 @@ async fn main() -> Result<(), Error> {
         Some(("tui", _)) => {
             rmpc::main_tui()?;
         }
+        Some(("service", sub_m)) => match sub_m.subcommand() {
+            Some(("install", _)) => {
+                service::install()?;
+            }
+            Some(("uninstall", _)) => {
+                service::uninstall()?;
+            }
+            Some(("status", _)) => {
+                service::status()?;
+            }
+            _ => {
+               println!("Invalid subcommand. Use `rockbox service --help` for more information.");
+            }
+        },
         _ => {
             start(true)?;
         }
