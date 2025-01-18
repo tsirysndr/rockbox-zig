@@ -166,6 +166,9 @@ rockbox service status
 - [x] Rockbox REPL
 - [x] Terminal Client (TUI)
 - [x] Systemd service
+- [x] Gapless playback and crossfading
+- [x] Navigate music by folders or tag database
+- [x] Supports over 20 sound codecs: MP3, OGG, WAV, FLAC and many more
 - [ ] Android Library
 - [ ] Mobile version (React Native)
 - [ ] Stream from Youtube (audio only)
