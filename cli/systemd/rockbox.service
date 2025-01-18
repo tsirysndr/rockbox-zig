@@ -1,0 +1,11 @@
+[Unit]
+Description=Rockbox Music Server
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/rockboxd
+Restart=always
+Environment="SDL_VIDEODRIVER=dummy"
+
+[Install]
+WantedBy=default.target

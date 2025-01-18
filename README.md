@@ -3,7 +3,6 @@
   <img src="https://ziglang.org/ziggy.svg" height="150"/>
 </div>
 
-
 # Rockbox Zig 🎵 ⚡
 
 [![GPL-2.0 licensed](https://img.shields.io/badge/License-GPL-blue.svg)](./LICENSE)
@@ -13,27 +12,30 @@
 [![discord](https://img.shields.io/discord/1292855167921815715?label=discord&logo=discord&color=5865F2)](https://discord.gg/tXPrgcPKSt)
 [![storybook](https://raw.githubusercontent.com/storybooks/brand/master/badge/badge-storybook.svg)](https://master--670ceec25af685dcdc87c0df.chromatic.com/?path=/story/components-albums--default)
 
-
 ![Rockbox UI](./gtk/data/screenshots/1.png)
 
-A modern take on the [Rockbox](https://www.rockbox.org) open-source firmware with enhancements in Zig and Rust. This project offers:
+A modern take on the [Rockbox](https://www.rockbox.org) open-source firmware
+with enhancements in Zig and Rust. This project offers:
 
 - gRPC & GraphQL APIs for seamless interaction and control
 - Chromecast support for streaming to your TV
-- [MPD](https://mpd.readthedocs.io/en/stable/protocol.html) server for compatibility with existing clients
-- [MPRIS](https://specifications.freedesktop.org/mpris-spec/) support for desktop integration
+- [MPD](https://mpd.readthedocs.io/en/stable/protocol.html) server for
+  compatibility with existing clients
+- [MPRIS](https://specifications.freedesktop.org/mpris-spec/) support for
+  desktop integration
 - TypeScript support for building powerful extensions
 
-Take advantage of modern tooling while preserving the core functionality of Rockbox.
+Take advantage of modern tooling while preserving the core functionality of
+Rockbox.
 
-> [!NOTE]
-**🐲 It is a work in progress and is not yet ready for use. 🏗️🚧**
+> [!NOTE] **🐲 It is a work in progress and is not yet ready for use. 🏗️🚧**
 
 ![Preview](./docs/preview.png)
 
 ## 🚀 Quickstart
 
 To quickly get started, you can run the following docker command:
+
 ```sh
 docker run \
     --device /dev/snd \
@@ -49,7 +51,9 @@ docker run \
 ## Requirements
 
 Run the following commands to build the project:
-Before building the project, you need to install the necessary dependencies for your operating system.
+
+Before building the project, you need to install the necessary dependencies for
+your operating system.
 
 ### On Ubuntu/Debian
 
@@ -80,6 +84,7 @@ cd rockbox-zig
 ```
 
 3. Build the webui
+
 ```sh
 cd webui/rockbox
 deno install
@@ -121,7 +126,10 @@ MacOS, currently not supported, but you can run in a docker container.
 
 ## 📦 Downloads
 
-- `Linux`: intel: [rockbox_2025.01.17_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.17/rockbox_2025.01.17_x86_64-linux.tar.gz) arm64: [rockbox_2025.01.17_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.17/rockbox_2025.01.17_aarch64-linux.tar.gz)
+- `Linux`: intel:
+  [rockbox_2025.01.17_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.17/rockbox_2025.01.17_x86_64-linux.tar.gz)
+  arm64:
+  [rockbox_2025.01.17_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.17/rockbox_2025.01.17_aarch64-linux.tar.gz)
 
 ## ✨ Features
 
@@ -131,10 +139,12 @@ MacOS, currently not supported, but you can run in a docker container.
 - [x] GraphQL API
 - [x] HTTP API
 - [x] Web Client (React)
-- [x] Fast search engine, built with [Tantivy](https://github.com/quickwit-oss/tantivy)
+- [x] Fast search engine, built with
+      [Tantivy](https://github.com/quickwit-oss/tantivy)
 - [x] Desktop Client (Electron/Gtk)
 - [x] Rockbox REPL
 - [x] Terminal Client (TUI)
+- [x] Systemd service
 - [ ] Android Library
 - [ ] Mobile version (React Native)
 - [ ] Stream from Youtube (audio only)
@@ -156,7 +166,8 @@ MacOS, currently not supported, but you can run in a docker container.
 
 ## 📚 GraphQL API
 
-Open [http://localhost:6062/graphiql](http://localhost:6062/graphiql) in your browser.
+Open [http://localhost:6062/graphiql](http://localhost:6062/graphiql) in your
+browser.
 
 <p style="margin-top: 20px; margin-bottom: 20px;">
  <img src="./docs/graphql.png" width="100%" />
@@ -174,7 +185,8 @@ Open [http://localhost:6063](http://localhost:6063) in your browser.
 
 [https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
 
-Try Rockbox gRPC API using [Buf Studio](https://buf.build/studio/tsiry/rockboxapis/rockbox.v1alpha1.LibraryService/GetAlbums?target=http%3A%2F%2Flocalhost%3A6061&selectedProtocol=grpc-web).
+Try Rockbox gRPC API using
+[Buf Studio](https://buf.build/studio/tsiry/rockboxapis/rockbox.v1alpha1.LibraryService/GetAlbums?target=http%3A%2F%2Flocalhost%3A6061&selectedProtocol=grpc-web).
 
 <p style="margin-top: 20px; margin-bottom: 20px;">
  <img src="./docs/grpc.png" width="100%" />
