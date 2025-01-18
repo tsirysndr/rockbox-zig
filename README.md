@@ -131,6 +131,27 @@ MacOS, currently not supported, but you can run in a docker container.
   arm64:
   [rockbox_2025.01.17_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.17/rockbox_2025.01.17_aarch64-linux.tar.gz)
 
+## ⚙️ Systemd Service
+
+Rockbox daemon can be started as a systemd service. To enable and start the
+service, run the following command:
+
+```sh
+rockbox service install
+```
+
+To disable and stop the service, run the following command:
+
+```sh
+rockbox service uninstall
+```
+
+To check the status of the service, run the following command:
+
+```sh
+rockbox service status
+```
+
 ## ✨ Features
 
 - [x] Zig Build System
