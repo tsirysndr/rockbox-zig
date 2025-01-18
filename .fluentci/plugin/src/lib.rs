@@ -49,7 +49,7 @@ pub fn build(_arg: String) -> FnResult<String> {
         .stdout()?;
 
     dag()
-        .pipeline("build")
+        .pipeline("build")?
         .pkgx()?
         .with_workdir("build")?
         .with_exec(vec![
@@ -62,6 +62,7 @@ pub fn build(_arg: String) -> FnResult<String> {
         ])?
         .with_exec(vec!["make", "zig", "-j$(nproc)"])?
         .stdout()?;
+
     Ok(stdout)
 }
 
