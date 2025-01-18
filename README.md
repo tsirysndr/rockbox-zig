@@ -50,12 +50,12 @@ docker run \
 
 ## 🚚 Installation
 
-with `apt` (Ubuntu/Debian):
+with `apt-get` (Ubuntu/Debian):
 
 ```sh
 echo "deb [trusted=yes] https://apt.fury.io/tsiry/ /" | sudo tee /etc/apt/sources.list.d/fury.list
-sudo apt update
-sudo apt install rockbox
+sudo apt-get update
+sudo apt-get install rockbox
 ```
 
 with `curl` (Ubuntu/Debian):
@@ -63,8 +63,6 @@ with `curl` (Ubuntu/Debian):
 ```sh
 curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
 ```
-
-MacOS, currently not supported, but you can run in a docker container.
 
 ## 📦 Downloads
 
