@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          submodules: true
       - name: Build and upload release
         uses: fluentci-io/setup-fluentci@v5
         with:
