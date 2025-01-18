@@ -110,6 +110,9 @@ To check the status of the service, run the following command:
 rockbox service status
 ```
 
+![Screenshot from 2025-01-18 18-57-39](https://github.com/user-attachments/assets/1fbd2b58-0e29-4db4-9791-6e377de72728)
+
+
 ## Compiling from Source
 
 Run the following commands to build the project:
