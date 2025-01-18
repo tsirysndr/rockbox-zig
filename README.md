@@ -50,8 +50,10 @@ docker run \
 
 ## Requirements
 
-Run the following commands to build the project: Before building the project,
-you need to install the necessary dependencies for your operating system.
+Run the following commands to build the project:
+
+Before building the project, you need to install the necessary dependencies for
+your operating system.
 
 ### On Ubuntu/Debian
 
