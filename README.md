@@ -50,7 +50,7 @@ docker run \
 
 ## 🚚 Installation
 
-- with `apt-get` (Ubuntu/Debian):
+### Ubuntu/Debian
 
 ```sh
 echo "deb [trusted=yes] https://apt.fury.io/tsiry/ /" | sudo tee /etc/apt/sources.list.d/fury.list
@@ -58,7 +58,7 @@ sudo apt-get update
 sudo apt-get install rockbox
 ```
 
-- with `dnf` (Fedora):
+### Fedora
 
 Add the following to `/etc/yum.repos.d/fury.repo`:
 
@@ -76,13 +76,13 @@ Then run:
 dnf install rockbox
 ```
 
-- with `yay` (Arch Linux):
+### Arch Linux
 
 ```sh
 yay -Syu rockbox-zig-bin
 ```
 
-- with `curl` (Ubuntu/Debian):
+### Bash Script
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
