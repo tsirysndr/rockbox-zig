@@ -11,7 +11,6 @@ ENV GH_TOKEN=${GITHUB_TOKEN}
 ENV TAG=${TAG}
 
 RUN apt-get update && apt-get install -y build-essential \
-  libusb-dev \
   libsdl2-dev \
   libfreetype6-dev \
   libunwind-dev \
@@ -55,7 +54,6 @@ RUN [ -n "$TAG" ] && fluentci run --wasm . release  ; exit 0
 FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y \
-  libusb-dev \
   libsdl2-dev \
   libfreetype6-dev \
   libunwind-dev \
