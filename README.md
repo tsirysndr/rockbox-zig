@@ -76,6 +76,12 @@ Then run:
 dnf install rockbox
 ```
 
+- with `yay` (Arch Linux):
+
+```sh
+yay -Syu rockbox
+```
+
 - with `curl` (Ubuntu/Debian):
 
 ```sh
