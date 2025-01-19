@@ -79,7 +79,7 @@ dnf install rockbox
 - with `yay` (Arch Linux):
 
 ```sh
-yay -Syu rockbox
+yay -Syu rockbox-zig-bin
 ```
 
 - with `curl` (Ubuntu/Debian):
