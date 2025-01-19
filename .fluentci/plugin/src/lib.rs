@@ -4,7 +4,7 @@ use fluentci_pdk::dag;
 
 mod helpers;
 
-use helpers::detect_system;
+use helpers::{detect_system, download_release};
 
 #[plugin_fn]
 pub fn build(_arg: String) -> FnResult<String> {
@@ -79,6 +79,81 @@ pub fn build(_arg: String) -> FnResult<String> {
             "--prefix=/usr/local",
         ])?
         .with_exec(vec!["sudo", "make", "ziginstall", "-j$(nproc)"])?
+        .stdout()?;
+
+    Ok(stdout)
+}
+
+#[plugin_fn]
+pub fn deb(version: String) -> FnResult<String> {
+    download_release(version.clone())?;
+    dag()
+        .pipeline("copy-src-deb")?
+        .pkgx()?
+        .with_exec(vec!["mkdir", "-p", "dist/debian/amd64/usr/local"])?
+        .with_exec(vec![
+            "cp",
+            "-r",
+            "/tmp/rbrelease/amd64/*",
+            "dist/debian/amd64/usr/local",
+        ])?
+        .with_exec(vec!["mkdir", "-p", "dist/debian/arm64/usr/local"])?
+        .with_exec(vec![
+            "cp",
+            "-r",
+            "/tmp/rbrelease/arm64/*",
+            "dist/debian/arm64/usr/local",
+        ])?
+        .stdout()?;
+
+    let stdout = dag()
+        .pipeline("deb")?
+        .pkgx()?
+        .with_workdir("dist/debian")?
+        .with_exec(vec!["dpkg-deb", "--build", "arm64"])?
+        .with_exec(vec!["dpkg-deb", "--build", "amd64"])?
+        .with_exec(vec![
+            "mv",
+            "arm64.deb",
+            &format!("rockbox_{}_arm64.deb", version),
+        ])?
+        .with_exec(vec![
+            "mv",
+            "amd64.deb",
+            &format!("rockbox_{}_amd64.deb", version),
+        ])?
+        .stdout()?;
+
+    Ok(stdout)
+}
+
+#[plugin_fn]
+pub fn rpm(version: String) -> FnResult<String> {
+    download_release(version.clone())?;
+    dag()
+        .pipeline("copy-src-rpm")?
+        .pkgx()?
+        .with_exec(vec!["mkdir", "-p", "~/rpmbuild/SOURCES/amd64/usr/local"])?
+        .with_exec(vec!["mkdir", "-p", "~/rpmbuild/SOURCES/arm64/usr/local"])?
+        .with_exec(vec![
+            "cp",
+            "-r",
+            "/tmp/rbrelease/amd64/*",
+            "~/rpmbuild/SOURCES/amd64/usr/local",
+        ])?
+        .with_exec(vec![
+            "cp",
+            "-r",
+            "/tmp/rbrelease/arm64/*",
+            "~/rpmbuild/SOURCES/arm64/usr/local",
+        ])?
+        .stdout()?;
+
+    let stdout = dag()
+        .pipeline("rpm")?
+        .pkgx()?
+        .with_workdir("dist/rpm")?
+        .with_exec(vec!["rpmbuild", "--bb", "amd64/rockbox.spec"])?
         .stdout()?;
 
     Ok(stdout)
