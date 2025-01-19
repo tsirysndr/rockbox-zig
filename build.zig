@@ -4316,4 +4316,5 @@ const cflags = [_][]const u8{
     "-O2",
     "-Wno-tautological-compare",
     "-Wno-expansion-to-defined",
+    "-DUSB_NONE",
 };

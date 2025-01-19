@@ -12,3 +12,4 @@ tools/scramble
 webui/rockbox/node_modules
 target
 .fluentci/plugin/target
+dist/
