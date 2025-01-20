@@ -79,10 +79,10 @@ dnf install rockbox
 ### Arch Linux
 
 ```sh
-yay -Syu rockbox-zig-bin
+paru -S rockbox-zig-bin
 ```
 
-### Bash Script
+### Bash
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
