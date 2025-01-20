@@ -1,4 +1,5 @@
 use anyhow::Error;
+use os_release::OsRelease;
 use std::path::Path;
 use std::process::Command;
 
@@ -15,7 +16,16 @@ pub fn install() -> Result<(), Error> {
         return Ok(());
     }
 
-    std::fs::write(service_path, SERVICE_TEMPLATE).expect("Failed to write service file");
+    let release = OsRelease::new()?;
+    let service_template: &str = match release.id.as_str() {
+        "arch" => &SERVICE_TEMPLATE.replace(
+            "ExecStart=/usr/local/bin/rockboxd",
+            "ExecStart=/usr/bin/rockboxd",
+        ),
+        _ => SERVICE_TEMPLATE,
+    };
+
+    std::fs::write(service_path, service_template).expect("Failed to write service file");
 
     Command::new("systemctl")
         .arg("--user")

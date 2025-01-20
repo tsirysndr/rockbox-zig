@@ -7400,6 +7400,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "os-release"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82f29ae2f71b53ec19cc23385f8e4f3d90975195aa3d09171ba3bef7159bec27"
+dependencies = [
+ "lazy_static",
+]
+
+[[package]]
 name = "os_pipe"
 version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8694,6 +8703,7 @@ dependencies = [
  "deno",
  "flate2",
  "opener",
+ "os-release",
  "owo-colors 4.1.0",
  "prost",
  "rmpc",
