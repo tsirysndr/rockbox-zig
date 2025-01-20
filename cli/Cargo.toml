@@ -19,6 +19,7 @@ zip = { version = "=2.1.6", default-features = false, features = [
 ] }
 deno = { path = "../deno/cli", features = ["upgrade", "__vendored_zlib_ng"] } # a custom fork of Deno with Rockbox extension
 rmpc = { path = "../rmpc" }
+os-release = "0.1.0"
 
 [build-dependencies]
 tonic-build = "0.12.3"
