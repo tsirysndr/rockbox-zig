@@ -32,6 +32,39 @@ Rockbox.
 
 ![Preview](./docs/preview.png)
 
+
+## ✨ Features
+
+- [x] Zig Build System
+- [x] Rockbox API FFI for Rust
+- [x] [gRPC API](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
+- [x] GraphQL API
+- [x] HTTP API
+- [x] Web Client (React)
+- [x] Fast search engine, built with
+      [Tantivy](https://github.com/quickwit-oss/tantivy)
+- [x] Desktop Client (Electron/Gtk)
+- [x] Rockbox REPL
+- [x] Terminal Client (TUI)
+- [x] Systemd service
+- [x] Gapless playback and crossfading
+- [x] Navigate music by folders or tag database
+- [x] Supports over 20 sound codecs: MP3, OGG, WAV, FLAC and many more
+- [ ] Android Library
+- [ ] Mobile version (React Native)
+- [ ] Stream from Youtube (audio only)
+- [ ] Stream from Spotify
+- [ ] Stream from Tidal
+- [x] Stream to Chromecast
+- [ ] Stream to Kodi
+- [ ] TuneIn Radio
+- [x] MPD Server
+- [x] MPRIS
+- [ ] UPnP/DLNA
+- [ ] Airplay
+- [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
+- [ ] Wasm extensions
+
 ## 🚀 Quickstart
 
 To quickly get started, you can run the following docker command:
@@ -183,38 +216,6 @@ cd gtk
 flatpak run org.flatpak.Builder --user --disable-rofiles-fuse --repo=repo flatpak_app build-aux/io.github.tsirysndr.Rockbox.json --force-clean
 flatpak run org.flatpak.Builder --run flatpak_app build-aux/io.github.tsirysndr.Rockbox.json rockbox-gtk
 ```
-
-## ✨ Features
-
-- [x] Zig Build System
-- [x] Rockbox API FFI for Rust
-- [x] [gRPC API](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
-- [x] GraphQL API
-- [x] HTTP API
-- [x] Web Client (React)
-- [x] Fast search engine, built with
-      [Tantivy](https://github.com/quickwit-oss/tantivy)
-- [x] Desktop Client (Electron/Gtk)
-- [x] Rockbox REPL
-- [x] Terminal Client (TUI)
-- [x] Systemd service
-- [x] Gapless playback and crossfading
-- [x] Navigate music by folders or tag database
-- [x] Supports over 20 sound codecs: MP3, OGG, WAV, FLAC and many more
-- [ ] Android Library
-- [ ] Mobile version (React Native)
-- [ ] Stream from Youtube (audio only)
-- [ ] Stream from Spotify
-- [ ] Stream from Tidal
-- [x] Stream to Chromecast
-- [ ] Stream to Kodi
-- [ ] TuneIn Radio
-- [x] MPD Server
-- [x] MPRIS
-- [ ] UPnP/DLNA
-- [ ] Airplay
-- [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
-- [ ] Wasm extensions
 
 ## 🧑‍🔬 Architecture
 
