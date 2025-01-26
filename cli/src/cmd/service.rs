@@ -1,5 +1,4 @@
 use anyhow::Error;
-use os_release::OsRelease;
 use std::path::Path;
 use std::process::Command;
 
@@ -17,15 +16,10 @@ pub fn install() -> Result<(), Error> {
     }
 
     let rockbox_path = std::env::current_exe()?;
-
-    let release = OsRelease::new()?;
-    let service_template: &str = match release.id.as_str() {
-        "arch" => &SERVICE_TEMPLATE.replace(
+    let service_template: &str = &SERVICE_TEMPLATE.replace(
             "ExecStart=/usr/local/bin/rockboxd",
             &format!("ExecStart={}d", rockbox_path.display()),
-        ),
-        _ => SERVICE_TEMPLATE,
-    };
+        );
 
     std::fs::write(service_path, service_template).expect("Failed to write service file");
 
