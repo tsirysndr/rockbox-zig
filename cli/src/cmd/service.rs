@@ -16,11 +16,13 @@ pub fn install() -> Result<(), Error> {
         return Ok(());
     }
 
+    let rockbox_path = std::env::current_exe()?;
+
     let release = OsRelease::new()?;
     let service_template: &str = match release.id.as_str() {
         "arch" => &SERVICE_TEMPLATE.replace(
             "ExecStart=/usr/local/bin/rockboxd",
-            "ExecStart=/usr/bin/rockboxd",
+            &format!("ExecStart={}d", rockbox_path.display()),
         ),
         _ => SERVICE_TEMPLATE,
     };
