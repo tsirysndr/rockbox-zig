@@ -2654,6 +2654,10 @@ pub struct PlayResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PauseRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PlayOrPauseRequest {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PlayOrPauseResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PauseResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ResumeRequest {}
@@ -3013,6 +3017,32 @@ pub mod playback_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "Pause"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn play_or_pause(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PlayOrPauseRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PlayOrPauseResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.PlaybackService/PlayOrPause",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "PlayOrPause"),
+                );
             self.inner.unary(req, path, codec).await
         }
         pub async fn resume(
@@ -3557,6 +3587,13 @@ pub mod playback_service_server {
             &self,
             request: tonic::Request<super::PauseRequest>,
         ) -> std::result::Result<tonic::Response<super::PauseResponse>, tonic::Status>;
+        async fn play_or_pause(
+            &self,
+            request: tonic::Request<super::PlayOrPauseRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PlayOrPauseResponse>,
+            tonic::Status,
+        >;
         async fn resume(
             &self,
             request: tonic::Request<super::ResumeRequest>,
@@ -3856,6 +3893,51 @@ pub mod playback_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = PauseSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.PlaybackService/PlayOrPause" => {
+                    #[allow(non_camel_case_types)]
+                    struct PlayOrPauseSvc<T: PlaybackService>(pub Arc<T>);
+                    impl<
+                        T: PlaybackService,
+                    > tonic::server::UnaryService<super::PlayOrPauseRequest>
+                    for PlayOrPauseSvc<T> {
+                        type Response = super::PlayOrPauseResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::PlayOrPauseRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PlaybackService>::play_or_pause(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = PlayOrPauseSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

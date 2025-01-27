@@ -12,6 +12,7 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
     sound_service_client::SoundServiceClient, AdjustVolumeRequest, GetGlobalSettingsRequest,
     HardStopRequest, NextRequest, PauseRequest, PlayRequest, PlayTrackRequest, PreviousRequest,
     ResumeRequest, SaveSettingsRequest,
+    PlayOrPauseRequest,
 };
 use tokio::sync::Mutex;
 
@@ -50,6 +51,8 @@ impl MprisServer {
             .build()
             .await?;
 
+       player.set_identity("Rockbox").await?; 
+
         connect_player_action!(
             player,
             client,
@@ -60,6 +63,7 @@ impl MprisServer {
         connect_player_action!(player, client, connect_next, next, NextRequest {});
         connect_player_action!(player, client, connect_play, resume, ResumeRequest {});
         connect_player_action!(player, client, connect_pause, pause, PauseRequest {});
+        connect_player_action!(player, client, connect_play_pause, play_or_pause, PlayOrPauseRequest {});
         connect_player_seek_action!(player, client);
         connect_player_set_position_action!(player, client);
         connect_player_action!(player, client, connect_stop, hard_stop, HardStopRequest {});
