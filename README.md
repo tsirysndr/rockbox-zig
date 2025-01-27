@@ -124,9 +124,9 @@ curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.
 ## 📦 Downloads
 
 - `Linux`: intel:
-  [rockbox_2025.01.26_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.26/rockbox_2025.01.26_x86_64-linux.tar.gz)
+  [rockbox_2025.01.27_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.27/rockbox_2025.01.27_x86_64-linux.tar.gz)
   arm64:
-  [rockbox_2025.01.26_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.26/rockbox_2025.01.26_aarch64-linux.tar.gz)
+  [rockbox_2025.01.27_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.27/rockbox_2025.01.27_aarch64-linux.tar.gz)
 
 ## 🧙‍♂️ Systemd Service
 
@@ -161,14 +161,13 @@ your operating system.
 ### On Ubuntu/Debian
 
 ```bash
-sudo apt-get install libusb-dev libsdl2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler cmake
+sudo apt-get install libsdl2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler cmake
 ```
 
 ### On Fedora40/41:
 
 ```sh
-sudo dnf install libusb1-devel SDL2-devel freetype-devel libunwind-devel zip protobuf-compiler cmake
-sudo ln -s /lib64/libusb-1.0.so /usr/lib64/libusb.so
+sudo dnf install SDL2-devel freetype-devel libunwind-devel zip protobuf-compiler cmake
 ```
 
 ### Build Instructions

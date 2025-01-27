@@ -62,6 +62,40 @@ impl PlaybackService for Playback {
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(PauseResponse::default()))
     }
+    
+    async fn play_or_pause(
+        &self,
+        _request: tonic::Request<PlayOrPauseRequest>,
+    ) -> Result<tonic::Response<PlayOrPauseResponse>, tonic::Status> {
+        let client = reqwest::Client::new();
+        let response = client
+            .get(&format!("{}/player/status", rockbox_url()))
+            .send()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .json::<AudioStatus>()
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        
+        let client = reqwest::Client::new();
+        match response.status {
+            1 => {
+                client
+                    .put(&format!("{}/player/pause", rockbox_url()))
+                    .send()
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+                },
+            _ => {
+                client
+                    .put(&format!("{}/player/resume", rockbox_url()))
+                    .send()
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            }
+        };
+        Ok(tonic::Response::new(PlayOrPauseResponse::default()))
+    }
 
     async fn resume(
         &self,
