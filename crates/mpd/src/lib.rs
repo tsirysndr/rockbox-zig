@@ -24,14 +24,14 @@ use rockbox_graphql::{
     schema::objects::{audio_status::AudioStatus, playlist::Playlist, track::Track},
     simplebroker::SimpleBroker,
 };
-use rockbox_library::{create_connection_pool, entity};
+use rockbox_library::{create_connection_pool, entity, repo};
 use rockbox_rpc::api::rockbox::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
     playlist_service_client::PlaylistServiceClient, settings_service_client::SettingsServiceClient,
     sound_service_client::SoundServiceClient, system_service_client::SystemServiceClient,
     GetCurrentRequest, GetGlobalStatusRequest, PlaylistResumeRequest,
 };
-use rockbox_sys::types::user_settings::UserSettings;
+use rockbox_sys::{playback::current_track, types::user_settings::UserSettings};
 use sqlx::{Pool, Sqlite};
 use std::{env, sync::Arc, thread, time::Duration};
 use tokio::{
@@ -374,8 +374,10 @@ pub fn restore_playlist(ctx: Context) -> Result<(), Error> {
                 let response = ctx.playlist.get_current(GetCurrentRequest {}).await?;
                 let response = response.into_inner();
                 let mut current_track = ctx.current_track.lock().await;
-                *current_track = Some(Track {
-                    path: response.tracks[resume_index as usize].path.clone(),
+                let path = response.tracks[resume_index as usize].path.clone();
+                
+                let mut track: Track = Track {
+                    path: path.clone(),
                     artist: response.tracks[resume_index as usize].artist.clone(),
                     album: response.tracks[resume_index as usize].album.clone(),
                     title: response.tracks[resume_index as usize].title.clone(),
@@ -386,8 +388,22 @@ pub fn restore_playlist(ctx: Context) -> Result<(), Error> {
                     year: response.tracks[resume_index as usize].year,
                     year_string: response.tracks[resume_index as usize].year_string.clone(),
                     ..Default::default()
-                });
-            }
+                };
+
+                *current_track = Some(track.clone());
+                let hash = format!("{:x}", md5::compute(path.as_bytes()));
+                let pool = rockbox_library::create_connection_pool().await?;
+
+                if let Ok(Some(metadata)) =
+                    repo::track::find_by_md5(pool.clone(), &hash).await
+                {
+                    track.id = Some(metadata.id);
+                    track.album_art = metadata.album_art;
+                    track.album_id = Some(metadata.album_id);
+                    track.artist_id = Some(metadata.artist_id);
+                    SimpleBroker::publish(track);
+                }
+         }
 
             Ok::<(), Error>(())
         })?;

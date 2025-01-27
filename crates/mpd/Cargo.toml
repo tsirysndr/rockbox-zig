@@ -8,6 +8,7 @@ anyhow = "1.0.93"
 chrono = "0.4.38"
 futures.workspace = true
 mpd-filters = "0.4.6"
+md5 = "0.7.0"
 regex = "1.11.1"
 rockbox-graphql = {path = "../graphql"}
 rockbox-library = {path = "../library"}
