@@ -12,7 +12,7 @@ use rockbox_graphql::schema;
 use rockbox_graphql::schema::objects::track::Track;
 use rockbox_graphql::simplebroker::SimpleBroker;
 use rockbox_library::repo;
-use rockbox_sys::{self as rb, events::RockboxCommand, types::audio_status::AudioStatus};
+use rockbox_sys::{self as rb, events::RockboxCommand, types::{audio_status::AudioStatus, system_status::SystemStatus}};
 use sqlx::Sqlite;
 use tokio_stream::{Stream, StreamExt};
 
@@ -86,12 +86,32 @@ impl PlaybackService for Playback {
                     .await
                     .map_err(|e| tonic::Status::internal(e.to_string()))?;
                 },
-            _ => {
+            3 => {
                 client
                     .put(&format!("{}/player/resume", rockbox_url()))
                     .send()
                     .await
                     .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+            }
+            _ => {
+                let url = format!("{}/status", rockbox_url());
+                let response = client
+                    .get(url)
+                    .send()
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+                let status = response
+                    .json::<SystemStatus>()
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+                if status.resume_index > -1  {
+                    self.cmd_tx
+                        .lock()
+                        .unwrap()
+                        .send(RockboxCommand::PlaylistResumeTrack)
+                        .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+                } 
             }
         };
         Ok(tonic::Response::new(PlayOrPauseResponse::default()))

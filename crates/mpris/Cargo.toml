@@ -9,5 +9,6 @@ async-std = {version = "1.13.0", features = ["unstable", "attributes"]}
 mpris-server = "0.8.1"
 rockbox-graphql = {path = "../graphql"}
 rockbox-rpc = {path = "../rpc"}
+rockbox-library = {path= "../library"}
 tokio = {version = "1.36.0", features = ["full"]}
 urlencoding = "2.1.3"
