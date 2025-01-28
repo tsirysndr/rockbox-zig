@@ -124,9 +124,9 @@ curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.
 ## 📦 Downloads
 
 - `Linux`: intel:
-  [rockbox_2025.01.27_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.27/rockbox_2025.01.27_x86_64-linux.tar.gz)
+  [rockbox_2025.01.28_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.28/rockbox_2025.01.28_x86_64-linux.tar.gz)
   arm64:
-  [rockbox_2025.01.27_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.27/rockbox_2025.01.27_aarch64-linux.tar.gz)
+  [rockbox_2025.01.28_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.01.27/rockbox_2025.01.28_aarch64-linux.tar.gz)
 
 ## 🧙‍♂️ Systemd Service
 
