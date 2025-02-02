@@ -1,7 +1,9 @@
 pub mod community;
+pub mod login;
 pub mod repl;
 pub mod run;
 pub mod scan;
 pub mod service;
 pub mod start;
 pub mod webui;
+pub mod whoami;
