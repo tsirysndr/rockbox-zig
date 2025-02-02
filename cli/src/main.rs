@@ -4,7 +4,7 @@ use anyhow::Error;
 use clap::{arg, Command};
 use owo_colors::OwoColorize;
 
-use cmd::{community::*, repl::*, run::*, scan::*, start::*, webui::*, service};
+use cmd::{community::*, login::*, repl::*, run::*, scan::*, service, start::*, webui::*, whoami::*};
 
 pub mod cmd;
 
@@ -70,6 +70,17 @@ fn cli() -> Command {
                         .about("Check status of systemd service for Rockbox")
                 )
         )
+        .subcommand(
+            Command::new("login")
+                .arg(arg!(<handle> "Your BlueSky handle"))
+                .about("Login to your Rocksky account")
+                .visible_alias("auth"),
+        )
+        .subcommand(
+            Command::new("whoami")
+                .about("Display information about the currently logged in user")
+                .visible_alias("me"),
+        )
 }
 
 #[tokio::main]
@@ -124,6 +135,13 @@ async fn main() -> Result<(), Error> {
                println!("Invalid subcommand. Use `rockbox service --help` for more information.");
             }
         },
+        Some(("login", args)) => {
+            let handle = args.get_one::<String>("handle").unwrap();
+            login(handle).await?;
+        },
+        Some(("whoami", _)) => {
+            whoami().await?;
+        }
         _ => {
             start(true)?;
         }
