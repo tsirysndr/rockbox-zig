@@ -8656,6 +8656,7 @@ dependencies = [
  "js-sys",
  "log",
  "mime",
+ "mime_guess",
  "once_cell",
  "percent-encoding",
  "pin-project-lite",
@@ -8951,6 +8952,18 @@ dependencies = [
  "md5",
  "reqwest",
  "rockbox-library",
+]
+
+[[package]]
+name = "rockbox-rocksky"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dirs 6.0.0",
+ "reqwest",
+ "rockbox-library",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

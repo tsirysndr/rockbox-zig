@@ -1,0 +1,81 @@
+use anyhow::Error;
+use reqwest::multipart;
+use reqwest::Client;
+use rockbox_library::entity::album::Album;
+use rockbox_library::entity::track::Track;
+use std::fs::File;
+use std::io::Read;
+
+pub async fn upload_album_cover(name: &str) -> Result<(), Error> {
+    let home = dirs::home_dir().unwrap();
+    let cover = home
+        .join(".config")
+        .join("rockbox.org")
+        .join("covers")
+        .join(name);
+
+    let mut file = File::open(&cover)?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer)?;
+
+    let part = multipart::Part::bytes(buffer).file_name(cover.display().to_string());
+    let form = multipart::Form::new().part("file", part);
+
+    let token_file = home.join(".config").join("rockbox.org").join("token");
+    let token = std::fs::read_to_string(token_file)?;
+
+    let client = Client::new();
+
+    const URL: &str = "https://uploads.rocksky.app";
+
+    let response = client
+        .post(URL)
+        .header("Authorization", format!("Bearer {}", token))
+        .multipart(form)
+        .send()
+        .await?;
+
+    println!("Cover uploaded: {}", response.status());
+
+    Ok(())
+}
+
+pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
+    let home = dirs::home_dir().unwrap();
+    let token_file = home.join(".config").join("rockbox.org").join("token");
+    let token = std::fs::read_to_string(token_file)?;
+
+    if let Some(album_art) = track.album_art {
+        match upload_album_cover(&album_art).await {
+            Ok(_) => {}
+            Err(r) => {
+                eprintln!("Failed to upload album art: {}", r);
+            }
+        }
+    }
+
+    let client = Client::new();
+    const URL: &str = "https://api.rocksky.app/now-playing";
+    let response = client
+        .post(URL)
+        .header("Authorization", format!("Bearer {}", token))
+        .json(&serde_json::json!({
+            "title": track.title,
+            "album": track.album,
+            "artist": track.artist,
+            "albumArtist": track.album_artist,
+            "duration": track.length,
+            "trackNumber": track.track_number,
+            "releaseDate": match album.year_string.contains("-") {
+                true => Some(album.year_string),
+                false => None,
+            },
+            "year": album.year,
+            "discNumber": track.disc_number,
+            "composer": track.composer,
+        }))
+        .send()
+        .await?;
+    println!("Scrobbled: {}", response.status());
+    Ok(())
+}
