@@ -22,6 +22,11 @@ pub async fn upload_album_cover(name: &str) -> Result<(), Error> {
     let form = multipart::Form::new().part("file", part);
 
     let token_file = home.join(".config").join("rockbox.org").join("token");
+
+    if !token_file.exists() {
+        return Ok(());
+    }
+
     let token = std::fs::read_to_string(token_file)?;
 
     let client = Client::new();
@@ -43,9 +48,14 @@ pub async fn upload_album_cover(name: &str) -> Result<(), Error> {
 pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
     let home = dirs::home_dir().unwrap();
     let token_file = home.join(".config").join("rockbox.org").join("token");
+
+    if !token_file.exists() {
+        return Ok(());
+    }
+
     let token = std::fs::read_to_string(token_file)?;
 
-    if let Some(album_art) = track.album_art {
+    if let Some(album_art) = track.album_art.clone() {
         match upload_album_cover(&album_art).await {
             Ok(_) => {}
             Err(r) => {
@@ -73,6 +83,10 @@ pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
             "year": album.year,
             "discNumber": track.disc_number,
             "composer": track.composer,
+            "albumArt": match track.album_art.is_some() {
+                true => Some(format!("https://cdn.rocksky.app/covers/{}", track.album_art.unwrap())),
+                false => None
+            }
         }))
         .send()
         .await?;

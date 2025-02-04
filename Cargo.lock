@@ -9027,6 +9027,7 @@ dependencies = [
  "rockbox-mpd",
  "rockbox-mpris",
  "rockbox-network",
+ "rockbox-rocksky",
  "rockbox-rpc",
  "rockbox-search",
  "rockbox-settings",

@@ -1,3 +1,4 @@
+use anyhow::Error;
 use handlers::*;
 
 use http::RockboxHttpServer;
@@ -11,6 +12,7 @@ use rockbox_mpd::MpdServer;
 use rockbox_mpris::MprisServer;
 use rockbox_sys::events::RockboxCommand;
 use rockbox_sys::{self as rb, types::mp3_entry::Mp3Entry};
+use sqlx::{Pool, Sqlite};
 use std::{
     collections::HashMap,
     ffi::c_char,
@@ -255,6 +257,7 @@ pub extern "C" fn start_broker() {
         .unwrap();
 
     let mut metadata_cache: HashMap<String, Mp3Entry> = HashMap::new();
+    let mut previous_index = -10; // Arbitrary value to ensure the first track is scobbled
 
     loop {
         let mutex = GLOBAL_MUTEX.lock().unwrap();
@@ -282,16 +285,24 @@ pub extern "C" fn start_broker() {
                     track.album_art = metadata.album_art;
                     track.album_id = Some(metadata.album_id);
                     track.artist_id = Some(metadata.artist_id);
-                    SimpleBroker::publish(track);
+                    SimpleBroker::publish(track.clone());
+
+                    if previous_index != rb::playlist::index() {
+                        match rt.block_on(scrobble(track.clone(), pool.clone())) {
+                            Ok(_) => {}
+                            Err(e) => eprintln!("{}", e),
+                        }
+                    }
+                    previous_index = rb::playlist::index();
                 }
             }
             None => {}
         };
 
+        let mut entries: Vec<Mp3Entry> = vec![];
+
         let mut current_playlist = rb::playlist::get_current();
         let amount = rb::playlist::amount();
-
-        let mut entries: Vec<Mp3Entry> = vec![];
 
         for i in 0..amount {
             let info = rb::playlist::get_track_info(i);
@@ -351,4 +362,21 @@ pub extern "C" fn start_broker() {
         thread::sleep(std::time::Duration::from_millis(100));
         rb::system::sleep(rb::HZ);
     }
+}
+
+async fn scrobble(track: Track, pool: Pool<Sqlite>) -> Result<(), Error> {
+    let album_id = track.album_id.unwrap();
+    let track = repo::track::find(pool.clone(), &track.id.unwrap()).await?;
+    let album = repo::album::find(pool, &album_id).await?;
+
+    if let Some(track) = track {
+        if let Some(album) = album {
+            match rockbox_rocksky::scrobble(track, album).await {
+                Ok(_) => {}
+                Err(e) => eprintln!("Failed to scrobble {}", e),
+            };
+        }
+    }
+
+    Ok(())
 }

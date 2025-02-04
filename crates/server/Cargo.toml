@@ -21,6 +21,7 @@ rockbox-chromecast = {path = "../chromecast"}
 rockbox-discovery = {path = "../discovery"}
 rockbox-graphql = {path = "../graphql"}
 rockbox-library = {path = "../library"}
+rockbox-rocksky = {path = "../rocksky"}
 rockbox-mpd = {path = "../mpd"}
 rockbox-mpris = {path = "../mpris"}
 rockbox-network = { path = "../network" }
