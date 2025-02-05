@@ -1,10 +1,16 @@
 use anyhow::Error;
+use lofty::file::TaggedFileExt;
 use reqwest::multipart;
 use reqwest::Client;
 use rockbox_library::entity::album::Album;
 use rockbox_library::entity::track::Track;
 use std::fs::File;
 use std::io::Read;
+
+const AUDIO_EXTENSIONS: [&str; 18] = [
+    "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "aif", "ac3",
+    "opus", "spx", "sid", "ape", "wma",
+];
 
 pub async fn upload_album_cover(name: &str) -> Result<(), Error> {
     let home = dirs::home_dir().unwrap();
@@ -64,6 +70,11 @@ pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
         }
     }
 
+    let (lyrics, copyright_message) = match parse_lyrics_and_copyright(&track.path) {
+        Ok((lyrics, copyright_message)) => (lyrics, copyright_message),
+        Err(_) => (None, None),
+    };
+
     let client = Client::new();
     const URL: &str = "https://api.rocksky.app/now-playing";
     let response = client
@@ -86,7 +97,9 @@ pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
             "albumArt": match track.album_art.is_some() {
                 true => Some(format!("https://cdn.rocksky.app/covers/{}", track.album_art.unwrap())),
                 false => None
-            }
+            },
+            "lyrics": lyrics,
+            "copyrightMessage": copyright_message,
         }))
         .send()
         .await?;
@@ -168,4 +181,51 @@ pub async fn unlike(track: Track) -> Result<(), Error> {
     println!("Unliked: {}", response.status());
 
     Ok(())
+}
+
+fn parse_lyrics_and_copyright(path: &str) -> Result<(Option<String>, Option<String>), Error> {
+    if !AUDIO_EXTENSIONS
+        .into_iter()
+        .any(|ext| path.ends_with(&format!(".{}", ext)))
+    {
+        return Ok((None, None));
+    }
+
+    let tagged_file = lofty::read_from_path(path)?;
+
+    let tag = match tagged_file.primary_tag() {
+        Some(primary_tag) => primary_tag,
+        None => tagged_file.first_tag().expect("No tags found"),
+    };
+
+    let lyrics = tag
+        .get_string(&lofty::tag::ItemKey::Lyrics)
+        .map(|x| x.to_string());
+    let copyright_message = tag
+        .get_string(&lofty::tag::ItemKey::CopyrightMessage)
+        .map(|x| x.to_string());
+
+    Ok((lyrics, copyright_message))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::*;
+
+    #[test]
+    fn test_parse_metadata() {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("fixtures");
+        path.push("08 - Internet Money - Speak(Explicit).m4a");
+
+        let result = parse_lyrics_and_copyright(path.to_str().unwrap());
+        assert!(result.is_ok());
+
+        let result = result.unwrap();
+
+        assert!(result.0.is_some());
+        assert!(result.1.is_some());
+    }
 }
