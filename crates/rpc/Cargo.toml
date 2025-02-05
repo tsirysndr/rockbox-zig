@@ -18,6 +18,7 @@ reqwest = { version = "0.12.5", features = [
 ], default-features = false }
 rockbox-graphql = { path = "../graphql" }
 rockbox-library = { path = "../library" }
+rockbox-rocksky = {path = "../rocksky"}
 rockbox-search = { path = "../search" }
 rockbox-sys = { path = "../sys" }
 rockbox-types = { path = "../types" }

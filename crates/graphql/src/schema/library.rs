@@ -123,12 +123,26 @@ impl LibraryMutation {
             pool.clone(),
             Favourites {
                 id: cuid::cuid1()?,
-                track_id: Some(id),
+                track_id: Some(id.clone()),
                 created_at: chrono::Utc::now(),
                 album_id: None,
             },
         )
         .await?;
+
+        let track = repo::track::find(pool.clone(), &id).await?;
+
+        if let Some(track) = track {
+            let album = repo::album::find(pool.clone(), &track.album_id).await?;
+            if let Some(album) = album {
+                match rockbox_rocksky::like(track, album).await {
+                    Ok(_) => {}
+                    Err(e) => {
+                        eprintln!("Error liking track: {:?}", e);
+                    }
+                }
+            }
+        }
         Ok(0)
     }
 
@@ -150,6 +164,17 @@ impl LibraryMutation {
     async fn unlike_track(&self, ctx: &Context<'_>, id: String) -> Result<i32, Error> {
         let pool = ctx.data::<Pool<Sqlite>>()?;
         repo::favourites::delete(pool.clone(), &id).await?;
+
+        let track = repo::track::find(pool.clone(), &id).await?;
+
+        if let Some(track) = track {
+            match rockbox_rocksky::unlike(track).await {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Error unliking track: {:?}", e);
+                }
+            }
+        }
         Ok(0)
     }
 

@@ -8859,6 +8859,7 @@ dependencies = [
  "owo-colors 4.1.0",
  "reqwest",
  "rockbox-library",
+ "rockbox-rocksky",
  "rockbox-search",
  "rockbox-sys",
  "rockbox-types",
@@ -8964,6 +8965,7 @@ dependencies = [
  "rockbox-library",
  "serde",
  "serde_json",
+ "sha256",
 ]
 
 [[package]]
@@ -8981,6 +8983,7 @@ dependencies = [
  "reqwest",
  "rockbox-graphql",
  "rockbox-library",
+ "rockbox-rocksky",
  "rockbox-search",
  "rockbox-sys",
  "rockbox-types",
@@ -9741,6 +9744,19 @@ dependencies = [
  "cfg-if 1.0.0",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "sha256"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18278f6a914fa3070aa316493f7d2ddfb9ac86ebc06fa3b83bffda487e9065b0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "hex",
+ "sha2",
+ "tokio",
 ]
 
 [[package]]
