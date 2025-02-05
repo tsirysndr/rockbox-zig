@@ -140,13 +140,32 @@ impl LibraryService for Library {
             self.pool.clone(),
             Favourites {
                 id: cuid::cuid1().map_err(|e| tonic::Status::internal(e.to_string()))?,
-                track_id: Some(params.id),
+                track_id: Some(params.id.clone()),
                 created_at: chrono::Utc::now(),
                 album_id: None,
             },
         )
         .await
         .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let track = repo::track::find(self.pool.clone(), &params.id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(track) = track {
+            let album = repo::album::find(self.pool.clone(), &track.album_id)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            if let Some(album) = album {
+                match rockbox_rocksky::like(track, album).await {
+                    Ok(_) => {}
+                    Err(e) => {
+                        eprintln!("Error liking track: {:?}", e);
+                    }
+                }
+            }
+        }
+
         Ok(tonic::Response::new(LikeTrackResponse {}))
     }
 
@@ -177,6 +196,20 @@ impl LibraryService for Library {
         repo::favourites::delete(self.pool.clone(), &params.id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let track = repo::track::find(self.pool.clone(), &params.id)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        if let Some(track) = track {
+            match rockbox_rocksky::unlike(track).await {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Error unliking track: {:?}", e);
+                }
+            }
+        }
+
         Ok(tonic::Response::new(UnlikeTrackResponse {}))
     }
 
