@@ -288,10 +288,17 @@ pub extern "C" fn start_broker() {
                     SimpleBroker::publish(track.clone());
 
                     if previous_index != rb::playlist::index() {
-                        match rt.block_on(scrobble(track.clone(), pool.clone())) {
-                            Ok(_) => {}
-                            Err(e) => eprintln!("{}", e),
-                        }
+                        let cloned_pool = pool.clone();
+                        thread::spawn(move || {
+                            let rt = tokio::runtime::Builder::new_current_thread()
+                                .enable_all()
+                                .build()
+                                .unwrap();
+                            match rt.block_on(scrobble(track.clone(), cloned_pool.clone())) {
+                                Ok(_) => {}
+                                Err(e) => eprintln!("{}", e),
+                            }
+                        });
                     }
                     previous_index = rb::playlist::index();
                 }

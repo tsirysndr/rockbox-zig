@@ -104,6 +104,11 @@ pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
         .send()
         .await?;
     println!("Scrobbled: {}", response.status());
+
+    if !response.status().is_success() {
+        println!("Failed to scrobble: {}", response.text().await?);
+    }
+
     Ok(())
 }
 
