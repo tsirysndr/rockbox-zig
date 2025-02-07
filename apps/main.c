@@ -155,6 +155,8 @@
 #endif
 #endif /* SDL|MAEMO|PAMDORA */
 
+extern void start_audio_buffer_broker(void);
+
 /*#define AUTOROCK*/ /* define this to check for "autostart.rock" on boot */
 
 static void init(void);
@@ -469,6 +471,7 @@ static void init(void)
 #ifdef ROCKBOX_SERVER
     server_init();
     broker_init();
+    start_audio_buffer_broker();
 #endif
 }
 

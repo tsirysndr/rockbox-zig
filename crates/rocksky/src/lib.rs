@@ -52,6 +52,10 @@ pub async fn upload_album_cover(name: &str) -> Result<(), Error> {
 }
 
 pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
+    if std::env::var("DISABLE_SCROBBLE").is_ok() {
+        return Ok(());
+    }
+
     let home = dirs::home_dir().unwrap();
     let token_file = home.join(".config").join("rockbox.org").join("token");
 

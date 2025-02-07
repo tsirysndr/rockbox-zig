@@ -45,6 +45,9 @@
 #include "pcm_sampr.h"
 #include "pcm_mixer.h"
 
+#include <pthread.h>
+#include <unistd.h>
+
 /*#define LOGF_ENABLE*/
 #include "logf.h"
 
@@ -77,6 +80,25 @@ static SDL_AudioSpec obtained;
 static SDL_AudioCVT cvt;
 static int audio_locked = 0;
 static SDL_mutex *audio_lock;
+
+extern void process_pcm_buffer(Uint8 *data, size_t size);
+extern void debugfn(const char *args, int value);
+
+void* background_task(void* arg) {
+    // Cast the argument back to int if needed
+    int* thread_id = (int*)arg;
+
+    // Simulate some work
+    for (int i = 0; i < 5; i++) {
+        printf("Background thread %d is working... count: %d\n", *thread_id, i);
+        sleep(1);  // Sleep for 1 second
+    }
+
+    printf("Background thread %d finished!\n", *thread_id);
+
+    // Return value (could be any pointer)
+    pthread_exit(NULL);
+}
 
 void pcm_play_lock(void)
 {
@@ -111,11 +133,14 @@ static void pcm_dma_apply_settings_nolock(void)
     if (!strcmp("pulseaudio", SDL_GetCurrentAudioDriver()))
         wanted_spec.samples = MIX_FRAME_SAMPLES;
 
+    wanted_spec.samples = 65536;
+
     /* Open the audio device and start playing sound! */
     if((pcm_devid = SDL_OpenAudioDevice(audiodev, 0, &wanted_spec, &obtained, SDL_AUDIO_ALLOW_SAMPLES_CHANGE)) == 0) {
         panicf("Unable to open audio: %s", SDL_GetError());
         return;
     }
+    debugfn("samples", obtained.samples);
     switch (obtained.format)
     {
     case AUDIO_U8:
@@ -206,7 +231,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
         }
 
         if (cvt_status > 0) {
-            cvt.len = rd * pcm_sample_bytes;
+           // cvt.len = rd * pcm_sample_bytes;
+            cvt.len = 65536;
             cvt.buf = (Uint8 *) malloc(cvt.len * cvt.len_mult);
 
             pcm_copy_buffer(cvt.buf, pcm_data, cvt.len);
@@ -216,6 +242,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
 
             udata->num_in = cvt.len / pcm_sample_bytes;
             udata->num_out = cvt.len_cvt / pcm_sample_bytes;
+
+            process_pcm_buffer(cvt.buf, (size_t)cvt.len_cvt);
 
 #ifdef DEBUG
             if (udata->debug != NULL) {
@@ -246,6 +274,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
                 break;
                 }
             }
+
+            process_pcm_buffer(udata->stream, (size_t)wr);
 #ifdef DEBUG
             if (udata->debug != NULL) {
                fwrite(udata->stream, sizeof(Uint8), wr, udata->debug);
@@ -256,6 +286,8 @@ static void write_to_soundcard(struct pcm_udata *udata)
         udata->num_in = udata->num_out = MIN(udata->num_in, udata->num_out);
         pcm_copy_buffer(udata->stream, pcm_data,
                         udata->num_out * pcm_sample_bytes);
+
+        process_pcm_buffer(pcm_data, (size_t) udata->num_out * pcm_sample_bytes);
 #ifdef DEBUG
         if (udata->debug != NULL) {
            fwrite(pcm_data, sizeof(Uint8), udata->num_out * pcm_sample_bytes,
@@ -378,6 +410,25 @@ unsigned long spdif_measure_frequency(void)
 
 void pcm_play_dma_init(void)
 {
+     pthread_t thread;  // Thread handle
+    int thread_id = 1;
+
+    // Create the thread
+    int result = pthread_create(
+        &thread,           // Thread handle
+        NULL,             // Thread attributes (NULL for default)
+        background_task,   // Function to execute
+        &thread_id        // Argument to pass to the function
+    );
+
+    if (result != 0) {
+        printf("Failed to create thread: %d\n", result);
+        return;
+    }
+
+    printf("Main thread continues execution...\n");
+    pthread_detach(thread);
+
     if (SDL_InitSubSystem(SDL_INIT_AUDIO))
     {
         panicf("Could not initialize SDL audio subsystem!");

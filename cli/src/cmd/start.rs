@@ -1,4 +1,4 @@
-use std::{env, process::Command};
+use std::{env, process::Command, thread};
 
 use anyhow::Error;
 use rockbox::{install_rockboxd, wait_for_rockboxd};
@@ -24,11 +24,19 @@ pub fn start(with_ui: bool) -> Result<(), Error> {
     match wait_for_rockboxd(port.parse()?, Some(1)) {
         Ok(_) => {}
         Err(_) => {
+            thread::spawn(move || match rockbox_audio::read_audio_socket() {
+                Ok(_) => {}
+                Err(e) => eprintln!("Error reading audio socket: {}", e),
+            });
+            thread::sleep(std::time::Duration::from_secs(1));
+
             let mut child = Command::new("rockboxd")
                 .env("SDL_VIDEODRIVER", video_driver)
                 .env("ROCKBOX_PORT", port)
                 .env("ROCKBOX_GRAPHQL_PORT", ui_port)
                 .env("ROCKBOX_TCP_PORT", http_port)
+                .env("SDL_AUDIODRIVER", "dummy")
+                .env("DISABLE_SCROBBLE", "1")
                 .spawn()?;
 
             child.wait()?;
