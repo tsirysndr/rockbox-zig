@@ -112,6 +112,74 @@ pub async fn scrobble(track: Track, album: Album) -> Result<(), Error> {
     Ok(())
 }
 
+pub async fn save_track(track: Track, album: Album) -> Result<(), Error> {
+    let home = dirs::home_dir().unwrap();
+    let token_file = home.join(".config").join("rockbox.org").join("token");
+
+    if !token_file.exists() {
+        return Ok(());
+    }
+
+    let token = std::fs::read_to_string(token_file)?;
+
+    if let Some(album_art) = track.album_art.clone() {
+        match upload_album_cover(&album_art).await {
+            Ok(_) => {}
+            Err(r) => {
+                eprintln!("Failed to upload album art: {}", r);
+            }
+        }
+    }
+
+    let (lyrics, copyright_message) = match parse_lyrics_and_copyright(&track.path) {
+        Ok((lyrics, copyright_message)) => (lyrics, copyright_message),
+        Err(_) => (None, None),
+    };
+
+    let client = Client::new();
+    const URL: &str = "https://api.rocksky.app/tracks";
+    let response = client
+        .post(URL)
+        .header("Authorization", format!("Bearer {}", token))
+        .json(&serde_json::json!({
+            "title": track.title,
+            "album": track.album,
+            "artist": track.artist,
+            "albumArtist": match track.album_artist.is_empty() {
+                true => track.artist,
+                false => track.album_artist,
+            },
+            "duration": track.length,
+            "trackNumber": track.track_number,
+            "releaseDate": match album.year_string.contains("-") {
+                true => Some(album.year_string),
+                false => None,
+            },
+            "year": album.year,
+            "discNumber": track.disc_number,
+            "composer": track.composer,
+            "albumArt": match track.album_art.is_some() {
+                true => Some(format!("https://cdn.rocksky.app/covers/{}", track.album_art.unwrap())),
+                false => None
+            },
+            "lyrics": lyrics,
+            "copyrightMessage": copyright_message,
+        }))
+        .send()
+        .await?;
+    println!("Track Saved: {} {}", track.path, response.status());
+
+    if !response.status().is_success() {
+        println!(
+            "Failed to save Track: {} {}",
+            track.path,
+            response.text().await?
+        );
+    }
+
+    Ok(())
+}
+
 pub async fn like(track: Track, album: Album) -> Result<(), Error> {
     let home = dirs::home_dir().unwrap();
     let token_file = home.join(".config").join("rockbox.org").join("token");
