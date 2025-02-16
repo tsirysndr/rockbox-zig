@@ -3454,6 +3454,7 @@ fn install_codecs(b: *std.Build, install: *std.Build.Step) !void {
     install.dependOn(try install_codec(b, "aac"));
     install.dependOn(try install_codec(b, "aac_bsf"));
     install.dependOn(try install_codec(b, "adx"));
+    install.dependOn(try install_codec(b, "aiff"));
     install.dependOn(try install_codec(b, "alac"));
     install.dependOn(try install_codec(b, "ape"));
     install.dependOn(try install_codec(b, "asap"));
@@ -3462,6 +3463,7 @@ fn install_codecs(b: *std.Build, install: *std.Build.Step) !void {
     install.dependOn(try install_codec(b, "au"));
     install.dependOn(try install_codec(b, "ay"));
     install.dependOn(try install_codec(b, "cook"));
+    install.dependOn(try install_codec(b, "flac"));
     install.dependOn(try install_codec(b, "gbs"));
     install.dependOn(try install_codec(b, "hes"));
     install.dependOn(try install_codec(b, "kss"));
@@ -3473,6 +3475,7 @@ fn install_codecs(b: *std.Build, install: *std.Build.Step) !void {
     install.dependOn(try install_codec(b, "raac"));
     install.dependOn(try install_codec(b, "sgc"));
     install.dependOn(try install_codec(b, "shorten"));
+    install.dependOn(try install_codec(b, "sid"));
     install.dependOn(try install_codec(b, "smaf"));
     install.dependOn(try install_codec(b, "spc"));
     install.dependOn(try install_codec(b, "speex"));
