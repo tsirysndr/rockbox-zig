@@ -251,7 +251,7 @@ pub async fn unlike(track: Track) -> Result<(), Error> {
         .send()
         .await?;
 
-    println!("Unliked: {}", response.status());
+    println!("Unliked: {} {}", response.status(), hash);
 
     Ok(())
 }
