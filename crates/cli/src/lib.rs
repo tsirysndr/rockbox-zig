@@ -7,6 +7,8 @@ use rockbox_search::album::Album;
 use rockbox_search::artist::Artist;
 use rockbox_search::track::Track;
 use rockbox_search::{create_indexes, delete_all_documents, index_entity};
+use std::thread::sleep;
+use std::time::Duration;
 use std::{env, ffi::CStr};
 use std::{fs, thread};
 
@@ -126,6 +128,14 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             Ok::<(), Error>(())
         })
         .unwrap();
+
+        thread::spawn(move || {
+            sleep(Duration::from_secs(5));
+            match rockbox_rocksky::register_rockbox() {
+                Ok(_) => println!("Successfully registered Rockbox with Rocksky server"),
+                Err(e) => eprintln!("Failed to register Rockbox with Rocksky server: {}", e),
+            };
+        });
 
         const BANNER: &str = r#"
           __________               __   ___.

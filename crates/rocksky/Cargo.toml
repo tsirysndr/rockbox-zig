@@ -10,6 +10,7 @@ repository.workspace = true
 anyhow.workspace = true
 lofty = "0.21.1"
 dirs = "6.0.0"
+prost = "0.13.2"
 rockbox-library = { path = "../library" }
 reqwest = { version = "0.12.5", features = [
   "rustls-tls",
@@ -20,3 +21,13 @@ serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
 sha256 = "1.5.0"
 tokio = { version = "1.36.0", features = ["full"] }
+tonic = "0.12.3"
+tonic-reflection = "0.12.3"
+tonic-web = "0.12.3"
+tungstenite = { version = "0.26.2", features = ["rustls"] }
+tokio-tungstenite = { version = "0.26.2", features = ["tokio-rustls", "rustls-tls-webpki-roots"] }
+futures-util = "0.3.31"
+tokio-stream = "0.1.17"
+
+[build-dependencies]
+tonic-build = "0.12.3"
