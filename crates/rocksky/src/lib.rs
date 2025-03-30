@@ -1,16 +1,253 @@
+use anyhow::anyhow;
 use anyhow::Error;
+use api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
+use api::rockbox::v1alpha1::NextRequest;
+use api::rockbox::v1alpha1::PauseRequest;
+use api::rockbox::v1alpha1::PlayRequest;
+use api::rockbox::v1alpha1::PreviousRequest;
+use api::rockbox::v1alpha1::ResumeRequest;
+use api::rockbox::v1alpha1::StreamCurrentTrackRequest;
+use api::rockbox::v1alpha1::StreamStatusRequest;
+use futures_util::SinkExt;
+use futures_util::StreamExt;
 use lofty::file::TaggedFileExt;
 use reqwest::multipart;
 use reqwest::Client;
 use rockbox_library::entity::album::Album;
 use rockbox_library::entity::track::Track;
+use serde_json::json;
+use serde_json::Value;
+use std::env;
 use std::fs::File;
 use std::io::Read;
+use std::sync::Arc;
+use std::thread;
+use tokio::sync::Mutex;
+use tokio_tungstenite::connect_async;
 
 const AUDIO_EXTENSIONS: [&str; 18] = [
     "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "aif", "ac3",
     "opus", "spx", "sid", "ape", "wma",
 ];
+
+// const ROCKSKY_WS: &str = "ws://localhost:8000/ws";
+
+pub mod api {
+    #[path = ""]
+    pub mod rockbox {
+
+        #[path = "rockbox.v1alpha1.rs"]
+        pub mod v1alpha1;
+    }
+}
+
+pub async fn run_ws_session(token: String) -> Result<(), Error> {
+    let rocksky_ws =
+        env::var("ROCKSKY_WS").unwrap_or_else(|_| "wss://api.rocksky.app/ws".to_string());
+    let (ws_stream, _) = connect_async(&rocksky_ws).await?;
+    println!("Connected to {}", rocksky_ws);
+
+    let (mut write, mut read) = ws_stream.split();
+    let device_id = Arc::new(Mutex::new(String::new()));
+
+    write
+        .send(
+            json!({
+                "type": "register",
+                "clientName": "Rockbox",
+                "token": token
+            })
+            .to_string()
+            .into(),
+        )
+        .await?;
+
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<String>(32);
+
+    // Spawn track stream
+    let tx_clone = tx.clone();
+    tokio::spawn(start_track_stream(tx_clone));
+
+    // Spawn status stream
+    tokio::spawn(start_status_stream(tx.clone()));
+
+    // Spawn sender
+    {
+        let device_id = device_id.clone();
+        let token = token.clone();
+        tokio::spawn(async move {
+            while let Some(msg) = rx.recv().await {
+                let id = device_id.lock().await.clone();
+                if let Err(e) = write
+                    .send(
+                        json!({
+                            "type": "message",
+                            "data": serde_json::from_str::<Value>(&msg).unwrap(),
+                            "device_id": id,
+                            "token": token
+                        })
+                        .to_string()
+                        .into(),
+                    )
+                    .await
+                {
+                    eprintln!("Send error: {}", e);
+                    break;
+                }
+            }
+        });
+    }
+
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+    let url = format!("tcp://{}:{}", host, port);
+    let mut client = PlaybackServiceClient::connect(url).await?;
+
+    while let Some(msg) = read.next().await {
+        let msg = match msg {
+            Ok(m) => m.to_string(),
+            Err(e) => {
+                eprintln!("Read error: {}", e);
+                break;
+            }
+        };
+
+        let msg: Value = serde_json::from_str(&msg)?;
+        if let Some(id) = msg["deviceId"].as_str() {
+            *device_id.lock().await = id.to_string();
+        }
+
+        if let Some("command") = msg["type"].as_str() {
+            if let Some(cmd) = msg["action"].as_str() {
+                match cmd {
+                    "play" => {
+                        client.resume(tonic::Request::new(ResumeRequest {})).await?;
+                    }
+                    "pause" => {
+                        client
+                            .pause(tonic::Request::new(PauseRequest::default()))
+                            .await?;
+                    }
+                    "next" => {
+                        client
+                            .next(tonic::Request::new(NextRequest::default()))
+                            .await?;
+                    }
+                    "previous" => {
+                        client
+                            .previous(tonic::Request::new(PreviousRequest::default()))
+                            .await?;
+                    }
+                    "seek" => {
+                        let pos = msg["args"]["position"].as_i64().unwrap_or(0);
+                        client
+                            .play(tonic::Request::new(PlayRequest {
+                                offset: 0,
+                                elapsed: pos,
+                            }))
+                            .await?;
+                    }
+                    _ => {
+                        println!("Unknown command: {}", cmd);
+                    }
+                };
+            }
+        }
+    }
+
+    Err(anyhow!("Connection closed"))
+}
+
+pub async fn start_track_stream(tx: tokio::sync::mpsc::Sender<String>) -> Result<(), Error> {
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+    let url = format!("tcp://{}:{}", host, port);
+    let mut client = PlaybackServiceClient::connect(url).await?;
+    let mut stream = client
+        .stream_current_track(tonic::Request::new(StreamCurrentTrackRequest {}))
+        .await?
+        .into_inner();
+
+    while let Some(Ok(track)) = stream.next().await {
+        tx.send(
+            json!({
+                "type": "track",
+                "title": track.title,
+                "artist": track.artist,
+                "album_artist": track.album_artist,
+                "album": track.album,
+                "length": track.length,
+                "elapsed": track.elapsed,
+                "track_number": track.tracknum,
+                "disc_number": track.discnum,
+                "composer": track.composer,
+                "album_art": track.album_art
+            })
+            .to_string(),
+        )
+        .await?;
+    }
+
+    Ok(())
+}
+
+async fn start_status_stream(tx: tokio::sync::mpsc::Sender<String>) -> Result<(), Error> {
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+    let url = format!("tcp://{}:{}", host, port);
+    let mut client = PlaybackServiceClient::connect(url).await?;
+    let mut stream = client
+        .stream_status(tonic::Request::new(StreamStatusRequest {}))
+        .await?
+        .into_inner();
+
+    while let Some(Ok(status)) = stream.next().await {
+        tx.send(
+            json!({
+                "type": "status",
+                "status": status.status
+            })
+            .to_string(),
+        )
+        .await?;
+    }
+
+    Ok(())
+}
+
+pub fn register_rockbox() -> Result<(), Error> {
+    let home = dirs::home_dir().unwrap();
+    let token_file = home.join(".config").join("rockbox.org").join("token");
+
+    if !token_file.exists() {
+        return Ok(());
+    }
+
+    let token = std::fs::read_to_string(token_file)?;
+
+    thread::spawn(move || {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async move {
+            let delay = 3;
+
+            loop {
+                match run_ws_session(token.clone()).await {
+                    Ok(_) => {
+                        println!("WebSocket session ended cleanly");
+                    }
+                    Err(e) => {
+                        eprintln!("WebSocket session error: {}", e);
+                    }
+                }
+
+                println!("Reconnecting in {} seconds...", delay);
+                tokio::time::sleep(std::time::Duration::from_secs(delay)).await;
+            }
+        })
+    });
+
+    Ok(())
+}
 
 pub async fn upload_album_cover(name: &str) -> Result<(), Error> {
     let home = dirs::home_dir().unwrap();
