@@ -13,7 +13,7 @@ struct Token {
 pub async fn login(handle: &str) -> Result<(), Error> {
     let client = reqwest::Client::new();
     let res = client
-        .post("https://rocksky.app/login")
+        .post("https://api.rocksky.app/login")
         .json(&serde_json::json!({
             "handle": handle,
             "cli": true
