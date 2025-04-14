@@ -4,7 +4,6 @@ use anyhow::Error;
 use serde::Deserialize;
 use warp::Filter;
 
-
 #[derive(Deserialize)]
 struct Token {
     token: String,
@@ -21,7 +20,7 @@ pub async fn login(handle: &str) -> Result<(), Error> {
         .send()
         .await?;
 
-    let redirect =  res.url().to_string();
+    let redirect = res.text().await?;
 
     if !redirect.contains("authorize") {
         return Err(anyhow::anyhow!("Failed to login, try again"));
@@ -36,24 +35,24 @@ pub async fn login(handle: &str) -> Result<(), Error> {
         .allow_headers(vec!["content-type"]);
 
     let routes = warp::post()
-    .and(warp::path("token"))
-    .and(warp::body::json())
-    .and_then(|data: Token| async move {
-        let mut home = dirs::home_dir().unwrap();
-        home.push(".config/rockbox.org/token");
-        std::fs::write(home, data.token).unwrap();
+        .and(warp::path("token"))
+        .and(warp::body::json())
+        .and_then(|data: Token| async move {
+            let mut home = dirs::home_dir().unwrap();
+            home.push(".config/rockbox.org/token");
+            std::fs::write(home, data.token).unwrap();
 
-        thread::spawn(move || {
-          sleep(std::time::Duration::from_secs(2));
-          println!("Login successful!");
-          std::process::exit(0);
-        });
+            thread::spawn(move || {
+                sleep(std::time::Duration::from_secs(2));
+                println!("Login successful!");
+                std::process::exit(0);
+            });
 
-        Ok::<_, warp::Rejection>(warp::reply::json(&serde_json::json!({
-            "ok": 1
-        })))
-    })
-    .with(cors);
+            Ok::<_, warp::Rejection>(warp::reply::json(&serde_json::json!({
+                "ok": 1
+            })))
+        })
+        .with(cors);
 
     warp::serve(routes).run(([127, 0, 0, 1], 6996)).await;
 
