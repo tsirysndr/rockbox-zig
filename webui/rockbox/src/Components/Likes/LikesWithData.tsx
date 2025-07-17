@@ -1,13 +1,13 @@
 import { FC, useEffect } from "react";
-import Likes from "./Likes";
+import { useRecoilState, useRecoilValue } from "recoil";
 import {
   useGetLikedTracksQuery,
   usePlayLikedTracksMutation,
 } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { likedTracks, likesState } from "./LikesState";
 import { filterState } from "../Filter/FilterState";
+import Likes from "./Likes";
+import { likedTracks, likesState } from "./LikesState";
 
 const LikesWithData: FC = () => {
   const filter = useRecoilValue(filterState);
@@ -30,7 +30,7 @@ const LikesWithData: FC = () => {
           album: x.album,
           time: formatTime(x.length),
           albumArt: x.albumArt
-            ? `http://localhost:6062/covers/${x.albumArt}`
+            ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
             : undefined,
           albumId: x.albumId,
           artistId: x.artistId,
@@ -49,7 +49,7 @@ const LikesWithData: FC = () => {
           album: x.album,
           time: formatTime(x.length),
           albumArt: x.albumArt
-            ? `http://localhost:6062/covers/${x.albumArt}`
+            ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
             : undefined,
           albumId: x.albumId,
           artistId: x.artistId,
@@ -82,7 +82,7 @@ const LikesWithData: FC = () => {
         album: x.album,
         time: formatTime(x.length),
         albumArt: x.albumArt
-          ? `http://localhost:6062/covers/${x.albumArt}`
+          ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
           : undefined,
         albumId: x.albumId,
         artistId: x.artistId,

@@ -1,11 +1,11 @@
 import { FC, useEffect, useMemo, useState } from "react";
-import AlbumDetails from "./AlbumDetails";
 import { useNavigate, useParams } from "react-router-dom";
+import { useRecoilValue } from "recoil";
 import { useGetAlbumQuery, usePlayAlbumMutation } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 import { Track } from "../../Types/track";
-import { useRecoilValue } from "recoil";
 import { settingsState } from "../Settings/SettingsState";
+import AlbumDetails from "./AlbumDetails";
 
 const AlbumDetailsWithData: FC = () => {
   const { enableBlur } = useRecoilValue(settingsState);
@@ -27,7 +27,7 @@ const AlbumDetailsWithData: FC = () => {
         ? {
             ...data.album!,
             albumArt: data.album?.albumArt
-              ? `http://localhost:6062/covers/${data.album?.albumArt}`
+              ? `${location.protocol}//${location.host}/covers/${data.album?.albumArt}`
               : "",
           }
         : null,

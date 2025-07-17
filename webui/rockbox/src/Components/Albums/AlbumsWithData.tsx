@@ -1,8 +1,8 @@
 import { FC, useEffect, useState } from "react";
-import Albums from "./Albums";
-import { useGetAlbumsQuery } from "../../Hooks/GraphQL";
 import { useRecoilValue } from "recoil";
+import { useGetAlbumsQuery } from "../../Hooks/GraphQL";
 import { filterState } from "../Filter/FilterState";
+import Albums from "./Albums";
 
 const AlbumsWithData: FC = () => {
   const filter = useRecoilValue(filterState);
@@ -17,7 +17,9 @@ const AlbumsWithData: FC = () => {
           id: x.id,
           title: x.title,
           artist: x.artist,
-          cover: x.albumArt ? `http://localhost:6062/covers/${x.albumArt}` : "",
+          cover: x.albumArt
+            ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
+            : "",
           year: x.year,
           artistId: x.artistId,
         }))
@@ -30,7 +32,9 @@ const AlbumsWithData: FC = () => {
           id: x.id,
           title: x.title,
           artist: x.artist,
-          cover: x.albumArt ? `http://localhost:6062/covers/${x.albumArt}` : "",
+          cover: x.albumArt
+            ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
+            : "",
           year: x.year,
           artistId: x.artistId,
         }))
@@ -45,7 +49,9 @@ const AlbumsWithData: FC = () => {
           id: x.id,
           title: x.title,
           artist: x.artist,
-          cover: x.albumArt ? `http://localhost:6062/covers/${x.albumArt}` : "",
+          cover: x.albumArt
+            ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
+            : "",
           year: x.year,
           artistId: x.artistId,
         }))

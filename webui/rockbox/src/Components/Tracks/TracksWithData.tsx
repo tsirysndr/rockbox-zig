@@ -1,10 +1,10 @@
 import { FC, useEffect, useState } from "react";
-import Tracks from "./Tracks";
+import { useRecoilValue } from "recoil";
 import { usePlayAllTracksMutation, useTracksQuery } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 import { Track } from "../../Types/track";
-import { useRecoilValue } from "recoil";
 import { filterState } from "../Filter/FilterState";
+import Tracks from "./Tracks";
 
 const TracksWithData: FC = () => {
   const filter = useRecoilValue(filterState);
@@ -24,7 +24,7 @@ const TracksWithData: FC = () => {
           album: x.album,
           time: formatTime(x.length),
           albumArt: x.albumArt
-            ? `http://localhost:6062/covers/${x.albumArt}`
+            ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
             : undefined,
           albumId: x.albumId,
           artistId: x.artistId,
@@ -43,7 +43,7 @@ const TracksWithData: FC = () => {
           album: x.album,
           time: formatTime(x.length),
           albumArt: x.albumArt
-            ? `http://localhost:6062/covers/${x.albumArt}`
+            ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
             : undefined,
           albumId: x.albumId,
           artistId: x.artistId,
@@ -68,7 +68,7 @@ const TracksWithData: FC = () => {
         album: x.album,
         time: formatTime(x.length),
         albumArt: x.albumArt
-          ? `http://localhost:6062/covers/${x.albumArt}`
+          ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
           : undefined,
         albumId: x.albumId,
         artistId: x.artistId,

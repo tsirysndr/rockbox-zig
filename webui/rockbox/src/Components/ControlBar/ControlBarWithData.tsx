@@ -1,5 +1,6 @@
+import _ from "lodash";
 import { FC, useEffect } from "react";
-import ControlBar from "./ControlBar";
+import { useRecoilState } from "recoil";
 import {
   useCurrentlyPlayingSongSubscription,
   useGetCurrentTrackQuery,
@@ -17,15 +18,14 @@ import {
   useSeekMutation,
   useUnlikeTrackMutation,
 } from "../../Hooks/GraphQL";
-import { CurrentTrack } from "../../Types/track";
-import _ from "lodash";
-import { useRecoilState } from "recoil";
-import { controlBarState } from "./ControlBarState";
 import { usePlayQueue } from "../../Hooks/usePlayQueue";
 import { useResumePlaylist } from "../../Hooks/useResumePlaylist";
+import { useSettings } from "../../Hooks/useSettings";
+import { CurrentTrack } from "../../Types/track";
 import { likesState } from "../Likes/LikesState";
 import { settingsState } from "../Settings/SettingsState";
-import { useSettings } from "../../Hooks/useSettings";
+import ControlBar from "./ControlBar";
+import { controlBarState } from "./ControlBarState";
 
 const ControlBarWithData: FC = () => {
   const [{ nowPlaying, locked, resumeIndex }, setControlBarState] =
@@ -120,7 +120,7 @@ const ControlBarWithData: FC = () => {
         cover: currentSong?.albumArt
           ? currentSong?.albumArt.startsWith("http")
             ? currentSong.albumArt
-            : `http://localhost:6062/covers/${currentSong?.albumArt}`
+            : `${location.protocol}//${location.host}/covers/${currentSong?.albumArt}`
           : "",
         duration: currentSong?.length || 0,
         progress: currentSong?.elapsed || 0,
@@ -150,7 +150,7 @@ const ControlBarWithData: FC = () => {
       cover: data.currentTrack?.albumArt
         ? data.currentTrack?.albumArt.startsWith("http")
           ? data.currentTrack?.albumArt
-          : `http://localhost:6062/covers/${data.currentTrack?.albumArt}`
+          : `${location.protocol}//${location.host}/covers/${data.currentTrack?.albumArt}`
         : "",
       duration: data.currentTrack?.length || 0,
       progress: data.currentTrack?.elapsed || 0,
