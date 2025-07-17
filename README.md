@@ -31,6 +31,7 @@ Rockbox.
 > [!NOTE] **🐲 It is a work in progress and is not yet ready for use. 🏗️🚧**
 
 ![Preview](./docs/preview.png)
+![Desktop](./docs/desktop.png)
 
 
 ## ✨ Features
