@@ -1,11 +1,11 @@
 import { FC } from "react";
-import ArtistDetails from "./ArtistDetails";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useGetArtistQuery,
   usePlayArtistTracksMutation,
 } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
+import ArtistDetails from "./ArtistDetails";
 
 const ArtistDetailsWithData: FC = () => {
   const navigate = useNavigate();
@@ -21,12 +21,16 @@ const ArtistDetailsWithData: FC = () => {
     data?.artist?.tracks.map((x) => ({
       ...x,
       time: formatTime(x.length),
-      albumArt: x.albumArt ? `http://localhost:6062/covers/${x.albumArt}` : "",
+      albumArt: x.albumArt
+        ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
+        : "",
     })) || [];
   const albums =
     data?.artist?.albums.map((x) => ({
       ...x,
-      cover: x.albumArt ? `http://localhost:6062/covers/${x.albumArt}` : "",
+      cover: x.albumArt
+        ? `${location.protocol}//${location.host}/covers/${x.albumArt}`
+        : "",
     })) || [];
 
   const onPlayAll = (shuffle: boolean) => {

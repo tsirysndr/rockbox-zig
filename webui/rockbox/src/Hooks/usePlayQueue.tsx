@@ -1,12 +1,12 @@
+import _ from "lodash";
 import { useMemo } from "react";
+import { useRecoilValue } from "recoil";
+import { controlBarState } from "../Components/ControlBar/ControlBarState";
+import { deviceState } from "../Components/ControlBar/DeviceList/DeviceState";
 import {
   useGetCurrentPlaylistQuery,
   usePlaylistChangedSubscription,
 } from "./GraphQL";
-import _ from "lodash";
-import { useRecoilValue } from "recoil";
-import { controlBarState } from "../Components/ControlBar/ControlBarState";
-import { deviceState } from "../Components/ControlBar/DeviceList/DeviceState";
 
 export const usePlayQueue = () => {
   const { currentDevice } = useRecoilValue(deviceState);
@@ -30,7 +30,7 @@ export const usePlayQueue = () => {
         cover: x.albumArt
           ? x.albumArt.startsWith("http")
             ? x.albumArt
-            : `http://localhost:6062/covers/${x.albumArt}`
+            : `${location.protocol}//${location.host}/covers/${x.albumArt}`
           : undefined,
       }));
     }
@@ -45,7 +45,7 @@ export const usePlayQueue = () => {
       cover: x.albumArt
         ? x.albumArt.startsWith("http")
           ? x.albumArt
-          : `http://localhost:6062/covers/${x.albumArt}`
+          : `${location.protocol}//${location.host}/covers/${x.albumArt}`
         : undefined,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,7 +64,7 @@ export const usePlayQueue = () => {
         cover: x.albumArt
           ? x.albumArt.startsWith("http")
             ? x.albumArt
-            : `http://localhost:6062/covers/${x.albumArt}`
+            : `${location.protocol}//${location.host}/covers/${x.albumArt}`
           : undefined,
       }));
     }
@@ -79,7 +79,7 @@ export const usePlayQueue = () => {
       cover: x.albumArt
         ? x.albumArt.startsWith("http")
           ? x.albumArt
-          : `http://localhost:6062/covers/${x.albumArt}`
+          : `${location.protocol}//${location.host}/covers/${x.albumArt}`
         : undefined,
     }));
   }, [data, playlistSubscription, resumeIndex]);

@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { useRecoilState } from "recoil";
+import { controlBarState } from "../Components/ControlBar/ControlBarState";
 import {
   useGetCurrentPlaylistQuery,
   useGetGlobalStatusQuery,
@@ -6,8 +8,6 @@ import {
   useResumePlaylistMutation,
   useResumePlaylistTrackMutation,
 } from "./GraphQL";
-import { useRecoilState } from "recoil";
-import { controlBarState } from "../Components/ControlBar/ControlBarState";
 
 export const useResumePlaylist = () => {
   const [{ nowPlaying, resumeIndex }, setControlBarState] =
@@ -33,7 +33,10 @@ export const useResumePlaylist = () => {
       return;
     }
 
-    if (globalStatusData.globalStatus.resumeIndex > -1 && getPlaybackStatusData?.status !== 1) {
+    if (
+      globalStatusData.globalStatus.resumeIndex > -1 &&
+      getPlaybackStatusData?.status !== 1
+    ) {
       resumePlaylist()
         .then((res) => {
           if (res.data?.playlistResume === 0) {
@@ -76,7 +79,7 @@ export const useResumePlaylist = () => {
               : currentSong?.albumArt
               ? currentSong?.albumArt.startsWith("http")
                 ? currentSong.albumArt
-                : `http://localhost:6062/covers/${currentSong?.albumArt}`
+                : `${location.protocol}//${location.host}/covers/${currentSong?.albumArt}`
               : "",
           duration:
             getPlaybackStatusData?.status === 1
