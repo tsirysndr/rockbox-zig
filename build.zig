@@ -1,4 +1,5 @@
 const std = @import("std");
+
 const String = @import("./string.zig").String;
 
 pub const BuildOptions = struct {
@@ -137,8 +138,8 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    exe.defineCMacro("ZIG_APP", null);
-    exe.defineCMacro("ROCKBOX_SERVER", null);
+    exe.root_module.addCMacro("ZIG_APP", "");
+    exe.root_module.addCMacro("ROCKBOX_SERVER", "");
 
     const libfirmware = b.addStaticLibrary(.{
         .name = "firmware",
@@ -152,7 +153,7 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    defineCMacros(libfirmware);
+    addCMacros(libfirmware);
     addIncludePaths(libfirmware);
 
     const libspeex_voice = b.addStaticLibrary(.{
@@ -195,10 +196,10 @@ pub fn build(b: *std.Build) !void {
         },
     });
 
-    libspeex_voice.defineCMacro("HAVE_CONFIG_H", null);
-    libspeex_voice.defineCMacro("ROCKBOX_VOICE_CODEC", null);
-    libspeex_voice.defineCMacro("SPEEX_DISABLE_ENCODER", null);
-    defineCMacros(libspeex_voice);
+    libspeex_voice.root_module.addCMacro("HAVE_CONFIG_H", "");
+    libspeex_voice.root_module.addCMacro("ROCKBOX_VOICE_CODEC", "");
+    libspeex_voice.root_module.addCMacro("SPEEX_DISABLE_ENCODER", "");
+    addCMacros(libspeex_voice);
     addIncludePaths(libspeex_voice);
 
     const librbcodec = b.addStaticLibrary(.{
@@ -213,7 +214,7 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    defineCMacros(librbcodec);
+    addCMacros(librbcodec);
     addIncludePaths(librbcodec);
 
     const libskinparser = b.addStaticLibrary(.{
@@ -228,7 +229,7 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    defineCMacros(libskinparser);
+    addCMacros(libskinparser);
     addIncludePaths(libskinparser);
 
     const libfixedpoint = b.addStaticLibrary(.{
@@ -244,7 +245,7 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    defineCMacros(libfixedpoint);
+    addCMacros(libfixedpoint);
     addIncludePaths(libfixedpoint);
 
     const libuisimulator = b.addStaticLibrary(.{
@@ -260,8 +261,8 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libuisimulator.defineCMacro("HAVE_CONFIG_H", null);
-    defineCMacros(libuisimulator);
+    libuisimulator.root_module.addCMacro("HAVE_CONFIG_H", "");
+    addCMacros(libuisimulator);
     addIncludePaths(libuisimulator);
 
     const libcodec = b.addStaticLibrary(.{
@@ -277,7 +278,7 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    defineCMacros(libcodec);
+    addCMacros(libcodec);
     addIncludePaths(libcodec);
 
     const libtlsf = b.addStaticLibrary(.{
@@ -295,7 +296,7 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    defineCMacros(libtlsf);
+    addCMacros(libtlsf);
     addIncludePaths(libtlsf);
 
     const opus = try build_codec(b, .{
@@ -390,8 +391,8 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libmad.defineCMacro("CODEC", null);
-    defineCMacros(libmad);
+    libmad.root_module.addCMacro("CODEC", "");
+    addCMacros(libmad);
     addIncludePaths(libmad);
 
     const libm4a = b.addStaticLibrary(.{
@@ -410,8 +411,8 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libm4a.defineCMacro("CODEC", null);
-    defineCMacros(libm4a);
+    libm4a.root_module.addCMacro("CODEC", "");
+    addCMacros(libm4a);
     addIncludePaths(libm4a);
 
     const libasf = b.addStaticLibrary(.{
@@ -429,9 +430,9 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libasf.defineCMacro("CODEC", null);
-    libasf.defineCMacro("HAVE_CONFIG_H", null);
-    defineCMacros(libasf);
+    libasf.root_module.addCMacro("CODEC", "");
+    libasf.root_module.addCMacro("HAVE_CONFIG_H", "");
+    addCMacros(libasf);
     addIncludePaths(libasf);
 
     const mpa = try build_codec(b, .{
@@ -468,8 +469,8 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libffmpegFLAC.defineCMacro("CODEC", null);
-    defineCMacros(libffmpegFLAC);
+    libffmpegFLAC.root_module.addCMacro("CODEC", "");
+    addCMacros(libffmpegFLAC);
     addIncludePaths(libffmpegFLAC);
 
     const flac = try build_codec(b, .{
@@ -513,8 +514,8 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libpcm.defineCMacro("CODEC", null);
-    defineCMacros(libpcm);
+    libpcm.root_module.addCMacro("CODEC", "");
+    addCMacros(libpcm);
     addIncludePaths(libpcm);
 
     const wav = try build_codec(b, .{
@@ -545,8 +546,8 @@ pub fn build(b: *std.Build) !void {
         "lib/rbcodec/codecs/librm/rm.c",
     }, .flags = &cflags });
 
-    librm.defineCMacro("CODEC", null);
-    defineCMacros(librm);
+    librm.root_module.addCMacro("CODEC", "");
+    addCMacros(librm);
     addIncludePaths(librm);
 
     const a52 = try build_codec(b, .{
@@ -696,8 +697,8 @@ pub fn build(b: *std.Build) !void {
         },
     });
 
-    libfaad.defineCMacro("CODEC", null);
-    defineCMacros(libfaad);
+    libfaad.root_module.addCMacro("CODEC", "");
+    addCMacros(libfaad);
     addIncludePaths(libfaad);
 
     const faad = try build_codec(b, .{
@@ -927,8 +928,8 @@ pub fn build(b: *std.Build) !void {
         "lib/rbcodec/codecs/demac/libdemac/filter_64_11.c",
     }, .flags = &cflags });
 
-    libdemac.defineCMacro("CODEC", null);
-    defineCMacros(libdemac);
+    libdemac.root_module.addCMacro("CODEC", "");
+    addCMacros(libdemac);
     addIncludePaths(libdemac);
 
     const ape = try build_codec(b, .{
@@ -1305,8 +1306,8 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libemu2413.defineCMacro("CODEC", null);
-    defineCMacros(libemu2413);
+    libemu2413.root_module.addCMacro("CODEC", "");
+    addCMacros(libemu2413);
     addIncludePaths(libemu2413);
 
     const nsf = try build_codec(b, .{
@@ -1393,8 +1394,8 @@ pub fn build(b: *std.Build) !void {
     //    .flags = &cflags,
     //});
 
-    // sid.defineCMacro("CODEC", null);
-    // defineCMacros(sid);
+    // sid.root_module.addCMacro("CODEC",  "");
+    // addCMacros(sid);
     // addIncludePaths(sid);
 
     const kss = try build_codec(b, .{
@@ -1478,8 +1479,8 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libplugin.defineCMacro("PLUGIN", null);
-    defineCMacros(libplugin);
+    libplugin.root_module.addCMacro("PLUGIN", "");
+    addCMacros(libplugin);
     addPluginIncludePaths(libplugin);
 
     const libpluginbitmaps = b.addStaticLibrary(.{
@@ -1561,8 +1562,8 @@ pub fn build(b: *std.Build) !void {
         .flags = &cflags,
     });
 
-    libpluginbitmaps.defineCMacro("PLUGIN", null);
-    defineCMacros(libpluginbitmaps);
+    libpluginbitmaps.root_module.addCMacro("PLUGIN", "");
+    addCMacros(libpluginbitmaps);
     addPluginIncludePaths(libpluginbitmaps);
 
     const chopper = try build_plugin(b, .{
@@ -2917,7 +2918,7 @@ pub fn build(b: *std.Build) !void {
     });
     rocks.dependOn(wormlet);
 
-    defineCMacros(exe);
+    addCMacros(exe);
     addIncludePaths(exe);
 
     exe.addObjectFile(.{
@@ -3626,10 +3627,10 @@ fn build_codec(b: *std.Build, options: BuildOptions) !*std.Build.Step {
     });
 
     for (options.macros) |macro| {
-        codec.defineCMacro(macro, null);
+        codec.root_module.addCMacro(macro, "");
     }
 
-    defineCMacros(codec);
+    addCMacros(codec);
     addIncludePaths(codec);
 
     for (options.link_libraries) |lib| {
@@ -3680,17 +3681,17 @@ fn build_plugin(b: *std.Build, options: BuildOptions) !*std.Build.Step {
         .flags = &cflags,
     });
 
-    plugin.defineCMacro("PLUGIN", null);
+    plugin.root_module.addCMacro("PLUGIN", "");
 
     if (options.is_fft_plugin) {
-        plugin.defineCMacro("FIXED_POINT", "16");
+        plugin.root_module.addCMacro("FIXED_POINT", "16");
     }
 
     if (options.is_mikmod_plugin) {
-        plugin.defineCMacro("MIKMOD_STATIC", null);
+        plugin.root_module.addCMacro("MIKMOD_STATIC", "");
     }
 
-    defineCMacros(plugin);
+    addCMacros(plugin);
     addPluginIncludePaths(plugin);
 
     for (options.link_libraries) |lib| {
@@ -3725,20 +3726,19 @@ fn build_plugin(b: *std.Build, options: BuildOptions) !*std.Build.Step {
     return &rock_file.step;
 }
 
-fn defineCMacros(c: *std.Build.Step.Compile) void {
-    c.defineCMacro("_USE_MISC", null);
-    c.defineCMacro("ROCKBOX", null);
-    c.defineCMacro("MEMORYSIZE", "8");
-    c.defineCMacro("SDLAPP", null);
-    c.defineCMacro("TARGET_ID", "73");
-    c.defineCMacro("TARGET_NAME", "\"sdlapp\"");
-    c.defineCMacro("YEAR", "2024");
-    c.defineCMacro("MONTH", "09");
-    c.defineCMacro("DAY", "01");
-    c.defineCMacro("OS_USE_BYTESWAP_H", null);
-    c.defineCMacro("APPLICATION", null);
-    c.defineCMacro("_GNU_SOURCE", "1");
-    c.defineCMacro("_REENTRANT", null);
+fn addCMacros(c: *std.Build.Step.Compile) void {
+    c.root_module.addCMacro("_USE_MISC", "");
+    c.root_module.addCMacro("ROCKBOX", "");
+    c.root_module.addCMacro("MEMORYSIZE", "8");
+    c.root_module.addCMacro("SDLAPP", "");
+    c.root_module.addCMacro("TARGET_ID", "73");
+    c.root_module.addCMacro("TARGET_NAME", "\"sdlapp\"");
+    c.root_module.addCMacro("YEAR", "2024");
+    c.root_module.addCMacro("MONTH", "09");
+    c.root_module.addCMacro("DAY", "01");
+    c.root_module.addCMacro("OS_USE_BYTESWAP_H", "");
+    c.root_module.addCMacro("APPLICATION", "1");
+    c.root_module.addCMacro("_GNU_SOURCE", "1");
 }
 
 fn addIncludePaths(c: *std.Build.Step.Compile) void {
@@ -4277,7 +4277,6 @@ const codec_cflags = [_][]const u8{
     "-g",
     "-Wno-unused-result",
     "-D_GNU_SOURCE=1",
-    "-D_REENTRANT",
     "-I/home/coder/Documents/github/rockbox/uisimulator/sdl",
     "-Wno-pointer-sign",
     "-Wno-override-init",
@@ -4319,5 +4318,4 @@ const cflags = [_][]const u8{
     "-O2",
     "-Wno-tautological-compare",
     "-Wno-expansion-to-defined",
-    "-DUSB_NONE",
 };

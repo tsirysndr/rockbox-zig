@@ -1415,3 +1415,4 @@ Lyre prototype 1 */
 #define AUDIOHW_SETTING(name, us, nd, st, minv, maxv, defv, expr...)
 
 #endif /* __CONFIG_H__ */
+
