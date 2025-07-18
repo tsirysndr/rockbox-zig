@@ -1060,6 +1060,7 @@ pub struct CbmpBitmapInfoEntry {
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct SystemStatus {
+    pub volume: i32,
     pub resume_index: i32,
     pub resume_crc32: u32,
     pub resume_elapsed: u32,
