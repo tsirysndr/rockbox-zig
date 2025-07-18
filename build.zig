@@ -3875,6 +3875,7 @@ const libfirmware_sources = [_][]const u8{
     "firmware/common/zip.c",
     "firmware/common/adler32.c",
     "firmware/common/inflate.c",
+    "firmware/common/itoa_buf.c",
     "firmware/scroll_engine.c",
     "firmware/arabjoin.c",
     "firmware/bidi.c",
