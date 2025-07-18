@@ -55,7 +55,6 @@
 #define HAVE_LCD_BITMAP
 #define HAVE_LCD_ENABLE
 #define HAVE_LCD_SHUTDOWN
-#define LCD_X1000_FASTSLEEP
 //#define LCD_X1000_DMA_WAITFORFRAME
 
 #define HAVE_BACKLIGHT
@@ -97,7 +96,7 @@
 #define STORAGE_NEEDS_BOUNCE_BUFFER
 
 /* Power management */
-#define CONFIG_BATTERY_MEASURE (VOLTAGE_MEASURE/*|CURRENT_MEASURE*/)
+#define CONFIG_BATTERY_MEASURE (VOLTAGE_MEASURE | PERCENTAGE_MEASURE/*|CURRENT_MEASURE*/)
 #define CONFIG_CHARGING        CHARGING_MONITOR
 #define HAVE_SW_POWEROFF
 
@@ -108,7 +107,6 @@
 #endif
 
 /* Battery */
-#define BATTERY_TYPES_COUNT  1
 #define BATTERY_CAPACITY_DEFAULT 1300 /* default battery capacity */
 #define BATTERY_CAPACITY_MIN 1300  /* min. capacity selectable */
 #define BATTERY_CAPACITY_MAX 1300 /* max. capacity selectable */

@@ -65,6 +65,7 @@
 #include "misc.h" /* current activity */
 #endif
 #include "playlist.h"
+#include "tree.h"
 
 #include "voice_thread.h"
 
@@ -72,10 +73,6 @@
 #include "governor-ibasso.h"
 #include "usb-ibasso.h"
 #endif
-
-#define NVRAM(bytes) (bytes<<F_NVRAM_MASK_SHIFT)
-/** NOTE: NVRAM_CONFIG_VERSION is in settings_list.h
-     and you may need to update it if you edit this file */
 
 #define UNUSED {.RESERVED=NULL}
 #define INT(a) {.int_ = a}
@@ -122,11 +119,18 @@
             BOOL_SETTING(flags,var,lang_id,default,name,off_on,             \
                 LANG_SET_BOOL_YES,LANG_SET_BOOL_NO,cb)
 
-/* int variable which is NOT saved to .cfg files,
-    (Use NVRAM() in the flags to save to the nvram (or nvram.bin file) */
-#define SYSTEM_SETTING(flags,var,default)                           \
-            {flags|F_T_INT, &global_status.var,-1, INT(default),    \
-                NULL, UNUSED}
+/*system_status int variable which is saved to resume.cfg */
+#define SYSTEM_STATUS(flags,var,default,name)                \
+            {flags|F_RESUMESETTING|F_T_INT, &global_status.var,-1, \
+             INT(default), name, UNUSED}
+/* system_status settings items will be saved to resume.cfg
+   Use for int which use the set_sound() function to set them
+   These items WILL be included in the users exported settings files
+ */
+#define SYSTEM_STATUS_SOUND(flags,var,lang_id,name,setting)                 \
+            {flags|F_T_INT|F_T_SOUND|F_SOUNDSETTING|F_ALLOW_ARBITRARY_VALS| \
+             F_RESUMESETTING, &global_status.var, lang_id, NODEFAULT,name,  \
+                {.sound_setting=(struct sound_setting[]){{setting}}} }
 
 /* setting which stores as a filename (or another string) in the .cfgvals
     The string must be a char array (which all of our string settings are),
@@ -210,7 +214,7 @@
         {load_from_cfg, write_to_cfg, is_change, set_default}}}}
 
 #define VIEWPORT_SETTING(var,name)      \
-        TEXT_SETTING(F_THEMESETTING,var,name,"-", NULL, NULL)
+        TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY,var,name,"-", NULL, NULL)
 
 /* some sets of values which are used more than once, to save memory */
 static const char off[] = "off";
@@ -220,7 +224,9 @@ static const char off_number_spell[] = "off,number,spell";
 static const int timeout_sec_common[] = {-1,0,1,2,3,4,5,6,7,8,9,10,15,20,25,30,
                                         45,60,90,120,180,240,300,600,900,1200,
                                         1500,1800,2700,3600,4500,5400,6300,7200};
+#if defined(HAVE_RECORDING)
 static const int time_recording_trigger[] = {0,1,2,5,10,15,20,25,30,60,120,300,600};
+#endif
 #if defined(HAVE_BACKLIGHT_FADING_INT_SETTING)
 static const int backlight_fade[] = {0,100,200,300,500,1000,2000,3000,5000,10000};
 #endif
@@ -650,6 +656,13 @@ static void playback_frequency_callback(int sample_rate_hz)
 }
 #endif /* HAVE_PLAY_FREQ */
 
+#ifdef HAVE_ALBUMART
+static void albumart_callback(int mode)
+{
+    set_albumart_mode(mode);
+}
+#endif
+
 /* perform shuffle/unshuffle of the current playlist based on the boolean provided */
 static void shuffle_playlist_callback(bool shuffle)
 {
@@ -678,6 +691,12 @@ static void repeat_mode_callback(int repeat)
         audio_flush_and_reload_tracks();
     }
     (void)repeat;
+}
+
+static void treesort_callback(int value)
+{
+    (void) value;
+    reload_directory();
 }
 
 #ifdef HAVE_QUICKSCREEN
@@ -803,7 +822,7 @@ static void volume_limit_load_from_cfg(void* var, char*value)
 static char* volume_limit_write_to_cfg(void* setting, char*buf, int buf_len)
 {
     int current = *(int*)setting;
-    snprintf(buf, buf_len, "%d", current);
+    itoa_buf(buf, buf_len, current);
     return buf;
 }
 static bool volume_limit_is_changed(void* setting, void* defaultval)
@@ -828,8 +847,21 @@ static void hp_lo_select_apply(int arg)
 #endif
 
 const struct settings_list settings[] = {
-    /* sound settings */
-    SOUND_SETTING(F_NO_WRAP, volume, LANG_VOLUME, "volume", SOUND_VOLUME),
+/* system_status settings .resume.cfg */
+    SYSTEM_STATUS_SOUND(F_NO_WRAP, volume, LANG_VOLUME, "volume", SOUND_VOLUME),
+#ifdef HAVE_PITCHCONTROL
+    SYSTEM_STATUS(F_SOUNDSETTING, resume_pitch, PITCH_SPEED_100, "pitch"),
+    SYSTEM_STATUS(F_SOUNDSETTING, resume_speed, PITCH_SPEED_100, "speed"),
+#endif
+    SYSTEM_STATUS(0, resume_index,   -1,     "IDX"),
+    SYSTEM_STATUS(0, resume_crc32,   -1,     "CRC"),
+    SYSTEM_STATUS(0, resume_elapsed, -1,     "ELA"),
+    SYSTEM_STATUS(0, resume_offset,  -1,     "OFF"),
+    SYSTEM_STATUS(0, resume_modified, false, "PLM"),
+    SYSTEM_STATUS(0, runtime,         0,     "CRT"),
+    SYSTEM_STATUS(0, topruntime,      0,     "TRT"),
+    SYSTEM_STATUS(0, last_screen,    -1,     "PVS"),
+/* sound settings */
     CUSTOM_SETTING(F_NO_WRAP, volume_limit, LANG_VOLUME_LIMIT,
                   NULL, "volume limit",
                   volume_limit_load_from_cfg, volume_limit_write_to_cfg,
@@ -972,11 +1004,6 @@ const struct settings_list settings[] = {
     OFFON_SETTING(F_CB_ON_SELECT_ONLY|F_CB_ONLY_IF_CHANGED, playlist_shuffle,
                   LANG_SHUFFLE, false, "shuffle", shuffle_playlist_callback),
 
-    SYSTEM_SETTING(NVRAM(4), resume_index, -1),
-    SYSTEM_SETTING(NVRAM(4), resume_crc32, -1),
-    SYSTEM_SETTING(NVRAM(4), resume_elapsed, -1),
-    SYSTEM_SETTING(NVRAM(4), resume_offset, -1),
-    SYSTEM_SETTING(NVRAM(4), resume_modified, false),
     CHOICE_SETTING(F_CB_ON_SELECT_ONLY|F_CB_ONLY_IF_CHANGED, repeat_mode,
                    LANG_REPEAT, REPEAT_OFF, "repeat", "off,all,one,shuffle"
 #ifdef AB_REPEAT_ENABLE
@@ -999,7 +1026,7 @@ const struct settings_list settings[] = {
                   play_frequency, LANG_FREQUENCY, 0, "playback frequency", "auto",
                   UNIT_KHZ, formatter_freq_unit_0_is_auto,
                   getlang_freq_unit_0_is_auto,
-                  playback_frequency_callback, 
+                  playback_frequency_callback,
 #if HAVE_PLAY_FREQ >= 192
                   7,0,SAMPR_44,SAMPR_48,SAMPR_88,SAMPR_96,SAMPR_176,SAMPR_192),
 #elif HAVE_PLAY_FREQ >= 96
@@ -1012,12 +1039,12 @@ const struct settings_list settings[] = {
 #endif /* HAVE_PLAY_FREQ */
 
 #ifdef HAVE_ALBUMART
-    CHOICE_SETTING(0, album_art, LANG_ALBUM_ART, 1,
-                      "album art", "off,prefer embedded,prefer image file",
-                      NULL, 3,
-                      ID2P(LANG_OFF),
-                      ID2P(LANG_PREFER_EMBEDDED),
-                      ID2P(LANG_PREFER_IMAGE_FILE)),
+    CHOICE_SETTING(F_CB_ON_SELECT_ONLY|F_CB_ONLY_IF_CHANGED, album_art,
+                   LANG_ALBUM_ART, 1, "album art",
+                   "off,prefer embedded,prefer image file",
+                   albumart_callback, 3,
+                   ID2P(LANG_OFF), ID2P(LANG_PREFER_EMBEDDED),
+                   ID2P(LANG_PREFER_IMAGE_FILE)),
 #endif
 
     /* LCD */
@@ -1069,12 +1096,12 @@ const struct settings_list settings[] = {
                     ID2P(LANG_INVERT_CURSOR_POINTER),
                     ID2P(LANG_INVERT_CURSOR_BAR)),
  #endif
-    CHOICE_SETTING(F_THEMESETTING|F_TEMPVAR, statusbar,
+    CHOICE_SETTING(F_THEMESETTING|F_TEMPVAR|F_NEEDAPPLY, statusbar,
                   LANG_STATUS_BAR, STATUSBAR_TOP, "statusbar","off,top,bottom",
                   NULL, 3, ID2P(LANG_OFF), ID2P(LANG_STATUSBAR_TOP),
                   ID2P(LANG_STATUSBAR_BOTTOM)),
 #ifdef HAVE_REMOTE_LCD
-    CHOICE_SETTING(F_THEMESETTING|F_TEMPVAR, remote_statusbar,
+    CHOICE_SETTING(F_THEMESETTING|F_TEMPVAR|F_NEEDAPPLY, remote_statusbar,
                   LANG_REMOTE_STATUSBAR, STATUSBAR_TOP, "remote statusbar","off,top,bottom",
                   NULL, 3, ID2P(LANG_OFF), ID2P(LANG_STATUSBAR_TOP),
                   ID2P(LANG_STATUSBAR_BOTTOM)),
@@ -1117,12 +1144,10 @@ const struct settings_list settings[] = {
                 "idle poweroff", UNIT_MIN, 0,60,1,
                 formatter_time_unit_0_is_off, getlang_time_unit_0_is_off,
                 set_poweroff_timeout),
-    SYSTEM_SETTING(NVRAM(4), runtime, 0),
-    SYSTEM_SETTING(NVRAM(4), topruntime, 0),
     INT_SETTING(F_BANFROMQS, max_files_in_playlist,
                 LANG_MAX_FILES_IN_PLAYLIST,
 #if CONFIG_CPU == PP5002 || CONFIG_CPU == PP5020 || CONFIG_CPU == PP5022
-                  /** Slow CPU benefits greatly from building smaller playlists 
+                  /** Slow CPU benefits greatly from building smaller playlists
                   On the iPod Mini 2nd gen, creating a playlist of 2000 entries takes around 10 seconds */
                   2000,
 #elif MEMORYSIZE > 1
@@ -1168,7 +1193,7 @@ const struct settings_list settings[] = {
 #endif /* IPOD_VIDEO */
 #endif
 #if CONFIG_CHARGING
-    OFFON_SETTING(NVRAM(1), car_adapter_mode,
+    OFFON_SETTING(0, car_adapter_mode,
                   LANG_CAR_ADAPTER_MODE, false, "car adapter mode", NULL),
     INT_SETTING_NOWRAP(0, car_adapter_mode_delay, LANG_CAR_ADAPTER_MODE_DELAY,
                 5, "delay before resume", UNIT_SEC, 5, 30, 5,
@@ -1192,21 +1217,12 @@ const struct settings_list settings[] = {
 #if CONFIG_TUNER
     OFFON_SETTING(0, fm_force_mono, LANG_FM_MONO_MODE,
                   false, "force fm mono", toggle_mono_mode),
-    SYSTEM_SETTING(NVRAM(4), last_frequency, 0),
+    SYSTEM_STATUS(0, last_frequency, 0, "PFQ"),
 #endif
 #if defined(HAVE_RDS_CAP) && defined(CONFIG_RTC)
     OFFON_SETTING(0, sync_rds_time, LANG_FM_SYNC_RDS_TIME, false, "sync_rds_time", NULL),
 #endif
 
-#if BATTERY_TYPES_COUNT > 1
-    CHOICE_SETTING(0, battery_type, LANG_BATTERY_TYPE, 0, "battery type",
-#ifdef XDUOO_X3
-                   "new_2000mAh,old_1500mAh",
-#else
-                   "alkaline,nimh",
-#endif
-                   NULL, 2, ID2P(LANG_BATTERY_TYPE_1), ID2P(LANG_BATTERY_TYPE_2)),
-#endif
 #ifdef HAVE_REMOTE_LCD
     /* remote lcd */
     INT_SETTING(0, remote_contrast, LANG_CONTRAST,
@@ -1399,15 +1415,19 @@ const struct settings_list settings[] = {
     /* file sorting */
     OFFON_SETTING(0, sort_case, LANG_SORT_CASE, false, "sort case", NULL),
     CHOICE_SETTING(0, sort_dir, LANG_SORT_DIR, 0 ,
-                   "sort dirs", "alpha,oldest,newest", NULL, 3,
+                   "sort dirs", "alpha,oldest,newest", treesort_callback, 3,
                    ID2P(LANG_SORT_ALPHA), ID2P(LANG_SORT_DATE),
                    ID2P(LANG_SORT_DATE_REVERSE)),
     CHOICE_SETTING(0, sort_file, LANG_SORT_FILE, 0 ,
-                   "sort files", "alpha,oldest,newest,type", NULL, 4,
+                   "sort files", "alpha,oldest,newest,type", treesort_callback, 4,
                    ID2P(LANG_SORT_ALPHA), ID2P(LANG_SORT_DATE),
                    ID2P(LANG_SORT_DATE_REVERSE) , ID2P(LANG_SORT_TYPE)),
+    CHOICE_SETTING(0, sort_playlists, LANG_SORT_PLAYLISTS, 0 ,
+                   "sort playlists", "alpha,oldest,newest", treesort_callback, 3,
+                   ID2P(LANG_SORT_ALPHA), ID2P(LANG_SORT_DATE),
+                   ID2P(LANG_SORT_DATE_REVERSE)),
     CHOICE_SETTING(0, interpret_numbers, LANG_SORT_INTERPRET_NUMBERS, 1,
-                    "sort interpret number", "digits,numbers",NULL, 2,
+                    "sort interpret number", "digits,numbers",treesort_callback, 2,
                     ID2P(LANG_SORT_INTERPRET_AS_DIGIT),
                     ID2P(LANG_SORT_INTERPRET_AS_NUMBERS)),
     CHOICE_SETTING(0, show_filename_ext, LANG_SHOW_FILENAME_EXT, 3,
@@ -1823,7 +1843,7 @@ const struct settings_list settings[] = {
 #ifdef HAVE_DIRCACHE
     /*enable dircache for all targets > 2MB of RAM by default*/
     OFFON_SETTING(F_BANFROMQS,dircache,LANG_DIRCACHE_ENABLE,true,"dircache",NULL),
-    SYSTEM_SETTING(NVRAM(4),dircache_size,0),
+    SYSTEM_STATUS(0, dircache_size, 0, "DSZ"),
 #endif
 
 #ifdef HAVE_TAGCACHE
@@ -1884,12 +1904,12 @@ const struct settings_list settings[] = {
 #ifdef HAVE_TAGCACHE
                       ID2P(LANG_TAGCACHE),
 #endif
-                      ID2P(LANG_CATALOG)),
+                      ID2P(LANG_PLAYLISTS)),
 
 #ifdef HAVE_BACKLIGHT
     CHOICE_SETTING(0, backlight_on_button_hold,
                    LANG_BACKLIGHT_ON_BUTTON_HOLD,
-#ifdef HAS_BUTTON_HOLD                   
+#ifdef HAS_BUTTON_HOLD
                    1,
 #else
                    0,
@@ -1960,35 +1980,35 @@ const struct settings_list settings[] = {
 #if CONFIG_TUNER
     TEXT_SETTING(0, fmr_file, "fmr", "-",
                      FMPRESET_PATH "/", ".fmr"),
-    TEXT_SETTING(F_THEMESETTING,fms_file, "fms",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY,fms_file, "fms",
                      DEFAULT_FMS_NAME, SBS_DIR "/", ".fms"),
 #ifdef HAVE_REMOTE_LCD
-    TEXT_SETTING(F_THEMESETTING,rfms_file, "rfms",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY,rfms_file, "rfms",
                      DEFAULT_FMS_NAME, SBS_DIR "/", ".rfms"),
 #endif
 #endif /* CONFIG_TUNER */
-    TEXT_SETTING(F_THEMESETTING, font_file, "font",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY, font_file, "font",
                      DEFAULT_FONTNAME, FONT_DIR "/", ".fnt"),
     INT_SETTING(0, glyphs_to_cache, LANG_GLYPHS, DEFAULT_GLYPHS,
                 "glyphs", UNIT_INT, MIN_GLYPHS, MAX_GLYPHS, 10,
                 NULL, NULL, NULL),
 #ifdef HAVE_REMOTE_LCD
-    TEXT_SETTING(F_THEMESETTING, remote_font_file, "remote font",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY, remote_font_file, "remote font",
                      DEFAULT_REMOTE_FONTNAME, FONT_DIR "/", ".fnt"),
 #endif
-    TEXT_SETTING(F_THEMESETTING,wps_file, "wps",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY,wps_file, "wps",
                      DEFAULT_WPSNAME, WPS_DIR "/", ".wps"),
-    TEXT_SETTING(F_THEMESETTING,sbs_file, "sbs",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY,sbs_file, "sbs",
                      DEFAULT_SBSNAME, SBS_DIR "/", ".sbs"),
 #ifdef HAVE_REMOTE_LCD
-    TEXT_SETTING(F_THEMESETTING,rwps_file,"rwps",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY,rwps_file,"rwps",
                      DEFAULT_WPSNAME, WPS_DIR "/", ".rwps"),
-    TEXT_SETTING(F_THEMESETTING,rsbs_file, "rsbs",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY,rsbs_file, "rsbs",
                      DEFAULT_SBSNAME, SBS_DIR "/", ".rsbs"),
 #endif
     TEXT_SETTING(0,lang_file,"lang","",LANG_DIR "/",".lng"),
 #if LCD_DEPTH > 1
-    TEXT_SETTING(F_THEMESETTING,backdrop_file,"backdrop",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY,backdrop_file,"backdrop",
                      DEFAULT_BACKDROP, NULL, NULL),
 #endif
     TEXT_SETTING(0,kbd_file,"kbd","-",ROCKBOX_DIR "/",".kbd"),
@@ -2045,7 +2065,6 @@ const struct settings_list settings[] = {
                    ID2P(LANG_BOOKMARK_MENU_RECENT_BOOKMARKS),
                    ID2P(LANG_OPEN_PLUGIN)
                   ),
-    SYSTEM_SETTING(NVRAM(1),last_screen,-1),
 #if defined(HAVE_RTC_ALARM) && \
     (defined(HAVE_RECORDING) || CONFIG_TUNER)
     {F_T_INT|F_HAS_CFGVALS, &global_settings.alarm_wake_up_screen, LANG_ALARM_WAKEUP_SCREEN,
@@ -2053,20 +2072,20 @@ const struct settings_list settings[] = {
 #endif /* HAVE_RTC_ALARM */
 
     /* Customizable icons */
-    TEXT_SETTING(F_THEMESETTING, icon_file, "iconset", DEFAULT_ICONSET,
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY, icon_file, "iconset", DEFAULT_ICONSET,
                      ICON_DIR "/", ".bmp"),
-    TEXT_SETTING(F_THEMESETTING, viewers_icon_file, "viewers iconset",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY, viewers_icon_file, "viewers iconset",
                      DEFAULT_VIEWERS_ICONSET,
                      ICON_DIR "/", ".bmp"),
 #ifdef HAVE_REMOTE_LCD
-    TEXT_SETTING(F_THEMESETTING, remote_icon_file, "remote iconset", "-",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY, remote_icon_file, "remote iconset", "-",
                      ICON_DIR "/", ".bmp"),
-    TEXT_SETTING(F_THEMESETTING, remote_viewers_icon_file,
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY, remote_viewers_icon_file,
                      "remote viewers iconset", "-",
                      ICON_DIR "/", ".bmp"),
 #endif /* HAVE_REMOTE_LCD */
 #ifdef HAVE_LCD_COLOR
-    TEXT_SETTING(F_THEMESETTING, colors_file, "filetype colours", "-",
+    TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY, colors_file, "filetype colours", "-",
                      THEME_DIR "/", ".colours"),
 #endif
 #ifdef HAVE_BUTTON_LIGHT

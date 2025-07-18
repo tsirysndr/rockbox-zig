@@ -3088,7 +3088,7 @@
   desc: should lines scroll out of the screen
   user: core
   <source>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </source>
   <dest>
     *: "Skjermen kan rulla ut av syne"
@@ -3348,7 +3348,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
     masd: none
   </source>
   <dest>
@@ -3365,7 +3365,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
     masd: none
   </source>
   <dest>
@@ -3704,7 +3704,7 @@
   user: core
   <source>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </source>
   <dest>
     *: none
@@ -3947,7 +3947,7 @@
   desc: in playlist menu.
   user: core
   <source>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </source>
   <dest>
     *: "Søk i speleliste"
@@ -4150,12 +4150,12 @@
   </voice>
 </phrase>
 <phrase>
-  id: VOICE_CURRENT_TIME
-  desc: spoken only, for wall clock announce
+  id: LANG_CURRENT_TIME
+  desc: for wall clock announce
   user: core
   <source>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </source>
   <dest>
     *: none
@@ -4163,6 +4163,7 @@
   </dest>
   <voice>
     *: none
+    rtc: ""
   </voice>
 </phrase>
 <phrase>
@@ -4465,7 +4466,7 @@
   user: core
   <source>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </source>
   <dest>
     *: none
@@ -4731,10 +4732,10 @@
   desc: in browse_id3
   user: core
   <source>
-    *: " (VBR)"
+    *: "(VBR)"
   </source>
   <dest>
-    *: " (VBR)"
+    *: "(VBR)"
   </dest>
   <voice>
     *: "VBR"
@@ -8195,7 +8196,7 @@
   user: core
   <source>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </source>
   <dest>
     *: none
@@ -9779,8 +9780,8 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RESET_ASK
-  desc: confirm to reset settings
+  id: LANG_ARE_YOU_SURE
+  desc: confirm action
   user: core
   <source>
     *: "Are You Sure?"
@@ -9812,7 +9813,7 @@
   user: core
   <source>
     *: none
-    recording: "Set As Recording Directory"
+    recording: "Set as Recording Directory"
   </source>
   <dest>
     *: none
@@ -10237,7 +10238,7 @@
   user: core
   <source>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </source>
   <dest>
     *: none
@@ -10481,7 +10482,7 @@
 </phrase>
 <phrase>
   id: VOICE_OK
-  desc: spoken only, On exiting a context, specifically the quick screen
+  desc: spoken only, on exiting a context, specifically the quick screen
   user: core
   <source>
     *: ""

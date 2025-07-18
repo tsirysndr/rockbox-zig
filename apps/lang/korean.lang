@@ -242,8 +242,8 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RESET_ASK
-  desc: confirm to reset settings
+  id: LANG_ARE_YOU_SURE
+  desc: confirm action
   user: core
   <source>
     *: "Are You Sure?"
@@ -427,7 +427,7 @@
 </phrase>
 <phrase>
   id: LANG_PLAYLISTS
-  desc: in the file view setting
+  desc: in the main menu and Playlist settings menu
   user: core
   <source>
     *: "Playlists"
@@ -2758,7 +2758,7 @@
   desc: should lines scroll out of the screen
   user: core
   <source>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </source>
   <dest>
     *: "화면 스크롤이 보이지 않음"
@@ -3044,7 +3044,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
   </source>
   <dest>
     *: "최소 범위"
@@ -3058,7 +3058,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
   </source>
   <dest>
     *: "최대 범위"
@@ -3371,63 +3371,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BATTERY_TYPE
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Battery Type"
-  </source>
-  <dest>
-    *: none
-    battery_types: "배터리 유형"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "배터리 유형"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_1
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Alkaline"
-    xduoox3: "Newer (2000 mAh)"
-  </source>
-  <dest>
-    *: none
-    battery_types: "알카라인"
-    xduoox3: "최신 (2000 mAh)"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "알카라인"
-    xduoox3: "최신 2000 밀리암페어 시간"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_2
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "NiMH"
-    xduoox3: "Older (1500 mAh)"
-  </source>
-  <dest>
-    *: none
-    battery_types: "~NiMH"
-    xduoox3: "오래됨 (1500 mAh)"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "니켈 수소"
-    xduoox3: "오래됨 1500 밀리암페어 시간"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_DISK_MENU
   desc: in the system sub menu
   user: core
@@ -3557,8 +3500,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -3567,8 +3510,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "재생 버튼 = 설정"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "선택 버튼 = 설정"
-    gogearsa9200,samsungyh*: "재생 버튼 = 설정"
     iriverh100,iriverh120,iriverh300: "탐색 버튼 = 설정"
     mpiohd300: "진입 버튼 = 설정"
     mrobe500: "하트 버튼 = 설정"
@@ -3577,7 +3520,6 @@
   </dest>
   <voice>
     *: none
-    gigabeat*,gogearsa9200,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh100,iriverh10_5gb,iriverh120,iriverh300,mrobe100,rtc,samsungyh*,sansac200*,sansae200*: ""
   </voice>
 </phrase>
 <phrase>
@@ -3586,8 +3528,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -3600,8 +3542,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "뒤로가기 버튼 = 반복"
     gigabeatfx,mrobe500: "전원 버터느 = 반복"
-    gigabeats,sansafuzeplus: "뒤로가기 버튼 = 반복"
     gogearsa9200: "왼쪽 버튼 = 반복"
     iaudiom5,iaudiox5: "녹음 버튼 = 반복"
     ipod*,mpiohd300,sansac200*: "메뉴 버튼 = 반복"
@@ -3614,7 +3556,6 @@
   </dest>
   <voice>
     *: none
-    gigabeat*,gogearsa9200,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh100,iriverh10_5gb,iriverh120,iriverh300,mrobe100,rtc,samsungyh*,sansac200*,sansae200*: ""
   </voice>
 </phrase>
 <phrase>
@@ -4048,7 +3989,7 @@
   user: core
   <source>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </source>
   <dest>
     *: none
@@ -4692,7 +4633,7 @@
   </dest>
   <voice>
     *: none
-    radio: ""
+    radio: "검색 중"
   </voice>
 </phrase>
 <phrase>
@@ -5055,7 +4996,7 @@
   user: core
   <source>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </source>
   <dest>
     *: none
@@ -5805,20 +5746,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CATALOG
-  desc: in main menu and onplay menu
-  user: core
-  <source>
-    *: "Playlist Catalogue"
-  </source>
-  <dest>
-    *: "재생목록 카탈로그"
-  </dest>
-  <voice>
-    *: "재생목록 카탈로그"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_RECURSE_DIRECTORY
   desc: In playlist menu
   user: core
@@ -6179,7 +6106,7 @@
   desc: in playlist menu.
   user: core
   <source>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </source>
   <dest>
     *: "재생목록에서 검색"
@@ -6529,10 +6456,10 @@
   desc: in browse_id3
   user: core
   <source>
-    *: " (VBR)"
+    *: "(VBR)"
   </source>
   <dest>
-    *: " (VBR)"
+    *: "(VBR)"
   </dest>
   <voice>
     *: "VBR"
@@ -6768,7 +6695,7 @@
   user: core
   <source>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </source>
   <dest>
     *: none
@@ -7268,7 +7195,7 @@
     *: "%s을(를) 읽기 실패함"
   </dest>
   <voice>
-    *: ""
+    *: "파일 읽기 실패함"
   </voice>
 </phrase>
 <phrase>
@@ -8706,16 +8633,16 @@
   </voice>
 </phrase>
 <phrase>
-  id: VOICE_CURRENT_TIME
-  desc: spoken only, for wall clock announce
+  id: LANG_CURRENT_TIME
+  desc: for wall clock announce
   user: core
   <source>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </source>
   <dest>
     *: none
-    rtc: ""
+    rtc: "현재 시간"
   </dest>
   <voice>
     *: none
@@ -9174,7 +9101,7 @@
   desc: Relative volume of voice prompts
   user: core
   <source>
-    *: "Voice prompt volume"
+    *: "Voice Prompt Volume"
   </source>
   <dest>
     *: "음성 안내 볼륨"
@@ -9334,7 +9261,7 @@
 </phrase>
 <phrase>
   id: VOICE_OK
-  desc: spoken only, On exiting a context, specifically the quick screen
+  desc: spoken only, on exiting a context, specifically the quick screen
   user: core
   <source>
     *: ""
@@ -9352,7 +9279,7 @@
   user: core
   <source>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </source>
   <dest>
     *: none
@@ -11252,7 +11179,7 @@
   desc: resume settings menu
   user: core
   <source>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </source>
   <dest>
     *: "자동 재시작"
@@ -11398,7 +11325,7 @@
   desc: whether sleep timer starts on power up
   user: core
   <source>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </source>
   <dest>
     *: "부팅 시 절전 타이머 시작"
@@ -11530,7 +11457,7 @@
   desc: whether to restart running sleep timer on keypress
   user: core
   <source>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </source>
   <dest>
     *: "키를 누를 때 절전 타이머 다시 시작"
@@ -12508,20 +12435,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_PLAYTIME_REMAINING
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PLAYTIME_TRK_REMAINING
   desc: playing time screen
   user: core
@@ -13259,48 +13172,6 @@
   </dest>
   <voice>
     *: "레벨 7, 240 분당 40 이동"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_8
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 8: 1 move / 15 min"
-  </source>
-  <dest>
-    *: "레벨 8: 1 이동 / 15 분"
-  </dest>
-  <voice>
-    *: "레벨 8, 15 분당 1 이동"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_9
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 9: 1 move / 60 min"
-  </source>
-  <dest>
-    *: "레벨 9: 1 이동 / 60 분"
-  </dest>
-  <voice>
-    *: "레벨 9, 60 분당 1 이동"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_10
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 10: 1 move / 600 min"
-  </source>
-  <dest>
-    *: "레벨 10: 1 이동 / 600 분"
-  </dest>
-  <voice>
-    *: "레벨 10, 600 분당 1 이동"
   </voice>
 </phrase>
 <phrase>
@@ -14115,16 +13986,16 @@
 </phrase>
 <phrase>
   id: LANG_TOGGLE_ITEM
-  desc: in main_menu_config
+  desc: deprecated
   user: core
   <source>
-    *: "Toggle Item"
+    *: ""
   </source>
   <dest>
-    *: "전환 항목"
+    *: ""
   </dest>
   <voice>
-    *: "전환 항목"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -14185,13 +14056,13 @@
 </phrase>
 <phrase>
   id: LANG_MAIN_MENU_ORDER
-  desc: main_menu_config plugin title
+  desc: deprecated
   user: core
   <source>
-    *: "Rockbox Main Menu Order"
+    *: ""
   </source>
   <dest>
-    *: "록박스 메인 메뉴 순서"
+    *: ""
   </dest>
   <voice>
     *: ""
@@ -14695,20 +14566,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CACHE_REBUILT_NEXT_RESTART
-  desc: in the pictureflow splash messages
-  user: core
-  <source>
-    *: "Cache will be rebuilt on next restart"
-  </source>
-  <dest>
-    *: "다음에 다시 시작할 때 캐시가 다시 작성됨"
-  </dest>
-  <voice>
-    *: "다음에 다시 시작할 때 캐시가 다시 작성됨"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_ERROR_WRITING_CONFIG
   desc: in the pictureflow splash messages
   user: core
@@ -15116,13 +14973,13 @@
   desc: open plugin module
   user: core
   <source>
-    *: "Set Wps Context Plugin"
+    *: "Set WPS Context Plugin"
   </source>
   <dest>
-    *: "Wps 컨텍스트 플러그인 설정"
+    *: "WPS 컨텍스트 플러그인 설정"
   </dest>
   <voice>
-    *: "Wps 컨텍스트 플러그인 설정"
+    *: "WPS 컨텍스트 플러그인 설정"
   </voice>
 </phrase>
 <phrase>
@@ -15150,7 +15007,7 @@
     *: "이름"
   </dest>
   <voice>
-    *: "이름e"
+    *: "이름"
   </voice>
 </phrase>
 <phrase>
@@ -16510,7 +16367,7 @@
     *: "글꼴을 로드할 수 없음: (%s)"
   </dest>
   <voice>
-    *: "저장된 트랙"
+    *: "글꼴을 로드할 수 없음"
   </voice>
 </phrase>
 <phrase>
@@ -16553,5 +16410,509 @@
   </dest>
   <voice>
     *: "재생목록이 완료되었습니다. 다시 재생할까요?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_CURRENT_TO_FAVES
+  desc:
+  user: core
+  <source>
+    *: "Add Current to Shortcuts"
+  </source>
+  <dest>
+    *: "현재 항목을 바로가기에 추가"
+  </dest>
+  <voice>
+    *: "현재 항목을 바로가기에 추가"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_SPECIAL_CHARACTER
+  desc: Special character (japanese, accents, etc)
+  user: core
+  <source>
+    *: "Special character"
+  </source>
+  <dest>
+    *: "특수 문자"
+  </dest>
+  <voice>
+    *: "특수 문자"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ID3_ALBUMARTISTS
+  desc: in tag viewer
+  user: core
+  <source>
+    *: "Album Artists"
+  </source>
+  <dest>
+    *: "앨범 아티스트"
+  </dest>
+  <voice>
+    *: "앨범 아티스트"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "First Letter"
+  </source>
+  <dest>
+    *: "첫 번째 문자"
+  </dest>
+  <voice>
+    *: "첫 번째 문자"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "By First Letter..."
+  </source>
+  <dest>
+    *: "첫 번째 문자로..."
+  </dest>
+  <voice>
+    *: "첫 번째 문자로"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists by First Letter"
+  </source>
+  <dest>
+    *: "첫 번째 문자로 아티스트"
+  </dest>
+  <voice>
+    *: "첫 번째 문자로 아티스트"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUM_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Album Artists by First Letter"
+  </source>
+  <dest>
+    *: "첫 번째 문자로 앨범 아티스트"
+  </dest>
+  <voice>
+    *: "첫 번째 문자로 앨범 아티스트"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUMS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by First Letter"
+  </source>
+  <dest>
+    *: "첫 번째 문자로 앨범"
+  </dest>
+  <voice>
+    *: "첫 번째 문자로 앨범"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_TRACKS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by First Letter"
+  </source>
+  <dest>
+    *: "첫 번째 문자로 트랙"
+  </dest>
+  <voice>
+    *: "첫 번째 문자로 트랙"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists"
+  </source>
+  <dest>
+    *: "아티스트"
+  </dest>
+  <voice>
+    *: "아티스트"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums"
+  </source>
+  <dest>
+    *: "앨범"
+  </dest>
+  <voice>
+    *: "앨범"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks"
+  </source>
+  <dest>
+    *: "트랙"
+  </dest>
+  <voice>
+    *: "트랙"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHUFFLE_SONGS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Shuffle Songs"
+  </source>
+  <dest>
+    *: "셔플 노래"
+  </dest>
+  <voice>
+    *: "셔플 노래"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILENAME
+  desc: Database and recording menus
+  user: core
+  <source>
+    *: "Filename"
+  </source>
+  <dest>
+    *: "파일이름"
+  </dest>
+  <voice>
+    *: "파일이름"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TITLE_WITH_DURATION
+  desc: Database menu
+  user: core
+  <source>
+    *: "Title (with track duration)"
+  </source>
+  <dest>
+    *: "타이틀 (트랙 길이 포함)"
+  </dest>
+  <voice>
+    *: "트랙 길이 포함하는 타이틀"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USER_RATING
+  desc: Database menu
+  user: core
+  <source>
+    *: "User Rating"
+  </source>
+  <dest>
+    *: "사용자 평점"
+  </dest>
+  <voice>
+    *: "사용자 평점"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search"
+  </source>
+  <dest>
+    *: "검색"
+  </dest>
+  <voice>
+    *: "검색"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search by..."
+  </source>
+  <dest>
+    *: "다음으로 검색..."
+  </dest>
+  <voice>
+    *: "다음으로 검색"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECENTLY_ADDED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently Added"
+  </source>
+  <dest>
+    *: "최근 추가됨"
+  </dest>
+  <voice>
+    *: "최근 추가됨"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_HISTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Playback History"
+  </source>
+  <dest>
+    *: "재생 내역"
+  </dest>
+  <voice>
+    *: "재생 내역"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CUSTOM_MENU
+  desc: Database menu
+  user: core
+  <source>
+    *: "Custom menu"
+  </source>
+  <dest>
+    *: "커스텀 메뉴"
+  </dest>
+  <voice>
+    *: "커스텀 메뉴"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAME_AS_CURRENT
+  desc: Database menu
+  user: core
+  <source>
+    *: "Same as currently played track"
+  </source>
+  <dest>
+    *: "현재 재생중인 트랙과 동일"
+  </dest>
+  <voice>
+    *: "현재 재생중인 트랙과 동일"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIRECTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Directory"
+  </source>
+  <dest>
+    *: "디렉터리"
+  </dest>
+  <voice>
+    *: "디렉터리"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BY_YEAR
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by Year"
+  </source>
+  <dest>
+    *: "연도별 앨범"
+  </dest>
+  <voice>
+    *: "연도별 앨범"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums between Years"
+  </source>
+  <dest>
+    *: "연도별 앨범"
+  </dest>
+  <voice>
+    *: "연도별 앨범"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists between Years"
+  </source>
+  <dest>
+    *: "연도별 아티스트"
+  </dest>
+  <voice>
+    *: "연도별 아티스트"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_MOST_PLAYED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Most played (Plays|Score)"
+  </source>
+  <dest>
+    *: "가장 많이 재생됨 (재생|점수)"
+  </dest>
+  <voice>
+    *: "가장 많이 재생된 점수에 의해 재생됨"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENTLY_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently played tracks"
+  </source>
+  <dest>
+    *: "최근 재생한 트랙"
+  </dest>
+  <voice>
+    *: "최근 재생한 트랙"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEVER_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Never played tracks"
+  </source>
+  <dest>
+    *: "재생한 적이 없는 트랙"
+  </dest>
+  <voice>
+    *: "재생한 적이 없는 트랙"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite artists"
+  </source>
+  <dest>
+    *: "즐겨찾는 아티스트"
+  </dest>
+  <voice>
+    *: "즐겨찾는 아티스트"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite albums"
+  </source>
+  <dest>
+    *: "즐겨찾는 앨범"
+  </dest>
+  <voice>
+    *: "즐겨찾는 앨범"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENT_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recent favourites"
+  </source>
+  <dest>
+    *: "최근 즐겨찾기"
+  </dest>
+  <voice>
+    *: "최근 즐겨찾기"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEW_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "New favourites"
+  </source>
+  <dest>
+    *: "새 즐겨찾기"
+  </dest>
+  <voice>
+    *: "새 즐겨찾기"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FORGOTTEN_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Forgotten favourites"
+  </source>
+  <dest>
+    *: "잊혀진 즐겨찾기"
+  </dest>
+  <voice>
+    *: "잊혀진 즐겨찾기"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by"
+  </source>
+  <dest>
+    *: "다음의 트랙"
+  </dest>
+  <voice>
+    *: "다음의 트랙"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_PLAYLISTS
+  desc: playlists sorting setting
+  user: core
+  <source>
+    *: "Sort Playlists"
+  </source>
+  <dest>
+    *: "재생 목록 정렬"
+  </dest>
+  <voice>
+    *: "재생 목록 정렬"
   </voice>
 </phrase>

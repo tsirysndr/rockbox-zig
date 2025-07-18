@@ -73,9 +73,12 @@
 #elif CONFIG_CPU == S5L8701
 # define USB_DW_PHYSADDR(x)     x
 # define NO_UNCACHED_ADDR       /* Not known how to form uncached addresses */
-#elif CONFIG_CPU == S5L8702
+#elif CONFIG_CPU == S5L8702 || CONFIG_CPU == S5L8720
 # define USB_DW_PHYSADDR(x)     S5L8702_PHYSICAL_ADDR(x)
 # define USB_DW_UNCACHEDADDR(x) S5L8702_UNCACHED_ADDR(x)
+#elif CONFIG_CPU == STM32H743
+# define USB_DW_PHYSADDR(x)     x
+# define NO_UNCACHED_ADDR       /* TODO: maybe implement this */
 #elif !defined(USB_DW_ARCH_SLAVE)
 # error "Must define USB_DW_PHYSADDR / USB_DW_UNCACHEDADDR!"
 #endif
@@ -158,12 +161,14 @@ static const char* const dw_state_str[EP0_NUM_STATES] =
     [EP0_STATUS_OUT]    = "sts_out",
 };
 
+#if 0
 static const char* const dw_resp_str[3] =
 {
     [USB_CONTROL_ACK]     = "ACK",
     [USB_CONTROL_RECEIVE] = "RECV",
     [USB_CONTROL_STALL]   = "STALL",
 };
+#endif
 
 static struct usb_dw_ep usb_dw_ep_list[USB_NUM_ENDPOINTS][USB_DW_NUM_DIRS];
 static struct usb_dw_ep0 ep0;

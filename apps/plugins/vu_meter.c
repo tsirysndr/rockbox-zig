@@ -557,7 +557,7 @@ int screen_foreground;
 #define MAX_PEAK 0x8000
 
 /* gap at the top for left/right etc */
-#define NEEDLE_TOP 25
+#define NEEDLE_TOP SYSFONT_HEIGHT*3+1
 
 /* pow(M_E, 5) * 65536 */
 #define E_POW_5 9726404
@@ -639,13 +639,13 @@ static void save_settings(void) {
 static void change_volume(int delta) {
     int minvol = rb->sound_min(SOUND_VOLUME);
     int maxvol = rb->sound_max(SOUND_VOLUME);
-    int vol = rb->global_settings->volume + delta;
+    int vol = rb->global_status->volume + delta;
 
     if (vol > maxvol) vol = maxvol;
     else if (vol < minvol) vol = minvol;
-    if (vol != rb->global_settings->volume) {
+    if (vol != rb->global_status->volume) {
         rb->sound_set(SOUND_VOLUME, vol);
-        rb->global_settings->volume = vol;
+        rb->global_status->volume = vol;
         rb->lcd_putsxyf(0,0, "%d", vol);
         rb->lcd_update();
         rb->sleep(HZ/12);
@@ -742,28 +742,28 @@ static bool vu_meter_menu(void)
 }
 
 static void draw_analog_minimeters(void) {
-    rb->lcd_mono_bitmap(sound_speaker, quarter_width-28, 12, 4, 8);
+    rb->lcd_mono_bitmap(sound_speaker, quarter_width-28, SYSFONT_HEIGHT+4, 4, 8);
     rb->lcd_set_drawmode(DRMODE_FG);
     if(analog_mini_1<left_needle_top_x)
-        rb->lcd_mono_bitmap(sound_low_level, quarter_width-23, 12, 2, 8);
+        rb->lcd_mono_bitmap(sound_low_level, quarter_width-23, SYSFONT_HEIGHT+4, 2, 8);
     if(analog_mini_2<left_needle_top_x)
-        rb->lcd_mono_bitmap(sound_med_level, quarter_width-21, 12, 2, 8);
+        rb->lcd_mono_bitmap(sound_med_level, quarter_width-21, SYSFONT_HEIGHT+4, 2, 8);
     if(analog_mini_3<left_needle_top_x)
-        rb->lcd_mono_bitmap(sound_high_level, quarter_width-19, 12, 2, 8);
+        rb->lcd_mono_bitmap(sound_high_level, quarter_width-19, SYSFONT_HEIGHT+4, 2, 8);
     if(analog_mini_4<left_needle_top_x)
-        rb->lcd_mono_bitmap(sound_max_level, quarter_width-16, 12, 3, 8);
+        rb->lcd_mono_bitmap(sound_max_level, quarter_width-16, SYSFONT_HEIGHT+4, 3, 8);
 
     rb->lcd_set_drawmode(DRMODE_SOLID);
-    rb->lcd_mono_bitmap(sound_speaker, quarter_width+half_width-30, 12, 4, 8);
+    rb->lcd_mono_bitmap(sound_speaker, quarter_width+half_width-30, SYSFONT_HEIGHT+4, 4, 8);
     rb->lcd_set_drawmode(DRMODE_FG);
     if(analog_mini_1<(right_needle_top_x-half_width))
-        rb->lcd_mono_bitmap(sound_low_level, quarter_width+half_width-25, 12, 2, 8);
+        rb->lcd_mono_bitmap(sound_low_level, quarter_width+half_width-25, SYSFONT_HEIGHT+4, 2, 8);
     if(analog_mini_2<(right_needle_top_x-half_width))
-        rb->lcd_mono_bitmap(sound_med_level, quarter_width+half_width-23, 12, 2, 8);
+        rb->lcd_mono_bitmap(sound_med_level, quarter_width+half_width-23, SYSFONT_HEIGHT+4, 2, 8);
     if(analog_mini_3<(right_needle_top_x-half_width))
-        rb->lcd_mono_bitmap(sound_high_level, quarter_width+half_width-21, 12, 2, 8);
+        rb->lcd_mono_bitmap(sound_high_level, quarter_width+half_width-21, SYSFONT_HEIGHT+4, 2, 8);
     if(analog_mini_4<(right_needle_top_x-half_width))
-        rb->lcd_mono_bitmap(sound_max_level, quarter_width+half_width-18, 12, 3, 8);
+        rb->lcd_mono_bitmap(sound_max_level, quarter_width+half_width-18, SYSFONT_HEIGHT+4, 3, 8);
     rb->lcd_set_drawmode(DRMODE_SOLID);
 }
 
@@ -846,12 +846,12 @@ static void analog_meter(void) {
     rb->lcd_set_drawmode(DRMODE_SOLID);
 
     /* Show Left/Right */
-    rb->lcd_putsxy(quarter_width-12, 12, "Left");
-    rb->lcd_putsxy(half_width+quarter_width-12, 12, "Right");
+    rb->lcd_putsxy(quarter_width-12, SYSFONT_HEIGHT+4, "Left");
+    rb->lcd_putsxy(half_width+quarter_width-12, SYSFONT_HEIGHT+4, "Right");
 
     /* Line above/below  the Left/Right text */
-    rb->lcd_hline(0,LCD_WIDTH-1,9);
-    rb->lcd_hline(0,LCD_WIDTH-1,21);
+    rb->lcd_hline(0,LCD_WIDTH-1,SYSFONT_HEIGHT+1);
+    rb->lcd_hline(0,LCD_WIDTH-1,SYSFONT_HEIGHT*2+5);
 
     for(i=0; i<half_width; i++) {
         rb->lcd_drawpixel(i, (y_values[i])-2);

@@ -39,6 +39,7 @@
 #include "playlist_catalog.h"
 #include "splash.h"
 #include "general.h"
+#include "pathfuncs.h"
 
 /* load a screen to save the playlist passed in (or current playlist if NULL is passed) */
 int save_playlist_screen(struct playlist_info* playlist)
@@ -72,11 +73,11 @@ int save_playlist_screen(struct playlist_info* playlist)
     if (len <= 1) /* root or dynamic playlist */
         create_numbered_filename(temp, directoryonly, PLAYLIST_UNTITLED_PREFIX, ".m3u8",
                                  1 IF_CNFN_NUM_(, NULL));
-    else if (!strcmp((temp + len - 1), "/")) /* dir playlists other than root  */
+    else if (temp[len - 1] == PATH_SEPCH) /* dir playlists other than root  */
     {
         temp[len - 1] = '\0';
 
-        if ((p = strrchr(temp, '/'))) /* use last path component as playlist name */
+        if ((p = strrchr(temp, PATH_SEPCH))) /* use last path component as playlist name */
         {
             strlcat(directoryonly, p, sizeof(directoryonly));
             strlcat(directoryonly, ".m3u8", sizeof(directoryonly));
@@ -85,6 +86,14 @@ int save_playlist_screen(struct playlist_info* playlist)
         else
             create_numbered_filename(temp, directoryonly, PLAYLIST_UNTITLED_PREFIX, ".m3u8",
                                      1 IF_CNFN_NUM_(, NULL));
+    }
+    else if (!playlist) /* current playlist loaded from a playlist file */
+    {
+        if (!file_exists(temp))
+        {
+            splashf(HZ*2, ID2P(LANG_CATALOG_NO_DIRECTORY), temp);
+            return 0;
+        }
     }
 
     if (catalog_pick_new_playlist_name(temp, sizeof(temp),
@@ -148,10 +157,12 @@ MAKE_MENU(currentplaylist_settings_menu, ID2P(LANG_CURRENT_PLAYLIST),
           &show_shuffled_adding_options,
           &show_queue_options);
 
+MENUITEM_SETTING(sort_playlists, &global_settings.sort_playlists, NULL);
 MAKE_MENU(playlist_settings, ID2P(LANG_PLAYLISTS), NULL,
           Icon_Playlist,
-          &viewer_settings_menu, &recursive_dir_insert, &currentplaylist_settings_menu);
+          &sort_playlists, &viewer_settings_menu, &recursive_dir_insert,
+          &currentplaylist_settings_menu);
 MAKE_MENU(playlist_options, ID2P(LANG_PLAYLISTS), NULL,
           Icon_Playlist,
-          &create_playlist_item, &view_cur_playlist,
-          &save_playlist, &clear_catalog_directory_item);
+          &view_cur_playlist, &save_playlist,
+          &create_playlist_item, &clear_catalog_directory_item);

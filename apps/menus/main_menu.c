@@ -57,7 +57,7 @@ static int show_info(void);
 
 static int reset_settings(void)
 {
-    static const char *lines[]={ID2P(LANG_RESET_ASK)};
+    static const char *lines[]={ID2P(LANG_ARE_YOU_SURE), ID2P(LANG_RESET)};
     static const char *yes_lines[]={
         ID2P(LANG_SETTINGS),
         ID2P(LANG_RESET_DONE_CLEAR)
@@ -66,7 +66,7 @@ static int reset_settings(void)
         ID2P(LANG_SETTINGS),
         ID2P(LANG_CANCEL)
     };
-    static const struct text_message message={lines, 1};
+    static const struct text_message message={lines, 2};
     static const struct text_message yes_message={yes_lines, 2};
     static const struct text_message no_message={no_lines, 2};
 
@@ -123,9 +123,9 @@ static int show_credits(void)
 
 static int show_legal(void)
 {
-    if (plugin_load(VIEWERS_DIR "/text_viewer.rock", "/.rockbox/docs/COPYING.txt") != PLUGIN_OK)
+    if (plugin_load(VIEWERS_DIR "/text_viewer.rock", ROCKBOX_DIR "/docs/COPYING.txt") != PLUGIN_OK)
         show_info();
-    if (plugin_load(VIEWERS_DIR "/text_viewer.rock", "/.rockbox/docs/LICENSES.txt") != PLUGIN_OK)
+    if (plugin_load(VIEWERS_DIR "/text_viewer.rock", ROCKBOX_DIR "/docs/LICENSES.txt") != PLUGIN_OK)
         show_info();
     return 0;
 }
@@ -240,7 +240,7 @@ static int info_speak_item(int selected_item, void * data)
 
 #if CONFIG_RTC
         case INFO_TIME:
-            talk_id(VOICE_CURRENT_TIME, false);
+            talk_id(LANG_CURRENT_TIME, false);
             /* fallthrough */
         case INFO_DATE:
             tm = get_time();
@@ -495,6 +495,15 @@ MAKE_MENU(info_menu, ID2P(LANG_SYSTEM), 0, Icon_System_menu,
 /*      INFO MENU                  */
 /***********************************/
 
+static int main_menu_config(void)
+{
+    plugin_load(PLUGIN_APPS_DIR "/main_menu_config.rock", NULL);
+    return 0;
+}
+
+MENUITEM_FUNCTION(main_menu_config_item, 0, ID2P(LANG_MAIN_MENU),
+                  main_menu_config, NULL, Icon_Rockbox);
+
 /***********************************/
 /*    MAIN MENU                    */
 
@@ -509,6 +518,7 @@ MAKE_MENU(main_menu_, ID2P(LANG_SETTINGS), NULL,
 #if CONFIG_RTC
         &timedate_item,
 #endif
+        &main_menu_config_item,
         &manage_settings,
         );
 /*    MAIN MENU                    */

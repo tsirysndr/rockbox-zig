@@ -215,18 +215,35 @@ enum {  ALARM_START_WPS = 0,
 /** virtual pointer stuff.. move to another .h maybe? **/
 /* These define "virtual pointers", which could either be a literal string,
    or a mean a string ID if the pointer is in a certain range.
-   This helps to save space for menus and options. */
+   This helps to save space for menus and options.
+
+   While using 0 as the base address is fastest/simplest,
+   it could result in a nullptr when ID==0 which C compilers try to
+   helpfully "optimize" away.
+
+   NOTE:  VIRT_PTR must point at an *invalid* address in the target
+          memory map!
+*/
 
 #define VIRT_SIZE 0xFFFF /* more than enough for our string ID range */
 #if defined(CPU_S5L87XX)
-/* the S5L87XX has IRAM at 0, so we use 0xffff bytes right after that */
+/* 256K IRAM at 0x0 */
 #define VIRT_PTR ((unsigned char*)0x40000)
-#elif CONFIG_CPU==DM320
-/* the DM320 has IRAM at 0, so we use 0xffff bytes right after that */
+#elif CONFIG_CPU==DM320 || CONFIG_CPU == RK27XX
+/* 4K of IRAM at 0x0 */
 #define VIRT_PTR ((unsigned char*)0x4000)
+#elif defined(CPU_TCC780X)
+/* 1K of IRAM at 0x0 */
+#define VIRT_PTR ((unsigned char*)0x1000)
+#elif CONFIG_CPU == S3C2440 || defined(CPU_PP) || CONFIG_CPU==IMX31L
+/* up to 64MB of DRAM at 0x0 */
+#define VIRT_PTR ((unsigned char*)0x4000000)
+#elif CONFIG_CPU == STM32H743
+/* 64k ITCM at 0x0 */
+#define VIRT_PTR ((unsigned char*)0x10000)
 #else
-/* a location where we won't store strings, 0 is the fastest */
-#define VIRT_PTR ((unsigned char*)0)
+/* offset from 0x0 slightly */
+#define VIRT_PTR ((unsigned char*)sizeof(char*))
 #endif
 
 /* form a "virtual pointer" out of a language ID */
@@ -245,15 +262,11 @@ enum {  ALARM_START_WPS = 0,
 
 
 /** function prototypes **/
-
-/* argument bits for settings_load() */
-#define SETTINGS_RTC (BIT_N(0)) /* only the settings from the RTC nonvolatile RAM */
-#define SETTINGS_HD  (BIT_N(1)) /* only the settings from the disk sector */
-#define SETTINGS_ALL (SETTINGS_RTC|SETTINGS_HD) /* both */
-void settings_load(int which) INIT_ATTR;
+void update_runtime(void);
+void settings_load(void) INIT_ATTR;
 bool settings_load_config(const char* file, bool apply);
 
-void status_save(void);
+void status_save(bool force);
 int settings_save(void);
 void reset_runtime(void);
 /* defines for the options paramater */
@@ -266,6 +279,7 @@ enum {
     SETTINGS_SAVE_RECPRESETS,
 #endif
     SETTINGS_SAVE_EQPRESET,
+    SETTINGS_SAVE_RESUMEINFO,
 };
 bool settings_save_config(int options);
 
@@ -291,6 +305,8 @@ const struct settings_list* find_setting_by_cfgname(const char* name);
 bool cfg_int_to_string(const struct settings_list *setting, int val, char* buf, int buf_len);
 bool cfg_string_to_int(const struct settings_list *setting, int* out, const char* str);
 void cfg_to_string(const struct settings_list *setting, char* buf, int buf_len);
+void string_to_cfg(const char *name, char* value, bool *theme_changed);
+
 bool copy_filename_setting(char *buf, size_t buflen, const char *input,
                            const struct filename_setting *fs);
 bool set_bool_options(const char* string, const bool* variable,
@@ -311,7 +327,7 @@ bool set_int_ex(const unsigned char* string, const char* unit, int voice_unit,
              const char* (*formatter)(char*, size_t, int, const char*),
              int32_t (*get_talk_id)(int, int));
 
-void set_file(const char* filename, char* setting, const int maxlen);
+void set_file(const char* filename, char* setting);
 
 bool set_option(const char* string, const void* variable, enum optiontype type,
                 const struct opt_items* options, int numoptions, void (*function)(int));
@@ -322,10 +338,15 @@ const char* setting_get_cfgvals(const struct settings_list *setting);
 
 struct system_status
 {
+    int volume;     /* audio output volume in decibels range depends on the dac */
     int resume_index;  /* index in playlist (-1 for no active resume) */
     uint32_t resume_crc32; /* crc32 of the name of the file */
     uint32_t resume_elapsed; /* elapsed time in last file */
     uint32_t resume_offset; /* byte offset in mp3 file */
+#ifdef HAVE_PITCHCONTROL
+    int32_t resume_pitch;
+    int32_t resume_speed;
+#endif
     int runtime;       /* current runtime since last charge */
     int topruntime;    /* top known runtime */
 #ifdef HAVE_DIRCACHE
@@ -346,8 +367,6 @@ struct system_status
 struct user_settings
 {
     /* audio settings */
-
-    int volume;     /* audio output volume in decibels range depends on the dac */
     int balance;    /* stereo balance: -100 - +100 -100=left  0=bal +100=right  */
     int bass;       /* bass boost/cut in decibels                               */
     int treble;     /* treble boost/cut in decibels                             */
@@ -663,15 +682,13 @@ struct user_settings
     bool sort_case; /* dir sort order: 0=case insensitive, 1=sensitive */
     int sort_dir;   /* 0=alpha, 1=date (old first), 2=date (new first) */
     int sort_file;  /* 0=alpha, 1=date, 2=date (new first), 3=type */
+    int sort_playlists; /* in playlist catalog 0=alpha, 1=date, 2=date (new first) */
     int interpret_numbers; /* true=strnatcmp, false=strcmp */
 
     /* power settings */
     int poweroff;   /* idle power off timer */
 #if BATTERY_CAPACITY_INC > 0
     int battery_capacity; /* in mAh */
-#endif
-#if BATTERY_TYPES_COUNT > 1
-    int battery_type;  /* for units which can take multiple types (Ondio). */
 #endif
 #ifdef HAVE_SPDIF_POWER
     bool spdif_enable; /* S/PDIF power on/off */
@@ -914,8 +931,6 @@ struct user_settings
     bool playback_log; /* ROCKBOX_DIR/playback.log for tracks played */
 };
 
-/** global variables **/
-extern long lasttime;
 /* global settings */
 extern struct user_settings global_settings;
 /* global status */

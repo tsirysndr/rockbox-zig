@@ -19,6 +19,8 @@
  * KIND, either express or implied.
  *
  ****************************************************************************/
+#include <stdio.h>
+#include <ctype.h>
 #include "config.h"
 #include "system.h"
 #include "kernel.h"
@@ -50,6 +52,36 @@
 #if (defined(IAUDIO_X5) || defined(IAUDIO_M5) || defined(COWON_D2)) \
     && !defined (SIMULATOR)
 #include "pcf50606.h"
+#endif
+
+#if (BATTERY_CAPACITY_DEFAULT > 0)
+extern unsigned short power_history[POWER_HISTORY_LEN];
+extern unsigned short battery_level_disksafe;
+extern unsigned short battery_level_shutoff;
+extern unsigned short percent_to_volt_discharge[11];
+#endif
+#if CONFIG_CHARGING
+extern unsigned short percent_to_volt_charge[11];
+#endif
+
+#ifndef BOOTLOADER
+#include "misc.h"
+#include "splash.h"
+
+struct battery_tables_t device_battery_tables =
+{
+#if (BATTERY_CAPACITY_DEFAULT > 0)
+    .history = power_history,
+    .disksafe = &battery_level_disksafe,
+    .shutoff = &battery_level_shutoff,
+    .discharge = percent_to_volt_discharge,
+#if CONFIG_CHARGING
+    .charge = percent_to_volt_charge,
+#endif
+    .elems = ARRAYLEN(percent_to_volt_discharge),
+#endif
+    .isdefault = true,
+};
 #endif
 
 static int last_sent_battery_level = 100;
@@ -85,12 +117,6 @@ static int battery_capacity = BATTERY_CAPACITY_DEFAULT;
 # define battery_capacity BATTERY_CAPACITY_DEFAULT
 #endif
 
-#if BATTERY_TYPES_COUNT > 1
-static int battery_type = 0;
-#else
-#define battery_type 0
-#endif
-
 /* Power history: power_history[0] is the newest sample */
 unsigned short power_history[POWER_HISTORY_LEN] = {0};
 
@@ -105,9 +131,10 @@ static const char power_thread_name[] = "power";
 /* Time estimation requires 64 bit math so don't use it in the bootloader.
  * Also we need to be able to measure current, and not have a better time
  * estimate source available. */
-#define HAVE_TIME_ESTIMATION \
-    (!defined(BOOTLOADER) && !(CONFIG_BATTERY_MEASURE & TIME_MEASURE) && \
+#if (!defined(BOOTLOADER) && !(CONFIG_BATTERY_MEASURE & TIME_MEASURE) && \
      (defined(CURRENT_NORMAL) || (CONFIG_BATTERY_MEASURE & CURRENT_MEASURE)))
+#define HAVE_TIME_ESTIMATION
+#endif
 
 #if !(CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE)
 int _battery_level(void) { return -1; }
@@ -120,7 +147,7 @@ int _battery_time(void) { return -1; }
 static int time_now; /* Cached to avoid polling too often */
 #endif
 
-#if HAVE_TIME_ESTIMATION
+#ifdef HAVE_TIME_ESTIMATION
 static int time_now;     /* reported time in minutes */
 static int64_t time_cnt; /* reported time in seconds */
 static int64_t time_err; /* error... it's complicated */
@@ -160,7 +187,7 @@ int battery_level(void)
  * on the battery level and the actual current usage. */
 int battery_time(void)
 {
-#if (CONFIG_BATTERY_MEASURE & TIME_MEASURE) || HAVE_TIME_ESTIMATION
+#if (CONFIG_BATTERY_MEASURE & TIME_MEASURE) || defined(HAVE_TIME_ESTIMATION)
     return time_now;
 #else
     return -1;
@@ -245,8 +272,8 @@ static void average_init(void)
     if(!charger_inserted())
 #endif
     {
-        voltage_now += (percent_to_volt_discharge[battery_type][6] -
-                        percent_to_volt_discharge[battery_type][5]) / 2;
+        voltage_now += (percent_to_volt_discharge[6] -
+                        percent_to_volt_discharge[5]) / 2;
     }
 #endif /* HAVE_DISK_STORAGE */
 
@@ -302,8 +329,7 @@ static void send_battery_level_event(int percent)
     }
 }
 
-#if !(CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE) && \
-    (CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE)
+#if CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE
 /* Look into the percent_to_volt_* table and estimate the battery level. */
 static int voltage_to_percent(int voltage, const short* table)
 {
@@ -346,12 +372,12 @@ static int voltage_to_battery_level(int millivolts)
 #endif /* CONFIG_CHARGING >= CHARGING_MONITOR */
     {
         /* DISCHARGING or error state */
-        level = voltage_to_percent(millivolts, percent_to_volt_discharge[battery_type]);
+        level = voltage_to_percent(millivolts, percent_to_volt_discharge);
     }
 
     return level;
 }
-#endif
+#endif /* CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE */
 
 /* Update battery percentage and time remaining information.
  *
@@ -360,7 +386,12 @@ static int voltage_to_battery_level(int millivolts)
  */
 static void battery_status_update(void)
 {
-#if CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE
+#if ((CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE) && (CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE))
+    int level = _battery_level();
+    if (level == -1) {
+        level = voltage_to_battery_level(voltage_now);
+    }
+#elif CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE
     int level = _battery_level();
 #elif CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE
     int level = voltage_to_battery_level(voltage_now);
@@ -371,7 +402,7 @@ static void battery_status_update(void)
 
 #if CONFIG_BATTERY_MEASURE & TIME_MEASURE
     time_now = _battery_time();
-#elif HAVE_TIME_ESTIMATION
+#elif defined(HAVE_TIME_ESTIMATION)
     /* TODO: This is essentially a bad version of coloumb counting,
      * so in theory using coloumb counters when they are available
      * should provide a more accurate result. Also note that this
@@ -429,7 +460,12 @@ void battery_read_info(int *voltage, int *level)
         *voltage = millivolts;
 
     if (level)  {
-#if (CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE)
+#if ((CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE) && (CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE))
+        *level = _battery_level();
+        if (*level == -1) {
+            *level = voltage_to_battery_level(millivolts);
+        }
+#elif (CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE)
         *level = _battery_level();
 #elif (CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE)
         *level = voltage_to_battery_level(millivolts);
@@ -438,19 +474,6 @@ void battery_read_info(int *voltage, int *level)
 #endif
     }
 }
-
-#if BATTERY_TYPES_COUNT > 1
-void set_battery_type(int type)
-{
-    if(type < 0 || type > BATTERY_TYPES_COUNT)
-        type = 0;
-
-    if (type != battery_type) {
-        battery_type = type;
-        battery_status_update(); /* recalculate the battery status */
-    }
-}
-#endif
 
 #if BATTERY_CAPACITY_INC > 0
 void set_battery_capacity(int capacity)
@@ -477,14 +500,16 @@ bool battery_level_safe(void)
 {
 #if defined(NO_LOW_BATTERY_SHUTDOWN)
     return true;
+#elif ((CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE) && (CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE))
+    return voltage_now > battery_level_disksafe;
 #elif CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE
     return percent_now > 0;
 #elif defined(HAVE_BATTERY_SWITCH)
     /* Cannot rely upon the battery reading to be valid and the
      * device could be powered externally. */
-    return input_millivolts() > battery_level_dangerous[battery_type];
+    return input_millivolts() > battery_level_disksafe;
 #else
-    return voltage_now > battery_level_dangerous[battery_type];
+    return voltage_now > battery_level_disksafe;
 #endif
 }
 
@@ -508,14 +533,17 @@ bool query_force_shutdown(void)
 
 #if defined(NO_LOW_BATTERY_SHUTDOWN)
     return false;
+#elif ((CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE) && (CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE))
+    /* If we have both, prefer voltage */
+    return voltage_now < battery_level_shutoff;
 #elif CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE
     return percent_now == 0;
 #elif defined(HAVE_BATTERY_SWITCH)
     /* Cannot rely upon the battery reading to be valid and the
      * device could be powered externally. */
-    return input_millivolts() < battery_level_shutoff[battery_type];
+    return input_millivolts() < battery_level_shutoff;
 #else
-    return voltage_now < battery_level_shutoff[battery_type];
+    return voltage_now < battery_level_shutoff;
 #endif
 }
 
@@ -809,6 +837,185 @@ static void power_thread(void)
     }
 } /* power_thread */
 
+#if (BATTERY_CAPACITY_DEFAULT > 0) && !defined(BOOTLOADER)
+static bool battery_table_readln(int fd, char * buf, size_t bufsz,
+                        const char *name, char **value, int* linect) INIT_ATTR;
+static bool battery_table_readln(int fd, char * buf, size_t bufsz,
+                                    const char *name, char **value, int* linect)
+{
+    /* reads a line from user battery level file skips comments
+    * if name is NULL and the line is a continuation (no setting:)
+    * or name matches the found setting then remaining line contents are returned in value
+    * name if supplied should contain the name of the setting you are searching for */
+    int rd;
+    char *setting;
+    if (name)
+    {
+        /* DEBUGF("%s Searching for '%s'\n", __func__, name); */
+        lseek(fd, 0, SEEK_SET);
+        *linect = 0;
+    }
+
+    while(1)
+    {
+        rd = read_line(fd, buf, bufsz);
+        if (rd > 0)
+        {
+            /*DEBUGF("\nREAD '%s'\n", buf);*/
+            *linect = *linect + 1;
+            if (buf[0] == '#' || buf[0] == '\0')
+                continue; /* skip empty lines and comments to EOL */
+
+            bool found = settings_parseline(buf, &setting, value);
+
+            if (!name) /* if name is not supplied just return value */
+            {
+                *value = buf;
+                if(found) /* expected more values but got a new setting instead */
+                    return false; /* error */
+            }
+            else if (strcasecmp(name, setting) != 0)
+                continue; /* not the correct setting */
+        }
+        break;
+    }
+    return rd > 0;
+}
+#endif
+
+void init_battery_tables(void)
+{
+#if (BATTERY_CAPACITY_DEFAULT > 0) && !defined(BOOTLOADER)
+    /* parse and load user battery levels file */
+#define PWRELEMS (ARRAYLEN(percent_to_volt_discharge))
+
+
+    unsigned short tmparr[PWRELEMS];
+    char buf[MAX_PATH];
+    unsigned int i, bl_op;
+
+    enum { eSHUTOFF = 0, eDISKSAFE, eDISCHARGE, eCHARGE };
+    static const char * const bl_options[4] = {
+        [eSHUTOFF] = "shutoff",
+        [eDISKSAFE] = "disksafe",
+        [eDISCHARGE] = "discharge",
+        [eCHARGE] = "charge"
+    };
+
+    int fd = open(BATTERY_LEVELS_USER, O_RDONLY);
+    int line_num = 0;
+
+    unsigned short val;
+    unsigned short disksafe = *device_battery_tables.disksafe;
+    unsigned short shutoff = *device_battery_tables.shutoff;
+    char *value;
+
+    if (fd < 0)
+        return;
+
+    DEBUGF("%s  %s\n", __func__, BATTERY_LEVELS_USER);
+    /* force order of reads to do error checking of values */
+    for(bl_op = 0; bl_op < ARRAYLEN(bl_options); bl_op++)
+    {
+        if(!battery_table_readln(fd, buf, sizeof(buf),
+           bl_options[bl_op], &value, &line_num))
+        {
+            continue;
+        }
+
+        switch(bl_op)
+        {
+        default:
+            goto error_loading;
+        case eSHUTOFF:
+            /*fall-through*/
+        case eDISKSAFE:
+            /* parse single short */
+            DEBUGF("%s ", bl_options[bl_op]);
+
+            while (*value != '\0' && !isdigit(*value))
+                value++;
+            if (*value)
+            {
+                val = atoi(value);
+                DEBUGF("value = %u\n", val);
+                if (bl_op == eDISKSAFE)
+                {
+                    if (val < shutoff)
+                    {
+                        goto error_loading;
+                    }
+                    disksafe = val;
+                    break;
+                }
+                /* shutoff */
+                shutoff = val;
+                break;
+            }
+            goto error_loading;
+        case eDISCHARGE:
+            /*fall-through*/
+        case eCHARGE:
+            /* parse array of short */
+            DEBUGF("%s = { ", bl_options[bl_op]);
+            val = shutoff; /* don't allow a value lower than shutoff */
+            i = 0;
+            while(i < PWRELEMS)
+            {
+                while (*value != '\0' && !isdigit(*value))
+                    {value++;}
+                if (*value)
+                {
+                    tmparr[i] = atoi(value);
+                    while (isdigit(*value)) /* skip digits just read */
+                        {value++;}
+                    if (tmparr[i] < val)
+                    {
+                        goto error_loading; /* value is not >= previous */
+                    }
+                    val = tmparr[i];
+                    DEBUGF("%u, ", val);
+                    i++;
+                }
+                else if (!battery_table_readln(fd, buf, sizeof(buf),
+                                            NULL, &value, &line_num))
+                {
+                    goto error_loading; /* failed to get another line */
+                }
+
+            } /* while */
+            DEBUGF("}\n");
+
+            /* if we made it here, the values should be OK to use */
+            if (bl_op == eCHARGE)
+            {
+#if CONFIG_CHARGING
+                memcpy(device_battery_tables.charge, &tmparr, PWRELEMS);
+#endif
+                break;
+            }
+            memcpy(device_battery_tables.discharge, &tmparr, PWRELEMS);
+            break;
+        } /* switch */
+    } /* for */
+    close(fd);
+
+    *device_battery_tables.disksafe = disksafe;
+    *device_battery_tables.shutoff = shutoff;
+    device_battery_tables.isdefault = false;
+    battery_status_update();
+
+    return;
+
+error_loading:
+    if (fd >= 0)
+         close(fd);
+    splashf(HZ * 2, "Error line:(%d) loading %s", line_num, BATTERY_LEVELS_USER);
+    DEBUGF("Error line:(%d) loading %s\n", line_num, BATTERY_LEVELS_USER);
+#undef PWRELEMS
+#endif /* ndef BOOTLOADER*/
+}
+
 void powermgmt_init(void)
 {
     create_thread(power_thread, power_stack, sizeof(power_stack), 0,
@@ -976,13 +1183,9 @@ void set_keypress_restarts_sleep_timer(bool enable)
 #ifndef BOOTLOADER
 static void handle_sleep_timer(void)
 {
-    if (!sleeptimer_active)
-      return;
-
-    /* Handle sleeptimer */
     if (TIME_AFTER(current_tick, sleeptimer_endtick)) {
         if (usb_inserted()
-#if CONFIG_CHARGING && !defined(HAVE_POWEROFF_WHILE_CHARGING)
+#if CONFIG_CHARGING
             || charger_input_state != NO_CHARGER
 #endif
         ) {
@@ -1041,9 +1244,8 @@ void handle_auto_poweroff(void)
 #endif
         !usb_inserted() &&
         (audio_stat == 0 ||
-         (audio_stat == (AUDIO_STATUS_PLAY | AUDIO_STATUS_PAUSE) &&
-          !sleeptimer_active))) {
-
+         audio_stat == (AUDIO_STATUS_PLAY | AUDIO_STATUS_PAUSE)))
+    {
         if (TIME_AFTER(tick, last_event_tick + timeout)
 #if !(CONFIG_PLATFORM & PLATFORM_HOSTED)
             && TIME_AFTER(tick, storage_last_disk_activity() + timeout)
@@ -1051,7 +1253,9 @@ void handle_auto_poweroff(void)
         ) {
             // sys_poweroff();
         }
-    } else
+    }
+
+    if (sleeptimer_active)
         handle_sleep_timer();
 #endif
 }

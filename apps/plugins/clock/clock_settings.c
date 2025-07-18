@@ -46,8 +46,9 @@ enum settings_file_status{
 };
 
 struct clock_settings clock_settings;
+bool show_counter;
 
-/* The settings as they exist on the hard disk, so that 
+/* The settings as they exist on the hard disk, so that
  * we can know at saving time if changes have been made */
 struct clock_settings hdd_clock_settings;
 
@@ -57,13 +58,25 @@ static bool settings_needs_saving(struct clock_settings* settings){
 
 void clock_settings_reset(struct clock_settings* settings){
     settings->mode = ANALOG;
-    int i;
-    for(i=0;i<NB_CLOCK_MODES;i++){
-        settings->skin[i]=0;
-    }
-    settings->general.hour_format = H12;
     settings->general.date_format = EUROPEAN;
-    settings->general.show_counter = true;
+    settings->skin[ANALOG] = 1; /* round */
+    settings->skin[DIGITAL] = 1; /* LCD-style */
+    settings->skin[BINARY] = 2; /* LCD-style */
+    for (const char *ptr = rb->str(LANG_VOICED_DATE_FORMAT) ; *ptr; ptr++)
+    {
+        if (*ptr == 'd')
+            break;
+        else if (*ptr == 'Y')
+        {
+            settings->general.date_format = JAPANESE;
+            break;
+        }
+        else if (*ptr == 'A' || *ptr == 'm')
+        {
+            settings->general.date_format = ENGLISH;
+            break;
+        }
+    }
     settings->general.save_settings = true;
     settings->general.idle_poweroff=true;
     settings->general.backlight = ROCKBOX_SETTING;
@@ -102,9 +115,13 @@ void clock_settings_skin_previous(struct clock_settings* settings){
 static enum settings_file_status clock_settings_load(
         struct clock_settings* settings,char* filename){
     int fd = rb->open(filename, O_RDONLY);
-    if(fd >= 0){ /* does file exist? */
+    if(fd >= 0)
+    {
         /* basic consistency check */
-        if(rb->filesize(fd) == sizeof(*settings)){
+        if(rb->filesize(fd) != sizeof(*settings))
+            rb->close(fd);
+        else
+        {
             rb->read(fd, settings, sizeof(*settings));
             rb->close(fd);
             apply_backlight_setting(settings->general.backlight);
@@ -148,62 +165,55 @@ static void draw_message(struct screen* display, int msg, int y){
                       display->getwidth(), message->slide_height);
     display->set_drawmode(DRMODE_SOLID);
     vertical_picture_draw_sprite(display, message, msg,
-                                 0, display->getheight() - 
+                                 0, display->getheight() -
                                     (message->slide_height*y));
 }
 
-void load_settings(void){
+void load_settings(void)
+{
     struct screen* display;
-    FOR_NB_SCREENS(i){
-        display=rb->screens[i];
-        display->clear_display();
-        draw_logo(display);
-        draw_message(display, MESSAGE_LOADING, 1);
-        display->update();
-    }
+    enum settings_file_status load_status = LOADED;
 
-    enum settings_file_status load_status=
-        clock_settings_load(&clock_settings, settings_filename);
+    if (rb->file_exists(settings_filename))
+        load_status = clock_settings_load(&clock_settings, settings_filename);
+    else
+        clock_settings_reset(&clock_settings);
 
-    FOR_NB_SCREENS(i){
-        display=rb->screens[i];
-        if(load_status==LOADED)
-            draw_message(display, MESSAGE_LOADED, 1);
-        else
+    if (load_status != LOADED)
+    {
+        FOR_NB_SCREENS(i)
+        {
+            display = rb->screens[i];
+            display->clear_display();
+            draw_logo(display);
             draw_message(display, MESSAGE_ERRLOAD, 1);
-        display->update();
+            display->update();
+        }
+        rb->sleep(HZ);
     }
     rb->storage_sleep();
-    rb->sleep(HZ);
 }
 
-void save_settings(void){
+void save_settings(void)
+{
     struct screen* display;
-    if(!settings_needs_saving(&clock_settings))
-        return;
+    enum settings_file_status save_status = SAVED;
 
-    FOR_NB_SCREENS(i){
-        display=rb->screens[i];
-        display->clear_display();
-        draw_logo(display);
+    if (settings_needs_saving(&clock_settings))
+        save_status = clock_settings_save(&clock_settings, settings_filename);
 
-        draw_message(display, MESSAGE_SAVING, 1);
-
-        display->update();
-    }
-    enum settings_file_status load_status=
-        clock_settings_save(&clock_settings, settings_filename);
-
-    FOR_NB_SCREENS(i){
-        display=rb->screens[i];
-
-        if(load_status==SAVED)
-            draw_message(display, MESSAGE_SAVED, 1);
-        else
+    if (save_status != SAVED)
+    {
+        FOR_NB_SCREENS(i)
+        {
+            display = rb->screens[i];
+            display->clear_display();
+            draw_logo(display);
             draw_message(display, MESSAGE_ERRSAVE, 1);
-        display->update();
+            display->update();
+        }
+        rb->sleep(HZ);
     }
-    rb->sleep(HZ);
 }
 
 void save_settings_wo_gui(void){

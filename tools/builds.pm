@@ -1,9 +1,9 @@
 # Note!  This is used by the www.rockbox.org infrastructure
 # to know what targets/etc should be displayed, built, and so forth.
 #
-$publicrelease="3.15";
-$releasedate="15 Nov 2019";
-$releasenotes="/wiki/ReleaseNotes315";
+$publicrelease="4.0";
+$releasedate="1 Apr 2025";
+$releasenotes="/wiki/ReleaseNotes400";
 
 ################################################################
 
@@ -15,7 +15,7 @@ $releasenotes="/wiki/ReleaseNotes315";
 #    manual => 'modelname2',             # optional (uses modelname2's manual)
 #    icon => 'modelname3',               # optional (uses modelname3's icon)
 #    voice => 'modelname4'               # optional (uses modelname4's voice)
-#    release => '3.14',                  # optional (final release version, if different from above)
+#    release => '3.14',                  # optional (final release version, if different from above. can be in future)
 #    manualok => 1,                      # optional (defaults 1 for status 3 and 0 for rest)
 # }
 
@@ -453,24 +453,20 @@ $releasenotes="/wiki/ReleaseNotes315";
     'agptekrocker' => {
         name => 'Agptek Rocker',
         status => 3,
-        release => '4.0',  # Remove once 4.0 lands
     },
     'xduoox3' => {
         name => 'xDuoo X3',
         status => 3,
-        release => '4.0',  # Remove once 4.0 lands
     },
     'xduoox3ii' => {
         name => 'xDuoo X3ii',
         manualok => 0,     # Remove when manual is written
         status => 3,
-        release => '4.0',  # Remove once 4.0 lands
     },
     'xduoox20' => {
         name => 'xDuoo X20',
         manualok => 0,     # Remove when manual is written
         status => 3,
-        release => '4.0',  # Remove once 4.0 lands
     },
     'fiiom3klinux' => {
         name => 'FiiO M3K (Linux)',
@@ -479,16 +475,15 @@ $releasenotes="/wiki/ReleaseNotes315";
     'fiiom3k' => {
         name => 'FiiO M3K',
         status => 3,
-        release => '4.0',  # Remove once 4.0 lands
     },
     'aigoerosq' => {
         name => 'AIGO EROS Q / K (Hosted)',
         status => 2,  # Do we promote this to stable?
+        # manual => "erosqnative",
     },
     'erosqnative' => {
         name => 'AIGO EROS Q / K (Native)',
         status => 3,
-        release => '4.0',  # Remove once 4.0 lands
     },
     'ihifi770' => {
         name => 'Xuelin iHIFI 770',
@@ -505,7 +500,6 @@ $releasenotes="/wiki/ReleaseNotes315";
     'shanlingq1' => {
         name => 'Shanling Q1',
         status => 3,
-        release => '4.0',  # Remove once 4.0 lands
     },
 );
 
@@ -615,7 +609,7 @@ sub simbuilds {
 	'lang' => 'bulgarian',
 	'name' => 'Български (Bulgarian)',
         'short' => 'bg',
-        'defengine' => 'espeak',  # XXX Switch to gtts when buildserver is updated
+        'defengine' => 'espeak',
 	'engines' => {
 	    'espeak' => '-vbg',
 	    'gtts' => '-l bg',
@@ -626,7 +620,7 @@ sub simbuilds {
     'chinese-simp' => {  # Mandarin?
 	'lang' => 'chinese-simp',
 	'name' => '简体中文 (Chinese Simplified)',
-        'short' => 'zh_cn',
+        'short' => 'zh-cn',
         'defengine' => 'piper',
 	'engines' => {
 	    'espeak' => '-vzh',
@@ -645,7 +639,7 @@ sub simbuilds {
 	    'gtts' => '-l cs',
 	    'piper' => 'cs_CZ-jirka-medium.onnx',
 	},
-        'enabled' => 1,
+        'enabled' => 0,
     },
     'dansk' => {
 	'lang' => 'dansk',
@@ -743,7 +737,7 @@ sub simbuilds {
 	    'gtts' => '-l el',
             'piper' => 'el_GR-rapunzelina-low.onnx',
 	},
-        'enabled' => 1,
+        'enabled' => 0,
     },
     'italiano' => {
 	'lang' => 'italiano',
@@ -757,7 +751,18 @@ sub simbuilds {
 	},
         'enabled' => 1,
     },
-    'korean' => {  #
+    'japanese' => {
+	'lang' => 'japanese',
+	'name' => '日本語 (Japanese)',
+        'short' => 'ja',
+        'defengine' => 'espeak',
+	'engines' => {
+	    'espeak' => '-vja',
+	    'gtts' => '-l ja',
+	},
+        'enabled' => 1,
+    },
+    'korean' => {
 	'lang' => 'korean',
 	'name' => '한국어 (Korean)',
         'short' => 'ko',
@@ -767,6 +772,18 @@ sub simbuilds {
 	    'gtts' => '-l ko',
 	},
         'enabled' => 1,
+    },
+    'latviesu' => {
+	'lang' => 'latviesu',
+	'name' => 'Latviešu (Latvian)',
+        'short' => 'lv',
+        'defengine' => 'piper',
+	'engines' => {
+	    'espeak' => '-vlv',
+	    'gtts' => '-l lv',
+            'piper' => 'lv_LV-aivars-medium.onnx',
+	},
+	'enabled' => 1,
     },
     'nederlands' => {
 	'lang' => 'nederlands',
@@ -790,6 +807,18 @@ sub simbuilds {
 	    'gtts' => '-l no',
             'piper' => 'no_NO-talesyntese-medium.onnx',
 	},
+        'enabled' => 0,
+    },
+    'moldoveneste' => {
+	'lang' => 'moldoveneste',
+	'name' => 'Moldovenească (Moldavian)',
+        'short' => 'ro-md',
+        'defengine' => 'piper',
+	'engines' => {
+	    'espeak' => '-vro',
+	    'gtts' => '-t md -l ro',
+            'piper' => 'ro_RO-mihai-medium.onnx',
+	},
         'enabled' => 1,
     },
     'polski' => {
@@ -801,6 +830,30 @@ sub simbuilds {
 	    'espeak' => '-vpl',
 	    'gtts' => '-l pl',
             'piper' => 'pl_PL-gosia-medium.onnx',
+	},
+        'enabled' => 1,
+    },
+    'portugues-brasileiro' => {
+	'lang' => 'portugues-brasileiro',
+	'name' => 'Portuguese (Brazilian)',
+        'short' => 'pt-br',
+        'defengine' => 'piper',
+	'engines' => {
+	    'espeak' => '-vpt-br',
+	    'gtts' => '-l pt -t br',
+            'piper' => 'pt_BR-faber-medium.onnx',
+	},
+        'enabled' => 1,
+    },
+    'romaneste' => {
+	'lang' => 'romaneste',
+	'name' => 'Română (Romanian)',
+        'short' => 'ro',
+        'defengine' => 'piper',
+	'engines' => {
+	    'espeak' => '-vro',
+	    'gtts' => '-l ro',
+            'piper' => 'ro_RO-mihai-medium.onnx',
 	},
         'enabled' => 1,
     },
@@ -843,14 +896,14 @@ sub simbuilds {
     'svenska' => {
 	'lang' => 'svenska',
 	'name' => 'Svenska (Swedish)',
-        'short' => 'sr',
+        'short' => 'sv',
         'defengine' => 'piper',
 	'engines' => {
 	    'espeak' => '-vsv',
 	    'gtts' => '-l sv',
             'piper' => 'sv_SE-nst-medium.onnx',
 	},
-        'enabled' => 0,
+        'enabled' => 1,
     },
     'turkce' => {
 	'lang' => 'turkce',
@@ -861,6 +914,18 @@ sub simbuilds {
 	    'espeak' => '-vtr',
 	    'gtts' => '-l tr',
             'piper' => 'tr_TR-fettah-medium.onnx',
+	},
+        'enabled' => 1,
+    },
+    'ukrainian' => {
+	'lang' => 'ukrainian',
+	'name' => 'украї́нська (Ukrainian)',
+        'short' => 'uk',
+        'defengine' => 'piper',
+	'engines' => {
+	    'espeak' => '-vuk',
+	    'gtts' => '-l uk',
+            'piper' => 'uk_UA-ukrainian_tts-medium.onnx',
 	},
         'enabled' => 1,
     },

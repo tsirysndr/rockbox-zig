@@ -5,10 +5,11 @@
 
 \subsection{\label{ref:CustomisingTheMainMenu}Customising The Main Menu}
 
-It is possible to customise the main menu, i.e. to reorder or to hide some
-of its items (only the main menu can be customised, submenus can not).
-To accomplish this, load a \fname{.cfg} file (as described in
-\reference{ref:manage_settings}) containing the following line:
+The easiest way to reorder or to hide menu items is via the settings menu
+(see \reference{ref:main_menu_config}).
+
+To accomplish this using a text editor instead, load a \fname{.cfg} file
+(as described in \reference{ref:manage_settings}) containing the following line:
 \config{root~menu~order:items}, where ``items'' is a comma separated list
 (no spaces around the commas!) of the following
 words: \config{bookmarks}, \config{files}, \opt{tagcache}{\config{database}, }%
@@ -32,16 +33,12 @@ for changing the settings (the latter will be added automatically).
 To reset the menu items to the default, use \config{root~menu~order:-} (i.e.
 use a hyphen instead of ``items'').
 
-This configuration entry can only be created and edited with a text editor or
-the Main Menu Config Plugin (see \reference{ref:main_menu_config}).
-It is not possible to change this setting via the settings menu.
-
 \subsection{\label{ref:CustomisingThePlayername}Customising The Playername}
 
-Some themes (Cabbiev2) show a customizable playername in the Whats Playing Screen.
+Some themes show a customizable playername in the Whats Playing Screen.
 Edit the first line of \fname{/.rockbox/playername.txt} to show your own message
-or leave an empty file to disable the feature, deleting the file will generate a new
-playername.txt file containing 'Rockbox!' next boot.
+or leave an empty file to disable the feature. Deleting the file will generate a new
+playername.txt file containing ``\playername'' on the next boot.
 
 \subsection{\label{ref:OpenPlugins}Open Plugin Menu Items}
 
@@ -741,7 +738,7 @@ current version.
   disables the backlight after timeout (for setting \setting{Backlight} see
   \reference{ref:Displayoptions}). Avoid having the backlight enabled all the
   time (Activating \setting{selectivebacklight}
-  \reference{ref:selectivebacklight} can further reduce power consumption).
+  \reference{ref:Displayoptions} can further reduce power consumption).
 
 \opt{lcd_sleep}{
 \subsection{Display power-off}

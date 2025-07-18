@@ -39,9 +39,7 @@
 #include "option_select.h"
 #include "debug.h"
 #include "shortcuts.h"
-#ifdef HAVE_ALBUMART
-#include "playback.h"
-#endif
+#include "appevents.h"
 
  /* 1 top, 1 bottom, 2 on either side, 1 for the icons
   * if enough space, top and bottom have 2 lines */
@@ -51,6 +49,18 @@
   * and between text and parent boundaries */
 #define MARGIN 10
 #define CENTER_ICONAREA_SIZE (MARGIN+8*2)
+
+static bool redraw;
+
+static void quickscreen_update_callback(unsigned short id,
+                                        void *data, void *userdata)
+{
+    (void)id;
+    (void)data;
+    (void)userdata;
+
+    redraw = true;
+}
 
 static void quickscreen_fix_viewports(struct gui_quickscreen *qs,
                                         struct screen *display,
@@ -335,6 +345,8 @@ static int gui_syncquickscreen_run(struct gui_quickscreen * qs, int button_enter
 
     push_current_activity(ACTIVITY_QUICKSCREEN);
 
+    add_event_ex(GUI_EVENT_NEED_UI_UPDATE, false, quickscreen_update_callback, NULL);
+
     FOR_NB_SCREENS(i)
     {
         screens[i].set_viewport(NULL);
@@ -355,6 +367,13 @@ static int gui_syncquickscreen_run(struct gui_quickscreen * qs, int button_enter
     if (qs->items[QUICKSCREEN_LEFT] != qs->items[QUICKSCREEN_RIGHT])
         talk_qs_option(qs->items[QUICKSCREEN_RIGHT], true);
     while (true) {
+        if (redraw)
+        {
+            redraw = false;
+            FOR_NB_SCREENS(i)
+                gui_quickscreen_draw(qs, &screens[i], &parent[i],
+                                     vps[i], &vp_icons[i]);
+        }
         button = get_action(CONTEXT_QUICKSCREEN, HZ/5);
 #ifdef HAVE_TOUCHSCREEN
         if (button == ACTION_TOUCHSCREEN)
@@ -369,11 +388,7 @@ static int gui_syncquickscreen_run(struct gui_quickscreen * qs, int button_enter
         {
             ret |= QUICKSCREEN_CHANGED;
             can_quit = true;
-            FOR_NB_SCREENS(i)
-                gui_quickscreen_draw(qs, &screens[i], &parent[i],
-                                     vps[i], &vp_icons[i]);
-            if (qs->callback)
-                qs->callback(qs);
+            redraw = true;
         }
         else if (button == button_enter)
             can_quit = true;
@@ -412,15 +427,14 @@ static int gui_syncquickscreen_run(struct gui_quickscreen * qs, int button_enter
     else
         pop_current_activity();
 
+    remove_event_ex(GUI_EVENT_NEED_UI_UPDATE, quickscreen_update_callback, NULL);
+
     return ret;
 }
 
 int quick_screen_quick(int button_enter)
 {
     struct gui_quickscreen qs;
-#ifdef HAVE_ALBUMART
-    int old_album_art = global_settings.album_art;
-#endif
     bool usb = false;
 
     for (int i = 0; i < 4; ++i)
@@ -431,16 +445,9 @@ int quick_screen_quick(int button_enter)
             qs.items[i] = NULL;
     }
 
-    qs.callback = NULL;
     int ret = gui_syncquickscreen_run(&qs, button_enter, &usb);
     if (ret & QUICKSCREEN_CHANGED)
-    {
         settings_save();
-#ifdef HAVE_ALBUMART
-        if (old_album_art != global_settings.album_art)
-            set_albumart_mode(global_settings.album_art);
-#endif
-    }
     if (usb)
         return QUICKSCREEN_IN_USB;
     return ret & QUICKSCREEN_GOTO_SHORTCUTS_MENU ? QUICKSCREEN_GOTO_SHORTCUTS_MENU :

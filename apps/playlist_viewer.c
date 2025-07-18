@@ -774,6 +774,8 @@ static enum pv_context_result context_menu(int index)
                 return show_track_info(current_track);
             case 5:
                 /* shuffle */
+                if (!yesno_pop_confirm(ID2P(LANG_SHUFFLE)))
+                    return PV_CONTEXT_UNCHANGED;
                 playlist_sort(viewer.playlist, !viewer.playlist);
                 playlist_randomise(viewer.playlist, current_tick, !viewer.playlist);
                 viewer.selected_track = 0;
@@ -1253,6 +1255,7 @@ bool search_playlist(void)
     int found_indicies_count = 0, last_found_count = -1;
     int button;
     int track_display = global_settings.playlist_viewer_track_display;
+    long talked_tick = 0;
     struct gui_synclist playlist_lists;
     struct playlist_track_info track;
 
@@ -1271,6 +1274,14 @@ bool search_playlist(void)
     {
         if (found_indicies_count != last_found_count)
         {
+            if (global_settings.talk_menu &&
+                TIME_AFTER(current_tick, talked_tick + (HZ * 5)))
+            {
+                talked_tick = current_tick;
+                talk_number(found_indicies_count, false);
+                talk_id(LANG_PLAYLIST_SEARCH_MSG, true);
+            }
+            /* (voiced above) */
             splashf(0, str(LANG_PLAYLIST_SEARCH_MSG), found_indicies_count,
                        str(LANG_OFF_ABORT));
             last_found_count = found_indicies_count;
@@ -1293,7 +1304,7 @@ bool search_playlist(void)
 
     cpu_boost(false);
 
-    cond_talk_ids_fq(TALK_ID(found_indicies_count, UNIT_INT),
+    cond_talk_ids_fq(LANG_ALL, TALK_ID(found_indicies_count, UNIT_INT),
                      LANG_PLAYLIST_SEARCH_MSG);
     if (!found_indicies_count)
     {

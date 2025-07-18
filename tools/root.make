@@ -24,7 +24,6 @@ TOOLS = $(TOOLSDIR)/rdf2binary $(TOOLSDIR)/convbdf \
 	$(TOOLSDIR)/iaudio_bl_flash.h
 TOOLS += $(foreach tool,$(TOOLSET),$(TOOLSDIR)/$(tool))
 
-
 ifeq (,$(PREFIX))
 ifdef APP_TYPE
 # for sims, set simdisk/ as default
@@ -51,7 +50,7 @@ RBINFO = $(BUILDDIR)/rockbox-info.txt
 
 .PHONY: all clean tags zip tools manual bin build info langs
 
-ifeq (,$(filter clean veryclean reconf tags voice voicetools manual manual-pdf manual-html manual-zhtml manual-txt manual-ztxt manual-zip help fontzip ,$(MAKECMDGOALS)))
+ifeq (,$(filter clean veryclean reconf tags voice voicetools manual manual-pdf manual-html manual-zhtml manual-txt manual-ztxt manual-zip manual-7zip help fontzip ,$(MAKECMDGOALS)))
 # none of the above
 DEPFILE = $(BUILDDIR)/make.dep
 
@@ -106,12 +105,8 @@ endif
 ifneq (,$(findstring bootloader,$(APPSDIR)))
   ifneq (,$(findstring sonynwz,$(APP_TYPE)))
     include $(ROOTDIR)/firmware/target/hosted/sonynwz/sonynwz.make
-  else ifneq (,$(findstring rocker,$(APP_TYPE)))
-    include $(ROOTDIR)/firmware/target/hosted/agptek/rocker.make
-  else ifneq (,$(findstring xduoo,$(APP_TYPE)))
-    include $(ROOTDIR)/firmware/target/hosted/xduoo/xduoo.make
-  else ifneq (,$(findstring erosq,$(APP_TYPE)))
-    include $(ROOTDIR)/firmware/target/hosted/aigo/erosq.make
+  else ifneq (,$(findstring hibyos,$(APP_TYPE)))
+    include $(ROOTDIR)/firmware/target/hosted/hibyos.make
   else ifneq (,$(findstring fiio,$(APP_TYPE)))
     include $(ROOTDIR)/firmware/target/hosted/fiio/fiio.make
   else ifneq (,$(findstring ingenic_x1000,$(MANUFACTURER)))
@@ -154,20 +149,12 @@ else # core
     include $(ROOTDIR)/firmware/target/hosted/sonynwz/sonynwz.make
   endif
 
-  ifneq (,$(findstring rocker,$(APP_TYPE)))
-    include $(ROOTDIR)/firmware/target/hosted/agptek/rocker.make
-  endif
-
-  ifneq (,$(findstring xduoo,$(APP_TYPE)))
-    include $(ROOTDIR)/firmware/target/hosted/xduoo/xduoo.make
+  ifneq (,$(findstring hibyos,$(APP_TYPE)))
+    include $(ROOTDIR)/firmware/target/hosted/hibyos.make
   endif
 
   ifneq (,$(findstring fiio,$(APP_TYPE)))
     include $(ROOTDIR)/firmware/target/hosted/fiio/fiio.make
-  endif
-
-  ifneq (,$(findstring erosq,$(APP_TYPE)))
-    include $(ROOTDIR)/firmware/target/hosted/aigo/erosq.make
   endif
 
   ifneq (,$(findstring android_ndk, $(APP_TYPE)))
@@ -224,8 +211,9 @@ veryclean: clean
 clean::
 	$(SILENT)echo Cleaning build directory
 	$(SILENT)rm -rf rockbox.zip rockbox.7z rockbox.tar rockbox.tar.gz \
-		rockbox.tar.bz2 TAGS apps firmware tools comsim sim lang lib \
-		manual *.pdf *.a credits.raw rockbox.ipod bitmaps \
+		rockbox.tar.xz rockbox-full.* rockbox-fonts.* TAGS apps \
+		firmware tools comsim sim lang lib manual \
+		*.pdf *.a credits.raw rockbox.ipod bitmaps \
 		pluginbitmaps UI256.bmp rockbox-full.zip html txt \
 		rockbox-manual*.zip sysfont.h rockbox-info.txt voicefontids \
 		*.wav *.mp3 *.voice *.talk $(CLEANOBJS) \
@@ -314,18 +302,39 @@ tags:
 	$(SILENT)rm -f TAGS
 	$(SILENT)etags -o $(BUILDDIR)/TAGS $(filter-out %.o,$(SRC) $(OTHER_SRC))
 
-fontzip:
-	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m \"$(MODELNAME)\" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" -f 1 -o rockbox-fonts.zip $(TARGET) $(BINARY)
-
 zip: $(BUILDDIR)/rockbox.zip
+7zip: $(BUILDDIR)/rockbox.7z
+tar: $(BUILDDIR)/rockbox.tar
 
-ifdef NODEPS
+fontzip: BUILDZIPOPTS=-f 1
+fontzip: ZIPFILESUFFIX=-fonts
+fontzip: NODEPS=1
+fontzip: zip
+
+font7zip: BUILDZIPOPTS=-f 1
+font7zip: ZIPFILESUFFIX=-fonts
+font7zip: NODEPS=1
+font7zip: 7zip
+
+fullzip: BUILDZIPOPTS=-f 2
+fullzip: ZIPFILESUFFIX=-full
+fullzip: zip
+
+full7zip: BUILDZIPOPTS=-f 2
+full7zip: ZIPFILESUFFIX=-full
+full7zip: 7zip
+
+fulltar: BUILDZIPOPTS=-f 2
+fulltar: ZIPFILESUFFIX=-full
+fulltar: tar
+
+ifneq ($(NODEPS),)
 $(BUILDDIR)/rockbox.zip:
 else
 $(BUILDDIR)/rockbox.zip: build
 endif
-	$(call PRINTS,ZIP $(notdir $@))
-	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m \"$(MODELNAME)\" -i \"$(TARGET_ID)\"  -r "$(ROOTDIR)" --rbdir="$(RBDIR)" $(TARGET) $(BINARY)
+	$(call PRINTS,ZIP rockbox$(ZIPFILESUFFIX).zip)
+	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m \"$(MODELNAME)\" -i \"$(TARGET_ID)\" -o $(BUILDDIR)/rockbox$(ZIPFILESUFFIX).zip -r "$(ROOTDIR)" --rbdir="$(RBDIR)" $(BUILDZIPOPTS) $(TARGET) $(BINARY)
 
 mapzip:
 	$(SILENT)find . -name "*.map" | xargs zip rockbox-maps.zip
@@ -333,31 +342,35 @@ mapzip:
 elfzip:
 	$(SILENT)find . -name "*.elf" | xargs zip rockbox-elfs.zip
 
-fullzip:
-	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m \"$(MODELNAME)\" -i \"$(TARGET_ID)\"  -r "$(ROOTDIR)" --rbdir="$(RBDIR)" -f 2 -o rockbox-full.zip $(TARGET) $(BINARY)
+ifneq ($(NODEPS),)
+$(BUILDDIR)/rockbox.7z:
+else
+$(BUILDDIR)/rockbox.7z: build
+endif
+	$(call PRINTS,7Z rockbox$(ZIPFILESUFFIX).7z)
+	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m \"$(MODELNAME)\" -i \"$(TARGET_ID)\"  -o $(BUILDDIR)/rockbox$(ZIPFILESUFFIX).7z  -z "7za a -mx=9" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" $(BUILDZIPOPTS) $(TARGET) $(BINARY)
 
-7zip:
-	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m \"$(MODELNAME)\" -i \"$(TARGET_ID)\"  -o "rockbox.7z" -z "7za a -mx=9" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" $(TARGET) $(BINARY)
-
-ifdef NODEPS
+ifneq ($(NODEPS),)
 $(BUILDDIR)/rockbox.tar:
 else
 $(BUILDDIR)/rockbox.tar: build
 endif
 	$(SILENT)rm -f rockbox.tar
 	$(call PRINTS,TAR $(notdir $@))
-	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m \"$(MODELNAME)\" -i \"$(TARGET_ID)\"  -o "rockbox.tar" -z "tar -cf" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" $(TARGET) $(BINARY)
+	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m \"$(MODELNAME)\" -i \"$(TARGET_ID)\"  -o $(BUILDDIR)/rockbox$(ZIPFILESUFFIX).tar -z "tar -cf" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" $(BUILDZIPOPTS) $(TARGET) $(BINARY)
 
-tar: $(BUILDDIR)/rockbox.tar
-
-bzip2: tar
-	$(SILENT)bzip2 -f9 rockbox.tar
+fullgzip: ZIPFILESUFFIX=-full
+fullgzip: fulltar gzip
+fullxz: ZIPFILESUFFIX=-full
+fullxz: fulltar xz
 
 gzip: tar
-	$(SILENT)gzip -f9 rockbox.tar
+	$(call PRINTS,GZIP rockbox$(ZIPFILESUFFIX).tar.gz)
+	$(SILENT)gzip -f9 rockbox$(ZIPFILESUFFIX).tar
 
 xz: tar
-	$(SILENT)xz -f rockbox.tar
+	$(call PRINTS,XZ rockbox$(ZIPFILESUFFIX).tar.xz)
+	$(SILENT)xz -f rockbox$(ZIPFILESUFFIX).tar
 
 manual manual-pdf:
 	$(SILENT)$(MAKE) -C $(MANUALDIR) OBJDIR=$(BUILDDIR)/manual manual-pdf
@@ -370,16 +383,17 @@ manual-ztxt:
 	$(SILENT)$(MAKE) -C $(MANUALDIR) OBJDIR=$(BUILDDIR)/manual manual-txt-zip
 manual-zip:
 	$(SILENT)$(MAKE) -C $(MANUALDIR) OBJDIR=$(BUILDDIR)/manual manual-zip
+manual-7zip:
+	$(SILENT)$(MAKE) -C $(MANUALDIR) OBJDIR=$(BUILDDIR)/manual manual-7zip
 
 ifdef TTS_ENGINE
 
-voice: voicetools $(BUILDDIR)/apps/features
-	$(SILENT)for f in `cat $(BUILDDIR)/apps/features`; do feat="$$feat:$$f" ; done ; \
-	if [ -z "$$POOL" ] ; then \
+voice: voicetools $(BUILDDIR)/apps/genlang-features
+	$(SILENT)if [ -z "$$POOL" ] ; then \
 		export POOL="$(BUILDDIR)/voice-pool" ; \
 	fi;\
 	mkdir -p $${POOL} ;\
-	for lang in `echo $(VOICELANGUAGE) |sed "s/,/ /g"`; do $(TOOLSDIR)/voice.pl -V -l=$$lang -t=$(MODELNAME)$$feat -i=$(TARGET_ID) -e="$(ENCODER)" -E="$(ENC_OPTS)" -s=$(TTS_ENGINE) -S="$(TTS_OPTS)"; done
+	for lang in `echo $(VOICELANGUAGE) |sed "s/,/ /g"`; do $(TOOLSDIR)/voice.pl -V -l=$$lang -t=$(MODELNAME):`cat $(BUILDDIR)/apps/genlang-features` -i=$(TARGET_ID) -e="$(ENCODER)" -E="$(ENC_OPTS)" -s=$(TTS_ENGINE) -S="$(TTS_OPTS)"; done
 
 talkclips: voicetools
 	$(SILENT)if [ -z '$(TALKDIR)' ] ; then \
@@ -437,37 +451,43 @@ zig: $(BUILDDIR)/apps/recorder/jpeg_load.o $(BUILDDIR)/lang/lang.h $(BUILDDIR)/l
 help:
 	@echo "A few helpful make targets"
 	@echo ""
-	@echo "all             - builds a full Rockbox (default), including tools"
-	@echo "zig             - builds Rockbox with Zig"
-	@echo "bin             - builds only the Rockbox.<target name> file"
-	@echo "rocks           - builds only plugins"
-	@echo "codecs          - builds only codecs"
-	@echo "dep             - regenerates make dependency database"
-	@echo "clean           - cleans a build directory (not tools)"
-	@echo "veryclean       - cleans the build and tools directories"
-	@echo "manual          - builds a manual (pdf)"
-	@echo "manual-html     - HTML manual"
-	@echo "manual-zip      - HTML manual (zipped)"
-	@echo "manual-txt      - txt manual"
-	@echo "fullzip         - creates a rockbox.zip of your build with fonts"
-	@echo "zip             - creates a rockbox.zip of your build (no fonts)"
-	@echo "gzip            - creates a rockbox.tar.gz of your build (no fonts)"
-	@echo "bzip2           - creates a rockbox.tar.bz2 of your build (no fonts)"
-	@echo "xz              - creates a rockbox.tar.xz of your build (no fonts)"
-	@echo "7zip            - creates a rockbox.7z of your build (no fonts)"
-	@echo "fontzip         - creates rockbox-fonts.zip"
-	@echo "mapzip          - creates rockbox-maps.zip with all .map files"
-	@echo "elfzip          - creates rockbox-elfs.zip with all .elf files"
-	@echo "pnd             - creates rockbox.pnd archive (Pandora builds only)"
-	@echo "tools           - builds the tools only"
-	@echo "voice           - creates the voice clips (voice builds only)"
-	@echo "voicetools      - builds the voice tools only"
-	@echo "talkclips       - builds talkclips for everything under TALKDIR, skipping existing clips"
-	@echo "talkclips-force - builds talkclips for everything under TALKDIR, overwriting all existing clips"
-	@echo "install         - installs your build (at PREFIX, defaults to simdisk/ for simulators (no fonts))"
-	@echo "fullinstall     - installs your build (like install, but with fonts)"
-	@echo "symlinkinstall  - like fullinstall, but with links instead of copying files. (Good for developing on simulator)"
-	@echo "reconf          - rerun configure with the same selection"
+	@echo "all              - builds a full Rockbox (default), including tools"
+	@echo "zig              - builds Rockbox with Zig"
+	@echo "bin              - builds only the Rockbox.<target name> file"
+	@echo "rocks            - builds only plugins"
+	@echo "codecs           - builds only codecs"
+	@echo "dep              - regenerates make dependency database"
+	@echo "clean            - cleans a build directory (not tools)"
+	@echo "veryclean        - cleans the build and tools directories"
+	@echo "manual           - builds a manual (pdf)"
+	@echo "manual-html      - HTML manual"
+	@echo "manual-zip       - HTML manual (zipped)"
+	@echo "manual-7zip      - HTML manual (7zipped)"
+	@echo "manual-txt       - txt manual"
+	@echo "zip              - creates a rockbox.zip of your build (no fonts)"
+	@echo "gzip             - creates a rockbox.tar.gz of your build (no fonts)"
+	@echo "bzip2            - creates a rockbox.tar.bz2 of your build (no fonts)"
+	@echo "xz               - creates a rockbox.tar.xz of your build (no fonts)"
+	@echo "7zip             - creates a rockbox.7z of your build (no fonts)"
+	@echo "fullzip          - creates a rockbox-full.zip of your build (with fonts)"
+	@echo "full7zip         - creates a rockbox-full.7z of your build (with fonts)"
+	@echo "fullgzip         - creates a rockbox-full.tar.gz of your build (with fonts)"
+	@echo "fullxz           - creates a rockbox-full.tar.xz of your build (with fonts)"
+	@echo "fontzip          - creates rockbox-fonts.zip"
+	@echo "font7zip         - creates rockbox-fonts.7zip"
+	@echo "mapzip           - creates rockbox-maps.zip with all .map files"
+	@echo "elfzip           - creates rockbox-elfs.zip with all .elf files"
+	@echo "pnd              - creates rockbox.pnd archive (Pandora builds only)"
+	@echo "tools            - builds the tools only"
+	@echo "voice            - creates the voice clips (voice builds only)"
+	@echo "voicetools       - builds the voice tools only"
+	@echo "talkclips        - builds talkclips for everything under \$TALKDIR, skipping existing clips"
+	@echo "talkclips-force  - builds talkclips for everything under \$TALKDIR, overwriting all existing clips"
+	@echo "install          - installs your build (at \$PREFIX, defaults to simdisk/ for simulators (no fonts))"
+	@echo "fullinstall      - installs your build (like install, but with fonts)"
+	@echo "symlinkinstall   - like fullinstall, but with links instead of copying files. (Good for developing on simulator)"
+	@echo "reconf           - rerun configure with the same selection"
+
 
 ### general compile rules:
 

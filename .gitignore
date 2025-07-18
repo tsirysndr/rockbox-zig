@@ -41,6 +41,9 @@ target
 /tools/checkwps/rockbox-info.txt
 /tools/checkwps/checkwps.failures
 
+# Release
+/tools/release/output
+
 # android: java build system
 /android/bin
 /android/data
@@ -329,4 +332,9 @@ target
 /utils/regtools/swiss_knife
 /utils/regtools/tester_v1
 
+<<<<<<< HEAD
 .vscode
+=======
+# /utils/time-sync/
+/utils/time-sync/time-sync
+>>>>>>> upstream/master

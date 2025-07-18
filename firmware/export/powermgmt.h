@@ -83,6 +83,9 @@ enum shutdown_type
 
 /* Start up power management thread */
 void powermgmt_init(void) INIT_ATTR;
+/* load user battery levels */
+#define BATTERY_LEVELS_USER    ROCKBOX_DIR"/battery_levels.cfg"
+void init_battery_tables(void) INIT_ATTR;
 
 #if CONFIG_CHARGING && !defined(CURRENT_MAX_CHG)
 #define CURRENT_MAX_CHG   350  /* maximum charging current */
@@ -103,13 +106,17 @@ void powermgmt_init(void) INIT_ATTR;
 #define POWER_THREAD_STEP_TICKS (HZ/2)
 #endif
 
-extern unsigned short power_history[POWER_HISTORY_LEN];
-extern const unsigned short battery_level_dangerous[BATTERY_TYPES_COUNT];
-extern const unsigned short battery_level_shutoff[BATTERY_TYPES_COUNT];
-extern const unsigned short percent_to_volt_discharge[BATTERY_TYPES_COUNT][11];
+struct battery_tables_t {
+    unsigned short * const history;
+    unsigned short * const disksafe;
+    unsigned short * const shutoff;
+    unsigned short * const discharge;
 #if CONFIG_CHARGING
-extern const unsigned short percent_to_volt_charge[11];
+    unsigned short * const charge;
 #endif
+    const unsigned short elems;
+    bool isdefault;
+};
 
 /* Returns battery status, filtered for runtime estimation */
 int battery_level(void); /* percent */
@@ -154,7 +161,6 @@ void set_poweroff_timeout(int timeout);
 void set_battery_capacity(int capacity); /* set local battery capacity value */
 #endif
 int get_battery_capacity(void); /* get local battery capacity value */
-void set_battery_type(int type); /* set local battery type */
 
 void set_sleeptimer_duration(int minutes);
 bool get_sleep_timer_active(void);

@@ -92,10 +92,88 @@ static int button_delay_release = 0;
 static int delay_tick = 0;
 #endif
 
-int button_read_device(void)
+#ifdef HAVE_TOUCHSCREEN
+/* Last known touchscreen coordinates. */
+static int _last_x = 0;
+static int _last_y = 0;
+
+/* Last known touchscreen state. */
+static enum
+{
+    TOUCHSCREEN_STATE_UNKNOWN = 0,
+    TOUCHSCREEN_STATE_UP,
+    TOUCHSCREEN_STATE_DOWN
+} _last_touch_state = TOUCHSCREEN_STATE_UNKNOWN;
+
+// XXX ... figure out what is standard.
+#define EVENT_VALUE_TOUCHSCREEN_PRESS    1
+#define EVENT_VALUE_TOUCHSCREEN_RELEASE -1
+
+static int ts_enabled = 0;
+
+void touchscreen_enable_device(bool en)
+{
+    ts_enabled = en;
+}
+
+static bool handle_touchscreen_event(__u16 code, __s32 value)
+{
+    bool read_more = false;
+
+    switch(code)
+    {
+        case ABS_X:
+        case ABS_MT_POSITION_X:
+        {
+            _last_x = value;
+
+            /* x -> next will be y. */
+            read_more = true;
+
+            break;
+        }
+
+        case ABS_Y:
+        case ABS_MT_POSITION_Y:
+        {
+            _last_y = value;
+            break;
+        }
+
+        case ABS_MT_TRACKING_ID:
+        {
+            if(value == EVENT_VALUE_TOUCHSCREEN_PRESS)
+            {
+                _last_touch_state = TOUCHSCREEN_STATE_DOWN;
+
+                /* Press -> next will be x. */
+                read_more = true;
+            }
+            else
+            {
+                _last_touch_state = TOUCHSCREEN_STATE_UP;
+            }
+            break;
+        }
+    }
+
+    return read_more;
+}
+#endif
+
+#ifdef HAVE_BUTTON_DATA
+#define BDATA int *data
+#else
+#define BDATA void
+#endif
+int button_read_device(BDATA)
 {
     static int button_bitmap = 0;
     struct input_event event;
+
+#if defined(HAVE_BUTTON_DATA) && !defined(HAVE_TOUCHSCREEN)
+    (void)data;
+#endif
 
 #ifdef HAVE_SCROLLWHEEL
     int wheel_ticks = 0;
@@ -111,54 +189,78 @@ int button_read_device(void)
 #endif
 
     /* check if there are any events pending and process them */
-    while(poll(poll_fds, num_devices, 0))
-    {
-        for(int i = 0; i < num_devices; i++)
-        {
+    while(poll(poll_fds, num_devices, 0)) {
+        for(int i = 0; i < num_devices; i++) {
             /* read only if non-blocking */
-            if(poll_fds[i].revents & POLLIN)
-            {
+            if(poll_fds[i].revents & POLLIN) {
                 int size = read(poll_fds[i].fd, &event, sizeof(event));
-                if(size == (int)sizeof(event))
-                {
-                    /* map linux event code to rockbox button bitmap */
-                    int bmap = button_map(event.code);
+                if(size == (int)sizeof(event)) {
+                    switch(event.type) {
+                    case EV_KEY: {
+                        /* map linux event code to rockbox button bitmap */
+                        int bmap = button_map(event.code);
 
-                    /* event.value == 0x10000 means press
-                     * event.value == 0 means release
-                     */
-                    if(event.value)
-                    {
+                        /* event.value == 0x10000 means press
+                         * event.value == 0 means release
+                         */
+                        if(event.value) {
 #ifdef HAVE_SCROLLWHEEL
-			/* Filter out wheel ticks */
-                        if (bmap & BUTTON_SCROLL_BACK)
-                            wheel_ticks--;
-                        else if (bmap & BUTTON_SCROLL_FWD)
-                            wheel_ticks++;
-                        bmap &= ~(BUTTON_SCROLL_BACK|BUTTON_SCROLL_FWD);
+                            /* Filter out wheel ticks */
+                            if (bmap & BUTTON_SCROLL_BACK)
+                                wheel_ticks--;
+                            else if (bmap & BUTTON_SCROLL_FWD)
+                                wheel_ticks++;
+                            bmap &= ~(BUTTON_SCROLL_BACK|BUTTON_SCROLL_FWD);
 #endif
 #ifdef BUTTON_DELAY_RELEASE
-                        bmap &= ~BUTTON_DELAY_RELEASE;
+                            bmap &= ~BUTTON_DELAY_RELEASE;
 #endif
-                        button_bitmap |= bmap;
-                    }
-                    else
-                    {
+#if defined(HAVE_TOUCHSCREEN) && defined(BUTTON_TOUCH)
+                            /* Some touchscreens give us actual touch/untouch as a "key" */
+                            if (bmap & BUTTON_TOUCH) {
+                                handle_touchscreen_event(ABS_MT_TRACKING_ID, EVENT_VALUE_TOUCHSCREEN_PRESS);
+                                bmap &= ~BUTTON_TOUCH;
+                            }
+#endif
+                            button_bitmap |= bmap;
+                        } else {
+#if defined(HAVE_TOUCHSCREEN) && defined(BUTTON_TOUCH)
+                            /* Some touchscreens give us actual touch/untouch as a "key" */
+                            if (bmap & BUTTON_TOUCH) {
+                                handle_touchscreen_event(ABS_MT_TRACKING_ID, 0);
+                                bmap &= ~BUTTON_TOUCH;
+                            }
+#endif
 #ifdef BUTTON_DELAY_RELEASE
-                        /* Delay the release of any requested buttons */
-                        if (bmap & BUTTON_DELAY_RELEASE)
-                        {
-                            button_delay_release |= bmap & ~BUTTON_DELAY_RELEASE;
-                            delay_tick = current_tick + HZ/20;
-                            bmap = 0;
+                            /* Delay the release of any requested buttons */
+                            if (bmap & BUTTON_DELAY_RELEASE) {
+                                button_delay_release |= bmap & ~BUTTON_DELAY_RELEASE;
+                                delay_tick = current_tick + HZ/20;
+                                bmap = 0;
+                            }
+#endif
+#ifdef HAVE_SCROLLWHEEL
+                            /* Wheel gives us press+release back to back; ignore the release */
+                            bmap &= ~(BUTTON_SCROLL_BACK|BUTTON_SCROLL_FWD);
+#endif
+                            button_bitmap &= ~bmap;
                         }
+                        break;
+                    }
+#ifdef HAVE_TOUCHSCREEN
+                    case EV_ABS: {
+                        if (ts_enabled) {
+                            handle_touchscreen_event(event.code, event.value);
+                        } else {
+                             /* If disabled... ignore */
+                            _last_touch_state = TOUCHSCREEN_STATE_UNKNOWN;
+                        }
+                        break;
+                    }
 #endif
-
-#ifdef HAVE_SCROLLWHEEL
-                        /* Wheel gives us press+release back to back; ignore the release */
-                        bmap &= ~(BUTTON_SCROLL_BACK|BUTTON_SCROLL_FWD);
-#endif
-                        button_bitmap &= ~bmap;
+                    default:
+                        /* Ignore other event types */
+                        break;
                     }
                 }
             }
@@ -192,6 +294,15 @@ int button_read_device(void)
         }
     }
 #endif /* HAVE_SCROLLWHEEL */
+
+#ifdef HAVE_TOUCHSCREEN
+    int touch = touchscreen_to_pixels(_last_x, _last_y, data);
+
+    if(_last_touch_state == TOUCHSCREEN_STATE_DOWN)
+    {
+        return button_bitmap | touch;
+    }
+#endif
 
     return button_bitmap;
 }

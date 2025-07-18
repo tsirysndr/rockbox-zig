@@ -2867,7 +2867,7 @@
   desc: should lines scroll out of the screen
   user: core
   <source>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </source>
   <dest>
     *: "Scherm schuift uit beeld"
@@ -3091,7 +3091,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
   </source>
   <dest>
     *: "Minimaal bereik"
@@ -3105,7 +3105,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
   </source>
   <dest>
     *: "Maximaal bereik"
@@ -3449,7 +3449,7 @@
   user: core
   <source>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </source>
   <dest>
     *: none
@@ -3692,7 +3692,7 @@
   desc: in playlist menu.
   user: core
   <source>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </source>
   <dest>
     *: "Zoeken in afspeellijst"
@@ -3882,20 +3882,20 @@
   </voice>
 </phrase>
 <phrase>
-  id: VOICE_CURRENT_TIME
-  desc: spoken only, for wall clock announce
+  id: LANG_CURRENT_TIME
+  desc: for wall clock announce
   user: core
   <source>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </source>
   <dest>
     *: none
-    rtc: ""
+    rtc: "huidige tijd"
   </dest>
   <voice>
     *: none
-    rtc: "huidige tijd:"
+    rtc: "huidige tijd"
   </voice>
 </phrase>
 <phrase>
@@ -4009,7 +4009,7 @@
   <source>
     *: none
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -4023,7 +4023,7 @@
   <dest>
     *: none
     gigabeatfx,mrobe500: "POWER = Terugzetten"
-    gigabeats,sansafuzeplus: "BACK = Terugzetten"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Terugzetten"
     gogearsa9200: "LINKS = Terugzetten"
     iaudiom5,iaudiox5: "RECORD = Terugzetten"
     ipod*,mpiohd300,sansac200*: "MENU = Terugzetten"
@@ -4206,7 +4206,7 @@
   user: core
   <source>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </source>
   <dest>
     *: none
@@ -4464,10 +4464,10 @@
   desc: in browse_id3
   user: core
   <source>
-    *: " (VBR)"
+    *: "(VBR)"
   </source>
   <dest>
-    *: " (VBR)"
+    *: "(VBR)"
   </dest>
   <voice>
     *: "Variabele bitrate"
@@ -7713,7 +7713,7 @@
   user: core
   <source>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </source>
   <dest>
     *: none
@@ -8661,7 +8661,7 @@
   <source>
     *: none
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -8671,7 +8671,7 @@
   <dest>
     *: none
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Instellen"
-    gogearsa9200,samsungyh*: "PLAY = Instellen"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Instellen"
     iriverh100,iriverh120,iriverh300: "NAVI = Instellen"
     mpiohd300: "ENTER = Instellen"
     mrobe500: "HEART = Instellen"
@@ -8910,7 +8910,7 @@
 </phrase>
 <phrase>
   id: LANG_PLAYLISTS
-  desc: in the file view setting
+  desc: in the main menu and Playlist settings menu
   user: core
   <source>
     *: "Playlists"
@@ -8965,8 +8965,8 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RESET_ASK
-  desc: confirm to reset settings
+  id: LANG_ARE_YOU_SURE
+  desc: confirm action
   user: core
   <source>
     *: "Are You Sure?"
@@ -9548,7 +9548,7 @@
 </phrase>
 <phrase>
   id: VOICE_OK
-  desc: spoken only, On exiting a context, specifically the quick screen
+  desc: spoken only, on exiting a context, specifically the quick screen
   user: core
   <source>
     *: ""
@@ -9566,7 +9566,7 @@
   user: core
   <source>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </source>
   <dest>
     *: none
@@ -11508,7 +11508,7 @@
   desc: resume settings menu
   user: core
   <source>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </source>
   <dest>
     *: "Automatisch hervatten"
@@ -11713,7 +11713,7 @@
   desc: whether sleep timer starts on power up
   user: core
   <source>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </source>
   <dest>
     *: "Slaaptimer starten bij opstarten"
@@ -11831,7 +11831,7 @@
   desc: whether to restart running sleep timer on keypress
   user: core
   <source>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </source>
   <dest>
     *: "Slaaptimer herstarten bij toetsklik"
@@ -15363,10 +15363,10 @@
   desc: open plugin module
   user: core
   <source>
-    *: "Set Wps Context Plugin"
+    *: "Set WPS Context Plugin"
   </source>
   <dest>
-    *: "Stel Wps Context Plugin in"
+    *: "Stel WPS Context Plugin in"
   </dest>
   <voice>
     *: "Stel WPS Context Plugin in"
@@ -15503,7 +15503,7 @@
   desc: Relative volume of voice prompts
   user: core
   <source>
-    *: "Voice prompt volume"
+    *: "Voice Prompt Volume"
   </source>
   <dest>
     *: "Volume van gesproken prompt"

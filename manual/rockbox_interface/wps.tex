@@ -61,7 +61,7 @@ your WPS (While Playing Screen).
       %
       \ActionWpsBrowse
       \opt{HAVEREMOTEKEYMAP}{& \ActionRCWpsBrowse}
-      & Return to the \setting{File Browser} / \setting{Database} / \setting{Playlist Catalogue}.\\
+      & Return to the \setting{File Browser} / \setting{Database} / \setting{Playlists}.\\
       %
       \ActionWpsContext
       \opt{HAVEREMOTEKEYMAP}{& \ActionRCWpsContext}
@@ -177,7 +177,7 @@ several indicators.
 
 \subsection{\label{sec:contextmenu}The WPS Context Menu}
 Like the context menu for the \setting{File Browser}, the \setting{WPS Context Menu}
-allows you quick access to some often used functions.
+allows you quick access to some often-used functions.
 
 \subsubsection{Current Playlist}
 The \setting{Current Playlist} submenu allows you to view, save, search, reshuffle,
@@ -287,11 +287,14 @@ This may even be the whole track.
     same ratio as well as remain between 50\% and 200\%.
 
   The value of the rate, pitch and speed
-  is not persistent, i.e. after the \dap\ is turned on it will
-  always be set to 100\%.  However, the rate, pitch and speed
-  information will be stored in any bookmarks you may create
-  (see \reference{ref:Bookmarkconfigactual}) and will be restored upon
-  playing back those bookmarks.
+  is persistent, i.e. when the \dap\ is turned on it will
+  always be set to the last value set by \setting{Pitch Screen} or Bookmarks.
+  Selecting \setting{Pitch} again will now display a menu with
+  \setting{Pitch} and \setting{Reset Setting}.
+  Selecting \setting{Reset Setting} will reset the pitch to 100\% now and at next boot.
+  However the rate, pitch and speed information is stored in any bookmarks
+  you may create (see \reference{ref:Bookmarkconfigactual})
+  and will be restored upon playing back those bookmarks.
 
   \begin{btnmap}
     \ActionPsToggleMode
@@ -325,3 +328,6 @@ This may even be the whole track.
   \end{btnmap}
 
 }
+
+\subsubsection{View Album Art}
+Display artwork for the currently playing track.

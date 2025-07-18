@@ -393,9 +393,9 @@ simcc () {
    sigaltstack=`check_sigaltstack`
    echo "Darwin host detected"
    if $CC --version | grep -q "clang"; then
-    CC=gcc-14
-    AR=gcc-ar-14
-    CPP=cpp-14
+    CC=gcc-15
+    AR=gcc-ar-15
+    CPP=cpp-15
    fi
    LDOPTS="$LDOPTS -ldl"
    SHARED_LDFLAGS="-dynamiclib -Wl,-no_warn_duplicate_libraries"
@@ -605,6 +605,13 @@ arm1176jzscc () {
 arm7ejscc () {
  findarmgcc
  GCCOPTS="$CCOPTS -march=armv5te"
+ GCCOPTIMIZE="-fomit-frame-pointer"
+ endian="little"
+}
+
+armcortexm7cc () {
+ findarmgcc
+ GCCOPTS="$CCOPTS -march=armv7e-m -mcpu=cortex-m7"
  GCCOPTIMIZE="-fomit-frame-pointer"
  endian="little"
 }
@@ -1678,52 +1685,54 @@ cat <<EOF
  40) Gigabeat F/X          27) 1G, 2G            51) Sansa e200R
  41) Gigabeat S            28) Nano 2G           52) Sansa c200
                            29) Classic/6G        55) Sansa Clip
- ==Olympus=                                      56) Sansa e200v2
- 70) M:Robe 50             ==Creative==          57) Sansa m200v4
- 71) M:Robe 100            89) Zen X-Fi Style    58) Sansa Fuze
-                           90) Zen Vision:M 30GB 59) Sansa c200v2
- ==Philips==               91) Zen Vision:M 60GB 60) Sansa Clipv2
- 100) GoGear SA9200        92) Zen Vision        61) Sansa View
- 101) GoGear HDD1630/      93) Zen X-Fi2         62) Sansa Clip+
-      HDD1830              94) Zen X-Fi3         63) Sansa Fuze v2
- 102) GoGear HDD6330       95) Zen V             64) Sansa Fuze+
-                           96) Zen X-Fi          65) Sansa Clip Zip
- ==Meizu==                 97) Zen Mozaic        66) Sansa Connect
- 110) M6SL                 98) Zen
- 111) M6SP                                       ==Lyre project==
- 112) M3                   ==Onda==              130) Lyre proto 1
-                           120) VX747            131) Mini2440
- ==Samsung==               121) VX767
- 140) YH-820               122) VX747+           ==Packard Bell==
- 141) YH-920               123) VX777            160) Vibe 500
- 142) YH-925
- 143) YP-S3                ==MPIO==              ==ROCKCHIP==
-                           170) HD200            180) rk27xx generic
- ==HiFiMAN==               171) HD300
- 190) HM-60x                                     ==HiFi E.T.==
- 191) HM-801               ==Application==       210) MA9
-                           200) SDL              211) MA9C
- ==Sony==                  201) Android          212) MA8
- 219) NWZ-E350 series      202) Nokia N8xx       213) MA8C
- 220) NWZ-E370/E380 series 203) Nokia N900
- 221) NWZ-E360 series      204) Pandora          ==IHIFI==
- 222) NWZ-E450 series      205) Samsung YP-R0    230) 760
- 223) NWZ-E460 series      206) Android MIPS     231) 960
- 224) NWZ-E470 series      207) Android x86      250) 770C
- 225) NWZ-E580 series      208) Samsung YP-R1    251) 770
- 226) NWZ-A10 series                             252) 800
- 227) NW-A20 series        ==iBasso==
- 228) NWZ-A860 series      232) DX50             ==AgpTek==
- 229) NWZ-S750 series      233) DX90             240) Rocker
-
- ==FiiO==                  ==xDuoo==             ==AIGO==
- 244) M3K Linux            241) X3               245) Eros Q / K
- 246) M3K baremetal        242) X3II             247) Eros Q / K native
-                           243) X20                     (hw1/hw2 bl, all hw rb)
- ==Shanling==                                    248) Eros Q / K native
- 260) Q1                                                (hw3 bl only)
+ ==Olympus=                80) Nano 3G (WIP)     56) Sansa e200v2
+ 70) M:Robe 50             81) Nano 4G (WIP)     57) Sansa m200v4
+ 71) M:Robe 100                                  58) Sansa Fuze
+                           ==Creative==          59) Sansa c200v2
+ ==Philips==               89) Zen X-Fi Style    60) Sansa Clipv2
+ 100) GoGear SA9200        90) Zen Vision:M 30GB 61) Sansa View
+ 101) GoGear HDD1630/      91) Zen Vision:M 60GB 62) Sansa Clip+
+      HDD1830              92) Zen Vision        63) Sansa Fuze v2
+ 102) GoGear HDD6330       93) Zen X-Fi2         64) Sansa Fuze+
+                           94) Zen X-Fi3         65) Sansa Clip Zip
+ ==Meizu==                 95) Zen V             66) Sansa Connect
+ 110) M6SL                 96) Zen X-Fi
+ 111) M6SP                 97) Zen Mozaic        ==Lyre project==
+ 112) M3                   98) Zen               130) Lyre proto 1
+                                                 131) Mini2440
+ ==Samsung==               ==Onda==
+ 140) YH-820               120) VX747            ==Packard Bell==
+ 141) YH-920               121) VX767            160) Vibe 500
+ 142) YH-925               122) VX747+
+ 143) YP-S3                123) VX777            ==ROCKCHIP==
+                                                 180) rk27xx generic
+ ==HiFiMAN==               ==MPIO==
+ 190) HM-60x               170) HD200            ==HiFi E.T.==
+ 191) HM-801               171) HD300            210) MA9
+                                                 211) MA9C
+ ==Sony==                  ==Application==       212) MA8
+ 219) NWZ-E350 series      200) SDL              213) MA8C
+ 220) NWZ-E370/E380 series 201) Android
+ 221) NWZ-E360 series      202) Nokia N8xx       ==IHIFI==
+ 222) NWZ-E450 series      203) Nokia N900       230) 760
+ 223) NWZ-E460 series      204) Pandora          231) 960
+ 224) NWZ-E470 series      205) Samsung YP-R0    250) 770C
+ 225) NWZ-E580 series      206) Android MIPS     251) 770
+ 226) NWZ-A10 series       207) Android x86      252) 800
+ 227) NW-A20 series        208) Samsung YP-R1
+ 228) NWZ-A860 series                            ==AgpTek==
+ 229) NWZ-S750 series      ==iBasso==            240) Rocker
+                           232) DX50
+ ==FiiO==                  233) DX90             ==AIGO==
+ 244) M3K Linux                                  245) Eros Q / K
+ 246) M3K baremetal        ==xDuoo==             247) Eros Q / K native
+                           241) X3                      (hw1/hw2 bl, all hw rb)
+ ==Shanling==              242) X3II             248) Eros Q / K native
+ 260) Q1                   243) X20                     (hw3 bl only)
                                                  249) Eros Q / K native
-                                                        (hw4 bl only)
+                           ==Surfans==                  (hw4 bl only)
+ ==Echo project==          280) F28 (WIP)
+ 270) Echo R1 (WIP)
 EOF
 
   buildfor=`input`;
@@ -2628,6 +2637,52 @@ fi
     t_soc="pp"
     t_manufacturer="olympus"
     t_model="mrobe-100"
+    ;;
+
+   80|ipodnano3g)
+    target_id=117
+    modelname="ipodnano3g"
+    target="IPOD_NANO3G"
+    memory=32 # always
+    arm926ejscc
+    tool="$rootdir/tools/scramble -add=nn3g"
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    output="rockbox.ipod"
+    appextra="recorder:gui:radio"
+    plugins="yes"
+    swcodec="yes"
+    bootoutput="bootloader-$modelname.ipod"
+    # toolset is the tools within the tools directory that we build for
+    # this particular target.
+    toolset=$ipodbitmaptools
+    # architecture, manufacturer and model for the target-tree build
+    t_cpu="arm"
+    t_manufacturer="s5l8702"
+    t_model="ipodnano3g"
+    ;;
+
+   81|ipodnano4g)
+    target_id=118
+    modelname="ipodnano4g"
+    target="IPOD_NANO4G"
+    memory=32 # always
+    arm1176jzscc
+    tool="$rootdir/tools/scramble -add=nn4g"
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    output="rockbox.ipod"
+    appextra="recorder:gui:radio"
+    plugins="yes"
+    swcodec="yes"
+    bootoutput="bootloader-$modelname.ipod"
+    # toolset is the tools within the tools directory that we build for
+    # this particular target.
+    toolset=$ipodbitmaptools
+    # architecture, manufacturer and model for the target-tree build
+    t_cpu="arm"
+    t_manufacturer="s5l8702"
+    t_model="ipodnano4g"
     ;;
 
    89|creativezenxfistyle)
@@ -3964,7 +4019,7 @@ fi
 
    240|agptekrocker)
     application="yes"
-    app_type="rocker"
+    app_type="hibyos"
     target_id=97
     modelname="agptekrocker"
     target="AGPTEK_ROCKER"
@@ -4009,7 +4064,7 @@ fi
    242|xduoox3ii)
     target_id=110
     application=yes
-    app_type="xduoo"
+    app_type="hibyos"
     modelname="xduoox3ii"
     target="XDUOO_X3II"
     memory=8
@@ -4032,7 +4087,7 @@ fi
    243|xduoox20)
     target_id=111
     application=yes
-    app_type="xduoo"
+    app_type="hibyos"
     modelname="xduoox20"
     target="XDUOO_X20"
     memory=8
@@ -4078,7 +4133,7 @@ fi
    245|aigoerosq|erosq)
     target_id=113
     application=yes
-    app_type="erosq"
+    app_type="hibyos"
     modelname="aigoerosq"
     target="EROS_Q"
     memory=8
@@ -4096,7 +4151,6 @@ fi
     t_manufacturer="aigo"
     t_model="erosq"
     sysfontbl="16-Terminus"
-    sysfont="14-Rockbox-Mix"
     ;;
 
    246|fiiom3k)
@@ -4136,7 +4190,6 @@ fi
     output="rockbox.erosq"
     bootoutput="bootloader.erosq"
     sysfontbl="16-Terminus"
-    sysfont="14-Rockbox-Mix"
     # toolset is the tools within the tools directory that we build for
     # this particular target.
     toolset="$x1000tools"
@@ -4152,7 +4205,7 @@ fi
     ;;
 
    248|erosqnative_v3)
-    target_id=117
+    target_id=116
     modelname="erosqnative_v3"
     target="EROS_QN"
     memory=32
@@ -4164,7 +4217,6 @@ fi
     output="rockbox.erosq"
     bootoutput="bootloader.erosq"
     sysfontbl="16-Terminus"
-    sysfont="14-Rockbox-Mix"
     # toolset is the tools within the tools directory that we build for
     # this particular target.
     toolset="$x1000tools"
@@ -4180,7 +4232,7 @@ fi
     ;;
 
     249|erosqnative_v4)
-    target_id=118
+    target_id=116
     modelname="erosqnative_v4"
     target="EROS_QN"
     memory=32
@@ -4294,6 +4346,54 @@ fi
     t_cpu="mips"
     t_manufacturer="ingenic_x1000"
     t_model="shanlingq1"
+    ;;
+
+    270|echor1)
+    target_id=119
+    modelname="echor1"
+    target="ECHO_R1"
+    memory=32
+    armcortexm7cc
+    appextra="recorder:gui"
+    plugins="no"
+    tool="cp "
+    boottool="cp "
+    output="rockbox.echo"
+    bootoutput="bootloader.echo"
+    sysfontbl="16-Terminus"
+    sysfont="14-Rockbox-Mix"
+    # toolset is the tools within the tools directory that we build for
+    # this particular target.
+    toolset="$genericbitmaptools scramble uclpack"
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    # architecture, manufacturer and model for the target-tree build
+    t_cpu="arm"
+    t_manufacturer="stm32"
+    t_model="echoplayer"
+    ;;
+
+    280|surfansf28)
+    target_id=120
+    application=yes
+    app_type="hibyos"
+    modelname="surfansf28"
+    target="SURFANS_F28"
+    memory=32 # 64 total!
+    mipsellinuxcc
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 10"
+    output="rockbox.f28"
+    bootoutput="bootloader.f28"
+    appextra="recorder:gui:hosted"
+    plugins="no"
+    # architecture, manufacturer and model for the target-tree build
+    t_cpu="hosted"
+    t_manufacturer="surfans"
+    t_model="f28"
+    sysfontbl="16-Terminus"
     ;;
 
    *)
@@ -4563,16 +4663,20 @@ else
    GCCOPTS="$GCCOPTS -Wno-override-init"
  fi
 
- if test "$gccnum" -ge "601"; then
-   # gcc 6 adds a lot of warnings that while useful are too time-consuming
-   # to clean up right away
-   GCCOPTS="$GCCOPTS -Wno-shift-negative-value -Wno-unused-const-variable -Wno-nonnull-compare -Wno-tautological-compare"
- fi
-
  if test "$gccnum" -ge "700"; then
    # gcc 7 spews a bunch of warnings by default
-   GCCOPTS="$GCCOPTS -Wno-expansion-to-defined -Wimplicit-fallthrough=0"
+   GCCOPTS="$GCCOPTS -Wimplicit-fallthrough=0"
  fi
+
+ case "$GCCOPTS" in
+   *-mcpu=cortex-m7*)
+     # Cortex-M7 support wasn't added until GCC 5. Since we don't use any
+     # M7-specific features, we can compile as Cortex-M4 when on GCC 4.9.
+     if test "$gccnum" -lt "500"; then
+       GCCOPTS=$(echo "$GCCOPTS" | sed -e "s/-mcpu=cortex-m7/-mcpu=cortex-m4 -mthumb/")
+     fi
+     ;;
+ esac
 
  case $prefix in
    ""|"$CROSS_COMPILE")
@@ -4637,10 +4741,41 @@ if [ -z "$arch" ]; then
         arch="arm"
         # cpp defines like "#define __ARM_ARCH_4TE__ 1" (where we want to extract the 4)
         arch_version="$(echo $cpp_defines | tr ' ' '\012' | grep __ARM_ARCH | sed -e 's,.*\([0-9]\).*,\1,' | grep -v __ARM_ARCH | head -1)"
+        arch_profile="$(echo "$cpp_defines" | grep 'define __ARM_ARCH_PROFILE' | sed -e 's,.* \([0-9]\+\)$,\1,')"
 	if test "$gccnum" -ge "800"; then
 	    # GCC8+ can natively emit unified asm syntax
 	    GCCOPTS="$GCCOPTS -masm-syntax-unified"
 	fi
+        case "$arch_profile" in
+            77)
+                arch_profile=micro
+
+                # We have a lot of assembly written for ARM32, which won't
+                # successfully assemble on a Thumb-only core due to missing
+                # IT blocks. The recommended practice for portable assembly
+                # is to add explicit IT blocks nowadays.
+                #
+                # This option instructs the assembler to add IT blocks
+                # automatically as needed, which allows the old assembly to
+                # compile unchanged (although it might be sub-optimal).
+                GCCOPTS="$GCCOPTS -Wa,-mimplicit-it=thumb"
+
+                # Disable this option -- it only makes sense for cores that
+                # support both ARM and Thumb instruction sets.
+                if [ "$ARG_ARM_THUMB" = "1" ]; then
+                    echo "Warning: --thumb option has no effect on ARM M profile cores"
+                    ARG_ARM_THUMB=0
+                fi
+                ;;
+            *)
+                # On classic ARM we expect an empty string, so only warn if it's nonempty
+                if [ -n "$arch_profile" ]; then
+                    echo "Warning: Cannot determine target ARM profile, assuming classic"
+                fi
+
+                arch_profile=classic
+                ;;
+        esac
     elif [ -n "$(echo $cpp_defines | grep -w __mips__)" ]; then
         arch="mips"
         arch_version="$(echo $cpp_defines | tr ' ' '\012' | grep _MIPS_ARCH_MIPS | sed -e 's,.*\([0-9][0-9]\).*,\1,' | grep -v _MIPS_ARCH_MIPS)"
@@ -4654,7 +4789,11 @@ if [ -z "$arch" ]; then
     fi
     if [ "$arch" != "none" ]; then
         if [ -n "$arch_version" ]; then
-            echo "Automatically selected arch: $arch (ver $arch_version)"
+            if [ -n "$arch_profile" ]; then
+                echo "Automatically selected arch: $arch (ver $arch_version, profile $arch_profile)"
+            else
+                echo "Automatically selected arch: $arch (ver $arch_version)"
+            fi
         else
             echo "Automatically selected arch: $arch"
         fi
@@ -4667,9 +4806,12 @@ else
     fi
 fi
 
-arch="arch_$arch"
+Darch="#define ARCH arch_$arch"
 if [ -n "$arch_version" ]; then
     Darch_version="#define ARCH_VERSION $arch_version"
+fi
+if [ -n "$arch_profile" ]; then
+    Darch_profile="#define ARCH_PROFILE $(echo ${arch}_PROFILE_${arch_profile} | tr [a-z] [A-Z])"
 fi
 
 if test -n "$ccache"; then
@@ -4725,10 +4867,14 @@ cat > autoconf.h.new <<EOF
 #define arch_amd64 6
 #define ARCH_AMD64 6
 
+#define ARM_PROFILE_CLASSIC     0       /* Classic ARM cores (<= ARMv6) */
+#define ARM_PROFILE_MICRO       1       /* ARMv6/ARMv7+ M-profile cores */
+
 /* Define target machine architecture */
-#define ARCH ${arch}
-/* Optionally define architecture version */
+${Darch}
+/* Optionally define architecture version and/or profile */
 ${Darch_version}
+${Darch_profile}
 
 /* Define endianess for the target or simulator platform */
 #define ${defendian} 1
@@ -4846,8 +4992,9 @@ export FLASHFILE=${flash}
 export TARGET_ID=${target_id}
 export TARGET=-D${target}
 export SYSFONT=${sysfont}
-export ARCH=${arch}
+export ARCH=arch_${arch}
 export ARCH_VERSION=${arch_version}
+export ARCH_PROFILE=${arch_profile}
 export CPU=${t_cpu}
 export MANUFACTURER=${t_manufacturer}
 export OBJDIR=${pwd}

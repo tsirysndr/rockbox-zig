@@ -73,6 +73,7 @@
 
 #define LCD_RBYELLOW    LCD_RGBPACK(255,192,0)
 #define LCD_REDORANGE   LCD_RGBPACK(255,70,0)
+#define LCD_GREEN       LCD_RGBPACK(0,255,0)
 
 extern void bss_init(void);
 extern uint32_t _movestart;
@@ -182,6 +183,7 @@ void fatal_error(int err)
 }
 
 #if (CONFIG_STORAGE & STORAGE_ATA)
+extern unsigned short battery_level_disksafe;
 static void battery_trap(void)
 {
     int vbat, old_verb;
@@ -201,11 +203,11 @@ static void battery_trap(void)
          *    differ as much as more than 200 mV when charge current is at
          *    maximum (~340 mA).
          *  - RB uses some sort of average/compensation for battery voltage
-         *    measurements, battery icon blinks at battery_level_dangerous,
+         *    measurements, battery icon blinks at battery_level_disksafe,
          *    when the HDD is used heavily (large database) the level drops
          *    to battery_level_shutoff quickly.
          */
-        if (vbat >= battery_level_dangerous[0] + th)
+        if (vbat >= battery_level_disksafe + th)
             break;
         th = 200;
 
@@ -346,9 +348,9 @@ extern int lcd_type;
 static uint16_t alive[] = { 500,100,0, 0 };
 static uint16_t alivelcd[] = { 2000,200,0, 0 };
 
+#ifndef IPOD_6G
 static void sleep_test(void)
 {
-#ifndef IPOD_6G
     int sleep_tmo = 5;
     int awake_tmo = 3;
 
@@ -375,8 +377,8 @@ static void sleep_test(void)
     printf("Press SELECT to continue");
     while (button_status() != BUTTON_SELECT)
         sleep(HZ/100);
-#endif
 }
+#endif
 
 static void pmu_info(void)
 {
@@ -475,9 +477,13 @@ static void run_of(void)
         printf("Booting OF in %d...", tmo);
         sleep(HZ*1);
     }
-    kernel_launch_onb();
+
+    int rc = kernel_launch_onb();
+    printf("Load OF error: %d", rc);
+    sleep(HZ*10);
 }
 
+#if defined(IPOD_6G) || defined(IPOD_NANO3G)
 static void print_syscfg(void)
 {
     lcd_clear_display();
@@ -554,20 +560,172 @@ end:
         sleep(HZ/100);
 }
 
+static void print_bootloader_hash(void)
+{
+    lcd_clear_display();
+    lcd_set_foreground(LCD_WHITE);
+    line = 0;
+
+    struct Im3Info hinfo;
+    int rc = im3_read(NORBOOT_OFF, &hinfo, NULL);
+
+    if (rc != 0) {
+        printf("Error loading the primary bootloader: %d", rc);
+        goto end;
+    }
+
+    unsigned char primary_hash[SIGN_SZ];
+
+    memcpy(primary_hash, hinfo.u.enc12.data_sign, SIGN_SZ);
+    hwkeyaes(HWKEYAES_DECRYPT, HWKEYAES_UKEY, primary_hash, SIGN_SZ);
+
+    unsigned bl_nor_sz = im3_nor_sz(&hinfo);
+    rc = im3_read(NORBOOT_OFF + bl_nor_sz, &hinfo, NULL);
+
+    if (rc == 0) {
+        // Rockbox bootloader is installed as primary
+        // Stock bootloader is backed up
+        unsigned char backup_hash[SIGN_SZ];
+        memcpy(backup_hash, hinfo.u.enc12.data_sign, SIGN_SZ);
+        hwkeyaes(HWKEYAES_DECRYPT, HWKEYAES_UKEY, backup_hash, SIGN_SZ);
+
+        printf("Rockbox bootloader hash:");
+
+        for (int i = 0; i < SIGN_SZ; i++) {
+            lcd_putsf(i * 2, line, "%02X", primary_hash[i]);
+        }
+
+        line += 2;
+        lcd_update();
+
+        printf("Stock bootloader hash:");
+
+        for (int i = 0; i < SIGN_SZ; i++) {
+            lcd_putsf(i * 2, line, "%02X", backup_hash[i]);
+        }
+
+        line++;
+        lcd_update();
+    }
+    else {
+        // Stock bootloader is installed as primary
+        // No backup bootloader
+        printf("Rockbox bootloader is not installed!");
+        line++;
+
+        printf("Stock bootloader hash:");
+
+        for (int i = 0; i < SIGN_SZ; i++) {
+            lcd_putsf(i * 2, line, "%02X", primary_hash[i]);
+        }
+
+        line++;
+        lcd_update();
+    }
+
+end:
+    line++;
+    while (button_status() != BUTTON_NONE)
+        sleep(HZ/100);
+    lcd_set_foreground(LCD_RBYELLOW);
+    printf("Press SELECT to continue");
+    while (button_status() != BUTTON_SELECT)
+        sleep(HZ/100);
+}
+
+#ifdef HAVE_SERIAL
+
+#define FLASH_PAGES (FLASH_SIZE >> 12)
+#define FLASH_PAGE_SIZE (FLASH_SIZE >> 8)
+
+static void dump_bootflash(void)
+{
+    lcd_clear_display();
+    lcd_set_foreground(LCD_WHITE);
+    line = 0;
+    
+    uint8_t page[FLASH_PAGE_SIZE];
+    printf("Total pages: %d", FLASH_PAGES);
+    
+    bootflash_init(SPI_PORT);
+
+    for (int i = 0; i < FLASH_PAGES; i++) {
+        printf("Reading flash... %d", i + 1);
+        bootflash_read(SPI_PORT, i << 12, FLASH_PAGE_SIZE, page);
+
+        printf("Sending over UART... %d", i + 1);
+        serial_tx_raw(page, FLASH_PAGE_SIZE);
+        line -= 2;
+    }
+
+    bootflash_close(SPI_PORT);
+
+    line += 2;
+    printf("Done!");
+    piezo_seq(alive);
+
+    line++;
+    lcd_set_foreground(LCD_RBYELLOW);
+    printf("Press SELECT to continue");
+    while (button_status() != BUTTON_SELECT)
+        sleep(HZ/100);
+}
+#endif /* HAVE_SERIAL */
+#endif /* IPOD_6G || IPOD_NANO3G */
+
 static void devel_menu(void)
 {
+    const char *items[] = {
+#ifndef IPOD_6G
+        "LCD sleep/awake test",
+#endif
+        "PMU info",
+        "GPIO info",
+#if defined(IPOD_6G) || defined(IPOD_NANO3G)
+        "Show SysCfg",
+        "Show bootloader hash",
+#ifdef HAVE_SERIAL
+        "Dump bootflash to UART",
+#endif
+#endif
+        "Launch OF",
+        //"Launch Rockbox",
+        "Restart",
+        "Power off",
+    };
+    void (*handlers[])(void) = {
+#ifndef IPOD_6G
+        sleep_test,
+#endif
+        pmu_info,
+        gpio_info,
+#if defined(IPOD_6G) || defined(IPOD_NANO3G)
+        print_syscfg,
+        print_bootloader_hash,
+#ifdef HAVE_SERIAL
+        dump_bootflash,
+#endif
+#endif
+        run_of,
+        //run_rockbox,
+        system_reboot,
+        power_off,
+    };
+    const size_t items_count = sizeof(items) / sizeof(items[0]);
+    unsigned char selected_item = 0;
+
     while (1)
     {
         lcd_clear_display();
         lcd_set_foreground(LCD_RBYELLOW);
         line = 0;
-        printf("Select action:");
-        printf(" <MENU>    Show SysCfg");
-        printf(" <LEFT>    LCD sleep/awake test");
-        printf(" <SELECT>  PMU info");
-        printf(" <RIGHT>   GPIO info");
-        printf(" <PLAY>    Launch OF");
-
+        printf("Development menu");
+        
+        for (size_t i = 0; i < items_count; i++) {
+            lcd_set_foreground(i == selected_item ? LCD_GREEN : LCD_WHITE);
+            printf(items[i]);
+        }
+        
         while (button_status() != BUTTON_NONE);
 
         bool done = false;
@@ -576,27 +734,29 @@ static void devel_menu(void)
             switch (button_status())
             {
                 case BUTTON_MENU:
-                    print_syscfg();
-                    done = true;
-                    break;
                 case BUTTON_LEFT:
-                    sleep_test();
-                    done = true;
-                    break;
-                case BUTTON_SELECT:
-                    pmu_info();
-                    done = true;
-                    break;
-                case BUTTON_RIGHT:
-                    gpio_info();
-                    done = true;
+                    if (selected_item > 0) {
+                        selected_item--;
+                        done = true;
+                    }
+                    else {
+                        sleep(HZ/100);
+                    }
                     break;
                 case BUTTON_PLAY:
-                {
-                    run_of();
+                case BUTTON_RIGHT:
+                    if (selected_item < items_count - 1) {
+                        selected_item++;
+                        done = true;
+                    }
+                    else {
+                        sleep(HZ/100);
+                    }
+                    break;
+                case BUTTON_SELECT:
+                    handlers[selected_item]();
                     done = true;
                     break;
-                }
                 default:
                     sleep(HZ/100);
                     break;
@@ -609,11 +769,6 @@ static void devel_menu(void)
 void main(void)
 {
     int rc = 0;
-
-#ifndef S5L87XX_DEVELOPMENT_BOOTLOADER
-    unsigned char *loadbuffer;
-    int (*kernel_entry)(void);
-#endif
 
     usec_timer_init();
 
@@ -697,7 +852,8 @@ void main(void)
     printf("lcd type: %d", lcd_type);
 #ifdef S5L_LCD_WITH_READID
     extern unsigned char lcd_id[4];
-    printf("lcd id: 0x%x", *((uint32_t*)&lcd_id[0]));
+    uint32_t* lcd_id_32 = (uint32_t *)lcd_id;
+    printf("lcd id: 0x%x", *lcd_id_32);
 #endif
 #ifdef IPOD_NANO4G
     printf("boot cfg: 0x%x", pmu_read(0x7f));
@@ -755,12 +911,19 @@ void main(void)
 
     rc = disk_mount_all();
     if (rc <= 0) {
+        struct partinfo pinfo;
         printf("No partition found");
+        for (int i = 0 ; i < NUM_VOLUMES ; i++) {
+            disk_partinfo(i, &pinfo);
+            if (pinfo.type)
+                printf("P%d T%02x S%08lx",
+                       i, pinfo.type, pinfo.size);
+        }
         fatal_error(ERR_RB);
     }
 
     printf("Loading Rockbox...");
-    loadbuffer = (unsigned char *)DRAM_ORIG;
+    unsigned char *loadbuffer = (unsigned char *)DRAM_ORIG;
     rc = load_firmware(loadbuffer, BOOTFILE, MAX_LOADSIZE);
 
     if (rc <= EFILE_EMPTY) {
@@ -775,7 +938,7 @@ void main(void)
     /* If we get here, we have a new firmware image at 0x08000000, run it */
     disable_irq();
 
-    kernel_entry = (void*) loadbuffer;
+    int (*kernel_entry)(void) = (void*)loadbuffer;
     commit_discard_idcache();
     rc = kernel_entry();
 

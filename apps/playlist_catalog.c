@@ -100,6 +100,7 @@ static int initialize_catalog_buf(char* dirbuf, size_t dirbuf_sz)
                 talk_dir_or_spell(dirbuf, NULL, true);
                 talk_force_enqueue_next();
             }
+            /* (voiced above) */
             splashf(HZ*2, str(LANG_CATALOG_NO_DIRECTORY), dirbuf);
             return -1;
         }
@@ -160,8 +161,8 @@ static int display_playlists(char* playlist, enum catbrowse_status_flags status)
     struct browse_context browse = {
         .dirfilter = SHOW_M3U,
         .flags = BROWSE_SELECTONLY | (view ? 0 : BROWSE_NO_CONTEXT_MENU),
-        .title = str(LANG_CATALOG),
-        .icon = Icon_NOICON,
+        .title = str(LANG_PLAYLISTS),
+        .icon = Icon_Playlist,
         .root = selected_playlist,
         .selected = &most_recent_playlist[playlist_dir_length + 1],
         .buf = selected_playlist,
@@ -264,7 +265,7 @@ static void display_insert_count(int count)
         talk_number(count, false);
         talk_id(LANG_PLAYLIST_INSERT_COUNT, true);
     }
-
+    /* (voiced above) */
     splashf(0, str(LANG_PLAYLIST_INSERT_COUNT), count, str(LANG_OFF_ABORT));
 }
 
@@ -286,8 +287,8 @@ static int add_track_to_playlist(char* filename, void* context)
 
 /* Add "sel" file into specified "playlist".  How to insert depends on type
    of file */
-static int add_to_playlist(const char* playlist, bool new_playlist,
-                           const char* sel, int sel_attr)
+int catalog_insert_into(const char* playlist, bool new_playlist,
+                        const char* sel, int sel_attr)
 {
     int fd;
     int result = -1;
@@ -348,13 +349,16 @@ static int add_to_playlist(const char* playlist, bool new_playlist,
     else if (sel_attr & ATTR_DIRECTORY)
     {
         /* search directory for tracks and append to playlist */
-        bool recurse = false;
+        bool recurse;
         const char *lines[] = {
             ID2P(LANG_RECURSE_DIRECTORY_QUESTION), sel};
         const struct text_message message={lines, 2};
         struct add_track_context context;
 
-        if (global_settings.recursive_dir_insert != RECURSE_ASK)
+
+        if (sel[1] == '\0' && sel[0] == PATH_ROOTCHR)
+            recurse = true;
+        else if (global_settings.recursive_dir_insert != RECURSE_ASK)
             recurse = (bool)global_settings.recursive_dir_insert;
         else
         {
@@ -411,16 +415,33 @@ static int remove_extension(char* path)
 bool catalog_pick_new_playlist_name(char *pl_name, size_t buf_size,
                                     const char* curr_pl_name)
 {
-    char bmark_file[MAX_PATH + 7];
+    char bmark_file[MAX_PATH + 7], *p;
     bool do_save = false;
     while (!do_save && !remove_extension(pl_name) &&
            !kbd_input(pl_name, buf_size - 7, NULL))
     {
-        do_save = true;
+        if (*pl_name == PATH_SEPCH) /* Require absolute filenames */
+        {
+            p = strrchr(pl_name, PATH_SEPCH);
+            do_save = *(p + 1);   /* Disallow empty filename */
+
+            /* prevent illegal characters */
+            fix_path_part(p, 1, strlen(p + 1));
+
+            /* Create dir if necessary */
+            if (do_save && p != (char *) pl_name)
+            {
+                *p = '\0';
+                do_save = dir_exists(pl_name) || mkdir(pl_name) == 0;
+                if (!do_save)
+                    splashf(HZ*2, ID2P(LANG_CATALOG_NO_DIRECTORY), pl_name);
+                *p = PATH_SEPCH;
+            }
+        }
         apply_playlist_extension(pl_name, buf_size);
 
         /* warn before overwriting existing (different) playlist */
-        if (!curr_pl_name || strcmp(curr_pl_name, pl_name))
+        if (do_save && (!curr_pl_name || strcmp(curr_pl_name, pl_name)))
         {
             if (file_exists(pl_name))
                 do_save = yesno_pop(ID2P(LANG_REALLY_OVERWRITE));
@@ -494,7 +515,7 @@ bool catalog_add_to_a_playlist(const char* sel, int sel_attr,
         result = ctx_add_to_playlist(playlist, new_playlist);
     }
     else
-        result = add_to_playlist(playlist, new_playlist, sel, sel_attr);
+        result = catalog_insert_into(playlist, new_playlist, sel, sel_attr);
 
     return (result == 0);
 }

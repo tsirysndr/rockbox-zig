@@ -74,6 +74,7 @@ int alarm_screen(void)
                     talk_value(mins_togo % 60, UNIT_MIN, true);
                     talk_force_enqueue_next();
                 }
+                /* (voiced above) */
                 splashf(HZ*2, str(LANG_ALARM_MOD_TIME_TO_GO),
                                mins_togo / 60, mins_togo % 60);
             } else {

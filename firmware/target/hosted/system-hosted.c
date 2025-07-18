@@ -50,9 +50,7 @@ static void sig_handler(int sig, siginfo_t *siginfo, void *context)
     static bool triggered = false;
 
     lcd_set_backdrop(NULL);
-    lcd_set_drawmode(DRMODE_SOLID);
-    lcd_set_foreground(LCD_BLACK);
-    lcd_set_background(LCD_WHITE);
+    lcd_set_drawinfo(DRMODE_SOLID, LCD_BLACK, LCD_WHITE);
     unsigned line = 0;
 
     lcd_setfont(FONT_SYSFIXED);
@@ -127,10 +125,16 @@ void system_exception_wait(void)
     backlight_hw_on();
     backlight_hw_brightness(DEFAULT_BRIGHTNESS_SETTING);
     /* wait until button press and release */
-    while(button_read_device() != 0) {}
-    while(button_read_device() == 0) {}
-    while(button_read_device() != 0) {}
-    while(button_read_device() == 0) {}
+#ifdef HAVE_BUTTON_DATA
+    int bdata;
+#define BDATA &bdata
+#else
+#define BDATA
+#endif
+    while(button_read_device(BDATA) != 0) {}
+    while(button_read_device(BDATA) == 0) {}
+    while(button_read_device(BDATA) != 0) {}
+    while(button_read_device(BDATA) == 0) {}
 }
 
 bool hostfs_removable(IF_MD_NONVOID(int drive))

@@ -117,7 +117,7 @@ int sound_current(int setting)
     {
 #ifndef BOOTLOADER
 #ifndef PLATFORM_HAS_VOLUME_CHANGE
-        SOUND_CUR_SET(VOLUME,             global_settings.volume)
+        SOUND_CUR_SET(VOLUME,             global_status.volume)
 #endif
 #if defined(AUDIOHW_HAVE_BASS)
         SOUND_CUR_SET(BASS,               global_settings.bass)
@@ -636,6 +636,8 @@ void sound_set_pitch(int32_t pitch)
         return;
 
     audiohw_set_pitch(pitch);
+    /* filter out invalid by grabbing the value actually set */
+    global_status.resume_pitch = audiohw_get_pitch();
 }
 
 int32_t sound_get_pitch(void)

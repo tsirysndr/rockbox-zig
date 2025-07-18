@@ -33,25 +33,19 @@
 #include "i2c-x1000.h"
 #include "devicedata.h"
 
-const unsigned short battery_level_dangerous[BATTERY_TYPES_COUNT] =
-{
-    3470
-};
+unsigned short battery_level_disksafe = 3470;
 
 /* The OF shuts down at this voltage */
-const unsigned short battery_level_shutoff[BATTERY_TYPES_COUNT] =
-{
-    3400
-};
+unsigned short battery_level_shutoff = 3400;
 
 /* voltages (millivolt) of 0%, 10%, ... 100% when charging disabled */
-const unsigned short percent_to_volt_discharge[BATTERY_TYPES_COUNT][11] =
+unsigned short percent_to_volt_discharge[11] =
 {
-    { 3400, 3477, 3540, 3578, 3617, 3674, 3771, 3856, 3936, 4016, 4117 }
+    3400, 3477, 3540, 3578, 3617, 3674, 3771, 3856, 3936, 4016, 4117
 };
 
 /* voltages (millivolt) of 0%, 10%, ... 100% when charging enabled */
-const unsigned short percent_to_volt_charge[11] =
+unsigned short percent_to_volt_charge[11] =
 {
       3400, 3477, 3540, 3578, 3617, 3674, 3771, 3856, 3936, 4016, 4117
 };
@@ -209,6 +203,21 @@ bool charging_state(void)
         return axp2101_battery_status() == AXP2101_BATT_CHARGING;
     } else {
         return axp_battery_status() == AXP_BATT_CHARGING;
+    }
+}
+
+int _battery_level(void)
+{
+    int devicever;
+#if defined(BOOTLOADER)
+    devicever = EROSQN_VER;
+#else
+    devicever = device_data.hw_rev;
+#endif
+    if (devicever >= 4){
+        return axp2101_egauge_read();
+    } else {
+        return -1;
     }
 }
 

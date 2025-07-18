@@ -23,7 +23,7 @@
 
 
 #include <stdio.h>
-
+#include <string.h>
 #include "config.h"
 #include "debug.h"
 #include "panic.h"
@@ -35,17 +35,9 @@
 /* Based on batterymonitor with PISEN and Samsung SIII battery. */
 
 
-const unsigned short battery_level_dangerous[BATTERY_TYPES_COUNT] =
-{
-    3600
-};
+unsigned short battery_level_disksafe = 3600;
 
-
-const unsigned short battery_level_shutoff[BATTERY_TYPES_COUNT] =
-{
-    3500
-};
-
+unsigned short battery_level_shutoff = 3500;
 
 /*
     Averages at percent of running time from five measuremnts with PISEN and Samsung SIII battery
@@ -55,14 +47,14 @@ const unsigned short battery_level_shutoff[BATTERY_TYPES_COUNT] =
     < 3660 (0%), < 3730 (1% - 10%), < 3780 (11% - 20%), < 3830 (21% - 40%), < 3950 (41% - 60%),
     < 4080 (61% - 80%), > 4081 (81% - 100%)
 */
-const unsigned short percent_to_volt_discharge[BATTERY_TYPES_COUNT][11] =
+unsigned short percent_to_volt_discharge[11] =
 {
-    { 3522, 3660, 3720, 3752, 3784, 3827, 3896, 3978, 4072, 4168, 4255 }
+    3522, 3660, 3720, 3752, 3784, 3827, 3896, 3978, 4072, 4168, 4255
 };
 
 
 /* Copied from percent_to_volt_discharge. */
-const unsigned short percent_to_volt_charge[11] =
+unsigned short percent_to_volt_charge[11] =
 {
     3500, 3544, 3578, 3623, 3660, 3773, 3782, 3853, 3980, 4130, 4360
 };
@@ -119,4 +111,32 @@ int _battery_voltage(void)
     }
 
     return(val / 1000);
+}
+
+/* NOTE:  This is largely lifted from the generic hostedpower-linux.c
+   but that uses a different sysfs api (expecting a path strning rather than
+   an enumeration */
+#include "tick.h"
+#include "power.h"
+
+static long last_tick = 0;
+static bool last_power = false;
+bool charging_state(void)
+{
+    if ((current_tick - last_tick) > HZ/2 ) {
+        char buf[12] = {0};
+        sysfs_get_string(SYSFS_BATTERY_STATUS, buf, sizeof(buf));
+
+        last_tick = current_tick;
+        last_power = (strncmp(buf, "Charging", 8) == 0);
+    }
+    return last_power;
+}
+
+unsigned int power_input_status(void)
+{
+    int present = 0;
+    sysfs_get_int(SYSFS_USB_POWER_ONLINE, &present);
+
+    return present ? POWER_INPUT_USB_CHARGER : POWER_INPUT_NONE;
 }

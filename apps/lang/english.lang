@@ -4,7 +4,6 @@
 #   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
 #   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 #                     \/            \/     \/    \/            \/
-# $Id$
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -14,83 +13,92 @@
 # This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
 # KIND, either express or implied.
 #
-# This is the master of the language files. This is the original, the one with
-# all the existing strings Rockbox features.
+# This is the root source of truth for Rockbox's translatable strings,
+# contianing all strings for all Rockbox features.  All other languages
+# overlay on top of this one.
 #
-# The target names used for target-specific strings are set in the ARCHOS
-# variable in the root Makefile
+# IMPORTANT NOTES:
 #
-# *WARNING*
+# * If you want to add a new string, add it to the end of this file!
+# * Removing strings will break the numbering of strings in binary lang
+#   and voice files, so instead of removing a unused <phrase>, change the
+#   desc field to "deprecated" (without quotes) and blank the strings.
+#   Do *not* change the targets.
+# * Due to strict run-time checks, binary lang and voice files are not
+#   portable from one device to another.  They may not even be compatible
+#   from one build to another on the same device, especially if phrases
+#   or strings were added (or removed) from this file, or if the features
+#   list for your device have changed.
 #
-# If you want to add a new string, add it to the end of this file!
-# Removing strings will break the numbering of strings in binary lang files and
-# voice files so instead of removing a unused <phrase>, change the desc field
-# to "deprecated" (without quotes) and either blank the strings or change them to
-# "deprecated" (without quotes) and do *not* change the targets.
+# As this file is both the master for the language system, as well as the
+# source for generating english strings, all <source> strings *must* be
+# *identical* to the <dest> strings within the english.lang file. The
+# <source> strings are referenced by other languages when doing updates,
+# while the <dest> strings are used when this file is used to as the
+# source of english strings for a particular target.  In other files,
+# the <dest> string is the translated text.
 #
-# If you re-order things or remove entries, you must bump the binary language
-# file version number in both the 'genlang' tool and the language loader code.
+# 'Targets' refer to both the unique device name (as specified in the
+# configure file and stored in MODELNAME of the top-level Makefile) and
+# to various common features that are shared between more than one
+# device.  See apps/features.txt for all available features that can be
+# used instead of or in addition to the device name itself.
 #
-# The "voice" entry contains how we want the speech UI to pronounce the phrase.
+# All phrases have a default string, designated with a target
+# of '*' (eg: *: "default text") that will be used if no other target
+# matches the particular device you are building for. If you want to
+# designate a particular string for a specific target, you would write
+# it like:
+#   target: "target-specific string"
+# and locate it below the the default line. If the phrase will not be
+# used for all targets, set the default to none, eg:
+#   *: none
+# to ensure it will not be included when it is not needed.
 #
-# Since this file is both the master for the language system, as well as the
-# source for generating english strings, make sure that all <source> strings
-# are *identical* to the <dest> strings within the english.lang file. The
-# <source> strings are the ones that'll be exposed and used by other languages
-# when doing updates etc, while the <dest> ones are used when this file is
-# used to simply get the full set of english strings for a particular target.
+# Phrases starting with LANG_ are displayed in the UI, and are usually
+# voiced as well. Phrases starting with VOICE_ are only voiced. They
+# *must* have empty (ie "") <source> and <dest> strings, and non-empty
+# <voice> strings.
 #
-# All phrases have a default string like: *: "default" that will be used if no
-# other string matches for the particular model you build the language for. If
-# you want a particular string for the iriver iriverh300 series you'd write it like:
-# iriverh300: "iriverh300-specific string" (below the default line). If your string isn't
-# used for all targets set the default to none like: *: none (no quotes!) this
-# will not include the string for target that will not need it, see
-# apps/features.txt for available categories that can be used instead of the
-# target name, for example: swcodec: "swcodec-specific string".
+# The individual entries under the <voice> section of a phrase contain
+# the text the speech UI will use to pronounce the phrase.  This is
+# usually the same as the <dest> section, albeit with some limitations.
+# For example, most punctuation and any dynamic strings (ie with with C
+# format specifiers) are not allowed.  If a phrase is not intended to be
+# voiced, you may use either an empty string (ie "") or 'none' under its
+# <voice> section.
 #
-# The target names used are picked from the configure script and are set in the
-# MODELNAME variable in the root makefile. This is an incomplete list:
-# Target        Target string
-# iriver
-# H100/H110/H115    iriverh100
-# H120/H140         iriverh120
-# H320/H340         iriverh300
-# H10               iriverh10
-# iaudio/Cowon
-# X5                iaudiox5
-# M5                iaudiom5
-# D2                cowond2*
-# ipod
-# All iPods         ipod*
-# 4G Color/Photo    ipodcolor
-# Nano              ipodnano1g
-# Video (5G)        ipodvideo
-# 3G                ipod3g
-# 4G gray           ipod4g
-# mini              ipodmini1g
-# mini 2G           ipodmini2g
-# Toshiba
-# All gigabeats     gigabeat*
-# Gigabeat Fxx      gigabeatfx
-# Gigabeat Sxx      gigabeats
-# Sandisk
-# Sansa E200        sansae200*
-# Sansa C200        sansac200*
-# Sansa Fuze        sansafuze*
-# Sansa Clip        sansaclip*
-# Olympus
-# m:robe 100        mrobe100
-# m:robe 500        mrobe500
-# Mpio
-# HD200             mpiohd200
-# HD300             mpiohd300
-# Packard Bell
-# Vibe 500          vibe500
-# Philips
-# GoGear SA9200     gogearsa9200
-# Samsung
-# YH820/YH920/YH925 samsungyh*
+# In <voice> sections, keep in mind that the text will be spoken by TTS
+# engines, so some changes from the <dest> may be necessary for clarity.
+# For example, you may want to separate acronyms into their individual
+# letters so they are spoken separately, or expand abbreviations into
+# their full form.  Some adjustments are made automatically; please see
+# tools/voice-corrections.txt for further details.
+#
+# To validate the contents of a translation, you can use the Rockbox
+# translation site at https://translate.rockbox.org.  Alternatively, you
+# can use the command-line 'updatelang' tool as follows:
+#
+#  tools/updatelang apps/lang/english.lang path/to/translation.lang path/to/updated.lang
+#
+# You can then examine the updated file. All problematic areas will be marked with '###'
+#
+####
+# This is the first item, and will be shown when P2STR is passed a NULL pointer
+<phrase>
+  id: LANG_ROCKBOX_TITLE
+  desc: main menu title
+  user: core
+  <source>
+    *: "Rockbox"
+  </source>
+  <dest>
+    *: "Rockbox"
+  </dest>
+  <voice>
+    *: "Rockbox"
+  </voice>
+</phrase>
 <phrase>
   id: LANG_SET_BOOL_YES
   desc: bool true representation
@@ -302,8 +310,8 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RESET_ASK
-  desc: confirm to reset settings
+  id: LANG_ARE_YOU_SURE
+  desc: confirm action
   user: core
   <source>
     *: "Are You Sure?"
@@ -351,20 +359,6 @@
   </dest>
   <voice>
     *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ROCKBOX_TITLE
-  desc: main menu title
-  user: core
-  <source>
-    *: "Rockbox"
-  </source>
-  <dest>
-    *: "Rockbox"
-  </dest>
-  <voice>
-    *: "Rockbox"
   </voice>
 </phrase>
 <phrase>
@@ -487,7 +481,7 @@
 </phrase>
 <phrase>
   id: LANG_PLAYLISTS
-  desc: in the file view setting
+  desc: in the main menu and Playlist settings menu
   user: core
   <source>
     *: "Playlists"
@@ -1356,7 +1350,7 @@
     *: "Fade on Stop/Pause"
   </dest>
   <voice>
-    *: "Fade On Stop and Pause"
+    *: "Fade on Stop and Pause"
   </voice>
 </phrase>
 <phrase>
@@ -2874,13 +2868,13 @@
   desc: should lines scroll out of the screen
   user: core
   <source>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </source>
   <dest>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </dest>
   <voice>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </voice>
 </phrase>
 <phrase>
@@ -3044,6 +3038,20 @@
   </voice>
 </phrase>
 <phrase>
+  id: LANG_DISPLAY_SPECIAL_CHARACTER
+  desc: Special character (japanese, accents, etc)
+  user: core
+  <source>
+    *: "Special character"
+  </source>
+  <dest>
+    *: "Special character"
+  </dest>
+  <voice>
+    *: "Special character"
+  </voice>
+</phrase>
+<phrase>
   id: LANG_PM_MENU
   desc: in the display menu
   user: core
@@ -3160,13 +3168,13 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
   </source>
   <dest>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
   </dest>
   <voice>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
   </voice>
 </phrase>
 <phrase>
@@ -3174,13 +3182,13 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
   </source>
   <dest>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
   </dest>
   <voice>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
   </voice>
 </phrase>
 <phrase>
@@ -3487,63 +3495,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BATTERY_TYPE
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Battery Type"
-  </source>
-  <dest>
-    *: none
-    battery_types: "Battery Type"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Battery type"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_1
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Alkaline"
-    xduoox3: "Newer (2000 mAh)"
-  </source>
-  <dest>
-    *: none
-    battery_types: "Alkaline"
-    xduoox3: "Newer (2000 mAh)"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Alkaline"
-    xduoox3: "Newer 2000 milliamp hour"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_2
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "NiMH"
-    xduoox3: "Older (1500 mAh)"
-  </source>
-  <dest>
-    *: none
-    battery_types: "NiMH"
-    xduoox3: "Older (1500 mAh)"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Nickel metal hydride"
-    xduoox3: "Older 1500 milliamp hour"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_DISK_MENU
   desc: in the system sub menu
   user: core
@@ -3673,8 +3624,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -3683,8 +3634,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -3693,7 +3644,6 @@
   </dest>
   <voice>
     *: none
-    gigabeat*,gogearsa9200,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh100,iriverh10_5gb,iriverh120,iriverh300,mrobe100,rtc,samsungyh*,sansac200*,sansae200*: ""
   </voice>
 </phrase>
 <phrase>
@@ -3702,8 +3652,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -3716,8 +3666,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -3730,7 +3680,6 @@
   </dest>
   <voice>
     *: none
-    gigabeat*,gogearsa9200,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh100,iriverh10_5gb,iriverh120,iriverh300,mrobe100,rtc,samsungyh*,sansac200*,sansae200*: ""
   </voice>
 </phrase>
 <phrase>
@@ -4164,11 +4113,11 @@
   user: core
   <source>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </source>
   <dest>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </dest>
   <voice>
     *: none
@@ -4808,7 +4757,7 @@
   </dest>
   <voice>
     *: none
-    radio: ""
+    radio: "Scanning"
   </voice>
 </phrase>
 <phrase>
@@ -5171,15 +5120,15 @@
   user: core
   <source>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </source>
   <dest>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </dest>
   <voice>
     *: none
-    recording: "Same As Source"
+    recording: "Same as Source"
   </voice>
 </phrase>
 <phrase>
@@ -5921,20 +5870,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CATALOG
-  desc: in main menu and onplay menu
-  user: core
-  <source>
-    *: "Playlist Catalogue"
-  </source>
-  <dest>
-    *: "Playlist Catalogue"
-  </dest>
-  <voice>
-    *: "Playlist Catalogue"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_RECURSE_DIRECTORY
   desc: In playlist menu
   user: core
@@ -6295,13 +6230,13 @@
   desc: in playlist menu.
   user: core
   <source>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </source>
   <dest>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </dest>
   <voice>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </voice>
 </phrase>
 <phrase>
@@ -6613,6 +6548,20 @@
   </voice>
 </phrase>
 <phrase>
+  id: LANG_ID3_ALBUMARTISTS
+  desc: in tag viewer
+  user: core
+  <source>
+    *: "Album Artists"
+  </source>
+  <dest>
+    *: "Album Artists"
+  </dest>
+  <voice>
+    *: "Album Artists"
+  </voice>
+</phrase>
+<phrase>
   id: LANG_ID3_DISCNUM
   desc: in tag viewer
   user: core
@@ -6645,10 +6594,10 @@
   desc: in browse_id3
   user: core
   <source>
-    *: " (VBR)"
+    *: "(VBR)"
   </source>
   <dest>
-    *: " (VBR)"
+    *: "(VBR)"
   </dest>
   <voice>
     *: "VBR"
@@ -6884,15 +6833,15 @@
   user: core
   <source>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </source>
   <dest>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </dest>
   <voice>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </voice>
 </phrase>
 <phrase>
@@ -6949,6 +6898,20 @@
   </dest>
   <voice>
     *: "Add to Shortcuts"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_CURRENT_TO_FAVES
+  desc:
+  user: core
+  <source>
+    *: "Add Current to Shortcuts"
+  </source>
+  <dest>
+    *: "Add Current to Shortcuts"
+  </dest>
+  <voice>
+    *: "Add Current to Shortcuts"
   </voice>
 </phrase>
 <phrase>
@@ -7384,7 +7347,7 @@
     *: "Failed reading %s"
   </dest>
   <voice>
-    *: ""
+    *: "Failed reading file"
   </voice>
 </phrase>
 <phrase>
@@ -8822,16 +8785,16 @@
   </voice>
 </phrase>
 <phrase>
-  id: VOICE_CURRENT_TIME
-  desc: spoken only, for wall clock announce
+  id: LANG_CURRENT_TIME
+  desc: for wall clock announce
   user: core
   <source>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </source>
   <dest>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </dest>
   <voice>
     *: none
@@ -9290,13 +9253,13 @@
   desc: Relative volume of voice prompts
   user: core
   <source>
-    *: "Voice prompt volume"
+    *: "Voice Prompt Volume"
   </source>
   <dest>
-    *: "Voice prompt volume"
+    *: "Voice Prompt Volume"
   </dest>
   <voice>
-    *: "Voice prompt volume"
+    *: "Voice Prompt Volume"
   </voice>
 </phrase>
 <phrase>
@@ -9450,7 +9413,7 @@
 </phrase>
 <phrase>
   id: VOICE_OK
-  desc: spoken only, On exiting a context, specifically the quick screen
+  desc: spoken only, on exiting a context, specifically the quick screen
   user: core
   <source>
     *: ""
@@ -9468,15 +9431,15 @@
   user: core
   <source>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </source>
   <dest>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </dest>
   <voice>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </voice>
 </phrase>
 <phrase>
@@ -11382,13 +11345,13 @@
   desc: resume settings menu
   user: core
   <source>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </source>
   <dest>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </dest>
   <voice>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </voice>
 </phrase>
 <phrase>
@@ -11528,13 +11491,13 @@
   desc: whether sleep timer starts on power up
   user: core
   <source>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </source>
   <dest>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </dest>
   <voice>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </voice>
 </phrase>
 <phrase>
@@ -11660,13 +11623,13 @@
   desc: whether to restart running sleep timer on keypress
   user: core
   <source>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </source>
   <dest>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </dest>
   <voice>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </voice>
 </phrase>
 <phrase>
@@ -12638,20 +12601,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_PLAYTIME_REMAINING
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PLAYTIME_TRK_REMAINING
   desc: playing time screen
   user: core
@@ -13389,48 +13338,6 @@
   </dest>
   <voice>
     *: "Level 7, 40 moves per 240 minutes"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_8
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 8: 1 move / 15 min"
-  </source>
-  <dest>
-    *: "Level 8: 1 move / 15 min"
-  </dest>
-  <voice>
-    *: "Level 8, 1 move per 15 minutes"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_9
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 9: 1 move / 60 min"
-  </source>
-  <dest>
-    *: "Level 9: 1 move / 60 min"
-  </dest>
-  <voice>
-    *: "Level 9, 1 move per 60 minutes"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_10
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 10: 1 move / 600 min"
-  </source>
-  <dest>
-    *: "Level 10: 1 move / 600 min"
-  </dest>
-  <voice>
-    *: "Level 10, 1 move per 600 minutes"
   </voice>
 </phrase>
 <phrase>
@@ -14245,16 +14152,16 @@
 </phrase>
 <phrase>
   id: LANG_TOGGLE_ITEM
-  desc: in main_menu_config
+  desc: deprecated
   user: core
   <source>
-    *: "Toggle Item"
+    *: ""
   </source>
   <dest>
-    *: "Toggle Item"
+    *: ""
   </dest>
   <voice>
-    *: "Toggle Item"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -14315,13 +14222,13 @@
 </phrase>
 <phrase>
   id: LANG_MAIN_MENU_ORDER
-  desc: main_menu_config plugin title
+  desc: deprecated
   user: core
   <source>
-    *: "Rockbox Main Menu Order"
+    *: ""
   </source>
   <dest>
-    *: "Rockbox Main Menu Order"
+    *: ""
   </dest>
   <voice>
     *: ""
@@ -14825,20 +14732,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CACHE_REBUILT_NEXT_RESTART
-  desc: in the pictureflow splash messages
-  user: core
-  <source>
-    *: "Cache will be rebuilt on next restart"
-  </source>
-  <dest>
-    *: "Cache will be rebuilt on next restart"
-  </dest>
-  <voice>
-    *: "Cache will be rebuilt on next restart"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_ERROR_WRITING_CONFIG
   desc: in the pictureflow splash messages
   user: core
@@ -15246,10 +15139,10 @@
   desc: open plugin module
   user: core
   <source>
-    *: "Set Wps Context Plugin"
+    *: "Set WPS Context Plugin"
   </source>
   <dest>
-    *: "Set Wps Context Plugin"
+    *: "Set WPS Context Plugin"
   </dest>
   <voice>
     *: "Set WPS Context Plugin"
@@ -15661,7 +15554,7 @@
     *: "Artist + Name"
   </dest>
   <voice>
-    *: "Artist And Name"
+    *: "Artist and Name"
   </voice>
 </phrase>
 <phrase>
@@ -15675,7 +15568,7 @@
     *: "Artist + Year"
   </dest>
   <voice>
-    *: "Artist And Year"
+    *: "Artist and Year"
   </voice>
 </phrase>
 <phrase>
@@ -16495,6 +16388,454 @@
   </voice>
 </phrase>
 <phrase>
+  id: LANG_SHOW_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "First Letter"
+  </source>
+  <dest>
+    *: "First Letter"
+  </dest>
+  <voice>
+    *: "First Letter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "By First Letter..."
+  </source>
+  <dest>
+    *: "By First Letter..."
+  </dest>
+  <voice>
+    *: "By First Letter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists by First Letter"
+  </source>
+  <dest>
+    *: "Artists by First Letter"
+  </dest>
+  <voice>
+    *: "Artists by First Letter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUM_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Album Artists by First Letter"
+  </source>
+  <dest>
+    *: "Album Artists by First Letter"
+  </dest>
+  <voice>
+    *: "Album Artists by First Letter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUMS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by First Letter"
+  </source>
+  <dest>
+    *: "Albums by First Letter"
+  </dest>
+  <voice>
+    *: "Albums by First Letter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_TRACKS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by First Letter"
+  </source>
+  <dest>
+    *: "Tracks by First Letter"
+  </dest>
+  <voice>
+    *: "Tracks by First Letter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists"
+  </source>
+  <dest>
+    *: "Artists"
+  </dest>
+  <voice>
+    *: "Artists"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums"
+  </source>
+  <dest>
+    *: "Albums"
+  </dest>
+  <voice>
+    *: "Albums"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks"
+  </source>
+  <dest>
+    *: "Tracks"
+  </dest>
+  <voice>
+    *: "Tracks"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHUFFLE_SONGS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Shuffle Songs"
+  </source>
+  <dest>
+    *: "Shuffle Songs"
+  </dest>
+  <voice>
+    *: "Shuffle Songs"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILENAME
+  desc: Database and recording menus
+  user: core
+  <source>
+    *: "Filename"
+  </source>
+  <dest>
+    *: "Filename"
+  </dest>
+  <voice>
+    *: "Filename"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TITLE_WITH_DURATION
+  desc: Database menu
+  user: core
+  <source>
+    *: "Title (with track duration)"
+  </source>
+  <dest>
+    *: "Title (with track duration)"
+  </dest>
+  <voice>
+    *: "Title with track duration"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USER_RATING
+  desc: Database menu
+  user: core
+  <source>
+    *: "User Rating"
+  </source>
+  <dest>
+    *: "User Rating"
+  </dest>
+  <voice>
+    *: "User Rating"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search"
+  </source>
+  <dest>
+    *: "Search"
+  </dest>
+  <voice>
+    *: "Search"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search by..."
+  </source>
+  <dest>
+    *: "Search by..."
+  </dest>
+  <voice>
+    *: "Search by"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECENTLY_ADDED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently Added"
+  </source>
+  <dest>
+    *: "Recently Added"
+  </dest>
+  <voice>
+    *: "Recently Added"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_HISTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Playback History"
+  </source>
+  <dest>
+    *: "Playback History"
+  </dest>
+  <voice>
+    *: "Playback History"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CUSTOM_MENU
+  desc: Database menu
+  user: core
+  <source>
+    *: "Custom menu"
+  </source>
+  <dest>
+    *: "Custom menu"
+  </dest>
+  <voice>
+    *: "Custom menu"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAME_AS_CURRENT
+  desc: Database menu
+  user: core
+  <source>
+    *: "Same as currently played track"
+  </source>
+  <dest>
+    *: "Same as currently played track"
+  </dest>
+  <voice>
+    *: "Same as currently played track"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIRECTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Directory"
+  </source>
+  <dest>
+    *: "Directory"
+  </dest>
+  <voice>
+    *: "Directory"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BY_YEAR
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by Year"
+  </source>
+  <dest>
+    *: "Albums by Year"
+  </dest>
+  <voice>
+    *: "Albums by Year"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums between Years"
+  </source>
+  <dest>
+    *: "Albums between Years"
+  </dest>
+  <voice>
+    *: "Albums between Years"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists between Years"
+  </source>
+  <dest>
+    *: "Artists between Years"
+  </dest>
+  <voice>
+    *: "Artists between Years"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_MOST_PLAYED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Most played (Plays|Score)"
+  </source>
+  <dest>
+    *: "Most played (Plays|Score)"
+  </dest>
+  <voice>
+    *: "Most played by Plays then by Score"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENTLY_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently played tracks"
+  </source>
+  <dest>
+    *: "Recently played tracks"
+  </dest>
+  <voice>
+    *: "Recently played tracks"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEVER_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Never played tracks"
+  </source>
+  <dest>
+    *: "Never played tracks"
+  </dest>
+  <voice>
+    *: "Never played tracks"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite artists"
+  </source>
+  <dest>
+    *: "Favourite artists"
+  </dest>
+  <voice>
+    *: "Favourite artists"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite albums"
+  </source>
+  <dest>
+    *: "Favourite albums"
+  </dest>
+  <voice>
+    *: "Favourite albums"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENT_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recent favourites"
+  </source>
+  <dest>
+    *: "Recent favourites"
+  </dest>
+  <voice>
+    *: "Recent favourites"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEW_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "New favourites"
+  </source>
+  <dest>
+    *: "New favourites"
+  </dest>
+  <voice>
+    *: "New favourites"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FORGOTTEN_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Forgotten favourites"
+  </source>
+  <dest>
+    *: "Forgotten favourites"
+  </dest>
+  <voice>
+    *: "Forgotten favourites"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by"
+  </source>
+  <dest>
+    *: "Tracks by"
+  </dest>
+  <voice>
+    *: "Tracks by"
+  </voice>
+</phrase>
+<phrase>
   id: LANG_VIEW_ALBUMART
   desc: WPS context menu
   user: core
@@ -16548,15 +16889,15 @@
   user: core
   <source>
     *: none
-    lineout_poweroff,erosqnative: "Line Out"
+    erosqnative,lineout_poweroff: "Line Out"
   </source>
   <dest>
     *: none
-    lineout_poweroff,erosqnative: "Line Out"
+    erosqnative,lineout_poweroff: "Line Out"
   </dest>
   <voice>
     *: none
-    lineout_poweroff,erosqnative: "Line Out"
+    erosqnative,lineout_poweroff: "Line Out"
   </voice>
 </phrase>
 <phrase>
@@ -16570,7 +16911,7 @@
     *: "Unable to load font: (%s)"
   </dest>
   <voice>
-    *: "tracks saved"
+    *: "Unable to load font"
   </voice>
 </phrase>
 <phrase>
@@ -16613,5 +16954,19 @@
   </dest>
   <voice>
     *: "Playlist finished. Play again?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_PLAYLISTS
+  desc: playlists sorting setting
+  user: core
+  <source>
+    *: "Sort Playlists"
+  </source>
+  <dest>
+    *: "Sort Playlists"
+  </dest>
+  <voice>
+    *: "sort playlists"
   </voice>
 </phrase>

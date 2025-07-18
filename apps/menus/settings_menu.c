@@ -180,14 +180,10 @@ MAKE_MENU(tagcache_menu, ID2P(LANG_TAGCACHE), 0, Icon_NOICON,
 
 /***********************************/
 /*    FILE VIEW MENU               */
-static int fileview_callback(int action,
-                             const struct menu_item_ex *this_item,
-                             struct gui_synclist *this_list);
-
 MENUITEM_SETTING(sort_case, &global_settings.sort_case, NULL);
-MENUITEM_SETTING(sort_dir, &global_settings.sort_dir, fileview_callback);
-MENUITEM_SETTING(sort_file, &global_settings.sort_file, fileview_callback);
-MENUITEM_SETTING(interpret_numbers, &global_settings.interpret_numbers, fileview_callback);
+MENUITEM_SETTING(sort_dir, &global_settings.sort_dir, NULL);
+MENUITEM_SETTING(sort_file, &global_settings.sort_file, NULL);
+MENUITEM_SETTING(interpret_numbers, &global_settings.interpret_numbers, NULL);
 MENUITEM_SETTING(dirfilter, &global_settings.dirfilter, NULL);
 MENUITEM_SETTING(show_filename_ext, &global_settings.show_filename_ext, NULL);
 MENUITEM_SETTING(browse_current, &global_settings.browse_current, NULL);
@@ -205,25 +201,6 @@ static int clear_start_directory(void)
 }
 MENUITEM_FUNCTION(clear_start_directory_item, 0, ID2P(LANG_RESET_START_DIR),
                   clear_start_directory, NULL, Icon_file_view_menu);
-static int fileview_callback(int action,
-                             const struct menu_item_ex *this_item,
-                             struct gui_synclist *this_list)
-{
-    (void)this_list;
-    static int oldval;
-    int *variable = this_item->variable;
-    switch (action)
-    {
-        case ACTION_ENTER_MENUITEM: /* on entering an item */
-            oldval = *variable;
-            break;
-        case ACTION_EXIT_MENUITEM: /* on exit */
-            if (*variable != oldval)
-                reload_directory(); /* force reload if this has changed */
-            break;
-    }
-    return action;
-}
 
 static int filemenu_callback(int action,
                              const struct menu_item_ex *this_item,
@@ -243,10 +220,13 @@ static int filemenu_callback(int action,
 {
     (void)this_list;
 
+    /* Show File View menu in Settings or File Browser,
+       but not in Database or Playlist Catalog */
     if (action == ACTION_REQUEST_MENUITEM &&
         this_item == &file_menu &&
-        get_onplay_context() == CONTEXT_ID3DB &&
-        get_current_activity() != ACTIVITY_SETTINGS)
+        get_current_activity() != ACTIVITY_SETTINGS &&
+        (get_onplay_context() != CONTEXT_TREE
+         || *tree_get_context()->dirfilter == SHOW_M3U))
         return ACTION_EXIT_MENUITEM;
 
     return action;
@@ -263,9 +243,7 @@ static int filemenu_callback(int action,
 #if BATTERY_CAPACITY_INC > 0
 MENUITEM_SETTING(battery_capacity, &global_settings.battery_capacity, NULL);
 #endif
-#if BATTERY_TYPES_COUNT > 1
-MENUITEM_SETTING(battery_type, &global_settings.battery_type, NULL);
-#endif
+
 #ifdef HAVE_USB_CHARGING_ENABLE
 static int usbcharging_callback(int action,
                                 const struct menu_item_ex *this_item,
@@ -286,9 +264,6 @@ MENUITEM_SETTING(usb_charging, &global_settings.usb_charging, usbcharging_callba
 MAKE_MENU(battery_menu, ID2P(LANG_BATTERY_MENU), 0, Icon_NOICON,
 #if BATTERY_CAPACITY_INC > 0
             &battery_capacity,
-#endif
-#if BATTERY_TYPES_COUNT > 1
-            &battery_type,
 #endif
 #ifdef HAVE_USB_CHARGING_ENABLE
             &usb_charging,
@@ -430,7 +405,7 @@ MENUITEM_SETTING(governor, &global_settings.governor, NULL);
 
 MAKE_MENU(system_menu, ID2P(LANG_SYSTEM),
           0, Icon_System_menu,
-#if (BATTERY_CAPACITY_INC > 0) || (BATTERY_TYPES_COUNT > 1) || defined(HAVE_USB_CHARGING_ENABLE)
+#if (BATTERY_CAPACITY_INC > 0) || defined(HAVE_USB_CHARGING_ENABLE)
             &battery_menu,
 #endif
 #if defined(HAVE_DIRCACHE) || defined(HAVE_DISK_STORAGE)
@@ -510,7 +485,7 @@ int sleeptimer_voice(int selected_item, void*data)
 {
     (void)selected_item;
     (void)data;
-    talk_sleeptimer();
+    talk_sleeptimer(-1);
     return 0;
 }
 

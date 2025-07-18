@@ -519,7 +519,7 @@ static const char * id3_get_or_speak_info(int selected_item, void* data,
             case LANG_TAGNAVI_ALL_TRACKS:
                 if (info->track_ct <= 1)
                     return NULL;
-                snprintf(buffer, buffer_len, "%d", info->track_ct);
+                itoa_buf(buffer, buffer_len, info->track_ct);
                 val = buffer;
                 if(say_it)
                     talk_number(info->track_ct, true);
@@ -558,7 +558,7 @@ static const char * id3_get_or_speak_info(int selected_item, void* data,
                 }
                 else if (id3->discnum)
                 {
-                    snprintf(buffer, buffer_len, "%d", id3->discnum);
+                    itoa_buf(buffer, buffer_len, id3->discnum);
                     val = buffer;
                     if(say_it)
                         talk_number(id3->discnum, true);
@@ -573,7 +573,7 @@ static const char * id3_get_or_speak_info(int selected_item, void* data,
                 }
                 else if (id3->tracknum)
                 {
-                    snprintf(buffer, buffer_len, "%d", id3->tracknum);
+                    itoa_buf(buffer, buffer_len, id3->tracknum);
                     val = buffer;
                     if(say_it)
                         talk_number(id3->tracknum, true);
@@ -602,7 +602,7 @@ static const char * id3_get_or_speak_info(int selected_item, void* data,
                 }
                 else if (id3->year)
                 {
-                    snprintf(buffer, buffer_len, "%d", id3->year);
+                    itoa_buf(buffer, buffer_len, id3->year);
                     val = buffer;
                     if(say_it)
                         talk_value(id3->year, UNIT_DATEYEAR, true);
@@ -666,7 +666,8 @@ static const char * id3_get_or_speak_info(int selected_item, void* data,
             case LANG_ID3_BITRATE:
                 if (!id3->bitrate)
                     return NULL;
-                snprintf(buffer, buffer_len, "%d kbps%s", id3->bitrate,
+                snprintf(buffer, buffer_len, "%d kbps%s%s", id3->bitrate,
+            id3->vbr ? " " : "",
             id3->vbr ? str(LANG_ID3_VBR) : (const unsigned char*) "");
                 val=buffer;
                 if(say_it)
@@ -867,6 +868,9 @@ refresh_info:
             }
         }
     }
+    FOR_NB_SCREENS(i)
+        screens[i].scroll_stop(); /* when custom lists are used */
+
     if (is_curr_track_info)
         pop_current_activity();
     return ret;
@@ -889,8 +893,7 @@ static const char* runtime_get_data(int selected_item, void* data,
     {
         case 0:return str(LANG_RUNNING_TIME);
         case 1: {
-            global_status.runtime += ((current_tick - lasttime) / HZ);
-            lasttime = current_tick;
+            update_runtime();
              t = global_status.runtime;
             break;
         }

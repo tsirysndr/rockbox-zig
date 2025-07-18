@@ -32,8 +32,11 @@
 #include "strptokspn_r.h"
 #include "scrollbar.h"
 #include "font.h"
+#ifndef BOOTLOADER
+#include "misc.h" /* get_current_activity */
+#endif
 
-static long progress_next_tick = 0;
+static long progress_next_tick, talked_tick;
 
 #define MAXLINES  (LCD_HEIGHT/6)
 #define MAXBUFFER 512
@@ -43,6 +46,20 @@ static long progress_next_tick = 0;
 static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
                             struct viewport *vp, int addl_lines)
 {
+    static int max_width[NB_SCREENS] = {2*RECT_SPACING};
+#ifndef BOOTLOADER
+    static enum current_activity last_act = ACTIVITY_UNKNOWN;
+    enum current_activity act = get_current_activity();
+
+    if (last_act != act) /* changed activities reset max_width */
+    {
+        FOR_NB_SCREENS(i)
+            max_width[i] = 2*RECT_SPACING;
+        last_act = act;
+    }
+#endif
+    /* prevent screen artifacts by keeping the max width seen */
+    int min_width = max_width[screen->screen_type];
     char splash_buf[MAXBUFFER];
     struct splash_lines {
         const char *str;
@@ -56,7 +73,7 @@ static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
     int y, i;
     int space_w, w, chr_h;
     int width, height;
-    int maxw = 0;
+    int maxw = min_width - 2*RECT_SPACING;
     int fontnum = vp->font;
 
     char lastbrkchr;
@@ -146,6 +163,9 @@ static bool splash_internal(struct screen * screen, const char *fmt, va_list ap,
     vp->width = width;
     vp->height = height;
 
+    /* prevent artifacts by locking to max width observed on repeated calls */
+    max_width[screen->screen_type] = width;
+
     vp->flags |=  VP_FLAG_ALIGN_CENTER;
 #if LCD_DEPTH > 1
     unsigned fg = 0, bg = 0;
@@ -195,6 +215,13 @@ void splashf(int ticks, const char *fmt, ...)
 {
     va_list ap;
 
+    /* fmt may be a so called virtual pointer. See settings.h. */
+    long id;
+    if((id = P2ID((const unsigned char*)fmt)) >= 0)
+        /* If fmt specifies a voicefont ID, and voice menus are
+           enabled, then speak it. */
+        cond_talk_ids_fq(id);
+
     /* If fmt is a lang ID then get the corresponding string (which
        still might contain % place holders). */
     fmt = P2STR((unsigned char *)fmt);
@@ -216,23 +243,11 @@ void splashf(int ticks, const char *fmt, ...)
         sleep(ticks);
 }
 
-void splash(int ticks, const char *str)
-{
-#if !defined(SIMULATOR)
-    long id;
-    /* fmt may be a so called virtual pointer. See settings.h. */
-    if((id = P2ID((const unsigned char*)str)) >= 0)
-        /* If fmt specifies a voicefont ID, and voice menus are
-           enabled, then speak it. */
-        cond_talk_ids_fq(id);
-#endif
-    splashf(ticks, "%s", P2STR((const unsigned char*)str));
-}
-
 /* set delay before progress meter is shown */
 void splash_progress_set_delay(long delay_ticks)
 {
     progress_next_tick = current_tick + delay_ticks;
+    talked_tick = 0;
 }
 
 /* splash a progress meter */
@@ -250,6 +265,15 @@ void splash_progress(int current, int total, const char *fmt, ...)
         /* limit to 20fps */
         progress_next_tick = now + HZ/20;
         vp_flag = 0; /* don't mark vp dirty to prevent flashing */
+    }
+
+    if (global_settings.talk_menu &&
+        total > 0 &&
+        TIME_AFTER(current_tick, talked_tick + HZ*5))
+    {
+        talked_tick = current_tick;
+        talk_ids(false, LANG_LOADING_PERCENT,
+                 TALK_ID(current * 100 / total, UNIT_PERCENT));
     }
 
     /* If fmt is a lang ID then get the corresponding string (which

@@ -92,7 +92,7 @@ you to configure settings related to audio playback.
 
 \section{Party Mode}
   Enables unstoppable music playback. When new songs are
-  selected, they are queued at the end of the current dynamic playlist
+  selected, they are queued at the end of the current playlist
   instead of being played immediately. Pausing and stopping playback is
   disabled as well as skipping songs and launching plugins.
 
@@ -227,7 +227,7 @@ you to configure settings related to audio playback.
   If enabled and you have set \setting{Start Directory} to a directory
   other than root, \setting{Auto-Change Directory} will be constrained to the
   directory you have chosen and those below it.
-  See \reference{ref:StartDirectory}.
+  See \reference{ref:SetAs}.
   %
 
 \opt{headphone_detection}{
@@ -326,14 +326,18 @@ you to configure settings related to audio playback.
     \setting{Prefer Embedded} album art.
 }
 
-\section{Logging}\index{Logging}
+\section{Logging}\index{Logging}\label{sec:playbacklogging}
   This option will record information about tracks played on the device
   in the following format 'timestamp:elapsed(ms):length(ms):path'
   Devices without a Real Time Clock will use current system tick.
   Tracks played for a very short duration < 1 second will not be recorded
   to minimize disk access while skipping quickly through songs.
-  You should periodically delete this log as excessive file sizes may cause
-  decreased device performace see \setting{LastFm Scrobbler} plugin.
+
+  \note {When the device is started a comment will be written to the log,
+         devices with Real Time Clock will record the date and time as well.
+         When the log gets too large (\textasciitilde 1500 tracks) it will be split into playback\_nnnn.log
+         where nnnn is 0001-9999}
+  see  \setting{LastFm Scrobbler} plugin [\ref{sec:scrobbler}].
 \begin{verbatim}
   the log can be found under '/.rockbox/playback.log'
 \end{verbatim}

@@ -180,6 +180,16 @@ sub make_install {
     }
     glob_install("$src/rocks/viewers/lua/*", "$libdir/rocks/viewers/lua");
 
+    #lua include scripts
+    if(-e "$ROOT/apps/plugins/lua/include_lua") {
+        unless (glob_mkdir("$libdir/rocks/viewers/lua")) {
+            return 0;
+        }
+        glob_install("$ROOT/apps/plugins/lua/include_lua/*.lua", "$libdir/rocks/viewers/lua");
+        #glob_mkdir("$temp_dir/rocks/viewers/lua");
+        #glob_copy("$ROOT/apps/plugins/lua/include_lua/*.lua", "$temp_dir/rocks/viewers/lua/");
+    }
+
     #lua example scripts
     if(-e "$ROOT/apps/plugins/lua_scripts") {
         unless (glob_mkdir("$libdir/rocks/demos/lua_scripts")) {
@@ -395,6 +405,9 @@ sub buildzip {
     # create the file so the talkclip generation skips this folder
     open(IGNORE, ">$temp_dir/talkclips.ignore")  || die "can't open talkclips.ignore";
     close(IGNORE);
+    # create the file so bookmark generation skips this folder
+    open(IGNORE, ">$temp_dir/bookmark.ignore")  || die "can't open bookmark.ignore";
+    close(IGNORE);
 
     # the samsung ypr0 has a loader script that's needed in the zip
     if ($modelname =~ /samsungypr[01]/) {
@@ -456,6 +469,12 @@ sub buildzip {
     rmdir("$temp_dir/codecs");
 
     find(find_copyfile(qr/\.(rock|ovl|lua)/, abs_path("$temp_dir/rocks/")), 'apps/plugins');
+
+    #lua include scripts
+    if(-e "$ROOT/apps/plugins/lua/include_lua") {
+        glob_mkdir("$temp_dir/rocks/viewers/lua");
+        glob_copy("$ROOT/apps/plugins/lua/include_lua/*.lua", "$temp_dir/rocks/viewers/lua/");
+    }
 
     #lua example scripts
     if(-e "$ROOT/apps/plugins/lua_scripts") {

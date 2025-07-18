@@ -86,7 +86,7 @@ void panicf( const char *fmt, ...)
 
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
     /* Disable interrupts */
-#ifdef CPU_ARM
+#if defined(CPU_ARM_CLASSIC)
     disable_interrupt(IRQ_FIQ_STATUS);
 #else
     set_irq_level(DISABLE_INTERRUPTS);
@@ -103,9 +103,7 @@ void panicf( const char *fmt, ...)
 
 #if LCD_DEPTH > 1
     lcd_set_backdrop(NULL);
-    lcd_set_drawmode(DRMODE_SOLID);
-    lcd_set_foreground(LCD_BLACK);
-    lcd_set_background(LCD_WHITE);
+    lcd_set_drawinfo(DRMODE_SOLID, LCD_BLACK, LCD_WHITE);
 #endif
 
     lcd_clear_display();

@@ -45,7 +45,7 @@ sub runone {
     }
 
     print "remove all contents in build-$dir\n" if($verbose);
-    system("rm -rf build-$dir");
+    system("rm -rf buildb-$dir");
 
     return $a;
 };
@@ -112,7 +112,7 @@ sub buildfonts {
     `$c`;
 
     print "Run 'make fontzip'\n" if($verbose);
-    `make fontzip`;
+    `make fontzip NODEPS=1`;
 }
 
 `git checkout $tag`;
@@ -121,7 +121,7 @@ sub buildfonts {
 print "cd tools && make\n" if($verbose);
 `(cd tools && make ) >/dev/null`;
 
-for my $b (&usablebuilds) {
+for my $b (&stablebuilds) {
     my $configname = $builds{$b}{configname} ? $builds{$b}{configname} : $b;
     runone($b, $configname, $builds{$b}{ram});
 }

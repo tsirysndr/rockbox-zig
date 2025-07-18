@@ -65,10 +65,8 @@ static fb_data shadowfb[LCD_HEIGHT*LCD_WIDTH] __attribute__((aligned(64)));
 /* Signals DMA copy to shadow FB is done */
 static volatile int fbcopy_done;
 
-#if defined(HAVE_LCD_SLEEP) || defined(LCD_X1000_FASTSLEEP)
 /* True if we're in sleep mode */
 static bool lcd_sleeping = false;
-#endif
 static bool lcd_on = false;
 
 /* Check if running with interrupts disabled (eg: panic screen) */
@@ -310,7 +308,7 @@ typedef enum {
     MODE_SLEEP
 } DMA_Mode;
 
-static void lcd_dma_start(DMA_Mode mode)
+static void lcd_dma_start(void)
 {
     /* Set format conversion bit, seems necessary for DMA mode.
      * Must set DTIMES here if we use an 8-bit bus type. */
@@ -339,12 +337,8 @@ static void lcd_dma_start(DMA_Mode mode)
 
     /* Begin DMA transfer. Need to start a dummy frame or else we will
      * not be able to pass lcd_wait_frame() at the first lcd_update(). */
-    // if (mode == MODE_INIT) { // Run this only once on Startup
     jz_write(LCD_DA, PHYSADDR(&lcd_dma_desc[0]));
     jz_writef(LCD_CTRL, ENABLE(1));
-    // }
-
-    (void)mode;
 
     lcd_on = true;
 }
@@ -364,10 +358,6 @@ static bool lcd_wait_frame(void)
 
 static void lcd_dma_stop(DMA_Mode mode)
 {
-    int irq = disable_irq_save();
-        lcd_on = false;
-    restore_irq(irq);
-
     if (mode == MODE_INIT) { // Run this only once when endinng
 #ifdef LCD_X1000_DMA_WAIT_FOR_FRAME
         /* Wait for frame to finish to avoid misaligning the write pointer */
@@ -394,6 +384,8 @@ static void lcd_dma_stop(DMA_Mode mode)
     /* Clear format conversion bit, disable vsync */
     jz_writef(LCD_MCFG_NEW, FMT_CONV(0), DTIMES(0));
     jz_writef(LCD_MCTRL, NARROW_TE(0), TE_INV(0), NOT_USE_TE(1));
+
+    lcd_on = false;
 }
 
 static void lcd_send(uint32_t d)
@@ -448,7 +440,7 @@ void lcd_init_device(void)
 
     lcd_tgt_enable(true);
 
-    lcd_dma_start(MODE_INIT);
+    lcd_dma_start();
 }
 
 #ifdef HAVE_LCD_SHUTDOWN
@@ -464,7 +456,7 @@ void lcd_shutdown(void)
 }
 #endif
 
-#if defined(HAVE_LCD_ENABLE) || defined(HAVE_LCD_SLEEP)
+#if defined(HAVE_LCD_ENABLE)
 bool lcd_active(void)
 {
     return lcd_on;
@@ -474,55 +466,26 @@ void lcd_enable(bool en)
 {
     bool state = lcd_active();
     if(state && !en)
-#if defined(BOOTLOADER)
+#if defined(BOOTLOADER) || defined(LCD_X1000_DMA_WAIT_FOR_FRAME)
         lcd_dma_stop(MODE_INIT);
 #else
         lcd_dma_stop(MODE_SLEEP);
 #endif
 
     /* Deal with sleep mode */
-#if defined(HAVE_LCD_SLEEP) || defined(LCD_X1000_FASTSLEEP)
-#if defined(LCD_X1000_FASTSLEEP)
     if(state && !en) {
         lcd_tgt_sleep(true);
         lcd_sleeping = true;
-    } else
-#endif
-    if(!state && en && lcd_sleeping) {
+    } else if(!state && en && lcd_sleeping) {
         lcd_tgt_sleep(false);
         lcd_sleeping = false;
     }
-#endif
 
     /* Handle turning the LCD back on */
     if(!state && en)
     {
         send_event(LCD_EVENT_ACTIVATION, NULL);
-#if defined(BOOTLOADER)
-        lcd_dma_start(MODE_INIT);
-#else
-        lcd_dma_start(MODE_SLEEP);
-#endif
-    }
-}
-#endif
-
-#if defined(HAVE_LCD_SLEEP)
-#if defined(LCD_X1000_FASTSLEEP)
-# error "Do not define HAVE_LCD_SLEEP if target has LCD_X1000_FASTSLEEP"
-#endif
-
-void lcd_awake(void)
-{
-    /* Nothing to do */
-}
-
-void lcd_sleep(void)
-{
-    if(!lcd_sleeping) {
-        lcd_enable(false);
-        lcd_tgt_sleep(true);
-        lcd_sleeping = true;
+        lcd_dma_start();
     }
 }
 #endif

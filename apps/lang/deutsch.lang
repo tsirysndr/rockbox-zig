@@ -36,6 +36,7 @@
 # - Johannes Rauh
 # - Wilfried Winkler
 # - Karl Huber
+# - Yannic Schmidt
 <phrase>
   id: LANG_SET_BOOL_YES
   desc: bool true representation
@@ -247,8 +248,8 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RESET_ASK
-  desc: confirm to reset settings
+  id: LANG_ARE_YOU_SURE
+  desc: confirm action
   user: core
   <source>
     *: "Are You Sure?"
@@ -432,7 +433,7 @@
 </phrase>
 <phrase>
   id: LANG_PLAYLISTS
-  desc: in the file view setting
+  desc: in the main menu and Playlist settings menu
   user: core
   <source>
     *: "Playlists"
@@ -2733,7 +2734,7 @@
   desc: should lines scroll out of the screen
   user: core
   <source>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </source>
   <dest>
     *: "Über Bildschirmrand scrollen"
@@ -3019,7 +3020,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
   </source>
   <dest>
     *: "Kleinster Wert"
@@ -3033,7 +3034,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
   </source>
   <dest>
     *: "Größter Wert"
@@ -3347,59 +3348,47 @@
 </phrase>
 <phrase>
   id: LANG_BATTERY_TYPE
-  desc: in battery settings
+  desc: deprecated
   user: core
   <source>
     *: none
-    battery_types: "Battery Type"
+    battery_types: ""
   </source>
   <dest>
-    *: none
-    battery_types: "Batterietyp"
+    *: ""
   </dest>
   <voice>
-    *: none
-    battery_types: "Batterietyp"
+    *: ""
   </voice>
 </phrase>
 <phrase>
   id: LANG_BATTERY_TYPE_1
-  desc: in battery settings
+  desc: deprecated
   user: core
   <source>
     *: none
-    battery_types: "Alkaline"
-    xduoox3: "Newer (2000 mAh)"
+    battery_types,xduoox3: ""
   </source>
   <dest>
-    *: none
-    battery_types: "~Alkaline"
-    xduoox3: "Neuer (2000 mAh)"
+    *: ""
   </dest>
   <voice>
-    *: none
-    battery_types: "~Alkaline"
-    xduoox3: "Nuwer 2000 milliamp hour"
+    *: ""
   </voice>
 </phrase>
 <phrase>
   id: LANG_BATTERY_TYPE_2
-  desc: in battery settings
+  desc: deprecated
   user: core
   <source>
     *: none
-    battery_types: "NiMH"
-    xduoox3: "Older (1500 mAh)"
+    battery_types,xduoox3: ""
   </source>
   <dest>
-    *: none
-    battery_types: "~NiMH"
-    xduoox3: "Älter (1500 mAh)"
+    *: ""
   </dest>
   <voice>
-    *: none
-    battery_types: "Nickel-Metallhydrid"
-    xduoox3: "Älter 1500 Milliamperestunden"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -3532,8 +3521,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -3542,8 +3531,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Speichern"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Speichern"
-    gogearsa9200,samsungyh*: "PLAY = Speichern"
     iriverh100,iriverh120,iriverh300: "NAVI = Speichern"
     mpiohd300: "ENTER = Speichern"
     mrobe500: "HEART = Speichern"
@@ -3561,8 +3550,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -3575,8 +3564,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Abbrechen"
     gigabeatfx,mrobe500: "POWER = Abbrechen"
-    gigabeats,sansafuzeplus: "BACK = Abbrechen"
     gogearsa9200: "LEFT = Abbrechen"
     iaudiom5,iaudiox5: "RECORD = Abbrechen"
     ipod*,mpiohd300,sansac200*: "MENU = Abbrechen"
@@ -4023,7 +4012,7 @@
   user: core
   <source>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </source>
   <dest>
     *: none
@@ -5030,7 +5019,7 @@
   user: core
   <source>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </source>
   <dest>
     *: none
@@ -5781,16 +5770,16 @@
 </phrase>
 <phrase>
   id: LANG_CATALOG
-  desc: in main menu and onplay menu
+  desc: deprecated
   user: core
   <source>
-    *: "Playlist Catalogue"
+    *: ""
   </source>
   <dest>
-    *: "Wiedergabelisten-Katalog"
+    *: ""
   </dest>
   <voice>
-    *: "Wiedergabelisten-Katalog"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -6154,7 +6143,7 @@
   desc: in playlist menu.
   user: core
   <source>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </source>
   <dest>
     *: "Wiedergabeliste durchsuchen"
@@ -6465,10 +6454,10 @@
     *: "Album Artist"
   </source>
   <dest>
-    *: "Album-Künstler"
+    *: "Album Künstler"
   </dest>
   <voice>
-    *: "Album-Künstler"
+    *: "Album Künstler"
   </voice>
 </phrase>
 <phrase>
@@ -6504,10 +6493,10 @@
   desc: in browse_id3
   user: core
   <source>
-    *: " (VBR)"
+    *: "(VBR)"
   </source>
   <dest>
-    *: " (VBR)"
+    *: "(VBR)"
   </dest>
   <voice>
     *: "VBR"
@@ -6743,7 +6732,7 @@
   user: core
   <source>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </source>
   <dest>
     *: none
@@ -8681,16 +8670,16 @@
   </voice>
 </phrase>
 <phrase>
-  id: VOICE_CURRENT_TIME
-  desc: spoken only, for wall clock announce
+  id: LANG_CURRENT_TIME
+  desc: for wall clock announce
   user: core
   <source>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </source>
   <dest>
     *: none
-    rtc: ""
+    rtc: "Uhrzeit"
   </dest>
   <voice>
     *: none
@@ -9302,7 +9291,7 @@
   user: core
   <source>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </source>
   <dest>
     *: none
@@ -9385,7 +9374,7 @@
 </phrase>
 <phrase>
   id: VOICE_OK
-  desc: spoken only, On exiting a context, specifically the quick screen
+  desc: spoken only, on exiting a context, specifically the quick screen
   user: core
   <source>
     *: ""
@@ -11199,7 +11188,7 @@
   desc: resume settings menu
   user: core
   <source>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </source>
   <dest>
     *: "Automatisches Fortsetzen"
@@ -11407,7 +11396,7 @@
   desc: whether to restart running sleep timer on keypress
   user: core
   <source>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </source>
   <dest>
     *: "Einschlaftimer bei Tastendruck zurücksetzen"
@@ -11449,7 +11438,7 @@
   desc: whether sleep timer starts on power up
   user: core
   <source>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </source>
   <dest>
     *: "Einschlaftimer automatisch starten"
@@ -13014,20 +13003,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CHESSBOX_LEVEL_9
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 9: 1 move / 60 min"
-  </source>
-  <dest>
-    *: "Level 9: 1 Züge / 60 min"
-  </dest>
-  <voice>
-    *: "Level 9, 1 Züge pro 60 Minuten"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_CHANGE_VOLUME
   desc: in playback control menu
   user: core
@@ -13683,16 +13658,16 @@
 </phrase>
 <phrase>
   id: LANG_CACHE_REBUILT_NEXT_RESTART
-  desc: in the pictureflow splash messages
+  desc: deprecated
   user: core
   <source>
-    *: "Cache will be rebuilt on next restart"
+    *: ""
   </source>
   <dest>
-    *: "Zwischenspeicher wird bei Neustart neu erstellt"
+    *: ""
   </dest>
   <voice>
-    *: "Zwischenspeicher wird bei Neustart neu erstellt"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -14280,20 +14255,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CHESSBOX_LEVEL_10
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 10: 1 move / 600 min"
-  </source>
-  <dest>
-    *: "Level 10: 1 Zug / 600 min"
-  </dest>
-  <voice>
-    *: "Level 10, 1 Zug pro 600 Minuten"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_CHESSBOX_MENU_NEW_GAME
   desc: in the chessbox menu
   user: core
@@ -14347,20 +14308,6 @@
   </dest>
   <voice>
     *: "Wormlet spielen!"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_8
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 8: 1 move / 15 min"
-  </source>
-  <dest>
-    *: "Level 8: 1 Zug / 15 min"
-  </dest>
-  <voice>
-    *: "Level 8, 1 Zug pro 15 Minuten"
   </voice>
 </phrase>
 <phrase>
@@ -14466,7 +14413,7 @@
   desc: Relative volume of voice prompts
   user: core
   <source>
-    *: "Voice prompt volume"
+    *: "Voice Prompt Volume"
   </source>
   <dest>
     *: "Lautstärke Sprachansage"
@@ -15120,7 +15067,7 @@
   desc: open plugin module
   user: core
   <source>
-    *: "Set Wps Context Plugin"
+    *: "Set WPS Context Plugin"
   </source>
   <dest>
     *: "Setze WPS Kontext Zusatzprogramm"
@@ -16514,6 +16461,538 @@
     *: "Schriftart konnte nicht geladen werden: (%s)"
   </dest>
   <voice>
-    *: "Titel gespeichert"
+    *: "Schriftart konnte nicht geladen werden"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_CURRENT_TO_FAVES
+  desc:
+  user: core
+  <source>
+    *: "Add Current to Shortcuts"
+  </source>
+  <dest>
+    *: "zu Verknüpfungen hinzufügen"
+  </dest>
+  <voice>
+    *: "zu Verknüpfungen hinzufügen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LOGGING
+  desc: playback logging
+  user: core
+  <source>
+    *: "Logging"
+  </source>
+  <dest>
+    *: "Protokollierung"
+  </dest>
+  <voice>
+    *: "Protokollierung"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEWLOG
+  desc: view Log
+  user: core
+  <source>
+    *: "View log"
+  </source>
+  <dest>
+    *: "Protokoll anzeigen"
+  </dest>
+  <voice>
+    *: "Protokoll anzeigen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REPLAY_FINISHED_PLAYLIST
+  desc: Resume playback of finished playlist
+  user: core
+  <source>
+    *: "Playlist finished. Play again?"
+  </source>
+  <dest>
+    *: "Wiedergabliste beendet. Erneut abspielen?"
+  </dest>
+  <voice>
+    *: "Wiedergabliste beendet. Erneut abspielen?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_SPECIAL_CHARACTER
+  desc: Special character (japanese, accents, etc)
+  user: core
+  <source>
+    *: "Special character"
+  </source>
+  <dest>
+    *: "Sonderzeichen"
+  </dest>
+  <voice>
+    *: "Sonderzeichen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ID3_ALBUMARTISTS
+  desc: in tag viewer
+  user: core
+  <source>
+    *: "Album Artists"
+  </source>
+  <dest>
+    *: "Album Künstler"
+  </dest>
+  <voice>
+    *: "Album Künstler"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "First Letter"
+  </source>
+  <dest>
+    *: "Anfangsbuchstabe"
+  </dest>
+  <voice>
+    *: "Anfangsbuchstabe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "By First Letter..."
+  </source>
+  <dest>
+    *: "Nach Anfangsbuchstaben"
+  </dest>
+  <voice>
+    *: "Nach Anfangsbuchstaben"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists by First Letter"
+  </source>
+  <dest>
+    *: "Künstler nach Anfangsbuchstaben"
+  </dest>
+  <voice>
+    *: "Künstler nach Anfangsbuchstaben"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUM_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Album Artists by First Letter"
+  </source>
+  <dest>
+    *: "Album Künstler nach Anfangsbuchstaben"
+  </dest>
+  <voice>
+    *: "Album Künstler nach Anfangsbuchstaben"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUMS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by First Letter"
+  </source>
+  <dest>
+    *: "Alben nach Anfangsbuchstaben"
+  </dest>
+  <voice>
+    *: "Alben nach Anfangsbuchstaben"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_TRACKS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by First Letter"
+  </source>
+  <dest>
+    *: "Lieder nach Anfangsbuchstaben"
+  </dest>
+  <voice>
+    *: "Lieder nach Anfangsbuchstaben"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists"
+  </source>
+  <dest>
+    *: "Künstler"
+  </dest>
+  <voice>
+    *: "Künstler"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums"
+  </source>
+  <dest>
+    *: "Alben"
+  </dest>
+  <voice>
+    *: "Alben"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks"
+  </source>
+  <dest>
+    *: "Lieder"
+  </dest>
+  <voice>
+    *: "Lieder"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHUFFLE_SONGS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Shuffle Songs"
+  </source>
+  <dest>
+    *: "Zufallswiedergabe"
+  </dest>
+  <voice>
+    *: "Zufallswiedergabe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILENAME
+  desc: Database and recording menus
+  user: core
+  <source>
+    *: "Filename"
+  </source>
+  <dest>
+    *: "Dateinamen"
+  </dest>
+  <voice>
+    *: "Dateinamen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TITLE_WITH_DURATION
+  desc: Database menu
+  user: core
+  <source>
+    *: "Title (with track duration)"
+  </source>
+  <dest>
+    *: "Titel (mit Spieldauer)"
+  </dest>
+  <voice>
+    *: "Titel mit Spieldauer"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USER_RATING
+  desc: Database menu
+  user: core
+  <source>
+    *: "User Rating"
+  </source>
+  <dest>
+    *: "Benutzerbewertung"
+  </dest>
+  <voice>
+    *: "Benutzerbewertung"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search"
+  </source>
+  <dest>
+    *: "Suche"
+  </dest>
+  <voice>
+    *: "Suche"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search by..."
+  </source>
+  <dest>
+    *: "Suche nach"
+  </dest>
+  <voice>
+    *: "Suche nach"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECENTLY_ADDED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently Added"
+  </source>
+  <dest>
+    *: "Kürzlich hinzugefügt"
+  </dest>
+  <voice>
+    *: "Kürzlich hinzugefügt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_HISTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Playback History"
+  </source>
+  <dest>
+    *: "Wiedergabeverlauf"
+  </dest>
+  <voice>
+    *: "Wiedergabeverlauf"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CUSTOM_MENU
+  desc: Database menu
+  user: core
+  <source>
+    *: "Custom menu"
+  </source>
+  <dest>
+    *: "individuelles Menü"
+  </dest>
+  <voice>
+    *: "individuelles Menü"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAME_AS_CURRENT
+  desc: Database menu
+  user: core
+  <source>
+    *: "Same as currently played track"
+  </source>
+  <dest>
+    *: "Gleich wie der aktuell gespielte Titel"
+  </dest>
+  <voice>
+    *: "Gleich wie der aktuell gespielte Titel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIRECTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Directory"
+  </source>
+  <dest>
+    *: "Verzeichnis"
+  </dest>
+  <voice>
+    *: "Verzeichnis"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BY_YEAR
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by Year"
+  </source>
+  <dest>
+    *: "Alben nach Jahr"
+  </dest>
+  <voice>
+    *: "Alben nach Jahr"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums between Years"
+  </source>
+  <dest>
+    *: "Alben zwischen den Jahren"
+  </dest>
+  <voice>
+    *: "Alben zwischen den Jahren"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists between Years"
+  </source>
+  <dest>
+    *: "Künstler zwischen den Jahren"
+  </dest>
+  <voice>
+    *: "Künstler zwischen den Jahren"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_MOST_PLAYED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Most played (Plays|Score)"
+  </source>
+  <dest>
+    *: "Meistgespielt (Anzahl|Punktzahl)"
+  </dest>
+  <voice>
+    *: "Meistgespielt nach Anzahl dann nach Punktzahl"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENTLY_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently played tracks"
+  </source>
+  <dest>
+    *: "Kürzlich gespielt"
+  </dest>
+  <voice>
+    *: "Kürzlich gespielt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEVER_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Never played tracks"
+  </source>
+  <dest>
+    *: "Noch nie gespielt"
+  </dest>
+  <voice>
+    *: "Noch nie gespielt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite artists"
+  </source>
+  <dest>
+    *: "Lieblingskünstler"
+  </dest>
+  <voice>
+    *: "Lieblingskünstler"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite albums"
+  </source>
+  <dest>
+    *: "Lieblingsalben"
+  </dest>
+  <voice>
+    *: "Lieblingsalben"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENT_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recent favourites"
+  </source>
+  <dest>
+    *: "Aktuelle Favoriten "
+  </dest>
+  <voice>
+    *: "Aktuelle Favoriten "
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEW_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "New favourites"
+  </source>
+  <dest>
+    *: "Neue Favoriten "
+  </dest>
+  <voice>
+    *: "Neue Favoriten "
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FORGOTTEN_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Forgotten favourites"
+  </source>
+  <dest>
+    *: "Vergessene Favoriten"
+  </dest>
+  <voice>
+    *: "Vergessene Favoriten"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by"
+  </source>
+  <dest>
+    *: "Titel nach"
+  </dest>
+  <voice>
+    *: "Titel nach"
   </voice>
 </phrase>

@@ -101,16 +101,22 @@ my %gtts_lang_map = (
     'francais' => '-l fr',
     'greek' => '-l el',
     'italiano' => '-l it',
+    'japanese' => '-l ja',
     'korean' => '-l ko',
+    'latviesu' => '-l lv',
     'magyar' => '-l hu',
+    'moldoveneste' => '-l ro -t md',
     'nederlands' => '-l nl',
     'norsk' => '-l no',
     'polski' => '-l pl',
+    'portugues-brasileiro' => '-l pt -t br',
+    'romaneste' => '-l ro',
     'russian' => '-l ru',
     'slovak' => '-l sk',
     'srpski' => '-l sr',
     'svenska' => '-l sv',
     'turkce' => '-l tr',
+    'ukrainian' => '-l uk',
 );
 
 my %espeak_lang_map = (
@@ -129,15 +135,20 @@ my %espeak_lang_map = (
     'italiano' => '-vit',
     'japanese' => '-vja',
     'korean' => '-vko',
+    'latviesu' => '-vlv',
     'magyar' => '-vhu',
+    'moldoveneste' => 'vro',
     'nederlands' => '-vnl',
     'norsk' => '-vno',
     'polski' => '-vpl',
+    'portugues-brasileiro' => '-vpt-br',
+    'romaneste' => '-vro',
     'russian' => '-vru',
     'slovak' => '-vsk',
     'srpski' => '-vsr',
     'svenska' => '-vsv',
     'turkce' => '-vtr',
+    'ukrainian' => '-vuk',
     );
 
 my %piper_lang_map = (
@@ -156,15 +167,20 @@ my %piper_lang_map = (
     'italiano' => 'it_IT-paola-medium.onnx',
 #    'japanese' => '-vja',
 #    'korean' => '-vko',
+    'latviesu' => 'lv_LV-aivars-medium.onnx',
     'magyar' => 'hu_HU-anna-medium.onnx',
     'nederlands' => 'nl_NL-mls-medium.onnx',
+    'moldoveneste' => 'ro_RO-mihai-medium.onnx',
     'norsk' => 'no_NO-talesyntese-medium.onnx',
     'polski' => 'pl_PL-gosia-medium.onnx',
+    'portugues-brasileiro' => 'pt_BR-faber-medium.onnx',
     'russian' => 'ru_RU-irina-medium.onnx',
+    'romaneste' => 'ro_RO-mihai-medium.onnx',
     'slovak' => 'sk_SK-lili-medium.onnx',
     'srpski' => 'sr_RS-serbski_institut-medium.onnx',
     'svenska' => 'sv_SE-nst-medium.onnx',
     'turkce' => 'tr_TR-fettah-medium.onnx',
+    'ukrainian' => 'uk_UA-ukrainian_tts-medium',
 );
 
 my $trim_thresh = 250;   # Trim silence if over this, in ms
@@ -592,19 +608,20 @@ sub gentalkclips {
     our $verbose;
     my ($dir, $tts_object, $language, $encoder, $encoder_opts, $tts_engine_opts, $i) = @_;
     my $d = new DirHandle $dir;
+
     while (my $file = $d->read) {
 	$file = Encode::decode( locale_fs => $file);
         my ($voice, $wav, $enc);
 	my $format = $tts_object->{'format'};
 
-        # Print some progress information
-        if (++$i % 10 == 0 and !$verbose) {
-            print(".");
-        }
-
         # Ignore dot-dirs and talk files
         if ($file eq '.' || $file eq '..' || $file =~ /\.talk$/) {
             next;
+        }
+
+        # Print some progress information
+        if (++$i % 10 == 0 and !$verbose) {
+            print(".");
         }
 
         $voice = $file;
@@ -620,7 +637,7 @@ sub gentalkclips {
         if ( -d $path) { # Element is a dir
 	    $enc = sprintf("%s/_dirname.talk", $path);
             if (! -e "$path/talkclips.ignore") { # Skip directories containing "talkclips.ignore"
-                gentalkclips($path, $tts_object, $encoder, $encoder_opts, $tts_engine_opts, $i);
+                gentalkclips($path, $tts_object, $language, $encoder, $encoder_opts, $tts_engine_opts, $i);
             }
         } else { # Element is a file
             $enc = sprintf("%s.talk", $path);
@@ -630,7 +647,7 @@ sub gentalkclips {
 	# Apply corrections
 	$voice = correct_string($voice, $language, $tts_object);
 
-        printf("Talkclip %s: %s", $enc, $voice) if $verbose;
+        printf("Talkclip %s: %s\n", $enc, $voice) if $verbose;
 	# Don't generate encoded file if it already exists
 	next if (-f $enc && !$force);
 
@@ -684,10 +701,13 @@ if (defined($v) or defined($ENV{'V'})) {
 # add the tools dir to the path temporarily, for calling various tools
 $ENV{'PATH'} = dirname($0) . ':' . $ENV{'PATH'};
 
+# logging needs to be UTF8
+binmode(*STDOUT, ':encoding(utf8)');
+
 my $tts_object = init_tts($s, $S, $l);
 
 # Do what we're told
-if ($V == 1) {
+if (defined($V) && $V == 1) {
     # Only do the panic cleanup for voicefiles
     $SIG{INT} = \&panic_cleanup;
     $SIG{KILL} = \&panic_cleanup;

@@ -58,6 +58,7 @@
 static struct compare_data
 {
     int sort_dir; /* qsort key for sorting directories */
+    int sort_file; /*       ...for sorting files       */
     int(*_compar)(const char*, const char*, size_t);
 } cmp_data;
 
@@ -122,7 +123,7 @@ int ft_build_playlist(struct tree_context* c, int start_index)
         }
         cpu_boost(false);
     }
-    
+
     playlist_insert_context_release(&pl_context);
 
     tree_unlock_cache(c);
@@ -234,7 +235,7 @@ static int compare(const void* p1, const void* p2)
 
     if (cmp_data.sort_dir == SORT_AS_FILE)
     {   /* treat as two files */
-        criteria = global_settings.sort_file;
+        criteria = cmp_data.sort_file;
     }
     else if (e1->attr & ATTR_DIRECTORY && e2->attr & ATTR_DIRECTORY)
     {   /* two directories */
@@ -253,7 +254,7 @@ static int compare(const void* p1, const void* p2)
     }
     else if (!(e1->attr & ATTR_DIRECTORY) && !(e2->attr & ATTR_DIRECTORY))
     {   /* two files */
-        criteria = global_settings.sort_file;
+        criteria = cmp_data.sort_file;
     }
     else /* dir and file, dir goes first */
         return (e2->attr & ATTR_DIRECTORY) - (e1->attr & ATTR_DIRECTORY);
@@ -425,6 +426,10 @@ int ft_load(struct tree_context* c, const char* tempdir)
     /* allow directories to be sorted into file list */
     cmp_data.sort_dir = (*c->dirfilter == SHOW_PLUGINS) ? SORT_AS_FILE : c->sort_dir;
 
+    /* playlist catalog uses sorting independent from file browser */
+    cmp_data.sort_file = (*c->dirfilter == SHOW_M3U) ?
+                         global_settings.sort_playlists : global_settings.sort_file;
+
     if (global_settings.sort_case)
     {
         if (global_settings.interpret_numbers == SORT_INTERPRET_AS_NUMBER)
@@ -455,21 +460,21 @@ static void ft_load_font(char *file)
     int current_font_id;
     enum screen_type screen = SCREEN_MAIN;
 #if NB_SCREENS > 1
-    MENUITEM_STRINGLIST(menu, ID2P(LANG_CUSTOM_FONT), NULL, 
+    MENUITEM_STRINGLIST(menu, ID2P(LANG_CUSTOM_FONT), NULL,
                         ID2P(LANG_MAIN_SCREEN), ID2P(LANG_REMOTE_SCREEN))
     switch (do_menu(&menu, NULL, NULL, false))
     {
         case 0: /* main lcd */
             screen = SCREEN_MAIN;
-            set_file(file, (char *)global_settings.font_file, MAX_FILENAME);
+            set_file(file, (char *)global_settings.font_file);
             break;
         case 1: /* remote */
             screen = SCREEN_REMOTE;
-            set_file(file, (char *)global_settings.remote_font_file, MAX_FILENAME);
+            set_file(file, (char *)global_settings.remote_font_file);
             break;
     }
 #else
-    set_file(file, (char *)global_settings.font_file, MAX_FILENAME);
+    set_file(file, (char *)global_settings.font_file);
 #endif
     splash(0, ID2P(LANG_WAIT));
     current_font_id = screens[screen].getuifont();
@@ -480,10 +485,10 @@ static void ft_load_font(char *file)
     viewportmanager_theme_changed(THEME_UI_VIEWPORT);
 }
 
-static void ft_apply_skin_file(char *buf, char *file, const int maxlen)
+static void ft_apply_skin_file(char *buf, char *file)
 {
     splash(0, ID2P(LANG_WAIT));
-    set_file(buf, file, maxlen);
+    set_file(buf, file);
     settings_apply_skins();
 }
 
@@ -560,7 +565,7 @@ int ft_enter(struct tree_context* c)
     struct entry* file = tree_get_entry_at(c, c->selected_item);
     if (!file)
     {
-        splashf(HZ, str(LANG_READ_FAILED), str(LANG_UNKNOWN));
+        splashf(HZ, ID2P(LANG_READ_FAILED), str(LANG_UNKNOWN));
         return rc;
     }
 
@@ -602,7 +607,7 @@ int ft_enter(struct tree_context* c)
                 if (!warn_on_pl_erase())
                     break;
 
-                if (global_settings.party_mode && audio_status()) 
+                if (global_settings.party_mode && audio_status())
                 {
                     playlist_insert_track(NULL, buf,
                                           PLAYLIST_INSERT_LAST, true, true);
@@ -635,51 +640,34 @@ int ft_enter(struct tree_context* c)
 #if CONFIG_TUNER
                 /* fmr preset file */
             case FILE_ATTR_FMR:
-                splash(0, ID2P(LANG_WAIT));
-
-                /* Preset inside the default folder. */
-                if(!strncasecmp(FMPRESET_PATH, buf, strlen(FMPRESET_PATH)))
-                {
-                    set_file(buf, global_settings.fmr_file, MAX_FILENAME);
-                    radio_load_presets(global_settings.fmr_file);
-                }
-                /*
-                 * Preset outside default folder, we can choose such only
-                 * if we are out of the radio screen, so the check for the
-                 * radio status isn't neccessary
-                 */
-                else
-                {
-                    radio_load_presets(buf);
-                }
+                radio_load_presets(buf);
                 rc = GO_TO_FM;
-
                 break;
             case FILE_ATTR_FMS:
-                ft_apply_skin_file(buf, global_settings.fms_file, MAX_FILENAME);
+                ft_apply_skin_file(buf, global_settings.fms_file);
                 break;
 #ifdef HAVE_REMOTE_LCD
             case FILE_ATTR_RFMS:
-                ft_apply_skin_file(buf, global_settings.rfms_file, MAX_FILENAME);
+                ft_apply_skin_file(buf, global_settings.rfms_file);
                 break;
 #endif
 #endif
             case FILE_ATTR_SBS:
-                ft_apply_skin_file(buf, global_settings.sbs_file, MAX_FILENAME);
+                ft_apply_skin_file(buf, global_settings.sbs_file);
                 break;
 #ifdef HAVE_REMOTE_LCD
             case FILE_ATTR_RSBS:
-                ft_apply_skin_file(buf, global_settings.rsbs_file, MAX_FILENAME);
+                ft_apply_skin_file(buf, global_settings.rsbs_file);
                 break;
 #endif
                 /* wps config file */
             case FILE_ATTR_WPS:
-                ft_apply_skin_file(buf, global_settings.wps_file, MAX_FILENAME);
+                ft_apply_skin_file(buf, global_settings.wps_file);
                 break;
 #if defined(HAVE_REMOTE_LCD) && (NB_SCREENS > 1)
                 /* remote-wps config file */
             case FILE_ATTR_RWPS:
-                ft_apply_skin_file(buf, global_settings.rwps_file, MAX_FILENAME);
+                ft_apply_skin_file(buf, global_settings.rwps_file);
                 break;
 #endif
             case FILE_ATTR_CFG:
@@ -702,8 +690,7 @@ int ft_enter(struct tree_context* c)
                     splash(HZ, ID2P(LANG_FAILED));
                     break;
                 }
-                set_file(buf, (char *)global_settings.lang_file,
-                        MAX_FILENAME);
+                set_file(buf, (char *)global_settings.lang_file);
                 talk_init(); /* use voice of same language */
                 viewportmanager_theme_changed(THEME_LANGUAGE);
                 settings_apply_skins();
@@ -718,7 +705,7 @@ int ft_enter(struct tree_context* c)
                 splash(0, ID2P(LANG_WAIT));
                 if (!load_kbd(buf))
                     splash(HZ, ID2P(LANG_KEYBOARD_LOADED));
-                set_file(buf, (char *)global_settings.kbd_file, MAX_FILENAME);
+                set_file(buf, (char *)global_settings.kbd_file);
                 break;
 
 #if defined(HAVE_ROLO)
@@ -786,7 +773,7 @@ int ft_enter(struct tree_context* c)
                 file = tree_get_entry_at(c, c->selected_item);
                 if (!file)
                 {
-                    splashf(HZ, str(LANG_READ_FAILED), str(LANG_UNKNOWN));
+                    splashf(HZ, ID2P(LANG_READ_FAILED), str(LANG_UNKNOWN));
                     return rc;
                 }
 
@@ -829,7 +816,7 @@ int ft_enter(struct tree_context* c)
                 playlist_get_filename_crc32(NULL, start_index);
             global_status.resume_elapsed = 0;
             global_status.resume_offset = 0;
-            status_save();
+            status_save(false);
             rc = GO_TO_WPS;
         }
         else {
@@ -851,7 +838,7 @@ int ft_exit(struct tree_context* c)
     extern char lastfile[]; /* from tree.c */
     char buf[MAX_PATH];
     int rc = 0;
-    bool exit_func = false; 
+    bool exit_func = false;
     int i = strlen(c->currdir);
 
     /* strip trailing slashes */

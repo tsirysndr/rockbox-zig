@@ -23,6 +23,13 @@
 
 static void get_cfg_filename(char* buf, int buf_len, const char* filename)
 {
+    if (rb->strncmp(filename, ROCKBOX_DIR, sizeof(ROCKBOX_DIR) - 1) == 0)
+    {
+        /* allow the rockbox directory */
+        rb->snprintf(buf, buf_len, "/%s", filename);
+        return;
+    }
+
 #ifdef APPLICATION
     rb->snprintf(buf, buf_len, PLUGIN_DATA_DIR "/%s", filename);
 #else
@@ -51,6 +58,7 @@ int configfile_save(const char *filename, const struct configdata *cfg,
 
     get_cfg_filename(buf, MAX_PATH, filename);
     fd = rb->creat(buf, 0666);
+
     if(fd < 0)
         return fd*10 - 1;
 

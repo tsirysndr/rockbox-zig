@@ -28,6 +28,7 @@
 #include "settings.h"
 #include "lang.h"
 #include "kernel.h"
+#include "splash.h"
 
 extern JNIEnv   *env_ptr;
 static jobject   RockboxYesno_instance = NULL;
@@ -99,7 +100,7 @@ enum yesno_res gui_syncyesno_run(const struct text_message * main_message,
     (void)yes_message;
     (void)no_message;
     yesno_init();
-    
+
     JNIEnv e = *env_ptr;
     jstring message = build_message(main_message);
     jstring yes = (*env_ptr)->NewStringUTF(env_ptr, str(LANG_SET_BOOL_YES));
@@ -107,7 +108,7 @@ enum yesno_res gui_syncyesno_run(const struct text_message * main_message,
 
     e->CallVoidMethod(env_ptr, RockboxYesno_instance, yesno_func,
                       message, yes, no);
-    
+
     semaphore_wait(&yesno_done, TIMEOUT_BLOCK);
 
     e->DeleteLocalRef(env_ptr, message);
@@ -130,14 +131,35 @@ enum yesno_res gui_syncyesno_run_w_tmo(int ticks, enum yesno_res tmo_default_res
 
 #endif
 
-/* Function to manipulate all yesno dialogues.
-   This function needs the output text as an argument. */
-bool yesno_pop(const char* text)
+static bool yesno_pop_lines(const char *lines[], int line_cnt)
 {
-    const char *lines[]={text};
-    const struct text_message message={lines, 1};
+    const struct text_message message={lines, line_cnt};
     bool ret = (gui_syncyesno_run(&message,NULL,NULL)== YESNO_YES);
     FOR_NB_SCREENS(i)
         screens[i].clear_viewport();
     return ret;
+}
+
+/* YES/NO dialog, uses text parameter as prompt */
+bool yesno_pop(const char* text)
+{
+    const char *lines[]= {text};
+    return yesno_pop_lines(lines, 1);
+}
+
+/* YES/NO dialog, asks "Are you sure?", displays
+   text parameter on second line.
+
+   Says "Cancelled" if answered negatively.
+*/
+bool yesno_pop_confirm(const char* text)
+{
+    bool confirmed;
+    const char *lines[] = {ID2P(LANG_ARE_YOU_SURE), text};
+    confirmed = yesno_pop_lines(lines, 2);
+
+    if (!confirmed)
+        splash(HZ, ID2P(LANG_CANCEL));
+
+    return confirmed;
 }

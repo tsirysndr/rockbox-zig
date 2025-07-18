@@ -238,6 +238,10 @@ static int browser(void* param)
                     }
                     if (stat->commit_step > 0)
                     {
+                        /* (prevent redundant voicing by splash_progress */
+                        bool tmp = global_settings.talk_menu;
+                        global_settings.talk_menu = false;
+
                         if (lang_is_rtl())
                         {
                             splash_progress(stat->commit_step,
@@ -254,11 +258,12 @@ static int browser(void* param)
                                             stat->commit_step,
                                             tagcache_get_max_commit_step());
                         }
+                        global_settings.talk_menu = tmp;
                     }
                     else
                     {
                         splashf(0, str(LANG_BUILDING_DATABASE),
-                                   stat->processed_entries);
+                                   stat->processed_entries); /* (voiced above) */
                     }
                 }
             }
@@ -321,9 +326,19 @@ static int recscrn(void* param)
 static int wpsscrn(void* param)
 {
     int ret_val = GO_TO_PREVIOUS;
+    int audstatus = audio_status();
     (void)param;
     push_current_activity(ACTIVITY_WPS);
-    if (audio_status())
+
+#ifdef HAVE_PITCHCONTROL
+    if (!audstatus)
+    {
+        sound_set_pitch(global_status.resume_pitch);
+        dsp_set_timestretch(global_status.resume_speed);
+    }
+#endif
+
+    if (audstatus)
     {
         talk_shutup();
         ret_val = gui_wps_show();
@@ -475,7 +490,7 @@ static const struct root_items items[] = {
     [GO_TO_SHORTCUTMENU] = { do_shortcut_menu, NULL, NULL },
 
 };
-static const int nb_items = sizeof(items)/sizeof(*items);
+//static const int nb_items = sizeof(items)/sizeof(*items);
 
 static int item_callback(int action,
                          const struct menu_item_ex *this_item,
@@ -492,9 +507,6 @@ MENUITEM_RETURNVALUE(db_browser, ID2P(LANG_TAGCACHE), GO_TO_DBBROWSER,
 #endif
 MENUITEM_RETURNVALUE(rocks_browser, ID2P(LANG_PLUGINS), GO_TO_BROWSEPLUGINS,
                         NULL, Icon_Plugin);
-
-MENUITEM_RETURNVALUE(playlist_browser, ID2P(LANG_CATALOG), GO_TO_PLAYLIST_VIEWER,
-                        NULL, Icon_Playlist);
 
 static char *get_wps_item_name(int selected_item, void * data,
                                char *buffer, size_t buffer_len)
@@ -519,7 +531,7 @@ MENUITEM_RETURNVALUE(menu_, ID2P(LANG_SETTINGS), GO_TO_MAINMENU,
 MENUITEM_RETURNVALUE(bookmarks, ID2P(LANG_BOOKMARK_MENU_RECENT_BOOKMARKS),
                         GO_TO_RECENTBMARKS,  item_callback,
                         Icon_Bookmark);
-MENUITEM_RETURNVALUE(playlists, ID2P(LANG_CATALOG), GO_TO_PLAYLISTS_SCREEN,
+MENUITEM_RETURNVALUE(playlists, ID2P(LANG_PLAYLISTS), GO_TO_PLAYLISTS_SCREEN,
                      NULL, Icon_Playlist);
 MENUITEM_RETURNVALUE(system_menu_, ID2P(LANG_SYSTEM), GO_TO_SYSTEM_SCREEN,
                      NULL, Icon_System_menu);
@@ -700,7 +712,7 @@ static inline int load_screen(int screen)
     if (screen == old_previous)
         old_previous = GO_TO_ROOT;
     global_status.last_screen = (char)screen;
-    status_save();
+    status_save(false);
 
     if (screen == GO_TO_BROWSEPLUGINS)
         activity = ACTIVITY_PLUGINBROWSER;
@@ -764,7 +776,6 @@ static int load_plugin_screen(char *key)
     int old_global = global_status.last_screen;
     last_screen = next_screen;
     global_status.last_screen = (char)next_screen;
-    /*status_save(); //only needed if we crash */
 
     while(loops-- > 0) /* just to keep things from getting out of hand */
     {
@@ -786,13 +797,13 @@ static int load_plugin_screen(char *key)
         {
             if(op_entry->lang_id == LANG_OPEN_PLUGIN)
             {
-                if (key == (char*)LANG_SHORTCUTS)
+                if (key == (char*)ID2P(LANG_SHORTCUTS))
                 {
                     op_entry->lang_id = LANG_SHORTCUTS;
                 }
                 else /* Bugfix ensure proper key */
                 {
-                    key = (char*)LANG_OPEN_PLUGIN;
+                    key = ID2P(LANG_OPEN_PLUGIN);
                 }
             }
             continue;

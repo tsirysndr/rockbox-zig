@@ -2862,7 +2862,7 @@
   desc: should lines scroll out of the screen
   user: core
   <source>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </source>
   <dest>
     *: "允许列表查看时滚动全屏"
@@ -3086,7 +3086,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
   </source>
   <dest>
     *: "量程最小值"
@@ -3100,7 +3100,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
   </source>
   <dest>
     *: "量程最大值"
@@ -3121,63 +3121,6 @@
   </dest>
   <voice>
     *: "电池容量"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Battery Type"
-  </source>
-  <dest>
-    *: none
-    battery_types: "电池类型"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "电池类型"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_1
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Alkaline"
-    xduoox3: "Newer (2000 mAh)"
-  </source>
-  <dest>
-    *: none
-    battery_types: "碱性"
-    xduoox3: "新电池 (2000 mAh)"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "碱性"
-    xduoox3: "新电池"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_2
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "NiMH"
-    xduoox3: "Older (1500 mAh)"
-  </source>
-  <dest>
-    *: none
-    battery_types: "锂镁氢"
-    xduoox3: "旧电池 (1500 mAh)"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "锂镁氢"
-    xduoox3: "旧电池"
   </voice>
 </phrase>
 <phrase>
@@ -3444,7 +3387,7 @@
   user: core
   <source>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </source>
   <dest>
     *: none
@@ -3631,7 +3574,7 @@
   desc: in playlist menu.
   user: core
   <source>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </source>
   <dest>
     *: "在播放列表中查找"
@@ -3804,16 +3747,16 @@
   </voice>
 </phrase>
 <phrase>
-  id: VOICE_CURRENT_TIME
-  desc: spoken only, for wall clock announce
+  id: LANG_CURRENT_TIME
+  desc: for wall clock announce
   user: core
   <source>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </source>
   <dest>
     *: none
-    rtc: ""
+    rtc: "现在时间"
   </dest>
   <voice>
     *: none
@@ -3930,8 +3873,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -3944,8 +3887,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK:取消"
     gigabeatfx: "POWER:取消"
-    gigabeats,sansafuzeplus: "BACK:取消"
     gogearsa9200: "LEFT:取消"
     iaudiom5,iaudiox5: "RECORD:取消"
     ipod*,mpiohd300,sansac200*: "MENU:取消"
@@ -3959,7 +3902,6 @@
   </dest>
   <voice>
     *: none
-    gigabeat*,gogearsa9200,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh100,iriverh10_5gb,iriverh120,iriverh300,mrobe100,rtc,samsungyh*,sansac200*,sansae200*: ""
   </voice>
 </phrase>
 <phrase>
@@ -4112,7 +4054,7 @@
   user: core
   <source>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </source>
   <dest>
     *: none
@@ -4339,7 +4281,7 @@
   desc: in browse_id3
   user: core
   <source>
-    *: " (VBR)"
+    *: "(VBR)"
   </source>
   <dest>
     *: "(VBR)"
@@ -6292,7 +6234,7 @@
   </dest>
   <voice>
     *: none
-    radio: ""
+    radio: "正在扫描"
   </voice>
 </phrase>
 <phrase>
@@ -6576,7 +6518,7 @@
     *: "读取%s失败"
   </dest>
   <voice>
-    *: ""
+    *: "读取文件失败"
   </voice>
 </phrase>
 <phrase>
@@ -7133,7 +7075,7 @@
   user: core
   <source>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </source>
   <dest>
     *: none
@@ -7453,8 +7395,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -7463,8 +7405,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY:设置"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT:设置"
-    gogearsa9200,samsungyh*: "PLAY:设置"
     iriverh100,iriverh120,iriverh300: "NAVI=设置"
     mpiohd300: "ENTER:设置"
     mrobe500: "HEART:设置"
@@ -7473,7 +7415,6 @@
   </dest>
   <voice>
     *: none
-    gigabeat*,gogearsa9200,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh100,iriverh10_5gb,iriverh120,iriverh300,mrobe100,rtc,samsungyh*,sansac200*,sansae200*: ""
   </voice>
 </phrase>
 <phrase>
@@ -7984,20 +7925,6 @@
   <voice>
     *: none
     headphone_detection: "拔出耳机后自动暂停"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CATALOG
-  desc: in main menu and onplay menu
-  user: core
-  <source>
-    *: "Playlist Catalogue"
-  </source>
-  <dest>
-    *: "播放列表目录"
-  </dest>
-  <voice>
-    *: "播放列表目录"
   </voice>
 </phrase>
 <phrase>
@@ -8621,7 +8548,7 @@
 </phrase>
 <phrase>
   id: LANG_PLAYLISTS
-  desc: in the file view setting
+  desc: in the main menu and Playlist settings menu
   user: core
   <source>
     *: "Playlists"
@@ -8763,8 +8690,8 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RESET_ASK
-  desc: confirm to reset settings
+  id: LANG_ARE_YOU_SURE
+  desc: confirm action
   user: core
   <source>
     *: "Are You Sure?"
@@ -9379,7 +9306,7 @@
   user: core
   <source>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </source>
   <dest>
     *: none
@@ -9581,7 +9508,7 @@
 </phrase>
 <phrase>
   id: VOICE_OK
-  desc: spoken only, On exiting a context, specifically the quick screen
+  desc: spoken only, on exiting a context, specifically the quick screen
   user: core
   <source>
     *: ""
@@ -11101,7 +11028,7 @@
   desc: resume settings menu
   user: core
   <source>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </source>
   <dest>
     *: "自动断点续播"
@@ -11478,7 +11405,7 @@
   desc: whether to restart running sleep timer on keypress
   user: core
   <source>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </source>
   <dest>
     *: "按键时重置睡眠计时器"
@@ -11551,7 +11478,7 @@
   desc: whether sleep timer starts on power up
   user: core
   <source>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </source>
   <dest>
     *: "开机即启动睡眠计时器"
@@ -11871,7 +11798,7 @@
   desc: Relative volume of voice prompts
   user: core
   <source>
-    *: "Voice prompt volume"
+    *: "Voice Prompt Volume"
   </source>
   <dest>
     *: "语音提示音量"
@@ -12498,20 +12425,6 @@
   </dest>
   <voice>
     *: "曲目已播放"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYTIME_REMAINING
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -13252,48 +13165,6 @@
   </dest>
   <voice>
     *: "Level 7, 40 步 每240 分钟"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_8
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 8: 1 move / 15 min"
-  </source>
-  <dest>
-    *: "Level 8: 1 步 / 15 分钟"
-  </dest>
-  <voice>
-    *: "Level 8, 1 步 每15 分钟"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_9
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 9: 1 move / 60 min"
-  </source>
-  <dest>
-    *: "Level 9: 1 步 / 60 分钟"
-  </dest>
-  <voice>
-    *: "Level 9, 1 步 每60 分钟"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_10
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 10: 1 move / 600 min"
-  </source>
-  <dest>
-    *: "Level 10: 1 步 / 600 分钟"
-  </dest>
-  <voice>
-    *: "Level 10, 1 步 每 600 分钟"
   </voice>
 </phrase>
 <phrase>
@@ -14108,16 +13979,16 @@
 </phrase>
 <phrase>
   id: LANG_TOGGLE_ITEM
-  desc: in main_menu_config
+  desc: deprecated
   user: core
   <source>
-    *: "Toggle Item"
+    *: ""
   </source>
   <dest>
-    *: "切换项目"
+    *: ""
   </dest>
   <voice>
-    *: "切换项目"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -14178,13 +14049,13 @@
 </phrase>
 <phrase>
   id: LANG_MAIN_MENU_ORDER
-  desc: main_menu_config plugin title
+  desc: deprecated
   user: core
   <source>
-    *: "Rockbox Main Menu Order"
+    *: ""
   </source>
   <dest>
-    *: "Rockbox主屏幕菜单定制"
+    *: ""
   </dest>
   <voice>
     *: ""
@@ -14688,20 +14559,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CACHE_REBUILT_NEXT_RESTART
-  desc: in the pictureflow splash messages
-  user: core
-  <source>
-    *: "Cache will be rebuilt on next restart"
-  </source>
-  <dest>
-    *: "下次启动时重建缓存"
-  </dest>
-  <voice>
-    *: "下次启动时重建缓存"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_ERROR_WRITING_CONFIG
   desc: in the pictureflow splash messages
   user: core
@@ -15110,7 +14967,7 @@
   desc: open plugin module
   user: core
   <source>
-    *: "Set Wps Context Plugin"
+    *: "Set WPS Context Plugin"
   </source>
   <dest>
     *: "设置播放屏幕上下文插件"
@@ -16494,6 +16351,538 @@
   </voice>
 </phrase>
 <phrase>
+  id: LANG_ADD_CURRENT_TO_FAVES
+  desc:
+  user: core
+  <source>
+    *: "Add Current to Shortcuts"
+  </source>
+  <dest>
+    *: "添加当前项到捷径菜单"
+  </dest>
+  <voice>
+    *: "添加当前项到捷径菜单"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LOGGING
+  desc: playback logging
+  user: core
+  <source>
+    *: "Logging"
+  </source>
+  <dest>
+    *: "记录日志"
+  </dest>
+  <voice>
+    *: "记录日志"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEWLOG
+  desc: view Log
+  user: core
+  <source>
+    *: "View log"
+  </source>
+  <dest>
+    *: "查看日志"
+  </dest>
+  <voice>
+    *: "查看日志"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REPLAY_FINISHED_PLAYLIST
+  desc: Resume playback of finished playlist
+  user: core
+  <source>
+    *: "Playlist finished. Play again?"
+  </source>
+  <dest>
+    *: "播放完毕 再来一遍？"
+  </dest>
+  <voice>
+    *: "当前播放列表播放完毕 是否要重新播放"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_SPECIAL_CHARACTER
+  desc: Special character (japanese, accents, etc)
+  user: core
+  <source>
+    *: "Special character"
+  </source>
+  <dest>
+    *: "特殊字符"
+  </dest>
+  <voice>
+    *: "特殊字符"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ID3_ALBUMARTISTS
+  desc: in tag viewer
+  user: core
+  <source>
+    *: "Album Artists"
+  </source>
+  <dest>
+    *: "专辑艺术家"
+  </dest>
+  <voice>
+    *: "专辑艺术家"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "First Letter"
+  </source>
+  <dest>
+    *: "首字母"
+  </dest>
+  <voice>
+    *: "首字母"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "By First Letter..."
+  </source>
+  <dest>
+    *: "按首字母查找…"
+  </dest>
+  <voice>
+    *: "按首字母查找"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists by First Letter"
+  </source>
+  <dest>
+    *: "按首字母查找艺术家"
+  </dest>
+  <voice>
+    *: "按首字母查找艺术家"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUM_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Album Artists by First Letter"
+  </source>
+  <dest>
+    *: "按首字母查找专辑艺术家"
+  </dest>
+  <voice>
+    *: "按首字母查找专辑艺术家"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUMS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by First Letter"
+  </source>
+  <dest>
+    *: "按首字母查找专辑"
+  </dest>
+  <voice>
+    *: "按首字母查找专辑"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_TRACKS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by First Letter"
+  </source>
+  <dest>
+    *: "按首字母查找曲目"
+  </dest>
+  <voice>
+    *: "按首字母查找曲目"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists"
+  </source>
+  <dest>
+    *: "艺术家"
+  </dest>
+  <voice>
+    *: "艺术家"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums"
+  </source>
+  <dest>
+    *: "专辑"
+  </dest>
+  <voice>
+    *: "专辑"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks"
+  </source>
+  <dest>
+    *: "曲目"
+  </dest>
+  <voice>
+    *: "曲目"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHUFFLE_SONGS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Shuffle Songs"
+  </source>
+  <dest>
+    *: "随机乐曲"
+  </dest>
+  <voice>
+    *: "随机乐曲"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILENAME
+  desc: Database and recording menus
+  user: core
+  <source>
+    *: "Filename"
+  </source>
+  <dest>
+    *: "文件名"
+  </dest>
+  <voice>
+    *: "文件名"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TITLE_WITH_DURATION
+  desc: Database menu
+  user: core
+  <source>
+    *: "Title (with track duration)"
+  </source>
+  <dest>
+    *: "标题（带长度）"
+  </dest>
+  <voice>
+    *: "标题 带长度"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USER_RATING
+  desc: Database menu
+  user: core
+  <source>
+    *: "User Rating"
+  </source>
+  <dest>
+    *: "用户评级"
+  </dest>
+  <voice>
+    *: "用户评级"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search"
+  </source>
+  <dest>
+    *: "搜索"
+  </dest>
+  <voice>
+    *: "搜索"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search by..."
+  </source>
+  <dest>
+    *: "搜索依据…"
+  </dest>
+  <voice>
+    *: "搜索依据"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECENTLY_ADDED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently Added"
+  </source>
+  <dest>
+    *: "最近添加"
+  </dest>
+  <voice>
+    *: "最近添加"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_HISTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Playback History"
+  </source>
+  <dest>
+    *: "播放历史记录"
+  </dest>
+  <voice>
+    *: "播放历史记录"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CUSTOM_MENU
+  desc: Database menu
+  user: core
+  <source>
+    *: "Custom menu"
+  </source>
+  <dest>
+    *: "自定菜单"
+  </dest>
+  <voice>
+    *: "自定菜单"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAME_AS_CURRENT
+  desc: Database menu
+  user: core
+  <source>
+    *: "Same as currently played track"
+  </source>
+  <dest>
+    *: "与当前曲目相同的"
+  </dest>
+  <voice>
+    *: "与当前曲目相同的"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIRECTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Directory"
+  </source>
+  <dest>
+    *: "目录"
+  </dest>
+  <voice>
+    *: "目录"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BY_YEAR
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by Year"
+  </source>
+  <dest>
+    *: "按年份查找专辑"
+  </dest>
+  <voice>
+    *: "按年份查找专辑"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums between Years"
+  </source>
+  <dest>
+    *: "按年份区间查找专辑"
+  </dest>
+  <voice>
+    *: "按年份区间查找专辑"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists between Years"
+  </source>
+  <dest>
+    *: "按年份区间查找艺术家"
+  </dest>
+  <voice>
+    *: "按年份区间查找艺术家"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_MOST_PLAYED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Most played (Plays|Score)"
+  </source>
+  <dest>
+    *: "最多播放(播放|评分)"
+  </dest>
+  <voice>
+    *: "最多播放"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENTLY_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently played tracks"
+  </source>
+  <dest>
+    *: "最近播放"
+  </dest>
+  <voice>
+    *: "最近播放"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEVER_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Never played tracks"
+  </source>
+  <dest>
+    *: "未曾播放"
+  </dest>
+  <voice>
+    *: "未曾播放"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite artists"
+  </source>
+  <dest>
+    *: "最爱艺术家"
+  </dest>
+  <voice>
+    *: "最爱艺术家"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite albums"
+  </source>
+  <dest>
+    *: "最爱专辑"
+  </dest>
+  <voice>
+    *: "最爱专辑"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENT_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recent favourites"
+  </source>
+  <dest>
+    *: "最近喜爱"
+  </dest>
+  <voice>
+    *: "最近喜爱"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEW_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "New favourites"
+  </source>
+  <dest>
+    *: "新喜爱"
+  </dest>
+  <voice>
+    *: "新喜爱"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FORGOTTEN_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Forgotten favourites"
+  </source>
+  <dest>
+    *: "遗忘的喜爱"
+  </dest>
+  <voice>
+    *: "遗忘的喜爱"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by"
+  </source>
+  <dest>
+    *: "曲目"
+  </dest>
+  <voice>
+    *: "曲目"
+  </voice>
+</phrase>
+<phrase>
   id: LANG_FONT_LOAD_ERROR
   desc: Displayed when font loading fails
   user: core
@@ -16504,6 +16893,20 @@
     *: "~Unable to load font: (%s)"
   </dest>
   <voice>
-    *: "字体加载失败"
+    *: "无法加载字体"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_PLAYLISTS
+  desc: playlists sorting setting
+  user: core
+  <source>
+    *: "Sort Playlists"
+  </source>
+  <dest>
+    *: "排序播放列表"
+  </dest>
+  <voice>
+    *: "排序播放列表"
   </voice>
 </phrase>

@@ -448,6 +448,11 @@ enum codec_status codec_run(void)
     ci->configure(DSP_SET_FREQUENCY, ci->id3->frequency);
     current_frequency = ci->id3->frequency;
     codec_set_replaygain(ci->id3);
+    if (!ci->id3->is_asf_stream)
+    {
+        // End of file might contain ID3v1 or APE tags. Strip them from decoding
+        ci->strip_filesize(ci->id3->first_frame_offset + ci->id3->filesize);
+    }
 
      if (ci->id3->offset) {
 
@@ -559,7 +564,13 @@ enum codec_status codec_run(void)
 
                 /* Fill the buffer */
                 if (stream.next_frame)
-                    advance_stream_buffer(stream.next_frame - stream.buffer);
+                {
+                    size_t frame_size = stream.next_frame - stream.buffer;
+                    if (frame_size == 0)
+                        break;
+
+                    advance_stream_buffer(frame_size);
+                }
                 else
                     advance_stream_buffer(size);
                 stream.error = 0; /* Must get new inputbuffer next time */

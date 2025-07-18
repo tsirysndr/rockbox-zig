@@ -152,7 +152,7 @@ static const char* threads_getname(int selected_item, void *data,
     {
         struct core_debug_info coreinfo;
         core_get_debug_info(selected_item, &coreinfo);
-        snprintf(buffer, buffer_len, "Idle (%d): %2d%%", selected_item,
+        snprintf(buffer, buffer_len, "Idle (%2d): %2d%%", selected_item,
                  coreinfo.idle_stack_usage);
         return buffer;
     }
@@ -165,8 +165,8 @@ static const char* threads_getname(int selected_item, void *data,
     struct thread_debug_info threadinfo;
     if (thread_get_debug_info(selected_item, &threadinfo) > 0)
     {
-        fmtstr = "%2d:" IF_COP(" (%d)") " %s%n" IF_PRIO(" %d %d")
-                 IFN_SDL(" %2d%%") " %s";
+        fmtstr = "%2d:" IF_COP(" (%d)") " %s%n" IF_PRIO(" %2d %2d")
+                 IFN_SDL(" %2d%% %2d%%") " %s";
     }
     int status_len;
     size_t len = snprintf(buffer, buffer_len, fmtstr,
@@ -175,7 +175,7 @@ static const char* threads_getname(int selected_item, void *data,
              threadinfo.statusstr,
              &status_len,
              IF_PRIO(threadinfo.base_priority, threadinfo.current_priority,)
-             IFN_SDL(threadinfo.stack_usage,)
+             IFN_SDL(threadinfo.stack_usage_cur, threadinfo.stack_usage,)
              threadinfo.name);
 
     int start = 0;
@@ -430,7 +430,7 @@ static bool dbg_buffering_thread(void)
 
             screens[i].putsf(0, line++, fmt_used, "pcm", (long) bufused, (long) bufsize);
 
-            gui_scrollbar_draw(&screens[i],0, line*8, screens[i].lcdwidth, 6,
+            gui_scrollbar_draw(&screens[i],0, line*SYSFONT_HEIGHT, screens[i].lcdwidth, 6,
                                bufsize, 0, bufused, HORIZONTAL);
             line++;
 
@@ -440,14 +440,14 @@ static bool dbg_buffering_thread(void)
 #if LCD_HEIGHT > 80 || (defined(HAVE_REMOTE_LCD) && LCD_REMOTE_HEIGHT > 80)
             if (screens[i].lcdheight > 80)
             {
-                gui_scrollbar_draw(&screens[i],0, line*8, screens[i].lcdwidth, 6,
+                gui_scrollbar_draw(&screens[i],0, line*SYSFONT_HEIGHT, screens[i].lcdwidth, 6,
                                    filebuflen, 0, audio_filebufused(), HORIZONTAL);
                 line++;
 
                 screens[i].putsf(0, line++, fmt_used, "real", (long)d.buffered_data,
                                 (long)filebuflen);
 
-                gui_scrollbar_draw(&screens[i],0, line*8, screens[i].lcdwidth, 6,
+                gui_scrollbar_draw(&screens[i],0, line*SYSFONT_HEIGHT, screens[i].lcdwidth, 6,
                                    filebuflen, 0, (long)d.buffered_data, HORIZONTAL);
                 line++;
             }
@@ -459,7 +459,7 @@ static bool dbg_buffering_thread(void)
 #if LCD_HEIGHT > 80 || (defined(HAVE_REMOTE_LCD) && LCD_REMOTE_HEIGHT > 80)
             if (screens[i].lcdheight > 80)
             {
-                gui_scrollbar_draw(&screens[i],0, line*8, screens[i].lcdwidth, 6,
+                gui_scrollbar_draw(&screens[i],0, line*SYSFONT_HEIGHT, screens[i].lcdwidth, 6,
                                    filebuflen, 0, d.useful_data, HORIZONTAL);
                 line++;
             }
@@ -913,10 +913,11 @@ static bool tsc2100_debug(void)
 
 static bool view_battery(void)
 {
+    extern struct battery_tables_t device_battery_tables; /* powermgmt.c */
+    unsigned short *power_history = device_battery_tables.history;
     int view = 0;
     int i, x, y, z, y1, y2, grid, graph;
     unsigned short maxv, minv;
-
     lcd_setfont(FONT_SYSFIXED);
 
     while(1)
@@ -2713,6 +2714,37 @@ static bool dbg_syscfg(void) {
 
     return simplelist_show_list(&info);
 }
+
+#define FLASH_PAGES (FLASH_SIZE >> 12)
+#define FLASH_PAGE_SIZE (FLASH_SIZE >> 8)
+
+static bool dbg_bootflash_dump(void) {
+    splashf(HZ, "Please wait...");
+
+    int fd;
+
+    fd = creat("/bootflash.bin", 0666);
+
+    if (fd < 0)
+    {
+        splashf(HZ * 3, "Error opening file");
+        return false;
+    }
+
+    uint8_t page[FLASH_PAGE_SIZE];
+    bootflash_init(SPI_PORT);
+
+    for (int i = 0; i < FLASH_PAGES; i++) {
+        bootflash_read(SPI_PORT, i << 12, FLASH_PAGE_SIZE, page);
+        write(fd, page, FLASH_PAGE_SIZE);
+    }
+
+    bootflash_close(SPI_PORT);
+    close(fd);
+    splashf(HZ * 3, "Dump saved to /bootflash.bin");
+
+    return false;
+}
 #endif
 
 /****** The menu *********/
@@ -2832,6 +2864,7 @@ static const struct {
 
 #if defined(IPOD_6G) && !defined(SIMULATOR)
         {"View SysCfg", dbg_syscfg },
+        {"Dump bootflash to file", dbg_bootflash_dump },
 #endif
 };
 
@@ -2896,7 +2929,7 @@ int debug_menu(void)
 bool run_debug_screen(char* screen)
 {
     for (unsigned i=0; i<ARRAYLEN(menuitems); i++)
-        if (!strcmp(screen, menuitems[i].desc))
+        if (!strcasecmp(screen, menuitems[i].desc))
         {
             FOR_NB_SCREENS(j)
                viewportmanager_theme_enable(j, false, NULL);

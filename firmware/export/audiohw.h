@@ -232,12 +232,16 @@ struct sound_settings_info
 #include "codec-dx90.h"
 #elif defined(HAVE_ROCKER_CODEC)
 #include "rocker_codec.h"
+#elif defined(HAVE_SURFANS_LINUX_CODEC)
+#include "surfanslinux_codec.h"
 #elif defined(HAVE_XDUOO_LINUX_CODEC)
 #include "xduoolinux_codec.h"
 #elif defined(HAVE_FIIO_LINUX_CODEC)
 #include "fiiolinux_codec.h"
 #elif defined(HAVE_EROSQ_LINUX_CODEC)
 #include "erosqlinux_codec.h"
+#elif defined(HAVE_TLV320AIC3104)
+#include "tlv320aic3104_codec.h"
 #endif
 
 #if defined(HAVE_X1000_ICODEC_REC) && !defined(HAVE_X1000_ICODEC_PLAY)

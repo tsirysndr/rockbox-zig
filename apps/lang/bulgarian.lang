@@ -231,8 +231,8 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RESET_ASK
-  desc: confirm to reset settings
+  id: LANG_ARE_YOU_SURE
+  desc: confirm action
   user: core
   <source>
     *: "Are You Sure?"
@@ -416,7 +416,7 @@
 </phrase>
 <phrase>
   id: LANG_PLAYLISTS
-  desc: in the file view setting
+  desc: in the main menu and Playlist settings menu
   user: core
   <source>
     *: "Playlists"
@@ -2747,7 +2747,7 @@
   desc: should lines scroll out of the screen
   user: core
   <source>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </source>
   <dest>
     *: "Скролиране на екрана извън изгледа"
@@ -3033,7 +3033,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
   </source>
   <dest>
     *: "Минимален обхват"
@@ -3047,7 +3047,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
   </source>
   <dest>
     *: "Максимален обхват"
@@ -3361,59 +3361,53 @@
 </phrase>
 <phrase>
   id: LANG_BATTERY_TYPE
-  desc: in battery settings
+  desc: deprecated
   user: core
   <source>
     *: none
-    battery_types: "Battery Type"
+    battery_types: ""
   </source>
   <dest>
     *: none
-    battery_types: "Тип на батерията"
+    battery_types: ""
   </dest>
   <voice>
     *: none
-    battery_types: "Тип на батерията"
+    battery_types: ""
   </voice>
 </phrase>
 <phrase>
   id: LANG_BATTERY_TYPE_1
-  desc: in battery settings
+  desc: deprecated
   user: core
   <source>
     *: none
-    battery_types: "Alkaline"
-    xduoox3: "Newer (2000 mAh)"
+    battery_types,xduoox3: ""
   </source>
   <dest>
     *: none
-    battery_types: "Алкална"
-    xduoox3: "Нов модел (2000 mAh)"
+    battery_types,xduoox3: ""
   </dest>
   <voice>
     *: none
-    battery_types: "Алкална"
-    xduoox3: "Нов модел 2000 милиампер часа"
+    battery_types,xduoox3: ""
   </voice>
 </phrase>
 <phrase>
   id: LANG_BATTERY_TYPE_2
-  desc: in battery settings
+  desc: deprecated
   user: core
   <source>
     *: none
-    battery_types: "NiMH"
-    xduoox3: "Older (1500 mAh)"
+    battery_types,xduoox3: ""
   </source>
   <dest>
     *: none
-    battery_types: "NiMH "
-    xduoox3: "Стар модел (1500 mAh)"
+    battery_types,xduoox3: ""
   </dest>
   <voice>
     *: none
-    battery_types: "Никел Метал Хидридна"
-    xduoox3: "Стар модел 1500 милиампер часа"
+    battery_types,xduoox3: ""
   </voice>
 </phrase>
 <phrase>
@@ -3546,8 +3540,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -3557,7 +3551,7 @@
   <dest>
     *: none
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Запази"
-    gogearsa9200,samsungyh*: "PLAY = Запази"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Запази"
     iriverh100,iriverh120,iriverh300: "NAVI = Запази"
     mpiohd300: "ENTER = Запази"
     mrobe500: "HEART = Запази"
@@ -3575,8 +3569,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -3590,7 +3584,7 @@
   <dest>
     *: none
     gigabeatfx,mrobe500: "POWER = отказ"
-    gigabeats,sansafuzeplus: "BACK = отказ"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = отказ"
     gogearsa9200: "LEFT = отказ"
     iaudiom5,iaudiox5: "RECORD = отказ"
     ipod*,mpiohd300,sansac200*: "MENU = отказ"
@@ -4037,7 +4031,7 @@
   user: core
   <source>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </source>
   <dest>
     *: none
@@ -5044,7 +5038,7 @@
   user: core
   <source>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </source>
   <dest>
     *: none
@@ -5795,16 +5789,16 @@
 </phrase>
 <phrase>
   id: LANG_CATALOG
-  desc: in main menu and onplay menu
+  desc: deprecated
   user: core
   <source>
-    *: "Playlist Catalogue"
+    *: ""
   </source>
   <dest>
-    *: "Каталог с плейлисти"
+    *: ""
   </dest>
   <voice>
-    *: "Каталог с плейлисти"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -6168,7 +6162,7 @@
   desc: in playlist menu.
   user: core
   <source>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </source>
   <dest>
     *: "Търсене в плейлиста"
@@ -6518,10 +6512,10 @@
   desc: in browse_id3
   user: core
   <source>
-    *: " (VBR)"
+    *: "(VBR)"
   </source>
   <dest>
-    *: " (VBR)"
+    *: "(VBR)"
   </dest>
   <voice>
     *: "VBR"
@@ -6757,7 +6751,7 @@
   user: core
   <source>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </source>
   <dest>
     *: none
@@ -8695,16 +8689,16 @@
   </voice>
 </phrase>
 <phrase>
-  id: VOICE_CURRENT_TIME
-  desc: spoken only, for wall clock announce
+  id: LANG_CURRENT_TIME
+  desc: for wall clock announce
   user: core
   <source>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </source>
   <dest>
     *: none
-    rtc: ""
+    rtc: "Часът е"
   </dest>
   <voice>
     *: none
@@ -8737,20 +8731,6 @@
   </dest>
   <voice>
     *: "Честота на отрязване"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_GAIN
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Gain"
-  </source>
-  <dest>
-    *: "Усилване"
-  </dest>
-  <voice>
-    *: "Усилване"
   </voice>
 </phrase>
 <phrase>
@@ -9323,7 +9303,7 @@
 </phrase>
 <phrase>
   id: VOICE_OK
-  desc: spoken only, On exiting a context, specifically the quick screen
+  desc: spoken only, on exiting a context, specifically the quick screen
   user: core
   <source>
     *: ""
@@ -9341,7 +9321,7 @@
   user: core
   <source>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </source>
   <dest>
     *: none
@@ -10754,23 +10734,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_LINEOUT_ONOFF
-  desc: in system settings menu
-  user: core
-  <source>
-    *: none
-    lineout_poweroff: "Line Out"
-  </source>
-  <dest>
-    *: none
-    lineout_poweroff: "Линеен изход"
-  </dest>
-  <voice>
-    *: none
-    lineout_poweroff: "Линеен изход"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_HOTKEY
   desc: hotkey menu
   user: core
@@ -11227,7 +11190,7 @@
   desc: resume settings menu
   user: core
   <source>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </source>
   <dest>
     *: "Автоматично възобновяване"
@@ -11373,7 +11336,7 @@
   desc: whether sleep timer starts on power up
   user: core
   <source>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </source>
   <dest>
     *: "Стартирай таймера на заспиване при включване"
@@ -11477,7 +11440,7 @@
   desc: whether to restart running sleep timer on keypress
   user: core
   <source>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </source>
   <dest>
     *: "Рестартирай таймера на заспиване при натискане на бутон"
@@ -11613,20 +11576,6 @@
   </dest>
   <voice>
     *: "Време за нападение"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_EQUALIZER_BAND_Q
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Q"
-  </source>
-  <dest>
-    *: "Q"
-  </dest>
-  <voice>
-    *: "Q"
   </voice>
 </phrase>
 <phrase>
@@ -11929,7 +11878,7 @@
   desc: Relative volume of voice prompts
   user: core
   <source>
-    *: "Voice prompt volume"
+    *: "Voice Prompt Volume"
   </source>
   <dest>
     *: "Сила на гласовите съобщения"
@@ -12543,16 +12492,16 @@
 </phrase>
 <phrase>
   id: LANG_PLAYTIME_REMAINING
-  desc: playing time screen
+  desc: deprecated
   user: core
   <source>
-    *: "Playlist remaining:"
+    *: ""
   </source>
   <dest>
-    *: "Оставащо време в плейлистата:"
+    *: ""
   </dest>
   <voice>
-    *: "Оставащо време в плейлистата"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -13293,48 +13242,6 @@
   </dest>
   <voice>
     *: "Ниво 7, 40 хода за 240 минути"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_8
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 8: 1 move / 15 min"
-  </source>
-  <dest>
-    *: "Ниво 8: 1 ход / 15 мин"
-  </dest>
-  <voice>
-    *: "Ниво 8, 1 ход за 15 минути"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_9
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 9: 1 move / 60 min"
-  </source>
-  <dest>
-    *: "Ниво 9: 1 ход / 60 мин"
-  </dest>
-  <voice>
-    *: "Ниво 9, 1 ход за 60 минути"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_10
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 10: 1 move / 600 min"
-  </source>
-  <dest>
-    *: "Ниво 10: 1 ход / 600 мин"
-  </dest>
-  <voice>
-    *: "Ниво 10, 1 ход за 600 минути"
   </voice>
 </phrase>
 <phrase>
@@ -14730,16 +14637,16 @@
 </phrase>
 <phrase>
   id: LANG_CACHE_REBUILT_NEXT_RESTART
-  desc: in the pictureflow splash messages
+  desc: deprecated
   user: core
   <source>
-    *: "Cache will be rebuilt on next restart"
+    *: ""
   </source>
   <dest>
-    *: "Кешът ще се прегенерира при следващия рестарт"
+    *: ""
   </dest>
   <voice>
-    *: "Кешът ще се прегенерира при следващия рестарт"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -15150,7 +15057,7 @@
   desc: open plugin module
   user: core
   <source>
-    *: "Set Wps Context Plugin"
+    *: "Set WPS Context Plugin"
   </source>
   <dest>
     *: "Избери плъгин за WPS контекст"
@@ -16242,62 +16149,6 @@
   </dest>
   <voice>
     *: "Експертно"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_STEREOSW_MODE
-  desc: Stereo Switch Mode
-  user: core
-  <source>
-    *: "Stereo Switch Mode"
-  </source>
-  <dest>
-    *: "Разменяне на стерео"
-  </dest>
-  <voice>
-    *: "Разменяне на стерео"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_REVERSE
-  desc: in settings_menu
-  user: core
-  <source>
-    *: "Reverse"
-  </source>
-  <dest>
-    *: "Обърнато"
-  </dest>
-  <voice>
-    *: "Обърнато"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALWAYS_ZERO
-  desc: in settings_menu
-  user: core
-  <source>
-    *: "Always 0"
-  </source>
-  <dest>
-    *: "Винаги 0"
-  </dest>
-  <voice>
-    *: "Винаги 0"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALWAYS_ONE
-  desc: in settings_menu
-  user: core
-  <source>
-    *: "Always 1"
-  </source>
-  <dest>
-    *: "Винаги 1"
-  </dest>
-  <voice>
-    *: "Винаги 1"
   </voice>
 </phrase>
 <phrase>

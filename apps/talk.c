@@ -48,7 +48,12 @@
 
 /***************** Constants *****************/
 
-#define QUEUE_SIZE 64 /* must be a power of two */
+#if MEMORYSIZE <= 2
+#define QUEUE_SIZE 64
+#else
+#define QUEUE_SIZE 128 /* must be a power of two */
+#endif
+
 #define QUEUE_MASK (QUEUE_SIZE-1)
 const char* const dir_thumbnail_name = "_dirname.talk";
 const char* const file_thumbnail_ext = ".talk";
@@ -752,6 +757,7 @@ static void do_enqueue(bool enqueue)
 static int _talk_spell(const char* spell, size_t len, bool enqueue)
 {
     char c; /* currently processed char */
+    int button = BUTTON_NONE;
 
     if (talk_is_disabled())
         return -1;
@@ -780,8 +786,15 @@ static int _talk_spell(const char* spell, size_t len, bool enqueue)
         else if (c == PATH_SEPCH)
             talk_id(VOICE_CHAR_SLASH, true);
 
-        while (QUEUE_LEVEL == QUEUE_SIZE - 1) /* queue full - busy loop */
-            yield();
+
+        if (QUEUE_LEVEL == QUEUE_SIZE - 1)
+            button = button_get(false); /* prevent UI unresponsiveness */
+
+        if (button == BUTTON_NONE || IS_SYSEVENT(button))
+            while (QUEUE_LEVEL == QUEUE_SIZE - 1) /* queue full - busy loop */
+                yield();
+        else
+            return 0; /* truncate spelled-out string */
     }
     return 0;
 }
@@ -926,7 +939,7 @@ void talk_init(void)
         if (!load_voicefile_index(filehandle))
         {
             if (global_settings.talk_menu)
-                splashf(HZ, str(LANG_READ_FAILED), ".voice");
+                splashf(HZ, ID2P(LANG_READ_FAILED), ".voice");
             goto out;
         }
         /* Now determine the maximum buffer size needed for the voicefile.

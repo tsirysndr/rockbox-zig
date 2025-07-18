@@ -566,7 +566,7 @@ static struct mp3entry id3;
 void reset_track_list(void);
 
 static bool thread_is_running;
-static bool wants_to_quit = false;
+static bool wants_to_quit;
 
 /*
     Prevent picture loading thread from allocating
@@ -574,7 +574,7 @@ static bool wants_to_quit = false;
     performing buffer-shifting operations.
 */
 static struct mutex buf_ctx_mutex;
-static bool buf_ctx_locked = false;
+static bool buf_ctx_locked;
 
 static int cover_animation_keyframe;
 static int extra_fade;
@@ -662,18 +662,25 @@ static bool check_database(void)
     return true;
 }
 
-static bool confirm_quit(void)
+static bool progress_cancel(int step, int count, char *msg)
 {
-    const struct text_message prompt =
-             { (const char*[]) {"Quit?", "Progress will be lost"}, 2};
-    enum yesno_res response = rb->gui_syncyesno_run(&prompt, NULL, NULL);
-    while (rb->button_get(false) == BUTTON_NONE)
-    {;;}
+    const struct text_message prompt = {
+            (const char*[]) {"Quit?", "Progress will be lost"}, 2};
 
-    if(response == YESNO_NO)
-        return false;
+    int action = rb->get_action(CONTEXT_STD,TIMEOUT_NOBLOCK);
+    if (action == ACTION_STD_CANCEL || action == ACTION_STD_MENU)
+    {
+        if (rb->gui_syncyesno_run(&prompt, NULL, NULL) == YESNO_YES)
+            return true;
+        rb->lcd_clear_display();
+    }
     else
-        return true;
+        msg = NULL;
+
+    if (count)
+        draw_progressbar(step, count, msg);
+
+    return false;
 }
 
 static void config_save(int cache_version, bool update_albumart)
@@ -1160,14 +1167,10 @@ static int get_tcs_search_res(int type, struct tagcache_search *tcs,
 
     while (rb->tagcache_get_next(tcs, tcs_buf, tcs_bufsz))
     {
-        if (rb->button_get(false) > BUTTON_NONE)
+        if (progress_cancel(0, 0, NULL))
         {
-            if (confirm_quit())
-            {
-                ret = ERROR_USER_ABORT;
-                break;
-            } else
-                rb->lcd_clear_display();
+            ret = ERROR_USER_ABORT;
+            break;
         }
 
         *bufsz -= data_size;
@@ -1194,6 +1197,12 @@ static int get_tcs_search_res(int type, struct tagcache_search *tcs,
     return ret;
 }
 
+#define STR_STEP_INDEXING_UNTAGGED "1/5 Find " UNTAGGED
+#define STR_STEP_ASSIGNING_ALBUMS "2/5 Find Albums"
+#define STR_STEP_ASSIGNING_ALBUM_YEAR "3/5 Check Album Year"
+#define STR_STEP_REMOVING_DUPLICATES "4/5 Remove Duplicates"
+#define STR_STEP_PREPARING_ARTWORK "5/5 Prepare Artwork"
+
 /*adds <untagged> albums/artist to existing album index */
 static int create_album_untagged(struct tagcache_search *tcs,
                                  void **buf, size_t *bufsz)
@@ -1207,7 +1216,7 @@ static int create_album_untagged(struct tagcache_search *tcs,
     int last, final, retry;
     int i, j;
     draw_splashscreen(*buf, *bufsz);
-    draw_progressbar(0, total_count, "Searching " UNTAGGED);
+    draw_progressbar(0, total_count, STR_STEP_INDEXING_UNTAGGED);
 
     /* search tagcache for all <untagged> albums & save the albumartist seek pos */
     if (rb->tagcache_search(tcs, tag_albumartist))
@@ -1216,18 +1225,10 @@ static int create_album_untagged(struct tagcache_search *tcs,
 
         while (rb->tagcache_get_next(tcs, tcs_buf, tcs_bufsz))
         {
-            if (rb->button_get(false) > BUTTON_NONE) {
-                if (confirm_quit())
-                {
-                    rb->tagcache_search_finish(tcs);
-                    return ERROR_USER_ABORT;
-                }
-                else
-                {
-                    rb->lcd_clear_display();
-                    draw_progressbar(pf_idx.album_ct, total_count,
-                                     "Searching " UNTAGGED);
-                }
+            if (progress_cancel(pf_idx.album_ct, total_count, STR_STEP_INDEXING_UNTAGGED))
+            {
+                rb->tagcache_search_finish(tcs);
+                return ERROR_USER_ABORT;
             }
 
             if (tcs->result_seek ==
@@ -1246,13 +1247,12 @@ static int create_album_untagged(struct tagcache_search *tcs,
                                pf_idx.album_untagged_seek, -1, tcs->result_seek);
 
             pf_idx.album_ct++;
-            draw_progressbar(pf_idx.album_ct, total_count, NULL);
         }
         rb->tagcache_search_finish(tcs);
 
         if (ret == SUCCESS) {
             draw_splashscreen(*buf, *bufsz);
-            draw_progressbar(0, pf_idx.album_ct, "Finalizing " UNTAGGED);
+            draw_progressbar(0, pf_idx.album_ct, STR_STEP_INDEXING_UNTAGGED);
 
             last = 0;
             final = pf_idx.artist_ct;
@@ -1261,17 +1261,9 @@ static int create_album_untagged(struct tagcache_search *tcs,
             /* map the artist_seek position to the artist name index */
             for (j = album_count; j < pf_idx.album_ct; j++)
             {
-                if (rb->button_get(false) > BUTTON_NONE) {
-                    if (confirm_quit())
-                        return ERROR_USER_ABORT;
-                    else
-                    {
-                        rb->lcd_clear_display();
-                        draw_progressbar(j, pf_idx.album_ct, "Finalizing " UNTAGGED);
-                    }
-                }
+                if (progress_cancel(j, pf_idx.album_ct, STR_STEP_INDEXING_UNTAGGED))
+                    return ERROR_USER_ABORT;
 
-                draw_progressbar(j, pf_idx.album_ct, NULL);
                 seek = pf_idx.album_index[-j].artist_seek;
 
     retry_artist_lookup:
@@ -1343,28 +1335,19 @@ static int build_artist_index(struct tagcache_search *tcs,
     return res;
 }
 
-
 static int assign_album_year(void)
 {
     char tcs_buf[TAGCACHE_BUFSZ];
     const long tcs_bufsz = sizeof(tcs_buf);
-    draw_progressbar(0, pf_idx.album_ct, "Assigning Album Year");
+    draw_progressbar(0, pf_idx.album_ct, STR_STEP_ASSIGNING_ALBUM_YEAR);
     for (int album_idx = 0; album_idx < pf_idx.album_ct; album_idx++)
     {
         /* Prevent idle poweroff */
         rb->reset_poweroff_timer();
 
-        if (rb->button_get(false) > BUTTON_NONE)
-        {
-            if (confirm_quit())
-                return ERROR_USER_ABORT;
-            else
-            {
-                rb->lcd_clear_display();
-                draw_progressbar(album_idx, pf_idx.album_ct, "Assigning Album Year");
-            }
-        }
-        draw_progressbar(album_idx, pf_idx.album_ct, NULL);
+        if (progress_cancel(album_idx, pf_idx.album_ct, STR_STEP_ASSIGNING_ALBUM_YEAR))
+            return ERROR_USER_ABORT;
+
         int album_year = 0;
 
         if (rb->tagcache_search(&tcs, tag_year))
@@ -1447,25 +1430,15 @@ static int create_album_index(void)
 
     /* Assign indices */
     draw_splashscreen(buf, buf_size);
-    draw_progressbar(0, pf_idx.album_ct, "Assigning Albums");
+    draw_progressbar(0, pf_idx.album_ct, STR_STEP_ASSIGNING_ALBUMS);
     for (j = 0; j < pf_idx.album_ct; j++)
     {
         /* Prevent idle poweroff */
         rb->reset_poweroff_timer();
 
-        if (rb->button_get(false) > BUTTON_NONE)
-        {
-            if (confirm_quit())
-                return ERROR_USER_ABORT;
-            else
-            {
-                rb->lcd_clear_display();
-                draw_progressbar(j, pf_idx.album_ct, "Assigning Albums");
-            }
+        if (progress_cancel(j, pf_idx.album_ct, STR_STEP_ASSIGNING_ALBUMS))
+            return ERROR_USER_ABORT;
 
-        }
-
-        draw_progressbar(j, pf_idx.album_ct, NULL);
         if (pf_idx.album_index[j].artist_seek >= 0) { continue; }
 
         rb->tagcache_search(&tcs, tag_albumartist);
@@ -1515,17 +1488,19 @@ retry_artist_lookup:
               sizeof(struct album_data), compare_album_artists);
 
     draw_splashscreen(buf, buf_size);
-    draw_progressbar(0, pf_idx.album_ct, "Removing duplicates");
+    draw_progressbar(0, pf_idx.album_ct, STR_STEP_REMOVING_DUPLICATES);
     /* mark duplicate albums for deletion */
     for (i = 0; i < pf_idx.album_ct - 1; i++) /* -1 don't check last entry */
     {
         /* Prevent idle poweroff */
         rb->reset_poweroff_timer();
 
+        if (progress_cancel(i, pf_idx.album_ct, STR_STEP_REMOVING_DUPLICATES))
+            return ERROR_USER_ABORT;
+
         int idxi = pf_idx.album_index[i].artist_idx;
         int seeki = pf_idx.album_index[i].seek;
 
-        draw_progressbar(i, pf_idx.album_ct, NULL);
         for (j = i + 1; j < pf_idx.album_ct; j++)
         {
             if (idxi > 0 &&
@@ -2343,7 +2318,7 @@ aa_success:
 static bool create_albumart_cache(void)
 {
     draw_splashscreen(pf_idx.buf, pf_idx.buf_sz);
-    draw_progressbar(0, pf_idx.album_ct, "Preparing artwork");
+    draw_progressbar(0, pf_idx.album_ct, STR_STEP_PREPARING_ARTWORK);
     aa_cache.inspected = 0;
     for (int i=0; i < pf_idx.album_ct; i++)
     {
@@ -3194,11 +3169,56 @@ static inline void set_current_slide(const int slide_index)
 
 
 static void skip_animation_to_idle_state(void);
-static bool sort_albums(int new_sorting, bool from_settings)
+static void return_to_idle_state(void)
+{
+    if (pf_state == pf_show_tracks)
+        free_borrowed_tracks();
+    if (pf_state == pf_show_tracks ||
+        pf_state == pf_cover_in ||
+        pf_state == pf_cover_out)
+        skip_animation_to_idle_state();
+    else if (pf_state == pf_scrolling)
+        set_current_slide(target);
+
+    pf_state = pf_idle;
+}
+
+
+static void set_initial_slide(const char* selected_file)
+{
+    if (selected_file)
+        set_current_slide(retrieve_id3(&id3, selected_file) ?
+                            id3_get_index(&id3) :
+                            pf_cfg.last_album);
+    else
+        set_current_slide(rb->audio_status() ?
+                            id3_get_index(rb->audio_current_track()) :
+                            pf_cfg.last_album);
+
+}
+
+static void reselect(unsigned int hash_album, unsigned int hash_artist)
 {
     int i, album_idx, artist_idx;
-    char* current_album_name = NULL;
-    char* current_album_artist = NULL;
+    for (i = 0; i < pf_idx.album_ct; i++ )
+    {
+        album_idx = pf_idx.album_index[i].name_idx;
+        artist_idx = pf_idx.album_index[i].artist_idx;
+
+        if(hash_album == mfnv(pf_idx.album_names + album_idx) &&
+           hash_artist == mfnv(pf_idx.artist_names + artist_idx))
+        {
+            set_current_slide(i);
+            pf_cfg.last_album = i;
+            return;
+        }
+    }
+    set_initial_slide(NULL);
+}
+
+static bool sort_albums(int new_sorting, bool from_settings)
+{
+    unsigned int hash_album, hash_artist;
     static const char* sort_options[] = {
         ID2P(LANG_ARTIST_PLUS_NAME),
         ID2P(LANG_ARTIST_PLUS_YEAR),
@@ -3221,16 +3241,7 @@ static bool sort_albums(int new_sorting, bool from_settings)
         return false;
     }
 
-    /* set idle state */
-    if (pf_state == pf_show_tracks)
-        free_borrowed_tracks();
-    if (pf_state == pf_show_tracks ||
-        pf_state == pf_cover_in ||
-        pf_state == pf_cover_out)
-        skip_animation_to_idle_state();
-    else if (pf_state == pf_scrolling)
-        set_current_slide(target);
-    pf_state = pf_idle;
+    return_to_idle_state();
 
     pf_cfg.sort_albums_by = new_sorting;
     if (!from_settings)
@@ -3245,13 +3256,10 @@ static bool sort_albums(int new_sorting, bool from_settings)
         rb->lcd_update();
 #endif
         rb->splash(HZ, sort_options[pf_cfg.sort_albums_by]);
-#ifdef USEGSLIB
-        grey_show(true);
-#endif
     }
 
-    current_album_artist = get_album_artist(center_index);
-    current_album_name = get_album_name(center_index);
+    hash_album = mfnv(get_album_name(center_index));
+    hash_artist = mfnv(get_album_artist(center_index));
 
     end_pf_thread(); /* stop loading of covers  */
 
@@ -3265,19 +3273,12 @@ static bool sort_albums(int new_sorting, bool from_settings)
     is_initial_slide = true;
     create_pf_thread();
 
-    /* Go to previously selected slide */
-    for (i = 0; i < pf_idx.album_ct; i++ )
-    {
-        album_idx = pf_idx.album_index[i].name_idx;
-        artist_idx = pf_idx.album_index[i].artist_idx;
+    reselect(hash_album, hash_artist); /* splash if not found */
 
-        if(!rb->strcmp(pf_idx.album_names + album_idx, current_album_name) &&
-            !rb->strcmp(pf_idx.artist_names + artist_idx, current_album_artist))
-        {
-            set_current_slide(i);
-            pf_cfg.last_album = i;
-        }
-    }
+#ifdef USEGSLIB
+    if (!from_settings)
+        grey_show(true);
+#endif
     return true;
 }
 
@@ -3527,29 +3528,106 @@ static void adjust_album_display_for_setting(int old_val, int new_val)
         skip_animation_to_show_tracks();
 }
 
+static int display_settings_menu(void)
+{
+    int selection = 0;
+    int old_val;
+
+    MENUITEM_STRINGLIST(display_menu, ID2P(LANG_DISPLAY), NULL,
+                        ID2P(LANG_BACKLIGHT),
+                        ID2P(LANG_DISPLAY_FPS),
+                        ID2P(LANG_SPACING),
+                        ID2P(LANG_CENTRE_MARGIN),
+                        ID2P(LANG_NUMBER_OF_SLIDES),
+                        ID2P(LANG_ZOOM),
+                        ID2P(LANG_RESIZE_COVERS));
+
+    static const struct opt_items backlight_options[] = {
+        { STR(LANG_ALWAYS_ON) },
+        { STR(LANG_NORMAL) }};
+
+    do {
+        selection=rb->do_menu(&display_menu, &selection, NULL, false);
+        switch(selection) {
+            case 0:
+                rb->set_option(rb->str(LANG_BACKLIGHT),
+                        &pf_cfg.backlight_mode, RB_INT, backlight_options, 2, NULL);
+                if(pf_cfg.backlight_mode == 0)
+                    backlight_ignore_timeout();
+                else
+                    backlight_use_settings();
+                break;
+            case 1:
+                old_val = pf_cfg.show_fps;
+                rb->set_bool(rb->str(LANG_DISPLAY_FPS), &pf_cfg.show_fps);
+                if (old_val != pf_cfg.show_fps)
+                    reset_track_list();
+                break;
+            case 2:
+                old_val = pf_cfg.slide_spacing;
+                rb->set_int(rb->str(LANG_SPACING), "", 1,
+                            &pf_cfg.slide_spacing,
+                            NULL, 1, 0, 100, NULL );
+                adjust_album_display_for_setting(old_val, pf_cfg.slide_spacing);
+                break;
+            case 3:
+                old_val = pf_cfg.center_margin;
+                rb->set_int(rb->str(LANG_CENTRE_MARGIN), "", 1,
+                            &pf_cfg.center_margin,
+                            NULL, 1, 0, 80, NULL );
+                adjust_album_display_for_setting(old_val, pf_cfg.center_margin);
+                break;
+            case 4:
+                old_val = pf_cfg.num_slides;
+                rb->set_int(rb->str(LANG_NUMBER_OF_SLIDES), "", 1,
+                        &pf_cfg.num_slides, NULL, 1, 1, MAX_SLIDES_COUNT, NULL );
+                adjust_album_display_for_setting(old_val, pf_cfg.num_slides);
+                break;
+            case 5:
+                old_val = pf_cfg.zoom;
+                rb->set_int(rb->str(LANG_ZOOM), "", 1, &pf_cfg.zoom,
+                            NULL, 1, 10, 300, NULL );
+                adjust_album_display_for_setting(old_val, pf_cfg.zoom);
+                break;
+            case 6:
+                old_val = pf_cfg.resize;
+                rb->set_bool(rb->str(LANG_RESIZE_COVERS), &pf_cfg.resize);
+                if (old_val == pf_cfg.resize) /* changed? */
+                    break;
+                else if (!rb->yesno_pop_confirm(ID2P(LANG_RESIZE_COVERS)))
+                {
+                    pf_cfg.resize = old_val;
+                    break;
+                }
+
+                pf_cfg.update_albumart = false;
+                pf_cfg.cache_version = CACHE_REBUILD;
+                rb->remove(EMPTY_SLIDE);
+                configfile_save(CONFIG_FILE, config,
+                                CONFIG_NUM_ITEMS, CONFIG_VERSION);
+                return -3; /* re-init */
+            case MENU_ATTACHED_USB:
+                return PLUGIN_USB_CONNECTED;
+        }
+    } while (selection >= 0);
+
+    return 0;
+}
+
 /**
   Shows the settings menu
  */
 static int settings_menu(void)
 {
     int selection = 0;
-    int old_val;
+    int old_val, result;
 
     MENUITEM_STRINGLIST(settings_menu, "PictureFlow Settings", NULL,
                         ID2P(LANG_SHOW_ALBUM_TITLE),
                         ID2P(LANG_SHOW_YEAR_IN_ALBUM_TITLE),
-                        ID2P(LANG_SORT_ALBUMS_BY),
                         ID2P(LANG_YEAR_SORT_ORDER),
-                        ID2P(LANG_DISPLAY_FPS),
-                        ID2P(LANG_SPACING),
-                        ID2P(LANG_CENTRE_MARGIN),
-                        ID2P(LANG_NUMBER_OF_SLIDES),
-                        ID2P(LANG_ZOOM),
-                        ID2P(LANG_RESIZE_COVERS),
-                        ID2P(LANG_REBUILD_CACHE),
-                        ID2P(LANG_UPDATE_CACHE),
                         ID2P(LANG_WPS_INTEGRATION),
-                        ID2P(LANG_BACKLIGHT));
+                        ID2P(LANG_DISPLAY));
 
     static const struct opt_items album_name_options[] = {
         { STR(LANG_HIDE_ALBUM_TITLE_NEW) },
@@ -3557,12 +3635,6 @@ static int settings_menu(void)
         { STR(LANG_SHOW_AT_THE_TOP_NEW) },
         { STR(LANG_SHOW_ALL_AT_THE_TOP) },
         { STR(LANG_SHOW_ALL_AT_THE_BOTTOM) },
-    };
-    static const struct opt_items sort_options[] = {
-        { STR(LANG_ARTIST_PLUS_NAME) },
-        { STR(LANG_ARTIST_PLUS_YEAR) },
-        { STR(LANG_ID3_YEAR) },
-        { STR(LANG_NAME) }
     };
     static const struct opt_items year_sort_order_options[] = {
         { STR(LANG_ASCENDING) },
@@ -3572,10 +3644,6 @@ static int settings_menu(void)
         { STR(LANG_OFF) },
         { STR(LANG_DIRECT) },
         { STR(LANG_VIA_TRACK_LIST) }
-    };
-    static const struct opt_items backlight_options[] = {
-        { STR(LANG_ALWAYS_ON) },
-        { STR(LANG_NORMAL) },
     };
 
     do {
@@ -3591,14 +3659,6 @@ static int settings_menu(void)
                 rb->set_bool(rb->str(LANG_SHOW_YEAR_IN_ALBUM_TITLE), &pf_cfg.show_year);
                 break;
             case 2:
-                old_val = pf_cfg.sort_albums_by;
-                rb->set_option(rb->str(LANG_SORT_ALBUMS_BY),
-                      &pf_cfg.sort_albums_by, RB_INT, sort_options, 4, NULL);
-                if (old_val != pf_cfg.sort_albums_by &&
-                    !sort_albums(pf_cfg.sort_albums_by, true))
-                    pf_cfg.sort_albums_by = old_val;
-                break;
-            case 3:
                 old_val = pf_cfg.year_sort_order;
                 rb->set_option(rb->str(LANG_YEAR_SORT_ORDER),
                       &pf_cfg.year_sort_order, RB_INT, year_sort_order_options, 2, NULL);
@@ -3606,78 +3666,19 @@ static int settings_menu(void)
                     !sort_albums(pf_cfg.sort_albums_by, true))
                     pf_cfg.year_sort_order = old_val;
                 break;
-            case 4:
-                old_val = pf_cfg.show_fps;
-                rb->set_bool(rb->str(LANG_DISPLAY_FPS), &pf_cfg.show_fps);
-                if (old_val != pf_cfg.show_fps)
-                    reset_track_list();
-                break;
-
-            case 5:
-                old_val = pf_cfg.slide_spacing;
-                rb->set_int(rb->str(LANG_SPACING), "", 1,
-                            &pf_cfg.slide_spacing,
-                            NULL, 1, 0, 100, NULL );
-                adjust_album_display_for_setting(old_val, pf_cfg.slide_spacing);
-                break;
-
-            case 6:
-                old_val = pf_cfg.center_margin;
-                rb->set_int(rb->str(LANG_CENTRE_MARGIN), "", 1,
-                            &pf_cfg.center_margin,
-                            NULL, 1, 0, 80, NULL );
-                adjust_album_display_for_setting(old_val, pf_cfg.center_margin);
-                break;
-
-            case 7:
-                old_val = pf_cfg.num_slides;
-                rb->set_int(rb->str(LANG_NUMBER_OF_SLIDES), "", 1,
-                        &pf_cfg.num_slides, NULL, 1, 1, MAX_SLIDES_COUNT, NULL );
-                adjust_album_display_for_setting(old_val, pf_cfg.num_slides);
-                break;
-
-            case 8:
-                old_val = pf_cfg.zoom;
-                rb->set_int(rb->str(LANG_ZOOM), "", 1, &pf_cfg.zoom,
-                            NULL, 1, 10, 300, NULL );
-                adjust_album_display_for_setting(old_val, pf_cfg.zoom);
-                break;
-
-            case 9:
-                old_val = pf_cfg.resize;
-                rb->set_bool(rb->str(LANG_RESIZE_COVERS), &pf_cfg.resize);
-                if (old_val == pf_cfg.resize) /* changed? */
-                    break;
-                /* fallthrough if changed, since cache needs to be rebuilt */
-            case 10:
-                pf_cfg.update_albumart = false;
-                pf_cfg.cache_version = CACHE_REBUILD;
-                rb->remove(EMPTY_SLIDE);
-                configfile_save(CONFIG_FILE, config,
-                                CONFIG_NUM_ITEMS, CONFIG_VERSION);
-                rb->splash(HZ, ID2P(LANG_CACHE_REBUILT_NEXT_RESTART));
-                break;
-            case 11:
-                pf_cfg.update_albumart = true;
-                pf_cfg.cache_version = CACHE_REBUILD;
-                rb->remove(EMPTY_SLIDE);
-                configfile_save(CONFIG_FILE, config,
-                                CONFIG_NUM_ITEMS, CONFIG_VERSION);
-                rb->splash(HZ, ID2P(LANG_CACHE_REBUILT_NEXT_RESTART));
-                break;
-            case 12:
+            case 3:
                 rb->set_option(rb->str(LANG_WPS_INTEGRATION),
                                &pf_cfg.auto_wps, RB_INT, wps_options, 3, NULL);
                 break;
-            case 13:
-                rb->set_option(rb->str(LANG_BACKLIGHT),
-                        &pf_cfg.backlight_mode, RB_INT, backlight_options, 2, NULL);
+            case 4:
+                if ((result = display_settings_menu()))
+                    return result;
                 break;
-
             case MENU_ATTACHED_USB:
                 return PLUGIN_USB_CONNECTED;
         }
     } while ( selection >= 0 );
+
     return 0;
 }
 
@@ -3685,12 +3686,15 @@ static int settings_menu(void)
   Show the main menu
  */
 enum {
+    PF_SORT_ALBUMS_BY,
     PF_SHOW_TRACKS_WHILE_BROWSING,
     PF_GOTO_LAST_ALBUM,
     PF_GOTO_WPS,
 #if PF_PLAYBACK_CAPABLE
     PF_MENU_PLAYBACK_CONTROL,
 #endif
+    PF_REBUILD_CACHE,
+    PF_UPDATE_CACHE,
     PF_MENU_SETTINGS,
     PF_MENU_QUIT,
 };
@@ -3698,23 +3702,43 @@ enum {
 static int main_menu(void)
 {
     int selection = 0;
-    int result, curr_album;
+    int result, curr_album, old_val;
 
 #if LCD_DEPTH > 1
     rb->lcd_set_foreground(N_BRIGHT(255));
 #endif
 
     MENUITEM_STRINGLIST(main_menu, "PictureFlow Main Menu", NULL,
+                        ID2P(LANG_SORT_ALBUMS_BY),
                         ID2P(LANG_SHOW_TRACKS_WHILE_BROWSING),
                         ID2P(LANG_GOTO_LAST_ALBUM),
                         ID2P(LANG_GOTO_WPS),
 #if PF_PLAYBACK_CAPABLE
                         ID2P(LANG_PLAYBACK_CONTROL),
 #endif
+                        ID2P(LANG_REBUILD_CACHE),
+                        ID2P(LANG_UPDATE_CACHE),
                         ID2P(LANG_SETTINGS),
                         ID2P(LANG_MENU_QUIT));
+
+    static const struct opt_items sort_options[] = {
+        { STR(LANG_ARTIST_PLUS_NAME) },
+        { STR(LANG_ARTIST_PLUS_YEAR) },
+        { STR(LANG_ID3_YEAR) },
+        { STR(LANG_NAME) }};
+
     while (1)  {
         switch (rb->do_menu(&main_menu,&selection, NULL, false)) {
+            case PF_SORT_ALBUMS_BY:
+                old_val = pf_cfg.sort_albums_by;
+                rb->set_option(rb->str(LANG_SORT_ALBUMS_BY),
+                      &pf_cfg.sort_albums_by, RB_INT, sort_options, 4, NULL);
+                if (old_val != pf_cfg.sort_albums_by &&
+                    !sort_albums(pf_cfg.sort_albums_by, true))
+                    pf_cfg.sort_albums_by = old_val;
+                if (old_val == pf_cfg.sort_albums_by)
+                    break;
+                return 0;
             case PF_SHOW_TRACKS_WHILE_BROWSING:
                 if (pf_state != pf_show_tracks)
                 {
@@ -3750,9 +3774,28 @@ static int main_menu(void)
                 playback_control(NULL);
                 break;
 #endif
+            case PF_REBUILD_CACHE:
+                if (!rb->yesno_pop_confirm(ID2P(LANG_REBUILD_CACHE)))
+                    break;
+                pf_cfg.update_albumart = false;
+                pf_cfg.cache_version = CACHE_REBUILD;
+                rb->remove(EMPTY_SLIDE);
+                configfile_save(CONFIG_FILE, config,
+                                CONFIG_NUM_ITEMS, CONFIG_VERSION);
+                return -3; /* re-init */
+            case PF_UPDATE_CACHE:
+                if (!rb->yesno_pop_confirm(ID2P(LANG_UPDATE_CACHE)))
+                    break;
+                pf_cfg.update_albumart = true;
+                pf_cfg.cache_version = CACHE_REBUILD;
+                rb->remove(EMPTY_SLIDE);
+                configfile_save(CONFIG_FILE, config,
+                                CONFIG_NUM_ITEMS, CONFIG_VERSION);
+                return -3; /* re-init */
             case PF_MENU_SETTINGS:
                 result = settings_menu();
-                if ( result != 0 ) return result;
+                if (result != 0)
+                    return result;
                 break;
             case PF_MENU_QUIT:
                 return -1;
@@ -3954,7 +3997,7 @@ static void show_track_list_loading(void)
 /**
   Display the list of tracks
  */
-static void show_track_list(void)
+static bool show_track_list(void)
 {
     mylcd_clear_display();
     if ( center_slide.slide_index != pf_tracks.cur_idx ) {
@@ -3967,7 +4010,7 @@ static void show_track_list(void)
         {
             pf_state = pf_cover_out;
             free_borrowed_tracks();
-            return;
+            return false;
         }
         reset_track_list();
     }
@@ -4001,6 +4044,8 @@ static void show_track_list(void)
         mylcd_putsxy(titletxt_x,titletxt_y,trackname);
         titletxt_y += titletxt_h;
     }
+
+    return true;
 }
 
 static void select_next_track(void)
@@ -4415,20 +4460,6 @@ static void draw_album_text(void)
     }
 }
 
-
-static void set_initial_slide(const char* selected_file)
-{
-    if (selected_file)
-        set_current_slide(retrieve_id3(&id3, selected_file) ?
-                            id3_get_index(&id3) :
-                            pf_cfg.last_album);
-    else
-        set_current_slide(rb->audio_status() ?
-                            id3_get_index(rb->audio_current_track()) :
-                            pf_cfg.last_album);
-
-}
-
 /**
   Display an error message and wait for input.
 */
@@ -4440,32 +4471,67 @@ static void error_wait(const char *message)
     rb->sleep(2 * HZ);
 }
 
-/**
-  Main function that also contain the main plasma
-  algorithm.
- */
-static int pictureflow_main(const char* selected_file)
+static bool init(void)
 {
     int ret = SUCCESS;
+    void * buf;
+    size_t buf_size;
+
+#ifdef HAVE_ADJUSTABLE_CPU_FREQ
+    rb->cpu_boost(true); /* revert in cleanup */
+#endif
+
+    wants_to_quit = false;
+
+    /* must appear before config load */
+    rb->memset(&aa_cache, 0, sizeof(struct albumart_t));
+
+    config_set_defaults(&pf_cfg); /* must appear before configfile_save */
+    configfile_load(CONFIG_FILE, config, CONFIG_NUM_ITEMS, CONFIG_VERSION);
+
+    if(pf_cfg.backlight_mode == 0)
+        backlight_ignore_timeout(); /* restore in cleanup */
+
+#if PF_PLAYBACK_CAPABLE
+    buf = rb->plugin_get_buffer(&buf_size);
+#else
+    buf = rb->plugin_get_audio_buffer(&buf_size);
+#ifndef SIMULATOR
+    if ((uintptr_t)buf < (uintptr_t)plugin_start_addr)
+    {
+        uint32_t tmp_size = (uintptr_t)plugin_start_addr - (uintptr_t)buf;
+        buf_size = MIN(buf_size, tmp_size);
+    }
+#endif
+#endif
+
+#ifdef USEGSLIB
+    long grey_buf_used;
+    if (!grey_init(buf, buf_size, GREY_BUFFERED|GREY_ON_COP,
+                   LCD_WIDTH, LCD_HEIGHT, &grey_buf_used))
+    {
+        error_wait("Greylib init failed!");
+        return false;
+    }
+    grey_setfont(FONT_UI);
+    buf_size -= grey_buf_used;
+    buf = (void*)(grey_buf_used + (char*)buf);
+#endif
+
+    /* store buffer pointers and sizes */
+    pf_idx.buf = buf;
+    pf_idx.buf_sz = buf_size;
 
     rb->lcd_setfont(FONT_UI);
 
-    if ( ! rb->dir_exists( CACHE_PREFIX ) ) {
-        if ( rb->mkdir( CACHE_PREFIX ) < 0 ) {
+    if (!rb->dir_exists(CACHE_PREFIX))
+    {
+        if (rb->mkdir( CACHE_PREFIX ) < 0)
+        {
             error_wait("Could not create directory " CACHE_PREFIX);
-            return PLUGIN_ERROR;
+            return false;
         }
     }
-
-    rb->memset(&aa_cache, 0, sizeof(struct albumart_t));
-    config_set_defaults(&pf_cfg);
-
-    configfile_load(CONFIG_FILE, config, CONFIG_NUM_ITEMS, CONFIG_VERSION);
-
-#ifdef HAVE_BACKLIGHT
-    if(pf_cfg.backlight_mode == 0)
-        backlight_ignore_timeout();
-#endif
 
     rb->mutex_init(&buf_ctx_mutex);
 
@@ -4473,28 +4539,30 @@ static int pictureflow_main(const char* selected_file)
     init_reflect_table();
 
     /*Scan will trigger when no file is found or the option was activated*/
-    if ((pf_cfg.cache_version != CACHE_VERSION)||(load_album_index() < 0)){
-        rb->splash(HZ/2,"Creating index, please wait");
+    if ((pf_cfg.cache_version != CACHE_VERSION)|| (load_album_index() < 0))
+    {
         ret = create_album_index();
 
-        if (ret == 0){
+        if (ret == 0)
+        {
             pf_cfg.cache_version = CACHE_REBUILD;
-            if (save_album_index() < 0) {
+            if (save_album_index() < 0)
                 rb->splash(HZ, "Could not write index");
-            };
         }
     }
 
-    if (ret == ERROR_BUFFER_FULL) {
+    if (ret == ERROR_BUFFER_FULL)
+    {
         error_wait("Not enough memory for album names");
-        return PLUGIN_ERROR;
-    } else if (ret == ERROR_NO_ALBUMS) {
-        error_wait("No albums found. Please enable database");
-        return PLUGIN_ERROR;
-    } else if (ret == ERROR_USER_ABORT) {
-        error_wait("User aborted.");
-        return PLUGIN_ERROR;
+        return false;
     }
+    else if (ret == ERROR_NO_ALBUMS)
+    {
+        error_wait("No albums found. Please enable database");
+        return false;
+    }
+    else if (ret == ERROR_USER_ABORT)
+        return false;
 
     number_of_slides = pf_idx.album_ct;
 
@@ -4502,7 +4570,7 @@ static int pictureflow_main(const char* selected_file)
     if (aa_bufsz < DISPLAY_WIDTH * DISPLAY_HEIGHT * sizeof(pix_t))
     {
         error_wait("Not enough memory for album art cache");
-        return PLUGIN_ERROR;
+        return false;
     }
 
     ALIGN_BUFFER(pf_idx.buf, pf_idx.buf_sz, sizeof(long));
@@ -4512,38 +4580,39 @@ static int pictureflow_main(const char* selected_file)
     pf_idx.buf += aa_bufsz;
     pf_idx.buf_sz -= aa_bufsz;
 
-    if (!create_empty_slide(pf_cfg.cache_version != CACHE_VERSION)) {
+    rb->buflib_init(&buf_ctx, (void *)pf_idx.buf, pf_idx.buf_sz);
+    initialize_slide_cache();
+    is_initial_slide = true;
+
+    if (!create_empty_slide(pf_cfg.cache_version != CACHE_VERSION))
+    {
         config_save(CACHE_REBUILD, false);
         error_wait("Could not load the empty slide");
-        return PLUGIN_ERROR;
+        return false;
     }
 
-    if ((pf_cfg.cache_version != CACHE_VERSION) && !create_albumart_cache()) {
+    if ((pf_cfg.cache_version != CACHE_VERSION) && !create_albumart_cache())
+    {
         config_save(CACHE_REBUILD, false);
         error_wait("Could not create album art cache");
-    } else if(aa_cache.inspected < pf_idx.album_ct) {
-        rb->splash(HZ * 2, "Updating album art cache in background");
     }
+    else if(aa_cache.inspected < pf_idx.album_ct)
+        rb->splash(HZ * 2, "Updating album art cache in background");
 
     if (pf_cfg.cache_version != CACHE_VERSION)
-    {
         config_save(CACHE_VERSION, pf_cfg.update_albumart);
-    }
-
-    rb->buflib_init(&buf_ctx, (void *)pf_idx.buf, pf_idx.buf_sz);
 
     if ((empty_slide_hid = read_pfraw(EMPTY_SLIDE, 0)) < 0)
     {
         error_wait("Unable to load empty slide image");
-        return PLUGIN_ERROR;
+        return false;
     }
 
-    if (!create_pf_thread()) {
+    if (!create_pf_thread())
+    {
         error_wait("Cannot create thread!");
-        return PLUGIN_ERROR;
+        return false;
     }
-
-    initialize_slide_cache();
 
     buffer = LCD_BUF;
 
@@ -4561,24 +4630,77 @@ static int pictureflow_main(const char* selected_file)
 
     recalc_offsets();
     reset_slides();
-    set_initial_slide(selected_file);
 
+#ifdef USEGSLIB
+    grey_set_drawmode(DRMODE_FG);
+#endif
+    rb->lcd_set_drawmode(DRMODE_FG);
+
+    return true;
+}
+
+static bool reinit(void)
+{
+    return_to_idle_state();
+
+    unsigned int hash_album = mfnv(get_album_name(center_index));
+    unsigned int hash_artist = mfnv(get_album_artist(center_index));
+
+    cleanup();
+    if (init())
+    {
+        reselect(hash_album, hash_artist); /* splash if not found */
+#ifdef USEGSLIB
+        grey_show(true);
+#endif
+        return true;
+    }
+    return false;
+}
+
+static bool prompt_reinit(void)
+{
+    const struct text_message prompt = {
+      (const char*[]) {ID2P(LANG_TAGCACHE_BUSY), ID2P(LANG_TAGCACHE_UPDATE)}, 2};
+#ifdef USEGSLIB
+    grey_show(false);
+#endif
+    if (rb->gui_syncyesno_run(&prompt, NULL, NULL) == YESNO_YES)
+    {
+        pf_cfg.update_albumart = true;
+        pf_cfg.cache_version = CACHE_REBUILD;
+        rb->remove(EMPTY_SLIDE);
+        configfile_save(CONFIG_FILE, config, CONFIG_NUM_ITEMS, CONFIG_VERSION);
+        if (!reinit())
+            return false;
+    }
+    else
+    {
+#ifdef USEGSLIB
+        grey_show(true);
+#endif
+        mylcd_set_drawmode(DRMODE_FG);
+    }
+    return true;
+}
+
+/**
+  Main function that also contain the main plasma
+  algorithm.
+ */
+static int pictureflow_main(void)
+{
+    int ret;
     char fpstxt[10];
     int button;
-
     int frames = 0;
     long last_update = *rb->current_tick;
     long current_update;
     long update_interval = 100;
     int fps = 0;
     int fpstxt_y;
-
     bool instant_update;
-#ifdef USEGSLIB
-    grey_show(true);
-    grey_set_drawmode(DRMODE_FG);
-#endif
-    rb->lcd_set_drawmode(DRMODE_FG);
+
     while (true) {
         current_update = *rb->current_tick;
         frames++;
@@ -4607,7 +4729,8 @@ static int pictureflow_main(const char* selected_file)
                 instant_update = true;
                 break;
             case pf_show_tracks:
-                show_track_list();
+                if (!show_track_list() && !prompt_reinit())
+                    return PLUGIN_OK;
                 break;
             case pf_idle:
                 show_tracks_while_browsing = false;
@@ -4696,13 +4819,25 @@ static int pictureflow_main(const char* selected_file)
             ret = main_menu();
             FOR_NB_SCREENS(i)
                 rb->viewportmanager_theme_undo(i, false);
-            if ( ret == -2 ) return PLUGIN_GOTO_WPS;
-            if ( ret == -1 ) return PLUGIN_OK;
-            if ( ret != 0 ) return ret;
+
+            if (ret == -3)
+            {
+                if (!reinit())
+                    return PLUGIN_OK;
+            }
+            else if (ret == -2)
+                return PLUGIN_GOTO_WPS;
+            else if (ret == -1)
+                return PLUGIN_OK;
+            else if (ret != 0 )
+                return ret;
+            else
+            {
 #ifdef USEGSLIB
-            grey_show(true);
+                grey_show(true);
 #endif
-            mylcd_set_drawmode(DRMODE_FG);
+                mylcd_set_drawmode(DRMODE_FG);
+            }
             break;
 
         case PF_NEXT:
@@ -4795,6 +4930,8 @@ static int pictureflow_main(const char* selected_file)
                     context_menu_cleanup();
                     if ( ret != 0 ) return ret;
                 }
+                else if (!prompt_reinit())
+                    return PLUGIN_OK;
             }
             break;
 #endif
@@ -4850,9 +4987,6 @@ enum plugin_status plugin_start(const void *parameter)
 
     int ret;
     const char *file = parameter;
-
-    void * buf;
-    size_t buf_size;
     bool file_id3 = (parameter && (((char *) parameter)[0] == '/'));
 
     if (!check_database())
@@ -4860,48 +4994,26 @@ enum plugin_status plugin_start(const void *parameter)
         error_wait("Please enable database");
         return PLUGIN_OK;
     }
-
     atexit(cleanup);
 
-#ifdef HAVE_ADJUSTABLE_CPU_FREQ
-    rb->cpu_boost(true);
-#endif
-#if PF_PLAYBACK_CAPABLE
-    buf = rb->plugin_get_buffer(&buf_size);
-#else
-    buf = rb->plugin_get_audio_buffer(&buf_size);
-#ifndef SIMULATOR
-    if ((uintptr_t)buf < (uintptr_t)plugin_start_addr)
+    if (init())
     {
-        uint32_t tmp_size = (uintptr_t)plugin_start_addr - (uintptr_t)buf;
-        buf_size = MIN(buf_size, tmp_size);
-    }
-#endif
-#endif
-
+        set_initial_slide(file_id3 ? file : NULL); /* may call splash */
 #ifdef USEGSLIB
-    long grey_buf_used;
-    if (!grey_init(buf, buf_size, GREY_BUFFERED|GREY_ON_COP,
-                   LCD_WIDTH, LCD_HEIGHT, &grey_buf_used))
-    {
-        error_wait("Greylib init failed!");
-        return PLUGIN_ERROR;
-    }
-    grey_setfont(FONT_UI);
-    buf_size -= grey_buf_used;
-    buf = (void*)(grey_buf_used + (char*)buf);
+        grey_show(true);
 #endif
+        ret = pictureflow_main();
+    }
+    else
+        ret = PLUGIN_OK;
 
-    /* store buffer pointers and sizes */
-    pf_idx.buf = buf;
-    pf_idx.buf_sz = buf_size;
-
-    ret = file_id3 ? pictureflow_main(file) : pictureflow_main(NULL);
-    if ( ret == PLUGIN_OK || ret == PLUGIN_GOTO_WPS) {
+    if ( ret == PLUGIN_OK || ret == PLUGIN_GOTO_WPS)
+    {
         if (pf_state == pf_scrolling)
             pf_cfg.last_album = target;
         else
             pf_cfg.last_album = center_index;
+
         if (configfile_save(CONFIG_FILE, config, CONFIG_NUM_ITEMS,
                             CONFIG_VERSION))
         {
@@ -4909,7 +5021,7 @@ enum plugin_status plugin_start(const void *parameter)
             grey_show(false);
 #endif
             rb->splash(HZ, ID2P(LANG_ERROR_WRITING_CONFIG));
-            ret = PLUGIN_ERROR;
+            ret = PLUGIN_OK;
         }
     }
     return ret;

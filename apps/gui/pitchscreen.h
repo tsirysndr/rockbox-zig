@@ -23,5 +23,6 @@
 #define _PITCHSCREEN_H_
 
 int gui_syncpitchscreen_run(void);
+int reset_pitch(void);
 
 #endif /* _PITCHSCREEN_H_ */

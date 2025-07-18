@@ -22,11 +22,16 @@
 ****************************************************************************/
 #include "plugin.h"
 
-#if defined(CPU_ARM) && (CONFIG_PLATFORM & PLATFORM_NATIVE)
+#if defined(ARM_NEED_DIV0)
 void __attribute__((naked)) __div0(void)
 {
     asm volatile("bx %0" : : "r"(rb->__div0));
 }
+
+#if defined(CPU_ARM_MICRO)
+void __aeabi_idiv0(void) __attribute__((alias("__div0")));
+void __aeabi_ldiv0(void) __attribute__((alias("__div0")));
+#endif
 #endif
 
 void *memcpy(void *dest, const void *src, size_t n)

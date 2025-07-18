@@ -29,6 +29,7 @@
 #include "settings.h"
 #include "rbpaths.h"
 #include "menu.h"
+#include "dir.h"
 #include "tree.h"
 #include "list.h"
 #include "color_picker.h"
@@ -42,6 +43,7 @@
 #include "viewport.h"
 #include "statusbar-skinned.h"
 #include "skin_engine/skin_engine.h"
+#include "splash.h"
 #include "icons.h"
 #ifdef HAVE_LCD_COLOR
 #include "filetypes.h"
@@ -155,7 +157,7 @@ MAKE_MENU(colors_settings, ID2P(LANG_COLORS_MENU),
             &lss_settings,  &set_sep_col,
             &set_bg_col, &set_fg_col, &reset_colors
          );
-         
+
 #endif /* HAVE_LCD_COLOR */
 /*    LCD MENU                    */
 /***********************************/
@@ -211,12 +213,14 @@ MENUITEM_SETTING(remote_statusbar, &global_settings.remote_statusbar,
                                                     statusbar_callback_remote);
 #endif
 MENUITEM_SETTING(volume_type, &global_settings.volume_type, NULL);
+#if (CONFIG_BATTERY_MEASURE != 0)
 MENUITEM_SETTING(battery_display, &global_settings.battery_display, NULL);
+#endif
 MAKE_MENU(bars_menu, ID2P(LANG_BARS_MENU), 0, Icon_NOICON,
           &scrollbar_item, &scrollbar_width, &statusbar,
 #ifdef HAVE_REMOTE_LCD
           &remote_statusbar,
-#endif  
+#endif
           &volume_type
 #if (CONFIG_BATTERY_MEASURE != 0)
           , &battery_display
@@ -255,6 +259,11 @@ int browse_folder(void *param)
         .icon = Icon_NOICON,
         .root = info->dir,
     };
+
+    if (!dir_exists(info->dir)) {
+        splash(HZ, ID2P(LANG_PLAYLIST_DIRECTORY_ACCESS_ERROR));
+        return GO_TO_PREVIOUS;
+    }
 
     /* if we are in a special settings folder, center the current setting */
     switch(info->show_options)
@@ -323,6 +332,7 @@ int browse_folder(void *param)
         browse.title = str(lang_id);
     }
 
+    tree_get_context()->browse = NULL;  /*bugfix - force root dir reload */
     return rockbox_browse(&browse);
 }
 

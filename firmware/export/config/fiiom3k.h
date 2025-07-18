@@ -38,7 +38,6 @@
 #define HAVE_LCD_COLOR
 #define HAVE_LCD_BITMAP
 #define HAVE_LCD_ENABLE
-#define LCD_X1000_FASTSLEEP
 
 /* Backlight defines */
 #define HAVE_BACKLIGHT
@@ -104,7 +103,7 @@
 #define BATTERY_CAPACITY_MIN     1100
 #define BATTERY_CAPACITY_MAX     1100
 #define BATTERY_CAPACITY_INC     0
-#define BATTERY_TYPES_COUNT      1
+
 
 /* Multiboot */
 #define HAVE_BOOTDATA

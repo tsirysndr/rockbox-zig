@@ -847,6 +847,9 @@ static void metronome_draw(struct screen* display, int state)
     ps = part;
     display->clear_display();
     display->setfont(FONT_SYSFIXED);
+    int rectangle_height = display->lcdheight - ((SYSFONT_HEIGHT + 1) * 7);
+    if (rectangle_height < 12)
+        rectangle_height = 12;
     switch(state)
     {
         case 0:
@@ -863,18 +866,18 @@ static void metronome_draw(struct screen* display, int state)
         case 1:
             if((beat+1) % 2 == 0)
                 display->fillrect( display->lcdwidth/2,  0
-                                 , display->lcdwidth,   12 );
+                                 , display->lcdwidth,   rectangle_height );
             else
                 display->fillrect(                     0,  0
-                                 , display->lcdwidth/2-1, 12 );
+                                 , display->lcdwidth/2-1, rectangle_height );
         break;
         case 2:
             if((beat+1) % 2 == 0)
-                display->fillrect( display->lcdwidth/2, display->lcdheight-13
-                                 , display->lcdwidth,                      12 );
+                display->fillrect( display->lcdwidth/2, display->lcdheight - rectangle_height - 1
+                                 , display->lcdwidth,                      rectangle_height );
             else
-                display->fillrect(                   0, display->lcdheight-13
-                                 , display->lcdwidth/2-1,                  12 );
+                display->fillrect(                   0, display->lcdheight - rectangle_height - 1
+                                 , display->lcdwidth/2-1,                  rectangle_height );
          break;
         case 3:
             display->puts((textlen-3)/2,0, "o.O");
@@ -887,7 +890,7 @@ static void metronome_draw(struct screen* display, int state)
         /* One line in several. */
         rb->snprintf( buffer, sizeof(buffer), "%u/%u@%u V%d"
                     , ps->beats_per_bar, ps->base_beat
-                    , bpm, rb->global_settings->volume );
+                    , bpm, rb->global_status->volume );
         display->puts(0,4, buffer);
 
         /* Would it hurt to draw a 3rd line to 2-line display?
@@ -931,7 +934,7 @@ static void metronome_draw(struct screen* display, int state)
 #endif
 
         rb->snprintf( buffer, sizeof(buffer), "BPM: %d Vol: %d"
-                    , bpm, rb->global_settings->volume );
+                    , bpm, rb->global_status->volume );
         display->puts(0,3, buffer);
 
         display->hline(0, 111, 12);
@@ -962,7 +965,7 @@ static void draw_display(void)
    This is for parts with associated volume. */
 static void tweak_volume(int offset)
 {
-    int vol    = rb->global_settings->volume + offset;
+    int vol    = rb->global_status->volume + offset;
     int minvol = rb->sound_min(SOUND_VOLUME);
     int maxvol = rb->sound_max(SOUND_VOLUME);
 
@@ -1121,13 +1124,13 @@ static void change_volume(int delta)
 {
     int minvol = rb->sound_min(SOUND_VOLUME);
     int maxvol = rb->sound_max(SOUND_VOLUME);
-    int vol    = rb->global_settings->volume + delta;
+    int vol    = rb->global_status->volume + delta;
 
     if     (vol > maxvol) vol = maxvol;
     else if(vol < minvol) vol = minvol;
-    if(vol != rb->global_settings->volume)
+    if(vol != rb->global_status->volume)
     {
-        rb->global_settings->volume = vol;
+        rb->global_status->volume = vol;
         tweak_volume(part->volume);
         trigger_display(display_state);
     }

@@ -679,12 +679,22 @@ static void display_playlist_count(int count, const unsigned char *fmt,
         if(count && TIME_AFTER(current_tick, next_tick))
         {
             talked_tick = current_tick;
-            talk_number(count, false);
-            talk_id(id, true);
+            if (final)
+            {
+                talk_id(LANG_ALL, false);
+                talk_number(count, true);
+                talk_id(id, true);
+                talk_force_enqueue_next(); /* Don't interrupt final announcement */
+            }
+            else
+            {
+                talk_number(count, false);
+                talk_id(id, true);
+            }
         }
     }
 
-    splashf(0, P2STR(fmt), count, str(LANG_OFF_ABORT));
+    splashf(0, P2STR(fmt), count, str(LANG_OFF_ABORT)); /* (voiced above) */
 }
 
 /*
@@ -3787,7 +3797,7 @@ int playlist_update_resume_info(const struct mp3entry* id3)
             global_status.resume_elapsed = id3->elapsed;
             global_status.resume_offset = id3->offset;
             global_status.resume_modified = pl_modified;
-            status_save();
+            status_save(false);
         }
     }
     else
@@ -3797,7 +3807,7 @@ int playlist_update_resume_info(const struct mp3entry* id3)
         global_status.resume_elapsed = -1;
         global_status.resume_offset = -1;
         global_status.resume_modified = false;
-        status_save();
+        status_save(true);
         return -1;
     }
 

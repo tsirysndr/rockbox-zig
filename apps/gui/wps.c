@@ -150,7 +150,15 @@ void wps_do_action(enum wps_do_action_type action, bool updatewps)
     #endif
         }
     }
-    if (updatewps)
+
+    /* Bugfix only do a skin refresh if in one of the below screens */
+    enum current_activity act = get_current_activity();
+
+    bool refresh = (act == ACTIVITY_FM ||
+                    act == ACTIVITY_WPS ||
+                    act == ACTIVITY_RECORDING);
+
+    if (updatewps && refresh)
         update_non_static();
 }
 
@@ -192,8 +200,8 @@ static int skintouch_to_wps(void)
             const int max_vol = sound_max(SOUND_VOLUME);
             const int step_vol = sound_steps(SOUND_VOLUME);
 
-            global_settings.volume = from_normalized_volume(offset, min_vol, max_vol, 1000);
-            global_settings.volume -= (global_settings.volume % step_vol);
+            global_status.volume = from_normalized_volume(offset, min_vol, max_vol, 1000);
+            global_status.volume -= (global_status.volume % step_vol);
             setvol();
         }
         return ACTION_TOUCHSCREEN;
@@ -537,6 +545,12 @@ static void gwps_leave_wps(bool theme_enabled)
         {
 #ifdef HAVE_BACKDROP_IMAGE
             skin_backdrop_show(sb_get_backdrop(i));
+
+            /* The following is supposed to erase any traces of %VB
+               viewports drawn by the WPS. May need further thought... */
+            struct wps_data *sbs = skin_get_gwps(CUSTOM_STATUSBAR, i)->data;
+            if (gwps->data->use_extra_framebuffer && sbs->use_extra_framebuffer)
+                skin_update(CUSTOM_STATUSBAR, i, SKIN_REFRESH_ALL);
 #endif
             viewportmanager_theme_undo(i, skin_has_sbs(gwps));
         }
@@ -1053,6 +1067,7 @@ long gui_wps_show(void)
               * it requests a full update here */
             case ACTION_REDRAW:
                 skin_request_full_update(WPS);
+                skin_request_full_update(CUSTOM_STATUSBAR); /* if SBS is used */
                 break;
             case ACTION_NONE: /* Timeout, do a partial update */
                 update = true;

@@ -44,13 +44,6 @@
         \opt{ipod,sansa}{This value is fairly meaningless in the \playerman{}
           family at present, and work is on-going into finding a better way to
           determine battery life.}
-
-        \opt{battery_types}{
-        \item [Battery Type.] This setting tells Rockbox which type of battery
-          is currently used in the \dap{}.
-         \nopt{xduoox3}{The two supported battery types are ``Alkaline'' or ``NiMH''.}
-         \opt{xduoox3}{Older \playerman{} \playertype{} units shipped with a 1500mAh battery, while newer units ships with a 2000mAh battery.  If you are not sure which type you have, older units have a button marked ``ESC''.}
-	  }
     }
 
       \opt{usb_charging_enable}{
@@ -326,12 +319,12 @@ therefore result in better runtime.
                 Suppresses the notification 'Buttons Locked'
                     (still will if power button is pressed).
                 \note{This is a pre-requisite for \setting{selectivebacklight}
-                \reference{ref:selectivebacklight} to work also during key lock.}
+                \reference{ref:Displayoptions} to work also during key lock.}
                 \item[Disable All Lock Notifications]
                 Disable all softlock notifications, including when power button
                 is pressed.
                 \note{When this is enabled, Disable Locked Reminders is still required to
-                be enabled for \setting{selectivebacklight} \reference{ref:selectivebacklight}
+                be enabled for \setting{selectivebacklight} \reference{ref:Displayoptions}
                 to work during key lock.}
 
                 \end{itemize}

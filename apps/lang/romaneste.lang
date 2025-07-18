@@ -14,7 +14,7 @@
 # This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
 # KIND, either express or implied.
 #
-# Romanian language file, translated by:
+# Romanian (ro_RO) language file, translated by:
 # - Unknown (FS#1419)
 # - Tiberiu Gabriel Ana
 # - George Tamplaru
@@ -22,6 +22,7 @@
 # - Cristina Talpiga
 # - Ştefan Moisei
 # - Sergiu Rotaru
+# - Mihai Alexandru Vasiliu
 <phrase>
   id: LANG_SET_BOOL_YES
   desc: bool true representation
@@ -86,10 +87,10 @@
     *: "Failed"
   </source>
   <dest>
-    *: "Eșec"
+    *: "eșuată"
   </dest>
   <voice>
-    *: "Eșec"
+    *: "eșuată"
   </voice>
 </phrase>
 <phrase>
@@ -173,10 +174,10 @@
     *: "Treble"
   </source>
   <dest>
-    *: "Triplare"
+    *: "Înalte"
   </dest>
   <voice>
-    *: "Triplare"
+    *: "Înalte"
   </voice>
 </phrase>
 <phrase>
@@ -195,30 +196,30 @@
 </phrase>
 <phrase>
   id: LANG_CHANNEL_STEREO
-  desc: in sound_settings
+  desc: in sound_settings and radio screen
   user: core
   <source>
     *: "Stereo"
   </source>
   <dest>
-    *: "Stereo"
+    *: "~Stereo"
   </dest>
   <voice>
-    *: "Stereo"
+    *: "~Stereo"
   </voice>
 </phrase>
 <phrase>
   id: LANG_CHANNEL_MONO
-  desc: in sound_settings
+  desc: in sound_settings and radio screen
   user: core
   <source>
     *: "Mono"
   </source>
   <dest>
-    *: "Mono"
+    *: "~Mono"
   </dest>
   <voice>
-    *: "Mono"
+    *: "~Mono"
   </voice>
 </phrase>
 <phrase>
@@ -257,61 +258,10 @@
     *: "Karaoke"
   </source>
   <dest>
-    *: "Karaoke"
+    *: "~Karaoke"
   </dest>
   <voice>
-    *: "Karaoke"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_LOUDNESS
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    masf: "Loudness"
-  </source>
-  <dest>
-    *: none
-    masf: "Intensitate"
-  </dest>
-  <voice>
-    *: none
-    masf: "Intensitate"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_AUTOVOL
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    masf: "Auto Volume"
-  </source>
-  <dest>
-    *: none
-    masf: "Volum automat"
-  </dest>
-  <voice>
-    *: none
-    masf: "Volum automat"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_DECAY
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    masf: "AV Decay Time"
-  </source>
-  <dest>
-    *: none
-    masf: "Timp reducere volum automat"
-  </dest>
-  <voice>
-    *: none
-    masf: ""
+    *: "~Karaoke"
   </voice>
 </phrase>
 <phrase>
@@ -336,10 +286,10 @@
     *: "File View"
   </source>
   <dest>
-    *: "Vizualizare fișier"
+    *: "Setări vizualizare fișiere"
   </dest>
   <voice>
-    *: "Vizualizare fișier"
+    *: "Setări vizualizare fișiere"
   </voice>
 </phrase>
 <phrase>
@@ -378,10 +328,10 @@
     *: "Reset Settings"
   </source>
   <dest>
-    *: "Reinițializare setări"
+    *: "Reinițializează setările"
   </dest>
   <voice>
-    *: "Reinițializare setări"
+    *: "Reinițializează setările"
   </voice>
 </phrase>
 <phrase>
@@ -409,7 +359,7 @@
     *: "Salvare fișier .cfg"
   </dest>
   <voice>
-    *: "Salvare fișier .cfg"
+    *: "Salvare fișier ce fe ge"
   </voice>
 </phrase>
 <phrase>
@@ -465,10 +415,10 @@
     *: "Debug (Keep Out!)"
   </source>
   <dest>
-    *: "Depanare (utilizați cu atenție!)"
+    *: "Depanare (atenție!)"
   </dest>
   <voice>
-    *: "Depanare (Utilizați cu atentie!)"
+    *: "Depanare. Utilizează cu atenție!"
   </voice>
 </phrase>
 <phrase>
@@ -479,10 +429,10 @@
     *: "Shuffle"
   </source>
   <dest>
-    *: "Aleator"
+    *: "Ordonează aleator"
   </dest>
   <voice>
-    *: "Aleator"
+    *: "Ordonează aleator"
   </voice>
 </phrase>
 <phrase>
@@ -536,11 +486,11 @@
     flash_storage: none
   </source>
   <dest>
-    *: "Amortizor salturi"
+    *: "Buffer Anti-Skip"
     flash_storage: none
   </dest>
   <voice>
-    *: "Amortizor salturi"
+    *: "Bafăr Anti Skip"
     flash_storage: none
   </voice>
 </phrase>
@@ -552,10 +502,10 @@
     *: "Fade on Stop/Pause"
   </source>
   <dest>
-    *: "Atenuare la Stop/Pauză"
+    *: "Atenuare la oprire"
   </dest>
   <voice>
-    *: "Atenuare la Stop/Pauză"
+    *: "Atenuare la oprire"
   </voice>
 </phrase>
 <phrase>
@@ -566,10 +516,10 @@
     *: "Sort Case Sensitive"
   </source>
   <dest>
-    *: "Sortare după majuscule/minuscule"
+    *: "Sortare sensibilă la verzale"
   </dest>
   <voice>
-    *: "Sortare după majuscule/minuscule"
+    *: "Sortare sensibilă la verzale"
   </voice>
 </phrase>
 <phrase>
@@ -580,10 +530,10 @@
     *: "Show Files"
   </source>
   <dest>
-    *: "Arată fișierele:"
+    *: "Fișiere afișate"
   </dest>
   <voice>
-    *: "Arată fișierele"
+    *: "Fișiere afișate"
   </voice>
 </phrase>
 <phrase>
@@ -622,10 +572,10 @@
     *: "Follow Playlist"
   </source>
   <dest>
-    *: "Folosește lista de redare"
+    *: "Urmează lista de redare"
   </dest>
   <voice>
-    *: "Folosește lista de redare"
+    *: "Urmează lista de redare"
   </voice>
 </phrase>
 <phrase>
@@ -648,15 +598,12 @@
   user: core
   <source>
     *: "Peak Meter"
-    masd: none
   </source>
   <dest>
     *: "Osciloscop"
-    masd: none
   </dest>
   <voice>
     *: "Osciloscop"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -667,10 +614,10 @@
     *: "Idle Poweroff"
   </source>
   <dest>
-    *: "Temporizator stingere dacă e inactiv"
+    *: "Închidere la inactivitate"
   </dest>
   <voice>
-    *: "Temporizator stingere dacă e inactiv"
+    *: "Închidere la inactivitate"
   </voice>
 </phrase>
 <phrase>
@@ -681,10 +628,10 @@
     *: "Sleep Timer"
   </source>
   <dest>
-    *: "Temporizator de adormire"
+    *: "Temporizator ațipire"
   </dest>
   <voice>
-    *: "Temporizator de adormire"
+    *: "Temporizator ațipire"
   </voice>
 </phrase>
 <phrase>
@@ -705,23 +652,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RECORDING_QUALITY
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording_hwcodec: "Quality"
-  </source>
-  <dest>
-    *: none
-    recording_hwcodec: "Calitatea"
-  </dest>
-  <voice>
-    *: none
-    recording_hwcodec: "Calitatea"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_FREQUENCY
   desc: in recording and playback settings
   user: core
@@ -731,11 +661,11 @@
   </source>
   <dest>
     *: none
-    play_frequency,recording: "Frecvența"
+    play_frequency,recording: "Rata de eșantionare"
   </dest>
   <voice>
     *: none
-    play_frequency,recording: "Frecvența"
+    play_frequency,recording: "Rata de eșantionare"
   </voice>
 </phrase>
 <phrase>
@@ -859,10 +789,10 @@
     *: "Contrast"
   </source>
   <dest>
-    *: "Contrast"
+    *: "~Contrast"
   </dest>
   <voice>
-    *: "Contrast"
+    *: "~Contrast"
   </voice>
 </phrase>
 <phrase>
@@ -918,10 +848,10 @@
     *: "Scroll Start Delay"
   </source>
   <dest>
-    *: "Temporizare defilare"
+    *: "Întârziere începere defilare"
   </dest>
   <voice>
-    *: "Temporizare defilare"
+    *: "Întârziere începere defilare"
   </voice>
 </phrase>
 <phrase>
@@ -1016,10 +946,10 @@
     *: "Numeric"
   </source>
   <dest>
-    *: "Numeric"
+    *: "~Numeric"
   </dest>
   <voice>
-    *: "Numeric"
+    *: "~Numeric"
   </voice>
 </phrase>
 <phrase>
@@ -1028,15 +958,12 @@
   user: core
   <source>
     *: "Peak Release"
-    masd: none
   </source>
   <dest>
     *: "Rata de variație a oscilațiilor"
-    masd: none
   </dest>
   <voice>
     *: "Rata de variație a oscilațiilor"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1045,15 +972,12 @@
   user: core
   <source>
     *: "Peak Hold Time"
-    masd: none
   </source>
   <dest>
     *: "Reține indicator"
-    masd: none
   </dest>
   <voice>
     *: "Reține indicator"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1062,15 +986,12 @@
   user: core
   <source>
     *: "Clip Hold Time"
-    masd: none
   </source>
   <dest>
     *: "Reține vârf indicator"
-    masd: none
   </dest>
   <voice>
     *: "Reține vârf indicator"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1079,15 +1000,12 @@
   user: core
   <source>
     *: "Eternal"
-    masd: none
   </source>
   <dest>
     *: "Perpetuu"
-    masd: none
   </dest>
   <voice>
     *: "Perpetuu"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1096,15 +1014,12 @@
   user: core
   <source>
     *: "Scale"
-    masd: none
   </source>
   <dest>
     *: "Scara"
-    masd: none
   </dest>
   <voice>
     *: "Scara"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1113,15 +1028,12 @@
   user: core
   <source>
     *: "Logarithmic (dB)"
-    masd: none
   </source>
   <dest>
     *: "Logaritmică (dB)"
-    masd: none
   </dest>
   <voice>
     *: "Logaritmică (dB)"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1130,15 +1042,12 @@
   user: core
   <source>
     *: "Linear (%)"
-    masd: none
   </source>
   <dest>
     *: "Liniară (%)"
-    masd: none
   </dest>
   <voice>
     *: "Liniară percent"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1146,16 +1055,13 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Minimum Of Range"
-    masd: none
+    *: "Minimum of Range"
   </source>
   <dest>
     *: "Spectru minim"
-    masd: none
   </dest>
   <voice>
     *: "Spectru minim"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1163,16 +1069,13 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Maximum Of Range"
-    masd: none
+    *: "Maximum of Range"
   </source>
   <dest>
     *: "Spectru maxim"
-    masd: none
   </dest>
   <voice>
     *: "Spectru maxim"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1256,10 +1159,10 @@
     *: "24 Hour Clock"
   </source>
   <dest>
-    *: "24 ore"
+    *: "24 de ore"
   </dest>
   <voice>
-    *: "24 ore"
+    *: "24 de ore"
   </voice>
 </phrase>
 <phrase>
@@ -1270,10 +1173,10 @@
     *: "Show Track Info"
   </source>
   <dest>
-    *: "Arată informații piesă ID3"
+    *: "Arată informații piesă"
   </dest>
   <voice>
-    *: "Arată informații piesă ID3"
+    *: "Arată informații piesă"
   </voice>
 </phrase>
 <phrase>
@@ -1284,10 +1187,10 @@
     *: "Rename"
   </source>
   <dest>
-    *: "Redenumire"
+    *: "Redenumește"
   </dest>
   <voice>
-    *: "Redenumire"
+    *: "Redenumește"
   </voice>
 </phrase>
 <phrase>
@@ -1298,10 +1201,10 @@
     *: "Delete"
   </source>
   <dest>
-    *: "Ștergere"
+    *: "Șterge"
   </dest>
   <voice>
-    *: "Ștergere"
+    *: "Șterge"
   </voice>
 </phrase>
 <phrase>
@@ -1312,10 +1215,10 @@
     *: "Delete?"
   </source>
   <dest>
-    *: "Confirmați ștergerea?"
+    *: "Dorești să ștergi?"
   </dest>
   <voice>
-    *: ""
+    *: "Dorești să ștergi?"
   </voice>
 </phrase>
 <phrase>
@@ -1370,45 +1273,11 @@
   </source>
   <dest>
     *: none
-    charging: "Încărcare baterie..."
+    charging: "Baterie: se încarcă"
   </dest>
   <voice>
     *: none
-    charging: "Încărcare baterie..."
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TOPOFF_CHARGE
-  desc: in info display, shows that top off charge is running Only for V1 archosrecorder
-  user: core
-  <source>
-    *: none
-    archosrecorder: "Battery: Top-Off Chg"
-  </source>
-  <dest>
-    *: none
-    archosrecorder: "Baterie încarcată la maxim"
-  </dest>
-  <voice>
-    *: none
-    archosrecorder: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TRICKLE_CHARGE
-  desc: in info display, shows that trickle charge is running
-  user: core
-  <source>
-    *: none
-    charging: "Battery: Trickle Chg"
-  </source>
-  <dest>
-    *: none
-    charging: "Încărcare compensatorie a bateriei..."
-  </dest>
-  <voice>
-    *: none
-    charging: "Încărcare compensatorie a bateriei..."
+    charging: "Se încarcă bateria"
   </voice>
 </phrase>
 <phrase>
@@ -1418,15 +1287,13 @@
   <source>
     *: "Battery: %d%% %dh %dm"
     ipodmini1g,ipodmini2g,iriverh10: "Batt: %d%% %dh %dm"
-    iriverifp7xx: "%d%% %dh %dm"
   </source>
   <dest>
     *: "Baterie: %d%% %dh %dm"
     ipodmini1g,ipodmini2g,iriverh10: "Bat: %d%% %dh %dm"
-    iriverifp7xx: "%d%% %dh %dm"
   </dest>
   <voice>
-    *: ""
+    *: "Nivel baterie"
   </voice>
 </phrase>
 <phrase>
@@ -1483,8 +1350,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -1497,18 +1364,17 @@
   </source>
   <dest>
     *: none
-    gigabeatfx,mrobe500: "POWER pentru anulare"
-    gigabeats: "BACK  pentru anulare"
-    gogearsa9200: "LEFT pentru anulare"
-    iaudiom5,iaudiox5: "RECORD pentru anulare"
-    ipod*,mpiohd300,sansac200*: "MENU pentru anulare"
-    iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV pentru anulare"
-    iriverh100,iriverh120,iriverh300: "STOP pentru anulare"
-    mrobe100: "DISPLAY pentru anulare"
-    rtc: "OFF pentru anulare"
-    samsungyh*: "REW pentru anulare"
-    sansafuzeplus: "BACK pentru anulare"
-    vibe500: "C pentru anulare"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "ÎNAPOI = Anulează"
+    gigabeatfx,mrobe500: "POWER = Anulează"
+    gogearsa9200: "STÂNGA = Anulează"
+    iaudiom5,iaudiox5: "REC = Anulează"
+    ipod*,mpiohd300,sansac200*: "MENIU = Anulează"
+    iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Anulează"
+    iriverh100,iriverh120,iriverh300: "STOP = Anulează"
+    mrobe100: "DISPLAY = Anulează"
+    rtc: "OFF = Anulează"
+    samsungyh*: "REW = Anulează"
+    vibe500: "C = Anulează"
   </dest>
   <voice>
     *: none
@@ -1554,7 +1420,7 @@
   user: core
   <source>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </source>
   <dest>
     *: none
@@ -1563,23 +1429,6 @@
   <voice>
     *: none
     alarm: "Trezire în"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALARM_MOD_SHUTDOWN
-  desc: The text that tells the user that the alarm time is ok and the device shuts off (for the RTC alarm mod).
-  user: core
-  <source>
-    *: none
-    alarm: "Alarm Set"
-  </source>
-  <dest>
-    *: none
-    alarm: "Alarma setată"
-  </dest>
-  <voice>
-    *: none
-    alarm: "Alarma setată"
   </voice>
 </phrase>
 <phrase>
@@ -1597,34 +1446,6 @@
   <voice>
     *: none
     alarm: "Alarma e prea devreme!"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALARM_MOD_KEYS
-  desc: Shown key functions in alarm menu (for the RTC alarm mod).
-  user: core
-  <source>
-    *: none
-    alarm: "PLAY=Set OFF=Cancel"
-    gigabeats: "SELECT=Set POWER=Cancel"
-    ipod*: "SELECT=Set MENU=Cancel"
-    iriverh10,iriverh10_5gb: "SELECT=Set PREV=Cancel"
-    mpiohd300: "ENTER=Set MENU=Cancel"
-    sansafuzeplus: "SELECT=Set  BACK=Cancel"
-    vibe500: "OK=Set C=Cancel"
-  </source>
-  <dest>
-    *: none
-    alarm: "PLAY=Setat OFF=Anulare"
-    gigabeats: "SELECT=Setat POWER=Anulare"
-    ipod*: "SELECT=Setat MENU=Anulare"
-    iriverh10,iriverh10_5gb: "SELECT=Setat PREV=Anulare"
-    mpiohd300: "ENTER=Setat MENU=Anulare"
-    sansafuzeplus: "SELECT=Setat  BACK=Anulare"
-    vibe500: "OK=Setat C=Anulare"
-  </dest>
-  <voice>
-    *: none
   </voice>
 </phrase>
 <phrase>
@@ -1649,10 +1470,10 @@
     *: "Artist"
   </source>
   <dest>
-    *: "Artist"
+    *: "~Artist"
   </dest>
   <voice>
-    *: "Artist"
+    *: "~Artist"
   </voice>
 </phrase>
 <phrase>
@@ -1663,10 +1484,10 @@
     *: "Album"
   </source>
   <dest>
-    *: "Album"
+    *: "~Album"
   </dest>
   <voice>
-    *: "Album"
+    *: "~Album"
   </voice>
 </phrase>
 <phrase>
@@ -1733,10 +1554,10 @@
     *: "Bitrate"
   </source>
   <dest>
-    *: "Bitrate"
+    *: "Rată de biți"
   </dest>
   <voice>
-    *: "Bitrate"
+    *: "Rată de biți"
   </voice>
 </phrase>
 <phrase>
@@ -1791,7 +1612,7 @@
   </source>
   <dest>
     *: none
-    rtc: "Dm"
+    rtc: "Dum"
   </dest>
   <voice>
     *: none
@@ -1808,7 +1629,7 @@
   </source>
   <dest>
     *: none
-    rtc: "Ln"
+    rtc: "Lun"
   </dest>
   <voice>
     *: none
@@ -1825,7 +1646,7 @@
   </source>
   <dest>
     *: none
-    rtc: "Mț"
+    rtc: "Mar"
   </dest>
   <voice>
     *: none
@@ -1842,7 +1663,7 @@
   </source>
   <dest>
     *: none
-    rtc: "Mr"
+    rtc: "Mie"
   </dest>
   <voice>
     *: none
@@ -1859,7 +1680,7 @@
   </source>
   <dest>
     *: none
-    rtc: "Jo"
+    rtc: "Joi"
   </dest>
   <voice>
     *: none
@@ -1876,7 +1697,7 @@
   </source>
   <dest>
     *: none
-    rtc: "Vn"
+    rtc: "Vin"
   </dest>
   <voice>
     *: none
@@ -1893,7 +1714,7 @@
   </source>
   <dest>
     *: none
-    rtc: "Sb"
+    rtc: "Sâm"
   </dest>
   <voice>
     *: none
@@ -1911,7 +1732,7 @@
     *: "Ian"
   </dest>
   <voice>
-    *: ""
+    *: "Ianuarie"
   </voice>
 </phrase>
 <phrase>
@@ -1922,10 +1743,10 @@
     *: "Feb"
   </source>
   <dest>
-    *: "Feb"
+    *: "~Feb"
   </dest>
   <voice>
-    *: ""
+    *: "Februarie"
   </voice>
 </phrase>
 <phrase>
@@ -1936,10 +1757,10 @@
     *: "Mar"
   </source>
   <dest>
-    *: "Mar"
+    *: "~Mar"
   </dest>
   <voice>
-    *: ""
+    *: "Martie"
   </voice>
 </phrase>
 <phrase>
@@ -1950,10 +1771,10 @@
     *: "Apr"
   </source>
   <dest>
-    *: "Apr"
+    *: "~Apr"
   </dest>
   <voice>
-    *: ""
+    *: "Aprilie"
   </voice>
 </phrase>
 <phrase>
@@ -1967,7 +1788,7 @@
     *: "Mai"
   </dest>
   <voice>
-    *: ""
+    *: "Mai"
   </voice>
 </phrase>
 <phrase>
@@ -1981,7 +1802,7 @@
     *: "Iun"
   </dest>
   <voice>
-    *: ""
+    *: "Iunie"
   </voice>
 </phrase>
 <phrase>
@@ -1995,7 +1816,7 @@
     *: "Iul"
   </dest>
   <voice>
-    *: ""
+    *: "Iulie"
   </voice>
 </phrase>
 <phrase>
@@ -2006,10 +1827,10 @@
     *: "Aug"
   </source>
   <dest>
-    *: "Aug"
+    *: "~Aug"
   </dest>
   <voice>
-    *: ""
+    *: "~August"
   </voice>
 </phrase>
 <phrase>
@@ -2020,10 +1841,10 @@
     *: "Sep"
   </source>
   <dest>
-    *: "Sep"
+    *: "~Sep"
   </dest>
   <voice>
-    *: ""
+    *: "Septembrie"
   </voice>
 </phrase>
 <phrase>
@@ -2034,10 +1855,10 @@
     *: "Oct"
   </source>
   <dest>
-    *: "Oct"
+    *: "~Oct"
   </dest>
   <voice>
-    *: ""
+    *: "Octombrie"
   </voice>
 </phrase>
 <phrase>
@@ -2048,10 +1869,10 @@
     *: "Nov"
   </source>
   <dest>
-    *: "Nov"
+    *: "Noi"
   </dest>
   <voice>
-    *: ""
+    *: "Noiembrie"
   </voice>
 </phrase>
 <phrase>
@@ -2062,10 +1883,10 @@
     *: "Dec"
   </source>
   <dest>
-    *: "Dec"
+    *: "~Dec"
   </dest>
   <voice>
-    *: ""
+    *: "Decembrie"
   </voice>
 </phrase>
 <phrase>
@@ -2104,10 +1925,10 @@
     *: "Dir Buffer is Full!"
   </source>
   <dest>
-    *: "Buffer directoare plin!"
+    *: "Buffer dosare plin!"
   </dest>
   <voice>
-    *: "Buffer directoare plin!"
+    *: "Bafăr dosare plin!"
   </voice>
 </phrase>
 <phrase>
@@ -2153,125 +1974,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_CHANNEL_STEREO
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    recording: "Stereo"
-  </source>
-  <dest>
-    *: none
-    recording: "Stereo"
-  </dest>
-  <voice>
-    *: none
-    recording: "Stereo"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_CHANNEL_MONO
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    recording: "Mono"
-  </source>
-  <dest>
-    *: none
-    recording: "Mono"
-  </dest>
-  <voice>
-    *: none
-    recording: "Mono"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORDING_QUALITY
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording_hwcodec: "Quality"
-  </source>
-  <dest>
-    *: none
-    recording_hwcodec: "Calitate"
-  </dest>
-  <voice>
-    *: none
-    recording_hwcodec: "Calitate"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORDING_FREQUENCY
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Frequency"
-  </source>
-  <dest>
-    *: none
-    recording: "Frecvență"
-  </dest>
-  <voice>
-    *: none
-    recording: "Frecvență"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORDING_SOURCE
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Source"
-  </source>
-  <dest>
-    *: none
-    recording: "Sursă"
-  </dest>
-  <voice>
-    *: none
-    recording: "Sursă"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORDING_SRC_MIC
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Int. Mic"
-  </source>
-  <dest>
-    *: none
-    recording: "Microfon intern"
-  </dest>
-  <voice>
-    *: none
-    recording: "Microfon intern"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORDING_SRC_DIGITAL
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Digital"
-  </source>
-  <dest>
-    *: none
-    recording: "Semnal digital"
-  </dest>
-  <voice>
-    *: none
-    recording: "Semnal digital"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_AFMT_PCM_WAV
   desc: audio format description
   user: core
@@ -2281,11 +1983,11 @@
   </source>
   <dest>
     *: none
-    recording: "PCM Wave"
+    recording: "Undă PCM"
   </dest>
   <voice>
     *: none
-    recording: "PCM Wave"
+    recording: "Undă pe ce me"
   </voice>
 </phrase>
 <phrase>
@@ -2313,27 +2015,10 @@
     *: "Say File Type"
   </source>
   <dest>
-    *: "Spune tipul fișierului"
+    *: "Rostește tipul fișierului"
   </dest>
   <voice>
-    *: "Spune tipul fișierului"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORD_TRIGGER
-  desc: in recording settings_menu
-  user: core
-  <source>
-    *: none
-    recording: "Trigger"
-  </source>
-  <dest>
-    *: none
-    recording: "Declanșare"
-  </dest>
-  <voice>
-    *: none
-    recording: "Declanșare"
+    *: "Rostește tipul fișierului"
   </voice>
 </phrase>
 <phrase>
@@ -2347,21 +2032,7 @@
     *: ""
   </dest>
   <voice>
-    *: "folder"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_KILOBYTE
-  desc: a unit postfix, also voiced
-  user: core
-  <source>
-    *: "KB"
-  </source>
-  <dest>
-    *: "KB"
-  </dest>
-  <voice>
-    *: "kilobait"
+    *: "dosar"
   </voice>
 </phrase>
 <phrase>
@@ -2420,7 +2091,7 @@
     *: ""
   </dest>
   <voice>
-    *: "units per tick"
+    *: "unități per tic"
   </voice>
 </phrase>
 <phrase>
@@ -2473,24 +2144,10 @@
     *: "Advanced EQ Settings"
   </source>
   <dest>
+    *: "Setări avansate EQ"
+  </dest>
+  <voice>
     *: "Setări avansate egalizator"
-  </dest>
-  <voice>
-    *: "Advanced equalizer settings"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BOOKMARK_SETTINGS_UNIQUE_ONLY
-  desc: Save only on bookmark for each playlist in recent bookmarks
-  user: core
-  <source>
-    *: "Unique only"
-  </source>
-  <dest>
-    *: "Unic"
-  </dest>
-  <voice>
-    *: "Unic"
   </voice>
 </phrase>
 <phrase>
@@ -2521,7 +2178,7 @@
     *: ""
   </dest>
   <voice>
-    *: "seconds"
+    *: "secunde"
   </voice>
 </phrase>
 <phrase>
@@ -2566,7 +2223,7 @@
     *: ""
   </dest>
   <voice>
-    *: "kilobits per second"
+    *: "kilobiți pe secundă"
   </voice>
 </phrase>
 <phrase>
@@ -2633,16 +2290,13 @@
   desc: in lcd settings
   user: core
   <source>
-    *: none
-    lcd_sleep: "Never"
+    *: "Never"
   </source>
   <dest>
-    *: none
-    lcd_sleep: "Niciodată"
+    *: "Niciodată"
   </dest>
   <voice>
-    *: none
-    lcd_sleep: "Niciodată"
+    *: "Niciodată"
   </voice>
 </phrase>
 <phrase>
@@ -2663,23 +2317,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_LINE_IN
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Line In"
-  </source>
-  <dest>
-    *: none
-    recording: "Intrare"
-  </dest>
-  <voice>
-    *: none
-    recording: "Intrare"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PLAYLIST_DIRECTORY_ACCESS_ERROR
   desc: Playlist error
   user: core
@@ -2687,10 +2324,10 @@
     *: "Error accessing directory"
   </source>
   <dest>
-    *: "Eroare accesare director"
+    *: "Eroare accesare dosar"
   </dest>
   <voice>
-    *: "Eroare accesare director"
+    *: "Eroare accesare dosar"
   </voice>
 </phrase>
 <phrase>
@@ -2727,7 +2364,6 @@
   user: core
   <source>
     *: "Building database... %d found (OFF to return)"
-    archosplayer: "Building DB %d found"
     gigabeat*,iaudiom5,iaudiox5,mrobe100,samsungyh*: "Building database... %d found (LEFT to return)"
     gogearsa9200: "Building database... %d found (REW to return)"
     ipod*,iriverh10,iriverh10_5gb,sansac200*,sansae200*,sansafuze*,vibe500: "Building database... %d found (PREV to return)"
@@ -2735,7 +2371,6 @@
   </source>
   <dest>
     *: "Creare bază de date... %d găsite (STINGERE pentru revenire)"
-    archosplayer: "Creare bază de date... %d găsite"
     gigabeat*,iaudiom5,iaudiox5,mrobe100,samsungyh*: "Creare bază de date... %d găsite (LEFT pentru revenire)"
     gogearsa9200: "Creare bază de date... %d găsite (REW pentru revenire)"
     ipod*,iriverh10,iriverh10_5gb,sansac200*,sansae200*,sansafuze*,vibe500: "Creare bază de date... %d găsite (PREV pentru revenire)"
@@ -2753,10 +2388,10 @@
     *: "Auto-Change Directory"
   </source>
   <dest>
-    *: "Schimbare automată director"
+    *: "Schimbă automat dosarul"
   </dest>
   <voice>
-    *: "Schimbare automată director"
+    *: "Schimbă automat dosarul"
   </voice>
 </phrase>
 <phrase>
@@ -2767,10 +2402,10 @@
     *: "Scanning disk..."
   </source>
   <dest>
-    *: "Scanare disc..."
+    *: "Se scanează discul..."
   </dest>
   <voice>
-    *: "Scanning disk"
+    *: "Se scanează discul"
   </voice>
 </phrase>
 <phrase>
@@ -2778,7 +2413,7 @@
   desc: in browse_id3
   user: core
   <source>
-    *: " (VBR)"
+    *: "(VBR)"
   </source>
   <dest>
     *: "(VBR)"
@@ -2798,7 +2433,7 @@
     *: "[Toate pistele]"
   </dest>
   <voice>
-    *: "All tracks"
+    *: "Toate pistele"
   </voice>
 </phrase>
 <phrase>
@@ -2826,7 +2461,7 @@
     *: ""
   </dest>
   <voice>
-    *: "Blank"
+    *: "Spațiu"
   </voice>
 </phrase>
 <phrase>
@@ -2844,23 +2479,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BATTERY_TYPE_1
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Alkaline"
-  </source>
-  <dest>
-    *: none
-    battery_types: "Alcalină"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Alcalină"
-  </voice>
-</phrase>
-<phrase>
   id: VOICE_DB
   desc: spoken only, a unit postfix
   user: core
@@ -2871,7 +2489,7 @@
     *: ""
   </dest>
   <voice>
-    *: "decibel"
+    *: "~decibel"
   </voice>
 </phrase>
 <phrase>
@@ -2899,7 +2517,7 @@
     *: ""
   </dest>
   <voice>
-    *: "font"
+    *: "~font"
   </voice>
 </phrase>
 <phrase>
@@ -2912,11 +2530,11 @@
   </source>
   <dest>
     *: none
-    lcd_non-mono: "Anulare fundal"
+    lcd_non-mono: "Curăță fundal"
   </dest>
   <voice>
     *: none
-    lcd_non-mono: "Anulare fundal"
+    lcd_non-mono: "Curăță fundal"
   </voice>
 </phrase>
 <phrase>
@@ -2927,10 +2545,10 @@
     *: "Browse Theme Files"
   </source>
   <dest>
-    *: "Răsfoire teme"
+    *: "Răsfoiește teme"
   </dest>
   <voice>
-    *: "Răsfoire teme"
+    *: "Răsfoiește teme"
   </voice>
 </phrase>
 <phrase>
@@ -2944,7 +2562,7 @@
     *: ""
   </dest>
   <voice>
-    *: "pixel"
+    *: "~pixel"
   </voice>
 </phrase>
 <phrase>
@@ -3024,23 +2642,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RECORD_DIRECTORY
-  desc: in recording settings_menu
-  user: core
-  <source>
-    *: none
-    recording: "Directory"
-  </source>
-  <dest>
-    *: none
-    recording: "Director"
-  </dest>
-  <voice>
-    *: none
-    recording: "Director"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_REBOOT_NOW
   desc: Do you want to reboot?
   user: core
@@ -3065,21 +2666,7 @@
     *: ""
   </dest>
   <voice>
-    *: "per second"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_INSERT_LAST
-  desc: in onplay menu.  append a track/playlist into dynamic playlist.
-  user: core
-  <source>
-    *: "Insert Last"
-  </source>
-  <dest>
-    *: "Inserare ultimul"
-  </dest>
-  <voice>
-    *: "Inserare ultimul"
+    *: "pe secundă"
   </voice>
 </phrase>
 <phrase>
@@ -3104,10 +2691,10 @@
     *: "No files"
   </source>
   <dest>
-    *: "Nici un fişier"
+    *: "Niciun fișier"
   </dest>
   <voice>
-    *: "Nici un fişier"
+    *: "Niciun fișier"
   </voice>
 </phrase>
 <phrase>
@@ -3118,10 +2705,10 @@
     *: "Caption Backlight"
   </source>
   <dest>
-    *: "Pornire ecran între melodii"
+    *: "Aprindere ecran între melodii"
   </dest>
   <voice>
-    *: "Pornire ecran între melodii"
+    *: "Aprindere ecran între melodii"
   </voice>
 </phrase>
 <phrase>
@@ -3134,11 +2721,11 @@
   </source>
   <dest>
     *: none
-    remote: "Răsfoire fișiere ecran de rulare momentană (.wps)"
+    remote: "Ecran redare la distanță"
   </dest>
   <voice>
     *: none
-    remote: "Browse remote while-playing-screen files"
+    remote: "Ecran redare la distanță"
   </voice>
 </phrase>
 <phrase>
@@ -3245,7 +2832,7 @@
     *: "Deschide cu..."
   </dest>
   <voice>
-    *: "open with"
+    *: "deschide cu"
   </voice>
 </phrase>
 <phrase>
@@ -3256,10 +2843,10 @@
     *: "Gain"
   </source>
   <dest>
-    *: "Amplificare"
+    *: "Câștig"
   </dest>
   <voice>
-    *: "Amplificare"
+    *: "Câștig"
   </voice>
 </phrase>
 <phrase>
@@ -3284,10 +2871,10 @@
     *: "Deleting..."
   </source>
   <dest>
-    *: "Ștergere..."
+    *: "Se șterge..."
   </dest>
   <voice>
-    *: "Deleting"
+    *: "se șterge"
   </voice>
 </phrase>
 <phrase>
@@ -3317,11 +2904,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Activează trecere lină"
+    crossfade: "Activează atenuare"
   </dest>
   <voice>
     *: none
-    crossfade: "Activează trecere lină"
+    crossfade: "Activează atenuare"
   </voice>
 </phrase>
 <phrase>
@@ -3352,24 +2939,7 @@
     *: ""
   </dest>
   <voice>
-    *: "audio"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_DIRBROWSE_F1
-  desc: in dir browser, F1 button bar text
-  user: core
-  <source>
-    *: none
-    recorder_pad: "Menu"
-  </source>
-  <dest>
-    *: none
-    recorder_pad: "Meniu"
-  </dest>
-  <voice>
-    *: none
-    recorder_pad: ""
+    *: "~audio"
   </voice>
 </phrase>
 <phrase>
@@ -3459,7 +3029,7 @@
   </dest>
   <voice>
     *: none
-    usb_charging_enable: "Încarcă in timpul conexiunii U S B"
+    usb_charging_enable: "Încarcă in timpul conexiunii u se be"
   </voice>
 </phrase>
 <phrase>
@@ -3470,10 +3040,10 @@
     *: "Create Directory"
   </source>
   <dest>
-    *: "Director nou"
+    *: "Creează dosar"
   </dest>
   <voice>
-    *: "Director nou"
+    *: "Creează dosar"
   </voice>
 </phrase>
 <phrase>
@@ -3499,7 +3069,7 @@
   user: core
   <source>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </source>
   <dest>
     *: none
@@ -3507,7 +3077,7 @@
   </dest>
   <voice>
     *: none
-    recording: "Same As Source"
+    recording: "(ca și sursa)"
   </voice>
 </phrase>
 <phrase>
@@ -3537,11 +3107,11 @@
   </source>
   <dest>
     *: none
-    headphone_detection: "Dezactivare reluare la pornire, dacă caștile lipsesc"
+    headphone_detection: "Dezactivează reluare la pornire dacă căștile lipsesc"
   </dest>
   <voice>
     *: none
-    headphone_detection: "Dezactivare reluare la pornire, dacă caștile lipsesc"
+    headphone_detection: "Dezactivează reluare la pornire, dacă căștile lipsesc"
   </voice>
 </phrase>
 <phrase>
@@ -3566,10 +3136,10 @@
     *: "Thai (ISO-8859-11)"
   </source>
   <dest>
-    *: "Thai (ISO-8859-11)"
+    *: "Tailandeză (ISO-8859-11)"
   </dest>
   <voice>
-    *: "Thai"
+    *: "Tailandeză"
   </voice>
 </phrase>
 <phrase>
@@ -3594,10 +3164,10 @@
     *: "Paste"
   </source>
   <dest>
-    *: "Lipire"
+    *: "Lipește"
   </dest>
   <voice>
-    *: "Lipire"
+    *: "Lipește"
   </voice>
 </phrase>
 <phrase>
@@ -3612,20 +3182,6 @@
   </dest>
   <voice>
     *: "Anunță nivel baterie"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYLIST_CONTROL_UPDATE_ERROR
-  desc: Playlist error
-  user: core
-  <source>
-    *: "Error updating playlist control file"
-  </source>
-  <dest>
-    *: "Eroare accesare fișier de control al listei muzicale"
-  </dest>
-  <voice>
-    *: "Eroare accesare fișier de control al listei muzicale"
   </voice>
 </phrase>
 <phrase>
@@ -3702,23 +3258,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_DIRBROWSE_F2
-  desc: in dir browser, F2 button bar text
-  user: core
-  <source>
-    *: none
-    recorder_pad: "Option"
-  </source>
-  <dest>
-    *: none
-    recorder_pad: "Opțiuni"
-  </dest>
-  <voice>
-    *: none
-    recorder_pad: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SELECTOR_COLOR_MENU
   desc: line selector color menu title
   user: core
@@ -3763,24 +3302,7 @@
     *: "Pre-tăiere"
   </dest>
   <voice>
-    *: "Pre-cut"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BUTTON_BAR
-  desc: in settings menu
-  user: core
-  <source>
-    *: none
-    recorder_pad: "Button Bar"
-  </source>
-  <dest>
-    *: none
-    recorder_pad: "Bara de butoane"
-  </dest>
-  <voice>
-    *: none
-    recorder_pad: "Bara de butoane"
+    *: "Pre-tăiere"
   </voice>
 </phrase>
 <phrase>
@@ -3808,7 +3330,7 @@
     *: "Japoneză (SJIS)"
   </dest>
   <voice>
-    *: "Japanese"
+    *: "Japoneză"
   </voice>
 </phrase>
 <phrase>
@@ -3864,10 +3386,10 @@
     *: "Playlist Viewer Settings"
   </source>
   <dest>
-    *: "Setări vizualizare listă de redare"
+    *: "Setări vizualizare listă"
   </dest>
   <voice>
-    *: "Setări vizualizare listă de redare"
+    *: "Setări vizualizare listă"
   </voice>
 </phrase>
 <phrase>
@@ -3880,11 +3402,11 @@
   </source>
   <dest>
     *: none
-    rtc: "Setează Ora și Data"
+    rtc: "Setează data și ora"
   </dest>
   <voice>
     *: none
-    rtc: "Setează Ora și Data"
+    rtc: "Setează data și ora"
   </voice>
 </phrase>
 <phrase>
@@ -3899,20 +3421,6 @@
   </dest>
   <voice>
     *: "Actualizare automată"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ID3_ALBUM_GAIN
-  desc: in tag viewer
-  user: core
-  <source>
-    *: "Album Gain"
-  </source>
-  <dest>
-    *: "Normalizare volum pentru album"
-  </dest>
-  <voice>
-    *: "Normalizare volum pentru album"
   </voice>
 </phrase>
 <phrase>
@@ -3965,10 +3473,10 @@
     *: "Now Playing"
   </source>
   <dest>
-    *: "În redare"
+    *: "Acum în redare"
   </dest>
   <voice>
-    *: "În redare"
+    *: "Acum în redare"
   </voice>
 </phrase>
 <phrase>
@@ -3999,7 +3507,7 @@
     *: ""
   </dest>
   <voice>
-    *: "plugin"
+    *: "~plugin"
   </voice>
 </phrase>
 <phrase>
@@ -4017,20 +3525,6 @@
   <voice>
     *: none
     radio: "Salvare preset eșuată"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MEGABYTE
-  desc: a unit postfix, also voiced
-  user: core
-  <source>
-    *: "MB"
-  </source>
-  <dest>
-    *: "MB"
-  </dest>
-  <voice>
-    *: "megabyte"
   </voice>
 </phrase>
 <phrase>
@@ -4055,10 +3549,10 @@
     *: "Prevent Clipping"
   </source>
   <dest>
-    *: "Prevenire ciuntiri"
+    *: "Prevenire clipping"
   </dest>
   <voice>
-    *: "Prevenire ciuntiri"
+    *: "Prevenire clipping"
   </voice>
 </phrase>
 <phrase>
@@ -4103,7 +3597,7 @@
     *: ""
   </dest>
   <voice>
-    *: "minus"
+    *: "~minus"
   </voice>
 </phrase>
 <phrase>
@@ -4145,7 +3639,7 @@
     *: ""
   </dest>
   <voice>
-    *: "Empty list"
+    *: "Listă goală"
   </voice>
 </phrase>
 <phrase>
@@ -4187,10 +3681,10 @@
     *: "Format"
   </source>
   <dest>
-    *: "Format"
+    *: "~Format"
   </dest>
   <voice>
-    *: "Format"
+    *: "~Format"
   </voice>
 </phrase>
 <phrase>
@@ -4249,15 +3743,15 @@
   </source>
   <dest>
     *: none
-    iaudiom5,iaudiox5: "Discul este plin. Apăsați POWER pentru a continua."
-    iriverh100,iriverh120,iriverh300: "Discul este plin. Apăsați STOP pentru a continua."
-    recording: "Discul este plin. Apăsați OFF pentru a continua."
-    samsungyh*: "Discul este plin. Apăsați LEFT pentru a continua."
-    sansac200*,sansae200*,vibe500: "Discul este plin. Apăsați PREV pentru a continua."
+    iaudiom5,iaudiox5: "Discul este plin. Apasă POWER pentru a continua."
+    iriverh100,iriverh120,iriverh300: "Discul este plin. Apasă STOP pentru a continua."
+    recording: "Discul este plin. Apasă OFF pentru a continua."
+    samsungyh*: "Discul este plin. Apasă STÂNGA pentru a continua."
+    sansac200*,sansae200*,vibe500: "Discul este plin. Apasă PREV pentru a continua."
   </dest>
   <voice>
     *: none
-    iaudiom5,iaudiox5,iriverh100,iriverh120,iriverh300,recording,sansac200*,sansae200*: ""
+    iaudiom5,iaudiox5,iriverh100,iriverh120,iriverh300,recording,samsungyh*,sansac200*,sansae200*,vibe500: ""
   </voice>
 </phrase>
 <phrase>
@@ -4270,11 +3764,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Aleator ori salt manual pistă"
+    crossfade: "Aleator sau salt manual pistă"
   </dest>
   <voice>
     *: none
-    crossfade: "Aleator ori salt manual pistă"
+    crossfade: "Aleator sau salt manual pistă"
   </voice>
 </phrase>
 <phrase>
@@ -4302,10 +3796,10 @@
     *: "Normal"
   </source>
   <dest>
-    *: "Normal"
+    *: "~Normal"
   </dest>
   <voice>
-    *: "Normal"
+    *: "~Normal"
   </voice>
 </phrase>
 <phrase>
@@ -4333,7 +3827,7 @@
     *: ""
   </dest>
   <voice>
-    *: "A M"
+    *: "a me"
   </voice>
 </phrase>
 <phrase>
@@ -4342,15 +3836,12 @@
   user: core
   <source>
     *: "Buffer:"
-    archosplayer: "Buf:"
   </source>
   <dest>
-    *: "Buffer:"
-    archosplayer: "Buffer:"
+    *: "~Buffer:"
   </dest>
   <voice>
-    *: "Buffer size"
-    archosplayer: ""
+    *: "Mărime buffer"
   </voice>
 </phrase>
 <phrase>
@@ -4392,10 +3883,10 @@
     *: "Sort Directories"
   </source>
   <dest>
-    *: "Aranjare dosare"
+    *: "Sortare dosare"
   </dest>
   <voice>
-    *: "Aranjează dosarele"
+    *: "Sortare dosare"
   </voice>
 </phrase>
 <phrase>
@@ -4410,23 +3901,6 @@
   </dest>
   <voice>
     *: "Limite"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_REMOVE_MMC
-  desc: before acknowledging usb in case an MMC is inserted (Ondio)
-  user: core
-  <source>
-    *: none
-    archosondio*: "Please remove inserted MMC"
-  </source>
-  <dest>
-    *: none
-    archosondio*: "Scoateți vă rog cardul MMC"
-  </dest>
-  <voice>
-    *: none
-    archosondio*: "Scoateți vă rog cardul MMC"
   </voice>
 </phrase>
 <phrase>
@@ -4454,7 +3928,7 @@
     *: "Versiune incompatibilă"
   </dest>
   <voice>
-    *: ""
+    *: "Versiune incompatibilă"
   </voice>
 </phrase>
 <phrase>
@@ -4467,11 +3941,11 @@
   </source>
   <dest>
     *: none
-    headphone_detection: "Pauză și reluare"
+    headphone_detection: "Pauză și apoi reluare"
   </dest>
   <voice>
     *: none
-    headphone_detection: "Pauză și reluare"
+    headphone_detection: "Pauză și apoi reluare"
   </voice>
 </phrase>
 <phrase>
@@ -4498,28 +3972,11 @@
   </source>
   <dest>
     *: none
-    recording: "Nu se poate scrie în directorul de înregistrare"
+    recording: "Nu se poate scrie în dosarul de înregistrări"
   </dest>
   <voice>
     *: none
-    recording: "Nu se poate scrie în directorul de înregistrare"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_FM_BUTTONBAR_ACTION
-  desc: in radio screen
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Action"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Acțiune"
-  </dest>
-  <voice>
-    *: none
-    radio_screen_button_bar: ""
+    recording: "Nu se poate scrie în dosarul de înregistrări"
   </voice>
 </phrase>
 <phrase>
@@ -4530,10 +3987,10 @@
     *: "Channel Configuration"
   </source>
   <dest>
-    *: "Configurare canal"
+    *: "Configurare canale"
   </dest>
   <voice>
-    *: "Configurare canal"
+    *: "Configurare canale"
   </voice>
 </phrase>
 <phrase>
@@ -4542,20 +3999,18 @@
   user: core
   <source>
     *: "PLAY = Yes"
-    archosplayer: "(PLAY/STOP)"
     cowond2*: "MENU, or top-right = Yes"
-    gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Yes"
+    creativezen*,gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Yes"
     iriverh100,iriverh120,iriverh300: "NAVI = Yes"
     mrobe500: "PLAY, POWER, or top-right = Yes"
     vibe500: "OK = Yes"
   </source>
   <dest>
     *: "PLAY = Da"
-    archosplayer: "(RULARE/STOP)"
     cowond2*: "MENIU sau dreapta-sus = Da"
-    gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECTARE = Da"
+    creativezen*,gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECTARE = Da"
     iriverh100,iriverh120,iriverh300: "NAVIGARE = Da"
-    mrobe500: "RULARE, PORNIRE sau dreapta-sus = Da"
+    mrobe500: "REDARE, PORNIRE sau dreapta-sus = Da"
     vibe500: "OK = Da"
   </dest>
   <voice>
@@ -4573,7 +4028,7 @@
     *: ""
   </dest>
   <voice>
-    *: "bookmark"
+    *: "semn de carte"
   </voice>
 </phrase>
 <phrase>
@@ -4582,8 +4037,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -4592,17 +4047,16 @@
   </source>
   <dest>
     *: none
-    gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECTARE = Setat"
-    gogearsa9200,samsungyh*: "RULARE = Setat"
-    iriverh100,iriverh120,iriverh300: "NAVI = Setat"
-    mpiohd300: "ENTER = Setat"
-    mrobe500: "INIMĂ = Setat"
-    rtc: "ON = Setat"
-    vibe500: "OK = Setat"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "REDARE = Setează"
+    gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECTARE = Setează"
+    iriverh100,iriverh120,iriverh300: "NAVI = Setează"
+    mpiohd300: "ENTER = Setează"
+    mrobe500: "INIMĂ = Setează"
+    rtc: "ON = Setează"
+    vibe500: "OK = Setează"
   </dest>
   <voice>
     *: none
-    gigabeat*,gogearsa9200,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh100,iriverh10_5gb,iriverh120,iriverh300,mrobe100,rtc,samsungyh*,sansac200*,sansae200*: ""
   </voice>
 </phrase>
 <phrase>
@@ -4611,15 +4065,12 @@
   user: core
   <source>
     *: "Any Other = No"
-    archosplayer: none
   </source>
   <dest>
     *: "Oricare alt buton = Nu"
-    archosplayer: none
   </dest>
   <voice>
     *: ""
-    archosplayer: none
   </voice>
 </phrase>
 <phrase>
@@ -4647,7 +4098,7 @@
     *: ""
   </dest>
   <voice>
-    *: "keyboard"
+    *: "tastatură"
   </voice>
 </phrase>
 <phrase>
@@ -4658,10 +4109,10 @@
     *: "Update Now"
   </source>
   <dest>
-    *: "Actualizare acum"
+    *: "Actualizează acum"
   </dest>
   <voice>
-    *: "Actualizare acum"
+    *: "Actualizează acum"
   </voice>
 </phrase>
 <phrase>
@@ -4672,24 +4123,10 @@
     *: "Track Skip Beep"
   </source>
   <dest>
-    *: "Bip la salt pistă"
+    *: "Sunet la omitere pistă"
   </dest>
   <voice>
-    *: "Bip la salt pistă"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_GIGABYTE
-  desc: a unit postfix, also voiced
-  user: core
-  <source>
-    *: "GB"
-  </source>
-  <dest>
-    *: "GB"
-  </dest>
-  <voice>
-    *: "gigabyte"
+    *: "Sunet la omitere pistă"
   </voice>
 </phrase>
 <phrase>
@@ -4700,10 +4137,10 @@
     *: "Browse Cuesheet"
   </source>
   <dest>
-    *: "Răsfoire Cuesheet (filă nr. melodii în pistă)"
+    *: "Răsfoiește Cuesheet"
   </dest>
   <voice>
-    *: "Răsfoire Cuesheet (filă nr. melodii în pistă)"
+    *: "Răsfoiește Cuesheet"
   </voice>
 </phrase>
 <phrase>
@@ -4731,10 +4168,10 @@
     *: "Demos"
   </source>
   <dest>
-    *: "Demonstrații"
+    *: "Vizualizări"
   </dest>
   <voice>
-    *: "Demonstrații"
+    *: "Vizualizări"
   </voice>
 </phrase>
 <phrase>
@@ -4747,11 +4184,11 @@
   </source>
   <dest>
     *: none
-    recording: "Rată biţi"
+    recording: "Rată de biți"
   </dest>
   <voice>
     *: none
-    recording: "Rată biţi"
+    recording: "Rată de biți"
   </voice>
 </phrase>
 <phrase>
@@ -4762,10 +4199,10 @@
     *: "Save EQ Preset"
   </source>
   <dest>
-    *: "Salvează preset egalizator"
+    *: "Salvează presetare EQ"
   </dest>
   <voice>
-    *: "Save equalizer preset"
+    *: "Salvează presetare egalizator"
   </voice>
 </phrase>
 <phrase>
@@ -4782,24 +4219,7 @@
   </dest>
   <voice>
     *: none
-    remote: "Main unit only"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MDB_CENTER
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Centre Frequency"
-  </source>
-  <dest>
-    *: none
-    masf: "Frecvență centrală BDM"
-  </dest>
-  <voice>
-    *: none
-    masf: "Frecvență centrală BDM"
+    remote: "Numai unitatea principală"
   </voice>
 </phrase>
 <phrase>
@@ -4847,7 +4267,7 @@
     *: "[Aleator]"
   </dest>
   <voice>
-    *: "Random"
+    *: "Aleator"
   </voice>
 </phrase>
 <phrase>
@@ -4865,20 +4285,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_INSERT_FIRST
-  desc: in onplay menu.  insert a track/playlist into dynamic playlist.
-  user: core
-  <source>
-    *: "Insert Next"
-  </source>
-  <dest>
-    *: "Inserează următorul"
-  </dest>
-  <voice>
-    *: "Inserează următorul"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_VOICE_FILE_TALK
   desc: Item of voice menu, whether to use file .talk clips
   user: core
@@ -4889,7 +4295,7 @@
     *: "Folosește fișiere .talk"
   </dest>
   <voice>
-    *: "Folosește fișiere .talk"
+    *: "Folosește fișiere tok"
   </voice>
 </phrase>
 <phrase>
@@ -4942,7 +4348,7 @@
 </phrase>
 <phrase>
   id: LANG_OFF_ABORT
-  desc: Used on archosrecorder models
+  desc: Used on many models
   user: core
   <source>
     *: "OFF to abort"
@@ -4957,8 +4363,8 @@
     *: "OFF pentru anulare"
     gigabeatfx: "POWER pentru anulare"
     gigabeats,sansafuzeplus: "BACK pentru anulare"
-    iaudiom5,iaudiox5: "RULARE (apăsare lungă) pentru anulare"
-    ipod*: "RULARE/PAUZĂ pentru anulare"
+    iaudiom5,iaudiox5: "Ține REDARE pentru anulare"
+    ipod*: "REDARE/PAUZĂ pentru anulare"
     iriverh10,iriverh10_5gb,sansac200*,sansae200*,vibe500: "PREV pentru anulare"
     iriverh100,iriverh120,iriverh300: "STOP pentru anulare"
   </dest>
@@ -5023,23 +4429,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SHUTDOWN
-  desc: in main menu
-  user: core
-  <source>
-    *: none
-    soft_shutdown: "Shut down"
-  </source>
-  <dest>
-    *: none
-    soft_shutdown: "Stingere"
-  </dest>
-  <voice>
-    *: none
-    soft_shutdown: "Stingere"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_CROSSFEED
   desc: in sound settings
   user: core
@@ -5095,7 +4484,7 @@
     *: ""
   </dest>
   <voice>
-    *: "oh"
+    *: "o"
   </voice>
 </phrase>
 <phrase>
@@ -5106,10 +4495,10 @@
     *: "Add to Shortcuts"
   </source>
   <dest>
-    *: "Adăugare la scurtături"
+    *: "Adaugă la scurtături"
   </dest>
   <voice>
-    *: "Adăugare la scurtături"
+    *: "Adaugă la scurtături"
   </voice>
 </phrase>
 <phrase>
@@ -5122,11 +4511,11 @@
   </source>
   <dest>
     *: none
-    radio: "Preset"
+    radio: "Presetare"
   </dest>
   <voice>
     *: none
-    radio: "Preset"
+    radio: "Presetare"
   </voice>
 </phrase>
 <phrase>
@@ -5205,28 +4594,12 @@
   user: core
   <source>
     *: "End of Song List"
-    archosplayer: "End of List"
   </source>
   <dest>
     *: "Sfârșit listă de redare"
-    archosplayer: "Sfârșit listă"
   </dest>
   <voice>
-    *: "End of Song List"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_GAIN
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Gain"
-  </source>
-  <dest>
-    *: "Amplificare"
-  </dest>
-  <voice>
-    *: "Amplificare"
+    *: "Sfârșit listă de redare"
   </voice>
 </phrase>
 <phrase>
@@ -5272,23 +4645,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CONFIRM_SHUTDOWN
-  desc: in shutdown screen
-  user: core
-  <source>
-    *: none
-    soft_shutdown: "Press OFF to shut down"
-  </source>
-  <dest>
-    *: none
-    soft_shutdown: "Apăsați OPRIRE pentru stingere"
-  </dest>
-  <voice>
-    *: none
-    soft_shutdown: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_REMOTE_SCROLL_SETS
   desc: "Remote Scrolling Options" Submenu in "Scrolling Options" menu
   user: core
@@ -5306,23 +4662,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_MDB_HARMONICS
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Harmonics"
-  </source>
-  <dest>
-    *: none
-    masf: "Armonice BDM (Bas dinamic Micronas)"
-  </dest>
-  <voice>
-    *: none
-    masf: "Armonice BDM (Bas dinamic Micronas)"
-  </voice>
-</phrase>
-<phrase>
   id: VOICE_EXT_WPS
   desc: spoken only, for file extension
   user: core
@@ -5333,7 +4672,7 @@
     *: ""
   </dest>
   <voice>
-    *: "while-playing-screen"
+    *: "ecran de redare"
   </voice>
 </phrase>
 <phrase>
@@ -5364,7 +4703,7 @@
     *: "Mărime maximă listă de redare"
   </dest>
   <voice>
-    *: "Maximum playlist size"
+    *: "Mărime maximă listă de redare"
   </voice>
 </phrase>
 <phrase>
@@ -5373,15 +4712,18 @@
   user: core
   <source>
     *: "Int:"
+    hibylinux: "mSD:"
     xduoox3: "mSD1:"
   </source>
   <dest>
-    *: "Int:"
-    xduoox3: "mSD1:"
+    *: "~Int:"
+    hibylinux: "~mSD:"
+    xduoox3: "~mSD1:"
   </dest>
   <voice>
-    *: "Internal"
-    xduoox3: "micro S D 1"
+    *: "Internă"
+    hibylinux: "micro es de"
+    xduoox3: "micro es de 1"
   </voice>
 </phrase>
 <phrase>
@@ -5408,11 +4750,11 @@
   </source>
   <dest>
     *: none
-    recording: "Anulare director de înregistrare"
+    recording: "Golește dosarul de înregistrări"
   </dest>
   <voice>
     *: none
-    recording: "Anulare director de înregistrare"
+    recording: "Golește dosarul de înregistrări"
   </voice>
 </phrase>
 <phrase>
@@ -5440,7 +4782,7 @@
     *: ""
   </dest>
   <voice>
-    *: "file"
+    *: "fișier"
   </voice>
 </phrase>
 <phrase>
@@ -5461,23 +4803,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SUPERBASS
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "Super Bass"
-  </source>
-  <dest>
-    *: none
-    masf: "Super bas"
-  </dest>
-  <voice>
-    *: none
-    masf: "Super bas"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_CODEPAGE_TRADITIONAL
   desc: in codepage setting menu
   user: core
@@ -5489,23 +4814,6 @@
   </dest>
   <voice>
     *: "Chineză tradițională"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MDB_ENABLE
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Enable"
-  </source>
-  <dest>
-    *: none
-    masf: "Activare BDM "
-  </dest>
-  <voice>
-    *: none
-    masf: "Activare BDM "
   </voice>
 </phrase>
 <phrase>
@@ -5530,10 +4838,10 @@
     *: "Spell"
   </source>
   <dest>
-    *: "Ortografiază"
+    *: "Pe litere"
   </dest>
   <voice>
-    *: "Ortografiază"
+    *: "Pe litere"
   </voice>
 </phrase>
 <phrase>
@@ -5572,10 +4880,10 @@
     *: "Save Theme Settings"
   </source>
   <dest>
-    *: "Salvează setări temă"
+    *: "Salvare setări temă"
   </dest>
   <voice>
-    *: "Salvează setări temă"
+    *: "Salvare setări temă"
   </voice>
 </phrase>
 <phrase>
@@ -5589,7 +4897,7 @@
     *: ""
   </dest>
   <voice>
-    *: "P M"
+    *: "~P M"
   </voice>
 </phrase>
 <phrase>
@@ -5651,7 +4959,7 @@
     *: ""
   </dest>
   <voice>
-    *: "billion"
+    *: "miliard"
   </voice>
 </phrase>
 <phrase>
@@ -5676,10 +4984,10 @@
     *: "Copy"
   </source>
   <dest>
-    *: "Copiere"
+    *: "Copiază"
   </dest>
   <voice>
-    *: "Copiere"
+    *: "Copiază"
   </voice>
 </phrase>
 <phrase>
@@ -5711,20 +5019,6 @@
   <voice>
     *: none
     radio: "Lista presetări este plină"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_MODE
-  desc: in wps F2 pressed
-  user: core
-  <source>
-    *: "Mode:"
-  </source>
-  <dest>
-    *: "Mod:"
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -5794,10 +5088,10 @@
     *: "Remove"
   </source>
   <dest>
-    *: "Îndepărtare"
+    *: "Elimină"
   </dest>
   <voice>
-    *: "Îndepărtare"
+    *: "Elimină"
   </voice>
 </phrase>
 <phrase>
@@ -5808,10 +5102,10 @@
     *: "Save Current Playlist"
   </source>
   <dest>
-    *: "Salvează lista de redare curentă"
+    *: "Salvează lista curentă"
   </dest>
   <voice>
-    *: "Salvează lista de redare curentă"
+    *: "Salvează lista curentă"
   </voice>
 </phrase>
 <phrase>
@@ -5929,10 +5223,10 @@
     *: ".talk Clip"
   </source>
   <dest>
-    *: ".talk mp3 clip"
+    *: "Clip .talk"
   </dest>
   <voice>
-    *: "talk mp3 clip"
+    *: "Clip tok"
   </voice>
 </phrase>
 <phrase>
@@ -5945,11 +5239,11 @@
   </source>
   <dest>
     *: none
-    remote: "(Vol- : Re-activare)"
+    remote: "(Vol- : Reactivează)"
   </dest>
   <voice>
     *: none
-    remote: "(Vol- : Re-activare)"
+    remote: "(Volum minus pentru reactivare)"
   </voice>
 </phrase>
 <phrase>
@@ -5974,10 +5268,10 @@
     *: "While Playing Screen"
   </source>
   <dest>
-    *: "Ecran redare curentă"
+    *: "Ecran redare"
   </dest>
   <voice>
-    *: "Ecran redare curentă"
+    *: "Ecran redare"
   </voice>
 </phrase>
 <phrase>
@@ -5991,24 +5285,7 @@
     *: "Mod:"
   </dest>
   <voice>
-    *: "Mod:"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_FM_BUTTONBAR_RECORD
-  desc: in radio screen
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Record"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Înregistrează"
-  </dest>
-  <voice>
-    *: none
-    radio_screen_button_bar: ""
+    *: "Mod"
   </voice>
 </phrase>
 <phrase>
@@ -6022,7 +5299,7 @@
     *: "Pre-amplificare"
   </dest>
   <voice>
-    *: "Preamp"
+    *: "Pre-amplificare"
   </voice>
 </phrase>
 <phrase>
@@ -6087,24 +5364,7 @@
   </dest>
   <voice>
     *: none
-    radio: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Battery Type"
-  </source>
-  <dest>
-    *: none
-    battery_types: "Tip baterie"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Battery type"
+    radio: "Se scanează"
   </voice>
 </phrase>
 <phrase>
@@ -6142,23 +5402,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RECORDING_EDITABLE
-  desc: Editable recordings setting
-  user: core
-  <source>
-    *: none
-    recording_hwcodec: "Independent Frames"
-  </source>
-  <dest>
-    *: none
-    recording_hwcodec: "Frame-uri independente"
-  </dest>
-  <voice>
-    *: none
-    recording_hwcodec: "Frame-uri independente"
-  </voice>
-</phrase>
-<phrase>
   id: VOICE_CHAR_O
   desc: spoken only, for spelling
   user: core
@@ -6190,23 +5433,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BATTERY_TYPE_2
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "NiMH"
-  </source>
-  <dest>
-    *: none
-    battery_types: "NiMH"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Nickel metal hydride"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SCREEN_SCROLL_STEP
   desc: Pixels to advance per Screen scroll
   user: core
@@ -6231,7 +5457,7 @@
     *: ""
   </dest>
   <voice>
-    *: "Edit"
+    *: "Editează"
   </voice>
 </phrase>
 <phrase>
@@ -6242,10 +5468,10 @@
     *: "Resume Playback"
   </source>
   <dest>
-    *: "Reluare redare"
+    *: "Reia redarea"
   </dest>
   <voice>
-    *: "Reluare redare"
+    *: "Reia redarea"
   </voice>
 </phrase>
 <phrase>
@@ -6273,7 +5499,7 @@
     *: ""
   </dest>
   <voice>
-    *: "plus"
+    *: "~plus"
   </voice>
 </phrase>
 <phrase>
@@ -6339,34 +5565,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_REPLACE
-  desc: in onplay menu.  Replace the current playlist with a new one.
-  user: core
-  <source>
-    *: "Play Next"
-  </source>
-  <dest>
-    *: "Redă următorul"
-  </dest>
-  <voice>
-    *: "Redă următorul"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CATALOG
-  desc: in main menu and onplay menu
-  user: core
-  <source>
-    *: "Playlist Catalogue"
-  </source>
-  <dest>
-    *: "Catalog liste redare"
-  </dest>
-  <voice>
-    *: "Catalog liste redare"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_CODEPAGE_CYRILLIC
   desc: in codepage setting menu
   user: core
@@ -6388,10 +5586,10 @@
     *: "Delete Directory"
   </source>
   <dest>
-    *: "Ștergere director"
+    *: "Șterge dosar"
   </dest>
   <voice>
-    *: "delete directory"
+    *: "Șterge dosar"
   </voice>
 </phrase>
 <phrase>
@@ -6419,10 +5617,10 @@
     *: "."
   </source>
   <dest>
-    *: "."
+    *: ","
   </dest>
   <voice>
-    *: "point"
+    *: "virgulă"
   </voice>
 </phrase>
 <phrase>
@@ -6464,7 +5662,7 @@
     *: "Defilare pagini"
   </dest>
   <voice>
-    *: "Paged scrolling"
+    *: "Defilare pagini"
   </voice>
 </phrase>
 <phrase>
@@ -6478,7 +5676,7 @@
     *: "Tăiere frecvență înaltă"
   </dest>
   <voice>
-    *: "High-frequency cutoff"
+    *: "Tăiere frecvență înaltă"
   </voice>
 </phrase>
 <phrase>
@@ -6522,11 +5720,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Durată oprire pistă cu atenuare"
+    crossfade: "Întârziere Fade-Out"
   </dest>
   <voice>
     *: none
-    crossfade: "Durată oprire pistă cu atenuare"
+    crossfade: "Întârziere feid aut"
   </voice>
 </phrase>
 <phrase>
@@ -6551,10 +5749,10 @@
     *: "Work"
   </source>
   <dest>
-    *: "Lucru"
+    *: "Lucrare"
   </dest>
   <voice>
-    *: "Lucru"
+    *: "Lucrare"
   </voice>
 </phrase>
 <phrase>
@@ -6576,7 +5774,7 @@
   desc: should lines scroll out of the screen
   user: core
   <source>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </source>
   <dest>
     *: "Ecranul defilează înafara zonei vizuale"
@@ -6596,7 +5794,7 @@
     *: ""
   </dest>
   <voice>
-    *: "hundred"
+    *: "sută"
   </voice>
 </phrase>
 <phrase>
@@ -6607,10 +5805,10 @@
     *: "Inserted %d tracks (%s)"
   </source>
   <dest>
-    *: "Melodii %d inserate (%s)"
+    *: "S-au inserat %d piste (%s)"
   </dest>
   <voice>
-    *: "tracks inserted"
+    *: "piste inserate"
   </voice>
 </phrase>
 <phrase>
@@ -6624,7 +5822,7 @@
     *: "Plugin-ul a întâmpinat o eroare"
   </dest>
   <voice>
-    *: ""
+    *: "Plaghinul a întâmpinat o eroare"
   </voice>
 </phrase>
 <phrase>
@@ -6708,10 +5906,10 @@
     *: "Recursively Insert Directories"
   </source>
   <dest>
-    *: "Inserare directoare recursiv"
+    *: "Inserează dosare recursiv"
   </dest>
   <voice>
-    *: "Inserare directoare recursiv"
+    *: "Inserează dosare recursiv"
   </voice>
 </phrase>
 <phrase>
@@ -6768,34 +5966,6 @@
   </dest>
   <voice>
     *: "punct"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_INSERT_SHUFFLED
-  desc: in onplay menu.  insert a track/playlist randomly into dynamic playlist
-  user: core
-  <source>
-    *: "Insert Shuffled"
-  </source>
-  <dest>
-    *: "Inserează aleator"
-  </dest>
-  <voice>
-    *: "Inserează aleator"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_INSERT
-  desc: in onplay menu.  insert a track/playlist into dynamic playlist.
-  user: core
-  <source>
-    *: "Insert"
-  </source>
-  <dest>
-    *: "Inserează"
-  </dest>
-  <voice>
-    *: "Inserează"
   </voice>
 </phrase>
 <phrase>
@@ -6893,10 +6063,10 @@
     *: "Voice Menus"
   </source>
   <dest>
-    *: "Vociferare meniuri"
+    *: "Rostește meniurile"
   </dest>
   <voice>
-    *: "Vociferare meniuri"
+    *: "Rostește meniurile"
   </voice>
 </phrase>
 <phrase>
@@ -6918,7 +6088,7 @@
   desc: in playlist menu.
   user: core
   <source>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </source>
   <dest>
     *: "Caută în lista de redare"
@@ -6935,10 +6105,10 @@
     *: "Reshuffle"
   </source>
   <dest>
-    *: "Rearanjează aleator"
+    *: "Ordonează aleator"
   </dest>
   <voice>
-    *: "Rearanjează aleator"
+    *: "Ordonează aleator"
   </voice>
 </phrase>
 <phrase>
@@ -6994,10 +6164,10 @@
     *: "Queued %d tracks (%s)"
   </source>
   <dest>
-    *: "Piste %d introduse (%s)"
+    *: "S-au pus în coadă %d piste (%s)"
   </dest>
   <voice>
-    *: "tracks queued"
+    *: "piste puse în coadă"
   </voice>
 </phrase>
 <phrase>
@@ -7039,10 +6209,10 @@
     *: "File/directory exists. Overwrite?"
   </source>
   <dest>
-    *: "Fișierul/directorul există. Suprascrieți?"
+    *: "Fișierul/dosarul există. Suprascrii?"
   </dest>
   <voice>
-    *: "File or directory exists. Overwrite?"
+    *: "Fișierul/dosarul există. Suprascrii?"
   </voice>
 </phrase>
 <phrase>
@@ -7087,24 +6257,7 @@
     *: ""
   </dest>
   <voice>
-    *: "milliseconds"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_FM_BUTTONBAR_ADD
-  desc: in radio screen
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Add"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Adaugă"
-  </dest>
-  <voice>
-    *: none
-    radio_screen_button_bar: ""
+    *: "milisecunde"
   </voice>
 </phrase>
 <phrase>
@@ -7118,7 +6271,7 @@
     *: "Liber:"
   </dest>
   <voice>
-    *: "Free diskspace:"
+    *: "Spațiu disc liber"
   </voice>
 </phrase>
 <phrase>
@@ -7205,7 +6358,7 @@
     *: "Încărcare..."
   </dest>
   <voice>
-    *: "Loading"
+    *: "Încărcare"
   </voice>
 </phrase>
 <phrase>
@@ -7247,7 +6400,7 @@
     *: "Răsfoire fișiere .cfg"
   </dest>
   <voice>
-    *: "Browse configuration files"
+    *: "Răsfoire fișiere ce fe ge"
   </voice>
 </phrase>
 <phrase>
@@ -7413,10 +6566,10 @@
     *: "Voice Directories"
   </source>
   <dest>
-    *: "Directoare voce "
+    *: "Rostește nume dosare"
   </dest>
   <voice>
-    *: "Directoare voce "
+    *: "Rostește nume dosare"
   </voice>
 </phrase>
 <phrase>
@@ -7427,10 +6580,10 @@
     *: "Add to New Playlist"
   </source>
   <dest>
-    *: "Adaugă la listă de redare nouă"
+    *: "Adaugă la listă nouă"
   </dest>
   <voice>
-    *: "Adaugă la listă de redare nouă"
+    *: "Adaugă la listă nouă"
   </voice>
 </phrase>
 <phrase>
@@ -7441,10 +6594,10 @@
     *: "Sort Files"
   </source>
   <dest>
-    *: "Sortează fișiere"
+    *: "Sortare fișiere"
   </dest>
   <voice>
-    *: "sort files"
+    *: "Sortare fișiere"
   </voice>
 </phrase>
 <phrase>
@@ -7457,11 +6610,11 @@
   </source>
   <dest>
     *: none
-    recording: "Stop"
+    recording: "~Stop"
   </dest>
   <voice>
     *: none
-    recording: "Stop"
+    recording: "~Stop"
   </voice>
 </phrase>
 <phrase>
@@ -7474,11 +6627,11 @@
   </source>
   <dest>
     *: none
-    rtc: "Ora și Data"
+    rtc: "Data și ora"
   </dest>
   <voice>
     *: none
-    rtc: "Time and Date"
+    rtc: "Data și ora"
   </voice>
 </phrase>
 <phrase>
@@ -7505,11 +6658,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Durată pornire pistă cu atenuare"
+    crossfade: "Durată Fade-In"
   </dest>
   <voice>
     *: none
-    crossfade: "Durată pornire pistă cu atenuare"
+    crossfade: "Durată feid in"
   </voice>
 </phrase>
 <phrase>
@@ -7522,11 +6675,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Durată oprire pistă cu atenuare"
+    crossfade: "Durată Fade-Out"
   </dest>
   <voice>
     *: none
-    crossfade: "Durată oprire pistă cu atenuare"
+    crossfade: "Durată feid aut"
   </voice>
 </phrase>
 <phrase>
@@ -7540,7 +6693,7 @@
     *: ""
   </dest>
   <voice>
-    *: "firmware"
+    *: "~firmware"
   </voice>
 </phrase>
 <phrase>
@@ -7554,7 +6707,7 @@
     *: ""
   </dest>
   <voice>
-    *: "Index"
+    *: "~Index"
   </voice>
 </phrase>
 <phrase>
@@ -7630,10 +6783,10 @@
     *: "Saved %d tracks (%s)"
   </source>
   <dest>
-    *: "Melodii %d salvate (%s)"
+    *: "S-au salvat %d piste (%s)"
   </dest>
   <voice>
-    *: "tracks saved"
+    *: "piste salvate"
   </voice>
 </phrase>
 <phrase>
@@ -7646,11 +6799,11 @@
   </source>
   <dest>
     *: none
-    dircache: "Cache directoare "
+    dircache: "Cache dosare"
   </dest>
   <voice>
     *: none
-    dircache: "Cache directoare "
+    dircache: "Keș dosare"
   </voice>
 </phrase>
 <phrase>
@@ -7664,7 +6817,7 @@
     *: "Se caută... %d găsite (%s)"
   </dest>
   <voice>
-    *: ""
+    *: "Găsite"
   </voice>
 </phrase>
 <phrase>
@@ -7696,23 +6849,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_FM_BUTTONBAR_EXIT
-  desc: in radio screen
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Exit"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Ieșire"
-  </dest>
-  <voice>
-    *: none
-    radio_screen_button_bar: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_MANTRACKSKIP
   desc: in crossfade settings
   user: core
@@ -7722,11 +6858,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Numai salt manual pistă"
+    crossfade: "Numai la salt manual pistă"
   </dest>
   <voice>
     *: none
-    crossfade: "Numai salt manual pistă"
+    crossfade: "Numai la salt manual pistă"
   </voice>
 </phrase>
 <phrase>
@@ -7824,10 +6960,10 @@
     *: "Shutting down..."
   </source>
   <dest>
-    *: "Stingere..."
+    *: "Se închide..."
   </dest>
   <voice>
-    *: "Stingere"
+    *: "Se închide"
   </voice>
 </phrase>
 <phrase>
@@ -7873,43 +7009,29 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CATALOG_ADD_TO
-  desc: in onplay playlist catalogue submenu
-  user: core
-  <source>
-    *: "Add to Playlist"
-  </source>
-  <dest>
-    *: "Adaugă la lista de redare"
-  </dest>
-  <voice>
-    *: "Adaugă la lista de redare"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_DISK_NAME_MMC
-  desc: in info menu;  name for external disk with multivolume (Ondio; keep short!)
+  desc: in info menu;  name for external disk with multivolume (keep short!)
   user: core
   <source>
     *: none
-    archosondio*: "MMC:"
-    multivolume: "HD1"
+    hibylinux: "USB:"
+    multivolume: "HD1:"
     sansac200*,sansaclipplus,sansae200*,sansafuze*: "mSD:"
     xduoox3: "mSD2:"
   </source>
   <dest>
     *: none
-    archosondio*: "MMC:"
-    multivolume: "HD1"
-    sansac200*,sansaclipplus,sansae200*,sansafuze*: "mSD:"
-    xduoox3: "mSD2:"
+    hibylinux: "~USB:"
+    multivolume: "~HD1:"
+    sansac200*,sansaclipplus,sansae200*,sansafuze*: "~mSD:"
+    xduoox3: "~mSD2:"
   </dest>
   <voice>
     *: none
-    archosondio*: "M M C"
-    multivolume: "H D 1"
-    sansac200*,sansaclipplus,sansae200*,sansafuze*: "micro S D"
-    xduoox3: "micro S D 2"
+    hibylinux: "u se be"
+    multivolume: "haș de unu"
+    sansac200*,sansaclipplus,sansae200*,sansafuze*: "micro es de"
+    xduoox3: "micro es de doi"
   </voice>
 </phrase>
 <phrase>
@@ -7940,7 +7062,7 @@
     *: "Plugin-uri"
   </dest>
   <voice>
-    *: "Plugin-uri"
+    *: "Plaghinuri"
   </voice>
 </phrase>
 <phrase>
@@ -7965,10 +7087,10 @@
     *: "Cuesheet Support"
   </source>
   <dest>
-    *: "Suport Cuesheet (filă nr. melodii în pistă)"
+    *: "Suport Cuesheet"
   </dest>
   <voice>
-    *: "Suport Cuesheet (filă nr. melodii în pistă)"
+    *: "Suport kiușit"
   </voice>
 </phrase>
 <phrase>
@@ -8013,7 +7135,7 @@
     *: "Nr. disc"
   </dest>
   <voice>
-    *: "Nr. disc"
+    *: "Număr disc"
   </voice>
 </phrase>
 <phrase>
@@ -8072,7 +7194,7 @@
   </dest>
   <voice>
     *: none
-    radio: "Radio FM"
+    radio: "Radio efem"
   </voice>
 </phrase>
 <phrase>
@@ -8103,7 +7225,7 @@
     *: "Se încarcă... %d%% terminat (%s)"
   </dest>
   <voice>
-    *: ""
+    *: "Se încarcă"
   </voice>
 </phrase>
 <phrase>
@@ -8145,10 +7267,10 @@
     *: "Gather Runtime Data"
   </source>
   <dest>
-    *: "Adună date durată de funcționare"
+    *: "Adună date de funcționare"
   </dest>
   <voice>
-    *: "Adună date durată de funcționare"
+    *: "Adună date de funcționare"
   </voice>
 </phrase>
 <phrase>
@@ -8284,23 +7406,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_MDB_STRENGTH
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Strength"
-  </source>
-  <dest>
-    *: none
-    masf: "Putere BDM"
-  </dest>
-  <voice>
-    *: none
-    masf: "Putere BDM"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_INVERT_CURSOR_COLOR
   desc: in settings_menu
   user: core
@@ -8342,21 +7447,7 @@
     *: "[Nu continua redarea]"
   </dest>
   <voice>
-    *: "Do not resume"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BOOKMARK_CONTEXT_DELETE
-  desc: bookmark context menu, delete this bookmark
-  user: core
-  <source>
-    *: "Delete"
-  </source>
-  <dest>
-    *: "Ștergere"
-  </dest>
-  <voice>
-    *: "Ștergere"
+    *: "Nu continua redarea"
   </voice>
 </phrase>
 <phrase>
@@ -8404,7 +7495,7 @@
   </dest>
   <voice>
     *: none
-    recording: "Pre-Record time"
+    recording: "Timp pre-înregistrare"
   </voice>
 </phrase>
 <phrase>
@@ -8418,7 +7509,7 @@
     *: ""
   </dest>
   <voice>
-    *: "o'clock"
+    *: "ora"
   </voice>
 </phrase>
 <phrase>
@@ -8429,10 +7520,10 @@
     *: "Show Path"
   </source>
   <dest>
-    *: "Arată calea"
+    *: "Afișează calea"
   </dest>
   <voice>
-    *: "Arată calea"
+    *: "Afișează calea"
   </voice>
 </phrase>
 <phrase>
@@ -8468,7 +7559,7 @@
 </phrase>
 <phrase>
   id: LANG_DITHERING
-  desc: in the sound settings menu
+  desc: in the sound settings and some other menus
   user: core
   <source>
     *: "Dithering"
@@ -8534,11 +7625,11 @@
     wheel_acceleration: none
   </source>
   <dest>
-    *: "Temporizarea accelerării listei"
+    *: "Întârziere începere accelerare listă"
     wheel_acceleration: none
   </dest>
   <voice>
-    *: "Temporizarea accelerării listei"
+    *: "Întârziere începere accelerare listă"
     wheel_acceleration: none
   </voice>
 </phrase>
@@ -8584,7 +7675,7 @@
     *: ""
   </dest>
   <voice>
-    *: "thousand"
+    *: "mii"
   </voice>
 </phrase>
 <phrase>
@@ -8598,7 +7689,7 @@
     *: "Se mută..."
   </dest>
   <voice>
-    *: "Moving"
+    *: "Se mută"
   </voice>
 </phrase>
 <phrase>
@@ -8611,11 +7702,11 @@
   </source>
   <dest>
     *: none
-    remote: "Opțiuni ecran LCD la distanță"
+    remote: "Opțiuni LCD la distanță"
   </dest>
   <voice>
     *: none
-    remote: "Remote LCD settings"
+    remote: "Opțiuni el si di la distanță"
   </voice>
 </phrase>
 <phrase>
@@ -8626,10 +7717,10 @@
     *: "Simple EQ Settings"
   </source>
   <dest>
-    *: "Setări egalizator simple"
+    *: "Setări simple EQ"
   </dest>
   <voice>
-    *: "Simple equalizer settings"
+    *: "Setări simple egalizator"
   </voice>
 </phrase>
 <phrase>
@@ -8640,10 +7731,10 @@
     *: "Use Directory .talk Clips"
   </source>
   <dest>
-    *: "Utilizare director clipuri .talk"
+    *: "Utilizează clipuri .talk dosar"
   </dest>
   <voice>
-    *: "Utilizare director clipuri .talk"
+    *: "Utilizează clipuri tok dosar"
   </voice>
 </phrase>
 <phrase>
@@ -8693,7 +7784,7 @@
 </phrase>
 <phrase>
   id: LANG_PLUGIN_WRONG_MODEL
-  desc: The plugin is not compatible with the archos model trying to run it
+  desc: The plugin is not compatible with the player model trying to run it
   user: core
   <source>
     *: "Incompatible model"
@@ -8702,7 +7793,7 @@
     *: "Model incompatibil"
   </dest>
   <voice>
-    *: ""
+    *: "Model incompatibil"
   </voice>
 </phrase>
 <phrase>
@@ -8717,23 +7808,6 @@
   </dest>
   <voice>
     *: "Slab"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_DB_INF
-  desc: -inf db for values below measurement
-  user: core
-  <source>
-    *: none
-    recording: "-inf"
-  </source>
-  <dest>
-    *: none
-    recording: "-infinit"
-  </dest>
-  <voice>
-    *: none
-    recording: "minus infinity"
   </voice>
 </phrase>
 <phrase>
@@ -8761,7 +7835,7 @@
     *: ""
   </dest>
   <voice>
-    *: "hertz"
+    *: "herț"
   </voice>
 </phrase>
 <phrase>
@@ -8775,21 +7849,7 @@
     *: ""
   </dest>
   <voice>
-    *: "hour"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_EQUALIZER_EDIT_MODE
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Edit mode: %s"
-  </source>
-  <dest>
-    *: "Mod editare: %s"
-  </dest>
-  <voice>
-    *: ""
+    *: "oră"
   </voice>
 </phrase>
 <phrase>
@@ -8816,11 +7876,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Atenuare înte piste"
+    crossfade: "Atenuare între piste"
   </dest>
   <voice>
     *: none
-    crossfade: "Atenuare înte piste"
+    crossfade: "Atenuare între piste"
   </voice>
 </phrase>
 <phrase>
@@ -8852,23 +7912,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BUTTONBAR_MENU
-  desc: in button bar
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Menu"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Meniu"
-  </dest>
-  <voice>
-    *: none
-    radio_screen_button_bar: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_EQUALIZER_ENABLED
   desc: in the equalizer settings menu
   user: core
@@ -8879,21 +7922,7 @@
     *: "Activare egalizator"
   </dest>
   <voice>
-    *: "Enable equalizer"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CATALOG_VIEW
-  desc: in onplay playlist catalogue submenu
-  user: core
-  <source>
-    *: "View Catalogue"
-  </source>
-  <dest>
-    *: "Vizualizare catalog"
-  </dest>
-  <voice>
-    *: "Vizualizare catalog"
+    *: "Activare egalizator"
   </voice>
 </phrase>
 <phrase>
@@ -8907,7 +7936,7 @@
     *: ""
   </dest>
   <voice>
-    *: "cuesheet"
+    *: "kiușit"
   </voice>
 </phrase>
 <phrase>
@@ -8963,10 +7992,10 @@
     *: "[Invalid Bookmark]"
   </source>
   <dest>
-    *: "[Semn de carte nevalid]"
+    *: "[Semn de carte invalid]"
   </dest>
   <voice>
-    *: "Invalid Bookmark"
+    *: "Semn de carte invalid"
   </voice>
 </phrase>
 <phrase>
@@ -8977,44 +8006,27 @@
     *: "View Current Playlist"
   </source>
   <dest>
-    *: "Vizualizare listă de redare curentă"
+    *: "Vezi lista curentă"
   </dest>
   <voice>
-    *: "Vizualizare listă de redare curentă"
+    *: "Vezi lista curentă"
   </voice>
 </phrase>
 <phrase>
-  id: VOICE_CURRENT_TIME
-  desc: spoken only, for wall clock announce
+  id: LANG_CURRENT_TIME
+  desc: for wall clock announce
   user: core
   <source>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </source>
   <dest>
     *: none
-    rtc: ""
+    rtc: "Timp curent"
   </dest>
   <voice>
     *: none
-    rtc: "Current time:"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MDB_SHAPE
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Shape"
-  </source>
-  <dest>
-    *: none
-    masf: "Forma BDM"
-  </dest>
-  <voice>
-    *: none
-    masf: "Forma BDM"
+    rtc: "Timp curent"
   </voice>
 </phrase>
 <phrase>
@@ -9059,10 +8071,10 @@
     *: "Cut"
   </source>
   <dest>
-    *: "Tăiere"
+    *: "Decupează"
   </dest>
   <voice>
-    *: "Tăiere"
+    *: "Decupează"
   </voice>
 </phrase>
 <phrase>
@@ -9155,7 +8167,7 @@
   </dest>
   <voice>
     *: none
-    remote: "remote while-playing-screen"
+    remote: "ecran de redare la distanță"
   </voice>
 </phrase>
 <phrase>
@@ -9169,7 +8181,7 @@
     *: ""
   </dest>
   <voice>
-    *: "kilohertz"
+    *: "kiloherți"
   </voice>
 </phrase>
 <phrase>
@@ -9182,11 +8194,11 @@
   </source>
   <dest>
     *: none
-    recording: "MPEG 3"
+    recording: "MPEG nivel 3"
   </dest>
   <voice>
     *: none
-    recording: "MPEG Layer 3"
+    recording: "em peg nivel trei"
   </voice>
 </phrase>
 <phrase>
@@ -9256,10 +8268,10 @@
     *: "Voice Filenames"
   </source>
   <dest>
-    *: "Vociferare nume fișiere"
+    *: "Rostește nume fișiere"
   </dest>
   <voice>
-    *: "Vociferare nume fișiere"
+    *: "Rostește nume fișiere"
   </voice>
 </phrase>
 <phrase>
@@ -9277,23 +8289,6 @@
   <voice>
     *: none
     gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Tăiere inalte"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_CHANNELS
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Channels"
-  </source>
-  <dest>
-    *: none
-    recording: "Canale"
-  </dest>
-  <voice>
-    *: none
-    recording: "Canale"
   </voice>
 </phrase>
 <phrase>
@@ -9318,10 +8313,10 @@
     *: "Track Gain"
   </source>
   <dest>
-    *: "Track Gain"
+    *: "Câștig pistă"
   </dest>
   <voice>
-    *: "Track Gain"
+    *: "Câștig pistă"
   </voice>
 </phrase>
 <phrase>
@@ -9338,7 +8333,7 @@
   </dest>
   <voice>
     *: none
-    radio: "Auto scan presets"
+    radio: "Scarare automată presetări"
   </voice>
 </phrase>
 <phrase>
@@ -9349,10 +8344,10 @@
     *: "Browse EQ Presets"
   </source>
   <dest>
-    *: "Răsfoire presetări egalizator"
+    *: "Răsfoiește presetări EQ"
   </dest>
   <voice>
-    *: "Browse equalizer presets"
+    *: "Răsfoiește presetări egalizator"
   </voice>
 </phrase>
 <phrase>
@@ -9380,29 +8375,12 @@
     *: ""
   </dest>
   <voice>
-    *: "second"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_DIRBROWSE_F3
-  desc: in dir browser, F3 button bar text
-  user: core
-  <source>
-    *: none
-    recorder_pad: "LCD"
-  </source>
-  <dest>
-    *: none
-    recorder_pad: "LCD"
-  </dest>
-  <voice>
-    *: none
-    recorder_pad: ""
+    *: "secundă"
   </voice>
 </phrase>
 <phrase>
   id: LANG_PLAYLISTS
-  desc: in the file view setting
+  desc: in the main menu and Playlist settings menu
   user: core
   <source>
     *: "Playlists"
@@ -9495,7 +8473,7 @@
     *: "Disc:"
   </dest>
   <voice>
-    *: "Disk size"
+    *: "Mărime disc"
   </voice>
 </phrase>
 <phrase>
@@ -9509,7 +8487,7 @@
     *: ""
   </dest>
   <voice>
-    *: "minutes"
+    *: "minute"
   </voice>
 </phrase>
 <phrase>
@@ -9537,7 +8515,7 @@
     *: "Bara (Invers)"
   </dest>
   <voice>
-    *: "Inverse Bar"
+    *: "Bara (Invers)"
   </voice>
 </phrase>
 <phrase>
@@ -9548,10 +8526,10 @@
     *: "Maintain a List of Recent Bookmarks?"
   </source>
   <dest>
-    *: "Păstrați o listă cu semne de carte recente?"
+    *: "Păstrezi o listă cu semne de carte recente?"
   </dest>
   <voice>
-    *: "Păstrați o listă cu semne de carte recente?"
+    *: "Păstrezi o listă cu semne de carte recente?"
   </voice>
 </phrase>
 <phrase>
@@ -9592,11 +8570,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Mod oprire pistă cu atenuare"
+    crossfade: "Mod Fade-Out"
   </dest>
   <voice>
     *: none
-    crossfade: "Mod oprire pistă cu atenuare"
+    crossfade: "Mod feid aut"
   </voice>
 </phrase>
 <phrase>
@@ -9635,10 +8613,10 @@
     *: "Nothing to resume"
   </source>
   <dest>
-    *: "La moment, nu-i nimic de reluat"
+    *: "Nimic de reluat"
   </dest>
   <voice>
-    *: "La moment, nu-i nimic de reluat"
+    *: "Nimic de reluat"
   </voice>
 </phrase>
 <phrase>
@@ -9649,10 +8627,10 @@
     *: "Clear Time?"
   </source>
   <dest>
-    *: "Resetați ora?"
+    *: "Resetezi ora?"
   </dest>
   <voice>
-    *: "Resetați ora?"
+    *: "Resetezi ora?"
   </voice>
 </phrase>
 <phrase>
@@ -9680,7 +8658,7 @@
     *: ""
   </dest>
   <voice>
-    *: "million"
+    *: "milion"
   </voice>
 </phrase>
 <phrase>
@@ -9699,10 +8677,10 @@
 </phrase>
 <phrase>
   id: LANG_AUDIOSCROBBLER
-  desc: "Last.fm Log" in the playback menu
+  desc: "Last.fm Logger" in Plugin/apps/scrobbler
   user: core
   <source>
-    *: "Last.fm Log"
+    *: "Last.fm Logger"
   </source>
   <dest>
     *: "Raport Last.fm"
@@ -9733,16 +8711,16 @@
   desc: in lcd settings
   user: core
   <source>
-    *: none
+    *: "Backlight on Lock"
     hold_button: "Backlight on Hold"
   </source>
   <dest>
-    *: none
-    hold_button: "Iluminare la blocare"
+    *: "Iluminare la blocare"
+    hold_button: "Iluminare la ținere"
   </dest>
   <voice>
-    *: none
-    hold_button: "Backlight on hold"
+    *: "Iluminare la blocare"
+    hold_button: "Iluminare la ținere"
   </voice>
 </phrase>
 <phrase>
@@ -9751,7 +8729,7 @@
   user: core
   <source>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </source>
   <dest>
     *: none
@@ -9770,10 +8748,10 @@
     *: "Filetype array full"
   </source>
   <dest>
-    *: "Câmp pentru tipuri de fișiere plin"
+    *: "Vector tipuri de fișiere plin"
   </dest>
   <voice>
-    *: "Câmp pentru tipuri de fișiere plin"
+    *: "Vector tipuri de fișiere plin"
   </voice>
 </phrase>
 <phrase>
@@ -9843,7 +8821,7 @@
     *: ""
   </dest>
   <voice>
-    *: "minute"
+    *: "minut"
   </voice>
 </phrase>
 <phrase>
@@ -9888,7 +8866,7 @@
     *: ""
   </dest>
   <voice>
-    *: "of"
+    *: "din"
   </voice>
 </phrase>
 <phrase>
@@ -9901,11 +8879,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Temporizare pornire pistă cu atenuare"
+    crossfade: "Întârziere Fade-In"
   </dest>
   <voice>
     *: none
-    crossfade: "Temporizare pornire pistă cu atenuare"
+    crossfade: "Întârziere feid in"
   </voice>
 </phrase>
 <phrase>
@@ -9947,7 +8925,7 @@
     *: ""
   </dest>
   <voice>
-    *: "percent"
+    *: "la sută"
   </voice>
 </phrase>
 <phrase>
@@ -9961,21 +8939,21 @@
     *: ""
   </dest>
   <voice>
-    *: "hours"
+    *: "ore"
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RESET_ASK
-  desc: confirm to reset settings
+  id: LANG_ARE_YOU_SURE
+  desc: confirm action
   user: core
   <source>
     *: "Are You Sure?"
   </source>
   <dest>
-    *: "Sunteți sigur?"
+    *: "Ești sigur?"
   </dest>
   <voice>
-    *: "Sunteți sigur?"
+    *: "Ești sigur?"
   </voice>
 </phrase>
 <phrase>
@@ -9986,10 +8964,10 @@
     *: "Updating in background"
   </source>
   <dest>
-    *: "Actualizare în fundal"
+    *: "Se actualizează în fundal"
   </dest>
   <voice>
-    *: "Actualizare in fundal"
+    *: "Se actualizează in fundal"
   </voice>
 </phrase>
 <phrase>
@@ -10003,7 +8981,7 @@
     *: "%s nu există"
   </dest>
   <voice>
-    *: ""
+    *: "Dosarul listei de redare nu există"
   </voice>
 </phrase>
 <phrase>
@@ -10014,10 +8992,10 @@
     *: "Font"
   </source>
   <dest>
-    *: "Răsfoire fonturi"
+    *: "~Font"
   </dest>
   <voice>
-    *: "Răsfoire fonturi"
+    *: "~Font"
   </voice>
 </phrase>
 <phrase>
@@ -10059,7 +9037,7 @@
     *: ""
   </dest>
   <voice>
-    *: "milli-amp hours"
+    *: "miliamperi ora"
   </voice>
 </phrase>
 <phrase>
@@ -10070,10 +9048,10 @@
     *: "Failed reading %s"
   </source>
   <dest>
-    *: "Eroare citire %s"
+    *: "Eroare la citirea %s"
   </dest>
   <voice>
-    *: ""
+    *: "Eroare la citirea fișierului"
   </voice>
 </phrase>
 <phrase>
@@ -10084,10 +9062,10 @@
     *: "Copying..."
   </source>
   <dest>
-    *: "Se copie..."
+    *: "Se copiază..."
   </dest>
   <voice>
-    *: "Copying"
+    *: "Se copiază"
   </voice>
 </phrase>
 <phrase>
@@ -10114,11 +9092,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Mixaj"
+    crossfade: "Mixare"
   </dest>
   <voice>
     *: none
-    crossfade: "Mixaj"
+    crossfade: "Mixare"
   </voice>
 </phrase>
 <phrase>
@@ -10136,23 +9114,6 @@
   <voice>
     *: none
     recording: "Tip declanșator"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SET_AS_REC_DIR
-  desc: used in the onplay menu to set a recording dir
-  user: core
-  <source>
-    *: none
-    recording: "Set As Recording Directory"
-  </source>
-  <dest>
-    *: none
-    recording: "Setează ca director înregistrări"
-  </dest>
-  <voice>
-    *: none
-    recording: "Setează ca director înregistrări"
   </voice>
 </phrase>
 <phrase>
@@ -10259,10 +9220,10 @@
     *: "Skip Length"
   </source>
   <dest>
-    *: "Lungime salt"
+    *: "Interval derulare"
   </dest>
   <voice>
-    *: "Lungime salt"
+    *: "Interval derulare"
   </voice>
 </phrase>
 <phrase>
@@ -10276,7 +9237,7 @@
     *: ""
   </dest>
   <voice>
-    *: "slash"
+    *: "sleș"
   </voice>
 </phrase>
 <phrase>
@@ -10302,15 +9263,15 @@
   user: core
   <source>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </source>
   <dest>
     *: none
-    recording: "Opreşte înregistrarea şi stinge"
+    recording: "Oprește înregistrarea și dispozitivul"
   </dest>
   <voice>
     *: none
-    recording: "Opreşte înregistrarea şi stinge"
+    recording: "Oprește înregistrarea și dispozitivul"
   </voice>
 </phrase>
 <phrase>
@@ -10352,10 +9313,10 @@
     *: "Keyclick"
   </source>
   <dest>
-    *: "Clic buton"
+    *: "Sunet apăsare buton"
   </dest>
   <voice>
-    *: "Clic buton"
+    *: "Sunet apăsare buton"
   </voice>
 </phrase>
 <phrase>
@@ -10368,7 +9329,7 @@
   </source>
   <dest>
     *: none
-    recording: "CLIP:"
+    recording: "~CLIP:"
   </dest>
   <voice>
     *: none
@@ -10385,11 +9346,11 @@
   </source>
   <dest>
     *: none
-    recording: "Amplif. dreapta"
+    recording: "Câștig D"
   </dest>
   <voice>
     *: none
-    recording: "Câştig Dreapta"
+    recording: "Câștig dreapta"
   </voice>
 </phrase>
 <phrase>
@@ -10402,7 +9363,7 @@
   </source>
   <dest>
     *: none
-    recording: "Nume fişier:"
+    recording: "Nume fișier:"
   </dest>
   <voice>
     *: none
@@ -10433,11 +9394,11 @@
   </source>
   <dest>
     *: none
-    recording: "Amplif. stânga"
+    recording: "Câștig S"
   </dest>
   <voice>
     *: none
-    recording: "Amplif stânga"
+    recording: "Câștig stânga"
   </voice>
 </phrase>
 <phrase>
@@ -10524,15 +9485,15 @@
     *: "Skip Track"
   </source>
   <dest>
-    *: "Sari pista"
+    *: "Sari o pistă"
   </dest>
   <voice>
-    *: "Sari pista"
+    *: "Sari o pistă"
   </voice>
 </phrase>
 <phrase>
   id: VOICE_OK
-  desc: spoken only, On exiting a context, specifically the quick screen
+  desc: spoken only, on exiting a context, specifically the quick screen
   user: core
   <source>
     *: ""
@@ -10541,7 +9502,7 @@
     *: ""
   </dest>
   <voice>
-    *: "OK"
+    *: "~OK"
   </voice>
 </phrase>
 <phrase>
@@ -10552,10 +9513,10 @@
     *: "Keyclick Repeats"
   </source>
   <dest>
-    *: "Repetare clic buton"
+    *: "Repetare sunet apăsare buton"
   </dest>
   <voice>
-    *: "Repetare clic buton"
+    *: "Repetare sunet apăsare buton"
   </voice>
 </phrase>
 <phrase>
@@ -10634,10 +9595,10 @@
     *: "Interpret numbers when sorting"
   </source>
   <dest>
-    *: "Interpretare numere la sortare"
+    *: "Ține cont de numere la sortare"
   </dest>
   <voice>
-    *: "Interpretare numere la sortare"
+    *: "Ține cont de numere la sortare"
   </voice>
 </phrase>
 <phrase>
@@ -10650,11 +9611,11 @@
   </source>
   <dest>
     *: none
-    serial_port: "Rată biți în serie"
+    serial_port: "Rată de biți serială"
   </dest>
   <voice>
     *: none
-    serial_port: "Rată biți în serie"
+    serial_port: "Rată de biți serială"
   </voice>
 </phrase>
 <phrase>
@@ -10809,10 +9770,10 @@
     *: "Search Results"
   </source>
   <dest>
-    *: "Rezultate Cautăre"
+    *: "Rezultate cautăre"
   </dest>
   <voice>
-    *: "Rezultate Cautăre"
+    *: "Rezultate cautăre"
   </voice>
 </phrase>
 <phrase>
@@ -10856,7 +9817,7 @@
   </source>
   <dest>
     *: none
-    serial_port: "Auto"
+    serial_port: "~Auto"
   </dest>
   <voice>
     *: none
@@ -10877,7 +9838,7 @@
   </dest>
   <voice>
     *: none
-    radio: "Other"
+    radio: "Alta"
   </voice>
 </phrase>
 <phrase>
@@ -10924,11 +9885,11 @@
   </source>
   <dest>
     *: none
-    remote: "Ecran la distanţă"
+    remote: "Ecran la distanță"
   </dest>
   <voice>
     *: none
-    remote: "Ecran la distanţă"
+    remote: "Ecran la distanță"
   </voice>
 </phrase>
 <phrase>
@@ -11040,11 +10001,11 @@
   </source>
   <dest>
     *: none
-    gigabeats,samsungypr1: "Frecvenţă pentru banda %d"
+    gigabeats,samsungypr1: "Frecvență pentru banda %d"
   </dest>
   <voice>
     *: none
-    gigabeats,samsungypr1: "frecvenţă pentru banda"
+    gigabeats,samsungypr1: "frecvență pentru banda"
   </voice>
 </phrase>
 <phrase>
@@ -11057,11 +10018,11 @@
   </source>
   <dest>
     *: none
-    gigabeats,samsungypr1: "Lăţimea bandei %d"
+    gigabeats,samsungypr1: "Lățimea benzii %d"
   </dest>
   <voice>
     *: none
-    gigabeats,samsungypr1: "Lăţimea bandei"
+    gigabeats,samsungypr1: "Lățimea benzii"
   </voice>
 </phrase>
 <phrase>
@@ -11244,7 +10205,7 @@
     *: "Piesa următoare:"
   </dest>
   <voice>
-    *: "Piesa următoare:"
+    *: "Piesa următoare"
   </voice>
 </phrase>
 <phrase>
@@ -11257,11 +10218,11 @@
   </source>
   <dest>
     *: none
-    usb_hid: "Prezentare"
+    usb_hid: "Control prezentare"
   </dest>
   <voice>
     *: none
-    usb_hid: "Prezentare"
+    usb_hid: "Control prezentare"
   </voice>
 </phrase>
 <phrase>
@@ -11286,10 +10247,10 @@
     *: "Prevent Track Skipping"
   </source>
   <dest>
-    *: "Prevenire salt piste"
+    *: "Împiedică omiterea pistei"
   </dest>
   <voice>
-    *: "Prevenire salt piste"
+    *: "Împiedică omiterea pistei"
   </voice>
 </phrase>
 <phrase>
@@ -11302,11 +10263,11 @@
   </source>
   <dest>
     *: none
-    touchscreen: "OK"
+    touchscreen: "~OK"
   </dest>
   <voice>
     *: none
-    touchscreen: "OK"
+    touchscreen: "~OK"
   </voice>
 </phrase>
 <phrase>
@@ -11319,11 +10280,11 @@
   </source>
   <dest>
     *: none
-    hotkey: "Scurtătură WPS"
+    hotkey: "Acțiune scurtătură"
   </dest>
   <voice>
     *: none
-    hotkey: "Scurtătură WPS"
+    hotkey: "Acțiune scurtătură"
   </voice>
 </phrase>
 <phrase>
@@ -11351,24 +10312,10 @@
     *: "Base Skin"
   </source>
   <dest>
-    *: "Tema principală"
+    *: "Tema de bază"
   </dest>
   <voice>
-    *: "Tema principală"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SCROLLBAR_POSITION
-  desc: in Settings -> General -> Display -> Status-/Scrollbar
-  user: core
-  <source>
-    *: "Scroll Bar Position"
-  </source>
-  <dest>
-    *: "Poziția barei de derulare"
-  </dest>
-  <voice>
-    *: "Poziția barei de derulare"
+    *: "Tema de bază"
   </voice>
 </phrase>
 <phrase>
@@ -11410,10 +10357,10 @@
     *: "Next:"
   </source>
   <dest>
-    *: "Următoarea:"
+    *: "Urm.:"
   </dest>
   <voice>
-    *: "Următoarea:"
+    *: "Următoarea"
   </voice>
 </phrase>
 <phrase>
@@ -11424,10 +10371,10 @@
     *: "Ratio"
   </source>
   <dest>
-    *: "Rată"
+    *: "Raport"
   </dest>
   <voice>
-    *: "Rată"
+    *: "Raport"
   </voice>
 </phrase>
 <phrase>
@@ -11580,23 +10527,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_LINEOUT_ONOFF
-  desc: in system settings menu
-  user: core
-  <source>
-    *: none
-    lineout_poweroff: "Line Out"
-  </source>
-  <dest>
-    *: none
-    lineout_poweroff: "Amplificare"
-  </dest>
-  <voice>
-    *: none
-    lineout_poweroff: "Amplificare"
-  </voice>
-</phrase>
-<phrase>
   id: VOICE_EXT_FMS
   desc: spoken only, for file extension
   user: core
@@ -11618,7 +10548,7 @@
   desc: resume settings menu
   user: core
   <source>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </source>
   <dest>
     *: "Reluare automată"
@@ -11683,10 +10613,10 @@
     *: "Auto"
   </source>
   <dest>
-    *: "Auto"
+    *: "~Auto"
   </dest>
   <voice>
-    *: "Auto"
+    *: "~Auto"
   </voice>
 </phrase>
 <phrase>
@@ -11701,20 +10631,6 @@
   </dest>
   <voice>
     *: "Reluare la schimbarea automată a pistei"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_INSERT_LAST_SHUFFLED
-  desc: in onplay menu.  insert a playlist randomly at end of dynamic playlist
-  user: core
-  <source>
-    *: "Insert Last Shuffled"
-  </source>
-  <dest>
-    *: "Inserare la capăt aleator"
-  </dest>
-  <voice>
-    *: "Inserare la capăt aleator"
   </voice>
 </phrase>
 <phrase>
@@ -11758,11 +10674,11 @@
   </source>
   <dest>
     *: none
-    usb_hid: "Regimul USB"
+    usb_hid: "Mod HID USB"
   </dest>
   <voice>
     *: none
-    usb_hid: "Regimul USB"
+    usb_hid: "Mod hid u se be"
   </voice>
 </phrase>
 <phrase>
@@ -11803,11 +10719,11 @@
   </source>
   <dest>
     *: none
-    usb_hid: "Răsfoire"
+    usb_hid: "Control navigator web"
   </dest>
   <voice>
     *: none
-    usb_hid: "Răsfoire"
+    usb_hid: "Control navigator ueb"
   </voice>
 </phrase>
 <phrase>
@@ -11820,11 +10736,11 @@
   </source>
   <dest>
     *: none
-    usb_hid: "Utilizare ca dispozitiv de interacțiune cu PC-ul (USB HID)"
+    usb_hid: "Utilizează ca HID USB"
   </dest>
   <voice>
     *: none
-    usb_hid: "USB Human Interface Device"
+    usb_hid: "Utilizează ca hid u se be"
   </voice>
 </phrase>
 <phrase>
@@ -11841,7 +10757,7 @@
   </dest>
   <voice>
     *: none
-    radio_remote: "remote radio screen skin"
+    radio_remote: "temă ecran radio la distanță"
   </voice>
 </phrase>
 <phrase>
@@ -11854,11 +10770,11 @@
   </source>
   <dest>
     *: none
-    hotkey: "Buton rapid răsfoire fișiere"
+    hotkey: "Buton rapid navigator fișiere"
   </dest>
   <voice>
     *: none
-    hotkey: "Buton rapid răsfoire fișiere"
+    hotkey: "Buton rapid navigator fișiere"
   </voice>
 </phrase>
 <phrase>
@@ -11886,10 +10802,10 @@
     *: "Rewind Before Resume"
   </source>
   <dest>
-    *: "Rebobinare înainte de reluare"
+    *: "Derulează înapoi înainte de reluare"
   </dest>
   <voice>
-    *: "Rebobinare înainte de reluare"
+    *: "Derulează înapoi înainte de reluare"
   </voice>
 </phrase>
 <phrase>
@@ -11900,10 +10816,10 @@
     *: "[Untagged]"
   </source>
   <dest>
-    *: "[fără taguri]"
+    *: "[fără etichete]"
   </dest>
   <voice>
-    *: "fără taguri"
+    *: "fără etichete"
   </voice>
 </phrase>
 <phrase>
@@ -11964,11 +10880,11 @@
   </source>
   <dest>
     *: none
-    depth_3d: "îmbunătăţire 3-D"
+    depth_3d: "Îmbunătățire 3D"
   </dest>
   <voice>
     *: none
-    depth_3d: "îmbunătăţire 3-D"
+    depth_3d: "Îmbunătățire trei de"
   </voice>
 </phrase>
 <phrase>
@@ -11979,10 +10895,10 @@
     *: "Start File Browser at /"
   </source>
   <dest>
-    *: "Start File Browser at /"
+    *: "Pornește navigator fișiere în /"
   </dest>
   <voice>
-    *: "Pornire explorare fișiere la /"
+    *: "Pornește navigator fișiere în rădăcină"
   </voice>
 </phrase>
 <phrase>
@@ -12013,7 +10929,7 @@
   </dest>
   <voice>
     *: none
-    radio: "Puterea semnalului:"
+    radio: "Puterea semnalului"
   </voice>
 </phrase>
 <phrase>
@@ -12074,25 +10990,11 @@
   </source>
   <dest>
     *: none
-    usb_hid: "Multimedia"
+    usb_hid: "Control multimedia"
   </dest>
   <voice>
     *: none
-    usb_hid: "Multimedia"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_STATUSBAR_CUSTOM
-  desc: if this translation is compatible with LANG_CHANNEL_CUSTOM, then please use the same translation. it can be combined later then
-  user: core
-  <source>
-    *: "Custom"
-  </source>
-  <dest>
-    *: "Personalizat"
-  </dest>
-  <voice>
-    *: "Personalizat"
+    usb_hid: "Control multimedia"
   </voice>
 </phrase>
 <phrase>
@@ -12103,10 +11005,10 @@
     *: "Skip to Outro"
   </source>
   <dest>
-    *: "Sari spre capăt"
+    *: "Sari spre final"
   </dest>
   <voice>
-    *: "Sari spre capăt"
+    *: "Sari spre final"
   </voice>
 </phrase>
 <phrase>
@@ -12136,11 +11038,11 @@
   </source>
   <dest>
     *: none
-    crossfade: "Numai schimbare automată a pistei"
+    crossfade: "Doar la schimbarea automată a pistei"
   </dest>
   <voice>
     *: none
-    crossfade: "Numai schimbare automată a pistei"
+    crossfade: "Doar la schimbarea automată a pistei"
   </voice>
 </phrase>
 <phrase>
@@ -12179,10 +11081,10 @@
     *: "PictureFlow"
   </source>
   <dest>
-    *: "Răsfoire ilustraţii albume"
+    *: "~PictureFlow"
   </dest>
   <voice>
-    *: "Răsfoire ilustraţii albume"
+    *: "deschide pikciăr flău"
   </voice>
 </phrase>
 <phrase>
@@ -12245,20 +11147,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SET_AS_START_DIR
-  desc: used in the onplay menu to set a starting browser dir
-  user: core
-  <source>
-    *: "Start File Browser Here"
-  </source>
-  <dest>
-    *: "Pornire explorator fișiere aici"
-  </dest>
-  <voice>
-    *: "Pornire explorator fișiere aici"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PAUSE_REWIND
   desc: Seconds to rewind when rewind on pause is enabled.
   user: core
@@ -12266,10 +11154,10 @@
     *: "Rewind on Pause"
   </source>
   <dest>
-    *: "Rebobinare la pauză"
+    *: "Derulează înapoi la pauză"
   </dest>
   <voice>
-    *: "Rebobinare la pauză"
+    *: "Derulează înapoi la pauză"
   </voice>
 </phrase>
 <phrase>
@@ -12282,7 +11170,7 @@
   </source>
   <dest>
     *: none
-    histogram: "Histogram interval"
+    histogram: "Interval histogramă"
   </dest>
   <voice>
     *: none
@@ -12297,24 +11185,10 @@
     *: "Current Playlist"
   </source>
   <dest>
-    *: "Listă redare curentă"
+    *: "Lista de redare curentă"
   </dest>
   <voice>
-    *: "Listă redare curentă"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SET_AS_PLAYLISTCAT_DIR
-  desc: used in the onplay menu to set a playlist catalogue dir
-  user: core
-  <source>
-    *: "Set As Playlist Catalogue Directory"
-  </source>
-  <dest>
-    *: "Setare dosar pentru catalog liste redare"
-  </dest>
-  <voice>
-    *: "Setare dosar pentru catalog liste redare"
+    *: "Lista de redare curentă"
   </voice>
 </phrase>
 <phrase>
@@ -12325,10 +11199,10 @@
     *: "Save Changes?"
   </source>
   <dest>
-    *: "Salvare modificări?"
+    *: "Salvezi modificările?"
   </dest>
   <voice>
-    *: "Salvare modificări?"
+    *: "Salvezi modificările?"
   </voice>
 </phrase>
 <phrase>
@@ -12386,11 +11260,11 @@
   </source>
   <dest>
     *: none
-    hardware_click: "Clic tastă difuzor"
+    hardware_click: "Sunet butoane în difuzor"
   </dest>
   <voice>
     *: none
-    hardware_click: "Clic tastă difuzor"
+    hardware_click: "Sunet butoane în difuzor"
   </voice>
 </phrase>
 <phrase>
@@ -12403,11 +11277,11 @@
   </source>
   <dest>
     *: none
-    hardware_click: "Clic tastă căști"
+    hardware_click: "Sunet butoane în căști"
   </dest>
   <voice>
     *: none
-    hardware_click: "Clic tastă căști"
+    hardware_click: "Sunet butoane în căști"
   </voice>
 </phrase>
 <phrase>
@@ -12425,20 +11299,6 @@
   <voice>
     *: none
     touchscreen: "Umplere linie în liste"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_AUTOMATIC
-  desc: generic automatic
-  user: core
-  <source>
-    *: "Automatic"
-  </source>
-  <dest>
-    *: "Automat"
-  </dest>
-  <voice>
-    *: "Automat"
   </voice>
 </phrase>
 <phrase>
@@ -12463,10 +11323,10 @@
     *: "Cancel Sleep Timer"
   </source>
   <dest>
-    *: "Anulare temporizator repaus"
+    *: "Anulează temporizator ațipire"
   </dest>
   <voice>
-    *: "Anulare temporizator repaus"
+    *: "Anulează temporizator ațipire"
   </voice>
 </phrase>
 <phrase>
@@ -12477,10 +11337,10 @@
     *: "Default Sleep Timer Duration"
   </source>
   <dest>
-    *: "Temporizare repaus implicită"
+    *: "Durată implicită temporizare ațipire"
   </dest>
   <voice>
-    *: "Temporizare repaus implicită"
+    *: "Durată implicită temporizare ațipire"
   </voice>
 </phrase>
 <phrase>
@@ -12488,13 +11348,13 @@
   desc: whether sleep timer starts on power up
   user: core
   <source>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </source>
   <dest>
-    *: "Lansare temporizator repaus la pornire"
+    *: "Pornește temporizator ațipire după inițializare"
   </dest>
   <voice>
-    *: "Lansare temporizator repaus la pornire"
+    *: "Pornește temporizator ațipire după inițializare"
   </voice>
 </phrase>
 <phrase>
@@ -12505,10 +11365,10 @@
     *: "Select one or more directories"
   </source>
   <dest>
-    *: "Selectaţi unul sau mai multe directoare"
+    *: "Selectează unul sau mai multe dosare"
   </dest>
   <voice>
-    *: "Selectaţi unul sau mai multe directoare"
+    *: "Selectează unul sau mai multe dosare"
   </voice>
 </phrase>
 <phrase>
@@ -12533,10 +11393,10 @@
     *: "Start Sleep Timer"
   </source>
   <dest>
-    *: "porneşte temporizator repaus"
+    *: "Pornește temporizator ațipire"
   </dest>
   <voice>
-    *: "porneşte temporizator repaus"
+    *: "Pornește temporizator ațipire"
   </voice>
 </phrase>
 <phrase>
@@ -12547,10 +11407,10 @@
     *: "Select directories to scan"
   </source>
   <dest>
-    *: "Selectaţi directoarele de scanat"
+    *: "Selectează dosarele de scanat"
   </dest>
   <voice>
-    *: "Selectaţi directoarele de scanat"
+    *: "Selectează dosarele de scanat"
   </voice>
 </phrase>
 <phrase>
@@ -12589,10 +11449,10 @@
     *: "Startup/Shutdown"
   </source>
   <dest>
-    *: "Pornire / Oprire"
+    *: "Pornire și oprire"
   </dest>
   <voice>
-    *: "Pornire sau Oprire"
+    *: "Pornire și oprire"
   </voice>
 </phrase>
 <phrase>
@@ -12600,13 +11460,13 @@
   desc: whether to restart running sleep timer on keypress
   user: core
   <source>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </source>
   <dest>
-    *: "reporneşte temporizator repaus la apăsarea unei taste"
+    *: "Repornește temporizator ațipire la apăsare buton"
   </dest>
   <voice>
-    *: "reporneşte temporizator repaus la apăsarea unei taste"
+    *: "Repornește temporizator ațipire la apăsarea unui buton"
   </voice>
 </phrase>
 <phrase>
@@ -12619,11 +11479,11 @@
   </source>
   <dest>
     *: none
-    quickscreen: "Foloseşte meniul de scurtături în locul ecranului rapid"
+    quickscreen: "Folosește meniul de scurtături în locul ecranului rapid"
   </dest>
   <voice>
     *: none
-    quickscreen: "Foloseşte meniul de scurtături în locul ecranului rapid"
+    quickscreen: "Folosește meniul de scurtături în locul ecranului rapid"
   </voice>
 </phrase>
 <phrase>
@@ -12641,20 +11501,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_EQUALIZER_BAND_Q
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Q"
-  </source>
-  <dest>
-    *: "Q"
-  </dest>
-  <voice>
-    *: "Q"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_FILTER_SHARP
   desc: in sound settings
   user: core
@@ -12664,11 +11510,11 @@
   </source>
   <dest>
     *: none
-    filter_roll_off: "Ascuţime"
+    filter_roll_off: "Ascuțit"
   </dest>
   <voice>
     *: none
-    filter_roll_off: "Ascuţime"
+    filter_roll_off: "Ascuțit"
   </voice>
 </phrase>
 <phrase>
@@ -12681,11 +11527,11 @@
   </source>
   <dest>
     *: none
-    filter_roll_off: "Încet"
+    filter_roll_off: "Lent"
   </dest>
   <voice>
     *: none
-    filter_roll_off: "Încet"
+    filter_roll_off: "Lent"
   </voice>
 </phrase>
 <phrase>
@@ -12761,7 +11607,7 @@
   </dest>
   <voice>
     *: none
-    filter_roll_off: "Pantă filtru DAC"
+    filter_roll_off: "Pantă filtru dac"
   </voice>
 </phrase>
 <phrase>
@@ -12776,5 +11622,5289 @@
   </dest>
   <voice>
     *: "Limită maximă volum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESET_EQUALIZER
+  desc: in the equalizer settings menu
+  user: core
+  <source>
+    *: "Reset EQ"
+  </source>
+  <dest>
+    *: "Resetează EQ"
+  </dest>
+  <voice>
+    *: "Resetează egalizator"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SINGLE_MODE
+  desc: single mode
+  user: core
+  <source>
+    *: "Single Mode"
+  </source>
+  <dest>
+    *: "Mod redare unică"
+  </dest>
+  <voice>
+    *: "Mod redare unică"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_TITLEALBUM_FROMTAGS
+  desc: track display options
+  user: core
+  <source>
+    *: "Title & Album from ID3 tags"
+  </source>
+  <dest>
+    *: "Titlu și album din etichete ID3"
+  </dest>
+  <voice>
+    *: "Titlu și album din etichete ai di trei"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_TITLE_FROMTAGS
+  desc: track display options
+  user: core
+  <source>
+    *: "Title from ID3 tags"
+  </source>
+  <dest>
+    *: "Titlu din etichete ID3"
+  </dest>
+  <voice>
+    *: "Title din etichete ai di trei"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RANDOM_SHUFFLE_RANDOM_SELECTIVE_SONGS_SUMMARY
+  desc: a summary splash screen that appear on the database browser when you try to create a playlist from the database browser that exceeds your system limit
+  user: core
+  <source>
+    *: "Selection too big, %d random tracks will be selected"
+  </source>
+  <dest>
+    *: "Selecția este prea mare, %d piste vor fi selectate aleator"
+  </dest>
+  <voice>
+    *: "Selecția este prea mare, mai puține piste vor fi selectate aleator"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_SPECIAL_CHARACTER
+  desc: Special character (japanese, accents, etc)
+  user: core
+  <source>
+    *: "Special character"
+  </source>
+  <dest>
+    *: "Caracter special"
+  </dest>
+  <voice>
+    *: "Caracter special"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ID3_ALBUMARTISTS
+  desc: in tag viewer
+  user: core
+  <source>
+    *: "Album Artists"
+  </source>
+  <dest>
+    *: "Artiști album"
+  </dest>
+  <voice>
+    *: "Artiști album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_CURRENT_TO_FAVES
+  desc:
+  user: core
+  <source>
+    *: "Add Current to Shortcuts"
+  </source>
+  <dest>
+    *: "Adaugă curent la scurtături"
+  </dest>
+  <voice>
+    *: "Adaugă curent la scurtături"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TALK_MIXER_LEVEL
+  desc: Relative volume of voice prompts
+  user: core
+  <source>
+    *: "Voice Prompt Volume"
+  </source>
+  <dest>
+    *: "Nivel volum voce"
+  </dest>
+  <voice>
+    *: "Nivel volum voce"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISC
+  desc: Shown in WPS (for multidisc albums)
+  user: core
+  <source>
+    *: "Disc"
+  </source>
+  <dest>
+    *: "~Disc"
+  </dest>
+  <voice>
+    *: "~Disc"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SHORT_SHARP
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    filter_roll_off: "Short Sharp"
+  </source>
+  <dest>
+    *: none
+    filter_roll_off: "Scurt ascuțit"
+  </dest>
+  <voice>
+    *: none
+    filter_roll_off: "Scurt ascuțit"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SHORT_SLOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    filter_roll_off: "Short Slow"
+  </source>
+  <dest>
+    *: none
+    filter_roll_off: "Scurt lent"
+  </dest>
+  <voice>
+    *: none
+    filter_roll_off: "Scurt lent"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SUPER_SLOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    filter_roll_off: "Super Slow"
+  </source>
+  <dest>
+    *: none
+    filter_roll_off: "Super lent"
+  </dest>
+  <voice>
+    *: none
+    filter_roll_off: "Super lent"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SHORT
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9018: "Short"
+  </source>
+  <dest>
+    *: none
+    es9018: "Scurt"
+  </dest>
+  <voice>
+    *: none
+    es9018: "Scurt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_BYPASS
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9018: "Bypass"
+  </source>
+  <dest>
+    *: none
+    es9018: "Evită"
+  </dest>
+  <voice>
+    *: none
+    es9018: "Evită"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_LINEAR_FAST
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Linear Fast"
+  </source>
+  <dest>
+    *: none
+    es9218: "Linear rapid"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Linear rapid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_LINEAR_SLOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Linear Slow"
+  </source>
+  <dest>
+    *: none
+    es9218: "Linear lent"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Linear lent"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_MINIMUM_FAST
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Minimum Fast"
+  </source>
+  <dest>
+    *: none
+    es9218: "Minim rapid"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Minim rapid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_MINIMUM_SLOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Minimum Slow"
+  </source>
+  <dest>
+    *: none
+    es9218: "Minim lent"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Minim lent"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_APODIZING_1
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Apodizing type 1"
+  </source>
+  <dest>
+    *: none
+    es9218: "Apodizant de tip 1"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Apodizant de tip 1"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_APODIZING_2
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Apodizing type 2"
+  </source>
+  <dest>
+    *: none
+    es9218: "Apodizant de tip 2"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Apodizant de tip 2"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_HYBRID_FAST
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Hybrid Fast"
+  </source>
+  <dest>
+    *: none
+    es9218: "Hibrid rapid"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Hibrid rapid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_BRICK_WALL
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Brick Wall"
+  </source>
+  <dest>
+    *: none
+    es9218: "Perete de cărămidă"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Perete de cărămidă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DAC_POWER_MODE
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    dac_power_mode: "DAC power mode"
+    es9218: "DAC output level"
+  </source>
+  <dest>
+    *: none
+    dac_power_mode: "Mod energetic DAC"
+    es9218: "Nivel ieșire DAC"
+  </dest>
+  <voice>
+    *: none
+    dac_power_mode: "Mod energetic DAC"
+    es9218: "Nivel ieșire DAC"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DAC_POWER_HIGH
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    dac_power_mode: "High performance"
+    es9218: "High Gain (2 Vrms)"
+  </source>
+  <dest>
+    *: none
+    dac_power_mode: "Performanță mare"
+    es9218: "Câștig mare (2 Vrms)"
+  </dest>
+  <voice>
+    *: none
+    dac_power_mode: "Performanță mare"
+    es9218: "Câștig mare (2 volți ar em es)"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DAC_POWER_LOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    dac_power_mode: "Save battery"
+    es9218: "Low Gain (1 Vrms)"
+  </source>
+  <dest>
+    *: none
+    dac_power_mode: "Economisește bateria"
+    es9218: "Câștig mic (1 Vrms)"
+  </dest>
+  <voice>
+    *: none
+    dac_power_mode: "Economisește bateria"
+    es9218: "Câștig mic (1 volt ar em es)"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PBE
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Perceptual Bass Enhancement"
+  </source>
+  <dest>
+    *: "Îmbunătățire bas perceput"
+  </dest>
+  <voice>
+    *: "Îmbunătățire bas perceput"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AFR
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Auditory Fatigue Reduction"
+  </source>
+  <dest>
+    *: "Reducere oboseală auditivă"
+  </dest>
+  <voice>
+    *: "Reducere oboseală auditivă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND
+  desc: in the sound settings menu
+  user: core
+  <source>
+    *: "Haas Surround"
+  </source>
+  <dest>
+    *: "Surround Haas"
+  </dest>
+  <voice>
+    *: "Suraund has"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND_FX1
+  desc: in sound settings
+  user: core
+  <source>
+    *: "f(x1)"
+  </source>
+  <dest>
+    *: "f(x1)"
+  </dest>
+  <voice>
+    *: "f(x1)"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND_FX2
+  desc: in sound settings
+  user: core
+  <source>
+    *: "f(x2)"
+  </source>
+  <dest>
+    *: "f(x2)"
+  </dest>
+  <voice>
+    *: "f(x2)"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND_METHOD2
+  desc: in sound settings
+  user: core
+  <source>
+    *: "SIDE ONLY"
+  </source>
+  <dest>
+    *: "DOAR LATERAL"
+  </dest>
+  <voice>
+    *: "DOAR LATERAL"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND_MIX
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Dry / Wet Mix"
+  </source>
+  <dest>
+    *: "Raport uscat / umed"
+  </dest>
+  <voice>
+    *: "Raport uscat umed"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_IBASSO_FREQ_SCALING_GOVERNOR
+  desc: in Settings -> General -> System -> Freq Scaling Governor
+  user: core
+  <source>
+    *: none
+    ibassodx50,ibassodx90: "Freq Scaling Governor"
+  </source>
+  <dest>
+    *: none
+    ibassodx50,ibassodx90: "Guvernator de scalare frecvență"
+  </dest>
+  <voice>
+    *: none
+    ibassodx50,ibassodx90: "Guvernator de scalare frecvență"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MODE
+  desc: in Settings -> General -> System -> USB Mode
+  user: core
+  <source>
+    *: "USB Mode"
+  </source>
+  <dest>
+    *: "Mod USB"
+  </dest>
+  <voice>
+    *: "Mod u se be"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MODE_MASS_STORAGE
+  desc: in Settings -> General -> System -> USB Mode: Mass Storage
+  user: core
+  <source>
+    *: "Mass Storage"
+  </source>
+  <dest>
+    *: "Stocare în masă"
+  </dest>
+  <voice>
+    *: "Stocare în masă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MODE_CHARGE
+  desc: in Settings -> General -> System -> USB Mode: Charge Only
+  user: core
+  <source>
+    *: "Charge Only"
+  </source>
+  <dest>
+    *: "Doar încărcare"
+  </dest>
+  <voice>
+    *: "Doar încărcare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MODE_ADB
+  desc: in Settings -> General -> System -> USB Mode: Android Debug Bridge
+  user: core
+  <source>
+    *: "Android Debug Bridge"
+  </source>
+  <dest>
+    *: "Punte depanare Android (ADB)"
+  </dest>
+  <voice>
+    *: "Punte depanare Android a de be"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_ENABLED
+  desc: Selective Actions
+  user: core
+  <source>
+    *: "Enabled"
+  </source>
+  <dest>
+    *: "Activat"
+  </dest>
+  <voice>
+    *: "Activat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_PLAY
+  desc: Selective Actions
+  user: core
+  <source>
+    *: "Exempt Play"
+  </source>
+  <dest>
+    *: "Excepție redare"
+  </dest>
+  <voice>
+    *: "Excepție redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_SEEK
+  desc: Selective Actions
+  user: core
+  <source>
+    *: "Exempt Seek"
+  </source>
+  <dest>
+    *: "Excepție derulare"
+  </dest>
+  <voice>
+    *: "Excepție derulare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_SKIP
+  desc: Selective Actions
+  user: core
+  <source>
+    *: "Exempt Skip"
+  </source>
+  <dest>
+    *: "Excepție omitere"
+  </dest>
+  <voice>
+    *: "Excepție omitere"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BACKLIGHT_SELECTIVE
+  desc: Backlight behaviour setting
+  user: core
+  <source>
+    *: "Backlight Exemptions"
+  </source>
+  <dest>
+    *: "Excepții iluminare"
+  </dest>
+  <voice>
+    *: "Excepții iluminare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_DISABLE_EXT_POWER
+  desc: Backlight behaviour setting
+  user: core
+  <source>
+    *: "Disable on External Power"
+  </source>
+  <dest>
+    *: "Dezactivează la alimentare externă"
+  </dest>
+  <voice>
+    *: "Dezactivează la alimentare externă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_DISABLE_UNMAPPED
+  desc: Backlight behaviour setting
+  user: core
+  <source>
+    *: "Disable Unmapped Keys"
+  </source>
+  <dest>
+    *: "Dezactivează butoanele neasociate"
+  </dest>
+  <voice>
+    *: "Dezactivează butoanele neasociate"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SOFTLOCK_SELECTIVE
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Advanced Key Lock"
+  </source>
+  <dest>
+    *: "Blocare butoane avansată"
+  </dest>
+  <voice>
+    *: "Blocare butoane avansată"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_AUTOLOCK_ON
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Autolock On"
+  </source>
+  <dest>
+    *: "Blocare automată activată"
+  </dest>
+  <voice>
+    *: "Blocare automată activată"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_AUTOLOCK_OFF
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Autolock Off"
+  </source>
+  <dest>
+    *: "Blocare automată dezactivată"
+  </dest>
+  <voice>
+    *: "Blocare automată dezactivată"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_DISABLE_NOTIFY
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Disable Locked Reminders"
+  </source>
+  <dest>
+    *: "Dezactivează memento blocare"
+  </dest>
+  <voice>
+    *: "Dezactivează memento blocare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_DISABLE_TOUCH
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Disable Touch"
+  </source>
+  <dest>
+    *: "Dezactivează atingere"
+  </dest>
+  <voice>
+    *: "Dezactivează atingere"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KIBIBYTE
+  desc: a unit postfix, also voiced
+  user: core
+  <source>
+    *: "KiB"
+  </source>
+  <dest>
+    *: "KiB"
+  </dest>
+  <voice>
+    *: "kibibyte"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MEBIBYTE
+  desc: a unit postfix, also voiced
+  user: core
+  <source>
+    *: "MiB"
+  </source>
+  <dest>
+    *: "MiB"
+  </dest>
+  <voice>
+    *: "mebibyte"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GIBIBYTE
+  desc: a unit postfix, also voiced
+  user: core
+  <source>
+    *: "GiB"
+  </source>
+  <dest>
+    *: "GiB"
+  </dest>
+  <voice>
+    *: "gibibyte"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BOOKMARK_SETTINGS_ONE_PER_PLAYLIST
+  desc: Save only one bookmark for a playlist in recent bookmarks
+  user: core
+  <source>
+    *: "One per playlist"
+  </source>
+  <dest>
+    *: "Una per listă de redare"
+  </dest>
+  <voice>
+    *: "Una per listă de redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BOOKMARK_SETTINGS_ONE_PER_TRACK
+  desc: Save only one bookmark for a combination (playlist,track) in recent bookmarks
+  user: core
+  <source>
+    *: "One per track"
+  </source>
+  <dest>
+    *: "Una per pistă"
+  </dest>
+  <voice>
+    *: "Una per pistă"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_TRACK_TO_MOVE
+  desc: playlist viewer
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Pistă de mutat"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_QUEUED
+  desc: playlist viewer
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Pus în coadă"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BAD_TRACK
+  desc: playlist viewer
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Pistă defectă"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_MOVING_TRACK
+  desc: playlist viewer
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Se mută pista"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_ELAPSED
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Playlist elapsed:"
+  </source>
+  <dest>
+    *: "Scurs din listă:"
+  </dest>
+  <voice>
+    *: "Scurs din listă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_TRK_ELAPSED
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Track elapsed:"
+  </source>
+  <dest>
+    *: "Scurs din pistă:"
+  </dest>
+  <voice>
+    *: "Scurs din pistă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_TRK_REMAINING
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Track remaining:"
+  </source>
+  <dest>
+    *: "Rămas din pistă:"
+  </dest>
+  <voice>
+    *: "Rămas din pistă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_TRACK
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Track:"
+  </source>
+  <dest>
+    *: "Pistă:"
+  </dest>
+  <voice>
+    *: "Pistă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_STORAGE
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Storage (Done / Remaining):"
+  </source>
+  <dest>
+    *: "Stocare (Finalizat / Rămas):"
+  </dest>
+  <voice>
+    *: "Stocare"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PLAYTIME_DONE
+  desc: playing time screen
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Finalizat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_AVG_TRACK_SIZE
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Average track size:"
+  </source>
+  <dest>
+    *: "Mărime medie pistă:"
+  </dest>
+  <voice>
+    *: "Mărime medie pistă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_AVG_BITRATE
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Average bitrate:"
+  </source>
+  <dest>
+    *: "Rată de biți medie:"
+  </dest>
+  <voice>
+    *: "Rată de biți medie"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_ERROR
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Error while gathering info"
+  </source>
+  <dest>
+    *: "Eroare la colectarea informațiilor"
+  </dest>
+  <voice>
+    *: "Eroare la colectarea informațiilor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYING_TIME
+  desc: onplay menu
+  user: core
+  <source>
+    *: "Playing time"
+  </source>
+  <dest>
+    *: "Timp de redare"
+  </dest>
+  <voice>
+    *: "Timp de redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CAR_ADAPTER_MODE_DELAY
+  desc: Displayed for setting car adapter mode delay
+  user: core
+  <source>
+    *: none
+    charging: "Delay Before Resume"
+  </source>
+  <dest>
+    *: none
+    charging: "Întârziere înainte de reluare"
+  </dest>
+  <voice>
+    *: none
+    charging: "Întârziere înainte de reluare"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PITCH_ABSOLUTE_MODE
+  desc: spoken only
+  user: core
+  <source>
+    *: none
+    pitchscreen: ""
+  </source>
+  <dest>
+    *: none
+    pitchscreen: ""
+  </dest>
+  <voice>
+    *: none
+    pitchscreen: "Mod absolut"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PITCH_SEMITONE_MODE
+  desc: spoken only
+  user: core
+  <source>
+    *: none
+    pitchscreen: ""
+  </source>
+  <dest>
+    *: none
+    pitchscreen: ""
+  </dest>
+  <voice>
+    *: none
+    pitchscreen: "Mod semiton"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PITCH_TIMESTRETCH_MODE
+  desc: spoken only
+  user: core
+  <source>
+    *: none
+    pitchscreen: ""
+  </source>
+  <dest>
+    *: none
+    pitchscreen: ""
+  </dest>
+  <voice>
+    *: none
+    pitchscreen: "Întindere în timp"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMOTE_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "Remote Control"
+  </source>
+  <dest>
+    *: "Control de la distanță"
+  </dest>
+  <voice>
+    *: "Control de la distanță"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NO_REM_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "No Rem. Control"
+  </source>
+  <dest>
+    *: "Fără control de la distanță"
+  </dest>
+  <voice>
+    *: "Fără control de la distanță"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_OUT_OF_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "Out of Control"
+  </source>
+  <dest>
+    *: "Scăpat de sub control"
+  </dest>
+  <voice>
+    *: "Scăpat de sub control"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_2_KEY_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "2 Key Control"
+  </source>
+  <dest>
+    *: "Control cu 2 taste"
+  </dest>
+  <voice>
+    *: "Control cu 2 taste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_4_KEY_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "4 Key Control"
+  </source>
+  <dest>
+    *: "Control cu 4 taste"
+  </dest>
+  <voice>
+    *: "Control cu 4 taste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_WORMLET
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Play Wormlet!"
+  </source>
+  <dest>
+    *: "Joacă Wormlet!"
+  </dest>
+  <voice>
+    *: "Joacă Wormlet!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NUMBER_OF_WORMS
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Number of Worms"
+  </source>
+  <dest>
+    *: "Numărul de râme"
+  </dest>
+  <voice>
+    *: "Numărul de râme"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WORM_GROWTH_PER_FOOD
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Worm Growth Per Food"
+  </source>
+  <dest>
+    *: "Creșterea râmei per mâncare"
+  </dest>
+  <voice>
+    *: "Creșterea râmei per mâncare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WORM_SPEED
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Worm Speed"
+  </source>
+  <dest>
+    *: "Viteza râmei"
+  </dest>
+  <voice>
+    *: "Viteza râmei"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARGHS_PER_FOOD
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Arghs Per Food"
+  </source>
+  <dest>
+    *: "Argh-uri per mâncare"
+  </dest>
+  <voice>
+    *: "Argh-uri per mâncare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARGH_SIZE
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Argh Size"
+  </source>
+  <dest>
+    *: "Mărime Argh"
+  </dest>
+  <voice>
+    *: "Mărime Argh"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FOOD_SIZE
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Food Size"
+  </source>
+  <dest>
+    *: "Mărime mâncare"
+  </dest>
+  <voice>
+    *: "Mărime mâncare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NUMBER_OF_PLAYERS
+  desc: For game menus
+  user: core
+  <source>
+    *: "Number of Players"
+  </source>
+  <dest>
+    *: "Număr de jucători"
+  </dest>
+  <voice>
+    *: "Număr de jucători"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CONTROL_STYLE
+  desc: In various menus
+  user: core
+  <source>
+    *: "Control Style"
+  </source>
+  <dest>
+    *: "Stil control"
+  </dest>
+  <voice>
+    *: "Stil control"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REVERT_TO_DEFAULT_SETTINGS
+  desc: In various menus
+  user: core
+  <source>
+    *: "Revert to Default Settings"
+  </source>
+  <dest>
+    *: "Restabilește setările implicite"
+  </dest>
+  <voice>
+    *: "Restabilește setările implicite"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_QUIT
+  desc: in various menus
+  user: core
+  <source>
+    *: "Quit"
+  </source>
+  <dest>
+    *: "Închide"
+  </dest>
+  <voice>
+    *: "Închide"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_DISPLAY_OPTIONS
+  desc: in various menus
+  user: core
+  <source>
+    *: "Display Options"
+  </source>
+  <dest>
+    *: "Opțiuni afișare"
+  </dest>
+  <voice>
+    *: "Opțiuni afișare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PREVTRACK
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Previous Track"
+  </source>
+  <dest>
+    *: "Pista precedentă"
+  </dest>
+  <voice>
+    *: "Pista precedentă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYPAUSE
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Pause / Play"
+  </source>
+  <dest>
+    *: "Pauză / Redă"
+  </dest>
+  <voice>
+    *: "Pauză sau redă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_STOP_PLAYBACK
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Stop Playback"
+  </source>
+  <dest>
+    *: "Oprește redarea"
+  </dest>
+  <voice>
+    *: "Oprește redarea"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEXTTRACK
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Next Track"
+  </source>
+  <dest>
+    *: "Pista următoare"
+  </dest>
+  <voice>
+    *: "Pista următoare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHANGE_VOLUME
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Change Volume"
+  </source>
+  <dest>
+    *: "Ajustează volumul"
+  </dest>
+  <voice>
+    *: "Ajustează volumul"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHANGE_SHUFFLE_MODE
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Shuffle Mode"
+  </source>
+  <dest>
+    *: "Mod amestecare"
+  </dest>
+  <voice>
+    *: "Mod amestecare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHANGE_REPEAT_MODE
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Change Repeat Mode"
+  </source>
+  <dest>
+    *: "Schimbă mod repetare"
+  </dest>
+  <voice>
+    *: "Schimbă mod repetare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_CONTROL
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Playback Control"
+  </source>
+  <dest>
+    *: "Control redare"
+  </dest>
+  <voice>
+    *: "Control redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_CHECKMATE
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Checkmate!"
+  </source>
+  <dest>
+    *: "Șah mat!"
+  </dest>
+  <voice>
+    *: "Șah mat!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_ILLEGAL_MOVE
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Illegal move!"
+  </source>
+  <dest>
+    *: "Mutare ilegală!"
+  </dest>
+  <voice>
+    *: "Mutare ilegală!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_NEW_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "New Game"
+  </source>
+  <dest>
+    *: "Joc nou"
+  </dest>
+  <voice>
+    *: "Joc nou"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_RESUME_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Resume Game"
+  </source>
+  <dest>
+    *: "Continuă jocul"
+  </dest>
+  <voice>
+    *: "Continuă jocul"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_SAVE_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Save Game"
+  </source>
+  <dest>
+    *: "Salvează jocul"
+  </dest>
+  <voice>
+    *: "Salvează jocul"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_RESTORE_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Restore Game"
+  </source>
+  <dest>
+    *: "Restaurează jocul"
+  </dest>
+  <voice>
+    *: "Restaurează jocul"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_RESTART_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Restart Game"
+  </source>
+  <dest>
+    *: "Repornește jocul"
+  </dest>
+  <voice>
+    *: "Repornește jocul"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_SELECT_OTHER_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Select Other Game"
+  </source>
+  <dest>
+    *: "Alege alt joc"
+  </dest>
+  <voice>
+    *: "Alege alt joc"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_1
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 1: 60 moves / 5 min"
+  </source>
+  <dest>
+    *: "Nivel 1: 60 mutări / 5 min"
+  </dest>
+  <voice>
+    *: "Nivel 1, 60 mutări în 5 min"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_2
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 2: 60 moves / 15 min"
+  </source>
+  <dest>
+    *: "Nivel 2: 60 mutări / 15 min"
+  </dest>
+  <voice>
+    *: "Nivel 2, 60 mutări în 15 min"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_3
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 3: 60 moves / 30 min"
+  </source>
+  <dest>
+    *: "Nivel 3: 60 mutări / 30 min"
+  </dest>
+  <voice>
+    *: "Nivel 3, 60 mutări în 30 min"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_4
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 4: 40 moves / 30 min"
+  </source>
+  <dest>
+    *: "Nivel 4: 40 mutări / 30 min"
+  </dest>
+  <voice>
+    *: "Nivel 4, 40 mutări în 30 min"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_5
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 5: 40 moves / 60 min"
+  </source>
+  <dest>
+    *: "Nivel 5: 40 mutări / 60 min"
+  </dest>
+  <voice>
+    *: "Nivel 5, 40 mutări în 60 min"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_6
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 6: 40 moves / 120 min"
+  </source>
+  <dest>
+    *: "Nivel 6: 40 mutări / 120 min"
+  </dest>
+  <voice>
+    *: "Nivel 6, 40 mutări în 120 min"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_7
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 7: 40 moves / 240 min"
+  </source>
+  <dest>
+    *: "Nivel 7: 40 mutări / 240 min"
+  </dest>
+  <voice>
+    *: "Nivel 7, 40 mutări în 240 min"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_PGN_PARSE_ERROR
+  desc: in the chessbox game viewer
+  user: core
+  <source>
+    *: "Error parsing game !"
+  </source>
+  <dest>
+    *: "Eroare la parcurgerea jocului !"
+  </dest>
+  <voice>
+    *: "Eroare la parcurgerea jocului !"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_NO_GAMES
+  desc: in the chessbox game viewer
+  user: core
+  <source>
+    *: "No games found !"
+  </source>
+  <dest>
+    *: "Nu s-au găsit jocuri !"
+  </dest>
+  <voice>
+    *: "Nu s-au găsit jocuri!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_GAME_BEGINNING
+  desc: in the chessbox game viewer
+  user: core
+  <source>
+    *: "At the beginning of the game"
+  </source>
+  <dest>
+    *: "La începutul jocului"
+  </dest>
+  <voice>
+    *: "La începutul jocului"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_GAME_END
+  desc: in the chessbox game viewer
+  user: core
+  <source>
+    *: "At the end of the game"
+  </source>
+  <dest>
+    *: "La sfârșitul jocului"
+  </dest>
+  <voice>
+    *: "La sfârșitul jocului"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PLAYER
+  desc: spoken only, for announcing player's id
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Jucător"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_GNUCHESS
+  desc: spoken only, for announcing player's id
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Șah GNU"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_MARKED
+  desc: spoken only, for announcing chess piece marking
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Marcat"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_UNMARKED
+  desc: spoken only, for announcing chess piece unmarking
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Nemarcat"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_WHITE
+  desc: spoken only, for announcing chess piece color
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Alb"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BLACK
+  desc: spoken only, for announcing chess piece color
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Negru"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_CHECK
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Șah!"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_CAPTURES
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "capturi"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_CASTLE
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "castel"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_KINGSIDE
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "partea regelui"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_QUEENSIDE
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "partea reginei"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PAWN
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Pion"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_KNIGHT
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Cal"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BISHOP
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Nebun"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_ROOK
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Tură"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_QUEEN
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Regină"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_KING
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Rege"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_GAMES
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Games"
+  </source>
+  <dest>
+    *: "Jocuri"
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_SAVING_POSITION
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Saving position"
+  </source>
+  <dest>
+    *: "Se salvează poziția"
+  </dest>
+  <voice>
+    *: "Se salvează poziția"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LOADING_POSITION
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Loading position"
+  </source>
+  <dest>
+    *: "Se încarcă poziția"
+  </dest>
+  <voice>
+    *: "Se încarcă poziția"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_THINKING
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Thinking..."
+  </source>
+  <dest>
+    *: "Gândire..."
+  </dest>
+  <voice>
+    *: "Gândire"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BATTERY_BENCH_IS_ALREADY_RUNNING
+  desc: Spoken if battery bench is already running
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Evaluarea bateriei deja rulează"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BAT_BENCH_KEYS
+  desc: Battery bench start up message
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Apasă redare pentru a rula evaluarea bateriei"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CANNOT_RESTART_PLAYBACK
+  desc: cannot restart playback splash in imageviewer
+  user: core
+  <source>
+    *: "Cannot restart playback"
+  </source>
+  <dest>
+    *: "Nu se poate reporni redarea"
+  </dest>
+  <voice>
+    *: "Nu se poate reporni redarea"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ORDERED
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Ordered"
+  </source>
+  <dest>
+    *: "Ordonat"
+  </dest>
+  <voice>
+    *: "Ordonat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFUSION
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Diffusion"
+  </source>
+  <dest>
+    *: "Difuzie"
+  </dest>
+  <voice>
+    *: "Difuzie"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GRAYSCALE
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Grayscale"
+  </source>
+  <dest>
+    *: "Tonuri de gri"
+  </dest>
+  <voice>
+    *: "Tonuri de gri"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SLIDESHOW_MODE
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Toggle Slideshow Mode"
+  </source>
+  <dest>
+    *: "Comută mod prezentare"
+  </dest>
+  <voice>
+    *: "Comută mod prezentare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SLIDESHOW_TIME
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Slideshow Time"
+  </source>
+  <dest>
+    *: "Interval prezentare"
+  </dest>
+  <voice>
+    *: "Interval prezentare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RETURN
+  desc: in various plugin menus
+  user: core
+  <source>
+    *: "Return"
+  </source>
+  <dest>
+    *: "Înapoi"
+  </dest>
+  <voice>
+    *: "Înapoi"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REC_DIR
+  desc: used in the info screen to show a recording dir
+  user: core
+  <source>
+    *: none
+    recording: "Recording Directory"
+  </source>
+  <dest>
+    *: none
+    recording: "Dosarul de înregistrări"
+  </dest>
+  <voice>
+    *: none
+    recording: "Dosarul de înregistrări"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_VIEW_GAMES
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "View Played Games"
+  </source>
+  <dest>
+    *: "Vezi jocurile jucate"
+  </dest>
+  <voice>
+    *: "Vezi jocurile jucate"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_AUDIO_OPTIONS
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Audio Options"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Opțiuni audio"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Opțiuni audio"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_RESUME_OPTIONS
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Resume Options"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Opțiuni reluare"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Opțiuni reluare"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_PLAY_MODE
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Play Mode"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Mod redare"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Mod redare"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SINGLE
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Single"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Una singură"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Una singură"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_SOUND_SETTING
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Use sound setting"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Folosește setarea de sunet"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Folosește setarea de sunet"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESTART_PLAYBACK
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Play from beginning"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Redă de la început"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Redă de la început"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SET_RESUME_TIME
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Set resume time (min)"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Setează timpul de reluare (min)"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Setează timpul de reluare"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_FPS
+  desc: in the mpegplayer and pictureflow settings menus
+  user: core
+  <source>
+    *: "Display FPS"
+  </source>
+  <dest>
+    *: "Afișează FPS"
+  </dest>
+  <voice>
+    *: "Afișează fe pe se"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LIMIT_FPS
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Limit FPS"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Limitează FPS"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Limitează fe pe se"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SKIP_FRAMES
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Skip frames"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Omite cadre"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Omite cadre"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BACKLIGHT_BRIGHTNESS
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Backlight brightness"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Luminozitate iluminare"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Luminozitate iluminare"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_COMMON_SETTING
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Use common setting"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Folosește setarea comună"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Folosește setarea comună"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TONE_CONTROLS
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Tone controls"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Controale ton"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Controale ton"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FORCE_START_MENU
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Start menu"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Meniu pornire"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Meniu pornire"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CONDITIONAL_START_MENU
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Start menu if not completed"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Pornește meniul dacă nu este finalizat"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Pornește meniul dacă nu este finalizat"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AUTO_RESUME
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Resume automatically"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Reia automat"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Reia automat"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CLEAR_ALL_RESUMES
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Clear all resumes"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Șterge toate reluările"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Șterge toate reluările"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_UNAVAILABLE
+  desc: in mpegplayer settings
+  user: core
+  <source>
+    *: "Unavailable"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Indisponibil"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Indisponibil"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TOGGLE_ITEM
+  desc: deprecated
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MOVE_ITEM_UP
+  desc: in main_menu_config
+  user: core
+  <source>
+    *: "Move Item Up"
+  </source>
+  <dest>
+    *: "Mută element în sus"
+  </dest>
+  <voice>
+    *: "Mută element în sus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MOVE_ITEM_DOWN
+  desc: in main_menu_config
+  user: core
+  <source>
+    *: "Move Item Down"
+  </source>
+  <dest>
+    *: "Mută element în jos"
+  </dest>
+  <voice>
+    *: "Mută element în jos"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LOAD_DEFAULT_CONFIGURATION
+  desc: in main_menu_config
+  user: core
+  <source>
+    *: "Load Default Configuration"
+  </source>
+  <dest>
+    *: "Încarcă configurația implicită"
+  </dest>
+  <voice>
+    *: "Încarcă configurația implicită"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAVE_EXIT
+  desc: in main_menu_config
+  user: core
+  <source>
+    *: "Save and Exit"
+  </source>
+  <dest>
+    *: "Salvează și ieși"
+  </dest>
+  <voice>
+    *: "Salvează și ieși"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MAIN_MENU_ORDER
+  desc: deprecated
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_PATH
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Path]"
+  </source>
+  <dest>
+    *: "[Cale]"
+  </dest>
+  <voice>
+    *: "Cale"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_FILENAME
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Filename]"
+  </source>
+  <dest>
+    *: "[Nume fișier]"
+  </dest>
+  <voice>
+    *: "Nume fișier"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_SIZE
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Size]"
+  </source>
+  <dest>
+    *: "[Mărime]"
+  </dest>
+  <voice>
+    *: "Mărime"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_DATE
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Date]"
+  </source>
+  <dest>
+    *: "[Dată]"
+  </dest>
+  <voice>
+    *: "Dată"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_TIME
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Time]"
+  </source>
+  <dest>
+    *: "[Oră]"
+  </dest>
+  <voice>
+    *: "Oră"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_SUBDIRS
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Subdirs]"
+  </source>
+  <dest>
+    *: "[Subdosare]"
+  </dest>
+  <voice>
+    *: "Subdosare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_FILES
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Files]"
+  </source>
+  <dest>
+    *: "[Fișiere]"
+  </dest>
+  <voice>
+    *: "Fișiere"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_DIRECTORY_PROPERTIES
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "Directory properties"
+  </source>
+  <dest>
+    *: "Proprietăți dosar"
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_FILE_PROPERTIES
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "File properties"
+  </source>
+  <dest>
+    *: "Proprietăți fișier"
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_FAIL
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "Failed to gather information"
+  </source>
+  <dest>
+    *: "A eșuat colectarea informațiilor"
+  </dest>
+  <voice>
+    *: "A eșuat colectarea informațiilor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SWAP_CHANNELS
+  desc: in sound_settings
+  user: core
+  <source>
+    *: "Swap Channels"
+  </source>
+  <dest>
+    *: "Interschimbă canalele"
+  </dest>
+  <voice>
+    *: "Interschimbă canalele"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PANNING_SEPARATION
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Panning Separation"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Separație panoramare"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Separație panoramare"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REVERBERATION
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Reverberation"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Reverberație"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Reverberație"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_INTERPOLATION
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Interpolation"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Interpolare"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Interpolare"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_SURROUND
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Surround"
+    lowmem: none
+  </source>
+  <dest>
+    *: "~Surround"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Săraund"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_HQMIXER
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "HQ Mixer"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Mixer calitate înaltă"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Mixer calitate înaltă"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_SAMPLERATE
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Sample Rate"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Rata de eșantionare"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Rata de eșantionare"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CPU_BOOST
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "CPU Boost"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Boost CPU"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "bust ce pe u"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SPACING
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Spacing"
+  </source>
+  <dest>
+    *: "Spațiere"
+  </dest>
+  <voice>
+    *: "Spațiere"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CENTRE_MARGIN
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Centre margin"
+  </source>
+  <dest>
+    *: "Centrează marginea"
+  </dest>
+  <voice>
+    *: "Centrează marginea"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NUMBER_OF_SLIDES
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Number of slides"
+  </source>
+  <dest>
+    *: "Numărul de diapozitive"
+  </dest>
+  <voice>
+    *: "Numărul de diapozitive"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ZOOM
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Zoom"
+  </source>
+  <dest>
+    *: "Mărește"
+  </dest>
+  <voice>
+    *: "Mărește"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUM_TITLE
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Show album title"
+  </source>
+  <dest>
+    *: "Arată titlu album"
+  </dest>
+  <voice>
+    *: "Arată titlu album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESIZE_COVERS
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Resize Covers"
+  </source>
+  <dest>
+    *: "Redimensionează copertele"
+  </dest>
+  <voice>
+    *: "Redimensionează copertele"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REBUILD_CACHE
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Rebuild cache"
+  </source>
+  <dest>
+    *: "Reconstruiește cache-ul"
+  </dest>
+  <voice>
+    *: "Reconstruiește keșul"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WPS_INTEGRATION
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "WPS Integration"
+  </source>
+  <dest>
+    *: "Integrare cu ecranul de redare"
+  </dest>
+  <voice>
+    *: "Integrare cu ecranul de redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GOTO_WPS
+  desc: in the pictureflow main menu
+  user: core
+  <source>
+    *: "Go to WPS"
+  </source>
+  <dest>
+    *: "Mergi la ecranul de redare"
+  </dest>
+  <voice>
+    *: "Mergi la ecranul de redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HIDE_ALBUM_TITLE
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Hide album title"
+  </source>
+  <dest>
+    *: "Ascunde titlul albumului"
+  </dest>
+  <voice>
+    *: "Ascunde titlul albumului"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_AT_THE_BOTTOM
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show at the bottom"
+  </source>
+  <dest>
+    *: "Arată în subsol"
+  </dest>
+  <voice>
+    *: "Arată în subsol"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_AT_THE_TOP
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show at the top"
+  </source>
+  <dest>
+    *: "Arată în antet"
+  </dest>
+  <voice>
+    *: "Arată în antet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIRECT
+  desc: in the pictureflow settings, also a volume adjustment mode
+  user: core
+  <source>
+    *: "Direct"
+  </source>
+  <dest>
+    *: "~Direct"
+  </dest>
+  <voice>
+    *: "~Direct"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIA_TRACK_LIST
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Via Track list"
+  </source>
+  <dest>
+    *: "Via lista de piste"
+  </dest>
+  <voice>
+    *: "Via lista de piste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALWAYS_ON
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Always On"
+  </source>
+  <dest>
+    *: "Mereu activ"
+  </dest>
+  <voice>
+    *: "Mereu activ"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NO_ALBUMART_FOUND
+  desc: in the pictureflow splash messages
+  user: core
+  <source>
+    *: "No album art found"
+  </source>
+  <dest>
+    *: "Nu s-a găsit nicio imagine album"
+  </dest>
+  <voice>
+    *: "Nu s-a găsit nicio imagine album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ERROR_WRITING_CONFIG
+  desc: in the pictureflow splash messages
+  user: core
+  <source>
+    *: "Error writing config"
+  </source>
+  <dest>
+    *: "Eroare la scrierea configurației"
+  </dest>
+  <voice>
+    *: "Eroare la scrierea configurației"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NOT_A_VBR_FILE
+  desc: in vbrfix plugin
+  user: core
+  <source>
+    *: "Not a VBR file"
+  </source>
+  <dest>
+    *: "Nu este un fișier VBR"
+  </dest>
+  <voice>
+    *: "Nu este un fișier ve be re"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILE_ERROR
+  desc: in vbrfix plugin
+  user: core
+  <source>
+    *: "File error: %d"
+  </source>
+  <dest>
+    *: "Eroare fișier: %d"
+  </dest>
+  <voice>
+    *: "Eroare fișier"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_UPDATE_CACHE
+  desc: in pictureflow
+  user: core
+  <source>
+    *: "Update cache"
+  </source>
+  <dest>
+    *: "Actualizează cache"
+  </dest>
+  <voice>
+    *: "Actualizează keș"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HIDE_ALBUM_TITLE_NEW
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Hide information"
+  </source>
+  <dest>
+    *: "Ascunde informațiile"
+  </dest>
+  <voice>
+    *: "Ascunde informațiile"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_AT_THE_BOTTOM_NEW
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show album at the bottom"
+  </source>
+  <dest>
+    *: "Arată albumul în subsol"
+  </dest>
+  <voice>
+    *: "Arată albumul în subsol"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_AT_THE_TOP_NEW
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show album at the top"
+  </source>
+  <dest>
+    *: "Arată albumul în antet"
+  </dest>
+  <voice>
+    *: "Arată albumul în antet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALL_AT_THE_TOP
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show album and artist at the top"
+  </source>
+  <dest>
+    *: "Arată albumul și artistul în antet"
+  </dest>
+  <voice>
+    *: "Arată albumul și artistul în antet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALL_AT_THE_BOTTOM
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show album and artist at the bottom"
+  </source>
+  <dest>
+    *: "Arată albumul și artistul în subsol"
+  </dest>
+  <voice>
+    *: "Arată albumul și artistul în subsol"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_STD_CANCEL
+  desc: standard press x to cancel string
+  user: core
+  <source>
+    *: "Press LEFT to cancel."
+    android,hifietma*,zenvision: "Press BACK to cancel."
+    cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Press POWER to cancel."
+    ihifi760,ihifi960: "Double tap RETURN to cancel."
+    ihifi770,ihifi770c,ihifi800: "Press HOME to cancel."
+    iriverh10,samsungyh*: "Double tap LEFT to cancel."
+    mpiohd200: "Double tap REC to cancel."
+    mpiohd300: "Double tap MENU to cancel."
+    rx27generic: "Press VOLUME to cancel."
+    sonynwza860: "Keymaps incomplete."
+    touchscreen: "Press Middle Left to cancel."
+    vibe500: "Press PREV to cancel."
+    xduoox20,xduoox3,xduoox3ii: "Double tap HOME to cancel."
+  </source>
+  <dest>
+    *: "Apasă STÂNGA pentru a anula."
+    android,hifietma*,zenvision: "Apasă ÎNAPOI pentru a anula."
+    cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Apasă PORNIRE pentru a anula."
+    ihifi760,ihifi960: "Atinge de 2 ori ÎNAPOI pentru a anula."
+    ihifi770,ihifi770c,ihifi800: "Apasă ACASĂ pentru a anula."
+    iriverh10,samsungyh*: "Atinge de 2 ori STÂNGA pentru a anula."
+    mpiohd200: "Atinge de 2 ori REC pentru a anula."
+    mpiohd300: "Atinge de 2 ori MENIU pentru a anula."
+    rx27generic: "Apasă VOLUM pentru a anula."
+    sonynwza860: "Asocieri de taste incomplete."
+    touchscreen: "Apasă Mijloc-Stânga pentru a anula."
+    vibe500: "Apasă PREV pentru a anula."
+    xduoox20,xduoox3,xduoox3ii: "Atinge de 2 ori ACASĂ pentru a anula."
+  </dest>
+  <voice>
+    *: "Apasă STÂNGA pentru a anula."
+    android,hifietma*,zenvision: "Apasă ÎNAPOI pentru a anula."
+    cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Apasă PORNIRE pentru a anula."
+    ihifi760,ihifi960: "Atinge de 2 ori ÎNAPOI pentru a anula."
+    ihifi770,ihifi770c,ihifi800: "Apasă ACASĂ pentru a anula."
+    iriverh10,samsungyh*: "Atinge de 2 ori STÂNGA pentru a anula."
+    mpiohd200: "Atinge de 2 ori REC pentru a anula."
+    mpiohd300: "Atinge de 2 ori MENIU pentru a anula."
+    rx27generic: "Apasă VOLUM pentru a anula."
+    touchscreen: "Apasă Mijloc-Stânga pentru a anula."
+    vibe500: "Apasă PREV pentru a anula."
+    xduoox20,xduoox3,xduoox3ii: "Atinge de 2 ori ACASĂ pentru a anula."
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DATE
+  desc: for constructing time and date announcements
+  user: core
+  <source>
+    *: "Date"
+  </source>
+  <dest>
+    *: "Dată"
+  </dest>
+  <voice>
+    *: "Dată"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CLEAR_ALL
+  desc:
+  user: core
+  <source>
+    *: "Clear all"
+  </source>
+  <dest>
+    *: "Golește tot"
+  </dest>
+  <voice>
+    *: "Golește tot"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CANCEL_0
+  desc: CANCEL.
+  user: core
+  <source>
+    *: "Cancel"
+  </source>
+  <dest>
+    *: "Anulează"
+  </dest>
+  <voice>
+    *: "Anulează"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAVE
+  desc:
+  user: core
+  <source>
+    *: "Save"
+  </source>
+  <dest>
+    *: "Salvează"
+  </dest>
+  <voice>
+    *: "Salvează"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TIMEOUT
+  desc:
+  user: core
+  <source>
+    *: "Timeout"
+  </source>
+  <dest>
+    *: "Timp inavtivitate"
+  </dest>
+  <voice>
+    *: "Timp inavtivitate"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACK
+  desc: used in track x of y constructs
+  user: core
+  <source>
+    *: "Track"
+  </source>
+  <dest>
+    *: "Pista"
+  </dest>
+  <voice>
+    *: "Pista"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ELAPSED
+  desc: prefix for elapsed playtime announcement
+  user: core
+  <source>
+    *: "Elapsed"
+  </source>
+  <dest>
+    *: "Scurs"
+  </dest>
+  <voice>
+    *: "Scurs"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCEMENT_FMT
+  desc: format for wps hotkey announcement
+  user: core
+  <source>
+    *: none
+    hotkey: "Announcement format"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Format anunț"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Format anunț"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMAIN
+  desc: for constructs such as number of tracks remaining etc
+  user: core
+  <source>
+    *: none
+    hotkey: "Remain"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Rămas"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Rămas"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GROUPING
+  desc:
+  user: core
+  <source>
+    *: none
+    hotkey: "Grouping"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Grupare"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Grupare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCE_ON
+  desc:
+  user: core
+  <source>
+    *: none
+    hotkey: "Announce on"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Anunțuri activate"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Anunțuri activate"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACK_CHANGE
+  desc:
+  user: core
+  <source>
+    *: none
+    hotkey: "Track change"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Schimbare de pistă"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Schimbare de pistă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HOLD_FOR_SETTINGS
+  desc:
+  user: core
+  <source>
+    *: none
+    hotkey: "Hold for settings"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Ține apăsat pentru setări"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Ține apăsat pentru setări"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_OPEN_PLUGIN
+  desc: onplay open plugin
+  user: core
+  <source>
+    *: "Open Plugin"
+  </source>
+  <dest>
+    *: "Deschide plugin"
+  </dest>
+  <voice>
+    *: "Deschide plaghin"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_OPEN_PLUGIN_NOT_A_PLUGIN
+  desc: open plugin module
+  user: core
+  <source>
+    *: "Not a plugin: %s"
+  </source>
+  <dest>
+    *: "Nu este un plugin: %s"
+  </dest>
+  <voice>
+    *: "Nu este un plaghin"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_OPEN_PLUGIN_SET_WPS_CONTEXT_PLUGIN
+  desc: open plugin module
+  user: core
+  <source>
+    *: "Set WPS Context Plugin"
+  </source>
+  <dest>
+    *: "Alege plugin implicit"
+  </dest>
+  <voice>
+    *: "Alege plaghin implicit"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PARAMETER
+  desc:
+  user: core
+  <source>
+    *: "Parameter"
+  </source>
+  <dest>
+    *: "Parametru"
+  </dest>
+  <voice>
+    *: "Parametru"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NAME
+  desc:
+  user: core
+  <source>
+    *: "Name"
+  </source>
+  <dest>
+    *: "Nume"
+  </dest>
+  <voice>
+    *: "Adaugă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD
+  desc:
+  user: core
+  <source>
+    *: "Add"
+  </source>
+  <dest>
+    *: "Adaugă"
+  </dest>
+  <voice>
+    *: "Adaugă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BACK
+  desc:
+  user: core
+  <source>
+    *: "Back"
+  </source>
+  <dest>
+    *: "Înapoi"
+  </dest>
+  <voice>
+    *: "Înapoi"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_EDIT
+  desc:
+  user: core
+  <source>
+    *: "Edit"
+  </source>
+  <dest>
+    *: "Editează"
+  </dest>
+  <voice>
+    *: "Editează"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RUN
+  desc:
+  user: core
+  <source>
+    *: "Run"
+  </source>
+  <dest>
+    *: "Rulează"
+  </dest>
+  <voice>
+    *: "Rulează"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_EXPORT
+  desc:
+  user: core
+  <source>
+    *: "Export"
+  </source>
+  <dest>
+    *: "Exportă"
+  </dest>
+  <voice>
+    *: "Exportă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BROWSE
+  desc:
+  user: core
+  <source>
+    *: "Browse"
+  </source>
+  <dest>
+    *: "Răsfoiește"
+  </dest>
+  <voice>
+    *: "Răsfoiește"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ENTER_USB_STORAGE_MODE_QUERY
+  desc: upon plugging in USB
+  user: core
+  <source>
+    *: "Enter USB mass storage mode?"
+  </source>
+  <dest>
+    *: "Activezi modul de stocare USB în masă?"
+  </dest>
+  <voice>
+    *: "Activezi modul de stocare u se be în masă?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_QUEUE_MENU
+  desc: in onplay menu
+  user: core
+  <source>
+    *: "Queue..."
+  </source>
+  <dest>
+    *: "Coadă..."
+  </dest>
+  <voice>
+    *: "Coadă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_QUEUE_OPTIONS
+  desc: in Current Playlist settings
+  user: core
+  <source>
+    *: "Show Queue Options"
+  </source>
+  <dest>
+    *: "Arată opțiuni coadă"
+  </dest>
+  <voice>
+    *: "Arată opțiuni coadă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_SHUFFLED_ADDING_OPTIONS
+  desc: in Current Playlist settings
+  user: core
+  <source>
+    *: "Show Shuffled Adding Options"
+  </source>
+  <dest>
+    *: "Arată opțiuni de adăugare aleatoare"
+  </dest>
+  <voice>
+    *: "Arată opțiuni de adăugare aleatoare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_IN_SUBMENU
+  desc: in Settings
+  user: core
+  <source>
+    *: "In Submenu"
+  </source>
+  <dest>
+    *: "În submeniu"
+  </dest>
+  <voice>
+    *: "În submeniu"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SOFTLOCK_DISABLE_ALL_NOTIFY
+  desc: disable all softlock notifications
+  user: core
+  <source>
+    *: "Disable All Lock Notifications"
+  </source>
+  <dest>
+    *: "Dezactivează toate notificările de blocare"
+  </dest>
+  <voice>
+    *: "Dezactivează toate notificările de blocare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_VOLUME
+  desc: exempt volume from softlock
+  user: core
+  <source>
+    *: "Exempt Volume"
+  </source>
+  <dest>
+    *: "Excepție volum"
+  </dest>
+  <voice>
+    *: "Excepție volum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_ALWAYSAUTOLOCK
+  desc: always prime autolock
+  user: core
+  <source>
+    *: "Always Autolock"
+  </source>
+  <dest>
+    *: "Blochează automat mereu"
+  </dest>
+  <voice>
+    *: "Blochează automat mereu"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_NUMERIC_TENS_SWAP_SEPARATOR
+  desc: voice only, for speaking numbers in languages that swap the tens and ones fields. Leave blank for languages that do not need it, such as English ("231" => "two hundred thirty one") but other languages may speak it as "two hundred one [AND] thirty"
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VOICED_DATE_FORMAT
+  desc: format string for how dates will be read back. Y == 4-digit year, A == month name, m == numeric month, d == numeric day. For example, "AdY" will read "January 21 2021"
+  user: core
+  <source>
+    *: "dAY"
+  </source>
+  <dest>
+    *: "dAY"
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LIST_WRAPAROUND
+  desc: in Settings
+  user: core
+  <source>
+    *: "List Wraparound"
+  </source>
+  <dest>
+    *: "Listă circulară"
+  </dest>
+  <voice>
+    *: "Listă circulară"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_SHUTDOWN_MESSAGE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Show Shutdown Message"
+  </source>
+  <dest>
+    *: "Afișează mesaj închidere"
+  </dest>
+  <voice>
+    *: "Afișează mesaj închidere"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LIST_ORDER
+  desc: in Settings
+  user: core
+  <source>
+    *: "List Order"
+  </source>
+  <dest>
+    *: "Ordonare listă"
+  </dest>
+  <voice>
+    *: "Ordonare listă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ASCENDING
+  desc: in Settings
+  user: core
+  <source>
+    *: "Ascending"
+  </source>
+  <dest>
+    *: "Crescător"
+  </dest>
+  <voice>
+    *: "Crescător"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DESCENDING
+  desc: in Settings
+  user: core
+  <source>
+    *: "Descending"
+  </source>
+  <dest>
+    *: "Descrescător"
+  </dest>
+  <voice>
+    *: "Descrescător"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUM_ART
+  desc: in Settings
+  user: core
+  <source>
+    *: "Album Art"
+  </source>
+  <dest>
+    *: "Imagine album"
+  </dest>
+  <voice>
+    *: "Imagine album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PREFER_EMBEDDED
+  desc: in Settings
+  user: core
+  <source>
+    *: "Prefer Embedded"
+  </source>
+  <dest>
+    *: "Preferă imagine încorporată"
+  </dest>
+  <voice>
+    *: "Preferă imagine încorporată"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PREFER_IMAGE_FILE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Prefer Image File"
+  </source>
+  <dest>
+    *: "Preferă fișier separat"
+  </dest>
+  <voice>
+    *: "Preferă fișier separat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FM_SYNC_RDS_TIME
+  desc: in radio screen and Settings
+  user: core
+  <source>
+    *: none
+    rds: "Sync RDS Time"
+  </source>
+  <dest>
+    *: none
+    rds: "Sincronizează timpul cu RDS"
+  </dest>
+  <voice>
+    *: none
+    rds: "Sincronizează timpul cu er de es"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_ALBUMS_BY
+  desc: in Settings
+  user: core
+  <source>
+    *: "Sort albums by"
+  </source>
+  <dest>
+    *: "Sortează albumele după"
+  </dest>
+  <voice>
+    *: "Sortează albumele după"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTIST_PLUS_NAME
+  desc: in Settings
+  user: core
+  <source>
+    *: "Artist + Name"
+  </source>
+  <dest>
+    *: "Artist și nume"
+  </dest>
+  <voice>
+    *: "Artist și nume"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTIST_PLUS_YEAR
+  desc: in Settings
+  user: core
+  <source>
+    *: "Artist + Year"
+  </source>
+  <dest>
+    *: "Artist și an"
+  </dest>
+  <voice>
+    *: "Artist și an"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_YEAR_SORT_ORDER
+  desc: in Settings
+  user: core
+  <source>
+    *: "Year sort order"
+  </source>
+  <dest>
+    *: "Ordinea de sortare a anilor"
+  </dest>
+  <voice>
+    *: "Ordinea de sortare a anilor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_YEAR_IN_ALBUM_TITLE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Show year in album title"
+  </source>
+  <dest>
+    *: "Afișează anul în titlul albumului"
+  </dest>
+  <voice>
+    *: "Afișează anul în titlul albumului"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WAIT_FOR_CACHE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Cache needs to finish updating first!"
+  </source>
+  <dest>
+    *: "Cache-ul trebuie să se termine de actualizat mai întâi!"
+  </dest>
+  <voice>
+    *: "Keșul trebuie să se termine de actualizat mai întâi!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACK_INFO
+  desc: Track Info Title
+  user: core
+  <source>
+    *: "Track Info"
+  </source>
+  <dest>
+    *: "Informații pistă"
+  </dest>
+  <voice>
+    *: "Informații pistă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY
+  desc: play selected file/directory, in playlist context menu
+  user: core
+  <source>
+    *: "Play"
+  </source>
+  <dest>
+    *: "Redă"
+  </dest>
+  <voice>
+    *: "Redă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_SHUFFLED
+  desc: play selected files in shuffled order, in playlist context menu
+  user: core
+  <source>
+    *: "Play Shuffled"
+  </source>
+  <dest>
+    *: "Redă aleator"
+  </dest>
+  <voice>
+    *: "Redă aleator"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEEP_CURRENT_TRACK_ON_REPLACE
+  desc: used in the playlist settings menu
+  user: core
+  <source>
+    *: "Keep Current Track When Replacing Playlist"
+  </source>
+  <dest>
+    *: "Păstrează pista curentă la înlocuirea listei de redare"
+  </dest>
+  <voice>
+    *: "Păstrează pista curentă la înlocuirea listei de redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CLEAR_SETTINGS_ON_HOLD
+  desc: in the system sub menu
+  user: core
+  <source>
+    *: none
+    clear_settings_on_hold,iriverh10: "Clear settings when reset button is held during startup"
+    ipod4g,ipodcolor,ipodmini1g,ipodmini2g,ipodnano1g,ipodvideo: "Clear settings when hold switch is on during startup"
+  </source>
+  <dest>
+    *: none
+    clear_settings_on_hold,iriverh10: "Golește setările când butonul de resetare este ținut apăsat la pornire"
+    ipod4g,ipodcolor,ipodmini1g,ipodmini2g,ipodnano1g,ipodvideo: "Golește setările când butonul de blocare este activat la pornire"
+  </dest>
+  <voice>
+    *: none
+    clear_settings_on_hold,iriverh10: "Golește setările când butonul de resetare este ținut apăsat la pornire"
+    ipod4g,ipodcolor,ipodmini1g,ipodmini2g,ipodnano1g,ipodvideo: "Golește setările când butonul de blocare este activat la pornire"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REWIND_ACROSS_TRACKS
+  desc: in playback settings menu
+  user: core
+  <source>
+    *: "Rewind Across Tracks"
+  </source>
+  <dest>
+    *: "Derulează printre piste"
+  </dest>
+  <voice>
+    *: "Derulează printre piste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SET_AS
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Set As..."
+  </source>
+  <dest>
+    *: "Setează ca..."
+  </dest>
+  <voice>
+    *: "Setează ca"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYLIST_DIR
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Playlist Directory"
+  </source>
+  <dest>
+    *: "Dosar de liste de redare"
+  </dest>
+  <voice>
+    *: "Dosar de liste de redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_START_DIR
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Start Directory"
+  </source>
+  <dest>
+    *: "Dosar de pornire"
+  </dest>
+  <voice>
+    *: "Dosar de pornire"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECORDING_DIR
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: none
+    recording: "Recording Directory"
+  </source>
+  <dest>
+    *: none
+    recording: "Dosar de înregistrări"
+  </dest>
+  <voice>
+    *: none
+    recording: "Dosar de înregistrări"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_TO_PL
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Add to Playlist..."
+  </source>
+  <dest>
+    *: "Adaugă la lista de redare..."
+  </dest>
+  <voice>
+    *: "Adaugă la lista de redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_TO_EXISTING_PL
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Add to Existing Playlist"
+  </source>
+  <dest>
+    *: "Adaugă la listă existentă"
+  </dest>
+  <voice>
+    *: "Adaugă la listă existentă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYING_NEXT
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Playing Next..."
+  </source>
+  <dest>
+    *: "Redă în continuare..."
+  </dest>
+  <voice>
+    *: "Redă în continuare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_NEXT
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Play Next"
+  </source>
+  <dest>
+    *: "Redă imediat următoare"
+  </dest>
+  <voice>
+    *: "Redă imediat următoare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_SHUFFLED
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Add Shuffled"
+  </source>
+  <dest>
+    *: "Adaugă aleator"
+  </dest>
+  <voice>
+    *: "Adaugă aleator"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_LAST
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Play Last"
+  </source>
+  <dest>
+    *: "Redă ultima"
+  </dest>
+  <voice>
+    *: "Redă ultima"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_LAST_SHUFFLED
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Play Last Shuffled"
+  </source>
+  <dest>
+    *: "Redă ultimul amestec"
+  </dest>
+  <voice>
+    *: "Redă ultimul amestec"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VOLUME_ADJUST_MODE
+  desc: in system settings
+  user: core
+  <source>
+    *: none
+    perceptual_volume: "Volume Adjustment Mode"
+  </source>
+  <dest>
+    *: none
+    perceptual_volume: "Mod ajustare volum"
+  </dest>
+  <voice>
+    *: none
+    perceptual_volume: "Mod ajustare volum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VOLUME_ADJUST_NORM_STEPS
+  desc: in system settings
+  user: core
+  <source>
+    *: none
+    perceptual_volume: "Number of Volume Steps"
+  </source>
+  <dest>
+    *: none
+    perceptual_volume: "Nr. de incremente de volum"
+  </dest>
+  <voice>
+    *: none
+    perceptual_volume: "Numărul de incremente de volum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PERCEPTUAL
+  desc: in system settings -> volume adjustment mode
+  user: core
+  <source>
+    *: none
+    perceptual_volume: "Perceptual"
+  </source>
+  <dest>
+    *: none
+    perceptual_volume: "Perceptiv"
+  </dest>
+  <voice>
+    *: none
+    perceptual_volume: "Perceptiv"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_TRACKS_WHILE_BROWSING
+  desc: in PictureFlow Main Menu
+  user: core
+  <source>
+    *: "Show Tracks While Browsing"
+  </source>
+  <dest>
+    *: "Arată pistele în timpul răsfoirii"
+  </dest>
+  <voice>
+    *: "Arată pistele în timpul răsfoirii"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GOTO_LAST_ALBUM
+  desc: in PictureFlow Main Menu
+  user: core
+  <source>
+    *: "Go to Last Album"
+  </source>
+  <dest>
+    *: "Mergi la ultimul album"
+  </dest>
+  <voice>
+    *: "Mergi la ultimul album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DATABASE_DIR
+  desc: in database settings menu
+  user: core
+  <source>
+    *: "Database Directory"
+  </source>
+  <dest>
+    *: "Dosar al bazei de date"
+  </dest>
+  <voice>
+    *: "Dosar al bazei de date"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMOVE_QUEUED_TRACKS
+  desc: Confirmation dialog
+  user: core
+  <source>
+    *: "Remove Queued Tracks?"
+  </source>
+  <dest>
+    *: "Elimini pistele din coadă?"
+  </dest>
+  <voice>
+    *: "Elimini pistele din coadă?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_QUICK_IGNORE_DIRACHE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Quick (Ignore Directory Cache)"
+  </source>
+  <dest>
+    *: "Rapid (ignoră cache-ul dosarului)"
+  </dest>
+  <voice>
+    *: "Rapid (ignoră keșul dosarului)"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WPS
+  desc: in Settings
+  user: core
+  <source>
+    *: "What's Playing Screen"
+  </source>
+  <dest>
+    *: "Ecran redare"
+  </dest>
+  <voice>
+    *: "Ecran redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DEFAULT_BROWSER
+  desc: in Settings
+  user: core
+  <source>
+    *: "Default Browser"
+  </source>
+  <dest>
+    *: "Navigator implicit"
+  </dest>
+  <voice>
+    *: "Navigator implicit"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AMAZE_MENU
+  desc: Amaze game
+  user: core
+  <source>
+    *: "Amaze Main Menu"
+  </source>
+  <dest>
+    *: "Meniu principal Amaze"
+  </dest>
+  <voice>
+    *: "Meniu principal a meiz"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SET_MAZE_SIZE
+  desc: Maze size in Amaze game
+  user: core
+  <source>
+    *: "Set Maze Size"
+  </source>
+  <dest>
+    *: "Setează mărime labirint"
+  </dest>
+  <voice>
+    *: "Setează mărime labirint"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEW_MAP
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "View Map"
+  </source>
+  <dest>
+    *: "Vezi harta"
+  </dest>
+  <voice>
+    *: "Vezi harta"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_COMPASS
+  desc: Compass in Amaze game
+  user: core
+  <source>
+    *: "Show Compass"
+  </source>
+  <dest>
+    *: "Afișează busola"
+  </dest>
+  <voice>
+    *: "Afișează busola"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_MAP
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "Show Map"
+  </source>
+  <dest>
+    *: "Arată harta"
+  </dest>
+  <voice>
+    *: "Arată harta"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMEMBER_PATH
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "Remember Path"
+  </source>
+  <dest>
+    *: "Ține minte calea"
+  </dest>
+  <voice>
+    *: "Ține minte calea"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_LARGE_TILES
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "Use Large Tiles"
+  </source>
+  <dest>
+    *: "Folosește dale mari"
+  </dest>
+  <voice>
+    *: "Folosește dale mari"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_SOLUTION
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "Show Solution"
+  </source>
+  <dest>
+    *: "Arată soluția"
+  </dest>
+  <voice>
+    *: "Arată soluția"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_QUIT_WITHOUT_SAVING
+  desc:
+  user: core
+  <source>
+    *: "Quit without saving"
+  </source>
+  <dest>
+    *: "Închide fără a salva"
+  </dest>
+  <voice>
+    *: "Închide fără a salva"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GENERATING_MAZE
+  desc: Amaze game
+  user: core
+  <source>
+    *: "Generating maze..."
+  </source>
+  <dest>
+    *: "Se generează labirint..."
+  </dest>
+  <voice>
+    *: "Se generează labirint"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_YOU_WIN
+  desc: Success in game
+  user: core
+  <source>
+    *: "You win!"
+  </source>
+  <dest>
+    *: "Ai câștigat!"
+  </dest>
+  <voice>
+    *: "Ai câștigat!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_YOU_CHEATED
+  desc: Cheated in game
+  user: core
+  <source>
+    *: "You cheated!"
+  </source>
+  <dest>
+    *: "Ai trișat!"
+  </dest>
+  <voice>
+    *: "Ai trișat!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFICULTY_EASY
+  desc: Game difficulty
+  user: core
+  <source>
+    *: "Easy"
+  </source>
+  <dest>
+    *: "Ușor"
+  </dest>
+  <voice>
+    *: "Ușor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFICULTY_MEDIUM
+  desc: Game difficulty
+  user: core
+  <source>
+    *: "Medium"
+  </source>
+  <dest>
+    *: "Mediu"
+  </dest>
+  <voice>
+    *: "Mediu"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFICULTY_HARD
+  desc: Game difficulty
+  user: core
+  <source>
+    *: "Hard"
+  </source>
+  <dest>
+    *: "Dificil"
+  </dest>
+  <voice>
+    *: "Dificil"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFICULTY_EXPERT
+  desc: Game difficulty
+  user: core
+  <source>
+    *: "Expert"
+  </source>
+  <dest>
+    *: "~Expert"
+  </dest>
+  <voice>
+    *: "~Expert"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LEGAL_NOTICES
+  desc: in system menu
+  user: core
+  <source>
+    *: "Legal Notices"
+  </source>
+  <dest>
+    *: "Notificări legale"
+  </dest>
+  <voice>
+    *: "Notificări legale"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ERROR_FORMATSTR
+  desc: for general use
+  user: core
+  <source>
+    *: "Error: %s"
+  </source>
+  <dest>
+    *: "Eroare: %s"
+  </dest>
+  <voice>
+    *: "Eroare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_SETTINGS
+  desc: mikmod plugin
+  user: core
+  <source>
+    *: "Mikmod Settings"
+  </source>
+  <dest>
+    *: "Setări Mikimod"
+  </dest>
+  <voice>
+    *: "Setări miki mod"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_MENU
+  desc: mikmod plugin
+  user: core
+  <source>
+    *: "Mikmod Menu"
+  </source>
+  <dest>
+    *: "Meniu Mikmod"
+  </dest>
+  <voice>
+    *: "Meniu miki mod"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU
+  desc: chessbox plugin
+  user: core
+  <source>
+    *: "Chessbox Menu"
+  </source>
+  <dest>
+    *: "Meniu Chessbox "
+  </dest>
+  <voice>
+    *: "Meniu ces boks"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_INVALID_VOICE_FILE
+  desc: played if the voice file fails to load
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Fișier de voce invalid"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_LANG_NAME
+  desc: Spoken name of the language
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Română"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PERCENT_FORMAT
+  desc: percent formatting ( `10%` is default ,  for `10 %` use '%ld %%' , for `%10` use '%%%ld' and so on)
+  user: core
+  <source>
+    *: "%ld%%"
+  </source>
+  <dest>
+    *: "~%ld%%"
+  </dest>
+  <voice>
+    *: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHOOSE_FILE
+  desc: file_picker plugin ask user to select a file
+  user: core
+  <source>
+    *: "Choose File"
+  </source>
+  <dest>
+    *: "Alege fișier"
+  </dest>
+  <voice>
+    *: "Alege fișier"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISABLE_MAINMENU_SCROLLING
+  desc: Disable main menu scrolling
+  user: core
+  <source>
+    *: "Disable main menu scrolling"
+  </source>
+  <dest>
+    *: "Dezactivează derularea meniului principal"
+  </dest>
+  <voice>
+    *: "Dezactivează derularea meniului principal"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMAINING
+  desc: Playing Time
+  user: core
+  <source>
+    *: "Remaining"
+  </source>
+  <dest>
+    *: "Rămas"
+  </dest>
+  <voice>
+    *: "Rămas"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "First Letter"
+  </source>
+  <dest>
+    *: "Prima literă"
+  </dest>
+  <voice>
+    *: "Prima literă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "By First Letter..."
+  </source>
+  <dest>
+    *: "După prima literă..."
+  </dest>
+  <voice>
+    *: "După prima literă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists by First Letter"
+  </source>
+  <dest>
+    *: "Artiști după prima literă"
+  </dest>
+  <voice>
+    *: "Artiști după prima literă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUM_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Album Artists by First Letter"
+  </source>
+  <dest>
+    *: "Artiști album după prima literă"
+  </dest>
+  <voice>
+    *: "Artiști album după prima literă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUMS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by First Letter"
+  </source>
+  <dest>
+    *: "Albume după prima literă"
+  </dest>
+  <voice>
+    *: "Albume după prima literă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_TRACKS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by First Letter"
+  </source>
+  <dest>
+    *: "Piste după prima literă"
+  </dest>
+  <voice>
+    *: "Piste după prima literă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists"
+  </source>
+  <dest>
+    *: "Artiști"
+  </dest>
+  <voice>
+    *: "Artiști"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums"
+  </source>
+  <dest>
+    *: "Albume"
+  </dest>
+  <voice>
+    *: "Albume"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks"
+  </source>
+  <dest>
+    *: "Piste"
+  </dest>
+  <voice>
+    *: "Piste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHUFFLE_SONGS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Shuffle Songs"
+  </source>
+  <dest>
+    *: "Amestecă cântecele"
+  </dest>
+  <voice>
+    *: "Amestecă cântecele"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILENAME
+  desc: Database and recording menus
+  user: core
+  <source>
+    *: "Filename"
+  </source>
+  <dest>
+    *: "Nume fișier"
+  </dest>
+  <voice>
+    *: "Nume fișier"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TITLE_WITH_DURATION
+  desc: Database menu
+  user: core
+  <source>
+    *: "Title (with track duration)"
+  </source>
+  <dest>
+    *: "Titlu (cu durata pistei)"
+  </dest>
+  <voice>
+    *: "Titlu cu durata pistei"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USER_RATING
+  desc: Database menu
+  user: core
+  <source>
+    *: "User Rating"
+  </source>
+  <dest>
+    *: "Evaluare utilizator"
+  </dest>
+  <voice>
+    *: "Evaluare utilizator"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search"
+  </source>
+  <dest>
+    *: "Caută"
+  </dest>
+  <voice>
+    *: "Caută"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search by..."
+  </source>
+  <dest>
+    *: "Caută după..."
+  </dest>
+  <voice>
+    *: "Caută după"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECENTLY_ADDED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently Added"
+  </source>
+  <dest>
+    *: "Adăugate recent"
+  </dest>
+  <voice>
+    *: "Adăugate recent"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_HISTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Playback History"
+  </source>
+  <dest>
+    *: "Istoric redare"
+  </dest>
+  <voice>
+    *: "Istoric redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CUSTOM_MENU
+  desc: Database menu
+  user: core
+  <source>
+    *: "Custom menu"
+  </source>
+  <dest>
+    *: "Meniu personalizat"
+  </dest>
+  <voice>
+    *: "Meniu personalizat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAME_AS_CURRENT
+  desc: Database menu
+  user: core
+  <source>
+    *: "Same as currently played track"
+  </source>
+  <dest>
+    *: "La fel cu pista curentă"
+  </dest>
+  <voice>
+    *: "La fel cu pista curentă"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIRECTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Directory"
+  </source>
+  <dest>
+    *: "Dosar"
+  </dest>
+  <voice>
+    *: "Dosar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BY_YEAR
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by Year"
+  </source>
+  <dest>
+    *: "Albume după an"
+  </dest>
+  <voice>
+    *: "Albume după an"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums between Years"
+  </source>
+  <dest>
+    *: "Albume între anii"
+  </dest>
+  <voice>
+    *: "Albume între anii"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists between Years"
+  </source>
+  <dest>
+    *: "Artiști între anii"
+  </dest>
+  <voice>
+    *: "Artiști între anii"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_MOST_PLAYED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Most played (Plays|Score)"
+  </source>
+  <dest>
+    *: "Cele mai redate (Nr. redări|Evaluare)"
+  </dest>
+  <voice>
+    *: "Cele mai redate după număr redări, apoi după evaluare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENTLY_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently played tracks"
+  </source>
+  <dest>
+    *: "Piste redate recent"
+  </dest>
+  <voice>
+    *: "Piste redate recent"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEVER_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Never played tracks"
+  </source>
+  <dest>
+    *: "Piste neredate niciodată"
+  </dest>
+  <voice>
+    *: "Piste neredate niciodată"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite artists"
+  </source>
+  <dest>
+    *: "Artiști favoriți"
+  </dest>
+  <voice>
+    *: "Artiști favoriți"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite albums"
+  </source>
+  <dest>
+    *: "Albume favorite"
+  </dest>
+  <voice>
+    *: "Albume favorite"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENT_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recent favourites"
+  </source>
+  <dest>
+    *: "Favorite recente"
+  </dest>
+  <voice>
+    *: "Favorite recente"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEW_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "New favourites"
+  </source>
+  <dest>
+    *: "Favorite noi"
+  </dest>
+  <voice>
+    *: "Favorite noi"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FORGOTTEN_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Forgotten favourites"
+  </source>
+  <dest>
+    *: "Favorite uitate"
+  </dest>
+  <voice>
+    *: "Favorite uitate"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by"
+  </source>
+  <dest>
+    *: "Piste după"
+  </dest>
+  <voice>
+    *: "Piste după"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEW_ALBUMART
+  desc: WPS context menu
+  user: core
+  <source>
+    *: "View Album Art"
+  </source>
+  <dest>
+    *: "Vezi imagine album"
+  </dest>
+  <voice>
+    *: "Vezi imagine album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HP_LO_SELECT
+  desc: Output Select
+  user: core
+  <source>
+    *: none
+    erosqnative: "Output Select"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "Selecție ieșire audio"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "Selecție ieșire audio"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HEADPHONE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative: "Headphone"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "Cască"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "Cască"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LINEOUT
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative,lineout_poweroff: "Line Out"
+  </source>
+  <dest>
+    *: none
+    erosqnative,lineout_poweroff: "Ieșire linie"
+  </dest>
+  <voice>
+    *: none
+    erosqnative,lineout_poweroff: "Ieșire linie"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FONT_LOAD_ERROR
+  desc: Displayed when font loading fails
+  user: core
+  <source>
+    *: "Unable to load font: (%s)"
+  </source>
+  <dest>
+    *: "Nu s-a putut încărca fontul: (%s)"
+  </dest>
+  <voice>
+    *: "Nu s-a putut încărca fontul"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LOGGING
+  desc: playback logging
+  user: core
+  <source>
+    *: "Logging"
+  </source>
+  <dest>
+    *: "Jurnalizare"
+  </dest>
+  <voice>
+    *: "jurnalizare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEWLOG
+  desc: view Log
+  user: core
+  <source>
+    *: "View log"
+  </source>
+  <dest>
+    *: "Vezi jurnal"
+  </dest>
+  <voice>
+    *: "vezi jurnal"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REPLAY_FINISHED_PLAYLIST
+  desc: Resume playback of finished playlist
+  user: core
+  <source>
+    *: "Playlist finished. Play again?"
+  </source>
+  <dest>
+    *: "Lista s-a terminat. Redai din nou?"
+  </dest>
+  <voice>
+    *: "Lista s-a terminat. Redai din nou?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_PLAYLISTS
+  desc: playlists sorting setting
+  user: core
+  <source>
+    *: "Sort Playlists"
+  </source>
+  <dest>
+    *: "Ordonează listele de redare"
+  </dest>
+  <voice>
+    *: "ordonează listele de redare"
   </voice>
 </phrase>

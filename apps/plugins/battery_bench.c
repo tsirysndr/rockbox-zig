@@ -24,6 +24,22 @@
 #include "plugin.h"
 #include "lang_enum.h"
 
+/* matches struct in powermgmt.h */
+struct battery_tables_t {
+    unsigned short * const history;
+    unsigned short * const disksafe;
+    unsigned short * const shutoff;
+    unsigned short * const discharge;
+#if CONFIG_CHARGING
+    unsigned short * const charge;
+#endif
+    const unsigned short elems;
+    bool isdefault;
+};
+
+#define BATTERY_LEVELS_DEFAULT ROCKBOX_DIR"/battery_levels.default"
+#define BATTERY_LEVELS_USER    ROCKBOX_DIR"/battery_levels.cfg"
+
 #define BATTERY_LOG HOME_DIR "/battery_bench.txt"
 #define BUF_SIZE 16000
 
@@ -265,7 +281,7 @@
 #endif
 
 /****************************** Plugin Entry Point ****************************/
-static long start_tick;
+long start_tick;
 
 /* Struct for battery information */
 static struct batt_info
@@ -442,7 +458,7 @@ static void thread(void)
             bat[buf_idx].flags = charge_state();
 #endif
             buf_idx++;
-#if USING_STORAGE_CALLBACK
+#ifdef USING_STORAGE_CALLBACK
             rb->register_storage_idle_func(flush_buffer);
 #endif
         }
@@ -481,7 +497,7 @@ static void thread(void)
         }
     }
 
-#if USING_STORAGE_CALLBACK
+#ifdef USING_STORAGE_CALLBACK
     /* unregister flush callback and flush to disk */
     rb->unregister_storage_idle_func(flush_buffer, true);
 #else
@@ -505,6 +521,70 @@ static void put_centered_str(const char* str, plcdfunc putsxy, int lcd_width, in
     int strwdt, strhgt;
     rb->lcd_getstringsize(str, &strwdt, &strhgt);
     putsxy((lcd_width - strwdt)/2, line*(strhgt), str);
+}
+
+void do_export_battery_tables(void)
+{
+    size_t elems = rb->device_battery_tables->elems;
+    if (!rb->device_battery_tables->isdefault)
+        return; /* no need to print out non-defaults */
+    unsigned int i;
+    int fd;
+    /* write out the default battery levels file */
+    if (!rb->file_exists(BATTERY_LEVELS_DEFAULT))
+    {
+        fd = rb->open(BATTERY_LEVELS_DEFAULT, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd >= 0)
+        {
+            rb->fdprintf(fd, "# Rename to %s\n# " MODEL_NAME " Battery Levels (%s)\n\n",
+                     BATTERY_LEVELS_USER, rb->rbversion);
+
+            rb->fdprintf(fd, "# Battery voltage(millivolt) of {");
+            for(i= 0;i < elems;i++)
+            {
+                rb->fdprintf(fd, "%u%%, ", i * 10);
+            }
+            rb->lseek(fd, -2, SEEK_CUR); /*remove last comma */
+            rb->fdprintf(fd, "} when charging %sabled\n", "dis");
+            rb->fdprintf(fd, "discharge: {");
+            for(i= 0;i < elems;i++)
+            {
+                rb->fdprintf(fd, "%u, ", rb->device_battery_tables->discharge[i]);
+            }
+            rb->lseek(fd, -2, SEEK_CUR); /*remove last comma */
+            rb->fdprintf(fd, "}\n\n");
+#if CONFIG_CHARGING
+            rb->fdprintf(fd, "# Battery voltage(millivolt) of {");
+            for(i= 0;i < elems;i++)
+            {
+                rb->fdprintf(fd, "%u%%, ", i * 10);
+            }
+            rb->lseek(fd, -2, SEEK_CUR); /*remove last comma */
+            rb->fdprintf(fd, "} when charging %sabled\n", "en");
+            rb->fdprintf(fd, "charge: {");
+            for(i= 0;i < elems;i++)
+            {
+                rb->fdprintf(fd, "%u, ", rb->device_battery_tables->charge[i]);
+            }
+            rb->lseek(fd, -2, SEEK_CUR); /*remove last comma */
+            rb->fdprintf(fd, "}\n\n");
+#endif
+
+            rb->fdprintf(fd, "# WARNING 'shutoff' and 'disksafe' levels protect " \
+                             "from battery over-discharge and dataloss\n\n");
+
+            rb->fdprintf(fd, "# Battery voltage(millivolt) lower than this %s\n",
+                             "player will shutdown");
+
+            rb->fdprintf(fd, "#shutoff: %d\n\n", *rb->device_battery_tables->shutoff);
+
+            rb->fdprintf(fd, "# Battery voltage(millivolt) lower than this %s\n",
+                             "won't access the disk to write");
+            rb->fdprintf(fd, "#disksafe: %d\n\n", *rb->device_battery_tables->disksafe);
+
+            rb->close(fd);
+        }
+    }
 }
 
 enum plugin_status plugin_start(const void* parameter)
@@ -543,6 +623,7 @@ enum plugin_status plugin_start(const void* parameter)
 #endif
     if (!resume)
     {
+        do_export_battery_tables();
         do
         {
             button = rb->button_get(true);

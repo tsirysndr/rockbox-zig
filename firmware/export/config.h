@@ -84,6 +84,7 @@
 #define IMX233        233
 #define RK27XX       2700
 #define X1000        1000
+#define STM32H743   32743
 
 /* platforms
  * bit fields to allow PLATFORM_HOSTED to be OR'ed e.g. with a
@@ -163,6 +164,8 @@
 #define EROSQ_PAD          72
 #define FIIO_M3K_PAD       73
 #define SHANLING_Q1_PAD    74
+#define ECHO_R1_PAD        75
+#define SURFANS_F28_PAD    76
 
 /* CONFIG_REMOTE_KEYPAD */
 #define H100_REMOTE   1
@@ -204,6 +207,9 @@
                             * use the charging hardware. */
 
 /* CONFIG_BATTERY_MEASURE bits */
+/* If both VOLTAGE_MEASURE and PERCENTAGE_MEASURE are defined,
+ * _battery_level() (percentage) will be preferred, unless _battery_level()
+ * returns -1, then voltage will be used from _voltage_level(). */
 #define VOLTAGE_MEASURE     1 /* Target can report battery voltage
                                * Usually native ports */
 #define PERCENTAGE_MEASURE  2 /* Target can report remaining capacity in %
@@ -279,6 +285,7 @@
 #define LCD_FIIOM3K       69 /* as used by the FiiO M3K */
 #define LCD_SHANLING_Q1   70 /* as used by the Shanling Q1 */
 #define LCD_EROSQ         71 /* as used by the ErosQ (native) */
+#define LCD_ECHO_R1       72 /* ILI9342, as used by the Echo R1 */
 
 /* LCD_PIXELFORMAT */
 #define HORIZONTAL_PACKING 1
@@ -356,6 +363,7 @@ Lyre prototype 1 */
 #define RTC_CONNECT  24 /* Sansa Connect AVR */
 #define RTC_NANO3G   25 /* Dialog Semiconductor D1671 ??? */
 #define RTC_NANO4G   26 /* Dialog Semiconductor D1759 ??? */
+#define RTC_STM32H743 27
 
 /* USB On-the-go */
 #define USBOTG_M66591   6591 /* M:Robe 500 */
@@ -417,6 +425,10 @@ Lyre prototype 1 */
 #include "config/ipod4g.h"
 #elif defined(IPOD_NANO2G)
 #include "config/ipodnano2g.h"
+#elif defined(IPOD_NANO3G)
+#include "config/ipodnano3g.h"
+#elif defined(IPOD_NANO4G)
+#include "config/ipodnano4g.h"
 #elif defined(IPOD_6G)
 #include "config/ipod6g.h"
 #elif defined(GIGABEAT_F)
@@ -603,6 +615,10 @@ Lyre prototype 1 */
 #include "config/shanlingq1.h"
 #elif defined(EROS_QN)
 #include "config/erosqnative.h"
+#elif defined(ECHO_R1)
+#include "config/echor1.h"
+#elif defined(SURFANS_F28)
+#include "config/surfansf28.h"
 #else
 //#error "unknown hwardware platform!"
 #endif
@@ -693,7 +709,19 @@ Lyre prototype 1 */
 /* define for all cpus from ARM family */
 #if ARCH == ARCH_ARM
 #define CPU_ARM
-#define ARM_ARCH ARCH_VERSION /* ARMv{4,5,6,7} */
+#define ARM_ARCH    ARCH_VERSION /* ARMv{4,5,6,7} */
+#define ARM_PROFILE ARCH_PROFILE /* Classic, Microcontroller */
+# if ARM_PROFILE == ARM_PROFILE_MICRO
+#  define CPU_ARM_MICRO
+#  if (ARM_ARCH >= 7)
+#   define ARM_HAVE_HW_DIV
+#  endif
+# elif ARM_PROFILE == ARM_PROFILE_CLASSIC
+#  define CPU_ARM_CLASSIC
+# endif
+# if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+#  define ARM_NEED_DIV0
+# endif
 #endif
 
 #if ARCH == ARCH_MIPS
@@ -736,10 +764,6 @@ Lyre prototype 1 */
 
 #ifndef CONFIG_RTC
 #define CONFIG_RTC 0
-#endif
-
-#ifndef BATTERY_TYPES_COUNT
-#define BATTERY_TYPES_COUNT 0
 #endif
 
 #ifndef BATTERY_CAPACITY_DEFAULT
@@ -1055,12 +1079,25 @@ Lyre prototype 1 */
 #define ROCKBOX_STRICT_ALIGN 1
 #endif
 
+/* -Wunterminates-string-initialization will complain if we try to shove
+  a "string" into an array that is too small.  Sometimes this actually
+  intentional, where you are merely using "string" as a standin for
+  "non-terminated sequence of bytes" -- in which case we need to mark
+  the "string" as "not actually a string" with an attribute.  Applies to
+  GCC >=8, but this warning isn't pulled in by -Wextra until >= 15.
+*/
+#if __GNUC__ >= 8
+#define __NONSTRING __attribute__((__nonstring__))
+#else
+#define __NONSTRING
+#endif
+
 /*
  * These macros are for switching on unified syntax in inline assembly.
  * Older versions of GCC emit assembly in divided syntax with no option
  * to enable unified syntax.
  */
-#if (__GNUC__ < 8)
+#if (__GNUC__ < 8) && defined(CPU_ARM_CLASSIC)
 #define BEGIN_ARM_ASM_SYNTAX_UNIFIED ".syntax unified\n"
 #define END_ARM_ASM_SYNTAX_UNIFIED   ".syntax divided\n"
 #else
@@ -1364,7 +1401,9 @@ Lyre prototype 1 */
 #define HAVE_PCM_FULL_DUPLEX
 #endif
 
+#if !defined(BOOTLOADER)
 #define HAVE_PITCHCONTROL
+#endif
 
 /* enable logging messages to disk*/
 #if !defined(BOOTLOADER) && !defined(__PCTOOL__)

@@ -64,6 +64,9 @@
 #include "pathfuncs.h"
 #include "shortcuts.h"
 #include "misc.h"
+#ifdef HAVE_DISK_STORAGE
+#include "storage.h"
+#endif
 
 static int onplay_result = ONPLAY_OK;
 static bool in_queue_submenu = false;
@@ -180,7 +183,7 @@ static int bookmark_menu_callback(int action,
 /* CONTEXT_WPS playlist options */
 static bool shuffle_playlist(void)
 {
-    if (!warn_on_pl_erase())
+    if (!yesno_pop_confirm(ID2P(LANG_SHUFFLE)))
         return false;
     playlist_sort(NULL, true);
     playlist_randomise(NULL, current_tick, true);
@@ -230,8 +233,8 @@ MENUITEM_FUNCTION(playing_time_item, 0, ID2P(LANG_PLAYING_TIME),
                   playing_time, NULL, Icon_Playlist);
 MAKE_ONPLAYMENU( wps_playlist_menu, ID2P(LANG_CURRENT_PLAYLIST),
                  NULL, Icon_Playlist,
-                 &wps_view_cur_playlist_item, &search_playlist_item,
-                 &playlist_save_item, &reshuffle_item, &playing_time_item
+                 &wps_view_cur_playlist_item, &playlist_save_item,
+                 &search_playlist_item, &reshuffle_item, &playing_time_item
                );
 
 /* argument for add_to_playlist (for use by menu callbacks) */
@@ -267,6 +270,11 @@ static void op_playlist_insert_selected(int position, bool queue)
         ctx_current_playlist_insert(position, queue, false);
         return;
     }
+    else if (selected_file.context == CONTEXT_ID3DB)
+    {
+        tagtree_current_playlist_insert(position, queue);
+        return;
+    }
 #endif
     if ((selected_file.attr & FILE_ATTR_MASK) == FILE_ATTR_AUDIO)
         playlist_insert_track(NULL, selected_file.path, position, queue, true);
@@ -274,13 +282,6 @@ static void op_playlist_insert_selected(int position, bool queue)
         playlist_insert_playlist(NULL, selected_file.path, position, queue);
     else if (selected_file.attr & ATTR_DIRECTORY)
     {
-#ifdef HAVE_TAGCACHE
-        if (selected_file.context == CONTEXT_ID3DB)
-        {
-            tagtree_current_playlist_insert(position, queue);
-            return;
-        }
-#endif
         bool recurse = (global_settings.recursive_dir_insert == RECURSE_ON);
         if (global_settings.recursive_dir_insert == RECURSE_ASK)
         {
@@ -708,10 +709,56 @@ static int browse_id3_wrapper(void)
 /* CONTEXT_WPS items */
 MENUITEM_FUNCTION(browse_id3_item, MENU_FUNC_CHECK_RETVAL, ID2P(LANG_MENU_SHOW_ID3_INFO),
                   browse_id3_wrapper, NULL, Icon_NOICON);
+
 #ifdef HAVE_PITCHCONTROL
 MENUITEM_FUNCTION(pitch_screen_item, 0, ID2P(LANG_PITCH),
                   gui_syncpitchscreen_run, NULL, Icon_Audio);
-#endif
+MENUITEM_FUNCTION(pitch_reset_item, 0, ID2P(LANG_RESET_SETTING),
+                  reset_pitch, NULL, Icon_Submenu_Entered);
+
+static int pitch_callback(int action,
+                          const struct menu_item_ex *this_item,
+                          struct gui_synclist *this_list);
+
+/* need special handling so we can toggle the icon */
+#define MAKE_PITCHMENU( name, str, callback, icon, ... )           \
+    static const struct menu_item_ex *name##_[]  = {__VA_ARGS__};  \
+    struct menu_callback_with_desc name##__ = {callback,str,icon}; \
+    static const struct menu_item_ex name =                        \
+        {MT_MENU|MENU_HAS_DESC|MENU_EXITAFTERTHISMENU|             \
+         MENU_ITEM_COUNT(sizeof( name##_)/sizeof(*name##_)),       \
+            { (void*)name##_},{.callback_and_desc = & name##__}};
+
+MAKE_PITCHMENU(pitch_menu, ID2P(LANG_PITCH),
+                pitch_callback, Icon_Audio,
+                &pitch_screen_item,
+                &pitch_reset_item);
+
+static int pitch_callback(int action,
+                          const struct menu_item_ex *this_item,
+                          struct gui_synclist *this_list)
+{
+    if (action == ACTION_ENTER_MENUITEM || action == ACTION_REQUEST_MENUITEM)
+    {
+        pitch_menu__.icon_id = Icon_Submenu; /* if setting changed show + */
+        int32_t ts = dsp_get_timestretch();
+        if (sound_get_pitch() == PITCH_SPEED_100 && ts == PITCH_SPEED_100)
+        {
+            pitch_menu__.icon_id = Icon_Audio;
+            if (action == ACTION_ENTER_MENUITEM)
+            { /* if default then run pitch screen directly */
+                gui_syncpitchscreen_run();
+                action = ACTION_EXIT_MENUITEM;
+            }
+        }
+    }
+    return action;
+
+    (void)this_item;
+    (void)this_list;
+}
+#endif /*def HAVE_PITCHCONTROL*/
+
 #ifdef HAVE_ALBUMART
 MENUITEM_FUNCTION(view_album_art_item, 0, ID2P(LANG_VIEW_ALBUMART),
                   view_album_art, NULL, Icon_NOICON);
@@ -793,16 +840,33 @@ static bool list_viewers(void)
 #ifdef HAVE_TAGCACHE
 static bool prepare_database_sel(void *param)
 {
-    if (selected_file.context == CONTEXT_ID3DB &&
-        (selected_file.attr & FILE_ATTR_MASK) != FILE_ATTR_AUDIO)
+    if (selected_file.context == CONTEXT_ID3DB)
     {
-        if (!strcmp(param, "properties"))
+        if (param && !strcmp(param, "properties")
+            && (selected_file.attr & FILE_ATTR_MASK) != FILE_ATTR_AUDIO)
+        {
             strmemccpy(selected_file.buf, MAKE_ACT_STR(ACTIVITY_DATABASEBROWSER),
                        sizeof(selected_file.buf));
-        else if (!tagtree_get_subentry_filename(selected_file.buf, MAX_PATH))
+        }
+        else
         {
-            onplay_result = ONPLAY_RELOAD_DIR;
-            return false;
+            /* If database is not loaded into RAM, or tagcache_ram is
+               set to "quick", filename needs to be retrieved from disk! */
+#ifdef HAVE_DISK_STORAGE
+            if ((selected_file.attr & FILE_ATTR_MASK) == FILE_ATTR_AUDIO
+                && !storage_disk_is_active()
+#ifdef HAVE_TC_RAMCACHE
+                && (global_settings.tagcache_ram != TAGCACHE_RAM_ON
+                    || !tagcache_is_in_ram())
+#endif
+            )
+                splash(0, ID2P(LANG_WAIT));
+#endif
+             if (!tagtree_get_subentry_filename(selected_file.buf, MAX_PATH))
+            {
+                onplay_result = ONPLAY_RELOAD_DIR;
+                return false;
+            }
         }
 
         selected_file.path = selected_file.buf;
@@ -860,13 +924,31 @@ static void set_dir_helper(char* dirnamebuf, size_t bufsz)
 }
 
 #if LCD_DEPTH > 1
+
+static void show_updated_backdrop(void)
+{
+    skin_backdrop_load_setting();
+    viewportmanager_theme_changed(THEME_STATUSBAR);
+    skin_backdrop_show(sb_get_backdrop(SCREEN_MAIN));
+}
+
 static bool set_backdrop(void)
 {
-    set_dir_helper(global_settings.backdrop_file,
-                   sizeof(global_settings.backdrop_file));
+    char previous_backdrop[sizeof global_settings.backdrop_file];
+    strcpy(previous_backdrop, global_settings.backdrop_file);
 
-    skin_backdrop_load_setting();
-    skin_backdrop_show(sb_get_backdrop(SCREEN_MAIN));
+    path_append(global_settings.backdrop_file, selected_file.path,
+                PA_SEP_HARD, sizeof(global_settings.backdrop_file));
+
+    show_updated_backdrop();
+
+    if (!yesno_pop(ID2P(LANG_SET_AS_BACKDROP))) {
+        strcpy(global_settings.backdrop_file, previous_backdrop);
+        show_updated_backdrop();
+    }
+    else
+        settings_save();
+
     return true;
 }
 MENUITEM_FUNCTION(set_backdrop_item, 0, ID2P(LANG_SET_AS_BACKDROP),
@@ -967,9 +1049,13 @@ static int clipboard_callback(int action,
             else if (selected_file.path)
             {
                 /* requires an actual file */
-                if (this_item == &rename_file_item ||
-                    this_item == &clipboard_cut_item ||
-                    this_item == &clipboard_copy_item ||
+                if (this_item == &clipboard_cut_item ||
+                    this_item == &clipboard_copy_item)
+                {
+                    if (*tree_get_context()->dirfilter != SHOW_M3U)
+                        return action;
+                }
+                else if (this_item == &rename_file_item ||
                     (this_item == &track_info_item &&
                         (selected_file.attr & FILE_ATTR_MASK) == FILE_ATTR_AUDIO) ||
                     (this_item == &properties_item &&
@@ -994,12 +1080,14 @@ static int clipboard_callback(int action,
                         )
                         return action;
                 }
-                else if (this_item == &delete_file_item ||
-                         this_item == &list_viewers_item)
-                {
                     /* only for files */
-                    return action;
+                else if (this_item == &list_viewers_item)
+                {
+                    if (*tree_get_context()->dirfilter != SHOW_M3U)
+                        return action;
                 }
+                else if (this_item == &delete_file_item)
+                    return action;
 #if LCD_DEPTH > 1
                 else if (this_item == &set_backdrop_item)
                 {
@@ -1037,12 +1125,29 @@ MAKE_ONPLAYMENU( wps_onplay_menu, ID2P(LANG_ONPLAY_MENU_TITLE),
            &browse_id3_item, &list_viewers_item,
            &delete_file_item, &view_cue_item,
 #ifdef HAVE_PITCHCONTROL
-           &pitch_screen_item,
+           &pitch_menu,
 #endif
 #ifdef HAVE_ALBUMART
            &view_album_art_item,
 #endif
          );
+
+int sort_playlists_callback(int action,
+                            const struct menu_item_ex *this_item,
+                            struct gui_synclist *this_list)
+{
+    (void) this_list;
+    (void) this_item;
+
+    if (action == ACTION_REQUEST_MENUITEM &&
+        *tree_get_context()->dirfilter != SHOW_M3U)
+    {
+        return ACTION_EXIT_MENUITEM;
+    }
+    return action;
+}
+
+MENUITEM_SETTING(sort_playlists, &global_settings.sort_playlists, sort_playlists_callback);
 
 MENUITEM_FUNCTION(view_playlist_item, 0, ID2P(LANG_VIEW),
                   view_playlist,
@@ -1061,7 +1166,7 @@ MAKE_ONPLAYMENU( tree_onplay_menu, ID2P(LANG_ONPLAY_MENU_TITLE),
 #if LCD_DEPTH > 1
            &set_backdrop_item,
 #endif
-           &add_to_faves_item, &set_as_dir_menu, &file_menu,
+           &add_to_faves_item, &set_as_dir_menu, &file_menu, &sort_playlists,
          );
 static int onplaymenu_callback(int action,
                                const struct menu_item_ex *this_item,
@@ -1109,6 +1214,9 @@ static bool hotkey_delete_item(void)
     if (selected_file.context == CONTEXT_ID3DB &&
         (selected_file.attr & FILE_ATTR_MASK) != FILE_ATTR_AUDIO)
         return false;
+
+     if (!prepare_database_sel(NULL))
+        return false;
 #endif
 
     return clipboard_delete_selected_fileobject();
@@ -1121,6 +1229,10 @@ static bool hotkey_open_with(void)
         return false;
 #ifdef HAVE_MULTIVOLUME
     if (selected_file.attr & ATTR_VOLUME)
+        return false;
+#endif
+#ifdef HAVE_TAGCACHE
+    if (!prepare_database_sel(NULL))
         return false;
 #endif
     return list_viewers();
@@ -1277,8 +1389,7 @@ int onplay(char* file, int attr, int from_context, bool hotkey, int customaction
     selected_file_set(from_context, NULL, attr);
 
 #ifdef HAVE_TAGCACHE
-    if (from_context == CONTEXT_ID3DB &&
-        (attr & FILE_ATTR_MASK) != FILE_ATTR_AUDIO)
+    if (from_context == CONTEXT_ID3DB)
     {
         ctx_add_to_playlist = tagtree_add_to_playlist;
         if (file != NULL)

@@ -266,6 +266,10 @@ static bool compressor_update(struct dsp_config *dsp,
      *          [3] = 0 db input
      *          [4] = ~+12db input (2 bits clipping overhead)
      */
+#if (__GNUC__ >= 6)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshift-negative-value"
+#endif
 
     db_curve[1].db = threshold << 16;
     if (soft_knee)
@@ -290,6 +294,10 @@ static bool compressor_update(struct dsp_config *dsp,
         db_curve[2].db = threshold << 16;
         db_curve[2].offset = 0;
     }
+
+#if (__GNUC__ >= 6)
+#pragma GCC diagnostic pop
+#endif
 
     /* Calculate 0db and ~+12db offsets */
     db_curve[4].db = 0xC0A8C; /* db of 2 bits clipping */

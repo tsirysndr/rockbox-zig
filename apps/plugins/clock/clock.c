@@ -65,7 +65,6 @@ const struct button_mapping* plugin_contexts[]={
  *************************/
 static void cleanup(void)
 {
-    clock_draw_restore_colors();
     if(clock_settings.general.save_settings == 1)
         save_settings();
 
@@ -145,13 +144,16 @@ enum plugin_status plugin_start(const void* parameter){
         redraw=true;/* we'll set it to false afterwards if there was no action */
         switch (button){
             case ACTION_COUNTER_TOGGLE: /* start/stop counter */
-                if(clock_settings.general.show_counter)
-                    counter_toggle(&counter);
+                show_counter = true;
+                counter_toggle(&counter);
                 break;
 
             case ACTION_COUNTER_RESET: /* reset counter */
-                if(clock_settings.general.show_counter)
+                if(show_counter)
+                {
                     counter_reset(&counter);
+                    show_counter = false;
+                }
                 break;
 
             case ACTION_MODE_NEXT_REPEAT:
@@ -178,8 +180,11 @@ enum plugin_status plugin_start(const void* parameter){
                 break;
 #endif
             case ACTION_MENU:
-                clock_draw_restore_colors();
+                FOR_NB_SCREENS(i)
+                    rb->viewportmanager_theme_enable(i, true, NULL);
                 exit_clock=main_menu();
+                FOR_NB_SCREENS(i)
+                    rb->viewportmanager_theme_undo(i, false);
                 break;
             default:
                 exit_on_usb(button);
@@ -191,7 +196,8 @@ enum plugin_status plugin_start(const void* parameter){
                 break;
         }
 
-        if(redraw){
+        if (redraw && !exit_clock)
+        {
             clock_draw_set_colors();
             FOR_NB_SCREENS(i)
                 clock_draw(rb->screens[i], &time, &counter);

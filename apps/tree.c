@@ -112,8 +112,8 @@ struct entry* tree_get_entry_at(struct tree_context *t, int index)
     return &entries[index];
 }
 
-static struct entry *tree_get_valid_entry_at(const char* funcname,
-                                             struct tree_context *t, int index)
+static struct entry *get_valid_entry(const char* funcname,
+                                     struct tree_context *t, int index)
 {
     struct entry *entry = tree_get_entry_at(t, index);
     if (!entry)
@@ -163,8 +163,7 @@ static const char* tree_get_filename(int selected_item, void *data,
     else
 #endif
     {
-        struct entry *entry =
-                     tree_get_valid_entry_at(__func__, local_tc, selected_item);
+        struct entry *entry = get_valid_entry(__func__, local_tc, selected_item);
         name = entry->name;
         attr = entry->attr;
     }
@@ -182,8 +181,7 @@ static int tree_get_filecolor(int selected_item, void * data)
     if (*tc.dirfilter == SHOW_ID3DB)
         return -1;
     struct tree_context * local_tc=(struct tree_context *)data;
-    struct entry *entry =
-                     tree_get_valid_entry_at(__func__, local_tc, selected_item);
+    struct entry *entry = get_valid_entry(__func__, local_tc, selected_item);
 
     return filetype_get_color(entry->name, entry->attr);
 }
@@ -200,8 +198,7 @@ static enum themable_icons tree_get_fileicon(int selected_item, void * data)
     else
 #endif
     {
-        struct entry *entry =
-                     tree_get_valid_entry_at(__func__, local_tc, selected_item);
+        struct entry *entry = get_valid_entry(__func__, local_tc, selected_item);
 
         return filetype_get_icon(entry->attr);
     }
@@ -210,7 +207,7 @@ static enum themable_icons tree_get_fileicon(int selected_item, void * data)
 static int tree_voice_cb(int selected_item, void * data)
 {
     struct tree_context * local_tc=(struct tree_context *)data;
-    char *name;
+    unsigned char *name;
     int attr=0;
     int customaction = ONPLAY_NO_CUSTOMACTION;
 #ifdef HAVE_TAGCACHE
@@ -222,12 +219,38 @@ static int tree_voice_cb(int selected_item, void * data)
         attr = tagtree_get_attr(local_tc);
         name = tagtree_get_entry_name(local_tc, selected_item, buf, sizeof(buf));
         customaction = tagtree_get_custom_action(local_tc);
+
+        /* See if name is an encoded ID, if it is, then speak it normally */
+        int lang_id = P2ID(name);
+        /*debugf("%s Found name %s id %d\n", __func__, P2STR(name), lang_id);*/
+        if (lang_id >= 0) {
+            if (global_settings.talk_menu)
+                talk_id(lang_id, true);
+            return 0;
+        }
+
+        /* Otherwise, it is either a custom "header" or a database entry,
+           so try to look up a talk clip for it. */
+
+        // XXX this needs further work, so disable it for now
+        // -- need to distinguish between "headers" and entries
+        // each entry type ("artist", "album", etc) should be delineated
+        // so we can split the clips into subdirs.
+#if 0
+        if (global_settings.talk_file_clip) {
+            if (talk_file(LANG_DIR"/database/", NULL,
+                          P2STR(name), file_thumbnail_ext, NULL, true) > 0)
+                return 0;
+
+            // XXX fall back to spelling it out?
+            return 0;
+        }
+#endif
     }
     else
 #endif
     {
-        struct entry *entry =
-                     tree_get_valid_entry_at(__func__, local_tc, selected_item);
+        struct entry *entry = get_valid_entry(__func__, local_tc, selected_item);
         name = entry->name;
         attr = entry->attr;
     }
@@ -357,7 +380,11 @@ static int tree_get_file_position(char * filename)
     /* use lastfile to determine the selected item (default=0) */
     for (i=0; i < tc.filesindir; i++)
     {
+#if ((CONFIG_PLATFORM & PLATFORM_NATIVE) || defined(__APPLE__) || defined(_WIN32) || defined(__CYGWIN__))
         if (!strcasecmp(entries[i].name, filename))
+#else
+        if (!strcmp(entries[i].name, filename))
+#endif
         {
             ret = i;
             break;
@@ -459,7 +486,7 @@ static int update_dir(void)
             if (tc.dirlevel > 0 && *tc.dirfilter == SHOW_PLUGINS)
             {
                 char *subdir = strrchr(tc.currdir, '/');
-                if (subdir)
+                if (subdir != NULL)
                     title = subdir + 1; /* step past the separator */
             }
         }
@@ -479,7 +506,7 @@ static int update_dir(void)
                     if (*title == '\0')
                     {
                         /* Display "Files" for the root dir */
-                        title = str(LANG_DIR_BROWSER);
+                        title = ID2P(LANG_DIR_BROWSER);
                     }
                     icon = filetype_get_icon(ATTR_DIRECTORY);
                 }
@@ -489,7 +516,7 @@ static int update_dir(void)
 
     /* set title and icon, if nothing is set, clear the title
      * with NULL and icon as NOICON as the list is reused */
-    gui_synclist_set_title(list, title, icon);
+    gui_synclist_set_title(list, P2STR((unsigned char*)title), icon);
 
     gui_synclist_set_nb_items(list, tc.filesindir);
     gui_synclist_set_icon_callback(list,
@@ -723,7 +750,8 @@ static int dirbrowse(void)
 
     if (*tc.dirfilter > NUM_FILTER_MODES && numentries==0)
     {
-        splash(HZ*2, ID2P(LANG_NO_FILES));
+        splash(HZ*2, *tc.dirfilter == SHOW_M3U ?
+                     ID2P(LANG_CATALOG_NO_PLAYLISTS) : ID2P(LANG_NO_FILES));
         return exit_to_new_screen(GO_TO_PREVIOUS);  /* No files found for rockbox_browse() */
     }
 
@@ -760,7 +788,7 @@ static int dirbrowse(void)
                 if (tc.browse->flags & BROWSE_SELECTONLY)
                 {
                     struct entry *entry =
-                       tree_get_valid_entry_at(__func__, &tc, tc.selected_item);
+                                get_valid_entry(__func__, &tc, tc.selected_item);
                     short attr = entry->attr;
                     if(!(attr & ATTR_DIRECTORY))
                     {
@@ -896,13 +924,34 @@ static int dirbrowse(void)
                         if (tagtree_get_attr(&tc) == FILE_ATTR_AUDIO)
                         {
                             attr = FILE_ATTR_AUDIO;
-                            tagtree_get_filename(&tc, buf, sizeof(buf));
+
+                            /* Look up the filename only once it is needed, so we
+                               don't have to wait for the disk to wake up here. */
+                            buf[0] = '\0';
                         }
                         else
                         {
                             attr = ATTR_DIRECTORY;
-                            tagtree_get_entry_name(&tc, tc.selected_item,
-                                                   buf, sizeof(buf));
+                            int title_len = 0;
+
+                            /* In case of "special entries", add table title as
+                               prefix, e.g. "The Beatles [All Tracks]", instead
+                               of just "[All Tracks]", to improve the suggested
+                               playlist filename.
+                            */
+                            if (tc.selected_item < tc.special_entry_count)
+                            {
+                                title_len = snprintf(buf, sizeof(buf), "%s ",
+                                                     tagtree_get_title(&tc));
+                                if (title_len < 0)
+                                    title_len = 0;
+                            }
+
+                            if (title_len < (int) sizeof(buf))
+                                tagtree_get_entry_name(&tc, tc.selected_item,
+                                                       buf + title_len,
+                                                       sizeof(buf) - title_len);
+
                             fix_path_part(buf, 0, sizeof(buf) - 1);
                         }
                     }
@@ -910,7 +959,7 @@ static int dirbrowse(void)
 #endif
                     {
                         struct entry *entry =
-                         tree_get_valid_entry_at(__func__, &tc, tc.selected_item);
+                               get_valid_entry(__func__, &tc, tc.selected_item);
 
                         attr = entry->attr;
 
@@ -1052,7 +1101,7 @@ int create_playlist(void)
 {
     bool ret;
     trigger_cpu_boost();
-    ret = catalog_add_to_a_playlist(tc.currdir, ATTR_DIRECTORY, true, NULL, NULL);
+    ret = catalog_add_to_a_playlist(PATH_ROOTSTR, ATTR_DIRECTORY, true, NULL, NULL);
     cancel_cpu_boost();
 
     return (ret) ? 1 : 0;
@@ -1079,7 +1128,7 @@ int rockbox_browse(struct browse_context *browse)
     if (backup_count >= 0)
         backups[backup_count] = tc;
     backup_count++;
-
+    int *prev_dirfilter = tc.dirfilter;
     tc.dirfilter = &dirfilter;
     tc.sort_dir = global_settings.sort_dir;
 
@@ -1136,6 +1185,7 @@ int rockbox_browse(struct browse_context *browse)
     }
 
     tc.is_browsing = false;
+    tc.dirfilter = prev_dirfilter; /* Bugfix restore dirfilter*/
 
     backup_count--;
     if (backup_count >= 0)
@@ -1205,13 +1255,12 @@ bool bookmark_play(char *resume_file, int index, unsigned long elapsed,
     char* suffix = strrchr(resume_file, '.');
     bool started = false;
 
-    if (suffix != NULL &&
-        (!strcasecmp(suffix, ".m3u") || !strcasecmp(suffix, ".m3u8")))
+    if (suffix != NULL && !strncasecmp(suffix, ".m3u", sizeof(".m3u") - 1)) /* gets m3u8 too */
     {
         /* Playlist playback */
         char* slash;
         /* check that the file exists */
-        if(!file_exists(resume_file))
+        if (!file_exists(resume_file))
             return false;
 
         slash = strrchr(resume_file,'/');
@@ -1228,8 +1277,6 @@ bool bookmark_play(char *resume_file, int index, unsigned long elapsed,
             {
                 if (global_settings.playlist_shuffle)
                     playlist_shuffle(seed, -1);
-
-                playlist_start(index, elapsed, offset);
                 started = true;
             }
             *slash='/';
@@ -1249,45 +1296,37 @@ bool bookmark_play(char *resume_file, int index, unsigned long elapsed,
 
             /* Check if the file is at the same spot in the directory,
                else search for it */
-            peek_filename = playlist_peek(index, filename_buf,
-                sizeof(filename_buf));
-
-            if (peek_filename == NULL)
+            int amt = playlist_amount();
+            for ( i=0; i < amt; i++ )
             {
-                /* playlist has shrunk, search from the top */
-                index = 0;
-                peek_filename = playlist_peek(index, filename_buf,
+                int modidx = (i + index) % amt;
+                peek_filename = playlist_peek(modidx, filename_buf,
                     sizeof(filename_buf));
+
                 if (peek_filename == NULL)
-                    return false;
-            }
-
-            if (strcmp(strrchr(peek_filename, '/') + 1, filename))
-            {
-                for ( i=0; i < playlist_amount(); i++ )
                 {
-                    peek_filename = playlist_peek(i, filename_buf,
-                        sizeof(filename_buf));
-
-                    if (peek_filename == NULL)
+                    if (index == 0) /* searched every entry didn't find a match */
                         return false;
-
-                    if (!strcmp(strrchr(peek_filename, '/') + 1, filename))
-                        break;
+                    /* playlist has shrunk, search from the top */
+                    i = 0;
+                    amt = index;
+                    index = 0;
                 }
-                if (i < playlist_amount())
-                    index = i;
-                else
-                    return false;
+                else if (!strcmp(strrchr(peek_filename, '/') + 1, filename))
+                {
+                    started = true;
+                    index = modidx;
+                    break;
+                }
             }
-
-            playlist_start(index, elapsed, offset);
-            started = true;
         }
     }
 
     if (started)
+    {
+        playlist_start(index, elapsed, offset);
         start_wps = true;
+    }
     return started;
 }
 
@@ -1360,7 +1399,7 @@ void tree_flush(void)
     }
 
     if (old_val != global_status.dircache_size)
-        status_save();
+        status_save(true);
 
     #ifdef HAVE_EEPROM_SETTINGS
         if (savecache)

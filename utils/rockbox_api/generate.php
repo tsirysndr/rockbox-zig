@@ -1,5 +1,5 @@
 #!/usr/bin/php
-<?
+<?php
 require_once("functions.php");
 
 echo   '# Auto generated documentation by Rockbox plugin API generator v2'."\n";
@@ -13,7 +13,7 @@ echo <<<MOO
 #                     \/            \/     \/    \/            \/
 # \$Id$
 #
-# Generated from $svn\x61pps/plugin.h
+# Generated from $svn\x61apps/plugin.h
 #
 # Format:
 # \\group memory and strings

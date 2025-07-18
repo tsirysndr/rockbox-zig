@@ -30,6 +30,8 @@
 # - Roman Levkin-Taymenev
 # - Igor Poretsky
 # - Dmitry Prozorov
+# - Fedor Pomazkov
+# - Vladislav Voronichev
 <phrase>
   id: LANG_SET_BOOL_YES
   desc: bool true representation
@@ -2658,7 +2660,7 @@
   desc: should lines scroll out of the screen
   user: core
   <source>
-    *: "Screen Scrolls Out Of View"
+    *: "Screen Scrolls Out of View"
   </source>
   <dest>
     *: "Прокручивать за границы экрана"
@@ -2882,7 +2884,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Minimum Of Range"
+    *: "Minimum of Range"
   </source>
   <dest>
     *: "Нижняя граница диапазона"
@@ -2896,7 +2898,7 @@
   desc: in the peak meter menu
   user: core
   <source>
-    *: "Maximum Of Range"
+    *: "Maximum of Range"
   </source>
   <dest>
     *: "Верхняя граница диапазона"
@@ -2917,63 +2919,6 @@
   </dest>
   <voice>
     *: "Ёмкость аккумулятора"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Battery Type"
-  </source>
-  <dest>
-    *: none
-    battery_types: "Тип аккумулятора"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Тип аккумулятора"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_1
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Alkaline"
-    xduoox3: "Newer (2000 mAh)"
-  </source>
-  <dest>
-    *: none
-    battery_types: "Щелочной"
-    xduoox3: "Новый (2000 мАч)"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Щелочной"
-    xduoox3: "Новый 2000 миллиампер часов"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_2
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "NiMH"
-    xduoox3: "Older (1500 mAh)"
-  </source>
-  <dest>
-    *: none
-    battery_types: "Никель-металгидридный"
-    xduoox3: "Старый (1500 мАч)"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Никель-металгидридный"
-    xduoox3: "Старый 1500 миллиампер часов"
   </voice>
 </phrase>
 <phrase>
@@ -3184,7 +3129,7 @@
   user: core
   <source>
     *: none
-    lcd_non-mono: "Set As Backdrop"
+    lcd_non-mono: "Set as Backdrop"
   </source>
   <dest>
     *: none
@@ -3498,16 +3443,16 @@
   </voice>
 </phrase>
 <phrase>
-  id: VOICE_CURRENT_TIME
-  desc: spoken only, for wall clock announce
+  id: LANG_CURRENT_TIME
+  desc: for wall clock announce
   user: core
   <source>
     *: none
-    rtc: ""
+    rtc: "Current Time"
   </source>
   <dest>
     *: none
-    rtc: ""
+    rtc: "Текущее время"
   </dest>
   <voice>
     *: none
@@ -3624,8 +3569,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -3638,8 +3583,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "НАЗАД = Отмена"
     gigabeatfx,mrobe500,rtc: "ВЫКЛ. = Отмена"
-    gigabeats,sansafuzeplus: "НАЗАД = Отмена"
     gogearsa9200: "ЛЕВО = Отмена"
     iaudiom5,iaudiox5: "ЗАПИСЬ = Отмена"
     ipod*,mpiohd300,sansac200*: "МЕНЮ = Отмена"
@@ -3651,7 +3596,6 @@
   </dest>
   <voice>
     *: none
-    gigabeat*,gogearsa9200,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh100,iriverh10_5gb,iriverh120,iriverh300,mrobe100,rtc,samsungyh*,sansac200*,sansae200*: ""
   </voice>
 </phrase>
 <phrase>
@@ -3803,7 +3747,7 @@
   user: core
   <source>
     *: none
-    alarm: "Waking Up In %d:%02d"
+    alarm: "Waking Up in %d:%02d"
   </source>
   <dest>
     *: none
@@ -3965,7 +3909,7 @@
   desc: in browse_id3
   user: core
   <source>
-    *: " (VBR)"
+    *: "(VBR)"
   </source>
   <dest>
     *: " (Переменный)"
@@ -5904,7 +5848,7 @@
   </dest>
   <voice>
     *: none
-    radio: ""
+    radio: "Сканирование МГц"
   </voice>
 </phrase>
 <phrase>
@@ -6174,7 +6118,7 @@
     *: "Ошибка при чтении %s"
   </dest>
   <voice>
-    *: ""
+    *: "Ошибка при чтении"
   </voice>
 </phrase>
 <phrase>
@@ -6644,7 +6588,7 @@
   user: core
   <source>
     *: none
-    recording: "(Same As Source)"
+    recording: "(Same as Source)"
   </source>
   <dest>
     *: none
@@ -7111,8 +7055,8 @@
   user: core
   <source>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -7121,8 +7065,8 @@
   </source>
   <dest>
     *: none
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "ВОСПР. = Установить"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "ВЫБОР = Установить"
-    gogearsa9200,samsungyh*: "ВОСПР. = Установить"
     iriverh100,iriverh120,iriverh300: "НАВИГ. = Установить"
     mpiohd300: "ENTER = Установить"
     mrobe500: "СЕРДЦЕ = Установить"
@@ -7131,7 +7075,6 @@
   </dest>
   <voice>
     *: none
-    gigabeat*,gogearsa9200,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh100,iriverh10_5gb,iriverh120,iriverh300,mrobe100,rtc,samsungyh*,sansac200*,sansae200*: ""
   </voice>
 </phrase>
 <phrase>
@@ -7870,20 +7813,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CATALOG
-  desc: in main menu and onplay menu
-  user: core
-  <source>
-    *: "Playlist Catalogue"
-  </source>
-  <dest>
-    *: "Каталог списков"
-  </dest>
-  <voice>
-    *: "Каталог списков"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SPLIT_MEASURE
   desc: in record timesplit options
   user: core
@@ -8054,7 +7983,7 @@
   desc: in playlist menu.
   user: core
   <source>
-    *: "Search In Playlist"
+    *: "Search in Playlist"
   </source>
   <dest>
     *: "Найти в списке"
@@ -8938,7 +8867,7 @@
 </phrase>
 <phrase>
   id: LANG_PLAYLISTS
-  desc: in the file view setting
+  desc: in the main menu and Playlist settings menu
   user: core
   <source>
     *: "Playlists"
@@ -9108,8 +9037,8 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RESET_ASK
-  desc: confirm to reset settings
+  id: LANG_ARE_YOU_SURE
+  desc: confirm action
   user: core
   <source>
     *: "Are You Sure?"
@@ -9321,7 +9250,7 @@
   user: core
   <source>
     *: none
-    recording: "Stop Recording And Shutdown"
+    recording: "Stop Recording and Shutdown"
   </source>
   <dest>
     *: none
@@ -9418,7 +9347,7 @@
 </phrase>
 <phrase>
   id: VOICE_OK
-  desc: spoken only, On exiting a context, specifically the quick screen
+  desc: spoken only, on exiting a context, specifically the quick screen
   user: core
   <source>
     *: ""
@@ -10145,23 +10074,6 @@
   </dest>
   <voice>
     *: "Основная тема"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_LINEOUT_ONOFF
-  desc: in system settings menu
-  user: core
-  <source>
-    *: none
-    lineout_poweroff: "Line Out"
-  </source>
-  <dest>
-    *: none
-    lineout_poweroff: "Линейный выход"
-  </dest>
-  <voice>
-    *: none
-    lineout_poweroff: "Линейный выход"
   </voice>
 </phrase>
 <phrase>
@@ -11207,7 +11119,7 @@
   desc: resume settings menu
   user: core
   <source>
-    *: "Automatic resume"
+    *: "Automatic Resume"
   </source>
   <dest>
     *: "Авто-возобновление"
@@ -11395,7 +11307,7 @@
   desc: whether sleep timer starts on power up
   user: core
   <source>
-    *: "Start Sleep Timer On Boot"
+    *: "Start Sleep Timer on Boot"
   </source>
   <dest>
     *: "Запускать таймер сна при загрузке"
@@ -11485,7 +11397,7 @@
   desc: whether to restart running sleep timer on keypress
   user: core
   <source>
-    *: "Restart Sleep Timer On Keypress"
+    *: "Restart Sleep Timer on Keypress"
   </source>
   <dest>
     *: "Перезапускать таймер сна при нажатии клавиш"
@@ -12223,16 +12135,16 @@
 </phrase>
 <phrase>
   id: LANG_TOGGLE_ITEM
-  desc: in main_menu_config
+  desc: deprecated
   user: core
   <source>
-    *: "Toggle Item"
+    *: ""
   </source>
   <dest>
-    *: "Сменить Статус"
+    *: ""
   </dest>
   <voice>
-    *: "Сменить Статус"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -12293,13 +12205,13 @@
 </phrase>
 <phrase>
   id: LANG_MAIN_MENU_ORDER
-  desc: main_menu_config plugin title
+  desc: deprecated
   user: core
   <source>
-    *: "Rockbox Main Menu Order"
+    *: ""
   </source>
   <dest>
-    *: "Настройка Главного Меню Rockbox"
+    *: ""
   </dest>
   <voice>
     *: ""
@@ -12615,20 +12527,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CACHE_REBUILT_NEXT_RESTART
-  desc: in the pictureflow splash messages
-  user: core
-  <source>
-    *: "Cache will be rebuilt on next restart"
-  </source>
-  <dest>
-    *: "Кэш будет обновлен при перезапуске"
-  </dest>
-  <voice>
-    *: "Кэш будет обновлен при перезапуске"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_ERROR_WRITING_CONFIG
   desc: in the pictureflow splash messages
   user: core
@@ -12654,20 +12552,6 @@
   </dest>
   <voice>
     *: "Никогда"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_LEVEL_8
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 8: 1 move / 15 min"
-  </source>
-  <dest>
-    *: "Уровень 8: 1 ход / 15 мин."
-  </dest>
-  <voice>
-    *: "Уровень 8, 1 ход за 15 минут"
   </voice>
 </phrase>
 <phrase>
@@ -12839,20 +12723,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CHESSBOX_LEVEL_9
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 9: 1 move / 60 min"
-  </source>
-  <dest>
-    *: "Уровень 9: 1 ход / 60 мин."
-  </dest>
-  <voice>
-    *: "Уровень 9, 1 ход за 60 минут"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PLAYPAUSE
   desc: in playback control menu
   user: core
@@ -13010,20 +12880,6 @@
   <voice>
     *: none
     pitchscreen: "Полутоновый режим"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYTIME_REMAINING
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -14072,20 +13928,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CHESSBOX_LEVEL_10
-  desc: in the chessbox game level selection
-  user: core
-  <source>
-    *: "Level 10: 1 move / 600 min"
-  </source>
-  <dest>
-    *: "Уровень 10: 1 ход / 600 min."
-  </dest>
-  <voice>
-    *: "Уровень 10, 1 ход за 600 минут"
-  </voice>
-</phrase>
-<phrase>
   id: VOICE_KING
   desc: spoken only, for announcing chess piece names
   user: core
@@ -14821,7 +14663,7 @@
   desc: open plugin module
   user: core
   <source>
-    *: "Set Wps Context Plugin"
+    *: "Set WPS Context Plugin"
   </source>
   <dest>
     *: "Назначить Плагин Режима Воспроизведения"
@@ -14961,7 +14803,7 @@
   desc: Relative volume of voice prompts
   user: core
   <source>
-    *: "Voice prompt volume"
+    *: "Voice Prompt Volume"
   </source>
   <dest>
     *: "Громкость голосовых подсказок"
@@ -16253,62 +16095,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_STEREOSW_MODE
-  desc: Stereo Switch Mode
-  user: core
-  <source>
-    *: "Stereo Switch Mode"
-  </source>
-  <dest>
-    *: "Режим переключения стерео"
-  </dest>
-  <voice>
-    *: "Режим переключения стерео"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_REVERSE
-  desc: in settings_menu
-  user: core
-  <source>
-    *: "Reverse"
-  </source>
-  <dest>
-    *: "Обратный / Обратная сторона"
-  </dest>
-  <voice>
-    *: "Обратный / Обратная сторона"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALWAYS_ZERO
-  desc: in settings_menu
-  user: core
-  <source>
-    *: "Always 0"
-  </source>
-  <dest>
-    *: "Всегда 0"
-  </dest>
-  <voice>
-    *: "Всегда 0"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALWAYS_ONE
-  desc: in settings_menu
-  user: core
-  <source>
-    *: "Always 1"
-  </source>
-  <dest>
-    *: "Всегда 1"
-  </dest>
-  <voice>
-    *: "Всегда 1"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_LEGAL_NOTICES
   desc: in system menu
   user: core
@@ -16516,5 +16302,616 @@
   </dest>
   <voice>
     *: "Просмотреть Обложку Альбома"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_SPECIAL_CHARACTER
+  desc: Special character (japanese, accents, etc)
+  user: core
+  <source>
+    *: "Special character"
+  </source>
+  <dest>
+    *: "Специальный символ"
+  </dest>
+  <voice>
+    *: "Специальный символ"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ID3_ALBUMARTISTS
+  desc: in tag viewer
+  user: core
+  <source>
+    *: "Album Artists"
+  </source>
+  <dest>
+    *: "Исполнители альбомов"
+  </dest>
+  <voice>
+    *: "Исполнители альбомов"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_CURRENT_TO_FAVES
+  desc:
+  user: core
+  <source>
+    *: "Add Current to Shortcuts"
+  </source>
+  <dest>
+    *: "Добавить текущее меню в ярлыки"
+  </dest>
+  <voice>
+    *: "Добавить текущее меню в ярлыки"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "First Letter"
+  </source>
+  <dest>
+    *: "Первая буква"
+  </dest>
+  <voice>
+    *: "Первая буква"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "By First Letter..."
+  </source>
+  <dest>
+    *: "По первой букве..."
+  </dest>
+  <voice>
+    *: "По первой букве"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists by First Letter"
+  </source>
+  <dest>
+    *: "Исполнители по первой букве"
+  </dest>
+  <voice>
+    *: "Исполнители по первой букве"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUM_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Album Artists by First Letter"
+  </source>
+  <dest>
+    *: "Исполнители альбомов по первой букве"
+  </dest>
+  <voice>
+    *: "Исполнители альбомов по первой букве"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUMS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by First Letter"
+  </source>
+  <dest>
+    *: "Альбомы по первой букве"
+  </dest>
+  <voice>
+    *: "Альбомы по первой букве"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_TRACKS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by First Letter"
+  </source>
+  <dest>
+    *: "Треки по первой букве"
+  </dest>
+  <voice>
+    *: "Трэки по первой букве"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists"
+  </source>
+  <dest>
+    *: "Исполнители"
+  </dest>
+  <voice>
+    *: "Исполнители"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums"
+  </source>
+  <dest>
+    *: "Альбомы"
+  </dest>
+  <voice>
+    *: "Альбомы"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks"
+  </source>
+  <dest>
+    *: "Треки"
+  </dest>
+  <voice>
+    *: "Трэки"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHUFFLE_SONGS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Shuffle Songs"
+  </source>
+  <dest>
+    *: "Перемешать песни"
+  </dest>
+  <voice>
+    *: "Перемешать песни"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILENAME
+  desc: Database and recording menus
+  user: core
+  <source>
+    *: "Filename"
+  </source>
+  <dest>
+    *: "Имя файла"
+  </dest>
+  <voice>
+    *: "Имя файла"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TITLE_WITH_DURATION
+  desc: Database menu
+  user: core
+  <source>
+    *: "Title (with track duration)"
+  </source>
+  <dest>
+    *: "Название (с длительностью трека)"
+  </dest>
+  <voice>
+    *: "Название с длительностью трека"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USER_RATING
+  desc: Database menu
+  user: core
+  <source>
+    *: "User Rating"
+  </source>
+  <dest>
+    *: "Оценка"
+  </dest>
+  <voice>
+    *: "Оценка"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search"
+  </source>
+  <dest>
+    *: "Поиск"
+  </dest>
+  <voice>
+    *: "Поиск"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search by..."
+  </source>
+  <dest>
+    *: "Поиск по..."
+  </dest>
+  <voice>
+    *: "Поиск по"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECENTLY_ADDED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently Added"
+  </source>
+  <dest>
+    *: "Недавно добавленные"
+  </dest>
+  <voice>
+    *: "Недавно добавленные"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_HISTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Playback History"
+  </source>
+  <dest>
+    *: "История воспроизведения"
+  </dest>
+  <voice>
+    *: "История воспроизведения"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CUSTOM_MENU
+  desc: Database menu
+  user: core
+  <source>
+    *: "Custom menu"
+  </source>
+  <dest>
+    *: "Собственное меню"
+  </dest>
+  <voice>
+    *: "Собственное меню"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAME_AS_CURRENT
+  desc: Database menu
+  user: core
+  <source>
+    *: "Same as currently played track"
+  </source>
+  <dest>
+    *: "Тоже, что и текущий трек"
+  </dest>
+  <voice>
+    *: "Тоже что и текущий трэк"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIRECTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Directory"
+  </source>
+  <dest>
+    *: "Папка"
+  </dest>
+  <voice>
+    *: "Папка"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BY_YEAR
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by Year"
+  </source>
+  <dest>
+    *: "Альбомы по году"
+  </dest>
+  <voice>
+    *: "Альбомы по году"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums between Years"
+  </source>
+  <dest>
+    *: "Альбомы между годами"
+  </dest>
+  <voice>
+    *: "Альбомы между годами"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists between Years"
+  </source>
+  <dest>
+    *: "Исполнители между годами"
+  </dest>
+  <voice>
+    *: "Исполнители между годами"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_MOST_PLAYED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Most played (Plays|Score)"
+  </source>
+  <dest>
+    *: "Наиболее воспроизведённые (Воспроизведения|Рейтинг)"
+  </dest>
+  <voice>
+    *: "Наиболее воспроизведённые по проигрываниям затем по рейтингу"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENTLY_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently played tracks"
+  </source>
+  <dest>
+    *: "Недавно воспроизведённые треки"
+  </dest>
+  <voice>
+    *: "Недавно воспроизведённые трэки"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEVER_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Never played tracks"
+  </source>
+  <dest>
+    *: "Никогда не воспроизведённые треки"
+  </dest>
+  <voice>
+    *: "Никогда не воспроизведённые трэки"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite artists"
+  </source>
+  <dest>
+    *: "Любимые исполнители"
+  </dest>
+  <voice>
+    *: "Любимые исполнители"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite albums"
+  </source>
+  <dest>
+    *: "Любимые альбомы"
+  </dest>
+  <voice>
+    *: "Любимые альбомы"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENT_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recent favourites"
+  </source>
+  <dest>
+    *: "Недавние фавориты"
+  </dest>
+  <voice>
+    *: "Недавние фавориты"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEW_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "New favourites"
+  </source>
+  <dest>
+    *: "Новые фавориты"
+  </dest>
+  <voice>
+    *: "Новые фавориты"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FORGOTTEN_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Forgotten favourites"
+  </source>
+  <dest>
+    *: "Забытые фавориты"
+  </dest>
+  <voice>
+    *: "Забытые фавориты"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by"
+  </source>
+  <dest>
+    *: "Треки от"
+  </dest>
+  <voice>
+    *: "Трэки от"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HP_LO_SELECT
+  desc: Output Select
+  user: core
+  <source>
+    *: none
+    erosqnative: "Output Select"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "Выбор выхода"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "Выбор выхода"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HEADPHONE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative: "Headphone"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "Наушники"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "Наушники"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LINEOUT
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative,lineout_poweroff: "Line Out"
+  </source>
+  <dest>
+    *: none
+    erosqnative,lineout_poweroff: "Линейный выход"
+  </dest>
+  <voice>
+    *: none
+    erosqnative,lineout_poweroff: "Линейный выход"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FONT_LOAD_ERROR
+  desc: Displayed when font loading fails
+  user: core
+  <source>
+    *: "Unable to load font: (%s)"
+  </source>
+  <dest>
+    *: "Невозможно загрузить шрифт: (%s)"
+  </dest>
+  <voice>
+    *: "Невозможно загрузить шрифт"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LOGGING
+  desc: playback logging
+  user: core
+  <source>
+    *: "Logging"
+  </source>
+  <dest>
+    *: "Логгинг"
+  </dest>
+  <voice>
+    *: "Логгинг"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEWLOG
+  desc: view Log
+  user: core
+  <source>
+    *: "View log"
+  </source>
+  <dest>
+    *: "Просмотреть лог"
+  </dest>
+  <voice>
+    *: "Просмотреть лог"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REPLAY_FINISHED_PLAYLIST
+  desc: Resume playback of finished playlist
+  user: core
+  <source>
+    *: "Playlist finished. Play again?"
+  </source>
+  <dest>
+    *: "Конец плейлиста. Воспроизвести сначала?"
+  </dest>
+  <voice>
+    *: "Конец плэйлиста. Воспроизвести сначала?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_PLAYLISTS
+  desc: playlists sorting setting
+  user: core
+  <source>
+    *: "Sort Playlists"
+  </source>
+  <dest>
+    *: "Сортировать плейлисты"
+  </dest>
+  <voice>
+    *: "Сортировать плейлисты"
   </voice>
 </phrase>

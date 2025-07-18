@@ -296,7 +296,7 @@ void remember_frequency(void)
         &fm_region_data[global_settings.fm_region];
     global_status.last_frequency = (curr_freq - fmr->freq_min) 
                                    / fmr->freq_step;
-    status_save();
+    status_save(true);
 }
 
 /* Step to the next or previous frequency */
@@ -531,14 +531,14 @@ void radio_screen(void)
 
             case ACTION_SETTINGS_INC:
             case ACTION_SETTINGS_INCREPEAT:
-                global_settings.volume += sound_steps(SOUND_VOLUME);
+                global_status.volume += sound_steps(SOUND_VOLUME);
                 setvol();
                 update_type = SKIN_REFRESH_NON_STATIC;
                 break;
 
             case ACTION_SETTINGS_DEC:
             case ACTION_SETTINGS_DECREPEAT:
-                global_settings.volume -= sound_steps(SOUND_VOLUME);
+                global_status.volume -= sound_steps(SOUND_VOLUME);
                 setvol();
                 update_type = SKIN_REFRESH_NON_STATIC;
                 break;
@@ -642,6 +642,7 @@ void radio_screen(void)
               * it requests a full update here */
             case ACTION_REDRAW:
                 skin_request_full_update(FM_SCREEN);
+                skin_request_full_update(CUSTOM_STATUSBAR); /* if SBS is used */
                 break;
 
             default:

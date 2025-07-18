@@ -234,10 +234,21 @@ static const char * const tag_type_str[] = {
     [clause_oneof] = "clause_oneof",
     [clause_begins_oneof] = "clause_begins_oneof",
     [clause_ends_oneof] = "clause_ends_oneof",
+    [clause_not_oneof] = "clause_not_oneof",
+    [clause_not_begins_oneof] = "clause_not_begins_oneof",
+    [clause_not_ends_oneof] = "clause_not_ends_oneof",
     [clause_logical_or] = "clause_logical_or"
  };
 #define logf_clauses logf
 #endif /* ndef LOGF_ENABLE */
+
+#if defined(PLUGIN)
+char *itoa_buf(char *buf, size_t bufsz, long int i)
+{
+    snprintf(buf, bufsz, "%ld", i);
+    return buf;
+}
+#endif
 
 /* Status information of the tagcache. */
 static struct tagcache_stat tc_stat;
@@ -1432,11 +1443,18 @@ static bool check_against_clause(long numeric, const char *str,
                 return !str_ends_with(str, clause->str);
             case clause_oneof:
                 return str_oneof(str, clause->str);
+            case clause_not_oneof:
+                return !str_oneof(str, clause->str);
             case clause_ends_oneof:
                 /* Fall-Through */
             case clause_begins_oneof:
                 return str_begins_ends_oneof(str, clause->str,
                                              clause->type == clause_begins_oneof);
+            case clause_not_ends_oneof:
+                /* Fall-Through */
+            case clause_not_begins_oneof:
+                return !str_begins_ends_oneof(str, clause->str,
+                                            clause->type == clause_not_begins_oneof);
             default:
                 logf("Incorrect tag: %d", clause->type);
         }
@@ -1912,7 +1930,7 @@ static bool get_next(struct tagcache_search *tcs, bool is_numeric, char *buf, lo
 
     if (is_numeric)
     {
-        snprintf(buf, bufsz, "%ld", tcs->position);
+        itoa_buf(buf, bufsz, tcs->position);
         tcs->result = buf;
         tcs->result_len = strlen(buf) + 1;
         return true;
@@ -3982,7 +4000,7 @@ bool tagcache_create_changelog(struct tagcache_search *tcs)
         {
             if (TAGCACHE_IS_NUMERIC(j))
             {
-                snprintf(temp, sizeof temp, "%d", (int)idx.tag_seek[j]);
+                itoa_buf(temp, sizeof temp, (int)idx.tag_seek[j]);
                 write_tag(clfd, tagcache_tag_to_str(j), temp);
                 continue;
             }

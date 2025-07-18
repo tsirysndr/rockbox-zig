@@ -488,7 +488,7 @@ static inline void button_flip_horizontally(int context, int *button)
     {
         newbutton |= BUTTON_LEFT;
     }
-#else
+#elif !defined(NO_BUTTON_LR)
 #warning "BUTTON_LEFT / BUTTON_RIGHT not defined!"
 #endif
 
@@ -770,7 +770,7 @@ static inline int do_auto_softlock(action_last_t *last, action_cur_t *cur)
 #if defined(HAVE_TOUCHSCREEN)
             const int touch_fakebuttons =
                 BUTTON_TOPLEFT    | BUTTON_TOPMIDDLE    | BUTTON_TOPRIGHT    |
-                BUTTON_LEFT       | BUTTON_CENTER       | BUTTON_RIGHT       |
+                BUTTON_MIDLEFT    | BUTTON_CENTER       | BUTTON_MIDRIGHT    |
                 BUTTON_BOTTOMLEFT | BUTTON_BOTTOMMIDDLE | BUTTON_BOTTOMRIGHT;
             if (has_flag(cur->button, BUTTON_TOUCHSCREEN))
                 cur->button = BUTTON_NONE;
@@ -1204,6 +1204,7 @@ void action_wait_for_release(void)
 {
     if (!(action_last.button & BUTTON_REL))
         action_last.wait_for_release = true;
+    button_clear_pressed();
 }
 
 int get_action(int context, int timeout)
@@ -1317,7 +1318,11 @@ int get_custom_action(int context,int timeout,
     action_cur_t current;
     init_act_cur(&current, context, timeout, get_context_map);
 
-    return get_action_worker(&action_last, &current);
+    int action = get_action_worker(&action_last, &current);
+
+    action = do_backlight(&action_last, &current, action);
+
+    return action;
 }
 
 intptr_t get_action_data(void)

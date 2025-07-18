@@ -110,7 +110,7 @@
 #define BATTERY_CAPACITY_MIN 1700 /* min. capacity selectable */
 #define BATTERY_CAPACITY_MAX 7300 /* max. capacity selectable */
 #define BATTERY_CAPACITY_INC 50   /* capacity increment */
-#define BATTERY_TYPES_COUNT  1    /* only one type */
+
 
 #define CONFIG_BATTERY_MEASURE VOLTAGE_MEASURE
 
@@ -137,7 +137,3 @@
 #define NUM_DRIVES 2
 #define HAVE_HOTSWAP
 #define MULTIDRIVE_DIR "/mnt/external_sd"
-
-/* More common stuff */
-#define BATTERY_DEV_NAME "battery"
-#define POWER_DEV_NAME "usb"

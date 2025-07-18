@@ -326,7 +326,7 @@ static void showinfo(void)
         module->sngspd, module->bpm);
     rb->lcd_putsxy(1, 1 + 6 * font_h, statustext);
 
-    sprintf(statustext, "vol: %ddB", rb->global_settings->volume);
+    sprintf(statustext, "vol: %ddB", rb->global_status->volume);
     rb->lcd_putsxy(1, 1 + 7 * font_h, statustext);
 
     sprintf(statustext, "time: %d:%02d",
@@ -711,8 +711,26 @@ static void mm_errorhandler(void)
         rb->talk_value_decimal(MikMod_errno, UNIT_INT, 0, true);
         rb->talk_force_enqueue_next();
     }
+    /* (voiced above) */
     rb->splashf(HZ, rb->str(LANG_ERROR_FORMATSTR), MikMod_strerror(MikMod_errno));
     quit = true;
+}
+
+static void do_vscroll(int up)
+{
+    if (up) {
+        if ( textlines-vscroll >= MAX_LINES )
+        {
+            vscroll++;
+            screenupdated = false;
+        }
+    } else {
+        if ( vscroll > 0 )
+        {
+            vscroll--;
+            screenupdated = false;
+        }
+    }
 }
 
 static int playfile(char* filename)
@@ -793,11 +811,11 @@ static int playfile(char* filename)
         case ACTION_WPS_VOLUP:
             if ( display != DISPLAY_INFO )
             {
-                if ( textlines-vscroll >= MAX_LINES )
-                {
-                    vscroll++;
-                    screenupdated = false;
-                }
+#ifdef HAVE_SCROLLWHEEL
+                do_vscroll(1);
+#else
+                do_vscroll(0);
+#endif
                 break;
             }
 
@@ -807,11 +825,11 @@ static int playfile(char* filename)
         case ACTION_WPS_VOLDOWN:
             if ( display != DISPLAY_INFO )
             {
-                if ( vscroll > 0 )
-                {
-                    vscroll--;
-                    screenupdated = false;
-                }
+#ifdef HAVE_SCROLLWHEEL
+                do_vscroll(0);
+#else
+                do_vscroll(1);
+#endif
                 break;
             }
 

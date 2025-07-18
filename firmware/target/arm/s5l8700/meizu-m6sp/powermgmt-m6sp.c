@@ -24,28 +24,20 @@
 #include "adc.h"
 #include "adc-target.h"
 
-const unsigned short battery_level_dangerous[BATTERY_TYPES_COUNT] =
-{
-    /* TODO: this is just an initial guess */
-    3400
-};
+unsigned short battery_level_disksafe = 3400;/* TODO: this is just an initial guess */
 
-const unsigned short battery_level_shutoff[BATTERY_TYPES_COUNT] =
-{
-    /* TODO: this is just an initial guess */
-    3300
-};
+unsigned short battery_level_shutoff = 3300; /* TODO: this is just an initial guess */
 
 /* voltages (millivolt) of 0%, 10%, ... 100% when charging disabled */
-const unsigned short percent_to_volt_discharge[BATTERY_TYPES_COUNT][11] =
+unsigned short percent_to_volt_discharge[11] =
 {
     /* TODO: simple uncalibrated curve, linear except for first 10% */
-    { 3300, 3390, 3480, 3570, 3660, 3750, 3840, 3930, 4020, 4110, 4200 }
+    3300, 3390, 3480, 3570, 3660, 3750, 3840, 3930, 4020, 4110, 4200
 };
 
 #if CONFIG_CHARGING
 /* voltages (millivolt) of 0%, 10%, ... 100% when charging enabled */
-const unsigned short percent_to_volt_charge[11] =
+unsigned short percent_to_volt_charge[11] =
 {
     /* TODO: simple uncalibrated curve, linear except for first 10% */
     3300, 3390, 3480, 3570, 3660, 3750, 3840, 3930, 4020, 4110, 4200

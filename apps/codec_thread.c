@@ -269,6 +269,7 @@ static bool codec_advance_buffer_counters(size_t amount)
 {
     if (bufadvance(ci.audio_hid, amount) < 0)
     {
+        bufseek(ci.audio_hid, ci.filesize);
         ci.curpos = ci.filesize;
         return false;
     }
@@ -440,6 +441,11 @@ static bool codec_loop_track_callback(void)
     return global_settings.repeat_mode == REPEAT_ONE;
 }
 
+void codec_strip_filesize_callback(off_t size)
+{
+    if (bufstripsize(ci.audio_hid, size) >= 0)
+        ci.filesize = size;
+}
 
 /** --- CODEC THREAD --- **/
 
@@ -647,6 +653,7 @@ void INIT_ATTR codec_thread_init(void)
     ci.configure        = codec_configure_callback;
     ci.get_command      = codec_get_command_callback;
     ci.loop_track       = codec_loop_track_callback;
+    ci.strip_filesize = codec_strip_filesize_callback;
 
     /* Init threading */
     queue_init(&codec_queue, false);
