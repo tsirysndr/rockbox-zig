@@ -3739,7 +3739,6 @@ fn addCMacros(c: *std.Build.Step.Compile) void {
     c.root_module.addCMacro("OS_USE_BYTESWAP_H", "");
     c.root_module.addCMacro("APPLICATION", "1");
     c.root_module.addCMacro("_GNU_SOURCE", "1");
-    //c.root_module.addCMacro("_REENTRANT", "");
 }
 
 fn addIncludePaths(c: *std.Build.Step.Compile) void {
