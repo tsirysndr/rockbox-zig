@@ -2,117 +2,149 @@
   description = "Rockbox Zig project flake";
 
   inputs = {
-     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    zig2nix.url = "github:Cloudef/zig2nix";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { zig2nix, nixpkgs, ... }: let
-    flake-utils = zig2nix.inputs.flake-utils;
-  in (flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = import nixpkgs {
-          inherit system;
+  outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+      {
+        packages.default = pkgs.stdenv.mkDerivation rec {
+          pname = "rockbox-zig";
+          version = "0.1.0";
+
+          src = ./.;
+
+          nativeBuildInputs = with pkgs; [
+            zig
+            pkg-config
+            gnumake
+          ];
+
+          buildInputs = with pkgs; [
+            SDL2
+            freetype
+            zlib
+            libunwind
+          ];
+
+          # For Rust dependencies if needed
+          # nativeBuildInputs = nativeBuildInputs ++ (with pkgs; [
+          #   cargo
+          #   rustc
+          # ]);
+
+          buildPhase = ''
+            runHook preBuild
+
+            # Set up cache directory
+            export ZIG_GLOBAL_CACHE_DIR=$TMPDIR/zig-cache
+            export ZIG_LOCAL_CACHE_DIR=$TMPDIR/zig-local-cache
+
+            # Build the project
+            zig build --prefix $out --cache-dir $ZIG_LOCAL_CACHE_DIR
+
+            runHook postBuild
+          '';
+
+          installPhase = ''
+            runHook preInstall
+            # zig build already installs to $out
+            runHook postInstall
+          '';
+
+          meta = with pkgs.lib; {
+            description = "Rockbox Zig project";
+            license = licenses.mit; # adjust as needed
+            platforms = platforms.linux;
+          };
         };
 
-      inherit (pkgs) lib;
-      # Zig flake helper
-      # Check the flake.nix in zig2nix project for more options:
-      # <https://github.com/Cloudef/zig2nix/blob/master/flake.nix>
-      env = zig2nix.outputs.zig-env.${system} { zig = pkgs.zig; };
-      system-triple = env.lib.zigTripleFromString system;
-    in with builtins; with env.lib; with env.pkgs.lib; rec {
-      # nix build .#target.{zig-target}
-      # e.g. nix build .#target.x86_64-linux-gnu
-      packages.target = genAttrs allTargetTriples (target: env.packageForTarget target ({
-        src = cleanSource ./.;
+        devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; [
+            # Zig toolchain
+            zig
 
-        nativeBuildInputs = with env.pkgs; [];
-        buildInputs = with env.pkgsForTarget target; [
-          pkgs.zig
-          pkgs.SDL_compat
-          pkgs.freetype
-          pkgs.gnumake
-          pkgs.pkg-config
-          pkgs.gcc
-          pkgs.zlib
-          pkgs.cargo
-          pkgs.rustc
-          pkgs.protobuf
-          pkgs.buf
-          pkgs.libunwind
-        ];
+            # Build tools
+            gnumake
+            pkg-config
+            gcc
 
-        # Smaller binaries and avoids shipping glibc.
-        zigPreferMusl = false;
+            # Libraries
+            SDL2
+            freetype
+            zlib
+            libunwind
 
-        # This disables LD_LIBRARY_PATH mangling, binary patching etc...
-        # The package won't be usable inside nix.
-        zigDisableWrap = false;
-      } // optionalAttrs (!pathExists ./build.zig.zon) {
-        pname = "rockbox-zig";
-        version = "0.1.0";
-      }));
+            # Protocol buffers
+            protobuf
+            buf
 
-      # nix build .
-      packages.default = packages.target.${system-triple}.override {
-        # Prefer nix friendly settings.
-        zigPreferMusl = false;
-        zigDisableWrap = false;
-      };
+            # JavaScript runtimes
+            deno
+            bun
 
-      # For bundling with nix bundle for running outside of nix
-      # example: https://github.com/ralismark/nix-appimage
-      apps.bundle.target = genAttrs allTargetTriples (target: let
-        pkg = packages.target.${target};
-      in {
-        type = "app";
-        program = "${pkg}/bin/default";
+            # Rust toolchain (if needed)
+            cargo
+            rustc
+
+            # Development tools
+            evans
+            grpcurl
+          ];
+
+          # Set up environment variables
+          shellHook = ''
+            echo "🚀 Rockbox Zig development environment"
+            echo "Zig version: $(zig version)"
+
+            # Set up Zig cache directories
+            export ZIG_GLOBAL_CACHE_DIR="$PWD/.zig-cache"
+            export ZIG_LOCAL_CACHE_DIR="$PWD/.zig-cache"
+
+            # Ensure cache directories exist
+            mkdir -p "$ZIG_GLOBAL_CACHE_DIR"
+            mkdir -p "$ZIG_LOCAL_CACHE_DIR"
+
+            echo "Build with: zig build"
+            echo "Run with: zig build run"
+            echo "Test with: zig build test"
+          '';
+
+          # Environment variables for libraries
+          PKG_CONFIG_PATH = "${pkgs.SDL2.dev}/lib/pkgconfig:${pkgs.freetype.dev}/lib/pkgconfig:${pkgs.zlib.dev}/lib/pkgconfig";
+          LD_LIBRARY_PATH = "${pkgs.SDL2}/lib:${pkgs.freetype}/lib:${pkgs.zlib}/lib:${pkgs.libunwind}/lib";
+        };
+
+        # Convenience apps
+        apps = {
+          default = flake-utils.lib.mkApp {
+            drv = self.packages.${system}.default;
+          };
+
+          build = {
+            type = "app";
+            program = "${pkgs.writeShellScript "zig-build" ''
+              ${pkgs.zig}/bin/zig build "$@"
+            ''}";
+          };
+
+          run = {
+            type = "app";
+            program = "${pkgs.writeShellScript "zig-run" ''
+              ${pkgs.zig}/bin/zig build run -- "$@"
+            ''}";
+          };
+
+          test = {
+            type = "app";
+            program = "${pkgs.writeShellScript "zig-test" ''
+              ${pkgs.zig}/bin/zig build test -- "$@"
+            ''}";
+          };
+        };
       });
-
-      # default bundle
-      apps.bundle.default = apps.bundle.target.${system-triple};
-
-      # nix run .
-      apps.default = env.app [] "zig build run -- \"$@\"";
-
-      # nix run .#build
-      apps.build = env.app [] "zig build \"$@\"";
-
-      # nix run .#test
-      apps.test = env.app [] "zig build test -- \"$@\"";
-
-      # nix run .#docs
-      apps.docs = env.app [] "zig build docs -- \"$@\"";
-
-      # nix run .#deps
-      apps.deps = env.showExternalDeps;
-
-      # nix run .#zon2json
-      apps.zon2json = env.app [env.zon2json] "zon2json \"$@\"";
-
-      # nix run .#zon2json-lock
-      apps.zon2json-lock = env.app [env.zon2json-lock] "zon2json-lock \"$@\"";
-
-      # nix run .#zon2nix
-      apps.zon2nix = env.app [env.zon2nix] "zon2nix \"$@\"";
-
-      # nix develop
-      devShells.default = env.mkShell {
-        nativeBuildInputs = with env.pkgs; [
-          pkgs.zig
-          pkgs.SDL_compat
-          pkgs.freetype
-          pkgs.gnumake
-          pkgs.pkg-config
-          pkgs.gcc
-          pkgs.zlib
-          pkgs.cargo
-          pkgs.rustc
-          pkgs.protobuf
-          pkgs.buf
-          pkgs.libunwind
-          pkgs.evans
-          pkgs.grpcurl
-        ];
-      };
-    }));
 }
