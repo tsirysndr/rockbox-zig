@@ -1,9 +1,9 @@
-FROM rust:1.83-bookworm
+FROM rust:1.88-bookworm
 
 RUN apt-get update && apt-get install -y apt-utils && \
   apt-get install -y build-essential \
   libusb-dev \
-  libsdl1.2-dev \
+  libsdl2-dev \
   libfreetype6-dev \
   libunwind-dev \
   curl \
@@ -20,7 +20,7 @@ RUN locale-gen en_US.UTF-8
 
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgx install zig@0.13.0
+RUN pkgm install zig@0.14.1
 
 RUN curl -s https://ohmyposh.dev/install.sh | bash -s -- -d /usr/local/bin
 
@@ -36,7 +36,7 @@ RUN curl -fsSL https://bun.sh/install | bash
 
 ENV PATH=/root/.bun/bin:$PATH
 
-RUN pkgx install node protoc buf deno
+RUN pkgm install node protoc buf deno
 
 ENV LANG=en_US.UTF-8
 
