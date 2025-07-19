@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y build-essential \
 
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgm install zig@0.13.0 buf deno bun node@18
+RUN pkgm install zig@0.14.1 buf deno bun node@18
 
 COPY . /app
 
