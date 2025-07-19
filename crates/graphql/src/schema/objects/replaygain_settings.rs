@@ -9,7 +9,6 @@ pub struct ReplaygainSettingsInput {
     pub preamp: i32, // scale replaygained tracks by this
 }
 
-
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct ReplaygainSettings {
     pub noclip: bool, // scale to prevent clips

@@ -4,7 +4,9 @@ use anyhow::Error;
 use clap::{arg, Command};
 use owo_colors::OwoColorize;
 
-use cmd::{community::*, login::*, repl::*, run::*, scan::*, service, start::*, webui::*, whoami::*};
+use cmd::{
+    community::*, login::*, repl::*, run::*, scan::*, service, start::*, webui::*, whoami::*,
+};
 
 pub mod cmd;
 
@@ -57,18 +59,13 @@ fn cli() -> Command {
         .subcommand(
             Command::new("service")
                 .about("Manage systemd service for Rockbox")
+                .subcommand(Command::new("install").about("Install systemd service for Rockbox"))
                 .subcommand(
-                    Command::new("install")
-                        .about("Install systemd service for Rockbox")
+                    Command::new("uninstall").about("Uninstall systemd service for Rockbox"),
                 )
                 .subcommand(
-                    Command::new("uninstall")
-                        .about("Uninstall systemd service for Rockbox")
-                )
-                .subcommand(
-                    Command::new("status")
-                        .about("Check status of systemd service for Rockbox")
-                )
+                    Command::new("status").about("Check status of systemd service for Rockbox"),
+                ),
         )
         .subcommand(
             Command::new("login")
@@ -132,13 +129,13 @@ async fn main() -> Result<(), Error> {
                 service::status()?;
             }
             _ => {
-               println!("Invalid subcommand. Use `rockbox service --help` for more information.");
+                println!("Invalid subcommand. Use `rockbox service --help` for more information.");
             }
         },
         Some(("login", args)) => {
             let handle = args.get_one::<String>("handle").unwrap();
             login(handle).await?;
-        },
+        }
         Some(("whoami", _)) => {
             whoami().await?;
         }

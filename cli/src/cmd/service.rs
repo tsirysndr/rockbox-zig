@@ -17,9 +17,9 @@ pub fn install() -> Result<(), Error> {
 
     let rockbox_path = std::env::current_exe()?;
     let service_template: &str = &SERVICE_TEMPLATE.replace(
-            "ExecStart=/usr/local/bin/rockboxd",
-            &format!("ExecStart={}d", rockbox_path.display()),
-        );
+        "ExecStart=/usr/local/bin/rockboxd",
+        &format!("ExecStart={}d", rockbox_path.display()),
+    );
 
     std::fs::write(service_path, service_template).expect("Failed to write service file");
 

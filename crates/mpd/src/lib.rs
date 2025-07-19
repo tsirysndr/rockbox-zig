@@ -375,7 +375,7 @@ pub fn restore_playlist(ctx: Context) -> Result<(), Error> {
                 let response = response.into_inner();
                 let mut current_track = ctx.current_track.lock().await;
                 let path = response.tracks[resume_index as usize].path.clone();
-                
+
                 let mut track: Track = Track {
                     path: path.clone(),
                     artist: response.tracks[resume_index as usize].artist.clone(),
@@ -394,16 +394,14 @@ pub fn restore_playlist(ctx: Context) -> Result<(), Error> {
                 let hash = format!("{:x}", md5::compute(path.as_bytes()));
                 let pool = rockbox_library::create_connection_pool().await?;
 
-                if let Ok(Some(metadata)) =
-                    repo::track::find_by_md5(pool.clone(), &hash).await
-                {
+                if let Ok(Some(metadata)) = repo::track::find_by_md5(pool.clone(), &hash).await {
                     track.id = Some(metadata.id);
                     track.album_art = metadata.album_art;
                     track.album_id = Some(metadata.album_id);
                     track.artist_id = Some(metadata.artist_id);
                     SimpleBroker::publish(track);
                 }
-         }
+            }
 
             Ok::<(), Error>(())
         })?;
