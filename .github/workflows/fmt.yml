@@ -19,8 +19,8 @@ jobs:
           args: setup
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run fmt
+      - name: Run cargo fmt
         run: |
           type cargo
-          cargo fmt -p deno
+          mkdir -p deno/cli && cd deno/cli && cargo init --lib
           cargo fmt --all --check
