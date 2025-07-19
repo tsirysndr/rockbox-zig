@@ -14,6 +14,14 @@ edition = "2021"
 license = "LGPL-2.1"
 repository = "https://github.com/tsirysndr/rockbox-zig"
 
+[profile.dev]
+panic = "abort"
+
+[profile.release] 
+panic = "abort"
+lto = true
+codegen-units = 1
+
 [workspace.dependencies]
 async-trait = "0.1.73"
 base64 = "0.21.7"
