@@ -8,8 +8,8 @@ pub struct Playlist {
     pub image: Option<String>,
     pub description: Option<String>,
     pub folder_id: Option<String>,
-    #[serde(with = "chrono::serde::ts_seconds")] 
+    #[serde(with = "chrono::serde::ts_seconds")]
     pub created_at: DateTime<Utc>,
-    #[serde(with = "chrono::serde::ts_seconds")] 
+    #[serde(with = "chrono::serde::ts_seconds")]
     pub updated_at: DateTime<Utc>,
 }

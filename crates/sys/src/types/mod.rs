@@ -7,8 +7,8 @@ pub mod playlist_amount;
 pub mod playlist_info;
 pub mod playlist_track_info;
 pub mod system_status;
-pub mod user_settings;
 pub mod tree;
+pub mod user_settings;
 
 #[derive(Serialize, Deserialize)]
 pub struct RockboxVersion {

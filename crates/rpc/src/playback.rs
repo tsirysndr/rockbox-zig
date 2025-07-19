@@ -12,7 +12,11 @@ use rockbox_graphql::schema;
 use rockbox_graphql::schema::objects::track::Track;
 use rockbox_graphql::simplebroker::SimpleBroker;
 use rockbox_library::repo;
-use rockbox_sys::{self as rb, events::RockboxCommand, types::{audio_status::AudioStatus, system_status::SystemStatus}};
+use rockbox_sys::{
+    self as rb,
+    events::RockboxCommand,
+    types::{audio_status::AudioStatus, system_status::SystemStatus},
+};
 use sqlx::Sqlite;
 use tokio_stream::{Stream, StreamExt};
 
@@ -62,7 +66,7 @@ impl PlaybackService for Playback {
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(PauseResponse::default()))
     }
-    
+
     async fn play_or_pause(
         &self,
         _request: tonic::Request<PlayOrPauseRequest>,
@@ -76,7 +80,7 @@ impl PlaybackService for Playback {
             .json::<AudioStatus>()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        
+
         let client = reqwest::Client::new();
         match response.status {
             1 => {
@@ -85,14 +89,13 @@ impl PlaybackService for Playback {
                     .send()
                     .await
                     .map_err(|e| tonic::Status::internal(e.to_string()))?;
-                },
+            }
             3 => {
                 client
                     .put(&format!("{}/player/resume", rockbox_url()))
                     .send()
                     .await
                     .map_err(|e| tonic::Status::internal(e.to_string()))?;
-
             }
             _ => {
                 let url = format!("{}/status", rockbox_url());
@@ -105,13 +108,13 @@ impl PlaybackService for Playback {
                     .json::<SystemStatus>()
                     .await
                     .map_err(|e| tonic::Status::internal(e.to_string()))?;
-                if status.resume_index > -1  {
+                if status.resume_index > -1 {
                     self.cmd_tx
                         .lock()
                         .unwrap()
                         .send(RockboxCommand::PlaylistResumeTrack)
                         .map_err(|_| tonic::Status::internal("Failed to send command"))?;
-                } 
+                }
             }
         };
         Ok(tonic::Response::new(PlayOrPauseResponse::default()))

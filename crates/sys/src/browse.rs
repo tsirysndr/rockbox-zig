@@ -19,7 +19,7 @@ pub fn rockbox_browse_at(path: &str) -> Result<i32, Error> {
     if !path.ends_with("/") {
         let path = format!("{}/", path);
         let path = CString::new(path).unwrap();
-        return Ok(unsafe { crate::rockbox_browse_at(path.as_ptr()) })
+        return Ok(unsafe { crate::rockbox_browse_at(path.as_ptr()) });
     }
 
     let path = CString::new(path).unwrap();
