@@ -1,5 +1,0 @@
-[target.x86_64-apple-darwin]
-rustflags = ["-C", "relocation-model=pic"]
-
-[target.aarch64-apple-darwin]
-rustflags = ["-C", "relocation-model=pic"]
