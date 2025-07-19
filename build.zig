@@ -897,28 +897,28 @@ pub fn build(b: *std.Build) !void {
     });
     codecs.dependOn(atrac3_oma);
 
-    const mpc = try build_codec(b, .{
-        .name = "mpc",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "lib/rbcodec/codecs/mpc.c",
-            "lib/rbcodec/codecs/codec_crt0.c",
-            "lib/rbcodec/codecs/libmusepack/crc32.c",
-            "lib/rbcodec/codecs/libmusepack/huffman.c",
-            "lib/rbcodec/codecs/libmusepack/mpc_bits_reader.c",
-            "lib/rbcodec/codecs/libmusepack/mpc_decoder.c",
-            "lib/rbcodec/codecs/libmusepack/mpc_demux.c",
-            "lib/rbcodec/codecs/libmusepack/requant.c",
-            "lib/rbcodec/codecs/libmusepack/streaminfo.c",
-            "lib/rbcodec/codecs/libmusepack/synth_filter.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libcodec,
-            libfixedpoint,
-        },
-    });
-    codecs.dependOn(mpc);
+    // const mpc = try build_codec(b, .{
+    //    .name = "mpc",
+    //    .target = target,
+    //   .optimize = optimize,
+    //  .sources = &[_][]const u8{
+    //      "lib/rbcodec/codecs/mpc.c",
+    //     "lib/rbcodec/codecs/codec_crt0.c",
+    //     "lib/rbcodec/codecs/libmusepack/crc32.c",
+    //     "lib/rbcodec/codecs/libmusepack/huffman.c",
+    //     "lib/rbcodec/codecs/libmusepack/mpc_bits_reader.c",
+    //    "lib/rbcodec/codecs/libmusepack/mpc_decoder.c",
+    //   "lib/rbcodec/codecs/libmusepack/mpc_demux.c",
+    //   "lib/rbcodec/codecs/libmusepack/requant.c",
+    //   "lib/rbcodec/codecs/libmusepack/streaminfo.c",
+    //  "lib/rbcodec/codecs/libmusepack/synth_filter.c",
+    // },
+    // .link_libraries = &[_]*std.Build.Step.Compile{
+    //    libcodec,
+    //    libfixedpoint,
+    // },
+    //});
+    // codecs.dependOn(mpc);
 
     const wma = try build_codec(b, .{
         .name = "wma",
@@ -2065,21 +2065,21 @@ pub fn build(b: *std.Build) !void {
     });
     rocks.dependOn(keybox);
 
-    const keyremap = try build_plugin(b, .{
-        .name = "keyremap",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "apps/plugins/keyremap.c",
-            "apps/plugins/plugin_crt0.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libplugin,
-            libpluginbitmaps,
-            libfixedpoint,
-        },
-    });
-    rocks.dependOn(keyremap);
+    //  const keyremap = try build_plugin(b, .{
+    //    .name = "keyremap",
+    //  .target = target,
+    //.optimize = optimize,
+    //.sources = &[_][]const u8{
+    //  "apps/plugins/keyremap.c",
+    //"apps/plugins/plugin_crt0.c",
+    //},
+    //.link_libraries = &[_]*std.Build.Step.Compile{
+    //  libplugin,
+    //libpluginbitmaps,
+    //libfixedpoint,
+    //  },
+    // });
+    // rocks.dependOn(keyremap);
 
     const lastfm_scrobbler = try build_plugin(b, .{
         .name = "lastfm_scrobbler",
@@ -2225,21 +2225,21 @@ pub fn build(b: *std.Build) !void {
     });
     rocks.dependOn(random_folder_advance_config);
 
-    const rb_info = try build_plugin(b, .{
-        .name = "rb_info",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "apps/plugins/rb_info.c",
-            "apps/plugins/plugin_crt0.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libplugin,
-            libpluginbitmaps,
-            libfixedpoint,
-        },
-    });
-    rocks.dependOn(rb_info);
+    // const rb_info = try build_plugin(b, .{
+    //     .name = "rb_info",
+    //     .target = target,
+    //    .optimize = optimize,
+    //    .sources = &[_][]const u8{
+    //        "apps/plugins/rb_info.c",
+    //        "apps/plugins/plugin_crt0.c",
+    //    },
+    //   .link_libraries = &[_]*std.Build.Step.Compile{
+    //       libplugin,
+    //       libpluginbitmaps,
+    //       libfixedpoint,
+    //   },
+    // });
+    //  rocks.dependOn(rb_info);
 
     const rockblox = try build_plugin(b, .{
         .name = "rockblox",
@@ -2706,21 +2706,21 @@ pub fn build(b: *std.Build) !void {
     });
     rocks.dependOn(bounce);
 
-    const bubbles = try build_plugin(b, .{
-        .name = "bubbles",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "apps/plugins/bubbles.c",
-            "apps/plugins/plugin_crt0.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libplugin,
-            libpluginbitmaps,
-            libfixedpoint,
-        },
-    });
-    rocks.dependOn(bubbles);
+    // const bubbles = try build_plugin(b, .{
+    //      .name = "bubbles",
+    //     .target = target,
+    //     .optimize = optimize,
+    //     .sources = &[_][]const u8{
+    //        "apps/plugins/bubbles.c",
+    //      "apps/plugins/plugin_crt0.c",
+    // },
+    // .link_libraries = &[_]*std.Build.Step.Compile{
+    //    libplugin,
+    //   libpluginbitmaps,
+    //   libfixedpoint,
+    //   },
+    //});
+    // rocks.dependOn(bubbles);
 
     const chip8 = try build_plugin(b, .{
         .name = "chip8",
@@ -2754,21 +2754,21 @@ pub fn build(b: *std.Build) !void {
     });
     rocks.dependOn(demystify);
 
-    const jewels = try build_plugin(b, .{
-        .name = "jewels",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "apps/plugins/jewels.c",
-            "apps/plugins/plugin_crt0.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libplugin,
-            libpluginbitmaps,
-            libfixedpoint,
-        },
-    });
-    rocks.dependOn(jewels);
+    //const jewels = try build_plugin(b, .{
+    //   .name = "jewels",
+    //  .target = target,
+    // .optimize = optimize,
+    //.sources = &[_][]const u8{
+    //   "apps/plugins/jewels.c",
+    //  "apps/plugins/plugin_crt0.c",
+    //},
+    // .link_libraries = &[_]*std.Build.Step.Compile{
+    //    libplugin,
+    //    libpluginbitmaps,
+    //   libfixedpoint,
+    //},
+    //});
+    // rocks.dependOn(jewels);
 
     const minesweeper = try build_plugin(b, .{
         .name = "minesweeper",
@@ -3559,7 +3559,7 @@ fn install_codecs(b: *std.Build, install: *std.Build.Step) !void {
     install.dependOn(try install_codec(b, "kss"));
     install.dependOn(try install_codec(b, "mod"));
     install.dependOn(try install_codec(b, "mpa"));
-    install.dependOn(try install_codec(b, "mpc"));
+    //  install.dependOn(try install_codec(b, "mpc"));
     install.dependOn(try install_codec(b, "nsf"));
     install.dependOn(try install_codec(b, "opus"));
     install.dependOn(try install_codec(b, "raac"));
@@ -3624,7 +3624,7 @@ fn install_rocks(b: *std.Build, install: *std.Build.Step) !void {
     install.dependOn(try install_rock(b, "amaze", "games"));
     install.dependOn(try install_rock(b, "bounce", "demos"));
     install.dependOn(try install_rock(b, "brickmania", "games"));
-    install.dependOn(try install_rock(b, "bubbles", "games"));
+    // install.dependOn(try install_rock(b, "bubbles", "games"));
     install.dependOn(try install_rock(b, "calendar", "apps"));
     install.dependOn(try install_rock(b, "chessbox", "games"));
     install.dependOn(try install_rock(b, "chessclock", "apps"));
@@ -3645,9 +3645,9 @@ fn install_rocks(b: *std.Build, install: *std.Build.Step) !void {
     install.dependOn(try install_rock(b, "flipit", "games"));
     install.dependOn(try install_rock(b, "goban", "games"));
     install.dependOn(try install_rock(b, "jackpot", "games"));
-    install.dependOn(try install_rock(b, "jewels", "games"));
+    // install.dependOn(try install_rock(b, "jewels", "games"));
     install.dependOn(try install_rock(b, "keybox", "apps"));
-    install.dependOn(try install_rock(b, "keyremap", "apps"));
+    // install.dependOn(try install_rock(b, "keyremap", "apps"));
     install.dependOn(try install_rock(b, "lastfm_scrobbler", "apps"));
     install.dependOn(try install_rock(b, "lastfm_scrobbler_viewer", "viewers"));
     install.dependOn(try install_rock(b, "logo", "demos"));
@@ -3671,7 +3671,7 @@ fn install_rocks(b: *std.Build, install: *std.Build.Step) !void {
     install.dependOn(try install_rock(b, "pong", "games"));
     install.dependOn(try install_rock(b, "properties", "viewers"));
     install.dependOn(try install_rock(b, "random_folder_advance_config", "apps"));
-    install.dependOn(try install_rock(b, "rb_info", "demos"));
+    //install.dependOn(try install_rock(b, "rb_info", "demos"));
     install.dependOn(try install_rock(b, "resistor", "apps"));
     install.dependOn(try install_rock(b, "reversi", "games"));
     install.dependOn(try install_rock(b, "robotfindskitten", "games"));
