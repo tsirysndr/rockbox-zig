@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct SystemStatus {
+    pub volume: i32,
     pub resume_index: i32,
     pub resume_crc32: u32,
     pub resume_elapsed: u32,
@@ -17,6 +18,7 @@ pub struct SystemStatus {
 impl From<crate::SystemStatus> for SystemStatus {
     fn from(status: crate::SystemStatus) -> Self {
         Self {
+            volume: status.volume,
             resume_index: status.resume_index,
             resume_crc32: status.resume_crc32,
             resume_elapsed: status.resume_elapsed,

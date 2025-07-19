@@ -1061,7 +1061,7 @@ impl From<rb::types::user_settings::UserSettings> for UserSettings {
     fn from(settings: rb::types::user_settings::UserSettings) -> Self {
         Self {
             music_dir: settings.music_dir,
-            volume: settings.volume,
+            volume: 0,
             balance: settings.balance,
             bass: settings.bass,
             treble: settings.treble,

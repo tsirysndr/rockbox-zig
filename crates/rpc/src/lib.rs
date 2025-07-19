@@ -332,7 +332,6 @@ pub mod api {
 
         impl From<UserSettings> for GetGlobalSettingsResponse {
             fn from(settings: UserSettings) -> Self {
-                let volume = settings.volume;
                 let balance = settings.balance;
                 let bass = settings.bass;
                 let treble = settings.treble;
@@ -522,10 +521,11 @@ pub mod api {
                 let governor = settings.governor;
                 let stereosw_mode = settings.stereosw_mode;
                 let music_dir = settings.music_dir;
+                let volume = 0;
 
                 GetGlobalSettingsResponse {
-                    music_dir,
                     volume,
+                    music_dir,
                     balance,
                     bass,
                     treble,
