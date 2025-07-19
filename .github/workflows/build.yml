@@ -1,0 +1,37 @@
+name: Cargo Format Check
+
+on:
+  push:
+    branches: [ macos-build ]
+
+jobs:
+  format-check:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-13, macos-15]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+      
+    - name: Setup Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Setup Deno
+      uses: denoland/setup-deno@v2
+
+    - name: Install Protobuf
+      run: brew install protobuf
+
+    - name: Build libs
+      run: |
+        cd webui/rockbox && deno install && deno run build && cd ../..
+        cargo build -p rockbox-cli --release
+        cargo build -p rockbox-server --release
+        cargo build -p rockbox --release
