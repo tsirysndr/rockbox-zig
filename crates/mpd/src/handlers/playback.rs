@@ -109,7 +109,8 @@ pub async fn handle_status(
         false => 0,
     };
 
-    let volume = settings.volume;
+    let system_status = rockbox_sys::system::get_global_status();
+    let volume = system_status.volume;
     // volume is between -80 db and 0 db
     // we need to convert it to 0-100
     // -80 db is 0
@@ -382,8 +383,8 @@ pub async fn handle_getvol(
     _request: &str,
     tx: Sender<String>,
 ) -> Result<String, Error> {
-    let settings = rockbox_sys::settings::get_global_settings();
-    let volume = settings.volume;
+    let status = rockbox_sys::system::get_global_status();
+    let volume = status.volume;
     // volume is between -80 db and 0 db
     // we need to convert it to 0-100
     // -80 db is 0
@@ -403,8 +404,8 @@ pub async fn handle_setvol(
     request: &str,
     tx: Sender<String>,
 ) -> Result<String, Error> {
-    let settings = rockbox_sys::settings::get_global_settings();
-    let volume = settings.volume as i32;
+    let status = rockbox_sys::system::get_global_status();
+    let volume = status.volume;
     let arg = request.split_whitespace().nth(1);
     if arg.is_none() {
         if !ctx.batch {

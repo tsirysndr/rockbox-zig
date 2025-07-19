@@ -111,7 +111,6 @@ pub struct UserSettings {
     pub music_dir: String,
 
     // Audio settings
-    pub volume: i32,
     pub balance: i32,
     pub bass: i32,
     pub treble: i32,
@@ -370,7 +369,6 @@ impl From<crate::UserSettings> for UserSettings {
         Self {
             music_dir: std::env::var("ROCKBOX_LIBRARY")
                 .unwrap_or_else(|_| format!("{}/Music", home)),
-            volume: settings.volume,
             balance: settings.balance,
             bass: settings.bass,
             treble: settings.treble,

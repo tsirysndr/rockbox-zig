@@ -744,7 +744,6 @@ pub enum SystemSound {
 #[derive(Debug, Copy, Clone)]
 pub struct UserSettings {
     // Audio settings
-    pub volume: c_int,
     pub balance: c_int,
     pub bass: c_int,
     pub treble: c_int,
