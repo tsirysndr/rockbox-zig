@@ -54,6 +54,22 @@ pub fn build(b: *std.Build) !void {
     // running `zig build`).
     b.installArtifact(lib);
 
+    const libcommon = b.addStaticLibrary(.{
+        .name = "common",
+        .target = target,
+        .optimize = optimize,
+    });
+
+    b.installArtifact(libcommon);
+
+    libcommon.addCSourceFiles(.{
+        .files = &common_sources,
+        .flags = &cflags,
+    });
+
+    addCMacros(libcommon);
+    addIncludePaths(libcommon);
+
     const exe = b.addExecutable(.{
         .name = "rockboxd",
         .root_source_file = b.path("src/main.zig"),
@@ -65,6 +81,8 @@ pub fn build(b: *std.Build) !void {
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
     b.installArtifact(exe);
+
+    exe.linkLibrary(libcommon);
 
     // This *creates* a Run step in the build graph, to be executed when another
     // step is evaluated that depends on it. The next line below will establish
@@ -134,7 +152,9 @@ pub fn build(b: *std.Build) !void {
     build_tools(b, target, optimize);
 
     exe.addCSourceFiles(.{
-        .files = &all_sources,
+        .files = &[_][]const u8{
+            "apps/main.c",
+        },
         .flags = &cflags,
     });
 
@@ -281,6 +301,8 @@ pub fn build(b: *std.Build) !void {
     addCMacros(libcodec);
     addIncludePaths(libcodec);
 
+    libcodec.linkLibrary(libcommon);
+
     const libtlsf = b.addStaticLibrary(.{
         .name = "tlsf",
         .target = target,
@@ -307,6 +329,7 @@ pub fn build(b: *std.Build) !void {
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
             libfixedpoint,
+            libtlsf,
         },
         .macros = &[_][]const u8{
             "CODEC",
@@ -374,6 +397,7 @@ pub fn build(b: *std.Build) !void {
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
             libfixedpoint,
+            libtlsf,
         },
     });
     codecs.dependOn(vorbis);
@@ -826,6 +850,11 @@ pub fn build(b: *std.Build) !void {
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/a52_rm.c",
+            "lib/rbcodec/codecs/liba52/parse.c",
+            "lib/rbcodec/codecs/liba52/bit_allocate.c",
+            "lib/rbcodec/codecs/liba52/bitstream.c",
+            "lib/rbcodec/codecs/liba52/downmix.c",
+            "lib/rbcodec/codecs/liba52/imdct.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -859,6 +888,7 @@ pub fn build(b: *std.Build) !void {
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/atrac3_oma.c",
+            "lib/rbcodec/codecs/libatrac/atrac3.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -903,6 +933,7 @@ pub fn build(b: *std.Build) !void {
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
             libfixedpoint,
+            libasf,
         },
     });
     codecs.dependOn(wma);
@@ -943,6 +974,7 @@ pub fn build(b: *std.Build) !void {
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
             libfixedpoint,
+            libdemac,
         },
     });
     codecs.dependOn(ape);
@@ -1204,6 +1236,7 @@ pub fn build(b: *std.Build) !void {
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
             libfixedpoint,
+            libasf,
         },
     });
     codecs.dependOn(wmapro);
@@ -1260,7 +1293,10 @@ pub fn build(b: *std.Build) !void {
             "lib/rbcodec/codecs/libgme/gbs_cpu.c",
             "lib/rbcodec/codecs/libgme/gb_oscs.c",
             "lib/rbcodec/codecs/libgme/gbs_emu.c",
+            "lib/rbcodec/codecs/libgme/blip_buffer.c",
+            "lib/rbcodec/codecs/libgme/multi_buffer.c",
             "lib/rbcodec/codecs/libgme/rom_data.c",
+            "lib/rbcodec/codecs/libgme/track_filter.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1280,6 +1316,10 @@ pub fn build(b: *std.Build) !void {
             "lib/rbcodec/codecs/libgme/hes_apu_adpcm.c",
             "lib/rbcodec/codecs/libgme/hes_cpu.c",
             "lib/rbcodec/codecs/libgme/hes_emu.c",
+            "lib/rbcodec/codecs/libgme/rom_data.c",
+            "lib/rbcodec/codecs/libgme/track_filter.c",
+            "lib/rbcodec/codecs/libgme/blip_buffer.c",
+            "lib/rbcodec/codecs/libgme/multi_buffer.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1317,6 +1357,7 @@ pub fn build(b: *std.Build) !void {
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/nsf.c",
             "lib/rbcodec/codecs/codec_crt0.c",
+            "lib/rbcodec/codecs/libgme/blip_buffer.c",
             "lib/rbcodec/codecs/libgme/nes_apu.c",
             "lib/rbcodec/codecs/libgme/nes_cpu.c",
             "lib/rbcodec/codecs/libgme/nes_fds_apu.c",
@@ -1330,6 +1371,9 @@ pub fn build(b: *std.Build) !void {
             "lib/rbcodec/codecs/libgme/nsfe_info.c",
             "lib/rbcodec/codecs/libgme/sms_apu.c",
             "lib/rbcodec/codecs/libgme/sms_fm_apu.c",
+            "lib/rbcodec/codecs/libgme/multi_buffer.c",
+            "lib/rbcodec/codecs/libgme/rom_data.c",
+            "lib/rbcodec/codecs/libgme/track_filter.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1345,9 +1389,18 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/sgc.c",
+            "lib/rbcodec/codecs/libgme/blip_buffer.c",
             "lib/rbcodec/codecs/codec_crt0.c",
+            "lib/rbcodec/codecs/libgme/multi_buffer.c",
             "lib/rbcodec/codecs/libgme/sgc_cpu.c",
             "lib/rbcodec/codecs/libgme/sgc_emu.c",
+            "lib/rbcodec/codecs/libgme/sms_apu.c",
+            "lib/rbcodec/codecs/libgme/sms_fm_apu.c",
+            "lib/rbcodec/codecs/libgme/track_filter.c",
+            "lib/rbcodec/codecs/libgme/z80_cpu.c",
+            "lib/rbcodec/codecs/libgme/rom_data.c",
+            "lib/rbcodec/codecs/libgme/emu2413.c",
+            "lib/rbcodec/codecs/libgme/ym2413_emu.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1364,12 +1417,18 @@ pub fn build(b: *std.Build) !void {
             "lib/rbcodec/codecs/vgm.c",
             "lib/rbcodec/codecs/codec_crt0.c",
             "lib/rbcodec/codecs/libgme/resampler.c",
+            "lib/rbcodec/codecs/libgme/emu2413.c",
+            "lib/rbcodec/codecs/libgme/sms_apu.c",
             "lib/rbcodec/codecs/libgme/vgm_emu.c",
             "lib/rbcodec/codecs/libgme/ym2612_emu.c",
+            "lib/rbcodec/codecs/libgme/ym2413_emu.c",
             "lib/rbcodec/codecs/libgme/inflate/bbfuncs.c",
             "lib/rbcodec/codecs/libgme/inflate/inflate.c",
             "lib/rbcodec/codecs/libgme/inflate/mallocer.c",
             "lib/rbcodec/codecs/libgme/inflate/mbreader.c",
+            "lib/rbcodec/codecs/libgme/blip_buffer.c",
+            "lib/rbcodec/codecs/libgme/multi_buffer.c",
+            "lib/rbcodec/codecs/libgme/track_filter.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1405,12 +1464,22 @@ pub fn build(b: *std.Build) !void {
         .sources = &[_][]const u8{
             "lib/rbcodec/codecs/kss.c",
             "lib/rbcodec/codecs/codec_crt0.c",
+            "lib/rbcodec/codecs/libgme/ay_apu.c",
+            "lib/rbcodec/codecs/libgme/ay_cpu.c",
+            "lib/rbcodec/codecs/libgme/ay_emu.c",
+            "lib/rbcodec/codecs/libgme/emu2413.c",
             "lib/rbcodec/codecs/libgme/kss_cpu.c",
             "lib/rbcodec/codecs/libgme/kss_emu.c",
             "lib/rbcodec/codecs/libgme/kss_scc_apu.c",
             "lib/rbcodec/codecs/libgme/opl_apu.c",
             "lib/rbcodec/codecs/libgme/emu8950.c",
             "lib/rbcodec/codecs/libgme/emuadpcm.c",
+            "lib/rbcodec/codecs/libgme/multi_buffer.c",
+            "lib/rbcodec/codecs/libgme/track_filter.c",
+            "lib/rbcodec/codecs/libgme/blip_buffer.c",
+            "lib/rbcodec/codecs/libgme/z80_cpu.c",
+            "lib/rbcodec/codecs/libgme/sms_apu.c",
+            "lib/rbcodec/codecs/libgme/rom_data.c",
         },
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
@@ -1430,6 +1499,7 @@ pub fn build(b: *std.Build) !void {
         .link_libraries = &[_]*std.Build.Step.Compile{
             libcodec,
             libfixedpoint,
+            libfaad,
         },
     });
     codecs.dependOn(aac_bsf);
@@ -1451,6 +1521,7 @@ pub fn build(b: *std.Build) !void {
             "apps/plugins/lib/icon_helper.c",
             "apps/plugins/lib/arg_helper.c",
             "apps/plugins/lib/md5.c",
+            "apps/plugins/lib/mul_id3.c",
             "apps/plugins/lib/jhash.c",
             "apps/plugins/lib/configfile.c",
             "apps/plugins/lib/playback_control.c",
@@ -1482,6 +1553,8 @@ pub fn build(b: *std.Build) !void {
     libplugin.root_module.addCMacro("PLUGIN", "");
     addCMacros(libplugin);
     addPluginIncludePaths(libplugin);
+
+    libplugin.linkLibrary(libcommon);
 
     const libpluginbitmaps = b.addStaticLibrary(.{
         .name = "pluginbitmaps",
@@ -1683,6 +1756,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
         .sources = &[_][]const u8{
+            "apps/plugins/plugin_crt0.c",
             "apps/plugins/lua/lauxlib.c",
             "apps/plugins/lua/lapi.c",
             "apps/plugins/lua/lbaselib.c",
@@ -1857,6 +1931,7 @@ pub fn build(b: *std.Build) !void {
             libplugin,
             libpluginbitmaps,
             libfixedpoint,
+            libtlsf,
         },
         .is_mikmod_plugin = true,
     });
@@ -2374,21 +2449,22 @@ pub fn build(b: *std.Build) !void {
     });
     rocks.dependOn(mp3_encoder);
 
-    const wav2wv = try build_plugin(b, .{
-        .name = "wav2wv",
-        .target = target,
-        .optimize = optimize,
-        .sources = &[_][]const u8{
-            "apps/plugins/wav2wv.c",
-            "apps/plugins/plugin_crt0.c",
-        },
-        .link_libraries = &[_]*std.Build.Step.Compile{
-            libplugin,
-            libpluginbitmaps,
-            libfixedpoint,
-        },
-    });
-    rocks.dependOn(wav2wv);
+    // const wav2wv = try build_plugin(b, .{
+    //    .name = "wav2wv",
+    //  .target = target,
+    //.optimize = optimize,
+    //.sources = &[_][]const u8{
+    //    "apps/plugins/wav2wv.c",
+    //    "apps/plugins/plugin_crt0.c",
+    //    "lib/rbcodec/codecs/libwavpack/wputils.c",
+    // },
+    //.link_libraries = &[_]*std.Build.Step.Compile{
+    // libplugin,
+    //libpluginbitmaps,
+    //libfixedpoint,
+    // },
+    // });
+    // rocks.dependOn(wav2wv);
 
     const zxbox = try build_plugin(b, .{
         .name = "zxbox",
@@ -2938,6 +3014,19 @@ pub fn build(b: *std.Build) !void {
     exe.linkLibrary(libfixedpoint);
     exe.linkLibrary(libuisimulator);
     exe.linkSystemLibrary("SDL2");
+    exe.linkSystemLibrary("objc");
+    exe.linkFramework("CoreAudio");
+    exe.linkFramework("CoreVideo");
+    exe.linkFramework("AudioToolbox");
+    exe.linkFramework("ForceFeedback");
+    exe.linkFramework("Cocoa");
+    exe.linkFramework("Carbon");
+    exe.linkFramework("IOKit");
+    exe.linkFramework("CoreHaptics");
+    exe.linkFramework("GameController");
+    exe.linkFramework("QuartzCore");
+    exe.linkFramework("Metal");
+
     exe.linkLibC();
 }
 
@@ -3736,19 +3825,21 @@ fn addCMacros(c: *std.Build.Step.Compile) void {
     c.root_module.addCMacro("YEAR", "2024");
     c.root_module.addCMacro("MONTH", "09");
     c.root_module.addCMacro("DAY", "01");
-    c.root_module.addCMacro("OS_USE_BYTESWAP_H", "");
+    // c.root_module.addCMacro("OS_USE_BYTESWAP_H", "");
     c.root_module.addCMacro("APPLICATION", "1");
     c.root_module.addCMacro("_GNU_SOURCE", "1");
 }
 
 fn addIncludePaths(c: *std.Build.Step.Compile) void {
-    c.addIncludePath(.{ .cwd_relative = "/usr/include" });
+    // c.addIncludePath(.{ .cwd_relative = "/usr/include" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/x86_64-linux-gnu" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/aarch64-linux-gnu" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/SDL2" });
+    c.addIncludePath(.{ .cwd_relative = "/usr/local/include/SDL2" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/export" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/drivers" });
     c.addIncludePath(.{ .cwd_relative = "./build" });
+    c.addIncludePath(.{ .cwd_relative = "./build/pluginbitmaps" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/include" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/target/hosted/sdl" });
     c.addIncludePath(.{ .cwd_relative = "./firmware/target/hosted" });
@@ -3783,8 +3874,7 @@ fn addIncludePaths(c: *std.Build.Step.Compile) void {
 }
 
 fn addPluginIncludePaths(c: *std.Build.Step.Compile) void {
-    c.addIncludePath(.{ .cwd_relative = "/usr/include" });
-    c.addIncludePath(.{ .cwd_relative = "/usr/include/x86_64-linux-gnu" });
+    //c.addIncludePath(.{ .cwd_relative = "/usr/include" });
     c.addIncludePath(.{ .cwd_relative = "/usr/include/aarch64-linux-gnu" });
     c.addIncludePath(.{ .cwd_relative = "./apps/plugins/lib" });
     c.addIncludePath(.{ .cwd_relative = "./apps/plugins" });
@@ -3833,8 +3923,8 @@ const libfirmware_sources = [_][]const u8{
     "firmware/core_alloc.c",
     "firmware/general.c",
     "firmware/powermgmt.c",
-    "firmware/target/hosted/cpuinfo-linux.c",
-    "firmware/target/hosted/cpufreq-linux.c",
+    // "firmware/target/hosted/cpuinfo-linux.c",
+    // "firmware/target/hosted/cpufreq-linux.c",
     "firmware/target/hosted/rtc.c",
     "firmware/system.c",
     "firmware/usb.c",
@@ -4159,7 +4249,7 @@ const libspeex_sources = [_][]const u8{
     "lib/rbcodec/codecs/libspeex/speex_header.c",
 };
 
-const all_sources = [_][]const u8{
+const common_sources = [_][]const u8{
     "firmware/common/config.c",
     "apps/action.c",
     "apps/abrepeat.c",
@@ -4172,7 +4262,6 @@ const all_sources = [_][]const u8{
     "apps/filetypes.c",
     "apps/fileop.c",
     "apps/language.c",
-    "apps/main.c",
     "apps/menu.c",
     "apps/menus/menu_common.c",
     "apps/menus/display_menu.c",
@@ -4261,7 +4350,7 @@ const codec_cflags = [_][]const u8{
     "-DYEAR=2024",
     "-DMONTH=09",
     "-DDAY=02",
-    "-DOS_USE_BYTESWAP_H",
+    // "-DOS_USE_BYTESWAP_H",
     "-DAPPLICATION",
     "-W",
     "-Wall",
@@ -4292,31 +4381,4 @@ const codec_cflags = [_][]const u8{
     "-fvisibility=hidden",
 };
 
-const cflags = [_][]const u8{
-    "-W",
-    "-Wall",
-    "-Wextra",
-    "-Os",
-    "-Wstrict-prototypes",
-    "-pipe",
-    "-std=gnu11",
-    "-Wno-gnu",
-    "-fPIC",
-    "-fvisibility=hidden",
-    "-Wno-pointer-to-int-cast",
-    "-fno-delete-null-pointer-checks",
-    "-fno-strict-overflow",
-    "-fno-builtin",
-    "-fno-sanitize=undefined",
-    "-g",
-    "-Wno-unused-result",
-    "-Wno-pointer-sign",
-    "-Wno-override-init",
-    "-Wno-shift-negative-value",
-    "-Wno-unused-const-variable",
-    "-Wno-unused-variable",
-    "-Wno-unused-but-set-variable",
-    "-O2",
-    "-Wno-tautological-compare",
-    "-Wno-expansion-to-defined",
-};
+const cflags = [_][]const u8{ "-W", "-Wall", "-Wextra", "-Os", "-Wstrict-prototypes", "-pipe", "-std=gnu11", "-Wno-gnu", "-fPIC", "-fvisibility=hidden", "-Wno-pointer-to-int-cast", "-fno-delete-null-pointer-checks", "-fno-strict-overflow", "-fno-builtin", "-fno-sanitize=undefined", "-g", "-Wno-unused-result", "-Wno-pointer-sign", "-Wno-override-init", "-Wno-shift-negative-value", "-Wno-unused-const-variable", "-Wno-unused-variable", "-Wno-unused-but-set-variable", "-O2", "-Wno-tautological-compare", "-Wno-expansion-to-defined", "-D_THREAD_SAFE" };
