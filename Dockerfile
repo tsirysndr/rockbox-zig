@@ -1,4 +1,4 @@
-FROM rust:1.81-bookworm AS builder
+FROM rust:1.88-bookworm AS builder
 
 ARG GITHUB_TOKEN
 
@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y build-essential \
 
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgm install zig@0.14.1 buf deno bun node@18
+RUN pkgm install zig@0.14.1 buf deno
 
 COPY . /app
 
