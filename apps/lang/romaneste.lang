@@ -1350,7 +1350,8 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
+    rtc: "OFF = Revert"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
@@ -1358,13 +1359,13 @@
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Revert"
     iriverh100,iriverh120,iriverh300: "STOP = Revert"
     mrobe100: "DISPLAY = Revert"
-    rtc: "OFF = Revert"
     samsungyh*: "REW = Revert"
     vibe500: "CANCEL = Revert"
   </source>
   <dest>
     *: none
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "ÎNAPOI = Anulează"
+    rtc: "OFF = anulare"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "ÎNAPOI = Anulează"
     gigabeatfx,mrobe500: "POWER = Anulează"
     gogearsa9200: "STÂNGA = Anulează"
     iaudiom5,iaudiox5: "REC = Anulează"
@@ -1372,7 +1373,6 @@
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Anulează"
     iriverh100,iriverh120,iriverh300: "STOP = Anulează"
     mrobe100: "DISPLAY = Anulează"
-    rtc: "OFF = Anulează"
     samsungyh*: "REW = Anulează"
     vibe500: "C = Anulează"
   </dest>
@@ -4037,22 +4037,22 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
+    rtc: "ON = Set"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
-    rtc: "ON = Set"
     vibe500: "OK = Set"
   </source>
   <dest>
     *: none
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "REDARE = Setează"
+    rtc: "ON = Setează"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "REDARE = Setează"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECTARE = Setează"
     iriverh100,iriverh120,iriverh300: "NAVI = Setează"
     mpiohd300: "ENTER = Setează"
     mrobe500: "INIMĂ = Setează"
-    rtc: "ON = Setează"
     vibe500: "OK = Setează"
   </dest>
   <voice>
@@ -7388,7 +7388,7 @@
     *: "Nu se poate deschide %s"
   </dest>
   <voice>
-    *: ""
+    *: "Nu se poate deschide plaghinul"
   </voice>
 </phrase>
 <phrase>
@@ -16906,5 +16906,19 @@
   </dest>
   <voice>
     *: "ordonează listele de redare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TAGNAVI_ALL_TRACKS_SORTED_BY_ALBUM
+  desc: "[By album]" entry in tag browser
+  user: core
+  <source>
+    *: "[By album]"
+  </source>
+  <dest>
+    *: "[După album]"
+  </dest>
+  <voice>
+    *: "Toate pistele sortate după album"
   </voice>
 </phrase>

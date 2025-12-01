@@ -336,6 +336,14 @@
 #define MIDI_VOL_DOWN     BUTTON_DOWN
 #define MIDI_PLAYPAUSE    BUTTON_PLAY
 
+#elif CONFIG_KEYPAD == RG_NANO_PAD
+#define MIDI_QUIT         BUTTON_START
+#define MIDI_FFWD         BUTTON_RIGHT
+#define MIDI_REWIND       BUTTON_LEFT
+#define MIDI_VOL_UP       BUTTON_UP
+#define MIDI_VOL_DOWN     BUTTON_DOWN
+#define MIDI_PLAYPAUSE    BUTTON_A
+
 #else
 #error No keymap defined!
 #endif
@@ -436,7 +444,7 @@ static inline void synthbuf(void)
         dst.remcount = 0;
         dst.bufcount = available;
         dst.p16out = (int16_t *)outptr;
-        rb->dsp_process(dsp, &src, &dst);
+        rb->dsp_process(dsp, &src, &dst, true);
         if (dst.remcount > 0)
         {
             outptr += dst.remcount;
@@ -593,7 +601,6 @@ static int midimain(const void * filename)
                 {
                     vol++;
                     rb->sound_set(SOUND_VOLUME, vol);
-                    rb->global_status->volume = vol;
                 }
                 break;
             }
@@ -606,7 +613,6 @@ static int midimain(const void * filename)
                 {
                     vol--;
                     rb->sound_set(SOUND_VOLUME, vol);
-                    rb->global_status->volume = vol;
                 }
                 break;
             }

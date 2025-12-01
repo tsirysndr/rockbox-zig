@@ -64,6 +64,7 @@
 #define ERR_RB      0
 #define ERR_OF      1
 #define ERR_STORAGE 2
+#define ERR_LBA28   3
 
 /* Safety measure - maximum allowed firmware image size.
    The largest known current (October 2009) firmware is about 6.2MB so
@@ -165,6 +166,10 @@ void fatal_error(int err)
         case ERR_OF:
             printf("Hold MENU+SELECT to reboot");
             printf("and enter Rockbox firmware");
+            break;
+        case ERR_LBA28:
+            printf("Hold MENU+SELECT to reboot");
+            printf("and LEFT if you are REALLY sure");
             break;
     }
 
@@ -643,10 +648,10 @@ static void dump_bootflash(void)
     lcd_clear_display();
     lcd_set_foreground(LCD_WHITE);
     line = 0;
-    
+
     uint8_t page[FLASH_PAGE_SIZE];
     printf("Total pages: %d", FLASH_PAGES);
-    
+
     bootflash_init(SPI_PORT);
 
     for (int i = 0; i < FLASH_PAGES; i++) {
@@ -720,12 +725,12 @@ static void devel_menu(void)
         lcd_set_foreground(LCD_RBYELLOW);
         line = 0;
         printf("Development menu");
-        
+
         for (size_t i = 0; i < items_count; i++) {
             lcd_set_foreground(i == selected_item ? LCD_GREEN : LCD_WHITE);
             printf(items[i]);
         }
-        
+
         while (button_status() != BUTTON_NONE);
 
         bool done = false;
@@ -883,11 +888,35 @@ void main(void)
 
         /* We wait until HDD spins up to check for hold button */
         if (button_hold()) {
-            printf("Executing OF...");
+            bool lba48 = false;
+            struct SysCfg syscfg;
+            const ssize_t result = syscfg_read(&syscfg);
+            if (result != -1) {
+                const size_t syscfg_num_entries = MIN(syscfg.header.num_entries, SYSCFG_MAX_ENTRIES);
+                for (size_t i = 0; i < syscfg_num_entries; i++) {
+                    const struct SysCfgEntry* entry = &syscfg.entries[i];
+                    const uint32_t* data32 = (uint32_t *)entry->data;
+                    if (entry->tag == SYSCFG_TAG_HWVR) {
+                        lba48 = (data32[1] >= 0x130200);
+                        break;
+                    }
+                }
+
+                int btn = button_read_device();
+
+                struct storage_info sinfo;
+                storage_get_info(0, &sinfo);
+                if (sinfo.num_sectors < (1 << 28) || lba48 || btn & BUTTON_LEFT) {
+                    printf("Executing OF...");
 #if (CONFIG_STORAGE & STORAGE_ATA)
-            ata_sleepnow();
+                    ata_sleepnow();
 #endif
-            rc = kernel_launch_onb();
+                    rc = kernel_launch_onb();
+                } else {
+                    printf("OF does not support LBA48");
+                    fatal_error(ERR_LBA28);
+                }
+            }
         }
     }
 
@@ -911,13 +940,22 @@ void main(void)
 
     rc = disk_mount_all();
     if (rc <= 0) {
+#ifdef STORAGE_GET_INFO
+        struct storage_info sinfo;
+        storage_get_info(0, &sinfo);
+#ifdef MAX_PHYS_SECTOR_SIZE
+        printf("id: '%s' s:%u*%u", sinfo.product, sinfo.sector_size, sinfo.phys_sector_mult);
+#else
+        printf("id: '%s' s:%u", sinfo.product, sinfo.sector_size);
+#endif
+#endif
         struct partinfo pinfo;
         printf("No partition found");
         for (int i = 0 ; i < NUM_VOLUMES ; i++) {
             disk_partinfo(i, &pinfo);
             if (pinfo.type)
-                printf("P%d T%02x S%08lx",
-                       i, pinfo.type, pinfo.size);
+                printf("P%d T%02x S%llx",
+                       i, pinfo.type, (unsigned long long)pinfo.size);
         }
         fatal_error(ERR_RB);
     }

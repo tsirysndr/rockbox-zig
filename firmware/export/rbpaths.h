@@ -41,7 +41,7 @@
 /* NOTE:  target-specific hosted HOME_DIR resides in filesystem-app.c */
 #if !defined(APPLICATION) || defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) || \
     defined(DX50) || defined(DX90) || defined(SONY_NWZ_LINUX) || \
-    defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX)
+    defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(CTRU)
 
 #define HOME_DIR "/"
 
@@ -57,6 +57,12 @@
 #define REC_BASE_DIR        HOME_DIR "Recordings"
 #define PLAYLIST_CATALOG_DEFAULT_DIR HOME_DIR "Playlists"
 
+#elif defined(RG_NANO)
+#define HOME_DIR            ROCKBOX_DIR
+#define PLUGIN_DIR          ROCKBOX_DIR "/rocks"
+#define CODECS_DIR          ROCKBOX_DIR "/codecs"
+#define REC_BASE_DIR        ROCKBOX_DIR "/Recordings"
+#define PLAYLIST_CATALOG_DEFAULT_DIR ROCKBOX_DIR "/Playlists"
 #else /* APPLICATION */
 
 #define HOME_DIR "<HOME>" /* replaced at runtime */
@@ -81,7 +87,7 @@
 
 #if defined(APPLICATION) && \
         !(defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) || \
-          defined(DX50) || defined(DX90) || defined(SONY_NWZ_LINUX) || defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX))
+          defined(DX50) || defined(DX90) || defined(SONY_NWZ_LINUX) || defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(CTRU))
 
 #define PLUGIN_DATA_DIR          ROCKBOX_DIR "/rocks.data"
 #define PLUGIN_GAMES_DATA_DIR    PLUGIN_DATA_DIR

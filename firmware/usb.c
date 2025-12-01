@@ -51,6 +51,10 @@
 #include "gui/skin_engine/skin_engine.h"
 #endif
 
+#if defined(IPOD_ACCESSORY_PROTOCOL)
+#include "iap.h"
+#endif
+
 /* Conditions under which we want the entire driver */
 #if !defined(BOOTLOADER) || \
      (defined(HAVE_USBSTACK) && defined(HAVE_BOOTLOADER_USB_MODE)) || \
@@ -66,7 +70,12 @@
 #endif
 
 /* USB detect debouncing interval (200ms taken from the usb polling code) */
-#define USB_DEBOUNCE_TIME (200*HZ/1000)
+#define USB_DEBOUNCE_POLL (200*HZ/1000)
+/* NOTE: "usb_dw_gonak_effective:failed!" *PANIC*s can be observed when
+         disconnecting the FiiO M3K from USB with the debounce interval
+         for USB_STATUS_BY_EVENT set to 200ms, as above (see e75a3fb).
+         Adjusting the interval to 10ms reduces likelihood of a panic. */
+#define USB_DEBOUNCE_TIME (10*HZ/1000)
 
 bool do_screendump_instead_of_usb = false;
 
@@ -92,6 +101,9 @@ static struct event_queue usb_queue SHAREDBSS_ATTR;
 static bool exclusive_storage_access = false;
 #ifdef USB_ENABLE_HID
 static bool usb_hid = true;
+#endif
+#ifdef USB_ENABLE_AUDIO
+static int usb_audio = 0;
 #endif
 
 #ifdef USB_FULL_INIT
@@ -190,6 +202,10 @@ static inline void usb_handle_hotswap(long id)
 
 static inline bool usb_configure_drivers(int for_state)
 {
+#ifdef USB_ENABLE_AUDIO
+    // FIXME: doesn't seem to get set when loaded at boot...
+    usb_audio = global_settings.usb_audio;
+#endif
     switch(for_state)
     {
     case USB_POWERED:
@@ -203,6 +219,9 @@ static inline bool usb_configure_drivers(int for_state)
         usb_core_enable_driver(USB_DRIVER_HID, true);
 #endif /* USB_ENABLE_CHARGING_ONLY */
 #endif /* USB_ENABLE_HID */
+#ifdef USB_ENABLE_AUDIO
+        usb_core_enable_driver(USB_DRIVER_AUDIO, (usb_audio == 1) || (usb_audio == 2)); // while "always" or "only in charge-only mode"
+#endif /* USB_ENABLE_AUDIO */
 
 #ifdef USB_ENABLE_CHARGING_ONLY
         usb_core_enable_driver(USB_DRIVER_CHARGING_ONLY, true);
@@ -220,6 +239,9 @@ static inline bool usb_configure_drivers(int for_state)
 #ifdef USB_ENABLE_HID
         usb_core_enable_driver(USB_DRIVER_HID, usb_hid);
 #endif
+#ifdef USB_ENABLE_AUDIO
+        usb_core_enable_driver(USB_DRIVER_AUDIO, (usb_audio == 1) || (usb_audio == 3)); // while "always" or "only in mass-storage mode"
+#endif /* USB_ENABLE_AUDIO */
 #ifdef USB_ENABLE_CHARGING_ONLY
         usb_core_enable_driver(USB_DRIVER_CHARGING_ONLY, false);
 #endif
@@ -521,6 +543,10 @@ static void NORETURN_ATTR usb_thread(void)
             if(usb_state == USB_POWERED || usb_state == USB_INSERTED)
                 usb_stack_enable(false);
 
+#ifdef IPOD_ACCESSORY_PROTOCOL
+            iap_reset_state(IF_IAP_MP(0));
+#endif
+
             /* Only disable the USB slave mode if we really have enabled
                it. Some expected acks may not have been received. */
             if(usb_state == USB_INSERTED)
@@ -669,7 +695,7 @@ static void usb_tick(void)
         if(current_firewire_status != last_firewire_status)
         {
             last_firewire_status = current_firewire_status;
-            firewire_countdown = USB_DEBOUNCE_TIME;
+            firewire_countdown = USB_DEBOUNCE_POLL;
         }
         else
         {
@@ -691,7 +717,7 @@ static void usb_tick(void)
         if(current_status != last_usb_status)
         {
             last_usb_status = current_status;
-            usb_countdown = USB_DEBOUNCE_TIME;
+            usb_countdown = USB_DEBOUNCE_POLL;
         }
         else
         {
@@ -836,6 +862,13 @@ void usb_set_hid(bool enable)
     usb_core_enable_driver(USB_DRIVER_HID, usb_hid);
 }
 #endif /* USB_ENABLE_HID */
+
+#ifdef USB_ENABLE_AUDIO
+void usb_set_audio(int value)
+{
+    usb_audio = value;
+}
+#endif /* USB_ENABLE_AUDIO */
 
 #ifdef HAVE_USB_POWER
 bool usb_powered_only(void)

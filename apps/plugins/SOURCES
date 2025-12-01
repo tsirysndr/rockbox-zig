@@ -89,7 +89,7 @@ crypt_firmware.c
 
 /* Overlays loaders */
 
-#if defined(HAVE_LCD_COLOR) && (LCD_STRIDEFORMAT == HORIZONTAL_STRIDE)
+#if defined(HAVE_LCD_COLOR) && (LCD_STRIDEFORMAT == HORIZONTAL_STRIDE) && !defined(RG_NANO) /* Build issues */
 #if (PLUGIN_BUFFER_SIZE > 0x14000) && (CONFIG_PLATFORM & (PLATFORM_NATIVE |PLATFORM_HOSTED)) && (defined(CPU_ARM) || defined(CPU_MIPS))
 duke3d.c
 quake.c

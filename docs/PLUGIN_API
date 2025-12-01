@@ -225,7 +225,7 @@ void beep_play(unsigned int frequency, unsigned int duration, unsigned int ampli
     \param amplitude
     \description
 
-unsigned short *bidi_l2v( const unsigned char *str, int orientation )
+ucschar_t *bidi_l2v( const unsigned char *str, int orientation )
     \param str
     \param orientation
     \return
@@ -407,13 +407,13 @@ const struct cbmp_bitmap_info_entry *core_bitmaps
     \return
     \description
 
-const unsigned char *font_get_bits( struct font *pf, unsigned short char_code )
+const unsigned char *font_get_bits( struct font *pf, ucschar_t char_code )
     \param pf
     \param char_code
     \return
     \description
 
-const unsigned char* utf8decode(const unsigned char *utf8, unsigned short *ucs)
+const unsigned char* utf8decode(const unsigned char *utf8, ucschar_t *ucs)
     \group unicode stuff
     \param utf8
     \param ucs
@@ -664,11 +664,12 @@ int32_t dsp_get_timestretch(void)
     \return
     \description
 
-void dsp_process(struct dsp_config *dsp, struct dsp_buffer *src, struct dsp_buffer *dst)
+void dsp_process(struct dsp_config *dsp, struct dsp_buffer *src, struct dsp_buffer *dst, bool thread_yield)
     \group sound
     \param dsp
     \param src
     \param dst
+    \param thread_yield
     \description
 
 void dsp_set_crossfeed_type(int type)
@@ -747,7 +748,7 @@ int font_getstringsize(const unsigned char *str, int *w, int *h, int fontnumber)
     \return
     \description
 
-int font_get_width(struct font* pf, unsigned short char_code)
+int font_get_width(struct font* pf, ucschar_t char_code)
     \param pf
     \param char_code
     \return
@@ -972,7 +973,7 @@ bool is_diacritic(const unsigned short char_code, bool *is_rtl)
     \return
     \description
 
-int kbd_input(char* buffer, int buflen, unsigned short *kbd)
+int kbd_input(char* buffer, int buflen, ucschar_t *kbd)
     \group misc
     \param buffer
     \param buflen

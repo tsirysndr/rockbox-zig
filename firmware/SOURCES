@@ -25,7 +25,7 @@ target/hosted/rtc.c
 
 #if (CONFIG_PLATFORM & PLATFORM_ANDROID) == 0 && \
     !defined(DX50) && !defined(DX90) && \
-    (defined(DEBUG) || defined(SIMULATOR)) /* sim should define DEBUG instead */
+    (defined(DEBUG) || defined(SIMULATOR) || defined(CTRU)) /* sim should define DEBUG instead */
 target/hosted/debug-hosted.c
 #endif
 
@@ -74,7 +74,9 @@ target/hosted/sdl/lcd-bitmap.c
 target/hosted/sdl/lcd-remote-bitmap.c
 #endif
 target/hosted/sdl/lcd-sdl.c
+#if !defined(RG_NANO) || defined(SIMULATOR)
 target/hosted/sdl/window-sdl.c
+#endif
 target/hosted/sdl/system-sdl.c
 #ifdef HAVE_SDL_THREADS
 target/hosted/sdl/filesystem-sdl.c
@@ -86,16 +88,20 @@ target/hosted/sdl/key_to_touch-sdl.c
 #endif
 #ifdef APPLICATION
 target/hosted/sdl/app/load_code-sdl-app.c
+#ifndef RG_NANO
 target/hosted/sdl/app/button-application.c
+#endif
 #ifdef WIN32
 target/hosted/filesystem-win32.c
 #else /* !WIN32 */
+#ifndef CTRU
 target/hosted/filesystem-unix.c
+#endif /* CTRU */
 #endif /* WIN32 */
 #endif /* APPLICATION */
 #endif /* HAVE_SDL */
 
-#ifdef APPLICATION
+#if defined(APPLICATION) && !defined(CTRU)
 target/hosted/filesystem-app.c
 #endif /* APPLICATION */
 
@@ -147,21 +153,18 @@ target/hosted/power-linux.c
 #if defined(AGPTEK_ROCKER) && !defined(SIMULATOR)
 target/hosted/agptek/button-agptek.c
 target/hosted/agptek/debug-agptek.c
-target/hosted/agptek/power-agptek.c
 target/hosted/agptek/powermgmt-agptek.c
 #endif
 
 #if defined(SURFANS_F28) && !defined(SIMULATOR)
 target/hosted/surfans/button-f28.c
 target/hosted/surfans/debug-f28.c
-target/hosted/surfans/power-f28.c
 target/hosted/surfans/powermgmt-f28.c
 #endif
 
 #if (defined(XDUOO_X3II) || defined(XDUOO_X20)) && !defined(SIMULATOR)
 target/hosted/xduoo/button-xduoo.c
 target/hosted/xduoo/debug-xduoo.c
-target/hosted/xduoo/power-xduoo.c
 target/hosted/xduoo/powermgmt-xduoo.c
 #endif
 
@@ -174,7 +177,6 @@ target/hosted/button-devinput.c
 target/hosted/fiio/buttonlight-fiio.c
 target/hosted/fiio/button-fiio.c
 target/hosted/fiio/debug-fiio.c
-target/hosted/fiio/power-fiio.c
 target/hosted/fiio/powermgmt-fiio.c
 target/hosted/fiio/system-fiio.c
 target/hosted/fiio/usb-fiio.c
@@ -222,6 +224,15 @@ target/hosted/samsungypr/ypr1/wmcodec-ypr1.c
 target/hosted/maemo/maemo-thread.c
 #endif
 
+#if defined(RG_NANO) && !defined(SIMULATOR)
+target/hosted/sysfs.c
+target/hosted/power-linux.c
+target/hosted/backlight-unix.c
+target/hosted/anbernic/instant_play.c
+target/hosted/anbernic/button-rgnano.c
+target/hosted/anbernic/powermgmt-rgnano.c
+#endif /* RG_NANO */
+
 /* Common */
 #ifndef BOOTLOADER
 chunk_alloc.c
@@ -241,6 +252,7 @@ common/crc32-rkw.c
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
 common/dir.c
 common/disk_cache.c
+common/fat.c
 common/file.c
 common/file_internal.c
 common/disk.c
@@ -382,7 +394,6 @@ drivers/sd.c
 drivers/ramdisk.c
 #endif
 storage.c
-drivers/fat.c
 #if (CONFIG_STORAGE & STORAGE_MMC) || (CONFIG_STORAGE & STORAGE_SD)
 sdmmc.c
 #endif
@@ -567,6 +578,8 @@ target/hosted/maemo/pcm-gstreamer.c
 target/hosted/sdl/pcm-sdl.c
 #endif /* (CONFIG_PLATFORM & PLATFORM_MAEMO) */
 
+#elif defined(CTRU)
+drivers/audio/ctru.c
 #endif
 #endif /* (CONFIG_PLATFORM & PLATFORM_NATIVE) */
 
@@ -644,13 +657,13 @@ target/arm/ipod/power-ipod.c
 # if LCD_DEPTH == 2
 target/arm/ipod/lcd-as-gray.S
 # endif
-# ifndef IPOD_1G2G
-#  ifndef IPOD_3G
+# if defined(CPU_PP502x)
 target/arm/ipod/piezo.c
-#  endif /* IPOD_3G */
+# endif /* CPU_PP502x */
+# ifndef IPOD_1G2G
 drivers/pcf50605.c
 target/arm/ipod/powermgmt-ipod-pcf.c
-# endif /* IPOD_1G2G */
+# endif /* !IPOD_1G2G */
 #endif /* CPU_PP && IPOD_ARCH */
 
 #if CONFIG_I2C == I2C_PP5024 || CONFIG_I2C == I2C_PP5020 || CONFIG_I2C == I2C_PP5002
@@ -916,6 +929,9 @@ usbstack/usb_storage.c
 #endif
 #ifdef USB_ENABLE_SERIAL
 usbstack/usb_serial.c
+#endif
+#ifdef USB_ENABLE_AUDIO
+usbstack/usb_audio.c
 #endif
 #ifdef USB_ENABLE_CHARGING_ONLY
 usbstack/usb_charging_only.c
@@ -2042,11 +2058,10 @@ target/hosted/ibasso/pcm-ibasso.c
 target/hosted/ibasso/power-ibasso.c
 target/hosted/ibasso/powermgmt-ibasso.c
 target/hosted/ibasso/sysfs-ibasso.c
+target/hosted/sysfs.c
 target/hosted/ibasso/system-ibasso.c
 target/hosted/ibasso/usb-ibasso.c
 target/hosted/ibasso/vold-ibasso.c
-target/hosted/ibasso/tinyalsa/mixer.c
-target/hosted/ibasso/tinyalsa/pcm.c
 #ifdef DX50
 target/hosted/ibasso/dx50/audiohw-dx50.c
 target/hosted/ibasso/dx50/button-dx50.c
@@ -2055,6 +2070,33 @@ target/hosted/ibasso/dx50/button-dx50.c
 target/hosted/ibasso/dx90/audiohw-dx90.c
 target/hosted/ibasso/dx90/button-dx90.c
 #endif
+#endif
+
+#ifdef USE_TINYALSA
+target/hosted/tinyalsa/mixer.c
+target/hosted/tinyalsa/pcm.c
+#endif
+
+#if (CONFIG_PLATFORM & PLATFORM_CTRU)
+asm/arm/lcd-as-memframe.S
+target/hosted/ctru/backlight-ctru.c
+target/hosted/ctru/button-ctru.c
+target/hosted/ctru/kernel-ctru.c
+target/hosted/ctru/thread-ctru.c
+target/hosted/ctru/lcd-bitmap.c
+target/hosted/ctru/luminance-ctru.c
+target/hosted/ctru/system-ctru.c
+target/hosted/ctru/filesystem-ctru.c
+target/hosted/ctru/lc-ctru.c
+target/hosted/ctru/lc-program-resolver.c
+target/hosted/ctru/powermgmt-ctru.c
+target/hosted/ctru/timer-ctru.c
+target/hosted/ctru/pcm-ctru.c
+target/hosted/ctru/lib/sys_file.c
+target/hosted/ctru/lib/sys_dir.c
+target/hosted/ctru/lib/sys_thread.c
+target/hosted/ctru/lib/sys_timer.c
+target/hosted/ctru/lib/bfile/bfile.c
 #endif
 
 #else /* defined(SIMULATOR) */
@@ -2105,9 +2147,9 @@ kernel/queue.c
 #ifdef HAVE_SEMAPHORE_OBJECTS
 kernel/semaphore.c
 #endif
-#if defined(HAVE_SDL_THREADS)
+#ifdef HAVE_SDL_THREADS
 target/hosted/sdl/thread-sdl.c
-#else
+#elif !defined(CTRU)
 kernel/thread.c
 #endif
 kernel/thread-common.c

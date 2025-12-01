@@ -291,6 +291,15 @@
 #define KBD_UP     BUTTON_UP
 #define KBD_DOWN   BUTTON_DOWN
 
+#elif CONFIG_KEYPAD == RG_NANO_PAD
+
+#define KBD_SELECT BUTTON_A
+#define KBD_ABORT  BUTTON_B
+#define KBD_LEFT   BUTTON_LEFT
+#define KBD_RIGHT  BUTTON_RIGHT
+#define KBD_UP     BUTTON_UP
+#define KBD_DOWN   BUTTON_DOWN
+
 #endif
 
 #ifdef HAVE_TOUCHSCREEN
@@ -317,7 +326,7 @@
 struct keyboard_parameters {
     const unsigned char* default_kbd;
     int DEFAULT_LINES;
-    unsigned short kbd_buf[KBD_BUF_SIZE];
+    ucschar_t kbd_buf[KBD_BUF_SIZE];
     int nchars;
     int font_w;
     int font_h;
@@ -349,7 +358,7 @@ int zx_kbd_input(char* text/*, int buflen*/)
     int editpos, len_utf8;
 #endif
 /*    int statusbar_size = global_settings.statusbar ? STATUSBAR_HEIGHT : 0;*/
-    unsigned short ch/*, tmp, hlead = 0, hvowel = 0, htail = 0*/;
+    ucschar_t ch/*, tmp, hlead = 0, hvowel = 0, htail = 0*/;
     /*bool hangul = false;*/
     unsigned char *utf8;
     const unsigned char *p;

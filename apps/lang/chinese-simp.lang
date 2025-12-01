@@ -3873,7 +3873,8 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
+    rtc: "OFF = Revert"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
@@ -3881,22 +3882,21 @@
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Revert"
     iriverh100,iriverh120,iriverh300: "STOP = Revert"
     mrobe100: "DISPLAY = Revert"
-    rtc: "OFF = Revert"
     samsungyh*: "REW = Revert"
     vibe500: "CANCEL = Revert"
   </source>
   <dest>
     *: none
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK:取消"
+    rtc: "OFF:取消"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "BACK:取消"
     gigabeatfx: "POWER:取消"
+    mrobe500: "电源:取消"
     gogearsa9200: "LEFT:取消"
     iaudiom5,iaudiox5: "RECORD:取消"
     ipod*,mpiohd300,sansac200*: "MENU:取消"
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV:取消"
     iriverh100,iriverh120,iriverh300: "STOP:取消"
     mrobe100: "DISPLAY:取消"
-    mrobe500: "电源:取消"
-    rtc: "OFF:取消"
     samsungyh*: "REW:取消"
     vibe500: "CANCEL:取消"
   </dest>
@@ -6504,7 +6504,7 @@
     *: "无法打开%s"
   </dest>
   <voice>
-    *: ""
+    *: "无法打开插件"
   </voice>
 </phrase>
 <phrase>
@@ -7395,22 +7395,22 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
+    rtc: "ON = Set"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
-    rtc: "ON = Set"
     vibe500: "OK = Set"
   </source>
   <dest>
     *: none
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY:设置"
+    rtc: "ON:设置"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY:设置"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT:设置"
     iriverh100,iriverh120,iriverh300: "NAVI=设置"
     mpiohd300: "ENTER:设置"
     mrobe500: "HEART:设置"
-    rtc: "ON:设置"
     vibe500: "OK:设置"
   </dest>
   <voice>
@@ -16908,5 +16908,87 @@
   </dest>
   <voice>
     *: "排序播放列表"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TAGNAVI_ALL_TRACKS_SORTED_BY_ALBUM
+  desc: "[By album]" entry in tag browser
+  user: core
+  <source>
+    *: "[By album]"
+  </source>
+  <dest>
+    *: "[按专辑排序]"
+  </dest>
+  <voice>
+    *: "按专辑排序的所有乐曲"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC"
+  </source>
+  <dest>
+    *: none
+    usbdac: "~USB-DAC"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "U S B D A C 功能"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_USB_CHARGE_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Charge-Only Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "仅在仅充电模式下启用"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "仅在仅充电模式下启用"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_MASS_STORAGE_USB_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Mass-Storage Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "仅在大容量存储模式下启用"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "仅在大容量存储模式下启用"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC_ACTIVE
+  desc: for splash
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC Active"
+  </source>
+  <dest>
+    *: none
+    usbdac: "USB-DAC 工作中"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "USB-DAC 工作中"
   </voice>
 </phrase>

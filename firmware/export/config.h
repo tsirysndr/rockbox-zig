@@ -85,6 +85,7 @@
 #define RK27XX       2700
 #define X1000        1000
 #define STM32H743   32743
+#define N10480H     10480
 
 /* platforms
  * bit fields to allow PLATFORM_HOSTED to be OR'ed e.g. with a
@@ -98,6 +99,7 @@
 #define PLATFORM_MAEMO5  (1<<5)
 #define PLATFORM_MAEMO   (PLATFORM_MAEMO4|PLATFORM_MAEMO5)
 #define PLATFORM_PANDORA (1<<6)
+#define PLATFORM_CTRU    (1<<7)
 
 /* CONFIG_KEYPAD */
 #define IRIVER_H100_PAD     4
@@ -166,6 +168,8 @@
 #define SHANLING_Q1_PAD    74
 #define ECHO_R1_PAD        75
 #define SURFANS_F28_PAD    76
+#define RG_NANO_PAD        77
+#define CTRU_PAD           78
 
 /* CONFIG_REMOTE_KEYPAD */
 #define H100_REMOTE   1
@@ -339,6 +343,7 @@ Lyre prototype 1 */
 #define NAND_IMX233  6
 
 /* CONFIG_RTC */
+#define RTC_HOSTED   1 /* Generic hosted */
 #define RTC_PCF50605 2 /* iPod 3G, 4G & Mini */
 #define RTC_PCF50606 3 /* iriver H300 */
 #define RTC_S3C2440  4
@@ -619,8 +624,12 @@ Lyre prototype 1 */
 #include "config/echor1.h"
 #elif defined(SURFANS_F28)
 #include "config/surfansf28.h"
+#elif defined(RG_NANO)
+#include "config/rgnano.h"
+#elif defined(CTRU)
+#include "config/ctru.h"
 #else
-//#error "unknown hwardware platform!"
+#error "unknown hardware platform!"
 #endif
 
 #ifndef CONFIG_CPU
@@ -639,14 +648,17 @@ Lyre prototype 1 */
 #undef HAVE_MULTIDRIVE
 #undef CONFIG_STORAGE_MULTI
 #undef CONFIG_STORAGE
+#define CONFIG_STORAGE 0
 #endif
 
 #ifndef CONFIG_BUFLIB_BACKEND
 # define CONFIG_BUFLIB_BACKEND BUFLIB_BACKEND_MEMPOOL
 #endif
 
-#ifdef APPLICATION
+#if defined(APPLICATION)
+#ifndef CONFIG_CPU
 #define CONFIG_CPU 0
+#endif
 #endif
 
 /* keep this include after the target configs */
@@ -1026,7 +1038,8 @@ Lyre prototype 1 */
 
 #if defined(ASSEMBLER_THREADS) \
     || defined(HAVE_WIN32_FIBER_THREADS) \
-    || defined(HAVE_SIGALTSTACK_THREADS)
+    || defined(HAVE_SIGALTSTACK_THREADS) \
+    || defined(CTRU)
 #define HAVE_PRIORITY_SCHEDULING
 #endif
 
@@ -1097,7 +1110,7 @@ Lyre prototype 1 */
  * Older versions of GCC emit assembly in divided syntax with no option
  * to enable unified syntax.
  */
-#if (__GNUC__ < 8) && defined(CPU_ARM_CLASSIC)
+#if (__GNUC__ < 8) && defined(CPU_ARM_CLASSIC) || defined(CTRU)
 #define BEGIN_ARM_ASM_SYNTAX_UNIFIED ".syntax unified\n"
 #define END_ARM_ASM_SYNTAX_UNIFIED   ".syntax divided\n"
 #else
@@ -1334,6 +1347,7 @@ Lyre prototype 1 */
 #elif (CONFIG_USBOTG == USBOTG_DESIGNWARE)
 #define USB_HAS_BULK
 #define USB_HAS_INTERRUPT
+#define USB_HAS_ISOCHRONOUS
 #elif (CONFIG_USBOTG == USBOTG_ARC) ||  \
     (CONFIG_USBOTG == USBOTG_JZ4740) || \
     (CONFIG_USBOTG == USBOTG_JZ4760) || \
@@ -1343,6 +1357,9 @@ Lyre prototype 1 */
     (CONFIG_USBOTG == USBOTG_TNETV105)
 #define USB_HAS_BULK
 #define USB_HAS_INTERRUPT
+#if (CONFIG_USBOTG == USBOTG_ARC)
+#define USB_HAS_ISOCHRONOUS
+#endif
 #define USB_LEGACY_CONTROL_API
 #elif defined(CPU_TCC780X)
 #define USB_HAS_BULK
@@ -1352,11 +1369,6 @@ Lyre prototype 1 */
 #define USB_LEGACY_CONTROL_API
 //#define USB_HAS_INTERRUPT -- seems to be broken
 #endif /* CONFIG_USBOTG */
-
-#if (CONFIG_USBOTG == USBOTG_ARC) || \
-    (CONFIG_USBOTG == USBOTG_AS3525)
-#define USB_HAS_ISOCHRONOUS
-#endif
 
 /* define the class drivers to enable */
 #ifdef BOOTLOADER
@@ -1383,6 +1395,10 @@ Lyre prototype 1 */
 #else
 #define USB_ENABLE_CHARGING_ONLY
 #endif
+#endif
+
+#ifdef USB_HAS_ISOCHRONOUS
+#define USB_ENABLE_AUDIO
 #endif
 
 #endif /* BOOTLOADER */
@@ -1456,6 +1472,17 @@ Lyre prototype 1 */
 /* Trying to enable the setting without the underlying functions doesn't work */
 #if defined(HAVE_LCD_SLEEP_SETTING) && !defined(HAVE_LCD_SLEEP)
 #error "HAVE_LCD_SLEEP_SETTING requires HAVE_LCD_SLEEP"
+#endif
+
+/* Support for unicode codepoints > U+FFFF */
+#if (MEMORYSIZE > 2) && !defined(BOOTLOADER)
+#define UNICODE32
+#endif
+
+#ifdef UNICODE32
+#define ucschar_t unsigned int
+#else
+#define ucschar_t unsigned short
 #endif
 
 #endif /* __CONFIG_H__ */

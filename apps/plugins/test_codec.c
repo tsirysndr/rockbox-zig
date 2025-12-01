@@ -230,7 +230,7 @@ static int process_dsp(const void *ch1, const void *ch2, int count)
     while (1)
     {
         int old_remcount = dst.remcount;
-        rb->dsp_process(ci.dsp, &src, &dst);
+        rb->dsp_process(ci.dsp, &src, &dst, true);
         
         if (dst.bufcount <= 0 ||
             (src.remcount <= 0 && dst.remcount <= old_remcount))
@@ -524,6 +524,11 @@ static void configure(int setting, intptr_t value)
 
 }
 
+static void strip_filesize(off_t size)
+{
+    ci.filesize = size;
+}
+
 static void init_ci(void)
 {
     /* --- Our "fake" implementations of the codec API functions. --- */
@@ -547,6 +552,7 @@ static void init_ci(void)
     ci.configure = configure;
     ci.get_command = get_command;
     ci.loop_track = loop_track;
+    ci.strip_filesize = strip_filesize;
 
     /* --- "Core" functions --- */
 

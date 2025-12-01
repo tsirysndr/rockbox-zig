@@ -90,31 +90,21 @@ enum {
 
 static int ata_state = ATA_BOOT;
 
-static struct mutex ata_mutex SHAREDBSS_ATTR;
 static int ata_device; /* device 0 (master) or 1 (slave) */
 
-static int spinup_time = 0;
 #if (CONFIG_LED == LED_REAL)
 static bool ata_led_enabled = true;
 static bool ata_led_on = false;
 #endif
 
 static long sleep_timeout = 5*HZ;
-#ifdef HAVE_LBA48
-static bool ata_lba48 = false; /* set for 48 bit addressing */
-#endif
-static bool canflush = true;
 
 static long last_disk_activity = -1;
 #ifdef HAVE_ATA_POWER_OFF
 static long power_off_tick = 0;
 #endif
 
-static sector_t total_sectors;
-static uint32_t log_sector_size;
 static uint8_t  multisectors; /* number of supported multisectors */
-
-static unsigned short identify_info[ATA_IDENTIFY_WORDS] STORAGE_ALIGN_ATTR;
 
 #ifdef HAVE_ATA_DMA
 static int dma_mode = 0;
@@ -146,6 +136,8 @@ static inline bool ata_power_off_timed_out(void)
     return false;
 #endif
 }
+
+#include "ata-common.c"
 
 #ifndef ATA_TARGET_POLLING
 static ICODE_ATTR int wait_for_bsy(void)
@@ -594,8 +586,6 @@ static int ata_transfer_sectors(uint64_t start,
     return ret;
 }
 
-#include "ata-common.c"
-
 #ifndef MAX_PHYS_SECTOR_SIZE
 int ata_read_sectors(IF_MD(int drive,)
                      sector_t start,
@@ -729,6 +719,46 @@ static int STORAGE_INIT_ATTR ata_hard_reset(void)
 
     return ret;
 }
+
+#ifdef HAVE_ATA_SMART
+static int ata_smart(uint16_t *buf, uint8_t cmd)
+{
+    int i;
+
+    ATA_OUT8(ATA_SELECT, ata_device);
+
+    if(!wait_for_rdy()) {
+        DEBUGF("identify() - not RDY\n");
+        return -1;
+    }
+
+    ATA_OUT8(ATA_FEATURE, cmd);
+    ATA_OUT8(ATA_HCYL, 0xc2);
+    ATA_OUT8(ATA_LCYL, 0x4f);
+    ATA_OUT8(ATA_SELECT, SELECT_LBA | ata_device);
+    ATA_OUT8(ATA_COMMAND, CMD_SMART);
+
+    if (!wait_for_start_of_transfer())
+    {
+        DEBUGF("identify() - CMD failed\n");
+        return -2;
+    }
+
+    for (i = 0 ; i < 256 ; i++) {
+        /* The SMART words are already swapped, so we need to treat
+           this info differently that normal sector data */
+        buf[i] = ATA_SWAP_IDENTIFY(ATA_IN16(ATA_DATA));
+    }
+    return 0;
+}
+int ata_read_smart(struct ata_smart_values* smart_data, uint8_t cmd)
+{
+    mutex_lock(&ata_mutex);
+    int rc = ata_smart((uint16_t*)smart_data, cmd);
+    mutex_unlock(&ata_mutex);
+    return rc;
+}
+#endif /* HAVE_ATA_SMART */
 
 // not putting this into STORAGE_INIT_ATTR, as ATA spec recommends to
 // re-read identify_info after soft reset. So we'll do that.
@@ -1177,46 +1207,6 @@ long ata_last_disk_activity(void)
 {
     return last_disk_activity;
 }
-
-int ata_spinup_time(void)
-{
-    return spinup_time;
-}
-
-#ifdef STORAGE_GET_INFO
-void ata_get_info(IF_MD(int drive,)struct storage_info *info)
-{
-    unsigned short *src,*dest;
-    static char vendor[8];
-    static char product[16];
-    static char revision[4];
-#ifdef HAVE_MULTIDRIVE
-    (void)drive; /* unused for now */
-#endif
-    int i;
-
-    info->sector_size = log_sector_size;
-    info->num_sectors = total_sectors;
-
-    src = (unsigned short*)&identify_info[27];
-    dest = (unsigned short*)vendor;
-    for (i=0;i<4;i++)
-        dest[i] = htobe16(src[i]);
-    info->vendor=vendor;
-
-    src = (unsigned short*)&identify_info[31];
-    dest = (unsigned short*)product;
-    for (i=0;i<8;i++)
-        dest[i] = htobe16(src[i]);
-    info->product=product;
-
-    src = (unsigned short*)&identify_info[23];
-    dest = (unsigned short*)revision;
-    for (i=0;i<2;i++)
-        dest[i] = htobe16(src[i]);
-    info->revision=revision;
-}
-#endif
 
 #ifdef HAVE_ATA_DMA
 /* Returns last DMA mode as set by set_features() */

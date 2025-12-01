@@ -165,6 +165,13 @@
 #define yield() do { } while(0)
 #define sim_sleep(timeout) do { } while(0)
 #define do_timed_yield() do { } while(0)
+static void db_log(const char *prefix, const char *msg);
+#endif
+
+#ifdef __PCTOOL__
+#define DB_LOG(__prefix, __file) db_log(__prefix, __file)
+#else
+#define DB_LOG(...)
 #endif
 
 #ifndef __PCTOOL__
@@ -212,10 +219,10 @@ static const char * const tags_str[] = { "artist", "album", "genre", "title",
     "discnumber", "tracknumber", "canonicalartist", "bitrate", "length",
     "playcount", "rating", "playtime", "lastplayed", "commitid", "mtime",
     "lastelapsed", "lastoffset"
-#if !defined(LOGF_ENABLE)
+#if !defined(LOGF_ENABLE) || !defined(LOGF_CLAUSES)
 };
 #define logf_clauses(...) do { } while(0)
-#elif defined(LOGF_CLAUSES) /* strings for logf debugging */
+#else /* strings for logf debugging */
     "tag_virt_basename", "tag_virt_length_min", "tag_virt_length_sec",
     "tag_virt_playtime_min", "tag_virt_playtime_sec",
     "tag_virt_entryage", "tag_virt_autoscore"
@@ -240,7 +247,7 @@ static const char * const tag_type_str[] = {
     [clause_logical_or] = "clause_logical_or"
  };
 #define logf_clauses logf
-#endif /* ndef LOGF_ENABLE */
+#endif /* !defined(LOGF_ENABLE) || !defined(LOGF_CLAUSES) */
 
 #if defined(PLUGIN)
 char *itoa_buf(char *buf, size_t bufsz, long int i)
@@ -503,7 +510,7 @@ read_tagfile_entry_and_tag(int fd, struct tagfile_entry *tfe,
         return e_TAG_SIZEMISMATCH;
 
     str_setlen(buf, tag_length);
-    return tag_length > 0 ? e_SUCCESS : e_SUCCESS_LEN_ZERO;
+    return (tag_length > 0 && *buf) ? e_SUCCESS : e_SUCCESS_LEN_ZERO;
 }
 
 static ssize_t read_index_entries(int fd, struct index_entry *buf, size_t count)
@@ -2203,6 +2210,23 @@ static int check_if_empty(char **tag)
     return length + 1;
 }
 
+#ifdef __PCTOOL__
+static void db_log(const char *prefix, const char *msg)
+{
+    /* Crude logging for the sim - to aid in debugging */
+    int logfd = open(ROCKBOX_DIR "/database.log",
+                     O_WRONLY | O_APPEND | O_CREAT, 0666);
+    if (logfd >= 0)
+    {
+        write(logfd, prefix, strlen(prefix));
+        write(logfd, ": ", 2);
+        write(logfd, msg, strlen(msg));
+        write(logfd, "\n", 1);
+        close(logfd);
+    }
+}
+#endif
+
 /* GCC 3.4.6 for Coldfire can choose to inline this function. Not a good
  * idea, as it uses lots of stack and is called from a recursive function
  * (check_dir).
@@ -2225,26 +2249,17 @@ static void NO_INLINE add_tagcache(char *path, unsigned long mtime)
     bool has_artist;
     bool has_grouping;
 
-#ifdef SIMULATOR
-    /* Crude logging for the sim - to aid in debugging */
-    int logfd = open(ROCKBOX_DIR "/database.log",
-                     O_WRONLY | O_APPEND | O_CREAT, 0666);
-    if (logfd >= 0)
-    {
-        write(logfd, path, strlen(path));
-        write(logfd, "\n", 1);
-        close(logfd);
-    }
-#endif /* SIMULATOR */
+    DB_LOG("file", path);
 
     if (cachefd < 0)
         return ;
 
     /* Check for overlength file path. */
-    if (path_length > TAG_MAXLEN)
+    if (path_length > MAX_PATH || path_length > TAG_MAXLEN)
     {
         /* Path can't be shortened. */
         logf("Too long path: %s", path);
+        DB_LOG("error", "path too long");
         return ;
     }
 
@@ -2272,6 +2287,7 @@ static void NO_INLINE add_tagcache(char *path, unsigned long mtime)
         if (!get_index(-1, idx_id, &idx, true))
         {
             logf("failed to retrieve index entry");
+            DB_LOG("error", "failed to retrieve index entry");
             return ;
         }
 
@@ -2283,9 +2299,11 @@ static void NO_INLINE add_tagcache(char *path, unsigned long mtime)
 
         /* Metadata might have been changed. Delete the entry. */
         logf("Re-adding: %s", path);
+        DB_LOG("info", "re-adding");
         if (!delete_entry(idx_id))
         {
             logf("delete_entry failed: %d", idx_id);
+            DB_LOG("error", "delete entry failed");
             return ;
         }
     }
@@ -2297,7 +2315,8 @@ static void NO_INLINE add_tagcache(char *path, unsigned long mtime)
 
     if (!ret)
     {
-        logf("get_metadata fail: %s", path);
+        logf("get_metadata failed: %s", path);
+        DB_LOG("error", "get_metadata failed");
         return ;
     }
 
@@ -5075,7 +5094,14 @@ void do_tagcache_build(const char *path[])
     {
         logf("Search root %s", this->path);
         strmemccpy(curpath, this->path, sizeof(curpath));
-        ret = ret && check_dir(this->path, true);
+
+        if (ret)
+        {
+            if (dir_exists(this->path))
+                ret = check_dir(this->path, true);
+            else
+                logf("Dir not found %s", this->path);
+        }
     }
     free_search_roots(&roots_ll[0]);
 

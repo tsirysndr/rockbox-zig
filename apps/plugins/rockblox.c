@@ -424,15 +424,16 @@
 
 #elif CONFIG_KEYPAD == FIIO_M3K_LINUX_PAD
 
-#define ROCKBLOX_OFF           BUTTON_POWER
-#define ROCKBLOX_ROTATE_CCW    BUTTON_HOME
-#define ROCKBLOX_ROTATE_CCW2   BUTTON_VOL_DOWN
-#define ROCKBLOX_ROTATE_CW     BUTTON_VOL_UP
-#define ROCKBLOX_DOWN          BUTTON_OPTION
-#define ROCKBLOX_LEFT          BUTTON_PREV
-#define ROCKBLOX_RIGHT         BUTTON_NEXT
-#define ROCKBLOX_DROP          (BUTTON_PLAY|BUTTON_REL)
-#define ROCKBLOX_RESTART       (BUTTON_PLAY|BUTTON_REPEAT)
+#define ROCKBLOX_OFF            BUTTON_POWER
+#define ROCKBLOX_ROTATE_CCW     BUTTON_HOME
+#define ROCKBLOX_ROTATE_CCW2    BUTTON_VOL_DOWN
+#define ROCKBLOX_ROTATE_CW      BUTTON_VOL_UP
+#define ROCKBLOX_DOWN           BUTTON_OPTION
+#define ROCKBLOX_LEFT           BUTTON_PREV
+#define ROCKBLOX_RIGHT          BUTTON_NEXT
+#define ROCKBLOX_DROP           (BUTTON_PLAY|BUTTON_REL)
+#define ROCKBLOX_RESTART        (BUTTON_PLAY|BUTTON_REPEAT)
+#define ROCKBLOX_SCROLL_ENABLED 1 //Untested Probably needed
 
 #elif (CONFIG_KEYPAD == IHIFI_770_PAD) || (CONFIG_KEYPAD == IHIFI_800_PAD)
 
@@ -465,6 +466,7 @@
 #define ROCKBLOX_RIGHT          BUTTON_RIGHT
 #define ROCKBLOX_DROP           BUTTON_PLAY
 #define ROCKBLOX_RESTART        BUTTON_BACK
+#define ROCKBLOX_SCROLL_ENABLED 1
 
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 /* use touchscreen */
@@ -480,6 +482,18 @@
 #define ROCKBLOX_RIGHT          BUTTON_RIGHT
 #define ROCKBLOX_DROP           BUTTON_MENU
 #define ROCKBLOX_RESTART        BUTTON_BACK
+
+#elif CONFIG_KEYPAD == RG_NANO_PAD
+
+#define ROCKBLOX_OFF           BUTTON_START
+#define ROCKBLOX_ROTATE_CCW    BUTTON_X
+#define ROCKBLOX_ROTATE_CW     BUTTON_Y
+#define ROCKBLOX_ROTATE        BUTTON_UP
+#define ROCKBLOX_DOWN          BUTTON_DOWN
+#define ROCKBLOX_LEFT          BUTTON_LEFT
+#define ROCKBLOX_RIGHT         BUTTON_RIGHT
+#define ROCKBLOX_DROP          BUTTON_A
+#define ROCKBLOX_RESTART       BUTTON_B
 
 #else
 #error No keymap defined!
@@ -594,6 +608,22 @@
 #define HIGH_LABEL_X   172
 #define HIGH_SCORE_Y   163
 #define HIGH_LEVEL_Y   172
+
+#elif (LCD_WIDTH == 240) && (LCD_HEIGHT == 240)
+
+#define BLOCK_WIDTH 12
+#define BLOCK_HEIGHT 12
+#define BOARD_X 20
+#define BOARD_Y 0
+#define PREVIEW_X 176
+#define PREVIEW_Y 187
+#define LABEL_X 172
+#define SCORE_Y 19
+#define LEVEL_Y 51
+#define LINES_Y 84
+#define HIGH_LABEL_X 172
+#define HIGH_SCORE_Y 122
+#define HIGH_LEVEL_Y 172
 
 #elif (LCD_WIDTH == 220) && (LCD_HEIGHT == 176)
 
@@ -832,7 +862,12 @@ static void new_block(void);
 
 #ifdef HAVE_SCROLLWHEEL
 int wheel_events = 0, last_wheel_event = 0;
-bool wheel_enabled = false;
+#ifdef ROCKBLOX_SCROLL_ENABLED
+    /* Bugfix M3K has a scrollpad that is also up down buttons */
+    bool wheel_enabled = true;
+#else
+    bool wheel_enabled = false;
+#endif
 #endif
 
 static const short scoring[4] = {  /* scoring for each number of lines */

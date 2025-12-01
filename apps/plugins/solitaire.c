@@ -761,6 +761,23 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define HK_REM2CUR      "PLAY"
 #   define HK_CUR2STACK    "MENU.."
 #   define HK_REM2STACK    "RIGHT.."
+#elif CONFIG_KEYPAD == RG_NANO_PAD
+#   define SOL_QUIT          BUTTON_START
+#   define SOL_UP            BUTTON_UP
+#   define SOL_DOWN          BUTTON_DOWN
+#   define SOL_LEFT          BUTTON_LEFT
+#   define SOL_RIGHT         BUTTON_RIGHT
+#   define SOL_MOVE          BUTTON_A
+#   define SOL_DRAW          BUTTON_X
+#   define SOL_REM2CUR       BUTTON_L
+#   define SOL_CUR2STACK     BUTTON_B
+#   define SOL_REM2STACK     BUTTON_R
+#   define HK_MOVE           "A"
+#   define HK_DRAW           "X"
+#   define HK_REM2CUR        "L"
+#   define HK_CUR2STACK      "B"
+#   define HK_REM2STACK      "R"
+
 #elif CONFIG_KEYPAD == MA_PAD
 #   define SOL_QUIT         (BUTTON_LEFT|BUTTON_REPEAT)
 #   define SOL_UP           BUTTON_UP

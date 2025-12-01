@@ -21,6 +21,9 @@
 /* HZ, TIME_AFTER, current_tick */
 #include "kernel.h"
 
+/* MAX_PATH */
+#include "fs_defines.h"
+
 /* Structure to record some info during processing call */
 struct dsp_loop_context
 {
@@ -30,11 +33,14 @@ struct dsp_loop_context
 #endif
 };
 
-static inline void dsp_process_start(struct dsp_loop_context *ctx)
+static inline void dsp_process_start(struct dsp_loop_context *ctx, bool thread_yield)
 {
     /* At least perform one yield before starting */
     ctx->last_yield = current_tick;
-    yield();
+    if (thread_yield)
+    {
+        yield();
+    }
 #if defined(CPU_COLDFIRE)
     /* set emac unit for dsp processing, and save old macsr, we're running in
        codec thread context at this point, so can't clobber it */
@@ -43,14 +49,17 @@ static inline void dsp_process_start(struct dsp_loop_context *ctx)
 #endif
 }
 
-static inline void dsp_process_loop(struct dsp_loop_context *ctx)
+static inline void dsp_process_loop(struct dsp_loop_context *ctx, bool thread_yield)
 {
     /* Yield at least once each tick */
     long tick = current_tick;
     if (TIME_AFTER(tick, ctx->last_yield))
     {
         ctx->last_yield = tick;
-        yield();
+        if (thread_yield)
+        {
+            yield();
+        }
     }
 }
 
@@ -63,12 +72,12 @@ static inline void dsp_process_end(struct dsp_loop_context *ctx)
     (void)ctx;
 }
 
-#define DSP_PROCESS_START() \
+#define DSP_PROCESS_START(yield) \
     struct dsp_loop_context __ctx; \
-    dsp_process_start(&__ctx)
+    dsp_process_start(&__ctx, yield)
 
-#define DSP_PROCESS_LOOP() \
-    dsp_process_loop(&__ctx)
+#define DSP_PROCESS_LOOP(yield) \
+    dsp_process_loop(&__ctx, yield)
 
 #define DSP_PROCESS_END() \
     dsp_process_end(&__ctx)

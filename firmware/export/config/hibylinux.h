@@ -37,7 +37,7 @@
 #define CODEC_SIZE 0x100000
 
 /* The number of bytes reserved for loadable plugins */
-#define PLUGIN_BUFFER_SIZE 0x100000
+#define PLUGIN_BUFFER_SIZE 0x80000
 
 #define CONFIG_LCD LCD_INGENIC_LINUX
 
@@ -60,7 +60,7 @@
 #define CONFIG_BACKLIGHT_FADING BACKLIGHT_FADING_SW_SETTING
 
 /* define this if you have a real-time clock */
-#define CONFIG_RTC APPLICATION
+#define CONFIG_RTC RTC_HOSTED
 
 #ifndef SIMULATOR
 /* We have usb power and can detect usb but it is handled by Linux */

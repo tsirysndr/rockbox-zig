@@ -47,7 +47,7 @@
 #if !defined(BOOTLOADER) || defined(HAVE_BOOTLOADER_USB_MODE)
 extern void TIMER1(void);
 extern void TIMER2(void);
-extern void SERIAL_ISR(void);
+extern void SERIAL_ISR(int port);
 
 #if defined(HAVE_ADJUSTABLE_CPU_FREQ) && (NUM_CORES > 1)
 static struct corelock cpufreq_cl SHAREDBSS_ATTR;
@@ -187,9 +187,14 @@ void __attribute__((interrupt("IRQ"))) irq_handler(void)
 /* end PBELL_VIBE500 */
 #endif
 #ifdef IPOD_ACCESSORY_PROTOCOL
-        else if (CPU_HI_INT_STAT & (SER0_MASK | SER1_MASK)) {
-            SERIAL_ISR();
+        else if (CPU_HI_INT_STAT & SER0_MASK) {
+            SERIAL_ISR(0);
         }
+#if defined(IPOD_COLOR) || defined(IPOD_4G) || defined(IPOD_MINI) || defined(IPOD_MINI2G)
+        else if (CPU_HI_INT_STAT & SER1_MASK) {
+            SERIAL_ISR(1);
+        }
+#endif
 #endif
     } else {
         if (COP_INT_STAT & TIMER2_MASK)

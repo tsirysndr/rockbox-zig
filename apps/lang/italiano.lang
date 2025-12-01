@@ -3473,22 +3473,22 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
+    rtc: "ON = Set"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
-    rtc: "ON = Set"
     vibe500: "OK = Set"
   </source>
   <dest>
     *: none
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Imposta"
+    rtc: "ON = Imposta"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY = Imposta"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Imposta"
     iriverh100,iriverh120,iriverh300: "NAVI = Imposta"
     mpiohd300: "ENTER = Imposta"
     mrobe500: "HEART = Imposta"
-    rtc: "ON = Imposta"
     vibe500: "OK = Imposta"
   </dest>
   <voice>
@@ -3501,7 +3501,8 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
+    rtc: "OFF = Revert"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
@@ -3509,13 +3510,13 @@
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Revert"
     iriverh100,iriverh120,iriverh300: "STOP = Revert"
     mrobe100: "DISPLAY = Revert"
-    rtc: "OFF = Revert"
     samsungyh*: "REW = Revert"
     vibe500: "CANCEL = Revert"
   </source>
   <dest>
     *: none
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Annulla"
+    rtc: "OFF = Annulla"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "BACK = Annulla"
     gigabeatfx,mrobe500: "POWER = Annulla"
     gogearsa9200: "LEFT = Annulla"
     iaudiom5,iaudiox5: "RECORD = Annulla"
@@ -3523,7 +3524,6 @@
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Annulla"
     iriverh100,iriverh120,iriverh300: "STOP = Annulla"
     mrobe100: "DISPLAY = Annulla"
-    rtc: "OFF = Annulla"
     samsungyh*: "REW = Annulla"
     vibe500: "CANCEL = Annulla"
   </dest>
@@ -7151,10 +7151,10 @@
     *: "Can't open %s"
   </source>
   <dest>
-    *: "Non riesco ad aprire %s"
+    *: "Impossibile aprire %s"
   </dest>
   <voice>
-    *: ""
+    *: "Impossibile aprire il plugin"
   </voice>
 </phrase>
 <phrase>
@@ -16901,5 +16901,87 @@
   </dest>
   <voice>
     *: "Ordina Playlist"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TAGNAVI_ALL_TRACKS_SORTED_BY_ALBUM
+  desc: "[By album]" entry in tag browser
+  user: core
+  <source>
+    *: "[By album]"
+  </source>
+  <dest>
+    *: "[Per album]"
+  </dest>
+  <voice>
+    *: "Ordina tutte le tracce per album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC"
+  </source>
+  <dest>
+    *: none
+    usbdac: "DAC-USB"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "DAC-USB"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_USB_CHARGE_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Charge-Only Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "In modalità di sola ricarica USB"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "In modalità di sola ricarica USB"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_MASS_STORAGE_USB_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Mass-Storage Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "In modalità di archiviazione di massa USB"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "In modalità di archiviazione di massa USB"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC_ACTIVE
+  desc: for splash
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC Active"
+  </source>
+  <dest>
+    *: none
+    usbdac: "DAC-USB Attivo"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "DAC-USB Attivo"
   </voice>
 </phrase>

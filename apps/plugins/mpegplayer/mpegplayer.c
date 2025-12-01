@@ -498,6 +498,15 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #elif CONFIG_KEYPAD == SHANLING_Q1_PAD
 /* use touchscreen */
 
+#elif CONFIG_KEYPAD == RG_NANO_PAD
+#define MPEG_MENU       BUTTON_START
+#define MPEG_STOP       BUTTON_X
+#define MPEG_PAUSE      BUTTON_A
+#define MPEG_VOLDOWN    BUTTON_DOWN
+#define MPEG_VOLUP      BUTTON_UP
+#define MPEG_RW         BUTTON_LEFT
+#define MPEG_FF         BUTTON_RIGHT
+
 #else
 #error No keymap defined!
 #endif
@@ -1064,8 +1073,8 @@ static void draw_oriented_alpha_bitmap_part(const unsigned char *src,
 
 static void draw_putsxy_oriented(int x, int y, const char *str)
 {
-    unsigned short ch;
-    unsigned short *ucs;
+    ucschar_t ch;
+    ucschar_t *ucs;
     int ofs = MIN(x, 0);
     struct font* pf = rb->font_get(osd.font);
 
@@ -1888,10 +1897,8 @@ static void osd_set_volume(int delta)
     }
 
     /* Sync the global settings */
-    if (vol != rb->global_status->volume) {
+    if (vol != rb->global_status->volume)
         rb->sound_set(SOUND_VOLUME, vol);
-        rb->global_status->volume = vol;
-    }
 
     /* Update the volume display */
     osd_refresh(OSD_REFRESH_VOLUME);

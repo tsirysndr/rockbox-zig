@@ -80,8 +80,26 @@
 #define BOOL(a) {.bool_ = a}
 #define CHARPTR(a) {.charptr = a}
 #define UCHARPTR(a) {.ucharptr = a}
+#ifdef __PCTOOL__
+#define FUNCTYPE(a)  { }
+#define lcd_set_contrast NULL
+#define set_battery_capacity NULL
+#else
 #define FUNCTYPE(a) {.func = a}
+#endif
 #define NODEFAULT INT(0)
+
+#ifdef HAVE_TOUCHSCREEN
+#if defined(APPLICATION) \
+ || defined(ONDA_VX747)  \
+ || defined(ONDA_VX767)  \
+ || defined(ONDA_VX747P) \
+ || defined(ONDA_VX777)
+#define DEFAULT_TOUCHSCREEN_MODE TOUCHSCREEN_POINT
+#else
+#define DEFAULT_TOUCHSCREEN_MODE TOUCHSCREEN_BUTTON
+#endif
+#endif /* HAVE_TOUCHSCREEN */
 
 /* in all the following macros the args are:
     - flags: bitwise | or the F_ bits in settings_list.h
@@ -109,10 +127,17 @@
    yes_id is the lang_id for the 'yes' (or 'on') option in the menu
    no_id is the lang_id for the 'no' (or 'off') option in the menu
  */
+#ifdef __PCTOOL__
+#define BOOL_SETTING(flags,var,lang_id,default,name,cfgvals,yes_id,no_id,cb)\
+            {flags|F_BOOL_SETTING, &global_settings.var,                    \
+                lang_id, BOOL(default),name,                                \
+                {.bool_setting=(struct bool_setting[]){{NULL,yes_id,no_id,cfgvals}}} }
+#else
 #define BOOL_SETTING(flags,var,lang_id,default,name,cfgvals,yes_id,no_id,cb)\
             {flags|F_BOOL_SETTING, &global_settings.var,                    \
                 lang_id, BOOL(default),name,                                \
                 {.bool_setting=(struct bool_setting[]){{cb,yes_id,no_id,cfgvals}}} }
+#endif
 
 /* bool setting which does use LANG_YES and _NO and save as "off,on" */
 #define OFFON_SETTING(flags,var,lang_id,default,name,cb)                    \
@@ -155,15 +180,33 @@
 /*  Used for settings which use the set_option() setting screen.
     The ... arg is a list of pointers to strings to display in the setting
     screen. These can either be literal strings, or ID2P(LANG_*) */
+#ifdef __PCTOOL__
 #define CHOICE_SETTING(flags,var,lang_id,default,name,cfg_vals,cb,count,...)   \
             {flags|F_CHOICE_SETTING|F_T_INT,  &global_settings.var, lang_id,   \
                 INT(default), name,                                  \
                 {.choice_setting = (struct choice_setting[]){                  \
-                    {cb, count, cfg_vals, {.desc = (const unsigned char*[])              \
+                    {NULL, count, cfg_vals, {.desc = (const unsigned char*[])    \
                         {__VA_ARGS__}}}}}}
+#else
+#define CHOICE_SETTING(flags,var,lang_id,default,name,cfg_vals,cb,count,...)   \
+            {flags|F_CHOICE_SETTING|F_T_INT,  &global_settings.var, lang_id,   \
+                INT(default), name,                                  \
+                {.choice_setting = (struct choice_setting[]){                  \
+                    {cb, count, cfg_vals, {.desc = (const unsigned char*[])    \
+                        {__VA_ARGS__}}}}}}
+#endif
 
 /* Similar to above, except the strings to display are taken from cfg_vals,
    the ... arg is a list of ID's to talk for the strings, can use TALK_ID()'s */
+#ifdef __PCTOOL__
+#define STRINGCHOICE_SETTING(flags,var,lang_id,default,name,cfg_vals,          \
+                                                                cb,count,...)  \
+            {flags|F_CHOICE_SETTING|F_T_INT|F_CHOICETALKS,                     \
+                &global_settings.var, lang_id,                                 \
+                INT(default), name,                                            \
+                {.choice_setting = (struct choice_setting[]){                  \
+                    {NULL, count, cfg_vals, {.talks = (const int[]){__VA_ARGS__}}}}}}
+#else
 #define STRINGCHOICE_SETTING(flags,var,lang_id,default,name,cfg_vals,          \
                                                                 cb,count,...)  \
             {flags|F_CHOICE_SETTING|F_T_INT|F_CHOICETALKS,                     \
@@ -171,11 +214,26 @@
                 INT(default), name,                                            \
                 {.choice_setting = (struct choice_setting[]){                  \
                     {cb, count, cfg_vals, {.talks = (const int[]){__VA_ARGS__}}}}}}
+#endif
 
 /*  for settings which use the set_int() setting screen.
     unit is the UNIT_ define to display/talk.
     the first one saves a string to the config file,
     the second one saves the variable value to the config file */
+#ifdef __PCTOOL__
+#define INT_SETTING(flags, var, lang_id, default, name,                 \
+                    unit, min, max, step, formatter, get_talk_id, cb)   \
+            {flags|F_INT_SETTING|F_T_INT, &global_settings.var,         \
+                lang_id, INT(default), name,                            \
+                 {.int_setting = (struct int_setting[]){                \
+                                 {NULL, 0, step, min, max, NULL, NULL}}}}
+#define INT_SETTING_NOWRAP(flags, var, lang_id, default, name,             \
+                    unit, min, max, step, formatter, get_talk_id, cb)      \
+            {flags|F_INT_SETTING|F_T_INT|F_NO_WRAP, &global_settings.var,  \
+                lang_id, INT(default), name,                               \
+                 {.int_setting = (struct int_setting[]){                   \
+                                 {NULL, 0, step, min, max, NULL, NULL}}}}
+#else
 #define INT_SETTING(flags, var, lang_id, default, name,                 \
                     unit, min, max, step, formatter, get_talk_id, cb)   \
             {flags|F_INT_SETTING|F_T_INT, &global_settings.var,         \
@@ -188,7 +246,16 @@
                 lang_id, INT(default), name,                               \
                  {.int_setting = (struct int_setting[]){                   \
                     {cb, unit, step, min, max, formatter, get_talk_id}}}}
-
+#endif
+#ifdef __PCTOOL__
+#define TABLE_SETTING(flags, var, lang_id, default, name, cfg_vals, \
+                      unit, formatter, get_talk_id, cb, count, ...) \
+            {flags|F_TABLE_SETTING|F_T_INT, &global_settings.var,   \
+                lang_id, INT(default), name,                        \
+                {.table_setting = (struct table_setting[]) {        \
+                    {NULL, NULL, NULL, 0, count,       \
+                    cfg_vals, (const int[]){__VA_ARGS__}}}}}
+#else
 #define TABLE_SETTING(flags, var, lang_id, default, name, cfg_vals, \
                       unit, formatter, get_talk_id, cb, count, ...) \
             {flags|F_TABLE_SETTING|F_T_INT, &global_settings.var,   \
@@ -196,14 +263,32 @@
                 {.table_setting = (struct table_setting[]) {        \
                     {cb, formatter, get_talk_id, unit, count,       \
                     cfg_vals, (const int[]){__VA_ARGS__}}}}}
-
+#endif /* __PCTOOL__ */
+#ifdef __PCTOOL__
+#define TABLE_SETTING_LIST(flags, var, lang_id, default, name, cfg_vals, \
+                      unit, formatter, get_talk_id, cb, count, list) \
+            {flags|F_TABLE_SETTING|F_T_INT, &global_settings.var,   \
+                lang_id, INT(default), name,                        \
+                {.table_setting = (struct table_setting[]) {        \
+                    {NULL, NULL, NULL, 0, count, cfg_vals, list}}}}
+#else
 #define TABLE_SETTING_LIST(flags, var, lang_id, default, name, cfg_vals, \
                       unit, formatter, get_talk_id, cb, count, list) \
             {flags|F_TABLE_SETTING|F_T_INT, &global_settings.var,   \
                 lang_id, INT(default), name,                        \
                 {.table_setting = (struct table_setting[]) {        \
                     {cb, formatter, get_talk_id, unit, count, cfg_vals, list}}}}
-
+#endif
+#ifdef __PCTOOL__
+#define CUSTOM_SETTING(flags, var, lang_id, default, name,              \
+                       load_from_cfg, write_to_cfg,                     \
+                       is_change, set_default)                          \
+            {flags|F_CUSTOM_SETTING|F_T_CUSTOM|F_BANFROMQS,             \
+                &global_settings.var, lang_id,                          \
+                {.custom = NULL}, name,                                 \
+            {.custom_setting = (struct custom_setting[]){               \
+             {NULL, NULL, NULL, NULL}}}}
+#else
 #define CUSTOM_SETTING(flags, var, lang_id, default, name,              \
                        load_from_cfg, write_to_cfg,                     \
                        is_change, set_default)                          \
@@ -212,6 +297,7 @@
                 {.custom = (void*)default}, name,                       \
             {.custom_setting = (struct custom_setting[]){               \
         {load_from_cfg, write_to_cfg, is_change, set_default}}}}
+#endif
 
 #define VIEWPORT_SETTING(var,name)      \
         TEXT_SETTING(F_THEMESETTING|F_NEEDAPPLY,var,name,"-", NULL, NULL)
@@ -394,6 +480,8 @@ static const char graphic_numeric[] = "graphic,numeric";
 # define MAX_FILES_IN_DIR_STEP      50
 #endif
 
+#ifndef __PCTOOL__
+
 #if LCD_DEPTH > 1
 static const char* list_pad_formatter(char *buffer, size_t buffer_size,
                                     int val, const char *unit)
@@ -571,6 +659,7 @@ static int32_t get_precut_talkid(int value, int unit)
 {
     return TALK_ID_DECIMAL(-value, 1, unit);
 }
+#endif /* __PCTOOL__ */
 
 struct eq_band_setting eq_defaults[EQ_NUM_BANDS] = {
     { 32, 7, 0 },
@@ -585,6 +674,7 @@ struct eq_band_setting eq_defaults[EQ_NUM_BANDS] = {
     { 16000, 7, 0 },
 };
 
+#ifndef __PCTOOL__
 static void eq_load_from_cfg(void *setting, char *value)
 {
     struct eq_band_setting *eq = setting;
@@ -644,10 +734,12 @@ static const char* formatter_freq_unit_0_is_auto(char *buffer, size_t buffer_siz
 
 static int32_t getlang_freq_unit_0_is_auto(int value, int unit)
 {
-    if (value == 0)
+    if (value == 0) {
         return LANG_AUTO;
-    else
-        return talk_value_decimal(value, unit, 3, false);
+    } else {
+        talk_value_decimal(value, unit, 3, false);
+        return -1;
+    }
 }
 
 static void playback_frequency_callback(int sample_rate_hz)
@@ -730,19 +822,8 @@ static void qs_set_default(void* var, void* defaultval)
     *(const struct settings_list **)var = find_setting(defaultval);
 }
 #endif
+
 #ifdef HAVE_TOUCHSCREEN
-
-#if defined(APPLICATION) \
- || defined(ONDA_VX747)  \
- || defined(ONDA_VX767)  \
- || defined(ONDA_VX747P) \
- || defined(ONDA_VX777)
-
-#define DEFAULT_TOUCHSCREEN_MODE TOUCHSCREEN_POINT
-#else
-#define DEFAULT_TOUCHSCREEN_MODE TOUCHSCREEN_BUTTON
-#endif
-
 static void tsc_load_from_cfg(void* setting, char*value)
 {
     struct touchscreen_parameter *var = (struct touchscreen_parameter*) setting;
@@ -845,6 +926,8 @@ static void hp_lo_select_apply(int arg)
     sound_settings_apply();
 }
 #endif
+
+#endif /* __PCTOOL__ */
 
 const struct settings_list settings[] = {
 /* system_status settings .resume.cfg */
@@ -2230,6 +2313,11 @@ const struct settings_list settings[] = {
             , ID2P(LANG_MOUSE_MODE)
 #endif
     ), /* CHOICE_SETTING( usb_keypad_mode ) */
+#endif
+
+#ifdef USB_ENABLE_AUDIO
+    CHOICE_SETTING(0, usb_audio, LANG_USB_DAC, 0, "usb-dac", "never,always,while_charge_only,while_mass_storage", usb_set_audio, 4,
+        ID2P(LANG_NEVER), ID2P(LANG_ALWAYS), ID2P(LANG_WHILE_USB_CHARGE_ONLY), ID2P(LANG_WHILE_MASS_STORAGE_USB_ONLY)),
 #endif
 
 #if defined(USB_ENABLE_STORAGE) && defined(HAVE_MULTIDRIVE)

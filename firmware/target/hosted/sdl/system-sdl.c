@@ -33,7 +33,9 @@
 #include "thread-sdl.h"
 #include "system-sdl.h"
 #include "sim-ui-defines.h"
+#if SDL_MAJOR_VERSION > 1
 #include "window-sdl.h"
+#endif
 #include "button-sdl.h"
 #include "lcd-bitmap.h"
 #ifdef HAVE_REMOTE_LCD
@@ -48,7 +50,16 @@
 #include "maemo-thread.h"
 #endif
 
+#if defined(RG_NANO) && !defined(SIMULATOR)
+#include <signal.h>
+#include "instant_play.h"
+#endif
+
 #define SIMULATOR_DEFAULT_ROOT "simdisk"
+
+#if SDL_MAJOR_VERSION == 1
+SDL_Surface *gui_surface;
+#endif
 
 bool            background = true;          /* use backgrounds by default */
 #ifdef HAVE_REMOTE_LCD
@@ -88,11 +99,8 @@ static int sdl_event_thread(void * param)
     sdl_window_setup();
 #endif
 
-#if (CONFIG_PLATFORM & PLATFORM_MAEMO)
-    SDL_sem *wait_for_maemo_startup;
-#endif
-
-#if (CONFIG_PLATFORM & (PLATFORM_MAEMO|PLATFORM_PANDORA))
+#if !defined(SIMULATOR)
+#if defined(HAVE_TOUCHSCREEN)
     /* SDL touch screen fix: Work around a SDL assumption that returns
        relative mouse coordinates when you get to the screen edges
        using the touchscreen and a disabled mouse cursor.
@@ -102,14 +110,39 @@ static int sdl_event_thread(void * param)
 
     SDL_ShowCursor(SDL_ENABLE);
     SDL_SetCursor(hiddenCursor);
-#endif
+#else /* !HAVE_TOUCHSCREEN */
+    /* Explicitly disable the cursor on non-touch targets */
+    SDL_ShowCursor(SDL_DISABLE);
+#endif /* !HAVE_TOUCHSCREEN */
+#endif /* !SIMULATOR */
 
 #if (CONFIG_PLATFORM & PLATFORM_MAEMO)
     /* start maemo thread: Listen to display on/off events and battery monitoring */
-    wait_for_maemo_startup = SDL_CreateSemaphore(0); /* 0-count so it blocks */
+    SDL_sem *wait_for_maemo_startup = SDL_CreateSemaphore(0); /* 0-count so it blocks */
     SDL_Thread *maemo_thread = SDL_CreateThread(maemo_thread_func, NULL, wait_for_maemo_startup);
     SDL_SemWait(wait_for_maemo_startup);
     SDL_DestroySemaphore(wait_for_maemo_startup);
+#endif
+
+#if SDL_MAJOR_VERSION == 1
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
+
+    SDL_Surface *picture_surface = NULL;
+    int depth;
+    Uint32 flags;
+
+    depth = LCD_DEPTH;
+    if (depth < 8)
+        depth = 16;
+
+    flags = SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN;
+
+    if ((gui_surface = SDL_SetVideoMode(LCD_WIDTH, LCD_HEIGHT, depth, flags)) == NULL) {
+        panicf("%s", SDL_GetError());
+    }
+
+    if (background && picture_surface != NULL)
+        SDL_BlitSurface(picture_surface, NULL, gui_surface, NULL);
 #endif
 
     /* let system_init proceed */
@@ -166,6 +199,12 @@ void power_off(void)
     /* wait for event thread to finish */
     SDL_WaitThread(evt_thread, NULL);
 
+#if defined(RG_NANO) && !defined(SIMULATOR)
+    /* Reset volume/brightness to the values before launching rockbox */
+    ip_reset_values();
+    ip_power_off();
+#endif
+
 #ifdef HAVE_SDL_THREADS
     /* lock again before entering the scheduler */
     sim_thread_lock(t);
@@ -189,8 +228,11 @@ void sim_do_exit()
 #endif
 
     sim_kernel_shutdown();
+
+#if SDL_MAJOR_VERSION > 1
     SDL_UnlockMutex(window_mutex);
     SDL_DestroyMutex(window_mutex);
+#endif
 
     SDL_Quit();
     exit(EXIT_SUCCESS);
@@ -208,6 +250,16 @@ void system_init(void)
     /* Make glib thread safe */
     g_thread_init(NULL);
     g_type_init();
+#endif
+
+#if defined(RG_NANO) && !defined(SIMULATOR)
+    /* Set system volume to max with amixer */
+    system("amixer -q sset 'Headphone' 63 unmute");
+
+    /* Instant play handling */
+    struct sigaction ip_sa;
+    ip_sa.sa_handler = ip_handle_sigusr1;
+    sigaction(SIGUSR1, &ip_sa, NULL);
 #endif
 
     if (SDL_InitSubSystem(SDL_INIT_TIMER))
@@ -228,12 +280,21 @@ void system_init(void)
 
 #ifndef __WIN32  /* Fails on Windows */
     SDL_InitSubSystem(SDL_INIT_VIDEO);
+
+#if SDL_MAJOR_VERSION > 1
     sdl_window_setup();
+#endif
 #endif
 
 #ifndef __APPLE__ /* MacOS requires events to be handled on main thread */
     s = SDL_CreateSemaphore(0); /* 0-count so it blocks */
-    evt_thread = SDL_CreateThread(sdl_event_thread, NULL, s);
+
+    #if SDL_MAJOR_VERSION > 1
+        evt_thread = SDL_CreateThread(sdl_event_thread, NULL, s);
+    #else
+        evt_thread = SDL_CreateThread(sdl_event_thread, s);
+    #endif /* SDL_MAJOR_VERSION */
+
     SDL_SemWait(s);
     /* cleanup */
     SDL_DestroySemaphore(s);
@@ -245,6 +306,13 @@ void system_init(void)
 
 void system_reboot(void)
 {
+#if defined(RG_NANO) && !defined(SIMULATOR)
+    /* Reset volume/brightness to the values before launching rockbox */
+    ip_reset_values();
+    SDL_Quit();
+    exit(EXIT_SUCCESS);
+#endif
+
 #ifdef HAVE_SDL_THREADS
     sim_thread_exception_wait();
 #else
@@ -311,6 +379,7 @@ void sys_handle_argv(int argc, char *argv[])
                 printf("Disabling remote image.\n");
             }
 #endif
+#if SDL_MAJOR_VERSION > 1
             else if (!strcmp("--zoom", argv[x]))
             {
                 x++;
@@ -320,6 +389,7 @@ void sys_handle_argv(int argc, char *argv[])
                     display_zoom = 2;
                 printf("Window zoom is %f\n", display_zoom);
             }
+#endif
             else if (!strcmp("--alarm", argv[x]))
             {
                 sim_alarm_wakeup = true;
@@ -374,7 +444,9 @@ void sys_handle_argv(int argc, char *argv[])
             }
         }
     }
+#if SDL_MAJOR_VERSION > 1
     if (display_zoom != 1) {
         background = false;
     }
+#endif
 }

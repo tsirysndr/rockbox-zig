@@ -168,6 +168,12 @@ else # core
   ifneq (,$(findstring pandora, $(MODELNAME)))
 	include $(ROOTDIR)/packaging/pandora/pandora.make
   endif
+  ifneq (,$(findstring rgnano, $(MODELNAME)))
+	include $(ROOTDIR)/packaging/rgnano/rgnano.make
+  endif
+  ifneq (,$(findstring ctru, $(APP_TYPE)))
+  include $(ROOTDIR)/packaging/ctru/ctru.make
+  endif
 
 endif # bootloader
 
@@ -220,7 +226,7 @@ clean::
 		$(LINKRAM) $(LINKROM) rockbox.elf rockbox.map rockbox.bin \
 		make.dep rombox.elf rombox.map rombox.bin romstart.txt \
 		$(BINARY) $(FLASHFILE) uisimulator bootloader flash $(BOOTLINK) \
-		rockbox.apk lang_enum.h rbversion.h
+		rockbox.apk lang_enum.h rbversion.h fontbundle.h
 	$(SILENT)rm -rf ../.zig-cache ../zig-out
 
 #### linking the binaries: ####

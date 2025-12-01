@@ -246,6 +246,12 @@ $releasenotes="/wiki/ReleaseNotes400";
         status => 1,
 	sim => 1,
     },
+    'rgnano' => {
+        name => 'Anbernic RG Nano',
+        sim => 0,
+        manualok => 1,
+        status => 2,
+    },
     'rk27generic' => {
         name => 'Rockchip rk27xx',
         status => 1,
@@ -609,11 +615,11 @@ sub simbuilds {
 	'lang' => 'bulgarian',
 	'name' => 'Български (Bulgarian)',
         'short' => 'bg',
-        'defengine' => 'espeak',
+        'defengine' => 'piper',
 	'engines' => {
 	    'espeak' => '-vbg',
 	    'gtts' => '-l bg',
-            # No piper voice yet.
+	    'piper' => 'bg_BG-dimitar-medium.onnx',
 	},
         'enabled' => 1,
     },
@@ -735,7 +741,7 @@ sub simbuilds {
 	'engines' => {
 	    'espeak' => '-vel',
 	    'gtts' => '-l el',
-            'piper' => 'el_GR-rapunzelina-low.onnx',
+            'piper' => 'el_GR-rapunzelina-medium.onnx',
 	},
         'enabled' => 0,
     },
@@ -782,6 +788,18 @@ sub simbuilds {
 	    'espeak' => '-vlv',
 	    'gtts' => '-l lv',
             'piper' => 'lv_LV-aivars-medium.onnx',
+	},
+	'enabled' => 1,
+    },
+    'magyar' => {
+	'lang' => 'magyar',
+	'name' => 'Magyar (Hungarian)',
+        'short' => 'hu',
+        'defengine' => 'piper',
+	'engines' => {
+	    'espeak' => '-vhu',
+	    'gtts' => '-l hu',
+            'piper' => 'hu_HU-berta-medium.onnx',
 	},
 	'enabled' => 1,
     },
@@ -927,6 +945,18 @@ sub simbuilds {
 	    'gtts' => '-l uk',
             'piper' => 'uk_UA-ukrainian_tts-medium.onnx',
 	},
+        'enabled' => 1,
+    },
+    'vietnamese' => {
+        'lang' => 'vietnamese',
+        'name' => 'Tiếng Việt (Vietnamese)',
+        'short' => 'vi',
+        'defengine' => 'piper',
+        'engines' => {
+            'espeak' => '-vvi',
+	    'gtts' => '-l vi',
+            'piper' => 'vi_VN-vais1000-medium.onnx',
+        },
         'enabled' => 1,
     },
 );

@@ -1707,22 +1707,22 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
+    rtc: "ON = Set"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
-    rtc: "ON = Set"
     vibe500: "OK = Set"
   </source>
   <dest>
     *: none
+    rtc: "Açma Tuşu = Ayarla"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SEÇ Tuşu = Ayarla"
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY Tuşu = Ayarla"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY Tuşu = Ayarla"
     iriverh100,iriverh120,iriverh300: "NAVI Tuşu = Ayarla"
     mpiohd300: "Tamam Tuşu = Ayarla"
     mrobe500: "Kalp Tuşu = Ayarla"
-    rtc: "Açma Tuşu = Ayarla"
     vibe500: "Tamam  Tuşu = Ayarla"
   </dest>
   <voice>
@@ -1736,7 +1736,8 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
+    rtc: "OFF = Revert"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
@@ -1744,21 +1745,20 @@
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Revert"
     iriverh100,iriverh120,iriverh300: "STOP = Revert"
     mrobe100: "DISPLAY = Revert"
-    rtc: "OFF = Revert"
     samsungyh*: "REW = Revert"
     vibe500: "CANCEL = Revert"
   </source>
   <dest>
     *: none
+    rtc: "OFF = Geri Döndür"
     gigabeatfx,mrobe500: "POWER = Geri Döndür"
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "LEFT =  Revert"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "LEFT =  Revert"
     gogearsa9200: "LEFT = Geri Döndür"
     iaudiom5,iaudiox5: "RECORD = Geri Döndür"
     ipod*,mpiohd300,sansac200*: "MENU = Geri Döndür"
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Geri Döndür"
     iriverh100,iriverh120,iriverh300: "STOP = Geri Döndür"
     mrobe100: "DISPLAY = Geri Döndür"
-    rtc: "OFF = Geri Döndür"
     samsungyh*: "REW = Geri Döndür"
     vibe500: "C = Geri Döndür"
   </dest>

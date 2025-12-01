@@ -3426,51 +3426,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BATTERY_TYPE
-  desc: deprecated
-  user: core
-  <source>
-    *: none
-    battery_types: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_1
-  desc: deprecated
-  user: core
-  <source>
-    *: none
-    battery_types,xduoox3: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_2
-  desc: deprecated
-  user: core
-  <source>
-    *: none
-    battery_types,xduoox3: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_DISK_MENU
   desc: in the system sub menu
   user: core
@@ -3600,22 +3555,22 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Set"
+    rtc: "ON = Set"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
-    rtc: "ON = Set"
     vibe500: "OK = Set"
   </source>
   <dest>
     *: none
-    aigoerosq,erosqnative,gogearsa9200,samsungyh*: "PLAY = Постави"
+    rtc: "ON = Постави"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY = Постави"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Постави"
     iriverh100,iriverh120,iriverh300: "NAVI = Постави"
     mpiohd300: "ENTER = Постави"
     mrobe500: "HEART = Постави"
-    rtc: "ON = Постави"
     vibe500: "OK = Постави"
   </dest>
   <voice>
@@ -3628,7 +3583,8 @@
   user: core
   <source>
     *: none
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Revert"
+    rtc: "OFF = Revert"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
@@ -3636,13 +3592,13 @@
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Revert"
     iriverh100,iriverh120,iriverh300: "STOP = Revert"
     mrobe100: "DISPLAY = Revert"
-    rtc: "OFF = Revert"
     samsungyh*: "REW = Revert"
     vibe500: "CANCEL = Revert"
   </source>
   <dest>
     *: none
-    aigoerosq,erosqnative,gigabeats,sansafuzeplus: "BACK = Врати на старо"
+    rtc: "OFF = Врати на старо"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "BACK = Врати на старо"
     gigabeatfx,mrobe500: "POWER = Врати на старо"
     gogearsa9200: "LEFT = Врати на старо"
     iaudiom5,iaudiox5: "RECORD = Врати на старо"
@@ -3650,7 +3606,6 @@
     iriverh10,iriverh10_5gb,sansae200*,sansafuze*: "PREV = Врати на старо"
     iriverh100,iriverh120,iriverh300: "STOP = Врати на старо"
     mrobe100: "DISPLAY = Врати на старо"
-    rtc: "OFF = Врати на старо"
     samsungyh*: "REW = Врати на старо"
     vibe500: "CANCEL = Врати на старо"
   </dest>
@@ -4733,7 +4688,7 @@
   </dest>
   <voice>
     *: none
-    radio: ""
+    radio: "Скенирам"
   </voice>
 </phrase>
 <phrase>
@@ -5843,20 +5798,6 @@
   </dest>
   <voice>
     *: "снимљене нумере"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CATALOG
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -7323,7 +7264,7 @@
     *: "Не могу да отворим %s"
   </dest>
   <voice>
-    *: ""
+    *: "Не могу да отворим додатак"
   </voice>
 </phrase>
 <phrase>
@@ -7337,7 +7278,7 @@
     *: "Неуспело читање %s"
   </dest>
   <voice>
-    *: ""
+    *: "Неуспело читање фајла"
   </voice>
 </phrase>
 <phrase>
@@ -12591,20 +12532,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_PLAYTIME_REMAINING
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PLAYTIME_TRK_REMAINING
   desc: playing time screen
   user: core
@@ -14156,16 +14083,16 @@
 </phrase>
 <phrase>
   id: LANG_TOGGLE_ITEM
-  desc: in main_menu_config
+  desc: deprecated
   user: core
   <source>
-    *: "Toggle Item"
+    *: ""
   </source>
   <dest>
-    *: "Преклопи ставку"
+    *: ""
   </dest>
   <voice>
-    *: "Преклопи ставку"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -14226,13 +14153,13 @@
 </phrase>
 <phrase>
   id: LANG_MAIN_MENU_ORDER
-  desc: main_menu_config plugin title
+  desc: deprecated
   user: core
   <source>
-    *: "Rockbox Main Menu Order"
+    *: ""
   </source>
   <dest>
-    *: "Редослед Rockbox главног менија"
+    *: ""
   </dest>
   <voice>
     *: ""
@@ -14733,20 +14660,6 @@
   </dest>
   <voice>
     *: "Није пронађена ниједна слика албума"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CACHE_REBUILT_NEXT_RESTART
-  desc: deprecated
-  user: core
-  <source>
-    *: ""
-  </source>
-  <dest>
-    *: ""
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -16972,5 +16885,101 @@
   </dest>
   <voice>
     *: "Плејлиста се завршила. Желите ли да се пусти поново?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TAGNAVI_ALL_TRACKS_SORTED_BY_ALBUM
+  desc: "[By album]" entry in tag browser
+  user: core
+  <source>
+    *: "[By album]"
+  </source>
+  <dest>
+    *: "[по албуму]"
+  </dest>
+  <voice>
+    *: "Све нумере сортиране по албуму"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_PLAYLISTS
+  desc: playlists sorting setting
+  user: core
+  <source>
+    *: "Sort Playlists"
+  </source>
+  <dest>
+    *: "Сортирај плејлисте"
+  </dest>
+  <voice>
+    *: "сортирај плејлисте"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC"
+  </source>
+  <dest>
+    *: none
+    usbdac: "~USB-DAC"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "У Ес Бе - ДАК"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_USB_CHARGE_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Charge-Only Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "Док је у USB режиму само-пуњење"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "Док је у У Ес Бе режиму само-пуњење"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_MASS_STORAGE_USB_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Mass-Storage Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "Док је у USB режиму масовно-скадиште"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "Док је у У Ес Бе режиму масовно-скадиште"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC_ACTIVE
+  desc: for splash
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC Active"
+  </source>
+  <dest>
+    *: none
+    usbdac: "USB-DAC активан"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "У Ес Бе - ДАК активан"
   </voice>
 </phrase>

@@ -567,8 +567,8 @@ void main(void)
         for (int i = 0 ; i < NUM_VOLUMES ; i++) {
             disk_partinfo(i, &pinfo);
             if (pinfo.type)
-                printf("P%d T%02x S%08lx",
-                       i, pinfo.type, pinfo.size);
+                printf("P%d T%02x S%llx",
+                       i, pinfo.type, (unsigned long long)pinfo.size);
         }
         while(button_get(true) != SYS_USB_CONNECTED) {};
     }
@@ -600,16 +600,16 @@ int usb_screen(void)
    return 0;
 }
 
-unsigned short *bidi_l2v(const unsigned char *str, int orientation)
+ucschar_t *bidi_l2v(const unsigned char *str, int orientation)
 {
-    static unsigned short utf16_buf[SCROLL_LINE_SIZE];
-    unsigned short *target;
+    static ucschar_t utf_buf[SCROLL_LINE_SIZE];
+    ucschar_t *target;
     (void)orientation;
 
-    target = utf16_buf;
+    target = utf_buf;
 
     while (*str)
         str = utf8decode(str, target++);
     *target = 0;
-    return utf16_buf;
+    return utf_buf;
 }

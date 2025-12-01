@@ -172,6 +172,9 @@
 /* We're able to shut off power to the HDD */
 #define HAVE_ATA_POWER_OFF
 
+/* Turn on SMART support */
+#define HAVE_ATA_SMART
+
 /* define this if the hardware can be powered off while charging */
 /*#define HAVE_POWEROFF_WHILE_CHARGING */
 
@@ -210,6 +213,7 @@
 #define ICODE_ATTR_TREMOR_NOT_MDCT
 
 #define IPOD_ACCESSORY_PROTOCOL
+#define HAVE_IAP_MULTIPORT
 #define HAVE_SERIAL
 
 #define IRAM_LCDFRAMEBUFFER IBSS_ATTR /* put the lcd frame buffer in IRAM */

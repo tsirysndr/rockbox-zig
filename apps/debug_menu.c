@@ -116,10 +116,9 @@
 
 #ifdef HAVE_USBSTACK
 #include "usb_core.h"
+#ifdef USB_ENABLE_AUDIO
+#include "../usbstack/usb_audio.h"
 #endif
-
-#if defined(IPOD_ACCESSORY_PROTOCOL)
-#include "iap.h"
 #endif
 
 #include "talk.h"
@@ -138,6 +137,10 @@
 
 #if defined(IPOD_6G) && !defined(SIMULATOR)
 #include "norboot-target.h"
+#endif
+
+#if defined(IPOD_ACCESSORY_PROTOCOL)
+#include "iap.h"
 #endif
 
 #define SCREEN_MAX_CHARS (LCD_WIDTH / SYSFONT_WIDTH)
@@ -1347,7 +1350,7 @@ static int disk_callback(int btn, struct gui_synclist *lists)
             simplelist_addline(
                     "Nsac: %d clk", card->nsac);
             simplelist_addline(
-                    "R2W: *%d", card->r2w_factor);
+                    "R2W: *%d", 1 << card->r2w_factor);
 #if (CONFIG_STORAGE & STORAGE_SD)
             int csd_structure = card_extract_bits(card->csd, 127, 2);
             const char *ver;
@@ -1482,6 +1485,9 @@ static int disk_callback(int btn, struct gui_synclist *lists)
     i = identify_info[83] & (1<<9);
     simplelist_addline(
              "Noise mgmt: %s", i ? "enabled" : "unsupported");
+    i = identify_info[85] & (1<<0);
+    simplelist_addline(
+             "SMART: %s", i ? "enabled" : "unsupported");
     simplelist_addline(
              "Flush cache: %s", identify_info[83] & (1<<13) ? "extended" : identify_info[83] & (1<<12) ? "standard" : identify_info[80] >= (1<<5) ? "ATA-5" : "unsupported");
     i = identify_info[82] & (1<<6);
@@ -1750,7 +1756,7 @@ static int ata_smart_callback(int btn, struct gui_synclist *lists)
     {
         int rc;
         memset(&smart_data, 0, sizeof(struct ata_smart_values));
-        rc = ata_read_smart(&smart_data);
+        rc = ata_read_smart(&smart_data, ATA_SMART_READ_DATA);
         simplelist_reset_lines();
         if (rc == 0)
         {
@@ -2506,18 +2512,61 @@ static bool dbg_talk(void)
 }
 
 #ifdef HAVE_USBSTACK
-#if defined(ROCKBOX_HAS_LOGF) && defined(USB_ENABLE_SERIAL)
-static bool toggle_usb_serial(void)
+#if (defined(ROCKBOX_HAS_LOGF) && defined(USB_ENABLE_SERIAL))
+static bool toggle_usb_core_driver(int driver, char *msg)
 {
-    bool enabled = !usb_core_driver_enabled(USB_DRIVER_SERIAL);
+    bool enabled = !usb_core_driver_enabled(driver);
 
-    usb_core_enable_driver(USB_DRIVER_SERIAL, enabled);
-    splashf(HZ, "USB Serial %sabled", enabled ? "en" : "dis");
+    usb_core_enable_driver(driver,enabled);
+    splashf(HZ, "%s %s", msg, enabled ? "enabled" : "disabled");
 
     return false;
 }
+
+#ifdef USB_ENABLE_SERIAL
+static bool toggle_usb_serial(void)
+{
+    return toggle_usb_core_driver(USB_DRIVER_SERIAL, "USB Serial");
+}
+#endif /* USB_ENABLE_SERIAL */
 #endif
-#endif
+
+#ifdef USB_ENABLE_AUDIO
+static int dbg_usb_audio_cb(int action, struct gui_synclist *lists)
+{
+    (void)lists;
+    simplelist_reset_lines();
+    simplelist_addline("%sabled", usb_core_driver_enabled(USB_DRIVER_AUDIO)?"En":"Dis");
+    simplelist_addline("%sPlaying", usb_audio_get_playing()?"":"Not ");
+    simplelist_addline("iface: %d alt: %d", usb_audio_get_main_intf(), usb_audio_get_alt_intf());
+    simplelist_addline("out ep: 0x%X in ep: 0x%X", usb_audio_get_out_ep(), usb_audio_get_in_ep());
+    simplelist_addline("Volume: %d", usb_audio_get_cur_volume());
+    simplelist_addline("Playback Frequency: %lu", usb_audio_get_playback_sampling_frequency());
+    simplelist_addline("Frames dropped: %d", usb_audio_get_frames_dropped());
+    simplelist_addline("Buffers filled: %f", (double)usb_audio_get_prebuffering_avg()/(1<<16)); // convert from 16.16 fixed to float
+    simplelist_addline("Min: %d / Max: %d", usb_audio_get_prebuffering_maxmin(false), usb_audio_get_prebuffering_maxmin(true));
+    simplelist_addline("Samples used per Frame: %f", (double)usb_audio_get_samplesperframe()/(1<<16)); // convert from 16.16 fixed to float
+    simplelist_addline("Samples received per frame: %f", (double)usb_audio_get_samples_rx_perframe()/(1<<16)); // convert from 16.16 fixed to float
+    simplelist_addline("Samples diff: %f", (double)(usb_audio_get_samplesperframe()-usb_audio_get_samples_rx_perframe())/(1<<16)); // convert from 16.16 fixed to float
+    simplelist_addline("%s", usb_audio_get_underflow()?"UNDERFLOW!":" ");
+    simplelist_addline("%s", usb_audio_get_overflow()?"OVERFLOW!":" ");
+    simplelist_addline("%s", usb_audio_get_alloc_failed()?"ALLOC FAILED!":" ");
+    if (action == ACTION_NONE)
+    {
+        action = ACTION_REDRAW;
+    }
+    return action;
+}
+static bool dbg_usb_audio(void)
+{
+    struct simplelist_info info;
+    simplelist_info_init(&info, "USB Audio", 0, NULL);
+    info.scroll_all = true;
+    info.action_callback = dbg_usb_audio_cb;
+    return simplelist_show_list(&info);
+}
+#endif /* USB_ENABLE_AUDIO */
+#endif /* HAVE_USBSTACK */
 
 #if CONFIG_USBOTG == USBOTG_ISP1583
 extern int dbg_usb_num_items(void);
@@ -2844,6 +2893,9 @@ static const struct {
 #if defined(ROCKBOX_HAS_LOGF) && defined(USB_ENABLE_SERIAL)
         {"USB Serial driver (logf)", toggle_usb_serial },
 #endif
+#if defined(USB_ENABLE_AUDIO)
+        {"USB-DAC", dbg_usb_audio},
+#endif
 #endif /* HAVE_USBSTACK */
 #ifdef CPU_BOOST_LOGGING
         {"Show cpu_boost log",cpu_boost_log},
@@ -2852,6 +2904,9 @@ static const struct {
 #if (defined(HAVE_WHEEL_ACCELERATION) && (CONFIG_KEYPAD==IPOD_4G_PAD) \
      && !defined(IPOD_MINI) && !defined(SIMULATOR))
         {"Debug scrollwheel", dbg_scrollwheel },
+#endif
+#if defined(IPOD_ACCESSORY_PROTOCOL)
+        {"Debug IAP", dbg_iap },
 #endif
         {"Talk engine stats", dbg_talk },
 #if defined(HAVE_BOOTDATA) && !defined(SIMULATOR)

@@ -1398,7 +1398,7 @@ static int create_album_index(void)
     /* Albums */
     pf_idx.album_ct = 0;
     pf_idx.album_len =0;
-    pf_idx.album_untagged_idx = 0;
+    pf_idx.album_untagged_idx = -1;
     pf_idx.album_untagged_seek = -1;
 
     /* album_index starts at end of buf it will be rearranged when finalized */
@@ -1523,16 +1523,8 @@ retry_artist_lookup:
 
     /* remove any extra untagged albums
      * extra space is orphaned till restart */
-    for (i = 0; i < pf_idx.album_ct; i++)
-    {
-        if (pf_idx.album_index[i].artist_idx > 0)
-        {
-            if (i > 0) { i--; }
-            pf_idx.album_index += i;
-            pf_idx.album_ct -= i;
-            break;
-        }
-    }
+    pf_idx.album_index += pf_idx.album_untagged_idx + 1;
+    pf_idx.album_ct -= pf_idx.album_untagged_idx + 1;
 
     pf_idx.buf = buf;
     pf_idx.buf_sz = buf_size;
@@ -4936,16 +4928,14 @@ static int pictureflow_main(void)
             break;
 #endif
         case PF_TRACKLIST:
-            if ( pf_cfg.auto_wps == 1 && pf_state == pf_idle ) {
-                pf_state = pf_cover_in;
-                break;
-            }
         case PF_SELECT:
-            if ( pf_state == pf_idle || pf_state == pf_scrolling) {
+            if (pf_state == pf_idle || pf_state == pf_scrolling)
+            {
                 if (pf_state == pf_scrolling)
                     set_current_slide(target);
 #if PF_PLAYBACK_CAPABLE
-                if(pf_cfg.auto_wps == 1) {
+                if(pf_cfg.auto_wps == 1 && button == PF_SELECT)
+                {
                     if (start_playback(true))
                         return PLUGIN_GOTO_WPS;
                 }

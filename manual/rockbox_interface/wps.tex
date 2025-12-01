@@ -82,13 +82,15 @@ your WPS (While Playing Screen).
       \nopt{hold_button}{%
           \opt{SANSA_CLIP_PAD}{\ButtonHome+\ButtonSelect}
           \opt{SANSA_FUZEPLUS_PAD,AIGO_EROSQ_PAD}{\ButtonPower}
+          \opt{RG_NANO_PAD}{\ButtonStart+\ButtonFN}
           & Key lock (software hold switch) on/off.\\
       }%
       % We explicitly list all the appropriate targets here and do no condition
       % on the 'pitchscreen' feature since some players have the feature but do
       % not have the button to go from the WPS to the pitch screen.
       \opt{IRIVER_H100_PAD,IRIVER_H300_PAD,IRIVER_H10_PAD,MROBE100_PAD%
-          ,GIGABEAT_PAD,GIGABEAT_S_PAD,SANSA_E200_PAD,SANSA_C200_PAD,SANSA_FUZEPLUS_PAD}{%
+          ,GIGABEAT_PAD,GIGABEAT_S_PAD,SANSA_E200_PAD,SANSA_C200_PAD%
+          ,SANSA_FUZEPLUS_PAD,RG_NANO_PAD}{%
         \ActionWpsPitchScreen
         \opt{HAVEREMOTEKEYMAP}{& \ActionRCWpsPitchScreen}
           & Show \setting{Pitch Screen} (see \reference{sec:pitchscreen}).\\%
@@ -100,7 +102,7 @@ your WPS (While Playing Screen).
           & Show current \setting{Playlist}.\\%
       }%
       \opt{IRIVER_H100_PAD,IRIVER_H300_PAD,IRIVER_H10_PAD%
-          ,SANSA_E200_PAD,SANSA_C200_PAD,SANSA_FUZEPLUS_PAD}{%
+          ,SANSA_E200_PAD,SANSA_C200_PAD,SANSA_FUZEPLUS_PAD,RG_NANO_PAD}{%
         \ActionWpsIdThreeScreen
           \opt{HAVEREMOTEKEYMAP}{& \ActionRCWpsIdThreeScreen}
           & Enter \setting{ID3 Viewer}.\\%
@@ -171,8 +173,8 @@ several indicators.
   Between the indicators of the right and left channel there are little dots.
   These dots represent important volume values. In linear mode each dot is a
   10\% mark. In dBFS mode the dots represent the following values (from right
-  to left): 0~dB, {}-3~dB, {}-6~dB, {}-9~dB, {}-12~dB, {}-18~dB, {}-24~dB, {}-30~dB,
-  {}-40~dB, {}-50~dB, {}-60~dB.
+  to left): 0~dB, $-3$~dB, $-6$~dB, $-9$~dB, $-12$~dB, $-18$~dB, $-24$~dB, $-30$~dB,
+  $-40$~dB, $-50$~dB, $-60$~dB.
 \end{description}
 
 \subsection{\label{sec:contextmenu}The WPS Context Menu}

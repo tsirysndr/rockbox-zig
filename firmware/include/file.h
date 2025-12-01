@@ -29,10 +29,8 @@
 #include <stdio.h>
 #endif
 #include "config.h"
+#include "fs_defines.h"
 #include "gcc_extensions.h"
-
-#undef MAX_PATH /* this avoids problems when building simulator */
-#define MAX_PATH 260
 
 enum relate_result
 {
@@ -42,7 +40,9 @@ enum relate_result
     RELATE_PREFIX,        /* the path2 contains path1 as a prefix */
 };
 
-#if defined(APPLICATION) || defined(CHECKWPS)
+#if defined(CTRU) && !defined(SIMULATOR)
+#include "filesystem-ctru.h"
+#elif defined(APPLICATION) || defined(CHECKWPS)
 #include "filesystem-app.h"
 #elif defined(SIMULATOR) || defined(DBTOOL)
 #include "../../uisimulator/common/filesystem-sim.h"

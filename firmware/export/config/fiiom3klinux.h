@@ -66,7 +66,7 @@
 #define CONFIG_BACKLIGHT_FADING BACKLIGHT_FADING_SW_SETTING
 
 /* define this if you have a real-time clock */
-#define CONFIG_RTC APPLICATION
+#define CONFIG_RTC RTC_HOSTED
 
 /* The number of bytes reserved for loadable codecs */
 #define CODEC_SIZE 0x100000
@@ -124,6 +124,14 @@
 #define BATTERY_CAPACITY_MIN 1100  /* min. capacity selectable */
 #define BATTERY_CAPACITY_MAX 1100 /* max. capacity selectable */
 #define BATTERY_CAPACITY_INC 0   /* capacity increment */
+
+/* Voltage reported in millivolts */
+#define BATTERY_VOLTAGE_SCALE_MUL 1
+#define BATTERY_VOLTAGE_SCALE_DIV 1
+
+/* Capacity reported as a value 0-5, 20% increments */
+#define BATTERY_LEVEL_SCALE_MUL 20
+#define BATTERY_LEVEL_SCALE_DIV 1
 
 /* ROLO */
 #define BOOTFILE_EXT "m3k"

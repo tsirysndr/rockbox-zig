@@ -8,7 +8,7 @@
 #
 
 # global CC options for all platforms
-CCOPTS="-W -Wall -Wextra -Wundef -Os -nostdlib -ffreestanding -Wstrict-prototypes -pipe -std=gnu99 -funit-at-a-time -fno-delete-null-pointer-checks -fno-strict-overflow"
+CCOPTS="-W -Wall -Wextra -Wundef -Os -nostdlib -ffreestanding -Wstrict-prototypes -pipe -std=gnu99 -funit-at-a-time -fno-delete-null-pointer-checks -fno-strict-overflow -fno-common"
 
 # LD options for the core
 LDOPTS=""
@@ -138,7 +138,7 @@ app_set_lcd_size () {
 
 findarmgcc() {
   prefixtools arm-elf-eabi-
-  gccchoice="4.9.4"
+  gccchoice="9.5.0"
 }
 
 # scan the $PATH for the given command
@@ -262,7 +262,7 @@ simcc () {
  app_type=$1
  winbuild=""
  macbuild=""
- GCCOPTS=`echo $CCOPTS | sed -e s/\ -ffreestanding// -e s/\ -nostdlib// -e s/\ -Wundef//`
+ GCCOPTS=`echo $CCOPTS | sed -e s/\ -ffreestanding// -e s/\ -nostdlib//`
 
  if [ "yes" = "$use_debug" ]; then
     GCCOPTS=`echo $GCCOPTS | sed -e s/\ -Os/\ -Og/`
@@ -281,6 +281,11 @@ simcc () {
    echo "Using UBSan"
    GCCOPTS="$GCCOPTS -fsanitize=undefined -fPIC"
    LDOPTS="$LDOPTS -fsanitize=undefined"
+ fi
+
+ # Clear FUNKEY_SDK SDL1.2 path from LDOPTS
+ if [ "$modelname" = "rgnano" ]; then
+   LDOPTS=""
  fi
 
  # Some linux setups like to warn about unused results. They are correct,
@@ -543,7 +548,7 @@ coldfirecc () {
  GCCOPTS="$CCOPTS -mcpu=5249 -malign-int -mstrict-align"
  GCCOPTIMIZE="-fomit-frame-pointer"
  endian="big"
- gccchoice="4.9.4"
+ gccchoice="9.5.0"
 }
 
 arm7tdmicc () {
@@ -570,13 +575,6 @@ arm940tbecc () {
 arm940tcc () {
  findarmgcc
  GCCOPTS="$CCOPTS -mcpu=arm940t"
- GCCOPTIMIZE="-fomit-frame-pointer"
- endian="little"
-}
-
-arm946cc () {
- findarmgcc
- GCCOPTS="$CCOPTS -mcpu=arm9e"
  GCCOPTIMIZE="-fomit-frame-pointer"
  endian="little"
 }
@@ -623,7 +621,7 @@ mipselcc () {
  GCCOPTS="$GCCOPTS -ffunction-sections -msoft-float -G 0 -Wno-parentheses"
  GCCOPTIMIZE="-fomit-frame-pointer"
  endian="little"
- gccchoice="4.9.4"
+ gccchoice="9.5.0"
 }
 
 mipsr2elcc () {
@@ -633,14 +631,14 @@ mipsr2elcc () {
  GCCOPTS="$GCCOPTS -ffunction-sections -msoft-float -G 0 -Wno-parentheses"
  GCCOPTIMIZE="-fomit-frame-pointer"
  endian="little"
- gccchoice="4.9.4"
+ gccchoice="9.5.0"
 }
 
 maemocc () {
  # Scratchbox sets up "gcc" based on the active target
  prefixtools ""
 
- GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib// -e s/-Wundef//`
+ GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib//`
  GCCOPTS="$GCCOPTS -fno-builtin -g -I\$(SIMDIR)"
  GCCOPTIMIZE=''
  LDOPTS="-lm -ldl $LDOPTS"
@@ -735,7 +733,7 @@ pandoracc () {
  LDOPTS="-L$PNDSDK/arm-angstrom-linux-gnueabi/usr/lib -Wl,-rpath,$PNDSDK/arm-angstrom-linux-gnueabi/usr/lib $LDOPTS"
  PKG_CONFIG="pkg-config"
 
- GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib// -e s/-Wundef//`
+ GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib//`
  GCCOPTS="$GCCOPTS -fno-builtin -g -I\$(SIMDIR)"
  GCCOPTIMIZE=''
  LDOPTS="-lm -ldl $LDOPTS"
@@ -771,6 +769,7 @@ arm1176jzlinuxcc () {
  GCCOPTIMIZE=''
  LDOPTS="-lasound -lpthread -lm -ldl -lrt $LDOPTS"
  GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-z,defs" # warn about undefined symbols in shared libraries
+ GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-z,defs -Wl,-z,noexecstack" # Stack is not executable
  SHARED_LDFLAGS="-shared"
  SHARED_CFLAGS=''
  endian="little"
@@ -780,7 +779,7 @@ arm1176jzlinuxcc () {
  GCCOPTS="$GCCOPTS  -D_GNU_SOURCE=1 -U_FORTIFY_SOURCE -D_REENTRANT"
 
  # Set up compiler
- gccchoice="4.9.4"
+ gccchoice="9.5.0"
  prefixtools "arm-rockbox-linux-gnueabi-"
 }
 
@@ -814,7 +813,7 @@ androidcc () {
 
     # the prebuilt android NDK only supports x86_64 architecture anyway, so we can take shortcuts
     buildhost=$(uname | tr "[:upper:]" "[:lower:]")-x86_64
-    GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib// -e s/-Wundef//`
+    GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib//`
     LDOPTS="$LDOPTS -ldl -llog"
     if [ "$modelname" != "ibassodx50" ] && [ "$modelname" != "ibassodx90" ]; then
         LDOPTS="$LDOPTS -Wl,-soname,librockbox.so -shared"
@@ -904,7 +903,7 @@ androidndkcc()
     # the prebuilt android NDK only supports x86_64 architecture anyway, so we can take shortcuts
     buildhost=$(uname -s | tr "[:upper:]" "[:lower:]")-x86_64
 
-    GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib// -e s/-Wundef//`
+    GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib//`
     LDOPTS="$LDOPTS -ldl -llog"
     SHARED_LDFLAGS="-shared"
     SHARED_CFLAGS=''
@@ -960,9 +959,143 @@ mipsellinuxcc () {
  GCCOPTS="$GCCOPTS  -D_GNU_SOURCE=1 -U_FORTIFY_SOURCE -D_REENTRANT"
 
  # Set up compiler
- gccchoice="4.9.4"
+ gccchoice="9.5.0"
  prefixtools "mipsel-rockbox-linux-gnu-"
 }
+
+rgnanocc () {
+    if [ -z "$FUNKEY_SDK_PATH" ]; then
+        echo "ERROR: You need the FunKey-SDK installed and have the FUNKEY_SDK_PATH"
+        echo "environment variable point to the root directory of the FunKey-SDK."
+        echo "More info at https://wiki.funkey-project.com/wiki/Setting_up_the_SDK"
+        exit
+    fi
+
+    $FUNKEY_SDK_PATH/relocate-sdk.sh
+
+    arch="arm"
+    arch_version="7"
+    arch_profile="classic"
+
+    CC=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-gcc
+    CPP=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-cpp
+    LD=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-ld
+    AR=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-gcc-ar
+    AS=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-as
+    OC=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-objcopy
+    WINDRES=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-windres
+    DLLTOOL=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-dlltool
+    DLLWRAP=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-dllwrap
+    RANLIB=$FUNKEY_SDK_PATH/bin/arm-funkey-linux-musleabihf-gcc-ranlib
+
+    GCCOPTS=`echo $CCOPTS | sed -e s/\ -ffreestanding// -e s/\ -nostdlib//`
+
+    if [ "yes" = "$use_debug" ]; then
+        GCCOPTS=`echo $GCCOPTS | sed -e s/\ -Os/\ -Og/`
+    fi
+
+    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result"
+    GCCOPTS="$GCCOPTS -I$FUNKEY_SDK_PATH/arm-funkey-linux-musleabihf/sysroot/usr/include/SDL"
+    GCCOPTS="$GCCOPTS -D_GNU_SOURCE=1 -D_REENTRANT -masm-syntax-unified"
+
+    SHARED_LDFLAGS="-shared"
+    SHARED_CFLAGS="-fPIC -fvisibility=hidden"
+
+    LDOPTS="-lm -ldl $LDOPTS -L$FUNKEY_SDK_PATH/arm-funkey-linux-musleabihf/sysroot/usr/lib -lSDL -lpthread"
+    GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-z,defs"
+
+    thread_support="HAVE_SDL_THREADS"
+    sdl="$FUNKEY_SDK_PATH/arm-funkey-linux-musleabihf/sysroot/usr/bin/sdl-config"
+    rbdir="/FunKey/.rockbox"
+}
+
+devkitarmcc () {
+    if [ -z "$DEVKITPRO" ]; then
+        echo "ERROR: You need a devkitPro toolchain and libraries installed"
+        echo "and have the DEVKITPRO environment variable point to the root"
+        echo "of the devkitPro installation."
+        echo "More info at https://devkitpro.org/wiki/Getting_Started"
+        exit
+    fi
+
+    if [ -z "$DEVKITARM" ]; then
+        echo "ERROR: You need devkitARM toolchain installed and have the DEVKITARM"
+        echo "environment variable point to the root directory of the sdk."
+        exit
+    fi
+
+    # check for additional dependencies
+    if [ ! -e "$DEVKITPRO/portlibs/3ds/lib/libCTRL.a" ]; then
+        echo "ERROR: You need to install libCTRL utility library."
+        echo "https://github.com/kynex7510/CTRL"
+        exit
+    fi
+
+    if [ ! -e "$DEVKITPRO/portlibs/3ds/lib/libdl.a" ]; then
+        echo "ERROR: You need to install libdl implementation for 3ds (CTRDL)"
+        echo "https://github.com/kynex7510/CTRDL"
+        exit
+    fi
+
+    if [ ! -n "`findtool makerom`" ]; then
+        echo "ERROR: makerom not found, please install and run configure again."
+        echo "https://github.com/3DSGuy/Project_CTR"
+        exit
+    fi
+
+    if [ ! -n "`findtool bannertool`" ]; then
+        echo "ERROR: bannertool not found, please install and run configure again."
+        echo "https://github.com/carstene1ns/3ds-bannertool"
+        exit
+    fi
+
+    arch="arm"
+    arch_version="6"
+    arch_profile="classic"
+
+    CC=$DEVKITARM/bin/arm-none-eabi-gcc
+    CPP=$DEVKITARM/bin/arm-none-eabi-cpp
+    LD=$DEVKITARM/bin/arm-none-eabi-ld
+    AR=$DEVKITARM/bin/arm-none-eabi-gcc-ar
+    AS=$DEVKITARM/bin/arm-none-eabi-as
+    OC=$DEVKITARM/bin/arm-none-eabi-objcopy
+    WINDRES=windres
+    DLLTOOL=dlltool
+    DLLWRAP=dllwrap
+    RANLIB=$DEVKITARM/bin/arm-none-eabi-gcc-ranlib
+
+    # default cflags, we need -nostdlib and -ffreestanding for shared libraries to work in devkitARM
+    GCCOPTS="$CCOPTS"
+
+    if [ "yes" = "$use_debug" ]; then
+        GCCOPTS=`echo $GCCOPTS | sed -e s/\ -Os/\ -Og/`
+    fi
+
+    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result"
+    GCCOPTS="$GCCOPTS -I$DEVKITPRO/libctru/include -I$DEVKITPRO/portlibs/3ds/include"
+    GCCOPTS="$GCCOPTS -mword-relocations -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft"
+    GCCOPTS="$GCCOPTS -D_GNU_SOURCE=1 -D_REENTRANT -masm-syntax-unified"
+
+    SHARED_LDFLAGS="-shared"
+    SHARED_CFLAGS="-fPIC -fvisibility=hidden"
+
+    LDOPTS="-specs=3dsx.specs -L$DEVKITPRO/libctru/lib -L$DEVKITPRO/portlibs/3ds/lib -ldl -lCTRL -lctru -lm"
+    GLOBAL_LDOPTS="$GLOBAL_LDOPTS -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft"
+
+    # let's allow building shared libraries even if unresolved symbols are found,
+    # CTRDL (libdl) implementation will use a custom resolver for resolve symbols at runtime.
+    # TODO: use ResGen command to automatically detect unresolved symbols.
+    GLOBAL_LDOPTS=`echo $GLOBAL_LDOPTS | sed -e s/\-Wl,-z,defs//`
+
+    # devkitarm already defines getcwd
+    GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-wrap,getcwd"
+
+    ARG_PREFIX="romfs"
+
+    extradefines="-D__3DS__"
+    rbdir="/3ds/.rockbox"
+}
+
 
 do_bootloader() {
       appsdir='$(ROOTDIR)/bootloader'
@@ -1677,9 +1810,9 @@ cat <<EOF
  ==iriver==                ==Apple iPod==        ==Cowon/iAudio==
  10) H120/H140             20) Color/Photo       30) X5/X5V/X5L
  11) H320/H340             21) Nano 1G           31) M5/M5L
- 12) iHP-100/110/115       22) Video             33) D2
- 14) H10 20Gb              23) 3G                34) M3/M3L
- 15) H10 5/6Gb             24) 4G Grayscale
+ 12) iHP-100/110/115       22) Video             32) D2
+ 13) H10 20Gb              23) 3G                33) M3/M3L
+ 14) H10 5/6Gb             24) 4G Grayscale
                            25) Mini 1G           ==SanDisk==
  ==Toshiba==               26) Mini 2G           50) Sansa e200
  40) Gigabeat F/X          27) 1G, 2G            51) Sansa e200R
@@ -1702,37 +1835,38 @@ cat <<EOF
                                                  131) Mini2440
  ==Samsung==               ==Onda==
  140) YH-820               120) VX747            ==Packard Bell==
- 141) YH-920               121) VX767            160) Vibe 500
- 142) YH-925               122) VX747+
+ 141) YH-920               122) VX747+           160) Vibe 500
+ 142) YH-925               121) VX767
  143) YP-S3                123) VX777            ==ROCKCHIP==
-                                                 180) rk27xx generic
- ==HiFiMAN==               ==MPIO==
- 190) HM-60x               170) HD200            ==HiFi E.T.==
- 191) HM-801               171) HD300            210) MA9
-                                                 211) MA9C
- ==Sony==                  ==Application==       212) MA8
- 219) NWZ-E350 series      200) SDL              213) MA8C
- 220) NWZ-E370/E380 series 201) Android
- 221) NWZ-E360 series      202) Nokia N8xx       ==IHIFI==
- 222) NWZ-E450 series      203) Nokia N900       230) 760
- 223) NWZ-E460 series      204) Pandora          231) 960
- 224) NWZ-E470 series      205) Samsung YP-R0    250) 770C
- 225) NWZ-E580 series      206) Android MIPS     251) 770
- 226) NWZ-A10 series       207) Android x86      252) 800
- 227) NW-A20 series        208) Samsung YP-R1
- 228) NWZ-A860 series                            ==AgpTek==
- 229) NWZ-S750 series      ==iBasso==            240) Rocker
-                           232) DX50
- ==FiiO==                  233) DX90             ==AIGO==
- 244) M3K Linux                                  245) Eros Q / K
- 246) M3K baremetal        ==xDuoo==             247) Eros Q / K native
-                           241) X3                      (hw1/hw2 bl, all hw rb)
- ==Shanling==              242) X3II             248) Eros Q / K native
- 260) Q1                   243) X20                     (hw3 bl only)
-                                                 249) Eros Q / K native
-                           ==Surfans==                  (hw4 bl only)
- ==Echo project==          280) F28 (WIP)
- 270) Echo R1 (WIP)
+ 144) YP-R0                                      180) rk27xx generic
+ 145) YP-R1 (WIP)          ==MPIO==
+                           170) HD200            ==HiFi E.T.==
+ ==HiFiMAN==               171) HD300            210) MA9
+ 190) HM-60x                                     211) MA9C
+ 191) HM-801               ==Application==       212) MA8
+                           200) SDL (Generic)    213) MA8C
+ ==Sony==                  201) Android (ARM)
+ 219) NWZ-E350 series      202) Android (MIPS)   ==IHIFI==
+ 220) NWZ-E370/E380 series 203) Android (x86)    230) 760
+ 221) NWZ-E360 series      204) Pandora          231) 770
+ 222) NWZ-E450 series      205) Nokia N8xx       232) 770C
+ 223) NWZ-E460 series      206) Nokia N900       233) 800
+ 224) NWZ-E470 series      209) Anbernic RG Nano 234) 960
+ 225) NWZ-E580 series
+ 226) NWZ-A10 series       ==AgpTek==            ==AIGO==
+ 227) NW-A20 series        240) Rocker           245) Eros Q / K (hosted)
+ 228) NWZ-A860 series                            247) Eros Q / K native
+ 229) NWZ-S750 series      ==iBasso==                  (hw1/hw2 bl, all hw rb)
+                           250) DX50             248) Eros Q / K native
+ ==FiiO==                  251) DX90                   (hw3 bl only)
+ 244) M3K Linux                                  249) Eros Q / K native
+ 246) M3K baremetal        ==xDuoo==                   (hw4 bl only)
+                           241) X3
+ ==Shanling==              242) X3II             ==Nintendo==
+ 260) Q1                   243) X20              290) Nintendo 3DS (WIP)
+
+ ==Echo project==          ==Surfans==
+ 270) Echo R1 (WIP)        280) F28 (WIP)
 EOF
 
   buildfor=`input`;
@@ -1763,6 +1897,9 @@ fi
   # modelname: short model name used all over to identify this target
   # memory:    number of megabytes of RAM this target has. If the amount can
   #            be selected by the size prompt, let memory be unset here
+  #            Note for hosted/application builds, (memory-1) defines the
+  #            audiobuffer size; actual memory usage will likely be
+  #            larger and is found in rockbox-info.txt after compilation.
   # target:    -Ddefine passed to the build commands to make the correct
   #            config-*.h file get included etc
   # tool:      the tool that takes a plain binary and converts that into a
@@ -1861,7 +1998,7 @@ fi
     t_model="h100"
     ;;
 
-   14|iriverh10)
+   13|iriverh10)
     target_id=22
     modelname="iriverh10"
     target="IRIVER_H10"
@@ -1885,7 +2022,7 @@ fi
     t_model="h10"
     ;;
 
-   15|iriverh10_5gb)
+   14|iriverh10_5gb)
     target_id=24
     modelname="iriverh10_5gb"
     target="IRIVER_H10_5GB"
@@ -2187,7 +2324,7 @@ fi
     t_model="m5"
     ;;
 
-   33|cowond2)
+   32|cowond2)
     target_id=34
     modelname="cowond2"
     target="COWON_D2"
@@ -2208,7 +2345,7 @@ fi
     t_model="cowond2"
     ;;
 
-   34|iaudiom3)
+   33|iaudiom3)
     target_id=37
     modelname="iaudiom3"
     target="IAUDIO_M3"
@@ -2642,6 +2779,7 @@ fi
    80|ipodnano3g)
     target_id=117
     modelname="ipodnano3g"
+    blonly="yes"
     target="IPOD_NANO3G"
     memory=32 # always
     arm926ejscc
@@ -2651,7 +2789,6 @@ fi
     output="rockbox.ipod"
     appextra="recorder:gui:radio"
     plugins="yes"
-    swcodec="yes"
     bootoutput="bootloader-$modelname.ipod"
     # toolset is the tools within the tools directory that we build for
     # this particular target.
@@ -2665,6 +2802,7 @@ fi
    81|ipodnano4g)
     target_id=118
     modelname="ipodnano4g"
+    blonly="yes"
     target="IPOD_NANO4G"
     memory=32 # always
     arm1176jzscc
@@ -2674,7 +2812,6 @@ fi
     output="rockbox.ipod"
     appextra="recorder:gui:radio"
     plugins="yes"
-    swcodec="yes"
     bootoutput="bootloader-$modelname.ipod"
     # toolset is the tools within the tools directory that we build for
     # this particular target.
@@ -2959,6 +3096,7 @@ fi
    110|meizum6sl)
     target_id=49
     modelname="meizum6sl"
+    blonly="yes"
     target="MEIZU_M6SL"
     memory=16 # always
     arm940tbecc
@@ -2980,6 +3118,7 @@ fi
    111|meizum6sp)
     target_id=46
     modelname="meizum6sp"
+    blonly="yes"
     target="MEIZU_M6SP"
     memory=16 # always
     arm940tbecc
@@ -3423,7 +3562,7 @@ fi
     t_model="app"
     ;;
 
-   202|nokian8xx)
+   205|nokian8xx)
     application="yes"
     target_id=75
     modelname="nokian8xx"
@@ -3449,7 +3588,7 @@ fi
     t_model="app"
     ;;
 
-   203|nokian900)
+   206|nokian900)
     application="yes"
     target_id=76
     modelname="nokian900"
@@ -3501,12 +3640,12 @@ fi
     t_model="app"
     ;;
 
-   205|samsungypr0)
+   144|samsungypr0)
     application="yes"
     target_id=78
     modelname="samsungypr0"
     target="SAMSUNG_YPR0"
-    memory=32
+    memory=24
     uname=`uname`
     ypr0cc
     tool="cp "
@@ -3523,7 +3662,7 @@ fi
     t_model="ypr0"
     ;;
 
-   206|androidmips)
+   202|androidmips)
     application="yes"
     target_id=74
     modelname="androidmips"
@@ -3550,7 +3689,7 @@ fi
     t_model="app"
     ;;
 
-   207|androidx86)
+   203|androidx86)
     application="yes"
     target_id=74
     modelname="androidx86"
@@ -3577,12 +3716,12 @@ fi
     t_model="app"
     ;;
 
-   208|samsungypr1)
+   145|samsungypr1)
     application="yes"
     target_id=93
     modelname="samsungypr1"
     target="SAMSUNG_YPR1"
-    memory=32
+    memory=24
     uname=`uname`
     # Linux environment and CPU are the same as for R0, use the same gcc options
     ypr0cc
@@ -3598,6 +3737,28 @@ fi
     t_cpu="hosted"
     t_manufacturer="samsungypr"
     t_model="ypr1"
+    ;;
+
+   209|rgnano)
+    target_id=121
+    application="yes"
+    modelname="rgnano"
+    app_type="sdl-app"
+    target="RG_NANO"
+    memory=32
+    uname=`uname`
+    rgnanocc
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    output="rockbox"
+    bootoutput="rockbox"
+    appextra="recorder:gui"
+    plugins="yes"
+    t_cpu="hosted"
+    t_manufacturer="anbernic"
+    t_model="rgnano"
     ;;
 
    210|hifietma9)
@@ -3946,7 +4107,7 @@ fi
     t_model="ihifi"
     ;;
 
-   231|ihifi960)
+   234|ihifi960)
     target_id=93
     modelname="ihifi960"
     target="IHIFI960"
@@ -3968,7 +4129,7 @@ fi
     t_model="ihifi"
     ;;
 
-   232|ibassodx50)
+   250|ibassodx50)
     application="yes"
     target_id=94
     modelname="ibassodx50"
@@ -3976,7 +4137,7 @@ fi
     app_type="android_ndk"
     lcd_orientation="landscape"
     # Actually 408260kB
-    memory=256
+    memory=192
     uname=`uname`
     androidndkcc 16 armeabi "-mcpu=cortex-a9 -mfpu=neon-fp16 -mfloat-abi=softfp"
     tool="cp "
@@ -3987,20 +4148,21 @@ fi
     bootoutput="rockbox"
     appextra="recorder:gui:hosted"
     plugins="yes"
+    tinyalsa="yes"
     # architecture, manufacturer and model for the target-tree build
     t_cpu="hosted"
     t_manufacturer="ibasso"
     t_model="dx50"
     ;;
 
-   233|ibassodx90)
+   251|ibassodx90)
     application="yes"
     target_id=95
     modelname="ibassodx90"
     target="DX90"
     app_type="android_ndk"
     lcd_orientation="landscape"
-    memory=256
+    memory=192
     uname=`uname`
     androidndkcc 16 armeabi "-mcpu=cortex-a9 -mfpu=neon-fp16 -mfloat-abi=softfp"
     tool="cp "
@@ -4011,6 +4173,7 @@ fi
     bootoutput="rockbox"
     appextra="recorder:gui:hosted"
     plugins="yes"
+    tinyalsa="yes"
     # architecture, manufacturer and model for the target-tree build
     t_cpu="hosted"
     t_manufacturer="ibasso"
@@ -4207,6 +4370,7 @@ fi
    248|erosqnative_v3)
     target_id=116
     modelname="erosqnative_v3"
+    blonly="yes"
     target="EROS_QN"
     memory=32
     mipsr2elcc
@@ -4234,6 +4398,7 @@ fi
     249|erosqnative_v4)
     target_id=116
     modelname="erosqnative_v4"
+    blonly="yes"
     target="EROS_QN"
     memory=32
     mipsr2elcc
@@ -4280,7 +4445,7 @@ fi
     t_model="ihifi2"
     ;;
 
-   251|ihifi770)
+   232|ihifi770)
     target_id=108
     modelname="ihifi770"
     target="IHIFI770"
@@ -4302,7 +4467,7 @@ fi
     t_model="ihifi2"
     ;;
 
-   252|ihifi800)
+   233|ihifi800)
     target_id=109
     modelname="ihifi800"
     target="IHIFI800"
@@ -4394,6 +4559,28 @@ fi
     t_manufacturer="surfans"
     t_model="f28"
     sysfontbl="16-Terminus"
+    ;;
+
+    290|ctru)
+    target_id=122
+    application="yes"
+    modelname="ctru"
+    app_type="ctru-app"
+    target="CTRU"
+    memory=16
+    uname=`uname`
+    devkitarmcc
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    output="rockbox"
+    bootoutput="rockbox"
+    appextra="recorder:gui"
+    plugins="no"
+    t_cpu="hosted"
+    t_manufacturer="ctru"
+    t_model="app"
     ;;
 
    *)
@@ -4518,6 +4705,7 @@ fi
       simcc "checkwps"
       toolset='';
       GCCOPTS='';
+      LDOPTS='';
       rbdir='.'
       extradefines="$extradefines  -DDEBUG"
       appsdir='$(ROOTDIR)/tools/checkwps';
@@ -4619,6 +4807,10 @@ if [ "yes" = "$simulator" ] || [ "yes" = "$application" ] && [ $uname = "Darwin"
  ldnum=0
 else
  ldnum=`$LD --version | sed -n '1p' | sed -e 's/.* \([0-9]*\)\.\([0-9]*\).*/\1\2/'`
+fi
+
+if test "$ldnum" -ge "239"; then
+  GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,--no-warn-rwx-segments"
 fi
 
 if test "$ldnum" -ge "227"; then
@@ -4942,8 +5134,14 @@ if test -n "$t_cpu"; then
   elif [ "$simulator" = "yes" ]; then # a few more includes for the sim target tree
     TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/sdl"
     TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted"
-  elif [ "$t_manufacturer" = "ibasso" ]; then
-    TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/ibasso/tinyalsa/include"
+  elif [ "$application" = "yes" ] && [ "$t_manufacturer" = "ctru" ]; then
+    TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/ctru/lib"
+    TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/ctru/lib/bfile"
+  fi
+
+  if [ "$tinyalsa" = "yes" ]; then
+      TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/tinyalsa/include"
+      extradefines="$extradefines -DUSE_TINYALSA"
   fi
 
   TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/$t_cpu/$t_manufacturer"
@@ -5055,6 +5253,7 @@ export LCDORIENTATION=${lcd_orientation}
 export ANDROID_ARCH=${ANDROID_ARCH}
 export ANDROID_NDK_PATH=${ANDROID_NDK_PATH}
 export ANDROID_SDK_PATH=${ANDROID_SDK_PATH}
+export FUNKEY_SDK_PATH=${FUNKEY_SDK_PATH}
 export ANDROID_PLATFORM_VERSION=${ANDROID_PLATFORM_VERSION}
 export TOOLSET=${toolset}
 export PIPER_MODEL_DIR=${PIPER_MODEL_DIR}

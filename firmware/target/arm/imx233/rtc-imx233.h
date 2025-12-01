@@ -34,6 +34,8 @@ struct imx233_rtc_info_t
     uint32_t seconds;
     uint32_t persistent[6];
     uint32_t alarm;
+    uint32_t rtc_ctrl;
+    uint32_t rtc_stat;
     bool alarm_en, alarm_wake_en, alarm_wake, alarm_irq;
 };
 
@@ -84,10 +86,23 @@ static inline void imx233_rtc_init(void)
     BF_CLR(RTC_CTRL, SFTRST);
     udelay(5);  /* only need 3 GPMI clocks (1us) */
     BF_CLR(RTC_CTRL, CLKGATE);
+#if defined(SANSA_FUZEPLUS)
 #ifdef BM_RTC_PERSISTENT0_DISABLE_XTALOK
+    while (BF_RD(RTC_STAT, NEW_REGS)!=0) {};
     BF_SET(RTC_PERSISTENT0, XTAL24MHZ_PWRUP, DISABLE_XTALOK);
 #endif
+    while (BF_RD(RTC_STAT, NEW_REGS)!=0) {};
     BF_CLR(RTC_PERSISTENT0, CLOCKSOURCE);
+#else
+    /* confirmed for CREATIVE_ZEN and CREATIVE_ZENXFI2 */
+    /* FIXME: test SONY_NWZE360 and SONY_NWZE370 targets */
+#ifdef BM_RTC_PERSISTENT0_DISABLE_XTALOK
+    while (BF_RD(RTC_STAT, NEW_REGS)!=0) {};
+    BF_SET(RTC_PERSISTENT0, XTAL32KHZ_PWRUP, CLOCKSOURCE);
+    while (BF_RD(RTC_STAT, NEW_REGS)!=0) {};
+    BF_CLR(RTC_PERSISTENT0, XTAL24MHZ_PWRUP, DISABLE_XTALOK);
+#endif
+#endif
     imx233_rtc_enable_watchdog(false);
 }
 

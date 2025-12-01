@@ -548,6 +548,17 @@ F3: equal to "="
 #define CALCULATOR_CALC     BUTTON_MENU
 #define CALCULATOR_CLEAR    BUTTON_BACK
 
+#elif CONFIG_KEYPAD == RG_NANO_PAD
+
+#define CALCULATOR_LEFT     BUTTON_LEFT
+#define CALCULATOR_RIGHT    BUTTON_RIGHT
+#define CALCULATOR_UP       BUTTON_UP
+#define CALCULATOR_DOWN     BUTTON_DOWN
+#define CALCULATOR_QUIT     BUTTON_START
+#define CALCULATOR_INPUT    BUTTON_A
+#define CALCULATOR_CALC     BUTTON_X
+#define CALCULATOR_CLEAR    BUTTON_B
+
 #else
 #error No keymap defined!
 #endif
@@ -1019,12 +1030,13 @@ static double myLn (double a) {
 
 /* -----------------------------------------------------------------------
    transcendFunc uses CORDIC (COordinate Rotation DIgital Computer) method
-   transcendFunc can do sin,cos,log,exp
+   transcendFunc can do sin,cos,log,exp,asin,acos,atan
    input parameter is angle
 ----------------------------------------------------------------------- */
 static void transcendFunc(char* func, double* tt, int* ttPower)
 {
-    double t = (*tt)*M_PI/180; int tPower = *ttPower;
+    double t = (*tt);
+    int tPower = *ttPower;
     int sign = 1;
     int n = 50; /* n <=50, tables are all <= 50 */
     int j;
@@ -1041,6 +1053,113 @@ static void transcendFunc(char* func, double* tt, int* ttPower)
     *ttPower = 0;
     calStatus = cal_normal;
 
+    /* Powerscale */
+    while (tPower > 0){
+        t *= 10;
+        tPower--;
+    }
+    while (tPower < 0) {
+        t /= 10;
+        tPower++;
+    }
+
+    /* Vectoring mode */
+    if(func[0] == 'a' || func[0] == 'A') {
+        if(func[1] == 's' || func[1] == 'S') { /* arcsin */
+            /* arcsin input must be in [-1, 1] */
+            if(t < -1.0 || t > 1.0) {
+                calStatus = cal_error;
+                return;
+            }
+            /* Avoid division by zero */
+            if(t == 1.0) {
+                *tt = 90.0;  /* arcsin(1) = 90° */
+                return;
+            }
+            if(t == -1.0) {
+                *tt = -90.0; /* arcsin(-1) = -90° */
+                return;
+            }
+            
+            /* Vectoring mode */
+            /* Start with vector (sqrt(1-t^2), t) and find its angle */
+            double magnitude = mySqrt(1.0 - t*t);
+            x = magnitude;
+            y = t;
+            z = 0.0;
+            
+            /* Vectoring mode: drive y to 0 */
+            for (j = 1; j < n + 2; j++) {
+                if(y >= 0) {
+                    /* Rotate clockwise (negative direction) */
+                    xt = x + y * cordicTable[j-1][0];
+                    yt = y - x * cordicTable[j-1][0];
+                    zt = z - cordicTable[j-1][1];
+                } else {
+                    /* Rotate anticlockwise (positive direction) */
+                    xt = x - y * cordicTable[j-1][0];
+                    yt = y + x * cordicTable[j-1][0];
+                    zt = z + cordicTable[j-1][1];
+                }
+                x = xt;
+                y = yt;
+                z = zt;
+            }
+            *tt = z * 180/M_PI * -1; /* Convert to degrees and invert sign */
+            return;
+        }
+        else if(func[1] == 'c' || func[1] == 'C') { /* arccos */
+            /* arccos input must be in [-1, 1] */
+            if(t < -1.0 || t > 1.0) {
+                calStatus = cal_error;
+                return;
+            }
+            /* For arccos: use arcsin relationship: arccos(t) = π/2 - arcsin(t) */
+            double arcsin_input = t;
+            int arcsin_power = 0;
+            
+            /* Save current function context */
+            char original_func[3];
+            strncpy(original_func, func, 3);
+            
+            transcendFunc("asin", &arcsin_input, &arcsin_power);
+            
+            if (calStatus == cal_error) {
+                return;
+            }
+           
+            /* arccos(t) = 90° - arcsin(t) */
+            /* arcsin_input now contains arcsin(t) in degrees */
+            double arccos_degrees = 90.0 - arcsin_input;
+            *tt = arccos_degrees;
+            return;
+        }
+        else if(func[1] == 't' || func[1] == 'T') { /* arctan */
+            /* start with x=1, y=input, z=0 and drive y to 0 */
+            x = 1.0;
+            y = t;
+            z = 0.0;
+            
+            /* Vectoring mode: drive y to 0 */
+            for (j=1; j<n+2; j++){
+                if(y < 0) {
+                    /* Rotate anticlockwise */
+                    xt = x - y*cordicTable[j-1][0];
+                    yt = y + x*cordicTable[j-1][0];
+                    zt = z + cordicTable[j-1][1];
+                } else {
+                    /* Rotate clockwise */
+                    xt = x + y*cordicTable[j-1][0];
+                    yt = y - x*cordicTable[j-1][0];
+                    zt = z - cordicTable[j-1][1];
+                }
+                x = xt; y = yt; z = zt;
+            }
+            *tt = z * 180/M_PI * -1; /* Convert back to degrees and invert sign */
+            return;
+        }
+    }
+
     if( func[0] =='s' || func[0] =='S'|| func[0] =='t' || func[0] =='T')
         sign = SIGN(t);
     else {
@@ -1048,6 +1167,9 @@ static void transcendFunc(char* func, double* tt, int* ttPower)
         sign = 1;
     }
     t = ABS(t);
+
+    /* Jump to radians for rotation mode */
+    t = t * M_PI / 180;
 
     while (tPower > 0){
         t *= 10;
@@ -1280,6 +1402,15 @@ static void oneOperand(void)
                 break;
             case sci_tan:
                 transcendFunc("tan", &result, &power);
+                break;
+            case sci_asin:
+                transcendFunc("asin", &result, &power);
+                break;
+            case sci_acos:
+                transcendFunc("acos", &result, &power);
+                break;
+            case sci_atan:
+                transcendFunc("atan", &result, &power);
                 break;
             case sci_fac:
                 if (power<0 || power>8 || result<0 )
@@ -1726,6 +1857,7 @@ static void typingProcess(void){
                         clearOperand();
                     calStatus = cal_typing;
                     /* go on typing, no break */
+                    /* Intentional fallthrough */
                 case cal_typing:
                 case cal_dotted:
                     switch(CAL_BUTTON){

@@ -65,21 +65,14 @@
 
 /** static, private data **/
 static uint8_t ceata_taskfile[16] STORAGE_ALIGN_ATTR;
-static uint16_t identify_info[ATA_IDENTIFY_WORDS] STORAGE_ALIGN_ATTR;
 static bool ceata;
-static bool ata_lba48;
 static bool ata_dma;
-static uint64_t ata_total_sectors;
-static uint32_t log_sector_size;
-static struct mutex ata_mutex;
 static struct semaphore ata_wakeup;
 static long ata_last_activity_value = -1;
 static long ata_sleep_timeout = 7 * HZ;
 static bool ata_powered;
-static bool canflush = true;
 static struct semaphore mmc_wakeup;
 static struct semaphore mmc_comp_wakeup;
-static int spinup_time = 0;
 #ifdef HAVE_ATA_DMA
 static int dma_mode = 0;
 static uint32_t ata_dma_flags;
@@ -89,6 +82,8 @@ static const int ata_retries = ATA_RETRIES;
 static const bool ata_error_srst = true;
 
 static int ata_reset(void);
+
+#include "ata-common.c"
 
 static uint16_t ata_read_cbr(uint32_t volatile* reg)
 {
@@ -496,6 +491,7 @@ static int ceata_cancel_command(void)
     return 0;
 }
 
+/* Note COUNT is in terms of MMC blocks, ie 512 bytes */
 static int ceata_rw_multiple_block(bool write, void* buf, uint32_t count, long timeout)
 {
     mmc_discard_irq();
@@ -514,7 +510,7 @@ static int ceata_rw_multiple_block(bool write, void* buf, uint32_t count, long t
         responsetype = SDCI_CMD_RES_TYPE_R1;
         direction = MMC_CMD_CEATA_RW_MULTIPLE_BLOCK_DIRECTION_READ;
     }
-    SDCI_DMASIZE = 0x200;
+    SDCI_DMASIZE = 512; /* Default MMC block size is 512.  Can be negotiated to 1K or 4K */
     SDCI_DMAADDR = buf;
     SDCI_DMACOUNT = count;
     SDCI_DCTRL = SDCI_DCTRL_TXFIFORST | SDCI_DCTRL_RXFIFORST;
@@ -758,10 +754,10 @@ static int ata_power_up(void)
 
     spinup_time = current_tick - spinup_start;
 
-    ata_total_sectors = (identify_info[61] << 16) | identify_info[60];
-    if ( identify_info[83] & BIT(10) && ata_total_sectors == 0x0FFFFFFF)
+    total_sectors = (identify_info[61] << 16) | identify_info[60];
+    if (ceata || (identify_info[83] & BIT(10) && total_sectors == 0x0FFFFFFF))
     {
-        ata_total_sectors = ((uint64_t)identify_info[103] << 48) |
+        total_sectors = ((uint64_t)identify_info[103] << 48) |
                 ((uint64_t)identify_info[102] << 32) |
                 ((uint64_t)identify_info[101] << 16) |
                 identify_info[100];
@@ -793,8 +789,18 @@ static void ata_power_down(void)
 
 static int ata_rw_chunk_internal(uint64_t sector, uint32_t cnt, void* buffer, bool write)
 {
-    if (ceata)
-    {
+    if (ceata) {
+        /* Despite the fact that CE-ATA specifies a minimum logical
+           sector size of 4096 bytes, the actual transfer commands
+           must be specified in units of 512 bytes. So scale the
+           sector count up and the LBA down.
+
+           On CE-ATA devies, the partition table and filesytem is
+           formatted with 4K logical sectors, so this will be safe.
+        */
+        cnt <<= (identify_info[106] - 9);
+        sector <<= (identify_info[106] - 9);
+
         memset(ceata_taskfile, 0, 16);
         ceata_taskfile[0x2] = cnt >> 8;
         ceata_taskfile[0x3] = sector >> 24;
@@ -808,8 +814,9 @@ static int ata_rw_chunk_internal(uint64_t sector, uint32_t cnt, void* buffer, bo
         PASS_RC(ceata_wait_idle(), 2, 0);
         PASS_RC(ceata_write_multiple_register(0, ceata_taskfile, 16), 2, 1);
         PASS_RC(ceata_rw_multiple_block(write, buffer, cnt, CEATA_COMMAND_TIMEOUT * HZ / 1000000), 2, 2);
+        return 0;
     }
-    else
+
     {
         PASS_RC(ata_wait_for_rdy(100000), 2, 0);
         ata_write_cbr(&ATA_PIO_DVR, 0);
@@ -890,8 +897,8 @@ static int ata_rw_chunk_internal(uint64_t sector, uint32_t cnt, void* buffer, bo
             }
         }
         PASS_RC(ata_wait_for_end_of_transfer(100000), 2, 3);
+        return 0;
     }
-    return 0;
 }
 
 static int ata_rw_chunk(uint64_t sector, uint32_t cnt, void* buffer, bool write)
@@ -902,11 +909,11 @@ static int ata_rw_chunk(uint64_t sector, uint32_t cnt, void* buffer, bool write)
     return rc;
 }
 
-static int ata_transfer_sectors(uint64_t sector, uint32_t count, void* buffer, bool write)
+static int ata_transfer_sectors(uint64_t sector, int count, void* buffer, int write)
 {
     if (!ata_powered)
         ata_power_up();
-    if (sector + count > ata_total_sectors)
+    if (sector + count > total_sectors)
         RET_ERR(0);
     ata_set_active();
     if (ata_dma && write)
@@ -1014,8 +1021,6 @@ static int ata_reset(void)
     return rc;
 }
 
-#include "ata-common.c"
-
 #ifndef MAX_PHYS_SECTOR_SIZE
 int ata_read_sectors(IF_MD(int drive,) sector_t start, int incount,
                      void* inbuf)
@@ -1099,7 +1104,7 @@ void ata_sleepnow(void)
 
     ata_flush_cache();
 
-    if (ata_disk_can_sleep()) {
+    if (ceata || ata_disk_can_sleep()) {
         logf("ata SLEEP %ld", current_tick);
 
         if (ceata) {
@@ -1123,7 +1128,7 @@ void ata_sleepnow(void)
         }
     }
 
-    if (ata_disk_can_sleep() || canflush)
+    if (ceata || ata_disk_can_sleep() || canflush)
         ata_power_down(); // XXX add a powerdown delay similar to main ATA driver?
 
     mutex_unlock(&ata_mutex);
@@ -1133,17 +1138,6 @@ void ata_spin(void)
 {
     ata_set_active();
 }
-
-#ifdef STORAGE_GET_INFO
-void ata_get_info(IF_MD(int drive,) struct storage_info *info)
-{
-    info->sector_size = log_sector_size;
-    info->num_sectors = ata_total_sectors;
-    info->vendor = "Apple";
-    info->product = "iPod Classic";
-    info->revision = "1.0";
-}
-#endif
 
 long ata_last_disk_activity(void)
 {
@@ -1158,7 +1152,7 @@ int ata_init(void)
     semaphore_init(&mmc_comp_wakeup, 1, 0);
     ceata = PDAT(11) & BIT(1);
     ata_powered = false;
-    ata_total_sectors = 0;
+    total_sectors = 0;
 
     /* get identify_info */
     mutex_lock(&ata_mutex);
@@ -1168,10 +1162,20 @@ int ata_init(void)
         return rc;
 
     /* Logical sector size */
-    if ((identify_info[106] & 0xd000) == 0x5000) /* B14, B12 */
+    if (ceata)
+        log_sector_size = 1 << identify_info[106];
+    else if ((identify_info[106] & 0xd000) == 0x5000) /* B14, B12 */
         log_sector_size = (identify_info[117] | (identify_info[118] << 16)) * 2;
     else
         log_sector_size = 512;
+
+#ifndef MAX_VARIABLE_LOG_SECTOR
+    if (log_sector_size != SECTOR_SIZE)
+        panicf("Bad logical sector size (%ld)", log_sector_size);
+#else
+    if (log_sector_size > MAX_VARIABLE_LOG_SECTOR)
+        panicf("Logical sector size too large (%ld)", log_sector_size);
+#endif
 
 #ifdef MAX_PHYS_SECTOR_SIZE
     rc = ata_get_phys_sector_mult();
@@ -1183,7 +1187,7 @@ int ata_init(void)
 }
 
 #ifdef HAVE_ATA_SMART
-static int ata_smart(uint16_t* buf)
+static int ata_smart(uint16_t* buf, uint8_t cmd)
 {
     if (!ata_powered) PASS_RC(ata_power_up(), 3, 0);
     if (ceata)
@@ -1200,7 +1204,7 @@ static int ata_smart(uint16_t* buf)
             PASS_RC(ceata_write_multiple_register(0, ceata_taskfile, 16), 3, 2);
             PASS_RC(ceata_check_error(), 3, 3);
         }
-        ceata_taskfile[0x9] = 0xd0; /* SMART read data */
+        ceata_taskfile[0x9] = cmd;
         PASS_RC(ceata_write_multiple_register(0, ceata_taskfile, 16), 3, 4);
         PASS_RC(ceata_rw_multiple_block(false, buf, 1, CEATA_COMMAND_TIMEOUT * HZ / 1000000), 3, 5);
     }
@@ -1208,7 +1212,7 @@ static int ata_smart(uint16_t* buf)
     {
         int i;
         PASS_RC(ata_wait_for_not_bsy(10000000), 3, 6);
-        ata_write_cbr(&ATA_PIO_FED, 0xd0);
+        ata_write_cbr(&ATA_PIO_FED, cmd);
         ata_write_cbr(&ATA_PIO_LMR, 0x4f);
         ata_write_cbr(&ATA_PIO_LHR, 0xc2);
         ata_write_cbr(&ATA_PIO_DVR, BIT(6));
@@ -1221,10 +1225,10 @@ static int ata_smart(uint16_t* buf)
     return 0;
 }
 
-int ata_read_smart(struct ata_smart_values* smart_data)
+int ata_read_smart(struct ata_smart_values* smart_data, uint8_t cmd)
 {
     mutex_lock(&ata_mutex);
-    int rc = ata_smart((uint16_t*)smart_data);
+    int rc = ata_smart((uint16_t*)smart_data, cmd);
     mutex_unlock(&ata_mutex);
     return rc;
 }
@@ -1243,11 +1247,6 @@ static int ata_num_drives(int first_drive)
 unsigned short* ata_get_identify(void)
 {
     return identify_info;
-}
-
-int ata_spinup_time(void)
-{
-    return spinup_time;
 }
 
 #ifdef HAVE_ATA_DMA
