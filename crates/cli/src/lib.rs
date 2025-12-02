@@ -15,7 +15,12 @@ use std::{fs, thread};
 #[macro_export]
 macro_rules! cast_ptr {
     ($ptr:expr) => {{
-        #[cfg(target_arch = "aarch64")]
+        #[cfg(all(target_arch = "aarch64", target_os = "macos"))]
+        {
+            $ptr as *const i8
+        }
+
+        #[cfg(all(target_arch = "aarch64", target_os = "linux"))]
         {
             $ptr as *const u8
         }

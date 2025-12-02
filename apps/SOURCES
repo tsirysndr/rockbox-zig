@@ -308,3 +308,8 @@ keymaps/keymap-rgnano.c
 #elif CONFIG_KEYPAD == CTRU_PAD
 keymaps/keymap-ctru.c
 #endif
+
+#ifdef CONFIG_SERVER
+server_thread.c
+broker_thread.c
+#endif
