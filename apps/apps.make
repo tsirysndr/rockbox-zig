@@ -9,6 +9,10 @@
 
 INCLUDES += -I$(APPSDIR) $(patsubst %,-I$(APPSDIR)/%,$(subst :, ,$(APPEXTRA)))
 SRC += $(call preprocess, $(APPSDIR)/SOURCES)
+LIB_SRC += $(call preprocess, $(APPSDIR)/SOURCES)
+LIB_SRC += $(BUILDDIR)/lang/lang_core.c
+LIB_SRC += $(BUILDDIR)/apps/bitmaps/mono/*.c
+LIB_SRC += $(BUILDDIR)/apps/bitmaps/native/*.c
 
 # apps/features.txt is a file that (is preprocessed and) lists named features
 # based on defines in the config-*.h files. The named features will be passed
@@ -39,9 +43,8 @@ ASMDEFS_SRC += $(APPSDIR)/core_asmdefs.c
 
 ROCKBOXLIB = $(BUILDDIR)/librockbox.a
 
-ROCKBOXLIB_OBJ := $(call c2obj, $(SRC))
+ROCKBOXLIB_OBJ := $(call c2obj, $(LIB_SRC))
 
 $(ROCKBOXLIB): $(ROCKBOXLIB_OBJ)
 	$(SILENT)$(shell rm -f $@)
 	$(call PRINTS,AR $(@F))$(AR) rcs $@ $^ >/dev/null
-

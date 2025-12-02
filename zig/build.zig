@@ -83,6 +83,36 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    exe.addLibraryPath(.{
+        .cwd_relative = "../target/release",
+    });
+
+    if (target.result.os.tag == .macos) {
+        exe.addLibraryPath(.{ .cwd_relative = "/opt/homebrew/lib" });
+        exe.linkFramework("CoreFoundation");
+    }
+
+    const librockbox = b.path("../build-lib/librockbox.a");
+    const libfirmware = b.path("../build-lib/firmware/libfirmware.a");
+    const libfixedpoint = b.path("../build-lib/lib/libfixedpoint.a");
+    const librbcodec = b.path("../build-lib/lib/librbcodec.a");
+    const libskin_parser = b.path("../build-lib/lib/libskin_parser.a");
+    const libtlsf = b.path("../build-lib/lib/libtlsf.a");
+    const libspeex_voice = b.path("../build-lib/lib/rbcodec/codecs/libspeex-voice.a");
+    const librockbox_cli = b.path("../target/release/librockbox_cli.a");
+    const librockbox_server = b.path("../target/release/librockbox_server.a");
+    exe.addObjectFile(librockbox);
+    exe.addObjectFile(libfirmware);
+    exe.addObjectFile(libfixedpoint);
+    exe.addObjectFile(libskin_parser);
+    exe.addObjectFile(librbcodec);
+    exe.addObjectFile(libtlsf);
+    exe.addObjectFile(libspeex_voice);
+    exe.addObjectFile(librockbox_cli);
+    exe.addObjectFile(librockbox_server);
+    exe.linkSystemLibrary("SDL2");
+    exe.linkLibC();
+
     // This declares intent for the executable to be installed into the
     // install prefix when running `zig build` (i.e. when executing the default
     // step). By default the install prefix is `zig-out/` but can be overridden
@@ -141,19 +171,6 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
     test_step.dependOn(&run_exe_tests.step);
-
-    exe.addLibraryPath(.{
-        .cwd_relative = "../target/release",
-    });
-
-    const librockbox = b.path("../build-lib/librockbox.a");
-    exe.addObjectFile(librockbox);
-
-    //exe.linkSystemLibrary("rockbox_cli");
-    //exe.linkSystemLibrary("rockbox_server");
-    //exe.linkSystemLibrary("unwind");
-    exe.linkSystemLibrary("SDL2");
-    exe.linkLibC();
 
     // Just like flags, top level steps are also listed in the `--help` menu.
     //
