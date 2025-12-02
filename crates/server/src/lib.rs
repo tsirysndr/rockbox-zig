@@ -9,7 +9,6 @@ use rockbox_graphql::{
 };
 use rockbox_library::repo;
 use rockbox_mpd::MpdServer;
-use rockbox_mpris::MprisServer;
 use rockbox_sys::events::RockboxCommand;
 use rockbox_sys::{self as rb, types::mp3_entry::Mp3Entry};
 use sqlx::{Pool, Sqlite};
@@ -223,14 +222,18 @@ pub extern "C" fn start_servers() {
     // Wait for the rpc server to start
     thread::sleep(std::time::Duration::from_millis(500));
 
-    thread::spawn(
-        move || match async_std::task::block_on(MprisServer::start()) {
-            Ok(_) => {}
-            Err(e) => {
-                eprintln!("Error starting mpris server: {}", e);
-            }
-        },
-    );
+    #[cfg(target_os = "linux")]
+    {
+        use rockbox_mpris::MprisServer;
+        thread::spawn(
+            move || match async_std::task::block_on(MprisServer::start()) {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Error starting mpris server: {}", e);
+                }
+            },
+        );
+    }
 
     thread::spawn(move || {
         let runtime = tokio::runtime::Builder::new_current_thread()
