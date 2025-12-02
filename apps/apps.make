@@ -35,3 +35,13 @@ $(BUILDDIR)/apps/genlang-features:  $(BUILDDIR)/apps/features
 	$(call PRINTS,GEN $(subst $(BUILDDIR)/,,$@))tr \\n : < $< > $@
 
 ASMDEFS_SRC += $(APPSDIR)/core_asmdefs.c
+
+
+ROCKBOXLIB = $(BUILDDIR)/librockbox.a
+
+ROCKBOXLIB_OBJ := $(call c2obj, $(SRC))
+
+$(ROCKBOXLIB): $(ROCKBOXLIB_OBJ)
+	$(SILENT)$(shell rm -f $@)
+	$(call PRINTS,AR $(@F))$(AR) rcs $@ $^ >/dev/null
+

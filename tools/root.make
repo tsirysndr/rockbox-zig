@@ -191,6 +191,7 @@ OBJ += $(BMP:.bmp=.o)
 OBJ := $(call full_path_subst,$(ROOTDIR)/%,$(BUILDDIR)/%,$(OBJ))
 
 build: $(TOOLS) $(BUILDDIR)/$(BINARY) $(CODECS) $(ROCKS) $(RBINFO)
+lib: $(DEPFILE) $(ROCKBOXLIB) $(TOOLS) $(CODECS) $(ROCKS) $(RBINFO)
 
 $(RBINFO): $(BUILDDIR)/$(BINARY)
 	$(SILENT)echo Creating $(@F)
