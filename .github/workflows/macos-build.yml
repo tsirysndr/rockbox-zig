@@ -55,6 +55,21 @@ jobs:
       - name: Install
         run: sudo make install
         working-directory: build-lib
-
+      - name: Show artifacts
+        run: |
+          echo build-lib
+          ls -l build-lib
+          echo zig-out
+          ls -l zig/zig-out/bin
+          echo target
+          ls -l target/release
+          echo lib
+          ls -l /usr/local/lib/rockbox/*
+          echo share
+          ls -l /usr/local/share/rockbox
+      - name: Show Rockbox version
+        run: |
+          ./target/release/rockbox --version
+          ./zig/zig-out/bin/rockboxd --version
 
 
