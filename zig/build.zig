@@ -92,6 +92,10 @@ pub fn build(b: *std.Build) void {
         exe.linkFramework("CoreFoundation");
     }
 
+    if (target.result.os.tag == .linux) {
+        exe.linkSystemLibrary("unwind");
+    }
+
     const librockbox = b.path("../build-lib/librockbox.a");
     const libfirmware = b.path("../build-lib/firmware/libfirmware.a");
     const libfixedpoint = b.path("../build-lib/lib/libfixedpoint.a");
