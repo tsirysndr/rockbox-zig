@@ -18,6 +18,8 @@ jobs:
           brew install llvm gcc@15 zig sdl2 cmake protobuf
           cp /opt/homebrew/opt/llvm/bin/llvm-objcopy /opt/homebrew/opt/llvm/bin/objcopy
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          run_clippy: false
       - uses: denoland/setup-deno@v2
       - name: Build Web UI
         run: |
