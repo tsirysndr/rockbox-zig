@@ -197,8 +197,8 @@ deno run build
 4. Run the following command to build the project
 
 ```sh
-mkdir -p build && cd build
-../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=$HOME/.local
+mkdir -p build-lib && cd build-lib
+../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
 make zig
 ```
 

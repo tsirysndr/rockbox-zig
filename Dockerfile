@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y build-essential \
 
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgm install zig@0.14.1 buf deno
+RUN pkgm install zig@0.15.1 buf deno
 
 COPY . /app
 
@@ -37,9 +37,9 @@ RUN deno install
 
 RUN deno run build
 
-WORKDIR /app/build
+WORKDIR /app/build-lib
 
-RUN ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local
+RUN ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
 
 RUN make ziginstall -j$(nproc)
 

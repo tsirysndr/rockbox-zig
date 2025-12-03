@@ -431,12 +431,11 @@ fullinstall: simext1
 	@echo "Installing a full setup in your '$(RBPREFIX)' dir"
 	$(SILENT)$(TOOLSDIR)/buildzip.pl $(VERBOSEOPT) --app=$(APPLICATION) -m "$(MODELNAME)" -i "$(TARGET_ID)" $(INSTALL) -z "zip -r0" -r "$(ROOTDIR)" --rbdir="$(RBDIR)" -f 2 $(TARGET) $(BINARY)
 
-ziginstall: zig
+ziginstall: zig install
 	@echo "Installing your build in your '$(RBPREFIX)' dir"
 	cd .. \
-	&& zig build install-rockbox \
 	&& mkdir -p $(RBPREFIX)/bin $(RBPREFIX)/share/rockbox \
-	&& cp zig-out/bin/rockboxd $(RBPREFIX)/bin \
+	&& cp zig/zig-out/bin/rockboxd $(RBPREFIX)/bin \
 	&& cp target/release/rockbox $(RBPREFIX)/bin \
 	&& cp -r assets/* $(RBPREFIX)/share/rockbox
 
@@ -449,12 +448,12 @@ $(BUILDDIR)/apps/recorder/jpeg_load.o: $(ROOTDIR)/apps/recorder/jpeg_load.c
 	mkdir -p $(BUILDDIR)/apps/recorder
 	$(SILENT)$(CC) $(CFLAGS) -c -o $(BUILDDIR)/apps/recorder/jpeg_load.o $(ROOTDIR)/apps/recorder/jpeg_load.c
 
-zig: $(BUILDDIR)/apps/recorder/jpeg_load.o $(BUILDDIR)/lang/lang.h $(BUILDDIR)/lang_enum.h $(BUILDDIR)/lang/lang_core.c $(BUILDDIR)/lang/max_language_size.h $(BUILDDIR)/sysfont.o $(BUILDDIR)/rbversion.h $(PBMPHFILES) $(LUA_BUILDDIR)/actions.lua $(LUA_BUILDDIR)/settings.lua $(LUA_BUILDDIR)/buttons.lua $(LUA_BUILDDIR)/rb_defines.lua $(LUA_BUILDDIR)/sound_defines.lua $(LUA_BUILDDIR)/rocklib_aux.c $(BUILDDIR)/credits.raw credits.raw $(DEPFILE) $(TOOLS) $(CODECS)
+zig: lib
 	cd .. \
 	&& cargo build -p rockbox-cli --release \
 	&& cargo build -p rockbox-server --release \
 	&& cargo build -p rockbox --release \
-	&& zig build all
+	&& cd zig && zig build 
 help:
 	@echo "A few helpful make targets"
 	@echo ""

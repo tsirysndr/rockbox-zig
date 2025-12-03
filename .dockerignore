@@ -1,7 +1,10 @@
 build
+build-*
 .zig-cache
 target
 zig-out
+zig/zig-out
+zig/.zig-cache
 tools/bmp2rb
 tools/codepages
 tools/convbdf
