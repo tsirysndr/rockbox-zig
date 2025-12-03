@@ -38,7 +38,7 @@ jobs:
           cargo build -p rockbox --release
       - name: Build Rockbox Binary
         run: zig build
-        working_directory: zig
+        working-directory: zig
 
 
 
