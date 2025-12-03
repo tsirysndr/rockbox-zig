@@ -13,6 +13,17 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
+      - name: Setup Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zig/.zig-cache
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
       - name: Setup LLVM
         run: |
           brew install llvm gcc@15 zig sdl2 cmake protobuf
