@@ -1,0 +1,44 @@
+name: macos-build
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  fmt:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup LLVM
+        run: |
+          brew install llvm gcc@15 zig sdl2 cmake protobuf
+          cp /opt/homebrew/opt/llvm/bin/llvm-objcopy /opt/homebrew/opt/llvm/bin/objcopy
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: denoland/setup-deno@v2
+      - name: Build Web UI
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+      - name: Build Rockbox Lib
+        run: |
+          export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+          mkdir -p build-lib
+          cd build-lib
+          ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
+          make lib -j8
+      - name: Build Rust Libs
+        run: |
+          cargo build -p rockbox-cli --release
+          cargo build -p rockbox-server --release
+          cargo build -p rockbox --release
+      - name: Build Rockbox Binary
+        run: zig build
+        working_directory: zig
+
+
+
