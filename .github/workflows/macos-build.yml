@@ -41,6 +41,9 @@ jobs:
       - name: Build Rockbox Binary
         run: zig build
         working-directory: zig
+      - name: Install
+        run: sudo make install
+        working-directory: build-lib
 
 
 
