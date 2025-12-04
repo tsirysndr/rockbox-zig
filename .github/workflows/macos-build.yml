@@ -8,7 +8,10 @@ on:
       - master
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, macos-15-intel]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -71,5 +74,3 @@ jobs:
         run: |
           ./target/release/rockbox --version
           ./zig/zig-out/bin/rockboxd --version
-
-
