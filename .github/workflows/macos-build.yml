@@ -82,7 +82,7 @@ jobs:
         id: arch
         run: |
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
-            echo "arch=arm64" >> $GITHUB_OUTPUT
+            echo "arch=aarch64" >> $GITHUB_OUTPUT
           else
             echo "arch=x86_64" >> $GITHUB_OUTPUT
           fi
