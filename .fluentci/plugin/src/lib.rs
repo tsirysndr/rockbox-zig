@@ -192,10 +192,10 @@ pub fn release(_args: String) -> FnResult<String> {
             "cd target/release && sha256sum rockbox_${TAG}_${TARGET}.tar.gz > rockbox_${TAG}_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
-            "cd zig-out/bin && tar czvf rockboxd_${TAG}_${TARGET}.tar.gz rockboxd",
+            "cd zig/zig-out/bin && tar czvf rockboxd_${TAG}_${TARGET}.tar.gz rockboxd",
         ])?
         .with_exec(vec![
-            "cd zig-out/bin && sha256sum rockboxd_${TAG}_${TARGET}.tar.gz > rockboxd_${TAG}_${TARGET}.tar.gz.sha256",
+            "cd zig/zig-out/bin && sha256sum rockboxd_${TAG}_${TARGET}.tar.gz > rockboxd_${TAG}_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
             "cd /usr/local/lib/rockbox && tar czvf rockbox-codecs-${TAG}-${TARGET}.tar.gz *",
@@ -234,14 +234,14 @@ pub fn release(_args: String) -> FnResult<String> {
             "release",
             "upload",
             "${TAG}",
-            "zig-out/bin/rockboxd_${TAG}_${TARGET}.tar.gz",
+            "zig/zig-out/bin/rockboxd_${TAG}_${TARGET}.tar.gz",
         ])?
         .with_exec(vec![
             "gh",
             "release",
             "upload",
             "${TAG}",
-            "zig-out/bin/rockboxd_${TAG}_${TARGET}.tar.gz.sha256",
+            "zig/zig-out/bin/rockboxd_${TAG}_${TARGET}.tar.gz.sha256",
         ])?
         .with_exec(vec![
             "gh",
