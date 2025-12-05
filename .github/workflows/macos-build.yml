@@ -1,11 +1,15 @@
 name: macos-build
 on:
   push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+    tags:
+      - "*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The existing tag to publish"
+        type: "string"
+        required: true
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -74,3 +78,45 @@ jobs:
         run: |
           ./target/release/rockbox --version
           ./zig/zig-out/bin/rockboxd --version
+      - name: Determine architecture
+        id: arch
+        run: |
+          if [ "${{ matrix.os }}" == "macos-latest" ]; then
+            echo "arch=arm64" >> $GITHUB_OUTPUT
+          else
+            echo "arch=x86_64" >> $GITHUB_OUTPUT
+          fi
+          echo "version=${{ github.event.inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
+      - name: Archive artifacts
+        run: |
+          cp target/release/rockbox .
+          cp zig/zig-out/bin/rockboxd .
+          tar czvf rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockbox
+          sha256 rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          tar czvf rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockboxd
+          sha256 rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          cd /usr/local/lib/rockbox && sudo tar czvf rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
+          cd /usr/local/lib/rockbox && sudo sha256 rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          cd /usr/local/share/rockbox && sudo tar czvf rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
+          cd /usr/local/share/rockbox && sudo sha256 rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+      - name: Copy Archives
+        run: |
+          cp /usr/local/lib/rockbox/rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz .
+          cp /usr/local/lib/rockbox/rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256 .
+          cp /usr/local/share/rockbox/rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz .
+          cp /usr/local/share/rockbox/rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256 .
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz
+            rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+            rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz
+            rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+            rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz
+            rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+            rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz
+            rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          tag_name: ${{ steps.vars.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
