@@ -79,7 +79,7 @@ jobs:
           ./target/release/rockbox --version
           ./zig/zig-out/bin/rockboxd --version
       - name: Determine architecture
-        id: arch
+        id: vars
         run: |
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
             echo "arch=aarch64" >> $GITHUB_OUTPUT
@@ -89,16 +89,20 @@ jobs:
           echo "version=${{ github.event.inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
       - name: Archive artifacts
         run: |
+          VERSION="${{ steps.vars.outputs.version }}"
+          ARCH="${{ steps.vars.outputs.arch }}"
+          sudo bash -c """
           cp target/release/rockbox .
           cp zig/zig-out/bin/rockboxd .
           tar czvf rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockbox
           sha256 rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
           tar czvf rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockboxd
           sha256 rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-          cd /usr/local/lib/rockbox && sudo tar czvf rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
-          cd /usr/local/lib/rockbox && sudo sha256 rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-          cd /usr/local/share/rockbox && sudo tar czvf rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
-          cd /usr/local/share/rockbox && sudo sha256 rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          cd /usr/local/lib/rockbox && tar czvf rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
+          cd /usr/local/lib/rockbox && shasum -a 256 rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          cd /usr/local/share/rockbox && tar czvf rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
+          cd /usr/local/share/rockbox && shasum -a 256 rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          """
       - name: Copy Archives
         run: |
           cp /usr/local/lib/rockbox/rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz .
