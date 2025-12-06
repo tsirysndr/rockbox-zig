@@ -61,8 +61,18 @@ jobs:
           deno run build
           cd ../.. && mkdir build-lib && cd build-lib
           ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
-          sudo make ziginstall -j$(nproc)
           cd ..
+          cargo build -p rockbox-cli --release
+          cargo build -p rockbox-server --release
+          cargo build -p rockbox --release
+          cd zig && zig build
+          cd ../build-lib
+          sudo make install
+          cd ..
+          sudo mkdir -p /usr/local/bin /usr/local/share/rockbox
+          sudo cp zig/zig-out/bin/rockboxd /usr/local/bin
+          sudo cp target/release/rockbox /usr/local/bin
+          sudo cp -r assets/* /usr/local/share/rockbox
           fluentci run --wasm . release
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
