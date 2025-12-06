@@ -37,6 +37,9 @@ jobs:
             cmake
           curl -Ssf https://pkgx.sh | sh
           pkgm install zig@0.15.1 buf deno
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Skip Rust Warnings
+        run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
       - name: Build Rockbox
         run: |
           cd webui/rockbox
