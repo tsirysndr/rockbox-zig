@@ -42,7 +42,7 @@ jobs:
           cd webui/rockbox
           deno install
           deno run build
-          cd .. && mkdir build-lib && cd build-lib
+          cd ../.. && mkdir build-lib && cd build-lib
           ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
           make ziginstall -j$(nproc)
           cd ..
