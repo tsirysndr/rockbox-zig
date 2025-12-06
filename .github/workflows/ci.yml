@@ -67,7 +67,7 @@ jobs:
           cargo build -p rockbox --release
           cd zig && zig build
           cd ../build-lib
-          sudo make install
+          sudo make lib -j$(nproc)
           cd ..
           sudo mkdir -p /usr/local/bin /usr/local/share/rockbox
           sudo cp zig/zig-out/bin/rockboxd /usr/local/bin
