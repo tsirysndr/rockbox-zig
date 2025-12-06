@@ -56,9 +56,13 @@ jobs:
           cargo build -p rockbox-cli --release
           cargo build -p rockbox-server --release
           cargo build -p rockbox --release
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
       - name: Build Rockbox Binary
         run: zig build
         working-directory: zig
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
       - name: Install
         run: sudo make install
         working-directory: build-lib
