@@ -44,7 +44,7 @@ jobs:
           deno run build
           cd ../.. && mkdir build-lib && cd build-lib
           ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
-          make ziginstall -j$(nproc)
+          sudo make ziginstall -j$(nproc)
           cd ..
           deno install -A -r -g https://cli.fluentci.io -n fluentci
           fluentci run --wasm . release
