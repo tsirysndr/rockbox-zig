@@ -36,7 +36,7 @@ jobs:
             protobuf-compiler \
             cmake
           curl -Ssf https://pkgx.sh | sh
-          pkgm install zig@0.15.1 buf
+          pkgm install zig@0.15.1 buf rust
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
@@ -49,7 +49,6 @@ jobs:
         run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
       - name: Build Rockbox
         run: |
-          pkgm install cargo@latest rustup@latest
           export PATH=$HOME/.cargo/bin:$PATH
           cd webui/rockbox
           deno install
