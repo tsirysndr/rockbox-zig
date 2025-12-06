@@ -53,6 +53,7 @@ jobs:
         run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
       - name: Build Rockbox
         run: |
+          export PATH=$HOME/.cargo/bin:$PATH
           cd webui/rockbox
           deno install
           deno run build
