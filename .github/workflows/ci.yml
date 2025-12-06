@@ -36,7 +36,7 @@ jobs:
             protobuf-compiler \
             cmake
           curl -Ssf https://pkgx.sh | sh
-          pkgm install zig@0.15.1 buf cargo rustup
+          pkgm install cargo rustup buf zig@0.15.1
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
