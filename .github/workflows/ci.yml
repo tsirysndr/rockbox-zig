@@ -37,6 +37,7 @@ jobs:
             cmake
           curl -Ssf https://pkgx.sh | sh
           pkgm install zig@0.15.1 buf rust
+          rm ~/.local/bin/curl
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
