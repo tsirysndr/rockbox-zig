@@ -43,7 +43,7 @@ function detect_os() {
       # Determine the CPU architecture
       ARCH=$(uname -m)
       if [ "$ARCH" = "arm64" ]; then
-          ASSET_NAME="_arm64-darwin.tar.gz"
+          ASSET_NAME="_aarch64-darwin.tar.gz"
       elif [ "$ARCH" = "x86_64" ]; then
           ASSET_NAME="_x86_64-darwin.tar.gz"
       else
