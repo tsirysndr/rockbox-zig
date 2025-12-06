@@ -116,7 +116,7 @@ dnf install rockbox
 paru -S rockbox-zig-bin
 ```
 
-### Bash
+### Bash / Linux / MacOS
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
@@ -125,9 +125,13 @@ curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.
 ## 📦 Downloads
 
 - `Linux`: intel:
-  [rockbox_2025.07.19_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.07.19/rockbox_2025.07.19_x86_64-linux.tar.gz)
+  [rockbox_2025.12.06_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.06/rockbox_2025.12.06_x86_64-linux.tar.gz)
   arm64:
-  [rockbox_2025.07.19_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.07.19/rockbox_2025.07.19_aarch64-linux.tar.gz)
+  [rockbox_2025.12.06_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.06/rockbox_2025.12.06_aarch64-linux.tar.gz)
+- `macOS`: intel:
+  [rockbox_2025.12.06_x86_64-darwin.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.06/rockbox_2025.12.06_x86_64-darwin.tar.gz)
+- `macOS`: aarch64:
+  [rockbox_2025.12.06_aarch64-darwin.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.06/rockbox_2025.12.06_aarch64-darwin.tar.gz)
 
 ## 🧙‍♂️ Systemd Service
 
