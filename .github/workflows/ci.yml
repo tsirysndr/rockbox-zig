@@ -10,12 +10,12 @@ on:
         type: "string"
         required: true
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-latest-arm]
     permissions:
       contents: write
       packages: write
@@ -23,38 +23,31 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Log in to Docker
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Write Github Token to file
-        run: echo $GITHUB_TOKEN > .github_token
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and Publish image to Docker Hub
-        uses: fluentci-io/setup-fluentci@v5
-        with:
-          wasm: true
-          plugin: buildx
-          args: |
-            build_cloud --platform linux/amd64,linux/arm64 -t tsiry/rockbox:latest . "--build-arg GITHUB_TOKEN=\"${GITHUB_ACCESS_TOKEN}\" --build-arg TAG=\"${TAG}\"" --push
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential  libsdl2-dev \
+            libfreetype6-dev \
+            libunwind-dev \
+            curl \
+            wget \
+            zip \
+            unzip \
+            protobuf-compiler \
+            cmake
+          curl -Ssf https://pkgx.sh | sh
+          pkgm install zig@0.15.1 buf deno
+      - name: Build Rockbox
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+          cd .. && mkdir build-lib && cd build-lib
+          ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
+          make ziginstall -j$(nproc)
+          cd ..
+          deno install -A -r -g https://cli.fluentci.io -n fluentci
+          fluentci run --wasm . release
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BUILDX_BUILDER: tsiry/rockbox-builder
           TAG: ${{ inputs.tag || github.ref_name }}
-
-      - name: Log in to Github Container Registry
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to Github Container Registry
-        run: |
-          docker pull tsiry/rockbox:latest
-          docker tag tsiry/rockbox:latest ghcr.io/tsirysndr/rockbox:latest
-          docker push ghcr.io/tsirysndr/rockbox:latest
