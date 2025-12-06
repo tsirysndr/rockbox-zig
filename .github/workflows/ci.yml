@@ -36,8 +36,19 @@ jobs:
             protobuf-compiler \
             cmake
           curl -Ssf https://pkgx.sh | sh
-          pkgm install zig@0.15.1 buf deno
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+          pkgm install zig@0.15.1 buf
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Setup Fluent CI
+        uses: fluentci-io/setup-fluentci@v5
+        with:
+          wasm: true
+          plugin: rust
+          args: setup
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Skip Rust Warnings
         run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
       - name: Build Rockbox
@@ -49,7 +60,6 @@ jobs:
           ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
           sudo make ziginstall -j$(nproc)
           cd ..
-          deno install -A -r -g https://cli.fluentci.io -n fluentci
           fluentci run --wasm . release
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
