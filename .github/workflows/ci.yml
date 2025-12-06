@@ -74,6 +74,7 @@ jobs:
           sudo cp zig/zig-out/bin/rockboxd /usr/local/bin
           sudo cp target/release/rockbox /usr/local/bin
           sudo cp -r assets/* /usr/local/share/rockbox
+          sudo chown -R $(whoami):$(whoami) /usr/local
           fluentci run --wasm . release
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}

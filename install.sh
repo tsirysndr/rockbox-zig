@@ -39,6 +39,17 @@ function detect_os() {
           echo "Unsupported architecture: $ARCH"
           exit 1
       fi
+  elif [ "$OS" = "Darwin" ]; then
+      # Determine the CPU architecture
+      ARCH=$(uname -m)
+      if [ "$ARCH" = "arm64" ]; then
+          ASSET_NAME="_arm64-darwin.tar.gz"
+      elif [ "$ARCH" = "x86_64" ]; then
+          ASSET_NAME="_x86_64-darwin.tar.gz"
+      else
+          echo "Unsupported architecture: $ARCH"
+          exit 1
+      fi
   else
       echo "Unsupported operating system: $OS"
       exit 1
@@ -89,6 +100,8 @@ if command -v apt-get >/dev/null 2>&1; then
             alsa-utils \
             libasound2-dev
     fi
+elif command -v brew >/dev/null 2>&1; then
+        brew install sdl2
 elif command -v pacman >/dev/null 2>&1; then
     if command -v sudo >/dev/null 2>&1; then
         sudo pacman -S --noconfirm libusb \
