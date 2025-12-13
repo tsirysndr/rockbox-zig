@@ -13,5 +13,6 @@ struct RockboxApp: App {
         WindowGroup {
             ContentView()
         }
+        .windowStyle(.hiddenTitleBar)
     }
 }
