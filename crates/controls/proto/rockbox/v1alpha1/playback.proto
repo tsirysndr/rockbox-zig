@@ -1,0 +1,202 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+message PlayRequest {
+  int64 elapsed = 1;
+  int64 offset = 2;
+}
+
+message PlayResponse {}
+
+message PauseRequest {}
+
+message PlayOrPauseRequest {}
+
+message PlayOrPauseResponse {}
+
+message PauseResponse {}
+
+message ResumeRequest {}
+
+message ResumeResponse {}
+
+message NextRequest {}
+
+message NextResponse {}
+
+message PreviousRequest {}
+
+message PreviousResponse {}
+
+message FastForwardRewindRequest {
+  int32 new_time = 1;
+}
+
+message FastForwardRewindResponse {}
+
+message StatusRequest {}
+
+message StreamStatusRequest {}
+
+message StatusResponse {
+  int32 status = 1;
+}
+
+message CurrentTrackRequest {}
+
+message CurrentTrackResponse {
+  string title = 1;
+  string artist = 2;
+  string album = 3;
+  string genre = 4;
+  string disc = 5;
+  string track_string = 6;
+  string year_string = 7;
+  string composer = 8;
+  string comment = 9;
+  string album_artist = 10;
+  string grouping = 11;
+  int32 discnum = 12;
+  int32 tracknum = 13;
+  int32 layer = 14;
+  int32 year = 15;
+  uint32 bitrate = 16;
+  uint64 frequency = 17;
+  uint64 filesize = 18;
+  uint64 length = 19;
+  uint64 elapsed = 20;
+  string path = 21;
+  optional string album_art = 22;
+  string album_id = 23;
+  string artist_id = 24;
+  string id = 25;
+}
+
+message StreamCurrentTrackRequest {}
+
+message NextTrackRequest {}
+
+message NextTrackResponse {
+  string title = 1;
+  string artist = 2;
+  string album = 3;
+  string genre = 4;
+  string disc = 5;
+  string track_string = 6;
+  string year_string = 7;
+  string composer = 8;
+  string comment = 9;
+  string album_artist = 10;
+  string grouping = 11;
+  int32 discnum = 12;
+  int32 tracknum = 13;
+  int32 layer = 14;
+  int32 year = 15;
+  uint32 bitrate = 16;
+  uint64 frequency = 17;
+  uint64 filesize = 18;
+  uint64 length = 19;
+  uint64 elapsed = 20;
+  string path = 21;
+}
+
+message FlushAndReloadTracksRequest {}
+
+message FlushAndReloadTracksResponse {}
+
+message GetFilePositionRequest {}
+
+message GetFilePositionResponse {
+  int32 position = 1;
+}
+
+message HardStopRequest {}
+
+message HardStopResponse {}
+
+message PlayAlbumRequest {
+  string album_id = 1;
+  optional bool shuffle = 2;
+  optional int32 position = 3;
+}
+
+message PlayAlbumResponse {}
+
+message PlayArtistTracksRequest {
+  string artist_id = 1;
+  optional bool shuffle = 2;
+  optional int32 position = 3;
+}
+
+message PlayArtistTracksResponse {}
+
+message PlayPlaylistRequest {
+  string playlist_id = 1;
+  optional bool shuffle = 2;
+}
+
+message PlayPlaylistResponse {}
+
+message PlayDirectoryRequest {
+  string path = 1;
+  optional bool shuffle = 2;
+  optional bool recurse = 3;
+  optional int32 position = 4;
+}
+
+message PlayDirectoryResponse {}
+
+message PlayTrackRequest {
+  string path = 1;
+}
+
+message PlayTrackResponse {}
+
+message PlayLikedTracksRequest {
+  optional bool shuffle = 1;
+  optional int32 position = 2;
+}
+
+message PlayLikedTracksResponse {}
+
+message PlayAllTracksRequest {
+  optional bool shuffle = 1;
+  optional int32 position = 2;
+}
+
+message PlayAllTracksResponse {}
+
+message StreamPlaylistRequest {}
+
+message PlaylistResponse {
+  int32 index = 1;
+  int32 amount = 2;
+  repeated CurrentTrackResponse tracks = 3;
+}
+
+service PlaybackService {
+  rpc Play(PlayRequest) returns (PlayResponse) {}
+  rpc Pause(PauseRequest) returns (PauseResponse) {}
+  rpc PlayOrPause(PlayOrPauseRequest) returns (PlayOrPauseResponse) {}
+  rpc Resume(ResumeRequest) returns (ResumeResponse) {}
+  rpc Next(NextRequest) returns (NextResponse) {}
+  rpc Previous(PreviousRequest) returns (PreviousResponse) {}
+  rpc FastForwardRewind(FastForwardRewindRequest) returns (FastForwardRewindResponse) {}
+  rpc Status(StatusRequest) returns (StatusResponse) {}
+  rpc CurrentTrack(CurrentTrackRequest) returns (CurrentTrackResponse) {}
+  rpc NextTrack(NextTrackRequest) returns (NextTrackResponse) {}
+  rpc FlushAndReloadTracks(FlushAndReloadTracksRequest) returns (FlushAndReloadTracksResponse) {}
+  rpc GetFilePosition(GetFilePositionRequest) returns (GetFilePositionResponse) {}
+  rpc HardStop(HardStopRequest) returns (HardStopResponse) {}
+  rpc PlayAlbum(PlayAlbumRequest) returns (PlayAlbumResponse) {}
+  rpc PlayArtistTracks(PlayArtistTracksRequest) returns (PlayArtistTracksResponse) {}
+  rpc PlayPlaylist(PlayPlaylistRequest) returns (PlayPlaylistResponse) {}
+  rpc PlayDirectory(PlayDirectoryRequest) returns (PlayDirectoryResponse) {}
+  rpc PlayTrack(PlayTrackRequest) returns (PlayTrackResponse) {}
+  rpc PlayLikedTracks(PlayLikedTracksRequest) returns (PlayLikedTracksResponse) {}
+  rpc PlayAllTracks(PlayAllTracksRequest) returns (PlayAllTracksResponse) {}
+  rpc StreamCurrentTrack(StreamCurrentTrackRequest) returns (stream CurrentTrackResponse) {}
+  rpc StreamStatus(StreamStatusRequest) returns (stream StatusResponse) {}
+  rpc StreamPlaylist(StreamPlaylistRequest) returns (stream PlaylistResponse) {}
+}

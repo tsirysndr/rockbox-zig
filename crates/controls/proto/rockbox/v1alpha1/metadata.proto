@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+service MetadataService {
+
+}
