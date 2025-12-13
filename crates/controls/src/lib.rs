@@ -1,0 +1,448 @@
+use anyhow::Error;
+use souvlaki::{
+    MediaControlEvent, MediaControls, MediaMetadata, MediaPlayback, MediaPosition, PlatformConfig,
+};
+use std::env;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{mpsc, Arc};
+use std::time::Duration;
+use tonic::transport::Channel;
+use winit::application::ApplicationHandler;
+use winit::event::WindowEvent;
+use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
+use winit::window::WindowId;
+
+use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClient;
+use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
+use crate::api::rockbox::v1alpha1::system_service_client::SystemServiceClient;
+use crate::api::rockbox::v1alpha1::{
+    GetGlobalStatusRequest, NextRequest, PauseRequest, PlayRequest, PlaylistResumeRequest,
+    PreviousRequest, ResumeRequest, ResumeTrackRequest, StartRequest, StatusRequest,
+    StreamCurrentTrackRequest, StreamStatusRequest,
+};
+
+pub mod api {
+    #[path = ""]
+    pub mod rockbox {
+
+        #[path = "rockbox.v1alpha1.rs"]
+        pub mod v1alpha1;
+    }
+}
+
+// Commands to send to the media controls from async tasks
+#[derive(Debug)]
+enum MediaCommand {
+    SetMetadata {
+        title: String,
+        artist: String,
+        album: String,
+        duration: Duration,
+        cover_url: Option<String>,
+    },
+    Play,
+    Pause,
+    Next,
+    Previous,
+    SetMediaPosition((MediaPosition, bool)),
+}
+
+struct App {
+    controls: MediaControls,
+    command_receiver: mpsc::Receiver<MediaCommand>,
+    _media_event_sender: tokio::sync::mpsc::UnboundedSender<MediaControlEvent>,
+}
+
+impl ApplicationHandler for App {
+    fn resumed(&mut self, _event_loop: &ActiveEventLoop) {
+        println!("App resumed, media controls ready!");
+    }
+
+    fn window_event(&mut self, _event_loop: &ActiveEventLoop, _id: WindowId, _event: WindowEvent) {}
+
+    fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
+        // Process all pending commands from async tasks
+        while let Ok(cmd) = self.command_receiver.try_recv() {
+            match cmd {
+                MediaCommand::SetMetadata {
+                    title,
+                    artist,
+                    album,
+                    duration,
+                    cover_url,
+                } => {
+                    // Set playback state first
+                    if let Err(e) = self
+                        .controls
+                        .set_playback(MediaPlayback::Playing { progress: None })
+                    {
+                        eprintln!("Failed to set playback state: {}", e);
+                    }
+
+                    // Then set metadata
+                    if let Err(e) = self.controls.set_metadata(MediaMetadata {
+                        title: Some(&title),
+                        artist: Some(&artist),
+                        album: Some(&album),
+                        duration: Some(duration),
+                        cover_url: cover_url.as_deref(),
+                    }) {
+                        eprintln!("Failed to set metadata: {}", e);
+                    }
+                }
+                MediaCommand::Play => {
+                    if let Err(e) = self
+                        .controls
+                        .set_playback(MediaPlayback::Playing { progress: None })
+                    {
+                        eprintln!("Failed to set playback state: {}", e);
+                    }
+                }
+                MediaCommand::Pause => {
+                    if let Err(e) = self
+                        .controls
+                        .set_playback(MediaPlayback::Paused { progress: None })
+                    {
+                        eprintln!("Failed to set playback state: {}", e);
+                    }
+                }
+                MediaCommand::SetMediaPosition((position, playing)) => {
+                    if let Err(e) = self.controls.set_playback(match playing {
+                        true => MediaPlayback::Playing {
+                            progress: Some(position),
+                        },
+                        false => MediaPlayback::Paused {
+                            progress: Some(position),
+                        },
+                    }) {
+                        eprintln!("Failed to set playback state: {}", e);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+/// Start the media controls system.
+/// This function blocks and runs the event loop on the main thread.
+pub fn run_media_controls() -> Result<(), Box<dyn std::error::Error>> {
+    // Channel for sending commands TO the media controls (from async tasks)
+    let (command_sender, command_receiver) = mpsc::channel::<MediaCommand>();
+
+    // Channel for receiving events FROM the media controls (to async tasks)
+    let (media_event_sender, media_event_receiver) =
+        tokio::sync::mpsc::unbounded_channel::<MediaControlEvent>();
+
+    // Shared playing state between status and metadata tasks
+    let is_playing = Arc::new(AtomicBool::new(false));
+
+    let sender = command_sender.clone();
+    let playing_state = Arc::clone(&is_playing);
+    std::thread::spawn(move || {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        match runtime.block_on(spawn_metadata_update_task(sender.clone(), playing_state)) {
+            Ok(_) => println!("Metadata update task completed"),
+            Err(e) => eprintln!("Metadata update task failed: {}", e),
+        }
+    });
+
+    let sender = command_sender.clone();
+    std::thread::spawn(move || {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        match runtime.block_on(spawn_event_handler_task(
+            sender.clone(),
+            media_event_receiver,
+        )) {
+            Ok(()) => println!("Event handler task completed"),
+            Err(e) => eprintln!("Event handler task failed: {}", e),
+        }
+    });
+
+    let sender = command_sender.clone();
+    let playing_state = Arc::clone(&is_playing);
+    std::thread::spawn(move || {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        match runtime.block_on(spawn_status_update_task(sender.clone(), playing_state)) {
+            Ok(_) => println!("Status update task completed"),
+            Err(e) => eprintln!("Status update task failed: {}", e),
+        }
+    });
+
+    // Run the event loop on the main thread (required for macOS)
+    let event_loop = EventLoop::new()?;
+    event_loop.set_control_flow(ControlFlow::Poll);
+
+    let mut controls = MediaControls::new(PlatformConfig {
+        display_name: "Rockbox",
+        dbus_name: "tsirysndr.rockbox",
+        hwnd: None,
+    })?;
+
+    // Attach event handler - forward events to async task
+    let event_sender = media_event_sender.clone();
+    controls.attach(move |event| {
+        let _ = event_sender.send(event);
+    })?;
+
+    let mut app = App {
+        controls,
+        command_receiver,
+        _media_event_sender: media_event_sender,
+    };
+
+    event_loop.run_app(&mut app)?;
+
+    Ok(())
+}
+
+async fn build_client() -> Result<PlaybackServiceClient<Channel>, tonic::transport::Error> {
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+
+    let url = format!("tcp://{}:{}", host, port);
+
+    PlaybackServiceClient::connect(url).await
+}
+
+async fn build_system_client() -> Result<SystemServiceClient<Channel>, tonic::transport::Error> {
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+
+    let url = format!("tcp://{}:{}", host, port);
+
+    SystemServiceClient::connect(url).await
+}
+
+async fn build_playlist_client() -> Result<PlaylistServiceClient<Channel>, tonic::transport::Error>
+{
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+
+    let url = format!("tcp://{}:{}", host, port);
+
+    PlaylistServiceClient::connect(url).await
+}
+
+async fn spawn_metadata_update_task(
+    command_sender: mpsc::Sender<MediaCommand>,
+    is_playing: Arc<AtomicBool>,
+) -> Result<(), Error> {
+    let mut client = build_client().await?;
+    let mut stream = client
+        .stream_current_track(StreamCurrentTrackRequest {})
+        .await?
+        .into_inner();
+
+    let asset_host = env::var("ROCKBOX_GRAPHQL_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let asset_port = env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or_else(|_| "6062".to_string());
+
+    let mut previous_album_art: Option<String> = None;
+    let mut current_cover_url: Option<String> = None;
+
+    // Track previous track information to detect changes
+    let mut previous_title: Option<String> = None;
+    let mut previous_artist: Option<String> = None;
+    let mut previous_album: Option<String> = None;
+    let mut previous_length: Option<u64> = None;
+
+    // Track previous playing state
+    let mut previous_playing: Option<bool> = None;
+
+    while let Some(track) = stream.message().await? {
+        // Check if track has changed
+        let track_changed = previous_title.as_ref() != Some(&track.title)
+            || previous_artist.as_ref() != Some(&track.artist)
+            || previous_album.as_ref() != Some(&track.album)
+            || previous_length != Some(track.length);
+
+        // Only update cover_url if album_art has changed
+        if track.album_art != previous_album_art {
+            previous_album_art.clone_from(&track.album_art);
+            current_cover_url = match &track.album_art {
+                Some(album_art) => match album_art.starts_with("http") {
+                    true => Some(album_art.clone()),
+                    false => Some(format!(
+                        "http://{}:{}/covers/{}",
+                        asset_host, asset_port, album_art
+                    )),
+                },
+                None => None,
+            };
+        }
+
+        // Only send metadata if track changed
+        if track_changed {
+            let cmd = MediaCommand::SetMetadata {
+                title: track.title.clone(),
+                artist: track.artist.clone(),
+                album: track.album.clone(),
+                duration: Duration::from_millis(track.length),
+                cover_url: current_cover_url.clone(),
+            };
+
+            command_sender.send(cmd)?;
+
+            // Update previous track info
+            previous_title = Some(track.title);
+            previous_artist = Some(track.artist);
+            previous_album = Some(track.album);
+            previous_length = Some(track.length);
+        }
+
+        // Get current playing state
+        let playing = is_playing.load(Ordering::Relaxed);
+        let status_changed = previous_playing != Some(playing);
+
+        // Only send position update if track changed or status changed
+        if track_changed || status_changed {
+            command_sender.send(MediaCommand::SetMediaPosition((
+                MediaPosition(Duration::from_millis(track.elapsed)),
+                playing,
+            )))?;
+
+            previous_playing = Some(playing);
+        }
+    }
+
+    Ok(())
+}
+
+async fn spawn_event_handler_task(
+    command_sender: std::sync::mpsc::Sender<MediaCommand>,
+    mut receiver: tokio::sync::mpsc::UnboundedReceiver<MediaControlEvent>,
+) -> Result<(), Error> {
+    let mut client = build_client().await?;
+    let mut system = build_system_client().await?;
+    let mut playlist = build_playlist_client().await?;
+
+    while let Some(event) = receiver.recv().await {
+        match event {
+            MediaControlEvent::Play => {
+                println!("[MediaControl] Play");
+                command_sender.send(MediaCommand::Play)?;
+
+                let status_resp = client.status(StatusRequest {}).await?.into_inner();
+
+                let global_status = system
+                    .get_global_status(GetGlobalStatusRequest {})
+                    .await?
+                    .into_inner();
+
+                if global_status.resume_index > -1 && status_resp.status == 0 {
+                    playlist
+                        .resume_track(ResumeTrackRequest {
+                            ..Default::default()
+                        })
+                        .await?;
+                } else {
+                    client.resume(ResumeRequest {}).await?;
+                }
+            }
+            MediaControlEvent::Pause => {
+                println!("[MediaControl] Pause");
+                command_sender.send(MediaCommand::Pause)?;
+                client.pause(PauseRequest {}).await?;
+            }
+            MediaControlEvent::Next => {
+                println!("[MediaControl] Next");
+                command_sender.send(MediaCommand::Next)?;
+                command_sender.send(MediaCommand::SetMediaPosition((
+                    MediaPosition(Duration::from_millis(0)),
+                    true,
+                )))?;
+                client.next(NextRequest {}).await?;
+            }
+            MediaControlEvent::Previous => {
+                println!("[MediaControl] Previous");
+                command_sender.send(MediaCommand::Previous)?;
+                command_sender.send(MediaCommand::SetMediaPosition((
+                    MediaPosition(Duration::from_millis(0)),
+                    true,
+                )))?;
+                client.previous(PreviousRequest {}).await?;
+            }
+            MediaControlEvent::Seek(_) => {
+                println!("[MediaControl] Seek");
+            }
+            MediaControlEvent::Toggle => {
+                println!("[MediaControl] Toggle");
+            }
+            MediaControlEvent::Stop => {
+                println!("[MediaControl] Stop");
+            }
+            MediaControlEvent::SeekBy(seek_direction, duration) => {
+                println!("[MediaControl] SeekBy {:?} {:?}", seek_direction, duration);
+            }
+            MediaControlEvent::SetPosition(media_position) => {
+                println!("[MediaControl] SetPosition {:?}", media_position);
+                client
+                    .play(PlayRequest {
+                        elapsed: media_position.0.as_millis() as i64,
+                        offset: 0,
+                    })
+                    .await?;
+            }
+            MediaControlEvent::SetVolume(volume) => {
+                println!("[MediaControl] SetVolume {}", volume);
+            }
+            MediaControlEvent::OpenUri(uri) => {
+                println!("[MediaControl] OpenUri {}", uri);
+            }
+            MediaControlEvent::Raise => {
+                println!("[MediaControl] Raise");
+            }
+            MediaControlEvent::Quit => {
+                println!("[MediaControl] Quit");
+            }
+        }
+    }
+
+    println!(">> Event receiver closed");
+
+    Ok(())
+}
+
+async fn spawn_status_update_task(
+    command_sender: mpsc::Sender<MediaCommand>,
+    is_playing: Arc<AtomicBool>,
+) -> Result<(), Error> {
+    let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+
+    let url = format!("tcp://{}:{}", host, port);
+
+    let mut client = PlaybackServiceClient::connect(url).await?;
+
+    let mut stream = client
+        .stream_status(StreamStatusRequest {})
+        .await?
+        .into_inner();
+
+    // Track previous status to only send updates when it changes
+    let mut previous_status: Option<i32> = None;
+
+    while let Some(response) = stream.message().await? {
+        // Only send command if status actually changed
+        if previous_status != Some(response.status) {
+            match response.status {
+                1 => {
+                    is_playing.store(true, Ordering::Relaxed);
+                    command_sender.send(MediaCommand::Play)?;
+                }
+                3 => {
+                    is_playing.store(false, Ordering::Relaxed);
+                    command_sender.send(MediaCommand::Pause)?;
+                }
+                _ => {
+                    is_playing.store(false, Ordering::Relaxed);
+                    command_sender.send(MediaCommand::Pause)?;
+                }
+            };
+
+            previous_status = Some(response.status);
+        }
+    }
+
+    Ok(())
+}

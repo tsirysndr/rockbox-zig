@@ -31,7 +31,7 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
     sound_service_client::SoundServiceClient, system_service_client::SystemServiceClient,
     GetCurrentRequest, GetGlobalStatusRequest, PlaylistResumeRequest,
 };
-use rockbox_sys::{playback::current_track, types::user_settings::UserSettings};
+use rockbox_sys::types::user_settings::UserSettings;
 use sqlx::{Pool, Sqlite};
 use std::{env, sync::Arc, thread, time::Duration};
 use tokio::{

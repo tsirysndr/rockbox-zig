@@ -24,14 +24,44 @@ pub fn start(with_ui: bool) -> Result<(), Error> {
     match wait_for_rockboxd(port.parse()?, Some(1)) {
         Ok(_) => {}
         Err(_) => {
-            let mut child = Command::new("rockboxd")
-                .env("SDL_VIDEODRIVER", video_driver)
-                .env("ROCKBOX_PORT", port)
-                .env("ROCKBOX_GRAPHQL_PORT", ui_port)
-                .env("ROCKBOX_TCP_PORT", http_port)
-                .spawn()?;
+            #[cfg(target_os = "linux")]
+            {
+                let mut child = Command::new("rockboxd")
+                    .env("SDL_VIDEODRIVER", video_driver)
+                    .env("ROCKBOX_PORT", port)
+                    .env("ROCKBOX_GRAPHQL_PORT", ui_port)
+                    .env("ROCKBOX_TCP_PORT", http_port)
+                    .spawn()?;
 
-            child.wait()?;
+                child.wait()?;
+            }
+            #[cfg(target_os = "macos")]
+            {
+                use std::thread;
+
+                thread::spawn(move || {
+                    let mut child = Command::new("rockboxd")
+                        .env("SDL_VIDEODRIVER", video_driver)
+                        .env("ROCKBOX_PORT", port)
+                        .env("ROCKBOX_GRAPHQL_PORT", ui_port)
+                        .env("ROCKBOX_TCP_PORT", http_port)
+                        .spawn()?;
+
+                    child.wait()?;
+                    Ok::<(), Error>(())
+                });
+
+                let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+                wait_for_rockboxd(port.parse()?, None)?;
+
+                // On macOS, EventLoop must be created on the main thread.
+                match rockbox_controls::run_media_controls() {
+                    Ok(_) => {}
+                    Err(e) => {
+                        eprintln!("Error starting rockbox controls: {}", e);
+                    }
+                }
+            }
         }
     };
     Ok(())
