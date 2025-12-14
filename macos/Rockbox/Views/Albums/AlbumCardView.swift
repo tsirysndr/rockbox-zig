@@ -15,14 +15,31 @@ struct AlbumCardView: View {
         VStack(alignment: .leading, spacing: 8) {
             // Album artwork
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 5)
                     .fill(album.color.gradient)
                     .aspectRatio(1, contentMode: .fit)
-                    .shadow(color: .black.opacity(0.2), radius: isHovering ? 10 : 4, y: isHovering ? 6 : 2)
-                
-                Image(systemName: "music.note")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.white.opacity(0.6))
+                    .overlay {
+                        AsyncImage(url: URL(string: album.cover)) { phase in
+                            switch phase {
+                            case .empty:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            case .failure:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+              
                 
                 // Play button on hover
                 if isHovering {

@@ -8,9 +8,11 @@ import SwiftUI
 
 struct Album: Identifiable {
     let id = UUID()
+    let cuid: String
     let title: String
     let artist: String
     let year: Int
     let color: Color
+    let cover: String
     let tracks: [Song]
 }

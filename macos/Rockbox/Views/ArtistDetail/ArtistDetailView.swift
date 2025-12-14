@@ -16,11 +16,11 @@ struct ArtistDetailView: View {
     var onAlbumSelected: (Album) -> Void
     
     var artistAlbums: [Album] {
-        artist.albums(from: sampleAlbums)
+        artist.albums(from: [])
     }
     
     var artistTracks: [Song] {
-        artist.tracks(from: sampleAlbums)
+        artist.tracks(from: [])
     }
     
     var body: some View {

@@ -29,15 +29,30 @@ struct AlbumHeaderView: View {
                 .buttonStyle(.plain)
                 
                 // Album cover
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 4)
                     .fill(album.color.gradient)
-                    .frame(width: 200, height: 200)
+                    .frame(width: 240, height: 240)
                     .overlay {
-                        Image(systemName: "music.note")
-                            .font(.system(size: 60))
-                            .foregroundStyle(.white.opacity(0.6))
+                        AsyncImage(url: URL(string: album.cover)) { phase in
+                            switch phase {
+                            case .empty:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 60))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            case .failure:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 60))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
                     }
-                    .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
             }
             
             // Album info

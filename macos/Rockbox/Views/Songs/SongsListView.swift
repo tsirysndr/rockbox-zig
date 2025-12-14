@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct SongsListView: View {
+    @State private var songs: [Song] = []
+    @State private var errorText: String?
     @ObservedObject var library: MusicLibrary
     
     var body: some View {
@@ -19,10 +21,34 @@ struct SongsListView: View {
                 Divider()
                 
                 // Song rows
-                ForEach(Array(sampleSongs.enumerated()), id: \.element.id) { index, song in
+                ForEach(Array(songs.enumerated()), id: \.element.id) { index, song in
                     SongRowView(song: song, index: index + 1, isEven: index % 2 == 0, showLike: true, library: library)
                 }
             }
         }
+        .task {
+            do {
+                let data = try await fetchTracks()
+                songs = []
+                for track in data {
+                    songs.append(Song(cuid: track.id, title: track.title, artist: track.artist, album: track.album, albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt), duration: TimeInterval(track.length / 1000), color: .gray.opacity(0.3)))
+                }
+                
+                let likes = try await fetchLikedTracks()
+                for track in likes {
+                    let song = Song(cuid: track.id, title: track.title, artist: track.artist, album: track.album, albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt), duration: TimeInterval(track.length / 1000), color: .gray.opacity(0.3))
+                    library.likedSongIds.insert(song.cuid)
+                }
+                
+            } catch {
+                errorText = String(describing: error)
+            }
+        }
+        .alert("gRPC Error", isPresented: .constant(errorText != nil)) {
+          Button("OK") { errorText = nil }
+         } message: {
+           Text(errorText ?? "")
+         }
+
     }
 }

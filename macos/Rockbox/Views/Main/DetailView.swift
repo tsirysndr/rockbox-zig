@@ -7,26 +7,6 @@
 
 import SwiftUI
 
-class MusicLibrary: ObservableObject {
-    @Published var likedSongIds: Set<UUID> = []
-    
-    func isLiked(_ song: Song) -> Bool {
-        likedSongIds.contains(song.id)
-    }
-    
-    func toggleLike(_ song: Song) {
-        if likedSongIds.contains(song.id) {
-            likedSongIds.remove(song.id)
-        } else {
-            likedSongIds.insert(song.id)
-        }
-    }
-    
-    func likedSongs(from songs: [Song]) -> [Song] {
-        songs.filter { likedSongIds.contains($0.id) }
-    }
-}
-
 struct DetailView: View {
     let selection: SidebarItem?
     @ObservedObject var player: PlayerState

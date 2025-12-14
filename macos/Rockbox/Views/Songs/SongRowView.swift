@@ -31,14 +31,31 @@ struct SongRowView: View {
             
             // Title with artwork
             HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 0)
                     .fill(song.color.gradient)
                     .frame(width: 36, height: 36)
                     .overlay {
-                        Image(systemName: "music.note")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.white.opacity(0.8))
+                        AsyncImage(url: song.albumArt) { phase in
+                            switch phase {
+                            case .empty:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.white.opacity(0.8))
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            case .failure:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.white.opacity(0.8))
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
                     }
+                    .clipShape(RoundedRectangle(cornerRadius: 0))
+              
                 
                 Text(song.title)
                     .lineLimit(1)
