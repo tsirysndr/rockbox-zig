@@ -105,6 +105,7 @@ pub fn build(b: *std.Build) void {
     const libspeex_voice = b.path("../build-lib/lib/rbcodec/codecs/libspeex-voice.a");
     const librockbox_cli = b.path("../target/release/librockbox_cli.a");
     const librockbox_server = b.path("../target/release/librockbox_server.a");
+    const librockbox_http = b.path("../target/release/librockbox_http.a");
     exe.addObjectFile(librockbox);
     exe.addObjectFile(libfirmware);
     exe.addObjectFile(libfixedpoint);
@@ -114,6 +115,7 @@ pub fn build(b: *std.Build) void {
     exe.addObjectFile(libspeex_voice);
     exe.addObjectFile(librockbox_cli);
     exe.addObjectFile(librockbox_server);
+    exe.addObjectFile(librockbox_http);
     exe.linkSystemLibrary("SDL2");
     exe.linkLibC();
 
