@@ -187,6 +187,18 @@ static void close_fd(int *fd_p)
     }
 }
 
+#ifdef HAVE_HTTP_STREAM
+static inline bool is_http_handle(const struct memory_handle *h)
+{
+    if (h->fd <= 0)  /* Quick early-out: only HTTP handles use fd as pointer */
+        return false;
+
+    const char *path = (const char *)h + sizeof(struct memory_handle);
+    return (strncmp(path, "http://", 7) == 0 ||
+            strncmp(path, "https://", 8) == 0);
+}
+#endif
+
 /* Ring buffer helper functions */
 static inline void * ringbuf_ptr(uintptr_t p)
 {
@@ -1195,8 +1207,7 @@ bool bufclose(int handle_id)
     }
 
     #ifdef HAVE_HTTP_STREAM
-        if (h->fd > 0 && (strncmp(h->name, "http://", 7) == 0 ||
-                          strncmp(h->name, "https://", 8) == 0)) {
+        if (is_http_handle(h)) {
             http_stream_close((struct http_stream_handle*)(intptr_t)h->fd);
         } else if (h->fd >= 0) {
             close(h->fd);
@@ -1329,8 +1340,7 @@ int bufseek(int handle_id, size_t newpos)
 
     #ifdef HAVE_HTTP_STREAM
         /* Detect HTTP stream by URL prefix */
-        if (h->fd > 0 && (strncmp(h->name, "http://", 7) == 0 ||
-                          strncmp(h->name, "https://", 8) == 0)) {
+        if (is_http_handle(h)) {
             /* fd holds our Rust opaque handle */
             struct http_stream_handle *stream_h = (struct http_stream_handle *)(intptr_t)h->fd;
 
@@ -1383,8 +1393,7 @@ int bufseek(int handle_id, size_t newpos)
 
  #ifdef HAVE_HTTP_STREAM
      /* Detect HTTP stream handles */
-     if (h->fd > 0 && (strncmp(h->name, "http://", 7) == 0 ||
-                       strncmp(h->name, "https://", 8) == 0)) {
+     if (is_http_handle(h)) {
          /* fd holds the Rust opaque handle */
          struct http_stream_handle *stream_h = (struct http_stream_handle *)(intptr_t)h->fd;
 
@@ -1518,8 +1527,7 @@ ssize_t bufread(int handle_id, size_t size, void *dest)
         return ERR_HANDLE_NOT_FOUND;
 
     #ifdef HAVE_HTTP_STREAM
-        if (h->fd > 0 && (strncmp(h->name, "http://", 7) == 0 ||
-                         strncmp(h->name, "https://", 8) == 0)) {
+        if (is_http_handle(h)) {
             /* HTTP handle – fd actually holds the Rust pointer */
             return http_stream_read((struct http_stream_handle*)(intptr_t)h->fd, dest, bytes);
         }
