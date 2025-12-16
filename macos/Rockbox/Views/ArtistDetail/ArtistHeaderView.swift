@@ -46,10 +46,6 @@ struct ArtistHeaderView: View {
                 Text(artist.name)
                     .font(.system(size: 28, weight: .bold))
                 
-                Text(artist.genre)
-                    .font(.system(size: 16))
-                    .foregroundStyle(.secondary)
-                
                 Text("\(albumCount) albums · \(trackCount) songs")
                     .font(.system(size: 13))
                     .foregroundStyle(.tertiary)

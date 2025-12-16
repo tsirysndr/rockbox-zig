@@ -15,14 +15,14 @@ struct AlbumDetailView: View {
     var onBack: () -> Void
     
     var totalDuration: TimeInterval {
-        album.tracks.reduce(0) { $0 + $1.duration }
+        tracks.reduce(0) { $0 + $1.duration }
     }
     
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 // Album header
-                AlbumHeaderView(album: album, totalDuration: totalDuration, onBack: onBack)
+                AlbumHeaderView(album: album, totalDuration: totalDuration, trackCount: tracks.count,  onBack: onBack)
                     
                 
                 // Track list

@@ -10,6 +10,7 @@ import SwiftUI
 struct AlbumHeaderView: View {
     let album: Album
     let totalDuration: TimeInterval
+    let trackCount: Int
     var onBack: () -> Void
     
     var body: some View {
@@ -64,7 +65,7 @@ struct AlbumHeaderView: View {
                     .font(.system(size: 16))
                     .foregroundStyle(.secondary)
                 
-                Text("\(album.tracks.count) songs · \(album.year.formatted(.number.grouping(.never))) · \(formatDuration(totalDuration))")
+                Text("\(trackCount) songs · \(album.year.formatted(.number.grouping(.never))) · \(formatDuration(totalDuration))")
                     .font(.system(size: 13))
                     .foregroundStyle(.tertiary)
                     .padding(.top, 4)
