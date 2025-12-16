@@ -12,7 +12,7 @@ struct ArtistAlbumsGridView: View {
     var onAlbumSelected: (Album) -> Void
     
     private let columns = [
-        GridItem(.adaptive(minimum: 140, maximum: 160), spacing: 16)
+        GridItem(.adaptive(minimum: 150, maximum: 180), spacing: 16)
     ]
     
     var body: some View {

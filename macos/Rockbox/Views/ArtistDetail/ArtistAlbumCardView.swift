@@ -18,11 +18,28 @@ struct ArtistAlbumCardView: View {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(album.color.gradient)
                     .aspectRatio(1, contentMode: .fit)
-                    .shadow(color: .black.opacity(0.15), radius: isHovering ? 8 : 3, y: isHovering ? 4 : 2)
-                
-                Image(systemName: "music.note")
-                    .font(.system(size: 32))
-                    .foregroundStyle(.white.opacity(0.6))
+                    .overlay {
+                        AsyncImage(url: URL(string: album.cover)) { phase in
+                            switch phase {
+                            case .empty:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            case .failure:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+              
                 
                 // Play button on hover
                 if isHovering {
