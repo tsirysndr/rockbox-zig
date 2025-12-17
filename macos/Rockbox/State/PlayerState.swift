@@ -26,6 +26,7 @@ class PlayerState: ObservableObject {
     }
         
     func startStreaming() {
+        getCurrentTrack()
         streamTask?.cancel()
         streamTask = Task {
             do {
@@ -62,5 +63,22 @@ class PlayerState: ObservableObject {
         streamTask = nil
         streamStatusTask?.cancel()
         streamStatusTask = nil
+    }
+    
+    func getCurrentTrack() {
+        Task {
+            do {
+                let data = try await fetchCurrentPlaylist()
+                if data.tracks.count > 0 {
+                    let currentIndex: Int = Int(data.index)
+                    self.currentTrack =  Song(cuid: data.tracks[currentIndex].id, title: data.tracks[currentIndex].title, artist: data.tracks[currentIndex].artist, album: data.tracks[currentIndex].album, albumArt: URL(string: "http://localhost:6062/covers/" + data.tracks[currentIndex].albumArt), duration: TimeInterval(data.tracks[currentIndex].length / 1000), trackNumber: Int(data.tracks[currentIndex].tracknum), discNumber: Int(data.tracks[currentIndex].discnum), color: .gray.opacity(0.3))
+                    let globalStatus = try await fetchGlobalStatus()
+                    self.currentTime = TimeInterval(globalStatus.resumeElapsed / 1000)
+                    self.duration = TimeInterval(data.tracks[currentIndex].length / 1000)
+                }
+            } catch {
+                self.error = error
+            }
+        }
     }
 }
