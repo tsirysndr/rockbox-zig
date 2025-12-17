@@ -73,7 +73,7 @@ struct ArtistDetailView: View {
                 }
                 
                 for track in data.tracks {
-                    tracks.append(Song(cuid: track.id, title: track.title, artist: track.artist, album: track.album, albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt), duration: TimeInterval(track.length / 1000), color: .gray.opacity(0.3)))
+                    tracks.append(Song(cuid: track.id, title: track.title, artist: track.artist, album: track.album, albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt), duration: TimeInterval(track.length / 1000),trackNumber: Int(track.trackNumber), discNumber: Int(track.discNumber), color: .gray.opacity(0.3)))
                 }
             } catch {
                 errorText = String(describing: error)

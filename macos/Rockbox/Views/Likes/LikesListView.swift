@@ -34,7 +34,7 @@ struct LikesListView: View {
                     let data = try await fetchLikedTracks()
                     likedSongs = []
                     for track in data {
-                        let song = Song(cuid: track.id, title: track.title, artist: track.artist, album: track.album, albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt), duration: TimeInterval(track.length / 1000), color: .gray.opacity(0.3))
+                        let song = Song(cuid: track.id, title: track.title, artist: track.artist, album: track.album, albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt), duration: TimeInterval(track.length / 1000), trackNumber: Int(track.trackNumber), discNumber: Int(track.discNumber),color: .gray.opacity(0.3))
                         library.likedSongIds.insert(song.cuid)
                         likedSongs.append(song)
                     }
