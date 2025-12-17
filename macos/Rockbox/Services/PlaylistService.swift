@@ -24,3 +24,16 @@ func fetchCurrentPlaylist(host: String = "127.0.0.1", port: Int = 6061) async th
     return res
   }
 }
+
+func resumeTrack(host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+      let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
+      let req = Rockbox_V1alpha1_ResumeTrackRequest()
+      let _ = try await playlist.resumeTrack(req)
+  }
+}

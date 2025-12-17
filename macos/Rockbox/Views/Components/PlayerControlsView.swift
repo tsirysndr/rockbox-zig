@@ -17,19 +17,21 @@ struct PlayerControlsView: View {
         HStack(spacing: 0) {
             // Playback controls (left, but centered in its space)
             HStack( alignment: .center, spacing: 16) {
-                Button(action: { /* previous */ }) {
+                Button(action: { player.playPreviousTrack() }) {
                     Image(systemName: "backward.fill")
                         .font(.system(size: 13))
                 }
                 .buttonStyle(.plain)
                 
-                Button(action: { player.isPlaying.toggle() }) {
+                Button(action: {
+                    player.playOrPause()
+                }) {
                     Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 16))
                 }
                 .buttonStyle(.plain)
                 
-                Button(action: { /* next */ }) {
+                Button(action: { player.playNextTrack() }) {
                     Image(systemName: "forward.fill")
                         .font(.system(size: 13))
                 }
@@ -127,6 +129,9 @@ struct PlayerControlsView: View {
                                     .onChanged { value in
                                         let progress = max(0, min(1, value.location.x / geometry.size.width))
                                         player.progress = progress
+                                    }
+                                    .onEnded { _ in
+                                        player.seek(position: Int64(player.currentTime * 1000))
                                     }
                             )
                             .onHover { hovering in

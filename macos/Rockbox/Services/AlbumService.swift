@@ -36,7 +36,7 @@ func fetchAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async 
     let library = Rockbox_V1alpha1_LibraryService.Client(wrapping: grpcClient)
 
     var req = Rockbox_V1alpha1_GetAlbumRequest()
-      req.id = id
+    req.id = id
 
     let res = try await library.getAlbum(req)
 

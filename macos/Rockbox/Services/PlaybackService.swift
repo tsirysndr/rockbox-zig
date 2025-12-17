@@ -9,6 +9,21 @@ import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2
 
+func play(elapsed: Int64, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+      let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
+      var req = Rockbox_V1alpha1_PlayRequest()
+      req.elapsed = elapsed
+      req.offset = 0
+      let _ = try await playback.play(req)
+  }
+}
+
 func resume(host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
   try await withGRPCClient(
     transport: .http2NIOPosix(

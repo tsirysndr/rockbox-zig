@@ -16,6 +16,7 @@ class PlayerState: ObservableObject {
     @Published var currentTrack = Song(cuid: "", title: "Not Playing", artist: "", album: "", albumArt: nil, duration: TimeInterval(0), trackNumber: 0, discNumber: 0, color: .gray.opacity(0.3))
     @Published var isConnected = false
     @Published var error: Error?
+    @Published var status: Int32 = 0
     
     private var streamTask: Task<Void, Never>?
     private var streamStatusTask: Task<Void, Never>?
@@ -48,7 +49,8 @@ class PlayerState: ObservableObject {
         streamStatusTask = Task {
             do {
                 for try await response in playbackStatusStream() {
-                    self.isPlaying = response.status == 1
+                        self.isPlaying = response.status == 1
+                        self.status = response.status
                 }
             } catch is CancellationError {
                 // Ignoted
@@ -81,4 +83,59 @@ class PlayerState: ObservableObject {
             }
         }
     }
-}
+    
+    func playPreviousTrack() {
+        Task {
+            do {
+                try await previous()
+            } catch {
+                self.error = error
+            }
+        }
+
+    }
+    
+    func playNextTrack() {
+        Task {
+            do {
+                try await next()
+            } catch {
+                self.error = error
+            }
+        }
+    }
+    
+    func playOrPause() {
+        Task {
+            do {
+                let globalStatus = try await fetchGlobalStatus()
+                if globalStatus.resumeIndex > -1 && status == 0 {
+                    try await resumeTrack()
+                    return
+                }
+                
+                if isPlaying {
+                    try await pause()
+                    try? await Task.sleep(for: .seconds(1))
+                    return
+                }
+                
+                try await resume()
+            } catch {
+                self.error = error
+            }
+        }
+    }
+    
+    func seek(position: Int64) {
+        self.currentTime = TimeInterval(position / 1000)
+        Task {
+            do {
+                try await play(elapsed: position)
+            } catch {
+                self.error = error
+            }
+        }
+    }
+    
+ }
