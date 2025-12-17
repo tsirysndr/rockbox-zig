@@ -26,12 +26,7 @@ struct FileRowView: View {
                     Text(file.name)
                         .font(.system(size: 12, weight: .medium))
                         .lineLimit(1)
-                    
-                    if file.type == .directory, let count = file.itemCount {
-                        Text("\(count) items")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                    }
+
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -5,7 +5,7 @@
 //  Created by Tsiry Sandratraina on 14/12/2025.
 //
 
-
+/*
 let sampleFiles: [FileItem] = [
     FileItem(name: "Music", type: .directory, size: nil, itemCount: 245),
     FileItem(name: "Downloads", type: .directory, size: nil, itemCount: 18),
@@ -21,7 +21,7 @@ let sampleFiles: [FileItem] = [
     FileItem(name: "The Chain.flac", type: .audioFile, size: "38.5 MB", itemCount: nil),
     FileItem(name: "Come Together.mp3", type: .audioFile, size: "6.2 MB", itemCount: nil),
 ]
-/*
+
 let sampleAlbums: [Album] = [
     Album(title: "A Night at the Opera", artist: "Queen", year: 1975, color: .purple, tracks: [
         Song(title: "Death on Two Legs", artist: "Queen", album: "A Night at the Opera", duration: 223, color: .purple),

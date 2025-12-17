@@ -10,6 +10,7 @@ import SwiftUI
 struct FileItem: Identifiable {
     let id = UUID()
     let name: String
+    let path: String
     let type: FileItemType
     let size: String?
     let itemCount: Int?
@@ -17,7 +18,7 @@ struct FileItem: Identifiable {
     var icon: String {
         switch type {
         case .directory:
-            return "folder.fill"
+            return "folder"
         case .audioFile:
             return "music.note"
         }
@@ -26,9 +27,9 @@ struct FileItem: Identifiable {
     var iconColor: Color {
         switch type {
         case .directory:
-            return .blue
+            return .black
         case .audioFile:
-            return .pink
+            return .black
         }
     }
 }
