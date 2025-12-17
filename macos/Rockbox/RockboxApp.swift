@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct RockboxApp: App {
+    @StateObject private var player = PlayerState()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(player)
+                .task {
+                    player.startStreaming()
+                }
         }
         .windowStyle(.hiddenTitleBar)
     }

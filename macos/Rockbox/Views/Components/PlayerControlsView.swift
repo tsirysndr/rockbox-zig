@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PlayerControlsView: View {
-    @ObservedObject var player: PlayerState
+    @EnvironmentObject var player: PlayerState
     @State private var isHoveringProgress = false
     @State private var isHoveringTrackInfo = false
     @State private var isCurrentTrackLiked = false
@@ -42,12 +42,30 @@ struct PlayerControlsView: View {
             HStack(spacing: 10) {
                 // Album artwork
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(player.currentTrack.artworkColor.gradient)
+                    .fill(player.currentTrack.color.gradient)
                     .frame(width: 44, height: 44)
                     .overlay {
-                        Image(systemName: "music.note")
-                            .foregroundStyle(.white.opacity(0.8))
+                        AsyncImage(url: player.currentTrack.albumArt) { phase in
+                            switch phase {
+                            case .empty:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.white.opacity(0.8))
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            case .failure:
+                                Image(systemName: "music.note")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.white.opacity(0.8))
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
                     }
+                    .clipShape(RoundedRectangle(cornerRadius: 0))
+              
                 
                 VStack(alignment: .leading, spacing: 0) {
                     // Track metadata with heart button

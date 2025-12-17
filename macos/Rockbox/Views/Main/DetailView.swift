@@ -53,7 +53,7 @@ struct DetailView: View {
             Divider()
             
             // Player controls
-            PlayerControlsView(player: player)
+            PlayerControlsView()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: selection) {
