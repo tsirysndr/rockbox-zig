@@ -43,10 +43,10 @@ pub mod browse_service_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct BrowseServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -90,9 +90,8 @@ pub mod browse_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             BrowseServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -130,27 +129,20 @@ pub mod browse_service_client {
         pub async fn tree_get_entries(
             &mut self,
             request: impl tonic::IntoRequest<super::TreeGetEntriesRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::TreeGetEntriesResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::TreeGetEntriesResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.BrowseService/TreeGetEntries",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.BrowseService", "TreeGetEntries"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.BrowseService",
+                "TreeGetEntries",
+            ));
             self.inner.unary(req, path, codec).await
         }
     }
@@ -162,7 +154,7 @@ pub mod browse_service_server {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with BrowseServiceServer.
@@ -171,10 +163,7 @@ pub mod browse_service_server {
         async fn tree_get_entries(
             &self,
             request: tonic::Request<super::TreeGetEntriesRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::TreeGetEntriesResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::TreeGetEntriesResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct BrowseServiceServer<T> {
@@ -197,10 +186,7 @@ pub mod browse_service_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -255,23 +241,18 @@ pub mod browse_service_server {
                 "/rockbox.v1alpha1.BrowseService/TreeGetEntries" => {
                     #[allow(non_camel_case_types)]
                     struct TreeGetEntriesSvc<T: BrowseService>(pub Arc<T>);
-                    impl<
-                        T: BrowseService,
-                    > tonic::server::UnaryService<super::TreeGetEntriesRequest>
-                    for TreeGetEntriesSvc<T> {
+                    impl<T: BrowseService> tonic::server::UnaryService<super::TreeGetEntriesRequest>
+                        for TreeGetEntriesSvc<T>
+                    {
                         type Response = super::TreeGetEntriesResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::TreeGetEntriesRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as BrowseService>::tree_get_entries(&inner, request)
-                                    .await
+                                <T as BrowseService>::tree_get_entries(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -298,23 +279,19 @@ pub mod browse_service_server {
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
-                        let headers = response.headers_mut();
-                        headers
-                            .insert(
-                                tonic::Status::GRPC_STATUS,
-                                (tonic::Code::Unimplemented as i32).into(),
-                            );
-                        headers
-                            .insert(
-                                http::header::CONTENT_TYPE,
-                                tonic::metadata::GRPC_CONTENT_TYPE,
-                            );
-                        Ok(response)
-                    })
-                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(empty_body());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
             }
         }
     }
@@ -407,10 +384,10 @@ pub mod device_service_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct DeviceServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -454,9 +431,8 @@ pub mod device_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             DeviceServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -494,101 +470,74 @@ pub mod device_service_client {
         pub async fn get_devices(
             &mut self,
             request: impl tonic::IntoRequest<super::GetDevicesRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetDevicesResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetDevicesResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.DeviceService/GetDevices",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.DeviceService/GetDevices");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.DeviceService", "GetDevices"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.DeviceService",
+                "GetDevices",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_device(
             &mut self,
             request: impl tonic::IntoRequest<super::GetDeviceRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetDeviceResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetDeviceResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.DeviceService/GetDevice",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.DeviceService/GetDevice");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.DeviceService", "GetDevice"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.DeviceService",
+                "GetDevice",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn connect_device(
             &mut self,
             request: impl tonic::IntoRequest<super::ConnectDeviceRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ConnectDeviceResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::ConnectDeviceResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.DeviceService/ConnectDevice",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.DeviceService", "ConnectDevice"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.DeviceService",
+                "ConnectDevice",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn disconnect_device(
             &mut self,
             request: impl tonic::IntoRequest<super::DisconnectDeviceRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::DisconnectDeviceResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::DisconnectDeviceResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.DeviceService/DisconnectDevice",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.DeviceService", "DisconnectDevice"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.DeviceService",
+                "DisconnectDevice",
+            ));
             self.inner.unary(req, path, codec).await
         }
     }
@@ -600,7 +549,7 @@ pub mod device_service_server {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with DeviceServiceServer.
@@ -609,31 +558,19 @@ pub mod device_service_server {
         async fn get_devices(
             &self,
             request: tonic::Request<super::GetDevicesRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetDevicesResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetDevicesResponse>, tonic::Status>;
         async fn get_device(
             &self,
             request: tonic::Request<super::GetDeviceRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetDeviceResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetDeviceResponse>, tonic::Status>;
         async fn connect_device(
             &self,
             request: tonic::Request<super::ConnectDeviceRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ConnectDeviceResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::ConnectDeviceResponse>, tonic::Status>;
         async fn disconnect_device(
             &self,
             request: tonic::Request<super::DisconnectDeviceRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::DisconnectDeviceResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::DisconnectDeviceResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct DeviceServiceServer<T> {
@@ -656,10 +593,7 @@ pub mod device_service_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -714,15 +648,9 @@ pub mod device_service_server {
                 "/rockbox.v1alpha1.DeviceService/GetDevices" => {
                     #[allow(non_camel_case_types)]
                     struct GetDevicesSvc<T: DeviceService>(pub Arc<T>);
-                    impl<
-                        T: DeviceService,
-                    > tonic::server::UnaryService<super::GetDevicesRequest>
-                    for GetDevicesSvc<T> {
+                    impl<T: DeviceService> tonic::server::UnaryService<super::GetDevicesRequest> for GetDevicesSvc<T> {
                         type Response = super::GetDevicesResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetDevicesRequest>,
@@ -759,15 +687,9 @@ pub mod device_service_server {
                 "/rockbox.v1alpha1.DeviceService/GetDevice" => {
                     #[allow(non_camel_case_types)]
                     struct GetDeviceSvc<T: DeviceService>(pub Arc<T>);
-                    impl<
-                        T: DeviceService,
-                    > tonic::server::UnaryService<super::GetDeviceRequest>
-                    for GetDeviceSvc<T> {
+                    impl<T: DeviceService> tonic::server::UnaryService<super::GetDeviceRequest> for GetDeviceSvc<T> {
                         type Response = super::GetDeviceResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetDeviceRequest>,
@@ -804,15 +726,11 @@ pub mod device_service_server {
                 "/rockbox.v1alpha1.DeviceService/ConnectDevice" => {
                     #[allow(non_camel_case_types)]
                     struct ConnectDeviceSvc<T: DeviceService>(pub Arc<T>);
-                    impl<
-                        T: DeviceService,
-                    > tonic::server::UnaryService<super::ConnectDeviceRequest>
-                    for ConnectDeviceSvc<T> {
+                    impl<T: DeviceService> tonic::server::UnaryService<super::ConnectDeviceRequest>
+                        for ConnectDeviceSvc<T>
+                    {
                         type Response = super::ConnectDeviceResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ConnectDeviceRequest>,
@@ -849,23 +767,19 @@ pub mod device_service_server {
                 "/rockbox.v1alpha1.DeviceService/DisconnectDevice" => {
                     #[allow(non_camel_case_types)]
                     struct DisconnectDeviceSvc<T: DeviceService>(pub Arc<T>);
-                    impl<
-                        T: DeviceService,
-                    > tonic::server::UnaryService<super::DisconnectDeviceRequest>
-                    for DisconnectDeviceSvc<T> {
+                    impl<T: DeviceService>
+                        tonic::server::UnaryService<super::DisconnectDeviceRequest>
+                        for DisconnectDeviceSvc<T>
+                    {
                         type Response = super::DisconnectDeviceResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::DisconnectDeviceRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as DeviceService>::disconnect_device(&inner, request)
-                                    .await
+                                <T as DeviceService>::disconnect_device(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -892,23 +806,19 @@ pub mod device_service_server {
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
-                        let headers = response.headers_mut();
-                        headers
-                            .insert(
-                                tonic::Status::GRPC_STATUS,
-                                (tonic::Code::Unimplemented as i32).into(),
-                            );
-                        headers
-                            .insert(
-                                http::header::CONTENT_TYPE,
-                                tonic::metadata::GRPC_CONTENT_TYPE,
-                            );
-                        Ok(response)
-                    })
-                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(empty_body());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
             }
         }
     }
@@ -1140,10 +1050,10 @@ pub mod library_service_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct LibraryServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -1187,9 +1097,8 @@ pub mod library_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             LibraryServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -1227,343 +1136,245 @@ pub mod library_service_client {
         pub async fn get_albums(
             &mut self,
             request: impl tonic::IntoRequest<super::GetAlbumsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetAlbumsResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetAlbumsResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.LibraryService/GetAlbums",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.LibraryService/GetAlbums");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetAlbums"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "GetAlbums",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_artists(
             &mut self,
             request: impl tonic::IntoRequest<super::GetArtistsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetArtistsResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetArtistsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.LibraryService/GetArtists",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.LibraryService/GetArtists");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetArtists"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "GetArtists",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::GetTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetTracksResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.LibraryService/GetTracks",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.LibraryService/GetTracks");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetTracks"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "GetTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_album(
             &mut self,
             request: impl tonic::IntoRequest<super::GetAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetAlbumResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetAlbumResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.LibraryService/GetAlbum",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.LibraryService/GetAlbum");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetAlbum"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "GetAlbum",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_artist(
             &mut self,
             request: impl tonic::IntoRequest<super::GetArtistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetArtistResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetArtistResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.LibraryService/GetArtist",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.LibraryService/GetArtist");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetArtist"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "GetArtist",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_track(
             &mut self,
             request: impl tonic::IntoRequest<super::GetTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetTrackResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetTrackResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.LibraryService/GetTrack",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.LibraryService/GetTrack");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetTrack"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "GetTrack",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn like_track(
             &mut self,
             request: impl tonic::IntoRequest<super::LikeTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::LikeTrackResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::LikeTrackResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.LibraryService/LikeTrack",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.LibraryService/LikeTrack");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "LikeTrack"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "LikeTrack",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn unlike_track(
             &mut self,
             request: impl tonic::IntoRequest<super::UnlikeTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::UnlikeTrackResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::UnlikeTrackResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.LibraryService/UnlikeTrack",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "UnlikeTrack"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "UnlikeTrack",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn like_album(
             &mut self,
             request: impl tonic::IntoRequest<super::LikeAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::LikeAlbumResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::LikeAlbumResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.LibraryService/LikeAlbum",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.LibraryService/LikeAlbum");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "LikeAlbum"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "LikeAlbum",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn unlike_album(
             &mut self,
             request: impl tonic::IntoRequest<super::UnlikeAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::UnlikeAlbumResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::UnlikeAlbumResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.LibraryService/UnlikeAlbum",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "UnlikeAlbum"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "UnlikeAlbum",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_liked_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::GetLikedTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetLikedTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetLikedTracksResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.LibraryService/GetLikedTracks",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetLikedTracks"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "GetLikedTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_liked_albums(
             &mut self,
             request: impl tonic::IntoRequest<super::GetLikedAlbumsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetLikedAlbumsResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetLikedAlbumsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.LibraryService/GetLikedAlbums",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "GetLikedAlbums"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "GetLikedAlbums",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn scan_library(
             &mut self,
             request: impl tonic::IntoRequest<super::ScanLibraryRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ScanLibraryResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::ScanLibraryResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.LibraryService/ScanLibrary",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "ScanLibrary"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "ScanLibrary",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn search(
             &mut self,
             request: impl tonic::IntoRequest<super::SearchRequest>,
         ) -> std::result::Result<tonic::Response<super::SearchResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.LibraryService/Search",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.LibraryService/Search");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "Search"));
@@ -1578,7 +1389,7 @@ pub mod library_service_server {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with LibraryServiceServer.
@@ -1587,94 +1398,55 @@ pub mod library_service_server {
         async fn get_albums(
             &self,
             request: tonic::Request<super::GetAlbumsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetAlbumsResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetAlbumsResponse>, tonic::Status>;
         async fn get_artists(
             &self,
             request: tonic::Request<super::GetArtistsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetArtistsResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetArtistsResponse>, tonic::Status>;
         async fn get_tracks(
             &self,
             request: tonic::Request<super::GetTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetTracksResponse>, tonic::Status>;
         async fn get_album(
             &self,
             request: tonic::Request<super::GetAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetAlbumResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetAlbumResponse>, tonic::Status>;
         async fn get_artist(
             &self,
             request: tonic::Request<super::GetArtistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetArtistResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetArtistResponse>, tonic::Status>;
         async fn get_track(
             &self,
             request: tonic::Request<super::GetTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetTrackResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetTrackResponse>, tonic::Status>;
         async fn like_track(
             &self,
             request: tonic::Request<super::LikeTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::LikeTrackResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::LikeTrackResponse>, tonic::Status>;
         async fn unlike_track(
             &self,
             request: tonic::Request<super::UnlikeTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::UnlikeTrackResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::UnlikeTrackResponse>, tonic::Status>;
         async fn like_album(
             &self,
             request: tonic::Request<super::LikeAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::LikeAlbumResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::LikeAlbumResponse>, tonic::Status>;
         async fn unlike_album(
             &self,
             request: tonic::Request<super::UnlikeAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::UnlikeAlbumResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::UnlikeAlbumResponse>, tonic::Status>;
         async fn get_liked_tracks(
             &self,
             request: tonic::Request<super::GetLikedTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetLikedTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetLikedTracksResponse>, tonic::Status>;
         async fn get_liked_albums(
             &self,
             request: tonic::Request<super::GetLikedAlbumsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetLikedAlbumsResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetLikedAlbumsResponse>, tonic::Status>;
         async fn scan_library(
             &self,
             request: tonic::Request<super::ScanLibraryRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ScanLibraryResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::ScanLibraryResponse>, tonic::Status>;
         async fn search(
             &self,
             request: tonic::Request<super::SearchRequest>,
@@ -1701,10 +1473,7 @@ pub mod library_service_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -1759,15 +1528,9 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/GetAlbums" => {
                     #[allow(non_camel_case_types)]
                     struct GetAlbumsSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::GetAlbumsRequest>
-                    for GetAlbumsSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::GetAlbumsRequest> for GetAlbumsSvc<T> {
                         type Response = super::GetAlbumsResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetAlbumsRequest>,
@@ -1804,15 +1567,9 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/GetArtists" => {
                     #[allow(non_camel_case_types)]
                     struct GetArtistsSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::GetArtistsRequest>
-                    for GetArtistsSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::GetArtistsRequest> for GetArtistsSvc<T> {
                         type Response = super::GetArtistsResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetArtistsRequest>,
@@ -1849,15 +1606,9 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/GetTracks" => {
                     #[allow(non_camel_case_types)]
                     struct GetTracksSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::GetTracksRequest>
-                    for GetTracksSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::GetTracksRequest> for GetTracksSvc<T> {
                         type Response = super::GetTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetTracksRequest>,
@@ -1894,15 +1645,9 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/GetAlbum" => {
                     #[allow(non_camel_case_types)]
                     struct GetAlbumSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::GetAlbumRequest>
-                    for GetAlbumSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::GetAlbumRequest> for GetAlbumSvc<T> {
                         type Response = super::GetAlbumResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetAlbumRequest>,
@@ -1939,15 +1684,9 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/GetArtist" => {
                     #[allow(non_camel_case_types)]
                     struct GetArtistSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::GetArtistRequest>
-                    for GetArtistSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::GetArtistRequest> for GetArtistSvc<T> {
                         type Response = super::GetArtistResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetArtistRequest>,
@@ -1984,15 +1723,9 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/GetTrack" => {
                     #[allow(non_camel_case_types)]
                     struct GetTrackSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::GetTrackRequest>
-                    for GetTrackSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::GetTrackRequest> for GetTrackSvc<T> {
                         type Response = super::GetTrackResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetTrackRequest>,
@@ -2029,15 +1762,9 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/LikeTrack" => {
                     #[allow(non_camel_case_types)]
                     struct LikeTrackSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::LikeTrackRequest>
-                    for LikeTrackSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::LikeTrackRequest> for LikeTrackSvc<T> {
                         type Response = super::LikeTrackResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::LikeTrackRequest>,
@@ -2074,15 +1801,11 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/UnlikeTrack" => {
                     #[allow(non_camel_case_types)]
                     struct UnlikeTrackSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::UnlikeTrackRequest>
-                    for UnlikeTrackSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::UnlikeTrackRequest>
+                        for UnlikeTrackSvc<T>
+                    {
                         type Response = super::UnlikeTrackResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::UnlikeTrackRequest>,
@@ -2119,15 +1842,9 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/LikeAlbum" => {
                     #[allow(non_camel_case_types)]
                     struct LikeAlbumSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::LikeAlbumRequest>
-                    for LikeAlbumSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::LikeAlbumRequest> for LikeAlbumSvc<T> {
                         type Response = super::LikeAlbumResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::LikeAlbumRequest>,
@@ -2164,15 +1881,11 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/UnlikeAlbum" => {
                     #[allow(non_camel_case_types)]
                     struct UnlikeAlbumSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::UnlikeAlbumRequest>
-                    for UnlikeAlbumSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::UnlikeAlbumRequest>
+                        for UnlikeAlbumSvc<T>
+                    {
                         type Response = super::UnlikeAlbumResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::UnlikeAlbumRequest>,
@@ -2209,23 +1922,19 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/GetLikedTracks" => {
                     #[allow(non_camel_case_types)]
                     struct GetLikedTracksSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::GetLikedTracksRequest>
-                    for GetLikedTracksSvc<T> {
+                    impl<T: LibraryService>
+                        tonic::server::UnaryService<super::GetLikedTracksRequest>
+                        for GetLikedTracksSvc<T>
+                    {
                         type Response = super::GetLikedTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetLikedTracksRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as LibraryService>::get_liked_tracks(&inner, request)
-                                    .await
+                                <T as LibraryService>::get_liked_tracks(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -2255,23 +1964,19 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/GetLikedAlbums" => {
                     #[allow(non_camel_case_types)]
                     struct GetLikedAlbumsSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::GetLikedAlbumsRequest>
-                    for GetLikedAlbumsSvc<T> {
+                    impl<T: LibraryService>
+                        tonic::server::UnaryService<super::GetLikedAlbumsRequest>
+                        for GetLikedAlbumsSvc<T>
+                    {
                         type Response = super::GetLikedAlbumsResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetLikedAlbumsRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as LibraryService>::get_liked_albums(&inner, request)
-                                    .await
+                                <T as LibraryService>::get_liked_albums(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -2301,15 +2006,11 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/ScanLibrary" => {
                     #[allow(non_camel_case_types)]
                     struct ScanLibrarySvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::ScanLibraryRequest>
-                    for ScanLibrarySvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::ScanLibraryRequest>
+                        for ScanLibrarySvc<T>
+                    {
                         type Response = super::ScanLibraryResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ScanLibraryRequest>,
@@ -2346,23 +2047,16 @@ pub mod library_service_server {
                 "/rockbox.v1alpha1.LibraryService/Search" => {
                     #[allow(non_camel_case_types)]
                     struct SearchSvc<T: LibraryService>(pub Arc<T>);
-                    impl<
-                        T: LibraryService,
-                    > tonic::server::UnaryService<super::SearchRequest>
-                    for SearchSvc<T> {
+                    impl<T: LibraryService> tonic::server::UnaryService<super::SearchRequest> for SearchSvc<T> {
                         type Response = super::SearchResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SearchRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as LibraryService>::search(&inner, request).await
-                            };
+                            let fut =
+                                async move { <T as LibraryService>::search(&inner, request).await };
                             Box::pin(fut)
                         }
                     }
@@ -2388,23 +2082,19 @@ pub mod library_service_server {
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
-                        let headers = response.headers_mut();
-                        headers
-                            .insert(
-                                tonic::Status::GRPC_STATUS,
-                                (tonic::Code::Unimplemented as i32).into(),
-                            );
-                        headers
-                            .insert(
-                                http::header::CONTENT_TYPE,
-                                tonic::metadata::GRPC_CONTENT_TYPE,
-                            );
-                        Ok(response)
-                    })
-                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(empty_body());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
             }
         }
     }
@@ -2433,10 +2123,10 @@ pub mod metadata_service_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct MetadataServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -2480,9 +2170,8 @@ pub mod metadata_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             MetadataServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -2526,7 +2215,7 @@ pub mod metadata_service_server {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with MetadataServiceServer.
@@ -2553,10 +2242,7 @@ pub mod metadata_service_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -2608,23 +2294,19 @@ pub mod metadata_service_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
-                _ => {
-                    Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
-                        let headers = response.headers_mut();
-                        headers
-                            .insert(
-                                tonic::Status::GRPC_STATUS,
-                                (tonic::Code::Unimplemented as i32).into(),
-                            );
-                        headers
-                            .insert(
-                                http::header::CONTENT_TYPE,
-                                tonic::metadata::GRPC_CONTENT_TYPE,
-                            );
-                        Ok(response)
-                    })
-                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(empty_body());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
             }
         }
     }
@@ -2897,10 +2579,10 @@ pub mod playback_service_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct PlaybackServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -2944,9 +2626,8 @@ pub mod playback_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             PlaybackServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -2985,18 +2666,12 @@ pub mod playback_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::PlayRequest>,
         ) -> std::result::Result<tonic::Response<super::PlayResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/Play",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/Play");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "Play"));
@@ -3006,18 +2681,12 @@ pub mod playback_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::PauseRequest>,
         ) -> std::result::Result<tonic::Response<super::PauseResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/Pause",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/Pause");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "Pause"));
@@ -3026,66 +2695,49 @@ pub mod playback_service_client {
         pub async fn play_or_pause(
             &mut self,
             request: impl tonic::IntoRequest<super::PlayOrPauseRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayOrPauseResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PlayOrPauseResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/PlayOrPause",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "PlayOrPause"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "PlayOrPause",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn resume(
             &mut self,
             request: impl tonic::IntoRequest<super::ResumeRequest>,
         ) -> std::result::Result<tonic::Response<super::ResumeResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/Resume",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/Resume");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "Resume"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "Resume",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn next(
             &mut self,
             request: impl tonic::IntoRequest<super::NextRequest>,
         ) -> std::result::Result<tonic::Response<super::NextResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/Next",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/Next");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "Next"));
@@ -3094,397 +2746,274 @@ pub mod playback_service_client {
         pub async fn previous(
             &mut self,
             request: impl tonic::IntoRequest<super::PreviousRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PreviousResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PreviousResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/Previous",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/Previous");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "Previous"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "Previous",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn fast_forward_rewind(
             &mut self,
             request: impl tonic::IntoRequest<super::FastForwardRewindRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::FastForwardRewindResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::FastForwardRewindResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/FastForwardRewind",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaybackService",
-                        "FastForwardRewind",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "FastForwardRewind",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn status(
             &mut self,
             request: impl tonic::IntoRequest<super::StatusRequest>,
         ) -> std::result::Result<tonic::Response<super::StatusResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/Status",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/Status");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "Status"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "Status",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn current_track(
             &mut self,
             request: impl tonic::IntoRequest<super::CurrentTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::CurrentTrackResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::CurrentTrackResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/CurrentTrack",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "CurrentTrack"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "CurrentTrack",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn next_track(
             &mut self,
             request: impl tonic::IntoRequest<super::NextTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::NextTrackResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::NextTrackResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/NextTrack",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/NextTrack");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "NextTrack"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "NextTrack",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn flush_and_reload_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::FlushAndReloadTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::FlushAndReloadTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::FlushAndReloadTracksResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/FlushAndReloadTracks",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaybackService",
-                        "FlushAndReloadTracks",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "FlushAndReloadTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_file_position(
             &mut self,
             request: impl tonic::IntoRequest<super::GetFilePositionRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetFilePositionResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetFilePositionResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/GetFilePosition",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaybackService",
-                        "GetFilePosition",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "GetFilePosition",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn hard_stop(
             &mut self,
             request: impl tonic::IntoRequest<super::HardStopRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::HardStopResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::HardStopResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/HardStop",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/HardStop");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "HardStop"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "HardStop",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn play_album(
             &mut self,
             request: impl tonic::IntoRequest<super::PlayAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayAlbumResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PlayAlbumResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/PlayAlbum",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/PlayAlbum");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "PlayAlbum"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "PlayAlbum",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn play_artist_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::PlayArtistTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayArtistTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PlayArtistTracksResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/PlayArtistTracks",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaybackService",
-                        "PlayArtistTracks",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "PlayArtistTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn play_playlist(
             &mut self,
             request: impl tonic::IntoRequest<super::PlayPlaylistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayPlaylistResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PlayPlaylistResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/PlayPlaylist",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "PlayPlaylist"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "PlayPlaylist",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn play_directory(
             &mut self,
             request: impl tonic::IntoRequest<super::PlayDirectoryRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayDirectoryResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PlayDirectoryResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/PlayDirectory",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "PlayDirectory"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "PlayDirectory",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn play_track(
             &mut self,
             request: impl tonic::IntoRequest<super::PlayTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayTrackResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PlayTrackResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaybackService/PlayTrack",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaybackService/PlayTrack");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "PlayTrack"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "PlayTrack",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn play_liked_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::PlayLikedTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayLikedTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PlayLikedTracksResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/PlayLikedTracks",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaybackService",
-                        "PlayLikedTracks",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "PlayLikedTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn play_all_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::PlayAllTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayAllTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PlayAllTracksResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/PlayAllTracks",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "PlayAllTracks"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "PlayAllTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn stream_current_track(
@@ -3494,26 +3023,18 @@ pub mod playback_service_client {
             tonic::Response<tonic::codec::Streaming<super::CurrentTrackResponse>>,
             tonic::Status,
         > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/StreamCurrentTrack",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaybackService",
-                        "StreamCurrentTrack",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "StreamCurrentTrack",
+            ));
             self.inner.server_streaming(req, path, codec).await
         }
         pub async fn stream_status(
@@ -3523,23 +3044,18 @@ pub mod playback_service_client {
             tonic::Response<tonic::codec::Streaming<super::StatusResponse>>,
             tonic::Status,
         > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/StreamStatus",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "StreamStatus"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "StreamStatus",
+            ));
             self.inner.server_streaming(req, path, codec).await
         }
         pub async fn stream_playlist(
@@ -3549,23 +3065,18 @@ pub mod playback_service_client {
             tonic::Response<tonic::codec::Streaming<super::PlaylistResponse>>,
             tonic::Status,
         > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaybackService/StreamPlaylist",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaybackService", "StreamPlaylist"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "StreamPlaylist",
+            ));
             self.inner.server_streaming(req, path, codec).await
         }
     }
@@ -3577,7 +3088,7 @@ pub mod playback_service_server {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with PlaybackServiceServer.
@@ -3594,10 +3105,7 @@ pub mod playback_service_server {
         async fn play_or_pause(
             &self,
             request: tonic::Request<super::PlayOrPauseRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayOrPauseResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PlayOrPauseResponse>, tonic::Status>;
         async fn resume(
             &self,
             request: tonic::Request<super::ResumeRequest>,
@@ -3609,17 +3117,11 @@ pub mod playback_service_server {
         async fn previous(
             &self,
             request: tonic::Request<super::PreviousRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PreviousResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PreviousResponse>, tonic::Status>;
         async fn fast_forward_rewind(
             &self,
             request: tonic::Request<super::FastForwardRewindRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::FastForwardRewindResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::FastForwardRewindResponse>, tonic::Status>;
         async fn status(
             &self,
             request: tonic::Request<super::StatusRequest>,
@@ -3627,126 +3129,78 @@ pub mod playback_service_server {
         async fn current_track(
             &self,
             request: tonic::Request<super::CurrentTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::CurrentTrackResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::CurrentTrackResponse>, tonic::Status>;
         async fn next_track(
             &self,
             request: tonic::Request<super::NextTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::NextTrackResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::NextTrackResponse>, tonic::Status>;
         async fn flush_and_reload_tracks(
             &self,
             request: tonic::Request<super::FlushAndReloadTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::FlushAndReloadTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::FlushAndReloadTracksResponse>, tonic::Status>;
         async fn get_file_position(
             &self,
             request: tonic::Request<super::GetFilePositionRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetFilePositionResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetFilePositionResponse>, tonic::Status>;
         async fn hard_stop(
             &self,
             request: tonic::Request<super::HardStopRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::HardStopResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::HardStopResponse>, tonic::Status>;
         async fn play_album(
             &self,
             request: tonic::Request<super::PlayAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayAlbumResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PlayAlbumResponse>, tonic::Status>;
         async fn play_artist_tracks(
             &self,
             request: tonic::Request<super::PlayArtistTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayArtistTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PlayArtistTracksResponse>, tonic::Status>;
         async fn play_playlist(
             &self,
             request: tonic::Request<super::PlayPlaylistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayPlaylistResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PlayPlaylistResponse>, tonic::Status>;
         async fn play_directory(
             &self,
             request: tonic::Request<super::PlayDirectoryRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayDirectoryResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PlayDirectoryResponse>, tonic::Status>;
         async fn play_track(
             &self,
             request: tonic::Request<super::PlayTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayTrackResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PlayTrackResponse>, tonic::Status>;
         async fn play_liked_tracks(
             &self,
             request: tonic::Request<super::PlayLikedTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayLikedTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PlayLikedTracksResponse>, tonic::Status>;
         async fn play_all_tracks(
             &self,
             request: tonic::Request<super::PlayAllTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlayAllTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PlayAllTracksResponse>, tonic::Status>;
         /// Server streaming response type for the StreamCurrentTrack method.
         type StreamCurrentTrackStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<super::CurrentTrackResponse, tonic::Status>,
-            >
-            + std::marker::Send
+            > + std::marker::Send
             + 'static;
         async fn stream_current_track(
             &self,
             request: tonic::Request<super::StreamCurrentTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<Self::StreamCurrentTrackStream>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<Self::StreamCurrentTrackStream>, tonic::Status>;
         /// Server streaming response type for the StreamStatus method.
         type StreamStatusStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<super::StatusResponse, tonic::Status>,
-            >
-            + std::marker::Send
+            > + std::marker::Send
             + 'static;
         async fn stream_status(
             &self,
             request: tonic::Request<super::StreamStatusRequest>,
-        ) -> std::result::Result<
-            tonic::Response<Self::StreamStatusStream>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<Self::StreamStatusStream>, tonic::Status>;
         /// Server streaming response type for the StreamPlaylist method.
         type StreamPlaylistStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<super::PlaylistResponse, tonic::Status>,
-            >
-            + std::marker::Send
+            > + std::marker::Send
             + 'static;
         async fn stream_playlist(
             &self,
             request: tonic::Request<super::StreamPlaylistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<Self::StreamPlaylistStream>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<Self::StreamPlaylistStream>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct PlaybackServiceServer<T> {
@@ -3769,10 +3223,7 @@ pub mod playback_service_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -3827,22 +3278,16 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/Play" => {
                     #[allow(non_camel_case_types)]
                     struct PlaySvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PlayRequest> for PlaySvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::PlayRequest> for PlaySvc<T> {
                         type Response = super::PlayResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlayRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as PlaybackService>::play(&inner, request).await
-                            };
+                            let fut =
+                                async move { <T as PlaybackService>::play(&inner, request).await };
                             Box::pin(fut)
                         }
                     }
@@ -3871,22 +3316,16 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/Pause" => {
                     #[allow(non_camel_case_types)]
                     struct PauseSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PauseRequest> for PauseSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::PauseRequest> for PauseSvc<T> {
                         type Response = super::PauseResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PauseRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as PlaybackService>::pause(&inner, request).await
-                            };
+                            let fut =
+                                async move { <T as PlaybackService>::pause(&inner, request).await };
                             Box::pin(fut)
                         }
                     }
@@ -3915,15 +3354,11 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/PlayOrPause" => {
                     #[allow(non_camel_case_types)]
                     struct PlayOrPauseSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PlayOrPauseRequest>
-                    for PlayOrPauseSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::PlayOrPauseRequest>
+                        for PlayOrPauseSvc<T>
+                    {
                         type Response = super::PlayOrPauseResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlayOrPauseRequest>,
@@ -3960,15 +3395,9 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/Resume" => {
                     #[allow(non_camel_case_types)]
                     struct ResumeSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::ResumeRequest>
-                    for ResumeSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::ResumeRequest> for ResumeSvc<T> {
                         type Response = super::ResumeResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ResumeRequest>,
@@ -4005,22 +3434,16 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/Next" => {
                     #[allow(non_camel_case_types)]
                     struct NextSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::NextRequest> for NextSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::NextRequest> for NextSvc<T> {
                         type Response = super::NextResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::NextRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as PlaybackService>::next(&inner, request).await
-                            };
+                            let fut =
+                                async move { <T as PlaybackService>::next(&inner, request).await };
                             Box::pin(fut)
                         }
                     }
@@ -4049,15 +3472,9 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/Previous" => {
                     #[allow(non_camel_case_types)]
                     struct PreviousSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PreviousRequest>
-                    for PreviousSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::PreviousRequest> for PreviousSvc<T> {
                         type Response = super::PreviousResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PreviousRequest>,
@@ -4094,23 +3511,19 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/FastForwardRewind" => {
                     #[allow(non_camel_case_types)]
                     struct FastForwardRewindSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::FastForwardRewindRequest>
-                    for FastForwardRewindSvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::UnaryService<super::FastForwardRewindRequest>
+                        for FastForwardRewindSvc<T>
+                    {
                         type Response = super::FastForwardRewindResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::FastForwardRewindRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaybackService>::fast_forward_rewind(&inner, request)
-                                    .await
+                                <T as PlaybackService>::fast_forward_rewind(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -4140,15 +3553,9 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/Status" => {
                     #[allow(non_camel_case_types)]
                     struct StatusSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::StatusRequest>
-                    for StatusSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::StatusRequest> for StatusSvc<T> {
                         type Response = super::StatusResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::StatusRequest>,
@@ -4185,15 +3592,11 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/CurrentTrack" => {
                     #[allow(non_camel_case_types)]
                     struct CurrentTrackSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::CurrentTrackRequest>
-                    for CurrentTrackSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::CurrentTrackRequest>
+                        for CurrentTrackSvc<T>
+                    {
                         type Response = super::CurrentTrackResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::CurrentTrackRequest>,
@@ -4230,15 +3633,9 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/NextTrack" => {
                     #[allow(non_camel_case_types)]
                     struct NextTrackSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::NextTrackRequest>
-                    for NextTrackSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::NextTrackRequest> for NextTrackSvc<T> {
                         type Response = super::NextTrackResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::NextTrackRequest>,
@@ -4275,25 +3672,19 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/FlushAndReloadTracks" => {
                     #[allow(non_camel_case_types)]
                     struct FlushAndReloadTracksSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::FlushAndReloadTracksRequest>
-                    for FlushAndReloadTracksSvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::UnaryService<super::FlushAndReloadTracksRequest>
+                        for FlushAndReloadTracksSvc<T>
+                    {
                         type Response = super::FlushAndReloadTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::FlushAndReloadTracksRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaybackService>::flush_and_reload_tracks(
-                                        &inner,
-                                        request,
-                                    )
+                                <T as PlaybackService>::flush_and_reload_tracks(&inner, request)
                                     .await
                             };
                             Box::pin(fut)
@@ -4324,23 +3715,19 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/GetFilePosition" => {
                     #[allow(non_camel_case_types)]
                     struct GetFilePositionSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::GetFilePositionRequest>
-                    for GetFilePositionSvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::UnaryService<super::GetFilePositionRequest>
+                        for GetFilePositionSvc<T>
+                    {
                         type Response = super::GetFilePositionResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetFilePositionRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaybackService>::get_file_position(&inner, request)
-                                    .await
+                                <T as PlaybackService>::get_file_position(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -4370,15 +3757,9 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/HardStop" => {
                     #[allow(non_camel_case_types)]
                     struct HardStopSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::HardStopRequest>
-                    for HardStopSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::HardStopRequest> for HardStopSvc<T> {
                         type Response = super::HardStopResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::HardStopRequest>,
@@ -4415,15 +3796,9 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/PlayAlbum" => {
                     #[allow(non_camel_case_types)]
                     struct PlayAlbumSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PlayAlbumRequest>
-                    for PlayAlbumSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::PlayAlbumRequest> for PlayAlbumSvc<T> {
                         type Response = super::PlayAlbumResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlayAlbumRequest>,
@@ -4460,23 +3835,19 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/PlayArtistTracks" => {
                     #[allow(non_camel_case_types)]
                     struct PlayArtistTracksSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PlayArtistTracksRequest>
-                    for PlayArtistTracksSvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::UnaryService<super::PlayArtistTracksRequest>
+                        for PlayArtistTracksSvc<T>
+                    {
                         type Response = super::PlayArtistTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlayArtistTracksRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaybackService>::play_artist_tracks(&inner, request)
-                                    .await
+                                <T as PlaybackService>::play_artist_tracks(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -4506,15 +3877,11 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/PlayPlaylist" => {
                     #[allow(non_camel_case_types)]
                     struct PlayPlaylistSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PlayPlaylistRequest>
-                    for PlayPlaylistSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::PlayPlaylistRequest>
+                        for PlayPlaylistSvc<T>
+                    {
                         type Response = super::PlayPlaylistResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlayPlaylistRequest>,
@@ -4551,23 +3918,19 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/PlayDirectory" => {
                     #[allow(non_camel_case_types)]
                     struct PlayDirectorySvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PlayDirectoryRequest>
-                    for PlayDirectorySvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::UnaryService<super::PlayDirectoryRequest>
+                        for PlayDirectorySvc<T>
+                    {
                         type Response = super::PlayDirectoryResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlayDirectoryRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaybackService>::play_directory(&inner, request)
-                                    .await
+                                <T as PlaybackService>::play_directory(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -4597,15 +3960,9 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/PlayTrack" => {
                     #[allow(non_camel_case_types)]
                     struct PlayTrackSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PlayTrackRequest>
-                    for PlayTrackSvc<T> {
+                    impl<T: PlaybackService> tonic::server::UnaryService<super::PlayTrackRequest> for PlayTrackSvc<T> {
                         type Response = super::PlayTrackResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlayTrackRequest>,
@@ -4642,23 +3999,19 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/PlayLikedTracks" => {
                     #[allow(non_camel_case_types)]
                     struct PlayLikedTracksSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PlayLikedTracksRequest>
-                    for PlayLikedTracksSvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::UnaryService<super::PlayLikedTracksRequest>
+                        for PlayLikedTracksSvc<T>
+                    {
                         type Response = super::PlayLikedTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlayLikedTracksRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaybackService>::play_liked_tracks(&inner, request)
-                                    .await
+                                <T as PlaybackService>::play_liked_tracks(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -4688,23 +4041,19 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/PlayAllTracks" => {
                     #[allow(non_camel_case_types)]
                     struct PlayAllTracksSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::UnaryService<super::PlayAllTracksRequest>
-                    for PlayAllTracksSvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::UnaryService<super::PlayAllTracksRequest>
+                        for PlayAllTracksSvc<T>
+                    {
                         type Response = super::PlayAllTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlayAllTracksRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaybackService>::play_all_tracks(&inner, request)
-                                    .await
+                                <T as PlaybackService>::play_all_tracks(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -4734,28 +4083,21 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/StreamCurrentTrack" => {
                     #[allow(non_camel_case_types)]
                     struct StreamCurrentTrackSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::ServerStreamingService<
-                        super::StreamCurrentTrackRequest,
-                    > for StreamCurrentTrackSvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::ServerStreamingService<super::StreamCurrentTrackRequest>
+                        for StreamCurrentTrackSvc<T>
+                    {
                         type Response = super::CurrentTrackResponse;
                         type ResponseStream = T::StreamCurrentTrackStream;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::ResponseStream>,
-                            tonic::Status,
-                        >;
+                        type Future =
+                            BoxFuture<tonic::Response<Self::ResponseStream>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::StreamCurrentTrackRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaybackService>::stream_current_track(
-                                        &inner,
-                                        request,
-                                    )
-                                    .await
+                                <T as PlaybackService>::stream_current_track(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -4785,16 +4127,14 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/StreamStatus" => {
                     #[allow(non_camel_case_types)]
                     struct StreamStatusSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::ServerStreamingService<super::StreamStatusRequest>
-                    for StreamStatusSvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::ServerStreamingService<super::StreamStatusRequest>
+                        for StreamStatusSvc<T>
+                    {
                         type Response = super::StatusResponse;
                         type ResponseStream = T::StreamStatusStream;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::ResponseStream>,
-                            tonic::Status,
-                        >;
+                        type Future =
+                            BoxFuture<tonic::Response<Self::ResponseStream>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::StreamStatusRequest>,
@@ -4831,24 +4171,21 @@ pub mod playback_service_server {
                 "/rockbox.v1alpha1.PlaybackService/StreamPlaylist" => {
                     #[allow(non_camel_case_types)]
                     struct StreamPlaylistSvc<T: PlaybackService>(pub Arc<T>);
-                    impl<
-                        T: PlaybackService,
-                    > tonic::server::ServerStreamingService<super::StreamPlaylistRequest>
-                    for StreamPlaylistSvc<T> {
+                    impl<T: PlaybackService>
+                        tonic::server::ServerStreamingService<super::StreamPlaylistRequest>
+                        for StreamPlaylistSvc<T>
+                    {
                         type Response = super::PlaylistResponse;
                         type ResponseStream = T::StreamPlaylistStream;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::ResponseStream>,
-                            tonic::Status,
-                        >;
+                        type Future =
+                            BoxFuture<tonic::Response<Self::ResponseStream>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::StreamPlaylistRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaybackService>::stream_playlist(&inner, request)
-                                    .await
+                                <T as PlaybackService>::stream_playlist(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -4875,23 +4212,19 @@ pub mod playback_service_server {
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
-                        let headers = response.headers_mut();
-                        headers
-                            .insert(
-                                tonic::Status::GRPC_STATUS,
-                                (tonic::Code::Unimplemented as i32).into(),
-                            );
-                        headers
-                            .insert(
-                                http::header::CONTENT_TYPE,
-                                tonic::metadata::GRPC_CONTENT_TYPE,
-                            );
-                        Ok(response)
-                    })
-                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(empty_body());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
             }
         }
     }
@@ -5098,10 +4431,10 @@ pub mod playlist_service_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct PlaylistServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -5145,9 +4478,8 @@ pub mod playlist_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             PlaylistServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -5185,251 +4517,182 @@ pub mod playlist_service_client {
         pub async fn get_current(
             &mut self,
             request: impl tonic::IntoRequest<super::GetCurrentRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetCurrentResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetCurrentResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/GetCurrent",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "GetCurrent"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "GetCurrent",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_resume_info(
             &mut self,
             request: impl tonic::IntoRequest<super::GetResumeInfoRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetResumeInfoResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetResumeInfoResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/GetResumeInfo",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "GetResumeInfo"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "GetResumeInfo",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_track_info(
             &mut self,
             request: impl tonic::IntoRequest<super::GetTrackInfoRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetTrackInfoResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetTrackInfoResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/GetTrackInfo",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "GetTrackInfo"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "GetTrackInfo",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_first_index(
             &mut self,
             request: impl tonic::IntoRequest<super::GetFirstIndexRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetFirstIndexResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetFirstIndexResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/GetFirstIndex",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "GetFirstIndex"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "GetFirstIndex",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_display_index(
             &mut self,
             request: impl tonic::IntoRequest<super::GetDisplayIndexRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetDisplayIndexResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetDisplayIndexResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/GetDisplayIndex",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaylistService",
-                        "GetDisplayIndex",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "GetDisplayIndex",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn amount(
             &mut self,
             request: impl tonic::IntoRequest<super::AmountRequest>,
         ) -> std::result::Result<tonic::Response<super::AmountResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaylistService/Amount",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaylistService/Amount");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "Amount"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "Amount",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn playlist_resume(
             &mut self,
             request: impl tonic::IntoRequest<super::PlaylistResumeRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlaylistResumeResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PlaylistResumeResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/PlaylistResume",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "PlaylistResume"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "PlaylistResume",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn resume_track(
             &mut self,
             request: impl tonic::IntoRequest<super::ResumeTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ResumeTrackResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::ResumeTrackResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/ResumeTrack",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "ResumeTrack"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "ResumeTrack",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn set_modified(
             &mut self,
             request: impl tonic::IntoRequest<super::SetModifiedRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SetModifiedResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SetModifiedResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/SetModified",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "SetModified"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "SetModified",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn start(
             &mut self,
             request: impl tonic::IntoRequest<super::StartRequest>,
         ) -> std::result::Result<tonic::Response<super::StartResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaylistService/Start",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaylistService/Start");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "Start"));
@@ -5439,18 +4702,12 @@ pub mod playlist_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::SyncRequest>,
         ) -> std::result::Result<tonic::Response<super::SyncResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.PlaylistService/Sync",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.PlaylistService/Sync");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "Sync"));
@@ -5459,247 +4716,172 @@ pub mod playlist_service_client {
         pub async fn remove_all_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::RemoveAllTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::RemoveAllTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::RemoveAllTracksResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/RemoveAllTracks",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaylistService",
-                        "RemoveAllTracks",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "RemoveAllTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn remove_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::RemoveTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::RemoveTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::RemoveTracksResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/RemoveTracks",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "RemoveTracks"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "RemoveTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn create_playlist(
             &mut self,
             request: impl tonic::IntoRequest<super::CreatePlaylistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::CreatePlaylistResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::CreatePlaylistResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/CreatePlaylist",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "CreatePlaylist"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "CreatePlaylist",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn insert_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::InsertTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::InsertTracksResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/InsertTracks",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "InsertTracks"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "InsertTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn insert_directory(
             &mut self,
             request: impl tonic::IntoRequest<super::InsertDirectoryRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertDirectoryResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::InsertDirectoryResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/InsertDirectory",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaylistService",
-                        "InsertDirectory",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "InsertDirectory",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn insert_playlist(
             &mut self,
             request: impl tonic::IntoRequest<super::InsertPlaylistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertPlaylistResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::InsertPlaylistResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/InsertPlaylist",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "InsertPlaylist"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "InsertPlaylist",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn insert_album(
             &mut self,
             request: impl tonic::IntoRequest<super::InsertAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertAlbumResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::InsertAlbumResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/InsertAlbum",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.PlaylistService", "InsertAlbum"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "InsertAlbum",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn insert_artist_tracks(
             &mut self,
             request: impl tonic::IntoRequest<super::InsertArtistTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertArtistTracksResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::InsertArtistTracksResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/InsertArtistTracks",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaylistService",
-                        "InsertArtistTracks",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "InsertArtistTracks",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn shuffle_playlist(
             &mut self,
             request: impl tonic::IntoRequest<super::ShufflePlaylistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ShufflePlaylistResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::ShufflePlaylistResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.PlaylistService/ShufflePlaylist",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.PlaylistService",
-                        "ShufflePlaylist",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaylistService",
+                "ShufflePlaylist",
+            ));
             self.inner.unary(req, path, codec).await
         }
     }
@@ -5711,7 +4893,7 @@ pub mod playlist_service_server {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with PlaylistServiceServer.
@@ -5720,38 +4902,23 @@ pub mod playlist_service_server {
         async fn get_current(
             &self,
             request: tonic::Request<super::GetCurrentRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetCurrentResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetCurrentResponse>, tonic::Status>;
         async fn get_resume_info(
             &self,
             request: tonic::Request<super::GetResumeInfoRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetResumeInfoResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetResumeInfoResponse>, tonic::Status>;
         async fn get_track_info(
             &self,
             request: tonic::Request<super::GetTrackInfoRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetTrackInfoResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetTrackInfoResponse>, tonic::Status>;
         async fn get_first_index(
             &self,
             request: tonic::Request<super::GetFirstIndexRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetFirstIndexResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetFirstIndexResponse>, tonic::Status>;
         async fn get_display_index(
             &self,
             request: tonic::Request<super::GetDisplayIndexRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetDisplayIndexResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetDisplayIndexResponse>, tonic::Status>;
         async fn amount(
             &self,
             request: tonic::Request<super::AmountRequest>,
@@ -5759,24 +4926,15 @@ pub mod playlist_service_server {
         async fn playlist_resume(
             &self,
             request: tonic::Request<super::PlaylistResumeRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PlaylistResumeResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PlaylistResumeResponse>, tonic::Status>;
         async fn resume_track(
             &self,
             request: tonic::Request<super::ResumeTrackRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ResumeTrackResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::ResumeTrackResponse>, tonic::Status>;
         async fn set_modified(
             &self,
             request: tonic::Request<super::SetModifiedRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SetModifiedResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SetModifiedResponse>, tonic::Status>;
         async fn start(
             &self,
             request: tonic::Request<super::StartRequest>,
@@ -5788,66 +4946,39 @@ pub mod playlist_service_server {
         async fn remove_all_tracks(
             &self,
             request: tonic::Request<super::RemoveAllTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::RemoveAllTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::RemoveAllTracksResponse>, tonic::Status>;
         async fn remove_tracks(
             &self,
             request: tonic::Request<super::RemoveTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::RemoveTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::RemoveTracksResponse>, tonic::Status>;
         async fn create_playlist(
             &self,
             request: tonic::Request<super::CreatePlaylistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::CreatePlaylistResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::CreatePlaylistResponse>, tonic::Status>;
         async fn insert_tracks(
             &self,
             request: tonic::Request<super::InsertTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::InsertTracksResponse>, tonic::Status>;
         async fn insert_directory(
             &self,
             request: tonic::Request<super::InsertDirectoryRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertDirectoryResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::InsertDirectoryResponse>, tonic::Status>;
         async fn insert_playlist(
             &self,
             request: tonic::Request<super::InsertPlaylistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertPlaylistResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::InsertPlaylistResponse>, tonic::Status>;
         async fn insert_album(
             &self,
             request: tonic::Request<super::InsertAlbumRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertAlbumResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::InsertAlbumResponse>, tonic::Status>;
         async fn insert_artist_tracks(
             &self,
             request: tonic::Request<super::InsertArtistTracksRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InsertArtistTracksResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::InsertArtistTracksResponse>, tonic::Status>;
         async fn shuffle_playlist(
             &self,
             request: tonic::Request<super::ShufflePlaylistRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ShufflePlaylistResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::ShufflePlaylistResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct PlaylistServiceServer<T> {
@@ -5870,10 +5001,7 @@ pub mod playlist_service_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -5928,15 +5056,11 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/GetCurrent" => {
                     #[allow(non_camel_case_types)]
                     struct GetCurrentSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::GetCurrentRequest>
-                    for GetCurrentSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::GetCurrentRequest>
+                        for GetCurrentSvc<T>
+                    {
                         type Response = super::GetCurrentResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetCurrentRequest>,
@@ -5973,23 +5097,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/GetResumeInfo" => {
                     #[allow(non_camel_case_types)]
                     struct GetResumeInfoSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::GetResumeInfoRequest>
-                    for GetResumeInfoSvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::GetResumeInfoRequest>
+                        for GetResumeInfoSvc<T>
+                    {
                         type Response = super::GetResumeInfoResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetResumeInfoRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::get_resume_info(&inner, request)
-                                    .await
+                                <T as PlaylistService>::get_resume_info(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6019,23 +5139,18 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/GetTrackInfo" => {
                     #[allow(non_camel_case_types)]
                     struct GetTrackInfoSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::GetTrackInfoRequest>
-                    for GetTrackInfoSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::GetTrackInfoRequest>
+                        for GetTrackInfoSvc<T>
+                    {
                         type Response = super::GetTrackInfoResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetTrackInfoRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::get_track_info(&inner, request)
-                                    .await
+                                <T as PlaylistService>::get_track_info(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6065,23 +5180,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/GetFirstIndex" => {
                     #[allow(non_camel_case_types)]
                     struct GetFirstIndexSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::GetFirstIndexRequest>
-                    for GetFirstIndexSvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::GetFirstIndexRequest>
+                        for GetFirstIndexSvc<T>
+                    {
                         type Response = super::GetFirstIndexResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetFirstIndexRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::get_first_index(&inner, request)
-                                    .await
+                                <T as PlaylistService>::get_first_index(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6111,23 +5222,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/GetDisplayIndex" => {
                     #[allow(non_camel_case_types)]
                     struct GetDisplayIndexSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::GetDisplayIndexRequest>
-                    for GetDisplayIndexSvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::GetDisplayIndexRequest>
+                        for GetDisplayIndexSvc<T>
+                    {
                         type Response = super::GetDisplayIndexResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetDisplayIndexRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::get_display_index(&inner, request)
-                                    .await
+                                <T as PlaylistService>::get_display_index(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6157,15 +5264,9 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/Amount" => {
                     #[allow(non_camel_case_types)]
                     struct AmountSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::AmountRequest>
-                    for AmountSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::AmountRequest> for AmountSvc<T> {
                         type Response = super::AmountResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::AmountRequest>,
@@ -6202,23 +5303,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/PlaylistResume" => {
                     #[allow(non_camel_case_types)]
                     struct PlaylistResumeSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::PlaylistResumeRequest>
-                    for PlaylistResumeSvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::PlaylistResumeRequest>
+                        for PlaylistResumeSvc<T>
+                    {
                         type Response = super::PlaylistResumeResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PlaylistResumeRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::playlist_resume(&inner, request)
-                                    .await
+                                <T as PlaylistService>::playlist_resume(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6248,15 +5345,11 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/ResumeTrack" => {
                     #[allow(non_camel_case_types)]
                     struct ResumeTrackSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::ResumeTrackRequest>
-                    for ResumeTrackSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::ResumeTrackRequest>
+                        for ResumeTrackSvc<T>
+                    {
                         type Response = super::ResumeTrackResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ResumeTrackRequest>,
@@ -6293,15 +5386,11 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/SetModified" => {
                     #[allow(non_camel_case_types)]
                     struct SetModifiedSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::SetModifiedRequest>
-                    for SetModifiedSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::SetModifiedRequest>
+                        for SetModifiedSvc<T>
+                    {
                         type Response = super::SetModifiedResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SetModifiedRequest>,
@@ -6338,22 +5427,16 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/Start" => {
                     #[allow(non_camel_case_types)]
                     struct StartSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::StartRequest> for StartSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::StartRequest> for StartSvc<T> {
                         type Response = super::StartResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::StartRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as PlaylistService>::start(&inner, request).await
-                            };
+                            let fut =
+                                async move { <T as PlaylistService>::start(&inner, request).await };
                             Box::pin(fut)
                         }
                     }
@@ -6382,22 +5465,16 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/Sync" => {
                     #[allow(non_camel_case_types)]
                     struct SyncSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::SyncRequest> for SyncSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::SyncRequest> for SyncSvc<T> {
                         type Response = super::SyncResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SyncRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as PlaylistService>::sync(&inner, request).await
-                            };
+                            let fut =
+                                async move { <T as PlaylistService>::sync(&inner, request).await };
                             Box::pin(fut)
                         }
                     }
@@ -6426,23 +5503,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/RemoveAllTracks" => {
                     #[allow(non_camel_case_types)]
                     struct RemoveAllTracksSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::RemoveAllTracksRequest>
-                    for RemoveAllTracksSvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::RemoveAllTracksRequest>
+                        for RemoveAllTracksSvc<T>
+                    {
                         type Response = super::RemoveAllTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::RemoveAllTracksRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::remove_all_tracks(&inner, request)
-                                    .await
+                                <T as PlaylistService>::remove_all_tracks(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6472,15 +5545,11 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/RemoveTracks" => {
                     #[allow(non_camel_case_types)]
                     struct RemoveTracksSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::RemoveTracksRequest>
-                    for RemoveTracksSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::RemoveTracksRequest>
+                        for RemoveTracksSvc<T>
+                    {
                         type Response = super::RemoveTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::RemoveTracksRequest>,
@@ -6517,23 +5586,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/CreatePlaylist" => {
                     #[allow(non_camel_case_types)]
                     struct CreatePlaylistSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::CreatePlaylistRequest>
-                    for CreatePlaylistSvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::CreatePlaylistRequest>
+                        for CreatePlaylistSvc<T>
+                    {
                         type Response = super::CreatePlaylistResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::CreatePlaylistRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::create_playlist(&inner, request)
-                                    .await
+                                <T as PlaylistService>::create_playlist(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6563,15 +5628,11 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/InsertTracks" => {
                     #[allow(non_camel_case_types)]
                     struct InsertTracksSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::InsertTracksRequest>
-                    for InsertTracksSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::InsertTracksRequest>
+                        for InsertTracksSvc<T>
+                    {
                         type Response = super::InsertTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::InsertTracksRequest>,
@@ -6608,23 +5669,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/InsertDirectory" => {
                     #[allow(non_camel_case_types)]
                     struct InsertDirectorySvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::InsertDirectoryRequest>
-                    for InsertDirectorySvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::InsertDirectoryRequest>
+                        for InsertDirectorySvc<T>
+                    {
                         type Response = super::InsertDirectoryResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::InsertDirectoryRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::insert_directory(&inner, request)
-                                    .await
+                                <T as PlaylistService>::insert_directory(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6654,23 +5711,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/InsertPlaylist" => {
                     #[allow(non_camel_case_types)]
                     struct InsertPlaylistSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::InsertPlaylistRequest>
-                    for InsertPlaylistSvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::InsertPlaylistRequest>
+                        for InsertPlaylistSvc<T>
+                    {
                         type Response = super::InsertPlaylistResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::InsertPlaylistRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::insert_playlist(&inner, request)
-                                    .await
+                                <T as PlaylistService>::insert_playlist(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6700,15 +5753,11 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/InsertAlbum" => {
                     #[allow(non_camel_case_types)]
                     struct InsertAlbumSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::InsertAlbumRequest>
-                    for InsertAlbumSvc<T> {
+                    impl<T: PlaylistService> tonic::server::UnaryService<super::InsertAlbumRequest>
+                        for InsertAlbumSvc<T>
+                    {
                         type Response = super::InsertAlbumResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::InsertAlbumRequest>,
@@ -6745,26 +5794,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/InsertArtistTracks" => {
                     #[allow(non_camel_case_types)]
                     struct InsertArtistTracksSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::InsertArtistTracksRequest>
-                    for InsertArtistTracksSvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::InsertArtistTracksRequest>
+                        for InsertArtistTracksSvc<T>
+                    {
                         type Response = super::InsertArtistTracksResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::InsertArtistTracksRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::insert_artist_tracks(
-                                        &inner,
-                                        request,
-                                    )
-                                    .await
+                                <T as PlaylistService>::insert_artist_tracks(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6794,23 +5836,19 @@ pub mod playlist_service_server {
                 "/rockbox.v1alpha1.PlaylistService/ShufflePlaylist" => {
                     #[allow(non_camel_case_types)]
                     struct ShufflePlaylistSvc<T: PlaylistService>(pub Arc<T>);
-                    impl<
-                        T: PlaylistService,
-                    > tonic::server::UnaryService<super::ShufflePlaylistRequest>
-                    for ShufflePlaylistSvc<T> {
+                    impl<T: PlaylistService>
+                        tonic::server::UnaryService<super::ShufflePlaylistRequest>
+                        for ShufflePlaylistSvc<T>
+                    {
                         type Response = super::ShufflePlaylistResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ShufflePlaylistRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as PlaylistService>::shuffle_playlist(&inner, request)
-                                    .await
+                                <T as PlaylistService>::shuffle_playlist(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -6837,23 +5875,19 @@ pub mod playlist_service_server {
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
-                        let headers = response.headers_mut();
-                        headers
-                            .insert(
-                                tonic::Status::GRPC_STATUS,
-                                (tonic::Code::Unimplemented as i32).into(),
-                            );
-                        headers
-                            .insert(
-                                http::header::CONTENT_TYPE,
-                                tonic::metadata::GRPC_CONTENT_TYPE,
-                            );
-                        Ok(response)
-                    })
-                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(empty_body());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
             }
         }
     }
@@ -7361,10 +6395,10 @@ pub mod settings_service_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct SettingsServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -7408,9 +6442,8 @@ pub mod settings_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SettingsServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -7448,85 +6481,58 @@ pub mod settings_service_client {
         pub async fn get_settings_list(
             &mut self,
             request: impl tonic::IntoRequest<super::GetSettingsListRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetSettingsListResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetSettingsListResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.SettingsService/GetSettingsList",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.SettingsService",
-                        "GetSettingsList",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SettingsService",
+                "GetSettingsList",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_global_settings(
             &mut self,
             request: impl tonic::IntoRequest<super::GetGlobalSettingsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetGlobalSettingsResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetGlobalSettingsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.SettingsService/GetGlobalSettings",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.SettingsService",
-                        "GetGlobalSettings",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SettingsService",
+                "GetGlobalSettings",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn save_settings(
             &mut self,
             request: impl tonic::IntoRequest<super::SaveSettingsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SaveSettingsResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SaveSettingsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.SettingsService/SaveSettings",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.SettingsService", "SaveSettings"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SettingsService",
+                "SaveSettings",
+            ));
             self.inner.unary(req, path, codec).await
         }
     }
@@ -7538,7 +6544,7 @@ pub mod settings_service_server {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with SettingsServiceServer.
@@ -7547,24 +6553,15 @@ pub mod settings_service_server {
         async fn get_settings_list(
             &self,
             request: tonic::Request<super::GetSettingsListRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetSettingsListResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetSettingsListResponse>, tonic::Status>;
         async fn get_global_settings(
             &self,
             request: tonic::Request<super::GetGlobalSettingsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetGlobalSettingsResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetGlobalSettingsResponse>, tonic::Status>;
         async fn save_settings(
             &self,
             request: tonic::Request<super::SaveSettingsRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SaveSettingsResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SaveSettingsResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct SettingsServiceServer<T> {
@@ -7587,10 +6584,7 @@ pub mod settings_service_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -7645,23 +6639,19 @@ pub mod settings_service_server {
                 "/rockbox.v1alpha1.SettingsService/GetSettingsList" => {
                     #[allow(non_camel_case_types)]
                     struct GetSettingsListSvc<T: SettingsService>(pub Arc<T>);
-                    impl<
-                        T: SettingsService,
-                    > tonic::server::UnaryService<super::GetSettingsListRequest>
-                    for GetSettingsListSvc<T> {
+                    impl<T: SettingsService>
+                        tonic::server::UnaryService<super::GetSettingsListRequest>
+                        for GetSettingsListSvc<T>
+                    {
                         type Response = super::GetSettingsListResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetSettingsListRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as SettingsService>::get_settings_list(&inner, request)
-                                    .await
+                                <T as SettingsService>::get_settings_list(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -7691,23 +6681,19 @@ pub mod settings_service_server {
                 "/rockbox.v1alpha1.SettingsService/GetGlobalSettings" => {
                     #[allow(non_camel_case_types)]
                     struct GetGlobalSettingsSvc<T: SettingsService>(pub Arc<T>);
-                    impl<
-                        T: SettingsService,
-                    > tonic::server::UnaryService<super::GetGlobalSettingsRequest>
-                    for GetGlobalSettingsSvc<T> {
+                    impl<T: SettingsService>
+                        tonic::server::UnaryService<super::GetGlobalSettingsRequest>
+                        for GetGlobalSettingsSvc<T>
+                    {
                         type Response = super::GetGlobalSettingsResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetGlobalSettingsRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as SettingsService>::get_global_settings(&inner, request)
-                                    .await
+                                <T as SettingsService>::get_global_settings(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -7737,15 +6723,11 @@ pub mod settings_service_server {
                 "/rockbox.v1alpha1.SettingsService/SaveSettings" => {
                     #[allow(non_camel_case_types)]
                     struct SaveSettingsSvc<T: SettingsService>(pub Arc<T>);
-                    impl<
-                        T: SettingsService,
-                    > tonic::server::UnaryService<super::SaveSettingsRequest>
-                    for SaveSettingsSvc<T> {
+                    impl<T: SettingsService> tonic::server::UnaryService<super::SaveSettingsRequest>
+                        for SaveSettingsSvc<T>
+                    {
                         type Response = super::SaveSettingsResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SaveSettingsRequest>,
@@ -7779,23 +6761,19 @@ pub mod settings_service_server {
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
-                        let headers = response.headers_mut();
-                        headers
-                            .insert(
-                                tonic::Status::GRPC_STATUS,
-                                (tonic::Code::Unimplemented as i32).into(),
-                            );
-                        headers
-                            .insert(
-                                http::header::CONTENT_TYPE,
-                                tonic::metadata::GRPC_CONTENT_TYPE,
-                            );
-                        Ok(response)
-                    })
-                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(empty_body());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
             }
         }
     }
@@ -7953,10 +6931,10 @@ pub mod sound_service_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct SoundServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -8000,9 +6978,8 @@ pub mod sound_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SoundServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -8040,48 +7017,31 @@ pub mod sound_service_client {
         pub async fn adjust_volume(
             &mut self,
             request: impl tonic::IntoRequest<super::AdjustVolumeRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::AdjustVolumeResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::AdjustVolumeResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/AdjustVolume",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/AdjustVolume");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.SoundService", "AdjustVolume"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SoundService",
+                "AdjustVolume",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn sound_set(
             &mut self,
             request: impl tonic::IntoRequest<super::SoundSetRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundSetResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SoundSetResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/SoundSet",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/SoundSet");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "SoundSet"));
@@ -8090,74 +7050,49 @@ pub mod sound_service_client {
         pub async fn sound_current(
             &mut self,
             request: impl tonic::IntoRequest<super::SoundCurrentRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundCurrentResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SoundCurrentResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/SoundCurrent",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/SoundCurrent");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.SoundService", "SoundCurrent"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SoundService",
+                "SoundCurrent",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn sound_default(
             &mut self,
             request: impl tonic::IntoRequest<super::SoundDefaultRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundDefaultResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SoundDefaultResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/SoundDefault",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/SoundDefault");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.SoundService", "SoundDefault"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SoundService",
+                "SoundDefault",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn sound_min(
             &mut self,
             request: impl tonic::IntoRequest<super::SoundMinRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundMinResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SoundMinResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/SoundMin",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/SoundMin");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "SoundMin"));
@@ -8166,22 +7101,13 @@ pub mod sound_service_client {
         pub async fn sound_max(
             &mut self,
             request: impl tonic::IntoRequest<super::SoundMaxRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundMaxResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SoundMaxResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/SoundMax",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/SoundMax");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "SoundMax"));
@@ -8190,72 +7116,49 @@ pub mod sound_service_client {
         pub async fn sound_unit(
             &mut self,
             request: impl tonic::IntoRequest<super::SoundUnitRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundUnitResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SoundUnitResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/SoundUnit",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/SoundUnit");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "SoundUnit"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SoundService",
+                "SoundUnit",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn sound_val2_phys(
             &mut self,
             request: impl tonic::IntoRequest<super::SoundVal2PhysRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundVal2PhysResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SoundVal2PhysResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.SoundService/SoundVal2Phys",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.SoundService", "SoundVal2Phys"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SoundService",
+                "SoundVal2Phys",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_pitch(
             &mut self,
             request: impl tonic::IntoRequest<super::GetPitchRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetPitchResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetPitchResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/GetPitch",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/GetPitch");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "GetPitch"));
@@ -8264,22 +7167,13 @@ pub mod sound_service_client {
         pub async fn set_pitch(
             &mut self,
             request: impl tonic::IntoRequest<super::SetPitchRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SetPitchResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SetPitchResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/SetPitch",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/SetPitch");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "SetPitch"));
@@ -8288,22 +7182,13 @@ pub mod sound_service_client {
         pub async fn beep_play(
             &mut self,
             request: impl tonic::IntoRequest<super::BeepPlayRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::BeepPlayResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::BeepPlayResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/BeepPlay",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/BeepPlay");
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "BeepPlay"));
@@ -8312,106 +7197,76 @@ pub mod sound_service_client {
         pub async fn pcmbuf_fade(
             &mut self,
             request: impl tonic::IntoRequest<super::PcmbufFadeRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PcmbufFadeResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PcmbufFadeResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rockbox.v1alpha1.SoundService/PcmbufFade",
-            );
+            let path =
+                http::uri::PathAndQuery::from_static("/rockbox.v1alpha1.SoundService/PcmbufFade");
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(GrpcMethod::new("rockbox.v1alpha1.SoundService", "PcmbufFade"));
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SoundService",
+                "PcmbufFade",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn pcmbuf_set_low_latency(
             &mut self,
             request: impl tonic::IntoRequest<super::PcmbufSetLowLatencyRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PcmbufSetLowLatencyResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::PcmbufSetLowLatencyResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.SoundService/PcmbufSetLowLatency",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.SoundService",
-                        "PcmbufSetLowLatency",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SoundService",
+                "PcmbufSetLowLatency",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn system_sound_play(
             &mut self,
             request: impl tonic::IntoRequest<super::SystemSoundPlayRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SystemSoundPlayResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::SystemSoundPlayResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.SoundService/SystemSoundPlay",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.SoundService", "SystemSoundPlay"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SoundService",
+                "SystemSoundPlay",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn keyclick_click(
             &mut self,
             request: impl tonic::IntoRequest<super::KeyclickClickRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::KeyclickClickResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::KeyclickClickResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.SoundService/KeyclickClick",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.SoundService", "KeyclickClick"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SoundService",
+                "KeyclickClick",
+            ));
             self.inner.unary(req, path, codec).await
         }
     }
@@ -8423,7 +7278,7 @@ pub mod sound_service_server {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with SoundServiceServer.
@@ -8432,108 +7287,63 @@ pub mod sound_service_server {
         async fn adjust_volume(
             &self,
             request: tonic::Request<super::AdjustVolumeRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::AdjustVolumeResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::AdjustVolumeResponse>, tonic::Status>;
         async fn sound_set(
             &self,
             request: tonic::Request<super::SoundSetRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundSetResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SoundSetResponse>, tonic::Status>;
         async fn sound_current(
             &self,
             request: tonic::Request<super::SoundCurrentRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundCurrentResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SoundCurrentResponse>, tonic::Status>;
         async fn sound_default(
             &self,
             request: tonic::Request<super::SoundDefaultRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundDefaultResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SoundDefaultResponse>, tonic::Status>;
         async fn sound_min(
             &self,
             request: tonic::Request<super::SoundMinRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundMinResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SoundMinResponse>, tonic::Status>;
         async fn sound_max(
             &self,
             request: tonic::Request<super::SoundMaxRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundMaxResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SoundMaxResponse>, tonic::Status>;
         async fn sound_unit(
             &self,
             request: tonic::Request<super::SoundUnitRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundUnitResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SoundUnitResponse>, tonic::Status>;
         async fn sound_val2_phys(
             &self,
             request: tonic::Request<super::SoundVal2PhysRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SoundVal2PhysResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SoundVal2PhysResponse>, tonic::Status>;
         async fn get_pitch(
             &self,
             request: tonic::Request<super::GetPitchRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetPitchResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetPitchResponse>, tonic::Status>;
         async fn set_pitch(
             &self,
             request: tonic::Request<super::SetPitchRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SetPitchResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SetPitchResponse>, tonic::Status>;
         async fn beep_play(
             &self,
             request: tonic::Request<super::BeepPlayRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::BeepPlayResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::BeepPlayResponse>, tonic::Status>;
         async fn pcmbuf_fade(
             &self,
             request: tonic::Request<super::PcmbufFadeRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PcmbufFadeResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PcmbufFadeResponse>, tonic::Status>;
         async fn pcmbuf_set_low_latency(
             &self,
             request: tonic::Request<super::PcmbufSetLowLatencyRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::PcmbufSetLowLatencyResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::PcmbufSetLowLatencyResponse>, tonic::Status>;
         async fn system_sound_play(
             &self,
             request: tonic::Request<super::SystemSoundPlayRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::SystemSoundPlayResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SystemSoundPlayResponse>, tonic::Status>;
         async fn keyclick_click(
             &self,
             request: tonic::Request<super::KeyclickClickRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::KeyclickClickResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::KeyclickClickResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct SoundServiceServer<T> {
@@ -8556,10 +7366,7 @@ pub mod sound_service_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -8614,15 +7421,11 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/AdjustVolume" => {
                     #[allow(non_camel_case_types)]
                     struct AdjustVolumeSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::AdjustVolumeRequest>
-                    for AdjustVolumeSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::AdjustVolumeRequest>
+                        for AdjustVolumeSvc<T>
+                    {
                         type Response = super::AdjustVolumeResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::AdjustVolumeRequest>,
@@ -8659,15 +7462,9 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/SoundSet" => {
                     #[allow(non_camel_case_types)]
                     struct SoundSetSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::SoundSetRequest>
-                    for SoundSetSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::SoundSetRequest> for SoundSetSvc<T> {
                         type Response = super::SoundSetResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SoundSetRequest>,
@@ -8704,15 +7501,11 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/SoundCurrent" => {
                     #[allow(non_camel_case_types)]
                     struct SoundCurrentSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::SoundCurrentRequest>
-                    for SoundCurrentSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::SoundCurrentRequest>
+                        for SoundCurrentSvc<T>
+                    {
                         type Response = super::SoundCurrentResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SoundCurrentRequest>,
@@ -8749,15 +7542,11 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/SoundDefault" => {
                     #[allow(non_camel_case_types)]
                     struct SoundDefaultSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::SoundDefaultRequest>
-                    for SoundDefaultSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::SoundDefaultRequest>
+                        for SoundDefaultSvc<T>
+                    {
                         type Response = super::SoundDefaultResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SoundDefaultRequest>,
@@ -8794,15 +7583,9 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/SoundMin" => {
                     #[allow(non_camel_case_types)]
                     struct SoundMinSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::SoundMinRequest>
-                    for SoundMinSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::SoundMinRequest> for SoundMinSvc<T> {
                         type Response = super::SoundMinResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SoundMinRequest>,
@@ -8839,15 +7622,9 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/SoundMax" => {
                     #[allow(non_camel_case_types)]
                     struct SoundMaxSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::SoundMaxRequest>
-                    for SoundMaxSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::SoundMaxRequest> for SoundMaxSvc<T> {
                         type Response = super::SoundMaxResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SoundMaxRequest>,
@@ -8884,15 +7661,9 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/SoundUnit" => {
                     #[allow(non_camel_case_types)]
                     struct SoundUnitSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::SoundUnitRequest>
-                    for SoundUnitSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::SoundUnitRequest> for SoundUnitSvc<T> {
                         type Response = super::SoundUnitResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SoundUnitRequest>,
@@ -8929,15 +7700,11 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/SoundVal2Phys" => {
                     #[allow(non_camel_case_types)]
                     struct SoundVal2PhysSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::SoundVal2PhysRequest>
-                    for SoundVal2PhysSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::SoundVal2PhysRequest>
+                        for SoundVal2PhysSvc<T>
+                    {
                         type Response = super::SoundVal2PhysResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SoundVal2PhysRequest>,
@@ -8974,15 +7741,9 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/GetPitch" => {
                     #[allow(non_camel_case_types)]
                     struct GetPitchSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::GetPitchRequest>
-                    for GetPitchSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::GetPitchRequest> for GetPitchSvc<T> {
                         type Response = super::GetPitchResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetPitchRequest>,
@@ -9019,15 +7780,9 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/SetPitch" => {
                     #[allow(non_camel_case_types)]
                     struct SetPitchSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::SetPitchRequest>
-                    for SetPitchSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::SetPitchRequest> for SetPitchSvc<T> {
                         type Response = super::SetPitchResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SetPitchRequest>,
@@ -9064,15 +7819,9 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/BeepPlay" => {
                     #[allow(non_camel_case_types)]
                     struct BeepPlaySvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::BeepPlayRequest>
-                    for BeepPlaySvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::BeepPlayRequest> for BeepPlaySvc<T> {
                         type Response = super::BeepPlayResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::BeepPlayRequest>,
@@ -9109,15 +7858,9 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/PcmbufFade" => {
                     #[allow(non_camel_case_types)]
                     struct PcmbufFadeSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::PcmbufFadeRequest>
-                    for PcmbufFadeSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::PcmbufFadeRequest> for PcmbufFadeSvc<T> {
                         type Response = super::PcmbufFadeResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PcmbufFadeRequest>,
@@ -9154,23 +7897,19 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/PcmbufSetLowLatency" => {
                     #[allow(non_camel_case_types)]
                     struct PcmbufSetLowLatencySvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::PcmbufSetLowLatencyRequest>
-                    for PcmbufSetLowLatencySvc<T> {
+                    impl<T: SoundService>
+                        tonic::server::UnaryService<super::PcmbufSetLowLatencyRequest>
+                        for PcmbufSetLowLatencySvc<T>
+                    {
                         type Response = super::PcmbufSetLowLatencyResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::PcmbufSetLowLatencyRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as SoundService>::pcmbuf_set_low_latency(&inner, request)
-                                    .await
+                                <T as SoundService>::pcmbuf_set_low_latency(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -9200,23 +7939,18 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/SystemSoundPlay" => {
                     #[allow(non_camel_case_types)]
                     struct SystemSoundPlaySvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::SystemSoundPlayRequest>
-                    for SystemSoundPlaySvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::SystemSoundPlayRequest>
+                        for SystemSoundPlaySvc<T>
+                    {
                         type Response = super::SystemSoundPlayResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::SystemSoundPlayRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as SoundService>::system_sound_play(&inner, request)
-                                    .await
+                                <T as SoundService>::system_sound_play(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -9246,15 +7980,11 @@ pub mod sound_service_server {
                 "/rockbox.v1alpha1.SoundService/KeyclickClick" => {
                     #[allow(non_camel_case_types)]
                     struct KeyclickClickSvc<T: SoundService>(pub Arc<T>);
-                    impl<
-                        T: SoundService,
-                    > tonic::server::UnaryService<super::KeyclickClickRequest>
-                    for KeyclickClickSvc<T> {
+                    impl<T: SoundService> tonic::server::UnaryService<super::KeyclickClickRequest>
+                        for KeyclickClickSvc<T>
+                    {
                         type Response = super::KeyclickClickResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::KeyclickClickRequest>,
@@ -9288,23 +8018,19 @@ pub mod sound_service_server {
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
-                        let headers = response.headers_mut();
-                        headers
-                            .insert(
-                                tonic::Status::GRPC_STATUS,
-                                (tonic::Code::Unimplemented as i32).into(),
-                            );
-                        headers
-                            .insert(
-                                http::header::CONTENT_TYPE,
-                                tonic::metadata::GRPC_CONTENT_TYPE,
-                            );
-                        Ok(response)
-                    })
-                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(empty_body());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
             }
         }
     }
@@ -9365,10 +8091,10 @@ pub mod system_service_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct SystemServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -9412,9 +8138,8 @@ pub mod system_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             SystemServiceClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -9452,56 +8177,39 @@ pub mod system_service_client {
         pub async fn get_rockbox_version(
             &mut self,
             request: impl tonic::IntoRequest<super::GetRockboxVersionRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetRockboxVersionResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetRockboxVersionResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.SystemService/GetRockboxVersion",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "rockbox.v1alpha1.SystemService",
-                        "GetRockboxVersion",
-                    ),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SystemService",
+                "GetRockboxVersion",
+            ));
             self.inner.unary(req, path, codec).await
         }
         pub async fn get_global_status(
             &mut self,
             request: impl tonic::IntoRequest<super::GetGlobalStatusRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetGlobalStatusResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::unknown(
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> std::result::Result<tonic::Response<super::GetGlobalStatusResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/rockbox.v1alpha1.SystemService/GetGlobalStatus",
             );
             let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new("rockbox.v1alpha1.SystemService", "GetGlobalStatus"),
-                );
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.SystemService",
+                "GetGlobalStatus",
+            ));
             self.inner.unary(req, path, codec).await
         }
     }
@@ -9513,7 +8221,7 @@ pub mod system_service_server {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value,
+        clippy::let_unit_value
     )]
     use tonic::codegen::*;
     /// Generated trait containing gRPC methods that should be implemented for use with SystemServiceServer.
@@ -9522,17 +8230,11 @@ pub mod system_service_server {
         async fn get_rockbox_version(
             &self,
             request: tonic::Request<super::GetRockboxVersionRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetRockboxVersionResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetRockboxVersionResponse>, tonic::Status>;
         async fn get_global_status(
             &self,
             request: tonic::Request<super::GetGlobalStatusRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetGlobalStatusResponse>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::GetGlobalStatusResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct SystemServiceServer<T> {
@@ -9555,10 +8257,7 @@ pub mod system_service_server {
                 max_encoding_message_size: None,
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
@@ -9613,23 +8312,19 @@ pub mod system_service_server {
                 "/rockbox.v1alpha1.SystemService/GetRockboxVersion" => {
                     #[allow(non_camel_case_types)]
                     struct GetRockboxVersionSvc<T: SystemService>(pub Arc<T>);
-                    impl<
-                        T: SystemService,
-                    > tonic::server::UnaryService<super::GetRockboxVersionRequest>
-                    for GetRockboxVersionSvc<T> {
+                    impl<T: SystemService>
+                        tonic::server::UnaryService<super::GetRockboxVersionRequest>
+                        for GetRockboxVersionSvc<T>
+                    {
                         type Response = super::GetRockboxVersionResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetRockboxVersionRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as SystemService>::get_rockbox_version(&inner, request)
-                                    .await
+                                <T as SystemService>::get_rockbox_version(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -9659,23 +8354,19 @@ pub mod system_service_server {
                 "/rockbox.v1alpha1.SystemService/GetGlobalStatus" => {
                     #[allow(non_camel_case_types)]
                     struct GetGlobalStatusSvc<T: SystemService>(pub Arc<T>);
-                    impl<
-                        T: SystemService,
-                    > tonic::server::UnaryService<super::GetGlobalStatusRequest>
-                    for GetGlobalStatusSvc<T> {
+                    impl<T: SystemService>
+                        tonic::server::UnaryService<super::GetGlobalStatusRequest>
+                        for GetGlobalStatusSvc<T>
+                    {
                         type Response = super::GetGlobalStatusResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::GetGlobalStatusRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as SystemService>::get_global_status(&inner, request)
-                                    .await
+                                <T as SystemService>::get_global_status(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -9702,23 +8393,19 @@ pub mod system_service_server {
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        let mut response = http::Response::new(empty_body());
-                        let headers = response.headers_mut();
-                        headers
-                            .insert(
-                                tonic::Status::GRPC_STATUS,
-                                (tonic::Code::Unimplemented as i32).into(),
-                            );
-                        headers
-                            .insert(
-                                http::header::CONTENT_TYPE,
-                                tonic::metadata::GRPC_CONTENT_TYPE,
-                            );
-                        Ok(response)
-                    })
-                }
+                _ => Box::pin(async move {
+                    let mut response = http::Response::new(empty_body());
+                    let headers = response.headers_mut();
+                    headers.insert(
+                        tonic::Status::GRPC_STATUS,
+                        (tonic::Code::Unimplemented as i32).into(),
+                    );
+                    headers.insert(
+                        http::header::CONTENT_TYPE,
+                        tonic::metadata::GRPC_CONTENT_TYPE,
+                    );
+                    Ok(response)
+                }),
             }
         }
     }
