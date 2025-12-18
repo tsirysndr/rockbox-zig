@@ -230,6 +230,24 @@ struct Rockbox_V1alpha1_Album: Sendable {
 
   var artistID: String = String()
 
+  var label: String {
+    get {return _label ?? String()}
+    set {_label = newValue}
+  }
+  /// Returns true if `label` has been explicitly set.
+  var hasLabel: Bool {return self._label != nil}
+  /// Clears the value of `label`. Subsequent reads from it will return its default value.
+  mutating func clearLabel() {self._label = nil}
+
+  var copyrightMessage: String {
+    get {return _copyrightMessage ?? String()}
+    set {_copyrightMessage = newValue}
+  }
+  /// Returns true if `copyrightMessage` has been explicitly set.
+  var hasCopyrightMessage: Bool {return self._copyrightMessage != nil}
+  /// Clears the value of `copyrightMessage`. Subsequent reads from it will return its default value.
+  mutating func clearCopyrightMessage() {self._copyrightMessage = nil}
+
   var tracks: [Rockbox_V1alpha1_Track] = []
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -237,6 +255,8 @@ struct Rockbox_V1alpha1_Album: Sendable {
   init() {}
 
   fileprivate var _albumArt: String? = nil
+  fileprivate var _label: String? = nil
+  fileprivate var _copyrightMessage: String? = nil
 }
 
 struct Rockbox_V1alpha1_GetAlbumRequest: Sendable {
@@ -884,7 +904,7 @@ extension Rockbox_V1alpha1_Artist: SwiftProtobuf.Message, SwiftProtobuf._Message
 
 extension Rockbox_V1alpha1_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".Album"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}title\0\u{1}artist\0\u{1}year\0\u{3}year_string\0\u{3}album_art\0\u{1}md5\0\u{3}artist_id\0\u{1}tracks\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}title\0\u{1}artist\0\u{1}year\0\u{3}year_string\0\u{3}album_art\0\u{1}md5\0\u{3}artist_id\0\u{1}label\0\u{3}copyright_message\0\u{1}tracks\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -900,7 +920,9 @@ extension Rockbox_V1alpha1_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       case 6: try { try decoder.decodeSingularStringField(value: &self._albumArt) }()
       case 7: try { try decoder.decodeSingularStringField(value: &self.md5) }()
       case 8: try { try decoder.decodeSingularStringField(value: &self.artistID) }()
-      case 9: try { try decoder.decodeRepeatedMessageField(value: &self.tracks) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self._label) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self._copyrightMessage) }()
+      case 11: try { try decoder.decodeRepeatedMessageField(value: &self.tracks) }()
       default: break
       }
     }
@@ -935,8 +957,14 @@ extension Rockbox_V1alpha1_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if !self.artistID.isEmpty {
       try visitor.visitSingularStringField(value: self.artistID, fieldNumber: 8)
     }
+    try { if let v = self._label {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 9)
+    } }()
+    try { if let v = self._copyrightMessage {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 10)
+    } }()
     if !self.tracks.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.tracks, fieldNumber: 9)
+      try visitor.visitRepeatedMessageField(value: self.tracks, fieldNumber: 11)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -950,6 +978,8 @@ extension Rockbox_V1alpha1_Album: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if lhs._albumArt != rhs._albumArt {return false}
     if lhs.md5 != rhs.md5 {return false}
     if lhs.artistID != rhs.artistID {return false}
+    if lhs._label != rhs._label {return false}
+    if lhs._copyrightMessage != rhs._copyrightMessage {return false}
     if lhs.tracks != rhs.tracks {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

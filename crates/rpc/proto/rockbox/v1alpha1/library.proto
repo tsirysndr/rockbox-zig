@@ -46,7 +46,9 @@ message Album {
   optional string album_art = 6;
   string md5 = 7;
   string artist_id = 8;
-  repeated Track tracks = 9;
+  optional string label = 9;
+  optional string copyright_message = 10;
+  repeated Track tracks = 11;
 }
 
 message GetAlbumRequest {

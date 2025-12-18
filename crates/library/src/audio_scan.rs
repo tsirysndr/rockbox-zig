@@ -1,8 +1,10 @@
 use crate::album_art::extract_and_save_album_cover;
+use crate::copyright_message::extract_copyright_message;
 use crate::entity::album::Album;
 use crate::entity::album_tracks::AlbumTracks;
 use crate::entity::artist::Artist;
 use crate::entity::artist_tracks::ArtistTracks;
+use crate::label::extract_label;
 use crate::{entity::track::Track, repo};
 use anyhow::Error;
 use chrono::Utc;
@@ -116,6 +118,8 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
             album_art: album_art.clone(),
             md5: album_md5,
             artist_id: artist_id.clone(),
+            label: extract_label(&entry.path)?,
+            copyright_message: extract_copyright_message(&entry.path)?,
         },
     )
     .await?;

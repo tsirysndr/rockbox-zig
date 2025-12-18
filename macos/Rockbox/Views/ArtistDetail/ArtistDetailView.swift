@@ -68,6 +68,8 @@ struct ArtistDetailView: View {
                         year: Int(album.year),
                         color: .gray.opacity(0.3),
                         cover: "http://localhost:6062/covers/" + album.albumArt,
+                        releaseDate: album.yearString,
+                        copyrightMessage: album.copyrightMessage,
                         tracks: []
                     ))
                 }

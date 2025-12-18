@@ -13,6 +13,7 @@ pub struct Album {
     pub album_art: Option<String>,
     pub md5: String,
     pub artist_id: String,
+    pub label: Option<String>,
 }
 
 impl Indexable for Album {
@@ -83,6 +84,7 @@ impl From<entity::album::Album> for Album {
             album_art: album.album_art,
             md5: album.md5,
             artist_id: album.artist_id,
+            label: None,
         }
     }
 }
@@ -154,6 +156,7 @@ impl From<TantivyDocument> for Album {
             album_art,
             md5,
             artist_id,
+            label: None,
         }
     }
 }

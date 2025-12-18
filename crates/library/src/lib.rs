@@ -4,7 +4,9 @@ use sqlx::{sqlite::SqliteConnectOptions, Error, Executor, Pool, Sqlite, SqlitePo
 
 pub mod album_art;
 pub mod audio_scan;
+pub mod copyright_message;
 pub mod entity;
+pub mod label;
 pub mod repo;
 
 pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
@@ -41,6 +43,25 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
     {
         Ok(_) => {}
         Err(_) => println!("album_id column already exists"),
+    }
+    match pool
+        .execute(include_str!(
+            "../migrations/20251218042124_add_album_label.sql"
+        ))
+        .await
+    {
+        Ok(_) => {}
+        Err(_) => println!("label column already exists"),
+    }
+
+    match pool
+        .execute(include_str!(
+            "../migrations/20251218044147_add_album_copyright_message.sql"
+        ))
+        .await
+    {
+        Ok(_) => {}
+        Err(_) => println!("copyright_message column already exists"),
     }
 
     sqlx::query("PRAGMA journal_mode=WAL")

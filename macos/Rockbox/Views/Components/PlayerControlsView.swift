@@ -11,7 +11,7 @@ struct PlayerControlsView: View {
     @EnvironmentObject var player: PlayerState
     @State private var isHoveringProgress = false
     @State private var isHoveringTrackInfo = false
-    @State private var isCurrentTrackLiked = false
+    @ObservedObject var library: MusicLibrary
     
     var body: some View {
         HStack(spacing: 0) {
@@ -87,15 +87,14 @@ struct PlayerControlsView: View {
                         // Heart button (shows on hover or when liked)
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.2)) {
-                                isCurrentTrackLiked.toggle()
-                            }
+                                library.toggleLike(player.currentTrack)                            }
                         }) {
-                            Image(systemName: isCurrentTrackLiked ? "heart.fill" : "heart")
+                            Image(systemName: library.isLiked(player.currentTrack) ? "heart.fill" : "heart")
                                 .font(.system(size: 12))
-                                .foregroundStyle(isCurrentTrackLiked ? Color(hex: "fe09a3") : .secondary)
+                                .foregroundStyle(library.isLiked(player.currentTrack) ? Color(hex: "fe09a3") : .secondary)
                         }
                         .buttonStyle(.plain)
-                        .opacity(isHoveringTrackInfo || isCurrentTrackLiked ? 1 : 0)
+                        .opacity(isHoveringTrackInfo || library.isLiked(player.currentTrack) ? 1 : 0)
                         
                         Spacer()
                     }

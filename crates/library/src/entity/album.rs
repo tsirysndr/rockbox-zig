@@ -11,4 +11,6 @@ pub struct Album {
     pub album_art: Option<String>,
     pub md5: String,
     pub artist_id: String,
+    pub label: Option<String>,
+    pub copyright_message: Option<String>,
 }

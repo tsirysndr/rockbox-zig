@@ -70,6 +70,18 @@ struct AlbumDetailView: View {
                 }
                 .padding(.top, hasMultipleDiscs ? 0 : 20)
                 .padding(.bottom, 50)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(album.releaseDate != nil ?  formatReleaseDate(album.releaseDate.unsafelyUnwrapped): String())
+                        .foregroundStyle(.secondary)
+                    
+                    Text(album.copyrightMessage ?? String())
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .padding(.bottom, 30)
+                .padding(.leading, 8)
             }
         }
         .task {
@@ -97,5 +109,19 @@ struct AlbumDetailView: View {
         } message: {
             Text(errorText ?? "")
         }
+    }
+    
+    private func formatReleaseDate(_ dateString: String?) -> String {
+        guard let dateString = dateString else { return "" }
+        
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "yyyy-MM-dd"
+        
+        guard let date = inputFormatter.date(from: dateString) else { return dateString }
+        
+        let outputFormatter = DateFormatter()
+        outputFormatter.dateStyle = .long
+        
+        return outputFormatter.string(from: date)
     }
 }

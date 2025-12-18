@@ -778,6 +778,8 @@ pub mod api {
                     album_art: album.album_art,
                     md5: album.md5,
                     artist_id: album.artist_id,
+                    label: album.label,
+                    copyright_message: album.copyright_message,
                     tracks: vec![],
                 }
             }
@@ -824,6 +826,8 @@ pub mod api {
                     album_art: album.album_art,
                     md5: album.md5,
                     artist_id: album.artist_id,
+                    label: album.label,
+                    copyright_message: None,
                     tracks: vec![],
                 }
             }
