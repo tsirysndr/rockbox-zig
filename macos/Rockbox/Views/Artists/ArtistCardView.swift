@@ -10,6 +10,7 @@ import SwiftUI
 struct ArtistCardView: View {
     let artist: Artist
     @State private var isHovering = false
+    @State private var errorText: String? = nil
     
     var body: some View {
         VStack(spacing: 8) {
@@ -44,15 +45,25 @@ struct ArtistCardView: View {
                 
                 // Play button on hover
                 if isHovering {
-                    ZStack {
-                        Circle()
-                            .fill(.black.opacity(0.5))
-                            .frame(width: 44, height: 44)
-                        
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(.white)
-                    }
+                    Button(action: {
+                        Task {
+                            do {
+                                try await playArtistTracks(artistID: artist.cuid)
+                            } catch {
+                                errorText = String(describing: error)
+                            }
+                        }
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(.black.opacity(0.5))
+                                .frame(width: 44, height: 44)
+                            
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 18))
+                                .foregroundStyle(.white)
+                        }
+                    }.buttonStyle(.borderless)
                 }
             }
             .onHover { hovering in
