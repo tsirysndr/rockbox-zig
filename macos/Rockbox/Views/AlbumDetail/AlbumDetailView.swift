@@ -53,6 +53,7 @@ struct AlbumDetailView: View {
                                     track: track,
                                     index: track.trackNumber,
                                     isEven: index % 2 == 0,
+                                    albumID: album.cuid,
                                     library: library
                                 )
                             }
@@ -63,6 +64,7 @@ struct AlbumDetailView: View {
                                 track: track,
                                 index: track.trackNumber,
                                 isEven: index % 2 == 0,
+                                albumID: album.cuid,
                                 library: library
                             )
                         }

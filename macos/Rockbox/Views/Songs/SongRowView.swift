@@ -12,6 +12,7 @@ struct SongRowView: View {
     let index: Int
     let isEven: Bool
     var showLike: Bool = false
+    @State private var errorText: String?
     @ObservedObject var library: MusicLibrary
     
     @State private var isHovering = false
@@ -22,10 +23,21 @@ struct SongRowView: View {
             ZStack {
                 Text("\(index)")
                     .opacity(isHovering ? 0 : 1)
-                
-                Image(systemName: "play.fill")
-                    .font(.system(size: 10))
-                    .opacity(isHovering ? 1 : 0)
+                Button(action: {
+                    Task {
+                        do {
+                            try await playAllTrack(position: Int32(index) - 1)
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 10))
+                        .opacity(isHovering ? 1 : 0)
+                }
+                .opacity(isHovering ? 1 : 0)
+                .buttonStyle(.plain)
             }
             .frame(width: 30, alignment: .center)
             

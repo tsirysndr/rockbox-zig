@@ -9,7 +9,10 @@ import SwiftUI
 
 struct ArtistAlbumCardView: View {
     let album: Album
+    var onSelect: () -> Void
+
     @State private var isHovering = false
+    @State private var errorText: String?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -39,19 +42,33 @@ struct ArtistAlbumCardView: View {
                         }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 5))
+                    .onTapGesture {
+                        onSelect()
+                    }
+
               
                 
                 // Play button on hover
                 if isHovering {
-                    ZStack {
-                        Circle()
-                            .fill(.black.opacity(0.5))
-                            .frame(width: 36, height: 36)
-                        
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.white)
-                    }
+                    Button(action: {
+                        Task {
+                            do {
+                                try await playAlbum(albumID: album.cuid)
+                            } catch {
+                                errorText = String(describing: error)
+                            }
+                        }
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(.black.opacity(0.5))
+                                .frame(width: 36, height: 36)
+                            
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.white)
+                        }
+                    }.buttonStyle(.borderless)
                 }
             }
             .onHover { hovering in
@@ -70,6 +87,10 @@ struct ArtistAlbumCardView: View {
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }
+            .onTapGesture {
+                onSelect()
+            }
+
         }
         .contentShape(Rectangle())
     }

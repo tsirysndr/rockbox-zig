@@ -10,6 +10,9 @@ import SwiftUI
 struct AlbumCardView: View {
     let album: Album
     @State private var isHovering = false
+    @State private var isHoveringPlayButton = false  // Track play button hover
+    @State private var errorText: String?
+    var onSelect: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -39,19 +42,31 @@ struct AlbumCardView: View {
                         }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 5))
-              
-                
-                // Play button on hover
-                if isHovering {
-                    ZStack {
-                        Circle()
-                            .fill(.black.opacity(0.5))
-                            .frame(width: 44, height: 44)
-                        
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(.white)
+                    .onTapGesture {
+                        onSelect()  // Tap on artwork selects album
                     }
+                
+                if isHovering {
+                    Button(action: {
+                        Task {
+                            do {
+                                try await playAlbum(albumID: album.cuid)
+                            } catch {
+                                errorText = String(describing: error)
+                            }
+                        }
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(.black.opacity(0.5))
+                                .frame(width: 44, height: 44)
+                            
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 18))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .buttonStyle(.borderless)
                 }
             }
             .onHover { hovering in
@@ -60,7 +75,7 @@ struct AlbumCardView: View {
                 }
             }
             
-            // Album info
+            // Album info - tapping here also selects
             VStack(alignment: .leading, spacing: 2) {
                 Text(album.title)
                     .font(.system(size: 12, weight: .medium))
@@ -71,8 +86,14 @@ struct AlbumCardView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
+            .onTapGesture {
+                onSelect()
+            }
         }
-        .contentShape(Rectangle())
+        .alert("gRPC Error", isPresented: .constant(errorText != nil)) {
+            Button("OK") { errorText = nil }
+        } message: {
+            Text(errorText ?? "")
+        }
     }
 }
-

@@ -12,6 +12,7 @@ struct AlbumHeaderView: View {
     let totalDuration: TimeInterval
     let trackCount: Int
     var onBack: () -> Void
+    @State private var errorText: String?
     
     var body: some View {
         HStack(alignment: .top, spacing: 24) {
@@ -74,7 +75,15 @@ struct AlbumHeaderView: View {
                 
                 // Action buttons
                 HStack(spacing: 12) {
-                    Button(action: { /* play */ }) {
+                    Button(action: {
+                        Task {
+                            do {
+                                try await playAlbum(albumID: album.cuid)
+                            } catch {
+                                errorText = String(describing: error)
+                            }
+                        }
+                    }) {
                         HStack(spacing: 6) {
                             Image(systemName: "play.fill")
                                 .font(.system(size: 12))
@@ -89,7 +98,14 @@ struct AlbumHeaderView: View {
                     }
                     .buttonStyle(.plain)
                     
-                    Button(action: { /* shuffle */ }) {
+                    Button(action: {
+                        Task {
+                        do {
+                            try await playAlbum(albumID: album.cuid, shuffle: true)
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    } }) {
                         HStack(spacing: 6) {
                             Image(systemName: "shuffle")
                                 .font(.system(size: 12))

@@ -11,6 +11,8 @@ struct AlbumTrackRowView: View {
     let track: Song
     let index: Int
     let isEven: Bool
+    let albumID: String
+    @State private var errorText: String?
     @ObservedObject var library: MusicLibrary
     
     @State private var isHovering = false
@@ -22,9 +24,20 @@ struct AlbumTrackRowView: View {
                 Text("\(index)")
                     .opacity(isHovering ? 0 : 1)
                 
-                Image(systemName: "play.fill")
-                    .font(.system(size: 10))
-                    .opacity(isHovering ? 1 : 0)
+                Button(action: {
+                    Task {
+                        do {
+                            try await playAlbum(albumID: albumID, position: Int32(index) - 1)
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 10))
+                        .opacity(isHovering ? 1 : 0)
+                }
+                .buttonStyle(.plain)
             }
             .frame(width: 30, alignment: .center)
             .foregroundStyle(.secondary)

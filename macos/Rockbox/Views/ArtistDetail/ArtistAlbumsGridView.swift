@@ -18,10 +18,9 @@ struct ArtistAlbumsGridView: View {
     var body: some View {
         LazyVGrid(columns: columns, spacing: 20) {
             ForEach(albums) { album in
-                ArtistAlbumCardView(album: album)
-                    .onTapGesture {
-                        onAlbumSelected(album)
-                    }
+                ArtistAlbumCardView(album: album) {
+                    onAlbumSelected(album)
+                }
             }
         }
         .padding(.horizontal, 24)

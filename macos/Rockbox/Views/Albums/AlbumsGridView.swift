@@ -20,10 +20,9 @@ struct AlbumsGridView: View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 24) {
                 ForEach(albums) { album in
-                    AlbumCardView(album: album)
-                        .onTapGesture {
-                            selectedAlbum = album
-                        }
+                    AlbumCardView(album: album) {
+                        selectedAlbum = album
+                    }
                 }
             }
             .padding(20)

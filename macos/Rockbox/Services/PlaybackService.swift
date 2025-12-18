@@ -129,3 +129,78 @@ func playbackStatusStream() -> AsyncThrowingStream<Rockbox_V1alpha1_StatusRespon
         }
     }
 }
+
+func playAlbum(albumID: String, shuffle: Bool = false, position: Int32 = 0, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+      let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
+      var req = Rockbox_V1alpha1_PlayAlbumRequest()
+      req.albumID = albumID
+      req.shuffle = shuffle
+      req.position = position
+      let _ = try await playback.playAlbum(req)
+  }
+}
+
+func playDirectory(path: String, shuffle: Bool = false, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+      let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
+      var req = Rockbox_V1alpha1_PlayDirectoryRequest()
+      req.path = path
+      req.shuffle = shuffle
+      let _ = try await playback.playDirectory(req)
+  }
+}
+
+func playTrack(path: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+      let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
+      var req = Rockbox_V1alpha1_PlayTrackRequest()
+      req.path = path
+      let _ = try await playback.playTrack(req)
+  }
+}
+
+func playAllTrack(shuffle: Bool = false, position: Int32 = 0, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+      let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
+      var req = Rockbox_V1alpha1_PlayAllTracksRequest()
+      req.shuffle = shuffle
+      req.position = position
+      let _ = try await playback.playAllTracks(req)
+  }
+}
+
+func playArtistTracks(artistID: String, shuffle: Bool = false, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+      let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
+      var req = Rockbox_V1alpha1_PlayArtistTracksRequest()
+      req.shuffle = shuffle
+      req.artistID = artistID
+      let _ = try await playback.playArtistTracks(req)
+  }
+}
