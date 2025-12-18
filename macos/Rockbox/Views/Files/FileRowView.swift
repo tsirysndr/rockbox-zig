@@ -17,10 +17,19 @@ struct FileRowView: View {
         HStack(spacing: 12) {
             // Icon and name
             HStack(spacing: 10) {
-                Image(systemName: file.icon)
-                    .font(.system(size: 20))
-                    .foregroundStyle(file.iconColor)
-                    .frame(width: 28, alignment: .center)
+                ZStack {
+                    Image(systemName: file.icon)
+                        .font(.system(size: 20))
+                        .foregroundStyle(file.iconColor)
+                        .opacity(isHovering ? 0 : 1)
+                    
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 15))
+                        .opacity(isHovering ? 1 : 0)
+                }
+                .frame(width: 30, alignment: .center)
+                .foregroundStyle(.secondary)
+
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(file.name)

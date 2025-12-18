@@ -17,8 +17,14 @@ class MusicLibrary: ObservableObject {
     func toggleLike(_ song: Song) {
         if likedSongIds.contains(song.cuid) {
             likedSongIds.remove(song.cuid)
+            Task {
+                try await unlikeTrack(id: song.cuid)
+            }
         } else {
             likedSongIds.insert(song.cuid)
+            Task {
+                try await likeTrack(id: song.cuid)
+            }
         }
     }
     

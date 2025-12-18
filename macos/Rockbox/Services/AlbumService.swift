@@ -44,4 +44,32 @@ func fetchAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async 
   }
 }
 
+func likeAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+    let library = Rockbox_V1alpha1_LibraryService.Client(wrapping: grpcClient)
 
+    var req = Rockbox_V1alpha1_LikeAlbumRequest()
+    req.id = id
+    let _ = try await library.likeAlbum(req)
+  }
+}
+
+func unlikeAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+    let library = Rockbox_V1alpha1_LibraryService.Client(wrapping: grpcClient)
+
+    var req = Rockbox_V1alpha1_UnlikeAlbumRequest()
+    req.id = id
+    let _ = try await library.unlikeAlbum(req)
+  }
+}
