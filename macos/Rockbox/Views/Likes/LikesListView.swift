@@ -59,7 +59,7 @@ struct LikesListView: View {
                     
                     // Liked song rows
                     ForEach(Array(likedSongs.enumerated()), id: \.element.id) { index, song in
-                        SongRowView(song: song, index: index + 1, isEven: index % 2 == 0, showLike: true, library: library)
+                        SongRowView(song: song, index: index + 1, isEven: index % 2 == 0, showLike: true,  isLikesScreen: true, library: library)
                     }
                 }
             }

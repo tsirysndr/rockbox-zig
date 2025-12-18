@@ -12,6 +12,7 @@ struct SongRowView: View {
     let index: Int
     let isEven: Bool
     var showLike: Bool = false
+    var isLikesScreen: Bool = false
     @State private var errorText: String?
     @ObservedObject var library: MusicLibrary
     
@@ -26,7 +27,11 @@ struct SongRowView: View {
                 Button(action: {
                     Task {
                         do {
-                            try await playAllTrack(position: Int32(index) - 1)
+                            if isLikesScreen {
+                                try await playLikedTracks(position: Int32(index) - 1)
+                                return
+                            }
+                            try await playAllTracks(position: Int32(index) - 1)
                         } catch {
                             errorText = String(describing: error)
                         }
