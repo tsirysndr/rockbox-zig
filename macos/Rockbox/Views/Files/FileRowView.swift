@@ -12,6 +12,7 @@ struct FileRowView: View {
     let isEven: Bool
     
     @State private var isHovering = false
+    @State private var errorText: String? = nil
     
     var body: some View {
         HStack(spacing: 12) {
@@ -23,9 +24,23 @@ struct FileRowView: View {
                         .foregroundStyle(file.iconColor)
                         .opacity(isHovering ? 0 : 1)
                     
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 15))
-                        .opacity(isHovering ? 1 : 0)
+                    Button(action: {
+                        Task {
+                            do {
+                                if file.type == .directory {
+                                    try await playDirectory(path: file.path)
+                                    return
+                                }
+                                try await playTrack(path: file.path)
+                            } catch {
+                                errorText = String(describing: error)
+                            }
+                        }
+                    }) {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 15))
+                            .opacity(isHovering ? 1 : 0)
+                    }.buttonStyle(.plain)
                 }
                 .frame(width: 30, alignment: .center)
                 .foregroundStyle(.secondary)

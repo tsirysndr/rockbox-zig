@@ -437,8 +437,10 @@ impl PlaybackService for Playback {
             }
         }
 
+        tracks.sort();
+
         let body = serde_json::json!({
-            "tracks": tracks,
+            "tracks": tracks
         });
 
         let response = PlayDirectoryResponse::default();
