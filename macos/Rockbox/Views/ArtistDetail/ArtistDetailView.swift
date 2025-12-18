@@ -40,6 +40,7 @@ struct ArtistDetailView: View {
                         ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
                             ArtistTrackRowView(
                                 track: track,
+                                artist: artist,
                                 index: index + 1,
                                 isEven: index % 2 == 0,
                                 library: library

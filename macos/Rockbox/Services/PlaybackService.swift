@@ -216,7 +216,7 @@ func playLikedTracks(shuffle: Bool = false, position: Int32 = 0, host: String = 
   }
 }
 
-func playArtistTracks(artistID: String, shuffle: Bool = false, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+func playArtistTracks(artistID: String, shuffle: Bool = false, position: Int32 = 0, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
@@ -227,6 +227,7 @@ func playArtistTracks(artistID: String, shuffle: Bool = false, host: String = "1
       var req = Rockbox_V1alpha1_PlayArtistTracksRequest()
       req.shuffle = shuffle
       req.artistID = artistID
+      req.position = position
       let _ = try await playback.playArtistTracks(req)
   }
 }

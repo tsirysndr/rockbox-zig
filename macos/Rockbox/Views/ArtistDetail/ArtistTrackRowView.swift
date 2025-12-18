@@ -9,9 +9,11 @@ import SwiftUI
 
 struct ArtistTrackRowView: View {
     let track: Song
+    let artist: Artist
     let index: Int
     let isEven: Bool
     @ObservedObject var library: MusicLibrary
+    @State private var errorText: String? = nil
     
     @State private var isHovering = false
     
@@ -21,10 +23,19 @@ struct ArtistTrackRowView: View {
             ZStack {
                 Text("\(index)")
                     .opacity(isHovering ? 0 : 1)
-                
-                Image(systemName: "play.fill")
-                    .font(.system(size: 10))
-                    .opacity(isHovering ? 1 : 0)
+                Button(action: {
+                    Task {
+                        do {
+                            try await playArtistTracks(artistID: artist.cuid, position: Int32(index) - 1)
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 10))
+                        .opacity(isHovering ? 1 : 0)
+                }.buttonStyle(.plain)
             }
             .frame(width: 30, alignment: .center)
             .foregroundStyle(.secondary)
