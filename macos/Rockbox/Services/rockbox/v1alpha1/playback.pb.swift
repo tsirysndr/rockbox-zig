@@ -44,16 +44,6 @@ struct Rockbox_V1alpha1_PlayResponse: Sendable {
   init() {}
 }
 
-struct Rockbox_V1alpha1_PauseRequest: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  init() {}
-}
-
 struct Rockbox_V1alpha1_PlayOrPauseRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -65,6 +55,16 @@ struct Rockbox_V1alpha1_PlayOrPauseRequest: Sendable {
 }
 
 struct Rockbox_V1alpha1_PlayOrPauseResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Rockbox_V1alpha1_PauseRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -710,7 +710,58 @@ struct Rockbox_V1alpha1_PlayDirectoryRequest: Sendable {
   fileprivate var _position: Int32? = nil
 }
 
+struct Rockbox_V1alpha1_PlayMusicDirectoryRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var shuffle: Bool {
+    get {return _shuffle ?? false}
+    set {_shuffle = newValue}
+  }
+  /// Returns true if `shuffle` has been explicitly set.
+  var hasShuffle: Bool {return self._shuffle != nil}
+  /// Clears the value of `shuffle`. Subsequent reads from it will return its default value.
+  mutating func clearShuffle() {self._shuffle = nil}
+
+  var recurse: Bool {
+    get {return _recurse ?? false}
+    set {_recurse = newValue}
+  }
+  /// Returns true if `recurse` has been explicitly set.
+  var hasRecurse: Bool {return self._recurse != nil}
+  /// Clears the value of `recurse`. Subsequent reads from it will return its default value.
+  mutating func clearRecurse() {self._recurse = nil}
+
+  var position: Int32 {
+    get {return _position ?? 0}
+    set {_position = newValue}
+  }
+  /// Returns true if `position` has been explicitly set.
+  var hasPosition: Bool {return self._position != nil}
+  /// Clears the value of `position`. Subsequent reads from it will return its default value.
+  mutating func clearPosition() {self._position = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _shuffle: Bool? = nil
+  fileprivate var _recurse: Bool? = nil
+  fileprivate var _position: Int32? = nil
+}
+
 struct Rockbox_V1alpha1_PlayDirectoryResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Rockbox_V1alpha1_PlayMusicDirectoryResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -908,25 +959,6 @@ extension Rockbox_V1alpha1_PlayResponse: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
-extension Rockbox_V1alpha1_PauseRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".PauseRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    // Load everything into unknown fields
-    while try decoder.nextFieldNumber() != nil {}
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: Rockbox_V1alpha1_PauseRequest, rhs: Rockbox_V1alpha1_PauseRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Rockbox_V1alpha1_PlayOrPauseRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PlayOrPauseRequest"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap()
@@ -960,6 +992,25 @@ extension Rockbox_V1alpha1_PlayOrPauseResponse: SwiftProtobuf.Message, SwiftProt
   }
 
   static func ==(lhs: Rockbox_V1alpha1_PlayOrPauseResponse, rhs: Rockbox_V1alpha1_PlayOrPauseResponse) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Rockbox_V1alpha1_PauseRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".PauseRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_PauseRequest, rhs: Rockbox_V1alpha1_PauseRequest) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2074,6 +2125,50 @@ extension Rockbox_V1alpha1_PlayDirectoryRequest: SwiftProtobuf.Message, SwiftPro
   }
 }
 
+extension Rockbox_V1alpha1_PlayMusicDirectoryRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".PlayMusicDirectoryRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}shuffle\0\u{1}recurse\0\u{1}position\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self._shuffle) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self._recurse) }()
+      case 3: try { try decoder.decodeSingularInt32Field(value: &self._position) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._shuffle {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._recurse {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._position {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_PlayMusicDirectoryRequest, rhs: Rockbox_V1alpha1_PlayMusicDirectoryRequest) -> Bool {
+    if lhs._shuffle != rhs._shuffle {return false}
+    if lhs._recurse != rhs._recurse {return false}
+    if lhs._position != rhs._position {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Rockbox_V1alpha1_PlayDirectoryResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PlayDirectoryResponse"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap()
@@ -2088,6 +2183,25 @@ extension Rockbox_V1alpha1_PlayDirectoryResponse: SwiftProtobuf.Message, SwiftPr
   }
 
   static func ==(lhs: Rockbox_V1alpha1_PlayDirectoryResponse, rhs: Rockbox_V1alpha1_PlayDirectoryResponse) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Rockbox_V1alpha1_PlayMusicDirectoryResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".PlayMusicDirectoryResponse"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_PlayMusicDirectoryResponse, rhs: Rockbox_V1alpha1_PlayMusicDirectoryResponse) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

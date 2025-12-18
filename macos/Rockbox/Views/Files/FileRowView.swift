@@ -10,6 +10,8 @@ import SwiftUI
 struct FileRowView: View {
     let file: FileItem
     let isEven: Bool
+    let selectedIndex: Int
+    let currentDirectory: String
     
     @State private var isHovering = false
     @State private var errorText: String? = nil
@@ -31,7 +33,7 @@ struct FileRowView: View {
                                     try await playDirectory(path: file.path)
                                     return
                                 }
-                                try await playTrack(path: file.path)
+                                try await playDirectory(path: currentDirectory, position: Int32(selectedIndex))
                             } catch {
                                 errorText = String(describing: error)
                             }

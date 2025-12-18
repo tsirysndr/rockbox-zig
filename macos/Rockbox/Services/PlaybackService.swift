@@ -146,20 +146,31 @@ func playAlbum(albumID: String, shuffle: Bool = false, position: Int32 = 0, host
   }
 }
 
-func playDirectory(path: String, shuffle: Bool = false, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+func playDirectory(path: String, shuffle: Bool = false, position: Int32 = 0, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
       transportSecurity: .plaintext
     )
   ) { grpcClient in
+      if path.isEmpty {
+          let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
+          var req = Rockbox_V1alpha1_PlayMusicDirectoryRequest()
+          req.position = position
+          req.shuffle = shuffle
+          let _ = try await playback.playMusicDirectory(req)
+          return
+      }
       let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
       var req = Rockbox_V1alpha1_PlayDirectoryRequest()
       req.path = path
       req.shuffle = shuffle
+      req.position = position
       let _ = try await playback.playDirectory(req)
   }
 }
+
+
 
 func playTrack(path: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
   try await withGRPCClient(

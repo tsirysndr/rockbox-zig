@@ -9,11 +9,12 @@ message PlayRequest {
 
 message PlayResponse {}
 
-message PauseRequest {}
 
 message PlayOrPauseRequest {}
 
 message PlayOrPauseResponse {}
+
+message PauseRequest {}
 
 message PauseResponse {}
 
@@ -145,7 +146,15 @@ message PlayDirectoryRequest {
   optional int32 position = 4;
 }
 
+message PlayMusicDirectoryRequest {
+  optional bool shuffle = 1;
+  optional bool recurse = 2;
+  optional int32 position = 3;
+}
+
 message PlayDirectoryResponse {}
+
+message PlayMusicDirectoryResponse {}
 
 message PlayTrackRequest {
   string path = 1;
@@ -193,6 +202,7 @@ service PlaybackService {
   rpc PlayArtistTracks(PlayArtistTracksRequest) returns (PlayArtistTracksResponse) {}
   rpc PlayPlaylist(PlayPlaylistRequest) returns (PlayPlaylistResponse) {}
   rpc PlayDirectory(PlayDirectoryRequest) returns (PlayDirectoryResponse) {}
+  rpc PlayMusicDirectory(PlayMusicDirectoryRequest) returns (PlayMusicDirectoryResponse) {}
   rpc PlayTrack(PlayTrackRequest) returns (PlayTrackResponse) {}
   rpc PlayLikedTracks(PlayLikedTracksRequest) returns (PlayLikedTracksResponse) {}
   rpc PlayAllTracks(PlayAllTracksRequest) returns (PlayAllTracksResponse) {}

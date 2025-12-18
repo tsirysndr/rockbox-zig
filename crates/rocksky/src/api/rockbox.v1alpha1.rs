@@ -1811,11 +1811,11 @@ pub struct PlayRequest {
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PlayResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct PauseRequest {}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PlayOrPauseRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PlayOrPauseResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PauseRequest {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PauseResponse {}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
@@ -2008,7 +2008,18 @@ pub struct PlayDirectoryRequest {
     pub position: ::core::option::Option<i32>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PlayMusicDirectoryRequest {
+    #[prost(bool, optional, tag = "1")]
+    pub shuffle: ::core::option::Option<bool>,
+    #[prost(bool, optional, tag = "2")]
+    pub recurse: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "3")]
+    pub position: ::core::option::Option<i32>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct PlayDirectoryResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PlayMusicDirectoryResponse {}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PlayTrackRequest {
     #[prost(string, tag = "1")]
@@ -2434,6 +2445,25 @@ pub mod playback_service_client {
             ));
             self.inner.unary(req, path, codec).await
         }
+        pub async fn play_music_directory(
+            &mut self,
+            request: impl tonic::IntoRequest<super::PlayMusicDirectoryRequest>,
+        ) -> std::result::Result<tonic::Response<super::PlayMusicDirectoryResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.PlaybackService/PlayMusicDirectory",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.PlaybackService",
+                "PlayMusicDirectory",
+            ));
+            self.inner.unary(req, path, codec).await
+        }
         pub async fn play_track(
             &mut self,
             request: impl tonic::IntoRequest<super::PlayTrackRequest>,
@@ -2635,6 +2665,10 @@ pub mod playback_service_server {
             &self,
             request: tonic::Request<super::PlayDirectoryRequest>,
         ) -> std::result::Result<tonic::Response<super::PlayDirectoryResponse>, tonic::Status>;
+        async fn play_music_directory(
+            &self,
+            request: tonic::Request<super::PlayMusicDirectoryRequest>,
+        ) -> std::result::Result<tonic::Response<super::PlayMusicDirectoryResponse>, tonic::Status>;
         async fn play_track(
             &self,
             request: tonic::Request<super::PlayTrackRequest>,
@@ -3415,6 +3449,48 @@ pub mod playback_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = PlayDirectorySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.PlaybackService/PlayMusicDirectory" => {
+                    #[allow(non_camel_case_types)]
+                    struct PlayMusicDirectorySvc<T: PlaybackService>(pub Arc<T>);
+                    impl<T: PlaybackService>
+                        tonic::server::UnaryService<super::PlayMusicDirectoryRequest>
+                        for PlayMusicDirectorySvc<T>
+                    {
+                        type Response = super::PlayMusicDirectoryResponse;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::PlayMusicDirectoryRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PlaybackService>::play_music_directory(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = PlayMusicDirectorySvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

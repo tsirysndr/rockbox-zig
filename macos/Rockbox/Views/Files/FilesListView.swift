@@ -46,7 +46,7 @@ struct FilesListView: View {
                     
                     // File rows
                     ForEach(Array(files.enumerated()), id: \.element.id) { index, file in
-                        FileRowView(file: file, isEven: index % 2 == 0)
+                        FileRowView(file: file, isEven: index % 2 == 0, selectedIndex: index, currentDirectory: currentPath ?? "")
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 if file.type == .directory {

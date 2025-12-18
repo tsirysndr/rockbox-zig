@@ -224,6 +224,18 @@ internal enum Rockbox_V1alpha1_PlaybackService: Sendable {
                 method: "PlayDirectory"
             )
         }
+        /// Namespace for "PlayMusicDirectory" metadata.
+        internal enum PlayMusicDirectory: Sendable {
+            /// Request type for "PlayMusicDirectory".
+            internal typealias Input = Rockbox_V1alpha1_PlayMusicDirectoryRequest
+            /// Response type for "PlayMusicDirectory".
+            internal typealias Output = Rockbox_V1alpha1_PlayMusicDirectoryResponse
+            /// Descriptor for "PlayMusicDirectory".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "rockbox.v1alpha1.PlaybackService"),
+                method: "PlayMusicDirectory"
+            )
+        }
         /// Namespace for "PlayTrack" metadata.
         internal enum PlayTrack: Sendable {
             /// Request type for "PlayTrack".
@@ -315,6 +327,7 @@ internal enum Rockbox_V1alpha1_PlaybackService: Sendable {
             PlayArtistTracks.descriptor,
             PlayPlaylist.descriptor,
             PlayDirectory.descriptor,
+            PlayMusicDirectory.descriptor,
             PlayTrack.descriptor,
             PlayLikedTracks.descriptor,
             PlayAllTracks.descriptor,
@@ -583,6 +596,20 @@ extension Rockbox_V1alpha1_PlaybackService {
             request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_PlayDirectoryRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_PlayDirectoryResponse>
+
+        /// Handle the "PlayMusicDirectory" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_PlayMusicDirectoryRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_PlayMusicDirectoryResponse` messages.
+        func playMusicDirectory(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_PlayMusicDirectoryRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_PlayMusicDirectoryResponse>
 
         /// Handle the "PlayTrack" method.
         ///
@@ -915,6 +942,20 @@ extension Rockbox_V1alpha1_PlaybackService {
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_PlayDirectoryResponse>
 
+        /// Handle the "PlayMusicDirectory" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_PlayMusicDirectoryRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_PlayMusicDirectoryResponse` message.
+        func playMusicDirectory(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_PlayMusicDirectoryRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_PlayMusicDirectoryResponse>
+
         /// Handle the "PlayTrack" method.
         ///
         /// - Parameters:
@@ -1244,6 +1285,20 @@ extension Rockbox_V1alpha1_PlaybackService {
             context: GRPCCore.ServerContext
         ) async throws -> Rockbox_V1alpha1_PlayDirectoryResponse
 
+        /// Handle the "PlayMusicDirectory" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_PlayMusicDirectoryRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_PlayMusicDirectoryResponse` to respond with.
+        func playMusicDirectory(
+            request: Rockbox_V1alpha1_PlayMusicDirectoryRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_PlayMusicDirectoryResponse
+
         /// Handle the "PlayTrack" method.
         ///
         /// - Parameters:
@@ -1525,6 +1580,17 @@ extension Rockbox_V1alpha1_PlaybackService.StreamingServiceProtocol {
             }
         )
         router.registerHandler(
+            forMethod: Rockbox_V1alpha1_PlaybackService.Method.PlayMusicDirectory.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_PlayMusicDirectoryRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_PlayMusicDirectoryResponse>(),
+            handler: { request, context in
+                try await self.playMusicDirectory(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
             forMethod: Rockbox_V1alpha1_PlaybackService.Method.PlayTrack.descriptor,
             deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_PlayTrackRequest>(),
             serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_PlayTrackResponse>(),
@@ -1777,6 +1843,17 @@ extension Rockbox_V1alpha1_PlaybackService.ServiceProtocol {
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_PlayDirectoryResponse> {
         let response = try await self.playDirectory(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func playMusicDirectory(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_PlayMusicDirectoryRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_PlayMusicDirectoryResponse> {
+        let response = try await self.playMusicDirectory(
             request: GRPCCore.ServerRequest(stream: request),
             context: context
         )
@@ -2067,6 +2144,19 @@ extension Rockbox_V1alpha1_PlaybackService.SimpleServiceProtocol {
     ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_PlayDirectoryResponse> {
         return GRPCCore.ServerResponse<Rockbox_V1alpha1_PlayDirectoryResponse>(
             message: try await self.playDirectory(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func playMusicDirectory(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_PlayMusicDirectoryRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_PlayMusicDirectoryResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_PlayMusicDirectoryResponse>(
+            message: try await self.playMusicDirectory(
                 request: request.message,
                 context: context
             ),
@@ -2495,6 +2585,25 @@ extension Rockbox_V1alpha1_PlaybackService {
             deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_PlayDirectoryResponse>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_PlayDirectoryResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "PlayMusicDirectory" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_PlayMusicDirectoryRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_PlayMusicDirectoryRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_PlayMusicDirectoryResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func playMusicDirectory<Result>(
+            request: GRPCCore.ClientRequest<Rockbox_V1alpha1_PlayMusicDirectoryRequest>,
+            serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_PlayMusicDirectoryRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_PlayMusicDirectoryResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_PlayMusicDirectoryResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
 
         /// Call the "PlayTrack" method.
@@ -3138,6 +3247,36 @@ extension Rockbox_V1alpha1_PlaybackService {
             )
         }
 
+        /// Call the "PlayMusicDirectory" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_PlayMusicDirectoryRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_PlayMusicDirectoryRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_PlayMusicDirectoryResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func playMusicDirectory<Result>(
+            request: GRPCCore.ClientRequest<Rockbox_V1alpha1_PlayMusicDirectoryRequest>,
+            serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_PlayMusicDirectoryRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_PlayMusicDirectoryResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_PlayMusicDirectoryResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Rockbox_V1alpha1_PlaybackService.Method.PlayMusicDirectory.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
         /// Call the "PlayTrack" method.
         ///
         /// - Parameters:
@@ -3737,6 +3876,31 @@ extension Rockbox_V1alpha1_PlaybackService.ClientProtocol {
             request: request,
             serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_PlayDirectoryRequest>(),
             deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_PlayDirectoryResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "PlayMusicDirectory" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_PlayMusicDirectoryRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func playMusicDirectory<Result>(
+        request: GRPCCore.ClientRequest<Rockbox_V1alpha1_PlayMusicDirectoryRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_PlayMusicDirectoryResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.playMusicDirectory(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_PlayMusicDirectoryRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_PlayMusicDirectoryResponse>(),
             options: options,
             onResponse: handleResponse
         )
@@ -4377,6 +4541,35 @@ extension Rockbox_V1alpha1_PlaybackService.ClientProtocol {
             metadata: metadata
         )
         return try await self.playDirectory(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "PlayMusicDirectory" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func playMusicDirectory<Result>(
+        _ message: Rockbox_V1alpha1_PlayMusicDirectoryRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_PlayMusicDirectoryResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Rockbox_V1alpha1_PlayMusicDirectoryRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.playMusicDirectory(
             request: request,
             options: options,
             onResponse: handleResponse
