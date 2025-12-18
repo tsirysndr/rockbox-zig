@@ -1,4 +1,5 @@
 use crate::album_art::extract_and_save_album_cover;
+use crate::artists::update_metadata;
 use crate::copyright_message::extract_copyright_message;
 use crate::entity::album::Album;
 use crate::entity::album_tracks::AlbumTracks;
@@ -99,6 +100,7 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
             },
             bio: None,
             image: None,
+            genres: None,
         },
     )
     .await?;

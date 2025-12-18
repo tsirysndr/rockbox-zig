@@ -35,6 +35,7 @@ message Artist {
   optional string image = 4;
   repeated Album albums = 5;
   repeated Track tracks = 6;
+  optional string genres = 7;
 }
 
 message Album {

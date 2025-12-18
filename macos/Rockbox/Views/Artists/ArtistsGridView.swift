@@ -34,7 +34,7 @@ struct ArtistsGridView: View {
                 let data = try await fetchArtists()
                 artists = []
                 for artist in data {
-                    artists.append(Artist(cuid: artist.id, name: artist.name, genre: "", color: .gray.opacity(0.3)))
+                    artists.append(Artist(cuid: artist.id, name: artist.name, image: artist.image, genre: artist.genres, color: .gray.opacity(0.3)))
                 }
                 
             } catch {

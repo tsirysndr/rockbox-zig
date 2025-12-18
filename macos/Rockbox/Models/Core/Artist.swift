@@ -10,6 +10,7 @@ struct Artist: Identifiable {
     let id = UUID()
     let cuid: String
     let name: String
+    let image: String?
     let genre: String
     let color: Color
     

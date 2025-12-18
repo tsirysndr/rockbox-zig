@@ -376,6 +376,8 @@ pub struct Artist {
     pub albums: ::prost::alloc::vec::Vec<Album>,
     #[prost(message, repeated, tag = "6")]
     pub tracks: ::prost::alloc::vec::Vec<Track>,
+    #[prost(string, optional, tag = "7")]
+    pub genres: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Album {

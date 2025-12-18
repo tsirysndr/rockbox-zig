@@ -24,7 +24,7 @@ pub fn extract_copyright_message(track_path: &str) -> Result<Option<String>, Err
 
     let copyright = tag
         .get_string(&lofty::tag::ItemKey::CopyrightMessage)
-        .map(|label| label.to_string());
+        .map(|v| v.to_string());
 
     Ok(copyright)
 }

@@ -110,18 +110,18 @@ let sampleAlbums: [Album] = [
  */
 
 let sampleArtists: [Artist] = [
-    Artist(cuid: "", name: "Queen", genre: "Rock", color: .purple),
-    Artist(cuid: "", name: "Fleetwood Mac", genre: "Rock", color: .blue),
-    Artist(cuid: "", name: "AC/DC", genre: "Hard Rock", color: .black),
-    Artist(cuid: "", name: "Michael Jackson", genre: "Pop", color: .orange),
-    Artist(cuid: "", name: "Pink Floyd", genre: "Progressive Rock", color: .indigo),
-    Artist(cuid: "", name: "The Beatles", genre: "Rock", color: .cyan),
-    Artist(cuid: "", name: "Led Zeppelin", genre: "Hard Rock", color: .brown),
-    Artist(cuid: "", name: "Eagles", genre: "Rock", color: .yellow),
-    Artist(cuid: "", name: "Bruce Springsteen", genre: "Rock", color: .red),
-    Artist(cuid: "", name: "Prince", genre: "Pop", color: .purple),
-    Artist(cuid: "", name: "U2", genre: "Rock", color: .gray),
-    Artist(cuid: "", name: "Nirvana", genre: "Grunge", color: .teal),
+    Artist(cuid: "", name: "Queen", image: nil, genre: "Rock", color: .purple),
+    Artist(cuid: "", name: "Fleetwood Mac", image: nil,  genre: "Rock", color: .blue),
+    Artist(cuid: "", name: "AC/DC",  image: nil, genre: "Hard Rock", color: .black),
+    Artist(cuid: "", name: "Michael Jackson", image: nil,  genre: "Pop", color: .orange),
+    Artist(cuid: "", name: "Pink Floyd",  image: nil, genre: "Progressive Rock", color: .indigo),
+    Artist(cuid: "", name: "The Beatles",  image: nil, genre: "Rock", color: .cyan),
+    Artist(cuid: "", name: "Led Zeppelin", image: nil,  genre: "Hard Rock", color: .brown),
+    Artist(cuid: "", name: "Eagles", image: nil,  genre: "Rock", color: .yellow),
+    Artist(cuid: "", name: "Bruce Springsteen",  image: nil, genre: "Rock", color: .red),
+    Artist(cuid: "", name: "Prince", image: nil,  genre: "Pop", color: .purple),
+    Artist(cuid: "", name: "U2",  image: nil, genre: "Rock", color: .gray),
+    Artist(cuid: "", name: "Nirvana", image: nil,  genre: "Grunge", color: .teal),
 ]
 
 

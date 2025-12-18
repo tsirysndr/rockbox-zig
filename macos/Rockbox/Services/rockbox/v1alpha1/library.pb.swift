@@ -194,12 +194,22 @@ struct Rockbox_V1alpha1_Artist: Sendable {
 
   var tracks: [Rockbox_V1alpha1_Track] = []
 
+  var genres: String {
+    get {return _genres ?? String()}
+    set {_genres = newValue}
+  }
+  /// Returns true if `genres` has been explicitly set.
+  var hasGenres: Bool {return self._genres != nil}
+  /// Clears the value of `genres`. Subsequent reads from it will return its default value.
+  mutating func clearGenres() {self._genres = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
   fileprivate var _bio: String? = nil
   fileprivate var _image: String? = nil
+  fileprivate var _genres: String? = nil
 }
 
 struct Rockbox_V1alpha1_Album: Sendable {
@@ -845,7 +855,7 @@ extension Rockbox_V1alpha1_Track: SwiftProtobuf.Message, SwiftProtobuf._MessageI
 
 extension Rockbox_V1alpha1_Artist: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".Artist"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}name\0\u{1}bio\0\u{1}image\0\u{1}albums\0\u{1}tracks\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}name\0\u{1}bio\0\u{1}image\0\u{1}albums\0\u{1}tracks\0\u{1}genres\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -859,6 +869,7 @@ extension Rockbox_V1alpha1_Artist: SwiftProtobuf.Message, SwiftProtobuf._Message
       case 4: try { try decoder.decodeSingularStringField(value: &self._image) }()
       case 5: try { try decoder.decodeRepeatedMessageField(value: &self.albums) }()
       case 6: try { try decoder.decodeRepeatedMessageField(value: &self.tracks) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self._genres) }()
       default: break
       }
     }
@@ -887,6 +898,9 @@ extension Rockbox_V1alpha1_Artist: SwiftProtobuf.Message, SwiftProtobuf._Message
     if !self.tracks.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.tracks, fieldNumber: 6)
     }
+    try { if let v = self._genres {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 7)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -897,6 +911,7 @@ extension Rockbox_V1alpha1_Artist: SwiftProtobuf.Message, SwiftProtobuf._Message
     if lhs._image != rhs._image {return false}
     if lhs.albums != rhs.albums {return false}
     if lhs.tracks != rhs.tracks {return false}
+    if lhs._genres != rhs._genres {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

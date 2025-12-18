@@ -2,7 +2,7 @@ use std::{env, thread};
 
 use crate::http::{Context, Request, Response};
 use anyhow::Error;
-use rockbox_library::{audio_scan::scan_audio_files, repo};
+use rockbox_library::{artists::update_metadata, audio_scan::scan_audio_files, repo};
 use rockbox_search::{
     album::Album, artist::Artist, delete_all_documents, index_entity, liked_album::LikedAlbum,
     liked_track::LikedTrack, track::Track,
@@ -40,6 +40,8 @@ pub async fn scan_library(ctx: &Context, req: &Request, res: &mut Response) -> R
         res.text("0");
         return Ok(());
     }
+
+    update_metadata(ctx.pool.clone())?;
 
     let tracks = repo::track::all(ctx.pool.clone()).await?;
     let albums = repo::album::all(ctx.pool.clone()).await?;

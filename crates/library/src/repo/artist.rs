@@ -2,10 +2,14 @@ use crate::entity::artist::Artist;
 use sqlx::{Error, Pool, Sqlite};
 
 pub async fn save(pool: Pool<Sqlite>, artist: Artist) -> Result<String, Error> {
+    if artist.name.is_empty() {
+        return Err(Error::ColumnNotFound("name".to_string()));
+    }
+
     match sqlx::query(
         r#"
         INSERT INTO artist (
-          id, 
+          id,
           name,
           bio,
           image
@@ -93,6 +97,69 @@ pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Artist>, Error> {
         Ok(artists) => Ok(artists),
         Err(e) => {
             eprintln!("Error finding artists: {:?}", e);
+            Err(e)
+        }
+    }
+}
+
+pub async fn update_picture(pool: &Pool<Sqlite>, id: &str, picture: &str) -> Result<(), Error> {
+    match sqlx::query(
+        r#"
+        UPDATE artist SET image = $2 WHERE id = $1
+        "#,
+    )
+    .bind(id)
+    .bind(picture)
+    .execute(pool)
+    .await
+    {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            eprintln!("Error updating artist picture: {:?}", e);
+            Err(e)
+        }
+    }
+}
+
+pub async fn update_genres(pool: &Pool<Sqlite>, id: &str, genres: &str) -> Result<(), Error> {
+    match sqlx::query(
+        r#"
+        UPDATE artist SET genres = $2 WHERE id = $1
+        "#,
+    )
+    .bind(id)
+    .bind(genres)
+    .execute(pool)
+    .await
+    {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            eprintln!("Error updating artist genres: {:?}", e);
+            Err(e)
+        }
+    }
+}
+
+pub async fn save_artist_genre(
+    pool: &Pool<Sqlite>,
+    id: &str,
+    artist_id: &str,
+    genre_id: &str,
+) -> Result<(), Error> {
+    match sqlx::query(
+        r#"
+        INSERT OR IGNORE INTO artist_genres (id, artist_id, genre_id) VALUES ($1, $2, $3)
+        "#,
+    )
+    .bind(id)
+    .bind(artist_id)
+    .bind(genre_id)
+    .execute(pool)
+    .await
+    {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            eprintln!("Error saving artist genre: {:?}", e);
             Err(e)
         }
     }

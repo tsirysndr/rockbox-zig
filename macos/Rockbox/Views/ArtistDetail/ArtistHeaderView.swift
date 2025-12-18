@@ -36,11 +36,27 @@ struct ArtistHeaderView: View {
                     .fill(artist.color.gradient)
                     .frame(width: 200, height: 200)
                     .overlay {
-                        Image(systemName: "music.mic")
-                            .font(.system(size: 60))
-                            .foregroundStyle(.white.opacity(0.6))
+                        AsyncImage(url: URL(string: artist.image ?? "")) { phase in
+                            switch phase {
+                            case .empty:
+                                Image(systemName: "music.mic")
+                                    .font(.system(size: 60))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            case .failure:
+                                Image(systemName: "music.mic")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
                     }
-                    .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(artist.image != nil ? 0.0 : 0.2), radius: 10, y: 5)
             }
             
             // Artist info

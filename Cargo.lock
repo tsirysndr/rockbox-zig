@@ -9504,8 +9504,10 @@ dependencies = [
  "lofty",
  "md5",
  "owo-colors 4.1.0",
+ "reqwest",
  "rockbox-sys",
  "serde",
+ "serde_json",
  "sqlx",
  "tokio",
 ]

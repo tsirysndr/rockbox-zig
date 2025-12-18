@@ -763,6 +763,7 @@ pub mod api {
                     image: artist.image,
                     albums: vec![],
                     tracks: vec![],
+                    genres: artist.genres,
                 }
             }
         }
@@ -842,6 +843,7 @@ pub mod api {
                     image: artist.image,
                     albums: vec![],
                     tracks: vec![],
+                    genres: None,
                 }
             }
         }
