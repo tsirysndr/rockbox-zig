@@ -25,7 +25,7 @@ struct ArtistCardView: View {
                             case .empty:
                                 Image(systemName: "music.mic")
                                     .font(.system(size: 40))
-                                    .foregroundStyle(.white.opacity(0.6))
+                                    .foregroundStyle(.white.opacity(0.8))
                             case .success(let image):
                                 image
                                     .resizable()
@@ -33,7 +33,7 @@ struct ArtistCardView: View {
                             case .failure:
                                 Image(systemName: "music.mic")
                                     .font(.system(size: 40))
-                                    .foregroundStyle(.white.opacity(0.6))
+                                    .foregroundStyle(.white.opacity(0.8))
                             @unknown default:
                                 EmptyView()
                             }
