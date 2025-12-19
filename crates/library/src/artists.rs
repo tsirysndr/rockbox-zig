@@ -34,39 +34,30 @@ pub fn update_metadata(pool: Pool<Sqlite>) -> Result<(), Error> {
     thread::spawn(move || {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         let result = runtime.block_on(async {
-            let mut offset = 0;
-            let limit = 500;
-            let mut artist_map: HashMap<String, Artist> = HashMap::new();
-
-            loop {
-                let client = reqwest::Client::new();
-                let response = client
-                    .get(format!(
-                        "{}/xrpc/app.rocksky.artist.getArtists",
-                        ROCKSKY_API
-                    ))
-                    .query(&[("limit", limit), ("offset", offset)])
-                    .send()
-                    .await?;
-                let text = response.text().await?;
-                let response: Artists = serde_json::from_str(&text)?;
-                let artists = response.artists;
-
-                for artist in artists.clone() {
-                    println!("Loading artist: {}", artist.name.bright_green());
-                    artist_map.insert(artist.name.clone(), artist);
-                }
-
-                if artists.is_empty() {
-                    break;
-                }
-
-                offset += limit;
-                println!("Loaded {} artists", offset);
-            }
-
             let artists = repo::artist::all(pool.clone()).await?;
             let artists = artists.into_iter().filter(|v| v.image.is_none());
+            let mut artist_map: HashMap<String, Artist> = HashMap::new();
+            let names = artists.map(|artist| artist.name).collect::<Vec<String>>();
+
+            let client = reqwest::Client::new();
+            let response = client
+                .get(format!(
+                    "{}/xrpc/app.rocksky.artist.getArtists",
+                    ROCKSKY_API
+                ))
+                .query(&[("names", names.join(","))])
+                .send()
+                .await?;
+            let text = response.text().await?;
+            let response: Artists = serde_json::from_str(&text)?;
+            let artists = response.artists;
+
+            for artist in artists.clone() {
+                println!("Loading artist: {}", artist.name.bright_green());
+                artist_map.insert(artist.name.clone(), artist);
+            }
+
+            println!("Loaded {} artists", artists.len());
 
             for artist in artists {
                 println!("Updating artist: {}", artist.name.bright_green());
