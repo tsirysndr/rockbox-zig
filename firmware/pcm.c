@@ -291,6 +291,40 @@ const struct pcm_sink_caps* pcm_current_sink_caps(void)
     return pcm_sink_caps(pcm_current_sink());
 }
 
+bool pcm_switch_sink(enum pcm_sink_ids sink)
+{
+    logf("pcm_switch_sink %d to %d", cur_sink, sink);
+    if(sink >= ARRAYLEN(sinks)) {
+        return false;
+    }
+
+    if(cur_sink == sink) {
+        return true;
+    }
+    /* save current sink before switching */
+    struct pcm_sink* old_sink = sinks[cur_sink];
+    /* update sink index */
+    cur_sink = sink;
+    /* synchronize frequency */
+    unsigned long cur_sampr = old_sink->caps.samprs[old_sink->pending_freq];
+    pcm_set_frequency(cur_sampr);
+    pcm_apply_settings();
+    /* when playing, continue playing on new sink */
+    if(pcm_playing) {
+        old_sink->ops.stop();
+        /* need more */
+        const void *start;
+        size_t size;
+        if(pcm_get_more_int(&start, &size)) {
+            pcm_play_dma_start_int(start, size);
+        } else {
+            pcm_play_stop_int();
+        }
+    }
+
+    return true;
+}
+
 void pcm_play_data(pcm_play_callback_type get_more,
                    pcm_status_callback_type status_cb,
                    const void *start, size_t size)
