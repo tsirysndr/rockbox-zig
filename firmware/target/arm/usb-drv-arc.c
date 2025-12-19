@@ -362,6 +362,7 @@ static const unsigned int pipe2mask[USB_NUM_ENDPOINTS*2] = {
 /*-------------------------------------------------------------------------*/
 static void transfer_completed(void);
 static void control_received(void);
+static void sof_received(void);
 static int prime_transfer(int ep_num, void* ptr, int len, bool send, bool wait);
 static void prepare_td(struct transfer_descriptor* td,
         struct transfer_descriptor* previous_td, void *ptr, int len,int pipe);
@@ -413,6 +414,14 @@ static void usb_drv_reset(void)
     outl(inl(0x70000028) & ~0x800, 0x70000028);
     while ((inl(0x70000028) & 0x80) == 0);
 #endif
+}
+
+static void td_set_buf_ptr(struct transfer_descriptor* td, const void* ptr){
+    td->buff_ptr0 = (unsigned int)ptr;
+    td->buff_ptr1 = ((unsigned int)ptr & 0xfffff000) + 0x1000;
+    td->buff_ptr2 = ((unsigned int)ptr & 0xfffff000) + 0x2000;
+    td->buff_ptr3 = ((unsigned int)ptr & 0xfffff000) + 0x3000;
+    td->buff_ptr4 = ((unsigned int)ptr & 0xfffff000) + 0x4000;
 }
 
 /* One-time driver startup init */
@@ -544,6 +553,12 @@ void usb_drv_int(void)
     if (status & USBSTS_PORT_CHANGE) {
         REG_USBSTS = USBSTS_PORT_CHANGE;
     }
+
+    /* sof */
+    if (status & USBSTS_SOF) {
+        REG_USBSTS = USBSTS_SOF;
+        sof_received();
+    }
 }
 
 bool usb_drv_stalled(int endpoint,bool in)
@@ -662,6 +677,183 @@ void usb_drv_set_test_mode(int mode)
     }
     usb_drv_reset();
     REG_USBCMD |= USBCMD_RUN;
+}
+
+/* batched request api  */
+static struct transfer_descriptor batch_td_array[USB_BATCH_SLOTS] USB_DEVBSS_ATTR __attribute__((aligned(32)));
+
+static uint8_t batch_ep = 0;
+static uint8_t batch_write_cursor;
+static bool batch_stopped;
+static usb_drv_batch_get_more batch_get_more;
+
+static int ep_to_pipe_index(uint8_t ep) {
+    const int ep_num = EP_NUM(ep);
+    const int ep_dir = EP_DIR(ep);
+    const int pipe = ep_num * 2 + (ep_dir == DIR_IN ? 1 : 0);
+    return pipe;
+}
+
+int usb_drv_batch_init(int ep, usb_drv_batch_get_more get_more) {
+    logf("batch init");
+    if(batch_ep != 0) {
+        logf("batch function not available");
+        return -1;
+    }
+    batch_ep = ep;
+    batch_get_more = get_more;
+    return 0;
+}
+
+int usb_drv_batch_deinit() {
+    logf("batch deinit");
+    usb_drv_batch_stop();
+    batch_ep = 0;
+    return 0;
+}
+
+/* returns whether priming is needed */
+static bool batch_fill_tds(void) {
+    while(!(batch_td_array[batch_write_cursor].size_ioc_sts & DTD_STATUS_ACTIVE)) {
+        /* batch_get_more may call batch_stop() through:
+        *  - batch_get_more()
+        *   - pcm_play_dma_complete_callback()
+        *    - sink_stop()
+        *     - usb_drv_batch_stop() */
+        const void* ptr;
+        size_t len;
+        batch_get_more(&ptr, &len);
+        if(len == 0 || batch_stopped) {
+            return false;
+        }
+
+        struct transfer_descriptor* td = &batch_td_array[batch_write_cursor];
+        td_set_buf_ptr(td, ptr);
+        td->size_ioc_sts = (len << DTD_LENGTH_BIT_POS) | DTD_STATUS_ACTIVE;
+        batch_write_cursor = (batch_write_cursor + 1)  % USB_BATCH_SLOTS;
+    }
+    return true;
+}
+
+int usb_drv_batch_start(void) {
+    logf("batch start");
+
+    /* reset variables */
+    batch_write_cursor = 0;
+    batch_stopped = false;
+
+    /* chain tds */
+    memset(batch_td_array, 0, sizeof(struct transfer_descriptor) * USB_BATCH_SLOTS);
+    for(int i = 0; i < USB_BATCH_SLOTS; i += 1) {
+        struct transfer_descriptor* td = &batch_td_array[i];
+        td->next_td_ptr = (unsigned int)&batch_td_array[(i + 1) % USB_BATCH_SLOTS];
+    }
+
+    /* configure queue head */
+    const int pipe = ep_to_pipe_index(batch_ep);
+    struct queue_head* const qh = &qh_array[pipe];
+
+    qh->curr_dtd_ptr = (unsigned int)&batch_td_array[0]; /* or error check in sof_received may read random location */
+    qh->dtd.next_td_ptr = (unsigned int)&batch_td_array[0];
+    qh->dtd.size_ioc_sts = 0;
+
+    /* pull initial buffers */
+    batch_fill_tds();
+
+    /* monitor sof */
+    REG_USBINTR |= USBINTR_SOF_EN;
+    return 0;
+}
+
+int usb_drv_batch_stop(void) {
+    batch_stopped = true;
+
+    /* disable sof interrupt */
+    REG_USBINTR &= ~USBINTR_SOF_EN;
+
+    /* break the chain */
+    /* terminating qh->dtd.next_td_ptr is not reliable */
+    for(int i = 0; i < USB_BATCH_SLOTS; i += 1) {
+        struct transfer_descriptor* td = &batch_td_array[i];
+        td->next_td_ptr = DTD_NEXT_TERMINATE;
+    }
+
+    /* flush endpoint */
+    const int pipe = ep_to_pipe_index(batch_ep);
+    const unsigned int mask = pipe2mask[pipe];
+
+    REG_ENDPTFLUSH = mask;
+    while (REG_ENDPTFLUSH & mask);
+
+    return 0;
+}
+
+#if defined(LOGF_ENABLE) && defined(ROCKBOX_HAS_LOGF)
+void usb_drv_dump_regs(void) {
+    logf("==== register dump %ld ====", current_tick);
+    logf("USBSTS         0x%08X", REG_USBSTS);
+    logf("ENDPTSETUPSTAT 0x%08X", REG_ENDPTSETUPSTAT);
+    logf("ENDPTPRIME     0x%08X", REG_ENDPTPRIME);
+    logf("ENDPTFLUSH     0x%08X", REG_ENDPTFLUSH);
+    logf("ENDPTSTATUS    0x%08X", REG_ENDPTSTATUS);
+    logf("ENDPTCOMPLETE  0x%08X", REG_ENDPTCOMPLETE);
+    logf("ENDPTCTRL0     0x%08X", REG_ENDPTCTRL0);
+    logf("ENDPTCTRL1     0x%08X", REG_ENDPTCTRL1);
+    logf("ENDPTCTRL2     0x%08X", REG_ENDPTCTRL2);
+}
+
+static void dump_td_array(struct queue_head* qh, struct transfer_descriptor* tds, size_t size) {
+    void* current = (void*)qh->curr_dtd_ptr;
+    void* next = (void*)qh->dtd.next_td_ptr;
+
+    logf("==== td dump %ld n=%p c=%p ====", current_tick, next, current);
+    for(int i = 0; i < size; i += 1) {
+        int len = (tds[i].size_ioc_sts & DTD_PACKET_SIZE) >> DTD_LENGTH_BIT_POS;
+        char sts[] = {
+            &tds[i] == current ? 'c' : ' ',
+            &tds[i] == next ? 'n' : ' ',
+            i == batch_write_cursor ? 'w' : ' ',
+            '\0',
+        };
+        logf("%s td[%02d] status=0x%08X len=%d", sts, i, tds[i].size_ioc_sts, len);
+    }
+}
+
+void usb_drv_dump_tds(int ep) {
+    const int pipe = ep_to_pipe_index(ep);
+    struct queue_head* const qh = &qh_array[pipe];
+    dump_td_array(qh, &td_array[pipe * NUM_TDS_PER_EP], NUM_TDS_PER_EP);
+}
+
+void usb_drv_batch_dump_tds(void) {
+    const int pipe = ep_to_pipe_index(batch_ep);
+    struct queue_head* const qh = &qh_array[pipe];
+    dump_td_array(qh, batch_td_array, USB_BATCH_SLOTS);
+}
+#endif
+
+static void sof_received(void) {
+    if(batch_ep == 0) {
+        /* should not happen */
+        return;
+    }
+
+    /* error recovery */
+    const int pipe = ep_to_pipe_index(batch_ep);
+    const unsigned int mask = pipe2mask[pipe];
+    struct queue_head* const qh = &qh_array[pipe];
+    struct transfer_descriptor* const td = (void*)qh->curr_dtd_ptr;
+    if(td->size_ioc_sts & DTD_ERROR_MASK) {
+        logf("td error status=0x%08X", td->size_ioc_sts);
+        REG_ENDPTPRIME |= mask;
+    }
+
+    /* do refill */
+    if(batch_fill_tds()) {
+        const int pipe = ep_to_pipe_index(batch_ep);
+        const unsigned int mask = pipe2mask[pipe];
+        REG_ENDPTPRIME |= mask;
+    }
 }
 
 /*-------------------------------------------------------------------------*/
@@ -854,11 +1046,7 @@ static void prepare_td(struct transfer_descriptor* td,
     td->next_td_ptr = DTD_NEXT_TERMINATE;
     td->size_ioc_sts = (len<< DTD_LENGTH_BIT_POS) |
         DTD_STATUS_ACTIVE | DTD_IOC;
-    td->buff_ptr0 = (unsigned int)ptr;
-    td->buff_ptr1 = ((unsigned int)ptr & 0xfffff000) + 0x1000;
-    td->buff_ptr2 = ((unsigned int)ptr & 0xfffff000) + 0x2000;
-    td->buff_ptr3 = ((unsigned int)ptr & 0xfffff000) + 0x3000;
-    td->buff_ptr4 = ((unsigned int)ptr & 0xfffff000) + 0x4000;
+    td_set_buf_ptr(td, ptr);
     td->reserved |= DTD_RESERVED_LENGTH_MASK & len;
     td->reserved |= DTD_RESERVED_IN_USE;
     td->reserved |= (pipe << DTD_RESERVED_PIPE_OFFSET);
