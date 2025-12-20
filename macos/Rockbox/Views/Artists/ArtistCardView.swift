@@ -10,6 +10,7 @@ import SwiftUI
 struct ArtistCardView: View {
     let artist: Artist
     @State private var isHovering = false
+    @State private var isHoveringPlayButton = false
     @State private var errorText: String? = nil
     
     var body: some View {
@@ -56,14 +57,21 @@ struct ArtistCardView: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(.black.opacity(0.5))
+                                .fill(isHoveringPlayButton ? Color(hex: "fe09a3") : .white.opacity(0.3))
                                 .frame(width: 44, height: 44)
                             
                             Image(systemName: "play.fill")
                                 .font(.system(size: 18))
                                 .foregroundStyle(.white)
                         }
-                    }.buttonStyle(.borderless)
+                    }
+                    .buttonStyle(.borderless)
+                    .onHover { hovering in
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            isHoveringPlayButton = hovering
+                        }
+                    }
+
                 }
             }
             .onHover { hovering in

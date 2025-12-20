@@ -12,6 +12,7 @@ struct ArtistAlbumCardView: View {
     var onSelect: () -> Void
 
     @State private var isHovering = false
+    @State private var isHoveringPlayButton = false
     @State private var errorText: String?
     
     var body: some View {
@@ -61,14 +62,20 @@ struct ArtistAlbumCardView: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(.black.opacity(0.5))
+                                .fill(isHoveringPlayButton ? Color(hex: "fe09a3") : .white.opacity(0.3))
                                 .frame(width: 36, height: 36)
                             
                             Image(systemName: "play.fill")
                                 .font(.system(size: 14))
                                 .foregroundStyle(.white)
                         }
-                    }.buttonStyle(.borderless)
+                    }
+                    .buttonStyle(.borderless)
+                    .onHover { hovering in
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            isHoveringPlayButton = hovering
+                        }
+                    }
                 }
             }
             .onHover { hovering in

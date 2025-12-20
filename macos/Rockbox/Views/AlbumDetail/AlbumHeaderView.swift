@@ -63,6 +63,7 @@ struct AlbumHeaderView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(album.title)
                     .font(.system(size: 24, weight: .bold))
+                    .padding(.top, 15)
                 
                 Text(album.artist)
                     .font(.system(size: 16))

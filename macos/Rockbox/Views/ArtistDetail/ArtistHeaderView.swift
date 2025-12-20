@@ -65,11 +65,19 @@ struct ArtistHeaderView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(artist.name)
                     .font(.system(size: 28, weight: .bold))
+                    .padding(.top, 15)
+                
+                if !artist.genre.isEmpty {
+                    Text(artist.genre)
+                        .foregroundStyle(.tertiary)
+                }
                 
                 Text("\(albumCount) albums · \(trackCount) songs")
                     .font(.system(size: 13))
                     .foregroundStyle(.tertiary)
                     .padding(.top, 4)
+                
+                
                 
                 Spacer()
                 
