@@ -14,26 +14,25 @@ struct QueueView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
-            HStack {
+            HStack(spacing: 0) {
                 Text(!showPlayingNext ? "History" : "Playing Next")
                     .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-            
-                Spacer()
-                
+
                 Text("\(player.currentIndex + 1) of \(player.playlistLength)")
                     .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
-                
-                Spacer()
 
                 Button(action: {
-                        showPlayingNext.toggle()
+                    showPlayingNext.toggle()
                 }) {
                     Text(showPlayingNext ? "History" : "Playing Next")
                         .padding()
-                }.buttonStyle(.borderless)
-                
+                }
+                .buttonStyle(.borderless)
+                .frame(maxWidth: .infinity, alignment: .trailing)
             }
             
             Divider()
@@ -63,7 +62,7 @@ struct QueueView: View {
                 }
             }
         }
-        .frame(minWidth: 300)
+        .frame(minWidth: 350)
         .background(.background)
     }
 }
