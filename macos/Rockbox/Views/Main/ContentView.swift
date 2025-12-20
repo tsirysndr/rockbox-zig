@@ -11,14 +11,18 @@ struct ContentView: View {
     @State private var selection: SidebarItem? = .albums
     @StateObject private var player = PlayerState()
     @StateObject private var library = MusicLibrary()
-
+    @State private var showQueue = false
     
     var body: some View {
         NavigationSplitView {
             Sidebar(selection: $selection)
         } detail: {
-            DetailView(selection: selection, player: player, library: library)
+            DetailView(selection: selection, player: player, library: library, showQueue: $showQueue)
         }
+        .inspector(isPresented: $showQueue) {
+           QueueView()
+               .inspectorColumnWidth(min: 280, ideal: 300, max: 350)
+       }
     }
 }
 

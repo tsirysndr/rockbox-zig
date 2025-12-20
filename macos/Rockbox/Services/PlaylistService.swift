@@ -37,3 +37,44 @@ func resumeTrack(host: String = "127.0.0.1", port: Int = 6061) async throws -> V
       let _ = try await playlist.resumeTrack(req)
   }
 }
+
+func currentPlaylistStream() -> AsyncThrowingStream<Rockbox_V1alpha1_PlaylistResponse, Error> {
+    AsyncThrowingStream { continuation in
+        Task {
+            do {
+                try await withGRPCClient(
+                    transport: .http2NIOPosix(
+                        target: .dns(host: "127.0.0.1", port: 6061),
+                        transportSecurity: .plaintext
+                    )
+                ) { grpcClient in
+                    let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
+                    let req = Rockbox_V1alpha1_StreamPlaylistRequest()
+                    
+                    try await playback.streamPlaylist(req) { response in
+                        for try await message in response.messages {
+                            continuation.yield(message)
+                        }
+                        continuation.finish()
+                    }
+                }
+            } catch {
+                continuation.finish(throwing: error)
+            }
+        }
+    }
+}
+
+func startPlaylist(position: Int32, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+      let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
+      var req = Rockbox_V1alpha1_StartRequest()
+      req.startIndex = position
+      let _ = try await playlist.start(req)
+  }
+}

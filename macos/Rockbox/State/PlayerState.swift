@@ -4,7 +4,6 @@
 //
 //  Created by Tsiry Sandratraina on 14/12/2025.
 //
-
 import Foundation
 import SwiftUI
 
@@ -14,16 +13,32 @@ class PlayerState: ObservableObject {
     @Published var currentTime: TimeInterval = 0
     @Published var duration: TimeInterval = 0
     @Published var currentTrack = Song(cuid: "", title: "Not Playing", artist: "", album: "", albumArt: nil, duration: TimeInterval(0), trackNumber: 0, discNumber: 0, color: .gray.opacity(0.3))
+    @Published var queue: [Song] = []
+    @Published var currentIndex: Int = 0
+    @Published var playlistLength: Int = 0
     @Published var isConnected = false
     @Published var error: Error?
     @Published var status: Int32 = 0
     
     private var streamTask: Task<Void, Never>?
     private var streamStatusTask: Task<Void, Never>?
+    private var streamPlaylistTask: Task<Void, Never>?
     
     var progress: Double {
         get { duration > 0 ? currentTime / duration : 0 }
         set { currentTime = newValue * duration }
+    }
+    
+    // Upcoming tracks (after current)
+    var upNext: [Song] {
+        guard currentIndex + 1 < queue.count else { return [] }
+        return Array(queue[(currentIndex + 1)...])
+    }
+    
+    // Previous tracks (before current + current)
+    var history: [Song] {
+        guard currentIndex > 0 else { return [] }
+        return Array(queue[...currentIndex])
     }
         
     func startStreaming() {
@@ -33,10 +48,23 @@ class PlayerState: ObservableObject {
             do {
                 isConnected = true
                 for try await response in currentTrackStream() {
-                    self.currentTrack =  Song(cuid: response.id, title: response.title, artist: response.artist, album: response.album, albumArt: URL(string: "http://localhost:6062/covers/" + response.albumArt), duration: TimeInterval(response.length / 1000), trackNumber: Int(response.tracknum), discNumber: Int(response.discnum), color: .gray.opacity(0.3))
+                    self.currentTrack = Song(
+                        cuid: response.id,
+                        title: response.title,
+                        artist: response.artist,
+                        album: response.album,
+                        albumArt: URL(string: "http://localhost:6062/covers/" + response.albumArt),
+                        duration: TimeInterval(response.length / 1000),
+                        trackNumber: Int(response.tracknum),
+                        discNumber: Int(response.discnum),
+                        color: .gray.opacity(0.3)
+                    )
                     self.duration = TimeInterval(response.length / 1000)
-                    self.currentTime = TimeInterval(response.elapsed / 1000)
+                    self.currentTime = TimeInterval(response.elapsed / 1000)                    
                 }
+                // Refresh queue when track changes
+                await self.fetchQueue()
+
             } catch is CancellationError {
                 // Ignored
             } catch {
@@ -49,12 +77,42 @@ class PlayerState: ObservableObject {
         streamStatusTask = Task {
             do {
                 for try await response in playbackStatusStream() {
-                        self.isPlaying = response.status == 1
-                        self.status = response.status
+                    self.isPlaying = response.status == 1
+                    self.status = response.status
                 }
             } catch is CancellationError {
-                // Ignoted
-            } catch  {
+                // Ignored
+            } catch {
+                self.error = error
+            }
+        }
+        
+        streamPlaylistTask?.cancel()
+        streamPlaylistTask = Task {
+            do {
+                for try await data in currentPlaylistStream() {
+                    if self.currentIndex == Int(data.index) { continue }
+                    self.currentIndex = Int(data.index)
+                    self.playlistLength = Int(data.amount)
+                    self.queue = data.tracks.map { track in
+                        Song(
+                            cuid: track.id,
+                            title: track.title,
+                            artist: track.artist,
+                            album: track.album,
+                            albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+                            duration: TimeInterval(track.length / 1000),
+                            trackNumber: Int(track.tracknum),
+                            discNumber: Int(track.discnum),
+                            color: .gray.opacity(0.3)
+                        )
+                    }
+                    
+                    self.currentTrack = self.queue[self.currentIndex]
+                }
+            } catch is CancellationError {
+                // Ignored
+            } catch {
                 self.error = error
             }
         }
@@ -72,15 +130,57 @@ class PlayerState: ObservableObject {
             do {
                 let data = try await fetchCurrentPlaylist()
                 if data.tracks.count > 0 {
-                    let currentIndex: Int = Int(data.index)
-                    self.currentTrack =  Song(cuid: data.tracks[currentIndex].id, title: data.tracks[currentIndex].title, artist: data.tracks[currentIndex].artist, album: data.tracks[currentIndex].album, albumArt: URL(string: "http://localhost:6062/covers/" + data.tracks[currentIndex].albumArt), duration: TimeInterval(data.tracks[currentIndex].length / 1000), trackNumber: Int(data.tracks[currentIndex].tracknum), discNumber: Int(data.tracks[currentIndex].discnum), color: .gray.opacity(0.3))
+                    let index = Int(data.index)
+                    self.currentIndex = index
+                    self.playlistLength = Int(data.amount)
+                    
+                    self.queue = data.tracks.map { track in
+                        Song(
+                            cuid: track.id,
+                            title: track.title,
+                            artist: track.artist,
+                            album: track.album,
+                            albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+                            duration: TimeInterval(track.length / 1000),
+                            trackNumber: Int(track.tracknum),
+                            discNumber: Int(track.discnum),
+                            color: .gray.opacity(0.3)
+                        )
+                    }
+                    
+                    self.currentTrack = self.queue[index]
+                    
                     let globalStatus = try await fetchGlobalStatus()
                     self.currentTime = TimeInterval(globalStatus.resumeElapsed / 1000)
-                    self.duration = TimeInterval(data.tracks[currentIndex].length / 1000)
+                    self.duration = TimeInterval(data.tracks[index].length / 1000)
                 }
             } catch {
                 self.error = error
             }
+        }
+    }
+    
+    func fetchQueue() async {
+        do {
+            let data = try await fetchCurrentPlaylist()
+            if data.tracks.count > 0 {
+                self.currentIndex = Int(data.index)
+                self.queue = data.tracks.map { track in
+                    Song(
+                        cuid: track.id,
+                        title: track.title,
+                        artist: track.artist,
+                        album: track.album,
+                        albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+                        duration: TimeInterval(track.length / 1000),
+                        trackNumber: Int(track.tracknum),
+                        discNumber: Int(track.discnum),
+                        color: .gray.opacity(0.3)
+                    )
+                }
+            }
+        } catch {
+            self.error = error
         }
     }
     
@@ -92,7 +192,6 @@ class PlayerState: ObservableObject {
                 self.error = error
             }
         }
-
     }
     
     func playNextTrack() {
@@ -116,7 +215,6 @@ class PlayerState: ObservableObject {
                 
                 if isPlaying {
                     try await pause()
-                    try? await Task.sleep(for: .seconds(1))
                     return
                 }
                 
@@ -138,4 +236,15 @@ class PlayerState: ObservableObject {
         }
     }
     
- }
+    func playFromQueue(at index: Int) {
+        Task {
+            do {
+               try await startPlaylist(position: Int32(index))
+                self.currentIndex = index
+                self.currentTrack = queue[index]
+            } catch {
+                self.error = error
+            }
+        }
+    }
+}

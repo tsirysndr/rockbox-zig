@@ -13,6 +13,8 @@ struct DetailView: View {
     @ObservedObject var library: MusicLibrary
     @State private var selectedAlbum: Album? = nil
     @State private var selectedArtist: Artist? = nil
+    @Binding var showQueue: Bool
+
     
     var body: some View {
         VStack(spacing: 0) {
@@ -53,7 +55,7 @@ struct DetailView: View {
             Divider()
             
             // Player controls
-            PlayerControlsView(library: library)
+            PlayerControlsView(library: library, showQueue: $showQueue)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: selection) {

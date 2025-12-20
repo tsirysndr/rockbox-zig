@@ -34,10 +34,19 @@ pub fn update_metadata(pool: Pool<Sqlite>) -> Result<(), Error> {
     thread::spawn(move || {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         let result = runtime.block_on(async {
-            let artists = repo::artist::all(pool.clone()).await?;
-            let artists = artists.into_iter().filter(|v| v.image.is_none());
+            let local_artists = repo::artist::all(pool.clone()).await?;
+            let local_artists = local_artists.into_iter().filter(|v| v.image.is_none());
+            let local_artists = local_artists.map(|mut artist| {
+                if artist.name == "Theory Of A Deadman" {
+                    artist.name = "Theory of a Deadman".to_string();
+                }
+                artist
+            });
             let mut artist_map: HashMap<String, Artist> = HashMap::new();
-            let names = artists.map(|artist| artist.name).collect::<Vec<String>>();
+            let names = local_artists
+                .clone()
+                .map(|artist| artist.name)
+                .collect::<Vec<String>>();
 
             let client = reqwest::Client::new();
             let response = client
@@ -59,7 +68,7 @@ pub fn update_metadata(pool: Pool<Sqlite>) -> Result<(), Error> {
 
             println!("Loaded {} artists", artists.len());
 
-            for artist in artists {
+            for artist in local_artists {
                 println!("Updating artist: {}", artist.name.bright_green());
                 let artist_id = artist.id;
                 if let Some(artist) = artist_map.get(&artist.name) {

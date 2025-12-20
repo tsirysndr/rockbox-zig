@@ -13,7 +13,7 @@ struct AlbumsGridView: View {
     @Binding var selectedAlbum: Album?
     
     private let columns = [
-        GridItem(.adaptive(minimum: 214, maximum: 230), spacing: 20)
+        GridItem(.adaptive(minimum: 170, maximum: 230), spacing: 20)
     ]
     
     var body: some View {

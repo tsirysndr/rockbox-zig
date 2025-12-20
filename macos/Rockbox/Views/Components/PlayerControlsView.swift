@@ -11,12 +11,14 @@ struct PlayerControlsView: View {
     @EnvironmentObject var player: PlayerState
     @State private var isHoveringProgress = false
     @State private var isHoveringTrackInfo = false
+    @State private var isHoveringQueue = false
     @ObservedObject var library: MusicLibrary
+    @Binding var showQueue: Bool  // Add this binding
     
     var body: some View {
         HStack(spacing: 0) {
-            // Playback controls (left, but centered in its space)
-            HStack( alignment: .center, spacing: 16) {
+            // Playback controls (left)
+            HStack(alignment: .center, spacing: 16) {
                 Button(action: { player.playPreviousTrack() }) {
                     Image(systemName: "backward.fill")
                         .font(.system(size: 13))
@@ -66,8 +68,7 @@ struct PlayerControlsView: View {
                             }
                         }
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: 0))
-              
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
                 
                 VStack(alignment: .leading, spacing: 0) {
                     // Track metadata with heart button
@@ -84,10 +85,11 @@ struct PlayerControlsView: View {
                                 .lineLimit(1)
                         }
                         
-                        // Heart button (shows on hover or when liked)
+                        // Heart button
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.2)) {
-                                library.toggleLike(player.currentTrack)                            }
+                                library.toggleLike(player.currentTrack)
+                            }
                         }) {
                             Image(systemName: library.isLiked(player.currentTrack) ? "heart.fill" : "heart")
                                 .font(.system(size: 12))
@@ -111,12 +113,10 @@ struct PlayerControlsView: View {
                         
                         GeometryReader { geometry in
                             ZStack(alignment: .leading) {
-                                // Track background
                                 Capsule()
                                     .fill(.quaternary)
                                     .frame(height: isHoveringProgress ? 6 : 3)
                                 
-                                // Progress fill
                                 Capsule()
                                     .fill(.primary.opacity(0.8))
                                     .frame(width: geometry.size.width * player.progress, height: isHoveringProgress ? 6 : 3)
@@ -156,20 +156,28 @@ struct PlayerControlsView: View {
                 }
             }
             
-            // Volume (right)
-            HStack(spacing: 8) {
-                Image(systemName: "speaker.fill")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                
-                Slider(value: .constant(0.7))
-                    .frame(width: 80)
-                
-                Image(systemName: "speaker.wave.3.fill")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showQueue.toggle()
+                }
+            }) {
+                Image(systemName: "list.bullet")
+                    .font(.system(size: 14))
+                    .foregroundStyle(showQueue ? .primary : .secondary)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(isHoveringQueue || showQueue ? Color.secondary.opacity(0.15) : Color.clear)
+                    )
+                    .contentShape(Rectangle())
             }
-            .frame(width: 120)
+            .buttonStyle(.plain)
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isHoveringQueue = hovering
+                }
+            }
+            .frame(width: 60)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -182,4 +190,3 @@ struct PlayerControlsView: View {
         return String(format: "%d:%02d", minutes, seconds)
     }
 }
-
