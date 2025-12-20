@@ -27,6 +27,8 @@ struct AlbumHeaderView: View {
                             .font(.system(size: 13))
                     }
                     .foregroundStyle(.secondary)
+                    .frame( minHeight: 34)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 

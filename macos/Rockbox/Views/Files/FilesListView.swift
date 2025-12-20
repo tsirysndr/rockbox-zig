@@ -21,11 +21,14 @@ struct FilesListView: View {
                 Button(action: goBack) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .medium))
+                        .frame(minHeight: 30)
+                        .frame(minWidth: 30)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(pathHistory.isEmpty)
                 .opacity(pathHistory.isEmpty ? 0.3 : 1)
-                
+                                
                 Text(currentPathDisplay)
                     .font(.system(size: 13, weight: .medium))
                     .lineLimit(1)
