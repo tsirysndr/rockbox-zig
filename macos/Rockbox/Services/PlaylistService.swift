@@ -163,3 +163,17 @@ func insertDirectory(
     let _ = try await playlist.insertDirectory(req)
   }
 }
+
+func clearPlaylist(host: String = "127.0.0.1", port: Int = 6061) async throws
+{
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+    let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
+    let req = Rockbox_V1alpha1_RemoveAllTracksRequest()
+    let _ = try await playlist.removeAllTracks(req)
+  }
+}

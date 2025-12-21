@@ -10,6 +10,7 @@ import SwiftUI
 struct QueueView: View {
     @EnvironmentObject var player: PlayerState
     @State private var showPlayingNext: Bool = true
+    @State private var isHoveringClear: Bool = false
     @ObservedObject var library: MusicLibrary
 
     var body: some View {
@@ -37,6 +38,21 @@ struct QueueView: View {
             }
             
             Divider()
+            
+            if !player.upNext.isEmpty || !player.history.isEmpty {
+                Button(action: {
+                   player.clearQueue()
+                }) {
+                    Text("Clear")
+                        .font(.system(size: 12))
+                        .foregroundStyle(isHoveringClear ? .primary : .secondary)
+                }
+                .buttonStyle(.borderless)
+                .onHover { isHoveringClear = $0 }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 8)
+            }
+
             
             if player.upNext.isEmpty {
                 VStack(spacing: 12) {

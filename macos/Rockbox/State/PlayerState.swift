@@ -37,6 +37,9 @@ class PlayerState: ObservableObject {
     
     // Previous tracks (before current + current)
     var history: [Song] {
+        if currentIndex == 0 && queue.count > 0 {
+            return Array(queue[...currentIndex])
+        }
         guard currentIndex > 0 else { return [] }
         return Array(queue[...currentIndex])
     }
@@ -168,6 +171,7 @@ class PlayerState: ObservableObject {
             let data = try await fetchCurrentPlaylist()
             if data.tracks.count > 0 {
                 self.currentIndex = Int(data.index)
+                self.playlistLength = Int(data.amount)
                 self.queue = data.tracks.map { track in
                     Song(
                         cuid: track.id,
@@ -257,6 +261,17 @@ class PlayerState: ObservableObject {
             do {
                try await removeFromPlaylist(position: Int32(index))
                await fetchQueue()
+            } catch {
+                self.error = error
+            }
+        }
+    }
+    
+    func clearQueue() {
+        Task {
+            do {
+                try await clearPlaylist()
+                await fetchQueue()
             } catch {
                 self.error = error
             }
