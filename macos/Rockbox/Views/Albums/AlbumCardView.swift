@@ -9,6 +9,7 @@ import SwiftUI
 struct AlbumCardView: View {
     let album: Album
     var playlists: [Playlist] = []
+    @EnvironmentObject var player: PlayerState
     @State private var isHovering = false
     @State private var isHoveringPlayButton = false
     @State private var isHoveringMenu = false
@@ -44,6 +45,7 @@ struct AlbumCardView: View {
                                 Task {
                                     do {
                                         try await playAlbum(albumID: album.cuid)
+                                        await player.fetchQueue()
                                     } catch {
                                         errorText = String(describing: error)
                                     }
@@ -90,6 +92,7 @@ struct AlbumCardView: View {
                                                 Task {
                                                     do {
                                                         try await playAlbum(albumID: album.cuid)
+                                                        await player.fetchQueue()
                                                     } catch {
                                                         errorText = String(describing: error)
                                                     }
@@ -101,6 +104,7 @@ struct AlbumCardView: View {
                                                 Task {
                                                     do {
                                                         try await playAlbum(albumID: album.cuid, shuffle: true)
+                                                        await player.fetchQueue()
                                                     } catch {
                                                         errorText = String(describing: error)
                                                     }
@@ -114,6 +118,7 @@ struct AlbumCardView: View {
                                                 Task {
                                                     do {
                                                         try await insertAlbum(albumID: album.cuid, position: Int32(PlaylistPosition.insertFirst))
+                                                        await player.fetchQueue()
                                                     } catch {
                                                         errorText = String(describing: error)
                                                     }
@@ -125,6 +130,7 @@ struct AlbumCardView: View {
                                                 Task {
                                                     do {
                                                         try await insertAlbum(albumID: album.cuid, position: Int32(PlaylistPosition.insertLast))
+                                                        await player.fetchQueue()
                                                     } catch {
                                                         errorText = String(describing: error)
                                                     }
@@ -157,6 +163,7 @@ struct AlbumCardView: View {
                                                 Task {
                                                     do {
                                                         try await insertAlbum(albumID: album.cuid, position: Int32(PlaylistPosition.insertShuffled))
+                                                        await player.fetchQueue()
                                                     } catch {
                                                         errorText = String(describing: error)
                                                     }
@@ -169,6 +176,7 @@ struct AlbumCardView: View {
                                                 Task {
                                                     do {
                                                         try await insertAlbum(albumID: album.cuid, position: Int32(PlaylistPosition.insertLastShuffled))
+                                                        await player.fetchQueue()
                                                     } catch {
                                                         errorText = String(describing: error)
                                                     }
