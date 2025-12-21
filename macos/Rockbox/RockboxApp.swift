@@ -20,6 +20,9 @@ struct RockboxApp: App {
                 .task {
                     player.startStreaming()
                 }
+                .task {
+                    player.fetchSettings()
+                }
         }
         .windowStyle(.hiddenTitleBar)
     }

@@ -14,6 +14,8 @@ struct PlayerControlsView: View {
     @State private var isHoveringTrackInfo = false
     @State private var isHoveringQueue = false
     @State private var isHoveringMenu = false
+    @State private var isHoveringShuffle = false
+    @State private var isHoveringRepeat = false
     @State private var errorText: String? = nil
     @ObservedObject var library: MusicLibrary
     @Binding var showQueue: Bool  // Add this binding
@@ -23,9 +25,19 @@ struct PlayerControlsView: View {
         HStack(spacing: 0) {
             // Playback controls (left)
             HStack(alignment: .center, spacing: 16) {
+                Button(action: {
+                    player.toggleShuffle()
+                }) {
+                    Image(systemName: "shuffle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(player.isShuffleEnabled ? Color(hex: "fe09a3") : (isHoveringShuffle ? .primary : .secondary))
+                }
+                .buttonStyle(.plain)
+                .onHover { isHoveringShuffle = $0 }
+                
                 Button(action: { player.playPreviousTrack() }) {
                     Image(systemName: "backward.fill")
-                        .font(.system(size: 13))
+                        .font(.system(size: 16))
                 }
                 .buttonStyle(.plain)
                 
@@ -33,15 +45,27 @@ struct PlayerControlsView: View {
                     player.playOrPause()
                 }) {
                     Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 16))
+                        .font(.system(size: 24))
                 }
                 .buttonStyle(.plain)
                 
                 Button(action: { player.playNextTrack() }) {
                     Image(systemName: "forward.fill")
-                        .font(.system(size: 13))
+                        .font(.system(size: 16))
                 }
                 .buttonStyle(.plain)
+                
+                Button(action: {
+                    player.toggleRepeat()
+                }) {
+                    ZStack {
+                        Image(systemName: player.repeatMode == .one ? "repeat.1" : "repeat")
+                            .font(.system(size: 14))
+                            .foregroundStyle(player.repeatMode != .off ? Color(hex: "fe09a3") : (isHoveringRepeat ? .primary : .secondary))
+                    }
+                }
+                .buttonStyle(.plain)
+                .onHover { isHoveringRepeat = $0 }
             }
             .foregroundStyle(.primary)
             .frame(maxWidth: 280)
