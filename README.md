@@ -67,22 +67,6 @@ Rockbox.
 - [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
 - [ ] Wasm extensions
 
-## 🚀 Quickstart
-
-To quickly get started, you can run the following docker command:
-
-```sh
-docker run \
-    --device /dev/snd \
-    --privileged \
-    -p 6061:6061 \
-    -p 6062:6062 \
-    -p 6063:6063 \
-    -p 6600:6600 \
-    -v $HOME/Music:/root/Music \
-    tsiry/rockbox:latest
-```
-
 ## 🚚 Installation
 
 ### Ubuntu/Debian
