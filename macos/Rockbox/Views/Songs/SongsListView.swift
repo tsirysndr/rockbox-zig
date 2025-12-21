@@ -67,12 +67,36 @@ struct SongsListView: View {
                 let data = try await fetchTracks()
                 songs = []
                 for track in data {
-                    songs.append(Song(cuid: track.id, path: track.path, title: track.title, artist: track.artist, album: track.album, albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt), duration: TimeInterval(track.length / 1000), trackNumber: Int(track.trackNumber), discNumber: Int(track.discNumber), color: .gray.opacity(0.3)))
+                    songs.append(Song(
+                        cuid: track.id,
+                        path: track.path,
+                        title: track.title,
+                        artist: track.artist,
+                        album: track.album,
+                        albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+                        duration: TimeInterval(track.length / 1000),
+                        trackNumber: Int(track.trackNumber),
+                        discNumber: Int(track.discNumber),
+                        albumID: track.albumID,
+                        artistID: track.artistID,
+                        color: .gray.opacity(0.3)))
                 }
                 
                 let likes = try await fetchLikedTracks()
                 for track in likes {
-                    let song = Song(cuid: track.id, path: track.path, title: track.title, artist: track.artist, album: track.album, albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt), duration: TimeInterval(track.length / 1000), trackNumber: Int(track.trackNumber), discNumber: Int(track.discNumber), color: .gray.opacity(0.3))
+                    let song = Song(
+                        cuid: track.id,
+                        path: track.path,
+                        title: track.title,
+                        artist: track.artist,
+                        album: track.album,
+                        albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+                        duration: TimeInterval(track.length / 1000),
+                        trackNumber: Int(track.trackNumber),
+                        discNumber: Int(track.discNumber),
+                        albumID: track.albumID,
+                        artistID: track.artistID,
+                        color: .gray.opacity(0.3))
                     library.likedSongIds.insert(song.cuid)
                 }
                 

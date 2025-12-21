@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PlayerControlsView: View {
     @EnvironmentObject var player: PlayerState
+    @EnvironmentObject var navigation: NavigationManager
     @State private var isHoveringProgress = false
     @State private var isHoveringTrackInfo = false
     @State private var isHoveringQueue = false
@@ -118,13 +119,17 @@ struct PlayerControlsView: View {
                             Divider()
                             
                             Button(action: {
-                                // Go to album action
+                                Task {
+                                    await navigation.goToAlbum(byId: player.currentTrack.albumID)
+                                }
                             }) {
                                 Label("Go to Album", systemImage: "square.stack")
                             }
                             
                             Button(action: {
-                                // Go to artist action
+                                Task {
+                                    await navigation.goToArtist(byId: player.currentTrack.artistID)
+                                }
                             }) {
                                 Label("Go to Artist", systemImage: "music.mic")
                                 

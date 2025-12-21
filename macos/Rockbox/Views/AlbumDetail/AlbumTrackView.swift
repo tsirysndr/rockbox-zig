@@ -16,6 +16,7 @@ struct AlbumTrackRowView: View {
     @State private var isHoveringMenu: Bool = false
     @ObservedObject var library: MusicLibrary
     @EnvironmentObject var player: PlayerState
+    @EnvironmentObject var navigation: NavigationManager
     
     @State private var isHovering = false
     
@@ -127,13 +128,17 @@ struct AlbumTrackRowView: View {
                 Divider()
                 
                 Button(action: {
-                    // Go to album action
+                    Task {
+                        await navigation.goToAlbum(byId: track.albumID)
+                    }
                 }) {
                     Label("Go to Album", systemImage: "square.stack")
                 }
                 
                 Button(action: {
-                    // Go to artist action
+                    Task {
+                        await navigation.goToArtist(byId: track.artistID)
+                    }
                 }) {
                     Label("Go to Artist", systemImage: "music.mic")
                     

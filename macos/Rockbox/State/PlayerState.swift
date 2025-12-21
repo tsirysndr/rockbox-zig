@@ -12,7 +12,7 @@ class PlayerState: ObservableObject {
     @Published var isPlaying = false
     @Published var currentTime: TimeInterval = 0
     @Published var duration: TimeInterval = 0
-    @Published var currentTrack = Song(cuid: "", path: "", title: "Not Playing", artist: "", album: "", albumArt: nil, duration: TimeInterval(0), trackNumber: 0, discNumber: 0, color: .gray.opacity(0.3))
+    @Published var currentTrack = Song(cuid: "", path: "", title: "Not Playing", artist: "", album: "", albumArt: nil, duration: TimeInterval(0), trackNumber: 0, discNumber: 0, albumID: "", artistID: "", color: .gray.opacity(0.3))
     @Published var queue: [Song] = []
     @Published var currentIndex: Int = 0
     @Published var playlistLength: Int = 0
@@ -61,6 +61,8 @@ class PlayerState: ObservableObject {
                         duration: TimeInterval(response.length / 1000),
                         trackNumber: Int(response.tracknum),
                         discNumber: Int(response.discnum),
+                        albumID: response.albumID,
+                        artistID: response.artistID,
                         color: .gray.opacity(0.3)
                     )
                     self.duration = TimeInterval(response.length / 1000)
@@ -109,6 +111,8 @@ class PlayerState: ObservableObject {
                             duration: TimeInterval(track.length / 1000),
                             trackNumber: Int(track.tracknum),
                             discNumber: Int(track.discnum),
+                            albumID: track.albumID,
+                            artistID: track.artistID,
                             color: .gray.opacity(0.3)
                         )
                     }
@@ -150,6 +154,8 @@ class PlayerState: ObservableObject {
                             duration: TimeInterval(track.length / 1000),
                             trackNumber: Int(track.tracknum),
                             discNumber: Int(track.discnum),
+                            albumID: track.albumID,
+                            artistID: track.artistID,
                             color: .gray.opacity(0.3)
                         )
                     }
@@ -183,6 +189,8 @@ class PlayerState: ObservableObject {
                         duration: TimeInterval(track.length / 1000),
                         trackNumber: Int(track.tracknum),
                         discNumber: Int(track.discnum),
+                        albumID: track.albumID,
+                        artistID: track.artistID,
                         color: .gray.opacity(0.3)
                     )
                 }

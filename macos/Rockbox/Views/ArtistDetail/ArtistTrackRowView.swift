@@ -18,6 +18,7 @@ struct ArtistTrackRowView: View {
     @State private var isHovering: Bool = false
     @State private var isHoveringMenu: Bool = false
     @EnvironmentObject var player: PlayerState
+    @EnvironmentObject var navigation: NavigationManager
     
     var body: some View {
         HStack(spacing: 12) {
@@ -158,13 +159,17 @@ struct ArtistTrackRowView: View {
                 Divider()
                 
                 Button(action: {
-                    // Go to album action
+                    Task {
+                        await navigation.goToAlbum(byId: track.albumID)
+                    }
                 }) {
                     Label("Go to Album", systemImage: "square.stack")
                 }
                 
                 Button(action: {
-                    // Go to artist action
+                    Task {
+                        await navigation.goToArtist(byId: track.artistID)
+                    }
                 }) {
                     Label("Go to Artist", systemImage: "music.mic")
                     

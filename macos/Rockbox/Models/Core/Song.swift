@@ -18,5 +18,7 @@ struct Song: Identifiable {
     let duration: TimeInterval
     let trackNumber: Int
     let discNumber: Int
+    let albumID: String
+    let artistID: String
     let color: Color
 }

@@ -100,6 +100,8 @@ struct AlbumDetailView: View {
                         duration: TimeInterval(track.length / 1000),
                         trackNumber: Int(track.trackNumber),
                         discNumber: Int(track.discNumber),
+                        albumID: track.albumID,
+                        artistID: track.artistID,
                         color: .gray.opacity(0.3)
                     ))
                 }

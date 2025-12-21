@@ -100,7 +100,7 @@ struct QueueRowView: View {
     @State private var isHoveringRemove: Bool = false
     @ObservedObject var library: MusicLibrary
     @EnvironmentObject var player: PlayerState
-
+    @EnvironmentObject var navigation: NavigationManager
     
     var body: some View {
         HStack(spacing: 12) {
@@ -214,13 +214,17 @@ struct QueueRowView: View {
                 Divider()
                 
                 Button(action: {
-                    // Go to album action
+                    Task {
+                        await navigation.goToAlbum(byId: song.albumID)
+                    }
                 }) {
                     Label("Go to Album", systemImage: "square.stack")
                 }
                 
                 Button(action: {
-                    // Go to artist action
+                    Task {
+                        await navigation.goToArtist(byId: song.artistID)
+                    }
                 }) {
                     Label("Go to Artist", systemImage: "music.mic")
                     
