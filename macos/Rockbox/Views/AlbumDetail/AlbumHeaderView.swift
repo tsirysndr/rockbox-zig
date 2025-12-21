@@ -12,6 +12,7 @@ struct AlbumHeaderView: View {
     let totalDuration: TimeInterval
     let trackCount: Int
     var onBack: () -> Void
+    @EnvironmentObject var player: PlayerState
     @State private var errorText: String?
     
     var body: some View {
@@ -82,6 +83,7 @@ struct AlbumHeaderView: View {
                         Task {
                             do {
                                 try await playAlbum(albumID: album.cuid)
+                                await player.fetchQueue()
                             } catch {
                                 errorText = String(describing: error)
                             }
@@ -105,6 +107,7 @@ struct AlbumHeaderView: View {
                         Task {
                         do {
                             try await playAlbum(albumID: album.cuid, shuffle: true)
+                            await player.fetchQueue()
                         } catch {
                             errorText = String(describing: error)
                         }
