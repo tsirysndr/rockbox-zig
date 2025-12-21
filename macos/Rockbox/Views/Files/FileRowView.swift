@@ -14,6 +14,7 @@ struct FileRowView: View {
     let currentDirectory: String
     
     @State private var isHovering = false
+    @State private var isHoveringMenu = false
     @State private var errorText: String? = nil
     
     var body: some View {
@@ -54,18 +55,90 @@ struct FileRowView: View {
                         .lineLimit(1)
 
                 }
+                
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Size or item count
-            if let size = file.size {
-                Text(size)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 100, alignment: .trailing)
-            } else {
-                Color.clear
-                    .frame(width: 100)
+            /*
+             Play Next
+             Add to Playlist
+             Play Last
+             Add Shuffled
+             */
+            // Context menu button
+            Menu {
+                Button(action: {
+                    Task {
+                        do {
+                            // try await addToQueue(songId: song.cuid)
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Label("Play Next", systemImage: "text.insert")
+                }
+                
+                Button(action: {
+                    Task {
+                        do {
+                            // try await addToQueueLast(songId: song.cuid)
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Label("Add to Playlist", systemImage: "text.append")
+                }
+                
+                Button(action: {
+                    Task {
+                        do {
+                            // try await addToQueueLast(songId: song.cuid)
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Label("Play Last", systemImage: "text.append")
+                }
+                
+                Divider()
+                
+                Button(action: {
+                    // Add Shuffled
+                }) {
+                    Label("Add Shuffled", systemImage: "square.stack")
+                }
+                
+                if file.type == .directory {
+                    Button(action: {
+                        // Play Last Shuffled
+                    }) {
+                        Label("Play Last Shuffled", systemImage: "music.mic")
+                        
+                    }
+                    
+                    Button(action: {
+                        // Play Last Shuffled
+                    }) {
+                        Label("Play Shuffled", systemImage: "music.mic")
+                        
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 14))
+                    .foregroundStyle(isHoveringMenu ? .primary : .secondary)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .frame(width: 40, alignment: .center)
+                .opacity(isHovering ? 1 : 0)
+                .onHover { hovering in
+                    isHoveringMenu = hovering
             }
         }
         .padding(.horizontal, 16)

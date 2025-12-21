@@ -15,8 +15,10 @@ struct SongRowView: View {
     var isLikesScreen: Bool = false
     @State private var errorText: String?
     @ObservedObject var library: MusicLibrary
+    @EnvironmentObject var player: PlayerState
     
     @State private var isHovering = false
+    @State private var isHoveringMenu = false
     
     var body: some View {
         HStack(spacing: 12) {
@@ -52,27 +54,20 @@ struct SongRowView: View {
                     .fill(song.color.gradient)
                     .frame(width: 36, height: 36)
                     .overlay {
-                        AsyncImage(url: song.albumArt) { phase in
+                        CachedAsyncImage(url: song.albumArt) { phase in
                             switch phase {
-                            case .empty:
-                                Image(systemName: "music.note")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(.white.opacity(0.8))
                             case .success(let image):
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
-                            case .failure:
+                            default:
                                 Image(systemName: "music.note")
                                     .font(.system(size: 14))
                                     .foregroundStyle(.white.opacity(0.8))
-                            @unknown default:
-                                EmptyView()
                             }
                         }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 0))
-              
                 
                 Text(song.title)
                     .lineLimit(1)
@@ -105,10 +100,94 @@ struct SongRowView: View {
                 }) {
                     Image(systemName: library.isLiked(song) ? "heart.fill" : "heart")
                         .font(.system(size: 14))
-                        .foregroundStyle(library.isLiked(song) ? Color(hex:"#fe09a3") : .secondary)
+                        .foregroundStyle(library.isLiked(song) ? Color(hex: "#fe09a3") : .secondary)
                 }
                 .buttonStyle(.plain)
                 .frame(width: 40, alignment: .center)
+            }
+            
+            /*
+             Play Next
+             Add to Playlist
+             Play Last
+             Add Shuffled
+             */
+            // Context menu button
+            Menu {
+                Button(action: {
+                    Task {
+                        do {
+                            try await insertTracks(tracks: [song.path], position: Int32(PlaylistPosition.insertFirst))
+                            await player.fetchQueue()
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Label("Play Next", systemImage: "text.insert")
+                }
+                
+                Button(action: {
+                    Task {
+                        do {
+                            // Add to playlist
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Label("Add to Playlist", systemImage: "text.append")
+                }
+                
+                Button(action: {
+                    Task {
+                        do {
+                            try await insertTracks(tracks: [song.path], position: Int32(PlaylistPosition.insertLast))
+                            await player.fetchQueue()
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Label("Play Last", systemImage: "text.append")
+                }
+                
+                Divider()
+                
+                Button(action: {
+                    library.toggleLike(song)
+                }) {
+                    Label(library.isLiked(song) ? "Remove from Liked" : "Add to Liked",
+                          systemImage: library.isLiked(song) ? "heart.slash" : "heart")
+                }
+                
+                Divider()
+                
+                Button(action: {
+                    // Go to album action
+                }) {
+                    Label("Go to Album", systemImage: "square.stack")
+                }
+                
+                Button(action: {
+                    // Go to artist action
+                }) {
+                    Label("Go to Artist", systemImage: "music.mic")
+                    
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 14))
+                    .foregroundStyle(isHoveringMenu ? .primary : .secondary)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .frame(width: 40, alignment: .center)
+                .opacity(isHovering ? 1 : 0)
+                .onHover { hovering in
+                    isHoveringMenu = hovering
             }
         }
         .font(.system(size: 12))
@@ -120,6 +199,11 @@ struct SongRowView: View {
                 isHovering = hovering
             }
         }
+        .alert("Error", isPresented: .constant(errorText != nil)) {
+            Button("OK") { errorText = nil }
+        } message: {
+            Text(errorText ?? "")
+        }
     }
     
     private func formatDuration(_ duration: TimeInterval) -> String {
@@ -128,5 +212,3 @@ struct SongRowView: View {
         return String(format: "%d:%02d", minutes, seconds)
     }
 }
-
-

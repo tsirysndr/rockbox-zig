@@ -5,12 +5,13 @@
 //  Created by Tsiry Sandratraina on 14/12/2025.
 //
 
-
 import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2
 
-func fetchArtists(host: String = "127.0.0.1", port: Int = 6061) async throws -> [Rockbox_V1alpha1_Artist] {
+func fetchArtists(host: String = "127.0.0.1", port: Int = 6061) async throws
+  -> [Rockbox_V1alpha1_Artist]
+{
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
@@ -25,7 +26,9 @@ func fetchArtists(host: String = "127.0.0.1", port: Int = 6061) async throws -> 
   }
 }
 
-func fetchArtist(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Rockbox_V1alpha1_Artist {
+func fetchArtist(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws
+  -> Rockbox_V1alpha1_Artist
+{
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),

@@ -9,7 +9,9 @@ import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2
 
-func fetchAlbums(host: String = "127.0.0.1", port: Int = 6061) async throws -> [Rockbox_V1alpha1_Album] {
+func fetchAlbums(host: String = "127.0.0.1", port: Int = 6061) async throws
+  -> [Rockbox_V1alpha1_Album]
+{
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
@@ -26,7 +28,9 @@ func fetchAlbums(host: String = "127.0.0.1", port: Int = 6061) async throws -> [
   }
 }
 
-func fetchAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Rockbox_V1alpha1_Album {
+func fetchAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws
+  -> Rockbox_V1alpha1_Album
+{
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
@@ -44,7 +48,7 @@ func fetchAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async 
   }
 }
 
-func likeAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+func likeAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws {
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
@@ -59,7 +63,7 @@ func likeAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async t
   }
 }
 
-func unlikeAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+func unlikeAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws {
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),

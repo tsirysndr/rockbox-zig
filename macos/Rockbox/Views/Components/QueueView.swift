@@ -10,6 +10,7 @@ import SwiftUI
 struct QueueView: View {
     @EnvironmentObject var player: PlayerState
     @State private var showPlayingNext: Bool = true
+    @ObservedObject var library: MusicLibrary
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -55,7 +56,12 @@ struct QueueView: View {
                                 index: index,
                                 onTap: {
                                     player.playFromQueue(at: showPlayingNext ? player.currentIndex + 1 + index : index)
-                                }
+                                },
+                                onRemove: {
+                                    let queueIndex = showPlayingNext ? player.currentIndex + 1 + index : index
+                                    player.removeFromQueue(at: queueIndex)
+                                },
+                                library: library,
                             )
                         }
                     }
@@ -71,7 +77,14 @@ struct QueueRowView: View {
     let song: Song
     let index: Int
     var onTap: () -> Void
-    @State private var isHovering = false
+    var onRemove: () -> Void
+    @State private var errorText: String? = nil
+    @State private var isHovering: Bool = false
+    @State private var isHoveringMenu: Bool = false
+    @State private var isHoveringRemove: Bool = false
+    @ObservedObject var library: MusicLibrary
+    @EnvironmentObject var player: PlayerState
+
     
     var body: some View {
         HStack(spacing: 12) {
@@ -93,6 +106,26 @@ struct QueueRowView: View {
                         }
                     }
                 }
+                .overlay(alignment: .topLeading) {
+                    if isHovering {
+                        Button(action: onRemove) {
+                            Image(systemName: "minus")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 14, height: 14)
+                                .background(
+                                    Circle()
+                                        .fill(isHoveringRemove ? Color.red : Color.red.opacity(0.85))
+                                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                                )
+                                .contentShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .padding(2)
+                        .onHover { isHoveringRemove = $0 }
+                        .transition(.scale.combined(with: .opacity))
+                    }
+                }
                 .clipShape(RoundedRectangle(cornerRadius: 4))
             
             VStack(alignment: .leading, spacing: 2) {
@@ -105,8 +138,91 @@ struct QueueRowView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             
-            Spacer()
+            /*
+             Play Next
+             Add to Playlist
+             Play Last
+             Add Shuffled
+             */
+            // Context menu button
+            Menu {
+                Button(action: {
+                    Task {
+                        do {
+                            try await insertTracks(tracks: [song.path], position: Int32(PlaylistPosition.insertFirst))
+                            await player.fetchQueue()
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Label("Play Next", systemImage: "text.insert")
+                }
+                
+                Button(action: {
+                    Task {
+                        do {
+                            // try await addToQueueLast(songId: song.cuid)
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Label("Add to Playlist", systemImage: "text.append")
+                }
+                
+                Button(action: {
+                    Task {
+                        do {
+                            try await insertTracks(tracks: [song.path], position: Int32(PlaylistPosition.insertLast))
+                            await player.fetchQueue()
+                        } catch {
+                            errorText = String(describing: error)
+                        }
+                    }
+                }) {
+                    Label("Play Last", systemImage: "text.append")
+                }
+                
+                Divider()
+                
+                Button(action: {
+                    library.toggleLike(song)
+                }) {
+                    Label(library.isLiked(song) ? "Remove from Liked" : "Add to Liked",
+                          systemImage: library.isLiked(song) ? "heart.slash" : "heart")
+                }
+                
+                Divider()
+                
+                Button(action: {
+                    // Go to album action
+                }) {
+                    Label("Go to Album", systemImage: "square.stack")
+                }
+                
+                Button(action: {
+                    // Go to artist action
+                }) {
+                    Label("Go to Artist", systemImage: "music.mic")
+                    
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 14))
+                    .foregroundStyle(isHoveringMenu ? .primary : .secondary)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .frame(width: 20, alignment: .center)
+                .opacity(isHovering ? 1 : 0)
+                .onHover { hovering in
+                    isHoveringMenu = hovering
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)

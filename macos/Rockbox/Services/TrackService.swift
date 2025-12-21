@@ -5,12 +5,13 @@
 //  Created by Tsiry Sandratraina on 14/12/2025.
 //
 
-
 import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2
 
-func fetchTracks(host: String = "127.0.0.1", port: Int = 6061) async throws -> [Rockbox_V1alpha1_Track] {
+func fetchTracks(host: String = "127.0.0.1", port: Int = 6061) async throws
+  -> [Rockbox_V1alpha1_Track]
+{
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
@@ -27,7 +28,9 @@ func fetchTracks(host: String = "127.0.0.1", port: Int = 6061) async throws -> [
   }
 }
 
-func fetchLikedTracks(host: String = "127.0.0.1", port: Int = 6061) async throws -> [Rockbox_V1alpha1_Track] {
+func fetchLikedTracks(host: String = "127.0.0.1", port: Int = 6061) async throws
+  -> [Rockbox_V1alpha1_Track]
+{
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
@@ -44,7 +47,7 @@ func fetchLikedTracks(host: String = "127.0.0.1", port: Int = 6061) async throws
   }
 }
 
-func likeTrack(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+func likeTrack(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws {
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
@@ -59,8 +62,7 @@ func likeTrack(id: String, host: String = "127.0.0.1", port: Int = 6061) async t
   }
 }
 
-
-func unlikeTrack(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws -> Void {
+func unlikeTrack(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws {
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),
@@ -74,5 +76,3 @@ func unlikeTrack(id: String, host: String = "127.0.0.1", port: Int = 6061) async
     let _ = try await library.unlikeTrack(req)
   }
 }
-
-

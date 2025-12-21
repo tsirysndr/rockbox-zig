@@ -20,7 +20,7 @@ struct AlbumsGridView: View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 24) {
                 ForEach(albums) { album in
-                    AlbumCardView(album: album) {
+                    AlbumCardView(album: album, playlists: []) {
                         selectedAlbum = album
                     }
                 }

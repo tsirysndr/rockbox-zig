@@ -13,8 +13,7 @@ struct FileHeaderRow: View {
             Text("Name")
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            Text("Size")
-                .frame(width: 100, alignment: .trailing)
+            Color.clear.frame(width: 40)
         }
         .font(.system(size: 11, weight: .medium))
         .foregroundStyle(.secondary)

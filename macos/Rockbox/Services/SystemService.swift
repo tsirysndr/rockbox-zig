@@ -9,7 +9,9 @@ import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2
 
-func fetchGlobalStatus(host: String = "127.0.0.1", port: Int = 6061) async throws -> Rockbox_V1alpha1_GetGlobalStatusResponse {
+func fetchGlobalStatus(host: String = "127.0.0.1", port: Int = 6061) async throws
+  -> Rockbox_V1alpha1_GetGlobalStatusResponse
+{
   try await withGRPCClient(
     transport: .http2NIOPosix(
       target: .dns(host: host, port: port),

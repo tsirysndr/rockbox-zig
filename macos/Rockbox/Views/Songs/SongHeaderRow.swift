@@ -32,6 +32,10 @@ struct SongHeaderRow: View {
                 Color.clear
                     .frame(width: 40)
             }
+            
+            Color.clear
+                .frame(width: 40)
+
         }
         .font(.system(size: 11, weight: .medium))
         .foregroundStyle(.secondary)

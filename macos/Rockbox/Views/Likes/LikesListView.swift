@@ -95,6 +95,7 @@ struct LikesListView: View {
                 for track in data {
                     let song = Song(
                         cuid: track.id,
+                        path: track.path,
                         title: track.title,
                         artist: track.artist,
                         album: track.album,

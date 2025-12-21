@@ -12,8 +12,11 @@ struct PlayerControlsView: View {
     @State private var isHoveringProgress = false
     @State private var isHoveringTrackInfo = false
     @State private var isHoveringQueue = false
+    @State private var isHoveringMenu = false
+    @State private var errorText: String? = nil
     @ObservedObject var library: MusicLibrary
     @Binding var showQueue: Bool  // Add this binding
+    
     
     var body: some View {
         HStack(spacing: 0) {
@@ -97,6 +100,49 @@ struct PlayerControlsView: View {
                         }
                         .buttonStyle(.plain)
                         .opacity(isHoveringTrackInfo || library.isLiked(player.currentTrack) ? 1 : 0)
+                        
+                        // Context menu button
+                        Menu {
+                            Button(action: {
+                                Task {
+                                    do {
+                                        // try await addToQueueLast(songId: song.cuid)
+                                    } catch {
+                                        errorText = String(describing: error)
+                                    }
+                                }
+                            }) {
+                                Label("Add to Playlist", systemImage: "text.append")
+                            }
+                            
+                            Divider()
+                            
+                            Button(action: {
+                                // Go to album action
+                            }) {
+                                Label("Go to Album", systemImage: "square.stack")
+                            }
+                            
+                            Button(action: {
+                                // Go to artist action
+                            }) {
+                                Label("Go to Artist", systemImage: "music.mic")
+                                
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 14))
+                                .foregroundStyle(isHoveringMenu ? .primary : .secondary)
+                                .frame(width: 32, height: 32)
+                                .contentShape(Rectangle())
+                            }
+                            .menuStyle(.borderlessButton)
+                            .menuIndicator(.hidden)
+                            .frame(width: 40, alignment: .center)
+                            .opacity(isHoveringTrackInfo ? 1 : 0)
+                            .onHover { hovering in
+                                isHoveringMenu = hovering
+                        }
                         
                         Spacer()
                     }

@@ -20,7 +20,7 @@ struct ContentView: View {
             DetailView(selection: selection, player: player, library: library, showQueue: $showQueue)
         }
         .inspector(isPresented: $showQueue) {
-           QueueView()
+            QueueView(library: library)
                .inspectorColumnWidth(min: 280, ideal: 300, max: 350)
        }
     }

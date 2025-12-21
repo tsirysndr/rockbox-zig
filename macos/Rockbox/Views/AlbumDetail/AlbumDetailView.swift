@@ -92,6 +92,7 @@ struct AlbumDetailView: View {
                 for track in data.tracks {
                     tracks.append(Song(
                         cuid: track.id,
+                        path: track.path,
                         title: track.title,
                         artist: track.artist,
                         album: track.album,
