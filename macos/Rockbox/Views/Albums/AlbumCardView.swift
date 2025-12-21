@@ -10,6 +10,8 @@ struct AlbumCardView: View {
     let album: Album
     var playlists: [Playlist] = []
     @EnvironmentObject var player: PlayerState
+    @EnvironmentObject var navigation: NavigationManager
+    
     @State private var isHovering = false
     @State private var isHoveringPlayButton = false
     @State private var isHoveringMenu = false
@@ -182,6 +184,13 @@ struct AlbumCardView: View {
                                                     }
                                                 }
 
+                                            }
+                                            
+                                            MenuItemButton(title: "Go to Artist", icon: "music.mic") {
+                                                showMenu = false
+                                                Task {
+                                                    await navigation.goToArtist(byId: album.artistID)
+                                                }
                                             }
                                         }
                                         .padding(8)

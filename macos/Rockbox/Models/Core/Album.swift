@@ -16,5 +16,6 @@ struct Album: Identifiable {
     let cover: String
     let releaseDate: String?
     let copyrightMessage: String?
+    let artistID: String
     let tracks: [Song]
 }

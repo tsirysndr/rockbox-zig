@@ -29,6 +29,7 @@ class NavigationManager: ObservableObject {
                 cover: "http://localhost:6062/covers/" + albumData.albumArt,
                 releaseDate: albumData.yearString,
                 copyrightMessage: albumData.copyrightMessage,
+                artistID: albumData.artistID,
                 tracks: []
             )
             selectedArtist = nil
