@@ -165,15 +165,6 @@ struct ArtistTrackRowView: View {
                 }) {
                     Label("Go to Album", systemImage: "square.stack")
                 }
-                
-                Button(action: {
-                    Task {
-                        await navigation.goToArtist(byId: track.artistID)
-                    }
-                }) {
-                    Label("Go to Artist", systemImage: "music.mic")
-                    
-                }
             } label: {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 14))

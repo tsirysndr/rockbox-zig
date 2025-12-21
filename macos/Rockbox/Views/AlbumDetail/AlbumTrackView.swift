@@ -129,14 +129,6 @@ struct AlbumTrackRowView: View {
                 
                 Button(action: {
                     Task {
-                        await navigation.goToAlbum(byId: track.albumID)
-                    }
-                }) {
-                    Label("Go to Album", systemImage: "square.stack")
-                }
-                
-                Button(action: {
-                    Task {
                         await navigation.goToArtist(byId: track.artistID)
                     }
                 }) {
