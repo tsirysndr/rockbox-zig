@@ -32,7 +32,7 @@ sqlx = { version = "0.8.2", features = [
   "derive",
   "macros",
 ] }
-tantivy = "0.22.0"
+tantivy = "0.25.0"
 tokio = { version = "1.36.0", features = ["full"] }
 tokio-stream = "0.1.16"
 tonic = "0.12.3"

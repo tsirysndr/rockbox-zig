@@ -29,5 +29,5 @@ serde = "1.0.210"
 serde_json = "1.0.128"
 slab = "0.4.9"
 sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
-tantivy = "0.22.0"
+tantivy = "0.25.0"
 tokio = {version = "1.36.0", features = ["full"]}
