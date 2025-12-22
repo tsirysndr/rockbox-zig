@@ -54,7 +54,7 @@ struct QueueView: View {
             }
 
             
-            if player.upNext.isEmpty && player.history.isEmpty {
+            if  (player.upNext.isEmpty && showPlayingNext) || player.history.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "music.note.list")
                         .font(.system(size: 32))
