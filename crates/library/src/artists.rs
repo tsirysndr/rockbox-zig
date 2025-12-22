@@ -40,6 +40,9 @@ pub fn update_metadata(pool: Pool<Sqlite>) -> Result<(), Error> {
                 if artist.name == "Theory Of A Deadman" {
                     artist.name = "Theory of a Deadman".to_string();
                 }
+                if artist.name == "Yonaka" {
+                    artist.name = "YONAKA".to_string();
+                }
                 artist
             });
             let mut artist_map: HashMap<String, Artist> = HashMap::new();
