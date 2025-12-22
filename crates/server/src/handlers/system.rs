@@ -5,8 +5,8 @@ use anyhow::Error;
 use owo_colors::OwoColorize;
 use rockbox_library::{artists::update_metadata, audio_scan::scan_audio_files, repo};
 use rockbox_search::{
-    album::Album, artist::Artist, create_indexes, delete_all_documents, index_entity,
-    liked_album::LikedAlbum, liked_track::LikedTrack, track::Track,
+    album::Album, artist::Artist, delete_all_documents, index_entity, liked_album::LikedAlbum,
+    liked_track::LikedTrack, track::Track,
 };
 use rockbox_sys as rb;
 

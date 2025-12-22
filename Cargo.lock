@@ -9618,6 +9618,7 @@ name = "rockbox-search"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "regex",
  "rockbox-library",
  "serde",
  "tantivy",
