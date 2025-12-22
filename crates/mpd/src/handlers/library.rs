@@ -181,7 +181,10 @@ pub async fn handle_rescan(
         false => format!("{}/{}", response.music_dir, path),
     });
     ctx.library
-        .scan_library(ScanLibraryRequest { path })
+        .scan_library(ScanLibraryRequest {
+            path,
+            rebuild_index: None,
+        })
         .await?;
 
     if !ctx.batch {

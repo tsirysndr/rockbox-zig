@@ -501,6 +501,8 @@ pub struct GetLikedAlbumsResponse {
 pub struct ScanLibraryRequest {
     #[prost(string, optional, tag = "1")]
     pub path: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, optional, tag = "2")]
+    pub rebuild_index: ::core::option::Option<bool>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ScanLibraryResponse {}

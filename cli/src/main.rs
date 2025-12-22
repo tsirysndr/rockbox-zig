@@ -1,4 +1,4 @@
-use std::ffi::OsString;
+use std::{env, ffi::OsString};
 
 use anyhow::Error;
 use clap::{arg, Command};
@@ -30,15 +30,21 @@ fn cli() -> Command {
     Command::new("rockbox")
         .version(VERSION)
         .about(&banner)
+        .arg(arg!(--rebuild -r "Rebuild index after scan"))
         .subcommand(
             Command::new("scan")
                 .arg(arg!(--directory -d [PATH] "path to your music library").required(false))
+                .arg(arg!(--rebuild -r "Rebuild index after scan"))
                 .about("Scan your music library for new media files"),
         )
         .subcommand(
             Command::new("community").about("Join our community on Discord to chat with us!"),
         )
-        .subcommand(Command::new("start").about("Start Rockbox server"))
+        .subcommand(
+            Command::new("start")
+                .about("Start Rockbox server")
+                .arg(arg!(--rebuild -r "Rebuild index after scan")),
+        )
         .subcommand(Command::new("tui").about("Start Rockbox TUI"))
         .subcommand(
             Command::new("webui")
@@ -101,7 +107,11 @@ async fn main() -> Result<(), Error> {
     match matches.subcommand() {
         Some(("scan", args)) => {
             let directory = args.get_one::<String>("directory").map(|d| d.to_string());
-            scan(directory).await?;
+            let rebuild_index = match args.get_flag("rebuild") {
+                true => Some(true),
+                false => None,
+            };
+            scan(directory, rebuild_index).await?;
         }
         Some(("community", _)) => {
             community();
@@ -139,9 +149,13 @@ async fn main() -> Result<(), Error> {
         Some(("whoami", _)) => {
             whoami().await?;
         }
-        _ => {
+        Some((_, args)) => {
+            if args.get_flag("rebuild") {
+                env::set_var("ROCKBOX_UPDATE_LIBRARY", "1");
+            }
             start(true)?;
         }
+        None => start(true)?,
     }
     Ok(())
 }

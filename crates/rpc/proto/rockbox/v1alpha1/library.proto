@@ -132,6 +132,7 @@ message GetLikedAlbumsResponse {
 
 message ScanLibraryRequest {
   optional string path = 1;
+  optional bool rebuild_index = 2;
 }
 
 message ScanLibraryResponse {}

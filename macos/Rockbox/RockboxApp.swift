@@ -11,12 +11,14 @@ import SwiftUI
 struct RockboxApp: App {
     @StateObject private var player = PlayerState()
     @StateObject private var navigation = NavigationManager()
+    @StateObject private var searchManager = SearchManager()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(player)
                 .environmentObject(navigation)
+                .environmentObject(searchManager)
                 .task {
                     player.startStreaming()
                 }

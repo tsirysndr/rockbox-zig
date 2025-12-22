@@ -580,11 +580,21 @@ struct Rockbox_V1alpha1_ScanLibraryRequest: Sendable {
   /// Clears the value of `path`. Subsequent reads from it will return its default value.
   mutating func clearPath() {self._path = nil}
 
+  var rebuildIndex: Bool {
+    get {return _rebuildIndex ?? false}
+    set {_rebuildIndex = newValue}
+  }
+  /// Returns true if `rebuildIndex` has been explicitly set.
+  var hasRebuildIndex: Bool {return self._rebuildIndex != nil}
+  /// Clears the value of `rebuildIndex`. Subsequent reads from it will return its default value.
+  mutating func clearRebuildIndex() {self._rebuildIndex = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
   fileprivate var _path: String? = nil
+  fileprivate var _rebuildIndex: Bool? = nil
 }
 
 struct Rockbox_V1alpha1_ScanLibraryResponse: Sendable {
@@ -1636,7 +1646,7 @@ extension Rockbox_V1alpha1_GetLikedAlbumsResponse: SwiftProtobuf.Message, SwiftP
 
 extension Rockbox_V1alpha1_ScanLibraryRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ScanLibraryRequest"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}path\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}path\0\u{3}rebuild_index\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -1645,6 +1655,7 @@ extension Rockbox_V1alpha1_ScanLibraryRequest: SwiftProtobuf.Message, SwiftProto
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self._path) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self._rebuildIndex) }()
       default: break
       }
     }
@@ -1658,11 +1669,15 @@ extension Rockbox_V1alpha1_ScanLibraryRequest: SwiftProtobuf.Message, SwiftProto
     try { if let v = self._path {
       try visitor.visitSingularStringField(value: v, fieldNumber: 1)
     } }()
+    try { if let v = self._rebuildIndex {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Rockbox_V1alpha1_ScanLibraryRequest, rhs: Rockbox_V1alpha1_ScanLibraryRequest) -> Bool {
     if lhs._path != rhs._path {return false}
+    if lhs._rebuildIndex != rhs._rebuildIndex {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
