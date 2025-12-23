@@ -16,6 +16,6 @@ pkgbuild \
   --version "0.1.0" \
   --root "/tmp/rockbox-pkg" \
   --install-location "/" \
-  "rockbox-installer-${ARCH}.pkg"
+  "rockbox-${VERSION}-${ARCH}.pkg"
 
 rm -rf /tmp/rockbox-pkg
