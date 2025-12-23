@@ -1,8 +1,8 @@
 Package: rockbox
-Version: 2025.07.19
+Version: 2025.12.23
 Section: user/multimedia
 Priority: optional
 Architecture: arm64
-Maintainer: Tsiry Sandratraina <tsiry.sndr@fluentci.io>
+Maintainer: Tsiry Sandratraina <tsiry.sndr@rocksky.app>
 Depends: libsdl2-dev, libfreetype6-dev, libunwind-dev, alsa-utils, libasound2-dev
 Description: Rockbox open source high quality audio player

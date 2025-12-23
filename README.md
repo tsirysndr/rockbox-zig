@@ -114,9 +114,9 @@ curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.
   arm64:
   [rockbox_2025.12.23_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.23/rockbox_2025.12.23_aarch64-linux.tar.gz)
 - `macOS`: intel:
-  [rockbox_2025.12.23_x86_64-darwin.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.23/rockbox_2025.12.23_x86_64-darwin.tar.gz)
+  [rockbox-2025.12.23-x86_64.pkg](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.23/rockbox-2025.12.23-x86_64.pkg)
   arm64:
-  [rockbox_2025.12.23_aarch64-darwin.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.23/rockbox_2025.12.23_aarch64-darwin.tar.gz)
+  [rockbox-2025.12.23-aarch64.pkg](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.23/rockbox-2025.12.23-aarch64.pkg)
 
 ## 🧙‍♂️ Systemd Service
 
