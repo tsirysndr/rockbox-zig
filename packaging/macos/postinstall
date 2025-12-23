@@ -36,6 +36,7 @@ cat > "$PLIST" <<EOF
   </array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
+  <key>ProcessType</key><string>Background</string>
   <key>StandardOutPath</key><string>/tmp/rockbox.log</string>
   <key>StandardErrorPath</key><string>/tmp/rockbox.err.log</string>
   <key>EnvironmentVariables</key>

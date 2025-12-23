@@ -17,6 +17,9 @@
   <key>KeepAlive</key>
   <true />
 
+  <key>ProcessType</key>
+  <string>Background</string>
+
   <key>StandardOutPath</key>
   <string>/tmp/rockbox.log</string>
 
