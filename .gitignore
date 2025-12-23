@@ -10,6 +10,8 @@
 *~
 *.ui
 
+*.pkg
+
 .hermit/
 
 __pycache__
@@ -204,7 +206,7 @@ target
 /utils/nwztools/scsitools/scsitool
 /utils/nwztools/upgtools/upgtool
 
-#  utils/rk27utils 
+#  utils/rk27utils
 /utils/rk27utils/rkboottool/rkboottool
 
 # /utils/themeeditor/

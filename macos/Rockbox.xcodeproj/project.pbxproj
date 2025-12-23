@@ -1,0 +1,665 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E7B07B552EEEC1960063D37B /* GRPCCodeGen in Frameworks */ = {isa = PBXBuildFile; productRef = E7B07B542EEEC1960063D37B /* GRPCCodeGen */; };
+		E7B07B572EEEC1960063D37B /* GRPCCore in Frameworks */ = {isa = PBXBuildFile; productRef = E7B07B562EEEC1960063D37B /* GRPCCore */; };
+		E7B07B592EEEC1960063D37B /* GRPCInProcessTransport in Frameworks */ = {isa = PBXBuildFile; productRef = E7B07B582EEEC1960063D37B /* GRPCInProcessTransport */; };
+		E7B07C292EEF10F30063D37B /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = E7B07C282EEF10F30063D37B /* SwiftProtobuf */; };
+		E7B07C2B2EEF10F30063D37B /* SwiftProtobufPluginLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = E7B07C2A2EEF10F30063D37B /* SwiftProtobufPluginLibrary */; };
+		E7B07C2E2EEF11FD0063D37B /* GRPCProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = E7B07C2D2EEF11FD0063D37B /* GRPCProtobuf */; };
+		E7B07C312EEF12EF0063D37B /* GRPCNIOTransportHTTP2 in Frameworks */ = {isa = PBXBuildFile; productRef = E7B07C302EEF12EF0063D37B /* GRPCNIOTransportHTTP2 */; };
+		E7B07C332EEF12EF0063D37B /* GRPCNIOTransportHTTP2Posix in Frameworks */ = {isa = PBXBuildFile; productRef = E7B07C322EEF12EF0063D37B /* GRPCNIOTransportHTTP2Posix */; };
+		E7B07C352EEF12EF0063D37B /* GRPCNIOTransportHTTP2TransportServices in Frameworks */ = {isa = PBXBuildFile; productRef = E7B07C342EEF12EF0063D37B /* GRPCNIOTransportHTTP2TransportServices */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E7F53ACC2EEDDB1C006E0F3F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E7F53AB52EEDDB1B006E0F3F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E7F53ABC2EEDDB1B006E0F3F;
+			remoteInfo = Rockbox;
+		};
+		E7F53AD62EEDDB1C006E0F3F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E7F53AB52EEDDB1B006E0F3F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E7F53ABC2EEDDB1B006E0F3F;
+			remoteInfo = Rockbox;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		E7F53ABD2EEDDB1B006E0F3F /* Rockbox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rockbox.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E7F53ACB2EEDDB1C006E0F3F /* RockboxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RockboxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E7F53AD52EEDDB1C006E0F3F /* RockboxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RockboxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		E7F53ABF2EEDDB1B006E0F3F /* Rockbox */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Rockbox;
+			sourceTree = "<group>";
+		};
+		E7F53ACE2EEDDB1C006E0F3F /* RockboxTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RockboxTests;
+			sourceTree = "<group>";
+		};
+		E7F53AD82EEDDB1C006E0F3F /* RockboxUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RockboxUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E7F53ABA2EEDDB1B006E0F3F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7B07B552EEEC1960063D37B /* GRPCCodeGen in Frameworks */,
+				E7B07B572EEEC1960063D37B /* GRPCCore in Frameworks */,
+				E7B07C2B2EEF10F30063D37B /* SwiftProtobufPluginLibrary in Frameworks */,
+				E7B07C312EEF12EF0063D37B /* GRPCNIOTransportHTTP2 in Frameworks */,
+				E7B07C352EEF12EF0063D37B /* GRPCNIOTransportHTTP2TransportServices in Frameworks */,
+				E7B07C2E2EEF11FD0063D37B /* GRPCProtobuf in Frameworks */,
+				E7B07B592EEEC1960063D37B /* GRPCInProcessTransport in Frameworks */,
+				E7B07C332EEF12EF0063D37B /* GRPCNIOTransportHTTP2Posix in Frameworks */,
+				E7B07C292EEF10F30063D37B /* SwiftProtobuf in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7F53AC82EEDDB1C006E0F3F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7F53AD22EEDDB1C006E0F3F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E7F53AB42EEDDB1B006E0F3F = {
+			isa = PBXGroup;
+			children = (
+				E7F53ABF2EEDDB1B006E0F3F /* Rockbox */,
+				E7F53ACE2EEDDB1C006E0F3F /* RockboxTests */,
+				E7F53AD82EEDDB1C006E0F3F /* RockboxUITests */,
+				E7F53ABE2EEDDB1B006E0F3F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E7F53ABE2EEDDB1B006E0F3F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E7F53ABD2EEDDB1B006E0F3F /* Rockbox.app */,
+				E7F53ACB2EEDDB1C006E0F3F /* RockboxTests.xctest */,
+				E7F53AD52EEDDB1C006E0F3F /* RockboxUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E7F53ABC2EEDDB1B006E0F3F /* Rockbox */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E7F53ADF2EEDDB1C006E0F3F /* Build configuration list for PBXNativeTarget "Rockbox" */;
+			buildPhases = (
+				E7F53AB92EEDDB1B006E0F3F /* Sources */,
+				E7F53ABA2EEDDB1B006E0F3F /* Frameworks */,
+				E7F53ABB2EEDDB1B006E0F3F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E7F53ABF2EEDDB1B006E0F3F /* Rockbox */,
+			);
+			name = Rockbox;
+			packageProductDependencies = (
+				E7B07B542EEEC1960063D37B /* GRPCCodeGen */,
+				E7B07B562EEEC1960063D37B /* GRPCCore */,
+				E7B07B582EEEC1960063D37B /* GRPCInProcessTransport */,
+				E7B07C282EEF10F30063D37B /* SwiftProtobuf */,
+				E7B07C2A2EEF10F30063D37B /* SwiftProtobufPluginLibrary */,
+				E7B07C2D2EEF11FD0063D37B /* GRPCProtobuf */,
+				E7B07C302EEF12EF0063D37B /* GRPCNIOTransportHTTP2 */,
+				E7B07C322EEF12EF0063D37B /* GRPCNIOTransportHTTP2Posix */,
+				E7B07C342EEF12EF0063D37B /* GRPCNIOTransportHTTP2TransportServices */,
+			);
+			productName = Rockbox;
+			productReference = E7F53ABD2EEDDB1B006E0F3F /* Rockbox.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E7F53ACA2EEDDB1C006E0F3F /* RockboxTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E7F53AE22EEDDB1C006E0F3F /* Build configuration list for PBXNativeTarget "RockboxTests" */;
+			buildPhases = (
+				E7F53AC72EEDDB1C006E0F3F /* Sources */,
+				E7F53AC82EEDDB1C006E0F3F /* Frameworks */,
+				E7F53AC92EEDDB1C006E0F3F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E7F53ACD2EEDDB1C006E0F3F /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E7F53ACE2EEDDB1C006E0F3F /* RockboxTests */,
+			);
+			name = RockboxTests;
+			packageProductDependencies = (
+			);
+			productName = RockboxTests;
+			productReference = E7F53ACB2EEDDB1C006E0F3F /* RockboxTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E7F53AD42EEDDB1C006E0F3F /* RockboxUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E7F53AE52EEDDB1C006E0F3F /* Build configuration list for PBXNativeTarget "RockboxUITests" */;
+			buildPhases = (
+				E7F53AD12EEDDB1C006E0F3F /* Sources */,
+				E7F53AD22EEDDB1C006E0F3F /* Frameworks */,
+				E7F53AD32EEDDB1C006E0F3F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E7F53AD72EEDDB1C006E0F3F /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E7F53AD82EEDDB1C006E0F3F /* RockboxUITests */,
+			);
+			name = RockboxUITests;
+			packageProductDependencies = (
+			);
+			productName = RockboxUITests;
+			productReference = E7F53AD52EEDDB1C006E0F3F /* RockboxUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E7F53AB52EEDDB1B006E0F3F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					E7F53ABC2EEDDB1B006E0F3F = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					E7F53ACA2EEDDB1C006E0F3F = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = E7F53ABC2EEDDB1B006E0F3F;
+					};
+					E7F53AD42EEDDB1C006E0F3F = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = E7F53ABC2EEDDB1B006E0F3F;
+					};
+				};
+			};
+			buildConfigurationList = E7F53AB82EEDDB1B006E0F3F /* Build configuration list for PBXProject "Rockbox" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E7F53AB42EEDDB1B006E0F3F;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E7B07B532EEEC1960063D37B /* XCRemoteSwiftPackageReference "grpc-swift-2" */,
+				E7B07C272EEF10F30063D37B /* XCRemoteSwiftPackageReference "swift-protobuf" */,
+				E7B07C2C2EEF11FD0063D37B /* XCRemoteSwiftPackageReference "grpc-swift-protobuf" */,
+				E7B07C2F2EEF12EF0063D37B /* XCRemoteSwiftPackageReference "grpc-swift-nio-transport" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = E7F53ABE2EEDDB1B006E0F3F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E7F53ABC2EEDDB1B006E0F3F /* Rockbox */,
+				E7F53ACA2EEDDB1C006E0F3F /* RockboxTests */,
+				E7F53AD42EEDDB1C006E0F3F /* RockboxUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E7F53ABB2EEDDB1B006E0F3F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7F53AC92EEDDB1C006E0F3F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7F53AD32EEDDB1C006E0F3F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E7F53AB92EEDDB1B006E0F3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7F53AC72EEDDB1C006E0F3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7F53AD12EEDDB1C006E0F3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E7F53ACD2EEDDB1C006E0F3F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E7F53ABC2EEDDB1B006E0F3F /* Rockbox */;
+			targetProxy = E7F53ACC2EEDDB1C006E0F3F /* PBXContainerItemProxy */;
+		};
+		E7F53AD72EEDDB1C006E0F3F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E7F53ABC2EEDDB1B006E0F3F /* Rockbox */;
+			targetProxy = E7F53AD62EEDDB1C006E0F3F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E7F53ADD2EEDDB1C006E0F3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.3;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		E7F53ADE2EEDDB1C006E0F3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		E7F53AE02EEDDB1C006E0F3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Rockbox/Rockbox.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.tsirysndr.Rockbox;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E7F53AE12EEDDB1C006E0F3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Rockbox/Rockbox.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.tsirysndr.Rockbox;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		E7F53AE32EEDDB1C006E0F3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.tsirysndr.RockboxTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Rockbox.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Rockbox";
+			};
+			name = Debug;
+		};
+		E7F53AE42EEDDB1C006E0F3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.tsirysndr.RockboxTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Rockbox.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Rockbox";
+			};
+			name = Release;
+		};
+		E7F53AE62EEDDB1C006E0F3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.tsirysndr.RockboxUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Rockbox;
+			};
+			name = Debug;
+		};
+		E7F53AE72EEDDB1C006E0F3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.tsirysndr.RockboxUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Rockbox;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E7F53AB82EEDDB1B006E0F3F /* Build configuration list for PBXProject "Rockbox" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7F53ADD2EEDDB1C006E0F3F /* Debug */,
+				E7F53ADE2EEDDB1C006E0F3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E7F53ADF2EEDDB1C006E0F3F /* Build configuration list for PBXNativeTarget "Rockbox" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7F53AE02EEDDB1C006E0F3F /* Debug */,
+				E7F53AE12EEDDB1C006E0F3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E7F53AE22EEDDB1C006E0F3F /* Build configuration list for PBXNativeTarget "RockboxTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7F53AE32EEDDB1C006E0F3F /* Debug */,
+				E7F53AE42EEDDB1C006E0F3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E7F53AE52EEDDB1C006E0F3F /* Build configuration list for PBXNativeTarget "RockboxUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7F53AE62EEDDB1C006E0F3F /* Debug */,
+				E7F53AE72EEDDB1C006E0F3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E7B07B532EEEC1960063D37B /* XCRemoteSwiftPackageReference "grpc-swift-2" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/grpc/grpc-swift-2";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.1;
+			};
+		};
+		E7B07C272EEF10F30063D37B /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.33.3;
+			};
+		};
+		E7B07C2C2EEF11FD0063D37B /* XCRemoteSwiftPackageReference "grpc-swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/grpc/grpc-swift-protobuf.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.1.1;
+			};
+		};
+		E7B07C2F2EEF12EF0063D37B /* XCRemoteSwiftPackageReference "grpc-swift-nio-transport" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/grpc/grpc-swift-nio-transport.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E7B07B542EEEC1960063D37B /* GRPCCodeGen */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7B07B532EEEC1960063D37B /* XCRemoteSwiftPackageReference "grpc-swift-2" */;
+			productName = GRPCCodeGen;
+		};
+		E7B07B562EEEC1960063D37B /* GRPCCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7B07B532EEEC1960063D37B /* XCRemoteSwiftPackageReference "grpc-swift-2" */;
+			productName = GRPCCore;
+		};
+		E7B07B582EEEC1960063D37B /* GRPCInProcessTransport */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7B07B532EEEC1960063D37B /* XCRemoteSwiftPackageReference "grpc-swift-2" */;
+			productName = GRPCInProcessTransport;
+		};
+		E7B07C282EEF10F30063D37B /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7B07C272EEF10F30063D37B /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		E7B07C2A2EEF10F30063D37B /* SwiftProtobufPluginLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7B07C272EEF10F30063D37B /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobufPluginLibrary;
+		};
+		E7B07C2D2EEF11FD0063D37B /* GRPCProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7B07C2C2EEF11FD0063D37B /* XCRemoteSwiftPackageReference "grpc-swift-protobuf" */;
+			productName = GRPCProtobuf;
+		};
+		E7B07C302EEF12EF0063D37B /* GRPCNIOTransportHTTP2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7B07C2F2EEF12EF0063D37B /* XCRemoteSwiftPackageReference "grpc-swift-nio-transport" */;
+			productName = GRPCNIOTransportHTTP2;
+		};
+		E7B07C322EEF12EF0063D37B /* GRPCNIOTransportHTTP2Posix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7B07C2F2EEF12EF0063D37B /* XCRemoteSwiftPackageReference "grpc-swift-nio-transport" */;
+			productName = GRPCNIOTransportHTTP2Posix;
+		};
+		E7B07C342EEF12EF0063D37B /* GRPCNIOTransportHTTP2TransportServices */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7B07C2F2EEF12EF0063D37B /* XCRemoteSwiftPackageReference "grpc-swift-nio-transport" */;
+			productName = GRPCNIOTransportHTTP2TransportServices;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = E7F53AB52EEDDB1B006E0F3F /* Project object */;
+}

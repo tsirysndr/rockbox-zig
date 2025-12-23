@@ -8,7 +8,7 @@ use rockbox::{
 
 use super::start::*;
 
-pub async fn scan(path: Option<String>) -> Result<(), Error> {
+pub async fn scan(path: Option<String>, rebuild_index: Option<bool>) -> Result<(), Error> {
     install_rockboxd()?;
     let handle = thread::spawn(|| match start(false) {
         Ok(_) => {}
@@ -24,7 +24,10 @@ pub async fn scan(path: Option<String>) -> Result<(), Error> {
 
     let url = format!("tcp://{}:{}", host, port);
     let mut client = LibraryServiceClient::connect(url).await?;
-    let request = tonic::Request::new(ScanLibraryRequest { path });
+    let request = tonic::Request::new(ScanLibraryRequest {
+        path,
+        rebuild_index,
+    });
     client.scan_library(request).await?;
     println!("Scan request sent to Rockbox server");
     handle.join().unwrap();

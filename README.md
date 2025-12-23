@@ -32,6 +32,7 @@ Rockbox.
 ![Preview](./docs/preview.png)
 ![Desktop](./docs/desktop.png)
 ![MacOS](./docs/media-controls.png)
+![MacOS](./docs/preview-mac.png)
 
 
 ## ✨ Features

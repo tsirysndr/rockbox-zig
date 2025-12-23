@@ -253,9 +253,13 @@ impl LibraryService for Library {
         request: tonic::Request<ScanLibraryRequest>,
     ) -> Result<tonic::Response<ScanLibraryResponse>, tonic::Status> {
         let request = request.into_inner();
-        let params = match request.path {
-            Some(path) => format!("?path={}", path),
-            None => "".to_string(),
+        let params = match (request.path, request.rebuild_index) {
+            (Some(path), Some(true)) => format!("?path={}&rebuild_index=1", path),
+            (Some(path), Some(false)) => format!("?path={}", path),
+            (None, Some(true)) => format!("?rebuild_index=1"),
+            (None, Some(false)) => "".to_string(),
+            (Some(path), None) => format!("?path={}", path),
+            (None, None) => "".to_string(),
         };
         let url = format!("{}/scan-library{}", rockbox_url(), params);
         self.client

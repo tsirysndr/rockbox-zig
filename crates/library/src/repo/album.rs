@@ -5,16 +5,18 @@ pub async fn save(pool: Pool<Sqlite>, album: Album) -> Result<String, sqlx::Erro
     match sqlx::query(
         r#"
         INSERT INTO album (
-          id, 
-          title, 
+          id,
+          title,
           artist,
           year,
           year_string,
           album_art,
           md5,
-          artist_id
+          artist_id,
+          label,
+          copyright_message
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         "#,
     )
     .bind(&album.id)
@@ -25,6 +27,8 @@ pub async fn save(pool: Pool<Sqlite>, album: Album) -> Result<String, sqlx::Erro
     .bind(&album.album_art)
     .bind(&album.md5)
     .bind(&album.artist_id)
+    .bind(album.label)
+    .bind(album.copyright_message)
     .execute(&pool)
     .await
     {

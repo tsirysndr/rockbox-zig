@@ -1,6 +1,7 @@
 pub mod album;
 pub mod album_tracks;
 pub mod artist;
+pub mod artist_genres;
 pub mod artist_tracks;
 pub mod favourites;
 pub mod folder;

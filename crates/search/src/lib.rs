@@ -8,7 +8,7 @@ use liked_album::LikedAlbum;
 use liked_track::LikedTrack;
 use tantivy::collector::TopDocs;
 use tantivy::directory::MmapDirectory;
-use tantivy::query::{FuzzyTermQuery, QueryParser};
+use tantivy::query::{FuzzyTermQuery, QueryParser, RegexQuery};
 use tantivy::{schema::Schema, Index, TantivyDocument};
 use tantivy::{ReloadPolicy, Term};
 use track::Track;
@@ -116,7 +116,7 @@ pub fn search_entities<T: Searchable>(
 
     // Parse the query
     let query_parser = QueryParser::for_index(index, fields.clone());
-    let query = query_parser.parse_query(query_string)?;
+    let query = query_parser.parse_query(&format!("{}*", query_string))?;
 
     // Execute the search and collect the top 10 results
     let top_docs = searcher.search(&query, &TopDocs::with_limit(10))?;
@@ -126,6 +126,19 @@ pub fn search_entities<T: Searchable>(
         .into_iter()
         .map(|(score, doc_address)| (score, searcher.doc(doc_address).unwrap()))
         .collect();
+
+    if results.is_empty() {
+        let pattern = format!("(?i){}.*", regex::escape(query_string));
+        for field in fields.clone() {
+            let query = RegexQuery::from_pattern(&pattern, field)?;
+            let regex_results: Vec<(f32, TantivyDocument)> = searcher
+                .search(&query, &TopDocs::with_limit(10))?
+                .into_iter()
+                .map(|(score, doc_address)| (score, searcher.doc(doc_address).unwrap()))
+                .collect();
+            results.extend(regex_results);
+        }
+    }
 
     if results.is_empty() {
         // loop through the fields and search for fuzzy matches

@@ -63,11 +63,18 @@ jobs:
         working-directory: zig
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
-      - name: Install
+      - name: Install Rockbox Libraries
         run: sudo make install
         working-directory: build-lib
+      - name: Install Rockbox Binaries
+        run: |
+          sudo cp target/release/rockbox /usr/local/bin/
+          sudo cp zig/zig-out/bin/rockboxd /usr/local/bin/
+      - name: Generate Package Installer
+        run: ./packaging/macos/build-pkg.sh
       - name: Show artifacts
         run: |
+          ls rockbox-*.pkg
           echo build-lib
           ls -l build-lib
           echo zig-out
@@ -125,6 +132,7 @@ jobs:
             rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
             rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz
             rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+            rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.pkg
           tag_name: ${{ steps.vars.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

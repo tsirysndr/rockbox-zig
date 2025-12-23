@@ -1,0 +1,8 @@
+
+{
+  "generate": {
+    "clients": true,
+    "servers": false,
+    "messages": true
+  }
+}

@@ -16,9 +16,8 @@ use crate::api::rockbox::v1alpha1::playback_service_client::PlaybackServiceClien
 use crate::api::rockbox::v1alpha1::playlist_service_client::PlaylistServiceClient;
 use crate::api::rockbox::v1alpha1::system_service_client::SystemServiceClient;
 use crate::api::rockbox::v1alpha1::{
-    GetGlobalStatusRequest, NextRequest, PauseRequest, PlayRequest, PlaylistResumeRequest,
-    PreviousRequest, ResumeRequest, ResumeTrackRequest, StartRequest, StatusRequest,
-    StreamCurrentTrackRequest, StreamStatusRequest,
+    GetGlobalStatusRequest, NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest,
+    ResumeTrackRequest, StatusRequest, StreamCurrentTrackRequest, StreamStatusRequest,
 };
 
 pub mod api {
