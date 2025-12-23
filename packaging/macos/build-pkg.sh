@@ -19,16 +19,19 @@ esac
 VERSION=$(git describe --tags --abbrev=0)
 
 mkdir -p "$TMP/usr/local"/{bin,lib,share}
+mkdir -p "/tmp/scripts"
 
 cp /usr/local/bin/rockbox* "$TMP/usr/local/bin"
 cp -R /usr/local/lib/rockbox "$TMP/usr/local/lib"
 cp -R /usr/local/share/rockbox "$TMP/usr/local/share"
+cp ./packaging/macos/postinstall "/tmp/scripts"
 
 pkgbuild \
   --identifier "com.github.rockbox-zig" \
   --version "$VERSION" \
   --root "$TMP" \
+  --scripts "/tmp/scripts" \
   --install-location "/" \
   "rockbox-${VERSION}-${ARCH}.pkg"
 
-rm -rf "$TMP"
+rm -rf "$TMP" "/tmp/scripts"

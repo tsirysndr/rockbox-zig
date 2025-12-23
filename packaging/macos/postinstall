@@ -1,0 +1,58 @@
+#!/bin/bash
+set -euo pipefail
+
+LABEL="com.github.rockbox"
+BIN="/usr/local/bin/rockbox"
+
+# Find the active console user (the one sitting at the Mac)
+USER_NAME=$(stat -f "%Su" /dev/console)
+if [[ "$USER_NAME" == "root" || -z "$USER_NAME" ]]; then
+  echo "No logged-in GUI user found; LaunchAgent will start at next login."
+  exit 0
+fi
+
+USER_UID=$(id -u "$USER_NAME")
+USER_HOME=$(dscl . -read "/Users/$USER_NAME" NFSHomeDirectory | awk '{print $2}')
+
+AGENTS_DIR="$USER_HOME/Library/LaunchAgents"
+PLIST="$AGENTS_DIR/$LABEL.plist"
+
+if [[ ! -x "$BIN" ]]; then
+  echo "Expected daemon binary not found or not executable: $BIN"
+  exit 1
+fi
+
+mkdir -p "$AGENTS_DIR"
+
+cat > "$PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$LABEL</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$BIN</string>
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/tmp/rockbox.log</string>
+  <key>StandardErrorPath</key><string>/tmp/rockbox.err.log</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+</dict>
+</plist>
+EOF
+
+chown "$USER_NAME" "$PLIST"
+chmod 0644 "$PLIST"
+
+# Reload + start
+launchctl bootout "gui/$USER_UID" "$PLIST" 2>/dev/null || true
+launchctl bootstrap "gui/$USER_UID" "$PLIST"
+launchctl kickstart -k "gui/$USER_UID/$LABEL"
+
+exit 0
