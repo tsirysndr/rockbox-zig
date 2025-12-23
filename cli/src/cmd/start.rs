@@ -31,7 +31,7 @@ pub fn start(with_ui: bool) -> Result<(), Error> {
                     .env("ROCKBOX_PORT", port)
                     .env("ROCKBOX_GRAPHQL_PORT", ui_port)
                     .env("ROCKBOX_TCP_PORT", http_port)
-                    .env("ROCKBOX_UPDATE_LIBRARY", env.var("ROCKBOX_UPDATE_LIBRARY"))
+                    .env("ROCKBOX_UPDATE_LIBRARY", env::var("ROCKBOX_UPDATE_LIBRARY"))
                     .spawn()?;
 
                 child.wait()?;
