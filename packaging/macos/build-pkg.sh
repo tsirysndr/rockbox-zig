@@ -1,21 +1,34 @@
 #!/bin/bash
+set -euo pipefail
 
-set -e -o pipefail
+TMP=/tmp/rockbox-pkg
 
-mkdir -p /tmp/rockbox-pkg/usr/local/{bin,lib,share}
+case "$(uname -m)" in
+  x86_64)
+    ARCH="x86_64"
+    ;;
+  arm64)
+    ARCH="aarch64"
+    ;;
+  *)
+    echo "Unsupported architecture: $(uname -m)"
+    exit 1
+    ;;
+esac
 
-cp /usr/local/bin/rockbox* /tmp/rockbox-pkg/usr/local/bin
-cp -r /usr/local/lib/rockbox /tmp/rockbox-pkg/usr/local/lib
-cp -r /usr/local/share/rockbox /tmp/rockbox-pkg/usr/local/share
+VERSION=$(git describe --tags --abbrev=0)
 
-export ARCH=$(uname -m)
-export VERSION=$(git describe --tags --abbrev=0)
+mkdir -p "$TMP/usr/local"/{bin,lib,share}
+
+cp /usr/local/bin/rockbox* "$TMP/usr/local/bin"
+cp -R /usr/local/lib/rockbox "$TMP/usr/local/lib"
+cp -R /usr/local/share/rockbox "$TMP/usr/local/share"
 
 pkgbuild \
   --identifier "com.github.rockbox-zig" \
-  --version "0.1.0" \
-  --root "/tmp/rockbox-pkg" \
+  --version "$VERSION" \
+  --root "$TMP" \
   --install-location "/" \
   "rockbox-${VERSION}-${ARCH}.pkg"
 
-rm -rf /tmp/rockbox-pkg
+rm -rf "$TMP"
