@@ -3,9 +3,6 @@ edition = "2021"
 name = "rockbox"
 version = "0.1.0"
 
-[target.'cfg(target_os = "macos")'.dependencies]
-rockbox-controls = { path = "../crates/controls"}
-
 [dependencies]
 anyhow = "1.0.91"
 clap = "4.5.16"
