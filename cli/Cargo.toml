@@ -3,6 +3,9 @@ edition = "2021"
 name = "rockbox"
 version = "0.1.0"
 
+[target.'cfg(target_os = "macos")'.dependencies]
+rockbox-controls = { path = "../crates/controls"}
+
 [dependencies]
 anyhow = "1.0.91"
 clap = "4.5.16"
@@ -27,7 +30,6 @@ reqwest = { version = "0.12.5", features = [
   "rustls-tls",
   "json",
 ], default-features = false }
-rockbox-controls = { path = "../crates/controls"}
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
 open = "5.3.2"
