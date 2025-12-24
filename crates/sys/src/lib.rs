@@ -34,20 +34,7 @@ pub const PLAYLIST_INSERT_LAST_ROTATED: i32 = -8;
 #[macro_export]
 macro_rules! cast_ptr {
     ($ptr:expr) => {{
-        #[cfg(all(target_arch = "aarch64", target_os = "macos"))]
-        {
-            $ptr as *const i8
-        }
-
-        #[cfg(all(target_arch = "aarch64", target_os = "linux"))]
-        {
-            $ptr as *const u8
-        }
-
-        #[cfg(not(target_arch = "aarch64"))]
-        {
-            $ptr as *const i8
-        }
+        $ptr as *const std::ffi::c_char
     }};
 }
 
