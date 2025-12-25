@@ -8,9 +8,9 @@ import Foundation
 import SwiftUI
 
 enum RepeatMode {
+  case one
   case off
   case all
-  case one
 }
 
 @MainActor
@@ -381,9 +381,9 @@ class PlayerState: ObservableObject {
     var mode: Int32 = 0
     switch repeatMode {
     case .off:
-      mode = 2
-    case .all:
       mode = 1
+    case .all:
+      mode = 2
     case .one:
       mode = 0
     }
@@ -406,9 +406,9 @@ class PlayerState: ObservableObject {
         case 0:
           repeatMode = .off
         case 1:
-          repeatMode = .one
-        case 2:
           repeatMode = .all
+        case 2:
+          repeatMode = .one
         default:
           repeatMode = .off
         }
