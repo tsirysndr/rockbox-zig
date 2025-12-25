@@ -79,6 +79,7 @@ jobs:
           mkdir dmg_temp
           cp -r build/Rockbox.app dmg_temp
           hdiutil create -volname "Rockbox" -srcfolder dmg_temp -ov -format UDZO Rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.dmg
+          mv Rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.dmg ..
         working-directory: macos
       - name: Show artifacts
         run: |
@@ -141,7 +142,7 @@ jobs:
             rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz
             rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
             rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.pkg
-            macos/Rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.dmg
+            Rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.dmg
           tag_name: ${{ steps.vars.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
