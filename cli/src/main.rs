@@ -5,7 +5,8 @@ use clap::{arg, Command};
 use owo_colors::OwoColorize;
 
 use cmd::{
-    community::*, login::*, repl::*, run::*, scan::*, service, start::*, webui::*, whoami::*,
+    clear::*, community::*, login::*, repl::*, run::*, scan::*, service, start::*, webui::*,
+    whoami::*,
 };
 
 pub mod cmd;
@@ -84,6 +85,7 @@ fn cli() -> Command {
                 .about("Display information about the currently logged in user")
                 .visible_alias("me"),
         )
+        .subcommand(Command::new("clear").about("Clear current playlist"))
 }
 
 #[tokio::main]
@@ -148,6 +150,13 @@ async fn main() -> Result<(), Error> {
         }
         Some(("whoami", _)) => {
             whoami().await?;
+        }
+        Some(("clear", _)) => {
+            match clear() {
+                Ok(_) => {}
+                Err(e) => {}
+            };
+            println!("✅ Rockbox Playlist Cleared");
         }
         Some((_, args)) => {
             if args.get_flag("rebuild") {

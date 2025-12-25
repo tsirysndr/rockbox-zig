@@ -1,3 +1,4 @@
+pub mod clear;
 pub mod community;
 pub mod login;
 pub mod repl;
