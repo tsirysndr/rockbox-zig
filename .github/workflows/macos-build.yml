@@ -141,7 +141,7 @@ jobs:
             rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz
             rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
             rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.pkg
-            Rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.dmg
+            macos/Rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.dmg
           tag_name: ${{ steps.vars.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
