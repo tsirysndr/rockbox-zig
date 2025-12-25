@@ -40,6 +40,57 @@ class PlayerState: ObservableObject {
     set { currentTime = newValue * duration }
   }
 
+  init() {
+    setupMediaControls()
+    setInitialNowPlayingInfo()
+  }
+
+  private func setupMediaControls() {
+    let manager = MediaControlsManager.shared
+    manager.onPlay = {
+      Task {
+        try? await resume()
+      }
+    }
+
+    manager.onPause = {
+      Task {
+        try? await pause()
+      }
+    }
+
+    manager.onNext = {
+      Task {
+        try? await next()
+      }
+    }
+
+    manager.onPrevious = {
+      Task {
+        try? await previous()
+      }
+    }
+
+    manager.onSeek = { position in
+      Task {
+        try? await play(elapsed: Int64(position) * 1000)
+      }
+    }
+
+  }
+
+  private func setInitialNowPlayingInfo() {
+    MediaControlsManager.shared.updateNowPlaying(
+      title: "Not Playing",
+      artist: "Rockbox",
+      album: nil,
+      artwork: nil,
+      duration: 0,
+      currentTime: 0,
+      isPlaying: false
+    )
+  }
+
   // Upcoming tracks (after current)
   var upNext: [Song] {
     guard currentIndex + 1 < queue.count else { return [] }
@@ -62,6 +113,7 @@ class PlayerState: ObservableObject {
       do {
         isConnected = true
         for try await response in currentTrackStream() {
+          let previousTrack = self.currentTrack
           self.currentTrack = Song(
             cuid: response.id,
             path: response.path,
@@ -78,6 +130,10 @@ class PlayerState: ObservableObject {
           )
           self.duration = TimeInterval(response.length / 1000)
           self.currentTime = TimeInterval(response.elapsed / 1000)
+
+          if previousTrack.cuid != self.currentTrack.cuid {
+            self.updateNowPlayingInfo()
+          }
         }
         // Refresh queue when track changes
         await self.fetchQueue()
@@ -94,8 +150,13 @@ class PlayerState: ObservableObject {
     streamStatusTask = Task {
       do {
         for try await response in playbackStatusStream() {
+          let previousIsPlaying = self.isPlaying
           self.isPlaying = response.status == 1
           self.status = response.status
+
+          if previousIsPlaying != self.isPlaying {
+            self.updateNowPlayingInfo()
+          }
         }
       } catch is CancellationError {
         // Ignored
@@ -129,6 +190,7 @@ class PlayerState: ObservableObject {
           }
 
           self.currentTrack = self.queue[self.currentIndex]
+          self.updateNowPlayingInfo()
         }
       } catch is CancellationError {
         // Ignored
@@ -176,6 +238,8 @@ class PlayerState: ObservableObject {
           let globalStatus = try await fetchGlobalStatus()
           self.currentTime = TimeInterval(globalStatus.resumeElapsed / 1000)
           self.duration = TimeInterval(data.tracks[index].length / 1000)
+
+          self.updateNowPlayingInfo()
         }
       } catch {
         self.error = error
@@ -257,6 +321,7 @@ class PlayerState: ObservableObject {
     Task {
       do {
         try await play(elapsed: position)
+        self.updateNowPlayingInfo()
       } catch {
         self.error = error
       }
@@ -269,6 +334,7 @@ class PlayerState: ObservableObject {
         try await startPlaylist(position: Int32(index))
         self.currentIndex = index
         self.currentTrack = queue[index]
+        self.updateNowPlayingInfo()
       } catch {
         self.error = error
       }
@@ -331,25 +397,69 @@ class PlayerState: ObservableObject {
       }
     }
   }
-    
+
   func fetchSettings() {
-      Task {
-          do {
-              let data = try await fetchGlobalSettings()
-              switch data.repeatMode {
-              case 0:
-                  repeatMode = .off
-              case 1:
-                  repeatMode = .one
-              case 2:
-                  repeatMode = .all
-              default:
-                  repeatMode = .off
-              }
-              isShuffleEnabled = data.playlistShuffle
-          } catch {
-              self.error = error
-          }
+    Task {
+      do {
+        let data = try await fetchGlobalSettings()
+        switch data.repeatMode {
+        case 0:
+          repeatMode = .off
+        case 1:
+          repeatMode = .one
+        case 2:
+          repeatMode = .all
+        default:
+          repeatMode = .off
+        }
+        isShuffleEnabled = data.playlistShuffle
+      } catch {
+        self.error = error
       }
+    }
+  }
+
+  // MARK: - Update Now Playing Info
+
+  func updateNowPlayingInfo() {
+    // Load artwork asynchronously
+    loadArtwork(from: currentTrack.albumArt) { [weak self] artwork in
+      guard let self = self else { return }
+
+      MediaControlsManager.shared.updateNowPlaying(
+        title: self.currentTrack.title,
+        artist: self.currentTrack.artist,
+        album: self.currentTrack.album,
+        artwork: artwork,
+        duration: self.duration,
+        currentTime: self.currentTime,
+        isPlaying: self.isPlaying
+      )
+    }
+  }
+
+  private func loadArtwork(from url: URL?, completion: @escaping (NSImage?) -> Void) {
+    guard let url = url else {
+      completion(nil)
+      return
+    }
+
+    DispatchQueue.global(qos: .userInitiated).async {
+      let image: NSImage?
+
+      if url.isFileURL {
+        image = NSImage(contentsOf: url)
+      } else {
+        if let data = try? Data(contentsOf: url) {
+          image = NSImage(data: data)
+        } else {
+          image = nil
+        }
+      }
+
+      DispatchQueue.main.async {
+        completion(image)
+      }
+    }
   }
 }
