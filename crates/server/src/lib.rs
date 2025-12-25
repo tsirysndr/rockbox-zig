@@ -13,9 +13,8 @@ use rockbox_sys::events::RockboxCommand;
 use rockbox_sys::{self as rb, types::mp3_entry::Mp3Entry};
 use sqlx::{Pool, Sqlite};
 use std::{
-    collections::HashMap,
-    ffi::c_char,
-    ffi::c_int,
+    collections::{HashMap, HashSet},
+    ffi::{c_char, c_int},
     sync::{Arc, Mutex},
     thread,
 };
@@ -260,7 +259,9 @@ pub extern "C" fn start_broker() {
         .unwrap();
 
     let mut metadata_cache: HashMap<String, Mp3Entry> = HashMap::new();
-    let mut previous_index = -10; // Arbitrary value to ensure the first track is scobbled
+
+    let mut current_scrobble_track: Option<Track> = None; // The track we are monitoring for scrobble
+    let mut scrobbled_tracks: HashSet<String> = HashSet::new(); // Simple unique ID to prevent duplicates (use track.id if available)
 
     loop {
         let mutex = GLOBAL_MUTEX.lock().unwrap();
@@ -277,6 +278,7 @@ pub extern "C" fn start_broker() {
 
         let playback_status: AudioStatus = rb::playback::status().into();
         SimpleBroker::publish(playback_status);
+
         match rb::playback::current_track() {
             Some(current_track) => {
                 let hash = format!("{:x}", md5::compute(current_track.path.as_bytes()));
@@ -284,29 +286,58 @@ pub extern "C" fn start_broker() {
                     rt.block_on(repo::track::find_by_md5(pool.clone(), &hash))
                 {
                     let mut track: Track = current_track.into();
-                    track.id = Some(metadata.id);
+                    track.id = Some(metadata.id.clone());
                     track.album_art = metadata.album_art;
                     track.album_id = Some(metadata.album_id);
                     track.artist_id = Some(metadata.artist_id);
                     SimpleBroker::publish(track.clone());
 
-                    if previous_index != rb::playlist::index() {
-                        let cloned_pool = pool.clone();
-                        thread::spawn(move || {
-                            let rt = tokio::runtime::Builder::new_current_thread()
-                                .enable_all()
-                                .build()
-                                .unwrap();
-                            match rt.block_on(scrobble(track.clone(), cloned_pool.clone())) {
-                                Ok(_) => {}
-                                Err(e) => eprintln!("{}", e),
-                            }
-                        });
+                    let track_changed = if let Some(ref current) = current_scrobble_track {
+                        current.path != track.path
+                    } else {
+                        true
+                    };
+
+                    if track_changed {
+                        current_scrobble_track = Some(track.clone());
                     }
-                    previous_index = rb::playlist::index();
+
+                    // Check progress for scrobbling (only if we have a track to monitor)
+                    if let Some(ref monitored_track) = current_scrobble_track {
+                        if monitored_track.path == track.path {
+                            let elapsed_ms = track.elapsed;
+                            let length_ms = track.length;
+
+                            if length_ms > 30_000 &&  // optional: ignore very short tracks per Last.fm rules
+                                    elapsed_ms as f64 / length_ms as f64 >= 0.40
+                            {
+                                if !scrobbled_tracks.contains(&metadata.id) {
+                                    let cloned_pool = pool.clone();
+                                    let cloned_track = monitored_track.clone();
+                                    thread::spawn(move || {
+                                        let rt = tokio::runtime::Builder::new_current_thread()
+                                            .enable_all()
+                                            .build()
+                                            .unwrap();
+                                        match rt
+                                            .block_on(scrobble(cloned_track, cloned_pool.clone()))
+                                        {
+                                            Ok(_) => {}
+                                            Err(e) => eprintln!("{}", e),
+                                        }
+                                    });
+                                    scrobbled_tracks.insert(metadata.id.clone());
+                                }
+                            } else {
+                                scrobbled_tracks.clear();
+                            }
+                        }
+                    }
                 }
             }
-            None => {}
+            None => {
+                current_scrobble_track = None; // reset on no track
+            }
         };
 
         let mut entries: Vec<Mp3Entry> = vec![];
