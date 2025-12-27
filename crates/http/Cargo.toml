@@ -1,0 +1,19 @@
+[package]
+name = "rockbox-http"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+libc.workspace = true
+reqwest = { version = "0.12.5", features = [
+  "rustls-tls",
+  "json",
+  "multipart",
+  "blocking"
+], default-features = false }

@@ -70,6 +70,7 @@
 #define CONFIG_SERVER
 #define ZIG_APP
 #define ROCKBOX_SERVER
+#define HAVE_HTTP_STREAM
 
 /* linker feature test macro for validating cross-section references */
 #undef HAVE_NOCROSSREFS_TO

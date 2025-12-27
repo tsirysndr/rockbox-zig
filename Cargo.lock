@@ -8942,6 +8942,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-http"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "reqwest",
+]
+
+[[package]]
 name = "rockbox-library"
 version = "0.1.0"
 dependencies = [

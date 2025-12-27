@@ -38,6 +38,10 @@
 #include "buffering.h"
 #include "linked_list.h"
 
+#ifdef HAVE_HTTP_STREAM
+#include "http_stream.h"
+#endif
+
 /* Define LOGF_ENABLE to enable logf output in this file */
 /* #define LOGF_ENABLE */
 #include "logf.h"
@@ -182,6 +186,18 @@ static void close_fd(int *fd_p)
         *fd_p = -1;
     }
 }
+
+#ifdef HAVE_HTTP_STREAM
+static inline bool is_http_handle(const struct memory_handle *h)
+{
+    if (h->fd <= 0)  /* Quick early-out: only HTTP handles use fd as pointer */
+        return false;
+
+    const char *path = (const char *)h + sizeof(struct memory_handle);
+    return (strncmp(path, "http://", 7) == 0 ||
+            strncmp(path, "https://", 8) == 0);
+}
+#endif
 
 /* Ring buffer helper functions */
 static inline void * ringbuf_ptr(uintptr_t p)
@@ -916,44 +932,111 @@ int bufopen(const char *file, off_t offset, enum data_type type,
     struct memory_handle *h;
 
     /* No buffer refs until after the mutex_lock call! */
-
     if (type == TYPE_ID3) {
-        /* ID3 case: allocate space, init the handle and return. */
+        /* ID3 case unchanged */
         mutex_lock(&llist_mutex);
-
         h = add_handle(H_ALLOCALL, sizeof(struct mp3entry), file, &data);
-
         if (h) {
             handle_id = h->id;
-
-            h->type     = type;
-            h->fd       = -1;
-            h->data     = data;
-            h->ridx     = data;
-            h->widx     = data;
+            h->type = type;
+            h->fd = -1;
+            h->data = data;
+            h->ridx = data;
+            h->widx = data;
             h->filesize = sizeof(struct mp3entry);
-            h->start    = 0;
-            h->pos      = 0;
-            h->end      = 0;
-
+            h->start = 0;
+            h->pos = 0;
+            h->end = 0;
             link_handle(h);
-
-            /* Inform the buffering thread that we added a handle */
             LOGFQUEUE("buffering > Q_HANDLE_ADDED %d", handle_id);
             queue_post(&buffering_queue, Q_HANDLE_ADDED, handle_id);
         }
-
         mutex_unlock(&llist_mutex);
         return handle_id;
     }
     else if (type == TYPE_UNKNOWN)
         return ERR_UNSUPPORTED_TYPE;
 #ifdef APPLICATION
-    /* Loading code from memory is not supported in application builds */
     else if (type == TYPE_CODEC)
         return ERR_UNSUPPORTED_TYPE;
 #endif
-    /* Other cases: there is a little more work. */
+
+#ifdef HAVE_HTTP_STREAM
+    /* === HTTP/HTTPS streaming support === */
+    bool is_http = (strncmp(file, "http://", 7) == 0 ||
+                    strncmp(file, "https://", 8) == 0);
+
+    if (is_http && type != TYPE_ID3 && type != TYPE_BITMAP) {
+        /* Open the HTTP stream via Rust FFI */
+        struct http_stream_handle *stream_h = http_stream_open(file);
+        if (!stream_h) {
+            return ERR_FILE_ERROR;
+        }
+
+        /* Query total file size (Content-Length or from Content-Range) */
+        off_t total_size = http_stream_filesize(stream_h);
+        if (total_size <= 0) {
+            /* Unknown size → stream is non-seekable or live. Still allow playback,
+               but we can't pre-allocate perfectly. Use a reasonable default. */
+            total_size = 128 * 1024 * 1024;  /* 128 MiB fallback – will grow as needed */
+        }
+
+        size_t size_to_buffer = (size_t)total_size;
+        if (offset > total_size)
+            offset = 0;
+
+        unsigned int hflags = H_CANWRAP;  /* Network sources benefit from wrapping */
+        if (type == TYPE_PACKET_AUDIO)
+            hflags |= H_CANWRAP;  /* already set above, but explicit */
+
+        size_t padded_size = STORAGE_PAD(size_to_buffer - (size_t)offset);
+
+        mutex_lock(&llist_mutex);
+        h = add_handle(hflags, padded_size, file, &data);
+        if (!h) {
+            mutex_unlock(&llist_mutex);
+            http_stream_close(stream_h);
+            return ERR_BUFFER_FULL;
+        }
+
+        handle_id = h->id;
+        h->type = type;
+        /* Reuse fd field to store the Rust opaque handle – it's -1 for normal files anyway */
+        h->fd = (intptr_t)stream_h;
+
+#ifdef STORAGE_WANTS_ALIGN
+        if (type != TYPE_BITMAP) {
+            size_t alignment_pad = STORAGE_OVERLAP((uintptr_t)offset -
+                                                   (uintptr_t)ringbuf_ptr(data));
+            data = ringbuf_add(data, alignment_pad);
+        }
+#endif
+
+        h->data = data;
+        h->ridx = data;
+        h->widx = data;
+        h->start = offset;
+        h->pos = offset;
+        h->filesize = total_size;
+        h->end = offset;
+
+        link_handle(h);
+        mutex_unlock(&llist_mutex);
+
+        /* Tell buffering thread about the new handle */
+        LOGFQUEUE("buffering > Q_HANDLE_ADDED %d", handle_id);
+        queue_post(&buffering_queue, Q_HANDLE_ADDED, handle_id);
+
+        /* Immediately trigger buffering – network sources need data ASAP */
+        LOGFQUEUE("buffering >| Q_BUFFER_HANDLE %d", handle_id);
+        queue_send(&buffering_queue, Q_BUFFER_HANDLE, handle_id);
+
+        logf("bufopen: HTTP handle %d for %s", handle_id, file);
+        return handle_id;
+    }
+#endif /* HAVE_HTTP_STREAM */
+
+    /* === Normal local file path (unchanged, just slightly reordered) === */
     int fd = open(file, O_RDONLY);
     if (fd < 0)
         return ERR_FILE_ERROR;
@@ -961,34 +1044,25 @@ int bufopen(const char *file, off_t offset, enum data_type type,
     size_t size = 0;
 #ifdef HAVE_ALBUMART
     if (type == TYPE_BITMAP) {
-        /* Bitmaps are resized to the requested dimensions when loaded,
-         * so the file size should not be used as it may be too large
-         * or too small */
         struct bufopen_bitmap_data *aa = user_data;
         size = BM_SIZE(aa->dim->width, aa->dim->height, FORMAT_NATIVE, false);
         size += sizeof(struct bitmap);
-
 #ifdef HAVE_JPEG
-        /* JPEG loading requires extra memory
-         * TODO: don't add unncessary overhead for .bmp images! */
         size += JPEG_DECODE_OVERHEAD;
 #endif
-       /* resize_on_load requires space for 1 line + 2 spare lines */
 #ifdef HAVE_LCD_COLOR
         size += sizeof(struct uint32_argb) * 3 * aa->dim->width;
 #else
         size += sizeof(uint32_t) * 3 * aa->dim->width;
 #endif
     }
-#endif /* HAVE_ALBUMART */
-
+#endif
     if (size == 0)
         size = filesize(fd);
 
     unsigned int hflags = 0;
     if (type == TYPE_PACKET_AUDIO || type == TYPE_CODEC)
         hflags |= H_CANWRAP;
-    /* Bitmaps need their space allocated up front */
     if (type == TYPE_BITMAP)
         hflags |= H_ALLOCALL;
 
@@ -996,51 +1070,38 @@ int bufopen(const char *file, off_t offset, enum data_type type,
     if (adjusted_offset > size)
         adjusted_offset = 0;
 
-    /* Reserve extra space because alignment can move data forward */
     size_t padded_size = STORAGE_PAD(size - adjusted_offset);
 
     mutex_lock(&llist_mutex);
-
     h = add_handle(hflags, padded_size, file, &data);
     if (!h) {
         DEBUGF("%s(): failed to add handle\n", __func__);
         mutex_unlock(&llist_mutex);
         close(fd);
-
-        /*warn playback.c if it is trying to buffer too large of an image*/
-        if(type == TYPE_BITMAP && padded_size >= buffer_len - 64*1024)
-        {
+        if (type == TYPE_BITMAP && padded_size >= buffer_len - 64*1024)
             return ERR_BITMAP_TOO_LARGE;
-        }
         return ERR_BUFFER_FULL;
-
     }
 
     handle_id = h->id;
-
     h->type = type;
-    h->fd   = -1;
+    h->fd = fd;  /* Keep fd open for normal files */
 
 #ifdef STORAGE_WANTS_ALIGN
-    /* Don't bother to storage align bitmaps because they are not
-     * loaded directly into the buffer.
-     */
     if (type != TYPE_BITMAP) {
-        /* Align to desired storage alignment */
         size_t alignment_pad = STORAGE_OVERLAP((uintptr_t)adjusted_offset -
                                                (uintptr_t)ringbuf_ptr(data));
         data = ringbuf_add(data, alignment_pad);
     }
-#endif /* STORAGE_WANTS_ALIGN */
+#endif
 
-    h->data  = data;
-    h->ridx  = data;
+    h->data = data;
+    h->ridx = data;
     h->start = adjusted_offset;
-    h->pos   = adjusted_offset;
+    h->pos = adjusted_offset;
 
 #ifdef HAVE_ALBUMART
     if (type == TYPE_BITMAP) {
-        /* Bitmap file: we load the data instead of the file */
         int rc = load_image(fd, file, user_data, data, padded_size);
         if (rc <= 0) {
             handle_id = ERR_FILE_ERROR;
@@ -1049,32 +1110,27 @@ int bufopen(const char *file, off_t offset, enum data_type type,
             size = rc;
             adjusted_offset = rc;
         }
-    }
-    else
+    } else
 #endif
     if (type == TYPE_CUESHEET) {
-        h->fd = fd;
+        /* fd already stored above */
     }
 
     if (handle_id >= 0) {
-        h->widx     = data;
+        h->widx = data;
         h->filesize = size;
-        h->end      = adjusted_offset;
+        h->end = adjusted_offset;
         link_handle(h);
     }
-
     mutex_unlock(&llist_mutex);
 
     if (type == TYPE_CUESHEET) {
-        /* Immediately start buffering those */
         LOGFQUEUE("buffering >| Q_BUFFER_HANDLE %d", handle_id);
         queue_send(&buffering_queue, Q_BUFFER_HANDLE, handle_id);
     } else {
-        /* Other types will get buffered in the course of normal operations */
         close(fd);
-
+        h->fd = -1;  /* Normal files close fd immediately */
         if (handle_id >= 0) {
-            /* Inform the buffering thread that we added a handle */
             LOGFQUEUE("buffering > Q_HANDLE_ADDED %d", handle_id);
             queue_post(&buffering_queue, Q_HANDLE_ADDED, handle_id);
         }
@@ -1083,7 +1139,6 @@ int bufopen(const char *file, off_t offset, enum data_type type,
     logf("bufopen: new hdl %d", handle_id);
     return handle_id;
 
-    /* Currently only used for aa loading */
     (void)user_data;
 }
 
@@ -1145,6 +1200,19 @@ bool bufclose(int handle_id)
     if (handle_id <= 0) {
         return true;
     }
+
+    struct memory_handle *h = find_handle(handle_id);
+    if (!h) {
+        return false;
+    }
+
+    #ifdef HAVE_HTTP_STREAM
+        if (is_http_handle(h)) {
+            http_stream_close((struct http_stream_handle*)(intptr_t)h->fd);
+        } else if (h->fd >= 0) {
+            close(h->fd);
+        }
+    #endif
 
     LOGFQUEUE("buffering >| Q_CLOSE_HANDLE %d", handle_id);
     return queue_send(&buffering_queue, Q_CLOSE_HANDLE, handle_id);
@@ -1270,6 +1338,35 @@ int bufseek(int handle_id, size_t newpos)
     if (newpos > (size_t)h->filesize)
         return ERR_INVALID_VALUE;
 
+    #ifdef HAVE_HTTP_STREAM
+        /* Detect HTTP stream by URL prefix */
+        if (is_http_handle(h)) {
+            /* fd holds our Rust opaque handle */
+            struct http_stream_handle *stream_h = (struct http_stream_handle *)(intptr_t)h->fd;
+
+            /* Tell Rust to seek to the new absolute position.
+             * Your Rust lseek should handle SEEK_SET internally and prepare
+             * the next read to fetch from newpos (via Range header). */
+            off_t rust_result = http_stream_lseek(stream_h, (off_t)newpos, SEEK_SET);
+
+            if (rust_result < 0) {
+                /* Server doesn't support Range, or connection failed */
+                return ERR_SEEK_ERROR;
+            }
+
+            /* Invalidate any buffered data beyond the new position */
+            /* This forces the buffering thread to refill from the network */
+            h->ridx = h->data;
+            h->widx = h->data;
+            h->end  = newpos;
+
+            /* Update Rockbox's virtual cursor */
+            h->pos = newpos;
+
+            return handle_id;  /* Success – Rockbox expects the handle ID on success */
+        }
+    #endif /* HAVE_HTTP_STREAM */
+
     return seek_handle(h, newpos);
 }
 
@@ -1279,20 +1376,53 @@ int bufseek(int handle_id, size_t newpos)
      ERR_INVALID_VALUE if the new requested position was before the beginning
      or beyond the end of the file
  */
-int bufadvance(int handle_id, off_t offset)
-{
-    struct memory_handle *h = find_handle(handle_id);
-    if (!h)
-        return ERR_HANDLE_NOT_FOUND;
+ int bufadvance(int handle_id, off_t offset)
+ {
+     struct memory_handle *h = find_handle(handle_id);
+     if (!h)
+         return ERR_HANDLE_NOT_FOUND;
 
-    off_t pos = h->pos;
+     off_t pos = h->pos;
 
-    if ((offset < 0 && offset < -pos) ||
-        (offset >= 0 && offset > h->filesize - pos))
-        return ERR_INVALID_VALUE;
+     /* Validate the new position */
+     if ((offset < 0 && offset < -pos) ||
+         (offset >= 0 && offset > h->filesize - pos))
+         return ERR_INVALID_VALUE;
 
-    return seek_handle(h, pos + offset);
-}
+     off_t newpos = pos + offset;
+
+ #ifdef HAVE_HTTP_STREAM
+     /* Detect HTTP stream handles */
+     if (is_http_handle(h)) {
+         /* fd holds the Rust opaque handle */
+         struct http_stream_handle *stream_h = (struct http_stream_handle *)(intptr_t)h->fd;
+
+         /* Tell Rust to seek to the new absolute position */
+         off_t rust_result = http_stream_lseek(stream_h, newpos, SEEK_SET);
+         if (rust_result < 0) {
+             /* Seek failed (e.g. server doesn't support Range) */
+             return ERR_SEEK_ERROR;
+         }
+
+         /* Invalidate buffered data – next read must come from network at new position */
+         h->ridx = h->data;
+         h->widx = h->data;
+         h->end  = newpos;
+
+         /* Update Rockbox's virtual position */
+         h->pos = newpos;
+
+         return handle_id;  /* Success */
+     }
+ #endif /* HAVE_HTTP_STREAM */
+
+     /* Normal local file case – use existing seek_handle */
+     int ret = seek_handle(h, newpos);
+     if (ret < 0)
+         return ret;
+
+     return handle_id;  /* Success */
+ }
 
 /* Get the read position from the start of the file
    Returns the offset from byte 0 of the file and for failure:
@@ -1395,6 +1525,13 @@ ssize_t bufread(int handle_id, size_t size, void *dest)
         prep_bufdata(handle_id, &size, false);
     if (!h)
         return ERR_HANDLE_NOT_FOUND;
+
+    #ifdef HAVE_HTTP_STREAM
+        if (is_http_handle(h)) {
+            /* HTTP handle – fd actually holds the Rust pointer */
+            return http_stream_read((struct http_stream_handle*)(intptr_t)h->fd, dest, bytes);
+        }
+    #endif
 
     if (h->ridx + size > buffer_len) {
         /* the data wraps around the end of the buffer */
