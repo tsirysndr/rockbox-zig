@@ -72,6 +72,15 @@ jobs:
           sudo cp zig/zig-out/bin/rockboxd /usr/local/bin/
       - name: Generate Package Installer
         run: ./packaging/macos/build-pkg.sh
+      - name: Determine architecture
+        id: vars
+        run: |
+          if [ "${{ matrix.os }}" == "macos-latest" ]; then
+            echo "arch=aarch64" >> $GITHUB_OUTPUT
+          else
+            echo "arch=x86_64" >> $GITHUB_OUTPUT
+          fi
+          echo "version=${{ github.event.inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
       - name: Build DMG
         run: |
           xcodebuild -scheme Rockbox -configuration Release archive -archivePath ./build/Rockbox.xcarchive
@@ -98,15 +107,6 @@ jobs:
         run: |
           ./target/release/rockbox --version
           ./zig/zig-out/bin/rockboxd --version
-      - name: Determine architecture
-        id: vars
-        run: |
-          if [ "${{ matrix.os }}" == "macos-latest" ]; then
-            echo "arch=aarch64" >> $GITHUB_OUTPUT
-          else
-            echo "arch=x86_64" >> $GITHUB_OUTPUT
-          fi
-          echo "version=${{ github.event.inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
       - name: Archive artifacts
         run: |
           VERSION="${{ steps.vars.outputs.version }}"
