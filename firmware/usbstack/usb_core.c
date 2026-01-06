@@ -554,6 +554,64 @@ void usb_core_hotswap_event(int volume, bool inserted)
 }
 #endif
 
+
+#ifdef USB_BATCH_NON_NATIVE
+static uint8_t batch_ep = 0;
+static bool batch_stopped;
+static usb_drv_batch_get_more batch_get_more;
+
+int usb_drv_batch_init(int ep, usb_drv_batch_get_more get_more)
+{
+    if(batch_ep != 0) {
+        logf("usb_core: batch api in use user=0x%02X", batch_ep);
+        return -1;
+    }
+    batch_ep = ep;
+    batch_get_more = get_more;
+    batch_stopped  = false;
+    return 0;
+}
+
+int usb_drv_batch_deinit(void)
+{
+    logf("usb_core: batch deinit");
+    usb_drv_batch_stop();
+    batch_ep = 0;
+    return 0;
+}
+
+static int batch_get_and_send(void)
+{
+    const void* ptr;
+    size_t len;
+    batch_get_more(&ptr, &len);
+    if(len == 0 || batch_stopped) {
+        return 0;
+    }
+    return usb_drv_send_nonblocking(EP_NUM(batch_ep), (void*)ptr, len);
+}
+
+int usb_drv_batch_start(void)
+{
+    logf("usb_core: batch start");
+    batch_stopped = false;
+    return batch_get_and_send();
+}
+
+int usb_drv_batch_stop(void)
+{
+    batch_stopped = true;
+    return 0;
+}
+
+static void batch_xfer_complete(void) {
+    if(batch_stopped) {
+        return;
+    }
+    batch_get_and_send();
+}
+#endif
+
 static void usb_core_set_serial_function_id(void)
 {
     int i, id = 0;
@@ -1130,8 +1188,14 @@ void usb_core_bus_reset(void)
 /* called by usb_drv_transfer_completed() */
 void usb_core_transfer_complete(int endpoint, int dir, int status, int length)
 {
-    struct usb_transfer_completion_event_data* completion_event =
-        &ep_data[endpoint].completion_event[EP_DIR(dir)];
+#ifdef USB_BATCH_NON_NATIVE
+    /* batch api */
+    if(batch_ep != 0 && (endpoint | dir) == batch_ep) {
+        batch_xfer_complete();
+        return;
+    }
+#endif
+
     /* Fast notification */
     fast_completion_handler_t handler = ep_data[endpoint].fast_completion_handler[EP_DIR(dir)];
     if(handler != NULL && handler(endpoint, dir, status, length))
@@ -1153,6 +1217,9 @@ void usb_core_transfer_complete(int endpoint, int dir, int status, int length)
         }
     }
 #endif
+
+    struct usb_transfer_completion_event_data* completion_event =
+        &ep_data[endpoint].completion_event[EP_DIR(dir)];
 
     completion_event->endpoint = endpoint;
     completion_event->dir = dir;

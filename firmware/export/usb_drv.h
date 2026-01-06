@@ -109,8 +109,6 @@ int usb_drv_deinit_endpoint(int endpoint);
 int usb_drv_get_frame_number(void);
 #endif
 
-#if USB_BATCH_SLOTS > 0
-
 /* batched request api is for workloads that perform very high-frequency,
  * performance-sensitive isochronous transactions continuously.
  * this api allows multiple transaction requests to be buffered in udc driver.
@@ -127,8 +125,6 @@ int usb_drv_batch_deinit(void);
 int usb_drv_batch_start(void);
 /* stop processing */
 int usb_drv_batch_stop(void);
-
-#endif
 
 /* USB_STRING_INITIALIZER(u"Example String") */
 #define USB_STRING_INITIALIZER(S) { \

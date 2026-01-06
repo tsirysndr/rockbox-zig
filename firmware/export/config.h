@@ -1362,6 +1362,9 @@ Lyre prototype 1 */
 //#define USB_HAS_INTERRUPT -- seems to be broken
 #endif /* CONFIG_USBOTG */
 
+#define USB_BATCH_NON_NATIVE
+#define USB_BATCH_SLOTS 1
+
 /* define the class drivers to enable */
 #ifdef BOOTLOADER
 
