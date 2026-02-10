@@ -557,7 +557,7 @@ F3: equal to "="
 #define CALCULATOR_CALC  BUTTON_MENU
 #define CALCULATOR_CLEAR BUTTON_USER
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 
@@ -582,6 +582,9 @@ F3: equal to "="
 #endif
 #ifndef CALCULATOR_CLEAR
 #define CALCULATOR_CLEAR          BUTTON_TOPRIGHT
+#endif
+#ifndef CALCULATOR_QUIT
+#define CALCULATOR_QUIT           BUTTON_TOPLEFT
 #endif
 
 #include "lib/pluginlib_touchscreen.h"

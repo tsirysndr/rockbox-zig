@@ -363,9 +363,6 @@
 #define AST_RIGHT       BUTTON_RIGHT
 #define AST_FIRE        BUTTON_PLAY
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
 #elif CONFIG_KEYPAD == MA_PAD
 #define AST_PAUSE       BUTTON_MENU
 #define AST_QUIT        BUTTON_BACK
@@ -393,7 +390,7 @@
 #define AST_RIGHT       BUTTON_RIGHT
 #define AST_FIRE        BUTTON_SELECT
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 

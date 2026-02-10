@@ -157,7 +157,10 @@ pong.c
 sliding_puzzle.c
 snake.c
 snake2.c
+#ifndef SDLAPP
+/* Too many buttons for SDL */
 solitaire.c
+#endif
 sokoban.c
 star.c
 starfield.c

@@ -711,9 +711,6 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define LVL_UP_TEXT "UP+MENU"
 #define LVL_DOWN_TEXT "DOWN+MENU"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
 #elif CONFIG_KEYPAD == RG_NANO_PAD
 #define PEGBOX_SELECT   BUTTON_A
 #define PEGBOX_QUIT     BUTTON_START
@@ -748,7 +745,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define LVL_DOWN_TEXT "Start"
 #define SELECT_TEXT "A"
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error "Unsupported keymap!"
 #endif
 

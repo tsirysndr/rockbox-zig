@@ -86,6 +86,8 @@ enum metronome_errors
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
     || (CONFIG_KEYPAD == IPOD_4G_PAD)
 #define METRONOME_QUIT          PLA_UP
+#elif defined(SDLAPP)
+#define METRONOME_QUIT          PLA_CANCEL
 #else
 #define METRONOME_QUIT          PLA_EXIT
 #endif

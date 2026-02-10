@@ -305,9 +305,6 @@ dir is the current direction of the snake - 0=up, 1=right, 2=down, 3=left;
 #define SNAKE_DOWN      BUTTON_DOWN
 #define SNAKE_PLAYPAUSE BUTTON_PLAY
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
 #elif CONFIG_KEYPAD == MA_PAD
 #define SNAKE_QUIT      BUTTON_BACK
 #define SNAKE_LEFT      BUTTON_LEFT
@@ -332,7 +329,7 @@ dir is the current direction of the snake - 0=up, 1=right, 2=down, 3=left;
 #define SNAKE_DOWN      BUTTON_DOWN
 #define SNAKE_PLAYPAUSE BUTTON_SELECT
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 

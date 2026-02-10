@@ -443,9 +443,6 @@
 #define LABEL_MENU      "MENU"
 #define LABEL_VOLUME    "VOL+/VOL-"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
 #elif CONFIG_KEYPAD == MA_PAD
 #define VUMETER_QUIT    BUTTON_BACK
 #define VUMETER_HELP    BUTTON_LEFT
@@ -479,7 +476,7 @@
 #define LABEL_MENU   "X"
 #define LABEL_VOLUME "Up/Down"
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 

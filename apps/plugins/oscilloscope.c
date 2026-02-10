@@ -550,9 +550,6 @@
 #define OSCILLOSCOPE_VOL_UP         BUTTON_UP
 #define OSCILLOSCOPE_VOL_DOWN       BUTTON_DOWN
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
 #elif CONFIG_KEYPAD == RG_NANO_PAD
 #define OSCILLOSCOPE_QUIT            BUTTON_START
 #define OSCILLOSCOPE_DRAWMODE        BUTTON_X
@@ -576,7 +573,7 @@
 #define OSCILLOSCOPE_VOL_UP          BUTTON_UP
 #define OSCILLOSCOPE_VOL_DOWN        BUTTON_DOWN
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 

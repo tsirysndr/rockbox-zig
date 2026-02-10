@@ -351,9 +351,6 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define DOWN    BUTTON_DOWN
 #define PAUSE   BUTTON_PLAY
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
 #elif CONFIG_KEYPAD == RG_NANO_PAD
 
 #define QUIT    BUTTON_START
@@ -372,7 +369,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define DOWN  BUTTON_DOWN
 #define PAUSE BUTTON_SELECT
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error "No keymap defined!"
 #endif
 

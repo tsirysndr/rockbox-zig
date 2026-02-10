@@ -392,9 +392,6 @@
 #define CUBE_PAUSE          BUTTON_PLAY
 #define CUBE_HIGHSPEED      BUTTON_BACK
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
 #elif CONFIG_KEYPAD == MA_PAD
 #define CUBE_QUIT          BUTTON_BACK
 #define CUBE_NEXT          BUTTON_RIGHT
@@ -425,7 +422,7 @@
 #define CUBE_PAUSE         BUTTON_USER
 #define CUBE_HIGHSPEED     BUTTON_SELECT
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 

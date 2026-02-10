@@ -418,7 +418,7 @@
 #define CHC_SETTINGS_OK     BUTTON_SELECT
 #define CHC_SETTINGS_CANCEL BUTTON_BACK
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 
@@ -443,6 +443,9 @@
 #endif
 #ifndef CHC_MENU
 #define CHC_MENU         BUTTON_TOPRIGHT
+#endif
+#ifndef CHC_QUIT
+#define CHC_QUIT         BUTTON_BOTTOMRIGHT
 #endif
 #endif
 

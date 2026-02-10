@@ -681,9 +681,6 @@
 #define BUTTON_SAVE        BUTTON_BACK
 #define BUTTON_SAVE_NAME   "BACK"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
 #elif CONFIG_KEYPAD == MA_PAD
 #define SOKOBAN_LEFT        BUTTON_LEFT
 #define SOKOBAN_RIGHT       BUTTON_RIGHT
@@ -734,7 +731,7 @@
 #define SOKOBAN_LEVEL_REPEAT_NAME "[TOPRIGHT]"
 #define BUTTON_SAVE_NAME      "A [CENTER]"
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 

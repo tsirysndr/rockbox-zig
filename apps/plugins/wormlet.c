@@ -397,9 +397,6 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define BTN_QUIT        BUTTON_POWER
 #define BTN_STOPRESET   BUTTON_BACK
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
 #elif CONFIG_KEYPAD == MA_PAD
 #define BTN_DIR_UP      BUTTON_UP
 #define BTN_DIR_DOWN    BUTTON_DOWN
@@ -429,7 +426,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define BTN_QUIT        BUTTON_BACK
 #define BTN_STOPRESET   BUTTON_MENU
 
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 

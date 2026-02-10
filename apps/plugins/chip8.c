@@ -1314,10 +1314,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define CHIP8_KEY8 BUTTON_POWER
 #define CHIP8_KEY9 BUTTON_USER
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
-/* use touchscreen */
-
-#else
+#elif !defined(HAVE_TOUCHSCREEN)
 #error No keymap defined!
 #endif
 
