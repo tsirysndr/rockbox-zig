@@ -381,6 +381,8 @@
 
 struct MIDIfile * mf IBSS_ATTR;
 
+int sample_rate IBSS_ATTR;
+int max_voices IBSS_ATTR;
 int number_of_samples IBSS_ATTR; /* the number of samples in the current tick */
 int playing_time IBSS_ATTR;  /* How many seconds into the file have we been playing? */
 int samples_this_second IBSS_ATTR;    /* How many samples produced during this second so far? */
@@ -490,10 +492,60 @@ static void get_more(const void** start, size_t* size)
     *size = samples_in_buf*sizeof(int32_t);
 }
 
+static const struct mixer_play_cbs mixer_cbs = {
+    .get_more = get_more,
+    /* TODO: update sample_rate and max_voices on sampr_changed() */
+};
+
+UNUSED_ATTR static int find_min_sampr_ge_22(void)
+{
+    const struct pcm_sink_caps* caps = rb->pcm_current_sink_caps();
+    int ret = caps->samprs[0];
+    for (size_t i = 1; i < caps->num_samprs; i += 1)
+    {
+        /* caps->samprs is in descending order */
+        if (caps->samprs[i] >= SAMPR_22)
+            ret = caps->samprs[i];
+        else
+            break;
+    }
+    return ret;
+}
+
 static int midimain(const void * filename)
 {
     int a, notes_used, vol;
     bool is_playing = true;  /* false = paused */
+
+    /* decide sample_rate and max_voices */
+#if defined(SIMULATOR) /* Simulator requires 44100Hz, and we can afford to use more voices */ || \
+    (CONFIG_PLATFORM & PLATFORM_HOSTED) /* All hosted targets have CPU to spare */ || \
+    defined(CPU_MIPS) /* All MIPS targets are pretty fast */
+    sample_rate = SAMPR_44;
+    max_voices = 48;
+#elif defined(CPU_PP)
+    /* Some of the pp based targets can't handle too many voices
+       mainly because they have to use 44100Hz sample rate, this could be
+       improved to increase max_voices for targets that can do 22kHz */
+    sample_rate = find_min_sampr_ge_22();
+    max_voices = sample_rate == SAMPR_22 ? 24 : 16;
+#elif defined(CPU_ARM)
+    /* ARMv4 targets are slow, but treat everything else as fast */
+#if (ARM_ARCH >= 6)
+    sample_rate = SAMPR_44;
+    max_voices = 32;
+#elif (ARM_ARCH >= 5)
+    sample_rate = find_min_sampr_ge_22();
+    max_voices = 32;
+#else /* ie v4 */
+    sample_rate = find_min_sampr_ge_22();
+    max_voices = sample_rate == SAMPR_22 ? 24 : 16;
+#endif
+#else /* !CPU_ARM */
+    /* Treat everything else as slow */
+    sample_rate = find_min_sampr_ge_22();
+    max_voices = sample_rate == SAMPR_22 ? 24 : 16;
+#endif
 
 #if defined(HAVE_ADJUSTABLE_CPU_FREQ)
     rb->cpu_boost(true);
@@ -537,7 +589,7 @@ static int midimain(const void * filename)
     rb->dsp_set_timestretch(PITCH_SPEED_100);
 #endif
     rb->dsp_configure(dsp, DSP_SET_SAMPLE_DEPTH, 22);
-    rb->dsp_configure(dsp, DSP_SET_FREQUENCY, SAMPLE_RATE); /* 44100 22050 11025 */
+    rb->dsp_configure(dsp, DSP_SET_FREQUENCY, sample_rate); /* 44100 22050 11025 */
     rb->dsp_configure(dsp, DSP_SET_STEREO_MODE, STEREO_INTERLEAVED);
 
     /*
@@ -553,14 +605,14 @@ static int midimain(const void * filename)
     midi_debug("Okay, starting sequencing");
 
     bpm = mf->div*1000000/tempo;
-    number_of_samples = SAMPLE_RATE/bpm;
+    number_of_samples = sample_rate/bpm;
 
     /* Skip over any junk in the beginning of the file, so start playing */
     /* after the first note event */
     do
     {
         notes_used = 0;
-        for (a = 0; a < MAX_VOICES; a++)
+        for (a = 0; a < max_voices; a++)
             if (voices[a].isUsed)
                 notes_used++;
         tick();

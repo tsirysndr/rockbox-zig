@@ -27,67 +27,6 @@
 #define NBUF   2
 #define MAX_SAMPLES 512
 
-#ifdef SIMULATOR
-
-/* Simulator requires 44100Hz, and we can afford to use more voices */
-#define SAMPLE_RATE SAMPR_44
-#define MAX_VOICES 48
-
-#elif (CONFIG_PLATFORM & PLATFORM_HOSTED)
-
-/* All hosted targets have CPU to spare */
-#define MAX_VOICES 48
-#define SAMPLE_RATE SAMPR_44
-
-#elif defined(CPU_PP)
-
-/* Some of the pp based targets can't handle too many voices
-   mainly because they have to use 44100Hz sample rate, this could be
-   improved to increase MAX_VOICES for targets that can do 22kHz */
-#define SAMPLE_RATE HW_SAMPR_MIN_GE_22
-#if HW_SAMPR_CAPS & SAMPR_CAP_22
-#define MAX_VOICES 24 /* General MIDI minimum */
-#else
-#define MAX_VOICES 16
-#endif
-
-#elif defined(CPU_MIPS)
-
-/* All MIPS targets are pretty fast */
-#define MAX_VOICES 48
-#define SAMPLE_RATE SAMPR_44
-
-#elif defined(CPU_ARM)
-
-/* ARMv4 targets are slow, but treat everything else as fast */
-
-#if (ARM_ARCH >= 6)
-#define MAX_VOICES 32
-#define SAMPLE_RATE SAMPR_44
-#elif (ARM_ARCH >= 5)
-#define MAX_VOICES 32
-#define SAMPLE_RATE HW_SAMPR_MIN_GE_22
-#else /* ie v4 */
-#define SAMPLE_RATE HW_SAMPR_MIN_GE_22
-#if HW_SAMPR_CAPS & SAMPR_CAP_22
-#define MAX_VOICES 24 /* General MIDI minimum */
-#else
-#define MAX_VOICES 16
-#endif
-#endif /* ARM_ARCH < 5*/
-
-#else /* !CPU_ARM */
-
-/* Treat everything else as slow */
-#define SAMPLE_RATE HW_SAMPR_MIN_GE_22
-#if HW_SAMPR_CAPS & SAMPR_CAP_22
-#define MAX_VOICES 24 /* General MIDI minimum */
-#else
-#define MAX_VOICES 16
-#endif
-
-#endif /* Wrap it up. */
-
 #define BYTE unsigned char
 
 /* Data chunk ID types, returned by readID() */
@@ -189,7 +128,7 @@ void * readData(int file, int len);
 #define malloc(n) my_malloc(n)
 void * my_malloc(int size);
 
-extern struct SynthObject voices[MAX_VOICES];
+extern struct SynthObject voices[48]; /* 48: maximum possible max_voices */
 
 extern int chVol[16];       /* Channel volume                */
 extern int chPan[16];       /* Channel panning               */
@@ -207,6 +146,8 @@ extern struct GPatch * drumSet[128];
 
 extern struct MIDIfile * mf;
 
+extern int sample_rate;
+extern int max_voices;
 extern int number_of_samples;
 extern int playing_time IBSS_ATTR;
 extern int samples_this_second IBSS_ATTR;

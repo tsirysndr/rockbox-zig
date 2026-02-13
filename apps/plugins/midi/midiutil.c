@@ -35,7 +35,7 @@ struct GPatch * gusload(char *);
 struct GPatch * patchSet[128];
 struct GPatch * drumSet[128];
 
-struct SynthObject voices[MAX_VOICES] IBSS_ATTR;
+struct SynthObject voices[48] IBSS_ATTR;
 
 static void *alloc(int size)
 {

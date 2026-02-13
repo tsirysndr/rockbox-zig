@@ -46,7 +46,7 @@ static void readTextBlock(int file, char * buf)
 void resetControllers()
 {
     int a=0;
-    for(a=0; a<MAX_VOICES; a++)
+    for(a=0; a<max_voices; a++)
     {
         voices[a].cp=0;
         voices[a].vol=0;
@@ -448,13 +448,13 @@ static inline void synthVoice(struct SynthObject * so, int32_t * out, unsigned i
 size_t synthSamples(int32_t *buf_ptr, size_t num_samples) ICODE_ATTR;
 size_t synthSamples(int32_t *buf_ptr, size_t num_samples)
 {
-    unsigned int i;
+    int i;
     struct SynthObject *voicept;
     size_t nsamples = MIN(num_samples, MAX_SAMPLES);
 
     rb->memset(buf_ptr, 0, nsamples * 2 * sizeof(int32_t));
 
-    for(i=0; i < MAX_VOICES; i++)
+    for(i=0; i < max_voices; i++)
     {
         voicept=&voices[i];
         if(voicept->isUsed)
