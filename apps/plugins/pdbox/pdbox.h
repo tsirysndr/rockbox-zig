@@ -40,17 +40,9 @@
 #define calloc(elements, elem_size) tlsf_calloc(elements, elem_size)
 
 /* Audio declarations. */
-#ifdef SIMULATOR
-  #define PD_SAMPLERATE 44100
-#elif (HW_SAMPR_CAPS & SAMPR_CAP_22)
-  #define PD_SAMPLERATE 22050
-#elif (HW_SAMPR_CAPS & SAMPR_CAP_32)
-  #define PD_SAMPLERATE 32000
-#elif (HW_SAMPR_CAPS & SAMPR_CAP_44)
-  #define PD_SAMPLERATE 44100
-#else
-  #error No sufficient sample rate available!
-#endif
+/* Maximum sample rate; used for buffer sizing.
+ * Actual rate is determined at runtime from pcm sink capabilities. */
+#define PD_SAMPLERATE 44100
 #define PD_SAMPLES_PER_HZ ((PD_SAMPLERATE / HZ) + \
                            (PD_SAMPLERATE % HZ > 0 ? 1 : 0))
 #define PD_OUT_CHANNELS 2

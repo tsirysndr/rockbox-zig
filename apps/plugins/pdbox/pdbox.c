@@ -188,6 +188,26 @@ enum plugin_status plugin_start(const void* parameter)
     /* Set audio API. */
     sys_set_audio_api(API_ROCKBOX);
 
+    /* Determine sample rate. */
+#if defined(SIMULATOR)
+#define PREFERRED_SAMPR SAMPR_44
+#else
+#define PREFERRED_SAMPR SAMPR_22
+#endif
+    int samplerate;
+    {
+        int i;
+        const struct pcm_sink_caps* caps = rb->pcm_current_sink_caps();
+        for (i = 0; i < caps->num_samprs; i++) {
+            if (caps->samprs[i] == PREFERRED_SAMPR)
+                break;
+        }
+        if (i == caps->num_samprs)
+            samplerate = SAMPR_44;
+        else
+            samplerate = caps->samprs[i];
+    }
+
     /* Initialize audio subsystem. */
     sys_open_audio(0, /* No sound input yet */
                    sys_soundindevlist,
@@ -197,7 +217,7 @@ enum plugin_status plugin_start(const void* parameter)
                    sys_soundoutdevlist,
                    -1, /* Use the default amount (2) of channels */
                    sys_choutlist,
-                   PD_SAMPLERATE, /* Sample rate */
+                   samplerate, /* Sample rate */
                    DEFAULTADVANCE, /* Scheduler advance */
                    1 /* Enable */);
 
