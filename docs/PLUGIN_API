@@ -1545,11 +1545,6 @@ void logf(const char *fmt, ...) ATTRIBUTE_PRINTF(1, 2)
     \param fmt
     \description
 
-const unsigned long *hw_freq_sampr
-    \group sound
-    \return
-    \description
-
 const unsigned long *rec_freq_sampr
     \group sound
     \conditions (defined(HAVE_RECORDING))

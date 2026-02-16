@@ -741,7 +741,6 @@ struct plugin_api {
     int32_t (*sound_get_pitch)(void);
     void (*sound_set_pitch)(int32_t pitch);
 #endif
-    const unsigned long *hw_freq_sampr;
     void (*pcm_play_lock)(void);
     void (*pcm_play_unlock)(void);
     const struct pcm_sink_caps* (*pcm_current_sink_caps)(void);
