@@ -502,11 +502,58 @@ static const struct configdata config[] =
     { TYPE_BOOL, 0, 1, { .bool_p = &settings.reverse }, "Reverse Channels", NULL},
     { TYPE_BOOL, 0, 1, { .bool_p = &settings.surround }, "Surround", NULL},
     { TYPE_BOOL, 0, 1, { .bool_p = &settings.hqmixer }, "HQ Mixer", NULL},
-    { TYPE_INT, 0, HW_NUM_FREQ-1, { .int_p = &settings.sample_rate }, "Sample Rate", NULL},
+    { TYPE_INT, 0, SAMPR_NUM_FREQ - 1, { .int_p = &settings.sample_rate }, "Sample Rate", NULL},
 #ifdef HAVE_ADJUSTABLE_CPU_FREQ
     { TYPE_BOOL, 0, 1, { .bool_p = &settings.boost }, "CPU Boost", NULL},
 #endif
 };
+
+// XXX dynamically generate this list at runtime.
+static const struct opt_items sr_names[SAMPR_NUM_FREQ] = {
+    [FREQ_192] = { "192kHz",     TALK_ID(192, UNIT_KHZ) },
+    [FREQ_176] = { "176.4kHz",   TALK_ID(176, UNIT_KHZ) },
+    [FREQ_96] = { "96kHz",     TALK_ID(96, UNIT_KHZ) },
+    [FREQ_88] = { "88.2kHz",   TALK_ID(88, UNIT_KHZ) },
+    [FREQ_64] = { "64kHz",     TALK_ID(64, UNIT_KHZ) },
+    [FREQ_48] = { "48kHz",     TALK_ID(48, UNIT_KHZ) },
+    [FREQ_44] = { "44.1kHz",   TALK_ID(44, UNIT_KHZ) },
+    [FREQ_32] = { "32kHz",     TALK_ID(32, UNIT_KHZ) },
+    [FREQ_24] = { "24kHz",     TALK_ID(24, UNIT_KHZ) },
+    [FREQ_22] = { "22.05kHz",  TALK_ID(22, UNIT_KHZ) },
+    [FREQ_16] = { "16kHz",     TALK_ID(16, UNIT_KHZ) },
+    [FREQ_12] = { "12kHz",     TALK_ID(12, UNIT_KHZ) },
+    [FREQ_11] = { "11.025kHz", TALK_ID(11, UNIT_KHZ) },
+    [FREQ_8 ] = { "8kHz",      TALK_ID( 8, UNIT_KHZ) },
+};
+
+static const unsigned long sr_nums[SAMPR_NUM_FREQ] =
+{
+    [FREQ_192] = SAMPR_192,
+    [FREQ_176] = SAMPR_176,
+    [FREQ_96] = SAMPR_96,
+    [FREQ_88] = SAMPR_88,
+    [FREQ_64] = SAMPR_64,
+    [FREQ_48] = SAMPR_48,
+    [FREQ_44] = SAMPR_44,
+    [FREQ_32] = SAMPR_32,
+    [FREQ_24] = SAMPR_24,
+    [FREQ_22] = SAMPR_22,
+    [FREQ_16] = SAMPR_16,
+    [FREQ_12] = SAMPR_12,
+    [FREQ_11] = SAMPR_11,
+    [FREQ_8 ] = SAMPR_8,
+};
+
+static int sampr_to_setting_index(unsigned long sampr)
+{
+    for(unsigned int i = 0; i < ARRAYLEN(sr_nums); i += 1)
+    {
+        if(sr_nums[i] == sampr)
+            return i;
+    }
+    /* no way... */
+    return ARRAYLEN(sr_nums) - 1;
+}
 
 static void applysettings(void)
 {
@@ -533,9 +580,27 @@ static void applysettings(void)
     }
 #endif
 
-    if (inited && (md_mixfreq != rb->hw_freq_sampr[settings.sample_rate])) {
-        md_mixfreq = rb->hw_freq_sampr[settings.sample_rate];
-//	MikMod_Reset("");  BROKEN!
+    if (inited && (md_mixfreq != sr_nums[settings.sample_rate])) {
+        /* validate configured samplerate and set md_mixfreq */
+        md_mixfreq = 0;
+        const struct pcm_sink_caps* caps = rb->pcm_current_sink_caps();
+        for(unsigned int i = 0; i < caps->num_samprs; i += 1)
+        {
+            if(caps->samprs[i] == sr_nums[settings.sample_rate])
+            {
+                md_mixfreq = sr_nums[settings.sample_rate];
+                break;
+            }
+        }
+        if(md_mixfreq == 0)
+        {
+            /* unsupported samplerate, use the default */
+            md_mixfreq = caps->samprs[caps->default_freq];
+            settings.sample_rate = sampr_to_setting_index(md_mixfreq);
+        }
+
+        // MikMod_Reset("");  BROKEN!
+
         rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
 	rb->mixer_set_frequency(md_mixfreq);
 	rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
@@ -548,23 +613,6 @@ static void applysettings(void)
     }
 #endif
 }
-
-static const struct opt_items sr_names[HW_NUM_FREQ] = {
-        HW_HAVE_192_([HW_FREQ_192] = { "192kHz",     TALK_ID(192, UNIT_KHZ) },)
-        HW_HAVE_176_([HW_FREQ_176] = { "176.4kHz",   TALK_ID(176, UNIT_KHZ) },)
-        HW_HAVE_96_([HW_FREQ_96] = { "96kHz",     TALK_ID(96, UNIT_KHZ) },)
-        HW_HAVE_88_([HW_FREQ_88] = { "88.2kHz",   TALK_ID(88, UNIT_KHZ) },)
-        HW_HAVE_64_([HW_FREQ_64] = { "64kHz",     TALK_ID(64, UNIT_KHZ) },)
-        HW_HAVE_48_([HW_FREQ_48] = { "48kHz",     TALK_ID(48, UNIT_KHZ) },)
-        HW_HAVE_44_([HW_FREQ_44] = { "44.1kHz",   TALK_ID(44, UNIT_KHZ) },)
-        HW_HAVE_32_([HW_FREQ_32] = { "32kHz",     TALK_ID(32, UNIT_KHZ) },)
-        HW_HAVE_24_([HW_FREQ_24] = { "24kHz",     TALK_ID(24, UNIT_KHZ) },)
-        HW_HAVE_22_([HW_FREQ_22] = { "22.05kHz",  TALK_ID(22, UNIT_KHZ) },)
-        HW_HAVE_16_([HW_FREQ_16] = { "16kHz",     TALK_ID(16, UNIT_KHZ) },)
-        HW_HAVE_12_([HW_FREQ_12] = { "12kHz",     TALK_ID(12, UNIT_KHZ) },)
-        HW_HAVE_11_([HW_FREQ_11] = { "11.025kHz", TALK_ID(11, UNIT_KHZ) },)
-        HW_HAVE_8_( [HW_FREQ_8 ] = { "8kHz",      TALK_ID( 8, UNIT_KHZ) },)
-};
 
 /**
   Shows the settings menu
@@ -626,7 +674,7 @@ static int settings_menu(void)
 
         case 6:
             rb->set_option("Sample Rate", &(settings.sample_rate), RB_INT, sr_names,
-                           HW_NUM_FREQ, NULL);
+                           SAMPR_NUM_FREQ, NULL);
             applysettings();
             break;
 
@@ -992,16 +1040,8 @@ enum plugin_status plugin_start(const void* parameter)
 
     /* If there's no configured rate, use the default */
     if (settings.sample_rate == -1) {
-	    int i;
-	    for (i = 0 ; i < HW_NUM_FREQ ; i++) {
-		    if (rb->hw_freq_sampr[i] == SAMPLE_RATE) {
-			    settings.sample_rate = i;
-			    break;
-		    }
-	    }
-	    if (settings.sample_rate == -1) {
-		    settings.sample_rate = HW_NUM_FREQ -1;
-	    }
+        const struct pcm_sink_caps* caps = rb->pcm_current_sink_caps();
+        settings.sample_rate = sampr_to_setting_index(caps->samprs[caps->default_freq]);
     }
 
     applysettings();
