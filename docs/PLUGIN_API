@@ -1624,7 +1624,7 @@ void mixer_channel_set_amplitude(enum pcm_mixer_channel channel, unsigned int am
     \param amplitude
     \description
 
-void mixer_channel_set_buffer_hook(enum pcm_mixer_channel channel, chan_buffer_hook_fn_type fn)
+void mixer_channel_set_buffer_hook(enum pcm_mixer_channel channel, const struct mixer_buffer_cbs* cbs)
     \param channel
     \param fn
     \description

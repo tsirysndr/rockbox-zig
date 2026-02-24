@@ -42,13 +42,13 @@ static unsigned int mix_frame_size = MIX_FRAME_SAMPLES*4;
 /* Descriptor for each channel */
 struct mixer_channel
 {
-    const void *start;                    /* Buffer pointer */
-    size_t size;                          /* Bytes remaining */
-    size_t last_size;                     /* Size of consumed data in prev. cycle */
-    const struct mixer_play_cbs* cbs;     /* Registered callbacks */
-    enum channel_status status;           /* Playback status */
-    uint32_t amplitude;                   /* Amp. factor: 0x0000 = mute, 0x10000 = unity */
-    chan_buffer_hook_fn_type buffer_hook; /* Callback for new buffer */
+    const void *start;                      /* Buffer pointer */
+    size_t size;                            /* Bytes remaining */
+    size_t last_size;                       /* Size of consumed data in prev. cycle */
+    const struct mixer_play_cbs* play_cbs;  /* Registered callbacks */
+    enum channel_status status;             /* Playback status */
+    uint32_t amplitude;                     /* Amp. factor: 0x0000 = mute, 0x10000 = unity */
+    const struct mixer_buffer_cbs* buf_cbs; /* Callback for new buffer */
 };
 
 #if (defined(HW_HAVE_192) || defined(HW_HAVE_176))
@@ -119,8 +119,8 @@ static void mixer_pcm_callback(const void **addr, size_t *size)
 
 static inline void chan_call_buffer_hook(struct mixer_channel *chan)
 {
-    if (UNLIKELY(chan->buffer_hook))
-        chan->buffer_hook(chan->start, chan->size);
+    if (UNLIKELY(chan->buf_cbs && chan->buf_cbs->next_buffer))
+        chan->buf_cbs->next_buffer(chan->start, chan->size);
 }
 
 /* Buffering callback - calls sub-callbacks and mixes the data for next
@@ -154,9 +154,9 @@ fill_frame:
 
         if (chan->size == 0)
         {
-            if (chan->cbs->get_more)
+            if (chan->play_cbs->get_more)
             {
-                chan->cbs->get_more(&chan->start, &chan->size);
+                chan->play_cbs->get_more(&chan->start, &chan->size);
                 ALIGN_AUDIOBUF(chan->start, chan->size);
             }
 
@@ -317,7 +317,7 @@ void mixer_channel_play_data(enum pcm_mixer_channel channel,
         chan->start = start;
         chan->size = size;
         chan->last_size = 0;
-        chan->cbs = cbs;
+        chan->play_cbs = cbs;
 
         mixer_activate_channel(chan);
         chan_call_buffer_hook(chan);
@@ -429,15 +429,14 @@ void mixer_adjust_channel_address(enum pcm_mixer_channel channel,
     pcm_play_unlock();
 }
 
-/* Set a hook that is called upon getting a new source buffer for a channel
-   NOTE: Called for each buffer, not each mixer chunk */
+/* Set a hook that is called upon getting a new source buffer for a channel */
 void mixer_channel_set_buffer_hook(enum pcm_mixer_channel channel,
-                                   chan_buffer_hook_fn_type fn)
+                                   const struct mixer_buffer_cbs* cbs)
 {
     struct mixer_channel *chan = &channels[channel];
 
     pcm_play_lock();
-    chan->buffer_hook = fn;
+    chan->buf_cbs = cbs;
     pcm_play_unlock();
 }
 
@@ -471,18 +470,18 @@ void mixer_set_frequency(unsigned int samplerate)
         struct mixer_channel* chan = active_channels[i];
 
         /* Notify upstreams */
-        if (chan->cbs)
+        if (chan->play_cbs)
         {
-            if (chan->cbs->sampr_changed)
+            if (chan->play_cbs->sampr_changed)
             {
-                chan->cbs->sampr_changed(samplerate);
+                chan->play_cbs->sampr_changed(samplerate);
             }
-            if (chan->cbs->get_more)
+            if (chan->play_cbs->get_more)
             {
                 /* Remake buffer */
                 const void *start = NULL;
                 size_t size;
-                chan->cbs->get_more(&start, &size);
+                chan->play_cbs->get_more(&start, &size);
                 if (start && size) {
                     chan->start = start;
                     chan->size = size;
@@ -490,6 +489,14 @@ void mixer_set_frequency(unsigned int samplerate)
                 } else {
                     channel_stopped(chan);
                 }
+            }
+        }
+        /* Notify buffer monitor */
+        if (chan->buf_cbs)
+        {
+            if (chan->buf_cbs->sampr_changed)
+            {
+                chan->buf_cbs->sampr_changed(samplerate);
             }
         }
     }

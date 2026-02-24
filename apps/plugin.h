@@ -179,7 +179,7 @@ int plugin_open(const char *plugin, const char *parameter);
  * when this happens please take the opportunity to sort in
  * any new functions "waiting" at the end of the list.
  */
-#define PLUGIN_API_VERSION 281
+#define PLUGIN_API_VERSION 282
 
 /* 239 Marks the removal of ARCHOS HWCODEC and CHARCELL */
 
@@ -790,7 +790,7 @@ struct plugin_api {
                                         unsigned int amplitude);
     size_t (*mixer_channel_get_bytes_waiting)(enum pcm_mixer_channel channel);
     void (*mixer_channel_set_buffer_hook)(enum pcm_mixer_channel channel,
-                                          chan_buffer_hook_fn_type fn);
+                                          const struct mixer_buffer_cbs* cbs);
     void (*mixer_set_frequency)(unsigned int samplerate);
     unsigned int (*mixer_get_frequency)(void);
     void (*pcmbuf_fade)(bool fade, bool in);
