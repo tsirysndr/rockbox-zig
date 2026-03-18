@@ -165,6 +165,7 @@ INIT_ATTR static void init_periph_clock(void)
     reg_writef(RCC_D1CCIPR, SDMMCSEL_V(PLL1Q));
     reg_writef(RCC_D2CCIP1R, SAI1SEL_V(PLL2P), SPI45SEL_V(HSE));
     reg_writef(RCC_D2CCIP2R, I2C123SEL_V(HSI));
+    reg_writef(RCC_D3CCIPR, ADCSEL_V(PLL3R));
 
     /* Enable AXI SRAM in sleep mode to allow DMA'ing out of it */
     reg_writef(RCC_AHB3LPENR, AXISRAMEN(1));

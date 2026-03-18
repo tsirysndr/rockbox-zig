@@ -1509,3 +1509,251 @@ I2C1 @ 0x40005400 : I2C
 I2C2 @ 0x40005800 : I2C
 I2C3 @ 0x40005C00 : I2C
 I2C4 @ 0x58001C00 : I2C
+
+block ADC {
+    ISR @ 0x00 : reg {
+        12 LDORDY
+        10 JQOVF
+        09 AWD3
+        08 AWD2
+        07 AWD1
+        06 JEOS
+        05 JEOC
+        04 OVR
+        03 EOS
+        02 EOC
+        01 EOSMP
+        00 ADRDY
+    }
+
+    IER @ 0x04 : reg {
+        10 JQOVFIE
+        09 AWD3IE
+        08 AWD2IE
+        07 AWD1IE
+        06 JEOSIE
+        05 JEOCIE
+        04 OVRIE
+        03 EOSIE
+        02 EOCIE
+        01 EOSMPIE
+        00 ADRDYIE
+    }
+
+    CR @ 0x08 : reg {
+        -- 31 ADCAL
+        -- 30 ADCALDIF
+        -- 29 DEEPPWD
+        -- 28 ADVREGEN
+        -- 27 LINCALRDYW6
+        -- 26 LINCALRDYW5
+        -- 25 LINCALRDYW4
+        -- 24 LINCALRDYW3
+        -- 23 LINCALRDYW2
+        -- 22 LINCALRDYW1
+        -- 16 ADCALLIN
+        -- 09 BOOST1 // present on revision V only
+        -- 08 BOOST0
+        -- 05 JADSTP
+        -- 04 ADSTP
+        -- 03 JADSTART
+        -- 02 ADSTART
+        -- 01 ADDIS
+        -- 00 ADEN
+    }
+
+    CFGR @ 0x0c : reg {
+        -- 31 JQDIS
+        30 26 AWD1CH
+        -- 25 JAUTO
+        -- 24 JAWD1EN
+        -- 23 AWD1EN
+        -- 22 AWD1SGL
+        -- 21 JQM
+        -- 20 JDISCEN
+        19 17 DISCNUM
+        -- 16 DISCEN
+        -- 14 AUTDLY
+        -- 13 CONT
+        -- 12 OVRMOD
+        11 10 EXTEN
+        09 05 EXTSEL
+        04 02 RES
+        01 00 DMNGT
+    }
+
+    CFGR2 @ 0x10 : reg {
+        31 28 LSHIFT
+        25 16 OSVR
+        -- 14 RSHIFT4
+        -- 13 RSHIFT3
+        -- 12 RSHIFT2
+        -- 11 RSHIFT1
+        -- 10 ROVSM
+        -- 09 TROVS
+        08 05 OVSS
+        -- 01 JOVSE
+        -- 00 ROVSE
+    }
+
+    enum SMPTIME {
+        0 = 1_5CYCLE
+        1 = 2_5CYCLE
+        2 = 8_5CYCLE
+        3 = 16_5CYCLE
+        4 = 32_5CYCLE
+        5 = 64_5CYCLE
+        6 = 387_5CYCLE
+        7 = 810_5CYCLE
+    }
+
+    SMPR1 @ 0x14 : reg {
+        29 27 SMP9 : SMPTIME
+        26 24 SMP8 : SMPTIME
+        23 21 SMP7 : SMPTIME
+        20 18 SMP6 : SMPTIME
+        17 15 SMP5 : SMPTIME
+        14 12 SMP4 : SMPTIME
+        11 09 SMP3 : SMPTIME
+        08 06 SMP2 : SMPTIME
+        05 03 SMP1 : SMPTIME
+        02 00 SMP0 : SMPTIME
+    }
+
+    SMPR2 @ 0x18 : reg {
+        29 27 SMP19 : SMPTIME
+        26 24 SMP18 : SMPTIME
+        23 21 SMP17 : SMPTIME
+        20 18 SMP16 : SMPTIME
+        17 15 SMP15 : SMPTIME
+        14 12 SMP14 : SMPTIME
+        11 09 SMP13 : SMPTIME
+        08 06 SMP12 : SMPTIME
+        05 03 SMP11 : SMPTIME
+        02 00 SMP10 : SMPTIME
+    }
+
+    PCSEL @ 0x1c : reg
+    LTR1 @ 0x20 : reg
+    HTR1 @ 0x24 : reg
+
+    SQR1 @ 0x30 : reg {
+        28 24 SQ4
+        22 18 SQ3
+        16 12 SQ2
+        10 06 SQ1
+        03 00 L
+    }
+
+    SQR2 @ 0x34 : reg {
+        28 24 SQ9
+        22 18 SQ8
+        16 12 SQ7
+        10 06 SQ6
+        04 00 SQ5
+    }
+
+    SQR3 @ 0x38 : reg {
+        28 24 SQ14
+        22 18 SQ13
+        16 12 SQ12
+        10 06 SQ11
+        04 00 SQ10
+    }
+
+    SQR4 @ 0x38 : reg {
+        10 06 SQ16
+        04 00 SQ15
+    }
+
+    DR @ 0x40 : reg
+
+    JSQR @ 0x4c : reg {
+        31 27 JSQ4
+        25 21 JSQ3
+        19 15 JSQ2
+        13 09 JSQ1
+        08 07 JEXTEN
+        06 02 JEXTSEL
+        01 00 JL
+    }
+
+    OFR @ 0x60 [4; 0x04] : reg {
+        -- 31 SSATE
+        30 26 OFFSET_CH
+        25 00 OFFSET
+    }
+
+    JDR @ 0x80 [4; 0x04] : reg
+
+    AWD2CR @ 0xa0 : reg {
+        19 00 AWD2CH
+    }
+
+    AWD3CR @ 0xa4 : reg {
+        19 00 AWD3CH
+    }
+
+    LTR2 @ 0xb0 : reg
+    HTR2 @ 0xb4 : reg
+    LTR3 @ 0xb8 : reg
+    HTR3 @ 0xbc : reg
+
+    DIFSEL @ 0xc0 : reg
+
+    CALFACT @ 0xc4 : reg {
+        26 16 D
+        10 00 S
+    }
+
+    CALFACT2 @ 0xc8 : reg {
+        29 00 LINCALFACT
+    }
+
+    CSR @ 0x300 : reg {
+        26 JQOVF_SLV
+        25 AWD3_SLV
+        24 AWD2_SLV
+        23 AWD1_SLV
+        22 JEOS_SLV
+        21 JEOC_SLV
+        20 OVR_SLV
+        19 EOS_SLV
+        18 EOC_SLV
+        17 EOSMP_SLV
+        16 ADRDY_SLV
+        10 JQOVF_MST
+        09 AWD3_MST
+        08 AWD2_MST
+        07 AWD1_MST
+        06 JEOS_MST
+        05 JEOC_MST
+        04 OVR_MST
+        03 EOS_MST
+        02 EOC_MST
+        01 EOSMP_MST
+        00 ADRDY_MST
+    }
+
+    CCR @ 0x308 : reg {
+        -- 24 VBATEN
+        -- 23 TSEN
+        -- 22 VREFEN
+        21 18 PRESC
+        17 16 CKMOD
+        15 14 DAMDF
+        10 08 DELAY
+        04 00 DUAL
+    }
+
+    CDR @ 0x30c : reg {
+        31 16 RDATA_SLV
+        15 00 RDATA_MST
+    }
+
+    CDR2 @ 0x310 : reg
+}
+
+ADC1 @ 0x40022000 : ADC
+ADC2 @ 0x40022100 : ADC
+ADC3 @ 0x58026000 : ADC

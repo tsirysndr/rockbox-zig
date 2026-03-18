@@ -1926,7 +1926,6 @@ target/arm/rk27xx/ihifi2/audio-ihifi800.c
 #if CONFIG_CPU == STM32H743
 target/arm/stm32/crt0-stm32h7.S
 target/arm/stm32/vectors-stm32h7.S
-target/arm/stm32/adc-stm32h7.c
 #ifndef BOOTLOADER
 target/arm/stm32/debug-stm32h7.c
 #endif
@@ -1942,6 +1941,7 @@ target/arm/stm32/usb-stm32h7.c
 #endif
 
 #if defined(ECHO_R1)
+target/arm/stm32/echoplayer/adc-echoplayer.c
 target/arm/stm32/echoplayer/audiohw-echoplayer.c
 target/arm/stm32/echoplayer/backlight-echoplayer.c
 target/arm/stm32/echoplayer/button-echoplayer.c
