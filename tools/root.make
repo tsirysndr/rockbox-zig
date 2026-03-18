@@ -96,10 +96,8 @@ ifndef APP_TYPE
   endif
 endif
 
-ifeq (,$(findstring bootloader,$(APPSDIR)))
-  ifeq (,$(findstring checkwps,$(APP_TYPE)))
-    include $(ROOTDIR)/lib/fixedpoint/fixedpoint.make
-  endif
+ifeq (,$(findstring checkwps,$(APP_TYPE)))
+  include $(ROOTDIR)/lib/fixedpoint/fixedpoint.make
 endif
 
 ifneq (,$(findstring bootloader,$(APPSDIR)))
