@@ -480,6 +480,11 @@ static void op_entry_remove(int selection)
             {
                 lang_id = op_entry.lang_id;
                 hash = op_entry.hash;
+                if(lang_id == LANG_START_SCREEN
+                   && rb->global_settings->start_in_screen == GO_TO_PLUGIN +2)
+                {
+                    rb->global_settings->start_in_screen = GO_TO_ROOT + 2; /* default */
+                }
             }
             rb->memset(&op_entry, 0, op_entry_sz);
             op_entry.lang_id = lang_id;
