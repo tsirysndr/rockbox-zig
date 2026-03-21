@@ -83,7 +83,6 @@ static struct pcm_sink* sinks[1] = {
     [PCM_SINK_BUILTIN] = &builtin_pcm_sink,
 };
 static enum pcm_sink_ids cur_sink = PCM_SINK_BUILTIN;
-static struct mutex sink_mutex; /* protects sinks and cur_sink */
 
 /* The registered callback function to ask for more mp3 data */
 volatile pcm_play_callback_type
@@ -238,14 +237,11 @@ bool pcm_is_playing(void)
  */
 
 void pcm_play_lock(void) {
-    mutex_lock(&sink_mutex);
     sinks[cur_sink]->ops.lock();
-    /* hold sink_mutex until pcm_play_unlock() */
 }
 
 void pcm_play_unlock(void) {
     sinks[cur_sink]->ops.unlock();
-    mutex_unlock(&sink_mutex);
 }
 
 /* This should only be called at startup before any audio playback or
@@ -254,7 +250,6 @@ void pcm_init(void)
 {
     logf("pcm_init");
 
-    mutex_init(&sink_mutex);
     for(size_t i = 0; i < ARRAYLEN(sinks); i += 1) {
         sinks[i]->pending_freq = sinks[i]->caps.default_freq;
         sinks[i]->configured_freq = -1UL;
@@ -359,7 +354,6 @@ void pcm_set_frequency(unsigned int samplerate)
     samplerate = pcm_sampr_to_hw_sampr(samplerate, type);
 #endif /* CONFIG_SAMPR_TYPES */
 
-    mutex_lock(&sink_mutex);
     struct pcm_sink* sink = sinks[cur_sink];
     index = round_value_to_list32(samplerate, sink->caps.samprs, sink->caps.num_samprs, false);
 
@@ -367,7 +361,6 @@ void pcm_set_frequency(unsigned int samplerate)
         index = sink->caps.default_freq; /* Invalid = default */
 
     sink->pending_freq = index;
-    mutex_unlock(&sink_mutex);
 }
 
 /* return last-set frequency */
@@ -384,14 +377,12 @@ void pcm_apply_settings(void)
 
     pcm_wait_for_init();
 
-    mutex_lock(&sink_mutex);
     struct pcm_sink* sink = sinks[cur_sink];
     if(sink->pending_freq != sink->configured_freq) {
         logf(" sink->set_freq");
         sink->ops.set_freq(sink->pending_freq);
         sink->configured_freq = sink->pending_freq;
     }
-    mutex_unlock(&sink_mutex);
 }
 
 #ifdef HAVE_RECORDING
