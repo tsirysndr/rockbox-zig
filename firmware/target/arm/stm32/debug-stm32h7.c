@@ -89,8 +89,6 @@ static bool swd_menu(void)
 #if defined(ECHO_R1)
 extern volatile int pcm_sai_xrun_count;
 extern volatile int pcm_dma_teif_count;
-extern volatile int pcm_dma_dmeif_count;
-extern volatile int pcm_dma_feif_count;
 
 struct pcmdebug_counter
 {
@@ -102,8 +100,6 @@ static const struct pcmdebug_counter pcmdebug_counters[] =
 {
     {"SAI xrun count",  &pcm_sai_xrun_count},
     {"DMA TEIF count",  &pcm_dma_teif_count},
-    {"DMA DMEIF count", &pcm_dma_dmeif_count},
-    {"DMA FEIF count",  &pcm_dma_feif_count},
 };
 
 static int pcmdebug_menu_action_cb(int action, struct gui_synclist *lists)

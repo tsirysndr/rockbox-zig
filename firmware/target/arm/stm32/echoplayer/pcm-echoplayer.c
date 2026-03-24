@@ -36,19 +36,16 @@
 # define PCM_NATIVE_SAMPLE_SIZE     4
 # define DMA_PSIZE_VAL              BV_DMA_CHN_CR_PSIZE_32BIT
 # define SAI_DSIZE_VAL              BV_SAI_SUBBLOCK_CR1_DS_32BIT
-# define SAI_FIFO_THRESH            BV_SAI_SUBBLOCK_CR2_FTH_QUARTER
 # define SAI_FRL_VAL                64
 #elif PCM_NATIVE_BITDEPTH == 24
 # define PCM_NATIVE_SAMPLE_SIZE     4
 # define DMA_PSIZE_VAL              BV_DMA_CHN_CR_PSIZE_32BIT
 # define SAI_DSIZE_VAL              BV_SAI_SUBBLOCK_CR1_DS_24BIT
-# define SAI_FIFO_THRESH            BV_SAI_SUBBLOCK_CR2_FTH_QUARTER
 # define SAI_FRL_VAL                64
 #elif PCM_NATIVE_BITDEPTH == 16
 # define PCM_NATIVE_SAMPLE_SIZE     2
 # define DMA_PSIZE_VAL              BV_DMA_CHN_CR_PSIZE_16BIT
 # define SAI_DSIZE_VAL              BV_SAI_SUBBLOCK_CR1_DS_16BIT
-# define SAI_FIFO_THRESH            BV_SAI_SUBBLOCK_CR2_FTH_HALF
 # define SAI_FRL_VAL                32
 #else
 # error "Unsupported PCM bit depth"
@@ -67,8 +64,6 @@ static int pcm_last_freq = -1;
 
 volatile int pcm_sai_xrun_count;
 volatile int pcm_dma_teif_count;
-volatile int pcm_dma_dmeif_count;
-volatile int pcm_dma_feif_count;
 
 static void play_dma_start(const void *addr, size_t size)
 {
@@ -105,7 +100,7 @@ static void sai_init(void)
     /* Configure DMA1 channel 0 */
     reg_writelf(dma1_ch0, DMA_CHN_CR,
                 MBURST_V(INCR4),        /* 32-bit x 4 burst = 16 bytes */
-                PBURST_V(INCR4),        /* (16|32)-bit x 4 burst = 8-16 bytes */
+                PBURST_V(SINGLE),       /* (16|32)-bit x 4 burst = 8-16 bytes */
                 TRBUFF(0),              /* bufferable mode not used for SAI */
                 DBM(0),                 /* double buffer mode off */
                 PL_V(VERYHIGH),         /* highest priority */
@@ -117,10 +112,8 @@ static void sai_init(void)
                 DIR_V(MEM_TO_PERIPH),   /* read from memory, write to SAI */
                 PFCTRL_V(DMA),          /* DMA is flow controller */
                 TCIE(1),                /* transfer complete interrupt */
-                TEIE(1),                /* transfer error interrupt */
-                DMEIE(1));              /* direct mode error interrupt */
+                TEIE(1));               /* transfer error interrupt */
     reg_writelf(dma1_ch0, DMA_CHN_FCR,
-                FEIE(1),                /* fifo error interrupt */
                 DMDIS(1),               /* enable fifo mode */
                 FTH_V(FULL));           /* fifo threshold = 4 words */
 
@@ -146,7 +139,7 @@ static void sai_init(void)
                 MUTEVAL_V(ZERO_SAMPLE),         /* send zero sample on mute */
                 MUTE(1),                        /* mute output initially */
                 TRIS(0),                        /* don't tri-state outputs */
-                FTH(SAI_FIFO_THRESH));          /* fifo threshold (2 or 4 samples) */
+                FTH_V(FULL));                   /* fifo threshold (2 or 4 samples) */
     reg_writelf(sai1a, SAI_SUBBLOCK_FRCR,
                 FSOFF(1), FSPOL(0), FSDEF(1),   /* I2S format */
                 FSALL(SAI_FRL_VAL/2 - 1),       /* FS active for half the frame */
@@ -336,22 +329,12 @@ void dma1_ch0_irq_handler(void)
     size_t size;
 
     if (reg_vreadf(lisr, DMA_LISR, TEIF0))
-        pcm_dma_teif_count++;
-
-    if (reg_vreadf(lisr, DMA_LISR, DMEIF0))
-        pcm_dma_dmeif_count++;
-
-    if (reg_vreadf(lisr, DMA_LISR, FEIF0))
-        pcm_dma_feif_count++;
-
-    if (reg_vreadf(lisr, DMA_LISR, TEIF0) ||
-        reg_vreadf(lisr, DMA_LISR, DMEIF0) ||
-        reg_vreadf(lisr, DMA_LISR, FEIF0))
     {
-        reg_assignlf(dma1, DMA_LIFCR, TEIF0(1), DMEIF0(1), FEIF0(1));
-        reg_writelf(dma1_ch0, DMA_CHN_CR, EN(0));
+        pcm_dma_teif_count++;
+        reg_assignlf(dma1, DMA_LIFCR, TEIF0(1));
 
-        pcm_play_dma_status_callback(PCM_DMAST_ERR_DMA);
+        /* TODO: this case may need additional handling */
+        pcm_play_dma_complete_callback(PCM_DMAST_ERR_DMA, NULL, NULL);
     }
     else if (reg_vreadf(lisr, DMA_LISR, TCIF0))
     {
