@@ -189,7 +189,7 @@ static void sink_dma_init(void)
     I2SOUT_CONTROL = (1<<6) | (1<<3);  /* enable dma, stereo */
 
     audiohw_preinit();
-    sink_set_freq(HW_SAMPR_DEFAULT);
+    sink_set_freq(builtin_pcm_sink.caps.default_freq);
 }
 
 #ifdef HAVE_PCM_DMA_ADDRESS
