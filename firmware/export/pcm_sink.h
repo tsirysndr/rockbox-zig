@@ -47,6 +47,7 @@ struct pcm_sink {
     /* runtime states */
     unsigned long pending_freq;
     unsigned long configured_freq;
+    unsigned long pcm_is_ready;
 };
 
 enum pcm_sink_ids {

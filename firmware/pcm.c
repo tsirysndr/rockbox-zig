@@ -76,9 +76,6 @@
  *
  */
 
-/* 'true' when all stages of pcm initialization have completed */
-static bool pcm_is_ready = false;
-
 static struct pcm_sink* sinks[1] = {
     [PCM_SINK_BUILTIN] = &builtin_pcm_sink,
 };
@@ -142,7 +139,7 @@ void pcm_play_stop_int(void)
 
 static void pcm_wait_for_init(void)
 {
-    while (!pcm_is_ready)
+    while (!sinks[cur_sink]->pcm_is_ready)
         sleep(0);
 }
 
@@ -251,9 +248,11 @@ void pcm_init(void)
     logf("pcm_init");
 
     for(size_t i = 0; i < ARRAYLEN(sinks); i += 1) {
-        sinks[i]->pending_freq = sinks[i]->caps.default_freq;
-        sinks[i]->configured_freq = -1UL;
-        sinks[i]->ops.init();
+        struct pcm_sink* sink = sinks[i];
+        sink->pending_freq = sink->caps.default_freq;
+        sink->configured_freq = -1UL;
+        sink->pcm_is_ready = false;
+        sink->ops.init();
     }
 }
 
@@ -263,15 +262,15 @@ void pcm_postinit(void)
     logf("pcm_postinit");
 
     for(size_t i = 0; i < ARRAYLEN(sinks); i += 1) {
-        sinks[i]->ops.postinit();
+        struct pcm_sink* sink = sinks[i];
+        sink->ops.postinit();
+        sink->pcm_is_ready = true;
     }
-
-    pcm_is_ready = true;
 }
 
 bool pcm_is_initialized(void)
 {
-    return pcm_is_ready;
+    return sinks[cur_sink]->pcm_is_ready;
 }
 
 enum pcm_sink_ids pcm_current_sink(void)
