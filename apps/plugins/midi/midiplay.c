@@ -492,11 +492,6 @@ static void get_more(const void** start, size_t* size)
     *size = samples_in_buf*sizeof(int32_t);
 }
 
-static const struct mixer_play_cbs mixer_cbs = {
-    .get_more = get_more,
-    /* TODO: update sample_rate and max_voices on sampr_changed() */
-};
-
 UNUSED_ATTR static int find_min_sampr_ge_22(void)
 {
     const struct pcm_sink_caps* caps = rb->pcm_current_sink_caps();
