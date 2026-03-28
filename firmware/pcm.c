@@ -266,6 +266,9 @@ void pcm_postinit(void)
         sink->ops.postinit();
         sink->pcm_is_ready = true;
     }
+
+    /* Ensure mixer is in a sane state */
+    mixer_set_frequency(pcm_get_frequency());
 }
 
 bool pcm_is_initialized(void)
