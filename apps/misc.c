@@ -866,20 +866,10 @@ void check_bootfile(bool do_rolo)
 #endif
 #endif
 
-/* check range, set volume and save settings */
+/* set volume and save settings */
 void setvol(void)
 {
-    const int min_vol = sound_min(SOUND_VOLUME);
-    const int max_vol = sound_max(SOUND_VOLUME);
-    int volume = global_status.volume;
-    if (volume < min_vol)
-        volume = min_vol;
-    if (volume > max_vol)
-        volume = max_vol;
-    if (volume > global_settings.volume_limit)
-        volume = global_settings.volume_limit;
-
-    sound_set_volume(volume);
+    sound_set_volume(global_status.volume);
     global_status.last_volume_change = current_tick;
     status_save(false);
 }
