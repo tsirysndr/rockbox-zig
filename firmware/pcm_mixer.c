@@ -33,7 +33,7 @@
    before the last samples are sent to the codec and so things are done in
    parallel (as much as possible) with sending-out data. */
 
-static unsigned int mixer_sampr = -1UL;
+static unsigned int mixer_sampr = -1U;
 static unsigned int mix_frame_size = MIX_FRAME_SAMPLES*4;
 
 /* Define this to nonzero to add a marker pulse at each frame start */
@@ -266,7 +266,7 @@ static void mixer_start_pcm(void)
 #endif
 
     /* Requires a shared global sample rate for all channels */
-    if (mixer_sampr == -1UL)
+    if (mixer_sampr == -1U)
         mixer_sampr = pcm_get_frequency();
     else
         pcm_set_frequency(mixer_sampr);

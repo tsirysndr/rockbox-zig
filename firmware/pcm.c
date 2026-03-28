@@ -202,7 +202,7 @@ void pcm_do_peak_calculation(struct pcm_peaks *peaks, bool active,
     if (active)
     {
         struct pcm_sink* sink = sinks[cur_sink];
-        if (sink->configured_freq == -1UL)
+        if (sink->configured_freq == -1U)
         {
             logf("not configured yet");
             return;
@@ -250,7 +250,7 @@ void pcm_init(void)
     for(size_t i = 0; i < ARRAYLEN(sinks); i += 1) {
         struct pcm_sink* sink = sinks[i];
         sink->pending_freq = sink->caps.default_freq;
-        sink->configured_freq = -1UL;
+        sink->configured_freq = -1U;
         sink->pcm_is_ready = false;
         sink->ops.init();
     }
