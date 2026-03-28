@@ -527,12 +527,11 @@ drivers/rds.c
 #endif /* HAVE_RDS_CAP */
 #endif /* PLATFORM_NATIVE */
 #endif /* CONFIG_TUNER */
-#endif /* BOOTLOADER */
+#endif /* !BOOTLOADER */
 
 /* Sound */
-sound.c
-
 #ifndef BOOTLOADER
+sound.c
 pcm_sampr.c
 pcm.c
 pcm_mixer.c
@@ -544,7 +543,7 @@ enc_base.c
 #endif /* HAVE_RECORDING */
 
 drivers/audio/audiohw-swcodec.c
-#endif /* BOOTLOADER */
+#endif /* !BOOTLOADER */
 
 /* Audio codec */
 #if !defined(BOOTLOADER)
