@@ -312,6 +312,7 @@ void sound_set_volume(int value)
     if (!audio_is_initialized)
         return;
 
+#ifndef BOOTLOADER
     /* Apply limits */
     const int min_vol = sound_min(SOUND_VOLUME);
     const int max_vol = sound_max(SOUND_VOLUME);
@@ -322,7 +323,6 @@ void sound_set_volume(int value)
     if (value > global_settings.volume_limit)
         value = global_settings.volume_limit;
 
-#ifndef BOOTLOADER
     global_status.volume = value;
 #endif
 
