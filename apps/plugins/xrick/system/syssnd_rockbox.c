@@ -222,8 +222,8 @@ void syssnd_update(void)
 
         if (!isAudioPlaying && fillCount > 0)
         {
-            rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
             isAudioPlaying = true;
+            rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
         }
     }
 }
