@@ -18,7 +18,7 @@ EXTRADEPS :=
 
 CPPDEFINES := $(shell echo foo | $(CROSS)$(CC) -dM -E -)
 
-ifeq ($(findstring WIN32,$(CPPDEFINES)),WIN32)
+ifeq ($(findstring __WIN32__,$(CPPDEFINES)),__WIN32__)
 LDOPTS += -lsetupapi
 # optional libusb support (needed for WinUSB and libusbK drivers)
 ifeq ($(findstring MINGW,$(CPPDEFINES)),MINGW)
