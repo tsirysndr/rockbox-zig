@@ -13143,20 +13143,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_PLAYTIME_ERROR
-  desc: playing time screen
-  user: core
-  <source>
-    *: "Error while gathering info"
-  </source>
-  <dest>
-    *: "Сбой при сборе информации"
-  </dest>
-  <voice>
-    *: "Сбой при сборе информации"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_CLEAR_ALL_RESUMES
   desc: in the mpegplayer settings menu
   user: core
@@ -14389,7 +14375,7 @@
   user: core
   <source>
     *: "Press LEFT to cancel."
-    android,hifietma*,zenvision: "Press BACK to cancel."
+    android,hifietma*: "Press BACK to cancel."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Press POWER to cancel."
     ihifi760,ihifi960: "Double tap RETURN to cancel."
     ihifi770,ihifi770c,ihifi800: "Press HOME to cancel."
@@ -14404,7 +14390,7 @@
   </source>
   <dest>
     *: "Нажмите ВЛЕВО для отмены."
-    android,hifietma*,zenvision: "Нажмите НАЗАД для отмены."
+    android,hifietma*: "Нажмите НАЗАД для отмены."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Нажмите ВКЛ. для отмены."
     ihifi760,ihifi960: "Дважды нажмите ВОЗВРАТ для отмены."
     ihifi770,ihifi770c,ihifi800: "Нажмите ДОМОЙ для отмены."
@@ -14419,7 +14405,7 @@
   </dest>
   <voice>
     *: "Нажмите кнопку Влево для отмены."
-    android,hifietma*,zenvision: "Нажмите кнопку Назад для отмены."
+    android,hifietma*: "Нажмите кнопку Назад для отмены."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Нажмите кнопку включения для отмены."
     ihifi760,ihifi960: "Дважды нажмите кнопку Назад для отмены."
     ihifi770,ihifi770c,ihifi800: "Нажмите кнопку Домой для отмены."
@@ -15790,13 +15776,13 @@
 </phrase>
 <phrase>
   id: LANG_VOICED_DATE_FORMAT
-  desc: format string for how dates will be read back. Y == 4-digit year, A == month name, m == numeric month, d == numeric day. For example, "AdY" will read "January 21 2021"
+  desc: format string for how dates will be read back. Y == 4-digit year (grouped), y == 4-digit year (numeric), A == month name, m == numeric month, d == numeric day. For example, for 2021-01-05, "AdY" will be voiced as "January 5 twenty twenty-one" and "dmy" will be voiced as "5 1 two thousand twenty one
   user: core
   <source>
     *: "dAY"
   </source>
   <dest>
-    *: "~dAY"
+    *: "dAy"
   </dest>
   <voice>
     *: ""
@@ -15870,20 +15856,6 @@
   </dest>
   <voice>
     *: "Браузер по умолчанию"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_AMAZE_MENU
-  desc: Amaze game
-  user: core
-  <source>
-    *: "Amaze Main Menu"
-  </source>
-  <dest>
-    *: "Главное меню Amaze"
-  </dest>
-  <voice>
-    *: "Главное меню Amaze"
   </voice>
 </phrase>
 <phrase>
@@ -16136,34 +16108,6 @@
   </dest>
   <voice>
     *: "Настройки Mik mod"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MIKMOD_MENU
-  desc: mikmod plugin
-  user: core
-  <source>
-    *: "Mikmod Menu"
-  </source>
-  <dest>
-    *: "Меню Mikmod"
-  </dest>
-  <voice>
-    *: "Меню Mik mod"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_MENU
-  desc: chessbox plugin
-  user: core
-  <source>
-    *: "Chessbox Menu"
-  </source>
-  <dest>
-    *: "Меню Chessbox"
-  </dest>
-  <voice>
-    *: "Меню Chessbox"
   </voice>
 </phrase>
 <phrase>
@@ -16997,5 +16941,50 @@
   </dest>
   <voice>
     *: "Все трэки сортируются по альбому"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCE_STATUS
+  desc: announnnce_status plugin
+  user: core
+  <source>
+    *: "Announce Status"
+  </source>
+  <dest>
+    *: "Объявлять статус"
+  </dest>
+  <voice>
+    *: "Объявлять статус"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_LED_INDICATORS
+  desc: LED indicators setting
+  user: core
+  <source>
+    *: none
+    general_purpose_led: "Use LED indicators"
+  </source>
+  <dest>
+    *: none
+    general_purpose_led: "Использовать LED индикаторы"
+  </dest>
+  <voice>
+    *: none
+    general_purpose_led: "Использовать LED индикаторы"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEEP_DIRECTORY
+  desc: file browser setting
+  user: core
+  <source>
+    *: "Always remember last folder"
+  </source>
+  <dest>
+    *: "Всегда запоминать последнюю папку"
+  </dest>
+  <voice>
+    *: "Всегда запоминать последнюю папку"
   </voice>
 </phrase>
