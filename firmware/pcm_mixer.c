@@ -33,7 +33,6 @@
    before the last samples are sent to the codec and so things are done in
    parallel (as much as possible) with sending-out data. */
 
-static unsigned int mixer_sampr = -1U;
 static unsigned int mix_frame_size = MIX_FRAME_SAMPLES*4;
 
 /* Define this to nonzero to add a marker pulse at each frame start */
@@ -75,8 +74,18 @@ static struct mixer_channel channels[PCM_MIXER_NUM_CHANNELS] IBSS_ATTR;
 static struct mixer_channel * active_channels[PCM_MIXER_NUM_CHANNELS+1] IBSS_ATTR;
 
 /* Number of silence frames to play after all data has played */
-#define MAX_IDLE_FRAMES     (mixer_sampr*3 / (mix_frame_size / 4))
 static unsigned int idle_counter = 0;
+
+#ifdef CONFIG_SAMPR_TYPES
+#define SAMPR_NUM(sampr) (sampr & ~SAMPR_TYPE_MASK)
+#else
+#define SAMPR_NUM(sampr) (sampr)
+#endif
+
+static inline unsigned int max_idle_frames(void)
+{
+    return SAMPR_NUM(pcm_get_frequency()) * 3 / (mix_frame_size / 4);
+}
 
 /** Mixing routines, CPU optmized **/
 #include "asm/pcm-mixer.c"
@@ -233,7 +242,7 @@ fill_frame:
             goto fill_frame;
         }
     }
-    else if (idle_counter++ < MAX_IDLE_FRAMES)
+    else if (idle_counter++ < max_idle_frames())
     {
         /* Pad incomplete frames with silence */
         if (idle_counter <= 3)
@@ -264,12 +273,6 @@ static void mixer_start_pcm(void)
     if (pcm_is_recording())
         return;
 #endif
-
-    /* Requires a shared global sample rate for all channels */
-    if (mixer_sampr == -1U)
-        mixer_sampr = pcm_get_frequency();
-    else
-        pcm_set_frequency(mixer_sampr);
 
     /* Prepare initial frames and set up the double buffer */
     mixer_buffer_callback(PCM_DMAST_STARTED);
@@ -454,16 +457,10 @@ void mixer_reset(void)
 /* Set output samplerate */
 void mixer_set_frequency(unsigned int samplerate)
 {
-    pcm_set_frequency(samplerate);
-    samplerate = pcm_get_frequency();
-
-#ifdef CONFIG_SAMPR_TYPES
-    samplerate &= ~SAMPR_TYPE_MASK;
-#endif
-
-    if (samplerate == mixer_sampr)
+    if(pcm_get_frequency() == samplerate)
         return;
-    mixer_sampr = samplerate;
+
+    pcm_set_frequency(samplerate);
 
     for (size_t i = 0; i < ARRAYLEN(active_channels) && active_channels[i]; i += 1)
     {
@@ -474,7 +471,7 @@ void mixer_set_frequency(unsigned int samplerate)
         {
             if (chan->play_cbs->sampr_changed)
             {
-                chan->play_cbs->sampr_changed(samplerate);
+                chan->play_cbs->sampr_changed(SAMPR_NUM(samplerate));
             }
             if (chan->play_cbs->get_more)
             {
@@ -496,15 +493,15 @@ void mixer_set_frequency(unsigned int samplerate)
         {
             if (chan->buf_cbs->sampr_changed)
             {
-                chan->buf_cbs->sampr_changed(samplerate);
+                chan->buf_cbs->sampr_changed(SAMPR_NUM(samplerate));
             }
         }
     }
 
     /* Work out how much space we really need */
-    if (samplerate > SAMPR_96)
+    if (SAMPR_NUM(samplerate) > SAMPR_96)
         mix_frame_size = 4;
-    else if (samplerate > SAMPR_48)
+    else if (SAMPR_NUM(samplerate) > SAMPR_48)
         mix_frame_size = 2;
     else
         mix_frame_size = 1;
@@ -518,5 +515,5 @@ void mixer_set_frequency(unsigned int samplerate)
 /* Get output samplerate */
 unsigned int mixer_get_frequency(void)
 {
-    return mixer_sampr;
+    return pcm_get_frequency();
 }
