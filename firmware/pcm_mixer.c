@@ -286,6 +286,56 @@ static void mixer_start_pcm(void)
                   start, mix_frame_size);
 }
 
+/* Notify users of samplerate change */
+static  void mixer_handle_sampr_change(unsigned int sampr)
+{
+    for (size_t i = 0; i < ARRAYLEN(active_channels) && active_channels[i]; i += 1)
+    {
+        struct mixer_channel* chan = active_channels[i];
+
+        /* Notify upstreams */
+        if (chan->play_cbs)
+        {
+            if (chan->play_cbs->sampr_changed)
+            {
+                chan->play_cbs->sampr_changed(sampr);
+            }
+            if (chan->play_cbs->get_more)
+            {
+                /* Remake buffer */
+                const void *start = NULL;
+                size_t size;
+                chan->play_cbs->get_more(&start, &size);
+                if (start && size) {
+                    chan->start = start;
+                    chan->size = size;
+                    chan->last_size = 0;
+                } else {
+                    channel_stopped(chan);
+                }
+            }
+        }
+        /* Notify buffer monitor */
+        if (chan->buf_cbs)
+        {
+            if (chan->buf_cbs->sampr_changed)
+            {
+                chan->buf_cbs->sampr_changed(sampr);
+            }
+        }
+    }
+
+    /* Work out how much space we really need */
+    if (sampr > SAMPR_96)
+        mix_frame_size = 4;
+    else if (sampr > SAMPR_48)
+        mix_frame_size = 2;
+    else
+        mix_frame_size = 1;
+
+    mix_frame_size *= MIX_FRAME_SAMPLES * 4;
+}
+
 /** Public interfaces **/
 
 /* Start playback on a channel */
@@ -369,6 +419,19 @@ void mixer_channel_stop(enum pcm_mixer_channel channel)
     pcm_play_lock();
     channel_stopped(chan);
     pcm_play_unlock();
+}
+
+/* Switch playback sink */
+bool mixer_switch_sink(enum pcm_sink_ids sink)
+{
+    if(pcm_current_sink() == sink)
+        return true;
+
+    if(!pcm_switch_sink(sink))
+        return false;
+
+    mixer_handle_sampr_change(SAMPR_NUM(pcm_get_frequency()));
+    return true;
 }
 
 /* Set channel's amplitude factor */
@@ -461,53 +524,7 @@ void mixer_set_frequency(unsigned int samplerate)
         return;
 
     pcm_set_frequency(samplerate);
-
-    for (size_t i = 0; i < ARRAYLEN(active_channels) && active_channels[i]; i += 1)
-    {
-        struct mixer_channel* chan = active_channels[i];
-
-        /* Notify upstreams */
-        if (chan->play_cbs)
-        {
-            if (chan->play_cbs->sampr_changed)
-            {
-                chan->play_cbs->sampr_changed(SAMPR_NUM(samplerate));
-            }
-            if (chan->play_cbs->get_more)
-            {
-                /* Remake buffer */
-                const void *start = NULL;
-                size_t size;
-                chan->play_cbs->get_more(&start, &size);
-                if (start && size) {
-                    chan->start = start;
-                    chan->size = size;
-                    chan->last_size = 0;
-                } else {
-                    channel_stopped(chan);
-                }
-            }
-        }
-        /* Notify buffer monitor */
-        if (chan->buf_cbs)
-        {
-            if (chan->buf_cbs->sampr_changed)
-            {
-                chan->buf_cbs->sampr_changed(SAMPR_NUM(samplerate));
-            }
-        }
-    }
-
-    /* Work out how much space we really need */
-    if (SAMPR_NUM(samplerate) > SAMPR_96)
-        mix_frame_size = 4;
-    else if (SAMPR_NUM(samplerate) > SAMPR_48)
-        mix_frame_size = 2;
-    else
-        mix_frame_size = 1;
-
-    mix_frame_size *= MIX_FRAME_SAMPLES * 4;
-
+    mixer_handle_sampr_change(SAMPR_NUM(pcm_get_frequency()));
     if (pcm_is_initialized())
         pcm_apply_settings();
 }
