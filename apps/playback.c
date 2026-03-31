@@ -3036,7 +3036,6 @@ static void audio_start_playback(const struct audio_resume_info *resume_info,
             skip_resume_adjustments = id3_get(PLAYING_ID3)->skip_resume_adjustments;
 
             track_list_clear(TRACK_LIST_CLEAR_ALL);
-            pcmbuf_update_frequency();
         }
         else
         {
@@ -3049,7 +3048,6 @@ static void audio_start_playback(const struct audio_resume_info *resume_info,
             pcmbuf_start_track_change(TRACK_CHANGE_MANUAL);
             wipe_track_metadata(true);
         }
-        pcmbuf_update_frequency();
 
         /* Set after track finish event in case skip was in progress */
         skip_pending = TRACK_SKIP_NONE;
@@ -3071,7 +3069,6 @@ static void audio_start_playback(const struct audio_resume_info *resume_info,
 #ifndef PLATFORM_HAS_VOLUME_CHANGE
         sound_set_volume(global_status.volume);
 #endif
-        pcmbuf_update_frequency();
 
         /* Be sure channel is audible */
         pcmbuf_fade(false, true);
@@ -4315,7 +4312,6 @@ void INIT_ATTR playback_init(void)
     mutex_init(&id3_mutex);
     track_list_init();
     buffering_init();
-    pcmbuf_update_frequency();
 #ifdef HAVE_CROSSFADE
     /* Set crossfade setting for next buffer init which should be about... */
     pcmbuf_request_crossfade_enable(global_settings.crossfade);

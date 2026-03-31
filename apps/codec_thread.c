@@ -26,6 +26,7 @@
 #include "kernel.h"
 #include "codecs.h"
 #include "codec_thread.h"
+#include "pcm_mixer.h"
 #include "pcmbuf.h"
 #include "audio_thread.h"
 #include "playback.h"
@@ -518,7 +519,7 @@ static void run_codec(void)
     codec_queue_ack(Q_CODEC_RUN);
 
     trigger_cpu_boost();
-    dsp_configure(ci.dsp, DSP_SET_OUT_FREQUENCY, pcmbuf_get_frequency());
+    dsp_configure(ci.dsp, DSP_SET_OUT_FREQUENCY, mixer_get_frequency());
 
     if (!encoder)
     {
