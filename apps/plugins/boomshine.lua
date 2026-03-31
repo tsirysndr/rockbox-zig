@@ -707,9 +707,7 @@ if HAS_TOUCHSCREEN then
     rb.touchscreen_mode(rb.TOUCHSCREEN_POINT)
 end
 
-if rb.backlight_force_on then
-    rb.backlight_force_on()
-end
+rb.backlight_force_on()
 
 local eva  = rockev.register("action", action_event, rb.HZ / 10)
 
@@ -763,9 +761,7 @@ else
 end
 
 -- Restore user backlight settings
-if rb.backlight_use_settings then
-    rb.backlight_use_settings()
-end
+rb.backlight_use_settings()
 if rb.cpu_boost then rb.cpu_boost(false) end
 
 os.exit()

@@ -705,15 +705,15 @@
 #define STAR_LEVEL_DOWN_NAME "Start"
 #define STAR_LEVEL_REPEAT_NAME "Y"
 
-#elif !defined(HAVE_TOUCHSCREEN)
+#else
 #error No keymap defined!
 #endif
 
 #ifdef HAVE_TOUCHSCREEN
-#ifndef STAR_QUIT
-#define STAR_QUIT           BUTTON_TOPRIGHT
-#define STAR_QUIT_NAME      "TOPRIGHT"
-#endif
+//#ifndef STAR_QUIT
+//#define STAR_QUIT           BUTTON_TOPLEFT
+//#define STAR_QUIT_NAME           "TOPLEFT"
+//#endif
 #ifndef STAR_LEFT
 #define STAR_LEFT           BUTTON_MIDLEFT
 #endif

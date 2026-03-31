@@ -458,6 +458,9 @@
 #define ROCKBLOX_RESTART        BUTTON_BACK
 #define ROCKBLOX_SCROLL_ENABLED 1
 
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
+/* use touchscreen */
+
 #elif CONFIG_KEYPAD == MA_PAD
 #define ROCKBLOX_OFF            (BUTTON_BACK|BUTTON_REPEAT)
 #define ROCKBLOX_ROTATE_CCW     BUTTON_UP
@@ -492,7 +495,7 @@
 #define ROCKBLOX_DROP          BUTTON_SELECT
 #define ROCKBLOX_RESTART       BUTTON_USER
 
-#elif !defined(HAVE_TOUCHSCREEN)
+#else
 #error No keymap defined!
 #endif
 

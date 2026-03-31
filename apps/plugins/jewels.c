@@ -367,6 +367,9 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define HK_SELECT "SELECT"
 #define HK_CANCEL "BACK"
 
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
+/* use touchscreen */
+
 #elif CONFIG_KEYPAD == MA_PAD
 #define JEWELS_UP       BUTTON_UP
 #define JEWELS_DOWN     BUTTON_DOWN
@@ -397,7 +400,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define HK_SELECT "A"
 #define HK_CANCEL "B"
 
-#elif !defined(HAVE_TOUCHSCREEN)
+#else
 #error No keymap defined!
 #endif
 

@@ -482,6 +482,9 @@
 #define FLIPIT_STEP_BY_STEP BUTTON_VOL_UP
 #define FLIPIT_TOGGLE       BUTTON_SELECT
 
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
+/* use touchscreen */
+
 #elif CONFIG_KEYPAD == MA_PAD
 
 #define FLIPIT_LEFT         BUTTON_LEFT
@@ -520,7 +523,7 @@
 #define FLIPIT_STEP_BY_STEP BUTTON_POWER
 #define FLIPIT_TOGGLE       BUTTON_SELECT
 
-#elif !defined(HAVE_TOUCHSCREEN)
+#else
 #error No keymap defined!
 #endif
 

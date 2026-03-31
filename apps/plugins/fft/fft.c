@@ -56,8 +56,7 @@ static const struct button_mapping *plugin_contexts[] = { pla_main_ctx };
 
 #if (CONFIG_KEYPAD == IPOD_1G2G_PAD) \
     || (CONFIG_KEYPAD == IPOD_3G_PAD) \
-    || (CONFIG_KEYPAD == IPOD_4G_PAD) \
-    || defined(SDLAPP)
+    || (CONFIG_KEYPAD == IPOD_4G_PAD)
 #define FFT_QUIT            PLA_UP
 #else
 #define FFT_QUIT            PLA_EXIT

@@ -628,7 +628,7 @@ enum {
 #define BJACK_RIGHT         BUTTON_RIGHT
 #define BJACK_LEFT          BUTTON_LEFT
 
-#elif !defined(HAVE_TOUCHSCREEN)
+#else
 #error No keymap defined!
 #endif
 
@@ -640,10 +640,6 @@ enum {
 #ifndef BJACK_SELECT
 #define BJACK_SELECT        BUTTON_CENTER
 #define BJACK_SELECT_NAME   "BUTTON_CENTER"
-#endif
-#ifndef BJACK_QUIT
-#define BJACK_QUIT          BUTTON_BOTTOMRIGHT
-#define BJACK_QUIT_NAME     "BUTTON_BOTTOMRIGHT"
 #endif
 #ifndef BJACK_MAX
 #define BJACK_MAX           BUTTON_TOPRIGHT

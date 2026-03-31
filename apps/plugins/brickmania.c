@@ -382,7 +382,7 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define UP          BUTTON_UP
 #define DOWN        BUTTON_DOWN
 
-#elif !defined(HAVE_TOUCHSCREEN)
+#else
 #error No keymap defined!
 #endif
 
@@ -407,9 +407,6 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #endif
 #ifndef DOWN
 #define DOWN      BUTTON_BOTTOMMIDDLE
-#endif
-#ifndef QUIT
-#define QUIT      BUTTON_BOTTOMRIGHT
 #endif
 #endif
 
