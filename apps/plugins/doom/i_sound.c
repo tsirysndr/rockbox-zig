@@ -491,8 +491,9 @@ void I_InitSound()
            break;
    }
    if (i == caps->num_samprs)
-       i = SAMPR_44;
-   samplerate = caps->samprs[i];
+       samplerate = SAMPR_44;
+   else
+       samplerate = caps->samprs[i];
 
    // Initialize external data (all sounds) at start, keep static.
    printf( "I_InitSound: ");
