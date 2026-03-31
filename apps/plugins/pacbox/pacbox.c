@@ -407,8 +407,11 @@ static void start_sound(void)
 
     wsg3_set_sampling_rate(caps->samprs[sr_index]);
 
+    static const struct mixer_play_cbs cbs = {
+        .get_more = get_more,
+    };
     rb->mixer_set_frequency(caps->samprs[sr_index]);
-    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
+    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
     sound_playing = true;
 }

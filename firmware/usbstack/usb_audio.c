@@ -1337,7 +1337,10 @@ bool usb_audio_fast_transfer_complete(int ep, int dir, int status, int length)
             logf("usbaudio: prebuffering done");
             playback_audio_underflow = false;
             usb_rx_overflow = false;
-            mixer_channel_play_data(PCM_MIXER_CHAN_USBAUDIO, playback_audio_get_more, NULL, 0);
+            static const struct mixer_play_cbs cbs = {
+                .get_more = playback_audio_get_more,
+            };
+            mixer_channel_play_data(PCM_MIXER_CHAN_USBAUDIO, &cbs, NULL, 0);
         }
         restore_irq(oldlevel);
         retval =  true;

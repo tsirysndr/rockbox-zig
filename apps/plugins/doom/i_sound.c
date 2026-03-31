@@ -466,7 +466,10 @@ void I_SubmitSound(void)
    if (!enable_sound)
       return;
 
-   rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &get_more, NULL, 0);
+   static const struct mixer_play_cbs cbs = {
+       .get_more = get_more,
+   };
+   rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 }
 
 void I_ShutdownSound(void)

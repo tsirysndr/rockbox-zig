@@ -29,6 +29,7 @@
 #include "pcmbuf.h"
 #include "dsp-util.h"
 #include "playback.h"
+#include "dsp_core.h"
 #include "codec_thread.h"
 
 /* Define LOGF_ENABLE to enable logf output in this file */
@@ -836,6 +837,12 @@ static void pcmbuf_pcm_callback(const void **start, size_t *size)
     }
 }
 
+static void pcmbuf_sampr_callback(uint32_t sampr)
+{
+    struct dsp_config* dsp = dsp_get_config(CODEC_IDX_AUDIO);
+    dsp_configure(dsp, DSP_SET_OUT_FREQUENCY, sampr);
+}
+
 /* Force playback */
 void pcmbuf_play_start(void)
 {
@@ -845,8 +852,11 @@ void pcmbuf_play_start(void)
         chunk_widx != chunk_ridx)
     {
         current_desc = NULL;
-        mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, pcmbuf_pcm_callback,
-                                NULL, 0);
+        static const struct mixer_play_cbs cbs = {
+            .get_more = pcmbuf_pcm_callback,
+            .sampr_changed = pcmbuf_sampr_callback,
+        };
+        mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
     }
 }
 

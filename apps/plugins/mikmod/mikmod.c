@@ -292,6 +292,10 @@ static void get_more(const void** start, size_t* size)
 #endif
 }
 
+static const struct mixer_play_cbs mixer_cbs = {
+    .get_more = get_more,
+};
+
 static void showinfo(void)
 {
     char statustext[LINE_LENGTH];
@@ -600,10 +604,9 @@ static void applysettings(void)
         }
 
         // MikMod_Reset("");  BROKEN!
-
         rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
-	rb->mixer_set_frequency(md_mixfreq);
-	rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
+        rb->mixer_set_frequency(md_mixfreq);
+        rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &mixer_cbs, NULL, 0);
     }
 
 #ifdef HAVE_ADJUSTABLE_CPU_FREQ
@@ -810,7 +813,7 @@ static int playfile(char* filename)
         display = DISPLAY_INFO;
         Player_Start(module);
         rb->pcmbuf_fade(false, true);
-        rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
+        rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &mixer_cbs, NULL, 0);
     }
 
 #ifdef HAVE_ADJUSTABLE_CPU_FREQ

@@ -222,8 +222,11 @@ void syssnd_update(void)
 
         if (!isAudioPlaying && fillCount > 0)
         {
+            static const struct mixer_play_cbs cbs = {
+                .get_more = get_more,
+            };
             isAudioPlaying = true;
-            rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
+            rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
         }
     }
 }

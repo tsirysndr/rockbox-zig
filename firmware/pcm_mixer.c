@@ -42,12 +42,12 @@ static unsigned int mix_frame_size = MIX_FRAME_SAMPLES*4;
 /* Descriptor for each channel */
 struct mixer_channel
 {
-    const void *start;               /* Buffer pointer */
-    size_t size;                     /* Bytes remaining */
-    size_t last_size;                /* Size of consumed data in prev. cycle */
-    pcm_play_callback_type get_more; /* Registered callback */
-    enum channel_status status;      /* Playback status */
-    uint32_t amplitude;              /* Amp. factor: 0x0000 = mute, 0x10000 = unity */
+    const void *start;                    /* Buffer pointer */
+    size_t size;                          /* Bytes remaining */
+    size_t last_size;                     /* Size of consumed data in prev. cycle */
+    const struct mixer_play_cbs* cbs;     /* Registered callbacks */
+    enum channel_status status;           /* Playback status */
+    uint32_t amplitude;                   /* Amp. factor: 0x0000 = mute, 0x10000 = unity */
     chan_buffer_hook_fn_type buffer_hook; /* Callback for new buffer */
 };
 
@@ -154,9 +154,9 @@ fill_frame:
 
         if (chan->size == 0)
         {
-            if (chan->get_more)
+            if (chan->cbs->get_more)
             {
-                chan->get_more(&chan->start, &chan->size);
+                chan->cbs->get_more(&chan->start, &chan->size);
                 ALIGN_AUDIOBUF(chan->start, chan->size);
             }
 
@@ -287,14 +287,14 @@ static void mixer_start_pcm(void)
 
 /* Start playback on a channel */
 void mixer_channel_play_data(enum pcm_mixer_channel channel,
-                             pcm_play_callback_type get_more,
+                             const struct mixer_play_cbs* cbs,
                              const void *start, size_t size)
 {
     struct mixer_channel *chan = &channels[channel];
 
     ALIGN_AUDIOBUF(start, size);
 
-    if (!(start && size) && get_more)
+    if (!(start && size) && cbs && cbs->get_more)
     {
         /* Initial buffer not passed - call the callback now */
         pcm_play_lock();
@@ -304,7 +304,7 @@ void mixer_channel_play_data(enum pcm_mixer_channel channel,
         pcm_play_unlock(); /* Allow playback while doing callback */
 
         size = 0;
-        get_more(&start, &size);
+        cbs->get_more(&start, &size);
         ALIGN_AUDIOBUF(start, size);
     }
 
@@ -317,7 +317,7 @@ void mixer_channel_play_data(enum pcm_mixer_channel channel,
         chan->start = start;
         chan->size = size;
         chan->last_size = 0;
-        chan->get_more = get_more;
+        chan->cbs = cbs;
 
         mixer_activate_channel(chan);
         chan_call_buffer_hook(chan);
@@ -464,10 +464,35 @@ void mixer_set_frequency(unsigned int samplerate)
 
     if (samplerate == mixer_sampr)
         return;
-
-    /* All data is now invalid */
-    mixer_reset();
     mixer_sampr = samplerate;
+
+    for (size_t i = 0; i < ARRAYLEN(active_channels) && active_channels[i]; i += 1)
+    {
+        struct mixer_channel* chan = active_channels[i];
+
+        /* Notify upstreams */
+        if (chan->cbs)
+        {
+            if (chan->cbs->sampr_changed)
+            {
+                chan->cbs->sampr_changed(samplerate);
+            }
+            if (chan->cbs->get_more)
+            {
+                /* Remake buffer */
+                const void *start = NULL;
+                size_t size;
+                chan->cbs->get_more(&start, &size);
+                if (start && size) {
+                    chan->start = start;
+                    chan->size = size;
+                    chan->last_size = 0;
+                } else {
+                    channel_stopped(chan);
+                }
+            }
+        }
+    }
 
     /* Work out how much space we really need */
     if (samplerate > SAMPR_96)

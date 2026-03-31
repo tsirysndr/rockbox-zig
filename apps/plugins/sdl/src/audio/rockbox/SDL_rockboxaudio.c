@@ -288,7 +288,10 @@ static int ROCKBOXAUD_OpenAudio(_THIS, SDL_AudioSpec *spec)
 
     rbaud_underruns = 0;
 
-    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
+    static const struct mixer_play_cbs cbs = {
+        .get_more = get_more,
+    };
+    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
     /* We're ready to rock and roll. :-) */
     return(0);

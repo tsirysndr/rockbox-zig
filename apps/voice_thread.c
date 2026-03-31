@@ -245,8 +245,10 @@ static void voice_start_playback(void)
     struct voice_pcm_frame *frame =
         &voice_buf->frames[voice_buf->frame_out % VOICE_FRAMES];
 
-    mixer_channel_play_data(PCM_MIXER_CHAN_VOICE, voice_pcm_callback,
-                            frame->pcm, frame->size);
+    static const struct mixer_play_cbs cbs = {
+        .get_more = voice_pcm_callback,
+    };
+    mixer_channel_play_data(PCM_MIXER_CHAN_VOICE, &cbs, frame->pcm, frame->size);
 }
 
 /* Stop the voice channel */

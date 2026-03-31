@@ -212,7 +212,10 @@ static void write_buf(void){
                     = my_buf[j+10] = my_buf[j+11] \
                     = (((byte)sp_sound_buf[i])<<8) >> settings.volume;
 
-    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, (unsigned char*)(my_buf),TMNUM*4*3*2);
+    static const struct mixer_play_cbs cbs = {
+        .get_more = get_more,
+    };
+    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, (unsigned char*)(my_buf),TMNUM*4*3*2);
 
 #if 0
     /* can use to save and later analyze what we produce */

@@ -782,7 +782,7 @@ struct plugin_api {
     void (*mixer_channel_calculate_peaks)(enum pcm_mixer_channel channel,
                                           struct pcm_peaks *peaks);
     void (*mixer_channel_play_data)(enum pcm_mixer_channel channel,
-                                    pcm_play_callback_type get_more,
+                                    const struct mixer_play_cbs* cbs,
                                     const void *start, size_t size);
     void (*mixer_channel_play_pause)(enum pcm_mixer_channel channel, bool play);
     void (*mixer_channel_stop)(enum pcm_mixer_channel channel);

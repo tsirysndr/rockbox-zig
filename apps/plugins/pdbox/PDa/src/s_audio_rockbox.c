@@ -181,7 +181,10 @@ int rockbox_send_dacs(void)
     if(!playing && outbuf_fill > 0)
     {
         /* Start playing. */
-        rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, pdbox_get_more, NULL, 0);
+        static const struct mixer_play_cbs cbs = {
+            .get_more = pdbox_get_more,
+        };
+        rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
         /* Set status flag. */
         playing = true;

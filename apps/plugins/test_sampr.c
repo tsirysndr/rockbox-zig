@@ -237,7 +237,10 @@ static void play_tone(bool volume_set)
                                       IF_PRIO(, PRIORITY_PLAYBACK)
                                       IF_COP(, CPU));
 
-    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
+    static const struct mixer_play_cbs cbs = {
+        .get_more = get_more,
+    };
+    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
 #ifndef HAVE_VOLUME_IN_LIST
     if (volume_set)

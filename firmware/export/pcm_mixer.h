@@ -96,8 +96,13 @@ enum channel_status
 /** Public interfaces **/
 
 /* Start playback on a channel */
+struct mixer_play_cbs {
+    void (*get_more)(const void **start, size_t *size);
+    void (*sampr_changed)(uint32_t sampr);
+};
+
 void mixer_channel_play_data(enum pcm_mixer_channel channel,
-                             pcm_play_callback_type get_more,
+                             const struct mixer_play_cbs* cbs,
                              const void *start, size_t size);
 
 /* Pause or resume a channel (when started) */
