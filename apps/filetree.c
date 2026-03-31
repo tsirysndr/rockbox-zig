@@ -454,7 +454,7 @@ int ft_load(struct tree_context* c, const char* tempdir)
 
     tree_unlock_cache(c);
 
-    if (global_settings.keep_directory)
+    if (global_settings.keep_directory && get_current_activity() == ACTIVITY_FILEBROWSER)
     {
         path_append(global_status.browse_last_folder, c->currdir, PA_SEP_HARD,
                     sizeof(global_status.browse_last_folder));
