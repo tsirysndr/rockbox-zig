@@ -782,7 +782,7 @@ sub simbuilds {
     'norsk' => {
 	'lang' => 'norsk',
 	'name' => 'Norsk (Norwegian)',
-        'short' => 'no',
+        'short' => 'nb',
         'defengine' => 'piper',
 	'engines' => {
 	    'espeak' => '-vno',
@@ -790,6 +790,18 @@ sub simbuilds {
             'piper' => 'no_NO-talesyntese-medium.onnx',
 	},
         'enabled' => 0,
+    },
+    'norsk-nynorsk' => {
+	'lang' => 'norsk-nynorsk',
+	'name' => 'Nynorsk (Norwegian Nynorsk)',
+        'short' => 'nn',
+        'defengine' => 'piper',
+	'engines' => {
+	    'espeak' => '-vno',
+	    'gtts' => '-l no',
+            'piper' => 'no_NO-talesyntese-medium.onnx',
+	},
+        'enabled' => 1,
     },
     'moldoveneste' => {
 	'lang' => 'moldoveneste',
