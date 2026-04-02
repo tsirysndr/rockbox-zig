@@ -16067,16 +16067,16 @@
 </phrase>
 <phrase>
   id: LANG_DEFAULT_BROWSER
-  desc: in Settings
+  desc: deprecated
   user: core
   <source>
-    *: "Default Browser"
+    *: ""
   </source>
   <dest>
-    *: "Default Browser"
+    *: ""
   </dest>
   <voice>
-    *: "Default Browser"
+    *: ""
   </voice>
 </phrase>
 <phrase>

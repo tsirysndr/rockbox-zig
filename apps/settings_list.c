@@ -960,6 +960,7 @@ const struct settings_list settings[] = {
     SYSTEM_STATUS(0, runtime,         0,     "CRT"),
     SYSTEM_STATUS(0, topruntime,      0,     "TRT"),
     SYSTEM_STATUS(0, last_screen,    -1,     "PVS"),
+    SYSTEM_STATUS(0, last_browser,    0,     "BRS"),
 /* sound settings */
     CUSTOM_SETTING(F_NO_WRAP, volume_limit, LANG_VOLUME_LIMIT,
                   NULL, "volume limit",
@@ -1988,25 +1989,6 @@ const struct settings_list settings[] = {
                       ID2P(LANG_SET_BOOL_NO),
                       ID2P(LANG_SET_BOOL_YES),
                       ID2P(LANG_IN_SUBMENU)),
-
-    CHOICE_SETTING(0, browser_default, LANG_DEFAULT_BROWSER, 0,
-                      "default browser",
-#ifdef HAVE_TAGCACHE
-                      "files,database,playlists",
-#else
-                      "files,playlists",
-#endif
-                      NULL,
-#ifdef HAVE_TAGCACHE
-                      3
-#else
-                      2
-#endif
-                      ,ID2P(LANG_DIR_BROWSER),
-#ifdef HAVE_TAGCACHE
-                      ID2P(LANG_TAGCACHE),
-#endif
-                      ID2P(LANG_PLAYLISTS)),
 
 #ifdef HAVE_BACKLIGHT
     CHOICE_SETTING(0, backlight_on_button_hold,

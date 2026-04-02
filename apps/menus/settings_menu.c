@@ -737,15 +737,12 @@ MENUITEM_FUNCTION(wps_set_context_plugin, 0,
 /***********************************/
 /*    WPS Settings MENU            */
 
-MENUITEM_SETTING(browser_default,
-                 &global_settings.browser_default, NULL);
 
 #ifdef HAVE_HOTKEY
 MENUITEM_SETTING(hotkey_wps_item, &global_settings.hotkey_wps, NULL);
 #endif
 
 MAKE_MENU(wps_settings, ID2P(LANG_WPS), 0, Icon_Playback_menu
-            ,&browser_default
 #ifdef HAVE_HOTKEY
             ,&hotkey_wps_item
 #endif
