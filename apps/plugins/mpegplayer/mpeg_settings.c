@@ -1148,7 +1148,7 @@ static void display_options(void)
     int result;
     bool menu_quit = false;
 
-    MENUITEM_STRINGLIST(menu, "Display Options", mpeg_sysevent_callback,
+    MENUITEM_STRINGLIST(menu, ID2P(LANG_MENU_DISPLAY_OPTIONS), mpeg_sysevent_callback,
 #if MPEG_OPTION_DITHERING_ENABLED
                         ID2P(LANG_DITHERING),
 #endif
@@ -1225,7 +1225,7 @@ static void audio_options(void)
     int result;
     bool menu_quit = false;
 
-    MENUITEM_STRINGLIST(menu, "Audio Options", mpeg_sysevent_callback,
+    MENUITEM_STRINGLIST(menu, ID2P(LANG_MENU_AUDIO_OPTIONS), mpeg_sysevent_callback,
                         ID2P(LANG_TONE_CONTROLS),
                         ID2P(LANG_CHANNEL_CONFIGURATION),
                         ID2P(LANG_CROSSFEED),
@@ -1311,7 +1311,7 @@ static void mpeg_settings(void)
     int result;
     bool menu_quit = false;
 
-    MENUITEM_STRINGLIST(menu, "Settings", mpeg_sysevent_callback,
+    MENUITEM_STRINGLIST(menu, ID2P(LANG_SETTINGS), mpeg_sysevent_callback,
                         ID2P(LANG_MENU_DISPLAY_OPTIONS),
                         ID2P(LANG_MENU_AUDIO_OPTIONS),
                         ID2P(LANG_MENU_RESUME_OPTIONS),
