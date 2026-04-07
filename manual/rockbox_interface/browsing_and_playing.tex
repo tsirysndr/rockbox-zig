@@ -143,7 +143,9 @@ each option pertains both to files and directories):
   Deletes the currently selected file. This option applies only to files, and
   not to directories. Rockbox will ask for confirmation before deleting a file.
   Press \ActionYesNoAccept{}
-  to confirm deletion or any other key to cancel.
+  to confirm deletion or any other key to cancel. When deleting a currently
+  playing file, the part of the file that has already been buffered (i.e. read
+  into the \daps\ memory) will continue playing. This may even be the whole track.
 \item [Delete Directory.]
   Deletes the currently selected directory and all of the files and subdirectories
   it may contain. Deleted directories cannot be recovered. Use this feature with

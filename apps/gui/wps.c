@@ -829,6 +829,8 @@ long gui_wps_show(void)
                 if (retval == ONPLAY_MAINMENU
                     || !audio_status())
                     return GO_TO_ROOT;
+                else if (retval == ONPLAY_REVEAL_FILE)
+                    return GO_TO_FILEBROWSER;
                 else if (retval == ONPLAY_PLAYLIST)
                     return GO_TO_PLAYLIST_VIEWER;
                 else if (retval == ONPLAY_PLUGIN)

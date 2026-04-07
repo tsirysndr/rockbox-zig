@@ -897,6 +897,22 @@ static bool onplay_load_plugin(void *param)
     return false;
 }
 
+static int reveal(void)
+{
+    if (!file_exists(selected_file.path))
+    {
+        splash(HZ*2, ID2P(LANG_FILE_NOT_FOUND));
+        return 0;
+    }
+
+    strmemccpy(global_status.browse_last_folder, selected_file.path,
+               sizeof global_status.browse_last_folder);
+    onplay_result = ONPLAY_REVEAL_FILE;
+    return 0;
+}
+
+MENUITEM_FUNCTION(reveal_item, 0, ID2P(LANG_SHOW_IN_FILES),
+                  reveal, NULL, Icon_file_view_menu);
 MENUITEM_FUNCTION(list_viewers_item, 0, ID2P(LANG_ONPLAY_OPEN_WITH),
                   list_viewers, clipboard_callback, Icon_NOICON);
 MENUITEM_FUNCTION_W_PARAM(properties_item, 0, ID2P(LANG_PROPERTIES),
@@ -1124,8 +1140,8 @@ MAKE_ONPLAYMENU( wps_onplay_menu, ID2P(LANG_ONPLAY_MENU_TITLE),
 #endif
            &bookmark_menu,
            &plugin_item,
-           &browse_id3_item, &list_viewers_item,
-           &delete_file_item, &view_cue_item,
+           &browse_id3_item,
+           &reveal_item, &view_cue_item,
 #ifdef HAVE_PITCHCONTROL
            &pitch_menu,
 #endif
