@@ -359,12 +359,12 @@ struct system_status
     int last_frequency;  /* Last frequency for resuming, in FREQ_STEP units,
                             relative to MIN_FREQ */
 #endif
-    signed char last_screen;
+    int last_screen;
     int  viewer_icon_count;
     int last_volume_change; /* tick the last volume change happened. skins use this */
     int font_id[NB_SCREENS]; /* font id of the settings font for each screen */
 
-    bool resume_modified; /* playlist is modified (=> warn before erase) */
+    int resume_modified; /* playlist is modified (=> warn before erase) */
     char browse_last_folder[MAX_PATH];/* only saved if keep_directory = true */
 };
 

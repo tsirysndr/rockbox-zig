@@ -3789,7 +3789,7 @@ int playlist_update_resume_info(const struct mp3entry* id3)
         global_status.resume_crc32 = -1;
         global_status.resume_elapsed = -1;
         global_status.resume_offset = -1;
-        global_status.resume_modified = false;
+        global_status.resume_modified = 0;
         status_save(true);
         return -1;
     }

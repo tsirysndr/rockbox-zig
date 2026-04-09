@@ -956,7 +956,7 @@ const struct settings_list settings[] = {
     SYSTEM_STATUS(0, resume_crc32,   -1,     "CRC"),
     SYSTEM_STATUS(0, resume_elapsed, -1,     "ELA"),
     SYSTEM_STATUS(0, resume_offset,  -1,     "OFF"),
-    SYSTEM_STATUS(0, resume_modified, false, "PLM"),
+    SYSTEM_STATUS(0, resume_modified, 0,     "PLM"),
     SYSTEM_STATUS(0, runtime,         0,     "CRT"),
     SYSTEM_STATUS(0, topruntime,      0,     "TRT"),
     SYSTEM_STATUS(0, last_screen,    -1,     "PVS"),

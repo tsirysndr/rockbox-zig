@@ -492,7 +492,7 @@ static const struct root_items items[] = {
     [GO_TO_SHORTCUTMENU] = { do_shortcut_menu, NULL, NULL },
 
 };
-//static const int nb_items = sizeof(items)/sizeof(*items);
+#define NUM_ITEMS (int)(sizeof(items)/sizeof(*items))
 
 static int item_callback(int action,
                          const struct menu_item_ex *this_item,
@@ -852,9 +852,13 @@ static int root_menu_setup_screens(void)
 {
     int new_screen = next_screen;
     if (global_settings.start_in_screen == 0)
-        new_screen = (int)global_status.last_screen;
-    else new_screen = global_settings.start_in_screen - 2;
-    if (new_screen == GO_TO_PLUGIN)
+        new_screen = global_status.last_screen;
+    else
+        new_screen = global_settings.start_in_screen - 2;
+
+    if (new_screen >= NUM_ITEMS)
+        new_screen = GO_TO_ROOT;
+    else if (new_screen == GO_TO_PLUGIN)
     {
         if (global_status.last_screen == GO_TO_SHORTCUTMENU)
         {
