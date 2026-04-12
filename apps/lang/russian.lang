@@ -16988,3 +16988,17 @@
     *: "Всегда запоминать последнюю папку"
   </voice>
 </phrase>
+<phrase>
+  id: LANG_USB_MENU
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "USB"
+  </source>
+  <dest>
+    *: "~USB"
+  </dest>
+  <voice>
+    *: "Ю С Б"
+  </voice>
+</phrase>
