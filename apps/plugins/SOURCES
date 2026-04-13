@@ -7,6 +7,7 @@ db_folder_select.c
 tagcache/tagcache.c
 #endif
 chessclock.c
+countdown_timer.c
 credits.c
 cube.c
 cue_playlist.c
