@@ -5902,7 +5902,7 @@
   </dest>
   <voice>
     *: none
-    hibylinux: "~U S B"
+    hibylinux: "Ю Ес Би"
     multivolume: "~H D 1"
     sansac200*,sansaclipplus,sansae200*,sansafuze*: "микро S D"
     xduoox3: "микро S D 2"
@@ -7004,7 +7004,7 @@
   </dest>
   <voice>
     *: none
-    usb_charging_enable: "Зареждане по време на USB връзка"
+    usb_charging_enable: "Зареждане по време на Ю Ес Би връзка"
   </voice>
 </phrase>
 <phrase>
@@ -10103,7 +10103,7 @@
   </dest>
   <voice>
     *: none
-    usb_hid: "Режим USB клавиатура"
+    usb_hid: "Режим Ю Ес Би клавиатура"
   </voice>
 </phrase>
 <phrase>
@@ -10490,11 +10490,11 @@
   </source>
   <dest>
     *: none
-    usb_hid: "USB УЧИ"
+    usb_hid: "USB у-во за човешки интерфейс"
   </dest>
   <voice>
     *: none
-    usb_hid: "USB устройство за човешки интерфейс"
+    usb_hid: "Ю Ес Би устройство за човешки интерфейс"
   </voice>
 </phrase>
 <phrase>
@@ -11230,7 +11230,7 @@
   </dest>
   <voice>
     *: none
-    multidrive_usb: "USB скриване на вътрешната памет"
+    multidrive_usb: "Ю Ес Би скриване на вътрешната памет"
   </voice>
 </phrase>
 <phrase>
@@ -15080,7 +15080,7 @@
     *: "Влез в режим USB памет?"
   </dest>
   <voice>
-    *: "Влез в режим USB памет?"
+    *: "Влез в режим Ю Ес Би памет?"
   </voice>
 </phrase>
 <phrase>
@@ -16873,11 +16873,11 @@
   </source>
   <dest>
     *: none
-    usbdac: "USB-ЦАП"
+    usbdac: "USB ЦАП"
   </dest>
   <voice>
     *: none
-    usbdac: "USB ЦАП"
+    usbdac: "Ю Ес Би цифрово-аналогов преобразувател"
   </voice>
 </phrase>
 <phrase>
@@ -16894,7 +16894,7 @@
   </dest>
   <voice>
     *: none
-    usbdac: "В режим USB само зареждане"
+    usbdac: "В режим Ю Ес Би само зареждане"
   </voice>
 </phrase>
 <phrase>
@@ -16911,7 +16911,7 @@
   </dest>
   <voice>
     *: none
-    usbdac: "В режим USB памет"
+    usbdac: "В режим Ю Ес Би памет"
   </voice>
 </phrase>
 <phrase>
@@ -16924,11 +16924,11 @@
   </source>
   <dest>
     *: none
-    usbdac: "USB-ЦАП е активен"
+    usbdac: "USB ЦАП е активен"
   </dest>
   <voice>
     *: none
-    usbdac: "USB ЦАП е активен"
+    usbdac: "Ю Ес Би цифрово-аналогов преобразувател е активен"
   </voice>
 </phrase>
 <phrase>
