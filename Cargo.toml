@@ -6,7 +6,7 @@ members = [
   "webui",
 ]
 resolver = "2"
-exclude = ["rmpc", "crates/controls"]
+exclude = ["rmpc", "crates/controls", "crates/netstream"]
 
 [workspace.package]
 authors = ["Tsiry Sandratraina <tsiry.sndr@fluentci.io"]

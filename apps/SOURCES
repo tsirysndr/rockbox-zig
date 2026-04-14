@@ -26,6 +26,7 @@ menus/audiohw_eq_menu.c
 #endif
 menus/eq_menu.c
 buffering.c
+streamfd.c
 voice_thread.c
 rbcodec_helpers.c
 menus/main_menu.c

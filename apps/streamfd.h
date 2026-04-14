@@ -1,0 +1,99 @@
+/***************************************************************************
+ * streamfd.h - Unified stream I/O abstraction for local files and HTTP(S)
+ *              network streams.
+ *
+ * In the SDL simulator build, URLs that start with "http://" or "https://"
+ * are opened as network streams backed by the Rust "netstream" crate.
+ * All other paths are handled by the normal simulator file system functions.
+ *
+ * File-descriptor encoding (simulator only):
+ *   fd == -1                  : closed / unset sentinel
+ *   fd >= 0                   : normal sim_* file descriptor
+ *   fd <= STREAM_HTTP_FD_BASE : HTTP stream handle
+ *                               handle_id = STREAM_HTTP_FD_BASE - fd
+ *
+ * On non-simulator builds, every symbol reduces to the existing Rockbox
+ * file-system macro/function so there is zero overhead and zero code change
+ * needed in callers.
+ ***************************************************************************/
+
+#ifndef APPS_STREAMFD_H
+#define APPS_STREAMFD_H
+
+#ifdef SIMULATOR
+
+#include <sys/types.h>
+#include <fcntl.h>
+#include <stdint.h>
+
+/* Sentinel: file descriptors <= this value are HTTP stream handles. */
+#define STREAM_HTTP_FD_BASE (-1000)
+
+/** Return non-zero if @p fd refers to an open HTTP stream handle. */
+static inline int stream_is_http_fd(int fd)
+{
+    return fd <= STREAM_HTTP_FD_BASE;
+}
+
+/**
+ * Open a path.
+ *
+ * If @p path begins with "http://" or "https://" the request is forwarded
+ * to the Rust network layer; otherwise a normal sim_open() is performed.
+ *
+ * @return  A file descriptor >= 0, an HTTP handle <= STREAM_HTTP_FD_BASE,
+ *          or -1 on error.
+ */
+int stream_open(const char *path, int flags);
+
+/**
+ * Read up to @p n bytes from @p fd into @p buf.
+ * Routes to sim_read() for real fds, rb_net_read() for HTTP fds.
+ */
+ssize_t stream_read(int fd, void *buf, size_t n);
+
+/**
+ * Seek within @p fd.
+ * Routes to sim_lseek() for real fds, rb_net_lseek() for HTTP fds.
+ */
+off_t stream_lseek(int fd, off_t off, int whence);
+
+/**
+ * Close @p fd.
+ * Routes to sim_close() for real fds, rb_net_close() for HTTP fds.
+ * Silently ignores fd == -1.
+ *
+ * @return 0 on success, -1 on error.
+ */
+int stream_close(int fd);
+
+/**
+ * Return the total size of the stream associated with @p fd.
+ *
+ * For HTTP streams: the Content-Length if known, or a large sentinel
+ * value (~2 GiB) if unknown (buffering will truncate on EOF).
+ * For regular fds: delegates to sim_filesize().
+ *
+ * @return  Size in bytes, or -1 on error.
+ */
+off_t stream_filesize_fd(int fd);
+
+#else /* !SIMULATOR */
+
+/*
+ * Non-simulator / embedded builds: map every symbol straight through to
+ * the native Rockbox file-system API so no code needs to change in callers.
+ */
+#include "file.h"
+#include <unistd.h>
+
+#define stream_is_http_fd(fd)         (0)
+#define stream_open(path, flags)      open((path), (flags))
+#define stream_read(fd, buf, n)       read((fd), (buf), (n))
+#define stream_lseek(fd, off, whence) lseek((fd), (off), (whence))
+#define stream_close(fd)              close(fd)
+#define stream_filesize_fd(fd)        filesize(fd)
+
+#endif /* SIMULATOR */
+
+#endif /* APPS_STREAMFD_H */

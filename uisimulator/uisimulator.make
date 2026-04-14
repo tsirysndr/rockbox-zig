@@ -24,18 +24,33 @@ else
 UIBMP=$(BUILDDIR)/UI256.bmp
 endif
 
+# Rust network-stream static library (built from crates/netstream).
+NETSTREAM_LIB = $(BUILDDIR)/librbnetstream.a
+NETSTREAM_MANIFEST = $(ROOTDIR)/crates/netstream/Cargo.toml
+NETSTREAM_CARGO_LIB = $(ROOTDIR)/crates/netstream/target/release/librbnetstream.a
+
+.PHONY: netstream-lib
+netstream-lib:
+	cargo build --manifest-path $(NETSTREAM_MANIFEST) --release
+
+$(NETSTREAM_CARGO_LIB): netstream-lib
+
+$(NETSTREAM_LIB): $(NETSTREAM_CARGO_LIB)
+	$(call PRINTS,CP librbnetstream.a)cp $< $@
+
 .SECONDEXPANSION: # $$(OBJ) is not populated until after this
 
 $(SIMLIB): $$(SIMOBJ) $(UIBMP)
 	$(SILENT)$(shell rm -f $@)
 	$(call PRINTS,AR $(@F))$(AR) rcs $@ $(SIMOBJ) >/dev/null
 
-$(BUILDDIR)/$(BINARY): $$(OBJ) $(FIRMLIB) $(VOICESPEEXLIB) $(CORE_LIBS) $(SIMLIB)
+$(BUILDDIR)/$(BINARY): $$(OBJ) $(FIRMLIB) $(VOICESPEEXLIB) $(CORE_LIBS) $(SIMLIB) $(NETSTREAM_LIB)
 ifeq ($(UNAME), Darwin)
-	$(call PRINTS,LD $(BINARY))$(CC) -o $@ $^ $(LDOPTS) $(GLOBAL_LDOPTS) -Wl,$(LDMAP_OPT),$(BUILDDIR)/rockbox.map
+	$(call PRINTS,LD $(BINARY))$(CC) -o $@ $^ $(LDOPTS) $(GLOBAL_LDOPTS) -lpthread -ldl \
+	-Wl,$(LDMAP_OPT),$(BUILDDIR)/rockbox.map
 else
 	$(call PRINTS,LD $(BINARY))$(CC) -o $@ -Wl,--start-group $^ -Wl,--end-group $(LDOPTS) $(GLOBAL_LDOPTS) \
-	-Wl,$(LDMAP_OPT),$(BUILDDIR)/rockbox.map
+	-lpthread -ldl -Wl,$(LDMAP_OPT),$(BUILDDIR)/rockbox.map
 endif
 	$(SILENT)$(call objcopy,$@,$@)
 
