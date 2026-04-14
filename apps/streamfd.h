@@ -2,25 +2,32 @@
  * streamfd.h - Unified stream I/O abstraction for local files and HTTP(S)
  *              network streams.
  *
- * In the SDL simulator build, URLs that start with "http://" or "https://"
- * are opened as network streams backed by the Rust "netstream" crate.
- * All other paths are handled by the normal simulator file system functions.
+ * In the SDL simulator build and the hosted SDL application build, URLs that
+ * start with "http://" or "https://" are opened as network streams backed by
+ * the Rust "netstream" crate.  All other paths are handled by the normal
+ * Rockbox file-system functions.
  *
- * File-descriptor encoding (simulator only):
+ * File-descriptor encoding (simulator / hosted SDL app):
  *   fd == -1                  : closed / unset sentinel
- *   fd >= 0                   : normal sim_* file descriptor
+ *   fd >= 0                   : normal file descriptor
  *   fd <= STREAM_HTTP_FD_BASE : HTTP stream handle
  *                               handle_id = STREAM_HTTP_FD_BASE - fd
  *
- * On non-simulator builds, every symbol reduces to the existing Rockbox
- * file-system macro/function so there is zero overhead and zero code change
- * needed in callers.
+ * On all other (embedded) builds, every symbol reduces to the existing
+ * Rockbox file-system macro/function so there is zero overhead and zero code
+ * change needed in callers.
  ***************************************************************************/
 
 #ifndef APPS_STREAMFD_H
 #define APPS_STREAMFD_H
 
 #ifdef SIMULATOR
+#define STREAM_HTTP_ENABLED
+#elif defined(APPLICATION)
+#define STREAM_HTTP_ENABLED
+#endif
+
+#ifdef STREAM_HTTP_ENABLED
 
 #include <sys/types.h>
 #include <fcntl.h>
@@ -39,7 +46,7 @@ static inline int stream_is_http_fd(int fd)
  * Open a path.
  *
  * If @p path begins with "http://" or "https://" the request is forwarded
- * to the Rust network layer; otherwise a normal sim_open() is performed.
+ * to the Rust network layer; otherwise a normal open() is performed.
  *
  * @return  A file descriptor >= 0, an HTTP handle <= STREAM_HTTP_FD_BASE,
  *          or -1 on error.
@@ -48,19 +55,19 @@ int stream_open(const char *path, int flags);
 
 /**
  * Read up to @p n bytes from @p fd into @p buf.
- * Routes to sim_read() for real fds, rb_net_read() for HTTP fds.
+ * Routes to read() for real fds, rb_net_read() for HTTP fds.
  */
 ssize_t stream_read(int fd, void *buf, size_t n);
 
 /**
  * Seek within @p fd.
- * Routes to sim_lseek() for real fds, rb_net_lseek() for HTTP fds.
+ * Routes to lseek() for real fds, rb_net_lseek() for HTTP fds.
  */
 off_t stream_lseek(int fd, off_t off, int whence);
 
 /**
  * Close @p fd.
- * Routes to sim_close() for real fds, rb_net_close() for HTTP fds.
+ * Routes to close() for real fds, rb_net_close() for HTTP fds.
  * Silently ignores fd == -1.
  *
  * @return 0 on success, -1 on error.
@@ -72,13 +79,13 @@ int stream_close(int fd);
  *
  * For HTTP streams: the Content-Length if known, or a large sentinel
  * value (~2 GiB) if unknown (buffering will truncate on EOF).
- * For regular fds: delegates to sim_filesize().
+ * For regular fds: delegates to filesize().
  *
  * @return  Size in bytes, or -1 on error.
  */
 off_t stream_filesize_fd(int fd);
 
-#else /* !SIMULATOR */
+#else /* !STREAM_HTTP_ENABLED */
 
 /*
  * Non-simulator / embedded builds: map every symbol straight through to
@@ -94,6 +101,6 @@ off_t stream_filesize_fd(int fd);
 #define stream_close(fd)              close(fd)
 #define stream_filesize_fd(fd)        filesize(fd)
 
-#endif /* SIMULATOR */
+#endif /* STREAM_HTTP_ENABLED */
 
 #endif /* APPS_STREAMFD_H */

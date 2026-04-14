@@ -1,17 +1,17 @@
 /***************************************************************************
- * streamfd.c - Unified stream I/O dispatch for local files and HTTP(S)
- *              network streams (SDL simulator build only).
+ * Unified stream I/O dispatch for local files and HTTP(S) network streams.
+ * Active in the SDL simulator build and the hosted SDL application build.
  *
  * See streamfd.h for the public interface and fd-encoding documentation.
  ***************************************************************************/
 
 #include "config.h"
 
-#ifdef SIMULATOR
+#if defined(SIMULATOR) || defined(APPLICATION)
 
 #include "streamfd.h"
-#include "file.h"       /* for sim_open / sim_read / sim_lseek / sim_close /
-                           sim_filesize (via macros) */
+#include "file.h"       /* for app_open / app_read / app_lseek / app_close /
+                           app_filesize and sim_* equivalents (via macros) */
 #include <string.h>
 #include <stdint.h>
 #include <fcntl.h>
@@ -103,4 +103,4 @@ off_t stream_filesize_fd(int fd)
     return filesize(fd);
 }
 
-#endif /* SIMULATOR */
+#endif /* SIMULATOR || APPLICATION */
