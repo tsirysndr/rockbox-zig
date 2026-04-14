@@ -220,7 +220,7 @@
 #define HAVE_IAP_MULTIPORT
 #define HAVE_SERIAL
 
-#define IRAM_LCDFRAMEBUFFER IBSS_ATTR /* put the lcd frame buffer in IRAM */
+// #define IRAM_LCDFRAMEBUFFER IBSS_ATTR /* put the lcd frame buffer in IRAM */
 
 
 /* DMA is used only for reading on PP502x because although reads are ~8x faster
