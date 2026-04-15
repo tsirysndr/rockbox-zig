@@ -361,7 +361,9 @@ async fn find_internal_track_by_url(
         return Ok(None);
     }
 
-    repo::track::find(ctx.pool.clone(), track_id).await.map_err(Into::into)
+    repo::track::find(ctx.pool.clone(), track_id)
+        .await
+        .map_err(Into::into)
 }
 
 pub async fn remove_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
