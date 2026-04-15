@@ -300,33 +300,49 @@ pub extern "C" fn start_broker() {
 
         match rb::playback::current_track() {
             Some(current_track) => {
-                let path = current_track.path.clone();
-                let is_http = path.starts_with("http://") || path.starts_with("https://");
-                let hash = format!("{:x}", md5::compute(path.as_bytes()));
-
-                // For HTTP stream URLs (e.g. http://host:port/tracks/{id}), extract
-                // the track ID from the last path segment so we can look it up in the
-                // database without hashing the URL.
-                let db_metadata = if is_http {
-                    let track_id = path.rsplit('/').next().unwrap_or("").to_string();
-                    if !track_id.is_empty() {
-                        rt.block_on(repo::track::find(pool.clone(), &track_id))
-                            .ok()
-                            .flatten()
+                // audio_current_track()->path can diverge from the playlist
+                // filename for HTTP stream tracks.  Use the playlist entry's
+                // filename (same key the playlist section uses) so DB lookups
+                // hit the right record and album_art is resolved correctly.
+                let playlist_index = rb::playlist::index();
+                let lookup_path = if playlist_index >= 0 {
+                    let info = rb::playlist::get_track_info(playlist_index);
+                    if !info.filename.is_empty() {
+                        info.filename
                     } else {
-                        None
+                        current_track.path.clone()
                     }
                 } else {
-                    rt.block_on(repo::track::find_by_md5(pool.clone(), &hash))
-                        .ok()
-                        .flatten()
+                    current_track.path.clone()
                 };
+
+                let hash = format!("{:x}", md5::compute(lookup_path.as_bytes()));
+                let db_metadata = rt
+                    .block_on(repo::track::find_by_md5(pool.clone(), &hash))
+                    .ok()
+                    .flatten();
 
                 let mut track: Track = current_track.into();
 
                 if let Some(metadata) = db_metadata {
+                    // When the URL-keyed record has no album_art (it was saved
+                    // from the HTTP stream which has no embedded art), fall back
+                    // to the local track identified by the UUID in the URL path.
+                    let album_art = if metadata.album_art.is_some() {
+                        metadata.album_art.clone()
+                    } else {
+                        let uuid = lookup_path.rsplit('/').next().unwrap_or("");
+                        if !uuid.is_empty() {
+                            rt.block_on(repo::track::find(pool.clone(), uuid))
+                                .ok()
+                                .flatten()
+                                .and_then(|t| t.album_art)
+                        } else {
+                            None
+                        }
+                    };
                     track.id = Some(metadata.id.clone());
-                    track.album_art = metadata.album_art;
+                    track.album_art = album_art;
                     track.album_id = Some(metadata.album_id);
                     track.artist_id = Some(metadata.artist_id);
                     SimpleBroker::publish(track.clone());
@@ -407,21 +423,15 @@ pub extern "C" fn start_broker() {
             }
 
             let is_http = filename.starts_with("http://") || filename.starts_with("https://");
+            let db_track = rt
+                .block_on(repo::track::find_by_md5(pool.clone(), hash))
+                .unwrap();
 
             let mut entry = if is_http {
                 // For HTTP stream URLs, do NOT call get_metadata(-1, url) — that
                 // opens a live HTTP connection for every queued track and blocks
-                // the broker loop.  Instead, build the entry from the database
-                // using the track ID embedded in the URL path segment.
-                let track_id = filename.rsplit('/').next().unwrap_or("").to_string();
-                let db_track = if !track_id.is_empty() {
-                    rt.block_on(repo::track::find(pool.clone(), &track_id))
-                        .ok()
-                        .flatten()
-                } else {
-                    None
-                };
-
+                // the broker loop. Instead, build the entry from the database
+                // using the saved track metadata keyed by the URL hash.
                 let mut e = Mp3Entry::default();
                 e.path = filename.clone();
                 if let Some(ref t) = db_track {
@@ -432,7 +442,21 @@ pub extern "C" fn start_broker() {
                     e.length = t.length as u64;
                     e.bitrate = t.bitrate;
                     e.frequency = t.frequency as u64;
-                    e.album_art = t.album_art.clone();
+                    // URL-keyed record may have no album_art (stream has no
+                    // embedded art). Fall back to the local track by UUID.
+                    e.album_art = if t.album_art.is_some() {
+                        t.album_art.clone()
+                    } else {
+                        let uuid = filename.rsplit('/').next().unwrap_or("");
+                        if !uuid.is_empty() {
+                            rt.block_on(repo::track::find(pool.clone(), uuid))
+                                .ok()
+                                .flatten()
+                                .and_then(|local| local.album_art)
+                        } else {
+                            None
+                        }
+                    };
                     e.album_id = Some(t.album_id.clone());
                     e.artist_id = Some(t.artist_id.clone());
                     e.genre_id = Some(t.genre_id.clone());
@@ -441,16 +465,11 @@ pub extern "C" fn start_broker() {
                 e
             } else {
                 let mut e = rb::metadata::get_metadata(-1, filename);
-
-                let track = rt
-                    .block_on(repo::track::find_by_md5(pool.clone(), hash))
-                    .unwrap();
-
-                if track.is_some() {
-                    e.album_art = track.as_ref().map(|t| t.album_art.clone()).flatten();
-                    e.album_id = track.as_ref().map(|t| t.album_id.clone());
-                    e.artist_id = track.as_ref().map(|t| t.artist_id.clone());
-                    e.genre_id = track.as_ref().map(|t| t.genre_id.clone());
+                if db_track.is_some() {
+                    e.album_art = db_track.as_ref().map(|t| t.album_art.clone()).flatten();
+                    e.album_id = db_track.as_ref().map(|t| t.album_id.clone());
+                    e.artist_id = db_track.as_ref().map(|t| t.artist_id.clone());
+                    e.genre_id = db_track.as_ref().map(|t| t.genre_id.clone());
                 }
                 e
             };

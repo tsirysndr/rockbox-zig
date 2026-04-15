@@ -4,6 +4,13 @@ use anyhow::Error;
 use lofty::{file::TaggedFileExt, probe::Probe, tag::Accessor};
 
 pub fn extract_and_save_album_cover(track_path: &str) -> Result<Option<String>, Error> {
+    extract_and_save_album_cover_with_key(track_path, None)
+}
+
+pub fn extract_and_save_album_cover_with_key(
+    track_path: &str,
+    album_key: Option<&str>,
+) -> Result<Option<String>, Error> {
     let tagged_file = match Probe::open(track_path)
         .expect("ERROR: Bad path provided!")
         .read()
@@ -15,8 +22,15 @@ pub fn extract_and_save_album_cover(track_path: &str) -> Result<Option<String>, 
         }
     };
 
-    let primary_tag = tagged_file.primary_tag();
-    let tag = match primary_tag {
+    let tag = match tagged_file
+        .primary_tag()
+        .filter(|tag| !tag.pictures().is_empty())
+        .or_else(|| {
+            tagged_file
+                .tags()
+                .iter()
+                .find(|tag| !tag.pictures().is_empty())
+        }) {
         Some(tag) => tag,
         None => {
             println!("No tag found in file: {}", track_path);
@@ -30,13 +44,17 @@ pub fn extract_and_save_album_cover(track_path: &str) -> Result<Option<String>, 
         let covers_path = format!("{}/.config/rockbox.org/covers", home);
         std::fs::create_dir_all(&covers_path)?;
         let picture = &pictures[0];
-
-        if tag.album().is_none() {
-            println!("No album found in file: {}", track_path);
-            return Ok(None);
-        }
-
-        let album = md5::compute(tag.album().unwrap().as_bytes());
+        let album_key = tag
+            .album()
+            .filter(|album| !album.trim().is_empty())
+            .map(|album| album.to_string())
+            .or_else(|| {
+                album_key
+                    .filter(|album| !album.trim().is_empty())
+                    .map(|album| album.to_string())
+            })
+            .unwrap_or_else(|| track_path.to_string());
+        let album = md5::compute(album_key.as_bytes());
         let filename = format!("{}/{:x}", covers_path, album);
         match picture.mime_type() {
             Some(lofty::picture::MimeType::Jpeg) => {

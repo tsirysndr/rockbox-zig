@@ -1,4 +1,4 @@
-use crate::album_art::extract_and_save_album_cover;
+use crate::album_art::extract_and_save_album_cover_with_key;
 use crate::copyright_message::extract_copyright_message;
 use crate::entity::album::Album;
 use crate::entity::album_tracks::AlbumTracks;
@@ -6,14 +6,15 @@ use crate::entity::artist::Artist;
 use crate::entity::artist_tracks::ArtistTracks;
 use crate::label::extract_label;
 use crate::{entity::track::Track, repo};
-use anyhow::Error;
+use anyhow::{anyhow, Error};
 use chrono::Utc;
 use futures::future::BoxFuture;
 use futures::stream::{FuturesUnordered, StreamExt};
 use owo_colors::OwoColorize;
 use rockbox_sys as rb;
+use rockbox_sys::types::mp3_entry::Mp3Entry;
 use sqlx::{Pool, Sqlite};
-use std::path::PathBuf;
+use std::{io::Write, path::PathBuf};
 use tokio::fs;
 
 const AUDIO_EXTENSIONS: [&str; 18] = [
@@ -65,12 +66,10 @@ pub fn scan_audio_files(
 }
 
 pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), Error> {
-    if !AUDIO_EXTENSIONS
-        .into_iter()
-        .any(|ext| path.ends_with(&format!(".{}", ext)))
-    {
+    if !is_supported_audio_path(path) {
         return Ok(());
     }
+    let existing_track = repo::track::find_by_path(pool.clone(), path).await?;
 
     let filename = path.split('/').last().unwrap();
     let dir = path.replace(filename, "");
@@ -80,23 +79,49 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
         dir,
         filename.bright_yellow()
     );
-    let entry = rb::metadata::get_metadata(-1, path);
+    let remote_probe = if is_remote_path(path) {
+        Some(download_partial_remote_file(path).await?)
+    } else {
+        None
+    };
+    let metadata_path = remote_probe
+        .as_ref()
+        .map(|probe| probe.path.as_str())
+        .unwrap_or(path);
+    let entry = rb::metadata::get_metadata(-1, metadata_path);
+    let title = track_title(&entry, path);
+    let artist = track_artist(&entry);
+    let album_artist = track_album_artist(&entry, &artist);
+    let album = track_album(&entry, &title);
+    let album_art = extract_and_save_album_cover_with_key(metadata_path, Some(&album))?;
 
-    let track_hash = format!("{:x}", md5::compute(entry.path.as_bytes()));
+    if let Some(existing_track) = existing_track {
+        if let Some(ref album_art) = album_art {
+            if existing_track.album_art.as_deref() != Some(album_art.as_str()) {
+                repo::track::update_album_art(pool.clone(), &existing_track.id, album_art).await?;
+            }
+
+            if let Some(album) = repo::album::find(pool.clone(), &existing_track.album_id).await? {
+                if album.album_art.as_deref() != Some(album_art.as_str()) {
+                    repo::album::update_album_art(pool.clone(), &album.id, album_art).await?;
+                }
+            }
+        }
+
+        return Ok(());
+    }
+    let track_hash = format!("{:x}", md5::compute(path.as_bytes()));
     let artist_id = cuid::cuid1()?;
     let album_id = cuid::cuid1()?;
     let album_md5 = format!(
         "{:x}",
-        md5::compute(format!("{}{}{}", entry.albumartist, entry.album, entry.year).as_bytes())
+        md5::compute(format!("{}{}{}", album_artist, album, entry.year).as_bytes())
     );
     let artist_id = repo::artist::save(
         pool.clone(),
         Artist {
             id: artist_id.clone(),
-            name: match entry.albumartist.is_empty() {
-                true => entry.artist.clone(),
-                false => entry.albumartist.clone(),
-            },
+            name: artist.clone(),
             bio: None,
             image: None,
             genres: None,
@@ -104,23 +129,25 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
     )
     .await?;
 
-    let album_art = extract_and_save_album_cover(&entry.path)?;
     let album_id = repo::album::save(
         pool.clone(),
         Album {
             id: album_id,
-            title: entry.album.clone(),
-            artist: match entry.albumartist.is_empty() {
-                true => entry.artist.clone(),
-                false => entry.albumartist.clone(),
-            },
-            year: entry.year as u32,
-            year_string: entry.year_string.clone(),
+            title: album.clone(),
+            artist: album_artist.clone(),
+            year: clamp_i32_to_u32(entry.year).unwrap_or_default(),
+            year_string: option_string(&entry.year_string).unwrap_or_default(),
             album_art: album_art.clone(),
             md5: album_md5,
             artist_id: artist_id.clone(),
-            label: extract_label(&entry.path)?,
-            copyright_message: extract_copyright_message(&entry.path)?,
+            label: match is_remote_path(path) {
+                true => None,
+                false => extract_label(path)?,
+            },
+            copyright_message: match is_remote_path(path) {
+                true => None,
+                false => extract_copyright_message(path)?,
+            },
         },
     )
     .await?;
@@ -129,24 +156,21 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
         pool.clone(),
         Track {
             id: cuid::cuid1()?,
-            path: entry.path.clone(),
-            title: entry.title,
-            artist: entry.artist.clone(),
-            album: entry.album,
-            genre: match entry.genre_string.as_str() {
-                "" => None,
-                _ => Some(entry.genre_string),
-            },
-            year: Some(entry.year as u32),
-            track_number: Some(entry.tracknum as u32),
-            disc_number: entry.discnum as u32,
-            year_string: Some(entry.year_string),
+            path: path.to_string(),
+            title,
+            artist,
+            album,
+            genre: option_string(&entry.genre_string),
+            year: clamp_i32_to_u32(entry.year),
+            track_number: clamp_i32_to_u32(entry.tracknum),
+            disc_number: entry.discnum.max(0) as u32,
+            year_string: option_string(&entry.year_string),
             composer: entry.composer,
-            album_artist: entry.albumartist.clone(),
+            album_artist,
             bitrate: entry.bitrate,
-            frequency: entry.frequency as u32,
-            filesize: entry.filesize as u32,
-            length: entry.length as u32,
+            frequency: clamp_u64_to_u32(entry.frequency),
+            filesize: clamp_u64_to_u32(entry.filesize),
+            length: clamp_u64_to_u32(entry.length),
             md5: track_hash,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -179,4 +203,190 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
     .await?;
 
     Ok(())
+}
+
+fn is_remote_path(path: &str) -> bool {
+    path.starts_with("http://") || path.starts_with("https://")
+}
+
+fn is_supported_audio_path(path: &str) -> bool {
+    is_remote_path(path)
+        || AUDIO_EXTENSIONS
+            .into_iter()
+            .any(|ext| path.ends_with(&format!(".{}", ext)))
+}
+
+fn option_string(value: &str) -> Option<String> {
+    let value = value.trim();
+    if value.is_empty() {
+        None
+    } else {
+        Some(value.to_string())
+    }
+}
+
+fn clamp_i32_to_u32(value: i32) -> Option<u32> {
+    if value > 0 {
+        Some(value as u32)
+    } else {
+        None
+    }
+}
+
+fn clamp_u64_to_u32(value: u64) -> u32 {
+    value.min(u32::MAX as u64) as u32
+}
+
+fn track_title(entry: &Mp3Entry, path: &str) -> String {
+    if !entry.title.trim().is_empty() {
+        return entry.title.clone();
+    }
+
+    path.rsplit('/')
+        .next()
+        .and_then(|segment| segment.split('?').next())
+        .filter(|segment| !segment.is_empty())
+        .unwrap_or(path)
+        .to_string()
+}
+
+fn track_artist(entry: &Mp3Entry) -> String {
+    if !entry.artist.trim().is_empty() {
+        return entry.artist.clone();
+    }
+
+    if !entry.albumartist.trim().is_empty() {
+        return entry.albumartist.clone();
+    }
+
+    "Unknown Artist".to_string()
+}
+
+fn track_album_artist(entry: &Mp3Entry, artist: &str) -> String {
+    if !entry.albumartist.trim().is_empty() {
+        entry.albumartist.clone()
+    } else {
+        artist.to_string()
+    }
+}
+
+fn track_album(entry: &Mp3Entry, title: &str) -> String {
+    if !entry.album.trim().is_empty() {
+        entry.album.clone()
+    } else {
+        title.to_string()
+    }
+}
+
+struct RemoteProbeFile {
+    path: String,
+}
+
+impl Drop for RemoteProbeFile {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(&self.path);
+    }
+}
+
+async fn download_partial_remote_file(url: &str) -> Result<RemoteProbeFile, Error> {
+    const MAX_PROBE_BYTES: usize = 8 * 1024 * 1024;
+
+    let client = reqwest::Client::new();
+    let mut response = client
+        .get(url)
+        .header(
+            reqwest::header::RANGE,
+            format!("bytes=0-{}", MAX_PROBE_BYTES - 1),
+        )
+        .send()
+        .await?;
+
+    if !response.status().is_success() && response.status() != reqwest::StatusCode::PARTIAL_CONTENT
+    {
+        return Err(anyhow!(
+            "failed to probe remote media {}: {}",
+            url,
+            response.status()
+        ));
+    }
+
+    let extension = match response.headers().get(reqwest::header::CONTENT_TYPE) {
+        Some(content_type) => match content_type.to_str() {
+            Ok(content_type) => content_type_to_extension(content_type)
+                .or_else(|| extension_from_path(url))
+                .unwrap_or("mp3"),
+            Err(_) => extension_from_path(url).unwrap_or("mp3"),
+        },
+        None => extension_from_path(url).unwrap_or("mp3"),
+    };
+    let probe_path = std::env::temp_dir().join(format!(
+        "rockbox-remote-probe-{:x}.{}",
+        md5::compute(url.as_bytes()),
+        extension
+    ));
+
+    let mut file = std::fs::File::create(&probe_path)?;
+    let mut written = 0usize;
+
+    while let Some(chunk) = response.chunk().await? {
+        if written >= MAX_PROBE_BYTES {
+            break;
+        }
+
+        let remaining = MAX_PROBE_BYTES - written;
+        let bytes = if chunk.len() > remaining {
+            &chunk[..remaining]
+        } else {
+            chunk.as_ref()
+        };
+
+        file.write_all(bytes)?;
+        written += bytes.len();
+    }
+
+    if written == 0 {
+        return Err(anyhow!(
+            "failed to probe remote media {}: empty response",
+            url
+        ));
+    }
+
+    Ok(RemoteProbeFile {
+        path: probe_path.to_string_lossy().to_string(),
+    })
+}
+
+fn extension_from_path(path: &str) -> Option<&str> {
+    let path = path.split('?').next().unwrap_or(path);
+    let extension = path.rsplit('.').next()?.to_ascii_lowercase();
+    AUDIO_EXTENSIONS
+        .into_iter()
+        .find(|candidate| *candidate == extension.as_str())
+}
+
+fn content_type_to_extension(content_type: &str) -> Option<&'static str> {
+    match content_type
+        .split(';')
+        .next()
+        .unwrap_or(content_type)
+        .trim()
+    {
+        "audio/mpeg" => Some("mp3"),
+        "audio/ogg" => Some("ogg"),
+        "audio/flac" => Some("flac"),
+        "audio/x-m4a" | "audio/m4a" => Some("m4a"),
+        "audio/aac" => Some("aac"),
+        "video/mp4" | "audio/mp4" => Some("mp4"),
+        "audio/wav" | "audio/x-wav" => Some("wav"),
+        "audio/x-wavpack" => Some("wv"),
+        "audio/x-musepack" => Some("mpc"),
+        "audio/aiff" | "audio/x-aiff" => Some("aiff"),
+        "audio/ac3" | "audio/vnd.dolby.dd-raw" => Some("ac3"),
+        "audio/opus" => Some("opus"),
+        "audio/x-speex" => Some("spx"),
+        "audio/prs.sid" => Some("sid"),
+        "audio/ape" | "audio/x-monkeys-audio" => Some("ape"),
+        "audio/x-ms-wma" => Some("wma"),
+        _ => None,
+    }
 }

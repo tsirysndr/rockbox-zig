@@ -129,3 +129,16 @@ pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Album>, sqlx::Error> {
         }
     }
 }
+
+pub async fn update_album_art(
+    pool: Pool<Sqlite>,
+    id: &str,
+    album_art: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE album SET album_art = $2 WHERE id = $1")
+        .bind(id)
+        .bind(album_art)
+        .execute(&pool)
+        .await?;
+    Ok(())
+}

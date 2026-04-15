@@ -1,8 +1,8 @@
-use std::env;
+use std::{env, ffi::CString};
 
 use crate::http::{Context, Request, Response};
 use crate::PLAYER_MUTEX;
-use anyhow::Error;
+use anyhow::{anyhow, Error};
 use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
 use rockbox_graphql::read_files;
@@ -15,12 +15,15 @@ use rockbox_sys::{
 use rockbox_traits::types::track::Track;
 use rockbox_types::{DeleteTracks, InsertTracks, NewPlaylist, StatusCode};
 
+unsafe extern "C" {
+    fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i32;
+}
+
 pub async fn create_playlist(
     _ctx: &Context,
     req: &Request,
     res: &mut Response,
 ) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     if req.body.is_none() {
         res.set_status(400);
         return Ok(());
@@ -32,12 +35,18 @@ pub async fn create_playlist(
         return Ok(());
     }
 
-    // Always create a brand-new playlist before filling it so that the
-    // currently-playing track is fully replaced rather than appended to.
-    // For local paths use the parent directory; for HTTP URLs use "/".
+    persist_remote_track_metadata(_ctx, &new_playlist.tracks).await?;
+
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
+
+    // Always create a fresh playlist so the currently-playing track is
+    // fully replaced rather than appended to.
+    // Local paths: use the track's parent directory (required by Rockbox).
+    // HTTP URLs: use the home directory — "/" fails because it isn't writable
+    // and playlist_create needs to create its control file there.
     let first = &new_playlist.tracks[0];
     let dir = if first.starts_with("http://") || first.starts_with("https://") {
-        "/".to_string()
+        std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string())
     } else {
         let parts: Vec<_> = first.split('/').collect();
         parts[..parts.len().saturating_sub(1)].join("/")
@@ -168,9 +177,21 @@ pub async fn get_playlist_tracks(
 }
 
 pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let req_body = req.body.as_ref().unwrap();
     let mut tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
+
+    if let Some(dir) = &tracklist.directory {
+        tracklist.tracks = read_files(dir.clone()).await?;
+    }
+
+    if tracklist.tracks.is_empty() {
+        res.text("0");
+        return Ok(());
+    }
+
+    persist_remote_track_metadata(ctx, &tracklist.tracks).await?;
+
+    let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let amount = rb::playlist::amount();
 
     let mut player = ctx.player.lock().unwrap();
@@ -219,19 +240,14 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
         return Ok(());
     }
 
-    if let Some(dir) = &tracklist.directory {
-        tracklist.tracks = read_files(dir.clone()).await?;
-    }
-
-    if tracklist.tracks.is_empty() {
-        res.text("0");
-        return Ok(());
-    }
-
     if amount == 0 {
-        let dir = tracklist.tracks[0].clone();
-        let dir_parts: Vec<_> = dir.split('/').collect();
-        let dir = dir_parts[0..dir_parts.len() - 1].join("/");
+        let first = &tracklist.tracks[0];
+        let dir = if first.starts_with("http://") || first.starts_with("https://") {
+            "/".to_string()
+        } else {
+            let dir_parts: Vec<_> = first.split('/').collect();
+            dir_parts[0..dir_parts.len() - 1].join("/")
+        };
         let status = rb::playlist::create(&dir, None);
         if status == -1 {
             res.set_status(500);
@@ -263,6 +279,89 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
     drop(player_mutex);
 
     Ok(())
+}
+
+async fn persist_remote_track_metadata(ctx: &Context, tracks: &[String]) -> Result<(), Error> {
+    for track in tracks {
+        if track.starts_with("http://") || track.starts_with("https://") {
+            if find_internal_track_by_url(ctx, track).await?.is_some() {
+                continue;
+            }
+            let track = track.clone();
+            let track_for_worker = track.clone();
+            let status = tokio::task::spawn_blocking(move || -> Result<i32, Error> {
+                let track_cstr = CString::new(track_for_worker.as_str())?;
+                Ok(unsafe { save_remote_track_metadata(track_cstr.as_ptr()) })
+            })
+            .await??;
+            if status != 0 {
+                return Err(anyhow!("failed to save remote metadata for {}", track));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+async fn find_track_metadata(
+    ctx: &Context,
+    path: &str,
+) -> Result<Option<rockbox_library::entity::track::Track>, Error> {
+    let hash = format!("{:x}", md5::compute(path.as_bytes()));
+    let mut metadata = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
+    let internal_track = find_internal_track_by_url(ctx, path).await?;
+
+    if metadata
+        .as_ref()
+        .map(|track| track.album_art.is_none())
+        .unwrap_or(true)
+    {
+        if let Some(track) = internal_track.clone() {
+            metadata = Some(track);
+        }
+    }
+
+    if path.starts_with("http://") || path.starts_with("https://") {
+        if metadata
+            .as_ref()
+            .map(|track| track.album_art.is_none())
+            .unwrap_or(true)
+            && internal_track.is_none()
+        {
+            persist_remote_track_metadata(ctx, &[path.to_string()]).await?;
+            metadata = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
+        }
+    }
+
+    Ok(metadata)
+}
+
+async fn find_internal_track_by_url(
+    ctx: &Context,
+    path: &str,
+) -> Result<Option<rockbox_library::entity::track::Track>, Error> {
+    let url = match reqwest::Url::parse(path) {
+        Ok(url) => url,
+        Err(_) => return Ok(None),
+    };
+
+    let mut segments = match url.path_segments() {
+        Some(segments) => segments,
+        None => return Ok(None),
+    };
+
+    let Some("tracks") = segments.next() else {
+        return Ok(None);
+    };
+    let Some(track_id) = segments.next() else {
+        return Ok(None);
+    };
+
+    if segments.next().is_some() || track_id.is_empty() {
+        return Ok(None);
+    }
+
+    repo::track::find(ctx.pool.clone(), track_id).await.map_err(Into::into)
 }
 
 pub async fn remove_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
@@ -313,7 +412,7 @@ pub async fn current_playlist(
             continue;
         }
 
-        let track = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
+        let track = find_track_metadata(ctx, &info.filename).await?;
 
         if track.is_none() {
             entries.push(entry.clone());
@@ -348,10 +447,30 @@ pub async fn get_playlist(ctx: &Context, _req: &Request, res: &mut Response) -> 
             false => 0,
         } as i32;
 
+        let mut entries = Vec::with_capacity(tracks.len());
+        for (mut track, _) in tracks {
+            if track.path.is_empty() {
+                track.path = track.uri.clone();
+            }
+
+            let mut entry: rockbox_sys::types::mp3_entry::Mp3Entry = track.into();
+            if !entry.path.is_empty() {
+                if let Some(metadata) = find_track_metadata(ctx, &entry.path).await? {
+                    entry.id = Some(metadata.id);
+                    entry.album_art = metadata.album_art.or(entry.album_art.clone());
+                    entry.album_id = Some(metadata.album_id);
+                    entry.artist_id = Some(metadata.artist_id);
+                    entry.genre_id = Some(metadata.genre_id);
+                }
+            }
+
+            entries.push(entry);
+        }
+
         let result = PlaylistInfo {
-            amount: tracks.len() as i32,
+            amount: entries.len() as i32,
             index,
-            entries: tracks.into_iter().map(|(t, _)| t.into()).collect(),
+            entries,
             ..Default::default()
         };
         res.json(&result);
@@ -373,7 +492,7 @@ pub async fn get_playlist(ctx: &Context, _req: &Request, res: &mut Response) -> 
             continue;
         }
 
-        let track = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
+        let track = find_track_metadata(ctx, &info.filename).await?;
 
         if track.is_none() {
             entries.push(entry.clone());

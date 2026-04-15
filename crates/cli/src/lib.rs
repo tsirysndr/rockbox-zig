@@ -1,7 +1,7 @@
 use anyhow::Error;
 use clap::Command;
 use owo_colors::OwoColorize;
-use rockbox_library::audio_scan::scan_audio_files;
+use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
 use rockbox_search::album::Album;
 use rockbox_search::artist::Artist;
@@ -171,4 +171,43 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
     });
 
     return 0;
+}
+
+#[no_mangle]
+pub extern "C" fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i32 {
+    if url.is_null() {
+        eprintln!("save_remote_track_metadata: null url");
+        return -1;
+    }
+
+    let url = unsafe { CStr::from_ptr(url) };
+    let url = match url.to_str() {
+        Ok(url) => url,
+        Err(e) => {
+            eprintln!("save_remote_track_metadata: invalid utf-8: {}", e);
+            return -1;
+        }
+    };
+
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            eprintln!(
+                "save_remote_track_metadata: failed to create runtime: {}",
+                e
+            );
+            return -1;
+        }
+    };
+
+    match rt.block_on(async {
+        let pool = create_connection_pool().await?;
+        save_audio_metadata(pool, url).await
+    }) {
+        Ok(()) => 0,
+        Err(e) => {
+            eprintln!("save_remote_track_metadata: {}", e);
+            -1
+        }
+    }
 }
