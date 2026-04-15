@@ -14591,17 +14591,17 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_HIDE_ALBUM_TITLE_NEW
-  desc: in the pictureflow settings
+  id: LANG_HIDE_INFO
+  desc: Hide Information
   user: core
   <source>
-    *: "Hide information"
+    *: "Hide Information"
   </source>
   <dest>
-    *: "Hide information"
+    *: "Hide Information"
   </dest>
   <voice>
-    *: "Hide information"
+    *: "Hide Information"
   </voice>
 </phrase>
 <phrase>

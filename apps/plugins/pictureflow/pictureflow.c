@@ -3619,7 +3619,7 @@ static int settings_menu(void)
                         ID2P(LANG_DISPLAY));
 
     static const struct opt_items album_name_options[] = {
-        { STR(LANG_HIDE_ALBUM_TITLE_NEW) },
+        { STR(LANG_HIDE_INFO) },
         { STR(LANG_SHOW_AT_THE_BOTTOM_NEW) },
         { STR(LANG_SHOW_AT_THE_TOP_NEW) },
         { STR(LANG_SHOW_ALL_AT_THE_TOP) },
