@@ -85,6 +85,16 @@ int stream_close(int fd);
  */
 off_t stream_filesize_fd(int fd);
 
+/**
+ * Copy the normalized Content-Type associated with @p fd into @p buf.
+ *
+ * For HTTP streams this returns the response Content-Type without parameters.
+ * For regular files this returns -1.
+ *
+ * @return  Full string length on success, or -1 if unknown/unavailable.
+ */
+ssize_t stream_content_type(int fd, char *buf, size_t n);
+
 #else /* !STREAM_HTTP_ENABLED */
 
 /*
@@ -100,6 +110,7 @@ off_t stream_filesize_fd(int fd);
 #define stream_lseek(fd, off, whence) lseek((fd), (off), (whence))
 #define stream_close(fd)              close(fd)
 #define stream_filesize_fd(fd)        filesize(fd)
+#define stream_content_type(fd, buf, n) ((ssize_t)-1)
 
 #endif /* STREAM_HTTP_ENABLED */
 

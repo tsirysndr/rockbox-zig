@@ -1,4 +1,7 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Re-link whenever the C/Zig static library changes.
+    println!("cargo:rerun-if-changed=../build-lib/librockbox.a");
+
     tonic_build::configure()
         .out_dir("src/api")
         .file_descriptor_set_path("src/api/rockbox_descriptor.bin")

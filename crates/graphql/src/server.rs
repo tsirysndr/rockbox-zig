@@ -66,6 +66,7 @@ async fn index_graphiql(req: HttpRequest) -> Result<HttpResponse> {
 
 async fn index_file(req: HttpRequest) -> Result<NamedFile, actix_web::Error> {
     let id = req.match_info().get("id").unwrap();
+    println!("{}", id);
     let id = id.split('.').next().unwrap();
     let mut path = PathBuf::new();
 

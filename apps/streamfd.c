@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 /* ------------------------------------------------------------------
  * C declarations for the Rust ABI exported by crates/netstream.
@@ -23,6 +24,7 @@ extern int32_t  rb_net_open  (const char *url);
 extern int64_t  rb_net_read  (int32_t h, void *dst,   size_t n);
 extern int64_t  rb_net_lseek (int32_t h, int64_t off, int32_t whence);
 extern int64_t  rb_net_len   (int32_t h);
+extern int64_t  rb_net_content_type(int32_t h, char *dst, size_t n);
 extern void     rb_net_close (int32_t h);
 
 /* ------------------------------------------------------------------ */
@@ -48,28 +50,36 @@ int stream_open(const char *path, int flags)
 
     if (path_is_url(path)) {
         int32_t h = rb_net_open(path);
+        fprintf(stderr, "[streamfd] stream_open(URL): url=%s handle=%d\n", path, (int)h);
         if (h < 0)
             return -1;
-        /* Map handle 0 -> -1000, handle 1 -> -1001, etc. */
-        return STREAM_HTTP_FD_BASE - (int)h;
+        int fd = STREAM_HTTP_FD_BASE - (int)h;
+        fprintf(stderr, "[streamfd] stream_open: url=%s -> http_fd=%d\n", path, fd);
+        return fd;
     }
 
-    return open(path, flags);
+    int fd = open(path, flags);
+    fprintf(stderr, "[streamfd] stream_open(file): path=%s -> fd=%d\n", path, fd);
+    return fd;
 }
 
 ssize_t stream_read(int fd, void *buf, size_t n)
 {
     if (stream_is_http_fd(fd)) {
         int64_t r = rb_net_read(http_fd_to_handle(fd), buf, n);
+        fprintf(stderr, "[streamfd] stream_read: http_fd=%d n=%zu -> %lld\n", fd, n, (long long)r);
         return (ssize_t)r;
     }
-    return read(fd, buf, n);
+    ssize_t r = read(fd, buf, n);
+    return r;
 }
 
 off_t stream_lseek(int fd, off_t off, int whence)
 {
     if (stream_is_http_fd(fd)) {
         int64_t r = rb_net_lseek(http_fd_to_handle(fd), (int64_t)off, whence);
+        fprintf(stderr, "[streamfd] stream_lseek: http_fd=%d off=%lld whence=%d -> %lld\n",
+                fd, (long long)off, whence, (long long)r);
         return (off_t)r;
     }
     return lseek(fd, off, whence);
@@ -80,6 +90,8 @@ int stream_close(int fd)
     if (fd == -1)
         return 0;
     if (stream_is_http_fd(fd)) {
+        fprintf(stderr, "[streamfd] stream_close: http_fd=%d (handle=%d)\n",
+                fd, http_fd_to_handle(fd));
         rb_net_close(http_fd_to_handle(fd));
         return 0;
     }
@@ -90,17 +102,25 @@ off_t stream_filesize_fd(int fd)
 {
     if (stream_is_http_fd(fd)) {
         int64_t len = rb_net_len(http_fd_to_handle(fd));
+        off_t result;
         if (len < 0) {
-            /*
-             * Content-Length unknown: return a large sentinel (~2 GiB).
-             * The buffering layer truncates h->filesize to h->end when
-             * read() returns 0 (EOF), so this is safe for finite streams.
-             */
-            return (off_t)0x7FFFFFFF;
+            result = (off_t)0x7FFFFFFF;
+        } else {
+            result = (off_t)len;
         }
-        return (off_t)len;
+        fprintf(stderr, "[streamfd] stream_filesize_fd: http_fd=%d -> %lld (raw_len=%lld)\n",
+                fd, (long long)result, (long long)len);
+        return result;
     }
     return filesize(fd);
+}
+
+ssize_t stream_content_type(int fd, char *buf, size_t n)
+{
+    if (!stream_is_http_fd(fd))
+        return -1;
+
+    return (ssize_t)rb_net_content_type(http_fd_to_handle(fd), buf, n);
 }
 
 #endif /* SIMULATOR || APPLICATION */

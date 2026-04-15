@@ -27,7 +27,7 @@ endif
 # Rust network-stream static library (built from crates/netstream).
 NETSTREAM_LIB = $(BUILDDIR)/librbnetstream.a
 NETSTREAM_MANIFEST = $(ROOTDIR)/crates/netstream/Cargo.toml
-NETSTREAM_CARGO_LIB = $(ROOTDIR)/crates/netstream/target/release/librbnetstream.a
+NETSTREAM_CARGO_LIB = $(ROOTDIR)/target/release/librbnetstream.a
 
 .PHONY: netstream-lib
 netstream-lib:

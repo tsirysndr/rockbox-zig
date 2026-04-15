@@ -7,7 +7,6 @@ use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
 use rockbox_graphql::read_files;
 use rockbox_library::repo;
-use rockbox_network::download_tracks;
 use rockbox_sys::{
     self as rb,
     types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
@@ -27,22 +26,15 @@ pub async fn create_playlist(
         return Ok(());
     }
     let body = req.body.as_ref().unwrap();
-    let mut new_playlist: NewPlaylist = serde_json::from_str(body).unwrap();
+    let new_playlist: NewPlaylist = serde_json::from_str(body).unwrap();
 
     if new_playlist.tracks.is_empty() {
         return Ok(());
     }
 
-    new_playlist.tracks = download_tracks(new_playlist.tracks).await?;
-
-    let dir = new_playlist.tracks[0].clone();
-    let dir_parts: Vec<_> = dir.split('/').collect();
-    let dir = dir_parts[0..dir_parts.len() - 1].join("/");
-    let status = rb::playlist::create(&dir, None);
-    if status == -1 {
-        res.set_status(500);
-        return Ok(());
-    }
+    // URLs are passed as-is; codec detection happens in the C metadata layer
+    // via probe_content_type_format(), which reads the HTTP Content-Type header
+    // and overrides any extension-based guess.
     let start_index = rb::playlist::build_playlist(
         new_playlist.tracks.iter().map(|t| t.as_str()).collect(),
         0,

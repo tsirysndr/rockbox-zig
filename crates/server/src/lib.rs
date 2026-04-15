@@ -26,6 +26,25 @@ pub mod kv;
 pub mod player_events;
 pub mod scan;
 
+// Force netstream FFI symbols into the staticlib output.
+// These functions are called from C code (streamfd.c) but not from any Rust
+// code, so rustc would otherwise drop the entire crate from librockbox_server.a.
+#[allow(dead_code)]
+mod _netstream {
+    use rbnetstream::{rb_net_close, rb_net_len, rb_net_lseek, rb_net_open, rb_net_read};
+    use std::ffi::{c_char, c_void};
+    #[used]
+    static FN_OPEN: unsafe extern "C" fn(*const c_char) -> i32 = rb_net_open;
+    #[used]
+    static FN_READ: unsafe extern "C" fn(i32, *mut c_void, usize) -> i64 = rb_net_read;
+    #[used]
+    static FN_LSEEK: extern "C" fn(i32, i64, i32) -> i64 = rb_net_lseek;
+    #[used]
+    static FN_LEN: extern "C" fn(i32) -> i64 = rb_net_len;
+    #[used]
+    static FN_CLOSE: extern "C" fn(i32) = rb_net_close;
+}
+
 pub const AUDIO_EXTENSIONS: [&str; 17] = [
     "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "ac3", "opus",
     "spx", "sid", "ape", "wma",
@@ -340,41 +359,45 @@ pub extern "C" fn start_broker() {
             }
         };
 
-        let mut entries: Vec<Mp3Entry> = vec![];
-
         let mut current_playlist = rb::playlist::get_current();
         let amount = rb::playlist::amount();
 
+        // Collect track info while holding the mutex (quick — no I/O).
+        let mut track_infos: Vec<(String, String)> = Vec::with_capacity(amount as usize);
         for i in 0..amount {
             let info = rb::playlist::get_track_info(i);
-            let mut entry = rb::metadata::get_metadata(-1, &info.filename);
-
             let hash = format!("{:x}", md5::compute(info.filename.as_bytes()));
+            track_infos.push((hash, info.filename));
+        }
 
-            if let Some(entry) = metadata_cache.get(&hash) {
+        // Release the mutex before any slow network I/O so that player
+        // commands (play, pause, …) are not blocked while metadata is fetched.
+        drop(player_mutex);
+
+        // Probe metadata for uncached tracks without holding player_mutex.
+        let mut entries: Vec<Mp3Entry> = vec![];
+        for (hash, filename) in &track_infos {
+            if let Some(entry) = metadata_cache.get(hash) {
                 entries.push(entry.clone());
                 continue;
             }
 
+            let mut entry = rb::metadata::get_metadata(-1, filename);
+
             let track = rt
-                .block_on(repo::track::find_by_md5(pool.clone(), &hash))
+                .block_on(repo::track::find_by_md5(pool.clone(), hash))
                 .unwrap();
 
-            if track.is_none() {
-                entries.push(entry);
-                continue;
+            if track.is_some() {
+                entry.album_art = track.as_ref().map(|t| t.album_art.clone()).flatten();
+                entry.album_id = track.as_ref().map(|t| t.album_id.clone());
+                entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
+                entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
             }
 
-            entry.album_art = track.as_ref().map(|t| t.album_art.clone()).flatten();
-            entry.album_id = track.as_ref().map(|t| t.album_id.clone());
-            entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
-            entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
-
-            metadata_cache.insert(hash, entry.clone());
+            metadata_cache.insert(hash.clone(), entry.clone());
             entries.push(entry);
         }
-
-        drop(player_mutex);
 
         current_playlist.amount = amount;
         current_playlist.max_playlist_size = rb::playlist::max_playlist_size();

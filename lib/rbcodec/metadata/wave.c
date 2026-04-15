@@ -306,7 +306,7 @@ static bool read_header(int fd, struct mp3entry* id3, const unsigned char *chunk
     memset(&fmt, 0, sizeof(struct wave_fmt));
  
     id3->vbr = false;   /* All Wave/Wave64 files are CBR */
-    id3->filesize = filesize(fd);
+    id3->FS_PREFIX(filesize) = filesize(fd);
 
     /* get RIFF chunk header */
     lseek(fd, 0, SEEK_SET);
@@ -376,7 +376,7 @@ static bool read_header(int fd, struct mp3entry* id3, const unsigned char *chunk
         chunksize += ((is_64)? ((1 + ~chunksize) & 0x07) : (chunksize & 1));
 
         offset += chunksize;
-        if (offset >= id3->filesize)
+        if (offset >= id3->FS_PREFIX(filesize))
             break;
 
         lseek(fd, chunksize - read_data, SEEK_CUR);
@@ -400,7 +400,7 @@ static bool read_header(int fd, struct mp3entry* id3, const unsigned char *chunk
     /* Calculate track length (in ms) and estimate the bitrate (in kbit/s) */
     id3->length = (fmt.formattag != WAVE_FORMAT_ATRAC3)?
                       (uint64_t)fmt.totalsamples * 1000 / id3->frequency :
-                      ((id3->filesize - id3->first_frame_offset) * 8) / id3->bitrate;
+                      ((id3->FS_PREFIX(filesize) - id3->first_frame_offset) * 8) / id3->bitrate;
 
     /* output header/id3 info (for debug) */
     DEBUGF("%s header info ----\n", (is_64)? "wave64" : "wave");

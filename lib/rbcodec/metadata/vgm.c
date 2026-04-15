@@ -153,7 +153,7 @@ bool get_vgm_metadata(int fd, struct mp3entry* id3)
     }
 
     id3->vbr = false;
-    id3->filesize = filesize(fd);
+    id3->FS_PREFIX(filesize) = filesize(fd);
 
     id3->bitrate = 1411;
     id3->frequency = 44100;
@@ -179,7 +179,7 @@ bool get_vgm_metadata(int fd, struct mp3entry* id3)
 
     /*  Seek to gd3 offset and read as 
          many bytes posible */
-    gd3_offset = id3->filesize - (header_size + gd3_offset);
+    gd3_offset = id3->FS_PREFIX(filesize) - (header_size + gd3_offset);
     if ((lseek(fd, -gd3_offset, SEEK_END) < 0) 
          || ((read_bytes = read(fd, buf, ID3V2_BUF_SIZE)) <= 0))
         return true;

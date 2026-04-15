@@ -242,7 +242,7 @@ static bool parse_sap_header(int fd, struct mp3entry* id3, int file_len)
 bool get_asap_metadata(int fd, struct mp3entry* id3)
 {
 
-    int filelength = filesize(fd);
+    int filelength = metadata_filesize(fd);
 
     if(parse_sap_header(fd, id3, filelength) == false)
     {
@@ -254,7 +254,7 @@ bool get_asap_metadata(int fd, struct mp3entry* id3)
     id3->frequency = 44100;
 
     id3->vbr = false;
-    id3->filesize = filelength;
+    id3->FS_PREFIX(filesize) = filelength;
     id3->genre_string = id3_get_num_genre(36);
 
     return true;

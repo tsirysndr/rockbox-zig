@@ -21,6 +21,43 @@
 #include <inttypes.h>
 #include "metadata.h"
 
+/* In simulator / hosted-SDL-app builds, file descriptors for HTTP(S) streams
+ * are encoded as integers <= STREAM_HTTP_FD_BASE (-1000).  Plain POSIX
+ * read() / lseek() / filesize() do not handle those values.  Route all
+ * metadata I/O through the stream abstraction so that HTTP handles work
+ * identically to normal file descriptors.
+ *
+ * streamfd.h is in apps/, which is on the include path via -I$(APPSDIR) in
+ * uisimulator.make.  The macros below are intentionally placed before the
+ * read_uint* macros so those expansions are also redirected. */
+#if defined(SIMULATOR) || defined(APPLICATION)
+#include "streamfd.h"
+/* Route read() and lseek() through the stream abstraction so that HTTP(S)
+ * file descriptors (encoded as integers <= STREAM_HTTP_FD_BASE = -1000) are
+ * handled correctly by all metadata parsers.
+ *
+ * filesize() is intentionally NOT redefined here.  It is also a member name
+ * of struct mp3entry (expanded via FS_PREFIX in firmware/include/file.h), so
+ * redefining it as a function-like macro would break every `id3->filesize`
+ * struct access with a "no member named 'filesize'" compiler error.
+ *
+ * Instead, metadata parsers that need a correct file size (e.g. for CBR
+ * duration estimation) must call metadata_filesize(fd), defined below.
+ * stream_filesize_fd() returns Content-Length for HTTP fds and delegates to
+ * the platform filesize() for regular fds. */
+#ifdef read
+#undef read
+#endif
+#define read(fd, buf, n)       stream_read((fd),  (buf), (n))
+#ifdef lseek
+#undef lseek
+#endif
+#define lseek(fd, off, whence) stream_lseek((fd), (off), (whence))
+#define metadata_filesize(fd)  stream_filesize_fd((fd))
+#else
+#define metadata_filesize(fd)  filesize(fd)
+#endif /* SIMULATOR || APPLICATION */
+
 #ifdef ROCKBOX_BIG_ENDIAN
 #define IS_BIG_ENDIAN 1
 #else

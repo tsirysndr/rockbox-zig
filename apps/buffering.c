@@ -19,6 +19,7 @@
  *
  ****************************************************************************/
 #include "config.h"
+#include <stdio.h>
 #include <string.h>
 #include "system.h"
 #include "storage.h"
@@ -640,6 +641,10 @@ static bool buffer_handle(int handle_id, size_t to_buffer)
         if (h->path[0] != '\0')
             h->fd = stream_open(h->path, O_RDONLY);
 
+        fprintf(stderr, "[buffering] buffer_handle: hid=%d type=%d path=%s -> fd=%d filesize=%lu end=%lu\n",
+                handle_id, (int)h->type, h->path, h->fd,
+                (unsigned long)h->filesize, (unsigned long)h->end);
+
         if (h->fd == -1) {
             /* could not open the file, truncate it where it is */
             h->filesize = h->end;
@@ -692,8 +697,16 @@ static bool buffer_handle(int handle_id, size_t to_buffer)
         /* rc is the actual amount read */
         ssize_t rc = stream_read(h->fd, ringbuf_ptr(widx), copy_n);
 
+        if (h->end == 0) {
+            /* Log the very first read result for each handle */
+            fprintf(stderr, "[buffering] buffer_handle: hid=%d type=%d first_read copy_n=%zd -> rc=%zd fd=%d\n",
+                    handle_id, (int)h->type, (ssize_t)copy_n, rc, h->fd);
+        }
+
         if (rc <= 0) {
             /* Some kind of filesystem error, maybe recoverable if not codec */
+            fprintf(stderr, "[buffering] buffer_handle: hid=%d type=%d read FAILED rc=%zd end=%lu filesize=%lu\n",
+                    handle_id, (int)h->type, rc, (unsigned long)h->end, (unsigned long)h->filesize);
             if (h->type == TYPE_CODEC) {
                 logf("Partial codec");
                 break;

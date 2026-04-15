@@ -678,6 +678,7 @@ static bool read_chunk_minf(qtmovie_t *qtmovie, size_t chunk_len)
 static bool read_chunk_mdia(qtmovie_t *qtmovie, size_t chunk_len)
 {
     size_t size_remaining = chunk_len - 8;
+    fourcc_t handler = 0;
 
     while (size_remaining)
     {
@@ -696,9 +697,23 @@ static bool read_chunk_mdia(qtmovie_t *qtmovie, size_t chunk_len)
 
         switch (sub_chunk_id)
         {
+        case MAKEFOURCC('h','d','l','r'):
+            /* version/flags + pre_defined */
+            stream_skip(qtmovie->stream, 8);
+            handler = stream_read_uint32(qtmovie->stream);
+            if (sub_chunk_len > 20)
+                stream_skip(qtmovie->stream, sub_chunk_len - 20);
+            break;
         case MAKEFOURCC('m','i','n','f'):
-            if (!read_chunk_minf(qtmovie, sub_chunk_len)) {
-               return false;
+            if (handler == MAKEFOURCC('s','o','u','n'))
+            {
+                if (!read_chunk_minf(qtmovie, sub_chunk_len)) {
+                   return false;
+                }
+            }
+            else
+            {
+                stream_skip(qtmovie->stream, sub_chunk_len - 8);
             }
             break;
         default:
@@ -866,5 +881,4 @@ int qtmovie_read(stream_t *file, demux_res_t *demux_res)
     }
     return 0;
 }
-
 

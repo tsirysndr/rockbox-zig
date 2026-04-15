@@ -446,7 +446,7 @@ bool get_smaf_metadata(int fd, struct mp3entry* id3)
     id3->composer = NULL;
 
     id3->vbr      = false;   /* All SMAF files are CBR */
-    id3->filesize = filesize(fd);
+    id3->FS_PREFIX(filesize) = filesize(fd);
 
     /* check File Chunk and Contents Info Chunk */
     lseek(fd, 0, SEEK_SET);

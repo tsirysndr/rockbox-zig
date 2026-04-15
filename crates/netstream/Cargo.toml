@@ -1,6 +1,3 @@
-[workspace]
-members = ["."]
-
 [package]
 name = "netstream"
 version = "0.1.0"

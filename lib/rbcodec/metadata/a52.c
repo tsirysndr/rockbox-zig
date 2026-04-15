@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include "metadata.h"
+#include "metadata_common.h"
 #include "logf.h"
 #include "metadata_parsers.h"
 #include "platform.h"
@@ -71,7 +72,7 @@ bool get_a52_metadata(int fd, struct mp3entry *id3)
   
     id3->bitrate = a52_bitrates[i >> 1];
     id3->vbr = false;
-    id3->filesize = filesize(fd);
+    id3->FS_PREFIX(filesize) = filesize(fd);
 
     switch (buf[4] & 0xc0) 
     {
@@ -97,7 +98,7 @@ bool get_a52_metadata(int fd, struct mp3entry *id3)
     }
 
     /* One A52 frame contains 6 blocks, each containing 256 samples */
-    totalsamples = id3->filesize / id3->bytesperframe * 6 * 256;
+    totalsamples = id3->FS_PREFIX(filesize) / id3->bytesperframe * 6 * 256;
     id3->length = totalsamples / id3->frequency * 1000;
     return true;
 }
