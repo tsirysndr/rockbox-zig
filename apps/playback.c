@@ -47,6 +47,7 @@
 #include "settings.h"
 #include "audiohw.h"
 #include "general.h"
+#include "streamfd.h"
 #include <stdio.h>
 
 #ifdef HAVE_TAGCACHE
@@ -1756,13 +1757,23 @@ static bool audio_start_codec(bool auto_skip)
 
     struct mp3entry *cur_id3 = valid_mp3entry(bufgetid3(info.id3_hid));
 
+    fprintf(stderr, "[playback] audio_start_codec: id3_hid=%d cur_id3=%p\n",
+            info.id3_hid, (void*)cur_id3);
+
     if (!cur_id3)
+    {
+        fprintf(stderr, "[playback] audio_start_codec: ERROR no valid id3\n");
         return false;
+    }
+
+    fprintf(stderr, "[playback] audio_start_codec: path=%s codectype=%u length=%lu elapsed=%lu audio_hid=%d\n",
+            cur_id3->path, cur_id3->codectype, cur_id3->length, cur_id3->elapsed, info.audio_hid);
 
     buf_pin_handle(info.id3_hid, true);
 
     if (!audio_init_codec(&info, cur_id3))
     {
+        fprintf(stderr, "[playback] audio_start_codec: ERROR audio_init_codec failed\n");
         buf_pin_handle(info.id3_hid, false);
         return false;
     }
@@ -1831,6 +1842,8 @@ static bool audio_start_codec(bool auto_skip)
     ci.filesize = buf_filesize(info.audio_hid);
     buf_set_base_handle(info.audio_hid);
 
+    fprintf(stderr, "[playback] audio_start_codec: ci.audio_hid=%d ci.filesize=%lu calling codec_go()\n",
+            ci.audio_hid, (unsigned long)ci.filesize);
     /* All required data is now available for the codec */
     codec_go();
 
@@ -2147,13 +2160,11 @@ static int audio_load_track(void)
         if (!path)
             break;
 
-        /* Test for broken playlists by probing for the files */
-        if (file_exists(path))
-        {
-            fd = open(path, O_RDONLY);
-            if (fd >= 0)
-                break;
-        }
+        /* Test for broken playlists by probing for the file/stream. */
+        fd = stream_open(path, O_RDONLY);
+        fprintf(stderr, "[playback] audio_load_track: stream_open(%s) -> fd=%d\n", path, fd);
+        if (fd != -1)
+            break;
         logf("Open failed %s", path);
 
         /* only skip if failed track has a successor in playlist */
@@ -2194,6 +2205,8 @@ static int audio_load_track(void)
     if (filling == STATE_FULL ||
         (info.id3_hid = bufopen(path, 0, TYPE_ID3, NULL)) < 0)
     {
+        fprintf(stderr, "[playback] audio_load_track: bufopen ID3 failed or buffer full (id3_hid=%d filling=%d)\n",
+                info.id3_hid, filling);
         /* Buffer or track list is full */
         struct mp3entry *ub_id3;
 
@@ -2202,7 +2215,7 @@ static int audio_load_track(void)
         /* Load the metadata for the first unbuffered track */
         ub_id3 = id3_get(UNBUFFERED_ID3);
 
-        if (fd >= 0)
+        if (fd != -1)
         {
             id3_mutex_lock();
             get_metadata(ub_id3, fd, path);
@@ -2224,16 +2237,16 @@ static int audio_load_track(void)
         {
             track_list_free_info(&info);
             track_list.in_progress_hid = 0;
-            if (fd >= 0)
-                close(fd);
+            if (fd != -1)
+                stream_close(fd);
             return LOAD_TRACK_ERR_FAILED;
         }
 
         /* Successful load initiation */
         track_list.in_progress_hid = info.self_hid;
     }
-    if (fd >= 0)
-        close(fd);
+    if (fd != -1)
+        stream_close(fd);
     return LOAD_TRACK_OK;
 }
 
@@ -2264,25 +2277,36 @@ static int audio_finish_load_track(struct track_info *infop)
 
     struct mp3entry *track_id3 = valid_mp3entry(bufgetid3(infop->id3_hid));
 
+    fprintf(stderr, "[playback] audio_finish_load_track: id3_hid=%d track_id3=%p\n",
+            infop->id3_hid, (void*)track_id3);
+
     if (!track_id3)
     {
         /* This is an error condition. Track cannot be played without valid
            metadata; skip the track. */
         logf("No metadata");
+        fprintf(stderr, "[playback] audio_finish_load_track: ERROR no valid metadata\n");
         trackstat = LOAD_TRACK_ERR_FINISH_FAILED;
         goto audio_finish_load_track_exit;
     }
+
+    fprintf(stderr, "[playback] audio_finish_load_track: path=%s codectype=%u length=%lu elapsed=%lu filesize=%lu first_frame_off=%lu\n",
+            track_id3->path, track_id3->codectype, track_id3->length,
+            track_id3->elapsed, track_id3->FS_PREFIX(filesize),
+            track_id3->first_frame_offset);
 
     struct track_info user_cur;
 
 #ifdef HAVE_PLAY_FREQ
     track_list_user_current(0, &user_cur);
     bool is_current_user = infop->self_hid == user_cur.self_hid;
+    fprintf(stderr, "[playback] audio_finish_load_track: HAVE_PLAY_FREQ check is_current_user=%d\n", (int)is_current_user);
     if (audio_auto_change_frequency(track_id3, is_current_user))
     {
         // frequency switch requires full re-buffering, so stop buffering
         filling = STATE_STOPPED;
         logf("buffering stopped (current_track: %b, current_user: %b)", infop->self_hid == cur_info.self_hid, is_current_user);
+        fprintf(stderr, "[playback] audio_finish_load_track: HAVE_PLAY_FREQ triggered early exit\n");
         if (is_current_user)
             // audio_finish_load_track_exit not needed as playback restart is already initiated
             return trackstat;
@@ -2291,17 +2315,21 @@ static int audio_finish_load_track(struct track_info *infop)
     }
 #endif
 
+    fprintf(stderr, "[playback] audio_finish_load_track: calling audio_load_cuesheet\n");
     /* Try to load a cuesheet for the track */
     if (!audio_load_cuesheet(infop, track_id3))
     {
         /* No space for cuesheet on buffer, not an error */
         filling = STATE_FULL;
+        fprintf(stderr, "[playback] audio_finish_load_track: cuesheet buffer full -> exit\n");
         goto audio_finish_load_track_exit;
     }
+    fprintf(stderr, "[playback] audio_finish_load_track: cuesheet OK\n");
 
 #ifdef HAVE_ALBUMART
     /* Try to load album art for the track */
     int retval = audio_load_albumart(infop, track_id3, infop->self_hid == cur_info.self_hid);
+    fprintf(stderr, "[playback] audio_finish_load_track: albumart retval=%d\n", retval);
     if (retval == ERR_BITMAP_TOO_LARGE)
     {
         /* No space for album art on buffer because the file is larger than the buffer.
@@ -2310,6 +2338,7 @@ static int audio_finish_load_track(struct track_info *infop)
     {
         /* No space for album art on buffer, not an error */
         filling = STATE_FULL;
+        fprintf(stderr, "[playback] audio_finish_load_track: albumart buffer full -> exit\n");
         goto audio_finish_load_track_exit;
     }
 #endif
@@ -2372,6 +2401,8 @@ static int audio_finish_load_track(struct track_info *infop)
     }
 
     logf("load track: %s", track_id3->path);
+    fprintf(stderr, "[playback] audio_finish_load_track: audiotype=%d file_offset(before)=%lld\n",
+            audiotype, (long long)file_offset);
 
     if (file_offset > AUDIO_REBUFFER_GUESS_SIZE)
     {
@@ -2385,7 +2416,11 @@ static int audio_finish_load_track(struct track_info *infop)
         file_offset = track_id3->first_frame_offset;
     }
 
+    fprintf(stderr, "[playback] audio_finish_load_track: bufopen path=%s offset=%lld audiotype=%d\n",
+            track_id3->path, (long long)file_offset, audiotype);
+
     int hid = bufopen(track_id3->path, file_offset, audiotype, NULL);
+    fprintf(stderr, "[playback] audio_finish_load_track: bufopen -> hid=%d\n", hid);
 
     if (hid >= 0)
     {
@@ -2427,6 +2462,7 @@ static int audio_finish_load_track(struct track_info *infop)
     }
 
 audio_finish_load_track_exit:
+    fprintf(stderr, "[playback] audio_finish_load_track: EXIT trackstat=%d filling=%d\n", trackstat, (int)filling);
     if (trackstat >= LOAD_TRACK_OK && !track_info_sync(infop))
     {
         logf("Track info sync failed");
@@ -2584,8 +2620,15 @@ static void audio_on_finish_load_track(int id3_hid)
 {
     struct track_info info, user_cur;
 
+    fprintf(stderr, "[playback] audio_on_finish_load_track: id3_hid=%d buf_is_handle=%d\n",
+            id3_hid, buf_is_handle(id3_hid));
+
     if (!buf_is_handle(id3_hid) || !track_list_last(0, &info))
+    {
+        fprintf(stderr, "[playback] audio_on_finish_load_track: early return (buf_is_handle=%d track_list_last=%d)\n",
+                buf_is_handle(id3_hid), track_list_last(0, &info));
         return;
+    }
 
     track_list_user_current(1, &user_cur);
     if (info.self_hid == user_cur.self_hid)

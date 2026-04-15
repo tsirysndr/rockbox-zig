@@ -8,6 +8,9 @@ members = [
 resolver = "2"
 exclude = ["rmpc", "crates/controls"]
 
+[profile.release]
+panic = "abort"
+
 [workspace.package]
 authors = ["Tsiry Sandratraina <tsiry.sndr@fluentci.io"]
 edition = "2021"

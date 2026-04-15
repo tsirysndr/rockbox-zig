@@ -19,6 +19,7 @@
  *
  ****************************************************************************/
 #include "config.h"
+#include <stdio.h>
 #include <string.h>
 #include "system.h"
 #include "storage.h"
@@ -37,6 +38,7 @@
 #endif
 #include "buffering.h"
 #include "linked_list.h"
+#include "streamfd.h"
 
 /* Define LOGF_ENABLE to enable logf output in this file */
 /* #define LOGF_ENABLE */
@@ -177,8 +179,8 @@ static struct queue_sender_list buffering_queue_sender_list SHAREDBSS_ATTR;
 static void close_fd(int *fd_p)
 {
     int fd = *fd_p;
-    if (fd >= 0) {
-        close(fd);
+    if (fd != -1) {
+        stream_close(fd);
         *fd_p = -1;
     }
 }
@@ -635,18 +637,22 @@ static bool buffer_handle(int handle_id, size_t to_buffer)
         return true;
     }
 
-    if (h->fd < 0) { /* file closed, reopen */
+    if (h->fd == -1) { /* file closed, reopen */
         if (h->path[0] != '\0')
-            h->fd = open(h->path, O_RDONLY);
+            h->fd = stream_open(h->path, O_RDONLY);
 
-        if (h->fd < 0) {
+        fprintf(stderr, "[buffering] buffer_handle: hid=%d type=%d path=%s -> fd=%d filesize=%lu end=%lu\n",
+                handle_id, (int)h->type, h->path, h->fd,
+                (unsigned long)h->filesize, (unsigned long)h->end);
+
+        if (h->fd == -1) {
             /* could not open the file, truncate it where it is */
             h->filesize = h->end;
             return true;
         }
 
         if (h->start)
-            lseek(h->fd, h->start, SEEK_SET);
+            stream_lseek(h->fd, h->start, SEEK_SET);
     }
 
     trigger_cpu_boost();
@@ -689,10 +695,18 @@ static bool buffer_handle(int handle_id, size_t to_buffer)
             return false; /* no space for read */
 
         /* rc is the actual amount read */
-        ssize_t rc = read(h->fd, ringbuf_ptr(widx), copy_n);
+        ssize_t rc = stream_read(h->fd, ringbuf_ptr(widx), copy_n);
+
+        if (h->end == 0) {
+            /* Log the very first read result for each handle */
+            fprintf(stderr, "[buffering] buffer_handle: hid=%d type=%d first_read copy_n=%zd -> rc=%zd fd=%d\n",
+                    handle_id, (int)h->type, (ssize_t)copy_n, rc, h->fd);
+        }
 
         if (rc <= 0) {
             /* Some kind of filesystem error, maybe recoverable if not codec */
+            fprintf(stderr, "[buffering] buffer_handle: hid=%d type=%d read FAILED rc=%zd end=%lu filesize=%lu\n",
+                    handle_id, (int)h->type, rc, (unsigned long)h->end, (unsigned long)h->filesize);
             if (h->type == TYPE_CODEC) {
                 logf("Partial codec");
                 break;
@@ -954,8 +968,8 @@ int bufopen(const char *file, off_t offset, enum data_type type,
         return ERR_UNSUPPORTED_TYPE;
 #endif
     /* Other cases: there is a little more work. */
-    int fd = open(file, O_RDONLY);
-    if (fd < 0)
+    int fd = stream_open(file, O_RDONLY);
+    if (fd == -1)
         return ERR_FILE_ERROR;
 
     size_t size = 0;
@@ -983,7 +997,7 @@ int bufopen(const char *file, off_t offset, enum data_type type,
 #endif /* HAVE_ALBUMART */
 
     if (size == 0)
-        size = filesize(fd);
+        size = (size_t)stream_filesize_fd(fd);
 
     unsigned int hflags = 0;
     if (type == TYPE_PACKET_AUDIO || type == TYPE_CODEC)
@@ -1005,7 +1019,7 @@ int bufopen(const char *file, off_t offset, enum data_type type,
     if (!h) {
         DEBUGF("%s(): failed to add handle\n", __func__);
         mutex_unlock(&llist_mutex);
-        close(fd);
+        stream_close(fd);
 
         /*warn playback.c if it is trying to buffer too large of an image*/
         if(type == TYPE_BITMAP && padded_size >= buffer_len - 64*1024)
@@ -1071,7 +1085,7 @@ int bufopen(const char *file, off_t offset, enum data_type type,
         queue_send(&buffering_queue, Q_BUFFER_HANDLE, handle_id);
     } else {
         /* Other types will get buffered in the course of normal operations */
-        close(fd);
+        stream_close(fd);
 
         if (handle_id >= 0) {
             /* Inform the buffering thread that we added a handle */
@@ -1216,8 +1230,8 @@ static void rebuffer_handle(int handle_id, off_t newpos)
     h->ridx = h->widx = h->data = new_index;
     h->start = h->pos = h->end = newpos;
 
-    if (h->fd >= 0)
-        lseek(h->fd, newpos, SEEK_SET);
+    if (h->fd != -1)
+        stream_lseek(h->fd, newpos, SEEK_SET);
 
     off_t filerem = h->filesize - newpos;
     bool send = HLIST_NEXT(h) &&

@@ -38,6 +38,11 @@
     directory, create subdirectories and do all sorts of things you want to be
     able to browse when you fire up the simulator.
 
+    Rust toolchain (edition 2021) and Cargo must be installed to build the
+    network-stream support library (crates/netstream).  The build will run
+    `cargo build --manifest-path crates/netstream/Cargo.toml --release`
+    automatically during `make`.
+
 3. Run Uisimulator
 
   To create a simulated disk drive for the simulator to see, create a
@@ -46,14 +51,45 @@
 
   Run 'rockboxui'.
 
-4. Target Keypad Equivalents
+4. Network Stream Playback (HTTP/HTTPS URLs)
+
+  The SDL simulator supports playing audio directly from HTTP and HTTPS URLs.
+  URLs are treated exactly like local file paths everywhere in the UI (file
+  browser, playlists, etc.).
+
+  To play a URL:
+
+  a) Playlist method (recommended):
+     Create a plain-text .m3u or .m3u8 playlist file inside your simdisk,
+     with one URL per line, e.g.:
+
+         simdisk/streams.m3u
+         ----------------------
+         https://example.com/track1.mp3
+         https://example.com/track2.ogg
+
+     Load the playlist from the file browser and press Play.
+
+  b) Direct entry (if the target UI supports text input for file paths):
+     Enter the full URL including scheme, e.g.:
+         https://example.com/audio/song.mp3
+
+  Requirements:
+  * The server must serve the file with a correct Content-Type header for
+    the codec to be selected automatically.
+  * Seeking works for servers that support HTTP Range requests (RFC 7233).
+    For servers that do not support Range requests, seeking will fail
+    gracefully and playback continues from the current position.
+  * HTTPS is supported via rustls (no system CA store dependency).
+
+5. Target Keypad Equivalents
 
   The keyboard's numerical keypad is used to simulate the target keypad. See
   the output rockboxui displays on start for details.
 
-5. Mouse Input
+6. Mouse Input
 
   Clicking on the button images on the background will simulate pressing the
-  appropriate buttons.  On scroll wheel targts the mouse wheel will simulate
+  appropriate buttons.  On scroll wheel targets the mouse wheel will simulate
   scroll wheel motion.
   

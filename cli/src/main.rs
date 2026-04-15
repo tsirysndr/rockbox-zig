@@ -5,8 +5,8 @@ use clap::{arg, Command};
 use owo_colors::OwoColorize;
 
 use cmd::{
-    clear::*, community::*, login::*, repl::*, run::*, scan::*, service, start::*, webui::*,
-    whoami::*,
+    clear::*, community::*, login::*, open::*, repl::*, run::*, scan::*, service, start::*,
+    webui::*, whoami::*,
 };
 
 pub mod cmd;
@@ -62,6 +62,11 @@ fn cli() -> Command {
                 .arg(arg!(<FILE> "JavaScript or TypeScript file to run"))
                 .about("Run a JavaScript or TypeScript program")
                 .visible_alias("x"),
+        )
+        .subcommand(
+            Command::new("open")
+                .arg(arg!(<PATH_OR_URL> "Local file path or HTTP URL to play"))
+                .about("Play a local track or remote HTTP URL directly"),
         )
         .subcommand(
             Command::new("service")
@@ -126,6 +131,10 @@ async fn main() -> Result<(), Error> {
         }
         Some(("repl", _)) => {
             repl();
+        }
+        Some(("open", args)) => {
+            let path_or_url = args.get_one::<String>("PATH_OR_URL").unwrap();
+            open(path_or_url).await?;
         }
         Some(("tui", _)) => {
             rmpc::main_tui()?;

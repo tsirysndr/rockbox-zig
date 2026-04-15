@@ -564,6 +564,22 @@ static ssize_t format_track_path(char *dest, char *src, int buf_length,
 
     src[len] = '\0';
 
+    /* HTTP(S) URLs are absolute — copy them as-is, no directory prepending.
+     * Also normalise a spurious leading '/' (e.g. "/http://...") that may
+     * have been stored in an older control file by a previous buggy build. */
+    {
+        char *url_src = src;
+        if (*url_src == '/' &&
+            (strncmp(url_src + 1, "http://", 7) == 0 ||
+             strncmp(url_src + 1, "https://", 8) == 0))
+            url_src++;
+        if (strncmp(url_src, "http://", 7) == 0 || strncmp(url_src, "https://", 8) == 0)
+        {
+            strlcpy(dest, url_src, buf_length);
+            return (ssize_t)strlen(dest);
+        }
+    }
+
     /* Replace backslashes with forward slashes */
     path_correct_separators(src, src);
 
@@ -3023,6 +3039,18 @@ const char* playlist_peek(int steps, char* buf, size_t buf_size)
         return NULL;
 
     temp_ptr = buf;
+
+    /* HTTP(S) URLs don't live on the filesystem — return as-is.
+     * Normalise a spurious leading '/' (e.g. "/http://...") from stale data. */
+    {
+        char *url_ptr = buf;
+        if (*url_ptr == '/' &&
+            (strncmp(url_ptr + 1, "http://", 7) == 0 ||
+             strncmp(url_ptr + 1, "https://", 8) == 0))
+            url_ptr++;
+        if (strncmp(url_ptr, "http://", 7) == 0 || strncmp(url_ptr, "https://", 8) == 0)
+            return url_ptr;
+    }
 
     /* remove bogus dirs from beginning of path
        (workaround for buggy playlist creation tools) */

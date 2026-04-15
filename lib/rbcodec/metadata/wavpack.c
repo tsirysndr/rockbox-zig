@@ -79,7 +79,7 @@ bool get_wavpack_metadata(int fd, struct mp3entry* id3)
     }
 
     id3->vbr = true;   /* All WavPack files are VBR */
-    id3->filesize = filesize (fd);
+    id3->FS_PREFIX(filesize) = filesize (fd);
 
     /* check up to 16 headers before we give up finding one with audio */
 
@@ -134,7 +134,7 @@ bool get_wavpack_metadata(int fd, struct mp3entry* id3)
             /* if the total number of samples is still unknown, make a guess on the high side (for now) */
 
             if (totalsamples == (uint32_t) -1) {
-                totalsamples = id3->filesize * 3;
+                totalsamples = id3->FS_PREFIX(filesize) * 3;
 
                 if (!(flags & HYBRID_FLAG))
                     totalsamples /= 2;
@@ -144,7 +144,7 @@ bool get_wavpack_metadata(int fd, struct mp3entry* id3)
             }
 
             id3->length = ((int64_t) totalsamples * 1000) / id3->frequency;
-            id3->bitrate = id3->filesize / (id3->length / 8);
+            id3->bitrate = id3->FS_PREFIX(filesize) / (id3->length / 8);
 
             read_ape_tags(fd, id3);
             return true;

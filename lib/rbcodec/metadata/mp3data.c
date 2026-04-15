@@ -40,6 +40,7 @@
 #include "platform.h"
 
 #include "metadata.h"
+#include "metadata_common.h"
 #include "metadata/metadata_parsers.h"
 
 //#define DEBUG_VERBOSE
@@ -609,7 +610,7 @@ int get_mp3file_info(int fd, struct mp3info *info)
         if(result)
             return result;
 
-        info->byte_count = filesize(fd) - getid3v1len(fd) - offset - bytecount;
+        info->byte_count = metadata_filesize(fd) - getid3v1len(fd) - offset - bytecount;
     }
 
     return bytecount;

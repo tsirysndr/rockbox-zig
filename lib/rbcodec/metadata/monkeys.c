@@ -83,14 +83,14 @@ bool get_monkeys_metadata(int fd, struct mp3entry* id3)
     }
 
     id3->vbr = true;   /* All APE files are VBR */
-    id3->filesize = filesize(fd);
+    id3->FS_PREFIX(filesize) = filesize(fd);
 
     totalsamples = finalframeblocks;
     if (totalframes > 1)
         totalsamples += blocksperframe * (totalframes-1);
 
     id3->length = ((int64_t) totalsamples * 1000) / id3->frequency;
-    id3->bitrate = (id3->filesize * 8) / id3->length;
+    id3->bitrate = (id3->FS_PREFIX(filesize) * 8) / id3->length;
 
     read_ape_tags(fd, id3);
     return true;

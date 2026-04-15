@@ -122,7 +122,7 @@ bool get_flac_metadata(int fd, struct mp3entry* id3)
             }
 
             id3->vbr = true;   /* All FLAC files are VBR */
-            id3->filesize = filesize(fd);
+            id3->FS_PREFIX(filesize) = filesize(fd);
             id3->frequency = (buf[10] << 12) | (buf[11] << 4)
                 | ((buf[12] & 0xf0) >> 4);
             rc = true;  /* Got vital metadata */
@@ -134,7 +134,7 @@ bool get_flac_metadata(int fd, struct mp3entry* id3)
             {
                 /* Calculate track length (in ms) and estimate the bitrate (in kbit/s) */
                 id3->length = ((int64_t) totalsamples * 1000) / id3->frequency;
-                id3->bitrate = (id3->filesize * 8) / id3->length;
+                id3->bitrate = (id3->FS_PREFIX(filesize) * 8) / id3->length;
             }
             else if (totalsamples == 0)
             {

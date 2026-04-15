@@ -145,7 +145,7 @@ bool get_aiff_metadata(int fd, struct mp3entry* id3)
             }
 
             id3->vbr = false;   /* AIFF files are CBR */
-            id3->filesize = filesize(fd);
+            id3->FS_PREFIX(filesize) = filesize(fd);
         }
         else
         {

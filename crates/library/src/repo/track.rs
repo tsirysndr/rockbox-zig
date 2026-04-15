@@ -110,6 +110,15 @@ pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Track>, Error> {
     Ok(result)
 }
 
+pub async fn update_album_art(pool: Pool<Sqlite>, id: &str, album_art: &str) -> Result<(), Error> {
+    sqlx::query("UPDATE track SET album_art = $2 WHERE id = $1")
+        .bind(id)
+        .bind(album_art)
+        .execute(&pool)
+        .await?;
+    Ok(())
+}
+
 pub async fn find_by_artist(pool: Pool<Sqlite>, artist: &str) -> Result<Vec<Track>, Error> {
     let result: Vec<Track> =
         sqlx::query_as("SELECT * FROM track WHERE artist = $1 ORDER BY title ASC")

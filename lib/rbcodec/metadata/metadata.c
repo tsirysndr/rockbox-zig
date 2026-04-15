@@ -34,11 +34,17 @@
 
 #include "metadata/metadata_common.h"
 
+/* Unified stream I/O: routes HTTP(S) fds through the Rust netstream layer.
+ * Only available in simulator / hosted SDL application builds. */
+#if defined(SIMULATOR) || defined(APPLICATION)
+#include "streamfd.h"
+#endif
+
 static bool get_shn_metadata(int fd, struct mp3entry *id3)
 {
     /* TODO: read the id3v2 header if it exists */
     id3->vbr = true;
-    id3->filesize = filesize(fd);
+    id3->FS_PREFIX(filesize) = filesize(fd);
     return skip_id3v2(fd, id3);
 }
 
@@ -47,7 +53,7 @@ static bool get_other_asap_metadata(int fd, struct mp3entry *id3)
     id3->bitrate = 706;
     id3->frequency = 44100;
     id3->vbr = false;
-    id3->filesize = filesize(fd);
+    id3->FS_PREFIX(filesize) = filesize(fd);
     id3->genre_string = id3_get_num_genre(36);
     return true;
 }
@@ -414,6 +420,53 @@ unsigned int probe_file_format(const char *filename)
     return AFMT_UNKNOWN;
 }
 
+#if defined(SIMULATOR) || defined(APPLICATION)
+static unsigned int probe_content_type_format(int fd)
+{
+    char content_type[64];
+    if (stream_content_type(fd, content_type, sizeof(content_type)) < 0)
+        return AFMT_UNKNOWN;
+
+    if (!strcasecmp(content_type, "audio/mpeg") ||
+        !strcasecmp(content_type, "audio/mp3") ||
+        !strcasecmp(content_type, "audio/mpa"))
+        return AFMT_MPA_L3;
+
+    if (!strcasecmp(content_type, "audio/mp4") ||
+        !strcasecmp(content_type, "audio/m4a") ||
+        !strcasecmp(content_type, "audio/x-m4a") ||
+        !strcasecmp(content_type, "video/mp4") ||
+        !strcasecmp(content_type, "application/mp4"))
+        return AFMT_MP4_AAC;
+
+    if (!strcasecmp(content_type, "audio/aac") ||
+        !strcasecmp(content_type, "audio/aacp"))
+        return AFMT_AAC_BSF;
+
+    if (!strcasecmp(content_type, "audio/ogg") ||
+        !strcasecmp(content_type, "application/ogg"))
+        return AFMT_OGG_VORBIS;
+
+    if (!strcasecmp(content_type, "audio/opus"))
+        return AFMT_OPUS;
+
+    if (!strcasecmp(content_type, "audio/flac") ||
+        !strcasecmp(content_type, "audio/x-flac"))
+        return AFMT_FLAC;
+
+    if (!strcasecmp(content_type, "audio/wav") ||
+        !strcasecmp(content_type, "audio/wave") ||
+        !strcasecmp(content_type, "audio/x-wav"))
+        return AFMT_PCM_WAV;
+
+    if (!strcasecmp(content_type, "audio/x-ms-wma") ||
+        !strcasecmp(content_type, "audio/asf"))
+        return AFMT_WMA;
+
+    return AFMT_UNKNOWN;
+}
+#endif
+
 /* Get metadata for track - return false if parsing showed problems with the
  * file that would prevent playback. supply a filedescriptor <0 and the file will be opened
  * and closed automatically within the get_metadata call
@@ -427,16 +480,25 @@ bool get_metadata_ex(struct mp3entry* id3, int fd, const char* trackname, int fl
     const struct afmt_entry *entry;
     int logfd = 0;
     DEBUGF("Read metadata for %s\n", trackname);
+    fprintf(stderr, "[metadata] get_metadata_ex: trackname=%s fd=%d\n", trackname, fd);
     const char *res_str = "\n";
 
     /* Clear the mp3entry to avoid having bogus pointers appear */
     wipe_mp3entry(id3);
 
-    if (fd < 0)
+    /* fd == -1 is the "not yet opened" sentinel.  In simulator / APPLICATION
+     * builds HTTP stream handles are encoded as fd <= -1000 and must not be
+     * treated as "no fd provided". */
+    if (fd == -1)
     {
+#if defined(SIMULATOR) || defined(APPLICATION)
+        fd = stream_open(trackname, O_RDONLY);
+#else
         fd = open(trackname, O_RDONLY);
+#endif
         flags |= METADATA_CLOSE_FD_ON_EXIT;
-        if (fd < 0)
+        fprintf(stderr, "[metadata] get_metadata_ex: opened fd=%d for %s\n", fd, trackname);
+        if (fd == -1)
         {
             DEBUGF("Error opening %s\n", trackname);
             res_str = " - [Error opening]\n";
@@ -447,6 +509,20 @@ bool get_metadata_ex(struct mp3entry* id3, int fd, const char* trackname, int fl
 
     /* Take our best guess at the codec type based on file extension */
     id3->codectype = probe_file_format(trackname);
+    fprintf(stderr, "[metadata] probe_file_format: %s -> codectype=%u\n", trackname, id3->codectype);
+#if defined(SIMULATOR) || defined(APPLICATION)
+    /* For HTTP streams the Content-Type header is more reliable than the
+     * file extension (e.g. .m4a is used for both ALAC and AAC).  Let the
+     * server's content-type override the extension-based guess whenever it
+     * resolves to a known codec. */
+    if (stream_is_http_fd(fd))
+    {
+        int ct_codec = probe_content_type_format(fd);
+        fprintf(stderr, "[metadata] probe_content_type_format: fd=%d -> codectype=%u\n", fd, ct_codec);
+        if (ct_codec != AFMT_UNKNOWN)
+            id3->codectype = ct_codec;
+    }
+#endif
 
     /* default values for embedded cuesheets */
     id3->has_embedded_cuesheet = false;
@@ -455,24 +531,41 @@ bool get_metadata_ex(struct mp3entry* id3, int fd, const char* trackname, int fl
     entry = &audio_formats[id3->codectype];
 
     /* Load codec specific track tag information and confirm the codec type. */
+    fprintf(stderr, "[metadata] parsing: trackname=%s codec=%u parser=%s\n",
+            trackname, id3->codectype, entry->label ? entry->label : "none");
     if (!entry->parse_func)
     {
         DEBUGF("nothing to parse for %s (format %s)\n", trackname, entry->label);
+        fprintf(stderr, "[metadata] ERROR: no parser for %s (codec=%u)\n", trackname, id3->codectype);
         res_str = " - [No parser]\n";
         success = false;
     }
     else if (!entry->parse_func(fd, id3))
     {
         DEBUGF("parsing %s failed (format: %s)\n", trackname, entry->label);
+        fprintf(stderr, "[metadata] ERROR: parse failed for %s (format %s)\n", trackname, entry->label);
         res_str = " - [Parser failed]\n";
         success = false;
         wipe_mp3entry(id3); /* ensure the mp3entry is clear */
     }
+    else
+    {
+        fprintf(stderr, "[metadata] parsed OK: %s length=%lu elapsed=%lu freq=%lu filesize=%lu codectype=%u first_frame_off=%lu\n",
+                trackname, id3->length, id3->elapsed, id3->frequency,
+                id3->FS_PREFIX(filesize), id3->codectype, id3->first_frame_offset);
+    }
 
+#if defined(SIMULATOR) || defined(APPLICATION)
+    if ((flags & METADATA_CLOSE_FD_ON_EXIT))
+        stream_close(fd);
+    else
+        stream_lseek(fd, 0, SEEK_SET);
+#else
     if ((flags & METADATA_CLOSE_FD_ON_EXIT))
         close(fd);
     else
         lseek(fd, 0, SEEK_SET);
+#endif
 
     if (success && (flags & METADATA_EXCLUDE_ID3_PATH) == 0)
     {

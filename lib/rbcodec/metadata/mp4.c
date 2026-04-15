@@ -777,7 +777,7 @@ static bool read_mp4_container(int fd, struct mp3entry* id3,
             if(size == 0)
                 break;
             /* mdat chunks accumulate! */
-            id3->filesize += size;
+            id3->FS_PREFIX(filesize) += size;
             if(id3->samples > 0) {
                 /* We've already seen the moov chunk. */
                 done = true;
@@ -821,12 +821,12 @@ static bool read_mp4_container(int fd, struct mp3entry* id3,
 bool get_mp4_metadata(int fd, struct mp3entry* id3)
 {
     id3->codectype = AFMT_UNKNOWN;
-    id3->filesize = 0;
+    id3->FS_PREFIX(filesize) = 0;
     errno = 0;
 
-    if (read_mp4_container(fd, id3, filesize(fd)) && (errno == 0) 
+    if (read_mp4_container(fd, id3, metadata_filesize(fd)) && (errno == 0)
         && (id3->samples > 0) && (id3->frequency > 0) 
-        && (id3->filesize > 0))
+        && (id3->FS_PREFIX(filesize) > 0))
     {
         if (id3->codectype == AFMT_UNKNOWN)
         {
@@ -844,7 +844,7 @@ bool get_mp4_metadata(int fd, struct mp3entry* id3)
             return false;
         }
 
-        id3->bitrate = ((int64_t) id3->filesize * 8) / id3->length;
+        id3->bitrate = ((int64_t) id3->FS_PREFIX(filesize) * 8) / id3->length;
         DEBUGF("MP4 bitrate %d, frequency %ld Hz, length %ld ms\n",
             id3->bitrate, id3->frequency, id3->length);
     }
@@ -853,7 +853,7 @@ bool get_mp4_metadata(int fd, struct mp3entry* id3)
         logf("MP4 metadata error");
         DEBUGF("MP4 metadata error. errno %d, samples %ld, frequency %ld, "
             "filesize %ld\n", errno, id3->samples, id3->frequency,
-            id3->filesize);
+            id3->FS_PREFIX(filesize));
         return false;
     }
 

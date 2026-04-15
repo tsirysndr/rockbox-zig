@@ -208,7 +208,12 @@ impl PlaybackService for Playback {
                 .map_err(|e| tonic::Status::internal(e.to_string()))?;
             if let Some(metadata) = metadata {
                 let mut track = track.clone();
-                track.album_art = metadata.album_art;
+                // Only override album_art if the DB has a non-None value; the HTTP
+                // endpoint already resolved album_art via find_internal_track_by_url,
+                // so we must not overwrite it with None from the remote-saved record.
+                if metadata.album_art.is_some() {
+                    track.album_art = metadata.album_art;
+                }
                 track.album_id = Some(metadata.album_id);
                 track.artist_id = Some(metadata.artist_id);
                 return Ok(tonic::Response::new(track.into()));
@@ -594,6 +599,7 @@ impl PlaybackService for Playback {
             .json(&body)
             .send()
             .await
+            .and_then(|response| response.error_for_status())
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let client = reqwest::Client::new();
@@ -602,6 +608,7 @@ impl PlaybackService for Playback {
             .put(&url)
             .send()
             .await
+            .and_then(|response| response.error_for_status())
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         Ok(tonic::Response::new(PlayTrackResponse::default()))

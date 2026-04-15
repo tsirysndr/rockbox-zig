@@ -1,6 +1,7 @@
 pub mod clear;
 pub mod community;
 pub mod login;
+pub mod open;
 pub mod repl;
 pub mod run;
 pub mod scan;

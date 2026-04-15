@@ -59,6 +59,7 @@ fn get_file_extension(mime: &str) -> Result<&str, Error> {
         "audio/ogg" => Ok("ogg"),
         "audio/flac" => Ok("flac"),
         "audio/x-m4a" => Ok("m4a"),
+        "audio/m4a" => Ok("m4a"),
         "audio/aac" => Ok("aac"),
         "video/mp4" => Ok("mp4"),
         "audio/wav" => Ok("wav"),
