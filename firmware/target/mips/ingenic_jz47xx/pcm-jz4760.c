@@ -26,13 +26,14 @@
 #include "sound.h"
 #include "pcm.h"
 #include "pcm-internal.h"
+#include "pcm_sink.h"
 #include "cpu.h"
 
 /****************************************************************************
  ** Playback DMA transfer
  **/
 
-void pcm_play_dma_postinit(void)
+static void sink_dma_postinit(void)
 {
     audiohw_postinit();
 
@@ -40,7 +41,7 @@ void pcm_play_dma_postinit(void)
     __aic_flush_tfifo();
 }
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     system_enable_irq(DMA_IRQ(DMA_AIC_TX_CHANNEL));
 
@@ -48,9 +49,9 @@ void pcm_play_dma_init(void)
     audiohw_init();
 }
 
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
-    audiohw_set_frequency(pcm_fsel);
+    audiohw_set_frequency(freq);
 }
 
 static const void* playback_address;
@@ -126,20 +127,7 @@ void DMA_CALLBACK(DMA_AIC_TX_CHANNEL)(void)
     }
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
-{
-    pcm_play_dma_stop();
-
-    __dmac_channel_enable_clk(DMA_AIC_TX_CHANNEL);
-
-    set_dma(addr, size);
-
-    __aic_enable_replay();
-
-    __dmac_channel_enable_irq(DMA_AIC_TX_CHANNEL);
-}
-
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     int flags = disable_irq_save();
 
@@ -152,8 +140,21 @@ void pcm_play_dma_stop(void)
     restore_irq(flags);
 }
 
+static void sink_dma_start(const void *addr, size_t size)
+{
+    sink_dma_stop();
+
+    __dmac_channel_enable_clk(DMA_AIC_TX_CHANNEL);
+
+    set_dma(addr, size);
+
+    __aic_enable_replay();
+
+    __dmac_channel_enable_irq(DMA_AIC_TX_CHANNEL);
+}
+
 static unsigned int play_lock = 0;
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     int flags = disable_irq_save();
 
@@ -163,7 +164,7 @@ void pcm_play_lock(void)
     restore_irq(flags);
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     int flags = disable_irq_save();
 
@@ -172,3 +173,20 @@ void pcm_play_unlock(void)
 
     restore_irq(flags);
 }
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = sink_dma_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};

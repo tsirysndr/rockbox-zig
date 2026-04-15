@@ -163,7 +163,8 @@ int get_cpu_boost_counter(void);
 #endif
 
 /* returns index of first set bit or 32 if no bits are set */
-#if defined(CPU_ARM) && ARM_ARCH >= 5 && !defined(__thumb__)
+#if (defined(CPU_ARM) && ARM_ARCH >= 5 && !defined(__thumb__)) || \
+    defined(CPU_ARM_MICRO)
 static inline int find_first_set_bit(uint32_t val)
     { return LIKELY(val) ? __builtin_ctz(val) : 32; }
 #else
@@ -202,7 +203,7 @@ enum {
     MAXMEMGUARD
 };
 
-#if !defined(SIMULATOR) && !defined(__PCTOOL__) 
+#if !defined(SIMULATOR) && !defined(__PCTOOL__)
 #include "system-target.h"
 #elif defined(HAVE_SDL) /* SDL build */
 #include "system-sdl.h"
@@ -215,6 +216,11 @@ enum {
 
 #include "bitswap.h"
 #include "rbendian.h"
+
+/* Compiler memory barrier */
+#ifndef membarrier
+# define membarrier() asm volatile("" ::: "memory")
+#endif
 
 #ifndef ASSERT_CPU_MODE
 /* Very useful to have defined properly for your architecture */
@@ -252,17 +258,6 @@ static inline void cpu_boost_unlock(void)
 #define DISABLE_INTERRUPTS  HIGHEST_IRQ_LEVEL
 #endif
 
-/* Define this, if the CPU may take advantage of cache aligment. Is enabled
- * for all ARM CPUs. */
-#ifdef CPU_ARM
-    #define HAVE_CPU_CACHE_ALIGN
-    #define MIN_STACK_ALIGN 8
-#endif
-
-#ifdef CPU_MIPS
-    #define HAVE_CPU_CACHE_ALIGN
-#endif
-
 /* Define this if target has support for generating backtraces */
 #if defined(CPU_ARM) || \
     (defined(CPU_MIPS) && (CONFIG_PLATFORM & PLATFORM_NATIVE))
@@ -271,22 +266,13 @@ static inline void cpu_boost_unlock(void)
 #endif
 #endif
 
-#ifndef MIN_STACK_ALIGN
-#define MIN_STACK_ALIGN (sizeof (uintptr_t))
+/* ARM ABIs generally require 8-byte stack alignment */
+#ifdef CPU_ARM
+    #define MIN_STACK_ALIGN 8
 #endif
 
-/* Calculate CACHEALIGN_SIZE from CACHEALIGN_BITS */
-#ifdef CACHEALIGN_SIZE
-    /* undefine, if defined. always calculate from CACHEALIGN_BITS */
-    #undef CACHEALIGN_SIZE
-#endif
-#ifdef CACHEALIGN_BITS
-    /* CACHEALIGN_SIZE = 2 ^ CACHEALIGN_BITS */
-    #define CACHEALIGN_SIZE (1u << CACHEALIGN_BITS)
-#else
-    /* FIXME: set to maximum known cache alignment of supported CPUs */
-    #define CACHEALIGN_BITS  5
-    #define CACHEALIGN_SIZE 32
+#ifndef MIN_STACK_ALIGN
+#define MIN_STACK_ALIGN (sizeof (uintptr_t))
 #endif
 
 #ifdef HAVE_CPU_CACHE_ALIGN
@@ -340,7 +326,7 @@ static inline void cpu_boost_unlock(void)
 #define STORAGE_WANTS_ALIGN
 #endif
 
-#ifdef STORAGE_WANTS_ALIGN
+#if defined(STORAGE_WANTS_ALIGN) && !defined(SIMULATOR)
     #define STORAGE_ALIGN_ATTR __attribute__((aligned(CACHEALIGN_SIZE)))
     #define STORAGE_ALIGN_DOWN(x) \
         ((typeof (x))ALIGN_DOWN_P2((uintptr_t)(x), CACHEALIGN_BITS))

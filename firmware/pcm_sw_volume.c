@@ -51,22 +51,28 @@ static typeof (memcpy) *pcm_scaling_fn = NULL;
 
 /* take care of some defines for 32-bit software vol */
 #if (PCM_NATIVE_BITDEPTH > 16) /* >16-bit */
-
 # define HAVE_SWVOL_32
-# define PCM_VOL_SAMPLE_SIZE     (2 * sizeof (int32_t))
-# define PCM_DBL_BUF_SIZE_T int32_t
-
-# if !defined(PCM_DC_OFFSET_VALUE)
-/* PCM_DC_OFFSET_VALUE is only needed due to hardware quirk on Eros Q */
-#  define PCM_DC_OFFSET_VALUE 0
-# endif
-
+# define PCM_VOL_SAMPLE_SIZE    (2 * sizeof (int32_t))
+# define PCM_DBL_BUF_SIZE_T     int32_t
 #else /* 16-BIT */
-
-# define PCM_VOL_SAMPLE_SIZE     PCM_SAMPLE_SIZE
-# define PCM_DBL_BUF_SIZE_T int16_t
-
+# define PCM_VOL_SAMPLE_SIZE    (2 * sizeof (int16_t))
+# define PCM_DBL_BUF_SIZE_T     int16_t
 #endif /* 16-BIT */
+
+#if !defined(PCM_DC_OFFSET_VALUE)
+/* PCM_DC_OFFSET_VALUE is only needed due to hardware quirk on Eros Q */
+# define PCM_DC_OFFSET_VALUE 0
+#endif
+
+/*
+ * 16-bit samples are scaled up to an effective bit depth
+ * of (16+fracbits) bits and must be shifted to produce a
+ * native bit depth sample. Positive values correspond to
+ * right shifts (throwing away bits of the scaled result)
+ * while negative values correspond to left shifts (where
+ * the scaled result completely fits in the native sample).
+ */
+#define PCM_SCALE_SHIFT (16 + PCM_SW_VOLUME_FRACBITS - PCM_NATIVE_BITDEPTH)
 
 /***
  ** Volume scaling routines
@@ -83,10 +89,10 @@ static typeof (memcpy) *pcm_scaling_fn = NULL;
 /* Scale sample by PCM factor */
 static inline int32_t pcm_scale_sample(PCM_F_T f, int32_t s)
 {
-#if defined(HAVE_SWVOL_32)
-    return (f * s + PCM_DC_OFFSET_VALUE) >> (32 - PCM_NATIVE_BITDEPTH);
+#if PCM_SCALE_SHIFT > 0
+    return (f * s + PCM_DC_OFFSET_VALUE) >> PCM_SCALE_SHIFT;
 #else
-    return (f * s) >> PCM_SW_VOLUME_FRACBITS;
+    return (f * s + PCM_DC_OFFSET_VALUE) << (-PCM_SCALE_SHIFT);
 #endif
 }
 
@@ -319,7 +325,7 @@ static void start_pcm(bool reframe)
     pcm_play_dma_status_callback(PCM_DMAST_STARTED);
     pcm_play_dma_status_callback(PCM_DMAST_STARTED);
 
-    pcm_play_dma_start(pcm_dbl_buf[1], pcm_dbl_buf_size[1]);
+    pcm_get_current_sink()->ops.play(pcm_dbl_buf[1], pcm_dbl_buf_size[1]);
 }
 
 void pcm_play_dma_start_int(const void *addr, size_t size)
@@ -332,7 +338,7 @@ void pcm_play_dma_start_int(const void *addr, size_t size)
 
 void pcm_play_dma_stop_int(void)
 {
-    pcm_play_dma_stop();
+    pcm_get_current_sink()->ops.stop();
     src_buf_addr = NULL;
     src_buf_rem = 0;
 }
@@ -347,28 +353,10 @@ static uint32_t pcm_centibels_to_factor(int volume)
 {
     if (volume == PCM_MUTE_LEVEL)
         return 0; /* mute */
-#if defined(HAVE_SWVOL_32)
-    /*
-     * 32-bit software volume taken from pcm-alsa.c
-     */
-    volume += 48; /* -42dB .. 0dB => 5dB .. 48dB */
-    /* NOTE if vol_dB = 5 then vol_shift = 1 but r = 1 so we do vol_shift - 1 >= 0
-     * otherwise vol_dB >= 0 implies vol_shift >= 2 so vol_shift - 2 >= 0 */
-    int vol_shift = volume / 3;
-    int r = volume % 3;
-    int32_t dig_vol_mult;
-    if(r == 0)
-        dig_vol_mult = 1 << vol_shift;
-    else if(r == 1)
-        dig_vol_mult = 1 << vol_shift | 1 << (vol_shift - 2);
-    else
-        dig_vol_mult = 1 << vol_shift | 1 << (vol_shift - 1);
-    return dig_vol_mult;
-#else /* standard software volume */
+
     /* Centibels -> fixedpoint */
     return (uint32_t)fp_factor(fp_div(volume, 10, PCM_SW_VOLUME_FRACBITS),
                                PCM_SW_VOLUME_FRACBITS);
-#endif /* HAVE_SWVOL_32 */
 }
 
 

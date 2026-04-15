@@ -428,12 +428,9 @@ static void perform_config(void)
 
 static void *ci_codec_get_buffer(size_t *size)
 {
-    static char buffer[64 * 1024 * 1024];
-    char *ptr = buffer;
+    static char buffer[64 * 1024 * 1024] MEM_ALIGN_ATTR;
     *size = sizeof(buffer);
-    if ((intptr_t)ptr & (CACHEALIGN_SIZE - 1))
-        ptr += CACHEALIGN_SIZE - ((intptr_t)ptr & (CACHEALIGN_SIZE - 1));
-    return ptr;
+    return buffer;
 }
 
 static void ci_pcmbuf_insert(const void *ch1, const void *ch2, int count)
@@ -732,7 +729,7 @@ static void print_mp3entry(const struct mp3entry *id3, FILE *f)
     if (id3->album) fprintf(f, "Album: %s\n", id3->album);
     if (id3->genre_string) fprintf(f, "Genre: %s\n", id3->genre_string);
     if (id3->disc_string || id3->discnum) fprintf(f, "Disc: %s (%d)\n", id3->disc_string, id3->discnum);
-    if (id3->track_string || id3->tracknum) fprintf(f, "Track: %s (%d)\n", id3->track_string, id3->tracknum);
+    if (id3->track_string || id3->tracknum >= 0) fprintf(f, "Track: %s (%d)\n", id3->track_string, id3->tracknum);
     if (id3->year_string || id3->year) fprintf(f, "Year: %s (%d)\n", id3->year_string, id3->year);
     if (id3->composer) fprintf(f, "Composer: %s\n", id3->composer);
     if (id3->comment) fprintf(f, "Comment: %s\n", id3->comment);

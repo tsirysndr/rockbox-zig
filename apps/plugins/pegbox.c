@@ -271,23 +271,6 @@
 
 #define QUIT_TEXT "POWER"
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define PEGBOX_SELECT   BUTTON_CUSTOM
-#define PEGBOX_QUIT     BUTTON_BACK
-#define PEGBOX_RESTART  BUTTON_SELECT
-#define PEGBOX_LVL_UP   BUTTON_PLAY
-#define PEGBOX_LVL_DOWN BUTTON_MENU
-#define PEGBOX_UP       BUTTON_UP
-#define PEGBOX_DOWN     BUTTON_DOWN
-#define PEGBOX_RIGHT    BUTTON_RIGHT
-#define PEGBOX_LEFT     BUTTON_LEFT
-
-#define SELECT_TEXT "CUSTOM"
-#define QUIT_TEXT "BACK"
-#define RESTART_TEXT "MIDDLE"
-#define LVL_UP_TEXT "SELECT"
-#define LVL_DOWN_TEXT "MENU"
-
 #elif CONFIG_KEYPAD ==  CREATIVE_ZENXFI3_PAD
 #define PEGBOX_SELECT   (BUTTON_PLAY|BUTTON_REL)
 #define PEGBOX_QUIT     BUTTON_POWER
@@ -728,7 +711,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define LVL_UP_TEXT "UP+MENU"
 #define LVL_DOWN_TEXT "DOWN+MENU"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -749,6 +732,23 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define RESTART_TEXT "B"
 #define LVL_UP_TEXT "R"
 #define LVL_DOWN_TEXT "L"
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define PEGBOX_SELECT   BUTTON_SELECT
+#define PEGBOX_QUIT     BUTTON_BACK
+#define PEGBOX_RESTART  BUTTON_MENU
+#define PEGBOX_LVL_UP   BUTTON_USER
+#define PEGBOX_LVL_DOWN BUTTON_POWER
+#define PEGBOX_UP       BUTTON_UP
+#define PEGBOX_DOWN     BUTTON_DOWN
+#define PEGBOX_RIGHT    BUTTON_RIGHT
+#define PEGBOX_LEFT     BUTTON_LEFT
+
+#define QUIT_TEXT "B"
+#define RESTART_TEXT "X"
+#define LVL_UP_TEXT "Y"
+#define LVL_DOWN_TEXT "Start"
+#define SELECT_TEXT "A"
 
 #else
 #error "Unsupported keymap!"
@@ -1357,7 +1357,7 @@ static unsigned int pegbox_menu(struct game_context* pb, bool ingame)
     int selected = 0;
     int last_level = pb->level;
 
-    MENUITEM_STRINGLIST (main_menu, "Pegbox Menu", pegbox_menu_cb,
+    MENUITEM_STRINGLIST (main_menu, "Pegbox", pegbox_menu_cb,
                          "Resume Game", "Restart Level", "Start Game",
                          "Select Level", "Help",
                          "Playback Control", "Quit");

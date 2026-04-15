@@ -54,7 +54,7 @@
 #define LOGF_ENABLE
 #include "logf.h"
 
-#if (CONFIG_PLATFORM & (PLATFORM_SDL|PLATFORM_MAEMO|PLATFORM_PANDORA))
+#if (CONFIG_PLATFORM & PLATFORM_SDL)
 #define PREFIX(_x_) sim_ ## _x_
 #else
 #define PREFIX(_x_) _x_
@@ -159,7 +159,7 @@ void codec_get_full_path(char *path, const char *codec_root_fn)
             CODEC_EXTENSION, codec_root_fn);
 }
 
-/* Returns pointer to and size of free codec RAM. Aligns to CACHEALIGN_SIZE. */
+/* Returns pointer to and size of free codec RAM. Aligns to MEM_ALIGN_SIZE. */
 void *codec_get_buffer_callback(size_t *size)
 {
     void *buf = &codecbuf[codec_size];
@@ -169,7 +169,7 @@ void *codec_get_buffer_callback(size_t *size)
         return NULL;
 
     *size = s;
-    ALIGN_BUFFER(buf, *size, CACHEALIGN_SIZE);
+    ALIGN_BUFFER(buf, *size, MEM_ALIGN_SIZE);
 
     return buf;
 }
@@ -225,6 +225,7 @@ static int codec_load_ram(struct codec_api *api)
     return c_hdr->entry_point(CODEC_LOAD);
 }
 
+#if defined(HAVE_CODEC_BUFFERING)
 int codec_load_buf(int hid, struct codec_api *api)
 {
     int rc = bufread(hid, CODEC_SIZE, codecbuf);
@@ -243,6 +244,7 @@ int codec_load_buf(int hid, struct codec_api *api)
 
     return codec_load_ram(api);
 }
+#endif /* HAVE_CODEC_BUFFERING */
 
 int codec_load_file(const char *plugin, struct codec_api *api)
 {

@@ -13,6 +13,7 @@
 *.pkg
 
 .hermit/
+.cache
 
 __pycache__
 .DS_STORE
@@ -139,6 +140,7 @@ target
 /tools/bmp2rb
 /tools/codepages
 /tools/rdf2binary
+/tools/reggen
 /tools/mkboot
 /tools/mk500boot
 /tools/uclpack
@@ -334,9 +336,6 @@ target
 /utils/regtools/swiss_knife
 /utils/regtools/tester_v1
 
-<<<<<<< HEAD
 .vscode
-=======
 # /utils/time-sync/
 /utils/time-sync/time-sync
->>>>>>> upstream/master

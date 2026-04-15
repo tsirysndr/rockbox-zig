@@ -219,31 +219,6 @@
 #define UI_LCD_POSX                 58 /* x position of lcd */
 #define UI_LCD_POSY                 67 /* y position of lcd */
 
-#elif defined(CREATIVE_ZVM) || defined(CREATIVE_ZVM60GB)
-#ifdef CREATIVE_ZVM
- #define UI_TITLE                    "Creative Zen Vision:M 30GB"
-#else
- #define UI_TITLE                    "Creative Zen Vision:M 60GB"
-#endif
-#define UI_WIDTH                    383 /* width of GUI window */
-#define UI_HEIGHT                   643 /* height of GUI window */
-#define UI_LCD_POSX                 31 /* x position of lcd */
-#define UI_LCD_POSY                 62 /* y position of lcd */
-
-#elif defined(CREATIVE_ZV)
-#define UI_TITLE                    "Creative Zen Vision"
-#define UI_WIDTH                    1054 /* width of GUI window */
-#define UI_HEIGHT                   643 /* height of GUI window */
-#define UI_LCD_POSX                 129 /* x position of lcd */
-#define UI_LCD_POSY                 85 /* y position of lcd */
-
-#elif defined(MEIZU_M6SL)
-#define UI_TITLE                    "Meizu M6"
-#define UI_WIDTH                    512 /* width of GUI window */
-#define UI_HEIGHT                   322 /* height of GUI window */
-#define UI_LCD_POSX                 39 /* x position of lcd */
-#define UI_LCD_POSY                 38 /* y position of lcd */
-
 #elif defined(SANSA_FUZEPLUS)
 #define UI_TITLE                    "Sansa Fuze+"
 #define UI_WIDTH                    322 /* width of GUI window */
@@ -352,13 +327,6 @@
 #define UI_HEIGHT                   454 /* height of GUI window */
 #define UI_LCD_POSX                 124 /* x position of lcd */
 #define UI_LCD_POSY                 42  /* y position of lcd */
-
-#elif defined(MINI2440)
-#define UI_TITLE                    "Mini2440"
-#define UI_WIDTH                    441 /* width of GUI window */
-#define UI_HEIGHT                   436 /* height of GUI window */
-#define UI_LCD_POSX                 148 /* x position of lcd */
-#define UI_LCD_POSY                 50 /* y position of lcd */
 
 #elif defined(PBELL_VIBE500)
 #define UI_TITLE                    "Packard Bell Vibe 500"
@@ -543,6 +511,20 @@
 #define UI_LCD_POSX                 64
 #define UI_LCD_POSY                 78
 
+
+#elif defined(HIBY_R3PROII)
+#define UI_TITLE                    "Hiby R3 Pro II"
+#define UI_WIDTH                    645
+#define UI_HEIGHT                   924
+#define UI_LCD_POSX                 79
+#define UI_LCD_POSY                 63
+
+#elif defined(HIBY_R1)
+#define UI_TITLE                    "Hiby R1"
+#define UI_WIDTH                    634
+#define UI_HEIGHT                   1016
+#define UI_LCD_POSX                 77
+#define UI_LCD_POSY                 74
 
 #elif defined(SIMULATOR)
 #error no UI defines

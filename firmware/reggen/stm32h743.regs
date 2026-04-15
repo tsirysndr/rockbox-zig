@@ -1,0 +1,1759 @@
+// This file is marked CC0 1.0.
+// To view a copy of this mark, visit https://creativecommons.org/publicdomain/zero/1.0/
+
+// Register definitions for STM32H743
+
+FLASH @ 0x52002000 : block {
+    ACR @ 0x00 : reg {
+        5 4 WRHIGHFREQ
+        3 0 LATENCY
+    }
+}
+
+PWR @ 0x58024800 : block {
+    CR1 @ 0x00 : reg {
+        18 17 ALS
+        -- 16 AVDEN
+        15 14 SVOS
+        -- 09 FLPS
+        -- 08 DBP
+        07 05 PLS
+        -- 04 PVDE
+        -- 00 LPDS
+    }
+
+    CSR1 @ 0x04 : reg {
+        -- 16 AVDO
+        15 14 ACTVOS
+        -- 13 ACTVOSRDY
+        -- 04 PVDO
+    }
+
+    CR3 @ 0x0c : reg {
+        26 USB33RDY
+        25 USBREGEN
+        24 USB33DEN
+        09 VBRS
+        08 VBE
+        02 SCUEN
+        01 LDOEN
+        00 BYPASS
+    }
+
+    D3CR @ 0x18 : reg {
+        15 14 VOS    : { 1 = VOS3; 2 = VOS2; 3 = VOS1; }
+        -- 13 VOSRDY
+    }
+}
+
+RCC @ 0x58024400 : block {
+    CR @ 0x00 : reg {
+        -- 29 PLL3RDY
+        -- 28 PLL3ON
+        -- 27 PLL2RDY
+        -- 26 PLL2ON
+        -- 25 PLL1RDY
+        -- 24 PLL1ON
+        -- 19 HSECSSON
+        -- 18 HSEBYP
+        -- 17 HSERDY
+        -- 16 HSEON
+        -- 15 D2CKRDY
+        -- 14 D1CKRDY
+        -- 13 HSI48RDY
+        -- 12 HSI48ON
+        -- 09 CSIKERON
+        -- 08 CSIRDY
+        -- 07 CSION
+        -- 05 HSIDIVF
+        04 03 HSIDIV
+        -- 02 HSIRDY
+        -- 01 HSIKERON
+        -- 00 HSION
+    }
+
+    CFGR @ 0x10 : reg {
+        enum SWCLK {
+            0 = HSI
+            1 = CSI
+            2 = HSE
+            3 = PLL1P
+        }
+
+        31 29 MCO2    : { 0 = SYSCLK; 1 = PLL2P; 2 = HSE; 3 = PLL1P; 4 = CSI; 5 = LSI }
+        28 25 MCO2PRE
+        24 22 MCO1    : { 0 = HSI; 1 = LSE; 2 = HSE; 3 = PLL1Q; 4 = HSI48 }
+        21 18 MCO1PRE
+        -- 15 TIMPRE
+        -- 14 HRTIMSEL
+        13 08 RTCPRE
+        -- 07 STOPKERWUCK
+        -- 06 STOPWUCK
+        05 03 SWS : SWCLK
+        02 00 SW  : SWCLK
+    }
+
+    D1CFGR @ 0x18 : reg {
+        11 08 D1CPRE
+        06 04 D1PPRE
+        03 00 HPRE
+    }
+
+    D2CFGR @ 0x1c : reg {
+        10 08 D2PPRE2
+        06 04 D2PPRE1
+    }
+
+    D3CFGR @ 0x20 : reg {
+        06 04 D3PPRE
+    }
+
+    PLLCKSELR @ 0x28 : reg {
+        25 20 DIVM3
+        17 12 DIVM2
+        09 04 DIVM1
+        01 00 PLLSRC : { 0 = HSI; 1 = CSI; 2 = HSE; 3 = NONE }
+    }
+
+    PLLCFGR @ 0x2c : reg {
+        enum PLLRGE {
+            0 = 1_2MHZ;
+            1 = 2_4MHZ;
+            2 = 4_8MHZ;
+            3 = 8_16MHZ;
+        }
+
+        enum PLLVCOSEL {
+            0 = WIDE
+            1 = MEDIUM
+        }
+
+        -- 24 DIVR3EN
+        -- 23 DIVQ3EN
+        -- 22 DIVP3EN
+        -- 21 DIVR2EN
+        -- 20 DIVQ2EN
+        -- 19 DIVP2EN
+        -- 18 DIVR1EN
+        -- 17 DIVQ1EN
+        -- 16 DIVP1EN
+        11 10 PLL3RGE    : PLLRGE
+        -- 09 PLL3VCOSEL : PLLVCOSEL
+        -- 08 PLL3FRACEN
+        07 06 PLL2RGE    : PLLRGE
+        -- 05 PLL2VCOSEL : PLLVCOSEL
+        -- 04 PLL2FRACEN
+        03 02 PLL1RGE    : PLLRGE
+        -- 01 PLL1VCOSEL : PLLVCOSEL
+        -- 00 PLL1FRACEN
+    }
+
+    reg PLLxDIVR {
+        30 24 DIVR
+        22 16 DIVQ
+        15 09 DIVP
+        08 00 DIVN
+    }
+
+    reg PLLxFRACR {
+        15 03 FRACN
+    }
+
+    PLL1DIVR  @ 0x30 : PLLxDIVR
+    PLL1FRACR @ 0x34 : PLLxFRACR
+    PLL2DIVR  @ 0x38 : PLLxDIVR
+    PLL2FRACR @ 0x3c : PLLxFRACR
+    PLL3DIVR  @ 0x40 : PLLxDIVR
+    PLL3FRACR @ 0x44 : PLLxFRACR
+
+    D1CCIPR @ 0x4c : reg {
+        enum QSPI_FMC_SEL {
+            0 = AHB
+            1 = PLL1Q
+            2 = PLL2R
+            3 = PER
+        }
+
+        29 28 CKPERSEL : { 0 = HSI;   1 = CSI;  2 = HSE }
+        -- 16 SDMMCSEL : { 0 = PLL1Q; 2 = PLL2R }
+        05 04 QSPISEL  : QSPI_FMC_SEL
+        01 00 FMCSEL   : QSPI_FMC_SEL
+    }
+
+    enum AUDIO_CLK_SEL {
+        0 = PLL1Q
+        1 = PLL2P
+        2 = PLL3P
+        3 = I2SCKIN
+        4 = PER
+    }
+
+    D2CCIP1R @ 0x50 : reg {
+        -- 31 SWPSEL    : { 0 = APB1;  1 = HSI }
+        29 28 FDCANSEL  : { 0 = HSE;   1 = PLL1Q; 2 = PLL2Q }
+        -- 24 DFSDM1SEL : { 0 = APB2;  1 = SYSCLK }
+        21 20 SPDIFSEL  : { 0 = PLL1Q; 1 = PLL2R; 2 = PLL3R; 3 = HSI }
+        18 16 SPI45SEL  : { 0 = APB2;  1 = PLL2Q; 2 = PLL3Q; 3 = HSI; 4 = CSI; 5 = HSE }
+        14 12 SPI123SEL : AUDIO_CLK_SEL
+        08 06 SAI23SEL  : AUDIO_CLK_SEL
+        02 00 SAI1SEL   : AUDIO_CLK_SEL
+    }
+
+    D2CCIP2R @ 0x54 : reg {
+        enum USARTSEL_COMMON {
+            1 = PLL2Q
+            2 = PLL3Q
+            3 = HSI
+            4 = CSI
+            5 = LSE
+        }
+
+        30 28 LPTIM1SEL      : { 0 = APB1; 1 = PLL2P; 2 = PLL3R; 3 = LSE;  4 = LSI; 5 = PER }
+        23 22 CECSEL         : { 0 = LSE;  1 = LSI;   2 = CSI }
+        21 20 USBSEL         : { 0 = OFF;  1 = PLL1Q; 2 = PLL3Q; 3 = HSI48 }
+        13 12 I2C123SEL      : { 0 = APB1; 1 = PLL3R; 2 = HSI;   3 = CSI }
+        09 08 RNGSEL         : { 0 = HSI;  1 = PLL1Q; 2 = LSE;   3 = LSI }
+        05 03 USART16SEL     : { 0 = APB2; include USARTSEL_COMMON }
+        02 00 USART234578SEL : { 0 = APB1; include USARTSEL_COMMON }
+    }
+
+    D3CCIPR @ 0x58 : reg {
+        enum LPTIMSEL {
+            0 = APB4
+            1 = PLL2P
+            2 = PLL3R
+            3 = LSE
+            4 = LSI
+            5 = PER
+        }
+
+        30 28 SPI6SEL     : { 0 = APB4;  1 = PLL2Q; 2 = PLL3Q; 3 = HSI; 4 = CSI; 5 = HSE }
+        26 24 SAI4BSEL    : AUDIO_CLK_SEL
+        23 21 SAI4ASEL    : AUDIO_CLK_SEL
+        17 16 ADCSEL      : { 0 = PLL2P; 1 = PLL3R; 2 = PER }
+        15 13 LPTIM345SEL : LPTIMSEL
+        12 10 LPTIM2SEL   : LPTIMSEL
+        09 08 I2C4SEL     : { 0 = APB4; 1 = PLL3R; 2 = HSI;   3 = CSI }
+        02 00 LPUART1SEL  : { 0 = APB4; 1 = PLL2Q; 2 = PLL3Q; 3 = HSI; 4 = CSI; 5 = LSE }
+    }
+
+    BDCR @ 0x70 : reg {
+        -- 16 BDRST
+        -- 15 RTCEN
+        09 08 RTCSEL : { 0 = NONE; 1 = LSE; 2 = LSI; 3 = HSE }
+        -- 06 LSECSSD
+        -- 05 LSECSSON
+        04 03 LSEDRV : { 0 = LOW; 1 = MED_LOW; 2 = MED_HIGH; 3 = HIGH }
+        -- 02 LSEBYP
+        -- 01 LSERDY
+        -- 00 LSEON
+    }
+
+    CSR @ 0x74 : reg {
+        1 LSIRDY
+        0 LSION
+    }
+
+    RSR @ 0xd0 : reg {
+        30 LPWRRSTF
+        28 WWDG1RSTF
+        26 IWDGRSTF
+        24 SFTRSTF
+        23 PORRSTF
+        22 PINRSTF
+        21 BORRSTF
+        20 D2RSTF
+        19 D1RSTF
+        17 CPURSTF
+        16 RMVF
+    }
+
+    AHB1ENR @ 0xd8 : reg {
+        28 USB2OTGHSULPIEN
+        27 USB2OTGHSEN
+        26 USB1OTGHSULPIEN
+        25 USB1OTGHSEN
+        17 ETH1RXEN
+        16 ETH1TXEN
+        15 ETH1MACEN
+        05 ADC12EN
+        01 DMA2EN
+        00 DMA1EN
+    }
+
+    AHB3RSTR @ 0x7c : reg {
+        16 SDMMC1RST
+        14 QSPIRST
+        12 FMCRST
+        05 JPEGDECRST
+        04 DMA2DRST
+        00 MDMARST
+    }
+
+    AHB3ENR @ 0xd4 : reg {
+        16 SDMMC1EN
+        14 QSPIEN
+        12 FMCEN
+        05 JPEGDECEN
+        04 DMA2DEN
+        00 MDMAEN
+    }
+
+    AHB3LPENR @ 0xfc : reg {
+        include AHB3ENR
+
+        31 AXISRAMEN
+        30 ITCMEN
+        29 DTCM2EN
+        28 D1DTCM1EN
+        08 FLASHEN
+    }
+
+    reg AHB4EN_COMMON {
+        28 BKPRAMEN
+        24 ADC3EN
+        21 BDMAEN
+        19 CRCEN
+        10 GPIOKEN
+        09 GPIOJEN
+        08 GPIOIEN
+        07 GPIOHEN
+        06 GPIOGEN
+        05 GPIOFEN
+        04 GPIOEEN
+        03 GPIODEN
+        02 GPIOCEN
+        01 GPIOBEN
+        00 GPIOAEN
+    }
+
+    AHB4ENR @ 0xe0 : reg {
+        include AHB4EN_COMMON
+
+        25 HSEMEN
+    }
+
+    AHB4LPENR @ 0x108 : reg {
+        include AHB4EN_COMMON
+
+        29 SRAM4EN
+    }
+
+    reg APB3ENR {
+        6 WWDG1EN
+        3 LTDCEN
+    }
+
+    APB3LPENR @ 0x10c : APB3ENR
+    APB3ENR @ 0xe4 : APB3ENR
+
+    reg APB1LENR {
+        31 UART8EN
+        30 UART7EN
+        29 DAC12EN
+        27 CECEN
+        23 I2C3EN
+        22 I2C2EN
+        21 I2C1EN
+        20 UART5EN
+        19 UART4EN
+        18 USART3EN
+        17 USART2EN
+        16 SPDIFRXEN
+        15 SPI3EN
+        14 SPI2EN
+        09 LPTIM1EN
+        08 TIM14EN
+        07 TIM13EN
+        06 TIM12EN
+        05 TIM7EN
+        04 TIM6EN
+        03 TIM5EN
+        02 TIM4EN
+        01 TIM3EN
+        00 TIM2EN
+    }
+
+    APB1LENR @ 0xe8 : APB1LENR
+    APB1LLPENR @ 0x110 : APB1LENR
+
+    reg APB1HENR {
+        8 FDCANEN
+        5 MDIOSEN
+        4 OPAMPEN
+        2 SWPEN
+        1 CRSEN
+    }
+
+    APB1HENR @ 0xec : APB1HENR
+    APB1HLPENR @ 0x114 : APB1HENR
+
+    reg APB2ENR {
+        29 HRTIMEN
+        28 DFSDM1EN
+        24 SAI3EN
+        23 SAI2EN
+        22 SAI1EN
+        20 SPI5EN
+        18 TIM17EN
+        17 TIM16EN
+        16 TIM15EN
+        13 SPI4EN
+        12 SPI1EN
+        05 USART6EN
+        04 USART1EN
+        01 TIM8EN
+        00 TIM1EN
+    }
+
+    APB2ENR @ 0xf0 : APB2ENR
+    APB2LPENR @ 0x118 : APB2ENR
+
+    reg APB4ENR {
+        21 SAI4EN
+        16 RTCAPBEN
+        15 VREFEN
+        14 COMP12EN
+        12 LPTIM5EN
+        11 LPTIM4EN
+        10 LPTIM3EN
+        09 LPTIM2EN
+        07 I2C4EN
+        05 SPI6EN
+        03 LPUART1EN
+        01 SYSCFGEN
+    }
+
+    APB4ENR @ 0xf4 : APB4ENR
+    APB4LPENR @ 0x11c : APB4ENR
+}
+
+GPIO @ 0x58020000 [11; 0x400] : block {
+    MODER   @ 0x00 : reg
+    OTYPER  @ 0x04 : reg
+    OSPEEDR @ 0x08 : reg
+    PUPDR   @ 0x0c : reg
+    IDR     @ 0x10 : reg
+    ODR     @ 0x14 : reg
+    BSRR    @ 0x18 : reg
+    LCKR    @ 0x1c : reg
+    AFRL    @ 0x20 : reg
+    AFRH    @ 0x24 : reg
+}
+
+SYSCFG @ 0x58000400 : block {
+    PWRCFG @ 0x2c : reg {
+        0 ODEN
+    }
+
+    EXTICR @ 0x08 [4; 0x04] : reg
+}
+
+FMC @ 0x52004000 : block {
+    BCR @ 0x00 [4; 0x08]: reg {
+        -- 31 FMCEN
+        25 24 BMAP
+        -- 21 WFDIS
+        -- 20 CCLKEN
+        -- 19 CBURSTRW
+        18 16 CPSIZE : { 0 = NONE; 1 = 128BYTE; 2 = 256BYTE; 4 = 1024BYTE }
+        -- 15 ASYNCWAIT
+        -- 14 EXTMOD
+        -- 13 WAITEN
+        -- 12 WREN
+        -- 11 WAITCFG
+        -- 09 WAITPOL
+        -- 08 BURSTEN
+        -- 06 FACCEN
+        05 04 MWID : { 0 = 8BIT; 1 = 16BIT; 2 = 32BIT }
+        03 02 MTYP : { 0 = SRAM; 1 = PSRAM; 2 = NOR }
+        -- 01 MUXEN
+        -- 00 MBKEN
+    }
+
+    BTR @ 0x04 [4; 0x08] : reg {
+        29 28 ACCMOD
+        27 24 DLAT
+        23 20 CLKDIV
+        19 16 BUSTURN
+        15 08 DATAST
+        07 04 ADDHLD
+        03 00 ADDSET
+    }
+
+    SDCR @ 0x140 [2; 0x04] : reg {
+        14 13 RPIPE
+        -- 12 RBURST
+        11 10 SDCLK
+        -- 09 WP
+        08 07 CAS
+        -- 06 NB
+        05 04 MWID
+        03 02 NR
+        01 00 NC
+    }
+
+    SDTR @ 0x148 [2; 0x04] : reg {
+        27 24 TRCD
+        23 20 TRP
+        19 16 TWR
+        15 12 TRC
+        11 08 TRAS
+        07 04 TXSR
+        03 00 TMRD
+    }
+
+    SDCMR @ 0x150 : reg {
+        22 09 MRD
+        08 05 NRFS
+        -- 04 CTB1
+        -- 03 CTB2
+        02 00 MODE
+    }
+
+    SDRTR @ 0x154 : reg {
+        -- 14 REIE
+        13 01 COUNT
+        -- 00 CRE
+    }
+
+    SDSR @ 0x158 : reg {
+        04 03 MODES2
+        02 01 MODES1
+        -- 00 RE
+    }
+}
+
+RTC @ 0x58004000 : block {
+    reg TR {
+        -- 22 PM
+        21 20 HT
+        19 16 HU
+        14 12 MNT
+        11 08 MNU
+        06 04 ST
+        03 00 SU
+    }
+
+    TR @ 0x00 : TR
+    TSTR @ 0x30 : TR
+
+    reg DR {
+        23 20 YT
+        19 16 YU
+        15 13 WDU
+        -- 12 MT
+        11 08 MU
+        05 04 DT
+        03 00 DU
+    }
+
+    DR @ 0x04 : DR
+    DRTR @ 0x34 : DR
+
+    CR @ 0x08 : reg {
+        -- 24 ITSE
+        -- 23 COE
+        22 21 OSEL : { 0 = DISABLED; 1 = ALARM_A; 2 = ALARM_B; 3 = WAKEUP }
+        -- 20 POL
+        -- 19 COSEL
+        -- 18 BKP
+        -- 17 SUB1H
+        -- 16 ADD1H
+        -- 15 TSIE
+        -- 14 WUTIE
+        -- 13 ALRBIE
+        -- 12 ALRAIE
+        -- 11 TSE
+        -- 10 WUTE
+        -- 09 ALRBE
+        -- 08 ALRAE
+        -- 06 FMT
+        -- 05 BYPSHAD
+        -- 04 REFCKON
+        -- 03 TSEDGE
+        02 00 WUCKSEL : { 0 = RTC_16; 1 = RTC_8; 2 = RTC_4; 3 = RTC_2; 4 = CK_SPRE; 6 = CK_SPRE_ADDWUT }
+    }
+
+    ISR @ 0x0c : reg {
+        17 ITSF
+        16 RECANPF
+        15 TAMP3F
+        14 TAMP2F
+        13 TAMP1F
+        12 TSOVF
+        11 TSF
+        10 WUTF
+        09 ALRBF
+        08 ALRAF
+        07 INIT
+        06 INITF
+        05 RSF
+        04 INITS
+        03 SHPF
+        02 WUTWF
+        01 ALRBWF
+        00 ALRAWF
+    }
+
+    PRER @ 0x10 : reg {
+        22 16 PREDIV_A
+        14 00 PREDIV_S
+    }
+
+    WUTR @ 0x14 : reg {
+        15 00 VALUE
+    }
+
+    WPR @ 0x24 : reg {
+        07 00 KEY : { 0xCA = KEY1; 0x53 = KEY2 }
+    }
+
+    reg SSR {
+        15 00 SS
+    }
+
+    SSR @ 0x28 : SSR
+    TSSSR @ 0x38 : SSR
+
+    OR @ 0x4c : reg {
+        1 OUT_RMP
+        0 ALARM_TYPE : { 0 = OPEN_DRAIN; 1 = PUSH_PULL }
+    }
+
+    BKPR @ 0x50 [32; 0x04] : reg
+}
+
+block SPI {
+    CR1 @ 0x00 : reg {
+        16 IO_LOCK
+        15 TCRCINI
+        14 RCRCINI
+        13 CRC33_17
+        12 SSI
+        11 HDDIR
+        10 CSUSP
+        09 CSTART
+        08 MASRX
+        00 SPE
+    }
+
+    CR2 @ 0x04 : reg {
+        31 16 TSER
+        15 00 TSIZE
+    }
+
+    CFG1 @ 0x08 : reg {
+        30 28 MBR
+        -- 22 CRCEN
+        20 16 CRCSIZE
+        -- 15 TXDMAEN
+        -- 14 RXDMAEN
+        12 11 UDRDET
+        10 09 UDRCFG
+        08 05 FTHLV
+        04 00 DSIZE
+    }
+
+    CFG2 @ 0x0c : reg {
+        -- 31 AFCNTR
+        -- 30 SSOM
+        -- 29 SSOE
+        -- 28 SSIOP
+        -- 26 SSM : { 0 = SS_PAD; 1 = SSI_BIT }
+        -- 25 CPOL
+        -- 24 CPHA
+        -- 23 LSBFIRST
+        -- 22 MASTER
+        21 19 SP   : { 0 = MOTOROLA; 1 = TI }
+        18 17 COMM : { 0 = DUPLEX; 1 = TXONLY; 2 = RXONLY; 3 = HALF_DUPLEX }
+        -- 15 IOSWP
+        07 04 MIDI
+        03 00 MSSI
+    }
+
+    IER @ 0x10 : reg {
+        10 TSERFIE
+        09 MODFIE
+        08 TIFREIE
+        07 CRCEIE
+        06 OVRIE
+        05 UDRIE
+        04 TXTFIE
+        03 EOTIE
+        02 DXPIE
+        01 TXPIE
+        00 RXPIE
+    }
+
+    SR @ 0x14 : reg {
+       31 16 CTSIZE
+       -- 15 RXWNE
+       14 13 RXPLVL
+       -- 12 TXC
+       -- 11 SUSP
+       -- 10 TSERF
+       -- 09 MODF
+       -- 08 TIFRE
+       -- 07 CRCE
+       -- 06 OVR
+       -- 05 UDR
+       -- 04 TXTF
+       -- 03 EOT
+       -- 02 DXP
+       -- 01 TXP
+       -- 00 RXP
+    }
+
+    IFCR @ 0x18 : reg {
+        11 SUSPC
+        10 TSERFC
+        09 MODFC
+        08 TIFREC
+        07 CRCEC
+        06 OVRC
+        05 UDRC
+        04 TXTFC
+        03 EOTC
+    }
+
+    DR @ 0x20 : reg32
+    CRCPOLY @ 0x40 : reg
+    TXCRC @ 0x44 : reg
+    RXCRC @ 0x48 : reg
+    UDRDR @ 0x4c : reg
+
+    I2SCFGR @ 0x50 : reg {
+        -- 25 MCKOE
+        -- 24 ODD
+        23 16 I2SDIV
+        -- 14 DATFMT : { 0 = RIGHT_ALIGNED; 1 = LEFT_ALIGNED }
+        -- 13 WSINV
+        -- 12 FIXCH
+        -- 11 CKPOL
+        -- 10 CHLEN   : { 0 = 16BIT; 1 = 32BIT }
+        09 08 DATLEN  : { 0 = 16BIT; 1 = 24BIT; 2 = 32BIT }
+        -- 07 PCMSYNC : { 0 = SHORT; 1 = LONG }
+        05 04 I2SSTD  : { 0 = I2S; 1 = MSB_JUSTIFIED; 2 = LSB_JUSTIFIED; 3 = PCM }
+        03 01 I2SCFG  : { 0 = SLAVE_TX; 1 = SLAVE_RX;
+                          2 = MASTER_TX; 3 = MASTER_RX;
+                          4 = SLAVE_DUPLEX; 5 = MASTER_DUPLEX }
+        -- 00 I2SMOD
+    }
+}
+
+SPI1 @ 0x40013000 : SPI
+SPI2 @ 0x40003800 : SPI
+SPI3 @ 0x40003c00 : SPI
+SPI4 @ 0x40013400 : SPI
+SPI5 @ 0x40015000 : SPI
+SPI6 @ 0x58001400 : SPI
+
+// Microcontroller debug unit
+DBGMCU @ 0x5C001000 : block {
+    CR @ 0x04 : reg {
+        28 TRGOEN
+        22 D3DBGCKEN
+        21 D1DBGCKEN
+        20 TRACECLKEN
+        02 DBGSTBY_D1
+        01 DBGSTOP_D1
+        00 DBGSLEEP_D1
+    }
+}
+
+// AXI interconnect global programmer view
+GPV_AXI @ 0x51000000 : block {
+    PERIPH_ID_4 @ 0x1FD0 : reg
+    PERIPH_ID_5 @ 0x1FD4 : reg
+    PERIPH_ID_6 @ 0x1FD8 : reg
+    PERIPH_ID_7 @ 0x1FDC : reg
+    PERIPH_ID_0 @ 0x1FE0 : reg
+    PERIPH_ID_1 @ 0x1FE4 : reg
+    PERIPH_ID_2 @ 0x1FE8 : reg
+    PERIPH_ID_3 @ 0x1FEC : reg
+    COMP_ID_0 @ 0x1FF0 : reg
+    COMP_ID_1 @ 0x1FF4 : reg
+    COMP_ID_2 @ 0x1FF8 : reg
+    COMP_ID_3 @ 0x1FFC : reg
+
+    // valid index is 1 to 7
+    TARGx_FN_MOD_ISS_BM @ 0x1008 [8; 0x1000] : reg {
+        1 WRITE_ISS_OVERRIDE
+        0 READ_ISS_OVERRIDE
+    }
+
+    // valid index is 1, 2, and 7
+    TARGx_FN_MOD2 @ 0x1024 [8; 0x1000] : reg {
+        0 BYPASS_MERGE
+    }
+
+    // valid index is 1 and 2
+    TARGx_FN_MOD_LB @ 0x102C [3; 0x1000] : reg {
+        0 FN_MOD_LB
+    }
+
+    // valid index is 1, 2, and 7
+    TARGx_FN_MOD @ 0x1108 [8; 0x1000] : reg {
+        1 WRITE_ISS_OVERRIDE
+        0 READ_ISS_OVERRIDE
+    }
+
+    // valid index is 1 and 3
+    INIx_FN_MOD2 @ 0x41024 [4; 0x1000] : reg {
+        0 BYPASS_MERGE
+    }
+
+    // valid index is 1 and 3
+    INIx_FN_MOD_AHB @ 0x41028 [4; 0x1000] : reg {
+        1 WR_INC_OVERRIDE
+        0 RD_INC_OVERRIDE
+    }
+
+    // valid index is 1 to 7 (datasheet says 76, probably a typo)
+    INIx_READ_QOS @ 0x41100 [8; 0x1000] : reg {
+        3 0 AR_QOS
+    }
+
+    // valid index is 1 to 7 (datasheet says 76, probably a typo)
+    INIx_WRITE_QOS @ 0x41104 [8; 0x1000] : reg {
+        3 0 AW_QOS
+    }
+
+    // valid index is 1 to 7 (datasheet says 76, probably a typo)
+    INIx_FN_MOD @ 0x41108 [8; 0x1000] : reg {
+        1 WRITE_ISS_OVERRIDE
+        0 READ_ISS_OVERRIDE
+    }
+}
+
+// LCD-TFT display controller
+LTDC @ 0x50001000 : block {
+    SSCR @ 0x08 : reg {
+        27 16 HSW
+        10 00 VSH
+    }
+
+    BPCR @ 0x0c : reg {
+        27 16 AHBP
+        10 00 AVBP
+    }
+
+    AWCR @ 0x10 : reg {
+        27 16 AAW
+        10 00 AAH
+    }
+
+    TWCR @ 0x14 : reg {
+        27 16 TOTALW
+        10 00 TOTALH
+    }
+
+    GCR @ 0x18 : reg {
+        -- 31 HSPOL
+        -- 30 VSPOL
+        -- 29 DEPOL
+        -- 28 PCPOL
+        -- 16 DEN
+        14 12 DRW
+        10 08 DGW
+        06 04 DBW
+        -- 00 LTDCEN
+    }
+
+    SRCR @ 0x24 : reg {
+        1 VBR
+        0 IMR
+    }
+
+    BCCR @ 0x2c : reg {
+        23 16 BCRED
+        15 08 BCGREEN
+        07 00 BCBLUE
+    }
+
+    IER @ 0x34 : reg {
+        3 RRIE
+        2 TERRIE
+        1 FUIE
+        0 LIE
+    }
+
+    ISR @ 0x38 : reg {
+        3 RRIF
+        2 TERRIF
+        1 FUIF
+        0 LIF
+    }
+
+    ICR @ 0x3C : reg {
+        3 CRRIF
+        2 CTERRIF
+        1 CFUIF
+        0 CLIF
+    }
+
+    LIPCR @ 0x40 : reg {
+        10 00 LIPOS
+    }
+
+    CPSR @ 0x44 : reg {
+        31 16 CXPOS
+        15 00 CYPOS
+    }
+
+    CDSR @ 0x48 : reg {
+        3 HSYNCS
+        2 VSYNCS
+        1 HDES
+        0 VDES
+    }
+
+    LAYER @ 0x80 [2; 0x80] : block {
+        CR @ 0x04 : reg {
+            4 CLUTEN
+            1 COLKEN
+            0 LEN
+        }
+
+        WHPCR @ 0x08 : reg {
+            27 16 WHSPPOS
+            11 00 WHSTPOS
+        }
+
+        WVPCR @ 0x0c : reg {
+            26 16 WVSPPOS
+            10 00 WVSTPOS
+        }
+
+        CKCR @ 0x10 : reg {
+            23 16 CKRED
+            15 08 CKGREEN
+            07 00 CKBLUE
+        }
+
+        PFCR @ 0x14 : reg {
+            2 0 PF : {
+                0 = ARGB8888
+                1 = RGB888
+                2 = RGB565
+                3 = ARGB1555
+                4 = ARGB4444
+                5 = L8
+                6 = AL44
+                7 = AL88
+            }
+        }
+
+        CACR @ 0x18 : reg {
+            7 0 CONSTA
+        }
+
+        DCCR @ 0x1c : reg {
+            31 24 DCALPHA
+            24 16 DCRED
+            15 08 DCGREEN
+            07 00 DCBLUE
+        }
+
+        BFCR @ 0x20 : reg {
+            10 08 BF2 : {
+                4 = CONSTANT_ALPHA
+                6 = PIXEL_ALPHA_TIMES_CONSTANT_ALPHA
+            }
+
+            02 00 BF1 : {
+                5 = ONE_MINUS_CONSTANT_ALPHA
+                7 = ONE_MINUS_PIXEL_ALPHA_TIMES_CONSTANT_ALPHA
+            }
+        }
+
+        CFBAR @ 0x2c : reg
+
+        CFBLR @ 0x30 : reg {
+            28 16 CFBP
+            12 00 CFBLL
+        }
+
+        CFBLNR @ 0x34 : reg {
+            10 00 CFBLNBR
+        }
+
+        CLUTWR @ 0x44 : reg {
+            31 24 CLUTADD
+            23 16 RED
+            15 08 GREEN
+            07 00 BLUE
+        }
+    }
+}
+
+// SD/MMC host controller
+block SDMMC {
+    POWER @ 0x00 : reg {
+        - 4 DIRPOL
+        - 3 VSWITCHEN
+        - 2 VSWITCH
+        1 0 PWRCTRL : { 0 = POWER_OFF; 2 = POWER_CYCLE; 3 = POWER_ON }
+    }
+
+    CLKCR @ 0x04 : reg {
+        21 20 SELCLKRX : { 0 = SDMMC_IO_IN_CK; 1 = SDMMC_CKIN; 2 = SDMMC_FB_CK }
+        -- 19 BUSSPEED : { 0 = SLOW; 1 = FAST }
+        -- 18 DDR
+        -- 17 HWFC_EN
+        -- 16 NEGEDGE
+        15 14 WIDBUS : { 0 = 1BIT; 1 = 4BIT; 2 = 8BIT }
+        -- 12 PWRSAV
+        09 00 CLKDIV
+    }
+
+    ARGR @ 0x08 : reg
+
+    CMDR @ 0x0c : reg {
+        -- 16 CMDSUSPEND
+        -- 15 BOOTEN
+        -- 14 BOOTMODE
+        -- 13 DTHOLD
+        -- 12 CPSMEN
+        -- 11 WAITPEND
+        -- 10 WAITINT
+        09 08 WAITRESP : { 0 = NONE; 1 = SHORT; 2 = SHORT_NOCRC; 3 = LONG }
+        -- 07 CMDSTOP
+        -- 06 CMDTRANS
+        05 00 CMDINDEX
+    }
+
+    RESPCMDR @ 0x10 : reg {
+        05 00 RESPCMD
+    }
+
+    RESPR @ 0x14 [4; 0x04] : reg
+    DTIMER @ 0x24 : reg
+
+    DLENR @ 0x28 : reg {
+        24 00 DATALENGTH
+    }
+
+    DCTRL @ 0x2c : reg {
+        -- 13 FIFORST
+        -- 12 BOOTACKEN
+        -- 11 SDIOEN
+        -- 10 RWMOD
+        -- 09 RWSTOP
+        -- 08 RWSTART
+        07 04 DBLOCKSIZE
+        03 02 DTMODE
+        -- 01 DTDIR
+        -- 00 DTEN
+    }
+
+    DCNTR @ 0x30 : reg {
+        24 00 DATACOUNT
+    }
+
+    reg INTERRUPT_COMMON {
+        28 IDMABTC
+        26 CKSTOP
+        25 VSWEND
+        24 ACKTIMEOUT
+        23 ACKFAIL
+        22 SDIOIT
+        21 BUSYD0END
+        11 DABORT
+        10 DBCKEND
+        09 DHOLD
+        08 DATAEND
+        07 CMDSENT
+        06 CMDREND
+        05 RXOVERR
+        04 TXUNDERR
+        03 DTIMEOUT
+        02 CTIMEOUT
+        01 DCRCFAIL
+        00 CCRCFAIL
+    }
+
+    reg INTERRUPT_FIFO {
+        18 TXFIFOE
+        17 RXFIFOF
+        15 RXFIFOHF
+        14 TXFIFOHE
+    }
+
+    STAR @ 0x34 : reg {
+        27 IDMATE
+        20 BUSYD0
+        19 RXFIFOE
+        16 TXFIFOF
+        13 CPSMACT
+        12 DPSMACT
+
+        include INTERRUPT_COMMON
+        include INTERRUPT_FIFO
+    }
+
+    ICR @ 0x38 : reg {
+        27 IDMATE
+        include INTERRUPT_COMMON
+    }
+
+    MASKR @ 0x3c : reg {
+        include INTERRUPT_COMMON
+        include INTERRUPT_FIFO
+    }
+
+    ACKTIMER @ 0x40 : reg {
+        24 00 ACKTIME
+    }
+
+    IDMACTRLR @ 0x50 : reg {
+        2 IDMABACT  : { 0 = USE_BUFFER0;   1 = USE_BUFFER1   }
+        1 IDMABMODE : { 0 = SINGLE_BUFFER; 1 = DOUBLE_BUFFER }
+        0 IDMAEN
+    }
+
+    IDMABSIZER @ 0x54 : reg {
+        12 05 IDMABNDT
+    }
+
+    IDMABASE0R @ 0x58 : reg
+    IDMABASE1R @ 0x5c : reg
+
+    FIFOR @ 0x80 [16; 0x04] : reg
+}
+
+SDMMC1 @ 0x52007000 : SDMMC
+SDMMC2 @ 0x48022400 : SDMMC
+
+// Clock recovery system
+CRS @ 0x40008400 : block {
+    CR @ 0x00 : reg {
+        13 08 TRIM
+        -- 07 SWSYNC
+        -- 06 AUTOTRIMEN
+        -- 05 CEN
+        -- 03 ESYNCIE
+        -- 02 ERRIE
+        -- 01 SYNCWARNIE
+        -- 00 SYNCOKIE
+    }
+
+    CFGR @ 0x04 : reg {
+        -- 31 SYNCPOL : { 0 = RISING_EDGE; 1 = FALLING_EDGE }
+        29 28 SYNCSRC : { 0 = USB2_SOF; 1 = LSE; 2 = USB1_SOF }
+        26 24 SYNCDIV
+        23 16 FELIM
+        15 00 RELOAD
+    }
+
+    ISR @ 0x08 : reg {
+        31 16 FECAP
+        -- 15 FEDIR
+        -- 10 TRIMOVF
+        -- 09 SYNCMISS
+        -- 08 SYNCERR
+        -- 03 ESYNCF
+        -- 02 ERRF
+        -- 01 SYNCWARNF
+        -- 00 SYNCOKF
+    }
+
+    ICR @ 0x0c : reg {
+        3 ESYNCC
+        2 ERRC
+        1 SYNCWARNC
+        0 SYNCOKC
+    }
+}
+
+// Extended interrupt and event controller
+EXTI @ 0x58000000 : block {
+    RTSR @ 0x00 [3; 0x20] : reg
+    FTSR @ 0x04 [3; 0x20] : reg
+    SWIER @ 0x08 [3; 0x20] : reg
+    D3PMR @ 0x0c [3; 0x20] : reg
+    D3PCRL @ 0x10 [3; 0x20] : reg
+    D3PCRH @ 0x14 [3; 0x20] : reg
+
+    CPUIMR @ 0x80 [3; 0x10] : reg
+    CPUEMR @ 0x84 [3; 0x10] : reg
+    CPUPR @ 0x88 [3; 0x10] : reg
+}
+
+// Serial audio interface
+block SAI {
+    GCR @ 0x00 : reg {
+        05 04 SYNCOUT : { 0 = NONE; 1 = BLOCK_A; 2 = BLOCK_B }
+        01 00 SYNCIN
+    }
+
+    block SUBBLOCK {
+        CR1 @ 0x04 : reg {
+            -- 26 OSR   : { 0 = 256FS; 1 = 512FS }
+            25 20 MCKDIV
+            -- 19 NOMCK
+            -- 17 DMAEN
+            -- 16 SAIEN
+            -- 13 OUTDRIV
+            -- 12 MONO
+            11 10 SYNCEN : { 0 = ASYNC; 1 = SYNC_INT; 2 = SYNC_EXT }
+            -- 09 CKSTR  : { 0 = TX_RISING_RX_FALLING; 1 = TX_FALLING_RX_RISING }
+            -- 08 LSBFIRST
+            07 05 DS     : { 2 = 8BIT; 3 = 10BIT; 4 = 16BIT; 5 = 20BIT; 6 = 24BIT; 7 = 32BIT }
+            03 02 PRTCFG : { 0 = FREE; 1 = SPDIF; 2 = AC97 }
+            01 00 MODE   : { 0 = MASTER_TX; 1 = MASTER_RX; 2 = SLAVE_TX; 3 = SLAVE_RX }
+        }
+
+        CR2 @ 0x08 : reg {
+            15 14 COMP : { 0 = NONE; 2 = U_LAW; 3 = A_LAW }
+            -- 13 CPL
+            12 07 MUTECNT
+            -- 06 MUTEVAL : { 0 = ZERO_SAMPLE; 1 = LAST_SAMPLE }
+            -- 05 MUTE
+            -- 04 TRIS
+            -- 03 FFLUSH
+            02 00 FTH : { 0 = EMPTY; 1 = QUARTER; 2 = HALF; 3 = THREE_QUARTERS; 4 = FULL }
+        }
+
+        FRCR @ 0x0c : reg {
+            -- 18 FSOFF
+            -- 17 FSPOL
+            -- 16 FSDEF
+            14 08 FSALL
+            07 00 FRL
+        }
+
+        SLOTR @ 0x10 : reg {
+            31 16 SLOTEN
+            11 08 NBSLOT
+            07 06 SLOTSZ : { 0 = DATASZ; 1 = 16BIT; 2 = 32BIT }
+            04 00 FBOFF
+        }
+
+        IM @ 0x14 : reg {
+            06 LFSDET
+            05 AFSDET
+            04 CNRDY
+            03 FREQ
+            02 WCKCFG
+            01 MUTEDET
+            00 OVRUDR
+        }
+
+        SR @ 0x18 : reg {
+            18 16 FLVL
+            include IM
+        }
+
+        CLRFR @ 0x1c : reg {
+            include IM
+        }
+
+        DR @ 0x20 : reg
+    }
+
+    A @ 0x00 : SUBBLOCK
+    B @ 0x20 : SUBBLOCK
+}
+
+SAI1 @ 0x40015800 : SAI
+SAI2 @ 0x40015c00 : SAI
+SAI3 @ 0x40016000 : SAI
+SAI4 @ 0x58005400 : SAI
+
+// DMA controller
+block DMA {
+    LISR @ 0x00 : reg {
+        27 TCIF3
+        26 HTIF3
+        25 TEIF3
+        24 DMEIF3
+        22 FEIF3
+
+        21 TCIF2
+        20 HTIF2
+        19 TEIF2
+        18 DMEIF2
+        16 FEIF2
+
+        11 TCIF1
+        10 HTIF1
+        09 TEIF1
+        08 DMEIF1
+        06 FEIF1
+
+        05 TCIF0
+        04 HTIF0
+        03 TEIF0
+        02 DMEIF0
+        00 FEIF0
+    }
+
+    HISR @ 0x04 : reg {
+        27 TCIF7
+        26 HTIF7
+        25 TEIF7
+        24 DMEIF7
+        22 FEIF7
+
+        21 TCIF6
+        20 HTIF6
+        19 TEIF6
+        18 DMEIF6
+        16 FEIF6
+
+        11 TCIF5
+        10 HTIF5
+        09 TEIF5
+        08 DMEIF5
+        06 FEIF5
+
+        05 TCIF4
+        04 HTIF4
+        03 TEIF4
+        02 DMEIF4
+        00 FEIF4
+    }
+
+    LIFCR @ 0x08 : LISR
+    HIFCR @ 0x0c : HISR
+
+    CHN @ 0x00 [8; 0x18] : block {
+        CR @ 0x10 : reg {
+            enum BURST_TYPE {
+                0 = SINGLE
+                1 = INCR4
+                2 = INCR8
+                3 = INCR16
+            }
+
+            enum SIZE_TYPE {
+                0 = 8BIT
+                1 = 16BIT
+                2 = 32BIT
+            }
+
+            24 23 MBURST : BURST_TYPE
+            22 21 PBURST : BURST_TYPE
+            -- 20 TRBUFF
+            -- 19 CT
+            -- 18 DBM
+            17 16 PL     : { 0 = LOW; 1 = MEDIUM; 2 = HIGH; 3 = VERYHIGH }
+            -- 15 PINCOS
+            14 13 MSIZE  : SIZE_TYPE
+            12 11 PSIZE  : SIZE_TYPE
+            -- 10 MINC
+            -- 09 PINC
+            -- 08 CIRC
+            07 06 DIR    : { 0 = PERIPH_TO_MEM; 1 = MEM_TO_PERIPH; 2 = MEM_TO_MEM }
+            -- 05 PFCTRL : { 0 = DMA; 1 = PERIPH }
+            -- 04 TCIE
+            -- 03 HTIE
+            -- 02 TEIE
+            -- 01 DMEIE
+            -- 00 EN
+        }
+
+        NDTR @ 0x14 : reg
+        PAR @ 0x18 : reg
+        M0AR @ 0x1c : reg
+        M1AR @ 0x20 : reg
+
+        FCR @ 0x24 : reg {
+            -- 07 FEIE
+            05 03 FS
+            -- 02 DMDIS
+            01 00 FTH   : { 0 = QUARTER; 1 = HALF; 2 = THREE_QUARTERS; 3 = FULL }
+        }
+    }
+}
+
+DMA1 @ 0x40020000 : DMA
+DMA2 @ 0x40020400 : DMA
+
+// DMA multiplexer
+block DMAMUX {
+    CR @ 0x00 [16; 0x04] : reg {
+        28 24 SYNC_ID
+        23 19 NBREQ
+        18 17 SPOL
+        -- 16 SE
+        -- 09 EGE
+        -- 08 SOIE
+        06 00 DMAREQ_ID
+    }
+
+    CSR @ 0x80 : reg
+    CFR @ 0x84 : reg
+
+    RGCR @ 0x100 [8; 0x04] : reg {
+        23 19 GNBREQ
+        18 17 GPOL
+        -- 16 GE
+        -- 08 OIE
+        04 00 SIG_ID
+    }
+
+    RGSR @ 0x140 : reg
+    RGCFR @ 0x144 : reg
+}
+
+DMAMUX1 @ 0x40020800 : DMAMUX
+DMAMUX2 @ 0x58025800 : DMAMUX
+
+// I2C controller
+block I2C {
+    CR1 @ 0x00 : reg {
+        -- 23 PECEN
+        -- 22 ALERTEN
+        -- 21 SMBDEN
+        -- 20 SMBHEN
+        -- 19 GCEN
+        -- 18 WUPEN
+        -- 17 NOSTRETCH
+        -- 16 SBC
+        -- 15 RXDMAEN
+        -- 14 TXDMAEN
+        -- 12 ANFOFF
+        11 08 DNF
+        -- 07 ERRIE
+        -- 06 TCIE
+        -- 05 STOPIE
+        -- 04 NACKIE
+        -- 03 ADDRIE
+        -- 02 RXIE
+        -- 01 TXIE
+        -- 00 PE
+    }
+
+    CR2 @ 0x04 : reg {
+        -- 26 PECBYTE
+        -- 25 AUTOEND
+        -- 24 RELOAD
+        23 16 NBYTES
+        -- 15 NACK
+        -- 14 STOP
+        -- 13 START
+        -- 12 HEAD10R
+        -- 11 ADD10
+        -- 10 RD_WRN
+        09 00 SADD
+    }
+
+    OAR1 @ 0x08 : reg {
+        -- 15 OA1EN
+        -- 10 OA1MODE
+        09 00 OA1
+    }
+
+    OAR2 @ 0x0c : reg {
+        -- 15 OA2EN
+        10 08 OA2MSK
+        07 01 OA2
+    }
+
+    TIMINGR @ 0x10 : reg {
+        31 28 PRESC
+        23 20 SCLDEL
+        19 16 SDADEL
+        15 08 SCLH
+        07 00 SCLL
+    }
+
+    TIMEOUTR @ 0x14 : reg {
+        -- 31 TEXTEN
+        27 16 TIMEOUTB
+        -- 15 TIMOUTEN
+        -- 12 TIDLE
+        11 00 TIMEOUTA
+    }
+
+    ISR @ 0x18 : reg {
+        23 17 ADDCODE
+        -- 16 DIR
+        -- 15 BUSY
+        -- 14 ALERT
+        -- 12 TIMEOUT
+        -- 11 PECERR
+        -- 10 OVR
+        -- 09 ARLO
+        -- 08 BERR
+        -- 07 TCR
+        -- 06 TC
+        -- 05 STOPF
+        -- 04 NACKF
+        -- 03 ADDR
+        -- 02 RXNE
+        -- 01 TXIS
+        -- 00 TXE
+    }
+
+    ICR @ 0x1c : reg {
+        -- 13 ALERTCF
+        -- 12 TIMOUTCF
+        -- 11 PECCF
+        -- 10 OVRCF
+        -- 09 ARLOCF
+        -- 08 BERRCF
+        -- 05 STOPCF
+        -- 04 NACKCF
+        -- 03 ADDRCF
+    }
+
+    RXDR @ 0x24 : reg
+    TXDR @ 0x28 : reg
+}
+
+I2C1 @ 0x40005400 : I2C
+I2C2 @ 0x40005800 : I2C
+I2C3 @ 0x40005C00 : I2C
+I2C4 @ 0x58001C00 : I2C
+
+block ADC {
+    ISR @ 0x00 : reg {
+        12 LDORDY
+        10 JQOVF
+        09 AWD3
+        08 AWD2
+        07 AWD1
+        06 JEOS
+        05 JEOC
+        04 OVR
+        03 EOS
+        02 EOC
+        01 EOSMP
+        00 ADRDY
+    }
+
+    IER @ 0x04 : reg {
+        10 JQOVFIE
+        09 AWD3IE
+        08 AWD2IE
+        07 AWD1IE
+        06 JEOSIE
+        05 JEOCIE
+        04 OVRIE
+        03 EOSIE
+        02 EOCIE
+        01 EOSMPIE
+        00 ADRDYIE
+    }
+
+    CR @ 0x08 : reg {
+        -- 31 ADCAL
+        -- 30 ADCALDIF
+        -- 29 DEEPPWD
+        -- 28 ADVREGEN
+        -- 27 LINCALRDYW6
+        -- 26 LINCALRDYW5
+        -- 25 LINCALRDYW4
+        -- 24 LINCALRDYW3
+        -- 23 LINCALRDYW2
+        -- 22 LINCALRDYW1
+        -- 16 ADCALLIN
+        -- 09 BOOST1 // present on revision V only
+        -- 08 BOOST0
+        -- 05 JADSTP
+        -- 04 ADSTP
+        -- 03 JADSTART
+        -- 02 ADSTART
+        -- 01 ADDIS
+        -- 00 ADEN
+    }
+
+    CFGR @ 0x0c : reg {
+        -- 31 JQDIS
+        30 26 AWD1CH
+        -- 25 JAUTO
+        -- 24 JAWD1EN
+        -- 23 AWD1EN
+        -- 22 AWD1SGL
+        -- 21 JQM
+        -- 20 JDISCEN
+        19 17 DISCNUM
+        -- 16 DISCEN
+        -- 14 AUTDLY
+        -- 13 CONT
+        -- 12 OVRMOD
+        11 10 EXTEN
+        09 05 EXTSEL
+        04 02 RES
+        01 00 DMNGT
+    }
+
+    CFGR2 @ 0x10 : reg {
+        31 28 LSHIFT
+        25 16 OSVR
+        -- 14 RSHIFT4
+        -- 13 RSHIFT3
+        -- 12 RSHIFT2
+        -- 11 RSHIFT1
+        -- 10 ROVSM
+        -- 09 TROVS
+        08 05 OVSS
+        -- 01 JOVSE
+        -- 00 ROVSE
+    }
+
+    enum SMPTIME {
+        0 = 1_5CYCLE
+        1 = 2_5CYCLE
+        2 = 8_5CYCLE
+        3 = 16_5CYCLE
+        4 = 32_5CYCLE
+        5 = 64_5CYCLE
+        6 = 387_5CYCLE
+        7 = 810_5CYCLE
+    }
+
+    SMPR1 @ 0x14 : reg {
+        29 27 SMP9 : SMPTIME
+        26 24 SMP8 : SMPTIME
+        23 21 SMP7 : SMPTIME
+        20 18 SMP6 : SMPTIME
+        17 15 SMP5 : SMPTIME
+        14 12 SMP4 : SMPTIME
+        11 09 SMP3 : SMPTIME
+        08 06 SMP2 : SMPTIME
+        05 03 SMP1 : SMPTIME
+        02 00 SMP0 : SMPTIME
+    }
+
+    SMPR2 @ 0x18 : reg {
+        29 27 SMP19 : SMPTIME
+        26 24 SMP18 : SMPTIME
+        23 21 SMP17 : SMPTIME
+        20 18 SMP16 : SMPTIME
+        17 15 SMP15 : SMPTIME
+        14 12 SMP14 : SMPTIME
+        11 09 SMP13 : SMPTIME
+        08 06 SMP12 : SMPTIME
+        05 03 SMP11 : SMPTIME
+        02 00 SMP10 : SMPTIME
+    }
+
+    PCSEL @ 0x1c : reg
+    LTR1 @ 0x20 : reg
+    HTR1 @ 0x24 : reg
+
+    SQR1 @ 0x30 : reg {
+        28 24 SQ4
+        22 18 SQ3
+        16 12 SQ2
+        10 06 SQ1
+        03 00 L
+    }
+
+    SQR2 @ 0x34 : reg {
+        28 24 SQ9
+        22 18 SQ8
+        16 12 SQ7
+        10 06 SQ6
+        04 00 SQ5
+    }
+
+    SQR3 @ 0x38 : reg {
+        28 24 SQ14
+        22 18 SQ13
+        16 12 SQ12
+        10 06 SQ11
+        04 00 SQ10
+    }
+
+    SQR4 @ 0x38 : reg {
+        10 06 SQ16
+        04 00 SQ15
+    }
+
+    DR @ 0x40 : reg
+
+    JSQR @ 0x4c : reg {
+        31 27 JSQ4
+        25 21 JSQ3
+        19 15 JSQ2
+        13 09 JSQ1
+        08 07 JEXTEN
+        06 02 JEXTSEL
+        01 00 JL
+    }
+
+    OFR @ 0x60 [4; 0x04] : reg {
+        -- 31 SSATE
+        30 26 OFFSET_CH
+        25 00 OFFSET
+    }
+
+    JDR @ 0x80 [4; 0x04] : reg
+
+    AWD2CR @ 0xa0 : reg {
+        19 00 AWD2CH
+    }
+
+    AWD3CR @ 0xa4 : reg {
+        19 00 AWD3CH
+    }
+
+    LTR2 @ 0xb0 : reg
+    HTR2 @ 0xb4 : reg
+    LTR3 @ 0xb8 : reg
+    HTR3 @ 0xbc : reg
+
+    DIFSEL @ 0xc0 : reg
+
+    CALFACT @ 0xc4 : reg {
+        26 16 D
+        10 00 S
+    }
+
+    CALFACT2 @ 0xc8 : reg {
+        29 00 LINCALFACT
+    }
+
+    CSR @ 0x300 : reg {
+        26 JQOVF_SLV
+        25 AWD3_SLV
+        24 AWD2_SLV
+        23 AWD1_SLV
+        22 JEOS_SLV
+        21 JEOC_SLV
+        20 OVR_SLV
+        19 EOS_SLV
+        18 EOC_SLV
+        17 EOSMP_SLV
+        16 ADRDY_SLV
+        10 JQOVF_MST
+        09 AWD3_MST
+        08 AWD2_MST
+        07 AWD1_MST
+        06 JEOS_MST
+        05 JEOC_MST
+        04 OVR_MST
+        03 EOS_MST
+        02 EOC_MST
+        01 EOSMP_MST
+        00 ADRDY_MST
+    }
+
+    CCR @ 0x308 : reg {
+        -- 24 VBATEN
+        -- 23 TSEN
+        -- 22 VREFEN
+        21 18 PRESC
+        17 16 CKMOD
+        15 14 DAMDF
+        10 08 DELAY
+        04 00 DUAL
+    }
+
+    CDR @ 0x30c : reg {
+        31 16 RDATA_SLV
+        15 00 RDATA_MST
+    }
+
+    CDR2 @ 0x310 : reg
+}
+
+ADC1 @ 0x40022000 : ADC
+ADC2 @ 0x40022100 : ADC
+ADC3 @ 0x58026000 : ADC

@@ -31,7 +31,7 @@ $(CHESSBOX_OBJDIR)/chessbox.rock: $(CHESSBOX_OBJ)
 $(CHESSBOX_OBJDIR)/chessbox.refmap: $(CHESSBOX_OBJ)
 
 $(CHESSBOX_OUTLDS): $(PLUGIN_LDS) $(CHESSBOX_OBJDIR)/chessbox.refmap
-	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DOVERLAY_OFFSET=$(shell \
+	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DPLUGIN -DOVERLAY_OFFSET=$(shell \
 		$(TOOLSDIR)/ovl_offset.pl $(CHESSBOX_OBJDIR)/chessbox.refmap))
 
 $(CHESSBOX_OBJDIR)/chessbox.ovl: $(CHESSBOX_OBJ) $(CHESSBOX_OUTLDS)
@@ -39,7 +39,7 @@ $(CHESSBOX_OBJDIR)/chessbox.ovl: $(CHESSBOX_OBJ) $(CHESSBOX_OUTLDS)
 		$(filter %.o, $^) \
 		$(filter %.a, $+) \
 		-lgcc $(CHESSBOX_OVLFLAGS)
-	$(call PRINTS,LD $(@F))$(call objcopy,$(basename $@).elf,$@)
+	$(call PRINTS,LD $(@F))$(call objcopy_plugin,$(basename $@).elf,$@)
 
 # special pattern rule for compiling chessbox with extra flags
 $(CHESSBOX_OBJDIR)/%.o: $(CHESSBOX_SRCDIR)/%.c $(CHESSBOX_SRCDIR)/chessbox.make

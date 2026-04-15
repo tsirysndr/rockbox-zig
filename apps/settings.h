@@ -41,6 +41,7 @@ struct opt_items {
 /** Setting values defines **/
 #define MAX_FILENAME 32
 #define MAX_PATHNAME 80
+#define MAX_PATHLIST (MAX_PATHNAME*2)
 
 /* The values are assigned to the enums so that they correspond to */
 /* setting values in settings_list.c                               */
@@ -132,15 +133,6 @@ enum
     QUEUE_HIDE = 0,
     QUEUE_SHOW_AT_TOPLEVEL,
     QUEUE_SHOW_IN_SUBMENU
-};
-
-enum
-{
-    BROWSER_DEFAULT_FILES = 0,
-#ifdef HAVE_TAGCACHE
-    BROWSER_DEFAULT_DB,
-#endif
-    BROWSER_DEFAULT_PL_CAT
 };
 
 #ifdef HAVE_ALBUMART
@@ -307,7 +299,7 @@ const struct settings_list* find_setting_by_cfgname(const char* name);
 bool cfg_int_to_string(const struct settings_list *setting, int val, char* buf, int buf_len);
 bool cfg_string_to_int(const struct settings_list *setting, int* out, const char* str);
 void cfg_to_string(const struct settings_list *setting, char* buf, int buf_len);
-void string_to_cfg(const char *name, char* value, bool *theme_changed);
+bool string_to_cfg(const char *name, char* value, bool *theme_changed);
 
 bool copy_filename_setting(char *buf, size_t buflen, const char *input,
                            const struct filename_setting *fs);
@@ -358,12 +350,14 @@ struct system_status
     int last_frequency;  /* Last frequency for resuming, in FREQ_STEP units,
                             relative to MIN_FREQ */
 #endif
-    signed char last_screen;
+    int last_screen;
+    int last_browser;
     int  viewer_icon_count;
     int last_volume_change; /* tick the last volume change happened. skins use this */
     int font_id[NB_SCREENS]; /* font id of the settings font for each screen */
 
-    bool resume_modified; /* playlist is modified (=> warn before erase) */
+    int resume_modified; /* playlist is modified (=> warn before erase) */
+    char browse_last_folder[MAX_PATH];/* only saved if keep_directory = true */
 };
 
 struct user_settings
@@ -627,9 +621,9 @@ struct user_settings
     bool autoresume_enable;   /* enable auto-resume feature? */
     int autoresume_automatic; /* resume next track? 0=never, 1=always,
                                  2=custom */
-    unsigned char autoresume_paths[MAX_PATHNAME+1]; /* colon-separated list */
+    unsigned char autoresume_paths[MAX_PATHLIST+1]; /* colon-separated list */
     bool runtimedb;           /* runtime database active? */
-    unsigned char tagcache_scan_paths[MAX_PATHNAME+1];
+    unsigned char tagcache_scan_paths[MAX_PATHLIST+1];
     unsigned char tagcache_db_path[MAX_PATHNAME+1];
 #endif /* HAVE_TAGCACHE */
 
@@ -645,8 +639,6 @@ struct user_settings
     int lst_color; /* color of the text for the selector */
     unsigned char colors_file[MAX_FILENAME+1];
 #endif
-
-    int browser_default;        /* Default browser when accessed from WPS */
 
     /* playlist/playback settings */
     int  repeat_mode; /* 0=off 1=repeat all 2=repeat one 3=shuffle 4=ab */
@@ -892,6 +884,7 @@ struct user_settings
 
     char start_directory[MAX_PATHNAME+1];
     /* Has the root been customized from the .cfg file? false = no, true = loaded from cfg */
+    bool keep_directory;  /* this saves the last path visited in the file browser */
     bool root_menu_customized;
 #ifdef HAVE_QUICKSCREEN
     bool shortcuts_replaces_qs;
@@ -935,6 +928,9 @@ struct user_settings
     int hp_lo_select; /* indicates automatic, headphone-only, or lineout-only operation */
 #endif
     bool playback_log; /* ROCKBOX_DIR/playback.log for tracks played */
+#if defined(HAVE_GENERAL_PURPOSE_LED)
+    bool use_led_indicators;
+#endif
 };
 
 /* global settings */

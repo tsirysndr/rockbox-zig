@@ -144,6 +144,7 @@
 /* define this if the unit can have USB charging disabled by user -
  * if USB/MAIN power is discernable and hardware doesn't compel charging */
 #define HAVE_USB_CHARGING_ENABLE
+#define TARGET_USB_CHARGING_DEFAULT USB_CHARGING_FORCE
 
 #define CURRENT_NORMAL     32  /* MP3: ~9h playback out of 300mAh battery */
 #define CURRENT_BACKLIGHT  20  /* FIXME: this needs adjusting */

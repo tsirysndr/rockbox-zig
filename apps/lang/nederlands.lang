@@ -9078,15 +9078,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bas-afsnijfrequentie"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bas-afsnijfrequentie"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bas-afsnijfrequentie"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bas-afsnijfrequentie"
   </voice>
 </phrase>
 <phrase>
@@ -9095,15 +9095,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble-afsnijfrequentie"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble-afsnijfrequentie"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble-afsnijfrequentie"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble-afsnijfrequentie"
   </voice>
 </phrase>
 <phrase>
@@ -11725,7 +11725,7 @@
 </phrase>
 <phrase>
   id: LANG_USB_MODE
-  desc: in Settings -> General -> System -> USB Mode
+  desc: in Settings -> General -> System -> USB
   user: core
   <source>
     *: "USB Mode"
@@ -12268,20 +12268,6 @@
   </dest>
   <voice>
     *: "Gemiddelde bit snelheid"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYTIME_ERROR
-  desc: playing time screen
-  user: core
-  <source>
-    *: "Error while gathering info"
-  </source>
-  <dest>
-    *: "Fout bij het verzamelen van informatie"
-  </dest>
-  <voice>
-    *: "Fout bij het verzamelen van informatie"
   </voice>
 </phrase>
 <phrase>
@@ -15839,20 +15825,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_AMAZE_MENU
-  desc: Amaze game
-  user: core
-  <source>
-    *: "Amaze Main Menu"
-  </source>
-  <dest>
-    *: "Amaze Hoofdmenu"
-  </dest>
-  <voice>
-    *: "Amaze Hoofdmenu"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SET_MAZE_SIZE
   desc: Maze size in Amaze game
   user: core
@@ -16228,34 +16200,6 @@
   </dest>
   <voice>
     *: "Mik mod instellingen"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MIKMOD_MENU
-  desc: mikmod plugin
-  user: core
-  <source>
-    *: "Mikmod Menu"
-  </source>
-  <dest>
-    *: "~Mikmod Menu"
-  </dest>
-  <voice>
-    *: "Mik mod menu"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_MENU
-  desc: chessbox plugin
-  user: core
-  <source>
-    *: "Chessbox Menu"
-  </source>
-  <dest>
-    *: "~Chessbox Menu"
-  </dest>
-  <voice>
-    *: "Chess box menu"
   </voice>
 </phrase>
 <phrase>
@@ -16923,5 +16867,104 @@
   </dest>
   <voice>
     *: "Afspeellijst sorteren"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC"
+  </source>
+  <dest>
+    *: none
+    usbdac: "~USB-DAC"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "~USB-DAC"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_USB_CHARGE_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Charge-Only Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "Tijdens 'enkel opladen' USB-modus"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "Tijdens 'enkel opladen' USB-modus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_MASS_STORAGE_USB_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Mass-Storage Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "Tijdens 'massaopslag' USB-modus"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "Tijdens 'massaopslag' USB-modus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC_ACTIVE
+  desc: for splash
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC Active"
+  </source>
+  <dest>
+    *: none
+    usbdac: "USB-DAC aktief"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "USB-DAC aktief"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_LED_INDICATORS
+  desc: LED indicators setting
+  user: core
+  <source>
+    *: none
+    general_purpose_led: "Use LED indicators"
+  </source>
+  <dest>
+    *: none
+    general_purpose_led: "Gebruik LED-indicatoren"
+  </dest>
+  <voice>
+    *: none
+    general_purpose_led: "Gebruik LED-indicatoren"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MENU
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "USB"
+  </source>
+  <dest>
+    *: "~USB"
+  </dest>
+  <voice>
+    *: "~U S B"
   </voice>
 </phrase>

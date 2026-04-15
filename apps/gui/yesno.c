@@ -31,6 +31,7 @@
 #include "appevents.h"
 #include "splash.h"
 #include "backlight.h"
+#include "statusbar-skinned.h"
 
 struct gui_yesno
 {
@@ -216,6 +217,7 @@ static void gui_yesno_ui_update(unsigned short id, void *event_data, void *user_
  *   no_message - displayed when YESNO_NO is choosen
 */
 enum yesno_res gui_syncyesno_run_w_tmo(int ticks, enum yesno_res tmo_default_res,
+                                       const char * title,
                                        const struct text_message * main_message,
                                        const struct text_message * yes_message,
                                        const struct text_message * no_message)
@@ -241,7 +243,9 @@ enum yesno_res gui_syncyesno_run_w_tmo(int ticks, enum yesno_res tmo_default_res
         yn[i].main_message=main_message;
         yn[i].display=&screens[i];
         screens[i].scroll_stop();
+        sb_set_persistent_title(title, Icon_NOICON, i);
         viewportmanager_theme_enable(i, true, &(yn[i].vp));
+
         yn[i].vp_lines = viewport_get_nb_lines(&(yn[i].vp));
     }
 
@@ -249,6 +253,7 @@ enum yesno_res gui_syncyesno_run_w_tmo(int ticks, enum yesno_res tmo_default_res
     /* switch to point mode because that's more intuitive */
     enum touchscreen_mode old_mode = touchscreen_get_mode();
     touchscreen_set_mode(TOUCHSCREEN_POINT);
+    action_gesture_reset();
 #endif
 
     /* make sure to eat any extranous keypresses */
@@ -277,22 +282,20 @@ enum yesno_res gui_syncyesno_run_w_tmo(int ticks, enum yesno_res tmo_default_res
         {
 #ifdef HAVE_TOUCHSCREEN
             case ACTION_TOUCHSCREEN:
+            {
+                struct gesture_event gevent;
+                if (action_gesture_get_event_in_vp(&gevent, &yn[0].vp) &&
+                    gevent.id == GESTURE_TAP)
                 {
-                    int btn;
-                    short int x, y;
-                    btn = action_get_touchscreen_press_in_vp(&x, &y, &(yn[0].vp));
-                    if (btn == BUTTON_REL)
+                    if (gevent.y > yn[0].vp.height/2)
                     {
-                        if (y > yn[0].vp.height/2)
-                        {
-                            if (x <= yn[0].vp.width/2)
-                                result = YESNO_YES;
-                            else
-                                result = YESNO_NO;
-                        }
+                        if (gevent.x <= yn[0].vp.width/2)
+                            result = YESNO_YES;
+                        else
+                            result = YESNO_NO;
                     }
                 }
-                break;
+            } break;
 #endif
             case ACTION_YESNO_ACCEPT:
                 result = YESNO_YES;
@@ -351,7 +354,8 @@ exit:
     FOR_NB_SCREENS(i)
     {
         screens[i].scroll_stop_viewport(&(yn[i].vp));
-        viewportmanager_theme_undo(i, true);
+        sb_set_persistent_title(title, Icon_NOICON, i);
+        viewportmanager_theme_undo(i, false);
     }
 
 #ifdef HAVE_TOUCHSCREEN
@@ -364,8 +368,18 @@ enum yesno_res gui_syncyesno_run(const struct text_message * main_message,
                                  const struct text_message * yes_message,
                                  const struct text_message * no_message)
 {
-    return gui_syncyesno_run_w_tmo(TIMEOUT_BLOCK, YESNO_TMO,
-                             main_message, yes_message, no_message);
+    return gui_syncyesno_run_w_tmo(TIMEOUT_BLOCK, YESNO_TMO, NULL,
+                                   main_message, yes_message, no_message);
+}
+
+extern enum yesno_res gui_syncyesno_run_w_title(
+                                 const char * title,
+                                 const struct text_message * main_message,
+                                 const struct text_message * yes_message,
+                                 const struct text_message * no_message)
+{
+    return gui_syncyesno_run_w_tmo(TIMEOUT_BLOCK, YESNO_TMO, title,
+                                   main_message, yes_message, no_message);
 }
 
 static bool yesno_pop_lines(const char *lines[], int line_cnt)

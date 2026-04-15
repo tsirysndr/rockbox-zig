@@ -70,8 +70,8 @@
  * mass storage mode, it will require exclusive access to the disk and ask all
  * threads to release any file handle and stop using the disks. It does so by
  * broadcasting a SYS_USB_CONNECTED message, which threads must acknowledge using
- * usb_acknowledge(SYS_USB_CONNECTED_ACK). They must not access the disk until
- * SYS_USB_DISCONNECTED is broadcast. To ease waiting, threads can call
+ * usb_acknowledge(SYS_USB_CONNECTED_ACK, ev.data). They must not access the disk
+ * until SYS_USB_DISCONNECTED is broadcast. To ease waiting, threads can call
  * usb_wait_for_disconnect() or usb_wait_for_disconnect_w_tmo() on their waiting
  * queue.
  *
@@ -118,6 +118,8 @@ enum
     USB_TRANSFER_COMPLETION, /* Event */
     USB_NOTIFY_SET_ADDR,     /* Event */
     USB_NOTIFY_SET_CONFIG,   /* Event */
+    USB_NOTIFY_BUS_RESET,    /* Event */
+    USB_NOTIFY_CLASS_DRIVER, /* Event - notify_event() of specified class driver */
 #endif
 #ifdef USB_FIREWIRE_HANDLING
     USB_REQUEST_REBOOT,      /* Event */
@@ -188,16 +190,14 @@ struct usb_transfer_completion_event_data
 void usb_init(void) INIT_ATTR;
 /* target must implement this to enable/disable the usb transceiver/core */
 void usb_enable(bool on);
-/* when one or more driver requires exclusive mode, this is called after all threads have acknowledged
- * exclusive mode and disk have been umounted; otherwise it is called immediately after host has
- * been detected */
+/* called after host has been detected */
 void usb_attach(void);
 /* enable usb detection monitoring; before this function is called, all usb
  * detection changes are ignored */
 void usb_start_monitoring(void) INIT_ATTR;
 void usb_close(void);
 /* acknowledge usb connection, typically with SYS_USB_CONNECTED_ACK */
-void usb_acknowledge(long id);
+void usb_acknowledge(long id, intptr_t seqnum);
 /* block the current thread until SYS_USB_DISCONNECTED has been broadcast */
 void usb_wait_for_disconnect(struct event_queue *q);
 /* same as usb_wait_for_disconnect() but with a timeout, returns 1 on timeout */
@@ -239,15 +239,33 @@ void usb_set_mode(int mode);
 /* USB driver call this function to notify that a transfer has completed */
 void usb_signal_transfer_completion(
     struct usb_transfer_completion_event_data *event_data);
+
+/* Clear all signaled transfer completion events from event queue */
+void usb_clear_pending_transfer_completion_events(void);
+
 /* notify the USB code that some important event has occurred which influences the
  * USB state (like USB_NOTIFY_SET_ADDR). USB drivers should call usb_core_notify_*
- * functions and not this function. */
+ * functions and not this function.
+ * for USB_NOTIFY_CLASS_DRIVER, use usb_signal_class_notify() instead */
 void usb_signal_notify(long id, intptr_t data);
+
+/* wrapper for usb_signal_notify(USB_NOTIFY_CLASS_DRIVER)
+ * class_num: target driver. USB_DRIVER_*
+ * data: optional data. note that its upper 8 bits will be masked */
+static inline void usb_signal_class_notify(int8_t class_num, uint32_t data) {
+    usb_signal_notify(USB_NOTIFY_CLASS_DRIVER, class_num << 24 | (data & 0x00ffffff));
+}
+
 /* returns whether a USB_DRIVER_* is enabled (like HID, mass storage, ...) */
 bool usb_driver_enabled(int driver);
 /* returns whether exclusive storage is available for USB */
 bool usb_exclusive_storage(void);
 #endif /* HAVE_USBSTACK */
+
+/* broadcast usb insertion event to enable exclusive storage */
+void usb_request_exclusive_storage(void);
+/* finish exclusive storage access if enabled and mount volumes */
+void usb_release_exclusive_storage(void);
 
 #ifdef USB_FIREWIRE_HANDLING
 bool firewire_detect(void);

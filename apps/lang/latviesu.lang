@@ -9102,15 +9102,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Basu robežfrekvence"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Basu robežfrekvence"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Basu robežfrekvence"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Basu robežfrekvence"
   </voice>
 </phrase>
 <phrase>
@@ -9119,15 +9119,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Augšu robežfrekvence"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Augšu robežfrekvence"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Augšu robežfrekvence"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Augšu robežfrekvence"
   </voice>
 </phrase>
 <phrase>
@@ -12156,7 +12156,7 @@
 </phrase>
 <phrase>
   id: LANG_USB_MODE
-  desc: in Settings -> General -> System -> USB Mode
+  desc: in Settings -> General -> System -> USB
   user: core
   <source>
     *: "USB Mode"
@@ -12614,20 +12614,6 @@
   </dest>
   <voice>
     *: "Vidējais bitu pārraides ātrums"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYTIME_ERROR
-  desc: playing time screen
-  user: core
-  <source>
-    *: "Error while gathering info"
-  </source>
-  <dest>
-    *: "Kļūda iegūstot informāciju"
-  </dest>
-  <voice>
-    *: "Kļūda iegūstot informāciju"
   </voice>
 </phrase>
 <phrase>
@@ -15942,20 +15928,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_AMAZE_MENU
-  desc: Amaze game
-  user: core
-  <source>
-    *: "Amaze Main Menu"
-  </source>
-  <dest>
-    *: "Amaze galvenā izvēlne"
-  </dest>
-  <voice>
-    *: "Amaze galvenā izvēlne"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SET_MAZE_SIZE
   desc: Maze size in Amaze game
   user: core
@@ -16205,34 +16177,6 @@
   </dest>
   <voice>
     *: "Mik mod iestatījumi"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MIKMOD_MENU
-  desc: mikmod plugin
-  user: core
-  <source>
-    *: "Mikmod Menu"
-  </source>
-  <dest>
-    *: "Mikmod izvēlne"
-  </dest>
-  <voice>
-    *: "Mik mod izvēlne"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_MENU
-  desc: chessbox plugin
-  user: core
-  <source>
-    *: "Chessbox Menu"
-  </source>
-  <dest>
-    *: "Chessbox izvēlne"
-  </dest>
-  <voice>
-    *: "Chessbox izvēlne"
   </voice>
 </phrase>
 <phrase>
@@ -16914,5 +16858,118 @@
   </dest>
   <voice>
     *: "Dziesmas kārtotas pēc albuma"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC"
+  </source>
+  <dest>
+    *: none
+    usbdac: "USB DAC"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "USB DAC"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_USB_CHARGE_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Charge-Only Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "Kamēr USB ir tikai uzlādes režīmā"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "Kamēr USB ir tikai uzlādes režīmā"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_MASS_STORAGE_USB_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Mass-Storage Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "Kamēr USB ir datu pārsūtīšanas režīmā"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "Kamēr USB ir datu pārsūtīšanas režīmā"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC_ACTIVE
+  desc: for splash
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC Active"
+  </source>
+  <dest>
+    *: none
+    usbdac: "USB DAC ir ieslēgts"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "USB DAC ir ieslēgts"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_LED_INDICATORS
+  desc: LED indicators setting
+  user: core
+  <source>
+    *: none
+    general_purpose_led: "Use LED indicators"
+  </source>
+  <dest>
+    *: none
+    general_purpose_led: "Izmantot LED indikatorus"
+  </dest>
+  <voice>
+    *: none
+    general_purpose_led: "Izmantot LED indikatorus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCE_STATUS
+  desc: announnnce_status plugin
+  user: core
+  <source>
+    *: "Announce Status"
+  </source>
+  <dest>
+    *: "Paziņot statusu"
+  </dest>
+  <voice>
+    *: "Paziņot statusu"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MENU
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "USB"
+  </source>
+  <dest>
+    *: "~USB"
+  </dest>
+  <voice>
+    *: "Ju es bī"
   </voice>
 </phrase>

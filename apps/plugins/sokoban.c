@@ -312,21 +312,6 @@
 #define SOKOBAN_LEVEL_UP BUTTON_PLUS
 #define SOKOBAN_MENU_NAME "[MENU]"
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define SOKOBAN_LEFT BUTTON_LEFT
-#define SOKOBAN_RIGHT BUTTON_RIGHT
-#define SOKOBAN_UP BUTTON_UP
-#define SOKOBAN_DOWN BUTTON_DOWN
-#define SOKOBAN_MENU BUTTON_MENU
-#define SOKOBAN_UNDO BUTTON_BACK
-#define SOKOBAN_REDO (BUTTON_BACK | BUTTON_PLAY)
-#define SOKOBAN_LEVEL_DOWN (BUTTON_SELECT | BUTTON_DOWN)
-#define SOKOBAN_LEVEL_REPEAT (BUTTON_SELECT | BUTTON_RIGHT)
-#define SOKOBAN_LEVEL_UP (BUTTON_SELECT | BUTTON_UP)
-#define SOKOBAN_PAUSE BUTTON_PLAY
-#define BUTTON_SAVE BUTTON_CUSTOM
-#define BUTTON_SAVE_NAME "CUSTOM"
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define SOKOBAN_LEFT          BUTTON_BACK
 #define SOKOBAN_RIGHT         BUTTON_MENU
@@ -696,7 +681,7 @@
 #define BUTTON_SAVE        BUTTON_BACK
 #define BUTTON_SAVE_NAME   "BACK"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -729,6 +714,27 @@
 #define SOKOBAN_PAUSE        BUTTON_L
 #define BUTTON_SAVE          BUTTON_A
 #define BUTTON_SAVE_NAME    "A"
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define SOKOBAN_LEFT       BUTTON_LEFT
+#define SOKOBAN_RIGHT      BUTTON_RIGHT
+#define SOKOBAN_UP         BUTTON_UP
+#define SOKOBAN_DOWN       BUTTON_DOWN
+#define SOKOBAN_MENU       BUTTON_MENU
+#define SOKOBAN_UNDO       BUTTON_BACK
+#define SOKOBAN_REDO       BUTTON_USER
+//#define SOKOBAN_LEVEL_DOWN (BUTTON_POWER|BUTTON_REL)
+//#define SOKOBAN_LEVEL_REPEAT (BUTTON_CENTER|BUTTON_REPEAT)
+//#define SOKOBAN_LEVEL_UP (BUTTON_MENU|BUTTON_REPEAT)
+#define SOKOBAN_PAUSE      BUTTON_SELECT
+#define BUTTON_SAVE        BUTTON_SELECT
+
+#define SOKOBAN_MENU_NAME     "X [TOPLEFT]"
+#define SOKOBAN_UNDO_NAME     "B [BOTTOMRIGHT]"
+#define SOKOBAN_REDO_NAME     "Y [BOTTOMLEFT]"
+#define SOKOBAN_PAUSE_NAME    "A [CENTER]"
+#define SOKOBAN_LEVEL_REPEAT_NAME "[TOPRIGHT]"
+#define BUTTON_SAVE_NAME      "A [CENTER]"
 
 #else
 #error No keymap defined!
@@ -1609,7 +1615,7 @@ static int sokoban_menu(void)
     bool menu_quit;
     int start_selected = 0;
 
-    MENUITEM_STRINGLIST(menu, "Sokoban Menu", NULL,
+    MENUITEM_STRINGLIST(menu, "Sokoban", NULL,
                         "Resume", "Select Level", "Audio Playback", "Keys",
                         "Load Default Level Set", "Quit Without Saving",
                         "Save Progress & Quit");

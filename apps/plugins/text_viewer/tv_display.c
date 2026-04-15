@@ -69,7 +69,11 @@ struct tv_rect {
 
 static struct viewport vp_info;
 static struct viewport vp_text;
-static bool is_initialized_vp = false;
+static bool is_initialized_vp;
+static bool sbs_has_title;
+#if LCD_DEPTH > 1
+static fb_data* backdrop;
+#endif
 
 static struct screen* display;
 
@@ -90,10 +94,32 @@ static int row_height = 1;
 
 static int totalsize;
 
+static bool tv_has_sbs_title(void)
+{
+    return preferences->statusbar && sbs_has_title;
+}
+
+static const char* tv_get_title_text(void)
+{
+    static const char *title;
+
+    if (!title)
+    {
+        title = rb->strrchr(preferences->file_name, PATH_SEPCH);
+
+        if (title)
+            title++;
+        else
+            title = (char *) preferences->file_name;
+    }
+    return title;
+}
+
 static void tv_show_header(void)
 {
-    if (preferences->header_mode)
-        display->putsxy(header.x, header.y, preferences->file_name);
+    /* Ignore header mode if we have an SBS title */
+    if (preferences->header_mode && !tv_has_sbs_title())
+        display->putsxy(header.x, header.y, tv_get_title_text());
 }
 
 static void tv_show_footer(const struct tv_screen_pos *pos)
@@ -189,6 +215,12 @@ void tv_draw_text(int row, const unsigned char *text, int offset)
     display->set_viewport(&vp_info);
 }
 
+bool tv_set_sbs_title(void)
+{
+    sbs_has_title = rb->sb_set_title_text(tv_get_title_text(), Icon_NOICON, SCREEN_MAIN);
+    return preferences->statusbar && sbs_has_title;
+}
+
 void tv_start_display(void)
 {
     display->set_viewport(&vp_info);
@@ -196,7 +228,11 @@ void tv_start_display(void)
     display->set_drawmode(DRMODE_SOLID);
 
 #if LCD_DEPTH > 1
-    rb->lcd_set_backdrop(NULL);
+    if (preferences->night_mode)
+    {
+        backdrop = rb->lcd_get_backdrop();
+        rb->lcd_set_backdrop(NULL);
+    }
 #endif
     display->clear_viewport();
 
@@ -206,6 +242,10 @@ void tv_end_display(void)
 {
     display->update_viewport();
     display->set_viewport(NULL);
+#if LCD_DEPTH > 1
+    if (preferences->night_mode)
+        rb->lcd_set_backdrop(backdrop);
+#endif
 }
 
 void tv_set_layout(bool show_scrollbar)
@@ -220,7 +260,7 @@ void tv_set_layout(bool show_scrollbar)
     header.x = 0;
     header.y = 0;
     header.w = vp_info.width;
-    header.h = (preferences->header_mode)? row_height + 1 : 0;
+    header.h = (preferences->header_mode && !tv_set_sbs_title()) ? row_height + 1 : 0;
 
     footer.x = 0;
     footer.w = vp_info.width;
@@ -260,10 +300,14 @@ static void tv_change_viewport(void)
     bool show_statusbar = preferences->statusbar;
 
     if (is_initialized_vp)
+    {
+        rb->sb_set_persistent_title(tv_get_title_text(), Icon_NOICON, SCREEN_MAIN);
         rb->viewportmanager_theme_undo(SCREEN_MAIN, false);
+    }
     else
         is_initialized_vp = true;
 
+    rb->sb_set_persistent_title(tv_get_title_text(), Icon_NOICON, SCREEN_MAIN);
     rb->viewportmanager_theme_enable(SCREEN_MAIN, show_statusbar, &vp_info);
     vp_info.flags &= ~VP_FLAG_ALIGNMENT_MASK;
     display->set_viewport(&vp_info);
@@ -338,11 +382,32 @@ bool tv_init_display(unsigned char **buf, size_t *size)
 void tv_night_mode(void)
 {
 #ifdef HAVE_LCD_COLOR
-     if(preferences->night_mode)
+    static unsigned int fg_color, bg_color;
+
+    if (!fg_color && !bg_color)
+    {
+        /* Remember theme's UI viewport colors. Note: May
+           be different from global_settings->fg|bg_color */
+        fg_color = rb->lcd_get_foreground();
+        bg_color = rb->lcd_get_background();
+
+        /* workaround for broken color schemes */
+        if (!fg_color && !bg_color)
+            bg_color = LCD_WHITE;
+    }
+
+    if (preferences->night_mode)
     {
         rb->lcd_set_foreground(LCD_RGBPACK(0xBF,0xBF,0x00));
         rb->lcd_set_background(LCD_RGBPACK(0x96,0x0D,0x00));
-    }else
+    }
+    else if (preferences->statusbar)
+    {
+        /* Revert to theme colors */
+        rb->lcd_set_foreground(fg_color);
+        rb->lcd_set_background(bg_color);
+    }
+    else
     {
         rb->lcd_set_foreground(LCD_WHITE);
         rb->lcd_set_background(LCD_BLACK);

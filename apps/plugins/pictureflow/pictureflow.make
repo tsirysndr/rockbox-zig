@@ -29,7 +29,7 @@ $(PICTUREFLOW_OBJDIR)/pictureflow.rock: $(PICTUREFLOW_OBJ)
 $(PICTUREFLOW_OBJDIR)/pictureflow.refmap: $(PICTUREFLOW_OBJ)
 
 $(PICTUREFLOW_OUTLDS): $(PLUGIN_LDS) $(PICTUREFLOW_OBJDIR)/pictureflow.refmap
-	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DOVERLAY_OFFSET=$(shell \
+	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DPLUGIN -DOVERLAY_OFFSET=$(shell \
 		$(TOOLSDIR)/ovl_offset.pl $(PICTUREFLOW_OBJDIR)/pictureflow.refmap))
 
 $(PICTUREFLOW_OBJDIR)/pictureflow.ovl: $(PICTUREFLOW_OBJ) $(PICTUREFLOW_OUTLDS)
@@ -37,7 +37,7 @@ $(PICTUREFLOW_OBJDIR)/pictureflow.ovl: $(PICTUREFLOW_OBJ) $(PICTUREFLOW_OUTLDS)
 		$(filter %.o, $^) \
 		$(filter %.a, $+) \
 		-lgcc $(PICTUREFLOW_OVLFLAGS)
-	$(call PRINTS,LD $(@F))$(call objcopy,$(basename $@).elf,$@)
+	$(call PRINTS,LD $(@F))$(call objcopy_plugin,$(basename $@).elf,$@)
 
 # special pattern rule for compiling pictureflow with extra flags
 $(PICTUREFLOW_OBJDIR)/%.o: $(PICTUREFLOW_SRCDIR)/%.c $(PICTUREFLOW_SRCDIR)/pictureflow.make

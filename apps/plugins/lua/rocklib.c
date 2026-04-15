@@ -308,7 +308,7 @@ RB_WRAP(splash)
 {
     int timeout = luaL_checkint(L, 1);
     const char *str = luaL_checkstring(L, 2);
-    rb->splashf(timeout, str); /*rockaux.c*/
+    splashf(timeout, str); /*rockaux.c*/
     return 0;
 }
 
@@ -392,7 +392,7 @@ RB_WRAP(playlist)
             pos = luaL_optint(L, 3, PLAYLIST_INSERT);
             queue = lua_toboolean(L, 4); /* default to false */
             recurse = lua_toboolean(L, 5); /* default to false */
-            result = rb->playlist_insert_directory(NULL, dir, pos, queue, recurse);
+            result = rb->playlist_insert_directory(NULL, dir, pos, queue, recurse, NULL);
             break;
         case PLAYL_INSERTPLAYL:
             filename = luaL_checkstring(L, 2); /* only required parameter */
@@ -410,12 +410,12 @@ RB_WRAP(playlist)
 RB_WRAP(audio)
 {
     enum e_audio {AUDIO_STATUS = 0, AUDIO_PLAY, AUDIO_STOP, AUDIO_PAUSE,
-                  AUDIO_RESUME, AUDIO_NEXT, AUDIO_PREV, AUDIO_FFREWIND,
-                  AUDIO_FLUSHANDRELOADTRACKS, AUDIO_GETPOS, AUDIO_LENGTH,
-                  AUDIO_ELAPSED, AUDIO_ECOUNT};
+                  AUDIO_RESUME, AUDIO_NEXT, AUDIO_PREV, AUDIO_PREFFREWIND,
+                  AUDIO_FFREWIND, AUDIO_FLUSHANDRELOADTRACKS, AUDIO_GETPOS,
+                  AUDIO_LENGTH, AUDIO_ELAPSED, AUDIO_ECOUNT};
     const char *audio_option[] = {"status", "play", "stop",
                                   "pause", "resume", "next",
-                                  "prev", "ff_rewind",
+                                  "prev", "pre_ff_rewind", "ff_rewind",
                                   "flush_and_reload_tracks",
                                   "get_file_pos", "length",
                                   "elapsed", NULL};
@@ -434,6 +434,7 @@ RB_WRAP(audio)
             if (status == (AUDIO_STATUS_PLAY | AUDIO_STATUS_PAUSE))
             {
                 /* not perfect but provides a decent compromise */
+                rb->audio_pre_ff_rewind();
                 rb->audio_ff_rewind(elapsed + offset);
                 rb->audio_resume();
             }
@@ -455,6 +456,9 @@ RB_WRAP(audio)
             break;
         case AUDIO_PREV:
             rb->audio_prev();
+            break;
+        case AUDIO_PREFFREWIND:
+            rb->audio_pre_ff_rewind();
             break;
         case AUDIO_FFREWIND:
             newtime = (long) luaL_checkint(L, 2);
@@ -545,38 +549,22 @@ RB_WRAP(sound)
 
 RB_WRAP(pcm)
 {
-    enum e_pcm {PCM_APPLYSETTINGS = 0, PCM_ISPLAYING,
-                PCM_PLAYSTOP, PCM_PLAYLOCK, PCM_PLAYUNLOCK,
-                PCM_SETFREQUENCY, PCM_ECOUNT};
+    enum e_pcm {PCM_PLAYLOCK = 0, PCM_PLAYUNLOCK,
+                PCM_ECOUNT};
 
-    const char *pcm_option[] = {"apply_settings", "is_playing",
-                                "play_stop", "play_lock", "play_unlock",
-                                "set_frequency", NULL};
-    bool   b_result;
+    const char *pcm_option[] = {"play_lock", "play_unlock",
+                                NULL};
 
     lua_pushnil(L); /*push nil so options w/o return have something to return */
 
     int option = luaL_checkoption (L, 1, NULL, pcm_option);
     switch(option)
     {
-        case PCM_APPLYSETTINGS:
-            rb->pcm_apply_settings();
-            break;
-        case PCM_ISPLAYING:
-            b_result = rb->pcm_is_playing();
-            lua_pushboolean(L, b_result);
-            break;
-        case PCM_PLAYSTOP:
-            rb->pcm_play_stop();
-            break;
         case PCM_PLAYLOCK:
             rb->pcm_play_lock();
             break;
         case PCM_PLAYUNLOCK:
             rb->pcm_play_unlock();
-            break;
-        case PCM_SETFREQUENCY:
-            rb->pcm_set_frequency((unsigned int) luaL_checkint(L, 2));
             break;
     }
 
@@ -1048,6 +1036,11 @@ LUALIB_API int luaopen_rock(lua_State *L)
 {
     luaL_register(L, LUA_ROCKLIBNAME, rocklib);
     luaL_register(L, LUA_ROCKLIBNAME, rocklib_aux);
+#ifdef SIMULATOR /* rb.SIMULATOR = true allows checking for the SIM in lua */
+        lua_pushboolean(L, 1);
+        luaS_newlloc(L, "SIMULATOR", TSTR_INBIN);
+        lua_setfield(L, -2, "SIMULATOR");
+#endif
     lua_getglobal(L, "require");
     lua_pushstring(L, "rb_defines");
     if (lua_pcall (L, 1, 0, 0))

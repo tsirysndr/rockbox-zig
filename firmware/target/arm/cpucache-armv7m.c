@@ -19,7 +19,8 @@
  *
  ****************************************************************************/
 #include "cpucache-armv7m.h"
-#include "cortex-m/cache.h"
+#include "system.h"
+#include "regs/cortex-m/cm_cache.h"
 
 /*
  * The target must define DCACHE_WAYS and DCACHE_SETS to the number
@@ -56,8 +57,9 @@ static inline void range_dcache_op(const void *base, unsigned int size,
 {
     arm_dsb();
 
-    uint32_t addr = (uint32_t)base;
-    uint32_t endaddr = addr + size;
+    uint32_t base_addr = (uint32_t)base;
+    uint32_t addr = CACHEALIGN_DOWN(base_addr);
+    uint32_t endaddr = CACHEALIGN_UP(base_addr + size);
 
     while (addr < endaddr)
     {
@@ -70,43 +72,43 @@ static inline void range_dcache_op(const void *base, unsigned int size,
 
 void commit_dcache(void)
 {
-    full_dcache_op(&REG_CACHE_DCCSW);
+    full_dcache_op(reg_ptr(CM_CACHE_DCCSW));
 }
 
 void commit_discard_dcache(void)
 {
-    full_dcache_op(&REG_CACHE_DCCISW);
+    full_dcache_op(reg_ptr(CM_CACHE_DCCISW));
 }
 
 void commit_discard_idcache(void)
 {
-    full_dcache_op(&REG_CACHE_DCCISW);
+    full_dcache_op(reg_ptr(CM_CACHE_DCCISW));
 
-    REG_CACHE_ICIALLU = 0;
+    reg_var(CM_CACHE_ICIALLU) = 0;
 
     arm_isb();
 }
 
 void __discard_idcache(void)
 {
-    full_dcache_op(&REG_CACHE_DCISW);
+    full_dcache_op(reg_ptr(CM_CACHE_DCISW));
 
-    REG_CACHE_ICIALLU = 0;
+    reg_var(CM_CACHE_ICIALLU) = 0;
 
     arm_isb();
 }
 
 void commit_discard_dcache_range(const void *base, unsigned int size)
 {
-    range_dcache_op(base, size, &REG_CACHE_DCCIMVAC);
+    range_dcache_op(base, size, reg_ptr(CM_CACHE_DCCIMVAC));
 }
 
 void commit_dcache_range(const void *base, unsigned int size)
 {
-    range_dcache_op(base, size, &REG_CACHE_DCCMVAC);
+    range_dcache_op(base, size, reg_ptr(CM_CACHE_DCCMVAC));
 }
 
 void discard_dcache_range(const void *base, unsigned int size)
 {
-    range_dcache_op(base, size, &REG_CACHE_DCIMVAC);
+    range_dcache_op(base, size, reg_ptr(CM_CACHE_DCIMVAC));
 }

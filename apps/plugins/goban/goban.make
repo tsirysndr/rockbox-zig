@@ -28,7 +28,7 @@ $(GOBAN_BUILDDIR)/goban.rock: $(GOBAN_OBJ)
 $(GOBAN_BUILDDIR)/goban.refmap: $(GOBAN_OBJ)
 
 $(GOBAN_OUTLDS): $(PLUGIN_LDS) $(GOBAN_BUILDDIR)/goban.refmap
-	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DOVERLAY_OFFSET=$(shell \
+	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DPLUGIN -DOVERLAY_OFFSET=$(shell \
 		$(TOOLSDIR)/ovl_offset.pl $(GOBAN_BUILDDIR)/goban.refmap))
 
 $(GOBAN_BUILDDIR)/goban.ovl: $(GOBAN_OBJ) $(GOBAN_OUTLDS)
@@ -36,4 +36,4 @@ $(GOBAN_BUILDDIR)/goban.ovl: $(GOBAN_OBJ) $(GOBAN_OUTLDS)
 		$(filter %.o, $^) \
 		$(filter %.a, $+) \
 		-lgcc $(GOBAN_OVLFLAGS)
-	$(call PRINTS,LD $(@F))$(call objcopy,$(basename $@).elf,$@)
+	$(call PRINTS,LD $(@F))$(call objcopy_plugin,$(basename $@).elf,$@)

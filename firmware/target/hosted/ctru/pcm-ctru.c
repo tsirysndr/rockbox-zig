@@ -27,6 +27,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+
+#include <3ds/ndsp/ndsp.h>
+#include <3ds/ndsp/channel.h>
+#include <3ds/services/dsp.h>
+#include <3ds/synchronization.h>
+#include <3ds/allocator/linear.h>
+
 #include "config.h"
 #include "debug.h"
 #include "sound.h"
@@ -45,12 +52,7 @@
 #include "pcm-internal.h"
 #include "pcm_sampr.h"
 #include "pcm_mixer.h"
-
-#include <3ds/ndsp/ndsp.h>
-#include <3ds/ndsp/channel.h>
-#include <3ds/services/dsp.h>
-#include <3ds/synchronization.h>
-#include <3ds/allocator/linear.h>
+#include "pcm_sink.h"
 
 /*#define LOGF_ENABLE*/
 #include "logf.h"
@@ -102,14 +104,14 @@ static inline bool is_in_audio_thread(int audio_thread_id)
     return false;
 }
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     if (!is_in_audio_thread(_pcm_thread_id)) {
         RecursiveLock_Lock(&_pcm_lock_mtx);
     }
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
      if (!is_in_audio_thread(_pcm_thread_id)) {
         RecursiveLock_Unlock(&_pcm_lock_mtx);
@@ -188,13 +190,13 @@ void dsp_callback(void *const nul_) {
     LightEvent_Signal(&_dsp_callback_event);
 }
 
-static void pcm_dma_apply_settings_nolock(void)
+static void sink_set_freq_nolock(uint16_t freq)
 {
     ndspChnReset(0);
     
     ndspSetOutputMode(NDSP_OUTPUT_STEREO);
 
-    ndspChnSetRate(0, pcm_sampr);
+    ndspChnSetRate(0, hw_freq_sampr[freq]);
     ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
     /* ndspChnSetInterp(0, NDSP_INTERP_POLYPHASE); */
     /* ndspChnSetInterp(0, NDSP_INTERP_NONE); */
@@ -235,7 +237,7 @@ static void pcm_dma_apply_settings_nolock(void)
                               -1,              /* run on any core */ false);
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     _pcm_buffer = addr;
     _pcm_buffer_size = size;
@@ -245,7 +247,7 @@ void pcm_play_dma_start(const void *addr, size_t size)
     RecursiveLock_Unlock(&_pcm_lock_mtx);
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     RecursiveLock_Lock(&_pcm_lock_mtx);
     ndspChnSetPaused(0, true);
@@ -303,7 +305,7 @@ unsigned long spdif_measure_frequency(void)
 
 #endif /* HAVE_RECORDING */
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     Result ndsp_init_res = ndspInit();
     if (R_FAILED(ndsp_init_res)) {
@@ -319,15 +321,15 @@ void pcm_play_dma_init(void)
     LightEvent_Init(&_dsp_callback_event, RESET_ONESHOT);
 }
 
-void pcm_play_dma_postinit(void)
+static void sink_dma_postinit(void)
 {
 }
 
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
-    pcm_play_lock();
-    pcm_dma_apply_settings_nolock();
-    pcm_play_unlock();
+    sink_lock();
+    sink_set_freq_nolock(freq);
+    sink_unlock();
 }
 
 void pcm_close_device(void)
@@ -357,3 +359,20 @@ void audiohw_close(void)
 {
     pcm_close_device();
 }
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = sink_dma_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};

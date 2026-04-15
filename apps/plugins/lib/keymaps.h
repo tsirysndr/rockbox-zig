@@ -56,7 +56,6 @@
     (CONFIG_KEYPAD == IAUDIO_X5M5_PAD)      || \
     (CONFIG_KEYPAD == CREATIVE_ZEN_PAD)     || \
     (CONFIG_KEYPAD == SONY_NWZ_PAD)         || \
-    (CONFIG_KEYPAD == CREATIVEZVM_PAD)      || \
     (CONFIG_KEYPAD == SAMSUNG_YPR0_PAD)     || \
     (CONFIG_KEYPAD == IRIVER_H300_PAD)      || \
     (CONFIG_KEYPAD == HM801_PAD)            || \
@@ -127,10 +126,6 @@
 #elif (CONFIG_KEYPAD == CREATIVE_ZEN_PAD)
 #define BTN_FIRE       BUTTON_SELECT
 #define BTN_PAUSE      BUTTON_BACK
-
-#elif (CONFIG_KEYPAD == CREATIVEZVM_PAD)
-#define BTN_FIRE       BUTTON_PLAY
-#define BTN_PAUSE      BUTTON_MENU
 
 #elif (CONFIG_KEYPAD == SAMSUNG_YPR0_PAD)
 #define BTN_FIRE       BUTTON_USER
@@ -255,7 +250,7 @@
 #define BTN_FIRE        BUTTON_SELECT
 #define BTN_PAUSE       BUTTON_POWER
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 #define BTN_FIRE        BUTTON_CENTER
 #define BTN_PAUSE       BUTTON_POWER
 #define BTN_HAVE_DIAGONAL
@@ -280,15 +275,31 @@
 #define BTN_FIRE        BUTTON_A
 #define BTN_PAUSE       BUTTON_START
 
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define BTN_UP          BUTTON_UP
+#define BTN_DOWN        BUTTON_DOWN
+#define BTN_LEFT        BUTTON_LEFT
+#define BTN_RIGHT       BUTTON_RIGHT
+#define BTN_FIRE        BUTTON_USER
+#define BTN_PAUSE       BUTTON_MENU
+
 #else
 #error Unsupported keypad
 #endif
 
 #ifdef HAVE_TOUCHSCREEN
-#define BTN_UP         BUTTON_TOPMIDDLE
-#define BTN_DOWN       BUTTON_BOTTOMMIDDLE
-#define BTN_LEFT       BUTTON_LEFT
-#define BTN_RIGHT      BUTTON_RIGHT
+#ifndef BTN_UP
+ #define BTN_UP         BUTTON_TOPMIDDLE
+#endif
+#ifndef BTN_DOWN
+ #define BTN_DOWN       BUTTON_BOTTOMMIDDLE
+#endif
+#ifndef BTN_LEFT
+ #define BTN_LEFT       BUTTON_LEFT
+#endif
+#ifndef BTN_RIGHT
+ #define BTN_RIGHT      BUTTON_RIGHT
+#endif
 
 #if (CONFIG_KEYPAD == MROBE500_PAD) || \
     (CONFIG_KEYPAD == ONDAVX777_PAD)
@@ -298,7 +309,9 @@
       (CONFIG_KEYPAD != DX50_PAD)     && \
       (CONFIG_KEYPAD != ONDAVX777_PAD) && \
       (CONFIG_KEYPAD != CREATIVE_ZENXFI2_PAD) && \
-      (CONFIG_KEYPAD != SHANLING_Q1_PAD)
+      (CONFIG_KEYPAD != SHANLING_Q1_PAD) && \
+      (CONFIG_KEYPAD != HIBY_R3PROII_PAD) && \
+      (CONFIG_KEYPAD != CTRU_PAD)
 #define BTN_FIRE       BUTTON_BOTTOMLEFT
 #define BTN_PAUSE      BUTTON_TOPLEFT
 #endif

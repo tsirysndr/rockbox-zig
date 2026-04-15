@@ -1,0 +1,6 @@
+Source imported from upstream git:
+
+v2.11.3 - e5e799221b45bbb90f5fdc5c69b6b8dfbf017e78
+
+Minor modifications to silence build warnings with our toolchains and
+disable functions that require malloc()

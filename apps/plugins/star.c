@@ -242,23 +242,6 @@
 #define STAR_QUIT           BUTTON_POWER
 #define STAR_QUIT_NAME      "POWER"
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-
-#define STAR_QUIT           BUTTON_BACK
-#define STAR_LEFT           BUTTON_LEFT
-#define STAR_RIGHT          BUTTON_RIGHT
-#define STAR_UP             BUTTON_UP
-#define STAR_DOWN           BUTTON_DOWN
-#define STAR_TOGGLE_CONTROL BUTTON_PLAY
-#define STAR_LEVEL_UP       (BUTTON_CUSTOM | BUTTON_UP)
-#define STAR_LEVEL_DOWN     (BUTTON_CUSTOM | BUTTON_DOWN)
-#define STAR_LEVEL_REPEAT   (BUTTON_CUSTOM | BUTTON_RIGHT)
-#define STAR_TOGGLE_CONTROL_NAME "PLAY"
-#define STAR_QUIT_NAME      "BACK"
-#define STAR_LEVEL_UP_NAME  "CUSTOM+UP"
-#define STAR_LEVEL_DOWN_NAME "CUSTOM+DOWN"
-#define STAR_LEVEL_REPEAT_NAME "CUSTOM+RIGHT"
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 
 #define STAR_QUIT           BUTTON_POWER
@@ -668,7 +651,7 @@
 #define STAR_LEVEL_DOWN_NAME "VOL-"
 #define STAR_LEVEL_REPEAT_NAME "BACK"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 #define STAR_QUIT           BUTTON_POWER
 #define STAR_QUIT_NAME      "POWER"
 
@@ -707,6 +690,23 @@
 #define STAR_LEVEL_UP_NAME  "R"
 #define STAR_LEVEL_DOWN_NAME "L"
 #define STAR_LEVEL_REPEAT_NAME "B"
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+
+#define STAR_QUIT           BUTTON_BACK
+#define STAR_LEFT           BUTTON_LEFT
+#define STAR_RIGHT          BUTTON_RIGHT
+#define STAR_UP             BUTTON_UP
+#define STAR_DOWN           BUTTON_DOWN
+#define STAR_TOGGLE_CONTROL BUTTON_SELECT
+#define STAR_LEVEL_UP       BUTTON_MENU
+#define STAR_LEVEL_DOWN     BUTTON_POWER
+#define STAR_LEVEL_REPEAT   BUTTON_USER
+#define STAR_TOGGLE_CONTROL_NAME "Select"
+#define STAR_QUIT_NAME      "B"
+#define STAR_LEVEL_UP_NAME  "X"
+#define STAR_LEVEL_DOWN_NAME "Start"
+#define STAR_LEVEL_REPEAT_NAME "Y"
 
 #else
 #error No keymap defined!
@@ -1408,7 +1408,7 @@ static int star_menu(void)
     int selection, level=1;
     bool menu_quit = false;
 
-    MENUITEM_STRINGLIST(menu, "Star Menu", NULL,
+    MENUITEM_STRINGLIST(menu, "Star", NULL,
                         "Start Game","Choose Level",
                         "Help", "Playback Control", "Quit");
 

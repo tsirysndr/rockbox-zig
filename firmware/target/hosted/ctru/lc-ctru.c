@@ -19,18 +19,30 @@
  *
  ****************************************************************************/
 #define RB_FILESYSTEM_OS
-#include <dlfcn.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* this is part of CTRDL and includes 3ds.h */
+#include <dlfcn.h>
+#ifdef RGB565
+#undef RGB565
+#endif
+
 #include "system.h"
 #include "load_code.h"
 #include "filesystem-ctru.h"
 #include "debug.h"
 
+extern u32 __ctrl_code_allocator_pages;
+
 void* programResolver(const char* sym, void *userData);
 void * lc_open(const char *filename, unsigned char *buf, size_t buf_size)
 {
     DEBUGF("dlopen(path=\"%s\")\n", filename);
+
+    /* We need to increase __ctrl_code_allocator_pages value to 8 MB
+       to enable big plugins */
+    __ctrl_code_allocator_pages = 2048;
 
     /* note: the 3ds dlopen implementation needs a custom resolver
        for the unresolved symbols in shared objects */

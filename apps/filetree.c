@@ -453,6 +453,13 @@ int ft_load(struct tree_context* c, const char* tempdir)
         check_file_thumbnails(c); /* map .talk to ours */
 
     tree_unlock_cache(c);
+
+    if (global_settings.keep_directory && get_current_activity() == ACTIVITY_FILEBROWSER)
+    {
+        path_append(global_status.browse_last_folder, c->currdir, PA_SEP_HARD,
+                    sizeof(global_status.browse_last_folder));
+    }
+
     return 0;
 }
 static void ft_load_font(char *file)
@@ -745,6 +752,9 @@ int ft_enter(struct tree_context* c)
                             rc = GO_TO_ROOT;
                         else
                             rc = GO_TO_FILEBROWSER;
+                        break;
+                    case PLUGIN_GOTO_ROOT:
+                        rc = GO_TO_ROOT;
                         break;
                     /*
                     case PLUGIN_ERROR:

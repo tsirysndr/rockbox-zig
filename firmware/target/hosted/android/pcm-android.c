@@ -28,6 +28,8 @@
 #include "debug.h"
 #include "pcm.h"
 #include "pcm-internal.h"
+#include "pcm_sampr.h"
+#include "pcm_sink.h"
 
 extern JNIEnv *env_ptr;
 
@@ -133,23 +135,24 @@ Java_org_rockbox_RockboxPCM_nativeWrite(JNIEnv *env, jobject this,
     return max_size - left;
 }
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     if (++audio_locked == 1)
         lock_audio();
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     if (--audio_locked == 0)
         unlock_audio();
 }
 
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
+    (void)freq;
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     pcm_data_start = addr;
     pcm_data_size = size;
@@ -160,7 +163,7 @@ void pcm_play_dma_start(const void *addr, size_t size)
                                0);
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     /* NOTE: due to how pcm_play_dma_complete_callback() works, this is
      * possibly called from nativeWrite(), i.e. another (host) thread
@@ -171,7 +174,7 @@ void pcm_play_dma_stop(void)
                            stop_method);
 }
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     /* in order to have background music playing after leaving the activity,
      * we need to allocate the PCM object from the Rockbox thread (the Activity
@@ -194,7 +197,7 @@ void pcm_play_dma_init(void)
     write_method      = e->GetMethodID(env_ptr, RockboxPCM_class, "write", "([BII)I");
 }
 
-void pcm_play_dma_postinit(void)
+static void sink_dma_postinit(void)
 {
 }
 
@@ -212,6 +215,23 @@ void pcm_shutdown(void)
     e->CallVoidMethod(env_ptr, RockboxPCM_instance, release);
     pthread_mutex_destroy(&audio_lock_mutex);
 }
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = sink_dma_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 JNIEXPORT void JNICALL
 Java_org_rockbox_RockboxPCM_postVolumeChangedEvent(JNIEnv *env,

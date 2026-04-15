@@ -31,6 +31,7 @@
 #include "pcm_sampr.h"
 #include "pcm-target.h"
 #include "dma-s5l8702.h"
+#include "pcm_sink.h"
 
 /* DMA configuration */
 
@@ -86,14 +87,14 @@ static int active_dblbuf;
 size_t pcm_remaining;
 
 /* Mask the DMA interrupt */
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     if (locked++ == 0)
         dmac_ch_lock_int(&dma_play_ch);
 }
 
 /* Unmask the DMA interrupt if enabled */
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     if (--locked == 0)
         dmac_ch_unlock_int(&dma_play_ch);
@@ -141,30 +142,29 @@ static void dma_play_callback(void *cb_data)
     pcm_play_dma_status_callback(PCM_DMAST_STARTED);
 }
 
-void pcm_play_dma_start(const void* addr, size_t size)
+static void sink_dma_stop(void)
 {
-    pcm_play_dma_stop();
+    dmac_ch_stop(&dma_play_ch);
+    I2STXCOM = 0xa;
+}
+
+static void sink_dma_start(const void* addr, size_t size)
+{
+    sink_dma_stop();
 
     pcm_remaining = size;
     I2STXCOM = 0xe;
     dma_play_callback((void*)addr);
 }
 
-void pcm_play_dma_stop(void)
-{
-    dmac_ch_stop(&dma_play_ch);
-    I2STXCOM = 0xa;
-}
-
 /* MCLK = 12MHz (MCLKDIV2=1), [CS42L55 DS, s4.8] */
 #define MCLK_FREQ     12000000
 
 /* set the configured PCM frequency */
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
     static uint16_t last_clkcon3l = 0;
     uint16_t clkcon3l;
-    int fsel;
 
     /* For unknown reasons, s5l8702 I2S controller does not synchronize
      * with CS42L55 at 32000 Hz. To fix it, the CODEC is configured with
@@ -172,12 +172,11 @@ void pcm_dma_apply_settings(void)
      * obtaining 32 KHz in LRCK controller input and 8 MHz in SCLK input.
      * OF uses this trick.
      */
-    if (pcm_fsel == HW_FREQ_32) {
-        fsel = HW_FREQ_48;
+    if (freq == HW_FREQ_32) {
+        freq = HW_FREQ_48;
         clkcon3l = 0x3028;  /* PLL2 / 3 / 9 -> 8 MHz */
     }
     else {
-        fsel = pcm_fsel;
         clkcon3l = 0;  /* OSC0 -> 12 MHz */
     }
 
@@ -192,12 +191,12 @@ void pcm_dma_apply_settings(void)
     }
 
     /* configure I2S clock ratio */
-    I2SCLKDIV = MCLK_FREQ / hw_freq_sampr[fsel];
+    I2SCLKDIV = MCLK_FREQ / hw_freq_sampr[freq];
     /* select CS42L55 sample rate */
-    audiohw_set_frequency(fsel);
+    audiohw_set_frequency(freq);
 }
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     PWRCON(1) &= ~(1 << 7);
 
@@ -207,12 +206,7 @@ void pcm_play_dma_init(void)
     I2SCLKCON = 1;
 
     audiohw_preinit();
-    pcm_dma_apply_settings();
-}
-
-void pcm_play_dma_postinit(void)
-{
-    audiohw_postinit();
+    sink_set_freq(HW_FREQ_DEFAULT);
 }
 
 #ifdef HAVE_PCM_DMA_ADDRESS
@@ -222,6 +216,22 @@ void * pcm_dma_addr(void *addr)
 }
 #endif
 
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = audiohw_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 /****************************************************************************
  ** Recording DMA transfer

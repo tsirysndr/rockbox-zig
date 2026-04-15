@@ -31,6 +31,8 @@
 #include "panic.h"
 #include "pcm.h"
 #include "pcm-internal.h"
+#include "pcm_sampr.h"
+#include "pcm_sink.h"
 
 #include "sound/asound.h"
 #include "tinyalsa/asoundlib.h"
@@ -187,26 +189,26 @@ static const unsigned int DEVICE = 0;
 static struct pcm_config _config;
 
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     TRACE;
 
 #ifdef DEBUG
 
     /*
-        DEBUG pcm_play_dma_init: Access: 0x000009
-        DEBUG pcm_play_dma_init: Format[0]: 0x000044
-        DEBUG pcm_play_dma_init: Format[1]: 0x000010
-        DEBUG pcm_play_dma_init: Format: S16_LE
-        DEBUG pcm_play_dma_init: Format: S24_LE
-        DEBUG pcm_play_dma_init: Format: S20_3LE
-        DEBUG pcm_play_dma_init: Subformat: 0x000001
-        DEBUG pcm_play_dma_init: Rate: min = 8000Hz, max = 192000Hz
-        DEBUG pcm_play_dma_init: Channels: min = 2, max = 2
-        DEBUG pcm_play_dma_init: Sample bits: min=16, max=32
-        DEBUG pcm_play_dma_init: Period size: min=8, max=10922
-        DEBUG pcm_play_dma_init: Period count: min=3, max=128
-        DEBUG pcm_play_dma_init: 0 mixer controls.
+        DEBUG sink_dma_init: Access: 0x000009
+        DEBUG sink_dma_init: Format[0]: 0x000044
+        DEBUG sink_dma_init: Format[1]: 0x000010
+        DEBUG sink_dma_init: Format: S16_LE
+        DEBUG sink_dma_init: Format: S24_LE
+        DEBUG sink_dma_init: Format: S20_3LE
+        DEBUG sink_dma_init: Subformat: 0x000001
+        DEBUG sink_dma_init: Rate: min = 8000Hz, max = 192000Hz
+        DEBUG sink_dma_init: Channels: min = 2, max = 2
+        DEBUG sink_dma_init: Sample bits: min=16, max=32
+        DEBUG sink_dma_init: Period size: min=8, max=10922
+        DEBUG sink_dma_init: Period count: min=3, max=128
+        DEBUG sink_dma_init: 0 mixer controls.
     */
 
     struct pcm_params* params = pcm_params_get(CARD, DEVICE, PCM_OUT);
@@ -310,7 +312,7 @@ void pcm_play_dma_init(void)
         pcm_thread_run relies on this size match. See pcm_mixer.h.
     */
     _config.channels          = 2;
-    _config.rate              = pcm_sampr;
+    _config.rate              = hw_freq_sampr[HW_FREQ_DEFAULT];
     _config.period_size       = 256;
     _config.period_count      = 4;
     _config.format            = PCM_FORMAT_S16_LE;
@@ -337,7 +339,7 @@ void pcm_play_dma_init(void)
 }
 
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     TRACE;
 
@@ -364,7 +366,7 @@ void pcm_play_dma_start(const void *addr, size_t size)
     pthread_mutex_unlock(&_dma_suspended_mtx);
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     TRACE;
 
@@ -375,11 +377,11 @@ void pcm_play_dma_stop(void)
 }
 
 
-/* Unessecary play locks before pcm_play_dma_postinit. */
+/* Unessecary play locks before sink_dma_postinit. */
 static int _play_lock_recursion_count = -10000;
 
 
-void pcm_play_dma_postinit(void)
+static void sink_dma_postinit(void)
 {
     TRACE;
 
@@ -387,7 +389,7 @@ void pcm_play_dma_postinit(void)
 }
 
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     TRACE;
 
@@ -402,7 +404,7 @@ void pcm_play_lock(void)
 }
 
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     TRACE;
 
@@ -418,9 +420,9 @@ void pcm_play_unlock(void)
 }
 
 
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
-    unsigned int rate = pcm_get_frequency();
+    unsigned int rate = hw_freq_sampr[freq];
 
     DEBUGF("DEBUG %s: Current sample rate: %u, next sampe rate: %u.", __func__, _config.rate, rate);
 
@@ -450,3 +452,20 @@ void pcm_close_device(void)
     pcm_close(_alsa_handle);
     _alsa_handle = NULL;
 }
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = sink_dma_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};

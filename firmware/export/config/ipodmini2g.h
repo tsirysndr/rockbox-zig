@@ -156,7 +156,7 @@
 /* define this if the unit can have USB charging disabled by user -
  * if USB/MAIN power is discernable and hardware doesn't compel charging */
 #define HAVE_USB_CHARGING_ENABLE
-
+#define TARGET_USB_CHARGING_DEFAULT USB_CHARGING_FORCE
 
 /* Define Apple remote tuner */
 #define CONFIG_TUNER IPOD_REMOTE_TUNER

@@ -1490,7 +1490,7 @@
     *: "Replaygain Type"
   </source>
   <dest>
-    *: "použiť zosilnenie"
+    *: "Použiť zosilnenie"
   </dest>
   <voice>
     *: "Použiť zosilnenie"
@@ -2335,7 +2335,7 @@
   </dest>
   <voice>
     *: none
-    backlight_brightness: "jas"
+    backlight_brightness: "Jas"
   </voice>
 </phrase>
 <phrase>
@@ -3729,7 +3729,7 @@
     *: "Jún"
   </dest>
   <voice>
-    *: "jún"
+    *: "Jún"
   </voice>
 </phrase>
 <phrase>
@@ -4237,10 +4237,10 @@
     *: ".talk Clip"
   </source>
   <dest>
-    *: ".talk mp3 klip"
+    *: ".talk klip"
   </dest>
   <voice>
-    *: "talk mp3 klip"
+    *: "talk klip"
   </voice>
 </phrase>
 <phrase>
@@ -4920,11 +4920,11 @@
   </source>
   <dest>
     *: none
-    recording: "Počet bitov"
+    recording: "Bitová rýchlosť"
   </dest>
   <voice>
     *: none
-    recording: "Počet bitov"
+    recording: "Bitová rýchlosť"
   </voice>
 </phrase>
 <phrase>
@@ -5399,11 +5399,11 @@
   </source>
   <dest>
     *: none
-    recording: "Pri trvaní aspoň"
+    recording: "pri trvaní aspoň"
   </dest>
   <voice>
     *: none
-    recording: "Pri trvaní aspoň"
+    recording: "pri trvaní aspoň"
   </voice>
 </phrase>
 <phrase>
@@ -6374,10 +6374,10 @@
     *: "Bitrate"
   </source>
   <dest>
-    *: "Počet bitov"
+    *: "Bitová rýchlosť"
   </dest>
   <voice>
-    *: "Počet bitov"
+    *: "Bitová rýchlosť"
   </voice>
 </phrase>
 <phrase>
@@ -6941,7 +6941,7 @@
     *: "Pauza"
   </dest>
   <voice>
-    *: "pauza"
+    *: "Pauza"
   </voice>
 </phrase>
 <phrase>
@@ -9087,15 +9087,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Hranica hĺbok"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Hranica hĺbok"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Hranica hĺbok"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Hranica hĺbok"
   </voice>
 </phrase>
 <phrase>
@@ -9104,15 +9104,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Hranica výšok"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Hranica výšok"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Hranica výšok"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Hranica výšok"
   </voice>
 </phrase>
 <phrase>
@@ -10911,7 +10911,7 @@
   </dest>
   <voice>
     *: none
-    gigabeats,samsungypr1: "Šírka pásma "
+    gigabeats,samsungypr1: "Šírka pásma"
   </voice>
 </phrase>
 <phrase>
@@ -10970,10 +10970,10 @@
     *: "Force"
   </source>
   <dest>
-    *: "vnútiť"
+    *: "Vnútiť"
   </dest>
   <voice>
-    *: "vnútiť"
+    *: "Vnútiť"
   </voice>
 </phrase>
 <phrase>
@@ -11375,7 +11375,7 @@
     *: "Jednoduché (Meier)"
   </dest>
   <voice>
-    *: "Jednoduché"
+    *: "Jednoduché zátvorka Meier koniec zátvorky"
   </voice>
 </phrase>
 <phrase>
@@ -11531,11 +11531,11 @@
   </source>
   <dest>
     *: none
-    filter_roll_off: "roll-off DAC filtra "
+    filter_roll_off: "Pokles filtra digitálno-analógového prevodníka"
   </dest>
   <voice>
     *: none
-    filter_roll_off: "roll-off DAC filtra "
+    filter_roll_off: "Pokles filtra digitálno-analógového prevodníka"
   </voice>
 </phrase>
 <phrase>
@@ -11689,7 +11689,7 @@
 </phrase>
 <phrase>
   id: LANG_USB_MODE
-  desc: in Settings -> General -> System -> USB Mode
+  desc: in Settings -> General -> System -> USB
   user: core
   <source>
     *: "USB Mode"
@@ -11782,10 +11782,10 @@
     *: "One per playlist"
   </source>
   <dest>
-    *: "Jedna na playlist"
+    *: "Jedna na plejlist"
   </dest>
   <voice>
-    *: "Jedna na playlist"
+    *: "Jedna na plejlist"
   </voice>
 </phrase>
 <phrase>
@@ -12149,7 +12149,7 @@
     *: "Predchádzajúca stopa"
   </dest>
   <voice>
-    *: "predchádzajúca stopa"
+    *: "Predchádzajúca stopa"
   </voice>
 </phrase>
 <phrase>
@@ -12174,7 +12174,7 @@
     *: "Number of Players"
   </source>
   <dest>
-    *: "počet hráčov"
+    *: "Počet hráčov"
   </dest>
   <voice>
     *: "Počet hráčov"
@@ -12261,10 +12261,10 @@
     *: "Next Track"
   </source>
   <dest>
-    *: "ďalšia stopa"
+    *: "Nasledujúca stopa"
   </dest>
   <voice>
-    *: "Ďalšia stopa"
+    *: "Nasledujúca stopa"
   </voice>
 </phrase>
 <phrase>
@@ -12407,10 +12407,10 @@
     *: "Cannot restart playback"
   </source>
   <dest>
-    *: "nemožno reštartovať prehrávanie"
+    *: "Nemožno reštartovať prehrávanie"
   </dest>
   <voice>
-    *: "nemožno reštartovať prehrávanie"
+    *: "Nemožno reštartovať prehrávanie"
   </voice>
 </phrase>
 <phrase>
@@ -12466,10 +12466,10 @@
     *: "Playlist elapsed:"
   </source>
   <dest>
-    *: "Playlist prehraté:"
+    *: "Plejlist uplynulo:"
   </dest>
   <voice>
-    *: "Playlist prehraté"
+    *: "Plejlist uplynulo"
   </voice>
 </phrase>
 <phrase>
@@ -12578,10 +12578,10 @@
     *: "2 Key Control"
   </source>
   <dest>
-    *: "ovládanie dvoma tlačidlami"
+    *: "Ovládanie dvoma tlačidlami"
   </dest>
   <voice>
-    *: "ovládanie dvoma tlačidlami"
+    *: "Ovládanie dvoma tlačidlami"
   </voice>
 </phrase>
 <phrase>
@@ -12682,7 +12682,7 @@
     *: ""
   </dest>
   <voice>
-    *: "označené"
+    *: "Označené"
   </voice>
 </phrase>
 <phrase>
@@ -12741,7 +12741,7 @@
     *: "Priamy"
   </dest>
   <voice>
-    *: "priamy"
+    *: "Priamy"
   </voice>
 </phrase>
 <phrase>
@@ -12770,11 +12770,11 @@
     lowmem: none
   </source>
   <dest>
-    *: "hodnoty eq"
+    *: "Hodnoty eq"
     lowmem: none
   </dest>
   <voice>
-    *: "hodnoty výšok a hĺbok"
+    *: "Hodnoty výšok a hĺbok"
     lowmem: none
   </voice>
 </phrase>
@@ -12817,7 +12817,7 @@
     *: ""
   </dest>
   <voice>
-    *: "kôň"
+    *: "Kôň"
   </voice>
 </phrase>
 <phrase>
@@ -12915,10 +12915,10 @@
     *: "Toggle Slideshow Mode"
   </source>
   <dest>
-    *: "Prepnúť režim slide show"
+    *: "Prepnúť režim prezentácie"
   </dest>
   <voice>
-    *: "Prepnúť režim slide show"
+    *: "Prepnúť režim prezentácie"
   </voice>
 </phrase>
 <phrase>
@@ -12929,10 +12929,10 @@
     *: "Move Item Down"
   </source>
   <dest>
-    *: "posuň položku nadol"
+    *: "Posuň položku nadol"
   </dest>
   <voice>
-    *: "posuň položku nadol"
+    *: "Posuň položku nadol"
   </voice>
 </phrase>
 <phrase>
@@ -12957,10 +12957,10 @@
     *: "Worm Speed"
   </source>
   <dest>
-    *: "rýchlosť worma"
+    *: "Rýchlosť worma"
   </dest>
   <voice>
-    *: "rýchlosť worma"
+    *: "Rýchlosť worma"
   </voice>
 </phrase>
 <phrase>
@@ -12985,10 +12985,10 @@
     *: "Track elapsed:"
   </source>
   <dest>
-    *: "Stopa prehraté:"
+    *: "Stopa uplynulo:"
   </dest>
   <voice>
-    *: "Stopa prehraté"
+    *: "Stopa uplynulo"
   </voice>
 </phrase>
 <phrase>
@@ -13027,10 +13027,10 @@
     *: "Pause / Play"
   </source>
   <dest>
-    *: "Pauza/Play"
+    *: "Pauza/Prehrať"
   </dest>
   <voice>
-    *: "Pauza/Play"
+    *: "Pauza lomeno Prehrať"
   </voice>
 </phrase>
 <phrase>
@@ -13194,20 +13194,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_PLAYTIME_ERROR
-  desc: playing time screen
-  user: core
-  <source>
-    *: "Error while gathering info"
-  </source>
-  <dest>
-    *: "Chyba pri zbere iinfo"
-  </dest>
-  <voice>
-    *: "Chyba pri zbere iinformácií"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PROPERTIES_SUBDIRS
   desc: in properties plugin
   user: core
@@ -13297,7 +13283,7 @@
   </dest>
   <voice>
     *: none
-    es9018: "krátky"
+    es9018: "Krátky"
   </voice>
 </phrase>
 <phrase>
@@ -13372,11 +13358,11 @@
   </source>
   <dest>
     *: none
-    recording: "priečinok nahrávok"
+    recording: "Priečinok nahrávok"
   </dest>
   <voice>
     *: none
-    recording: "priečinok nahrávok"
+    recording: "Priečinok nahrávok"
   </voice>
 </phrase>
 <phrase>
@@ -13387,10 +13373,10 @@
     *: "Slideshow Time"
   </source>
   <dest>
-    *: "Čas slideshow"
+    *: "Čas prezentácie"
   </dest>
   <voice>
-    *: "Čas slideshow"
+    *: "Čas prezentácie"
   </voice>
 </phrase>
 <phrase>
@@ -13443,7 +13429,7 @@
     *: "Storage (Done / Remaining):"
   </source>
   <dest>
-    *: "Miesto: (dokončené / zostaáva)"
+    *: "Miesto: (dokončené/zostáva)"
   </dest>
   <voice>
     *: "Miesto"
@@ -13839,10 +13825,10 @@
     *: "Average bitrate:"
   </source>
   <dest>
-    *: "Priemerný bitrate:"
+    *: "Priemerná bitová rýchlosť:"
   </dest>
   <voice>
-    *: "Priemerný bitrate"
+    *: "Priemerná bitová rýchlosť"
   </voice>
 </phrase>
 <phrase>
@@ -13853,10 +13839,10 @@
     *: "Out of Control"
   </source>
   <dest>
-    *: "mimo rozsah"
+    *: "Mimo rozsahu"
   </dest>
   <voice>
-    *: "mimo rozsah"
+    *: "Mimo rozsahu"
   </voice>
 </phrase>
 <phrase>
@@ -13881,10 +13867,10 @@
     *: "Average track size:"
   </source>
   <dest>
-    *: "Priemerná dĺžka stopy:"
+    *: "Priemerná veľkosť stopy:"
   </dest>
   <voice>
-    *: "Priemerná dĺžka stopy"
+    *: "Priemerná veľkosť stopy"
   </voice>
 </phrase>
 <phrase>
@@ -14081,11 +14067,11 @@
     lowmem: none
   </source>
   <dest>
-    *: "nastaviť čas obnovenia (min)"
+    *: "Nastaviť čas obnovenia (min)"
     lowmem: none
   </dest>
   <voice>
-    *: "nastaviť čas obnovenia"
+    *: "Nastaviť čas obnovenia"
     lowmem: none
   </voice>
 </phrase>
@@ -14100,7 +14086,7 @@
     *: ""
   </dest>
   <voice>
-    *: "stlačte play pre spustenie testu batérie, alebo stop pre zrušenie"
+    *: "Stlačte play pre spustenie testu batérie, alebo stop pre zrušenie"
   </voice>
 </phrase>
 <phrase>
@@ -14112,7 +14098,7 @@
     lowmem: none
   </source>
   <dest>
-    *: "preskočiť frejmy"
+    *: "Preskočiť frejmy"
     lowmem: none
   </dest>
   <voice>
@@ -14407,7 +14393,7 @@
   user: core
   <source>
     *: "Press LEFT to cancel."
-    android,hifietma*,zenvision: "Press BACK to cancel."
+    android,hifietma*: "Press BACK to cancel."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Press POWER to cancel."
     ihifi760,ihifi960: "Double tap RETURN to cancel."
     ihifi770,ihifi770c,ihifi800: "Press HOME to cancel."
@@ -14423,7 +14409,7 @@
   <dest>
     *: "Stlačte LEFT pre zrušenie"
     android: "Stlačte späť pre zrušenie"
-    hifietma*,zenvision: "Stlačte BACK pre zrušenie"
+    hifietma*: "Stlačte BACK pre zrušenie"
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Stlačte POWER pre zrušenie"
     ihifi760,ihifi960: "Poklepte RETURN pre zrušenie"
     ihifi770,ihifi770c,ihifi800: "Stlačte HOME pre zrušenie"
@@ -14431,7 +14417,7 @@
     mpiohd200: "Poklepte REC pre zrušenie"
     mpiohd300: "Poklepte MENU pre zrušenie"
     rx27generic: "Stlačte VOLUME pre zrušenie"
-    sonynwza860: "mapa klávesov nekompletná"
+    sonynwza860: "Mapa klávesov nekompletná"
     touchscreen: "Stlačte stred vľavo pre zrušenie"
     vibe500: "Stlačte PREV pre zrušenie"
     xduoox20,xduoox3,xduoox3ii: "Poklepte HOME pre zrušenie"
@@ -14439,7 +14425,7 @@
   <voice>
     *: "Stlačte LEFT pre zrušenie"
     android: "Stlačte späť pre zrušenie"
-    hifietma*,zenvision: "Stlačte BACK pre zrušenie"
+    hifietma*: "Stlačte BACK pre zrušenie"
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Stlačte POWER pre zrušenie"
     ihifi760,ihifi960: "Poklepte RETURN pre zrušenie"
     ihifi770,ihifi770c,ihifi800: "Stlačte HOME pre zrušenie"
@@ -14460,7 +14446,7 @@
     *: "Date"
   </source>
   <dest>
-    *: "dátum"
+    *: "Dátum"
   </dest>
   <voice>
     *: "Dátum"
@@ -14488,7 +14474,7 @@
     *: "Cancel"
   </source>
   <dest>
-    *: "zrušiť"
+    *: "Zrušiť"
   </dest>
   <voice>
     *: "Zrušiť"
@@ -14544,10 +14530,10 @@
     *: "Elapsed"
   </source>
   <dest>
-    *: "Trvanie"
+    *: "Uplynulo"
   </dest>
   <voice>
-    *: "Trvanie"
+    *: "Uplynulo"
   </voice>
 </phrase>
 <phrase>
@@ -14660,10 +14646,10 @@
     *: "Single Mode"
   </source>
   <dest>
-    *: "Single režim"
+    *: "Singlový režim"
   </dest>
   <voice>
-    *: "Single režim"
+    *: "Singlový režim"
   </voice>
 </phrase>
 <phrase>
@@ -14690,11 +14676,11 @@
   </source>
   <dest>
     *: none
-    filter_roll_off: "Krátky ostrý"
+    filter_roll_off: "Krátky výrazný"
   </dest>
   <voice>
     *: none
-    filter_roll_off: "Krátky ostrý"
+    filter_roll_off: "Krátky výrazný"
   </voice>
 </phrase>
 <phrase>
@@ -15209,13 +15195,13 @@
 </phrase>
 <phrase>
   id: LANG_VOICED_DATE_FORMAT
-  desc: format string for how dates will be read back. Y == 4-digit year, A == month name, m == numeric month, d == numeric day. For example, "AdY" will read "January 21 2021"
+  desc: format string for how dates will be read back. Y == 4-digit year (grouped), y == 4-digit year (numeric), A == month name, m == numeric month, d == numeric day. For example, for 2021-01-05, "AdY" will be voiced as "January 5 twenty twenty-one" and "dmy" will be voiced as "5 1 two thousand twenty one
   user: core
   <source>
     *: "dAY"
   </source>
   <dest>
-    *: "dAY"
+    *: "dAy"
   </dest>
   <voice>
     *: ""
@@ -15484,10 +15470,10 @@
     *: "Keep Current Track When Replacing Playlist"
   </source>
   <dest>
-    *: "Ponechať aktuálnu stopu pri nahradení playlistu"
+    *: "Ponechať aktuálnu stopu pri nahradení plejlistu"
   </dest>
   <voice>
-    *: "Ponechať aktuálnu stopu pri nahradení playlistu"
+    *: "Ponechať aktuálnu stopu pri nahradení plejlistu"
   </voice>
 </phrase>
 <phrase>
@@ -15957,20 +15943,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_AMAZE_MENU
-  desc: Amaze game
-  user: core
-  <source>
-    *: "Amaze Main Menu"
-  </source>
-  <dest>
-    *: "Hlavná ponuka Amazeu"
-  </dest>
-  <voice>
-    *: "Hlavná ponuka Amazeu"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SET_MAZE_SIZE
   desc: Maze size in Amaze game
   user: core
@@ -16220,34 +16192,6 @@
   </dest>
   <voice>
     *: "Nastavenia Mikmodu"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MIKMOD_MENU
-  desc: mikmod plugin
-  user: core
-  <source>
-    *: "Mikmod Menu"
-  </source>
-  <dest>
-    *: "Ponuka Mikmodu"
-  </dest>
-  <voice>
-    *: "Ponuka Mikmodu"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_MENU
-  desc: chessbox plugin
-  user: core
-  <source>
-    *: "Chessbox Menu"
-  </source>
-  <dest>
-    *: "Ponuka Chessboxu"
-  </dest>
-  <voice>
-    *: "Ponuka Chessboxu"
   </voice>
 </phrase>
 <phrase>
@@ -16858,7 +16802,7 @@
     *: "Logovanie"
   </dest>
   <voice>
-    *: "logovanie"
+    *: "Logovanie"
   </voice>
 </phrase>
 <phrase>
@@ -16927,11 +16871,11 @@
   </source>
   <dest>
     *: none
-    usbdac: "~USB-DAC"
+    usbdac: "USB digitálno-analógový prevodník"
   </dest>
   <voice>
     *: none
-    usbdac: "~USB-DAC"
+    usbdac: "USB digitálno-analógový prevodník"
   </voice>
 </phrase>
 <phrase>
@@ -16978,10 +16922,69 @@
   </source>
   <dest>
     *: none
-    usbdac: "USB-DAC aktívny"
+    usbdac: "USB digitálno-analógový prevodník aktívny"
   </dest>
   <voice>
     *: none
-    usbdac: "USB-DAC aktívny"
+    usbdac: "USB digitálno-analógový prevodník aktívny"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_LED_INDICATORS
+  desc: LED indicators setting
+  user: core
+  <source>
+    *: none
+    general_purpose_led: "Use LED indicators"
+  </source>
+  <dest>
+    *: none
+    general_purpose_led: "Používať LED indikátory"
+  </dest>
+  <voice>
+    *: none
+    general_purpose_led: "Používať LED indikátory"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCE_STATUS
+  desc: announnnce_status plugin
+  user: core
+  <source>
+    *: "Announce Status"
+  </source>
+  <dest>
+    *: "Oznámiť status"
+  </dest>
+  <voice>
+    *: "Oznámiť status"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEEP_DIRECTORY
+  desc: file browser setting
+  user: core
+  <source>
+    *: "Always remember last folder"
+  </source>
+  <dest>
+    *: "Vždy si zapamätať posledný priečinok"
+  </dest>
+  <voice>
+    *: "Vždy si zapamätať posledný priečinok"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MENU
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "USB"
+  </source>
+  <dest>
+    *: "~USB"
+  </dest>
+  <voice>
+    *: "~U S B"
   </voice>
 </phrase>

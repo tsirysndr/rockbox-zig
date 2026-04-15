@@ -45,7 +45,6 @@
 
 #define SHOW_LOGO
 
-extern void show_logo(void);
 extern void power_off(void);
 
 static int lcd_inited = 0;
@@ -69,7 +68,6 @@ void init_lcd(void)
 #ifdef HAVE_BOOTLOADER_USB_MODE
 static void show_splash(int timeout, const char *msg)
 {
-    init_lcd();
     reset_screen();
     lcd_putsxy( (LCD_WIDTH - (SYSFONT_WIDTH * strlen(msg))) / 2,
                 (LCD_HEIGHT - SYSFONT_HEIGHT) / 2, msg);
@@ -107,7 +105,7 @@ static void usb_mode(void)
     /* Got the message - wait for disconnect */
     show_splash(0, "Bootloader USB mode");
 
-    usb_acknowledge(SYS_USB_CONNECTED_ACK);
+    usb_acknowledge(SYS_USB_CONNECTED_ACK, button_get_data());
 
     while(1) {
         button = button_get_w_tmo(HZ/2);
@@ -172,6 +170,9 @@ int main(void)
     init_lcd();
 #ifdef SHOW_LOGO
     show_logo();
+#else
+    printf(MODEL_NAME" Rockbox Bootloader");
+    printf("Version %s", rbversion);
 #endif
 
     button_init();
@@ -197,11 +198,6 @@ int main(void)
         reset_screen();
     }
 #endif /* HAVE_BOOTLOADER_USB_MODE */
-
-#ifndef SHOW_LOGO
-    printf(MODEL_NAME" Rockbox Bootloader");
-    printf("Version %s", rbversion);
-#endif
 
     rc = boot_rockbox();
 

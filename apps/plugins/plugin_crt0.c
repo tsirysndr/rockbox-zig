@@ -25,6 +25,12 @@
 
 PLUGIN_HEADER
 
+#ifdef CTRU
+/* dummy undefined symbols to build plugins for ctru */
+void __aeabi_unwind_cpp_pr0(void) {}
+struct _reent * _EXFUN(__getreent, (void)) { return NULL; }
+#endif
+
 /*
  * EXIT_MAGIC magic, because 0 cannot be used due to setjmp()
  * must be > 0
@@ -68,7 +74,7 @@ enum plugin_status plugin__start(const void *param)
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
 
 /* IRAM must be copied before clearing the BSS ! */
-#ifdef PLUGIN_USE_IRAM
+#ifdef USE_IRAM
     extern char iramcopy[], iramstart[], iramend[], iedata[], iend[];
     size_t iram_size = iramend - iramstart;
     size_t ibss_size = iend - iedata;
@@ -86,7 +92,7 @@ enum plugin_status plugin__start(const void *param)
          */
         asm volatile ("" ::: "memory");
     }
-#endif /* PLUGIN_USE_IRAM */
+#endif /* USE_IRAM */
 
     /* zero out the bss section */
     rb->memset(plugin_bss_start, 0, plugin_end_addr - plugin_bss_start);

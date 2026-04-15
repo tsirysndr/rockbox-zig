@@ -48,8 +48,10 @@
 #include "pcm-internal.h"
 #include "pcm_mixer.h"
 #include "pcm_sampr.h"
+#include "pcm_sink.h"
 #include "audiohw.h"
 #include "pcm-alsa.h"
+#include "fixedpoint.h"
 
 #include "logf.h"
 
@@ -121,7 +123,7 @@ void pcm_alsa_set_capture_device(const char *device)
 }
 #endif
 
-static int set_hwparams(snd_pcm_t *handle)
+static int set_hwparams(snd_pcm_t *handle, unsigned long sampr)
 {
     int err;
     unsigned int srate;
@@ -135,10 +137,10 @@ static int set_hwparams(snd_pcm_t *handle)
        Note these are in FRAMES, and are sized to be about 8.5ms
        for the buffer and 2.1ms for the period
      */
-    if (pcm_sampr > SAMPR_96) {
+    if (sampr > SAMPR_96) {
         buffer_size = MIX_FRAME_SAMPLES * 4 * 4;
         period_size = MIX_FRAME_SAMPLES * 4;
-    } else if (pcm_sampr > SAMPR_48) {
+    } else if (sampr > SAMPR_48) {
         buffer_size = MIX_FRAME_SAMPLES * 2 * 4;
         period_size = MIX_FRAME_SAMPLES * 2;
     } else {
@@ -175,17 +177,17 @@ static int set_hwparams(snd_pcm_t *handle)
         goto error;
     }
     /* set the stream rate */
-    srate = pcm_sampr;
+    srate = sampr;
     err = snd_pcm_hw_params_set_rate_near(handle, params, &srate, 0);
     if (err < 0)
     {
-        logf("Rate %luHz not available for playback: %s", pcm_sampr, snd_strerror(err));
+        logf("Rate %luHz not available for playback: %s", sampr, snd_strerror(err));
         goto error;
     }
     real_sample_rate = srate;
-    if (real_sample_rate != pcm_sampr)
+    if (real_sample_rate != sampr)
     {
-        logf("Rate doesn't match (requested %luHz, get %dHz)", pcm_sampr, real_sample_rate);
+        logf("Rate doesn't match (requested %luHz, get %dHz)", sampr, real_sample_rate);
         err = -EINVAL;
         goto error;
     }
@@ -267,46 +269,14 @@ error:
 }
 
 #if defined(HAVE_ALSA_32BIT)
-/* Digital volume explanation:
- * with very good approximation (<0.1dB) the convertion from dB to multiplicative
- * factor, for dB>=0, is 2^(dB/3). We can then notice that if we write dB=3*k+r
- * then this is 2^k*2^(r/3) so we only need to look at r=0,1,2. For r=0 this is
- * 1, for r=1 we have 2^(1/3)~=1.25 so we approximate by 1+1/4, and 2^(2/3)~=1.5
- * so we approximate by 1+1/2. To go from negative to nonnegative we notice that
- * 48 dB => 63095 factor ~= 2^16 so we virtually pre-multiply everything by 2^(-16)
- * and add 48dB to the input volume. We cannot go lower -43dB because several
- * values between -48dB and -43dB would require a fractional multiplier, which is
- * stupid to implement for such very low volume. */
-static int dig_vol_mult_l = 2 << 16; /* multiplicative factor to apply to each sample */
-static int dig_vol_mult_r = 2 << 16; /* multiplicative factor to apply to each sample */
+/* Multiplicative factors applied to each sample */
+static int32_t dig_vol_mult_l = 0;
+static int32_t dig_vol_mult_r = 0;
+
 void pcm_set_mixer_volume(int vol_db_l, int vol_db_r)
 {
-    if(vol_db_l > 0 || vol_db_r > 0 || vol_db_l < -43 || vol_db_r < -43)
-        panicf("invalid pcm alsa volume %d %d",   vol_db_l, vol_db_r);
-    if(format != SND_PCM_FORMAT_S32_LE)
-        panicf("this function assumes 32-bit sample size");
-    vol_db_l += 48; /* -42dB .. 0dB => 5dB .. 48dB */
-    vol_db_r += 48; /* -42dB .. 0dB => 5dB .. 48dB */
-    /* NOTE if vol_dB = 5 then vol_shift = 1 but r = 1 so we do vol_shift - 1 >= 0
-     * otherwise vol_dB >= 0 implies vol_shift >= 2 so vol_shift - 2 >= 0 */
-    int vol_shift_l = vol_db_l / 3;
-    int vol_shift_r = vol_db_r / 3;
-    int r_l = vol_db_l % 3;
-    int r_r = vol_db_r % 3;
-    if(r_l == 0)
-        dig_vol_mult_l = 1 << vol_shift_l;
-    else if(r_l == 1)
-        dig_vol_mult_l = 1 << vol_shift_l | 1 << (vol_shift_l - 2);
-    else
-        dig_vol_mult_l = 1 << vol_shift_l | 1 << (vol_shift_l - 1);
-    logf("l: %d dB -> factor = %d", vol_db_l - 48, dig_vol_mult_l);
-    if(r_r == 0)
-        dig_vol_mult_r = 1 << vol_shift_r;
-    else if(r_r == 1)
-        dig_vol_mult_r = 1 << vol_shift_r | 1 << (vol_shift_r - 2);
-    else
-        dig_vol_mult_r = 1 << vol_shift_r | 1 << (vol_shift_r - 1);
-    logf("r: %d dB -> factor = %d", vol_db_r - 48, dig_vol_mult_r);
+    dig_vol_mult_l = fp_factor(fp_div(vol_db_l, 10, 16), 16);
+    dig_vol_mult_r = fp_factor(fp_div(vol_db_r, 10, 16), 16);
 }
 #endif
 
@@ -626,7 +596,7 @@ static void open_hwdev(const char *device, snd_pcm_stream_t mode)
     atexit(alsadev_cleanup);
 }
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     logf("PCM DMA Init");
 
@@ -637,48 +607,50 @@ void pcm_play_dma_init(void)
     return;
 }
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     pthread_mutex_lock(&pcm_mtx);
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     pthread_mutex_unlock(&pcm_mtx);
 }
 
-static void pcm_dma_apply_settings_nolock(void)
+static void sink_set_freq_nolock(uint16_t freq)
 {
-    logf("PCM DMA Settings %d %lu", last_sample_rate, pcm_sampr);
+    unsigned int sampr = hw_freq_sampr[freq];
 
-    if (last_sample_rate != pcm_sampr)
+    logf("PCM DMA Settings %d %lu", last_sample_rate, sampr);
+
+    if (last_sample_rate != sampr)
     {
-        last_sample_rate = pcm_sampr;
+        last_sample_rate = sampr;
 
 #ifdef AUDIOHW_MUTE_ON_SRATE_CHANGE
         audiohw_mute(true);
 #endif
         snd_pcm_drop(handle);
 
-        set_hwparams(handle); // FIXME: check return code?
+        set_hwparams(handle, sampr); // FIXME: check return code?
         set_swparams(handle); // FIXME: check return code?
 
 #if defined(HAVE_NWZ_LINUX_CODEC)
         /* Sony NWZ linux driver uses a nonstandard mecanism to set the sampling rate */
-        audiohw_set_frequency(pcm_sampr);
+        audiohw_set_frequency(sampr);
 #endif
         /* (Will be unmuted by pcm resuming) */
     }
 }
 
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
-    pcm_play_lock();
-    pcm_dma_apply_settings_nolock();
-    pcm_play_unlock();
+    sink_lock();
+    sink_set_freq_nolock(freq);
+    sink_unlock();
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     logf("PCM DMA stop (%d)", snd_pcm_state(handle));
 
@@ -691,10 +663,9 @@ void pcm_play_dma_stop(void)
 #endif
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     logf("PCM DMA start (%p %d)", addr, size);
-    pcm_dma_apply_settings_nolock();
 
     pcm_data = addr;
     pcm_size = size;
@@ -780,7 +751,7 @@ void pcm_play_dma_start(const void *addr, size_t size)
     }
 }
 
-void pcm_play_dma_postinit(void)
+static void sink_dma_postinit(void)
 {
     audiohw_postinit();
 
@@ -799,15 +770,32 @@ unsigned int pcm_alsa_get_xruns(void)
     return xruns;
 }
 
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = sink_dma_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
+
 #ifdef HAVE_RECORDING
 void pcm_rec_lock(void)
 {
-    pcm_play_lock();
+    sink_lock();
 }
 
 void pcm_rec_unlock(void)
 {
-    pcm_play_unlock();
+    sink_unlock();
 }
 
 void pcm_rec_dma_init(void)
@@ -827,7 +815,6 @@ void pcm_rec_dma_close(void)
 void pcm_rec_dma_start(void *start, size_t size)
 {
     logf("PCM REC DMA start (%p %d)", start, size);
-    pcm_dma_apply_settings_nolock();
     pcm_data_rec = start;
     pcm_size = size;
 

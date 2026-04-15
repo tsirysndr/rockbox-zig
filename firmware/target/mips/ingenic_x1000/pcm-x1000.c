@@ -25,6 +25,7 @@
 #include "audiohw.h"
 #include "pcm.h"
 #include "pcm-internal.h"
+#include "pcm_sink.h"
 #include "panic.h"
 #include "dma-x1000.h"
 #include "irq-x1000.h"
@@ -53,7 +54,7 @@ static dma_desc rec_dma_desc;
 static void pcm_rec_dma_int_cb(int event);
 #endif
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     /* Ungate clock */
     jz_writef(CPM_CLKGR, AIC(0));
@@ -99,14 +100,9 @@ void pcm_play_dma_init(void)
     system_enable_irq(IRQ_AIC);
 }
 
-void pcm_play_dma_postinit(void)
+static void sink_set_freq(uint16_t freq)
 {
-    audiohw_postinit();
-}
-
-void pcm_dma_apply_settings(void)
-{
-    audiohw_set_frequency(pcm_fsel);
+    audiohw_set_frequency(freq);
 }
 
 static void play_dma_start(const void* addr, size_t size)
@@ -157,7 +153,7 @@ static void pcm_play_dma_int_cb(int event)
     }
 }
 
-void pcm_play_dma_start(const void* addr, size_t size)
+static void sink_dma_start(const void* addr, size_t size)
 {
     play_dma_pending_event = DMA_EVENT_NONE;
     aic_state |= AIC_STATE_PLAYING;
@@ -166,7 +162,7 @@ void pcm_play_dma_start(const void* addr, size_t size)
     jz_writef(AIC_CCR, TDMS(1), ETUR(1), ERPL(1));
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     /* disable DMA and underrun interrupts */
     jz_writef(AIC_CCR, TDMS(0), ETUR(0));
@@ -180,7 +176,7 @@ void pcm_play_dma_stop(void)
     if (jz_readf(AIC_I2SCR, STPBK) == 0) {
         while(jz_readf(AIC_SR, TFL) != 0);
     } else {
-        panicf("pcm_play_dma_stop: No bit clock running!");
+        panicf("sink_dma_stop: No bit clock running!");
     }
 
     /* disable playback */
@@ -190,14 +186,14 @@ void pcm_play_dma_stop(void)
     aic_state &= ~AIC_STATE_PLAYING;
 }
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     int irq = disable_irq_save();
     ++play_lock;
     restore_irq(irq);
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     int irq = disable_irq_save();
     if(--play_lock == 0 && (aic_state & AIC_STATE_PLAYING)) {
@@ -207,6 +203,23 @@ void pcm_play_unlock(void)
 
     restore_irq(irq);
 }
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = audiohw_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 #ifdef HAVE_RECORDING
 /*

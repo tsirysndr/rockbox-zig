@@ -147,16 +147,6 @@
 #define CHC_SETTINGS_DEC    BUTTON_MINUS
 #define CHC_SETTINGS_CANCEL BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define CHC_QUIT BUTTON_BACK
-#define CHC_STARTSTOP BUTTON_PLAY
-#define CHC_RESET BUTTON_CUSTOM
-#define CHC_MENU BUTTON_MENU
-#define CHC_SETTINGS_INC BUTTON_UP
-#define CHC_SETTINGS_DEC BUTTON_DOWN
-#define CHC_SETTINGS_OK BUTTON_SELECT
-#define CHC_SETTINGS_CANCEL BUTTON_BACK
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define CHC_QUIT BUTTON_POWER
 #define CHC_STARTSTOP BUTTON_PLAY
@@ -395,7 +385,7 @@
 #define CHC_SETTINGS_OK     BUTTON_SELECT
 #define CHC_SETTINGS_CANCEL BUTTON_POWER
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 #define CHC_QUIT            BUTTON_POWER
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -419,6 +409,16 @@
 #define CHC_SETTINGS_DEC    BUTTON_DOWN
 #define CHC_SETTINGS_OK     BUTTON_A
 #define CHC_SETTINGS_CANCEL BUTTON_B
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define CHC_QUIT            BUTTON_BACK
+#define CHC_STARTSTOP       BUTTON_SELECT
+#define CHC_RESET           BUTTON_USER
+#define CHC_MENU            BUTTON_MENU
+#define CHC_SETTINGS_INC    BUTTON_UP
+#define CHC_SETTINGS_DEC    BUTTON_DOWN
+#define CHC_SETTINGS_OK     BUTTON_SELECT
+#define CHC_SETTINGS_CANCEL BUTTON_BACK
 
 #else
 #error No keymap defined!
@@ -693,7 +693,7 @@ static int run_timer(int nr)
                 /* MENU  */
             case CHC_MENU:
             {
-                MENUITEM_STRINGLIST(menu, "Menu", NULL,
+                MENUITEM_STRINGLIST(menu, "Chess Clock", NULL,
                                     "Delete player", "Restart round",
                                     "Set round time", "Set total time",
                                     "Playback Control");

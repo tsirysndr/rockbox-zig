@@ -22,7 +22,11 @@
 #ifndef PCM_INTERNAL_H
 #define PCM_INTERNAL_H
 
+#include <stdbool.h>
+
 #include "config.h"
+#include "pcm.h"
+#include "pcm_sink.h"
 #include "gcc_extensions.h" /* for FORCE_INLINE */
 
 #ifdef HAVE_SW_VOLUME_CONTROL
@@ -66,6 +70,20 @@ void pcm_sync_pcm_factors(void);
 #define ALIGN_AUDIOBUF(start, size) \
     ({ (start) = (void *)(((uintptr_t)(start) + 3) & ~3); \
        (size) &= ~3; })
+
+/* Internal PCM API calls for playback */
+void pcm_play_data(pcm_play_callback_type get_more,
+                   pcm_status_callback_type status_cb,
+                   const void *start, size_t size);
+
+void pcm_play_stop(void);
+void pcm_play_stop_int(void); /* requires PCM lock held */
+bool pcm_is_playing(void);
+
+void pcm_set_frequency(unsigned int samplerate);
+unsigned int pcm_get_frequency(void);
+/* apply settings to hardware immediately */
+void pcm_apply_settings(void);
 
 void pcm_do_peak_calculation(struct pcm_peaks *peaks, bool active,
                              const void *addr, int count);
@@ -121,7 +139,6 @@ pcm_play_dma_status_callback(enum pcm_dma_status status)
 #if defined(HAVE_SW_VOLUME_CONTROL) && !defined(PCM_SW_VOLUME_UNBUFFERED)
 void pcm_play_dma_start_int(const void *addr, size_t size);
 void pcm_play_dma_stop_int(void);
-void pcm_play_stop_int(void);
 #endif /* HAVE_SW_VOLUME_CONTROL && !PCM_SW_VOLUME_UNBUFFERED */
 
 /* Called by the bottom layer ISR when more data is needed. Returns true
@@ -129,24 +146,12 @@ void pcm_play_stop_int(void);
 bool pcm_play_dma_complete_callback(enum pcm_dma_status status,
                                     const void **addr, size_t *size);
 
-extern unsigned long pcm_curr_sampr;
-extern unsigned long pcm_sampr;
-extern int pcm_fsel;
-
 #ifdef HAVE_PCM_DMA_ADDRESS
 void * pcm_dma_addr(void *addr);
 #endif
 
 extern volatile bool pcm_playing;
-
-void pcm_play_dma_lock(void);
-void pcm_play_dma_unlock(void);
-void pcm_play_dma_init(void) INIT_ATTR;
-void pcm_play_dma_postinit(void);
-void pcm_play_dma_start(const void *addr, size_t size);
-void pcm_play_dma_stop(void);
-
-void pcm_dma_apply_settings(void);
+struct pcm_sink* pcm_get_current_sink(void);
 
 #ifdef HAVE_RECORDING
 

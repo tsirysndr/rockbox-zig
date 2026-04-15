@@ -118,7 +118,9 @@ static int browser(void* param)
     int filter = SHOW_SUPPORTED;
     char folder[MAX_PATH] = "/";
     /* stuff needed to remember position in file browser */
-    static char last_folder[MAX_PATH] = "/";
+    /*static char last_folder[MAX_PATH] = "/"*/
+    char *last_folder = global_status.browse_last_folder;
+
     /* and stuff for the database browser */
 #ifdef HAVE_TAGCACHE
     static int last_db_dirlevel = 0, last_db_selection = 0, last_ft_dirlevel = 0;
@@ -490,7 +492,7 @@ static const struct root_items items[] = {
     [GO_TO_SHORTCUTMENU] = { do_shortcut_menu, NULL, NULL },
 
 };
-//static const int nb_items = sizeof(items)/sizeof(*items);
+#define NUM_ITEMS (int)(sizeof(items)/sizeof(*items))
 
 static int item_callback(int action,
                          const struct menu_item_ex *this_item,
@@ -810,7 +812,10 @@ static int load_plugin_screen(char *key)
         }
         else
         {
-            ret_val = GO_TO_PREVIOUS;
+            if (ret == PLUGIN_GOTO_ROOT)
+                ret_val = GO_TO_ROOT;
+            else
+                ret_val = GO_TO_PREVIOUS;
             /* Prevents infinite loop with WPS, Plugins, Previous Screen*/
             if (ret == PLUGIN_OK && old_global == GO_TO_WPS && !audio_status())
                 ret_val = GO_TO_ROOT;
@@ -847,9 +852,13 @@ static int root_menu_setup_screens(void)
 {
     int new_screen = next_screen;
     if (global_settings.start_in_screen == 0)
-        new_screen = (int)global_status.last_screen;
-    else new_screen = global_settings.start_in_screen - 2;
-    if (new_screen == GO_TO_PLUGIN)
+        new_screen = global_status.last_screen;
+    else
+        new_screen = global_settings.start_in_screen - 2;
+
+    if (new_screen >= NUM_ITEMS)
+        new_screen = GO_TO_ROOT;
+    else if (new_screen == GO_TO_PLUGIN)
     {
         if (global_status.last_screen == GO_TO_SHORTCUTMENU)
         {
@@ -922,25 +931,10 @@ static int root_menu_setup_screens(void)
     return new_screen;
 }
 
-static int browser_default(void)
-{
-    switch (global_settings.browser_default)
-    {
-#ifdef HAVE_TAGCACHE
-        case BROWSER_DEFAULT_DB:
-            return GO_TO_DBBROWSER;
-#endif
-        case BROWSER_DEFAULT_PL_CAT:
-            return GO_TO_PLAYLISTS_SCREEN;
-        case BROWSER_DEFAULT_FILES:
-        default:
-            return GO_TO_FILEBROWSER;
-    }
-}
 
 void root_menu(void)
 {
-    int previous_browser = browser_default();
+    int previous_browser = global_status.last_browser;
     int selected = 0;
     int shortcut_origin = GO_TO_ROOT;
 
@@ -974,7 +968,7 @@ void root_menu(void)
 #endif
             case GO_TO_FILEBROWSER:
             case GO_TO_PLAYLISTS_SCREEN:
-                previous_browser = next_screen;
+                global_status.last_browser = previous_browser = next_screen;
                 goto load_next_screen;
                 break;
 #if CONFIG_TUNER
@@ -1069,8 +1063,8 @@ void root_menu(void)
                         last_screen = GO_TO_PLUGIN;
                     }
                 }
-                previous_browser = (next_screen != GO_TO_WPS) ? browser_default() :
-                                                                GO_TO_PLUGIN;
+                previous_browser = (next_screen == GO_TO_WPS) ?
+                                   GO_TO_PLUGIN : global_status.last_browser;
                 break;
             }
             default:

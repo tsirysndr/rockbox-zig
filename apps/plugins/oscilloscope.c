@@ -223,20 +223,6 @@
 #define OSCILLOSCOPE_VOL_UP          BUTTON_PLUS
 #define OSCILLOSCOPE_VOL_DOWN        BUTTON_MINUS
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define OSCILLOSCOPE_QUIT            BUTTON_BACK
-#define OSCILLOSCOPE_DRAWMODE        BUTTON_SELECT
-#define OSCILLOSCOPE_ADVMODE         BUTTON_CUSTOM
-#define OSCILLOSCOPE_ORIENTATION_PRE BUTTON_MENU
-#define OSCILLOSCOPE_ORIENTATION     (BUTTON_MENU | BUTTON_REL)
-#define OSCILLOSCOPE_GRAPHMODE_PRE   BUTTON_MENU
-#define OSCILLOSCOPE_GRAPHMODE       (BUTTON_MENU | BUTTON_REPEAT)
-#define OSCILLOSCOPE_PAUSE           BUTTON_PLAY
-#define OSCILLOSCOPE_SPEED_UP        BUTTON_RIGHT
-#define OSCILLOSCOPE_SPEED_DOWN      BUTTON_LEFT
-#define OSCILLOSCOPE_VOL_UP          BUTTON_UP
-#define OSCILLOSCOPE_VOL_DOWN        BUTTON_DOWN
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define OSCILLOSCOPE_QUIT            BUTTON_POWER
 #define OSCILLOSCOPE_DRAWMODE        (BUTTON_MENU | BUTTON_UP)
@@ -564,7 +550,7 @@
 #define OSCILLOSCOPE_VOL_UP         BUTTON_UP
 #define OSCILLOSCOPE_VOL_DOWN       BUTTON_DOWN
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -576,6 +562,17 @@
 #define OSCILLOSCOPE_ORIENTATION     BUTTON_R
 #define OSCILLOSCOPE_GRAPHMODE       BUTTON_B
 #define OSCILLOSCOPE_PAUSE           BUTTON_A
+#define OSCILLOSCOPE_SPEED_UP        BUTTON_RIGHT
+#define OSCILLOSCOPE_SPEED_DOWN      BUTTON_LEFT
+#define OSCILLOSCOPE_VOL_UP          BUTTON_UP
+#define OSCILLOSCOPE_VOL_DOWN        BUTTON_DOWN
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define OSCILLOSCOPE_QUIT            BUTTON_BACK
+#define OSCILLOSCOPE_DRAWMODE        BUTTON_USER
+#define OSCILLOSCOPE_ADVMODE         BUTTON_MENU
+#define OSCILLOSCOPE_ORIENTATION     BUTTON_POWER
+#define OSCILLOSCOPE_PAUSE           BUTTON_SELECT
 #define OSCILLOSCOPE_SPEED_UP        BUTTON_RIGHT
 #define OSCILLOSCOPE_SPEED_DOWN      BUTTON_LEFT
 #define OSCILLOSCOPE_VOL_UP          BUTTON_UP
@@ -1446,6 +1443,10 @@ static void waveform_buffer_callback(const void *start, size_t size)
     waveform_buffer_have = have + copy;
 }
 
+static const struct mixer_buffer_cbs buf_cbs = {
+    .next_buffer = waveform_buffer_callback,
+};
+
 static void waveform_buffer_reset(void)
 {
     /* only called when callback is off */
@@ -1914,7 +1915,7 @@ static void graphmode_setup(void)
     if (osc.graphmode == GRAPH_WAVEFORM)
     {
         rb->mixer_channel_set_buffer_hook(channel,
-                                          waveform_buffer_callback);
+                                          &buf_cbs);
 #ifdef HAVE_SCHEDULER_BOOSTCTRL
         rb->trigger_cpu_boost(); /* Just looks better */
 #endif
@@ -2018,7 +2019,7 @@ void switch_channel(enum pcm_mixer_channel new_channel)
 
 #ifdef OSCILLOSCOPE_GRAPHMODE
     if (osc.graphmode == GRAPH_WAVEFORM)
-        rb->mixer_channel_set_buffer_hook(channel, waveform_buffer_callback);
+        rb->mixer_channel_set_buffer_hook(channel, &buf_cbs);
 #endif
 }
 #endif /* USB_ENABLE_AUDIO */

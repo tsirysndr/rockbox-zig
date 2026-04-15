@@ -28,11 +28,12 @@
 #include "audiohw.h"
 #include "sound.h"
 #include "pcm-internal.h"
+#include "pcm_sink.h"
 
 static int locked = 0;
 
 /* Mask the DMA interrupt */
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     if (++locked == 1)
     {
@@ -43,7 +44,7 @@ void pcm_play_lock(void)
 }
 
 /* Unmask the DMA interrupt if enabled */
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     if(--locked == 0)
     {
@@ -53,7 +54,7 @@ void pcm_play_unlock(void)
     }
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     HDMA_CON0 = 0x00;
     HDMA_ISR = 0x00;
@@ -105,10 +106,10 @@ static void hdma_i2s_transfer(const void *addr, size_t size)
                   (1<<0));   /* hardware trigger DMA mode */
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     /* Stop any DMA in progress */
-    pcm_play_dma_stop();
+    sink_dma_stop();
 
     /* kick in DMA transfer */
     hdma_i2s_transfer(addr, size);
@@ -225,7 +226,7 @@ static void set_codec_freq(unsigned int freq)
 }
 #endif
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     /* unmask HDMA interrupt in INTC */
     INTC_IMR |= IRQ_ARM_HDMA;
@@ -236,18 +237,13 @@ void pcm_play_dma_init(void)
     i2s_init();
 }
 
-void pcm_play_dma_postinit(void)
-{
-    audiohw_postinit();
-}
-
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
 #ifdef CODEC_SLAVE
-    set_codec_freq(pcm_fsel);
+    set_codec_freq(freq);
 #endif
 
-    audiohw_set_frequency(pcm_fsel);
+    audiohw_set_frequency(freq);
 }
 
 /* audio DMA ISR called when chunk from callers buffer has been transfered */
@@ -262,6 +258,23 @@ void INT_HDMA(void)
         pcm_play_dma_status_callback(PCM_DMAST_STARTED);
     }
 }
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = audiohw_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 /****************************************************************************
  ** Recording DMA transfer

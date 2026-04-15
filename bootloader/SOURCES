@@ -19,14 +19,12 @@ show_logo.c
       defined(MROBE_100)  || defined(PHILIPS_SA9200) || \
       defined(PHILIPS_HDD1630) || defined(PHILIPS_HDD6330) || \
       defined(SAMSUNG_YH820) || defined(SAMSUNG_YH920) || \
-      defined(SAMSUNG_YH925) || defined(SANSA_VIEW)
+      defined(SAMSUNG_YH925)
 #ifdef E200R_INSTALLER
 main-e200r-installer.c
 #elif defined(SANSA_PP_ERASE)
 main-ppsansawipe.c
 fat32format.c
-#elif defined(SANSA_VIEW)
-sansaview.c
 #else
 show_logo.c
 main-pp.c
@@ -42,33 +40,17 @@ mrobe500.c
 #elif defined(CPU_TCC780X)
 telechips.c
 show_logo.c
-#elif defined(MEIZU_M6SL)
-meizu_m6sl.c
-#elif defined(MEIZU_M6SP)
-meizu_m6sp.c
-#elif defined(MEIZU_M3)
-meizu_m3.c
-#elif defined(SAMSUNG_YPS3)
-samsung_yps3.c
 #elif defined(ONDA_VX747) || defined(ONDA_VX747P) || defined(ONDA_VX767) || defined(ONDA_VX777)
 ondavx747.c
 show_logo.c
 #elif defined(XDUOO_X3)
 xduoox3.c
 show_logo.c
-#elif defined(CREATIVE_ZVx)
-creativezvm.c
 #elif CONFIG_CPU==AS3525 || CONFIG_CPU==AS3525v2
 sansa_as3525.c
 show_logo.c
 #elif CONFIG_CPU==IMX233
 imx233.c
-#elif defined(LYRE_PROTO1)
-lyre_proto1.c
-show_logo.c
-#elif defined(MINI2440)
-mini2440.c
-show_logo.c
 #elif defined(PBELL_VIBE500)
 main-pp.c
 show_logo.c
@@ -96,5 +78,4 @@ x1000/recovery.c
 x1000/utils.c
 #elif defined(ECHO_R1)
 echoplayer.c
-show_logo.c
 #endif

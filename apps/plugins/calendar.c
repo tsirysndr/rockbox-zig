@@ -149,16 +149,6 @@
 #define CALENDAR_PREV_MONTH BUTTON_BOTTOMLEFT
 #define CALENDAR_EVENT_MENU_NAME "menu"
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define CALENDAR_QUIT       BUTTON_BACK
-#define CALENDAR_SELECT     BUTTON_SELECT
-#define CALENDAR_NEXT_WEEK  BUTTON_DOWN
-#define CALENDAR_PREV_WEEK  BUTTON_UP
-#define CALENDAR_NEXT_DAY   BUTTON_RIGHT
-#define CALENDAR_PREV_DAY   BUTTON_LEFT
-#define CALENDAR_NEXT_MONTH BUTTON_CUSTOM
-#define CALENDAR_PREV_MONTH BUTTON_PLAY
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define CALENDAR_QUIT       BUTTON_POWER
 #define CALENDAR_SELECT     BUTTON_PLAY
@@ -419,7 +409,7 @@
 #define CALENDAR_NEXT_MONTH BUTTON_VOL_UP
 #define CALENDAR_PREV_MONTH BUTTON_VOL_DOWN
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -444,6 +434,16 @@
 #define CALENDAR_NEXT_MONTH BUTTON_R
 #define CALENDAR_PREV_MONTH BUTTON_L
 #define CALENDAR_EVENT_MENU_NAME "A"
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define CALENDAR_QUIT       BUTTON_BACK
+#define CALENDAR_SELECT     BUTTON_SELECT
+#define CALENDAR_NEXT_WEEK  BUTTON_DOWN
+#define CALENDAR_PREV_WEEK  BUTTON_UP
+#define CALENDAR_NEXT_DAY   BUTTON_RIGHT
+#define CALENDAR_PREV_DAY   BUTTON_LEFT
+#define CALENDAR_NEXT_MONTH BUTTON_POWER
+#define CALENDAR_PREV_MONTH BUTTON_USER
 
 #else
 #error "No keypad setting."
@@ -895,7 +895,7 @@ static bool edit_memo(int change, struct shown *shown)
         { "Sun", -1 },
     };
 
-    MENUITEM_STRINGLIST(edit_menu, "Edit menu", edit_menu_cb,
+    MENUITEM_STRINGLIST(edit_menu, "Edit", edit_menu_cb,
                         "Remove", "Edit",
                         "New Weekly", "New Monthly",
                         "New Yearly", "New One off",

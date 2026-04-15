@@ -445,33 +445,6 @@ creativezen
     record : yes
 }
 
-zenvision
-{
-    name   : Creative Zen Vision
-    screen : 320 x 240 @ rgb
-    remote : no
-    fm     : no
-    record : no
-}
-
-zenvisionm30gb
-{
-    name   : Creative Zen Vision%:M 30GB
-    screen : 320 x 240 @ rgb
-    remote : no
-    fm     : no
-    record : no
-}
-
-zenvisionm60gb
-{
-    name   : Creative Zen Vision%:M 60GB
-    screen : 320 x 240 @ rgb
-    remote : no
-    fm     : no
-    record : no
-}
-
 creativezenxfi2
 {
     name   : Creative Zen X-Fi2
@@ -580,51 +553,6 @@ logikdax
     record : no
 }
 
-lyreproto1
-{
-    name   : Lyre Prototype 1
-    screen : 128 x 128 @ rgb
-    remote : no
-    fm     : no
-    record : no
-}
-
-meizum3
-{
-    name   : Meizu M3
-    screen : 176 x 132 @ rgb
-    remote : no
-    fm     : yes
-    record : no
-}
-
-meizum6sl
-{
-    name   : Meizu M6SL
-    screen : 320 x 240 @ rgb
-    remote : no
-    fm     : yes
-    record : no
-}
-
-meizum6sp
-{
-    name   : Meizu M6SP
-    screen : 240 x 320 @ rgb
-    remote : no
-    fm     : yes
-    record : no
-}
-
-mini2440
-{
-    name   : Mini 2440
-    screen : 240 x 320 @ rgb
-    remote : no
-    fm     : no
-    record : no
-}
-
 mpiohd200
 {
     name   : MPIO HD200
@@ -688,15 +616,6 @@ samsungypr0
     record : no
 }
 
-samsungyps3
-{
-    name   : Samsung YP-S3
-    screen : 176 x 220 @ rgb
-    remote : no
-    fm     : yes
-    record : no
-}
-
 sansac100
 {
     name   : SanDisk Sansa c100
@@ -722,15 +641,6 @@ sansam200v4
     remote : no
     fm     : yes
     record : yes
-}
-
-sansaview
-{
-    name   : SanDisk Sansa View
-    screen : 240 x 320 @ rgb
-    remote : no
-    fm     : no
-    record : no
 }
 
 sonynwa20

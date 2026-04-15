@@ -20,12 +20,29 @@
  ****************************************************************************/
 
 #include "mv.h"
+#include "storage.h"
 
 int nand_init(void)
 {
     // TODO
     return 0;
 }
+
+void nand_spindown(int seconds)
+{
+    (void)seconds;
+}
+
+void nand_spin(void)
+{
+}
+
+#ifdef HAVE_STORAGE_FLUSH
+int nand_flush(void)
+{
+    return 0;
+}
+#endif
 
 int nand_read_sectors(IF_MD(int drive,) sector_t start, int incount,
                      void* inbuf)
@@ -59,5 +76,23 @@ int nand_event(long id, intptr_t data)
     (void) id;
     (void) data;
 
+    return 0;
+}
+
+#ifdef STORAGE_GET_INFO
+void nand_get_info(IF_MD(int drive,) struct storage_info *info)
+{
+    IF_MD((void)drive);
+    info->sector_size = SECTOR_SIZE;
+    info->num_sectors = 0;
+    info->vendor = "";
+    info->product = "";
+    info->revision = "";
+}
+#endif
+
+long nand_last_disk_activity(void)
+{
+    // TODO
     return 0;
 }

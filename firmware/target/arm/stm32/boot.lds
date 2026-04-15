@@ -1,14 +1,5 @@
 #include "cpu.h"
 
-#if 0
-/* version for openocd load to ram -- faster to upload than flash */
-# define TEXT_MEM SRAM_AXI
-# define DATA_MEM SRAM_AXI
-#else
-# define TEXT_MEM FLASH1
-# define DATA_MEM SRAM_AXI
-#endif
-
 ENTRY(reset_handler)
 OUTPUT_FORMAT(elf32-littlearm)
 OUTPUT_ARCH(arm)
@@ -16,30 +7,31 @@ STARTUP(target/arm/stm32/crt0-stm32h7.o)
 
 MEMORY
 {
-    SRAM_AXI (rwx) : ORIGIN = STM32_SRAM_AXI_BASE,    LENGTH = STM32_SRAM_AXI_SIZE
-    ITCM     (rwx) : ORIGIN = STM32_ITCM_BASE,        LENGTH = STM32_ITCM_SIZE
-    DTCM     (rwx) : ORIGIN = STM32_DTCM_BASE,        LENGTH = STM32_DTCM_SIZE
-    FLASH1   (rx)  : ORIGIN = STM32_FLASH_BANK1_BASE, LENGTH = STM32_FLASH_BANK1_SIZE
-    FLASH2   (rx)  : ORIGIN = STM32_FLASH_BANK2_BASE, LENGTH = STM32_FLASH_BANK2_SIZE
+    SRAM_AXI (rw) : ORIGIN = STM32_SRAM_AXI_BASE,    LENGTH = STM32_SRAM_AXI_SIZE
+    FLASH1   (rx) : ORIGIN = STM32_FLASH_BANK1_BASE, LENGTH = STM32_FLASH_BANK1_SIZE
 }
 
 SECTIONS
 {
     .text :
     {
-        KEEP(*(.vectors.arm))
-        KEEP(*(.vectors.platform))
-        *(.init.text*)
-        *(.text*)
-        *(.rodata*)
-    } > TEXT_MEM
+        KEEP(*(.vectors.arm));
+        KEEP(*(.vectors.platform));
+        *(.init*);
+        *(.text*);
+    } > FLASH1
+
+    .rodata :
+    {
+        *(.rodata*);
+    } > FLASH1
 
     .data :
     {
         _databegin = .;
-        *(.data*)
+        *(.data*);
         _dataend = .;
-    } > DATA_MEM AT> TEXT_MEM
+    } > SRAM_AXI AT> FLASH1
     _datacopy = LOADADDR(.data);
 
     .bss (NOLOAD) :
@@ -48,9 +40,9 @@ SECTIONS
         *(.bss*);
         *(COMMON);
         _bssend = .;
-    } > DATA_MEM
+    } > SRAM_AXI
 
-    .stack (NOLOAD) : ALIGN(4)
+    .stack (NOLOAD) : ALIGN(8)
     {
         irqstackbegin = .;
         . += 0x400;
@@ -59,9 +51,12 @@ SECTIONS
         stackbegin = .;
         . += 0x2000;
         stackend = .;
+    } > SRAM_AXI
 
-        *(.stack);
-    } > DTCM
+    .framebuffer (NOLOAD) :
+    {
+        *(.framebuffer);
+    } > SRAM_AXI
 }
 
 EXTERN(__vectors_arm);

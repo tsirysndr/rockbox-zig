@@ -351,7 +351,7 @@ void sys_menu(struct System* sys)
     rb->lcd_update();
 
     mainmenu_sysptr = sys;
-    MENUITEM_STRINGLIST(menu, "XWorld Menu", mainmenu_cb,
+    MENUITEM_STRINGLIST(menu, "XWorld", mainmenu_cb,
                         "Resume Game",          /* 0  */
                         "Start New Game",       /* 1  */
                         "Video Settings",       /* 2  */
@@ -730,7 +730,7 @@ static void do_pause_menu(struct System* sys)
 #endif
 
     int sel = 0;
-    MENUITEM_STRINGLIST(menu, "XWorld Menu", NULL,
+    MENUITEM_STRINGLIST(menu, "XWorld", NULL,
                         "Resume Game",         /* 0 */
                         "Start New Game",      /* 1 */
                         "Video Settings",      /* 2 */
@@ -1029,13 +1029,16 @@ void sys_startAudio(struct System* sys, AudioCallback callback, void *param)
     audio_param = param;
     audio_sys = sys;
 
-    rb->pcm_play_data(get_more, NULL, NULL, 0);
+    static const struct mixer_play_cbs cbs = {
+        .get_more = get_more,
+    };
+    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 }
 
 void sys_stopAudio(struct System* sys)
 {
     (void) sys;
-    rb->pcm_play_stop();
+    rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
 }
 
 uint32_t sys_getOutputSampleRate(struct System* sys)

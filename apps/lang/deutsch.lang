@@ -9092,15 +9092,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Tiefengrenzfrequenz"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Tiefengrenzfrequenz"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Tiefengrenzfrequenz"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Tiefengrenzfrequenz"
   </voice>
 </phrase>
 <phrase>
@@ -9109,15 +9109,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Höhengrenzfrequenz"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Höhengrenzfrequenz"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Höhengrenzfrequenz"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Höhengrenzfrequenz"
   </voice>
 </phrase>
 <phrase>
@@ -11520,7 +11520,7 @@
 </phrase>
 <phrase>
   id: LANG_USB_MODE
-  desc: in Settings -> General -> System -> USB Mode
+  desc: in Settings -> General -> System -> USB
   user: core
   <source>
     *: "USB Mode"
@@ -12630,20 +12630,6 @@
   </dest>
   <voice>
     *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYTIME_ERROR
-  desc: playing time screen
-  user: core
-  <source>
-    *: "Error while gathering info"
-  </source>
-  <dest>
-    *: "Fehler beim Sammeln von Informationen"
-  </dest>
-  <voice>
-    *: "Fehler beim Sammeln von Informationen"
   </voice>
 </phrase>
 <phrase>
@@ -14704,7 +14690,7 @@
   user: core
   <source>
     *: "Press LEFT to cancel."
-    android,hifietma*,zenvision: "Press BACK to cancel."
+    android,hifietma*: "Press BACK to cancel."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Press POWER to cancel."
     ihifi760,ihifi960: "Double tap RETURN to cancel."
     ihifi770,ihifi770c,ihifi800: "Press HOME to cancel."
@@ -14719,7 +14705,7 @@
   </source>
   <dest>
     *: "Zum Abbrechen LINKS drücken."
-    android,hifietma*,vibe500,zenvision: "Zum Abbrechen ZURÜCK drücken."
+    android,hifietma*,vibe500: "Zum Abbrechen ZURÜCK drücken."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Zum Abbrechen POWER drücken."
     ihifi760,ihifi960: "Zum Abbrechen ZURÜCK doppeldrücken."
     ihifi770,ihifi770c,ihifi800: "Zum Abbrechen STARTMENÜ drücken."
@@ -14733,7 +14719,7 @@
   </dest>
   <voice>
     *: "Zum Abbrechen LINKS drücken."
-    android,hifietma*,vibe500,zenvision: "Zum Abbrechen ZURÜCK drücken."
+    android,hifietma*,vibe500: "Zum Abbrechen ZURÜCK drücken."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Zum Abbrechen POWER drücken."
     ihifi760,ihifi960: "Zum Abbrechen ZURÜCK doppeldrücken."
     ihifi770,ihifi770c,ihifi800: "Zum Abbrechen STARTMENÜ drücken."
@@ -15227,7 +15213,7 @@
 </phrase>
 <phrase>
   id: LANG_VOICED_DATE_FORMAT
-  desc: format string for how dates will be read back. Y == 4-digit year, A == month name, m == numeric month, d == numeric day. For example, "AdY" will read "January 21 2021"
+  desc: format string for how dates will be read back. Y == 4-digit year (grouped), y == 4-digit year (numeric), A == month name, m == numeric month, d == numeric day. For example, for 2021-01-05, "AdY" will be voiced as "January 5 twenty twenty-one" and "dmy" will be voiced as "5 1 two thousand twenty one
   user: core
   <source>
     *: "dAY"
@@ -15849,20 +15835,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_AMAZE_MENU
-  desc: Amaze game
-  user: core
-  <source>
-    *: "Amaze Main Menu"
-  </source>
-  <dest>
-    *: "Amaze Hauptmenü"
-  </dest>
-  <voice>
-    *: "Amaze Hauptmenü"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SET_MAZE_SIZE
   desc: Maze size in Amaze game
   user: core
@@ -16126,34 +16098,6 @@
   </dest>
   <voice>
     *: "Mik mod Einstellungen"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MIKMOD_MENU
-  desc: mikmod plugin
-  user: core
-  <source>
-    *: "Mikmod Menu"
-  </source>
-  <dest>
-    *: "Mikmod Menü"
-  </dest>
-  <voice>
-    *: "Mik mod Menü"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_MENU
-  desc: chessbox plugin
-  user: core
-  <source>
-    *: "Chessbox Menu"
-  </source>
-  <dest>
-    *: "Schachbox Menü"
-  </dest>
-  <voice>
-    *: "Schach box Menü"
   </voice>
 </phrase>
 <phrase>
@@ -17001,5 +16945,64 @@
   <voice>
     *: none
     usbdac: "USB-Digital Analog Wandler Aktiv"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_LED_INDICATORS
+  desc: LED indicators setting
+  user: core
+  <source>
+    *: none
+    general_purpose_led: "Use LED indicators"
+  </source>
+  <dest>
+    *: none
+    general_purpose_led: "LED Indikatoren verwenden"
+  </dest>
+  <voice>
+    *: none
+    general_purpose_led: "LED Indikatoren verwenden"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCE_STATUS
+  desc: announnnce_status plugin
+  user: core
+  <source>
+    *: "Announce Status"
+  </source>
+  <dest>
+    *: "Status mitteilen"
+  </dest>
+  <voice>
+    *: "Status mitteilen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEEP_DIRECTORY
+  desc: file browser setting
+  user: core
+  <source>
+    *: "Always remember last folder"
+  </source>
+  <dest>
+    *: "Zuletzt verwendeten Ordner immer merken"
+  </dest>
+  <voice>
+    *: "Zuletzt verwendeten Ordner immer merken"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MENU
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "USB"
+  </source>
+  <dest>
+    *: "~USB"
+  </dest>
+  <voice>
+    *: "~U S B"
   </voice>
 </phrase>

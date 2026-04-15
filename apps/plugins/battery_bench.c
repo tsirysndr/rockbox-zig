@@ -150,12 +150,6 @@ struct battery_tables_t {
 #define BATTERY_OFF BUTTON_POWER
 #define BATTERY_OFF_TXT "POWER"
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define BATTERY_ON BUTTON_PLAY
-#define BATTERY_ON_TXT  "PLAY - start"
-#define BATTERY_OFF BUTTON_BACK
-#define BATTERY_OFF_TXT "BACK"
-
 #elif CONFIG_KEYPAD == PHILIPS_HDD1630_PAD
 
 #define BATTERY_ON  BUTTON_MENU
@@ -250,7 +244,7 @@ struct battery_tables_t {
 #define BATTERY_ON_TXT  "Play"
 #define BATTERY_OFF_TXT "Power"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == MA_PAD
@@ -264,6 +258,12 @@ struct battery_tables_t {
 #define BATTERY_OFF BUTTON_X
 #define BATTERY_ON_TXT  "A"
 #define BATTERY_OFF_TXT "X"
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define BATTERY_ON      BUTTON_SELECT
+#define BATTERY_OFF     BUTTON_BACK
+#define BATTERY_ON_TXT  "A - start"
+#define BATTERY_OFF_TXT "B"
 
 #else
 #error "No keymap defined!"
@@ -485,7 +485,7 @@ static void thread(void)
         {
             case SYS_USB_CONNECTED:
                 in_usb_mode = true;
-                rb->usb_acknowledge(SYS_USB_CONNECTED_ACK);
+                rb->usb_acknowledge(SYS_USB_CONNECTED_ACK, ev.data);
                 break;
             case SYS_USB_DISCONNECTED:
                 in_usb_mode = false;

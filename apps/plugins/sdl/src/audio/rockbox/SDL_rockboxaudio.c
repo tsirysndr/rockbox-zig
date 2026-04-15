@@ -215,7 +215,7 @@ static Uint8 *ROCKBOXAUD_GetAudioBuf(_THIS)
 
 static void ROCKBOXAUD_CloseAudio(_THIS)
 {
-    rb->pcm_play_stop();
+    rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
     if ( this->hidden->mixbuf != NULL ) {
         SDL_FreeAudioMem(this->hidden->mixbuf);
         this->hidden->mixbuf = NULL;
@@ -226,14 +226,16 @@ static void ROCKBOXAUD_CloseAudio(_THIS)
         if(this->hidden->rb_buf[i])
             SDL_FreeAudioMem(this->hidden->rb_buf[i]);
     }
-    rb->pcm_set_frequency(HW_SAMPR_DEFAULT);
+    const struct pcm_sink_caps* caps = rb->pcm_current_sink_caps();
+    rb->mixer_set_frequency(caps->samprs[caps->default_freq]);
 }
 
 static bool freq_ok(unsigned int freq)
 {
-    for(int i = 0; i < SAMPR_NUM_FREQ; i++)
+    const struct pcm_sink_caps* caps = rb->pcm_current_sink_caps();
+    for(uint16_t i = 0; i < caps->num_samprs; i++)
     {
-        if(rb->hw_freq_sampr[i] == freq)
+        if(caps->samprs[i] == freq)
             return true;
     }
     return false;
@@ -257,7 +259,7 @@ static int ROCKBOXAUD_OpenAudio(_THIS, SDL_AudioSpec *spec)
     SDL_CalculateAudioSpec(spec);
 
     LOGF("samplerate %d", spec->freq);
-    rb->pcm_set_frequency(spec->freq);
+    rb->mixer_set_frequency(spec->freq);
 
     /* Allocate mixing buffer */
     this->hidden->mixlen = spec->size;
@@ -286,7 +288,10 @@ static int ROCKBOXAUD_OpenAudio(_THIS, SDL_AudioSpec *spec)
 
     rbaud_underruns = 0;
 
-    rb->pcm_play_data(get_more, NULL, NULL, 0);
+    static const struct mixer_play_cbs cbs = {
+        .get_more = get_more,
+    };
+    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
     /* We're ready to rock and roll. :-) */
     return(0);

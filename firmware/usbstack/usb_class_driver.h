@@ -29,6 +29,13 @@
 
 /* Common api, implemented by all class drivers */
 
+struct usb_class_driver_ep_allocation {
+    uint8_t type;  /* by driver, required ep type. USB_ENDPOINT_XFER_* */
+    uint8_t dir;   /* by driver, required ep dir. DIR_{IN,OUT} */
+    uint8_t ep;    /* by core, allocated ep. > 0 are valid but can be 0 if optional==true */
+    bool optional; /* by driver, set true to mark this requirement to be optional */
+};
+
 struct usb_class_driver {
     /* First some runtime data */
     bool enabled;
@@ -40,8 +47,12 @@ struct usb_class_driver {
     /* Set this to true if the driver needs exclusive disk access (e.g. usb storage) */
     bool needs_exclusive_storage;
 
-    /* Let the driver request endpoints it need. Returns zero on success */
-    int (*request_endpoints)(struct usb_class_driver *);
+    /* USB config number this driver belongs to */
+    uint8_t config;
+
+    /* Endpoint allocation state table */
+    uint8_t ep_allocs_size;
+    struct usb_class_driver_ep_allocation* ep_allocs;
 
     /* Tells the driver what its first interface number will be. The driver
        returns the number of the first available interface for the next driver
@@ -107,6 +118,10 @@ struct usb_class_driver {
      * Returns value on success and -1 on error.
      * Mandatory function if alternate interface support is needed */
     int (*get_interface)(int interface);
+
+    /* Invoked by USB_NOTIFY_CLASS_DRIVER
+       Optional function */
+    void (*notify_event)(intptr_t data);
 };
 
 #define PACK_DATA(dest, data) pack_data(dest, &(data), sizeof(data))

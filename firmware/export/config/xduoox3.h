@@ -128,7 +128,7 @@
 #define CONFIG_STORAGE (STORAGE_SD /* | STORAGE_NAND */)
 
 #define HAVE_MULTIDRIVE
-#define CONFIG_STORAGE_MULTI
+//#define CONFIG_STORAGE_MULTI
 #define NUM_DRIVES 2
 
 /* Define this if media can be exchanged on the fly */

@@ -24,8 +24,7 @@ preprocess = $(shell $(CC) $(PPCFLAGS) $(2) -E -P -x c -include config.h $(1) | 
 		grep -v "^$(_hash_)" | grep -v "^ *$$" | \
 		sed -e 's:^..*:$(dir $(1))&:')
 
-preprocess2file = $(shell $(CC) $(PPCFLAGS) $(3) -E -P -x c -include config.h $(1) | \
-		grep -v '^$(_hash_)' | grep -v "^$$" > $(2))
+preprocess2file = $(SILENT)$(CC) $(PPCFLAGS) $(3) -E -P -x c -include config.h $(1) -o $(2)
 
 asmdefs2file = $(SILENT)$(CC) $(PPCFLAGS) $(3) -S -x c -o - -include config.h $(1) | \
 	perl -ne 'if(/^_?AD_(\w+):$$/){$$var=$$1}else{/^\W\.(?:word|long)\W(.*)$$/ && $$var && print "\#define $$var $$1\n";$$var=0}' > $(2)
@@ -38,17 +37,23 @@ a2lnk = $(patsubst lib%.a,-l%,$(notdir $(1)))
 # handles the $(1) == $(2) case too
 ifndef APP_TYPE
 objcopy = $(OC) $(if $(filter yes, $(USE_ELF)), -S -x, -O binary) $(1) $(2)	# objcopy native
+objcopy_plugin = $(OC) $(if $(filter yes, $(PLUGIN_USE_ELF)), -S -x, -O binary) $(1) $(2)
 else ifneq (,$(findstring sdl-sim,$(APP_TYPE)))
 objcopy = cp $(1) $(1).tmp;mv -f $(1).tmp $(2)		# objcopy simulator
+objcopy_plugin = $(objcopy)
 else ifneq (,$(findstring ctru,$(MODELNAME))) 		# 3dsxtool requires symbols
 objcopy = cp $(1) $(1).tmp;mv -f $(1).tmp $(2)
+objcopy_plugin = $(objcopy)
 else
   ifdef DEBUG
     objcopy = cp $(1) $(1).tmp;mv -f $(1).tmp $(2)	# objcopy hosted (DEBUG)
+    objcopy_plugin = $(objcopy)
   else ifeq ($(UNAME), Darwin)
     objcopy = cp $(1) $(1).tmp;mv -f $(1).tmp $(2)	# objcopy hosted macOS (GNU objcopy strips LC_ID_DYLIB)
+    objcopy_plugin = $(objcopy)
   else
     objcopy = $(OC) -S -x $(1) $(2)					# objcopy hosted (!DEBUG)
+    objcopy_plugin = $(objcopy)
   endif
 endif
 

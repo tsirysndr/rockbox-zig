@@ -59,6 +59,10 @@
 #include "onplay.h"
 #include "misc.h"
 
+#if defined(DX50) || defined(DX90) || (defined(HAVE_USB_POWER) && !defined(USB_NONE) && !defined(SIMULATOR))
+#define HAVE_USB_MODE
+#endif
+
 #ifndef HAS_BUTTON_HOLD
 static int selectivesoftlock_callback(int action,
                                       const struct menu_item_ex *this_item,
@@ -199,6 +203,7 @@ static int clear_start_directory(void)
     splash(HZ, ID2P(LANG_RESET_DONE_CLEAR));
     return false;
 }
+MENUITEM_SETTING(keep_directory, &global_settings.keep_directory, NULL);
 MENUITEM_FUNCTION(clear_start_directory_item, 0, ID2P(LANG_RESET_START_DIR),
                   clear_start_directory, NULL, Icon_file_view_menu);
 
@@ -209,6 +214,7 @@ MAKE_MENU(file_menu, ID2P(LANG_FILE), filemenu_callback, Icon_file_view_menu,
                 &sort_case, &sort_dir, &sort_file, &interpret_numbers,
                 &dirfilter, &show_filename_ext, &browse_current,
                 &show_path_in_browser,
+                &keep_directory,
                 &clear_start_directory_item
 #ifdef HAVE_HOTKEY
                 ,&hotkey_tree_item
@@ -269,8 +275,11 @@ MAKE_MENU(battery_menu, ID2P(LANG_BATTERY_MENU), 0, Icon_NOICON,
             &usb_charging,
 #endif
          );
-#if defined(DX50) || defined(DX90) || (defined(HAVE_USB_POWER) && !defined(USB_NONE) && !defined(SIMULATOR))
+#ifdef HAVE_USB_MODE
 MENUITEM_SETTING(usb_mode, &global_settings.usb_mode, NULL);
+#endif
+#if defined(HAVE_GENERAL_PURPOSE_LED)
+MENUITEM_SETTING(use_led_indicators, &global_settings.use_led_indicators, NULL);
 #endif
 /* Disk */
 #ifdef HAVE_DISK_STORAGE
@@ -395,8 +404,8 @@ MENUITEM_SETTING(bt_selective_actions,
                  &global_settings.bt_selective_softlock_actions,
                                                     selectivesoftlock_callback);
 MENUITEM_FUNCTION(sel_softlock_mask, 0, ID2P(LANG_SETTINGS),
-	              selectivesoftlock_set_mask, selectivesoftlock_callback,
-	              Icon_Menu_setting);
+                  selectivesoftlock_set_mask, selectivesoftlock_callback,
+                  Icon_Menu_setting);
 
 MAKE_MENU(sel_softlock, ID2P(LANG_SOFTLOCK_SELECTIVE),
           NULL, Icon_Menu_setting, &bt_selective_actions, &sel_softlock_mask);
@@ -405,6 +414,22 @@ MAKE_MENU(sel_softlock, ID2P(LANG_SOFTLOCK_SELECTIVE),
 #if defined(DX50) || defined(DX90)
 MENUITEM_SETTING(governor, &global_settings.governor, NULL);
 #endif
+
+MAKE_MENU(usb_menu, ID2P(LANG_USB_MENU), 0, Icon_NOICON,
+#ifdef USB_ENABLE_HID
+            &usb_hid,
+            &usb_keypad_mode,
+#endif
+#ifdef USB_ENABLE_AUDIO
+            &usb_audio,
+#endif
+#if defined(USB_ENABLE_STORAGE) && defined(HAVE_MULTIDRIVE)
+            &usb_skip_first_drive,
+#endif
+#ifdef HAVE_USB_MODE
+            &usb_mode,
+#endif
+         );
 
 MAKE_MENU(system_menu, ID2P(LANG_SYSTEM),
           0, Icon_System_menu,
@@ -453,22 +478,17 @@ MAKE_MENU(system_menu, ID2P(LANG_SYSTEM),
 #ifndef HAS_BUTTON_HOLD
             &sel_softlock,
 #endif
-#ifdef USB_ENABLE_HID
-            &usb_hid,
-            &usb_keypad_mode,
+#if defined(USB_ENABLE_HID) || \
+    defined(USB_ENABLE_AUDIO) || \
+    (defined(USB_ENABLE_STORAGE) && defined(HAVE_MULTIDRIVE)) || \
+    defined(HAVE_USB_MODE)
+            &usb_menu,
 #endif
-#ifdef USB_ENABLE_AUDIO
-            &usb_audio,
-#endif
-#if defined(USB_ENABLE_STORAGE) && defined(HAVE_MULTIDRIVE)
-            &usb_skip_first_drive,
-#endif
-
 #if defined(DX50) || defined(DX90)
             &governor,
 #endif
-#if defined(DX50) || defined(DX90) || (defined(HAVE_USB_POWER) && !defined(USB_NONE) && !defined(SIMULATOR))
-            &usb_mode,
+#if defined(HAVE_GENERAL_PURPOSE_LED)
+            &use_led_indicators,
 #endif
          );
 
@@ -717,15 +737,12 @@ MENUITEM_FUNCTION(wps_set_context_plugin, 0,
 /***********************************/
 /*    WPS Settings MENU            */
 
-MENUITEM_SETTING(browser_default,
-                 &global_settings.browser_default, NULL);
 
 #ifdef HAVE_HOTKEY
 MENUITEM_SETTING(hotkey_wps_item, &global_settings.hotkey_wps, NULL);
 #endif
 
 MAKE_MENU(wps_settings, ID2P(LANG_WPS), 0, Icon_Playback_menu
-            ,&browser_default
 #ifdef HAVE_HOTKEY
             ,&hotkey_wps_item
 #endif

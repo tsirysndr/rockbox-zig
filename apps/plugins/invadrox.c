@@ -155,13 +155,6 @@
 #define RIGHT BUTTON_PLUS
 #define FIRE BUTTON_MENU
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-
-#define QUIT BUTTON_BACK
-#define LEFT BUTTON_LEFT
-#define RIGHT BUTTON_RIGHT
-#define FIRE BUTTON_SELECT
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 
 #define QUIT BUTTON_POWER
@@ -288,7 +281,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define RIGHT BUTTON_RIGHT
 #define FIRE  BUTTON_SELECT
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == MA_PAD
@@ -304,6 +297,13 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define LEFT  BUTTON_LEFT
 #define RIGHT BUTTON_RIGHT
 #define FIRE  BUTTON_A
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+
+#define QUIT  BUTTON_POWER
+#define LEFT  BUTTON_LEFT
+#define RIGHT BUTTON_RIGHT
+#define FIRE  BUTTON_SELECT
 
 #else
     #error INVADROX: Unsupported keypad
@@ -369,7 +369,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 
 /* m:robe 500 defines */
 #if ((LCD_WIDTH == 640) && (LCD_HEIGHT == 480)) || \
-    ((LCD_WIDTH == 480) && (LCD_HEIGHT == 640))
+    ((LCD_WIDTH == 480) && (LCD_HEIGHT >= 640))
 
 /* Original arcade game size 224x240, 1bpp with
  * red overlay at top and green overlay at bottom.

@@ -133,14 +133,6 @@ dir is the current direction of the snake - 0=up, 1=right, 2=down, 3=left;
 
 #define SNAKE_RC_QUIT BUTTON_REC
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define SNAKE_QUIT BUTTON_BACK
-#define SNAKE_LEFT BUTTON_LEFT
-#define SNAKE_RIGHT BUTTON_RIGHT
-#define SNAKE_UP   BUTTON_UP
-#define SNAKE_DOWN BUTTON_DOWN
-#define SNAKE_PLAYPAUSE BUTTON_PLAY
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define SNAKE_QUIT BUTTON_POWER
 #define SNAKE_LEFT BUTTON_BACK
@@ -313,7 +305,7 @@ dir is the current direction of the snake - 0=up, 1=right, 2=down, 3=left;
 #define SNAKE_DOWN      BUTTON_DOWN
 #define SNAKE_PLAYPAUSE BUTTON_PLAY
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -332,6 +324,14 @@ dir is the current direction of the snake - 0=up, 1=right, 2=down, 3=left;
 #define SNAKE_UP        BUTTON_UP
 #define SNAKE_DOWN      BUTTON_DOWN
 #define SNAKE_PLAYPAUSE BUTTON_A
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define SNAKE_QUIT      BUTTON_BACK
+#define SNAKE_LEFT      BUTTON_LEFT
+#define SNAKE_RIGHT     BUTTON_RIGHT
+#define SNAKE_UP        BUTTON_UP
+#define SNAKE_DOWN      BUTTON_DOWN
+#define SNAKE_PLAYPAUSE BUTTON_SELECT
 
 #else
 #error No keymap defined!
@@ -521,7 +521,7 @@ static int snake_menu_cb(int action,
 
 static int snake_game_menu(void)
 {
-    MENUITEM_STRINGLIST(main_menu,"Snake Menu",snake_menu_cb,
+    MENUITEM_STRINGLIST(main_menu,"Snake",snake_menu_cb,
                         "Resume Game",
                         "Start New Game",
                         "Snake Speed",

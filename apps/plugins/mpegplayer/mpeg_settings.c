@@ -142,16 +142,6 @@ struct mpeg_settings settings;
 #elif CONFIG_KEYPAD == COWON_D2_PAD
 #define MPEG_START_TIME_EXIT        BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define MPEG_START_TIME_SELECT      BUTTON_SELECT
-#define MPEG_START_TIME_LEFT        BUTTON_LEFT
-#define MPEG_START_TIME_RIGHT       BUTTON_RIGHT
-#define MPEG_START_TIME_UP          BUTTON_UP
-#define MPEG_START_TIME_DOWN        BUTTON_DOWN
-#define MPEG_START_TIME_LEFT2       BUTTON_PLAY
-#define MPEG_START_TIME_RIGHT2      BUTTON_MENU
-#define MPEG_START_TIME_EXIT        BUTTON_BACK
-
 #elif (CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD)
 #define MPEG_START_TIME_SELECT      (BUTTON_PLAY|BUTTON_REL)
 #define MPEG_START_TIME_LEFT        BUTTON_BACK
@@ -362,7 +352,7 @@ struct mpeg_settings settings;
 #define MPEG_START_TIME_DOWN        BUTTON_DOWN
 #define MPEG_START_TIME_EXIT        BUTTON_BACK
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 #define MPEG_START_TIME_EXIT        BUTTON_POWER
 
 #elif CONFIG_KEYPAD == RG_NANO_PAD
@@ -374,6 +364,14 @@ struct mpeg_settings settings;
 #define MPEG_START_TIME_UP          BUTTON_UP
 #define MPEG_START_TIME_DOWN        BUTTON_DOWN
 #define MPEG_START_TIME_EXIT        BUTTON_START
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define MPEG_START_TIME_SELECT      BUTTON_SELECT
+#define MPEG_START_TIME_LEFT        BUTTON_LEFT
+#define MPEG_START_TIME_RIGHT       BUTTON_RIGHT
+#define MPEG_START_TIME_UP          BUTTON_UP
+#define MPEG_START_TIME_DOWN        BUTTON_DOWN
+#define MPEG_START_TIME_EXIT        BUTTON_BACK
 
 #else
 #error No keymap defined!
@@ -977,13 +975,6 @@ static int get_start_time(uint32_t duration)
         case STATE0:
             if (!sliding)
             {
-                if (rb->global_settings->talk_menu)
-                {
-                    rb->talk_disable(true);
-#ifdef PLUGIN_USE_IRAM
-                    mpegplayer_iram_restore();
-#endif
-                }
                 trigger_cpu_boost();
                 sliding = true;
             }
@@ -1002,10 +993,6 @@ static int get_start_time(uint32_t duration)
                 cancel_cpu_boost();
                 if (rb->global_settings->talk_menu)
                 {
-#ifdef PLUGIN_USE_IRAM
-                    mpegplayer_iram_preserve();
-#endif
-                    rb->talk_disable(false);
                     talk_val(resume_time / TS_SECOND, UNIT_TIME, false);
                     talk_val(resume_time * 100 / duration, UNIT_PERCENT, true);
                 }
@@ -1038,20 +1025,12 @@ static int show_start_menu(uint32_t duration)
     int result = 0;
     bool menu_quit = false;
 
-    MENUITEM_STRINGLIST(menu, "Mpegplayer Menu", mpeg_sysevent_callback,
+    MENUITEM_STRINGLIST(menu, "MPEG Player", mpeg_sysevent_callback,
                         ID2P(LANG_RESTART_PLAYBACK),
                         ID2P(LANG_RESUME_PLAYBACK),
                         ID2P(LANG_SET_RESUME_TIME),
                         ID2P(LANG_SETTINGS),
                         ID2P(LANG_MENU_QUIT));
-
-    if (rb->global_settings->talk_menu)
-    {
-#ifdef PLUGIN_USE_IRAM
-        mpegplayer_iram_preserve();
-#endif
-        rb->talk_disable(false);
-    }
 
     rb->button_clear_queue();
 
@@ -1101,14 +1080,6 @@ static int show_start_menu(uint32_t duration)
         }
     }
 
-    if (rb->global_settings->talk_menu)
-    {
-        rb->talk_disable(true);
-#ifdef PLUGIN_USE_IRAM
-        mpegplayer_iram_restore();
-#endif
-    }
-
     return result;
 }
 
@@ -1138,18 +1109,10 @@ int mpeg_menu(void)
 {
     int result;
 
-    MENUITEM_STRINGLIST(menu, "Mpegplayer Menu", mpeg_sysevent_callback,
+    MENUITEM_STRINGLIST(menu, "MPEG Player", mpeg_sysevent_callback,
                         ID2P(LANG_SETTINGS),
                         ID2P(LANG_RESUME_PLAYBACK),
                         ID2P(LANG_MENU_QUIT));
-
-    if (rb->global_settings->talk_menu)
-    {
-#ifdef PLUGIN_USE_IRAM
-        mpegplayer_iram_preserve();
-#endif
-        rb->talk_disable(false);
-    }
 
     rb->button_clear_queue();
 
@@ -1176,14 +1139,6 @@ int mpeg_menu(void)
     if (mpeg_sysevent() != 0)
         result = MPEG_MENU_QUIT;
 
-    if (rb->global_settings->talk_menu)
-    {
-        rb->talk_disable(true);
-#ifdef PLUGIN_USE_IRAM
-        mpegplayer_iram_restore();
-#endif
-    }
-
     return result;
 }
 
@@ -1193,7 +1148,7 @@ static void display_options(void)
     int result;
     bool menu_quit = false;
 
-    MENUITEM_STRINGLIST(menu, "Display Options", mpeg_sysevent_callback,
+    MENUITEM_STRINGLIST(menu, ID2P(LANG_MENU_DISPLAY_OPTIONS), mpeg_sysevent_callback,
 #if MPEG_OPTION_DITHERING_ENABLED
                         ID2P(LANG_DITHERING),
 #endif
@@ -1270,7 +1225,7 @@ static void audio_options(void)
     int result;
     bool menu_quit = false;
 
-    MENUITEM_STRINGLIST(menu, "Audio Options", mpeg_sysevent_callback,
+    MENUITEM_STRINGLIST(menu, ID2P(LANG_MENU_AUDIO_OPTIONS), mpeg_sysevent_callback,
                         ID2P(LANG_TONE_CONTROLS),
                         ID2P(LANG_CHANNEL_CONFIGURATION),
                         ID2P(LANG_CROSSFEED),
@@ -1356,7 +1311,7 @@ static void mpeg_settings(void)
     int result;
     bool menu_quit = false;
 
-    MENUITEM_STRINGLIST(menu, "Settings", mpeg_sysevent_callback,
+    MENUITEM_STRINGLIST(menu, ID2P(LANG_SETTINGS), mpeg_sysevent_callback,
                         ID2P(LANG_MENU_DISPLAY_OPTIONS),
                         ID2P(LANG_MENU_AUDIO_OPTIONS),
                         ID2P(LANG_MENU_RESUME_OPTIONS),

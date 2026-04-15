@@ -20,183 +20,107 @@
  ****************************************************************************/
 #include "system.h"
 #include "tick.h"
+#include "button.h"
+#include "clock-stm32h7.h"
 #include "gpio-stm32h7.h"
-#include "cortex-m/scb.h"
-#include "cortex-m/systick.h"
-#include "stm32h7/rcc.h"
-#include "stm32h7/pwr.h"
-#include "stm32h7/syscfg.h"
-#include "stm32h7/flash.h"
+#include "regs/cortex-m/cm_scb.h"
+#include "regs/cortex-m/cm_systick.h"
+#include "regs/stm32h743/dbgmcu.h"
 
-/* EXT timer is 1/8th of CPU clock */
-#define SYSTICK_FREQ            (CPU_FREQ / 8)
-#define SYSTICK_PER_MS          (SYSTICK_FREQ / 1000)
-#define SYSTICK_PER_US          (SYSTICK_FREQ / 1000000)
+/* Assumed initial CPU frequency for calculating systick */
+#ifndef CPUFREQ_INITIAL
+# define CPUFREQ_INITIAL CPU_FREQ
+#endif
 
-/* Max delay is limited by kernel tick interval + safety margin */
-#define SYSTICK_DELAY_MAX_US    (1000000 / HZ / 2)
-#define SYSTICK_DELAY_MAX_MS    (SYSTICK_DELAY_MAX_US / 1000)
+/* Tick interval in milliseconds */
+#ifndef SYSTICK_INTERVAL_INITIAL
+# define SYSTICK_INTERVAL_INITIAL (1000 / HZ)
+#endif
 
-/* Flag to use VOS0 */
-#define STM32H743_USE_VOS0      (CPU_FREQ > 400000000)
+/* Use EXT source which is equal to CPU frequency divided by 8 */
+#define SYSTICK_SOURCE    BV_CM_SYSTICK_CSR_CLKSOURCE_EXT
+#define SYSTICK_PRESCALER 8
 
-/* Base address of vector table */
-extern char __vectors_arm[];
+/* Convert CPU frequency to number of systick ticks in 1 ms */
+#define CPUFREQ_TO_SYSTICK_PER_MS(f) \
+    ((f) / (SYSTICK_PRESCALER * 1000))
 
-static void systick_init(unsigned int interval_in_ms)
-{
-    cm_writef(SYSTICK_RVR, VALUE(SYSTICK_PER_MS * interval_in_ms - 1));
-    cm_writef(SYSTICK_CVR, VALUE(0));
-    cm_writef(SYSTICK_CSR, CLKSOURCE_V(EXT), ENABLE(1));
-}
+/* SysTick related state */
+static uint32_t systick_per_ms = CPUFREQ_TO_SYSTICK_PER_MS(CPUFREQ_INITIAL);
+static uint32_t systick_interval_in_ms = SYSTICK_INTERVAL_INITIAL;
 
-static void stm_enable_caches(void)
+void stm32_enable_caches(void)
 {
     __discard_idcache();
 
-    cm_writef(SCB_CCR, IC(1), DC(1));
+    reg_writef(CM_SCB_CCR, IC(1), DC(1));
 
     arm_dsb();
     arm_isb();
 }
 
-static void stm_init_hse(void)
+static void stm32_recalc_systick_rvr(void)
 {
-    st_writef(RCC_CR, HSEON(1));
+    uint32_t ticks = systick_per_ms * systick_interval_in_ms;
 
-    while (!st_readf(RCC_CR, HSERDY));
+    reg_writef(CM_SYSTICK_RVR, VALUE(ticks - 1));
 }
 
-static void stm_init_pll(void)
+static void stm32_set_systick_interval(uint32_t interval_in_ms)
 {
-    /* TODO - this should be determined by the target in some way. */
-
-    /* Select HSE/4 input for PLL1 (6 MHz) */
-    st_writef(RCC_PLLCKSELR,
-              PLLSRC_V(HSE),
-              DIVM1(4),
-              DIVM2(0),
-              DIVM3(0));
-
-    /* Enable PLL1P and PLL1Q */
-    st_writef(RCC_PLLCFGR,
-              DIVP1EN(1),
-              DIVQ1EN(1),
-              DIVR1EN(0),
-              DIVP2EN(0),
-              DIVQ2EN(0),
-              DIVR2EN(0),
-              DIVP3EN(0),
-              DIVQ3EN(0),
-              DIVR3EN(0),
-              PLL1RGE_V(4_8MHz),
-              PLL1VCOSEL_V(WIDE));
-
-    st_writef(RCC_PLL1DIVR,
-              DIVN(80 - 1), /* 6 * 80 = 480 MHz  */
-              DIVP(1 - 1),  /* 480 / 1 = 480 MHz */
-              DIVQ(8 - 1),  /* 480 / 8 = 60 MHz  */
-              DIVR(1 - 1));
-
-    st_writef(RCC_CR, PLL1ON(1));
-    while (!st_readf(RCC_CR, PLL1RDY));
-}
-
-static void stm_init_vos(void)
-{
-    st_writef(PWR_D3CR, VOS_V(VOS1));
-    while (!st_readf(PWR_D3CR, VOSRDY));
-
-    if (STM32H743_USE_VOS0)
+    if (interval_in_ms != systick_interval_in_ms)
     {
-        st_writef(RCC_APB4ENR, SYSCFGEN(1));
-
-        /* Set ODEN bit to enter VOS0 */
-        st_writef(SYSCFG_PWRCFG, ODEN(1));
-        while (!st_readf(PWR_D3CR, VOSRDY));
-
-        st_writef(RCC_APB4ENR, SYSCFGEN(0));
+        systick_interval_in_ms = interval_in_ms;
+        stm32_recalc_systick_rvr();
     }
 }
 
-static void stm_init_system_clock(void)
+void stm32_systick_set_cpu_freq(uint32_t freq)
 {
-    /* Enable HCLK /2 divider (CPU is at 480 MHz, HCLK limit is 240 MHz) */
-    st_writef(RCC_D1CFGR, HPRE(8));
-    while (st_readf(RCC_D1CFGR, HPRE) != 8);
+    uint32_t ticks_per_ms = CPUFREQ_TO_SYSTICK_PER_MS(freq);
 
-    /* Enable ABP /2 dividers (HCLK/2, APB limit is 120 MHz) */
-    st_writef(RCC_D1CFGR, D1PPRE(4));
-    st_writef(RCC_D2CFGR, D2PPRE1(4), D2PPRE2(4));
-    st_writef(RCC_D3CFGR, D3PPRE(4));
-
-    /* Switch to PLL1P system clock source */
-    st_writef(RCC_CFGR, SW_V(PLL1P));
-    while (st_readf(RCC_CFGR, SWS) != BV_RCC_CFGR_SW__PLL1P);
-
-    /* Reduce flash access latency */
-    st_writef(FLASH_ACR, LATENCY(4), WRHIGHFREQ(2));
-    while (st_readf(FLASH_ACR, LATENCY) != 4);
+    if (ticks_per_ms != systick_per_ms)
+    {
+        systick_per_ms = ticks_per_ms;
+        stm32_recalc_systick_rvr();
+    }
 }
 
-static void stm_init_lse(void)
+void stm32_systick_enable(void)
 {
-    /*
-     * Skip if LSE and RTC are already enabled.
-     */
-    if (st_readf(RCC_BDCR, LSERDY) &&
-        st_readf(RCC_BDCR, RTCEN))
-        return;
-
-    /*
-     * Enable LSE and set it as RTC clock source,
-     * then re-enable backup domain write protection.
-     */
-
-    st_writef(PWR_CR1, DBP(1));
-
-    /* Reset backup domain */
-    st_writef(RCC_BDCR, BDRST(1));
-    st_writef(RCC_BDCR, BDRST(0));
-
-    st_writef(RCC_BDCR, LSEON(1), LSEDRV(3));
-    while (!st_readf(RCC_BDCR, LSERDY));
-
-    st_writef(RCC_BDCR, RTCEN(1), RTCSEL_V(LSE));
-    st_writef(PWR_CR1, DBP(0));
+    stm32_recalc_systick_rvr();
+    reg_writef(CM_SYSTICK_CVR, VALUE(0));
+    reg_writef(CM_SYSTICK_CSR, CLKSOURCE(SYSTICK_SOURCE), ENABLE(1));
 }
 
-void system_init(void)
+void stm32_systick_disable(void)
 {
-    /* Ensure IRQs are disabled and set vector table address */
-    disable_irq();
-    cm_write(SCB_VTOR, (uint32_t)__vectors_arm);
+    reg_writef(CM_SYSTICK_CSR, ENABLE(0), TICKINT(0));
+}
 
-    /* Enable CPU caches */
-    stm_enable_caches();
-
-    /* Start up clocks and get running at max CPU frequency */
-    stm_init_hse();
-    stm_init_pll();
-    stm_init_vos();
-    stm_init_system_clock();
-
-    /* Start up LSE and RTC if necessary so backup domain works */
-    stm_init_lse();
-
-    /* TODO: move this */
-    systick_init(1000/HZ);
-
-    /* Call target-specific initialization */
-    gpio_init();
-    fmc_init();
+void system_debug_enable(bool enable)
+{
+    /*
+     * Debug infrastructure is split across D3 and D1 power domains and
+     * normally these domains can be automatically clock gated when the
+     * CPU enters sleep mode. Because of this, the debugger might not be
+     * able to properly attach if the CPU is in sleep mode.
+     *
+     * Overriding clock gating using DBGMCU_CR makes debugger attaches
+     * more reliable, although it will increase power consumption.
+     */
+    reg_writef(DBGMCU_CR,
+               D1DBGCKEN(enable),
+               D3DBGCKEN(enable),
+               DBGSLEEP_D1(enable));
 }
 
 void tick_start(unsigned int interval_in_ms)
 {
-    (void)interval_in_ms;
+    stm32_set_systick_interval(interval_in_ms);
+    stm32_systick_enable();
 
-    cm_writef(SYSTICK_CSR, TICKINT(1));
+    reg_writef(CM_SYSTICK_CSR, TICKINT(1));
 }
 
 void systick_handler(void)
@@ -205,52 +129,33 @@ void systick_handler(void)
 }
 
 /*
- * NOTE: This assumes that the CPU cannot be reclocked during an interrupt.
- * If that happens, the systick interval and reload value would be modified
- * to maintain the kernel tick interval and the code here will break.
+ * This makes two assumptions:
+ *
+ * 1. the CPU frequency must not change while udelay() is running;
+ *    otherwise the delay time will be wrong.
+ * 2. interrupt handlers should not block execution for more than
+ *    one systick interval; if this happens the delay may be much
+ *    longer than necessary.
  */
-static void __udelay(uint32_t us)
+void udelay(uint32_t us)
 {
-    uint32_t start = cm_readf(SYSTICK_CVR, VALUE);
-    uint32_t max = cm_readf(SYSTICK_RVR, VALUE);
-    uint32_t delay = us * SYSTICK_PER_US;
+    uint32_t delay_ticks = (us * systick_per_ms / 1000);
+    uint32_t start = reg_readf(CM_SYSTICK_CVR, VALUE);
+    uint32_t max = reg_readf(CM_SYSTICK_RVR, VALUE);
 
-    for (;;)
+    while (delay_ticks > 0)
     {
-        uint32_t value = cm_readf(SYSTICK_CVR, VALUE);
+        uint32_t value = reg_readf(CM_SYSTICK_CVR, VALUE);
         uint32_t diff = start - value;
         if (value > start)
             diff += max;
-        if (diff >= delay)
+
+        if (diff >= delay_ticks)
             break;
+
+        delay_ticks -= diff;
+        start = value;
     }
-}
-
-void udelay(uint32_t us)
-{
-    while (us > SYSTICK_DELAY_MAX_US)
-    {
-        __udelay(SYSTICK_DELAY_MAX_US);
-        us -= SYSTICK_DELAY_MAX_US;
-    }
-
-    __udelay(us);
-}
-
-void mdelay(uint32_t ms)
-{
-    while (ms > SYSTICK_DELAY_MAX_MS)
-    {
-        __udelay(SYSTICK_DELAY_MAX_MS * 1000);
-        ms -= SYSTICK_DELAY_MAX_MS;
-    }
-
-    __udelay(ms * 1000);
-}
-
-void system_exception_wait(void)
-{
-    while (1);
 }
 
 int system_memory_guard(int newmode)

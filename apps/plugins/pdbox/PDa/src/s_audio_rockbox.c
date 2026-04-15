@@ -54,7 +54,7 @@ void rockbox_open_audio(int rate)
     playing = false;
 
     /* Stop playing to reconfigure audio settings. */
-    rb->pcm_play_stop();
+    rb->audio_stop();
 
 #if INPUT_SRC_CAPS != 0
     /* Select playback */
@@ -63,8 +63,7 @@ void rockbox_open_audio(int rate)
 #endif
 
     /* Set sample rate of the audio buffer. */
-    rb->pcm_set_frequency(rate);
-    rb->pcm_apply_settings();
+    rb->mixer_set_frequency(rate);
 
     /* Initialize output buffer. */
     for(i = 0; i < OUTBUFSIZE; i++)
@@ -79,14 +78,13 @@ void rockbox_open_audio(int rate)
 void rockbox_close_audio(void)
 {
     /* Stop playback. */
-    rb->pcm_play_stop();
+    rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
 
     /* Reset playing status. */
     playing = false;
 
     /* Restore default sampling rate. */
-    rb->pcm_set_frequency(HW_SAMPR_DEFAULT);
-    rb->pcm_apply_settings();
+    rb->mixer_set_frequency(HW_SAMPR_DEFAULT);
 }
 
 /* Rockbox audio callback. */
@@ -183,7 +181,10 @@ int rockbox_send_dacs(void)
     if(!playing && outbuf_fill > 0)
     {
         /* Start playing. */
-        rb->pcm_play_data(pdbox_get_more, NULL, NULL, 0);
+        static const struct mixer_play_cbs cbs = {
+            .get_more = pdbox_get_more,
+        };
+        rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
         /* Set status flag. */
         playing = true;
@@ -191,4 +192,3 @@ int rockbox_send_dacs(void)
 
     return SENDDACS_YES;
 }
-

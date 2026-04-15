@@ -36,7 +36,6 @@ usb.c
 logf.c
 #endif /* ROCKBOX_HAS_LOGF */
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
-load_code.c
 linuxboot.c
 #ifdef RB_PROFILE
 profile.c
@@ -53,6 +52,14 @@ debug.c
 panic.c
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED) && defined(BOOTFILE)
 target/hosted/rolo.c
+#endif
+
+#if CONFIG_BINFMT == BINFMT_ROCK
+lc-rock.c
+#endif
+
+#if defined(HAVE_ELF)
+elf_loader.c
 #endif
 
 #if defined(HAVE_BOOTDATA) || defined(HAVE_MULTIBOOT)
@@ -133,12 +140,20 @@ target/hosted/sonynwz/audio-nwz.c
 target/hosted/sonynwz/debug-nwz.c
 target/hosted/sonynwz/nvp-nwz.c
 target/hosted/sonynwz/nwz-db.c
+#if !defined(BOOTLOADER)
+target/hosted/sonynwz/nwzlinux-codec.c
+#endif
+#endif
+
+#if !defined(BOOTLOADER)
+#if ((defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) || defined(SONY_NWZ_LINUX)) && !defined(SIMULATOR))
+target/hosted/pcm-alsa.c
+target/hosted/alsa-controls.c
+#endif
 #endif
 
 #if ((defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX)) && !defined(SIMULATOR))
 drivers/lcd-memframe.c
-target/hosted/alsa-controls.c
-target/hosted/pcm-alsa.c
 target/hosted/backtrace-glibc.c
 target/hosted/filesystem-unix.c
 target/hosted/kernel-unix.c
@@ -150,43 +165,83 @@ target/hosted/lcd-linuxfb.c
 target/hosted/power-linux.c
 #endif
 
+#if defined(HIBY_R3PROII) && !defined(SIMULATOR)
+target/hosted/hiby/usb-hiby-gadget.c
+target/hosted/hiby/r3proii/button-r3proii.c
+target/hosted/hiby/r3proii/powermgmt-r3proii.c
+target/hosted/hiby/debug-hiby.c
+#ifndef BOOTLOADER
+target/hosted/hiby/r3proii/led-r3proii.c
+target/hosted/hiby/hibylinux_codec.c
+#endif
+#endif
+
+#if defined(HIBY_R1) && !defined(SIMULATOR)
+target/hosted/hiby/usb-hiby-gadget.c
+target/hosted/hiby/r1/button-r1.c
+target/hosted/hiby/r1/powermgmt-r1.c
+target/hosted/hiby/debug-hiby.c
+#ifndef BOOTLOADER
+target/hosted/hiby/r1/led-r1.c
+target/hosted/hiby/hibylinux_codec.c
+#endif
+#endif
+
 #if defined(AGPTEK_ROCKER) && !defined(SIMULATOR)
 target/hosted/agptek/button-agptek.c
 target/hosted/agptek/debug-agptek.c
 target/hosted/agptek/powermgmt-agptek.c
+#if !defined(BOOTLOADER)
+target/hosted/agptek/rocker_codec.c
+#endif
 #endif
 
 #if defined(SURFANS_F28) && !defined(SIMULATOR)
 target/hosted/surfans/button-f28.c
 target/hosted/surfans/debug-f28.c
 target/hosted/surfans/powermgmt-f28.c
+#if !defined(BOOTLOADER)
+target/hosted/surfans/surfanslinux_codec.c
+#endif
 #endif
 
 #if (defined(XDUOO_X3II) || defined(XDUOO_X20)) && !defined(SIMULATOR)
 target/hosted/xduoo/button-xduoo.c
 target/hosted/xduoo/debug-xduoo.c
 target/hosted/xduoo/powermgmt-xduoo.c
+#if !defined(BOOTLOADER)
+target/hosted/xduoo/xduoolinux_codec.c
+#endif
 #endif
 
 #if defined(HIBY_LINUX) && !defined(SIMULATOR)
-target/hosted/usb-hiby.c
 target/hosted/button-devinput.c
 #endif
 
-#if (defined(FIIO_M3K_LINUX)) && !defined(SIMULATOR)
+#if defined(HIBY_LINUX) && !defined(HIBY_R3PROII) && !defined(HIBY_R1) && !defined(SIMULATOR)
+target/hosted/usb-hiby.c
+#endif
+
+#if defined(FIIO_M3K_LINUX) && !defined(SIMULATOR)
 target/hosted/fiio/buttonlight-fiio.c
 target/hosted/fiio/button-fiio.c
 target/hosted/fiio/debug-fiio.c
 target/hosted/fiio/powermgmt-fiio.c
 target/hosted/fiio/system-fiio.c
 target/hosted/fiio/usb-fiio.c
+#if !defined(BOOTLOADER)
+target/hosted/fiio/fiiolinux_codec.c
+#endif
 #endif
 
-#if (defined(EROS_Q)) && !defined(SIMULATOR)
+#if defined(EROS_Q) && !defined(SIMULATOR)
 target/hosted/aigo/button-erosq.c
 target/hosted/aigo/debug-erosq.c
 target/hosted/aigo/power-erosq.c
 target/hosted/aigo/powermgmt-erosq.c
+#if !defined(BOOTLOADER)
+target/hosted/aigo/erosqlinux_codec.c
+#endif
 #endif
 
 #if defined(SAMSUNG_YPR0) && !defined(SIMULATOR)
@@ -217,11 +272,6 @@ target/hosted/samsungypr/ypr1/powermgmt-ypr1.c
 target/hosted/samsungypr/ypr1/audio-ypr1.c
 target/hosted/samsungypr/ypr1/pmu-ypr1.c
 target/hosted/samsungypr/ypr1/wmcodec-ypr1.c
-#endif
-
-/* Maemo specific files */
-#if (CONFIG_PLATFORM & PLATFORM_MAEMO)
-target/hosted/maemo/maemo-thread.c
 #endif
 
 #if defined(RG_NANO) && !defined(SIMULATOR)
@@ -284,6 +334,8 @@ common/inflate.c
 /* Standard library */
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE) || defined(HAVE_ROCKBOX_C_LIBRARY)
 libc/atoi.c
+libc/strtol.c
+libc/strtoul.c
 libc/errno.c
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
 /* our ctype.[ch] comes from newlib and is incompitble with most desktop's ctype */
@@ -433,8 +485,6 @@ drivers/rtc/rtc_jz4740.c
 drivers/rtc/rtc_jz4760.c
 #elif (CONFIG_RTC == RTC_X1000)
 drivers/rtc/rtc_x1000.c
-#elif (CONFIG_RTC == RTC_S35390A)
-drivers/rtc/rtc_s35390a.c
 #elif (CONFIG_RTC == RTC_S35380A)
 drivers/rtc/rtc_s35380a.c
 #elif (CONFIG_RTC == RTC_D2)
@@ -477,12 +527,11 @@ drivers/rds.c
 #endif /* HAVE_RDS_CAP */
 #endif /* PLATFORM_NATIVE */
 #endif /* CONFIG_TUNER */
-#endif /* BOOTLOADER */
+#endif /* !BOOTLOADER */
 
 /* Sound */
-sound.c
-
 #ifndef BOOTLOADER
+sound.c
 pcm_sampr.c
 pcm.c
 pcm_mixer.c
@@ -494,7 +543,7 @@ enc_base.c
 #endif /* HAVE_RECORDING */
 
 drivers/audio/audiohw-swcodec.c
-#endif /* BOOTLOADER */
+#endif /* !BOOTLOADER */
 
 /* Audio codec */
 #if !defined(BOOTLOADER)
@@ -535,6 +584,8 @@ drivers/audio/cs42l55.c
 drivers/audio/rk27xx_codec.c
 #elif defined(HAVE_AIC3X)
 drivers/audio/aic3x.c
+#elif defined(HAVE_AIC310X)
+drivers/audio/aic310x.c
 #elif defined (HAVE_DUMMY_CODEC)
 drivers/audio/dummy_codec.c
 #elif defined (HAVE_DF1704_CODEC)
@@ -549,40 +600,17 @@ drivers/audio/es9018.c
 drivers/audio/es9218.c
 #endif /* defined(HAVE_*) */
 #else /* PLATFORM_HOSTED */
-#if defined(SAMSUNG_YPR0) && defined(HAVE_AS3514)
+#if defined(HAVE_SDL_AUDIO) || defined(SIMULATOR)
+drivers/audio/sdl.c
+target/hosted/sdl/pcm-sdl.c
+#elif defined(SAMSUNG_YPR0) && defined(HAVE_AS3514)
 drivers/audio/as3514.c
-target/hosted/pcm-alsa.c
 #elif defined(SAMSUNG_YPR1) && defined(HAVE_WM8978)
 drivers/audio/wm8978.c
-target/hosted/pcm-alsa.c
-#elif defined(HAVE_NWZ_LINUX_CODEC)
-drivers/audio/nwzlinux-codec.c
-target/hosted/alsa-controls.c
-target/hosted/pcm-alsa.c
-#elif defined(HAVE_ROCKER_CODEC) && !defined(SIMULATOR)
-drivers/audio/rocker_codec.c
-#elif defined(HAVE_SURFANS_LINUX_CODEC) && !defined(SIMULATOR)
-drivers/audio/surfanslinux_codec.c
-#elif defined(HAVE_XDUOO_LINUX_CODEC) && !defined(SIMULATOR)
-drivers/audio/xduoolinux_codec.c
-#elif defined(HAVE_FIIO_LINUX_CODEC) && !defined(SIMULATOR)
-drivers/audio/fiiolinux_codec.c
-#elif defined(HAVE_EROSQ_LINUX_CODEC) && !defined(SIMULATOR)
-drivers/audio/erosqlinux_codec.c
-#elif defined(HAVE_SDL_AUDIO)
-drivers/audio/sdl.c
-
-#if (CONFIG_PLATFORM & PLATFORM_MAEMO5)
-target/hosted/maemo/pcm-gstreamer.c
-#else
-target/hosted/sdl/pcm-sdl.c
-#endif /* (CONFIG_PLATFORM & PLATFORM_MAEMO) */
-
 #elif defined(CTRU)
 drivers/audio/ctru.c
 #endif
 #endif /* (CONFIG_PLATFORM & PLATFORM_NATIVE) */
-
 #endif /* !defined(BOOTLOADER) */
 
 /* build erosqn codec in bootloader for detection */
@@ -668,8 +696,6 @@ target/arm/ipod/powermgmt-ipod-pcf.c
 
 #if CONFIG_I2C == I2C_PP5024 || CONFIG_I2C == I2C_PP5020 || CONFIG_I2C == I2C_PP5002
 target/arm/pp/i2c-pp.c
-#elif CONFIG_I2C == I2C_PNX0101
-target/arm/pnx0101/i2c-pnx0101.c
 #elif CONFIG_I2C == I2C_TCC780X
 target/arm/i2c-telechips.c
 #elif CONFIG_I2C == I2C_S3C2440
@@ -682,12 +708,6 @@ target/arm/s5l8702/i2c-s5l8702.c
 target/arm/rk27xx/i2c-rk27xx.c
 #elif CONFIG_I2C == I2C_IMX233
 target/arm/imx233/i2c-imx233.c
-#endif
-
-#if CONFIG_CPU == PNX0101
-target/arm/pnx0101/kernel-pnx0101.c
-target/arm/pnx0101/system-pnx0101.c
-target/arm/pnx0101/timer-pnx0101.c
 #endif
 
 #if CONFIG_CPU == IMX233
@@ -842,8 +862,6 @@ target/arm/pp/audio-pp.c
 #endif /* SANSA_E200 */
 target/arm/pp/crt0-pp.S
 #endif
-#elif CONFIG_CPU == PNX0101
-target/arm/pnx0101/crt0-pnx0101.S
 #elif CONFIG_CPU==DM320
 target/arm/tms320dm320/crt0.S
 #elif CONFIG_CPU==S3C2440
@@ -904,7 +922,7 @@ target/arm/ipod/lcd-color_nano.c
 target/arm/ipod/lcd-gray.c
 #elif CONFIG_LCD == LCD_GIGABEATS
 target/arm/imx31/gigabeat-s/lcd-gigabeat-s.c
-#elif CONFIG_LCD == LCD_GIGABEAT || CONFIG_LCD == LCD_MINI2440
+#elif CONFIG_LCD == LCD_GIGABEAT
 target/arm/s3c2440/lcd-s3c2440.c
 #elif CONFIG_LCD == LCD_ILI9342 || CONFIG_LCD == LCD_ILI9342C
 target/arm/rk27xx/ma/lcd-ma.c
@@ -922,7 +940,7 @@ target/arm/s5l8702/lcd-asm-s5l8702.S
 #endif
 
 /* USB Stack */
-#ifdef HAVE_USBSTACK
+#if defined(HAVE_USBSTACK) && (!defined(BOOTLOADER) || defined(HAVE_BOOTLOADER_USB_MODE))
 usbstack/usb_core.c
 #ifdef USB_ENABLE_STORAGE
 usbstack/usb_storage.c
@@ -959,6 +977,8 @@ target/arm/rk27xx/usb-drv-rk27xx.c
 drivers/isp1362.c
 #elif CONFIG_USBOTG == USBOTG_M5636
 drivers/m5636.c
+#elif CONFIG_USBOTG == USBOTG_ARC
+target/arm/usb-drv-arc.c
 #endif
 #endif /* !defined(HAVE_USBSTACK) */
 
@@ -1047,18 +1067,6 @@ target/arm/sandisk/sansa-c200/lcd-as-c200.S
 target/arm/sandisk/sansa-c200/button-c200.c
 target/arm/sandisk/sansa-c200/powermgmt-c200.c
 #endif /* SANSA_C200 */
-
-#ifdef SANSA_VIEW
-target/arm/sandisk/sansa-view/backlight-view.c
-target/arm/sandisk/sansa-view/adc-view.c
-target/arm/sandisk/sansa-view/power-view.c
-target/arm/sandisk/sansa-view/lcd-view.c
-target/arm/sandisk/sansa-view/button-view.c
-target/arm/sandisk/sansa-view/powermgmt-view.c
-#ifndef BOOTLOADER
-/* target/arm/sandisk/audio-view.c */
-#endif /* BOOTLOADER */
-#endif /* SANSA_VIEW */
 
 #ifdef PHILIPS_SA9200
 #ifndef BOOTLOADER
@@ -1149,10 +1157,6 @@ target/coldfire/iaudio/m3/usb-m3.c
 target/coldfire/iaudio/audio-iaudio.c
 #endif
 #endif /* IAUDIO_M3 */
-
-#ifdef STUB
-libc/sscanf.c
-#endif /* STUB */
 
 #if defined(IRIVER_H300_SERIES) || defined(IRIVER_H100_SERIES)
 target/coldfire/iriver/ata-iriver.c
@@ -1291,21 +1295,10 @@ target/arm/tms320dm320/mrobe-500/lcd-remote-mr500.c
 target/arm/tms320dm320/mrobe-500/pcm-mr500.c
 target/arm/tms320dm320/mrobe-500/powermgmt-mr500.c
 target/arm/tms320dm320/mrobe-500/power-mr500.c
+#if !defined(BOOTLOADER) || defined(HAVE_BOOTLOADER_USB_MODE)
 target/arm/tms320dm320/mrobe-500/usb-mr500.c
+#endif
 #endif /* MROBE_500 */
-
-#ifdef CREATIVE_ZVx
-drivers/lcd-memframe.c
-target/arm/tms320dm320/creative-zvm/adc-creativezvm.c
-target/arm/tms320dm320/creative-zvm/ata-creativezvm.c
-target/arm/tms320dm320/creative-zvm/dma-creativezvm.c
-target/arm/tms320dm320/creative-zvm/lcd-creativezvm.c
-target/arm/tms320dm320/creative-zvm/pcm-creativezvm.c
-target/arm/tms320dm320/creative-zvm/pic-creativezvm.c
-target/arm/tms320dm320/creative-zvm/power-creativezvm.c
-target/arm/tms320dm320/creative-zvm/powermgmt-creativezvm.c
-target/arm/tms320dm320/creative-zvm/usb-creativezvm.c
-#endif /* CREATIVE_ZVx */
 
 #if defined(CREATIVE_ZEN) || defined(CREATIVE_ZENXFI) || defined(CREATIVE_ZENMOZAIC) \
     || defined(CREATIVE_ZENV) || defined(CREATIVE_ZENXFISTYLE)
@@ -1576,37 +1569,6 @@ target/arm/tcc780x/cowond2/audio-cowond2.c
 #endif /* BOOTLOADER */
 #endif /* COWON_D2 */
 
-#ifdef MEIZU_M6SL
-target/arm/s5l8700/meizu-m6sl/lcd-m6sl.c
-drivers/qt1106.c
-#endif /* MEIZU_M6SL */
-
-#ifdef MEIZU_M6SP
-target/arm/s5l8700/backlight-meizu.c
-target/arm/s5l8700/power-meizu.c
-target/arm/s5l8700/meizu-m6sp/button-m6sp.c
-target/arm/s5l8700/meizu-m6sp/lcd-m6sp.c
-#ifndef BOOTLOADER
-drivers/generic_i2c.c
-drivers/rtc/rtc_s35390a.c
-target/arm/s5l8700/audio-meizu.c
-target/arm/s5l8700/ftl-meizu.c
-target/arm/s5l8700/nand-meizu.c
-target/arm/s5l8700/fmradio-i2c-meizu.c
-target/arm/s5l8700/powermgmt-meizu.c
-target/arm/s5l8700/usb-s5l8700.c
-#endif /* BOOTLOADER */
-#endif /* MEIZU_M6SP */
-
-#ifdef MEIZU_M3
-target/arm/s5l8700/backlight-meizu.c
-target/arm/s5l8700/meizu-m3/lcd-m3.c
-drivers/qt1106.c
-#ifndef BOOTLOADER
-target/arm/s5l8700/udacodec-meizu.c
-#endif /* BOOTLOADER */
-#endif /* MEIZU_M3 */
-
 #ifdef IPOD_NANO2G
 target/arm/ipod/button-clickwheel.c
 target/arm/s5l8700/postmortemstub.S
@@ -1847,34 +1809,6 @@ target/mips/ingenic_x1000/erosqnative/power-erosqnative.c
 target/mips/ingenic_x1000/spl-nand-x1000.c
 #endif /* EROS_QN */
 
-#if defined(LYRE_PROTO1)
-target/arm/at91sam/lyre_proto1/adc-lyre_proto1.c
-target/arm/at91sam/lyre_proto1/backlight-lyre_proto1.c
-target/arm/at91sam/lyre_proto1/button-lyre_proto1.c
-target/arm/at91sam/lyre_proto1/crt0.S
-target/arm/at91sam/lyre_proto1/debug-lyre_proto1.c
-target/arm/at91sam/lyre_proto1/kernel-lyre_proto1.c
-target/arm/at91sam/lyre_proto1/lcd-lyre_proto1.c
-target/arm/at91sam/lyre_proto1/system-lyre_proto1.c
-target/arm/at91sam/lyre_proto1/timer-lyre_proto1.c
-#endif
-
-#if defined(MINI2440)
-drivers/lcd-memframe.c
-target/arm/s3c2440/dma-s3c2440.c
-target/arm/s3c2440/sd-s3c2440.c
-target/arm/s3c2440/uart-s3c2440.c
-target/arm/s3c2440/mini2440/backlight-mini2440.c
-target/arm/s3c2440/mini2440/button-mini2440.c
-target/arm/s3c2440/mini2440/led-mini2440.c
-target/arm/s3c2440/mini2440/power-mini2440.c
-target/arm/s3c2440/mini2440/touchscreen-mini2440.c
-#ifndef BOOTLOADER
-target/arm/s3c2440/mini2440/powermgmt-mini2440.c
-target/arm/s3c2440/mini2440/pcm-mini2440.c
-#endif
-#endif /* MINI2440 */
-
 #if defined(SAMSUNG_YH820) || defined(SAMSUNG_YH920) || defined(SAMSUNG_YH925)
 target/arm/samsung/akcodec-yh82x_yh92x.c
 target/arm/samsung/button-yh82x_yh92x.c
@@ -1903,15 +1837,6 @@ target/arm/samsung/yh925/lcd-as-yh925.S
 target/arm/samsung/yh925/powermgmt-yh925.c
 target/arm/samsung/fmradio-yh92x.c
 #endif /* SAMSUNG_YH925 */
-
-#ifdef SAMSUNG_YPS3
-target/arm/s5l8700/yps3/button-yps3.c
-target/arm/s5l8700/yps3/lcd-yps3.c
-target/arm/s5l8700/yps3/fmradio-i2c-yps3.c
-target/arm/s5l8700/yps3/backlight-yps3.c
-target/arm/s5l8700/yps3/nand-yps3.c
-target/arm/s5l8700/yps3/power-yps3.c
-#endif /* SAMSUNG_YPS3 */
 
 #ifdef PBELL_VIBE500
 drivers/synaptics-mep.c
@@ -2000,25 +1925,35 @@ target/arm/rk27xx/ihifi2/audio-ihifi800.c
 #if CONFIG_CPU == STM32H743
 target/arm/stm32/crt0-stm32h7.S
 target/arm/stm32/vectors-stm32h7.S
-target/arm/stm32/adc-stm32h7.c
+#ifndef BOOTLOADER
 target/arm/stm32/debug-stm32h7.c
+#endif
 target/arm/stm32/gpio-stm32h7.c
 target/arm/stm32/i2c-stm32h7.c
-target/arm/stm32/pcm-stm32h7.c
-target/arm/stm32/sd-stm32h7.c
+target/arm/stm32/sdmmc-stm32h7.c
 target/arm/stm32/spi-stm32h7.c
 target/arm/stm32/system-stm32h7.c
 target/arm/stm32/timer-stm32h7.c
+#if defined(HAVE_USBSTACK)
 target/arm/stm32/usb-stm32h7.c
+#endif
 #endif
 
 #if defined(ECHO_R1)
+target/arm/stm32/echoplayer/adc-echoplayer.c
 target/arm/stm32/echoplayer/audiohw-echoplayer.c
 target/arm/stm32/echoplayer/backlight-echoplayer.c
 target/arm/stm32/echoplayer/button-echoplayer.c
+target/arm/stm32/echoplayer/clock-echoplayer.c
+target/arm/stm32/echoplayer/i2c-echoplayer.c
 target/arm/stm32/echoplayer/lcd-echoplayer.c
+#ifndef BOOTLOADER
+target/arm/stm32/echoplayer/pcm-echoplayer.c
+#endif
 target/arm/stm32/echoplayer/power-echoplayer.c
+target/arm/stm32/echoplayer/sdmmc-echoplayer.c
 target/arm/stm32/echoplayer/system-echoplayer.c
+target/arm/stm32/echoplayer/usb-echoplayer.c
 #endif
 
 #if (CONFIG_PLATFORM & PLATFORM_ANDROID)
@@ -2034,10 +1969,10 @@ target/hosted/android/pcm-android.c
 target/hosted/android/powermgmt-android.c
 target/hosted/android/system-android.c
 target/hosted/android/telephony-android.c
+target/hosted/android/android-codec.c
 #ifdef APPLICATION
 target/hosted/android/app/button-application.c
 #endif
-drivers/audio/android.c
 #endif
 
 #if defined(DX50) || defined(DX90)
@@ -2134,6 +2069,9 @@ drivers/ft6x06.c
 #endif
 #ifdef HAVE_CW2015
 drivers/cw2015.c
+#endif
+#ifdef HAVE_SDMMC_HOST
+drivers/sdmmc_host.c
 #endif
 #endif
 

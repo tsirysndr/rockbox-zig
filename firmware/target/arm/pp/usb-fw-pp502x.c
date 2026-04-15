@@ -87,12 +87,6 @@
 #define USB_GPIO_MASK   0x04
 #define USB_GPIO_VAL    0x04
 
-#elif defined(SANSA_VIEW)
-    /* GPIO A bit 7 is usb detect */
-#define USB_GPIO        GPIOA
-#define USB_GPIO_MASK   0x80
-#define USB_GPIO_VAL    0x80
-
 #else
 #error No USB GPIO config specified
 #endif
@@ -197,11 +191,6 @@ void usb_enable(bool on)
 
 void usb_attach(void)
 {
-#if defined(IPOD_VIDEO)
-    /* FIXME: Some iPod Video's need this 2nd call of usb_drv_init() to establish
-     * an USB connection. */
-    usb_drv_init();
-#endif
 }
 
 bool usb_plugged(void)

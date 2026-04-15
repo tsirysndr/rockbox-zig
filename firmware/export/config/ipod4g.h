@@ -153,6 +153,7 @@
 /* define this if the unit can have USB charging disabled by user -
  * if USB/MAIN power is discernable and hardware doesn't compel charging */
 #define HAVE_USB_CHARGING_ENABLE
+#define TARGET_USB_CHARGING_DEFAULT USB_CHARGING_FORCE
 
 /* define current usage levels */
 #define CURRENT_NORMAL     100  /* MP3: ~10.5h out of 1100mAh battery  */
@@ -219,7 +220,7 @@
 #define HAVE_IAP_MULTIPORT
 #define HAVE_SERIAL
 
-#define IRAM_LCDFRAMEBUFFER IBSS_ATTR /* put the lcd frame buffer in IRAM */
+// #define IRAM_LCDFRAMEBUFFER IBSS_ATTR /* put the lcd frame buffer in IRAM */
 
 
 /* DMA is used only for reading on PP502x because although reads are ~8x faster

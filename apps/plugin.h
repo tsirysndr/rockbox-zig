@@ -74,6 +74,7 @@ int plugin_open(const char *plugin, const char *parameter);
 #include "thread.h"
 #include "button.h"
 #include "action.h"
+#include "gesture.h"
 #include "load_code.h"
 #include "usb.h"
 #include "font.h"
@@ -92,6 +93,7 @@ int plugin_open(const char *plugin, const char *parameter);
 #include "misc.h"
 #include "pathfuncs.h"
 #include "pcm_mixer.h"
+#include "pcm_sink.h"
 #include "dsp-util.h"
 #include "dsp_core.h"
 #include "dsp_proc_settings.h"
@@ -111,6 +113,7 @@ int plugin_open(const char *plugin, const char *parameter);
 #include "menu.h"
 #include "rbunicode.h"
 #include "list.h"
+#include "statusbar-skinned.h"
 #include "tree.h"
 #include "color_picker.h"
 #include "buflib.h"
@@ -176,7 +179,7 @@ int plugin_open(const char *plugin, const char *parameter);
  * when this happens please take the opportunity to sort in
  * any new functions "waiting" at the end of the list.
  */
-#define PLUGIN_API_VERSION 274
+#define PLUGIN_API_VERSION 282
 
 /* 239 Marks the removal of ARCHOS HWCODEC and CHARCELL */
 
@@ -190,6 +193,7 @@ enum plugin_status {
     PLUGIN_POWEROFF,
     PLUGIN_GOTO_WPS,
     PLUGIN_GOTO_PLUGIN,
+    PLUGIN_GOTO_ROOT,
     PLUGIN_ERROR = -1,
 };
 
@@ -415,6 +419,12 @@ struct plugin_api {
                                  int count, void* data);
     bool (*simplelist_show_list)(struct simplelist_info *info);
     bool (*yesno_pop)(const char* text);
+    bool (*yesno_pop_confirm)(const char* text);
+
+    /* status bar */
+    bool (*sb_set_title_text)(const char* title, enum themable_icons icon, enum screen_type screen);
+    bool (*sb_set_persistent_title)(const char* title, enum themable_icons icon,
+                                    enum screen_type screen);
 
     /* action handling */
     int (*get_custom_action)(int context,int timeout,
@@ -423,6 +433,22 @@ struct plugin_api {
 #ifdef HAVE_TOUCHSCREEN
     int (*action_get_touchscreen_press)(short *x, short *y);
     int (*action_get_touchscreen_press_in_vp)(short *x1, short *y1, struct viewport *vp);
+    int (*action_get_touch_event)(struct touchevent *ev);
+    void (*action_gesture_reset)(void);
+    bool (*action_gesture_get_event_in_vp)(struct gesture_event *gevt,
+                                           const struct viewport *vp);
+    bool (*action_gesture_get_event)(struct gesture_event *gevt);
+    bool (*action_gesture_is_valid)(void);
+    bool (*action_gesture_is_pressed)(void);
+    void (*gesture_reset)(struct gesture *g);
+    void (*gesture_process)(struct gesture *g, const struct touchevent *ev);
+    bool (*gesture_get_event_in_vp)(struct gesture *g,
+                                    struct gesture_event *gevt,
+                                    const struct viewport *vp);
+    void (*gesture_vel_reset)(struct gesture_vel *gv);
+    void (*gesture_vel_process)(struct gesture_vel *gv,
+                                const struct touchevent *ev);
+    bool (*gesture_vel_get)(struct gesture_vel *gv, int *xvel, int *yvel);
 #endif
     bool (*action_userabort)(int timeout);
     int (*core_set_keyremap)(struct button_mapping* core_keymap, int count);
@@ -490,6 +516,9 @@ struct plugin_api {
 
     int (*filetype_get_attr)(const char* file);
     char* (*filetype_get_plugin)(int attr, char *buffer, size_t buffer_len);
+#ifdef HAVE_DIRCACHE
+    void (*dircache_wait)(void);
+#endif
 
     /* dir */
     DIR * (*opendir)(const char *dirname);
@@ -592,7 +621,6 @@ struct plugin_api {
 
     /* load code api for overlay */
     void* (*lc_open)(const char *filename, unsigned char *buf, size_t buf_size);
-    void* (*lc_open_from_mem)(void* addr, size_t blob_size);
     void* (*lc_get_header)(void *handle);
     void  (*lc_close)(void *handle);
 
@@ -649,6 +677,7 @@ struct plugin_api {
     int (*strncmp)(const char *, const char *, size_t);
     int (*strcasecmp)(const char *, const char *);
     int (*strncasecmp)(const char *s1, const char *s2, size_t n);
+    char* (*strstr)(const char *s1, const char *s2);
     void* (*memset)(void *dst, int c, size_t length);
     void* (*memcpy)(void *out, const void *in, size_t n);
     void* (*memmove)(void *out, const void *in, size_t n);
@@ -656,6 +685,8 @@ struct plugin_api {
     const unsigned char *_rbctype_;
 #endif
     int (*atoi)(const char *str);
+    long int (*strtol)(const char *ptr, char **endptr, int base);
+    unsigned long int (*strtoul)(const char *ptr, char **endptr, int base);
     char *(*strchr)(const char *s, int c);
     char *(*strcat)(char *s1, const char *s2);
     size_t (*strlcat)(char *dst, const char *src, size_t length);
@@ -710,17 +741,9 @@ struct plugin_api {
     int32_t (*sound_get_pitch)(void);
     void (*sound_set_pitch)(int32_t pitch);
 #endif
-    const unsigned long *audio_master_sampr_list;
-    const unsigned long *hw_freq_sampr;
-    void (*pcm_apply_settings)(void);
-    void (*pcm_play_data)(pcm_play_callback_type get_more,
-                          pcm_status_callback_type status_cb,
-                          const void *start, size_t size);
-    void (*pcm_play_stop)(void);
-    void (*pcm_set_frequency)(unsigned int frequency);
-    bool (*pcm_is_playing)(void);
     void (*pcm_play_lock)(void);
     void (*pcm_play_unlock)(void);
+    const struct pcm_sink_caps* (*pcm_current_sink_caps)(void);
     void (*beep_play)(unsigned int frequency, unsigned int duration,
                       unsigned int amplitude);
 #ifdef HAVE_RECORDING
@@ -759,7 +782,7 @@ struct plugin_api {
     void (*mixer_channel_calculate_peaks)(enum pcm_mixer_channel channel,
                                           struct pcm_peaks *peaks);
     void (*mixer_channel_play_data)(enum pcm_mixer_channel channel,
-                                    pcm_play_callback_type get_more,
+                                    const struct mixer_play_cbs* cbs,
                                     const void *start, size_t size);
     void (*mixer_channel_play_pause)(enum pcm_mixer_channel channel, bool play);
     void (*mixer_channel_stop)(enum pcm_mixer_channel channel);
@@ -767,7 +790,7 @@ struct plugin_api {
                                         unsigned int amplitude);
     size_t (*mixer_channel_get_bytes_waiting)(enum pcm_mixer_channel channel);
     void (*mixer_channel_set_buffer_hook)(enum pcm_mixer_channel channel,
-                                          chan_buffer_hook_fn_type fn);
+                                          const struct mixer_buffer_cbs* cbs);
     void (*mixer_set_frequency)(unsigned int samplerate);
     unsigned int (*mixer_get_frequency)(void);
     void (*pcmbuf_fade)(bool fade, bool in);
@@ -837,9 +860,13 @@ struct plugin_api {
             const char *filename, int position, bool queue, bool sync);
     int (*playlist_insert_directory)(struct playlist_info* playlist,
                               const char *dirname, int position, bool queue,
-                              bool recurse);
+                              bool recurse, struct playlist_insert_context *context);
     int (*playlist_insert_playlist)(struct playlist_info* playlist,
                                     const char *filename, int position, bool queue);
+    int (*playlist_insert_context_create)(struct playlist_info* playlist,
+                                          struct playlist_insert_context *context,
+                                          int position, bool queue, bool progress);
+    void (*playlist_insert_context_release)(struct playlist_insert_context *context);
     int (*playlist_shuffle)(int random_seed, int start_index);
     bool (*warn_on_pl_erase)(void);
     void (*audio_play)(unsigned long elapsed, unsigned long offset);
@@ -848,15 +875,14 @@ struct plugin_api {
     void (*audio_resume)(void);
     void (*audio_next)(void);
     void (*audio_prev)(void);
+    void (*audio_pre_ff_rewind)(void);
     void (*audio_ff_rewind)(long newtime);
     struct mp3entry* (*audio_next_track)(void);
     int (*audio_status)(void);
     struct mp3entry* (*audio_current_track)(void);
     void (*audio_flush_and_reload_tracks)(void);
     int (*audio_get_file_pos)(void);
-#ifdef PLUGIN_USE_IRAM
-    void (*audio_hard_stop)(void);
-#endif
+    void (*add_playbacklog)(struct mp3entry *id3);
 
     /* menu */
     struct menu_table *(*root_menu_get_options)(int *nb_options);
@@ -897,6 +923,7 @@ struct plugin_api {
 #endif
 
     /* power */
+    struct battery_tables_t *device_battery_tables;
     int (*battery_level)(void);
     bool (*battery_level_safe)(void);
     int (*battery_time)(void);
@@ -908,12 +935,17 @@ struct plugin_api {
     bool (*charging_state)(void);
 # endif
 #endif
+
     /* usb */
     bool (*usb_inserted)(void);
-    void (*usb_acknowledge)(long id);
+    void (*usb_acknowledge)(long id, intptr_t seqnum);
 #ifdef USB_ENABLE_HID
     void (*usb_hid_send)(usage_page_t usage_page, int id);
 #endif
+#ifdef USB_ENABLE_AUDIO
+    bool (*usb_audio_get_playing)(void);
+#endif
+
     /* misc */
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
     int * (*__errno)(void);
@@ -989,14 +1021,9 @@ struct plugin_api {
 #ifdef HAVE_MULTIVOLUME
     int (*path_strip_volume)(const char *name, const char **nameptr, bool greedy);
 #endif
+
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
-    void (*add_playbacklog)(struct mp3entry *id3);
-    struct battery_tables_t *device_battery_tables;
-    bool (*yesno_pop_confirm)(const char* text);
-#ifdef USB_ENABLE_AUDIO
-    bool (*usb_audio_get_playing)(void);
-#endif
 };
 
 /* plugin header */

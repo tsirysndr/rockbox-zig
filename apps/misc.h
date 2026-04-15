@@ -128,7 +128,7 @@ long default_event_handler_ex(long event, void (*callback)(void *), void *parame
 long default_event_handler(long event);
 bool list_stop_handler(void);
 void car_adapter_mode_init(void) INIT_ATTR;
-
+void validate_start_directory_init(void) INIT_ATTR;
 /* Unicode byte order mark sequences and lengths */
 #define BOM_UTF_8 "\xef\xbb\xbf"
 #define BOM_UTF_8_SIZE 3
@@ -174,7 +174,9 @@ void adjust_volume_ex(int steps, enum volume_adjust_mode mode);
 int hex_to_rgb(const char* hex, int* color);
 #endif
 
-int confirm_delete_yesno(const char *name);
+/* Note: Don't rely on title being visible. It is not
+         displayed on Android, or if SBS has no title. */
+int confirm_delete_yesno(const char *name, const char *title);
 
 char* strrsplt(char* str, int c);
 char* skip_whitespace(char* const str);

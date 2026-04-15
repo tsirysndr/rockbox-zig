@@ -203,6 +203,7 @@ int main(int argc, char** argv)
     case JZ_DEVICE_FIIOM3K:
     case JZ_DEVICE_SHANLINGQ1:
     case JZ_DEVICE_EROSQ:
+    case JZ_DEVICE_SHANLINGM0PRO:
         return cmdline_x1000(argc, argv);
 
     default:

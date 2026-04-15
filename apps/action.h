@@ -23,6 +23,7 @@
 #include "stdbool.h"
 #include "button.h"
 #include "viewport.h"
+#include "gesture.h"
 
 #define TIMEOUT_BLOCK   -1
 #define TIMEOUT_NOBLOCK  0
@@ -302,6 +303,8 @@ enum {
     ACTION_TOUCH_REPMODE,
     ACTION_TOUCH_MUTE,
     ACTION_TOUCH_SCROLLBAR,
+    ACTION_TOUCH_SCROLLBAR_SET,
+    ACTION_TOUCH_SCROLLBAR_END,
     ACTION_TOUCH_VOLUME,
     ACTION_TOUCH_SOFTLOCK,
     ACTION_TOUCH_SETTING,
@@ -415,24 +418,23 @@ int get_action_statuscode(int *button);
 intptr_t get_action_data(void);
 
 #ifdef HAVE_TOUCHSCREEN
-/* return BUTTON_NONE               on error
- *        BUTTON_REPEAT             if repeated press
- *        BUTTON_REPEAT|BUTTON_REL  if release after repeated press
- *        BUTTON_REL                if it's a short press = release after press
- *        BUTTON_TOUCHSCREEN        if press
- */
-int action_get_touchscreen_press(short *x, short *y);
+/* Return a touch event and screen coordinates of the touch. */
+int action_get_touch_event(struct touchevent *ev);
 
-/*
- * wrapper action_get_touchscreen_press()
- * to filter the touchscreen coordinates through a viewport
- *
- * returns the action and x1, y1 relative to the viewport if
- * the press was within the viewport,
- * ACTION_UNKNOWN (and x1, y1 untouched) if the press was outside
- * BUTTON_NONE else
- *
- **/
+/* Action system gesture recognition */
+void action_gesture_reset(void);
+bool action_gesture_get_event_in_vp(struct gesture_event *gevt,
+                                    const struct viewport *vp);
+bool action_gesture_is_valid(void);
+bool action_gesture_is_pressed(void);
+
+static inline bool action_gesture_get_event(struct gesture_event *gevt)
+{
+    return action_gesture_get_event_in_vp(gevt, NULL);
+}
+
+/* DEPRECATED, do not use these anymore */
+int action_get_touchscreen_press(short *x, short *y);
 int action_get_touchscreen_press_in_vp(short *x1, short *y1, struct viewport *vp);
 #endif
 

@@ -70,7 +70,7 @@ static const char keybd_layout[] =
  * - \n does not create a key, but it also consumes one element
  * - the final null terminator is equivalent to \n
  * - since sizeof includes the null terminator we don't need +1 for that. */
-static ucschar_t kbd_buf[sizeof(keybd_layout)];
+static ucschar_t kbd_buf[sizeof(keybd_layout) + 1];
 
 /****************** prototypes ******************/
 void print_scroll(char* string); /* implements a scrolling screen */
@@ -84,7 +84,7 @@ void thread_create(void);
 void thread(void); /* the thread running it all */
 void thread_quit(void);
 static int voice_general_info(bool testing);
-static unsigned char* voice_info_group(unsigned char* current_token, bool testing);
+static const char* voice_info_group(const char* current_token, bool testing);
 
 int plugin_main(const void* parameter); /* main loop */
 enum plugin_status plugin_start(const void* parameter); /* entry */
@@ -115,8 +115,9 @@ static struct
     int bin_added;
 
     bool show_prompt;
+    bool force_enqueue;
 
-    unsigned char wps_fmt[MAX_ANNOUNCE_WPS+1];
+    char wps_fmt[MAX_ANNOUNCE_WPS+1];
 } gAnnounce;
 
 static struct configdata config[] =
@@ -126,6 +127,7 @@ static struct configdata config[] =
    {TYPE_INT, 0, 10, { .int_p = &gAnnounce.grouping }, "Grouping", NULL},
    {TYPE_INT, 0, 10000, { .int_p = &gAnnounce.bin_added }, "Added", NULL},
    {TYPE_BOOL, 0, 1, { .bool_p = &gAnnounce.show_prompt }, "Prompt", NULL},
+   {TYPE_BOOL, 0, 1, { .bool_p = &gAnnounce.force_enqueue }, "Enqueue", NULL},
    {TYPE_STRING, 0, MAX_ANNOUNCE_WPS+1,
                    { .string =  (char*)&gAnnounce.wps_fmt }, "Fmt", NULL},
 };
@@ -165,6 +167,7 @@ static void config_set_defaults(void)
     gAnnounce.grouping = 0;
     gAnnounce.wps_fmt[0] = '\0';
     gAnnounce.show_prompt = true;
+    gAnnounce.force_enqueue = true;
 }
 
 static void config_reset_voice(void)
@@ -173,10 +176,10 @@ static void config_reset_voice(void)
     int interval = gAnnounce.interval;
     int announce = gAnnounce.announce_on;
     int grouping = gAnnounce.grouping;
-
-    if (configfile_load(CFG_FILE, config, gCfg_sz, CFG_VER) < 0)
+    int status = configfile_load(CFG_FILE, config, gCfg_sz, CFG_VER);
+    if (status < 0)
     {
-        rb->splash(100, "ERROR!");
+        rb->splashf(100, ID2P(LANG_FILE_ERROR), status);
         return;
     }
 
@@ -194,7 +197,8 @@ void announce(void)
     voice_general_info(false);
     if (rb->talk_id(VOICE_PAUSE, true) < 0)
         rb->beep_play(800, 100, 1000);
-    //rb->talk_force_enqueue_next();
+    if (gAnnounce.force_enqueue)
+        rb->talk_force_enqueue_next();
 }
 
 static void announce_test(void)
@@ -202,8 +206,8 @@ static void announce_test(void)
     rb->talk_force_shutup();
     rb->sleep(HZ / 2);
     voice_info_group(gAnnounce.wps_fmt, true);
-    rb->splash(HZ, "...");
-    //rb->talk_force_enqueue_next();
+    if (gAnnounce.force_enqueue)
+        rb->talk_force_enqueue_next();
 }
 
 static void announce_add(const char *str)
@@ -329,7 +333,7 @@ static int announce_menu(void)
 {
     int selection = 0;
 
-    MENUITEM_STRINGLIST(announce_menu, "Announcements", announce_menu_cb,
+    MENUITEM_STRINGLIST(announce_menu, ID2P(LANG_ANNOUNCEMENT_FMT), announce_menu_cb,
                         ID2P(LANG_TIME),
                         ID2P(LANG_DATE),
                         ID2P(LANG_TRACK),
@@ -359,11 +363,12 @@ static int settings_menu(void)
     int selection = 0;
     //bool old_val;
 
-    MENUITEM_STRINGLIST(settings_menu, "Announce Settings", NULL,
+    MENUITEM_STRINGLIST(settings_menu, ID2P(LANG_ANNOUNCE_STATUS), NULL,
                         ID2P(LANG_TIMEOUT),
                         ID2P(LANG_ANNOUNCE_ON),
                         ID2P(LANG_GROUPING),
                         ID2P(LANG_ANNOUNCEMENT_FMT),
+                        ID2P(LANG_QUEUE_FIRST),
                         ID2P(VOICE_BLANK),
                         ID2P(LANG_MENU_QUIT),
                         ID2P(LANG_SAVE_EXIT));
@@ -392,12 +397,15 @@ static int settings_menu(void)
             case 3:
                 announce_menu();
                 break;
-            case 4: /*sep*/
+            case 4:
+                rb->set_bool(rb->str(LANG_QUEUE_FIRST), &gAnnounce.force_enqueue);
+                break;
+            case 5: /*sep*/
                 continue;
-            case 5: /* quit the plugin */
+            case 6: /* quit the plugin */
                 return -1;
                 break;
-            case 6:
+            case 7:
                 configfile_save(CFG_FILE, config, gCfg_sz, CFG_VER);
                 return 0;
                 break;
@@ -427,7 +435,7 @@ void thread(void)
         switch (ev.id)
         {
             case SYS_USB_CONNECTED:
-                rb->usb_acknowledge(SYS_USB_CONNECTED_ACK);
+                rb->usb_acknowledge(SYS_USB_CONNECTED_ACK, ev.data);
                 in_usb = true;
                 break;
             case SYS_USB_DISCONNECTED:
@@ -538,13 +546,15 @@ int plugin_main(const void* parameter)
     }
     else
     {
-        rb->splash(HZ / 2, "Announce Status");
+        rb->splashf(HZ / 2, "%s", rb->str(LANG_ANNOUNCE_STATUS)); /* no talking */
         if (gAnnounce.show_prompt)
         {
+#if 0 /* splash should announce for us */
             if (rb->mixer_channel_status(PCM_MIXER_CHAN_PLAYBACK) != CHANNEL_PLAYING)
             {
                 rb->talk_id(LANG_HOLD_FOR_SETTINGS, false);
             }
+#endif
             rb->splash(HZ, ID2P(LANG_HOLD_FOR_SETTINGS));
         }
 
@@ -580,6 +590,19 @@ enum plugin_status plugin_start(const void* parameter)
         return PLUGIN_USB_CONNECTED;
 
     config_set_defaults();
+
+    if (parameter && parameter != rb->plugin_tsr)
+    {
+        const char *param = (const char*) parameter;
+        if (param[0] != '\0')
+        {
+            voice_info_group(param, false);
+            rb->talk_force_enqueue_next();
+            return PLUGIN_OK;
+        }
+    }
+
+
     if (configfile_load(CFG_FILE, config, gCfg_sz, CFG_VER) < 0)
     {
         /* If the loading failed, save a new config file */
@@ -594,7 +617,7 @@ enum plugin_status plugin_start(const void* parameter)
 
 static int voice_general_info(bool testing)
 {
-    unsigned char* infotemplate = gAnnounce.wps_fmt;
+    const char* infotemplate = gAnnounce.wps_fmt;
 
     if (gAnnounce.index >= rb->strlen(gAnnounce.wps_fmt))
         gAnnounce.index = 0;
@@ -629,9 +652,9 @@ static int voice_general_info(bool testing)
     return 0;
 }
 
-static unsigned char* voice_info_group(unsigned char* current_token, bool testing)
+static const char* voice_info_group(const char* current_token, bool testing)
 {
-    unsigned char current_char;
+    char current_char;
     bool skip_next_group = false;
     gAnnounce.count = 0;
 

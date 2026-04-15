@@ -62,6 +62,19 @@ enum usb_control_response {
     USB_CONTROL_RECEIVE,
 };
 
+#define USB_ENDPOINT_TYPE_ANY  (-1)
+#define USB_ENDPOINT_TYPE_NONE (-2)
+
+struct usb_drv_ep_spec {
+    int8_t type[2]; /* USB_ENDPOINT_TYPE_{ANY,NONE} USB_ENDPOINT_XFER_* */
+};
+
+extern struct usb_drv_ep_spec usb_drv_ep_specs[USB_NUM_ENDPOINTS];
+
+#define USB_ENDPOINT_SPEC_FORCE_IO_TYPE_MATCH (1 << 0)
+#define USB_ENDPOINT_SPEC_IO_EXCLUSIVE        (1 << 1)
+extern uint8_t usb_drv_ep_specs_flags;
+
 /* one-time initialisation of the USB driver */
 void usb_drv_startup(void);
 void usb_drv_int_enable(bool enable); /* Target implemented */
@@ -85,8 +98,8 @@ int usb_drv_port_speed(void);
 void usb_drv_cancel_all_transfers(void);
 void usb_drv_set_test_mode(int mode);
 bool usb_drv_connected(void);
-int usb_drv_request_endpoint(int type, int dir);
-void usb_drv_release_endpoint(int ep);
+int usb_drv_init_endpoint(int endpoint, int type, int max_packet_size);
+int usb_drv_deinit_endpoint(int endpoint);
 #ifdef USB_HAS_ISOCHRONOUS
 /* returns the last received frame number (the 11-bit number contained in the last SOF):
  * - full-speed: the host sends one SOF every 1ms (so 1000 SOF/s)
@@ -95,6 +108,23 @@ void usb_drv_release_endpoint(int ep);
  * thus in all mode, the frame number can be interpreted as the current millisecond *in USB time*. */
 int usb_drv_get_frame_number(void);
 #endif
+
+/* batched request api is for workloads that perform very high-frequency,
+ * performance-sensitive isochronous transactions continuously.
+ * this api allows multiple transaction requests to be buffered in udc driver.
+ * so that it can maximize the controller's performance. */
+
+/* called when usb system requires more buffer */
+typedef void(*usb_drv_batch_get_more)(const void** ptr, size_t* len);
+
+/* prepare request queue */
+int usb_drv_batch_init(int ep, usb_drv_batch_get_more get_more);
+/* destroy request queue */
+int usb_drv_batch_deinit(void);
+/* start processing */
+int usb_drv_batch_start(void);
+/* stop processing */
+int usb_drv_batch_stop(void);
 
 /* USB_STRING_INITIALIZER(u"Example String") */
 #define USB_STRING_INITIALIZER(S) { \

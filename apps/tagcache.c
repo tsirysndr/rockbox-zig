@@ -239,9 +239,11 @@ static const char * const tag_type_str[] = {
     [clause_ends_with] = "clause_ends_with",
     [clause_not_ends_with] = "clause_not_ends_with",
     [clause_oneof] = "clause_oneof",
+    [clause_contains_oneof] = "clause_contains_oneof",
     [clause_begins_oneof] = "clause_begins_oneof",
     [clause_ends_oneof] = "clause_ends_oneof",
     [clause_not_oneof] = "clause_not_oneof",
+    [clause_not_contains_oneof] = "clause_not_contains_oneof",
     [clause_not_begins_oneof] = "clause_not_begins_oneof",
     [clause_not_ends_oneof] = "clause_not_ends_oneof",
     [clause_logical_or] = "clause_logical_or"
@@ -1397,6 +1399,28 @@ inline static bool str_begins_ends_oneof(const char *str, const char *list, bool
     return false;
 }
 
+inline static bool str_contains_oneof(const char *str, char *list)
+{
+    logf_clauses("%s %s %s", str, __func__, list);
+	const char *sep;
+	int l, len = strlen(str);
+	
+	while (*list)
+	{
+		sep = strchr(list, '|');
+		l = sep ? (intptr_t)sep - (intptr_t)list : (int)strlen(list);
+		list[l] = '\0';
+		if (l <= len && strcasestr(str, list) != NULL) {
+			if (sep) list[l] = '|';
+			return true;
+		}
+		if (sep) list[l] = '|';
+		list += sep ? l + 1 : l;
+	}
+	
+	return false;
+}
+
 static bool check_against_clause(long numeric, const char *str,
                                  const struct tagcache_search_clause *clause)
 {
@@ -1462,6 +1486,10 @@ static bool check_against_clause(long numeric, const char *str,
             case clause_not_begins_oneof:
                 return !str_begins_ends_oneof(str, clause->str,
                                             clause->type == clause_not_begins_oneof);
+			case clause_contains_oneof:
+				return str_contains_oneof(str, clause->str);
+			case clause_not_contains_oneof:
+				return !str_contains_oneof(str, clause->str);
             default:
                 logf("Incorrect tag: %d", clause->type);
         }
@@ -2322,7 +2350,7 @@ static void NO_INLINE add_tagcache(char *path, unsigned long mtime)
 
     logf("-> %s", path);
 
-    if (id3.tracknum <= 0)              /* Track number missing? */
+    if (id3.tracknum < 0)              /* Track number missing? */
     {
         id3.tracknum = -1;
     }
@@ -3521,8 +3549,8 @@ static bool commit(void)
             tcrc_buffer_unlock();
         }
 
-        /* Reload tagcache. */
-        if (tc_stat.ramcache_allocated > 0)
+        /* Reload tagcache only if we committed new entries */
+        if (tc_stat.ramcache_allocated > 0 && tch.entry_count > 0)
             tagcache_start_scan();
 #endif /* HAVE_TC_RAMCACHE */
 
@@ -5225,7 +5253,8 @@ static void tagcache_thread(void)
                                       ID2P(LANG_TAGCACHE_UPDATE)};
         static const struct text_message message = {lines, 2};
 
-        if (gui_syncyesno_run_w_tmo(HZ * 5, YESNO_YES, &message, NULL, NULL) == YESNO_YES)
+        if (gui_syncyesno_run_w_tmo(HZ * 5, YESNO_YES, str(LANG_TAGCACHE),
+                                    &message, NULL, NULL) == YESNO_YES)
 #endif
         {
             allocate_tempbuf();
@@ -5328,7 +5357,7 @@ static void tagcache_thread(void)
 
             case SYS_USB_CONNECTED:
                 logf("USB: TagCache");
-                usb_acknowledge(SYS_USB_CONNECTED_ACK);
+                usb_acknowledge(SYS_USB_CONNECTED_ACK, ev.data);
                 usb_wait_for_disconnect(&tagcache_queue);
                 break ;
         }

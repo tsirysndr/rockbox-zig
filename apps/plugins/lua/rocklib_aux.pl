@@ -51,6 +51,8 @@ my @ported_functions;
 # you want to manually port them to Lua. The format is a standard Perl regular
 # expression.
 my @forbidden_functions = ('^atoi$',
+                           '^strtol$',
+                           '^strtoul$',
                            '^open$',
                            '^open_utf8$',
                            '^close$',
@@ -95,7 +97,7 @@ my @forbidden_functions = ('^atoi$',
                            '^__.+$',
                            '^.+_(un)?cached$',
                            '^audio_(status|get_file_pos|flush_and_reload_tracks)$',
-                           '^audio_(ff_rewind|next|prev|play|pause|resume|stop)$',
+                           '^audio_(pre_ff_rewind|ff_rewind|next|prev|play|pause|resume|stop)$',
                            '^playlist_(amount|add|create|start|resume|shuffle)$',
                            '^playlist_(sync|resume_track|remove_all_tracks)$',
                            '^playlist_(insert_track|insert_directory)$',

@@ -248,7 +248,7 @@ static volatile int audio_tail = 0; /* which of the two buffers to record? */
 #ifndef SIMULATOR
 static int16_t audio_data[2][BUFFER_SIZE] MEM_ALIGN_ATTR;
 static fixed yin_buffer[YIN_BUFFER_SIZE] IBSS_ATTR;
-#ifdef PLUGIN_USE_IRAM
+#ifdef USE_IRAM
 static int16_t iram_audio_data[BUFFER_SIZE] IBSS_ATTR;
 #else
 #define iram_audio_data audio_data[audio_head]
@@ -1047,7 +1047,7 @@ static void record_and_get_pitch(void)
             #ifdef HAVE_SCHEDULER_BOOSTCTRL
                 rb->trigger_cpu_boost();
             #endif
-#ifdef PLUGIN_USE_IRAM
+#ifdef USE_IRAM
                 rb->memcpy(iram_audio_data, audio_data[audio_head],
                            settings.sample_size * sizeof (int16_t));
 #endif
@@ -1084,7 +1084,7 @@ static void record_and_get_pitch(void)
         }
     }
     rb->pcm_close_recording();
-    rb->pcm_set_frequency(HW_SAMPR_RESET | SAMPR_TYPE_REC);
+    rb->mixer_set_frequency(HW_SAMPR_RESET | SAMPR_TYPE_REC);
 #ifdef HAVE_SCHEDULER_BOOSTCTRL
     rb->cancel_cpu_boost();
 #endif
@@ -1118,7 +1118,7 @@ static void init_everything(void)
     sample_rate = rb->round_value_to_list32(9000, rb->rec_freq_sampr,
                                             REC_NUM_FREQ, false);
     sample_rate = rb->rec_freq_sampr[sample_rate];
-    rb->pcm_set_frequency(sample_rate | SAMPR_TYPE_REC);
+    rb->mixer_set_frequency(sample_rate | SAMPR_TYPE_REC);
     rb->pcm_init_recording();
 
     /* avoid divsion by zero */

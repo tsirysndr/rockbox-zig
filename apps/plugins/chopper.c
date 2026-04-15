@@ -108,12 +108,6 @@ Still To do:
 #define QUIT BUTTON_POWER
 #define ACTION2 BUTTON_PLUS
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define QUIT BUTTON_BACK
-#define ACTION BUTTON_UP
-#define ACTION2 BUTTON_MENU
-#define ACTIONTEXT "UP"
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define QUIT BUTTON_POWER
 #define ACTION BUTTON_UP
@@ -216,6 +210,12 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define QUIT        BUTTON_START
 #define ACTION      BUTTON_A
 #define ACTION2     BUTTON_B
+#define ACTIONTEXT  "A"
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define QUIT        BUTTON_BACK
+#define ACTION      BUTTON_SELECT
+#define ACTION2     BUTTON_MENU
 #define ACTIONTEXT  "A"
 
 #elif !defined(HAVE_TOUCHSCREEN)
@@ -771,7 +771,7 @@ static int chopMenu(int menunum)
         { "Steep", -1 },
     };
 
-    MENUITEM_STRINGLIST(menu,"Chopper Menu",chopMenuCb,
+    MENUITEM_STRINGLIST(menu,"Chopper",chopMenuCb,
                         "Resume Game","Start New Game",
                         "Level","Playback Control","Quit");
     _ingame = (menunum!=0);

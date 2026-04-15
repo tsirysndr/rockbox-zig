@@ -36,10 +36,35 @@ extern unsigned long _lcdbuf2;
 extern unsigned long _ttbstart;
 #endif
 
+/* See https://www.heyrick.co.uk/blog/files/datasheets/tms320dm320part1.pdf */
+#define CACHEALIGN_BITS  5
+#define CACHEALIGN_SIZE  32
+
 #define TTB_BASE_ADDR    (_ttbstart) /* End of memory */
 #define FRAME            ((short *) (&_lcdbuf))  /* Right after TTB */
 #ifdef MROBE_500
 #define FRAME2            ((short *) (&_lcdbuf2))  /* Right after FRAME */
+#endif
+
+#ifndef LCD_NATIVE_WIDTH
+#define LCD_NATIVE_WIDTH LCD_WIDTH
+#endif
+
+#ifndef LCD_NATIVE_HEIGHT
+#define LCD_NATIVE_HEIGHT LCD_HEIGHT
+#endif
+
+/* must be 16Kb (0x4000) aligned */
+#define TTB_SIZE        (0x4000)
+
+#ifdef MROBE_500
+/* Give this 1 meg to allow it to align to the MMU boundary */
+#define LCD_FUDGE       (LCD_NATIVE_WIDTH%32)
+#define LCD_BUFFER_SIZE ((LCD_NATIVE_WIDTH+LCD_FUDGE)*LCD_NATIVE_HEIGHT*2)
+#define LCD_TTB_AREA    (0x100000*((LCD_BUFFER_SIZE>>19)+1))
+#else
+#define LCD_BUFFER_SIZE (LCD_NATIVE_WIDTH*LCD_NATIVE_HEIGHT*2)
+#define LCD_TTB_AREA    (TTB_SIZE + LCD_BUFFER_SIZE)
 #endif
 
 #define PHY_IO_BASE      0x00030000

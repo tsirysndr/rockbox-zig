@@ -660,7 +660,9 @@ sub buildzip {
     # until buildwps.pl is fixed, manually copy the classic_statusbar theme across
     mkdir "$temp_dir/wps/classic_statusbar", 0777;
     glob_copy("$ROOT/wps/classic_statusbar/*.bmp", "$temp_dir/wps/classic_statusbar");
-    if ($depth == 16) {
+    if ($depth >= 16 && $height > 480) {
+        copy("$ROOT/wps/classic_statusbar.24.sbs", "$temp_dir/wps/classic_statusbar.sbs");
+    } elsif ($depth == 16) {
         copy("$ROOT/wps/classic_statusbar.sbs", "$temp_dir/wps");
     } elsif ($depth > 1) {
         copy("$ROOT/wps/classic_statusbar.grey.sbs", "$temp_dir/wps/classic_statusbar.sbs");
@@ -748,7 +750,7 @@ sub runone {
 
         # add hbmenu shortcut and cia file to zip file
         if ($modelname =~ /ctru/) {
-            move("rockbox.cia", "3ds");
+            copy("rockbox.cia", "3ds");
             copy("$ROOT/packaging/ctru/rockbox.xml", "3ds");
 
             system("$ziptool -u $output 3ds/rockbox.xml $target >/dev/null");

@@ -50,6 +50,15 @@ static const jz_device_info infotable[JZ_NUM_DEVICES] = {
         .vendor_id = 0xc502,
         .product_id = 0x0023,
     },
+    [JZ_DEVICE_SHANLINGM0PRO] = {
+        .name = "shanlingm0pro",
+        .file_ext = "m0pro",
+        .description = "Shanling M0 Pro",
+        .device_type = JZ_DEVICE_SHANLINGM0PRO,
+        .cpu_type = JZ_CPU_X1000,
+        .vendor_id = 0x0525,
+        .product_id = 0xa4a5,
+    },
 };
 
 static const jz_cpu_info cputable[JZ_NUM_CPUS] = {

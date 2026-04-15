@@ -165,16 +165,6 @@ enum minesweeper_status {
 #elif (CONFIG_KEYPAD == COWON_D2_PAD)
 #   define MINESWP_QUIT     BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#   define MINESWP_LEFT     BUTTON_LEFT
-#   define MINESWP_RIGHT    BUTTON_RIGHT
-#   define MINESWP_UP       BUTTON_UP
-#   define MINESWP_DOWN     BUTTON_DOWN
-#   define MINESWP_QUIT     BUTTON_BACK
-#   define MINESWP_TOGGLE   BUTTON_SELECT
-#   define MINESWP_DISCOVER BUTTON_PLAY
-#   define MINESWP_INFO     BUTTON_MENU
-
 #elif CONFIG_KEYPAD == PHILIPS_HDD1630_PAD
 #   define MINESWP_LEFT     BUTTON_LEFT
 #   define MINESWP_RIGHT    BUTTON_RIGHT
@@ -452,7 +442,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define MINESWP_DISCOVER     (BUTTON_MENU|BUTTON_REPEAT)
 #   define MINESWP_INFO         BUTTON_MENU
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -466,6 +456,16 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define MINESWP_TOGGLE       BUTTON_X
 #   define MINESWP_DISCOVER     BUTTON_A
 #   define MINESWP_INFO         BUTTON_Y
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#   define MINESWP_LEFT         BUTTON_LEFT
+#   define MINESWP_RIGHT        BUTTON_RIGHT
+#   define MINESWP_UP           BUTTON_UP
+#   define MINESWP_DOWN         BUTTON_DOWN
+#   define MINESWP_QUIT         BUTTON_BACK
+#   define MINESWP_TOGGLE       BUTTON_USER
+#   define MINESWP_DISCOVER     BUTTON_SELECT
+#   define MINESWP_INFO         BUTTON_MENU
 
 #else
 #error No keymap defined!
@@ -823,7 +823,7 @@ static enum minesweeper_status menu( void )
     int selection = 0, result = MINESWEEPER_QUIT;
     bool menu_quit = false;
 
-    MENUITEM_STRINGLIST( menu, "Minesweeper Menu", NULL, "Play Minesweeper",
+    MENUITEM_STRINGLIST( menu, "Minesweeper", NULL, "Play Minesweeper",
                          "Mine Percentage", "Number of Rows",
                          "Number of Columns", "Playback Control", "Quit" );
 

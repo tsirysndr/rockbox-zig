@@ -96,15 +96,15 @@ ifndef APP_TYPE
   endif
 endif
 
-ifeq (,$(findstring bootloader,$(APPSDIR)))
-  ifeq (,$(findstring checkwps,$(APP_TYPE)))
-    include $(ROOTDIR)/lib/fixedpoint/fixedpoint.make
-  endif
+ifeq (,$(findstring checkwps,$(APP_TYPE)))
+  include $(ROOTDIR)/lib/fixedpoint/fixedpoint.make
 endif
 
 ifneq (,$(findstring bootloader,$(APPSDIR)))
   ifneq (,$(findstring sonynwz,$(APP_TYPE)))
     include $(ROOTDIR)/firmware/target/hosted/sonynwz/sonynwz.make
+  else ifneq (,$(findstring hiby_x1600,$(APP_TYPE)))
+    include $(ROOTDIR)/firmware/target/hosted/hiby/hiby.make
   else ifneq (,$(findstring hibyos,$(APP_TYPE)))
     include $(ROOTDIR)/firmware/target/hosted/hibyos.make
   else ifneq (,$(findstring fiio,$(APP_TYPE)))
@@ -149,6 +149,10 @@ else # core
     include $(ROOTDIR)/firmware/target/hosted/sonynwz/sonynwz.make
   endif
 
+  ifneq (,$(findstring hiby_x1600,$(APP_TYPE)))
+    include $(ROOTDIR)/firmware/target/hosted/hiby/hiby.make
+  endif
+
   ifneq (,$(findstring hibyos,$(APP_TYPE)))
     include $(ROOTDIR)/firmware/target/hosted/hibyos.make
   endif
@@ -165,9 +169,6 @@ else # core
     endif
   endif
 
-  ifneq (,$(findstring pandora, $(MODELNAME)))
-	include $(ROOTDIR)/packaging/pandora/pandora.make
-  endif
   ifneq (,$(findstring rgnano, $(MODELNAME)))
 	include $(ROOTDIR)/packaging/rgnano/rgnano.make
   endif
@@ -176,6 +177,11 @@ else # core
   endif
 
 endif # bootloader
+
+# Include makefile for flashing/debugging with OpenOCD & GDB
+ifeq (echor1,$(MODELNAME))
+  include $(ROOTDIR)/tools/echoplayer/openocd.make
+endif
 
 # One or more subdir makefiles requested --gc-sections?
 ifdef CORE_GCSECTIONS
@@ -227,7 +233,8 @@ clean::
 		$(LINKRAM) $(LINKROM) rockbox.elf rockbox.map rockbox.bin \
 		make.dep rombox.elf rombox.map rombox.bin romstart.txt \
 		$(BINARY) $(FLASHFILE) uisimulator bootloader flash $(BOOTLINK) \
-		rockbox.apk lang_enum.h rbversion.h fontbundle.h
+		rockbox.apk lang_enum.h rbversion.h fontbundle.h 3ds rockbox.3dsx \
+		rockbox.bnr rockbox.cia rockbox.icn rockbox.smdh
 	$(SILENT)rm -rf ../.zig-cache ../zig-out
 
 #### linking the binaries: ####
@@ -254,11 +261,11 @@ LINKROM := $(BUILDDIR)/rom.link
 
 $(LINKRAM): $(RAMLDS) $(CONFIGFILE)
 	$(call PRINTS,PP $(@F))
-	$(call preprocess2file,$<,$@,-DLOADADDRESS=$(LOADADDRESS))
+	$(call preprocess2file,$<,$@,)
 
 $(LINKROM): $(ROMLDS)
 	$(call PRINTS,PP $(@F))
-	$(call preprocess2file,$<,$@,-DLOADADDRESS=$(LOADADDRESS))
+	$(call preprocess2file,$<,$@,)
 
 # Note: make sure -Wl,--gc-sections comes before -T in the linker options.
 # Having the latter first caused crashes on (at least) mini2g.
@@ -457,43 +464,40 @@ zig: lib
 help:
 	@echo "A few helpful make targets"
 	@echo ""
-	@echo "all              - builds a full Rockbox (default), including tools"
-	@echo "zig              - builds Rockbox with Zig"
-	@echo "bin              - builds only the Rockbox.<target name> file"
-	@echo "rocks            - builds only plugins"
-	@echo "codecs           - builds only codecs"
-	@echo "dep              - regenerates make dependency database"
-	@echo "clean            - cleans a build directory (not tools)"
-	@echo "veryclean        - cleans the build and tools directories"
-	@echo "manual           - builds a manual (pdf)"
-	@echo "manual-html      - HTML manual"
-	@echo "manual-zip       - HTML manual (zipped)"
-	@echo "manual-7zip      - HTML manual (7zipped)"
-	@echo "manual-txt       - txt manual"
-	@echo "zip              - creates a rockbox.zip of your build (no fonts)"
-	@echo "gzip             - creates a rockbox.tar.gz of your build (no fonts)"
-	@echo "bzip2            - creates a rockbox.tar.bz2 of your build (no fonts)"
-	@echo "xz               - creates a rockbox.tar.xz of your build (no fonts)"
-	@echo "7zip             - creates a rockbox.7z of your build (no fonts)"
-	@echo "fullzip          - creates a rockbox-full.zip of your build (with fonts)"
-	@echo "full7zip         - creates a rockbox-full.7z of your build (with fonts)"
-	@echo "fullgzip         - creates a rockbox-full.tar.gz of your build (with fonts)"
-	@echo "fullxz           - creates a rockbox-full.tar.xz of your build (with fonts)"
-	@echo "fontzip          - creates rockbox-fonts.zip"
-	@echo "font7zip         - creates rockbox-fonts.7zip"
-	@echo "mapzip           - creates rockbox-maps.zip with all .map files"
-	@echo "elfzip           - creates rockbox-elfs.zip with all .elf files"
-	@echo "pnd              - creates rockbox.pnd archive (Pandora builds only)"
-	@echo "tools            - builds the tools only"
-	@echo "voice            - creates the voice clips (voice builds only)"
-	@echo "voicetools       - builds the voice tools only"
-	@echo "talkclips        - builds talkclips for everything under \$TALKDIR, skipping existing clips"
-	@echo "talkclips-force  - builds talkclips for everything under \$TALKDIR, overwriting all existing clips"
-	@echo "install          - installs your build (at \$PREFIX, defaults to simdisk/ for simulators (no fonts))"
-	@echo "fullinstall      - installs your build (like install, but with fonts)"
-	@echo "symlinkinstall   - like fullinstall, but with links instead of copying files. (Good for developing on simulator)"
-	@echo "reconf           - rerun configure with the same selection"
-
+	@echo "all            - builds a full Rockbox (default), including tools"
+	@echo "zig            - builds Rockbox with Zig"
+	@echo "bin            - builds only the Rockbox.<target name> file"
+	@echo "rocks          - builds only plugins"
+	@echo "codecs         - builds only codecs"
+	@echo "dep            - regenerates make dependency database"
+	@echo "clean          - cleans a build directory (not tools)"
+	@echo "veryclean      - cleans the build and tools directories"
+	@echo "manual         - builds a manual (pdf)"
+	@echo "manual-html    - HTML manual"
+	@echo "manual-zip     - HTML manual (zipped)"
+	@echo "manual-7zip    - HTML manual (7zipped)"
+	@echo "manual-txt     - txt manual"
+	@echo "zip            - creates a rockbox.zip of your build (no fonts)"
+	@echo "gzip           - creates a rockbox.tar.gz of your build (no fonts)"
+	@echo "xz             - creates a rockbox.tar.xz of your build (no fonts)"
+	@echo "7zip           - creates a rockbox.7z of your build (no fonts)"
+	@echo "fullzip        - creates a rockbox-full.zip of your build (with fonts)"
+	@echo "full7zip       - creates a rockbox-full.7z of your build (with fonts)"
+	@echo "fullgzip       - creates a rockbox-full.tar.gz of your build (with fonts)"
+	@echo "fullxz         - creates a rockbox-full.tar.xz of your build (with fonts)"
+	@echo "fontzip        - creates rockbox-fonts.zip"
+	@echo "font7zip       - creates rockbox-fonts.7zip"
+	@echo "mapzip         - creates rockbox-maps.zip with all .map files"
+	@echo "elfzip         - creates rockbox-elfs.zip with all .elf files"
+	@echo "tools          - builds the tools only"
+	@echo "voice          - creates the voice clips (voice builds only)"
+	@echo "voicetools     - builds the voice tools only"
+	@echo "talkclips      - builds talkclips for everything under \$$TALKDIR, skipping existing clips"
+	@echo "talkclips-force - builds talkclips for everything under \$$TALKDIR, overwriting all existing clips"
+	@echo "install        - installs your build (at \$$PREFIX, defaults to simdisk/ for simulators (no fonts))"
+	@echo "fullinstall    - installs your build (like install, but with fonts)"
+	@echo "symlinkinstall - like fullinstall, but with links instead of copying files. (Good for developing on simulator)"
+	@echo "reconf         - rerun configure with the same selection"
 
 ### general compile rules:
 

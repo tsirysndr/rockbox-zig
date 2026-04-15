@@ -175,14 +175,14 @@ static long video_frames = 0;
 
 static int dipDifficulty[] = { DipDifficulty_Normal, DipDifficulty_Hard };
 static int dipLives[] = { DipLives_1, DipLives_2, DipLives_3, DipLives_5 };
-static int dipBonus[] = { DipBonus_10000, DipBonus_15000, DipBonus_20000, 
+static int dipBonus[] = { DipBonus_10000, DipBonus_15000, DipBonus_20000,
                           DipBonus_None };
 static int dipGhostNames[] = { DipGhostNames_Normal, DipGhostNames_Alternate };
 
 static int settings_to_dip(struct pacman_settings settings)
 {
-    return ( DipPlay_OneCoinOneGame | 
-             DipCabinet_Upright | 
+    return ( DipPlay_OneCoinOneGame |
+             DipCabinet_Upright |
              DipMode_Play |
              DipRackAdvance_Off |
 
@@ -245,7 +245,7 @@ static bool pacbox_menu(void)
         PBMI_QUIT,
     };
 
-    MENUITEM_STRINGLIST(menu, "Pacbox Menu", NULL,
+    MENUITEM_STRINGLIST(menu, "Pacbox", NULL,
                         "Difficulty", "Pacmen Per Game", "Bonus Life",
                         "Ghost Names", "Display FPS", "Sound",
 #ifdef AI
@@ -254,7 +254,7 @@ static bool pacbox_menu(void)
                         "Restart", "Quit");
 
     rb->button_clear_queue();
-    
+
 #if defined(HAVE_LCD_MODES) && (HAVE_LCD_MODES & LCD_MODE_PAL256)
     rb->lcd_set_mode(LCD_MODE_RGB565);
 #endif
@@ -323,7 +323,7 @@ static bool pacbox_menu(void)
                 break;
         }
     }
-    
+
 #if defined(HAVE_LCD_MODES) && (HAVE_LCD_MODES & LCD_MODE_PAL256)
     rb->lcd_set_mode(LCD_MODE_PAL256);
 #endif
@@ -332,7 +332,7 @@ static bool pacbox_menu(void)
         init_PacmanMachine(settings_to_dip(settings));
     }
 
-    /* Possible results: 
+    /* Possible results:
          exit game
          restart game
          usb connected
@@ -374,7 +374,7 @@ static void get_more(const void **start, size_t *size)
     while (out < outend);
 
     *start = sound_buf;
-    *size = NBSAMPLES*sizeof(sound_buf[0]); 
+    *size = NBSAMPLES*sizeof(sound_buf[0]);
 }
 
 /*
@@ -387,26 +387,31 @@ static void start_sound(void)
     if (sound_playing)
         return;
 
-#ifndef PLUGIN_USE_IRAM    
+    rb->audio_stop();
+
+#ifndef USE_IRAM
     /* Ensure control of PCM - stopping music itn't obligatory */
     rb->plugin_get_audio_buffer(NULL);
 #endif
 
     /* Get the closest rate >= to what is preferred */
+    const struct pcm_sink_caps* caps = rb->pcm_current_sink_caps();
     sr_index = rb->round_value_to_list32(PREFERRED_SAMPLING_RATE,
-                        rb->hw_freq_sampr, HW_NUM_FREQ, false);
+                        caps->samprs, caps->num_samprs, false);
 
-    if (rb->hw_freq_sampr[sr_index] < PREFERRED_SAMPLING_RATE
-        && sr_index > 0)
+    if (caps->samprs[sr_index] < PREFERRED_SAMPLING_RATE && sr_index > 0)
     {
         /* Round up */
         sr_index--;
     }
 
-    wsg3_set_sampling_rate(rb->hw_freq_sampr[sr_index]);
+    wsg3_set_sampling_rate(caps->samprs[sr_index]);
 
-    rb->pcm_set_frequency(rb->hw_freq_sampr[sr_index]);
-    rb->pcm_play_data(get_more, NULL, NULL, 0);
+    static const struct mixer_play_cbs cbs = {
+        .get_more = get_more,
+    };
+    rb->mixer_set_frequency(caps->samprs[sr_index]);
+    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
     sound_playing = true;
 }
@@ -419,8 +424,8 @@ static void stop_sound(void)
     if (!sound_playing)
         return;
 
-    rb->pcm_play_stop();
-    rb->pcm_set_frequency(HW_SAMPR_DEFAULT);
+    rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
+    rb->mixer_set_frequency(HW_SAMPR_DEFAULT);
 
     sound_playing = false;
 }
@@ -451,7 +456,7 @@ void joystick(void)
 #ifdef PACMAN_2UP
     setDeviceMode( Key_TwoPlayers, (status & PACMAN_2UP) ? DeviceOn : DeviceOff);
 #endif
-#endif    
+#endif
 #ifdef CHEATS
 // skip level for testing purposes
     if(status == SKIP_LEVEL)
@@ -523,7 +528,7 @@ unsigned char ai( unsigned char turn )
         rb->splash(HZ/2, "AI will engage at next level start");
         return 0;
     }
-    
+
     /* reset joystick direction on level start */
     if(!(ram_[0x4E0E] || turn))
     {
@@ -573,12 +578,12 @@ unsigned char ai( unsigned char turn )
                 {
                     ai_turn(level,turn);
                     turn++;
-                }  
+                }
             }else if( position == ai_location[level][turn] ) /* handle turns using pacman's location as basis for turn timing */
             {
                 ai_turn(level,turn);
                 turn++;
-            } 
+            }
     }
 
     /* reset turn counter and joystick direction on level start */
@@ -679,7 +684,7 @@ static int gameProc( void )
 #else
         joystick();
 #endif
-        /* We only update the screen every third frame - Pacman's native 
+        /* We only update the screen every third frame - Pacman's native
            framerate is 60fps, so we are attempting to display 20fps */
         if (frame_counter == 60 / FPS) {
 
@@ -693,16 +698,16 @@ static int gameProc( void )
                 rb->yield ();
             }
 
-            /* The following functions render the Pacman screen from the 
-               contents of the video and color ram.  We first update the 
-               background, and then draw the Sprites on top. 
+            /* The following functions render the Pacman screen from the
+               contents of the video and color ram.  We first update the
+               background, and then draw the Sprites on top.
             */
 
             renderBackground( video_buffer );
             renderSprites( video_buffer );
 
 #if defined(HAVE_LCD_MODES) && (HAVE_LCD_MODES & LCD_MODE_PAL256)
-            rb->lcd_blit_pal256(    video_buffer, 0, 0, XOFS, YOFS, 
+            rb->lcd_blit_pal256(    video_buffer, 0, 0, XOFS, YOFS,
                                     ScreenWidth, ScreenHeight);
 #else
             blit_display(lcd_fb ,video_buffer);
@@ -768,7 +773,7 @@ enum plugin_status plugin_start(const void* parameter)
                         SETTINGS_VERSION);
     }
 
-    /* Keep a copy of the saved version of the settings - so we can check if 
+    /* Keep a copy of the saved version of the settings - so we can check if
        the settings have changed when we quit */
     old_settings = settings;
 
@@ -780,7 +785,7 @@ enum plugin_status plugin_start(const void* parameter)
 
     /* Initialise the hardware */
     init_PacmanMachine(settings_to_dip(settings));
-    
+
 #if defined(HAVE_LCD_MODES) && (HAVE_LCD_MODES & LCD_MODE_PAL256)
     rb->lcd_set_mode(LCD_MODE_PAL256);
 #endif
@@ -801,7 +806,7 @@ enum plugin_status plugin_start(const void* parameter)
     } else {
         rb->splashf(HZ*2, "No ROMs in %s/pacman/", ROCKBOX_DIR);
     }
-    
+
 #if defined(HAVE_LCD_MODES) && (HAVE_LCD_MODES & LCD_MODE_PAL256)
     rb->lcd_set_mode(LCD_MODE_RGB565);
 #endif

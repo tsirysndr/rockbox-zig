@@ -1,10 +1,47 @@
+#if defined(CPU_ARM)
+#if defined(CPU_ARM_CLASSIC)
+arm/ffs.S
+#endif
+arm/memset16.S
+#elif defined(CPU_MIPS)
+mips/ffs.S
+memset16.c
+#elif defined(CPU_COLDFIRE)
+m68k/ffs.S
+m68k/memset16.S
+#else
 ffs.c
 memset16.c
+#endif
+
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE) || defined(HAVE_ROCKBOX_C_LIBRARY)
+#if defined(CPU_ARM_CLASSIC)
+arm/memcpy.S
+arm/memmove.S
+arm/memset.S
+strlen.c
+#elif defined(CPU_ARM_MICRO)
+arm/memcpy-armv7m.S
+memmove.c
+arm/memset.S
+strlen.c
+#elif defined(CPU_MIPS)
+mips/memcpy.S
+memmove.c
+mips/memset.S
+strlen.c
+#elif defined(CPU_COLDFIRE)
+m68k/memcpy.S
+m68k/memmove.S
+m68k/memset.S
+m68k/strlen.S
+#else
 memcpy.c
+mempcpy.c
 memmove.c
 memset.c
 strlen.c
+#endif
 #endif
 
 #if defined(WIN32) || defined(APPLICATION)
@@ -12,8 +49,8 @@ mempcpy.c
 #endif
 
 #if (defined(SANSA_E200) || defined(GIGABEAT_F) || defined(GIGABEAT_S) || \
-    defined(CREATIVE_ZVx) || defined(SANSA_CONNECT) || defined(SANSA_FUZEPLUS) || \
-    defined(COWON_D2) || defined(MINI2440) || defined(SAMSUNG_YPR0) || \
+    defined(SANSA_CONNECT) || defined(SANSA_FUZEPLUS) || \
+    defined(COWON_D2) || defined(SAMSUNG_YPR0) || \
     defined(SAMSUNG_YPR1) || defined(DX50) || defined(DX90) || (defined(MROBE_500) && !defined(LCD_USE_DMA)) || \
     defined(CREATIVE_ZEN) || defined(CREATIVE_ZENXFI) || defined(SONY_NWZ_LINUX) || defined(HIBY_LINUX) || \
     defined(FIIO_M3K_LINUX)) && \
@@ -21,6 +58,10 @@ mempcpy.c
 #if LCD_DEPTH >= 24
 lcd-as-memframe-24bit.c
 #else
+#if defined(CPU_ARM)
+arm/lcd-as-memframe.S
+#else
 lcd-as-memframe.c
-#endif
+#endif /* CPU_ARM */
+#endif /* LCD_DEPTH */
 #endif

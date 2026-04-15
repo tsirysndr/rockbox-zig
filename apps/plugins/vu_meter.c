@@ -181,17 +181,6 @@
 #define LABEL_QUIT "POWER"
 #define LABEL_MENU "MENU"
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define VUMETER_QUIT BUTTON_BACK
-#define VUMETER_HELP BUTTON_SELECT
-#define VUMETER_MENU BUTTON_MENU
-#define VUMETER_UP BUTTON_UP
-#define VUMETER_DOWN BUTTON_DOWN
-#define LABEL_HELP "MIDDLE"
-#define LABEL_QUIT "BACK"
-#define LABEL_MENU "MENU"
-#define LABEL_VOLUME "UP/DOWN"
-
 #elif (CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD)
 #define VUMETER_QUIT        BUTTON_POWER
 #define VUMETER_HELP        BUTTON_MENU|BUTTON_REPEAT
@@ -454,7 +443,7 @@
 #define LABEL_MENU      "MENU"
 #define LABEL_VOLUME    "VOL+/VOL-"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -480,6 +469,17 @@
 #define LABEL_QUIT      "START"
 #define LABEL_MENU      "B"
 #define LABEL_VOLUME    "UP/DOWN"
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define VUMETER_QUIT BUTTON_BACK
+#define VUMETER_HELP BUTTON_USER
+#define VUMETER_MENU BUTTON_MENU
+#define VUMETER_UP   BUTTON_UP
+#define VUMETER_DOWN BUTTON_DOWN
+#define LABEL_HELP   "Y"
+#define LABEL_QUIT   "B"
+#define LABEL_MENU   "X"
+#define LABEL_VOLUME "Up/Down"
 
 #else
 #error No keymap defined!
@@ -687,6 +687,8 @@ static bool vu_meter_menu(void)
         { "Very Slow", -1 },
     };
 
+    FOR_NB_SCREENS(i)
+        rb->viewportmanager_theme_enable(i, true, NULL);
     while (!menu_quit) {
         switch(rb->do_menu(&menu, &selection, NULL, false))
         {
@@ -746,6 +748,8 @@ static bool vu_meter_menu(void)
                 break;
         }
     }
+    FOR_NB_SCREENS(i)
+        rb->viewportmanager_theme_undo(i, false);
     /* the menu uses the userfont, set it back to sysfont */
     rb->lcd_setfont(FONT_SYSFIXED);
     return exit;
@@ -950,6 +954,9 @@ static void vu_meter_cleanup(void)
 {
     /* Turn on backlight timeout (revert to settings) */
     backlight_use_settings();
+
+    FOR_NB_SCREENS(i)
+        rb->viewportmanager_theme_undo(i, false);
 }
 
 enum plugin_status plugin_start(const void* parameter)
@@ -974,6 +981,10 @@ enum plugin_status plugin_start(const void* parameter)
 
      /* Turn off backlight timeout */
     backlight_ignore_timeout();
+
+    /* undo in vu_meter_cleanup */
+    FOR_NB_SCREENS(i)
+        rb->viewportmanager_theme_enable(i, false, NULL);
 
     while (1)
     {

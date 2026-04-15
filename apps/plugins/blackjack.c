@@ -237,22 +237,6 @@ enum {
 #define BJACK_QUIT          BUTTON_POWER
 #define BJACK_DOUBLEDOWN    BUTTON_MINUS
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define BJACK_SELECT_NAME    "SELECT"
-#define BJACK_STAY_NAME     "PLAY"
-#define BJACK_QUIT_NAME     "POWER"
-#define BJACK_DOUBLE_NAME   "CUSTOM"
-#define BJACK_SELECT        BUTTON_SELECT
-#define BJACK_QUIT          BUTTON_POWER
-#define BJACK_STAY          BUTTON_PLAY
-#define BJACK_MAX           (BUTTON_CUSTOM|BUTTON_UP)
-#define BJACK_MIN           (BUTTON_CUSTOM|BUTTON_DOWN)
-#define BJACK_DOUBLEDOWN    BUTTON_CUSTOM
-#define BJACK_UP            BUTTON_UP
-#define BJACK_DOWN          BUTTON_DOWN
-#define BJACK_RIGHT         BUTTON_RIGHT
-#define BJACK_LEFT          BUTTON_LEFT
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define BJACK_SELECT_NAME   "PLAY"
 #define BJACK_STAY_NAME     "MENU"
@@ -608,7 +592,7 @@ enum {
 #define BJACK_LEFT          BUTTON_LEFT
 
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 #define BJACK_QUIT          BUTTON_POWER
 #define BJACK_QUIT_NAME     "QUIT"
 
@@ -623,6 +607,22 @@ enum {
 #define BJACK_MIN           BUTTON_B
 #define BJACK_STAY          BUTTON_Y
 #define BJACK_DOUBLEDOWN    BUTTON_R
+#define BJACK_UP            BUTTON_UP
+#define BJACK_DOWN          BUTTON_DOWN
+#define BJACK_RIGHT         BUTTON_RIGHT
+#define BJACK_LEFT          BUTTON_LEFT
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define BJACK_SELECT_NAME   "A"
+#define BJACK_STAY_NAME     "X"
+#define BJACK_QUIT_NAME     "B"
+#define BJACK_DOUBLE_NAME   "Y"
+#define BJACK_SELECT        BUTTON_SELECT
+#define BJACK_QUIT          BUTTON_BACK
+#define BJACK_MAX           (BUTTON_LEFT|BUTTON_UP)
+#define BJACK_MIN           (BUTTON_RIGHT|BUTTON_DOWN)
+#define BJACK_STAY          BUTTON_MENU
+#define BJACK_DOUBLEDOWN    BUTTON_USER
 #define BJACK_UP            BUTTON_UP
 #define BJACK_DOWN          BUTTON_DOWN
 #define BJACK_RIGHT         BUTTON_RIGHT
@@ -1412,7 +1412,7 @@ static unsigned int blackjack_menu(void) {
     int selection = 0;
     bool breakout = false;
 
-    MENUITEM_STRINGLIST(menu, "BlackJack Menu", blackjack_menu_cb,
+    MENUITEM_STRINGLIST(menu, "Blackjack", blackjack_menu_cb,
                         "Resume Game", "Start New Game",
                         "High Scores", "Help",
                         "Playback Control",

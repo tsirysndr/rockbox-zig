@@ -1,3 +1,6 @@
+/* Pull in SoC-specific defines */
+#include "stm32h743-config.h"
+
 /* RoLo-related defines */
 #define MODEL_NAME      "Echo R1"
 #define MODEL_NUMBER    119
@@ -33,6 +36,8 @@
 #define HAVE_LCD_COLOR
 #define HAVE_LCD_BITMAP
 #define HAVE_LCD_ENABLE
+#define HAVE_LCD_SHUTDOWN
+#define IRAM_LCDFRAMEBUFFER __attribute__((section(".framebuffer")))
 
 /* Backlight defines */
 #define HAVE_BACKLIGHT
@@ -45,14 +50,14 @@
 
 /* Codec / audio hardware defines */
 #define HW_SAMPR_CAPS   SAMPR_CAP_ALL_96 // FIXME: check this section
-#define REC_SAMPR_CAPS  SAMPR_CAP_ALL_96
-#define INPUT_SRC_CAPS  SRC_CAP_MIC
-#define AUDIOHW_CAPS    MIC_GAIN_CAP
-#define HAVE_RECORDING
-#define HAVE_TLV320AIC3104 // TODO: Sansa connect uses the AIC3106, possible code sharing?
+#define HAVE_ECHOPLAYER_CODEC
+#define HAVE_AIC310X
 #define HAVE_SW_TONE_CONTROLS
 #define HAVE_SW_VOLUME_CONTROL
-#define DEFAULT_REC_MIC_GAIN  12
+
+#ifndef SIMULATOR
+#define PCM_NATIVE_BITDEPTH 32
+#endif
 
 /* Button defines */
 #define CONFIG_KEYPAD ECHO_R1_PAD
@@ -66,6 +71,9 @@
 #define HAVE_MULTIVOLUME
 #define STORAGE_WANTS_ALIGN
 #define STORAGE_NEEDS_BOUNCE_BUFFER
+
+/* One SD card slot */
+#define SDMMC_HOST_NUM_SD_CONTROLLERS 1
 
 /* RTC settings */
 #define CONFIG_RTC      RTC_STM32H743
@@ -82,23 +90,33 @@
 #define BATTERY_CAPACITY_MAX     1100
 #define BATTERY_CAPACITY_INC     0
 
-/* Multiboot */
-#define HAVE_BOOTDATA
-#define BOOT_REDIR "rockbox_main.echor1"
+/* TODO: Multiboot */
+//#define HAVE_BOOTDATA
+//#define BOOT_REDIR "rockbox_main.echor1"
 
 /* USB support */
 #ifndef SIMULATOR
 #define CONFIG_USBOTG USBOTG_DESIGNWARE
-#define USB_DW_TURNAROUND 5
+#define STM32H743_USBOTG_INSTANCE STM32H743_USBOTG_INSTANCE_USB1
+#define STM32H743_USBOTG_PHY      STM32H743_USBOTG_PHY_ULPI_HS
+#define STM32H743_USBOTG_CLKSEL   STM32H743_USBOTG_CLKSEL_PLL1Q
 #define HAVE_USBSTACK
-#define USB_VENDOR_ID 0x1
-#define USB_PRODUCT_ID 0x2
+/*
+ * Must force device mode because ID pin on PHY is incorrectly
+ * connected to ground on Rev1 boards.
+ */
+#define USB_DW_FORCE_DEVICE_MODE
+#define USB_VENDOR_ID  0x6666 /* "prototype device" VID in folklore */
+#define USB_PRODUCT_ID 0xEC01
 #define USB_DEVBSS_ATTR __attribute__((aligned(32)))
 #define HAVE_USB_POWER
-//#define HAVE_USB_CHARGING_ENABLE
-//#define HAVE_USB_CHARGING_IN_THREAD
-//#define TARGET_USB_CHARGING_DEFAULT USB_CHARGING_FORCE
+#define HAVE_USB_CHARGING_ENABLE
 #define HAVE_BOOTLOADER_USB_MODE
+#endif
+
+#ifdef BOOTLOADER
+# define USB_READ_BUFFER_SIZE  (32 * 1024)
+# define USB_WRITE_BUFFER_SIZE (32 * 1024)
 #endif
 
 /* Rockbox capabilities */
@@ -112,3 +130,4 @@
 #define HAVE_HOTKEY
 #define AB_REPEAT_ENABLE
 #define HAVE_BOOTLOADER_SCREENDUMP
+#define HAVE_ELF

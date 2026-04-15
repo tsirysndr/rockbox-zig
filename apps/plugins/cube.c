@@ -163,16 +163,6 @@
 #elif CONFIG_KEYPAD == COWON_D2_PAD
 #define CUBE_QUIT          BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define CUBE_QUIT          BUTTON_BACK
-#define CUBE_NEXT          BUTTON_RIGHT
-#define CUBE_PREV          BUTTON_LEFT
-#define CUBE_INC           BUTTON_UP
-#define CUBE_DEC           BUTTON_DOWN
-#define CUBE_MODE          BUTTON_MENU
-#define CUBE_PAUSE         BUTTON_PLAY
-#define CUBE_HIGHSPEED     BUTTON_SELECT
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define CUBE_QUIT          BUTTON_POWER
 #define CUBE_NEXT          BUTTON_UP
@@ -402,7 +392,7 @@
 #define CUBE_PAUSE          BUTTON_PLAY
 #define CUBE_HIGHSPEED      BUTTON_BACK
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 
@@ -427,6 +417,16 @@
 #define CUBE_MODE          BUTTON_X
 #define CUBE_PAUSE         BUTTON_A
 #define CUBE_HIGHSPEED     BUTTON_Y
+
+#elif (CONFIG_KEYPAD == CTRU_PAD)
+#define CUBE_QUIT          BUTTON_BACK
+#define CUBE_NEXT          BUTTON_RIGHT
+#define CUBE_PREV          BUTTON_LEFT
+#define CUBE_INC           BUTTON_UP
+#define CUBE_DEC           BUTTON_DOWN
+#define CUBE_MODE          BUTTON_MENU
+#define CUBE_PAUSE         BUTTON_USER
+#define CUBE_HIGHSPEED     BUTTON_SELECT
 
 #else
 #error No keymap defined!

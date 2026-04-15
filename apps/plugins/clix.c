@@ -114,14 +114,6 @@
 #define CLIX_BUTTON_UP      BUTTON_UP
 #define CLIX_BUTTON_DOWN    BUTTON_DOWN
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define CLIX_BUTTON_QUIT    BUTTON_BACK
-#define CLIX_BUTTON_LEFT    BUTTON_LEFT
-#define CLIX_BUTTON_RIGHT   BUTTON_RIGHT
-#define CLIX_BUTTON_CLICK   BUTTON_SELECT
-#define CLIX_BUTTON_UP      BUTTON_UP
-#define CLIX_BUTTON_DOWN    BUTTON_DOWN
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define CLIX_BUTTON_QUIT    BUTTON_POWER
 #define CLIX_BUTTON_LEFT    BUTTON_BACK
@@ -314,7 +306,7 @@
 #define CLIX_BUTTON_RIGHT       BUTTON_RIGHT
 #define CLIX_BUTTON_CLICK       BUTTON_SELECT
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 #define CLIX_BUTTON_QUIT        BUTTON_POWER
 
 #elif CONFIG_KEYPAD == MA_PAD
@@ -330,6 +322,14 @@
 #define CLIX_BUTTON_LEFT        BUTTON_LEFT
 #define CLIX_BUTTON_RIGHT       BUTTON_RIGHT
 #define CLIX_BUTTON_CLICK       BUTTON_A
+#define CLIX_BUTTON_UP          BUTTON_UP
+#define CLIX_BUTTON_DOWN        BUTTON_DOWN
+
+#elif (CONFIG_KEYPAD == CTRU_PAD)
+#define CLIX_BUTTON_QUIT        BUTTON_BACK
+#define CLIX_BUTTON_LEFT        BUTTON_LEFT
+#define CLIX_BUTTON_RIGHT       BUTTON_RIGHT
+#define CLIX_BUTTON_CLICK       BUTTON_SELECT
 #define CLIX_BUTTON_UP          BUTTON_UP
 #define CLIX_BUTTON_DOWN        BUTTON_DOWN
 
@@ -781,7 +781,7 @@ static int clix_menu(struct clix_game_state_t* state, bool ingame)
 
     _ingame = ingame;
 
-    MENUITEM_STRINGLIST (main_menu, "Clix Menu", clix_menu_cb,
+    MENUITEM_STRINGLIST (main_menu, "Clix", clix_menu_cb,
                              "Resume Game",
                              "Start New Game",
                              "Help",

@@ -28,6 +28,7 @@
 #include "i2s.h"
 #include "pcm.h"
 #include "pcm-internal.h"
+#include "pcm_sink.h"
 
 struct dma_data
 {
@@ -62,7 +63,7 @@ struct dma_data dma_play_data SHAREDBSS_ATTR =
     .state = 0
 };
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     DAVC = 0x0;         /* Digital Volume = max */
 #ifdef COWON_D2
@@ -89,13 +90,9 @@ void pcm_play_dma_init(void)
 #endif
 }
 
-void pcm_play_dma_postinit(void)
+static void sink_set_freq(uint16_t freq)
 {
-    audiohw_postinit();
-}
-
-void pcm_dma_apply_settings(void)
-{
+    (void)freq;
 }
 
 static void play_start_pcm(void)
@@ -125,7 +122,7 @@ static void play_stop_pcm(void)
     dma_play_data.state = 0;
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     dma_play_data.p_r  = addr;
     dma_play_data.size = size;
@@ -140,7 +137,7 @@ void pcm_play_dma_start(const void *addr, size_t size)
     play_start_pcm();
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     play_stop_pcm();
     dma_play_data.size = 0;
@@ -149,7 +146,7 @@ void pcm_play_dma_stop(void)
 #endif
 }
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     int status = disable_fiq_save();
 
@@ -161,7 +158,7 @@ void pcm_play_lock(void)
     restore_fiq(status);
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
    int status = disable_fiq_save();
 
@@ -172,6 +169,23 @@ void pcm_play_unlock(void)
 
    restore_fiq(status);
 }
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = audiohw_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 #ifdef HAVE_RECORDING
 /* TODO: implement */

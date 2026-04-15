@@ -295,24 +295,6 @@
 #elif (CONFIG_KEYPAD == COWON_D2_PAD)
 #   define SOL_QUIT          BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#   define SOL_QUIT         BUTTON_BACK
-#   define SOL_UP           BUTTON_UP
-#   define SOL_DOWN         BUTTON_DOWN
-#   define SOL_LEFT         BUTTON_LEFT
-#   define SOL_RIGHT        BUTTON_RIGHT
-#   define SOL_MOVE_PRE     BUTTON_SELECT
-#   define SOL_MOVE         (BUTTON_SELECT | BUTTON_REL)
-#   define SOL_DRAW         BUTTON_MENU
-#   define SOL_REM2CUR      (BUTTON_LEFT | BUTTON_SELECT)
-#   define SOL_CUR2STACK    (BUTTON_SELECT | BUTTON_REPEAT)
-#   define SOL_REM2STACK    (BUTTON_RIGHT | BUTTON_SELECT)
-#   define HK_MOVE         "MIDDLE"
-#   define HK_DRAW         "MENU"
-#   define HK_REM2CUR      "PLAY+LEFT"
-#   define HK_CUR2STACK    "PLAY.."
-#   define HK_REM2STACK    "PLAY+RIGHT"
-
 #elif (CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD)
 #   define SOL_QUIT          BUTTON_POWER
 #   define SOL_UP            BUTTON_UP
@@ -741,7 +723,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define HK_CUR2STACK     "HOLD SELECT"
 #   define HK_REM2STACK     "VOL+"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 #   define SOL_QUIT         BUTTON_POWER
 
 #elif CONFIG_PAD == SDL_APP
@@ -777,6 +759,24 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define HK_REM2CUR        "L"
 #   define HK_CUR2STACK      "B"
 #   define HK_REM2STACK      "R"
+
+#elif (CONFIG_KEYPAD == CTRU_PAD)
+#   define SOL_QUIT         BUTTON_BACK
+#   define SOL_UP           BUTTON_UP
+#   define SOL_DOWN         BUTTON_DOWN
+#   define SOL_LEFT         BUTTON_LEFT
+#   define SOL_RIGHT        BUTTON_RIGHT
+#   define SOL_MOVE_PRE     BUTTON_SELECT
+#   define SOL_MOVE         (BUTTON_SELECT | BUTTON_REL)
+#   define SOL_DRAW         BUTTON_MENU
+#   define SOL_REM2CUR      (BUTTON_USER | BUTTON_REPEAT)
+#   define SOL_CUR2STACK    (BUTTON_SELECT | BUTTON_REPEAT)
+#   define SOL_REM2STACK    BUTTON_POWER
+#   define HK_MOVE         "A"
+#   define HK_DRAW         "X"
+#   define HK_REM2CUR      "Long Y"
+#   define HK_CUR2STACK    "Long A.."
+#   define HK_REM2STACK    "Start"
 
 #elif CONFIG_KEYPAD == MA_PAD
 #   define SOL_QUIT         (BUTTON_LEFT|BUTTON_REPEAT)
@@ -1112,7 +1112,7 @@ static int solitaire_menu(bool in_game)
     int selected = 0;
     int result = -1;
 
-    MENUITEM_STRINGLIST(menu, "Solitaire Menu", solitaire_menu_cb,
+    MENUITEM_STRINGLIST(menu, "Solitaire", solitaire_menu_cb,
                         "Resume Game", "Start New Game",
                         "Draw Cards Option",
                         "Help", "Playback Control",

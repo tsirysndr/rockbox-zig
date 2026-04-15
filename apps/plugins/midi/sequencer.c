@@ -65,7 +65,7 @@ static inline void setVol(int ch, int vol)
 
     /* If channel volume changes, we need to recalculate the volume scale */
     /* factor for all voices active on this channel                       */
-    for (a = 0; a < MAX_VOICES; a++)
+    for (a = 0; a < max_voices; a++)
         if (voices[a].ch == ch)
             setVolScale(a);
 }
@@ -156,7 +156,7 @@ static void findDelta(struct SynthObject * so, int ch, int note)
     delta = (((freqtable[note+chPBNoteOffset[ch]]))); /* anywhere from 8000 to 8000000 */
     delta = delta * wf->sampRate;           /* approx 20000 - 44000 but can vary with tuning */
     delta = (delta * chPBFractBend[ch]);    /* approx 60000 - 70000 */
-    delta = delta / (SAMPLE_RATE);  /* 44100 or 22050 */
+    delta = delta / (sample_rate);  /* 44100 or 22050 */
     delta = delta / (wf->rootFreq); /* anywhere from 8000 to 8000000 */
 
     /* Pitch bend is encoded as a fractional of 16 bits, hence the 16 */
@@ -167,7 +167,7 @@ static void findDelta(struct SynthObject * so, int ch, int note)
 static inline void computeDeltas(int ch)
 {
     int a;
-    for (a = 0; a < MAX_VOICES; a++)
+    for (a = 0; a < max_voices; a++)
     {
         if (voices[a].isUsed && voices[a].ch == ch)
         {
@@ -210,7 +210,7 @@ static inline void pressNote(int ch, int note, int vol)
     if(ch == 15) return;
 */
     int a;
-    for (a = 0; a < MAX_VOICES; a++)
+    for (a = 0; a < max_voices; a++)
     {
         if (voices[a].ch == ch && voices[a].note == note)
             break;
@@ -218,7 +218,7 @@ static inline void pressNote(int ch, int note, int vol)
         if (!voices[a].isUsed)
             break;
     }
-    if (a == MAX_VOICES)
+    if (a == max_voices)
     {
 //        midi_debug("\nVoice kill");
 //        midi_debug("\nToo many voices playing at once. No more left");
@@ -226,7 +226,7 @@ static inline void pressNote(int ch, int note, int vol)
 //        for(a=0; a<48; a++)
 //            midi_debug("\n#%d  Ch=%d  Note=%d  curRate=%d   curOffset=%d   curPoint=%d   targetOffset=%d", a, voices[a].ch, voices[a].note, voices[a].curRate, voices[a].curOffset, voices[a].curPoint, voices[a].targetOffset);
         lastKill++;
-        if (lastKill == MAX_VOICES)
+        if (lastKill == max_voices)
             lastKill = 0;
         a = lastKill;
 //        return; /* None available */
@@ -263,7 +263,7 @@ static inline void pressNote(int ch, int note, int vol)
 
             struct GWaveform * wf = drumSet[note]->waveforms[0];
             voices[a].wf = wf;
-            voices[a].delta = (((freqtable[note]<<FRACTSIZE) / wf->rootFreq) * wf->sampRate / SAMPLE_RATE);
+            voices[a].delta = (((freqtable[note]<<FRACTSIZE) / wf->rootFreq) * wf->sampRate / sample_rate);
             if (wf->mode & 28)
 //                midi_debug("\nWoah, a drum patch has a loop. Stripping the loop...");
             wf->mode = wf->mode & (255-28);
@@ -285,7 +285,7 @@ static void releaseNote(int ch, int note)
         return;
 
     int a;
-    for (a = 0; a < MAX_VOICES; a++)
+    for (a = 0; a < max_voices; a++)
     {
         if (voices[a].ch == ch && voices[a].note == note)
         {
@@ -432,7 +432,7 @@ int tick(void)
                         tempo = (((short)e->evData[0])<<16)|(((short)e->evData[1])<<8)|(e->evData[2]);
 /*                        midi_debug("\nMeta-Event: Tempo Set = %d", tempo); */
                         bpm=mf->div*1000000/tempo;
-                        number_of_samples=SAMPLE_RATE/bpm;
+                        number_of_samples=sample_rate/bpm;
 
                     }
                 }
@@ -446,9 +446,9 @@ int tick(void)
 
     samples_this_second += number_of_samples;
 
-    while (samples_this_second >= SAMPLE_RATE)
+    while (samples_this_second >= sample_rate)
     {
-        samples_this_second -= SAMPLE_RATE;
+        samples_this_second -= sample_rate;
         playing_time++;
     }
 
@@ -471,7 +471,7 @@ void seekBackward(int nsec)
 
     /* Set the tempo to defalt */
     bpm = mf->div*1000000/tempo;
-    number_of_samples = SAMPLE_RATE/bpm;
+    number_of_samples = sample_rate/bpm;
 
     /* Reset the tracks to start */
     rewindFile();
@@ -484,7 +484,7 @@ void seekBackward(int nsec)
     do
     {
         notes_used = 0;
-        for (a = 0; a < MAX_VOICES; a++)
+        for (a = 0; a < max_voices; a++)
             if (voices[a].isUsed)
                 notes_used++;
         tick();

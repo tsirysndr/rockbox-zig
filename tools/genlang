@@ -214,7 +214,7 @@ sub readenglish {
     # do it before we read the translated file.
 
     my @idnum = ((0));       # start with a true number
-    my @vidnum = ((0x8000)); # first voice id
+    my @vidnum = ((0x8001)); # first voice id
 
     if ($binary and file_is_newer("$binpath/english.list", $english)) {
         open(ENG, "<$binpath/english.list") ||
@@ -256,7 +256,6 @@ sub readenglish {
                     # Assign an ID number to this entry
                     $idmap[$user]{$id}=$idnum[$user];
                     $idnum[$user]++;
-   #                 print STDERR "DEST: bumped idnum to $idnum[$user]\n";
                 }
 
                 # this is the end of a phrase, add it to the english hash
@@ -617,26 +616,41 @@ elsif($binary || $binvoice) {
     }
 
     # output the number of strings for each user
-    my $foffset = $HEADER_SIZE + $SUBHEADER_SIZE * keys(%users);
+    my $foffsetb = $HEADER_SIZE + $SUBHEADER_SIZE * keys(%users);
+    my $foffsetv = $HEADER_SIZE + $SUBHEADER_SIZE * keys(%users);
     for (keys %users) {
-        my $size;
-        for $n (0 .. $idcount[$_]-1) {
-            $size += length(trim($dest{$idnum[$_][$n]})) + 1;
-        }
         if($binary) {
+	    my $sizeb = 0;
+	    for $n (0 .. $idcount[$_]-1) {
+		$sizeb += length(trim($dest{$idnum[$_][$n]})) + 1;
+            }
             printf OUTF ("%c%c%c%c%c%c", ($idcount[$_] >> 8), ($idcount[$_] & 0xff),
-                ($size >> 8), ($size & 0xff), ($foffset >> 8), ($foffset & 0xff));
+			 ($sizeb >> 8), ($sizeb & 0xff), ($foffsetb >> 8), ($foffsetb & 0xff));
+	    $foffsetb += $sizeb;
         }
         if($binvoice) {
-            printf OUTV ("%c%c%c%c%c%c", ($idcount[$_] >> 8), ($idcount[$_] & 0xff),
-                ($size >> 8), ($size & 0xff), ($foffset >> 8), ($foffset & 0xff));
+	    my $sizev = 0;
+	    my $count = 0;
+
+	    # All LANG_* and all VOICE_*
+	    for $n (0 .. $idcount[$_]-1) {
+		$sizev += length(trim($voice{$idnum[$_][$n]})) + 1; # includes quotes so we only need to add NULL
+		$count++;
+	    }
+	    for $n (0x8001 .. $voiceid[$_]-1) {
+		$sizev += length(trim($voice{$idnum[$_][$n]})) + 1; # includes quotes
+		$count++;
+	    }
+            printf OUTV ("%c%c%c%c%c%c", ($count >> 8), ($count & 0xff),
+			 ($sizev >> 8), ($sizev & 0xff), ($foffsetv >> 8), ($foffsetv & 0xff));
+	    $foffsetv += $sizev;
         }
-        $foffset += $size;
     }
 
     for (keys %users) {
         # loop over the target phrases
         # This loops over the strings in the translated language file order
+	# XXX ^^^ this should always be done in the ENGLISH order.  wtf.
         my @ids = ((0 .. ($idcount[$_]-1)));
         push @ids, (0x8001 .. ($voiceid[$_]-1));
         for $n (@ids) {

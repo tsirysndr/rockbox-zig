@@ -554,7 +554,7 @@ static const char * id3_get_or_speak_info(int selected_item, void* data,
                 {
                     val = id3->disc_string;
                     if(say_it)
-                        say_number_and_spell(val, true);
+                        say_number_and_spell(val, false);
                 }
                 else if (id3->discnum)
                 {
@@ -569,9 +569,9 @@ static const char * id3_get_or_speak_info(int selected_item, void* data,
                 {
                     val = id3->track_string;
                     if(say_it)
-                        say_number_and_spell(val, true);
+                        say_number_and_spell(val, false);
                 }
-                else if (id3->tracknum)
+                else if (id3->tracknum >= 0)
                 {
                     itoa_buf(buffer, buffer_len, id3->tracknum);
                     val = buffer;
@@ -593,21 +593,28 @@ static const char * id3_get_or_speak_info(int selected_item, void* data,
                 if(say_it && val)
                     talk_spell(val, true);
                 break;
-            case LANG_ID3_YEAR:
+            case LANG_ID3_YEAR: {
+                const char *format = str(LANG_VOICED_DATE_FORMAT);
+                bool numericyear = strrchr(format, 'y');
                 if (id3->year_string)
                 {
                     val = id3->year_string;
                     if(say_it && val)
-                        say_number_and_spell(val, true);
+                        say_number_and_spell(val, !numericyear);
                 }
                 else if (id3->year)
                 {
                     itoa_buf(buffer, buffer_len, id3->year);
                     val = buffer;
-                    if(say_it)
-                        talk_value(id3->year, UNIT_DATEYEAR, true);
+                    if(say_it) {
+                        if (numericyear)
+                            talk_number(id3->year, true);
+                        else
+                            talk_value(id3->year, UNIT_DATEYEAR, true);
+                    }
                 }
                 break;
+            }
             case LANG_ID3_LENGTH:
                 length = info->track_ct > 1 ? id3->length : id3->length / 1000;
 

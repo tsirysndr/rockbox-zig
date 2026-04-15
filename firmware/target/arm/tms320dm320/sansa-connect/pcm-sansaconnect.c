@@ -29,6 +29,7 @@
 #include "dsp/ipc.h"
 #include "pcm-internal.h"
 #include "dma-target.h"
+#include "pcm_sink.h"
 
 /* This is global to save some latency when pcm_play_dma_get_peak_buffer is 
  *  called.
@@ -36,12 +37,7 @@
 static const void *start;
 static int dma_channel;
 
-void pcm_play_dma_postinit(void)
-{
-    audiohw_postinit();
-}
-
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     /* GIO16 is DSP/AIC3X CLK */
     IO_GIO_FSEL0 &= 0x3FFF;
@@ -74,15 +70,15 @@ void pcm_play_dma_init(void)
     dsp_wake();
 }
 
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
-    audiohw_set_frequency(pcm_fsel);
+    audiohw_set_frequency(freq);
 }
 
 /* Note that size is actually limited to the size of a short right now due to
  *  the implementation on the DSP side (and the way that we access it)
  */
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     unsigned long sdem_addr=(unsigned long)addr - CONFIG_SDRAM_START;
     /* Initialize codec. */
@@ -94,18 +90,18 @@ void pcm_play_dma_start(const void *addr, size_t size)
     dsp_wake();
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     DSP_(_dma0_stopped)=1;
     dsp_wake();
 }
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
 
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
 
 }
@@ -163,4 +159,20 @@ void DSPHINT(void)
     
     DEBUGF("DSP: %s", buffer);
 }
-    
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = audiohw_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};

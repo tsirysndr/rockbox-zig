@@ -34,9 +34,7 @@
 /* These MIPS32r1 targets have a very high interrupt latency, which
    unfortunately causes a lot of audio underruns under even moderate load */
 #define MIX_FRAME_SAMPLES 2048
-#elif (CONFIG_PLATFORM & PLATFORM_MAEMO5) || defined(DX50) || defined(DX90)
-/* Maemo 5 needs 2048 samples for decent performance.
-   Otherwise the locking overhead inside gstreamer costs too much */
+#elif defined(DX50) || defined(DX90)
 /* iBasso Devices: Match Rockbox PCM buffer size to ALSA PCM buffer size
    to minimize memory transfers. */
 #define MIX_FRAME_SAMPLES 2048
@@ -98,8 +96,13 @@ enum channel_status
 /** Public interfaces **/
 
 /* Start playback on a channel */
+struct mixer_play_cbs {
+    void (*get_more)(const void **start, size_t *size);
+    void (*sampr_changed)(uint32_t sampr);
+};
+
 void mixer_channel_play_data(enum pcm_mixer_channel channel,
-                             pcm_play_callback_type get_more,
+                             const struct mixer_play_cbs* cbs,
                              const void *start, size_t size);
 
 /* Pause or resume a channel (when started) */
@@ -130,12 +133,15 @@ void mixer_channel_calculate_peaks(enum pcm_mixer_channel channel,
 void mixer_adjust_channel_address(enum pcm_mixer_channel channel,
                                   off_t offset);
 
-/* Set a hook that is called upon getting a new source buffer for a channel
-   NOTE: Called for each buffer, not each mixer chunk */
-typedef void (*chan_buffer_hook_fn_type)(const void *start, size_t size);
+struct mixer_buffer_cbs {
+    /* Called for each buffer, not each mixer chunk */
+    void (*next_buffer)(const void *start, size_t size);
+    void (*sampr_changed)(uint32_t sampr);
+};
 
+/* Set a hook that is called upon getting a new source buffer for a channel */
 void mixer_channel_set_buffer_hook(enum pcm_mixer_channel channel,
-                                   chan_buffer_hook_fn_type fn);
+                                   const struct mixer_buffer_cbs* cbs);
 
 /* Stop ALL channels and PCM and reset state */
 void mixer_reset(void);

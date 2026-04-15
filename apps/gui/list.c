@@ -163,6 +163,8 @@ void gui_synclist_init(struct gui_synclist * gui_list,
     gui_synclist_init_display_settings(gui_list);
 #ifdef HAVE_TOUCHSCREEN
     gui_list->y_pos = 0;
+    gui_list->scroll_base_y = 0;
+    gui_list->scroll_mode = 0;
 #endif
     FOR_NB_SCREENS(i)
     {
@@ -583,7 +585,7 @@ bool gui_synclist_keyclick_callback(int action, void* data)
  *
  * The GUI_EVENT_NEED_UI_UPDATE event is registered for in list_do_action_timeout()
  * as a oneshot and current_lists updated. later current_lists is set to NULL
- * in gui_synclist_do_button() effectively disabling the callback. 
+ * in gui_synclist_do_button() effectively disabling the callback.
 *  This is done because if something is using the list UI they *must* be calling those
  * two functions in the correct order or the list wont work.
  */
@@ -690,7 +692,7 @@ bool gui_synclist_do_button(struct gui_synclist * lists, int *actionptr)
             allow_wrap = false; /* Prevent list wraparound on repeating actions */
             /*Fallthrough*/
         case ACTION_STD_PREV:
-        
+
             gui_list_select_at_offset(lists, -next_item_modifier, allow_wrap);
 #ifndef HAVE_WHEEL_ACCELERATION
             if (button_queue_count() < FRAMEDROP_TRIGGER)
@@ -881,6 +883,7 @@ bool simplelist_show_list(struct simplelist_info *info)
     int action, old_line_count = simplelist_line_count;
     list_get_name *getname;
     int line_count;
+    bool ret = false;
 
     if (info->get_name)
     {
@@ -894,7 +897,10 @@ bool simplelist_show_list(struct simplelist_info *info)
     }
 
     FOR_NB_SCREENS(i)
+    {
+        sb_set_persistent_title(info->title, info->title_icon, i);
         viewportmanager_theme_enable(i, !info->hide_theme, NULL);
+    }
 
     gui_synclist_init(&lists, getname,  info->callback_data,
                       info->scroll_all, info->selection_size, NULL);
@@ -969,10 +975,13 @@ bool simplelist_show_list(struct simplelist_info *info)
         }
         else if(default_event_handler(action) == SYS_USB_CONNECTED)
         {
-            return true;
+            ret = true;
+            break;
         }
     }
     talk_shutup();
+
+    gui_synclist_scroll_stop(&lists);
 
 #ifdef HAVE_LCD_COLOR
     if (info->selection_color)
@@ -980,8 +989,11 @@ bool simplelist_show_list(struct simplelist_info *info)
 #endif
 
     FOR_NB_SCREENS(i)
+    {
+        sb_set_persistent_title(info->title, info->title_icon, i);
         viewportmanager_theme_undo(i, false);
-    return false;
+    }
+    return ret;
 }
 
 void simplelist_info_init(struct simplelist_info *info, char* title,

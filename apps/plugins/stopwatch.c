@@ -123,14 +123,6 @@
 #elif CONFIG_KEYPAD == COWON_D2_PAD
 #define STOPWATCH_QUIT BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define STOPWATCH_QUIT BUTTON_BACK
-#define STOPWATCH_START_STOP BUTTON_PLAY
-#define STOPWATCH_RESET_TIMER BUTTON_SELECT
-#define STOPWATCH_LAP_TIMER BUTTON_CUSTOM
-#define STOPWATCH_SCROLL_UP BUTTON_UP
-#define STOPWATCH_SCROLL_DOWN BUTTON_DOWN
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define STOPWATCH_QUIT BUTTON_POWER
 #define STOPWATCH_START_STOP (BUTTON_PLAY|BUTTON_REL)
@@ -321,6 +313,14 @@
 #define STOPWATCH_SCROLL_UP     BUTTON_UP
 #define STOPWATCH_SCROLL_DOWN   BUTTON_DOWN
 
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define STOPWATCH_QUIT          BUTTON_BACK
+#define STOPWATCH_START_STOP    BUTTON_SELECT
+#define STOPWATCH_RESET_TIMER   BUTTON_MENU
+#define STOPWATCH_LAP_TIMER     BUTTON_USER
+#define STOPWATCH_SCROLL_UP     BUTTON_UP
+#define STOPWATCH_SCROLL_DOWN   BUTTON_DOWN
+
 #else
 #error No keymap defined!
 #endif
@@ -468,7 +468,10 @@ enum plugin_status plugin_start(const void* parameter)
     int h;
 
     FOR_NB_SCREENS(i)
+    {
+        rb->sb_set_persistent_title("Stopwatch", Icon_NOICON, i);
         rb->viewportmanager_theme_enable(i, true, NULL);
+    }
 
     rb->viewport_set_defaults(&vp, SCREEN_MAIN);
     display = rb->screens[SCREEN_MAIN];

@@ -26,6 +26,7 @@
 #include "sdma-imx31.h"
 #include "mmu-imx31.h"
 #include "pcm-internal.h"
+#include "pcm_sink.h"
 
 #define DMA_PLAY_CH_NUM 2
 #define DMA_REC_CH_NUM 1
@@ -112,12 +113,12 @@ static void play_dma_callback(void)
     }
 }
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     ++dma_play_data.locked;
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     if (--dma_play_data.locked == 0 && dma_play_data.state != 0)
     {
@@ -131,12 +132,12 @@ void pcm_play_unlock(void)
     }
 }
 
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
-    audiohw_set_frequency(pcm_fsel);
+    audiohw_set_frequency(freq);
 }
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     /* Init DMA channel information */
     sdma_channel_init(DMA_PLAY_CH_NUM, &dma_play_cd, &dma_play_bd);
@@ -144,11 +145,6 @@ void pcm_play_dma_init(void)
 
     /* Init audio interfaces */
     audiohw_init();
-}
-
-void pcm_play_dma_postinit(void)
-{
-    audiohw_postinit();
 }
 
 static void play_start_pcm(void)
@@ -200,7 +196,7 @@ static void play_stop_pcm(void)
     dma_play_data.callback_pending = 0;
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     sdma_channel_stop(DMA_PLAY_CH_NUM);
 
@@ -218,7 +214,7 @@ void pcm_play_dma_start(const void *addr, size_t size)
     play_start_dma(addr, size);
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     sdma_channel_stop(DMA_PLAY_CH_NUM);
     play_stop_pcm();
@@ -228,6 +224,23 @@ void * pcm_dma_addr(void *addr)
 {
     return (void *)addr_virt_to_phys((unsigned long)addr);
 }
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = audiohw_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 #ifdef HAVE_RECORDING
 static struct buffer_descriptor dma_rec_bd NOCACHEBSS_ATTR;

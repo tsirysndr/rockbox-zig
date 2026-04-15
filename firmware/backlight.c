@@ -199,7 +199,7 @@ static int lcd_sleep_timeout = 10*HZ;
 #define lcd_sleep_timeout LCD_SLEEP_TIMEOUT
 #endif
 
-static int lcd_sleep_timer SHAREDDATA_ATTR = 0;
+static int lcd_sleep_timer SHAREDBSS_ATTR;
 
 static void backlight_lcd_sleep_countdown(bool start)
 {
@@ -387,7 +387,8 @@ static void backlight_setup_fade_up(void)
 
 static void backlight_setup_fade_down(void)
 {
-    if (bl_fade_out_step > 0)
+    /* Start fading display if it's not dimmed yet */
+    if (bl_fade_out_step > 0 && bl_dim_current > 0)
     {
         backlight_dim(0);
     }
@@ -605,7 +606,7 @@ void backlight_thread(void)
 #endif /* HAVE_REMOTE_LCD/ HAVE_REMOTE_LCD_AS_MAIN */
 #endif /* !SIMULATOR */
             case SYS_USB_CONNECTED:
-                usb_acknowledge(SYS_USB_CONNECTED_ACK);
+                usb_acknowledge(SYS_USB_CONNECTED_ACK, ev.data);
                 break;
 
 #ifdef BACKLIGHT_DRIVER_CLOSE

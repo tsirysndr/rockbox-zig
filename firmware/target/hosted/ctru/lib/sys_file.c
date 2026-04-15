@@ -18,19 +18,22 @@
  * KIND, either express or implied.
  *
  ****************************************************************************/
-#define RB_FILESYSTEM_OS
-#include "config.h"
-#include "system.h"
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <utime.h>
+#include "fs_defines.h"
+
+/* this includes a couple of 3ds headers */
+#include "sys_file.h"
+
+#define RB_FILESYSTEM_OS
+#include "config.h"
+#include "system.h"
 #include "file.h"
 #include "debug.h"
 #include "string-extra.h"
-#include "fs_defines.h"
-#include "sys_file.h"
 
 /* This file is based on firmware/common/file.c */
 
@@ -53,7 +56,7 @@ static struct filestr_desc
     u64                 *sizep; /* shortcut to file size in fileobj */
 } open_streams[MAX_OPEN_FILES] =
 {
-    [0 ... MAX_OPEN_FILES-1] = { .stream = { .cache = nil, .flags = 0 } }
+    [0 ... MAX_OPEN_FILES-1] = { .stream = { .cache = NULL, .flags = 0 } }
 };
 
 extern FS_Archive sdmcArchive;
@@ -65,11 +68,11 @@ static struct filestr_desc * get_filestr(int fildes)
 
     if ((unsigned int)fildes >= MAX_OPEN_FILES)
         file = NULL;
-    else if (file->stream.cache != nil)
+    else if (file->stream.cache != NULL)
         return file;
 
     logf("fildes %d: bad file number\n", fildes);
-    errno = (file && (file->stream.cache == nil)) ? ENXIO : EBADF;
+    errno = (file && (file->stream.cache == NULL)) ? ENXIO : EBADF;
     return NULL;
 }
 
@@ -98,7 +101,7 @@ static int alloc_filestr(struct filestr_desc **filep)
     for (int fildes = 0; fildes < MAX_OPEN_FILES; fildes++)
     {
         struct filestr_desc *file = &open_streams[fildes];
-        if (file->stream.cache == nil)
+        if (file->stream.cache == NULL)
         {
             *filep = file;
             return fildes;
@@ -117,10 +120,10 @@ int test_stream_exists_internal(const char *path)
 
     Handle handle;
     Result res = FSUSER_OpenFile(&handle,
-	                         sdmcArchive,
-	                         fsMakePath(PATH_ASCII, path),
-	                         FS_OPEN_READ,
-	                         0);
+                             sdmcArchive,
+                             fsMakePath(PATH_ASCII, path),
+                             FS_OPEN_READ,
+                             0);
     if (R_FAILED(res)) {
         /* not a file, try to open a directory */
         res = FSUSER_OpenDirectory(&handle,
@@ -234,12 +237,21 @@ static ssize_t readwrite(struct filestr_desc *file, void *buf, size_t nbyte,
     int rc = 0;
     int_error_t n_err;
 
-    if (write)
-        n_err = PagerWriteAt(file->stream.cache, (u8 *) buf, nbyte, AtomicLoad(&file->offset));
-    else
-        n_err = PagerReadAt(file->stream.cache, (u8 *) buf, nbyte, AtomicLoad(&file->offset));
+    if (write) {
+        n_err = PageReader_WriteAt(file->stream.cache,
+                                   buf,
+                                   nbyte,
+                                   AtomicLoad(&file->offset),
+                                   file->stream.flags & O_RDWR ? true : false);
+    }
+    else {
+        n_err = PageReader_ReadAt(file->stream.cache,
+                                  buf,
+                                  nbyte,
+                                  AtomicLoad(&file->offset));
+    }
 
-    if ((n_err.err != nil) && strcmp(n_err.err, "io.EOF")) {
+    if ((n_err.err != NULL) && strcmp(n_err.err, "io.EOF")) {
         FILE_ERROR(ERRNO, -3); 
     }
 
@@ -271,7 +283,7 @@ file_error:;
 /* initialize the base descriptor */
 static void filestr_base_init(struct filestr_base *stream)
 {
-    stream->cache = nil;
+    stream->cache = NULL;
     stream->handle = 0;
     stream->size = 0;
     LightLock_Init(&stream->mtx);
@@ -281,10 +293,10 @@ int open_internal_inner2(Handle *handle, const char *path, u32 openFlags, u32 at
 {
     int rc;
     Result res = FSUSER_OpenFile(handle,
-	                         sdmcArchive,
-	                         fsMakePath(PATH_ASCII, path),
-	                         openFlags,
-	                         attributes);
+                             sdmcArchive,
+                             fsMakePath(PATH_ASCII, path),
+                             openFlags,
+                             attributes);
     if (R_FAILED(res)) {
        FILE_ERROR(ERRNO, -1);
     }
@@ -372,21 +384,8 @@ static int open_internal_inner1(const char *path, int oflag)
         FILE_ERROR(ERRNO, -8);
     }
 
-    int pageSize = 4096;            /* 4096 bytes */
-    int bufferSize = 512 * 1024;    /* 512 kB */
-
-    /* streamed file formats like flac and mp3 need very large page
-       sizes to avoid stuttering */
-    if (((oflag & O_ACCMODE) == O_RDONLY) && (size > 0x200000)) {
-        /* printf("open(%s)_BIG_pageSize\n", path); */
-        pageSize = 32 * 1024;
-        bufferSize = MIN(size, defaultBufferSize);
-    }
-
-    file->stream.cache = NewPagerSize(file->stream.handle,
-                                      pageSize,
-                                      bufferSize);
-    if (file->stream.cache == nil) {
+    file->stream.cache = NewPageReader(file->stream.handle, defaultPageSize);
+    if (file->stream.cache == NULL) {
         FILE_ERROR(ERRNO, -7);
     }
 
@@ -402,10 +401,10 @@ static int open_internal_inner1(const char *path, int oflag)
 
 file_error:
     if (fildes >= 0) {
-        if (file->stream.cache != nil) {
-            PagerFlush(file->stream.cache);
-            PagerClear(file->stream.cache);
-            file->stream.cache = nil;
+        if (file->stream.cache != NULL) {
+            /* FSFILE_Flush(file->stream.handle); */
+            PageReader_Free(file->stream.cache);
+            file->stream.cache = NULL;
         }
     
         FSFILE_Close(file->stream.handle);
@@ -445,16 +444,16 @@ int ctru_close(int fildes)
 
     /* needs to work even if marked "nonexistant" */
     struct filestr_desc *file = &open_streams[fildes];
-    if ((unsigned int)fildes >= MAX_OPEN_FILES || (file->stream.cache == nil))
+    if ((unsigned int)fildes >= MAX_OPEN_FILES || (file->stream.cache == NULL))
     {
         logf("filedes %d not open\n", fildes);
         FILE_ERROR(EBADF, -2);
     }
 
-    if (file->stream.cache != nil) {
-        PagerFlush(file->stream.cache);
-        PagerClear(file->stream.cache);
-        file->stream.cache = nil;
+    if (file->stream.cache != NULL) {
+        /* FSFILE_Flush(file->stream.handle); */
+        PageReader_Free(file->stream.cache);
+        file->stream.cache = NULL;
     }
     
     FSFILE_Close(file->stream.handle);
@@ -490,8 +489,8 @@ int ctru_ftruncate(int fildes, off_t length)
         FILE_ERROR(EINVAL, -3);
     }
 
-    file_error_t err = PagerTruncate(file->stream.cache, length);
-    if (err) {
+    Result res = FSFILE_SetSize(file->stream.handle, length);
+    if (R_FAILED(res)) {
         FILE_ERROR(ERRNO, -11);
     }
 
@@ -521,8 +520,8 @@ int ctru_fsync(int fildes)
     }
 
     /* flush all pending changes to disk */
-    file_error_t err = PagerFlush(file->stream.cache);
-    if (err != nil) {
+    Result res = FSFILE_Flush(file->stream.handle);
+    if (R_FAILED(res)) {
         FILE_ERROR(ERRNO, -3);
     }
 
@@ -646,10 +645,10 @@ int ctru_rename(const char *old, const char *new)
     /* open 'old'; it must exist */
     Handle open1rc;
     Result res = FSUSER_OpenFile(&open1rc,
-	                         sdmcArchive, 
-	                         fsMakePath(PATH_ASCII, old),
-	                         FS_OPEN_READ,
-	                         0);
+                             sdmcArchive, 
+                             fsMakePath(PATH_ASCII, old),
+                             FS_OPEN_READ,
+                             0);
     if (R_FAILED(res)) {
         /* not a file, try to open a directory */
         res = FSUSER_OpenDirectory(&open1rc,
@@ -774,4 +773,3 @@ ssize_t ctru_readlink(const char *path, char *buf, size_t bufsiz)
 {
     return readlink(path, buf, bufsiz);
 }
-

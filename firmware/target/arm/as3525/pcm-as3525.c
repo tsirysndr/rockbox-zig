@@ -31,6 +31,7 @@
 #include "mmu-arm.h"
 #include "cpucache-arm.h"
 #include "pcm-internal.h"
+#include "pcm_sink.h"
 
 #define MAX_TRANSFER (4*((1<<11)-1)) /* maximum data we can transfer via DMA
                                       * i.e. 32 bits at once (size of I2SO_DATA)
@@ -53,13 +54,13 @@ static bool volatile is_recording = false;
 #endif
 
 /* Mask the DMA interrupt */
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     ++locked;
 }
 
 /* Unmask the DMA interrupt if enabled */
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     if(--locked == 0 && is_playing)
     {
@@ -119,7 +120,7 @@ static void dma_callback(void)
     }
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     is_playing = true;
 
@@ -136,7 +137,7 @@ void pcm_play_dma_start(const void *addr, size_t size)
     play_start_pcm();
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     is_playing = false;
 
@@ -151,20 +152,6 @@ void pcm_play_dma_stop(void)
     dma_release();
 
     play_callback_pending = false;
-}
-
-void pcm_play_dma_init(void)
-{
-    bitset32(&CGU_PERI, CGU_I2SOUT_APB_CLOCK_ENABLE);
-    I2SOUT_CONTROL = (1<<6) | (1<<3);  /* enable dma, stereo */
-
-    audiohw_preinit();
-    pcm_dma_apply_settings();
-}
-
-void pcm_play_dma_postinit(void)
-{
-    audiohw_postinit();
 }
 
 /* divider is 9 bits but the highest one (for 8kHz) fit in 8 bits */
@@ -183,12 +170,7 @@ static const unsigned char divider[SAMPR_NUM_FREQ] = {
     [HW_FREQ_8 ] = ((AS3525_MCLK_FREQ/128 + SAMPR_8 /2) / SAMPR_8 ) - 1,
 };
 
-static inline unsigned char mclk_divider(void)
-{
-    return divider[pcm_fsel];
-}
-
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
     bitmod32(&CGU_AUDIO,
              (0<<24) |               /* I2SI_MCLK2PAD_EN = disabled */
@@ -196,9 +178,18 @@ void pcm_dma_apply_settings(void)
              (0<<14) |               /* I2SI_MCLK_DIV_SEL = unused */
              (0<<12) |               /* I2SI_MCLK_SEL = clk_main */
              (1<<11) |               /* I2SO_MCLK_EN */
-             (mclk_divider() << 2) | /* I2SO_MCLK_DIV_SEL */
+             (divider[freq] << 2) |  /* I2SO_MCLK_DIV_SEL */
              (AS3525_MCLK_SEL << 0), /* I2SO_MCLK_SEL */
              0x01ffffff);
+}
+
+static void sink_dma_init(void)
+{
+    bitset32(&CGU_PERI, CGU_I2SOUT_APB_CLOCK_ENABLE);
+    I2SOUT_CONTROL = (1<<6) | (1<<3);  /* enable dma, stereo */
+
+    audiohw_preinit();
+    sink_set_freq(builtin_pcm_sink.caps.default_freq);
 }
 
 #ifdef HAVE_PCM_DMA_ADDRESS
@@ -210,6 +201,22 @@ void * pcm_dma_addr(void *addr)
 }
 #endif
 
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = audiohw_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 /****************************************************************************
  ** Recording DMA transfer

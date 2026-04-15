@@ -33,16 +33,19 @@
 #define MODEL_NUMBER 64
 
 //#define HAVE_ATA_SD
-//#define HAVE_HOTSWAP
+#define HAVE_HOTSWAP
+#define INCLUDE_TIMEOUT_API
 
 //#define CONFIG_STORAGE (STORAGE_NAND | STORAGE_SD)
-#define CONFIG_STORAGE STORAGE_SD /* Multivolume currently handled at firmware/target/ level */
+#define CONFIG_STORAGE STORAGE_SD
 
 #define CONFIG_NAND NAND_CC
 
-#define HAVE_MULTIDRIVE
-#define NUM_DRIVES 2
-
+//#define HAVE_MULTIDRIVE
+//#define NUM_DRIVES 2
+#define HAVE_HOTSWAP
+#define HAVE_MULTIVOLUME
+#define HAVE_HOTSWAP_STORAGE_AS_MAIN
 
 
 
@@ -159,6 +162,7 @@
 #define HAVE_USBSTACK
 #define USB_VENDOR_ID   0x07C4
 #define USB_PRODUCT_ID  0xA4A5
+#define HAVE_BOOTLOADER_USB_MODE
 
 /* Define this if a programmable hotkey is mapped */
 //#define HAVE_HOTKEY

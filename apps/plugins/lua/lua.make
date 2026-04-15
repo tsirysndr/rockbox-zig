@@ -65,7 +65,7 @@ $(LUA_BUILDDIR)/%.lua: $(LUA_INCLUDEDIR)/%.lua | $(LUA_BUILDDIR)
 $(LUA_BUILDDIR)/lua.refmap: $(LUA_OBJ) $(TLSFLIB)
 
 $(LUA_OUTLDS): $(PLUGIN_LDS) $(LUA_BUILDDIR)/lua.refmap
-	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DOVERLAY_OFFSET=$(shell \
+	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DPLUGIN -DOVERLAY_OFFSET=$(shell \
 		$(TOOLSDIR)/ovl_offset.pl $(LUA_BUILDDIR)/lua.refmap))
 
 $(LUA_BUILDDIR)/lua.ovl: $(LUA_OBJ) $(TLSFLIB) $(LUA_OUTLDS)
@@ -73,7 +73,7 @@ $(LUA_BUILDDIR)/lua.ovl: $(LUA_OBJ) $(TLSFLIB) $(LUA_OUTLDS)
 		$(filter %.o, $^) \
 		$(filter %.a, $+) \
 		-lgcc $(LUA_OVLFLAGS)
-	$(call PRINTS,LD $(@F))$(call objcopy,$(basename $@).elf,$@)
+	$(call PRINTS,LD $(@F))$(call objcopy_plugin,$(basename $@).elf,$@)
 
 $(LUA_BUILDDIR):
 	$(call PRINTS,MKDIR $@)mkdir -p $(LUA_BUILDDIR)/

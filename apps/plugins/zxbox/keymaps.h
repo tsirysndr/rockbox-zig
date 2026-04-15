@@ -102,14 +102,6 @@
 #elif CONFIG_KEYPAD == COWON_D2_PAD
 #define ZX_MENU         (BUTTON_MENU|BUTTON_REL)
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define ZX_UP      BUTTON_UP
-#define ZX_DOWN    BUTTON_DOWN
-#define ZX_LEFT    BUTTON_LEFT
-#define ZX_RIGHT   BUTTON_RIGHT
-#define ZX_SELECT     BUTTON_SELECT
-#define ZX_MENU    BUTTON_MENU
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define ZX_UP      BUTTON_UP
 #define ZX_DOWN    BUTTON_DOWN
@@ -290,7 +282,7 @@
 #define ZX_UP           BUTTON_UP
 #define ZX_DOWN         BUTTON_DOWN
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == MA_PAD
@@ -308,6 +300,15 @@
 #define ZX_RIGHT        BUTTON_RIGHT
 #define ZX_SELECT       BUTTON_A
 #define ZX_MENU         BUTTON_START
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+
+#define ZX_UP           BUTTON_UP
+#define ZX_DOWN         BUTTON_DOWN
+#define ZX_LEFT         BUTTON_LEFT
+#define ZX_RIGHT        BUTTON_RIGHT
+#define ZX_SELECT       BUTTON_SELECT
+#define ZX_MENU         BUTTON_MENU
 
 #else
 #error Keymap not defined!

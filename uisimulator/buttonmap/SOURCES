@@ -31,12 +31,6 @@ mrobe500.c
 mrobe100.c
 #elif CONFIG_KEYPAD == COWON_D2_PAD
 cowon-d2.c
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-creative-zvm.c
-#elif CONFIG_KEYPAD == CREATIVEZV_PAD
-creative-zv.c
-#elif CONFIG_KEYPAD == MEIZU_M6SL_PAD
-meizu-m6sl.c
 #elif CONFIG_KEYPAD == PHILIPS_SA9200_PAD
 gogear-sa9200.c
 #elif CONFIG_KEYPAD == PHILIPS_HDD1630_PAD
@@ -91,5 +85,7 @@ fiio-m3k.c
 shanling-q1.c
 #elif CONFIG_KEYPAD == RG_NANO_PAD
 rg-nano.c
+#elif CONFIG_KEYPAD == HIBY_R3PROII_PAD
+hiby-r3proii.c
 #endif
 #endif /* SIMULATOR */

@@ -48,6 +48,7 @@
 #include "file.h"
 #include "core_keymap.h"
 #include "language.h"
+#include "statusbar-skinned.h"
 
 #if CONFIG_CHARGING
 #include "power.h"
@@ -355,6 +356,11 @@ static const struct plugin_api rockbox_api = {
     simplelist_info_init,
     simplelist_show_list,
     yesno_pop,
+    yesno_pop_confirm,
+
+    /* status bar */
+    sb_set_title_text,
+    sb_set_persistent_title,
 
     /* action handling */
     get_custom_action,
@@ -362,6 +368,18 @@ static const struct plugin_api rockbox_api = {
 #ifdef HAVE_TOUCHSCREEN
     action_get_touchscreen_press,
     action_get_touchscreen_press_in_vp,
+    action_get_touch_event,
+    action_gesture_reset,
+    action_gesture_get_event_in_vp,
+    action_gesture_get_event,
+    action_gesture_is_valid,
+    action_gesture_is_pressed,
+    gesture_reset,
+    gesture_process,
+    gesture_get_event_in_vp,
+    gesture_vel_reset,
+    gesture_vel_process,
+    gesture_vel_get,
 #endif
     action_userabort,
     core_set_keyremap,
@@ -427,6 +445,9 @@ static const struct plugin_api rockbox_api = {
     crc_32r,
     filetype_get_attr,
     filetype_get_plugin,
+#ifdef HAVE_DIRCACHE
+    dircache_wait,
+#endif
 
     /* dir */
     FS_PREFIX(opendir),
@@ -515,7 +536,6 @@ static const struct plugin_api rockbox_api = {
     commit_discard_idcache,
 
     lc_open,
-    lc_open_from_mem,
     lc_get_header,
     lc_close,
 
@@ -564,6 +584,7 @@ static const struct plugin_api rockbox_api = {
     strncmp,
     strcasecmp,
     strncasecmp,
+    strstr,
     memset,
     memcpy,
     memmove,
@@ -571,6 +592,8 @@ static const struct plugin_api rockbox_api = {
     _ctype_,
 #endif
     atoi,
+    strtol,
+    strtoul,
     strchr,
     strcat,
     strlcat,
@@ -619,15 +642,9 @@ static const struct plugin_api rockbox_api = {
     sound_get_pitch,
     sound_set_pitch,
 #endif
-    &audio_master_sampr_list[0],
-    &hw_freq_sampr[0],
-    pcm_apply_settings,
-    pcm_play_data,
-    pcm_play_stop,
-    pcm_set_frequency,
-    pcm_is_playing,
     pcm_play_lock,
     pcm_play_unlock,
+    pcm_current_sink_caps,
     beep_play,
 #ifdef HAVE_RECORDING
     &rec_freq_sampr[0],
@@ -718,6 +735,8 @@ static const struct plugin_api rockbox_api = {
     playlist_insert_track,
     playlist_insert_directory,
     playlist_insert_playlist,
+    playlist_insert_context_create,
+    playlist_insert_context_release,
     playlist_shuffle,
     warn_on_pl_erase,
     audio_play,
@@ -726,15 +745,14 @@ static const struct plugin_api rockbox_api = {
     audio_resume,
     audio_next,
     audio_prev,
+    audio_pre_ff_rewind,
     audio_ff_rewind,
     audio_next_track,
     audio_status,
     audio_current_track,
     audio_flush_and_reload_tracks,
     audio_get_file_pos,
-#ifdef PLUGIN_USE_IRAM
-    audio_hard_stop,
-#endif
+    add_playbacklog,
 
     /* menu */
     root_menu_get_options,
@@ -758,6 +776,7 @@ static const struct plugin_api rockbox_api = {
 #endif
 
     /* power */
+    &device_battery_tables,
     battery_level,
     battery_level_safe,
     battery_time,
@@ -769,12 +788,17 @@ static const struct plugin_api rockbox_api = {
     charging_state,
 # endif
 #endif
+
     /* usb */
     usb_inserted,
     usb_acknowledge,
 #ifdef USB_ENABLE_HID
     usb_hid_send,
 #endif
+#ifdef USB_ENABLE_AUDIO
+    usb_audio_get_playing,
+#endif
+
     /* misc */
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
     __errno,
@@ -846,12 +870,6 @@ static const struct plugin_api rockbox_api = {
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
-    add_playbacklog,
-    &device_battery_tables,
-    yesno_pop_confirm,
-#ifdef USB_ENABLE_AUDIO
-    usb_audio_get_playing,
-#endif
 };
 
 static int plugin_buffer_handle;
@@ -869,7 +887,9 @@ int plugin_load(const char* plugin, const void* parameter)
     /* for some plugins, the SBS can be left enabled */
     const char *sepch = strrchr(plugin, PATH_SEPCH);
     bool theme_enabled = sepch && (!strcmp("properties.rock", sepch + 1) ||
+                                   !strcmp("playing_time.rock", sepch + 1) ||
                                    !strcmp("main_menu_config.rock", sepch + 1) ||
+                                   !strcmp("text_viewer.rock", sepch + 1) ||
                                    !strcmp("disktidy.rock", sepch + 1));
 
     if (current_plugin_handle)
@@ -1047,6 +1067,10 @@ int plugin_load(const char* plugin, const void* parameter)
         FOR_NB_SCREENS(i)
             viewportmanager_theme_undo(i, true);
     }
+    else
+        /* fix dangling sbs_title pointer */
+        FOR_NB_SCREENS(i)
+            sb_set_title_text(NULL, Icon_NOICON, i);
 
     plugin_check_open_close__exit();
 

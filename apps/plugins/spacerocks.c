@@ -152,15 +152,6 @@
 #elif (CONFIG_KEYPAD == COWON_D2_PAD)
 #define AST_QUIT BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define AST_PAUSE BUTTON_PLAY
-#define AST_QUIT BUTTON_BACK
-#define AST_THRUST BUTTON_UP
-#define AST_HYPERSPACE BUTTON_DOWN
-#define AST_LEFT BUTTON_LEFT
-#define AST_RIGHT BUTTON_RIGHT
-#define AST_FIRE BUTTON_SELECT
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define AST_PAUSE     (BUTTON_PLAY | BUTTON_REL)
 #define AST_QUIT       BUTTON_POWER
@@ -372,7 +363,7 @@
 #define AST_RIGHT       BUTTON_RIGHT
 #define AST_FIRE        BUTTON_PLAY
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -394,6 +385,15 @@
 #define AST_LEFT        BUTTON_LEFT
 #define AST_RIGHT       BUTTON_RIGHT
 #define AST_FIRE        BUTTON_A
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define AST_PAUSE       BUTTON_MENU
+#define AST_QUIT        BUTTON_BACK
+#define AST_THRUST      BUTTON_UP
+#define AST_HYPERSPACE  BUTTON_DOWN
+#define AST_LEFT        BUTTON_LEFT
+#define AST_RIGHT       BUTTON_RIGHT
+#define AST_FIRE        BUTTON_SELECT
 
 #else
 #error No keymap defined!
@@ -1948,7 +1948,7 @@ static int spacerocks_menu_cb(int action,
 static int spacerocks_menu(void)
 {
     int selection = 0;
-    MENUITEM_STRINGLIST(main_menu, "Spacerocks Menu", spacerocks_menu_cb,
+    MENUITEM_STRINGLIST(main_menu, "Spacerocks", spacerocks_menu_cb,
                         "Resume Game", "Start New Game",
                         "Help", "High Scores",
                         "Playback Control", "Quit");

@@ -2232,15 +2232,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Retezare basuri"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Retezare basuri"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Retezare basuri"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Retezare basuri"
   </voice>
 </phrase>
 <phrase>
@@ -8280,15 +8280,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Tăiere inalte"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Tăiere inalte"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Tăiere inalte"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Tăiere inalte"
   </voice>
 </phrase>
 <phrase>
@@ -12162,7 +12162,7 @@
 </phrase>
 <phrase>
   id: LANG_USB_MODE
-  desc: in Settings -> General -> System -> USB Mode
+  desc: in Settings -> General -> System -> USB
   user: core
   <source>
     *: "USB Mode"
@@ -12620,20 +12620,6 @@
   </dest>
   <voice>
     *: "Rată de biți medie"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYTIME_ERROR
-  desc: playing time screen
-  user: core
-  <source>
-    *: "Error while gathering info"
-  </source>
-  <dest>
-    *: "Eroare la colectarea informațiilor"
-  </dest>
-  <voice>
-    *: "Eroare la colectarea informațiilor"
   </voice>
 </phrase>
 <phrase>
@@ -14801,7 +14787,7 @@
   user: core
   <source>
     *: "Press LEFT to cancel."
-    android,hifietma*,zenvision: "Press BACK to cancel."
+    android,hifietma*: "Press BACK to cancel."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Press POWER to cancel."
     ihifi760,ihifi960: "Double tap RETURN to cancel."
     ihifi770,ihifi770c,ihifi800: "Press HOME to cancel."
@@ -14816,7 +14802,7 @@
   </source>
   <dest>
     *: "Apasă STÂNGA pentru a anula."
-    android,hifietma*,zenvision: "Apasă ÎNAPOI pentru a anula."
+    android,hifietma*: "Apasă ÎNAPOI pentru a anula."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Apasă PORNIRE pentru a anula."
     ihifi760,ihifi960: "Atinge de 2 ori ÎNAPOI pentru a anula."
     ihifi770,ihifi770c,ihifi800: "Apasă ACASĂ pentru a anula."
@@ -14831,7 +14817,7 @@
   </dest>
   <voice>
     *: "Apasă STÂNGA pentru a anula."
-    android,hifietma*,zenvision: "Apasă ÎNAPOI pentru a anula."
+    android,hifietma*: "Apasă ÎNAPOI pentru a anula."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Apasă PORNIRE pentru a anula."
     ihifi760,ihifi960: "Atinge de 2 ori ÎNAPOI pentru a anula."
     ihifi770,ihifi770c,ihifi800: "Apasă ACASĂ pentru a anula."
@@ -15326,13 +15312,13 @@
 </phrase>
 <phrase>
   id: LANG_VOICED_DATE_FORMAT
-  desc: format string for how dates will be read back. Y == 4-digit year, A == month name, m == numeric month, d == numeric day. For example, "AdY" will read "January 21 2021"
+  desc: format string for how dates will be read back. Y == 4-digit year (grouped), y == 4-digit year (numeric), A == month name, m == numeric month, d == numeric day. For example, for 2021-01-05, "AdY" will be voiced as "January 5 twenty twenty-one" and "dmy" will be voiced as "5 1 two thousand twenty one
   user: core
   <source>
     *: "dAY"
   </source>
   <dest>
-    *: "dAY"
+    *: "~dAY"
   </dest>
   <voice>
     *: ""
@@ -15948,20 +15934,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_AMAZE_MENU
-  desc: Amaze game
-  user: core
-  <source>
-    *: "Amaze Main Menu"
-  </source>
-  <dest>
-    *: "Meniu principal Amaze"
-  </dest>
-  <voice>
-    *: "Meniu principal a meiz"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SET_MAZE_SIZE
   desc: Maze size in Amaze game
   user: core
@@ -16211,34 +16183,6 @@
   </dest>
   <voice>
     *: "Setări miki mod"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MIKMOD_MENU
-  desc: mikmod plugin
-  user: core
-  <source>
-    *: "Mikmod Menu"
-  </source>
-  <dest>
-    *: "Meniu Mikmod"
-  </dest>
-  <voice>
-    *: "Meniu miki mod"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CHESSBOX_MENU
-  desc: chessbox plugin
-  user: core
-  <source>
-    *: "Chessbox Menu"
-  </source>
-  <dest>
-    *: "Meniu Chessbox "
-  </dest>
-  <voice>
-    *: "Meniu ces boks"
   </voice>
 </phrase>
 <phrase>
@@ -16920,5 +16864,132 @@
   </dest>
   <voice>
     *: "Toate pistele sortate după album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC"
+  </source>
+  <dest>
+    *: none
+    usbdac: "DAC USB"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "dac u se be"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_USB_CHARGE_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Charge-Only Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "Când este în modul de încrăcare USB"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "Când este în modul de încrăcare u se be"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_MASS_STORAGE_USB_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Mass-Storage Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "Când este în modul de stocare în masă USB"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "Când este în modul de stocare în masă u se be"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC_ACTIVE
+  desc: for splash
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC Active"
+  </source>
+  <dest>
+    *: none
+    usbdac: "DAC USB activ"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "dac u se be activ"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_LED_INDICATORS
+  desc: LED indicators setting
+  user: core
+  <source>
+    *: none
+    general_purpose_led: "Use LED indicators"
+  </source>
+  <dest>
+    *: none
+    general_purpose_led: "Folosește indicatori LED"
+  </dest>
+  <voice>
+    *: none
+    general_purpose_led: "Folosește indicatori led"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCE_STATUS
+  desc: announnnce_status plugin
+  user: core
+  <source>
+    *: "Announce Status"
+  </source>
+  <dest>
+    *: "Anunțare stare"
+  </dest>
+  <voice>
+    *: "Anunțare stare"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEEP_DIRECTORY
+  desc: file browser setting
+  user: core
+  <source>
+    *: "Always remember last folder"
+  </source>
+  <dest>
+    *: "Ține minte mereu ultimul dosar"
+  </dest>
+  <voice>
+    *: "Ține minte mereu ultimul dosar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MENU
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "USB"
+  </source>
+  <dest>
+    *: "~USB"
+  </dest>
+  <voice>
+    *: "u se be"
   </voice>
 </phrase>

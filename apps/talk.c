@@ -1566,8 +1566,11 @@ void talk_date(const struct tm *tm, bool enqueue)
 
     for (ptr = format ; *ptr ; ptr++) {
         switch(*ptr) {
-	case 'Y':
+	case 'y':
             talk_number(1900 + tm->tm_year, true);
+            break;
+	case 'Y':
+            talk_year(1900 + tm->tm_year, true);
             break;
 	case 'A':
             talk_id(LANG_MONTH_JANUARY + tm->tm_mon, true);

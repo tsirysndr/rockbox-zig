@@ -196,7 +196,7 @@ static void handle_usb(int connect_timeout)
         if (button_get_w_tmo(HZ/2) == SYS_USB_CONNECTED)
         {
             printf("Bootloader USB mode");
-            usb_acknowledge(SYS_USB_CONNECTED_ACK);
+            usb_acknowledge(SYS_USB_CONNECTED_ACK, button_get_data());
             while (button_get_w_tmo(HZ/2) != SYS_USB_DISCONNECTED)
             {
                 storage_spin();
@@ -214,8 +214,6 @@ static void handle_usb(int connect_timeout)
 
     usb_close();
 }
-
-extern void show_logo(void);
 
 void main(void)
 {

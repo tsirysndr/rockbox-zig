@@ -38,6 +38,7 @@
  * Handled by the gui code since that's how events are delivered
  * TODO: this is an ugly kludge */
 bool is_usb_connected = false;
+intptr_t usb_connection_seqnum = 0;
 
 static bool screenshot_enabled = false;
 
@@ -71,7 +72,7 @@ void usb_mode(void)
             return;
 
     splashf(0, "USB mode");
-    usb_acknowledge(SYS_USB_CONNECTED_ACK);
+    usb_acknowledge(SYS_USB_CONNECTED_ACK, usb_connection_seqnum);
 
     while(is_usb_connected)
         get_button(TIMEOUT_BLOCK);
@@ -436,15 +437,29 @@ static int dump_flash_onfi_info(int fd)
 
     nand_enable_otp(ndrv, true);
 
+    int i;
+    bool is_onfi;
+    uint8_t* buf = ndrv->page_buf;
+
     /* read ONFI parameter page */
-    ret = nand_page_read(ndrv, 0x01, ndrv->page_buf);
-    if(ret != NAND_SUCCESS) {
-        splashf(5*HZ, "Dump failed\nNAND read error");
+    for (i = 1; i <= 4; i++) {
+        ret = nand_page_read(ndrv, i, ndrv->page_buf);
+        if(ret != NAND_SUCCESS) {
+            splashf(5*HZ, "Dump failed\nNAND read error");
+            goto out;
+        }
+
+        is_onfi = buf[0] == 'O' && buf[1] == 'N' && buf[2] == 'F' && buf[3] == 'I';
+        if (is_onfi)
+            break;
+    }
+
+    if(!is_onfi) {
+        fdprintf(fd, "No ONFI Page!");
         goto out;
     }
 
-    uint8_t* buf = ndrv->page_buf;
-
+    fdprintf(fd, "ONFI Page = %02x\n", i);
     fdprintf(fd, "signature = %08lx\n", load_le32(buf));
     fdprintf(fd, "revision = %04x\n", load_le16(buf+4));
 

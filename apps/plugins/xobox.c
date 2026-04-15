@@ -146,15 +146,6 @@
 
 #define QUIT BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-
-#define QUIT BUTTON_BACK
-#define LEFT BUTTON_LEFT
-#define RIGHT BUTTON_RIGHT
-#define UP BUTTON_UP
-#define DOWN BUTTON_DOWN
-#define PAUSE BUTTON_PLAY
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define QUIT BUTTON_POWER
 #define LEFT BUTTON_BACK
@@ -367,7 +358,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define DOWN    BUTTON_DOWN
 #define PAUSE   BUTTON_PLAY
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == RG_NANO_PAD
@@ -378,6 +369,15 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define UP      BUTTON_UP
 #define DOWN    BUTTON_DOWN
 #define PAUSE   BUTTON_A
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+
+#define QUIT  BUTTON_BACK
+#define LEFT  BUTTON_LEFT
+#define RIGHT BUTTON_RIGHT
+#define UP    BUTTON_UP
+#define DOWN  BUTTON_DOWN
+#define PAUSE BUTTON_SELECT
 
 #else
 #error "No keymap defined!"
@@ -1172,7 +1172,7 @@ static int xobox_menu(bool ingame)
     rb->button_clear_queue();
 
     int selection = 0;
-    MENUITEM_STRINGLIST(main_menu, "Xobox Menu", xobox_menu_cb,
+    MENUITEM_STRINGLIST(main_menu, "Xobox", xobox_menu_cb,
                         "Resume Game", "Start New Game",
                         "Speed", "Difficulty",
                         "High Scores", "Playback Control",

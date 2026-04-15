@@ -64,10 +64,7 @@ void audiohw_init(void)
     /* power on DAC and HP Amp */
     gpio_set_level(GPIO_DAC_ANALOG_PWR, 1);
     gpio_set_level(GPIO_HPAMP_POWER, 1);
-}
 
-void audiohw_postinit(void)
-{
     /*
      * enable playback, fill FIFO buffer with -1 to prevent
      * the DAC from auto-muting, wait, and then stop playback.
@@ -139,6 +136,11 @@ void audiohw_postinit(void)
     }
 }
 
+void audiohw_postinit(void)
+{
+
+}
+
 void audiohw_close(void)
 {
     /* mute - attempt to make power-off pop-free */
@@ -198,8 +200,8 @@ void audiohw_set_volume(int vol_l, int vol_r)
     }
     else /* PCM5102A */
     {
-        l = l <= PCM5102A_VOLUME_MIN ? PCM_MUTE_LEVEL : (l / 20);
-        r = r <= PCM5102A_VOLUME_MIN ? PCM_MUTE_LEVEL : (r / 20);
+        l = l <= PCM5102A_VOLUME_MIN ? PCM_MUTE_LEVEL : l;
+        r = r <= PCM5102A_VOLUME_MIN ? PCM_MUTE_LEVEL : r;
 
         pcm_set_master_volume(l, r);
     }

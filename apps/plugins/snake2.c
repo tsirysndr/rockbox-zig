@@ -265,15 +265,6 @@ Head and Tail are stored
 #elif (CONFIG_KEYPAD == COWON_D2_PAD)
 #define SNAKE2_QUIT BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define SNAKE2_LEFT BUTTON_LEFT
-#define SNAKE2_RIGHT BUTTON_RIGHT
-#define SNAKE2_UP   BUTTON_UP
-#define SNAKE2_DOWN BUTTON_DOWN
-#define SNAKE2_QUIT BUTTON_BACK
-#define SNAKE2_PLAYPAUSE BUTTON_PLAY
-#define SNAKE2_PLAYPAUSE_TEXT "Play"
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define SNAKE2_LEFT             BUTTON_BACK
 #define SNAKE2_RIGHT            BUTTON_MENU
@@ -461,7 +452,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #elif CONFIG_KEYPAD == SDL_PAD
 /* use touchscreen */
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == MA_PAD
@@ -480,6 +471,15 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define SNAKE2_DOWN         BUTTON_DOWN
 #define SNAKE2_QUIT         BUTTON_START
 #define SNAKE2_PLAYPAUSE    BUTTON_A
+#define SNAKE2_PLAYPAUSE_TEXT "A"
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define SNAKE2_LEFT         BUTTON_LEFT
+#define SNAKE2_RIGHT        BUTTON_RIGHT
+#define SNAKE2_UP           BUTTON_UP
+#define SNAKE2_DOWN         BUTTON_DOWN
+#define SNAKE2_QUIT         BUTTON_BACK
+#define SNAKE2_PLAYPAUSE    BUTTON_SELECT
 #define SNAKE2_PLAYPAUSE_TEXT "A"
 
 #else
@@ -1601,7 +1601,7 @@ static void game_init(void)
         { "Type B", -1 },
     };
 
-    MENUITEM_STRINGLIST(menu, "Snake2 Menu", NULL,
+    MENUITEM_STRINGLIST(menu, "Snake 2", NULL,
                         "Start New Game",
                         "Game Type", "Select Maze", "Speed",
                         "High Scores",

@@ -22,20 +22,11 @@
 #define __SPI_STM32H743_H__
 
 #include "system.h"
+#include "semaphore.h"
+#include "clock-stm32h7.h"
 #include <stddef.h>
 
 struct stm_spi;
-
-enum stm_spi_num
-{
-    STM_SPI1,
-    STM_SPI2,
-    STM_SPI3,
-    STM_SPI4,
-    STM_SPI5,
-    STM_SPI6,
-    STM_SPI_COUNT,
-};
 
 /* Must match the SPI_CFG2.COMM register */
 enum stm_spi_mode
@@ -57,7 +48,19 @@ typedef void (*stm_spi_set_cs_t) (struct stm_spi *spi, bool enable);
 
 struct stm_spi_config
 {
-    enum stm_spi_num num;
+    /* Peripheral instance base address; one of ITA_SPIx */
+    uint32_t instance;
+
+    /*
+     * SPI kernel clock and requested SPI bus frequency.
+     * The frequency is used to set the SPI master baud
+     * rate setting based on the kernel clock input, as
+     * such the kernel clock should not be changed after
+     * the SPI peripheral is initialized.
+     */
+    const struct stm32_clock *clock;
+    size_t freq;
+
     enum stm_spi_mode mode;
     enum stm_spi_protocol proto;
     stm_spi_set_cs_t set_cs;
@@ -74,10 +77,19 @@ struct stm_spi_config
 struct stm_spi
 {
     uint32_t regs;
+    const struct stm32_clock *clock;
     enum stm_spi_mode mode;
     stm_spi_set_cs_t set_cs;
     uint32_t frame_size;
-    size_t tser_left;
+    uint32_t eot_delay_us;
+
+    const void *tx_buf;
+    size_t tx_size;
+
+    void *rx_buf;
+    size_t rx_size;
+
+    struct semaphore sem;
 };
 
 void stm_spi_init(struct stm_spi *spi,
@@ -85,6 +97,7 @@ void stm_spi_init(struct stm_spi *spi,
 
 int stm_spi_xfer(struct stm_spi *spi, size_t size,
                  const void *tx_buf, void *rx_buf);
+void stm_spi_irq_handler(struct stm_spi *spi);
 
 static inline int stm_spi_transmit(struct stm_spi *spi,
                                    const void *buf, size_t size)

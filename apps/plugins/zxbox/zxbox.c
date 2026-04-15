@@ -57,6 +57,9 @@ long start_time IBSS_ATTR = 0;
 
 enum plugin_status plugin_start(const void* parameter)
 {
+    if (!parameter)
+        return PLUGIN_ERROR;
+
 #if LCD_DEPTH > 1
     rb->lcd_set_backdrop(NULL);
 #endif
@@ -100,13 +103,12 @@ enum plugin_status plugin_start(const void* parameter)
 #endif
 
 #ifdef USE_GREY
-grey_show(false);
-grey_release();
+    grey_show(false);
+    grey_release();
 #endif
 
-#if !defined SIMULATOR
-    rb->pcm_play_stop();
-#endif
+    rb->audio_stop();
+    rb->mixer_set_frequency(HW_SAMPR_DEFAULT);
 
 return PLUGIN_OK;
 }
@@ -211,7 +213,7 @@ void spkb_process_events( int evenframe )
                 ki = KS_TO_KEY(intkeys[3]);
                 spkb_kbstate[ki].state = 0;
             }
-    
+
             if ( buttons & ZX_LEFT ){
                 ki = KS_TO_KEY(intkeys[2]);
                 spkb_kbstate[ki].state = 1;
@@ -220,7 +222,7 @@ void spkb_process_events( int evenframe )
                 ki = KS_TO_KEY(intkeys[2]);
                 spkb_kbstate[ki].state = 0;
             }
-    
+
             if ( buttons & ZX_UP ){
                 ki = KS_TO_KEY(intkeys[0]);
                 spkb_kbstate[ki].state = 1;
@@ -229,7 +231,7 @@ void spkb_process_events( int evenframe )
                 ki = KS_TO_KEY(intkeys[0]);
                 spkb_kbstate[ki].state = 0;
             }
-            
+
             if ( buttons & ZX_DOWN ){
                 ki = KS_TO_KEY(intkeys[1]);
                 spkb_kbstate[ki].state = 1;
@@ -238,7 +240,7 @@ void spkb_process_events( int evenframe )
                 ki = KS_TO_KEY(intkeys[1]);
                 spkb_kbstate[ki].state = 0;
             }
-            
+
             if ( buttons & ZX_SELECT ){
                 ki = KS_TO_KEY(intkeys[4]);
                 spkb_kbstate[ki].state = 1;
@@ -264,4 +266,3 @@ void press_key(int c){
     spkb_kbstate[ki].state = 1;
     process_keys();
 }
-

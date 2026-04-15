@@ -226,18 +226,6 @@
 
 #define FLIPIT_QUIT         BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-
-#define FLIPIT_LEFT         BUTTON_LEFT
-#define FLIPIT_RIGHT        BUTTON_RIGHT
-#define FLIPIT_UP           BUTTON_UP
-#define FLIPIT_DOWN         BUTTON_DOWN
-#define FLIPIT_QUIT         BUTTON_BACK
-#define FLIPIT_SHUFFLE      BUTTON_CUSTOM
-#define FLIPIT_SOLVE        BUTTON_PLAY
-#define FLIPIT_STEP_BY_STEP BUTTON_MENU
-#define FLIPIT_TOGGLE       BUTTON_SELECT
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define FLIPIT_LEFT         BUTTON_BACK
 #define FLIPIT_RIGHT        BUTTON_MENU
@@ -494,7 +482,7 @@
 #define FLIPIT_STEP_BY_STEP BUTTON_VOL_UP
 #define FLIPIT_TOGGLE       BUTTON_SELECT
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -524,6 +512,18 @@
 #define FLIPIT_SOLVE        BUTTON_X
 #define FLIPIT_STEP_BY_STEP BUTTON_Y
 #define FLIPIT_TOGGLE       BUTTON_A
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+
+#define FLIPIT_LEFT         BUTTON_LEFT
+#define FLIPIT_RIGHT        BUTTON_RIGHT
+#define FLIPIT_UP           BUTTON_UP
+#define FLIPIT_DOWN         BUTTON_DOWN
+#define FLIPIT_QUIT         BUTTON_BACK
+#define FLIPIT_SHUFFLE      BUTTON_MENU
+#define FLIPIT_SOLVE        BUTTON_USER
+#define FLIPIT_STEP_BY_STEP BUTTON_POWER
+#define FLIPIT_TOGGLE       BUTTON_SELECT
 
 #else
 #error No keymap defined!
@@ -852,9 +852,8 @@ enum plugin_status plugin_start(const void* parameter)
     rb->lcd_set_backdrop(NULL);
 #endif
 
-    rb->splash(HZ, "FlipIt!");
-
     /* print instructions */
+    bool print_instructions = true;
     rb->lcd_clear_display();
     rb->lcd_setfont(FONT_SYSFIXED);
 #if (CONFIG_KEYPAD == IRIVER_H100_PAD) || \
@@ -922,21 +921,22 @@ enum plugin_status plugin_start(const void* parameter)
     rb->lcd_putsxy(2, 28, "[REW] shuffle");
     rb->lcd_putsxy(2, 38, "Long [FFWD] solution");
     rb->lcd_putsxy(2, 48, "[FFWD] step by step");
-#endif
-
-#ifdef HAVE_TOUCHSCREEN
+#elif defined(HAVE_TOUCHSCREEN)
     rb->lcd_putsxy(2, 8, "[BOTTOMLEFT]  to stop");
     rb->lcd_putsxy(2, 18, "[CENTRE]      toggle");
     rb->lcd_putsxy(2, 28, "[TOPRIGHT]    shuffle");
     rb->lcd_putsxy(2, 38, "[BOTTOMLEFT]  solution");
     rb->lcd_putsxy(2, 48, "[BOTTOMRIGHT] step by step");
+#else
+    print_instructions = false;
 #endif
 
-    rb->lcd_update();
-
-    rb->button_get_w_tmo(HZ*3);
-
-    rb->lcd_clear_display();
+    if (print_instructions)
+    {
+        rb->lcd_update();
+        rb->button_get_w_tmo(HZ*3);
+        rb->lcd_clear_display();
+    }
     draw_info_panel();
     for (i=0; i<20; i++) {
         spots[i]=1;

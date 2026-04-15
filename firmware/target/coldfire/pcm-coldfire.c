@@ -29,6 +29,7 @@
 #include "spdif.h"
 #endif
 #include "pcm-internal.h"
+#include "pcm_sink.h"
 
 #define IIS_PLAY_DEFPARM ( (freq_ent[FPARM_CLOCKSEL] << 12) | \
                            (IIS_PLAY & (7 << 8)) | \
@@ -142,12 +143,12 @@ static void iis_play_reset_if_playback(bool if_playback)
 /* This clears the reset bit to enable monitoring immediately if monitoring
    recording sources or always if playback is in progress - we might be 
    switching samplerates on the fly */
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
     int level = set_irq_level(DMA_IRQ_LEVEL);
 
     /* remember table entry */
-    freq_ent = pcm_freq_parms[pcm_fsel];
+    freq_ent = pcm_freq_parms[freq];
  
     /* Reprogramming bits 15-12 requires FIFO to be in a reset
        condition - Users Manual 17-8, Note 11 */
@@ -159,7 +160,7 @@ void pcm_dma_apply_settings(void)
     IIS_PLAY = IIS_PLAY_DEFPARM | IIS_FIFO_RESET;
     restore_irq(level);
 
-    audiohw_set_frequency(pcm_fsel);
+    audiohw_set_frequency(freq);
     coldfire_set_pllcr_audio_bits(PLLCR_SET_AUDIO_BITS_DEFPARM);
 
     level = set_irq_level(DMA_IRQ_LEVEL);
@@ -170,11 +171,11 @@ void pcm_dma_apply_settings(void)
         PDOR3 = 0; /* Kick FIFO out of reset by writing to it */
 
     restore_irq(level);
-} /* pcm_dma_apply_settings */
+} /* sink_set_sampr */
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
-    freq_ent = pcm_freq_parms[pcm_fsel];
+    freq_ent = pcm_freq_parms[HW_FREQ_DEFAULT];
 
     AUDIOGLOB = AUDIOGLOB_DEFPARM;
     DIVR0     = 54; /* DMA0 is mapped into vector 54 in system.c */
@@ -195,15 +196,15 @@ void pcm_play_dma_init(void)
 
     audio_input_mux(AUDIO_SRC_PLAYBACK, SRCF_PLAYBACK);
 
-    audiohw_set_frequency(pcm_fsel);
+    audiohw_set_frequency(HW_FREQ_DEFAULT);
     coldfire_set_pllcr_audio_bits(PLLCR_SET_AUDIO_BITS_DEFPARM);
 
 #if defined(HAVE_SPDIF_REC) || defined(HAVE_SPDIF_OUT)
     spdif_init();
 #endif
-} /* pcm_play_dma_init */
+} /* sink_dma_init */
 
-void pcm_play_dma_postinit(void)
+void sink_dma_postinit(void)
 {
     audiohw_postinit();
     iis_play_reset();
@@ -223,23 +224,35 @@ static struct dma_lock dma_play_lock =
     .state = (1 << 14)  /* bit 14 is DMA0 */
 };
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     if (++dma_play_lock.locked == 1)
         coldfire_imr_mod(1 << 14, 1 << 14);
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     if (--dma_play_lock.locked == 0)
         coldfire_imr_mod(dma_play_lock.state, 1 << 14);
 }
 
+/* Stops the DMA transfer and interrupt */
+static void sink_dma_stop(void)
+{
+    and_l(~(DMA_EEXT | DMA_INT), &DCR0); /* per request and int OFF */
+    BCR0 = 0; /* No bytes remaining */
+    DSR0 = 1; /* Clear interrupt, errors, stop transfer */
+
+    iis_play_reset_if_playback(true);
+
+    dma_play_lock.state = (1 << 14);
+} /* sink_dma_stop */
+
 /* Set up the DMA transfer that kicks in when the audio FIFO gets empty */
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
     /* Stop any DMA in progress */
-    pcm_play_dma_stop();
+    sink_dma_stop();
 
     /* Set up DMA transfer  */
     SAR0 = (unsigned long)addr;   /* Source address      */
@@ -250,19 +263,7 @@ void pcm_play_dma_start(const void *addr, size_t size)
            DMA_SSIZE(DMA_SIZE_LINE) | DMA_START;
 
     dma_play_lock.state = (0 << 14);
-} /* pcm_play_dma_start */
-
-/* Stops the DMA transfer and interrupt */
-void pcm_play_dma_stop(void)
-{
-    and_l(~(DMA_EEXT | DMA_INT), &DCR0); /* per request and int OFF */
-    BCR0 = 0; /* No bytes remaining */
-    DSR0 = 1; /* Clear interrupt, errors, stop transfer */
-
-    iis_play_reset_if_playback(true);
-
-    dma_play_lock.state = (1 << 14);
-} /* pcm_play_dma_stop */
+} /* sink_dma_start */
 
 /* DMA0 Interrupt is called when the DMA has finished transfering a chunk
    from the caller's buffer */
@@ -300,6 +301,23 @@ void DMA0(void)
     }
     /* else inished playing */
 } /* DMA0 */
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = sink_dma_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 #ifdef HAVE_RECORDING
 /****************************************************************************

@@ -17,6 +17,7 @@
 # Norwegian Nynorsk language file, translated by:
 # - Karl Ove Hufthammer
 # - Tore Johnny Bråtveit
+# - Eivind Ødegård
 <phrase>
   id: LANG_SET_BOOL_YES
   desc: bool true representation
@@ -98,23 +99,7 @@
     *: "Lastar …"
   </dest>
   <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_CONFIRM_SHUTDOWN
-  desc: in shutdown screen
-  user: core
-  <source>
-    *: none
-    soft_shutdown: "Press OFF to shut down"
-  </source>
-  <dest>
-    *: none
-    soft_shutdown: "Trykk AV for å slå av"
-  </dest>
-  <voice>
-    *: none
+    *: "Lastar"
   </voice>
 </phrase>
 <phrase>
@@ -128,23 +113,7 @@
     *: "Slår av …"
   </dest>
   <voice>
-    *: ""
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_REMOVE_MMC
-  desc: before acknowledging usb in case an MMC is inserted (Ondio)
-  user: core
-  <source>
-    *: none
-    archosondio*: "Please remove inserted MMC"
-  </source>
-  <dest>
-    *: none
-    archosondio*: "Fjern minnekortet"
-  </dest>
-  <voice>
-    *: none
+    *: "Slår av"
   </voice>
 </phrase>
 <phrase>
@@ -280,23 +249,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SHUTDOWN
-  desc: in main menu
-  user: core
-  <source>
-    *: none
-    soft_shutdown: "Shut down"
-  </source>
-  <dest>
-    *: none
-    soft_shutdown: "Slå av"
-  </dest>
-  <voice>
-    *: none
-    soft_shutdown: "Slå av"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_VOLUME
   desc: in sound_settings
   user: core
@@ -318,10 +270,10 @@
     *: "Bass"
   </source>
   <dest>
-    *: "Bass"
+    *: "~Bass"
   </dest>
   <voice>
-    *: "Bass"
+    *: "~Bass"
   </voice>
 </phrase>
 <phrase>
@@ -354,30 +306,30 @@
 </phrase>
 <phrase>
   id: LANG_CHANNEL_STEREO
-  desc: in sound_settings
+  desc: in sound_settings and radio screen
   user: core
   <source>
     *: "Stereo"
   </source>
   <dest>
-    *: "Stereo"
+    *: "~Stereo"
   </dest>
   <voice>
-    *: "Stereo"
+    *: "~Stereo"
   </voice>
 </phrase>
 <phrase>
   id: LANG_CHANNEL_MONO
-  desc: in sound_settings
+  desc: in sound_settings and radio screen
   user: core
   <source>
     *: "Mono"
   </source>
   <dest>
-    *: "Mono"
+    *: "~Mono"
   </dest>
   <voice>
-    *: "Mono"
+    *: "~Mono"
   </voice>
 </phrase>
 <phrase>
@@ -430,10 +382,10 @@
     *: "Karaoke"
   </source>
   <dest>
-    *: "Karaoke"
+    *: "~Karaoke"
   </dest>
   <voice>
-    *: "Karaoke"
+    *: "~Karaoke"
   </voice>
 </phrase>
 <phrase>
@@ -448,158 +400,6 @@
   </dest>
   <voice>
     *: "Stereo-breidd"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_LOUDNESS
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    masf: "Loudness"
-  </source>
-  <dest>
-    *: none
-    masf: "Lydstyrke"
-  </dest>
-  <voice>
-    *: none
-    masf: "Lydstyrke"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_AUTOVOL
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    masf: "Auto Volume"
-  </source>
-  <dest>
-    *: none
-    masf: "Automatisk lydnivå"
-  </dest>
-  <voice>
-    *: none
-    masf: "Automatisk lydnivå"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_DECAY
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    masf: "AV Decay Time"
-  </source>
-  <dest>
-    *: none
-    masf: "Falltid for automatisk lydnivå"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SUPERBASS
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "Super Bass"
-  </source>
-  <dest>
-    *: none
-    masf: "Superbass"
-  </dest>
-  <voice>
-    *: none
-    masf: "Superbass"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MDB_ENABLE
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Enable"
-  </source>
-  <dest>
-    *: none
-    masf: "Bruk MDB"
-  </dest>
-  <voice>
-    *: none
-    masf: "Bruk MDB"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MDB_STRENGTH
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Strength"
-  </source>
-  <dest>
-    *: none
-    masf: "MDB-styrke"
-  </dest>
-  <voice>
-    *: none
-    masf: "MDB-styrke"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MDB_HARMONICS
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Harmonics"
-  </source>
-  <dest>
-    *: none
-    masf: "MDB-overtonar"
-  </dest>
-  <voice>
-    *: none
-    masf: "MDB-overtonar"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MDB_CENTER
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Centre Frequency"
-  </source>
-  <dest>
-    *: none
-    masf: "MDB-midtfrekvens"
-  </dest>
-  <voice>
-    *: none
-    masf: "MDB-midtfrekvens"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MDB_SHAPE
-  desc: in sound settings
-  user: core
-  <source>
-    *: none
-    masf: "MDB Shape"
-  </source>
-  <dest>
-    *: none
-    masf: "MDB-form"
-  </dest>
-  <voice>
-    *: none
-    masf: "MDB-form"
   </voice>
 </phrase>
 <phrase>
@@ -680,10 +480,10 @@
     *: "System"
   </source>
   <dest>
-    *: "System"
+    *: "~System"
   </dest>
   <voice>
-    *: "System"
+    *: "~System"
   </voice>
 </phrase>
 <phrase>
@@ -767,7 +567,7 @@
     *: "Tømt"
   </dest>
   <voice>
-    *: ""
+    *: "Tømt"
   </voice>
 </phrase>
 <phrase>
@@ -812,7 +612,7 @@
     *: "Bruk tonekontroll"
   </dest>
   <voice>
-    *: none
+    *: "Bruk tonekontroll"
   </voice>
 </phrase>
 <phrase>
@@ -826,7 +626,7 @@
     *: "Grafisk tonekontroll"
   </dest>
   <voice>
-    *: none
+    *: "Grafisk tonekontroll"
   </voice>
 </phrase>
 <phrase>
@@ -840,7 +640,7 @@
     *: "Førehandskutting"
   </dest>
   <voice>
-    *: none
+    *: "Førehandskutting"
   </voice>
 </phrase>
 <phrase>
@@ -851,10 +651,10 @@
     *: "Simple EQ Settings"
   </source>
   <dest>
-    *: "Enkelt oppsett"
+    *: "Enkelt EQ-oppsett"
   </dest>
   <voice>
-    *: none
+    *: "Enkelt EQ-oppsett"
   </voice>
 </phrase>
 <phrase>
@@ -865,10 +665,10 @@
     *: "Advanced EQ Settings"
   </source>
   <dest>
-    *: "Avansert oppsett"
+    *: "Avansert EQ-oppsett"
   </dest>
   <voice>
-    *: none
+    *: "Avansert EQ-oppsett"
   </voice>
 </phrase>
 <phrase>
@@ -882,7 +682,7 @@
     *: "Lagra som ferdigoppsett"
   </dest>
   <voice>
-    *: none
+    *: "Lagra som ferdigoppsett"
   </voice>
 </phrase>
 <phrase>
@@ -896,21 +696,7 @@
     *: "Sjå gjennom ferdigoppsett"
   </dest>
   <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_EQUALIZER_EDIT_MODE
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Edit mode: %s"
-  </source>
-  <dest>
-    *: "Redigeringsmodus: %s"
-  </dest>
-  <voice>
-    *: none
+    *: "Sjå gjennom ferdigoppsett"
   </voice>
 </phrase>
 <phrase>
@@ -924,7 +710,7 @@
     *: "%d Hz-bandforsterking"
   </dest>
   <voice>
-    *: none
+    *: "Hertz bandforsterking"
   </voice>
 </phrase>
 <phrase>
@@ -935,10 +721,10 @@
     *: "Low Shelf Filter"
   </source>
   <dest>
-    *: "Lågskrankefilter"
+    *: "Bassfilter"
   </dest>
   <voice>
-    *: none
+    *: "Bassfilter"
   </voice>
 </phrase>
 <phrase>
@@ -952,7 +738,7 @@
     *: "Lydtoppfilter %d"
   </dest>
   <voice>
-    *: none
+    *: "Lydtoppfilter"
   </voice>
 </phrase>
 <phrase>
@@ -963,10 +749,10 @@
     *: "High Shelf Filter"
   </source>
   <dest>
-    *: "Høgskrankefilter"
+    *: "Diskantfilter"
   </dest>
   <voice>
-    *: none
+    *: "Diskantfilter"
   </voice>
 </phrase>
 <phrase>
@@ -994,7 +780,7 @@
     *: "Midtfrekvens"
   </dest>
   <voice>
-    *: none
+    *: "Midtfrekvens"
   </voice>
 </phrase>
 <phrase>
@@ -1263,10 +1049,10 @@
     *: "Replaygain"
   </source>
   <dest>
-    *: "Replaygain"
+    *: "Avspelingsvolum"
   </dest>
   <voice>
-    *: "Replaygain"
+    *: "Avspelingsvolum"
   </voice>
 </phrase>
 <phrase>
@@ -1364,10 +1150,10 @@
     *: "Database"
   </source>
   <dest>
-    *: "Database"
+    *: "~Database"
   </dest>
   <voice>
-    *: "Database"
+    *: "~Database"
   </voice>
 </phrase>
 <phrase>
@@ -1667,6 +1453,7 @@
   </dest>
   <voice>
     *: none
+    remote: "Fjern-LCD-oppsett"
   </voice>
 </phrase>
 <phrase>
@@ -1694,7 +1481,7 @@
     *: "Status- og rullelinje"
   </dest>
   <voice>
-    *: none
+    *: "Status og rullelinje"
   </voice>
 </phrase>
 <phrase>
@@ -1703,15 +1490,12 @@
   user: core
   <source>
     *: "Peak Meter"
-    masd: none
   </source>
   <dest>
     *: "Lydtoppmålar"
-    masd: none
   </dest>
   <voice>
     *: "Lydtoppmålar"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -1739,7 +1523,7 @@
     *: "Latin-1 (ISO-8859-1)"
   </dest>
   <voice>
-    *: "Latin 1"
+    *: "Latin-1"
   </voice>
 </phrase>
 <phrase>
@@ -1767,7 +1551,7 @@
     *: "Hebraisk (ISO-8859-8)"
   </dest>
   <voice>
-    *: none
+    *: "Hebraisk"
   </voice>
 </phrase>
 <phrase>
@@ -1792,10 +1576,10 @@
     *: "Thai (ISO-8859-11)"
   </source>
   <dest>
-    *: "Thai (ISO-8859-11)"
+    *: "~Thai (ISO-8859-11)"
   </dest>
   <voice>
-    *: none
+    *: "~Thai"
   </voice>
 </phrase>
 <phrase>
@@ -1809,7 +1593,7 @@
     *: "Arabisk (CP1256)"
   </dest>
   <voice>
-    *: none
+    *: "Arabisk"
   </voice>
 </phrase>
 <phrase>
@@ -1851,7 +1635,7 @@
     *: "Japansk (SJIS)"
   </dest>
   <voice>
-    *: none
+    *: "Japansk"
   </voice>
 </phrase>
 <phrase>
@@ -1865,7 +1649,7 @@
     *: "Kinesisk – forenkla (GB2312)"
   </dest>
   <voice>
-    *: none
+    *: "Forenkla kinesisk"
   </voice>
 </phrase>
 <phrase>
@@ -1879,7 +1663,7 @@
     *: "Koreansk (KSX1001)"
   </dest>
   <voice>
-    *: none
+    *: "Koreansk"
   </voice>
 </phrase>
 <phrase>
@@ -1893,7 +1677,7 @@
     *: "Kinesisk – tradisjonell (BIG5)"
   </dest>
   <voice>
-    *: none
+    *: "Tradisjonell kinesisk"
   </voice>
 </phrase>
 <phrase>
@@ -1904,10 +1688,10 @@
     *: "Unicode (UTF-8)"
   </source>
   <dest>
-    *: "Unicode (UTF-8)"
+    *: "~Unicode (UTF-8)"
   </dest>
   <voice>
-    *: "Unicode"
+    *: "~Unicode"
   </voice>
 </phrase>
 <phrase>
@@ -1932,10 +1716,10 @@
     *: "Disk"
   </source>
   <dest>
-    *: "Disk"
+    *: "~Disk"
   </dest>
   <voice>
-    *: "Disk"
+    *: "~Disk"
   </voice>
 </phrase>
 <phrase>
@@ -1952,6 +1736,7 @@
   </dest>
   <voice>
     *: none
+    rtc: "Dato og klokkeslett"
   </voice>
 </phrase>
 <phrase>
@@ -2118,20 +1903,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BOOKMARK_SETTINGS_UNIQUE_ONLY
-  desc: Save only on bookmark for each playlist in recent bookmarks
-  user: core
-  <source>
-    *: "Unique only"
-  </source>
-  <dest>
-    *: "Berre unike"
-  </dest>
-  <voice>
-    *: "Berre unike"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_VOICE_MENU
   desc: item of voice menu, enable/disable the voice UI
   user: core
@@ -2216,23 +1987,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_RECORDING_QUALITY
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording_hwcodec: "Quality"
-  </source>
-  <dest>
-    *: none
-    recording_hwcodec: "Kvalitet"
-  </dest>
-  <voice>
-    *: none
-    recording_hwcodec: "Kvalitet"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_FREQUENCY
   desc: in recording and playback settings
   user: core
@@ -2296,28 +2050,11 @@
   </source>
   <dest>
     *: none
-    recording: "Digital"
+    recording: "~Digital"
   </dest>
   <voice>
     *: none
-    recording: "Digital"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_RECORDING_EDITABLE
-  desc: Editable recordings setting
-  user: core
-  <source>
-    *: none
-    recording_hwcodec: "Independent Frames"
-  </source>
-  <dest>
-    *: none
-    recording_hwcodec: "Uavhengige rammer"
-  </dest>
-  <voice>
-    *: none
-    recording_hwcodec: "Uavhengige rammer"
+    recording: "~Digital"
   </voice>
 </phrase>
 <phrase>
@@ -2351,23 +2088,7 @@
   </dest>
   <voice>
     *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_RECORD_DIRECTORY
-  desc: in recording settings_menu
-  user: core
-  <source>
-    *: none
-    recording: "Directory"
-  </source>
-  <dest>
-    *: none
-    recording: "Mappe"
-  </dest>
-  <voice>
-    *: none
-    recording: "Mappe"
+    recording: "Forinnspelingstid"
   </voice>
 </phrase>
 <phrase>
@@ -2418,6 +2139,7 @@
   </dest>
   <voice>
     *: none
+    remote: "Berre hovudeining"
   </voice>
 </phrase>
 <phrase>
@@ -2434,6 +2156,7 @@
   </dest>
   <voice>
     *: none
+    remote: "Berre fjerneining"
   </voice>
 </phrase>
 <phrase>
@@ -2450,6 +2173,7 @@
   </dest>
   <voice>
     *: none
+    remote: "Hovud og fjerneining"
   </voice>
 </phrase>
 <phrase>
@@ -2911,7 +2635,7 @@
     *: "Felt (invers)"
   </dest>
   <voice>
-    *: none
+    *: "Felt invers"
   </voice>
 </phrase>
 <phrase>
@@ -3154,23 +2878,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BUTTON_BAR
-  desc: in settings menu
-  user: core
-  <source>
-    *: none
-    recorder_pad: "Button Bar"
-  </source>
-  <dest>
-    *: none
-    recorder_pad: "Knapprad"
-  </dest>
-  <voice>
-    *: none
-    recorder_pad: "Knapprad"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_VOLUME_DISPLAY
   desc: Volume type title
   user: core
@@ -3232,15 +2939,12 @@
   user: core
   <source>
     *: "Peak Release"
-    masd: none
   </source>
   <dest>
     *: "Lydtoppfråfall"
-    masd: none
   </dest>
   <voice>
     *: "Lydtoppfråfall"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -3249,15 +2953,12 @@
   user: core
   <source>
     *: "Peak Hold Time"
-    masd: none
   </source>
   <dest>
     *: "Lydtopphaldetid"
-    masd: none
   </dest>
   <voice>
     *: "Lydtopphaldetid"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -3266,15 +2967,12 @@
   user: core
   <source>
     *: "Clip Hold Time"
-    masd: none
   </source>
   <dest>
     *: "Klipphaldetid"
-    masd: none
   </dest>
   <voice>
     *: "Klipphaldetid"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -3283,15 +2981,12 @@
   user: core
   <source>
     *: "Eternal"
-    masd: none
   </source>
   <dest>
     *: "Uendeleg"
-    masd: none
   </dest>
   <voice>
     *: "Uendeleg"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -3300,15 +2995,12 @@
   user: core
   <source>
     *: "Scale"
-    masd: none
   </source>
   <dest>
     *: "Skala"
-    masd: none
   </dest>
   <voice>
     *: "Skala"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -3317,11 +3009,9 @@
   user: core
   <source>
     *: "Logarithmic (dB)"
-    masd: none
   </source>
   <dest>
     *: "Logarithmisk (dB)"
-    masd: none
   </dest>
   <voice>
     *: "Logarithmisk desibel"
@@ -3333,11 +3023,9 @@
   user: core
   <source>
     *: "Linear (%)"
-    masd: none
   </source>
   <dest>
     *: "Lineær (%)"
-    masd: none
   </dest>
   <voice>
     *: "Lineær prosent"
@@ -3349,15 +3037,12 @@
   user: core
   <source>
     *: "Minimum of Range"
-    masd: none
   </source>
   <dest>
     *: "Minste verdi"
-    masd: none
   </dest>
   <voice>
     *: "Minste verdi"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -3366,15 +3051,12 @@
   user: core
   <source>
     *: "Maximum of Range"
-    masd: none
   </source>
   <dest>
     *: "Største verdi"
-    masd: none
   </dest>
   <voice>
     *: "Største verdi"
-    masd: none
   </voice>
 </phrase>
 <phrase>
@@ -3389,55 +3071,6 @@
   </dest>
   <voice>
     *: "Batterikapasitet"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Battery Type"
-  </source>
-  <dest>
-    *: none
-    battery_types: "Batteritype"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_1
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "Alkaline"
-  </source>
-  <dest>
-    *: none
-    battery_types: "Alkaline"
-  </dest>
-  <voice>
-    *: none
-    battery_types: "Alkaline"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TYPE_2
-  desc: in battery settings
-  user: core
-  <source>
-    *: none
-    battery_types: "NiMH"
-  </source>
-  <dest>
-    *: none
-    battery_types: "NiMH"
-  </dest>
-  <voice>
-    *: none
   </voice>
 </phrase>
 <phrase>
@@ -3681,7 +3314,7 @@
     *: "Fila/mappa finst alt. Vil du skriva over ho?"
   </dest>
   <voice>
-    *: ""
+    *: "Fila eller mappa finst alt. Vil du skriva over ho?"
   </voice>
 </phrase>
 <phrase>
@@ -3740,7 +3373,7 @@
     *: "Er du sikker på at du vil sletta?"
   </dest>
   <voice>
-    *: ""
+    *: "Er du sikker på at du vil sletta?"
   </voice>
 </phrase>
 <phrase>
@@ -3831,62 +3464,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_INSERT
-  desc: in onplay menu.  insert a track/playlist into dynamic playlist.
-  user: core
-  <source>
-    *: "Insert"
-  </source>
-  <dest>
-    *: "Set inn"
-  </dest>
-  <voice>
-    *: "Set inn"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_INSERT_FIRST
-  desc: in onplay menu.  insert a track/playlist into dynamic playlist.
-  user: core
-  <source>
-    *: "Insert Next"
-  </source>
-  <dest>
-    *: "Set inn som neste"
-  </dest>
-  <voice>
-    *: "Set inn som neste"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_INSERT_LAST
-  desc: in onplay menu.  append a track/playlist into dynamic playlist.
-  user: core
-  <source>
-    *: "Insert Last"
-  </source>
-  <dest>
-    *: "Set inn til slutt"
-  </dest>
-  <voice>
-    *: "Set inn til slutt"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_INSERT_SHUFFLED
-  desc: in onplay menu.  insert a track/playlist randomly into dynamic playlist
-  user: core
-  <source>
-    *: "Insert Shuffled"
-  </source>
-  <dest>
-    *: "Set inn tilfeldig"
-  </dest>
-  <voice>
-    *: "Set inn tilfeldig"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_QUEUE
   desc: The verb/action Queue
   user: core
@@ -3967,7 +3544,7 @@
     *: "Søkjer … fann %d (%s)"
   </dest>
   <voice>
-    *: ""
+    *: "Søkjer fann"
   </voice>
 </phrase>
 <phrase>
@@ -4026,39 +3603,7 @@
   </dest>
   <voice>
     *: none
-    charging: "Batteri: Ladar"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TOPOFF_CHARGE
-  desc: in info display, shows that top off charge is running Only for V1 archosrecorder
-  user: core
-  <source>
-    *: none
-    archosrecorder: "Battery: Top-Off Chg"
-  </source>
-  <dest>
-    *: none
-    archosrecorder: "Batteri: Top-off-lading"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_BATTERY_TRICKLE_CHARGE
-  desc: in info display, shows that trickle charge is running
-  user: core
-  <source>
-    *: none
-    charging: "Battery: Trickle Chg"
-  </source>
-  <dest>
-    *: none
-    charging: "Battery: Trickle-lading"
-  </dest>
-  <voice>
-    *: none
+    charging: "Batteri ladar"
   </voice>
 </phrase>
 <phrase>
@@ -4068,11 +3613,10 @@
   <source>
     *: "Battery: %d%% %dh %dm"
     ipodmini1g,ipodmini2g,iriverh10: "Batt: %d%% %dh %dm"
-    iriverifp7xx: "%d%% %dh %dm"
   </source>
   <dest>
     *: "Batteri: %d%% %dh %dm"
-    iriverifp7xx: "%d%% %dh %dm"
+    ipodmini1g,ipodmini2g,iriverh10: "~Batt: %d%% %dh %dm"
   </dest>
   <voice>
     *: "Batterinivå"
@@ -4086,10 +3630,10 @@
     *: "Disk:"
   </source>
   <dest>
-    *: "Disk:"
+    *: "~Disk:"
   </dest>
   <voice>
-    *: ""
+    *: "Disk"
   </voice>
 </phrase>
 <phrase>
@@ -4103,7 +3647,7 @@
     *: "Ledig:"
   </dest>
   <voice>
-    *: "Ledig diskplass:"
+    *: "Ledig diskplass"
   </voice>
 </phrase>
 <phrase>
@@ -4112,38 +3656,41 @@
   user: core
   <source>
     *: "Int:"
+    hibylinux: "mSD:"
     xduoox3: "mSD1:"
   </source>
   <dest>
-    *: "Int:"
-    xduoox3: "mSD1:"
+    *: "Intern:"
+    hibylinux: "~mSD:"
+    xduoox3: "~mSD1:"
   </dest>
   <voice>
     *: "Intern"
-    xduoox3: "Micro S D 1"
+    hibylinux: "mikro S D"
+    xduoox3: "mikro S D 1"
   </voice>
 </phrase>
 <phrase>
   id: LANG_DISK_NAME_MMC
-  desc: in info menu;  name for external disk with multivolume (Ondio; keep short!)
+  desc: in info menu;  name for external disk with multivolume (keep short!)
   user: core
   <source>
     *: none
-    archosondio*: "MMC:"
-    multivolume: "HD1"
+    hibylinux: "USB:"
+    multivolume: "HD1:"
     sansac200*,sansaclipplus,sansae200*,sansafuze*: "mSD:"
     xduoox3: "mSD2:"
   </source>
   <dest>
     *: none
-    archosondio*: "MMC"
-    multivolume: "HD1"
-    sansac200*,sansaclipplus,sansae200*,sansafuze*: "mSD:"
-    xduoox3: "mSD2:"
+    hibylinux: "~USB:"
+    multivolume: "~HD1:"
+    sansac200*,sansaclipplus,sansae200*,sansafuze*: "~mSD:"
+    xduoox3: "~mSD2:"
   </dest>
   <voice>
     *: none
-    archosondio*: "M M C"
+    hibylinux: "U S B"
     multivolume: "H D 1"
     sansac200*,sansaclipplus,sansae200*,sansafuze*: "Micro S D"
     xduoox3: "Micro S D 2"
@@ -4159,11 +3706,11 @@
   </source>
   <dest>
     *: none
-    rtc: ""
+    rtc: "Klokkeslett"
   </dest>
   <voice>
     *: none
-    rtc: ""
+    rtc: "Klokkeslett"
   </voice>
 </phrase>
 <phrase>
@@ -4180,6 +3727,7 @@
   </dest>
   <voice>
     *: none
+    pitchscreen: ""
   </voice>
 </phrase>
 <phrase>
@@ -4196,6 +3744,7 @@
   </dest>
   <voice>
     *: none
+    pitchscreen: ""
   </voice>
 </phrase>
 <phrase>
@@ -4206,10 +3755,10 @@
     *: "Pause"
   </source>
   <dest>
-    *: "Pause"
+    *: "~Pause"
   </dest>
   <voice>
-    *: "Pause"
+    *: "~Pause"
   </voice>
 </phrase>
 <phrase>
@@ -4275,8 +3824,8 @@
   <source>
     *: none
     rtc: "OFF = Revert"
+    aigoerosq,erosqnative,gigabeats,sansafuzeplus,xduoox3*: "BACK = Revert"
     gigabeatfx,mrobe500: "POWER = Revert"
-    gigabeats,sansafuzeplus: "BACK = Revert"
     gogearsa9200: "LEFT = Revert"
     iaudiom5,iaudiox5: "RECORD = Revert"
     ipod*,mpiohd300,sansac200*: "MENU = Revert"
@@ -4289,8 +3838,9 @@
   <dest>
     *: none
     rtc: "OFF = tilbakestill"
-    gigabeatfx,mrobe500: "POWER = Tilbakestill"
+    aigoerosq,erosqnative,xduoox3*: "BACK = Tilbakestill"
     gigabeats,sansafuzeplus: "BACK = Tilbakestill"
+    gigabeatfx,mrobe500: "POWER = Tilbakestill"
     gogearsa9200: "LEFT = Tilbakestill"
     iaudiom5,iaudiox5: "RECORD = Tilbakestill"
     ipod*,mpiohd300,sansac200*: "MENU = Tilbakestill"
@@ -4318,6 +3868,7 @@
   </dest>
   <voice>
     *: none
+    recording: ""
   </voice>
 </phrase>
 <phrase>
@@ -4334,6 +3885,7 @@
   </dest>
   <voice>
     *: none
+    recording: ""
   </voice>
 </phrase>
 <phrase>
@@ -4358,6 +3910,7 @@
   </dest>
   <voice>
     *: none
+    iaudiom5,iaudiox5,iriverh100,iriverh120,iriverh300,recording,samsungyh*,sansac200*,sansae200*,vibe500: ""
   </voice>
 </phrase>
 <phrase>
@@ -4429,22 +3982,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_DB_INF
-  desc: -inf db for values below measurement
-  user: core
-  <source>
-    *: none
-    recording: "-inf"
-  </source>
-  <dest>
-    *: none
-    recording: "–uendeleg"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
   id: LANG_ALARM_MOD_TIME
   desc: The current alarm time shown in the alarm menu for the RTC alarm mod.
   user: core
@@ -4458,6 +3995,7 @@
   </dest>
   <voice>
     *: none
+    alarm: ""
   </voice>
 </phrase>
 <phrase>
@@ -4474,22 +4012,7 @@
   </dest>
   <voice>
     *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALARM_MOD_SHUTDOWN
-  desc: The text that tells the user that the alarm time is ok and the device shuts off (for the RTC alarm mod).
-  user: core
-  <source>
-    *: none
-    alarm: "Alarm Set"
-  </source>
-  <dest>
-    *: none
-    alarm: "Alarm stilt inn"
-  </dest>
-  <voice>
-    *: none
+    alarm: "Vaknar opp om"
   </voice>
 </phrase>
 <phrase>
@@ -4507,33 +4030,6 @@
   <voice>
     *: none
     alarm: "Vekking om for kort tid"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_ALARM_MOD_KEYS
-  desc: Shown key functions in alarm menu (for the RTC alarm mod).
-  user: core
-  <source>
-    *: none
-    alarm: "PLAY=Set OFF=Cancel"
-    gigabeats: "SELECT=Set POWER=Cancel"
-    ipod*: "SELECT=Set MENU=Cancel"
-    iriverh10,iriverh10_5gb: "SELECT=Set PREV=Cancel"
-    mpiohd300: "ENTER=Set MENU=Cancel"
-    sansafuzeplus: "SELECT=Set  BACK=Cancel"
-    vibe500: "OK=Set C=Cancel"
-  </source>
-  <dest>
-    *: none
-    alarm: "SPEL = vel – AV = avbryt"
-    gigabeats: "VEL = vel – PÅ/AV = avbryt"
-    ipod*: "VEL = vel  – MENY = avbryt"
-    iriverh10,iriverh10_5gb: "VEL = vel – TILBAKE = avbryt"
-    mpiohd300: "ENTER = vel – MENU = avbryt"
-    vibe500: "OK = vel – C = avbryt"
-  </dest>
-  <voice>
-    *: none
   </voice>
 </phrase>
 <phrase>
@@ -4567,6 +4063,7 @@
   </dest>
   <voice>
     *: none
+    lcd_color: ""
   </voice>
 </phrase>
 <phrase>
@@ -4583,6 +4080,7 @@
   </dest>
   <voice>
     *: none
+    lcd_color: ""
   </voice>
 </phrase>
 <phrase>
@@ -4599,6 +4097,7 @@
   </dest>
   <voice>
     *: none
+    lcd_color: ""
   </voice>
 </phrase>
 <phrase>
@@ -4623,10 +4122,10 @@
     *: "Artist"
   </source>
   <dest>
-    *: "Artist"
+    *: "~Artist"
   </dest>
   <voice>
-    *: "Artist"
+    *: "~Artist"
   </voice>
 </phrase>
 <phrase>
@@ -4637,10 +4136,10 @@
     *: "Album"
   </source>
   <dest>
-    *: "Album"
+    *: "~Album"
   </dest>
   <voice>
-    *: "Album"
+    *: "~Album"
   </voice>
 </phrase>
 <phrase>
@@ -4721,10 +4220,10 @@
     *: "Bitrate"
   </source>
   <dest>
-    *: "Bitrate"
+    *: "~Bitrate"
   </dest>
   <voice>
-    *: "Bitrate"
+    *: "~Bitrate"
   </voice>
 </phrase>
 <phrase>
@@ -4770,20 +4269,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_ID3_ALBUM_GAIN
-  desc: in tag viewer
-  user: core
-  <source>
-    *: "Album Gain"
-  </source>
-  <dest>
-    *: "Albumforsterking"
-  </dest>
-  <voice>
-    *: "Albumforsterking"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_ID3_PATH
   desc: in tag viewer
   user: core
@@ -4825,6 +4310,7 @@
   </dest>
   <voice>
     *: none
+    rtc: ""
   </voice>
 </phrase>
 <phrase>
@@ -4841,6 +4327,7 @@
   </dest>
   <voice>
     *: none
+    rtc: ""
   </voice>
 </phrase>
 <phrase>
@@ -4857,6 +4344,7 @@
   </dest>
   <voice>
     *: none
+    rtc: ""
   </voice>
 </phrase>
 <phrase>
@@ -4873,6 +4361,7 @@
   </dest>
   <voice>
     *: none
+    rtc: ""
   </voice>
 </phrase>
 <phrase>
@@ -4889,6 +4378,7 @@
   </dest>
   <voice>
     *: none
+    rtc: ""
   </voice>
 </phrase>
 <phrase>
@@ -4905,6 +4395,7 @@
   </dest>
   <voice>
     *: none
+    rtc: ""
   </voice>
 </phrase>
 <phrase>
@@ -4921,6 +4412,7 @@
   </dest>
   <voice>
     *: none
+    rtc: ""
   </voice>
 </phrase>
 <phrase>
@@ -4931,10 +4423,10 @@
     *: "Jan"
   </source>
   <dest>
-    *: "Jan"
+    *: "~Jan"
   </dest>
   <voice>
-    *: none
+    *: "Januar"
   </voice>
 </phrase>
 <phrase>
@@ -4945,10 +4437,10 @@
     *: "Feb"
   </source>
   <dest>
-    *: "Feb"
+    *: "~Feb"
   </dest>
   <voice>
-    *: none
+    *: "Februar"
   </voice>
 </phrase>
 <phrase>
@@ -4959,10 +4451,10 @@
     *: "Mar"
   </source>
   <dest>
-    *: "Mar"
+    *: "~Mar"
   </dest>
   <voice>
-    *: none
+    *: "Mars"
   </voice>
 </phrase>
 <phrase>
@@ -4973,10 +4465,10 @@
     *: "Apr"
   </source>
   <dest>
-    *: "Apr"
+    *: "~Apr"
   </dest>
   <voice>
-    *: none
+    *: "April"
   </voice>
 </phrase>
 <phrase>
@@ -5001,10 +4493,10 @@
     *: "Jun"
   </source>
   <dest>
-    *: "Jun"
+    *: "~Jun"
   </dest>
   <voice>
-    *: none
+    *: "Juni"
   </voice>
 </phrase>
 <phrase>
@@ -5015,10 +4507,10 @@
     *: "Jul"
   </source>
   <dest>
-    *: "Jul"
+    *: "~Jul"
   </dest>
   <voice>
-    *: none
+    *: "Juli"
   </voice>
 </phrase>
 <phrase>
@@ -5029,10 +4521,10 @@
     *: "Aug"
   </source>
   <dest>
-    *: "Aug"
+    *: "~Aug"
   </dest>
   <voice>
-    *: none
+    *: "August"
   </voice>
 </phrase>
 <phrase>
@@ -5043,10 +4535,10 @@
     *: "Sep"
   </source>
   <dest>
-    *: "Sep"
+    *: "~Sep"
   </dest>
   <voice>
-    *: none
+    *: "September"
   </voice>
 </phrase>
 <phrase>
@@ -5057,10 +4549,10 @@
     *: "Oct"
   </source>
   <dest>
-    *: "Okt"
+    *: "~Okt"
   </dest>
   <voice>
-    *: none
+    *: "Oktober"
   </voice>
 </phrase>
 <phrase>
@@ -5071,10 +4563,10 @@
     *: "Nov"
   </source>
   <dest>
-    *: "Nov"
+    *: "~Nov"
   </dest>
   <voice>
-    *: none
+    *: "November"
   </voice>
 </phrase>
 <phrase>
@@ -5085,10 +4577,10 @@
     *: "Dec"
   </source>
   <dest>
-    *: "Des"
+    *: "~Des"
   </dest>
   <voice>
-    *: none
+    *: "Desember"
   </voice>
 </phrase>
 <phrase>
@@ -5778,48 +5270,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_KILOBYTE
-  desc: a unit postfix, also voiced
-  user: core
-  <source>
-    *: "KB"
-  </source>
-  <dest>
-    *: "KB"
-  </dest>
-  <voice>
-    *: "kilobyte"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_MEGABYTE
-  desc: a unit postfix, also voiced
-  user: core
-  <source>
-    *: "MB"
-  </source>
-  <dest>
-    *: "MB"
-  </dest>
-  <voice>
-    *: "megabyte"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_GIGABYTE
-  desc: a unit postfix, also voiced
-  user: core
-  <source>
-    *: "GB"
-  </source>
-  <dest>
-    *: "GB"
-  </dest>
-  <voice>
-    *: "gigabyte"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_POINT
   desc: decimal separator for composing numbers
   user: core
@@ -6365,6 +5815,7 @@
   </dest>
   <voice>
     *: none
+    remote: "speleskjerm på fjern eining"
   </voice>
 </phrase>
 <phrase>
@@ -6417,10 +5868,10 @@
     *: "Inserted %d tracks (%s)"
   </source>
   <dest>
-    *: "Sett inn %d spor (%s)"
+    *: "Set inn %d spor (%s)"
   </dest>
   <voice>
-    *: ""
+    *: "Set inn spor"
   </voice>
 </phrase>
 <phrase>
@@ -6434,7 +5885,7 @@
     *: "Lagt %d spor i kø (%s)"
   </dest>
   <voice>
-    *: ""
+    *: "Lagt spor i kø"
   </voice>
 </phrase>
 <phrase>
@@ -6448,7 +5899,7 @@
     *: "Lagra %d spor (%s)"
   </dest>
   <voice>
-    *: ""
+    *: "Lagra spor"
   </voice>
 </phrase>
 <phrase>
@@ -6491,20 +5942,6 @@
   </dest>
   <voice>
     *: "Ingenting å halda fram med"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_PLAYLIST_CONTROL_UPDATE_ERROR
-  desc: Playlist error
-  user: core
-  <source>
-    *: "Error updating playlist control file"
-  </source>
-  <dest>
-    *: "Feil ved oppdatering av spelelistekontrollfil"
-  </dest>
-  <voice>
-    *: "Feil ved oppdatering av spelelistekontrollfil"
   </voice>
 </phrase>
 <phrase>
@@ -6666,86 +6103,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BUTTONBAR_MENU
-  desc: in button bar
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Menu"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Meny"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_FM_BUTTONBAR_EXIT
-  desc: in radio screen
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Exit"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Avslutt"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_FM_BUTTONBAR_ACTION
-  desc: in radio screen
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Action"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Handling"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_FM_BUTTONBAR_ADD
-  desc: in radio screen
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Add"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Legg til"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_FM_BUTTONBAR_RECORD
-  desc: in radio screen
-  user: core
-  <source>
-    *: none
-    radio_screen_button_bar: "Record"
-  </source>
-  <dest>
-    *: none
-    radio_screen_button_bar: "Ta opp"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
   id: LANG_FM_MONO_MODE
   desc: in radio screen
   user: core
@@ -6776,6 +6133,7 @@
   </dest>
   <voice>
     *: none
+    radio: ""
   </voice>
 </phrase>
 <phrase>
@@ -6788,10 +6146,11 @@
   </source>
   <dest>
     *: none
-    radio: "Søk automatisk"
+    radio: "Søk automatisk i ferdigoppsett"
   </dest>
   <voice>
     *: none
+    radio: "Søk automatisk i ferdigoppsett"
   </voice>
 </phrase>
 <phrase>
@@ -6825,6 +6184,7 @@
   </dest>
   <voice>
     *: none
+    radio: "Søkjer"
   </voice>
 </phrase>
 <phrase>
@@ -6841,6 +6201,7 @@
   </dest>
   <voice>
     *: none
+    radio: ""
   </voice>
 </phrase>
 <phrase>
@@ -6871,7 +6232,7 @@
     *: "Mappebufferen er full"
   </dest>
   <voice>
-    *: ""
+    *: "Mappebufferen er full"
   </voice>
 </phrase>
 <phrase>
@@ -6946,7 +6307,7 @@
 </phrase>
 <phrase>
   id: LANG_OFF_ABORT
-  desc: Used on archosrecorder models
+  desc: Used on many models
   user: core
   <source>
     *: "OFF to abort"
@@ -6958,13 +6319,13 @@
     iriverh100,iriverh120,iriverh300: "STOP to abort"
   </source>
   <dest>
-    *: "OFF for å avbryte"
-    gigabeatfx: "POWER for å avbryte"
-    gigabeats,sansafuzeplus: "BACK for å avbryte"
-    iaudiom5,iaudiox5: "PLAY (langt trykk) for å avbryte"
-    ipod*: "PLAY/PAUSE for å avbryte"
-    iriverh10,iriverh10_5gb,sansac200*,sansae200*,vibe500: "PREV for å avbryte"
-    iriverh100,iriverh120,iriverh300: "STOP for å avbryte"
+    *: "OFF for å avbryta"
+    gigabeatfx: "POWER for å avbryta"
+    gigabeats,sansafuzeplus: "BACK for å avbryta"
+    iaudiom5,iaudiox5: "PLAY (langt trykk) for å avbryta"
+    ipod*: "PLAY/PAUSE for å avbryta"
+    iriverh10,iriverh10_5gb,sansac200*,sansae200*,vibe500: "PREV for å avbryta"
+    iriverh100,iriverh120,iriverh300: "STOP for å avbryta"
   </dest>
   <voice>
     *: ""
@@ -7093,7 +6454,7 @@
     *: "Klarte ikkje opna «%s»"
   </dest>
   <voice>
-    *: ""
+    *: "Klarte ikkje opna"
   </voice>
 </phrase>
 <phrase>
@@ -7107,12 +6468,12 @@
     *: "Klarte ikkje lesa «%s»"
   </dest>
   <voice>
-    *: ""
+    *: "Klarte ikkje lesa"
   </voice>
 </phrase>
 <phrase>
   id: LANG_PLUGIN_WRONG_MODEL
-  desc: The plugin is not compatible with the archos model trying to run it
+  desc: The plugin is not compatible with the player model trying to run it
   user: core
   <source>
     *: "Incompatible model"
@@ -7121,7 +6482,7 @@
     *: "Inkompatibel modell"
   </dest>
   <voice>
-    *: ""
+    *: "Inkompatibel modell"
   </voice>
 </phrase>
 <phrase>
@@ -7135,7 +6496,7 @@
     *: "Inkompatibel versjon"
   </dest>
   <voice>
-    *: ""
+    *: "Inkompatibel versjon"
   </voice>
 </phrase>
 <phrase>
@@ -7149,7 +6510,7 @@
     *: "Programmet gav ei feilmelding"
   </dest>
   <voice>
-    *: ""
+    *: "Programmet gav ei feilmelding"
   </voice>
 </phrase>
 <phrase>
@@ -7262,7 +6623,7 @@
     *: "Direkteforsterking"
   </dest>
   <voice>
-    *: none
+    *: "Direkteforsterking"
   </voice>
 </phrase>
 <phrase>
@@ -7276,7 +6637,7 @@
     *: "Kryssforsterking"
   </dest>
   <voice>
-    *: none
+    *: "Kryssforsterking"
   </voice>
 </phrase>
 <phrase>
@@ -7290,7 +6651,7 @@
     *: "Høgfrekvensdemping"
   </dest>
   <voice>
-    *: none
+    *: "Høgfrekvensdemping"
   </voice>
 </phrase>
 <phrase>
@@ -7304,7 +6665,7 @@
     *: "Høgfrekvensgrense"
   </dest>
   <voice>
-    *: none
+    *: "Høgfrekvensgrense"
   </voice>
 </phrase>
 <phrase>
@@ -7457,20 +6818,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CATALOG
-  desc: in onplay menu
-  user: core
-  <source>
-    *: "Playlist Catalogue"
-  </source>
-  <dest>
-    *: "Spelelistekatalog"
-  </dest>
-  <voice>
-    *: "Spelelistekatalog"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SPLIT_MEASURE
   desc: in record timesplit options
   user: core
@@ -7519,20 +6866,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CATALOG_ADD_TO
-  desc: in onplay playlist catalogue submenu
-  user: core
-  <source>
-    *: "Add to Playlist"
-  </source>
-  <dest>
-    *: "Legg til speleliste"
-  </dest>
-  <voice>
-    *: "Legg til speleliste"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_START_NEW_FILE
   desc: in record timesplit options
   user: core
@@ -7567,20 +6900,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_CATALOG_VIEW
-  desc: in onplay playlist catalogue submenu
-  user: core
-  <source>
-    *: "View Catalogue"
-  </source>
-  <dest>
-    *: "Vis katalog"
-  </dest>
-  <voice>
-    *: "Vis katalog"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_CATALOG_NO_DIRECTORY
   desc: error message when playlist catalogue directory doesn't exist
   user: core
@@ -7591,7 +6910,7 @@
     *: "«%s» finst ikkje"
   </dest>
   <voice>
-    *: ""
+    *: "finst ikkje"
   </voice>
 </phrase>
 <phrase>
@@ -7609,40 +6928,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_CHANNEL_STEREO
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    recording: "Stereo"
-  </source>
-  <dest>
-    *: none
-    recording: "Stereo"
-  </dest>
-  <voice>
-    *: none
-    recording: "Stereo"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_CHANNEL_MONO
-  desc: in sound_settings
-  user: core
-  <source>
-    *: none
-    recording: "Mono"
-  </source>
-  <dest>
-    *: none
-    recording: "Mono"
-  </dest>
-  <voice>
-    *: none
-    recording: "Mono"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SYSFONT_EQUALIZER_EDIT_MODE
   desc: in the equalizer settings menu
   user: core
@@ -7650,7 +6935,7 @@
     *: "Edit mode: %s %s"
   </source>
   <dest>
-    *: "Redigeringsmodus: %s"
+    *: "Redigeringsmodus: %s %s"
   </dest>
   <voice>
     *: ""
@@ -7671,169 +6956,17 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_RECORDING_QUALITY
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording_hwcodec: "Quality"
-  </source>
-  <dest>
-    *: none
-    recording_hwcodec: "Kvalitet"
-  </dest>
-  <voice>
-    *: none
-    recording_hwcodec: "Kvalitet"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORDING_FREQUENCY
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Frequency"
-  </source>
-  <dest>
-    *: none
-    recording: "Frekvens"
-  </dest>
-  <voice>
-    *: none
-    recording: "Frekvens"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORDING_SOURCE
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Source"
-  </source>
-  <dest>
-    *: none
-    recording: "Kjelde"
-  </dest>
-  <voice>
-    *: none
-    recording: "Kjelde"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORDING_SRC_MIC
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Int. Mic"
-  </source>
-  <dest>
-    *: none
-    recording: "Intern mikrofon"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORDING_SRC_DIGITAL
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Digital"
-  </source>
-  <dest>
-    *: none
-    recording: "Digital"
-  </dest>
-  <voice>
-    *: none
-    recording: "Digital"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_RECORD_TRIGGER
-  desc: in recording settings_menu
-  user: core
-  <source>
-    *: none
-    recording: "Trigger"
-  </source>
-  <dest>
-    *: none
-    recording: "Utløysar"
-  </dest>
-  <voice>
-    *: none
-    recording: "Utløysar"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_DIRBROWSE_F1
-  desc: in dir browser, F1 button bar text
-  user: core
-  <source>
-    *: none
-    recorder_pad: "Menu"
-  </source>
-  <dest>
-    *: none
-    recorder_pad: "Meny"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_DIRBROWSE_F2
-  desc: in dir browser, F2 button bar text
-  user: core
-  <source>
-    *: none
-    recorder_pad: "Option"
-  </source>
-  <dest>
-    *: none
-    recorder_pad: "Val"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_DIRBROWSE_F3
-  desc: in dir browser, F3 button bar text
-  user: core
-  <source>
-    *: none
-    recorder_pad: "LCD"
-  </source>
-  <dest>
-    *: none
-    recorder_pad: "LCD"
-  </dest>
-  <voice>
-    *: none
-  </voice>
-</phrase>
-<phrase>
   id: LANG_NEVER
   desc: in lcd settings
   user: core
   <source>
-    *: none
-    lcd_sleep: "Never"
+    *: "Never"
   </source>
   <dest>
-    *: none
-    lcd_sleep: "Aldri"
+    *: "Aldri"
   </dest>
   <voice>
-    *: none
-    lcd_sleep: "Aldri"
+    *: "Aldri"
   </voice>
 </phrase>
 <phrase>
@@ -7846,10 +6979,11 @@
   </source>
   <dest>
     *: none
-    agc: "DJ-Set (slow)"
+    agc: "DJ-sett (sein)"
   </dest>
   <voice>
     *: none
+    agc: "D J sett sein"
   </voice>
 </phrase>
 <phrase>
@@ -7862,10 +6996,11 @@
   </source>
   <dest>
     *: none
-    lcd_sleep: "Sov (etter at lyset er av)"
+    lcd_sleep: "Dvale (etter at lyset er av)"
   </dest>
   <voice>
     *: none
+    lcd_sleep: "Dvale etter at lyset er av"
   </voice>
 </phrase>
 <phrase>
@@ -7929,11 +7064,11 @@
   </source>
   <dest>
     *: none
-    remote: "(Vol- : Re-enable)"
+    remote: "(Vol- : Skru på att)"
   </dest>
   <voice>
     *: none
-    remote: "(Vol- : Re-enable)"
+    remote: "Volum skru på att"
   </voice>
 </phrase>
 <phrase>
@@ -7978,10 +7113,10 @@
     *: "Loading... %d%% done (%s)"
   </source>
   <dest>
-    *: "Lastar … %d% % fullført (%s)"
+    *: "Loading... %d%% done (%s)"
   </dest>
   <voice>
-    *: ""
+    *: "Lastar vent ferdig"
   </voice>
 </phrase>
 <phrase>
@@ -8017,15 +7152,16 @@
   desc: in lcd settings
   user: core
   <source>
-    *: none
+    *: "Backlight on Lock"
     hold_button: "Backlight on Hold"
   </source>
   <dest>
-    *: none
+    *: "Skjermlys med låseknappen"
     hold_button: "Lys (med «Hold»-knappen)"
   </dest>
   <voice>
-    *: none
+    *: "Skjermlys med låseknappen"
+    hold_button: "Skjermlys med hold-knappen"
   </voice>
 </phrase>
 <phrase>
@@ -8069,11 +7205,11 @@
   </source>
   <dest>
     *: none
-    radio: "Korea"
+    radio: "~Korea"
   </dest>
   <voice>
     *: none
-    radio: "Korea"
+    radio: "~Korea"
   </voice>
 </phrase>
 <phrase>
@@ -8090,6 +7226,7 @@
   </dest>
   <voice>
     *: none
+    radio: "U S A og Kanada"
   </voice>
 </phrase>
 <phrase>
@@ -8119,11 +7256,11 @@
   </source>
   <dest>
     *: none
-    radio: "Japan"
+    radio: "~Japan"
   </dest>
   <voice>
     *: none
-    radio: "Japan"
+    radio: "~Japan"
   </voice>
 </phrase>
 <phrase>
@@ -8184,10 +7321,11 @@
   </source>
   <dest>
     *: none
-    usb_charging_enable: "Lad batteri ved USB-samband"
+    usb_charging_enable: "Lad batteriet ved USB-samband"
   </dest>
   <voice>
     *: none
+    usb_charging_enable: "Lad batteriet ved U S B samband"
   </voice>
 </phrase>
 <phrase>
@@ -8204,6 +7342,7 @@
   </dest>
   <voice>
     *: none
+    recording: "same som kjelda"
   </voice>
 </phrase>
 <phrase>
@@ -8245,10 +7384,10 @@
     *: "Format"
   </source>
   <dest>
-    *: "Format"
+    *: "~Format"
   </dest>
   <voice>
-    *: "Format"
+    *: "~Format"
   </voice>
 </phrase>
 <phrase>
@@ -8278,11 +7417,11 @@
   </source>
   <dest>
     *: none
-    recording: "Bitrate"
+    recording: "~Bitrate"
   </dest>
   <voice>
     *: none
-    recording: "Bitrate"
+    recording: "~Bitrate"
   </voice>
 </phrase>
 <phrase>
@@ -8375,20 +7514,7 @@
   </dest>
   <voice>
     *: none
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_REPLACE
-  desc: in onplay menu.  Replace the current playlist with a new one.
-  user: core
-  <source>
-    *: "Play Next"
-  </source>
-  <dest>
-    *: "Spel neste"
-  </dest>
-  <voice>
-    *: "Spel neste"
+    recording: "Ingen innstillingar"
   </voice>
 </phrase>
 <phrase>
@@ -8466,16 +7592,16 @@
 </phrase>
 <phrase>
   id: LANG_DITHERING
-  desc: in the sound settings menu
+  desc: in the sound settings and some other menus
   user: core
   <source>
     *: "Dithering"
   </source>
   <dest>
-    *: "Dithering"
+    *: "Utjamning"
   </dest>
   <voice>
-    *: "Dithering"
+    *: "Utjamning"
   </voice>
 </phrase>
 <phrase>
@@ -8539,16 +7665,16 @@
 </phrase>
 <phrase>
   id: LANG_AUDIOSCROBBLER
-  desc: "Last.fm Log" in the playback menu
+  desc: "Last.fm Logger" in Plugin/apps/scrobbler
   user: core
   <source>
-    *: "Last.fm Log"
+    *: "Last.fm Logger"
   </source>
   <dest>
     *: "Last.fm-logg"
   </dest>
   <voice>
-    *: "Last.fm-logg"
+    *: "Last F M logg"
   </voice>
 </phrase>
 <phrase>
@@ -8565,6 +7691,7 @@
   </dest>
   <voice>
     *: none
+    recording: "Starttype"
   </voice>
 </phrase>
 <phrase>
@@ -8785,23 +7912,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_LINE_IN
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Line In"
-  </source>
-  <dest>
-    *: none
-    recording: "Linje inn"
-  </dest>
-  <voice>
-    *: none
-    recording: "Linje inn"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_SCANNING_DISK
   desc: when booting up and rebuilding the cache and calculating free space
   user: core
@@ -8973,14 +8083,12 @@
   user: core
   <source>
     *: "Buffer:"
-    archosplayer: "Buf:"
   </source>
   <dest>
-    *: "Buffer:"
-    archosplayer: "Buf:"
+    *: "~Buffer:"
   </dest>
   <voice>
-    *: ""
+    *: "Buffer"
   </voice>
 </phrase>
 <phrase>
@@ -9037,17 +8145,16 @@
   user: core
   <source>
     *: "PLAY = Yes"
-    archosplayer: "(PLAY/STOP)"
     cowond2*: "MENU, or top-right = Yes"
-    gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Yes"
+    creativezen*,gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Yes"
     iriverh100,iriverh120,iriverh300: "NAVI = Yes"
     mrobe500: "PLAY, POWER, or top-right = Yes"
     vibe500: "OK = Yes"
   </source>
   <dest>
     *: "PLAY = ja"
-    archosplayer: "(PLAY/STOP)"
     cowond2*: "MENU eller topp høgre = ja"
+    creativezen*: "SELECT = ja"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = ja"
     iriverh100,iriverh120,iriverh300: "NAVI = ja"
     mrobe500: "PLAY, POWER eller topp høgre = ja"
@@ -9064,8 +8171,8 @@
   <source>
     *: none
     rtc: "ON = Set"
+    aigoerosq,erosqnative,gogearsa9200,samsungyh*,xduoox3*: "PLAY = Set"
     gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = Set"
-    gogearsa9200,samsungyh*: "PLAY = Set"
     iriverh100,iriverh120,iriverh300: "NAVI = Set"
     mpiohd300: "ENTER = Set"
     mrobe500: "HEART = Set"
@@ -9073,13 +8180,14 @@
   </source>
   <dest>
     *: none
-    rtc: "PÅ = velg"
-    gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = velg"
-    gogearsa9200,samsungyh*: "PLAY = velg"
-    iriverh100,iriverh120,iriverh300: "NAVI = velg"
-    mpiohd300: "ENTER = velg"
-    mrobe500: "HEART = velg"
-    vibe500: "OK = velg"
+    rtc: "PÅ = vel"
+    aigoerosq,erosqnative,xduoox3*: "PLAY = vel"
+    gogearsa9200,samsungyh*: "PLAY = vel"
+    gigabeat*,iaudiom5,iaudiox5,ipod*,iriverh10,iriverh10_5gb,mrobe100,sansac200*,sansaclip*,sansaconnect,sansae200*,sansafuze*: "SELECT = vel"
+    iriverh100,iriverh120,iriverh300: "NAVI = vel"
+    mpiohd300: "ENTER = vel"
+    mrobe500: "HEART = vel"
+    vibe500: "OK = vel"
   </dest>
   <voice>
     *: none
@@ -9091,15 +8199,12 @@
   user: core
   <source>
     *: "Any Other = No"
-    archosplayer: none
   </source>
   <dest>
     *: "Andre = nei"
-    archosplayer: none
   </dest>
   <voice>
     *: ""
-    archosplayer: none
   </voice>
 </phrase>
 <phrase>
@@ -9223,29 +8328,12 @@
   user: core
   <source>
     *: "End of Song List"
-    archosplayer: "End of List"
   </source>
   <dest>
     *: "Slutt på songliste"
-    archosplayer: "Slutt på liste"
   </dest>
   <voice>
     *: "Slutt på songliste"
-    archosplayer: "Slutt på liste"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_GAIN
-  desc: in the equalizer settings menu
-  user: core
-  <source>
-    *: "Gain"
-  </source>
-  <dest>
-    *: "Forsterking"
-  </dest>
-  <voice>
-    *: "Forsterking"
   </voice>
 </phrase>
 <phrase>
@@ -9291,20 +8379,6 @@
   </dest>
   <voice>
     *: "P M"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_SYSFONT_MODE
-  desc: in wps F2 pressed
-  user: core
-  <source>
-    *: "Mode:"
-  </source>
-  <dest>
-    *: "Modus:"
-  </dest>
-  <voice>
-    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -9363,7 +8437,7 @@
     *: "Modus:"
   </dest>
   <voice>
-    *: "Modus:"
+    *: "Modus"
   </voice>
 </phrase>
 <phrase>
@@ -9412,23 +8486,6 @@
   </dest>
   <voice>
     *: "Arbeid"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_HEADPHONE_UNPLUG_RW
-  desc: in pause_phones_menu.
-  user: core
-  <source>
-    *: none
-    headphone_detection: "Duration to Rewind"
-  </source>
-  <dest>
-    *: none
-    headphone_detection: "Kor lenge å spola tilbake"
-  </dest>
-  <voice>
-    *: none
-    headphone_detection: "Kor lenge å spola tilbake"
   </voice>
 </phrase>
 <phrase>
@@ -9522,20 +8579,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_BOOKMARK_CONTEXT_DELETE
-  desc: bookmark context menu, delete this bookmark
-  user: core
-  <source>
-    *: "Delete"
-  </source>
-  <dest>
-    *: "Slett"
-  </dest>
-  <voice>
-    *: "Slett"
-  </voice>
-</phrase>
-<phrase>
   id: VOICE_OCLOCK
   desc: spoken only, for wall clock announce
   user: core
@@ -9546,7 +8589,7 @@
     *: ""
   </dest>
   <voice>
-    *: ""
+    *: "o'clock"
   </voice>
 </phrase>
 <phrase>
@@ -9633,7 +8676,7 @@
     *: ""
   </dest>
   <voice>
-    *: "cuesheet"
+    *: "cue ark"
   </voice>
 </phrase>
 <phrase>
@@ -9665,25 +8708,8 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SYSFONT_CHANNELS
-  desc: in the recording settings
-  user: core
-  <source>
-    *: none
-    recording: "Channels"
-  </source>
-  <dest>
-    *: none
-    recording: "Kanalar"
-  </dest>
-  <voice>
-    *: none
-    recording: "Kanalar"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_PLAYLISTS
-  desc: in the main menu and file view setting
+  desc: in the main menu and Playlist settings menu
   user: core
   <source>
     *: "Playlists"
@@ -9808,23 +8834,6 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_SET_AS_REC_DIR
-  desc: used in the onplay menu to set a recording dir
-  user: core
-  <source>
-    *: none
-    recording: "Set as Recording Directory"
-  </source>
-  <dest>
-    *: none
-    recording: "Bruk som opptaksmappe"
-  </dest>
-  <voice>
-    *: none
-    recording: "Bruk som opptaksmappe"
-  </voice>
-</phrase>
-<phrase>
   id: LANG_REMOTE_WHILE_PLAYING
   desc: in settings_menu()
   user: core
@@ -9834,10 +8843,11 @@
   </source>
   <dest>
     *: none
-    remote: "Browse .rwps files"
+    remote: "Speleskjerm på fjern eining"
   </dest>
   <voice>
     *: none
+    remote: "Speleskjerm på fjern eining"
   </voice>
 </phrase>
 <phrase>
@@ -9877,15 +8887,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bass Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bassgrense"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bassgrense"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bassgrense"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Bassgrense"
   </voice>
 </phrase>
 <phrase>
@@ -10083,15 +9093,15 @@
   user: core
   <source>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Treble Cutoff"
   </source>
   <dest>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Diskantgrense"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Diskantgrense"
   </dest>
   <voice>
     *: none
-    gigabeatfx,ipod6g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Diskantgrense"
+    gigabeatfx,ipod6g,ipodnano3g,ipodnano4g,ipodvideo,mpiohd200,mpiohd300,mrobe100: "Diskantgrense"
   </voice>
 </phrase>
 <phrase>
@@ -10428,7 +9438,7 @@
   </source>
   <dest>
     *: none
-    agc: "AGC"
+    agc: "Automatisk lydforsterking"
   </dest>
   <voice>
     *: none
@@ -10537,5 +9547,7448 @@
   </dest>
   <voice>
     *: "Filstorleik"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHANNEL_LEFTRIGHT
+  desc: in sound_settings
+  user: core
+  <source>
+    *: none
+    recording: "Mono Left + Right"
+  </source>
+  <dest>
+    *: none
+    recording: "Mono venstre + høgre"
+  </dest>
+  <voice>
+    *: none
+    recording: "Mono venstre pluss høgre"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESET_EQUALIZER
+  desc: in the equalizer settings menu
+  user: core
+  <source>
+    *: "Reset EQ"
+  </source>
+  <dest>
+    *: "Nullstill EQ"
+  </dest>
+  <voice>
+    *: "Nullstill E Q"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SINGLE_MODE
+  desc: single mode
+  user: core
+  <source>
+    *: "Single Mode"
+  </source>
+  <dest>
+    *: "Singelmodus"
+  </dest>
+  <voice>
+    *: "Singelmodus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_TITLEALBUM_FROMTAGS
+  desc: track display options
+  user: core
+  <source>
+    *: "Title & Album from ID3 tags"
+  </source>
+  <dest>
+    *: "Tittel og album frå ID3-merkelappar"
+  </dest>
+  <voice>
+    *: "Tittel og album frå I D 3"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_TITLE_FROMTAGS
+  desc: track display options
+  user: core
+  <source>
+    *: "Title from ID3 tags"
+  </source>
+  <dest>
+    *: "Tittel frå ID3-merkelappar"
+  </dest>
+  <voice>
+    *: "Tittel frå I D 3"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RANDOM_SHUFFLE_RANDOM_SELECTIVE_SONGS_SUMMARY
+  desc: a summary splash screen that appear on the database browser when you try to create a playlist from the database browser that exceeds your system limit
+  user: core
+  <source>
+    *: "Selection too big, %d random tracks will be selected"
+  </source>
+  <dest>
+    *: "For stort utval, det blir valt %d tilfeldige spor"
+  </dest>
+  <voice>
+    *: "For stort utval, færre tilfeldige spor blir valde"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_SPECIAL_CHARACTER
+  desc: Special character (japanese, accents, etc)
+  user: core
+  <source>
+    *: "Special character"
+  </source>
+  <dest>
+    *: "Spesialteikn"
+  </dest>
+  <voice>
+    *: "Spesialteikn"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ID3_ALBUMARTISTS
+  desc: in tag viewer
+  user: core
+  <source>
+    *: "Album Artists"
+  </source>
+  <dest>
+    *: "Albumartistar"
+  </dest>
+  <voice>
+    *: "Albumartistar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_CURRENT_TO_FAVES
+  desc:
+  user: core
+  <source>
+    *: "Add Current to Shortcuts"
+  </source>
+  <dest>
+    *: "Legg til denne i snarvegar"
+  </dest>
+  <voice>
+    *: "Legg til denne i snarvegar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TALK_MIXER_LEVEL
+  desc: Relative volume of voice prompts
+  user: core
+  <source>
+    *: "Voice Prompt Volume"
+  </source>
+  <dest>
+    *: "Stemmevolum"
+  </dest>
+  <voice>
+    *: "Stemmevolum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DEADZONE
+  desc: touchpad deadzone setting
+  user: core
+  <source>
+    *: none
+    sansafuzeplus: "Touchpad Dead Zone"
+  </source>
+  <dest>
+    *: none
+    sansafuzeplus: "Daudsone for styrefelt"
+  </dest>
+  <voice>
+    *: none
+    sansafuzeplus: "Daudsone for styrefelt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SERIAL_BITRATE
+  desc: in system settings menu
+  user: core
+  <source>
+    *: none
+    serial_port: "Serial Bitrate"
+  </source>
+  <dest>
+    *: none
+    serial_port: "Seriell bitrate"
+  </dest>
+  <voice>
+    *: none
+    serial_port: "Seriell bitrate"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SERIAL_BITRATE_AUTO
+  desc: in system settings menu
+  user: core
+  <source>
+    *: none
+    serial_port: "Auto"
+  </source>
+  <dest>
+    *: none
+    serial_port: "~Auto"
+  </dest>
+  <voice>
+    *: none
+    serial_port: "~Auto"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SERIAL_BITRATE_9600
+  desc: in system settings menu
+  user: core
+  <source>
+    *: none
+    serial_port: "9600"
+  </source>
+  <dest>
+    *: none
+    serial_port: "~9600"
+  </dest>
+  <voice>
+    *: none
+    serial_port: "~9600"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SERIAL_BITRATE_19200
+  desc: in system settings menu
+  user: core
+  <source>
+    *: none
+    serial_port: "19200"
+  </source>
+  <dest>
+    *: none
+    serial_port: "~19200"
+  </dest>
+  <voice>
+    *: none
+    serial_port: "~19200"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SERIAL_BITRATE_38400
+  desc: in system settings menu
+  user: core
+  <source>
+    *: none
+    serial_port: "38400"
+  </source>
+  <dest>
+    *: none
+    serial_port: "~38400"
+  </dest>
+  <voice>
+    *: none
+    serial_port: "~38400"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SERIAL_BITRATE_57600
+  desc: in system settings menu
+  user: core
+  <source>
+    *: none
+    serial_port: "57600"
+  </source>
+  <dest>
+    *: none
+    serial_port: "~57600"
+  </dest>
+  <voice>
+    *: none
+    serial_port: "~57600"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECORDING_MONO_MODE
+  desc: in the recording settings
+  user: core
+  <source>
+    *: none
+    recording: "Mono mode"
+  </source>
+  <dest>
+    *: none
+    recording: "Monomodus"
+  </dest>
+  <voice>
+    *: none
+    recording: "Monomodus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH_RESULTS
+  desc: title for the list of results displayed after searching in a playlist
+  user: core
+  <source>
+    *: "Search Results"
+  </source>
+  <dest>
+    *: "Søkjeresultat"
+  </dest>
+  <voice>
+    *: "Søkjeresultat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LEFT
+  desc: Generic use of 'left'
+  user: core
+  <source>
+    *: "Left"
+  </source>
+  <dest>
+    *: "Venstre"
+  </dest>
+  <voice>
+    *: "Venstre"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RIGHT
+  desc: Generic use of 'right'
+  user: core
+  <source>
+    *: "Right"
+  </source>
+  <dest>
+    *: "Høgre"
+  </dest>
+  <voice>
+    *: "Høgre"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESET_SETTING
+  desc: used in the settings context menu
+  user: core
+  <source>
+    *: "Reset Setting"
+  </source>
+  <dest>
+    *: "Nullstill"
+  </dest>
+  <voice>
+    *: "Nullstill"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LEFT_QS_ITEM
+  desc: used for the submenu name for the quickscreen items
+  user: core
+  <source>
+    *: none
+    quickscreen: "Set as Left Quickscreen Item"
+  </source>
+  <dest>
+    *: none
+    quickscreen: "Bruk som venstre snøggskjermelement"
+  </dest>
+  <voice>
+    *: none
+    quickscreen: "Bruk som venstre snøggskjermelement"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RIGHT_QS_ITEM
+  desc: used for the submenu name for the quickscreen items
+  user: core
+  <source>
+    *: none
+    quickscreen: "Set as Right Quickscreen Item"
+  </source>
+  <dest>
+    *: none
+    quickscreen: "Bruk som høgre snøggskjermelement"
+  </dest>
+  <voice>
+    *: none
+    quickscreen: "Bruk som høgre snøggskjermelement"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BOTTOM_QS_ITEM
+  desc: used for the submenu name for the quickscreen items
+  user: core
+  <source>
+    *: none
+    quickscreen: "Set as Bottom Quickscreen Item"
+  </source>
+  <dest>
+    *: none
+    quickscreen: "Bruk som nedre snøggskjermelement"
+  </dest>
+  <voice>
+    *: none
+    quickscreen: "Bruk som nedre snøggskjermelement"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CREDITS
+  desc: in the Main Menu -> System screen
+  user: core
+  <source>
+    *: "Credits"
+  </source>
+  <dest>
+    *: "Bidragsytarar"
+  </dest>
+  <voice>
+    *: "Bidragsytarar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_INTERPRET_NUMBERS
+  desc: in Settings -> File view
+  user: core
+  <source>
+    *: "Interpret numbers when sorting"
+  </source>
+  <dest>
+    *: "Ved sortering, tolk tal som"
+  </dest>
+  <voice>
+    *: "Ved sortering tolk tal som"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_INTERPRET_AS_DIGIT
+  desc: in Settings -> File view
+  user: core
+  <source>
+    *: "As digits"
+  </source>
+  <dest>
+    *: "Siffer"
+  </dest>
+  <voice>
+    *: "Siffer"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_INTERPRET_AS_NUMBERS
+  desc: in Settings -> File view
+  user: core
+  <source>
+    *: "As whole numbers"
+  </source>
+  <dest>
+    *: "Heiltal"
+  </dest>
+  <voice>
+    *: "Heiltal"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ENABLE_SPEAKER
+  desc: in Settings -> Sound Settings
+  user: core
+  <source>
+    *: none
+    speaker: "Enable Speaker"
+  </source>
+  <dest>
+    *: none
+    speaker: "Skru på høgtalar"
+  </dest>
+  <voice>
+    *: none
+    speaker: "Skru på høgtalar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TOUCHSCREEN_MODE
+  desc: in Settings -> General -> Display -> Touchscreen Settings
+  user: core
+  <source>
+    *: none
+    touchscreen: "Touchscreen Mode"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "Peikeskjermmodus"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "Peikeskjermmodus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TOUCHSCREEN_GRID
+  desc: in Settings -> General -> Display -> Touchscreen Settings
+  user: core
+  <source>
+    *: none
+    touchscreen: "3x3 Grid"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "3x3-gitter"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "3 gonger 3 gitter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TOUCHSCREEN_POINT
+  desc: in Settings -> General -> Display -> Touchscreen Settings
+  user: core
+  <source>
+    *: none
+    touchscreen: "Absolute Point"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "Absolutt punkt"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "Absolutt punkt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PREVENT_SKIPPING
+  desc: in Settings -> Playback Settings
+  user: core
+  <source>
+    *: "Prevent Track Skipping"
+  </source>
+  <dest>
+    *: "Hindra sporhopping"
+  </dest>
+  <voice>
+    *: "Hindra sporhopping"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TIMESTRETCH
+  desc: timestretch enable
+  user: core
+  <source>
+    *: "Timestretch"
+  </source>
+  <dest>
+    *: "Strekk tid"
+  </dest>
+  <voice>
+    *: "Strekk tid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SPEED
+  desc: timestretch speed
+  user: core
+  <source>
+    *: "Speed"
+  </source>
+  <dest>
+    *: "Fart"
+  </dest>
+  <voice>
+    *: "Fart"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TOUCHSCREEN_SETTINGS
+  desc: in Settings -> General -> Display menu
+  user: core
+  <source>
+    *: none
+    touchscreen: "Touchscreen Settings"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "Peikeskjerminnstillingar"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "Peikeskjerminnstillingar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TOUCHSCREEN_CALIBRATE
+  desc: in Settings -> General -> Display -> Touchscreen Settings
+  user: core
+  <source>
+    *: none
+    touchscreen: "Calibrate"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "Kalibrer"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "Kalibrer"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TOUCHSCREEN_RESET_CALIBRATION
+  desc: in Settings -> General -> Display -> Touchscreen Settings
+  user: core
+  <source>
+    *: none
+    touchscreen: "Reset Calibration"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "Nullstill kailbrering"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "Nullstill kalibrering"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_STATUSBAR_TOP
+  desc: in Settings -> General -> Display -> statusbar
+  user: core
+  <source>
+    *: "Top"
+  </source>
+  <dest>
+    *: "Toppen"
+  </dest>
+  <voice>
+    *: "Toppen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_STATUSBAR_BOTTOM
+  desc: in Settings -> General -> Display -> statusbar
+  user: core
+  <source>
+    *: "Bottom"
+  </source>
+  <dest>
+    *: "Botnen"
+  </dest>
+  <voice>
+    *: "Botnen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMOTE_STATUSBAR
+  desc: in Settings -> General -> Display -> statusbar
+  user: core
+  <source>
+    *: none
+    remote: "Remote Statusbar"
+  </source>
+  <dest>
+    *: none
+    remote: "Fjernstatusfelt"
+  </dest>
+  <voice>
+    *: none
+    remote: "Fjernstatusfelt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEMITONE
+  desc:
+  user: core
+  <source>
+    *: none
+    pitchscreen: "Semitone"
+  </source>
+  <dest>
+    *: none
+    pitchscreen: "Halvtone"
+  </dest>
+  <voice>
+    *: none
+    pitchscreen: "Halvtone"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_STRETCH_LIMIT
+  desc: "limit" in pitch screen
+  user: core
+  <source>
+    *: none
+    pitchscreen: "Limit"
+  </source>
+  <dest>
+    *: none
+    pitchscreen: "Grense"
+  </dest>
+  <voice>
+    *: none
+    pitchscreen: "Grense"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_RATE
+  desc: "rate" in pitch screen
+  user: core
+  <source>
+    *: none
+    pitchscreen: "Rate"
+  </source>
+  <dest>
+    *: none
+    pitchscreen: "~Rate"
+  </dest>
+  <voice>
+    *: none
+    pitchscreen: "~Rate"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_KEYPAD_MODE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usb_hid: "USB Keypad Mode"
+  </source>
+  <dest>
+    *: none
+    usb_hid: "USB-tastaturmodus"
+  </dest>
+  <voice>
+    *: none
+    usb_hid: "U S B tastaturmodus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MULTIMEDIA_MODE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usb_hid: "Multimedia"
+  </source>
+  <dest>
+    *: none
+    usb_hid: "~Multimedia"
+  </dest>
+  <voice>
+    *: none
+    usb_hid: "~Multimedia"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PRESENTATION_MODE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usb_hid: "Presentation"
+  </source>
+  <dest>
+    *: none
+    usb_hid: "Presentasjon"
+  </dest>
+  <voice>
+    *: none
+    usb_hid: "Presentasjon"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BROWSER_MODE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usb_hid: "Browser"
+  </source>
+  <dest>
+    *: none
+    usb_hid: "Lesar"
+  </dest>
+  <voice>
+    *: none
+    usb_hid: "Lesar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MOUSE_MODE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usb_hid: "Mouse"
+  </source>
+  <dest>
+    *: none
+    usb_hid: "Mus"
+  </dest>
+  <voice>
+    *: none
+    usb_hid: "Mus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC"
+  </source>
+  <dest>
+    *: none
+    usbdac: "~USB-DAC"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "U S B digital lydomformar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_USB_CHARGE_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Charge-Only Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "While In USB Charge-Only Mode"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "While In USB Charge-Only Mode"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WHILE_MASS_STORAGE_USB_ONLY
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usbdac: "While In USB Mass-Storage Mode"
+  </source>
+  <dest>
+    *: none
+    usbdac: "Når USB-masselagringsmodus er i bruk"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "Når U S B masselagringsmodus er i bruk"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_DAC_ACTIVE
+  desc: for splash
+  user: core
+  <source>
+    *: none
+    usbdac: "USB-DAC Active"
+  </source>
+  <dest>
+    *: none
+    usbdac: "USB-DAC aktiv"
+  </dest>
+  <voice>
+    *: none
+    usbdac: "U S B digital lydomformar aktiv"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SCROLLBAR_WIDTH
+  desc: in Settings -> General -> Display -> Status-/Scrollbar
+  user: core
+  <source>
+    *: "Scroll Bar Width"
+  </source>
+  <dest>
+    *: "Breidd på rullefeltet"
+  </dest>
+  <voice>
+    *: "Breidd på rullefeltet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Compressor"
+  </source>
+  <dest>
+    *: "Kompressor"
+  </dest>
+  <voice>
+    *: "Kompressor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TOP_QS_ITEM
+  desc: used for the submenu name for the quickscreen items
+  user: core
+  <source>
+    *: none
+    quickscreen: "Set as Top Quickscreen Item"
+  </source>
+  <dest>
+    *: none
+    quickscreen: "Bruk som øvre snøggskjermelement"
+  </dest>
+  <voice>
+    *: none
+    quickscreen: "Bruk som øvre snøggskjermelement"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FM_ITALY
+  desc: fm region Italy
+  user: core
+  <source>
+    *: none
+    radio: "Italy"
+  </source>
+  <dest>
+    *: none
+    radio: "Italia"
+  </dest>
+  <voice>
+    *: none
+    radio: "Italia"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FM_OTHER
+  desc: Catch-all FM region. Select if none of the others work
+  user: core
+  <source>
+    *: none
+    radio: "Other"
+  </source>
+  <dest>
+    *: none
+    radio: "Andre"
+  </dest>
+  <voice>
+    *: none
+    radio: "Andre"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_THRESHOLD
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Threshold"
+  </source>
+  <dest>
+    *: "Terskel"
+  </dest>
+  <voice>
+    *: "Terskel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_RATIO
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Ratio"
+  </source>
+  <dest>
+    *: "Rate"
+  </dest>
+  <voice>
+    *: "Rate"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_RATIO_2
+  desc: in sound settings
+  user: core
+  <source>
+    *: "2:1"
+  </source>
+  <dest>
+    *: "~2:1"
+  </dest>
+  <voice>
+    *: "2 til 1"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_RATIO_4
+  desc: in sound settings
+  user: core
+  <source>
+    *: "4:1"
+  </source>
+  <dest>
+    *: "~4:1"
+  </dest>
+  <voice>
+    *: "4 til 1"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_RATIO_6
+  desc: in sound settings
+  user: core
+  <source>
+    *: "6:1"
+  </source>
+  <dest>
+    *: "~6:1"
+  </dest>
+  <voice>
+    *: "6 til 1"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_RATIO_10
+  desc: in sound settings
+  user: core
+  <source>
+    *: "10:1"
+  </source>
+  <dest>
+    *: "~10:1"
+  </dest>
+  <voice>
+    *: "10 til 1"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_RATIO_LIMIT
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Limit"
+  </source>
+  <dest>
+    *: "Avgrens"
+  </dest>
+  <voice>
+    *: "Avgrens"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_GAIN
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Makeup Gain"
+  </source>
+  <dest>
+    *: "Kompensasjonsvolum"
+  </dest>
+  <voice>
+    *: "Kompensasjonsvolum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AUTO
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Auto"
+  </source>
+  <dest>
+    *: "~Auto"
+  </dest>
+  <voice>
+    *: "~Auto"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_KNEE
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Knee"
+  </source>
+  <dest>
+    *: "Kne"
+  </dest>
+  <voice>
+    *: "Kne"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_HARD_KNEE
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Hard Knee"
+  </source>
+  <dest>
+    *: "Hardt kne"
+  </dest>
+  <voice>
+    *: "Hardt kne"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_SOFT_KNEE
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Soft Knee"
+  </source>
+  <dest>
+    *: "Mjukt kne"
+  </dest>
+  <voice>
+    *: "Mjukt kne"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_ATTACK
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Attack Time"
+  </source>
+  <dest>
+    *: "Starttid"
+  </dest>
+  <voice>
+    *: "Starttid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COMPRESSOR_RELEASE
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Release Time"
+  </source>
+  <dest>
+    *: "Slepptid"
+  </dest>
+  <voice>
+    *: "Slepptid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SKIP_OUTRO
+  desc: skipping to the 5 seconds before the end of a track
+  user: core
+  <source>
+    *: "Skip to Outro"
+  </source>
+  <dest>
+    *: "Hopp til avslutninga"
+  </dest>
+  <voice>
+    *: "Hopp til avslutninga"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_EXT_SBS
+  desc: spoken only, for file extension
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "statusfelt-drakt"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_EXT_RSBS
+  desc: spoken only, for file extension
+  user: core
+  <source>
+    *: none
+    remote: ""
+  </source>
+  <dest>
+    *: none
+    remote: ""
+  </dest>
+  <voice>
+    *: none
+    remote: "fjern statusfelt-drakt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_HID
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    usb_hid: "USB HID"
+  </source>
+  <dest>
+    *: none
+    usb_hid: "~USB HID"
+  </dest>
+  <voice>
+    *: none
+    usb_hid: "USB grensesnitteining"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_QUEUE_LAST_SHUFFLED
+  desc: in onplay menu.  queue a playlist randomly at end of dynamic playlist
+  user: core
+  <source>
+    *: "Queue Last Shuffled"
+  </source>
+  <dest>
+    *: "Set siste tilfeldige i kø"
+  </dest>
+  <voice>
+    *: "Set siste tilfeldige i kø"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MORSE_INPUT
+  desc: in Settings -> System
+  user: core
+  <source>
+    *: none
+    morse_input: "Use Morse Code Input"
+  </source>
+  <dest>
+    *: none
+    morse_input: "Bruk morse-innputt"
+  </dest>
+  <voice>
+    *: none
+    morse_input: "Bruk morse-innputt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AUTOTRACKSKIP
+  desc: in crossfade settings
+  user: core
+  <source>
+    *: none
+    crossfade: "Automatic Track Change Only"
+  </source>
+  <dest>
+    *: none
+    crossfade: "Berre automatisk sporbyte"
+  </dest>
+  <voice>
+    *: none
+    crossfade: "Berre automatisk sporbyte"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEXT_TRACK
+  desc: Shown in WPS
+  user: core
+  <source>
+    *: "Next Track:"
+  </source>
+  <dest>
+    *: "Neste spor:"
+  </dest>
+  <voice>
+    *: "Neste spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEXT
+  desc: Shown in WPS (short form of Next Track)
+  user: core
+  <source>
+    *: "Next:"
+  </source>
+  <dest>
+    *: "Neste:"
+  </dest>
+  <voice>
+    *: "Neste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_OF
+  desc: Shown in WPS: X of Y (tracks)
+  user: core
+  <source>
+    *: "of"
+  </source>
+  <dest>
+    *: "av"
+  </dest>
+  <voice>
+    *: "av"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISC
+  desc: Shown in WPS (for multidisc albums)
+  user: core
+  <source>
+    *: "Disc"
+  </source>
+  <dest>
+    *: "Disk"
+  </dest>
+  <voice>
+    *: "Disk"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BASE_SKIN
+  desc: browse for the base skin in theme settings
+  user: core
+  <source>
+    *: "Base Skin"
+  </source>
+  <dest>
+    *: "Grunndrakt"
+  </dest>
+  <voice>
+    *: "Grunndrakt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMOTE_BASE_SKIN
+  desc: browse for the base skin in theme settings
+  user: core
+  <source>
+    *: "Remote Base Skin"
+  </source>
+  <dest>
+    *: "Fjern grunndrakt"
+  </dest>
+  <voice>
+    *: "Fjern grunndrakt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MAIN_SCREEN
+  desc: in the main menu
+  user: core
+  <source>
+    *: none
+    remote: "Main Screen"
+  </source>
+  <dest>
+    *: none
+    remote: "Hovudskjerm"
+  </dest>
+  <voice>
+    *: none
+    remote: "Hovudskjerm"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMOTE_SCREEN
+  desc: in the main menu
+  user: core
+  <source>
+    *: none
+    remote: "Remote Screen"
+  </source>
+  <dest>
+    *: none
+    remote: "Fjernskjerm"
+  </dest>
+  <voice>
+    *: none
+    remote: "Fjernskjerm"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTOGRAM_INTERVAL
+  desc: in record settings menu
+  user: core
+  <source>
+    *: none
+    histogram: "Histogram interval"
+  </source>
+  <dest>
+    *: none
+    histogram: "Histogramintervall"
+  </dest>
+  <voice>
+    *: none
+    histogram: "Histogramintervall"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HOTKEY
+  desc: hotkey menu
+  user: core
+  <source>
+    *: none
+    hotkey: "Hotkey"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Snøggtast"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Snøggtast"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HOTKEY_WPS
+  desc: hotkey menu
+  user: core
+  <source>
+    *: none
+    hotkey: "WPS Hotkey"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Speleskjerm-snøggtast"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Speleskjermsnøggtast"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HOTKEY_FILE_BROWSER
+  desc: hotkey menu
+  user: core
+  <source>
+    *: none
+    hotkey: "File Browser Hotkey"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Filhandterar-snøggtast"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Filhandterarsnøggtast"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESUME_REWIND
+  desc: in playback settings menu
+  user: core
+  <source>
+    *: "Rewind Before Resume"
+  </source>
+  <dest>
+    *: "Spol tilbake før vidarespeling"
+  </dest>
+  <voice>
+    *: "Spol tilbake før vidarespeling"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMOTE_RADIOSCREEN
+  desc: in the theme menu
+  user: core
+  <source>
+    *: none
+    radio_remote: "Remote Radio Screen"
+  </source>
+  <dest>
+    *: none
+    radio_remote: "Fjernradioskjerm"
+  </dest>
+  <voice>
+    *: none
+    radio_remote: "Fjernradioskjerm"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_EXT_FMS
+  desc: spoken only, for file extension
+  user: core
+  <source>
+    *: none
+    radio: ""
+  </source>
+  <dest>
+    *: none
+    radio: ""
+  </dest>
+  <voice>
+    *: none
+    radio: "radioskjermdrakt"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_EXT_RFMS
+  desc: spoken only, for file extension
+  user: core
+  <source>
+    *: none
+    radio_remote: ""
+  </source>
+  <dest>
+    *: none
+    radio_remote: ""
+  </dest>
+  <voice>
+    *: none
+    radio_remote: "drakt for fjernradioskjerm"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FM_STATION_HEADER
+  desc: in radio screen
+  user: core
+  <source>
+    *: none
+    radio: "Station:"
+  </source>
+  <dest>
+    *: none
+    radio: "Stasjon:"
+  </dest>
+  <voice>
+    *: none
+    radio: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HW_EQ_TONE_CONTROLS
+  desc: in sound_menu, hardware equalizer tone controls
+  user: core
+  <source>
+    *: none
+    gigabeats,samsungypr1: "Tone Controls"
+  </source>
+  <dest>
+    *: none
+    gigabeats,samsungypr1: "Tonekontrollar"
+  </dest>
+  <voice>
+    *: none
+    gigabeats,samsungypr1: "Tonekontrollar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HW_EQ_TONE_CONTROLS_ADVANCED
+  desc: in sound_menu, advanced settings for hardware equalizer tone controls
+  user: core
+  <source>
+    *: none
+    gigabeats,samsungypr1: "Advanced Tone Control Settings"
+  </source>
+  <dest>
+    *: none
+    gigabeats,samsungypr1: "Avanserte tonekontrollar"
+  </dest>
+  <voice>
+    *: none
+    gigabeats,samsungypr1: "Avanserte tonekontrollar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HW_EQ_GAIN
+  desc: in sound_menu, hardware equalizer tone controls filter gain
+  user: core
+  <source>
+    *: none
+    gigabeats,samsungypr1: "Band %d Gain"
+  </source>
+  <dest>
+    *: none
+    gigabeats,samsungypr1: "Band %d volum"
+  </dest>
+  <voice>
+    *: none
+    gigabeats,samsungypr1: "Bandvolum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HW_EQ_FREQUENCY
+  desc: in sound_menu, hardware equalizer tone controls shelf filter cutoff frequency
+  user: core
+  <source>
+    *: none
+    gigabeats,samsungypr1: "Band %d Frequency"
+  </source>
+  <dest>
+    *: none
+    gigabeats,samsungypr1: "Band %d frekvens"
+  </dest>
+  <voice>
+    *: none
+    gigabeats,samsungypr1: "Bandfrekvens"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HW_EQ_WIDTH
+  desc: in sound_menu, hardware equalizer tone controls peak bandwith setting
+  user: core
+  <source>
+    *: none
+    gigabeats,samsungypr1: "Band %d Width"
+  </source>
+  <dest>
+    *: none
+    gigabeats,samsungypr1: "Band %d breidd"
+  </dest>
+  <voice>
+    *: none
+    gigabeats,samsungypr1: "Bandbreidd"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HW_EQ_WIDTH_NARROW
+  desc: in sound_menu, hardware equalizer tone controls narrow bandwith setting
+  user: core
+  <source>
+    *: none
+    gigabeats,samsungypr1: "Narrow"
+  </source>
+  <dest>
+    *: none
+    gigabeats,samsungypr1: "Smal"
+  </dest>
+  <voice>
+    *: none
+    gigabeats,samsungypr1: "Smal"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HW_EQ_WIDTH_WIDE
+  desc: in sound_menu, hardware equalizer tone controls wide bandwidth setting
+  user: core
+  <source>
+    *: none
+    gigabeats,samsungypr1: "Wide"
+  </source>
+  <dest>
+    *: none
+    gigabeats,samsungypr1: "Brei"
+  </dest>
+  <voice>
+    *: none
+    gigabeats,samsungypr1: "Brei"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DEPTH_3D
+  desc: in sound_menu, amount of 3D enhancement effect
+  user: core
+  <source>
+    *: none
+    depth_3d: "3-D Enhancement"
+  </source>
+  <dest>
+    *: none
+    depth_3d: "3D-utviding"
+  </dest>
+  <voice>
+    *: none
+    depth_3d: "3 D utviding"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TAGNAVI_UNTAGGED
+  desc: "[untagged]" entry in tag browser
+  user: core
+  <source>
+    *: "[Untagged]"
+  </source>
+  <dest>
+    *: "[Umerka]"
+  </dest>
+  <voice>
+    *: "Umerka"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RADIOSCREEN
+  desc: in the theme menu
+  user: core
+  <source>
+    *: none
+    radio: "Radio Screen"
+  </source>
+  <dest>
+    *: none
+    radio: "Radioskjerm"
+  </dest>
+  <voice>
+    *: none
+    radio: "Radioskjerm"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ID3_COMPOSER
+  desc: in tag viewer
+  user: core
+  <source>
+    *: "Composer"
+  </source>
+  <dest>
+    *: "Komponist"
+  </dest>
+  <voice>
+    *: "Komponist"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FORCE
+  desc: alternative to yes/no for tristate settings
+  user: core
+  <source>
+    *: "Force"
+  </source>
+  <dest>
+    *: "Tving"
+  </dest>
+  <voice>
+    *: "Tving"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ONPLAY_PICTUREFLOW
+  desc: Onplay pictureflow
+  user: core
+  <source>
+    *: "PictureFlow"
+  </source>
+  <dest>
+    *: "Biletflyt"
+  </dest>
+  <voice>
+    *: "Opna biletflyt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KBD_OK
+  desc: in keyboard
+  user: core
+  <source>
+    *: none
+    touchscreen: "OK"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "~OK"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "~OK"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KBD_DELETE
+  desc: in keyboard
+  user: core
+  <source>
+    *: none
+    touchscreen: "Del"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "~Del"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "~Del"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KBD_CANCEL
+  desc: in keyboard
+  user: core
+  <source>
+    *: none
+    touchscreen: "Cancel"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "Avbryt"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "Avbryt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BOOKMARK_SETTINGS_AUTOUPDATE
+  desc: prompt for user to decide whether to update bookmarks
+  user: core
+  <source>
+    *: "Update on Stop"
+  </source>
+  <dest>
+    *: "Oppdater ved stopp"
+  </dest>
+  <voice>
+    *: "Oppdater ved stopp"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESET_START_DIR
+  desc: reset the browser start directory
+  user: core
+  <source>
+    *: "Start File Browser at /"
+  </source>
+  <dest>
+    *: "Start fillesaren på /"
+  </dest>
+  <voice>
+    *: "Start fillesaren i rotmappa"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FM_RSSI
+  desc: Signal strength of a received FM station
+  user: core
+  <source>
+    *: none
+    radio: "Signal strength:"
+  </source>
+  <dest>
+    *: none
+    radio: "Signalstyrke:"
+  </dest>
+  <voice>
+    *: none
+    radio: "Signalstyrke"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AUTORESUME
+  desc: resume settings menu
+  user: core
+  <source>
+    *: "Automatic Resume"
+  </source>
+  <dest>
+    *: "Automatisk framhald"
+  </dest>
+  <voice>
+    *: "Automatisk framhald"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AUTORESUME_AUTOMATIC
+  desc: resume on automatic track change
+  user: core
+  <source>
+    *: "Resume on automatic track change"
+  </source>
+  <dest>
+    *: "Hald fram automatisk ved sporbyte"
+  </dest>
+  <voice>
+    *: "Hald fram automatisk ved sporbyte"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AUTORESUME_CUSTOM
+  desc: enable customization of resume on automatic track change
+  user: core
+  <source>
+    *: "In custom directories only"
+  </source>
+  <dest>
+    *: "Berre i eigne mapper"
+  </dest>
+  <voice>
+    *: "Berre i eigne mapper"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PAUSE_REWIND
+  desc: Seconds to rewind when rewind on pause is enabled.
+  user: core
+  <source>
+    *: "Rewind on Pause"
+  </source>
+  <dest>
+    *: "Spol tilbake ved pause"
+  </dest>
+  <voice>
+    *: "Spol tilbake ved pause"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESET_PLAYLISTCAT_DIR
+  desc:
+  user: core
+  <source>
+    *: "Reset Playlist Catalogue Directory"
+  </source>
+  <dest>
+    *: "Nullstill spelelistekatalogmappa"
+  </dest>
+  <voice>
+    *: "Nullstill spelelistekatalogmappa"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CURRENT_PLAYLIST
+  desc: Used when you need to say playlist, also voiced
+  user: core
+  <source>
+    *: "Current Playlist"
+  </source>
+  <dest>
+    *: "Noverande spelelister"
+  </dest>
+  <voice>
+    *: "Noverande spelelister"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAVE_CHANGES
+  desc: When you try to exit screens to confirm save
+  user: core
+  <source>
+    *: "Save Changes?"
+  </source>
+  <dest>
+    *: "Lagre endringar?"
+  </dest>
+  <voice>
+    *: "Lagre endringar?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_SKIP_FIRST_DRIVE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    multidrive_usb: "USB Hide Internal Drive"
+  </source>
+  <dest>
+    *: none
+    multidrive_usb: "USB gøym intern disk"
+  </dest>
+  <voice>
+    *: none
+    multidrive_usb: "U S B gøym intern disk"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LIST_LINE_PADDING
+  desc: list padding, in display settings
+  user: core
+  <source>
+    *: none
+    touchscreen: "Line Padding in Lists"
+  </source>
+  <dest>
+    *: none
+    touchscreen: "Mellomrom i lister"
+  </dest>
+  <voice>
+    *: none
+    touchscreen: "Mellomrom i lister"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SLEEP_TIMER_DURATION
+  desc: default sleep timer duration in minutes
+  user: core
+  <source>
+    *: "Default Sleep Timer Duration"
+  </source>
+  <dest>
+    *: "Standardnedteljing for dvalefunksjon"
+  </dest>
+  <voice>
+    *: "Standardnedteljing for dvalefunksjon"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SLEEP_TIMER_ON_POWER_UP
+  desc: whether sleep timer starts on power up
+  user: core
+  <source>
+    *: "Start Sleep Timer on Boot"
+  </source>
+  <dest>
+    *: "Start dvalenedteljing ved oppstart"
+  </dest>
+  <voice>
+    *: "Start dvalenedteljing ved oppstart"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SLEEP_TIMER_CANCEL_CURRENT
+  desc: shown instead of sleep timer when it's running
+  user: core
+  <source>
+    *: "Cancel Sleep Timer"
+  </source>
+  <dest>
+    *: "Avbryt dvalenedteljinga"
+  </dest>
+  <voice>
+    *: "Avbryt dvalenedteljinga"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LIST_SEPARATOR
+  desc: line between lines in lists
+  user: core
+  <source>
+    *: "Line Separator"
+  </source>
+  <dest>
+    *: "Linedeling"
+  </dest>
+  <voice>
+    *: "Linedeling"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LIST_SEPARATOR_COLOR
+  desc: line between lines in lists
+  user: core
+  <source>
+    *: "Line Separator Colour"
+  </source>
+  <dest>
+    *: "Farge på linedeling"
+  </dest>
+  <voice>
+    *: "Farge på linedeling"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHORTCUTS
+  desc: Title in the shortcuts menu
+  user: core
+  <source>
+    *: "Shortcuts"
+  </source>
+  <dest>
+    *: "Snarvegar"
+  </dest>
+  <voice>
+    *: "Snarvegar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEYCLICK_SOFTWARE
+  desc: in keyclick settings menu
+  user: core
+  <source>
+    *: none
+    hardware_click: "Headphone Keyclick"
+  </source>
+  <dest>
+    *: none
+    hardware_click: "Klikkelyd i øyretelefonar"
+  </dest>
+  <voice>
+    *: none
+    hardware_click: "Klikkelyd i øyretelefonar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEYCLICK_HARDWARE
+  desc: in keyclick settings menu
+  user: core
+  <source>
+    *: none
+    hardware_click: "Speaker Keyclick"
+  </source>
+  <dest>
+    *: none
+    hardware_click: "Klikkelyd i høgtalar"
+  </dest>
+  <voice>
+    *: none
+    hardware_click: "Klikkelydi høgtalar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GLYPHS
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "Glyphs To Cache"
+  </source>
+  <dest>
+    *: "Teikn å mellomlagra"
+  </dest>
+  <voice>
+    *: "Teikn å mellomlagra"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_STARTUP_SHUTDOWN
+  desc: in the general settings menu
+  user: core
+  <source>
+    *: "Startup/Shutdown"
+  </source>
+  <dest>
+    *: "Oppstart/avslutning"
+  </dest>
+  <voice>
+    *: "Oppstart og avslutning"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEYPRESS_RESTARTS_SLEEP_TIMER
+  desc: whether to restart running sleep timer on keypress
+  user: core
+  <source>
+    *: "Restart Sleep Timer on Keypress"
+  </source>
+  <dest>
+    *: "Nullstill dvalenedteljinga når du trykkjer ein knapp"
+  </dest>
+  <voice>
+    *: "Nullstill dvalenedteljinga når du trykkjer ein knapp"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CONSTRAIN_NEXT_FOLDER
+  desc: in settings_menu. Whether LANG_NEXT_FOLDER should be constrained to directories within LANG_SET_AS_START_DIR
+  user: core
+  <source>
+    *: "Constrain Auto-Change"
+  </source>
+  <dest>
+    *: "Avgrens autoendring"
+  </dest>
+  <voice>
+    *: "Avgrens autoendring"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_SHORTCUTS_INSTEAD_OF_QS
+  desc: in settings_menu.
+  user: core
+  <source>
+    *: none
+    quickscreen: "Use Shortcuts Menu Instead of Quick Screen"
+  </source>
+  <dest>
+    *: none
+    quickscreen: "Bruk snøggtastmenyen i staden for snøggskjerm"
+  </dest>
+  <voice>
+    *: none
+    quickscreen: "Bruk snøggtastmenyen i staden for snøggskjerm"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SLEEP_TIMER_START_CURRENT
+  desc: shown when a sleep timer isn't running
+  user: core
+  <source>
+    *: "Start Sleep Timer"
+  </source>
+  <dest>
+    *: "Start dvalenedteljinga"
+  </dest>
+  <voice>
+    *: "Start dvalenedteljinga"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CODEPAGE_WESTERN_EUROPEAN
+  desc: in codepage setting menu
+  user: core
+  <source>
+    *: "Western European (CP1252)"
+  </source>
+  <dest>
+    *: "Vesteuropeisk (CP1252)"
+  </dest>
+  <voice>
+    *: "Vesteuropeisk"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CROSSFEED_MEIER
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Simple (Meier)"
+  </source>
+  <dest>
+    *: "Enkel (Meier)"
+  </dest>
+  <voice>
+    *: "Enkel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CROSSFEED_CUSTOM
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Custom"
+  </source>
+  <dest>
+    *: "Eiga"
+  </dest>
+  <voice>
+    *: "Eiga"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SELECT_FOLDER
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "Select one or more directories"
+  </source>
+  <dest>
+    *: "Vel ei eller fleire mapper"
+  </dest>
+  <voice>
+    *: "Vel ei eller fleire mapper"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SELECT_DATABASE_DIRS
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "Select directories to scan"
+  </source>
+  <dest>
+    *: "Vel mapper å søkja gjennom"
+  </dest>
+  <voice>
+    *: "Vel mapper å søkja gjennom"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_ROLL_OFF
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    filter_roll_off: "DAC filter roll-off"
+  </source>
+  <dest>
+    *: none
+    filter_roll_off: "Avtoning for DAC-filter"
+  </dest>
+  <voice>
+    *: none
+    filter_roll_off: "Avtoning for D A C filter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SHARP
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    filter_roll_off: "Sharp"
+  </source>
+  <dest>
+    *: none
+    filter_roll_off: "Krapp"
+  </dest>
+  <voice>
+    *: none
+    filter_roll_off: "Krapp"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SLOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    filter_roll_off: "Slow"
+  </source>
+  <dest>
+    *: none
+    filter_roll_off: "Sein"
+  </dest>
+  <voice>
+    *: none
+    filter_roll_off: "Sein"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SHORT_SHARP
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    filter_roll_off: "Short Sharp"
+  </source>
+  <dest>
+    *: none
+    filter_roll_off: "Kort krapp"
+  </dest>
+  <voice>
+    *: none
+    filter_roll_off: "Kort krapp"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SHORT_SLOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    filter_roll_off: "Short Slow"
+  </source>
+  <dest>
+    *: none
+    filter_roll_off: "Kort sein"
+  </dest>
+  <voice>
+    *: none
+    filter_roll_off: "Kort sein"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SUPER_SLOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    filter_roll_off: "Super Slow"
+  </source>
+  <dest>
+    *: none
+    filter_roll_off: "Veldig sein"
+  </dest>
+  <voice>
+    *: none
+    filter_roll_off: "Veldig sein"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_SHORT
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9018: "Short"
+  </source>
+  <dest>
+    *: none
+    es9018: "Kort"
+  </dest>
+  <voice>
+    *: none
+    es9018: "Kort"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_BYPASS
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9018: "Bypass"
+  </source>
+  <dest>
+    *: none
+    es9018: "Forbikopla"
+  </dest>
+  <voice>
+    *: none
+    es9018: "Forbikopla"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_LINEAR_FAST
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Linear Fast"
+  </source>
+  <dest>
+    *: none
+    es9218: "Lineær rask"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Lineær rask"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_LINEAR_SLOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Linear Slow"
+  </source>
+  <dest>
+    *: none
+    es9218: "Lineær sein"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Lineær sein"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_MINIMUM_FAST
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Minimum Fast"
+  </source>
+  <dest>
+    *: none
+    es9218: "Minimum rask"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Minimum rask"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_MINIMUM_SLOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Minimum Slow"
+  </source>
+  <dest>
+    *: none
+    es9218: "Minimum sein"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Minimum sein"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_APODIZING_1
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Apodizing type 1"
+  </source>
+  <dest>
+    *: none
+    es9218: "Apodisering type 1"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Apodisering type 1"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_APODIZING_2
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Apodizing type 2"
+  </source>
+  <dest>
+    *: none
+    es9218: "Apodisering type 2"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Apodisering type 2"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_HYBRID_FAST
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Hybrid Fast"
+  </source>
+  <dest>
+    *: none
+    es9218: "Hybrid rask"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Hybrid rask"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILTER_BRICK_WALL
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    es9218: "Brick Wall"
+  </source>
+  <dest>
+    *: none
+    es9218: "Murvegg"
+  </dest>
+  <voice>
+    *: none
+    es9218: "Murvegg"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DAC_POWER_MODE
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    dac_power_mode: "DAC power mode"
+    es9218: "DAC output level"
+  </source>
+  <dest>
+    *: none
+    dac_power_mode: "DAC-straummodus"
+    es9218: "DAC-utgangsnivå"
+  </dest>
+  <voice>
+    *: none
+    dac_power_mode: "D A C straummodus"
+    es9218: "D A C utgangsnivå"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DAC_POWER_HIGH
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    dac_power_mode: "High performance"
+    es9218: "High Gain (2 Vrms)"
+  </source>
+  <dest>
+    *: none
+    dac_power_mode: "Høg yting"
+    es9218: "Høgt volum (2V rms)"
+  </dest>
+  <voice>
+    *: none
+    dac_power_mode: "Høg yting"
+    es9218: "Høgt volum 2 volt R M S"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DAC_POWER_LOW
+  desc: in sound settings
+  user: core
+  <source>
+    *: none
+    dac_power_mode: "Save battery"
+    es9218: "Low Gain (1 Vrms)"
+  </source>
+  <dest>
+    *: none
+    dac_power_mode: "Spar batteriet"
+    es9218: "Lågt volum (1V rms)"
+  </dest>
+  <voice>
+    *: none
+    dac_power_mode: "Spar batteriet"
+    es9218: "Lågt volum 1 volt R M S"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VOLUME_LIMIT
+  desc: in sound_settings
+  user: core
+  <source>
+    *: "Maximum Volume Limit"
+  </source>
+  <dest>
+    *: "Øvste volumgrense"
+  </dest>
+  <voice>
+    *: "Øvste volumgrense"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PBE
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Perceptual Bass Enhancement"
+  </source>
+  <dest>
+    *: "Oppfatta bassforsterking"
+  </dest>
+  <voice>
+    *: "Oppfatta bassforsterking"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AFR
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Auditory Fatigue Reduction"
+  </source>
+  <dest>
+    *: "Redusert høyrselsslitasje"
+  </dest>
+  <voice>
+    *: "Redusert høyrselsslitasje"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND
+  desc: in the sound settings menu
+  user: core
+  <source>
+    *: "Haas Surround"
+  </source>
+  <dest>
+    *: "Haas-kringlyd"
+  </dest>
+  <voice>
+    *: "Haas kringlyd"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND_FX1
+  desc: in sound settings
+  user: core
+  <source>
+    *: "f(x1)"
+  </source>
+  <dest>
+    *: "f(x1)"
+  </dest>
+  <voice>
+    *: "F X 1"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND_FX2
+  desc: in sound settings
+  user: core
+  <source>
+    *: "f(x2)"
+  </source>
+  <dest>
+    *: "f(x2)"
+  </dest>
+  <voice>
+    *: "F X 2"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND_METHOD2
+  desc: in sound settings
+  user: core
+  <source>
+    *: "SIDE ONLY"
+  </source>
+  <dest>
+    *: "Berre sida"
+  </dest>
+  <voice>
+    *: "Berre sida"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SURROUND_MIX
+  desc: in sound settings
+  user: core
+  <source>
+    *: "Dry / Wet Mix"
+  </source>
+  <dest>
+    *: "Tørr / våt-miks"
+  </dest>
+  <voice>
+    *: "Tørr våt miks"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_IBASSO_FREQ_SCALING_GOVERNOR
+  desc: in Settings -> General -> System -> Freq Scaling Governor
+  user: core
+  <source>
+    *: none
+    ibassodx50,ibassodx90: "Freq Scaling Governor"
+  </source>
+  <dest>
+    *: none
+    ibassodx50,ibassodx90: "Prosessorfrekvensstyring"
+  </dest>
+  <voice>
+    *: none
+    ibassodx50,ibassodx90: "Prosessorfrekvensstyring"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MODE
+  desc: in Settings -> General -> System -> USB
+  user: core
+  <source>
+    *: "USB Mode"
+  </source>
+  <dest>
+    *: "USB-modus"
+  </dest>
+  <voice>
+    *: "U S B modus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MODE_MASS_STORAGE
+  desc: in Settings -> General -> System -> USB Mode: Mass Storage
+  user: core
+  <source>
+    *: "Mass Storage"
+  </source>
+  <dest>
+    *: "Masselagring"
+  </dest>
+  <voice>
+    *: "Masselagring"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MODE_CHARGE
+  desc: in Settings -> General -> System -> USB Mode: Charge Only
+  user: core
+  <source>
+    *: "Charge Only"
+  </source>
+  <dest>
+    *: "Berre lading"
+  </dest>
+  <voice>
+    *: "Berre lading"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MODE_ADB
+  desc: in Settings -> General -> System -> USB Mode: Android Debug Bridge
+  user: core
+  <source>
+    *: "Android Debug Bridge"
+  </source>
+  <dest>
+    *: "Android Debug Bridge"
+  </dest>
+  <voice>
+    *: "Android Debug Bridge"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_ENABLED
+  desc: Selective Actions
+  user: core
+  <source>
+    *: "Enabled"
+  </source>
+  <dest>
+    *: "På"
+  </dest>
+  <voice>
+    *: "På"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_PLAY
+  desc: Selective Actions
+  user: core
+  <source>
+    *: "Exempt Play"
+  </source>
+  <dest>
+    *: "Unnteke speling"
+  </dest>
+  <voice>
+    *: "Unnteke speling"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_SEEK
+  desc: Selective Actions
+  user: core
+  <source>
+    *: "Exempt Seek"
+  </source>
+  <dest>
+    *: "Unnteke spoling"
+  </dest>
+  <voice>
+    *: "Unnteke spoling"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_SKIP
+  desc: Selective Actions
+  user: core
+  <source>
+    *: "Exempt Skip"
+  </source>
+  <dest>
+    *: "Unnteke hopping"
+  </dest>
+  <voice>
+    *: "Unnteke hopping"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BACKLIGHT_SELECTIVE
+  desc: Backlight behaviour setting
+  user: core
+  <source>
+    *: "Backlight Exemptions"
+  </source>
+  <dest>
+    *: "Unntak for skjermlys"
+  </dest>
+  <voice>
+    *: "Unntak for skjermlys"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_DISABLE_EXT_POWER
+  desc: Backlight behaviour setting
+  user: core
+  <source>
+    *: "Disable on External Power"
+  </source>
+  <dest>
+    *: "Skru av ved ekstern srtaum"
+  </dest>
+  <voice>
+    *: "Skru av ved ekstern straum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_DISABLE_UNMAPPED
+  desc: Backlight behaviour setting
+  user: core
+  <source>
+    *: "Disable Unmapped Keys"
+  </source>
+  <dest>
+    *: "Skru av ubrukte knappar"
+  </dest>
+  <voice>
+    *: "Skru av ubrukte knappar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SOFTLOCK_SELECTIVE
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Advanced Key Lock"
+  </source>
+  <dest>
+    *: "Avansert tastelås"
+  </dest>
+  <voice>
+    *: "Avansert tastelås"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_AUTOLOCK_ON
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Autolock On"
+  </source>
+  <dest>
+    *: "Autolås på"
+  </dest>
+  <voice>
+    *: "Autolås på"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_AUTOLOCK_OFF
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Autolock Off"
+  </source>
+  <dest>
+    *: "Autolås av"
+  </dest>
+  <voice>
+    *: "Autolås av"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_DISABLE_NOTIFY
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Disable Locked Reminders"
+  </source>
+  <dest>
+    *: "Skru av påminningar om lås"
+  </dest>
+  <voice>
+    *: "Skru av påminningar om lås"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_DISABLE_TOUCH
+  desc: Softlock behaviour setting
+  user: core
+  <source>
+    *: "Disable Touch"
+  </source>
+  <dest>
+    *: "Skru av peikeskjerm"
+  </dest>
+  <voice>
+    *: "Skru av peikeskjerm"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KIBIBYTE
+  desc: a unit postfix, also voiced
+  user: core
+  <source>
+    *: "KiB"
+  </source>
+  <dest>
+    *: "KiB"
+  </dest>
+  <voice>
+    *: "kibibyte"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MEBIBYTE
+  desc: a unit postfix, also voiced
+  user: core
+  <source>
+    *: "MiB"
+  </source>
+  <dest>
+    *: "MiB"
+  </dest>
+  <voice>
+    *: "mebibyte"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GIBIBYTE
+  desc: a unit postfix, also voiced
+  user: core
+  <source>
+    *: "GiB"
+  </source>
+  <dest>
+    *: "GiB"
+  </dest>
+  <voice>
+    *: "gibibyte"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BOOKMARK_SETTINGS_ONE_PER_PLAYLIST
+  desc: Save only one bookmark for a playlist in recent bookmarks
+  user: core
+  <source>
+    *: "One per playlist"
+  </source>
+  <dest>
+    *: "Eitt per speleliste"
+  </dest>
+  <voice>
+    *: "Eitt per speleliste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BOOKMARK_SETTINGS_ONE_PER_TRACK
+  desc: Save only one bookmark for a combination (playlist,track) in recent bookmarks
+  user: core
+  <source>
+    *: "One per track"
+  </source>
+  <dest>
+    *: "Eitt per spor"
+  </dest>
+  <voice>
+    *: "Eitt per spor"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_TRACK_TO_MOVE
+  desc: playlist viewer
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Spor å flytta"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_QUEUED
+  desc: playlist viewer
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "I kø"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BAD_TRACK
+  desc: playlist viewer
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Dårleg spor"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_MOVING_TRACK
+  desc: playlist viewer
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Flyttar spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_ELAPSED
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Playlist elapsed:"
+  </source>
+  <dest>
+    *: "Spelt av spelelista:"
+  </dest>
+  <voice>
+    *: "Spelt av spelelista"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_TRK_ELAPSED
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Track elapsed:"
+  </source>
+  <dest>
+    *: "Spelt av sporet:"
+  </dest>
+  <voice>
+    *: "Spelt av sporet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_TRK_REMAINING
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Track remaining:"
+  </source>
+  <dest>
+    *: "Att av sporet:"
+  </dest>
+  <voice>
+    *: "Att av sporet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_TRACK
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Track:"
+  </source>
+  <dest>
+    *: "Spor:"
+  </dest>
+  <voice>
+    *: "Spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_STORAGE
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Storage (Done / Remaining):"
+  </source>
+  <dest>
+    *: "Lagring (utført/attståande)"
+  </dest>
+  <voice>
+    *: "Lagring"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PLAYTIME_DONE
+  desc: playing time screen
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Ferdig"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_AVG_TRACK_SIZE
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Average track size:"
+  </source>
+  <dest>
+    *: "Gjennomsnittsstorleik på spor"
+  </dest>
+  <voice>
+    *: "Gjennomsnittsstorleik på spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYTIME_AVG_BITRATE
+  desc: playing time screen
+  user: core
+  <source>
+    *: "Average bitrate:"
+  </source>
+  <dest>
+    *: "Gjennomsnittsbitrate"
+  </dest>
+  <voice>
+    *: "Gjennomsnittsbitrate"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYING_TIME
+  desc: onplay menu
+  user: core
+  <source>
+    *: "Playing time"
+  </source>
+  <dest>
+    *: "Speletid"
+  </dest>
+  <voice>
+    *: "Speletid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CAR_ADAPTER_MODE_DELAY
+  desc: Displayed for setting car adapter mode delay
+  user: core
+  <source>
+    *: none
+    charging: "Delay Before Resume"
+  </source>
+  <dest>
+    *: none
+    charging: "Forseinking før vidarespeling"
+  </dest>
+  <voice>
+    *: none
+    charging: "Forseinking før vidarespeling"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PITCH_ABSOLUTE_MODE
+  desc: spoken only
+  user: core
+  <source>
+    *: none
+    pitchscreen: ""
+  </source>
+  <dest>
+    *: none
+    pitchscreen: ""
+  </dest>
+  <voice>
+    *: none
+    pitchscreen: "Absolutt modus"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PITCH_SEMITONE_MODE
+  desc: spoken only
+  user: core
+  <source>
+    *: none
+    pitchscreen: ""
+  </source>
+  <dest>
+    *: none
+    pitchscreen: ""
+  </dest>
+  <voice>
+    *: none
+    pitchscreen: "Halvtonemodus"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PITCH_TIMESTRETCH_MODE
+  desc: spoken only
+  user: core
+  <source>
+    *: none
+    pitchscreen: ""
+  </source>
+  <dest>
+    *: none
+    pitchscreen: ""
+  </dest>
+  <voice>
+    *: none
+    pitchscreen: "Tidsstrekking"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMOTE_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "Remote Control"
+  </source>
+  <dest>
+    *: "Fjernkontroll"
+  </dest>
+  <voice>
+    *: "Fjernkontroll"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NO_REM_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "No Rem. Control"
+  </source>
+  <dest>
+    *: "Ingen fjernkontroll"
+  </dest>
+  <voice>
+    *: "Ingen fjernkontroll"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_OUT_OF_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "Out of Control"
+  </source>
+  <dest>
+    *: "Ute av kontroll"
+  </dest>
+  <voice>
+    *: "Ute av kontroll"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_2_KEY_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "2 Key Control"
+  </source>
+  <dest>
+    *: "2-tast-kontroll"
+  </dest>
+  <voice>
+    *: "2-tast-kontroll"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_4_KEY_CONTROL
+  desc: Item for menus
+  user: core
+  <source>
+    *: "4 Key Control"
+  </source>
+  <dest>
+    *: "4-tast-kontroll"
+  </dest>
+  <voice>
+    *: "4-tast-kontroll"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_WORMLET
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Play Wormlet!"
+  </source>
+  <dest>
+    *: "Spel Wormlet"
+  </dest>
+  <voice>
+    *: "Spel Wormlet!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NUMBER_OF_WORMS
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Number of Worms"
+  </source>
+  <dest>
+    *: "Tal på ormar"
+  </dest>
+  <voice>
+    *: "Tal på ormar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WORM_GROWTH_PER_FOOD
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Worm Growth Per Food"
+  </source>
+  <dest>
+    *: "Vekst per mat"
+  </dest>
+  <voice>
+    *: "Vekst per mat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WORM_SPEED
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Worm Speed"
+  </source>
+  <dest>
+    *: "Fart på ormen"
+  </dest>
+  <voice>
+    *: "Fart på ormen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARGHS_PER_FOOD
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Arghs Per Food"
+  </source>
+  <dest>
+    *: "Argh per mat"
+  </dest>
+  <voice>
+    *: "Argh per mat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARGH_SIZE
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Argh Size"
+  </source>
+  <dest>
+    *: "Storleik på argh"
+  </dest>
+  <voice>
+    *: "Storleik på argh"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FOOD_SIZE
+  desc: For wormlet menu
+  user: core
+  <source>
+    *: "Food Size"
+  </source>
+  <dest>
+    *: "Storleik på mat"
+  </dest>
+  <voice>
+    *: "Storleik på mat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NUMBER_OF_PLAYERS
+  desc: For game menus
+  user: core
+  <source>
+    *: "Number of Players"
+  </source>
+  <dest>
+    *: "Kor mange spelarar"
+  </dest>
+  <voice>
+    *: "Kor mange spelarar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CONTROL_STYLE
+  desc: In various menus
+  user: core
+  <source>
+    *: "Control Style"
+  </source>
+  <dest>
+    *: "Kontrollstil"
+  </dest>
+  <voice>
+    *: "Kontrollstil"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REVERT_TO_DEFAULT_SETTINGS
+  desc: In various menus
+  user: core
+  <source>
+    *: "Revert to Default Settings"
+  </source>
+  <dest>
+    *: "Nullstill til standard"
+  </dest>
+  <voice>
+    *: "Nullstill til standard"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_QUIT
+  desc: in various menus
+  user: core
+  <source>
+    *: "Quit"
+  </source>
+  <dest>
+    *: "Avslutt"
+  </dest>
+  <voice>
+    *: "Avslutt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_DISPLAY_OPTIONS
+  desc: in various menus
+  user: core
+  <source>
+    *: "Display Options"
+  </source>
+  <dest>
+    *: "Visingsval"
+  </dest>
+  <voice>
+    *: "Visingsval"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PREVTRACK
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Previous Track"
+  </source>
+  <dest>
+    *: "Førre spor"
+  </dest>
+  <voice>
+    *: "Førre spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYPAUSE
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Pause / Play"
+  </source>
+  <dest>
+    *: "Pause / spel"
+  </dest>
+  <voice>
+    *: "Pause / spel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_STOP_PLAYBACK
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Stop Playback"
+  </source>
+  <dest>
+    *: "Stopp avspeling"
+  </dest>
+  <voice>
+    *: "Stopp avspeling"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEXTTRACK
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Next Track"
+  </source>
+  <dest>
+    *: "Neste spor"
+  </dest>
+  <voice>
+    *: "Neste spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHANGE_VOLUME
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Change Volume"
+  </source>
+  <dest>
+    *: "Endra volum"
+  </dest>
+  <voice>
+    *: "Endra volum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHANGE_SHUFFLE_MODE
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Shuffle Mode"
+  </source>
+  <dest>
+    *: "Tilfeldig modus"
+  </dest>
+  <voice>
+    *: "Tilfeldig modus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHANGE_REPEAT_MODE
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Change Repeat Mode"
+  </source>
+  <dest>
+    *: "Endre repetisjonsmodus"
+  </dest>
+  <voice>
+    *: "Endre repetisjonsmodus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_CONTROL
+  desc: in playback control menu
+  user: core
+  <source>
+    *: "Playback Control"
+  </source>
+  <dest>
+    *: "Avspelingskontroll"
+  </dest>
+  <voice>
+    *: "Avspelingskontroll"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_CHECKMATE
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Checkmate!"
+  </source>
+  <dest>
+    *: "Sjakk matt!"
+  </dest>
+  <voice>
+    *: "Sjakk matt!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_ILLEGAL_MOVE
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Illegal move!"
+  </source>
+  <dest>
+    *: "Ulovleg trekk!"
+  </dest>
+  <voice>
+    *: "Ulovleg trekk!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_NEW_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "New Game"
+  </source>
+  <dest>
+    *: "Nytt spel"
+  </dest>
+  <voice>
+    *: "Nytt spel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_RESUME_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Resume Game"
+  </source>
+  <dest>
+    *: "Hald fram spel"
+  </dest>
+  <voice>
+    *: "Hald fram spel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_SAVE_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Save Game"
+  </source>
+  <dest>
+    *: "Lagra spelet"
+  </dest>
+  <voice>
+    *: "Lagra spelet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_RESTORE_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Restore Game"
+  </source>
+  <dest>
+    *: "Hent fram spel"
+  </dest>
+  <voice>
+    *: "Hent fram spel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_RESTART_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Restart Game"
+  </source>
+  <dest>
+    *: "Start spelet på nytt"
+  </dest>
+  <voice>
+    *: "Start spelet på nytt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_SELECT_OTHER_GAME
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "Select Other Game"
+  </source>
+  <dest>
+    *: "Vel eit anna spel"
+  </dest>
+  <voice>
+    *: "Vel eit anna spel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_1
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 1: 60 moves / 5 min"
+  </source>
+  <dest>
+    *: "Nivå 1: 60 trekk / 5 min"
+  </dest>
+  <voice>
+    *: "Nivå 1, 60 trekk på 5 minutt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_2
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 2: 60 moves / 15 min"
+  </source>
+  <dest>
+    *: "Nivå 2: 60 trekk / 15 min"
+  </dest>
+  <voice>
+    *: "Nivå 2, 60 trekk på 15 minutt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_3
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 3: 60 moves / 30 min"
+  </source>
+  <dest>
+    *: "Nivå 3: 60 trekk / 30 min"
+  </dest>
+  <voice>
+    *: "Nivå 3, 60 trekk på 30 minutt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_4
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 4: 40 moves / 30 min"
+  </source>
+  <dest>
+    *: "Level 4: 40 moves / 30 min"
+  </dest>
+  <voice>
+    *: "Level 4, 40 moves per 30 minutes"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_5
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 5: 40 moves / 60 min"
+  </source>
+  <dest>
+    *: "Nivå 5: 40 trekk / 60 min"
+  </dest>
+  <voice>
+    *: "Nivå 5, 40 trekk på 60 minutt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_6
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 6: 40 moves / 120 min"
+  </source>
+  <dest>
+    *: "Nivå 6: 40 trekk / 120 min"
+  </dest>
+  <voice>
+    *: "Nivå 6, 40 trekk på 120 minutt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LEVEL_7
+  desc: in the chessbox game level selection
+  user: core
+  <source>
+    *: "Level 7: 40 moves / 240 min"
+  </source>
+  <dest>
+    *: "Nivå 7: 40 trekk / 240 min"
+  </dest>
+  <voice>
+    *: "Nivå 7, 40 trekk på 240 minutt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_PGN_PARSE_ERROR
+  desc: in the chessbox game viewer
+  user: core
+  <source>
+    *: "Error parsing game !"
+  </source>
+  <dest>
+    *: "Greidde ikkje lesa spelet!"
+  </dest>
+  <voice>
+    *: "Greidde ikkje lesa spelet!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_NO_GAMES
+  desc: in the chessbox game viewer
+  user: core
+  <source>
+    *: "No games found !"
+  </source>
+  <dest>
+    *: "Fann ingen spel!"
+  </dest>
+  <voice>
+    *: "Fann ingen spel!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_GAME_BEGINNING
+  desc: in the chessbox game viewer
+  user: core
+  <source>
+    *: "At the beginning of the game"
+  </source>
+  <dest>
+    *: "På starten av spelet"
+  </dest>
+  <voice>
+    *: "På starten av spelet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_GAME_END
+  desc: in the chessbox game viewer
+  user: core
+  <source>
+    *: "At the end of the game"
+  </source>
+  <dest>
+    *: "På slutten av spelet"
+  </dest>
+  <voice>
+    *: "På slutten av spelet"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PLAYER
+  desc: spoken only, for announcing player's id
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Spelar"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_GNUCHESS
+  desc: spoken only, for announcing player's id
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "GNU sjakk"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_MARKED
+  desc: spoken only, for announcing chess piece marking
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Markert"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_UNMARKED
+  desc: spoken only, for announcing chess piece unmarking
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Umarkert"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_WHITE
+  desc: spoken only, for announcing chess piece color
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Kvit"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BLACK
+  desc: spoken only, for announcing chess piece color
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Svart"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_CHECK
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Sjakk!"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_CAPTURES
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "fanga"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_CASTLE
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "slott"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_KINGSIDE
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "kongesida"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_CHESSBOX_QUEENSIDE
+  desc: spoken only, for announcing chess moves
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "dronningsida"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_PAWN
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Bonde"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_KNIGHT
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Hest"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BISHOP
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Løpar"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_ROOK
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Tårn"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_QUEEN
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Dronning"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_KING
+  desc: spoken only, for announcing chess piece names
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Konge"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_GAMES
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Games"
+  </source>
+  <dest>
+    *: "Spel"
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_SAVING_POSITION
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Saving position"
+  </source>
+  <dest>
+    *: "Lagrar posisjon"
+  </dest>
+  <voice>
+    *: "Lagrar posisjon"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_LOADING_POSITION
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Loading position"
+  </source>
+  <dest>
+    *: "Lastar posisjon"
+  </dest>
+  <voice>
+    *: "Lastar posisjon"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_THINKING
+  desc: in chessbox
+  user: core
+  <source>
+    *: "Thinking..."
+  </source>
+  <dest>
+    *: "Tenkjer..."
+  </dest>
+  <voice>
+    *: "Tenkjer"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BATTERY_BENCH_IS_ALREADY_RUNNING
+  desc: Spoken if battery bench is already running
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Batterimålinga køyrer allereie"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_BAT_BENCH_KEYS
+  desc: Battery bench start up message
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Press spel for å køyra batterimåling eller stopp for å avbryta"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CANNOT_RESTART_PLAYBACK
+  desc: cannot restart playback splash in imageviewer
+  user: core
+  <source>
+    *: "Cannot restart playback"
+  </source>
+  <dest>
+    *: "Kan ikkje starta speling på nytt"
+  </dest>
+  <voice>
+    *: "Kan ikkje starta speling på nytt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ORDERED
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Ordered"
+  </source>
+  <dest>
+    *: "Ordna"
+  </dest>
+  <voice>
+    *: "Ordna"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFUSION
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Diffusion"
+  </source>
+  <dest>
+    *: "Uklårleik"
+  </dest>
+  <voice>
+    *: "Uklårleik"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GRAYSCALE
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Grayscale"
+  </source>
+  <dest>
+    *: "Gråtonar"
+  </dest>
+  <voice>
+    *: "Gråtonar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SLIDESHOW_MODE
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Toggle Slideshow Mode"
+  </source>
+  <dest>
+    *: "Skru på lysbiletemodus"
+  </dest>
+  <voice>
+    *: "Skru på lysbiletemodus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SLIDESHOW_TIME
+  desc: in the imageviewer settings menu
+  user: core
+  <source>
+    *: "Slideshow Time"
+  </source>
+  <dest>
+    *: "Framsyningstid"
+  </dest>
+  <voice>
+    *: "Framsyningstid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RETURN
+  desc: in various plugin menus
+  user: core
+  <source>
+    *: "Return"
+  </source>
+  <dest>
+    *: "Tilbake"
+  </dest>
+  <voice>
+    *: "Tilbake"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REC_DIR
+  desc: used in the info screen to show a recording dir
+  user: core
+  <source>
+    *: none
+    recording: "Recording Directory"
+  </source>
+  <dest>
+    *: none
+    recording: "Opptaksmappe"
+  </dest>
+  <voice>
+    *: none
+    recording: "Opptaksmappe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHESSBOX_MENU_VIEW_GAMES
+  desc: in the chessbox menu
+  user: core
+  <source>
+    *: "View Played Games"
+  </source>
+  <dest>
+    *: "Sjå spela du har spelt"
+  </dest>
+  <voice>
+    *: "Sjå spela du har spelt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_AUDIO_OPTIONS
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Audio Options"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Lydinnstillingar"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Lydinnstillingar"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_RESUME_OPTIONS
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Resume Options"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Innstillingar for vidarespeling"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Innstillingar for vidarespeling"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MENU_PLAY_MODE
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Play Mode"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Spelemodus"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Spelemodus"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SINGLE
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Single"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Berre ein"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Berre ein"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_SOUND_SETTING
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Use sound setting"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Bruk lydinnstilling"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Bruk lydinnstilling"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESTART_PLAYBACK
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Play from beginning"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Spel frå starten"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Spel frå starten"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SET_RESUME_TIME
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Set resume time (min)"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Set vidarespelingstid (min)"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Set vidarespelingstid"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISPLAY_FPS
+  desc: in the mpegplayer and pictureflow settings menus
+  user: core
+  <source>
+    *: "Display FPS"
+  </source>
+  <dest>
+    *: "Vis rammer per sekund"
+  </dest>
+  <voice>
+    *: "Vis rammer per sekund"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LIMIT_FPS
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Limit FPS"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Avgrens rammer per sekund"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Avgrens rammer per sekund"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SKIP_FRAMES
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Skip frames"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Hopp over rammer"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Hopp over rammer"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BACKLIGHT_BRIGHTNESS
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Backlight brightness"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Skjermlysstyrke"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Skjermlysstyrke"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_COMMON_SETTING
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Use common setting"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Bruk vanleg innstilling"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Bruk vanleg innstilling"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TONE_CONTROLS
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Tone controls"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Tonekontrollar"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Tonekontrollar"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FORCE_START_MENU
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Start menu"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Startmeny"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Startmeny"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CONDITIONAL_START_MENU
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Start menu if not completed"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Startmeny viss ikkje fullført"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Startmeny viss ikkje fullført"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_AUTO_RESUME
+  desc: in mpegplayer menus
+  user: core
+  <source>
+    *: "Resume automatically"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Spel vidare automatisk"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Spel vidare automatisk"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CLEAR_ALL_RESUMES
+  desc: in the mpegplayer settings menu
+  user: core
+  <source>
+    *: "Clear all resumes"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Tøm alle vidarespelingar"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Tøm alle vidarespelingar"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_UNAVAILABLE
+  desc: in mpegplayer settings
+  user: core
+  <source>
+    *: "Unavailable"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Utilgjengeleg"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Utilgjengeleg"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TOGGLE_ITEM
+  desc: deprecated
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MOVE_ITEM_UP
+  desc: in main_menu_config
+  user: core
+  <source>
+    *: "Move Item Up"
+  </source>
+  <dest>
+    *: "Flytt opp"
+  </dest>
+  <voice>
+    *: "Flytt opp"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MOVE_ITEM_DOWN
+  desc: in main_menu_config
+  user: core
+  <source>
+    *: "Move Item Down"
+  </source>
+  <dest>
+    *: "Flytt ned"
+  </dest>
+  <voice>
+    *: "Flytt ned"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LOAD_DEFAULT_CONFIGURATION
+  desc: in main_menu_config
+  user: core
+  <source>
+    *: "Load Default Configuration"
+  </source>
+  <dest>
+    *: "Last standardval"
+  </dest>
+  <voice>
+    *: "Last standardval"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAVE_EXIT
+  desc: in main_menu_config
+  user: core
+  <source>
+    *: "Save and Exit"
+  </source>
+  <dest>
+    *: "Lagre og avslutt"
+  </dest>
+  <voice>
+    *: "Lagre og avslutt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MAIN_MENU_ORDER
+  desc: deprecated
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_PATH
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Path]"
+  </source>
+  <dest>
+    *: "[Sti]"
+  </dest>
+  <voice>
+    *: "Sti"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_FILENAME
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Filename]"
+  </source>
+  <dest>
+    *: "[Filnamn]"
+  </dest>
+  <voice>
+    *: "Filnamn"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_SIZE
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Size]"
+  </source>
+  <dest>
+    *: "[Storleik]"
+  </dest>
+  <voice>
+    *: "Storleik"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_DATE
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Date]"
+  </source>
+  <dest>
+    *: "[Dato]"
+  </dest>
+  <voice>
+    *: "Dato"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_TIME
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Time]"
+  </source>
+  <dest>
+    *: "[Tid]"
+  </dest>
+  <voice>
+    *: "Tid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_SUBDIRS
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Subdirs]"
+  </source>
+  <dest>
+    *: "[Undermapper]"
+  </dest>
+  <voice>
+    *: "Undermapper"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_FILES
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "[Files]"
+  </source>
+  <dest>
+    *: "[Filer]"
+  </dest>
+  <voice>
+    *: "Filer"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_DIRECTORY_PROPERTIES
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "Directory properties"
+  </source>
+  <dest>
+    *: "Mappeeigenskapar"
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_FILE_PROPERTIES
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "File properties"
+  </source>
+  <dest>
+    *: "Fileigenskapar"
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PROPERTIES_FAIL
+  desc: in properties plugin
+  user: core
+  <source>
+    *: "Failed to gather information"
+  </source>
+  <dest>
+    *: "Greidde ikkje samla informasjon"
+  </dest>
+  <voice>
+    *: "Greidde ikkje samla informasjon"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SWAP_CHANNELS
+  desc: in sound_settings
+  user: core
+  <source>
+    *: "Swap Channels"
+  </source>
+  <dest>
+    *: "Byt kanalar"
+  </dest>
+  <voice>
+    *: "Byt kanalar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PANNING_SEPARATION
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Panning Separation"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Panoreringsskilnad"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Panoreringsskilnad"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REVERBERATION
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Reverberation"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Klang"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Klang"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_INTERPOLATION
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Interpolation"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Interpolering"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Interpolering"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_SURROUND
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Surround"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Kringlyd"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Kringlyd"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_HQMIXER
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "HQ Mixer"
+    lowmem: none
+  </source>
+  <dest>
+    *: "HQ-miksar"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Høgkvalitetsmiksar"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_SAMPLERATE
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "Sample Rate"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Punktrate"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Punktrate"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CPU_BOOST
+  desc: in mikmod settings menu
+  user: core
+  <source>
+    *: "CPU Boost"
+    lowmem: none
+  </source>
+  <dest>
+    *: "Prosessorboost"
+    lowmem: none
+  </dest>
+  <voice>
+    *: "Prosessorboost"
+    lowmem: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SPACING
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Spacing"
+  </source>
+  <dest>
+    *: "Mellomrom"
+  </dest>
+  <voice>
+    *: "Mellomrom"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CENTRE_MARGIN
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Centre margin"
+  </source>
+  <dest>
+    *: "Midtmarg"
+  </dest>
+  <voice>
+    *: "Midtmarg"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NUMBER_OF_SLIDES
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Number of slides"
+  </source>
+  <dest>
+    *: "Tal på lysbilete"
+  </dest>
+  <voice>
+    *: "Tal på lysbilete"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ZOOM
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Zoom"
+  </source>
+  <dest>
+    *: "Zoom"
+  </dest>
+  <voice>
+    *: "Zoom"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUM_TITLE
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Show album title"
+  </source>
+  <dest>
+    *: "Vis albumtittel"
+  </dest>
+  <voice>
+    *: "Vis albumtittel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RESIZE_COVERS
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Resize Covers"
+  </source>
+  <dest>
+    *: "Skaler omslag"
+  </dest>
+  <voice>
+    *: "Skaler omslag"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REBUILD_CACHE
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Rebuild cache"
+  </source>
+  <dest>
+    *: "Lag nytt mellomlager"
+  </dest>
+  <voice>
+    *: "Lag nytt mellomlager"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WPS_INTEGRATION
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "WPS Integration"
+  </source>
+  <dest>
+    *: "Speleskjermintegrering"
+  </dest>
+  <voice>
+    *: "Speleskjermintegrering"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GOTO_WPS
+  desc: in the pictureflow main menu
+  user: core
+  <source>
+    *: "Go to WPS"
+  </source>
+  <dest>
+    *: "Gå til speleskjermen"
+  </dest>
+  <voice>
+    *: "Gå til speleskjermen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HIDE_ALBUM_TITLE
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Hide album title"
+  </source>
+  <dest>
+    *: "Gøym albumtittel"
+  </dest>
+  <voice>
+    *: "Gøym albumtittel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_AT_THE_BOTTOM
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show at the bottom"
+  </source>
+  <dest>
+    *: "Vis på botnen"
+  </dest>
+  <voice>
+    *: "Vis på botnen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_AT_THE_TOP
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show at the top"
+  </source>
+  <dest>
+    *: "Vis på toppen"
+  </dest>
+  <voice>
+    *: "Vis på toppen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIRECT
+  desc: in the pictureflow settings, also a volume adjustment mode
+  user: core
+  <source>
+    *: "Direct"
+  </source>
+  <dest>
+    *: "Direkte"
+  </dest>
+  <voice>
+    *: "Direkte"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIA_TRACK_LIST
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Via Track list"
+  </source>
+  <dest>
+    *: "Via sporliste"
+  </dest>
+  <voice>
+    *: "Via sporliste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALWAYS_ON
+  desc: in the pictureflow settings menu
+  user: core
+  <source>
+    *: "Always On"
+  </source>
+  <dest>
+    *: "Alltid på"
+  </dest>
+  <voice>
+    *: "Alltid på"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NO_ALBUMART_FOUND
+  desc: in the pictureflow splash messages
+  user: core
+  <source>
+    *: "No album art found"
+  </source>
+  <dest>
+    *: "Fann ingen omslag"
+  </dest>
+  <voice>
+    *: "Fann ingen omslag"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ERROR_WRITING_CONFIG
+  desc: in the pictureflow splash messages
+  user: core
+  <source>
+    *: "Error writing config"
+  </source>
+  <dest>
+    *: "Greidde ikkje skriva oppsett"
+  </dest>
+  <voice>
+    *: "Greidde ikkje skriva oppsett"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NOT_A_VBR_FILE
+  desc: in vbrfix plugin
+  user: core
+  <source>
+    *: "Not a VBR file"
+  </source>
+  <dest>
+    *: "Ikkje ei VBR-fil"
+  </dest>
+  <voice>
+    *: "Ikkje ei V B R fil"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILE_ERROR
+  desc: in vbrfix plugin
+  user: core
+  <source>
+    *: "File error: %d"
+  </source>
+  <dest>
+    *: "Filfeil: %d"
+  </dest>
+  <voice>
+    *: "Filfeil"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_UPDATE_CACHE
+  desc: in pictureflow
+  user: core
+  <source>
+    *: "Update cache"
+  </source>
+  <dest>
+    *: "Oppdater mellomlager"
+  </dest>
+  <voice>
+    *: "Oppdater mellomlager"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HIDE_ALBUM_TITLE_NEW
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Hide information"
+  </source>
+  <dest>
+    *: "Gøym informasjon"
+  </dest>
+  <voice>
+    *: "Gøym informasjon"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_AT_THE_BOTTOM_NEW
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show album at the bottom"
+  </source>
+  <dest>
+    *: "Vis albumet på botnen"
+  </dest>
+  <voice>
+    *: "Vis albumet på botnen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_AT_THE_TOP_NEW
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show album at the top"
+  </source>
+  <dest>
+    *: "Vis albumet på toppen"
+  </dest>
+  <voice>
+    *: "Vis albumet på toppen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALL_AT_THE_TOP
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show album and artist at the top"
+  </source>
+  <dest>
+    *: "Vis albumet og artisten på toppen"
+  </dest>
+  <voice>
+    *: "Vis albumet og artisten på toppen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALL_AT_THE_BOTTOM
+  desc: in the pictureflow settings
+  user: core
+  <source>
+    *: "Show album and artist at the bottom"
+  </source>
+  <dest>
+    *: "Vis albumet og artisten på botnen"
+  </dest>
+  <voice>
+    *: "Vis albumet og artisten på botnen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_STD_CANCEL
+  desc: standard press x to cancel string
+  user: core
+  <source>
+    *: "Press LEFT to cancel."
+    android,hifietma*: "Press BACK to cancel."
+    cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Press POWER to cancel."
+    ihifi760,ihifi960: "Double tap RETURN to cancel."
+    ihifi770,ihifi770c,ihifi800: "Press HOME to cancel."
+    iriverh10,samsungyh*: "Double tap LEFT to cancel."
+    mpiohd200: "Double tap REC to cancel."
+    mpiohd300: "Double tap MENU to cancel."
+    rx27generic: "Press VOLUME to cancel."
+    sonynwza860: "Keymaps incomplete."
+    touchscreen: "Press Middle Left to cancel."
+    vibe500: "Press PREV to cancel."
+    xduoox20,xduoox3,xduoox3ii: "Double tap HOME to cancel."
+  </source>
+  <dest>
+    *: "Trykk VENSTRE for å avbryta."
+    android,hifietma*: "Trykk TILBAKE for å avbryta."
+    cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Trykk PÅ for å avbryta."
+    ihifi760,ihifi960: "Dobbeltrykk TILBAKE for å avbryta."
+    ihifi770,ihifi770c,ihifi800: "Trykk HEIM for å avbryta."
+    iriverh10,samsungyh*: "Dobbeltrykk VENSTRE for å avbryta."
+    mpiohd200: "Dobbeltrykk REC for å avbryta."
+    mpiohd300: "Dobbeltrykk MENY for å avbryta."
+    rx27generic: "Trykk VOLUM for å avbryta."
+    sonynwza860: "Ufullstendige teiknkart."
+    touchscreen: "Trykk midt venstre for å avbryta."
+    vibe500: "Trykk FØRRE for å avbryta."
+    xduoox20,xduoox3,xduoox3ii: "Dobbeltrykk HEIM for å avbryta."
+  </dest>
+  <voice>
+    *: "Trykk VENSTRE for å avbryta."
+    android,hifietma*: "Trykk TILBAKE for å avbryta."
+    cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Trykk PÅ for å avbryta."
+    ihifi760,ihifi960: "Dobbeltrykk TILBAKE for å avbryta."
+    ihifi770,ihifi770c,ihifi800: "Trykk HEIM for å avbryta."
+    iriverh10,samsungyh*: "Dobbeltrykk VENSTRE for å avbryta."
+    mpiohd200: "Dobbeltrykk REC for å avbryta."
+    mpiohd300: "Dobbeltrykk MENY for å avbryta."
+    rx27generic: "Trykk VOLUM for å avbryta."
+    touchscreen: "Trykk midt venstre for å avbryta."
+    vibe500: "Trykk FØRRE for å avbryta."
+    xduoox20,xduoox3,xduoox3ii: "Dobbeltrykk HEIM for å avbryta."
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DATE
+  desc: for constructing time and date announcements
+  user: core
+  <source>
+    *: "Date"
+  </source>
+  <dest>
+    *: "Dato"
+  </dest>
+  <voice>
+    *: "Dato"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CLEAR_ALL
+  desc:
+  user: core
+  <source>
+    *: "Clear all"
+  </source>
+  <dest>
+    *: "Tøm alle"
+  </dest>
+  <voice>
+    *: "Tøm alle"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CANCEL_0
+  desc: CANCEL.
+  user: core
+  <source>
+    *: "Cancel"
+  </source>
+  <dest>
+    *: "Avbryt"
+  </dest>
+  <voice>
+    *: "Avbryt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAVE
+  desc:
+  user: core
+  <source>
+    *: "Save"
+  </source>
+  <dest>
+    *: "Lagra"
+  </dest>
+  <voice>
+    *: "Lagra"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TIMEOUT
+  desc:
+  user: core
+  <source>
+    *: "Timeout"
+  </source>
+  <dest>
+    *: "Tidsavbrot"
+  </dest>
+  <voice>
+    *: "Tidsavbrot"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACK
+  desc: used in track x of y constructs
+  user: core
+  <source>
+    *: "Track"
+  </source>
+  <dest>
+    *: "Spor"
+  </dest>
+  <voice>
+    *: "Spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ELAPSED
+  desc: prefix for elapsed playtime announcement
+  user: core
+  <source>
+    *: "Elapsed"
+  </source>
+  <dest>
+    *: "Gått"
+  </dest>
+  <voice>
+    *: "Gått"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCEMENT_FMT
+  desc: format for wps hotkey announcement
+  user: core
+  <source>
+    *: none
+    hotkey: "Announcement format"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Meldingsformat"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Meldingsformat"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCE_STATUS
+  desc: announnnce_status plugin
+  user: core
+  <source>
+    *: "Announce Status"
+  </source>
+  <dest>
+    *: "Meldingsstatus"
+  </dest>
+  <voice>
+    *: "Meldingsstatus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMAIN
+  desc: for constructs such as number of tracks remaining etc
+  user: core
+  <source>
+    *: none
+    hotkey: "Remain"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Står att"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Står att"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GROUPING
+  desc:
+  user: core
+  <source>
+    *: none
+    hotkey: "Grouping"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Gruppering"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Gruppering"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCE_ON
+  desc:
+  user: core
+  <source>
+    *: none
+    hotkey: "Announce on"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Meld frå ved"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Meld frå ved"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACK_CHANGE
+  desc:
+  user: core
+  <source>
+    *: none
+    hotkey: "Track change"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Nytt spor"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Nytt spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HOLD_FOR_SETTINGS
+  desc:
+  user: core
+  <source>
+    *: none
+    hotkey: "Hold for settings"
+  </source>
+  <dest>
+    *: none
+    hotkey: "Hald for innstillingar"
+  </dest>
+  <voice>
+    *: none
+    hotkey: "Hald for innstillingar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_OPEN_PLUGIN
+  desc: onplay open plugin
+  user: core
+  <source>
+    *: "Open Plugin"
+  </source>
+  <dest>
+    *: "Opna tillegg"
+  </dest>
+  <voice>
+    *: "Opna tillegg"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_OPEN_PLUGIN_NOT_A_PLUGIN
+  desc: open plugin module
+  user: core
+  <source>
+    *: "Not a plugin: %s"
+  </source>
+  <dest>
+    *: "Ikkje eit tillegg: %s"
+  </dest>
+  <voice>
+    *: "Ikkje eit tillegg"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_OPEN_PLUGIN_SET_WPS_CONTEXT_PLUGIN
+  desc: open plugin module
+  user: core
+  <source>
+    *: "Set WPS Context Plugin"
+  </source>
+  <dest>
+    *: "Vel konteksttillegg for speleskjerm"
+  </dest>
+  <voice>
+    *: "Vel konteksttillegg for speleskjerm"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PARAMETER
+  desc:
+  user: core
+  <source>
+    *: "Parameter"
+  </source>
+  <dest>
+    *: "~Parameter"
+  </dest>
+  <voice>
+    *: "~Parameter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NAME
+  desc:
+  user: core
+  <source>
+    *: "Name"
+  </source>
+  <dest>
+    *: "Namn"
+  </dest>
+  <voice>
+    *: "Namn"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD
+  desc:
+  user: core
+  <source>
+    *: "Add"
+  </source>
+  <dest>
+    *: "Legg til"
+  </dest>
+  <voice>
+    *: "Legg til"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BACK
+  desc:
+  user: core
+  <source>
+    *: "Back"
+  </source>
+  <dest>
+    *: "Tilbake"
+  </dest>
+  <voice>
+    *: "Tilbake"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_EDIT
+  desc:
+  user: core
+  <source>
+    *: "Edit"
+  </source>
+  <dest>
+    *: "Rediger"
+  </dest>
+  <voice>
+    *: "Rediger"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RUN
+  desc:
+  user: core
+  <source>
+    *: "Run"
+  </source>
+  <dest>
+    *: "Spring"
+  </dest>
+  <voice>
+    *: "Spring"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_EXPORT
+  desc:
+  user: core
+  <source>
+    *: "Export"
+  </source>
+  <dest>
+    *: "Eksporter"
+  </dest>
+  <voice>
+    *: "Eksporter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_BROWSE
+  desc:
+  user: core
+  <source>
+    *: "Browse"
+  </source>
+  <dest>
+    *: "Sjå gjennom"
+  </dest>
+  <voice>
+    *: "Sjå gjennom"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ENTER_USB_STORAGE_MODE_QUERY
+  desc: upon plugging in USB
+  user: core
+  <source>
+    *: "Enter USB mass storage mode?"
+  </source>
+  <dest>
+    *: "Start USB-masselagringsmodus?"
+  </dest>
+  <voice>
+    *: "Start U S B masselagringsmodus?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_QUEUE_MENU
+  desc: in onplay menu
+  user: core
+  <source>
+    *: "Queue..."
+  </source>
+  <dest>
+    *: "Kø..."
+  </dest>
+  <voice>
+    *: "Kø"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_QUEUE_OPTIONS
+  desc: in Current Playlist settings
+  user: core
+  <source>
+    *: "Show Queue Options"
+  </source>
+  <dest>
+    *: "Vis val for køar"
+  </dest>
+  <voice>
+    *: "Vis val for køar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_SHUFFLED_ADDING_OPTIONS
+  desc: in Current Playlist settings
+  user: core
+  <source>
+    *: "Show Shuffled Adding Options"
+  </source>
+  <dest>
+    *: "Vis val for å leggja til tilfeldig"
+  </dest>
+  <voice>
+    *: "Vis val for å leggja til tilfeldig"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_IN_SUBMENU
+  desc: in Settings
+  user: core
+  <source>
+    *: "In Submenu"
+  </source>
+  <dest>
+    *: "I undermeny"
+  </dest>
+  <voice>
+    *: "I undermeny"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SOFTLOCK_DISABLE_ALL_NOTIFY
+  desc: disable all softlock notifications
+  user: core
+  <source>
+    *: "Disable All Lock Notifications"
+  </source>
+  <dest>
+    *: "Skru av alle låsevarslingar"
+  </dest>
+  <voice>
+    *: "Skru av alle låsevarslingar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_VOLUME
+  desc: exempt volume from softlock
+  user: core
+  <source>
+    *: "Exempt Volume"
+  </source>
+  <dest>
+    *: "Unnateke volum"
+  </dest>
+  <voice>
+    *: "Unnateke volum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ACTION_ALWAYSAUTOLOCK
+  desc: always prime autolock
+  user: core
+  <source>
+    *: "Always Autolock"
+  </source>
+  <dest>
+    *: "Alltid autolås"
+  </dest>
+  <voice>
+    *: "Alltid autolås"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_NUMERIC_TENS_SWAP_SEPARATOR
+  desc: voice only, for speaking numbers in languages that swap the tens and ones fields. Leave blank for languages that do not need it, such as English ("231" => "two hundred thirty one") but other languages may speak it as "two hundred one [AND] thirty"
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VOICED_DATE_FORMAT
+  desc: format string for how dates will be read back. Y == 4-digit year (grouped), y == 4-digit year (numeric), A == month name, m == numeric month, d == numeric day. For example, for 2021-01-05, "AdY" will be voiced as "January 5 twenty twenty-one" and "dmy" will be voiced as "5 1 two thousand twenty one
+  user: core
+  <source>
+    *: "dAY"
+  </source>
+  <dest>
+    *: "dAY"
+  </dest>
+  <voice>
+    *: ""
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LIST_WRAPAROUND
+  desc: in Settings
+  user: core
+  <source>
+    *: "List Wraparound"
+  </source>
+  <dest>
+    *: "Lista tilbake frå toppen"
+  </dest>
+  <voice>
+    *: "Lista tilbake frå toppen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_SHUTDOWN_MESSAGE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Show Shutdown Message"
+  </source>
+  <dest>
+    *: "Vis avsluttingsmelding"
+  </dest>
+  <voice>
+    *: "Vis avsluttingsmelding"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LIST_ORDER
+  desc: in Settings
+  user: core
+  <source>
+    *: "List Order"
+  </source>
+  <dest>
+    *: "Sortering"
+  </dest>
+  <voice>
+    *: "Sortering"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ASCENDING
+  desc: in Settings
+  user: core
+  <source>
+    *: "Ascending"
+  </source>
+  <dest>
+    *: "Stigande"
+  </dest>
+  <voice>
+    *: "Stigande"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DESCENDING
+  desc: in Settings
+  user: core
+  <source>
+    *: "Descending"
+  </source>
+  <dest>
+    *: "Søkkande"
+  </dest>
+  <voice>
+    *: "Søkkande"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUM_ART
+  desc: in Settings
+  user: core
+  <source>
+    *: "Album Art"
+  </source>
+  <dest>
+    *: "Omslag"
+  </dest>
+  <voice>
+    *: "Omslag"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PREFER_EMBEDDED
+  desc: in Settings
+  user: core
+  <source>
+    *: "Prefer Embedded"
+  </source>
+  <dest>
+    *: "Bruk innebygde"
+  </dest>
+  <voice>
+    *: "Bruk innebygde"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PREFER_IMAGE_FILE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Prefer Image File"
+  </source>
+  <dest>
+    *: "Bruk biletfil"
+  </dest>
+  <voice>
+    *: "Bruk biletfil"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FM_SYNC_RDS_TIME
+  desc: in radio screen and Settings
+  user: core
+  <source>
+    *: none
+    rds: "Sync RDS Time"
+  </source>
+  <dest>
+    *: none
+    rds: "Synkroniser RDS-tid"
+  </dest>
+  <voice>
+    *: none
+    rds: "Synkroniser RDS-tid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_ALBUMS_BY
+  desc: in Settings
+  user: core
+  <source>
+    *: "Sort albums by"
+  </source>
+  <dest>
+    *: "Sorter album etter"
+  </dest>
+  <voice>
+    *: "Sorter album etter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTIST_PLUS_NAME
+  desc: in Settings
+  user: core
+  <source>
+    *: "Artist + Name"
+  </source>
+  <dest>
+    *: "Artist + Namn"
+  </dest>
+  <voice>
+    *: "Artist og namn"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTIST_PLUS_YEAR
+  desc: in Settings
+  user: core
+  <source>
+    *: "Artist + Year"
+  </source>
+  <dest>
+    *: "Artist + år"
+  </dest>
+  <voice>
+    *: "Artist og år"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_YEAR_SORT_ORDER
+  desc: in Settings
+  user: core
+  <source>
+    *: "Year sort order"
+  </source>
+  <dest>
+    *: "Sortering for år"
+  </dest>
+  <voice>
+    *: "Sortering for år"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_YEAR_IN_ALBUM_TITLE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Show year in album title"
+  </source>
+  <dest>
+    *: "Vis år i albumtittelen"
+  </dest>
+  <voice>
+    *: "Vis år i albumtittelen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WAIT_FOR_CACHE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Cache needs to finish updating first!"
+  </source>
+  <dest>
+    *: "Mellomlageret må oppdaterast fyrst!"
+  </dest>
+  <voice>
+    *: "Mellomlageret må oppdaterast fyrst!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACK_INFO
+  desc: Track Info Title
+  user: core
+  <source>
+    *: "Track Info"
+  </source>
+  <dest>
+    *: "Sporinfo"
+  </dest>
+  <voice>
+    *: "Sporinfo"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY
+  desc: play selected file/directory, in playlist context menu
+  user: core
+  <source>
+    *: "Play"
+  </source>
+  <dest>
+    *: "Spel"
+  </dest>
+  <voice>
+    *: "Spel"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_SHUFFLED
+  desc: play selected files in shuffled order, in playlist context menu
+  user: core
+  <source>
+    *: "Play Shuffled"
+  </source>
+  <dest>
+    *: "Spel tilfeldig"
+  </dest>
+  <voice>
+    *: "Spel tilfeldig"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEEP_CURRENT_TRACK_ON_REPLACE
+  desc: used in the playlist settings menu
+  user: core
+  <source>
+    *: "Keep Current Track When Replacing Playlist"
+  </source>
+  <dest>
+    *: "Hald på dette sporet når du byter ut spelelista"
+  </dest>
+  <voice>
+    *: "Hald på dette sporet når du byter ut spelelista"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CLEAR_SETTINGS_ON_HOLD
+  desc: in the system sub menu
+  user: core
+  <source>
+    *: none
+    clear_settings_on_hold,iriverh10: "Clear settings when reset button is held during startup"
+    ipod4g,ipodcolor,ipodmini1g,ipodmini2g,ipodnano1g,ipodvideo: "Clear settings when hold switch is on during startup"
+  </source>
+  <dest>
+    *: none
+    clear_settings_on_hold,iriverh10: "Tøm innstillingar når du held inne nullstill-knappen ved oppstart"
+    ipod4g,ipodcolor,ipodmini1g,ipodmini2g,ipodnano1g,ipodvideo: "Tøm innstillingar når du held inne hald-knappen ved oppstart"
+  </dest>
+  <voice>
+    *: none
+    clear_settings_on_hold,iriverh10: "Tøm innstillingar når du held inne nullstill-knappen ved oppstart"
+    ipod4g,ipodcolor,ipodmini1g,ipodmini2g,ipodnano1g,ipodvideo: "Tøm innstillingar når du held inne hald-knappen ved oppstart"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REWIND_ACROSS_TRACKS
+  desc: in playback settings menu
+  user: core
+  <source>
+    *: "Rewind Across Tracks"
+  </source>
+  <dest>
+    *: "Spol tilbake fleire spor"
+  </dest>
+  <voice>
+    *: "Spol tilbake fleire spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SET_AS
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Set As..."
+  </source>
+  <dest>
+    *: "Bruk som..."
+  </dest>
+  <voice>
+    *: "Bruk som"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYLIST_DIR
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Playlist Directory"
+  </source>
+  <dest>
+    *: "Spelelistemappe"
+  </dest>
+  <voice>
+    *: "Spelelistemappe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_START_DIR
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Start Directory"
+  </source>
+  <dest>
+    *: "Startmappe"
+  </dest>
+  <voice>
+    *: "Startmappe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECORDING_DIR
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: none
+    recording: "Recording Directory"
+  </source>
+  <dest>
+    *: none
+    recording: "Opptaksmappe"
+  </dest>
+  <voice>
+    *: none
+    recording: "Opptaksmappe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_TO_PL
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Add to Playlist..."
+  </source>
+  <dest>
+    *: "Legg til speleliste..."
+  </dest>
+  <voice>
+    *: "Legg til speleliste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_TO_EXISTING_PL
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Add to Existing Playlist"
+  </source>
+  <dest>
+    *: "Legg til denne spelelista"
+  </dest>
+  <voice>
+    *: "Legg til denne spelelista"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYING_NEXT
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Playing Next..."
+  </source>
+  <dest>
+    *: "Spelar neste..."
+  </dest>
+  <voice>
+    *: "Spelar neste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_NEXT
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Play Next"
+  </source>
+  <dest>
+    *: "Spel neste"
+  </dest>
+  <voice>
+    *: "Spel neste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ADD_SHUFFLED
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Add Shuffled"
+  </source>
+  <dest>
+    *: "Legg til tilfeldig"
+  </dest>
+  <voice>
+    *: "Legg til tilfeldig"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_LAST
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Play Last"
+  </source>
+  <dest>
+    *: "Spel siste"
+  </dest>
+  <voice>
+    *: "Spel siste"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAY_LAST_SHUFFLED
+  desc: used in the onplay menu
+  user: core
+  <source>
+    *: "Play Last Shuffled"
+  </source>
+  <dest>
+    *: "Spel siste tilfeldige"
+  </dest>
+  <voice>
+    *: "Spel siste tilfeldige"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VOLUME_ADJUST_MODE
+  desc: in system settings
+  user: core
+  <source>
+    *: none
+    perceptual_volume: "Volume Adjustment Mode"
+  </source>
+  <dest>
+    *: none
+    perceptual_volume: "Volumusteringsmodus"
+  </dest>
+  <voice>
+    *: none
+    perceptual_volume: "Volumjusteringsmodus"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VOLUME_ADJUST_NORM_STEPS
+  desc: in system settings
+  user: core
+  <source>
+    *: none
+    perceptual_volume: "Number of Volume Steps"
+  </source>
+  <dest>
+    *: none
+    perceptual_volume: "Kor mange volumsteg"
+  </dest>
+  <voice>
+    *: none
+    perceptual_volume: "Kor mange volumsteg"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PERCEPTUAL
+  desc: in system settings -> volume adjustment mode
+  user: core
+  <source>
+    *: none
+    perceptual_volume: "Perceptual"
+  </source>
+  <dest>
+    *: none
+    perceptual_volume: "Oppfatta"
+  </dest>
+  <voice>
+    *: none
+    perceptual_volume: "Oppfatta"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_TRACKS_WHILE_BROWSING
+  desc: in PictureFlow Main Menu
+  user: core
+  <source>
+    *: "Show Tracks While Browsing"
+  </source>
+  <dest>
+    *: "Vis spor når du ser gjennom"
+  </dest>
+  <voice>
+    *: "Vis spor når du ser gjennom"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GOTO_LAST_ALBUM
+  desc: in PictureFlow Main Menu
+  user: core
+  <source>
+    *: "Go to Last Album"
+  </source>
+  <dest>
+    *: "Gå til siste album"
+  </dest>
+  <voice>
+    *: "Gå til siste album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DATABASE_DIR
+  desc: in database settings menu
+  user: core
+  <source>
+    *: "Database Directory"
+  </source>
+  <dest>
+    *: "Databasemappe"
+  </dest>
+  <voice>
+    *: "Databasemappe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMOVE_QUEUED_TRACKS
+  desc: Confirmation dialog
+  user: core
+  <source>
+    *: "Remove Queued Tracks?"
+  </source>
+  <dest>
+    *: "Fjern spor i kø?"
+  </dest>
+  <voice>
+    *: "Fjern spor i kø?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_QUICK_IGNORE_DIRACHE
+  desc: in Settings
+  user: core
+  <source>
+    *: "Quick (Ignore Directory Cache)"
+  </source>
+  <dest>
+    *: "Raskt (oversjå mappemellomlager)"
+  </dest>
+  <voice>
+    *: "Raskt (oversjå mappemellomlager)"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_WPS
+  desc: in Settings
+  user: core
+  <source>
+    *: "What's Playing Screen"
+  </source>
+  <dest>
+    *: "Speleskjerm"
+  </dest>
+  <voice>
+    *: "Speleskjerm"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DEFAULT_BROWSER
+  desc: in Settings
+  user: core
+  <source>
+    *: "Default Browser"
+  </source>
+  <dest>
+    *: "Standardlesar"
+  </dest>
+  <voice>
+    *: "Standardlesar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SET_MAZE_SIZE
+  desc: Maze size in Amaze game
+  user: core
+  <source>
+    *: "Set Maze Size"
+  </source>
+  <dest>
+    *: "Labyrintstorleik"
+  </dest>
+  <voice>
+    *: "Labyrintstorleik"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEW_MAP
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "View Map"
+  </source>
+  <dest>
+    *: "Sjå kartet"
+  </dest>
+  <voice>
+    *: "Sjå kartet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_COMPASS
+  desc: Compass in Amaze game
+  user: core
+  <source>
+    *: "Show Compass"
+  </source>
+  <dest>
+    *: "Vis kompasset"
+  </dest>
+  <voice>
+    *: "Vis kompasset"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_MAP
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "Show Map"
+  </source>
+  <dest>
+    *: "Vis kartet"
+  </dest>
+  <voice>
+    *: "Vis kartet"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMEMBER_PATH
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "Remember Path"
+  </source>
+  <dest>
+    *: "Hugs stien"
+  </dest>
+  <voice>
+    *: "Hugs stien"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_LARGE_TILES
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "Use Large Tiles"
+  </source>
+  <dest>
+    *: "Bruk store fliser"
+  </dest>
+  <voice>
+    *: "Bruk store fliser"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_SOLUTION
+  desc: Map in Amaze game
+  user: core
+  <source>
+    *: "Show Solution"
+  </source>
+  <dest>
+    *: "Vis løysing"
+  </dest>
+  <voice>
+    *: "Vis løysing"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_QUIT_WITHOUT_SAVING
+  desc:
+  user: core
+  <source>
+    *: "Quit without saving"
+  </source>
+  <dest>
+    *: "Avslutt utan å lagra"
+  </dest>
+  <voice>
+    *: "Avslutt utan å lagra"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_GENERATING_MAZE
+  desc: Amaze game
+  user: core
+  <source>
+    *: "Generating maze..."
+  </source>
+  <dest>
+    *: "Lagar labyrint..."
+  </dest>
+  <voice>
+    *: "Lagar labyrint"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_YOU_WIN
+  desc: Success in game
+  user: core
+  <source>
+    *: "You win!"
+  </source>
+  <dest>
+    *: "Du vann!"
+  </dest>
+  <voice>
+    *: "Du vann!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_YOU_CHEATED
+  desc: Cheated in game
+  user: core
+  <source>
+    *: "You cheated!"
+  </source>
+  <dest>
+    *: "Du juksa!"
+  </dest>
+  <voice>
+    *: "Du juksa!"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFICULTY_EASY
+  desc: Game difficulty
+  user: core
+  <source>
+    *: "Easy"
+  </source>
+  <dest>
+    *: "Lett"
+  </dest>
+  <voice>
+    *: "Lett"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFICULTY_MEDIUM
+  desc: Game difficulty
+  user: core
+  <source>
+    *: "Medium"
+  </source>
+  <dest>
+    *: "Middels"
+  </dest>
+  <voice>
+    *: "Middels"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFICULTY_HARD
+  desc: Game difficulty
+  user: core
+  <source>
+    *: "Hard"
+  </source>
+  <dest>
+    *: "Vanskeleg"
+  </dest>
+  <voice>
+    *: "Vanskeleg"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIFFICULTY_EXPERT
+  desc: Game difficulty
+  user: core
+  <source>
+    *: "Expert"
+  </source>
+  <dest>
+    *: "Ekspert"
+  </dest>
+  <voice>
+    *: "Ekspert"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LEGAL_NOTICES
+  desc: in system menu
+  user: core
+  <source>
+    *: "Legal Notices"
+  </source>
+  <dest>
+    *: "Juridiske merknader"
+  </dest>
+  <voice>
+    *: "Juridiske merknader"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ERROR_FORMATSTR
+  desc: for general use
+  user: core
+  <source>
+    *: "Error: %s"
+  </source>
+  <dest>
+    *: "Feil: %s"
+  </dest>
+  <voice>
+    *: "Feil"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_MIKMOD_SETTINGS
+  desc: mikmod plugin
+  user: core
+  <source>
+    *: "Mikmod Settings"
+  </source>
+  <dest>
+    *: "Mikmod-innstillingar"
+  </dest>
+  <voice>
+    *: "Mikmod-innstillingar"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_INVALID_VOICE_FILE
+  desc: played if the voice file fails to load
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Ugyldig stemmefil"
+  </voice>
+</phrase>
+<phrase>
+  id: VOICE_LANG_NAME
+  desc: Spoken name of the language
+  user: core
+  <source>
+    *: ""
+  </source>
+  <dest>
+    *: ""
+  </dest>
+  <voice>
+    *: "Nynorsk"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PERCENT_FORMAT
+  desc: percent formatting ( `10%` is default ,  for `10 %` use '%ld %%' , for `%10` use '%%%ld' and so on)
+  user: core
+  <source>
+    *: "%ld%%"
+  </source>
+  <dest>
+    *: "%ld%%"
+  </dest>
+  <voice>
+    *: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHOOSE_FILE
+  desc: file_picker plugin ask user to select a file
+  user: core
+  <source>
+    *: "Choose File"
+  </source>
+  <dest>
+    *: "Vel fil"
+  </dest>
+  <voice>
+    *: "Vel fil"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DISABLE_MAINMENU_SCROLLING
+  desc: Disable main menu scrolling
+  user: core
+  <source>
+    *: "Disable main menu scrolling"
+  </source>
+  <dest>
+    *: "Skru av hovudmenyrulling"
+  </dest>
+  <voice>
+    *: "Skru av hovudmenyrulling"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REMAINING
+  desc: Playing Time
+  user: core
+  <source>
+    *: "Remaining"
+  </source>
+  <dest>
+    *: "Står att"
+  </dest>
+  <voice>
+    *: "Står att"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "First Letter"
+  </source>
+  <dest>
+    *: "Førebokstav"
+  </dest>
+  <voice>
+    *: "Førebokstav"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "By First Letter..."
+  </source>
+  <dest>
+    *: "Etter førebokstav"
+  </dest>
+  <voice>
+    *: "Etter førebokstav"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists by First Letter"
+  </source>
+  <dest>
+    *: "Artistar etter førebokstav"
+  </dest>
+  <voice>
+    *: "Artistar etter førebokstav"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUM_ARTISTS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Album Artists by First Letter"
+  </source>
+  <dest>
+    *: "Albumartistar etter førebokstav"
+  </dest>
+  <voice>
+    *: "Albumartistar etter førebokstav"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_ALBUMS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by First Letter"
+  </source>
+  <dest>
+    *: "Album etter førebokstav"
+  </dest>
+  <voice>
+    *: "Album etter førebokstav"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_TRACKS_BY_FIRST_LETTER
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by First Letter"
+  </source>
+  <dest>
+    *: "Spor etter førebokstav"
+  </dest>
+  <voice>
+    *: "Spor etter førebokstav"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists"
+  </source>
+  <dest>
+    *: "Artistar"
+  </dest>
+  <voice>
+    *: "Artistar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums"
+  </source>
+  <dest>
+    *: "Album"
+  </dest>
+  <voice>
+    *: "Album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks"
+  </source>
+  <dest>
+    *: "Spor"
+  </dest>
+  <voice>
+    *: "Spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHUFFLE_SONGS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Shuffle Songs"
+  </source>
+  <dest>
+    *: "Spel songar tilfeldig"
+  </dest>
+  <voice>
+    *: "Spel songar tilfeldig"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILENAME
+  desc: Database and recording menus
+  user: core
+  <source>
+    *: "Filename"
+  </source>
+  <dest>
+    *: "Filnamn"
+  </dest>
+  <voice>
+    *: "Filnamn"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TITLE_WITH_DURATION
+  desc: Database menu
+  user: core
+  <source>
+    *: "Title (with track duration)"
+  </source>
+  <dest>
+    *: "Tittel (med tid)"
+  </dest>
+  <voice>
+    *: "Tittel med tid"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USER_RATING
+  desc: Database menu
+  user: core
+  <source>
+    *: "User Rating"
+  </source>
+  <dest>
+    *: "Brukarrangering"
+  </dest>
+  <voice>
+    *: "Brukarrangering"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search"
+  </source>
+  <dest>
+    *: "Søk"
+  </dest>
+  <voice>
+    *: "Søk"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SEARCH_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Search by..."
+  </source>
+  <dest>
+    *: "Søk etter..."
+  </dest>
+  <voice>
+    *: "Søk etter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_RECENTLY_ADDED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently Added"
+  </source>
+  <dest>
+    *: "Nyst lagt til"
+  </dest>
+  <voice>
+    *: "Nyst lagt til"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_PLAYBACK_HISTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Playback History"
+  </source>
+  <dest>
+    *: "Sist spelt"
+  </dest>
+  <voice>
+    *: "Sist spelt"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CUSTOM_MENU
+  desc: Database menu
+  user: core
+  <source>
+    *: "Custom menu"
+  </source>
+  <dest>
+    *: "Eigen meny"
+  </dest>
+  <voice>
+    *: "Eigen meny"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SAME_AS_CURRENT
+  desc: Database menu
+  user: core
+  <source>
+    *: "Same as currently played track"
+  </source>
+  <dest>
+    *: "Same som noverande spor"
+  </dest>
+  <voice>
+    *: "Same som noverande spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_DIRECTORY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Directory"
+  </source>
+  <dest>
+    *: "Mappe"
+  </dest>
+  <voice>
+    *: "Mappe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BY_YEAR
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums by Year"
+  </source>
+  <dest>
+    *: "Album etter år"
+  </dest>
+  <voice>
+    *: "Album etter år"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ALBUMS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Albums between Years"
+  </source>
+  <dest>
+    *: "Album mellom åra"
+  </dest>
+  <voice>
+    *: "Album mellom åra"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ARTISTS_BETWEEN_YEARS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Artists between Years"
+  </source>
+  <dest>
+    *: "Artistar mellom åra"
+  </dest>
+  <voice>
+    *: "Artistar mellom åra"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_MOST_PLAYED
+  desc: Database menu
+  user: core
+  <source>
+    *: "Most played (Plays|Score)"
+  </source>
+  <dest>
+    *: "Mest spelte (Avspelingar|Vurdering)"
+  </dest>
+  <voice>
+    *: "Mest spelte etter avspelingar og så vurdering"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENTLY_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recently played tracks"
+  </source>
+  <dest>
+    *: "Sist spelte spor"
+  </dest>
+  <voice>
+    *: "Sist spelte spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEVER_PLAYED_TRACKS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Never played tracks"
+  </source>
+  <dest>
+    *: "Aldri spelte spor"
+  </dest>
+  <voice>
+    *: "Aldri spelte spor"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ARTISTS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite artists"
+  </source>
+  <dest>
+    *: "Favorittartist"
+  </dest>
+  <voice>
+    *: "Favorittartist"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FAVOURITE_ALBUMS
+  desc: Database menu
+  user: core
+  <source>
+    *: "Favourite albums"
+  </source>
+  <dest>
+    *: "Favorittalbum"
+  </dest>
+  <voice>
+    *: "Favorittalbum"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_RECENT_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Recent favourites"
+  </source>
+  <dest>
+    *: "Siste favorittar"
+  </dest>
+  <voice>
+    *: "Siste favorittar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_NEW_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "New favourites"
+  </source>
+  <dest>
+    *: "Nye favorittar"
+  </dest>
+  <voice>
+    *: "Nye favorittar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HISTORY_FORGOTTEN_FAVOURITES
+  desc: Database menu
+  user: core
+  <source>
+    *: "Forgotten favourites"
+  </source>
+  <dest>
+    *: "Gløymde favorittar"
+  </dest>
+  <voice>
+    *: "Gløymde favorittar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TRACKS_BY
+  desc: Database menu
+  user: core
+  <source>
+    *: "Tracks by"
+  </source>
+  <dest>
+    *: "Spor etter"
+  </dest>
+  <voice>
+    *: "Spor etter"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEW_ALBUMART
+  desc: WPS context menu
+  user: core
+  <source>
+    *: "View Album Art"
+  </source>
+  <dest>
+    *: "Vis omslag"
+  </dest>
+  <voice>
+    *: "Vis omslag"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_TAGNAVI_ALL_TRACKS_SORTED_BY_ALBUM
+  desc: "[By album]" entry in tag browser
+  user: core
+  <source>
+    *: "[By album]"
+  </source>
+  <dest>
+    *: "[Etter album]"
+  </dest>
+  <voice>
+    *: "Alle spor sorterte etter album"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HP_LO_SELECT
+  desc: Output Select
+  user: core
+  <source>
+    *: none
+    erosqnative: "Output Select"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "Vel utgang"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "Vel utgang"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_HEADPHONE
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative: "Headphone"
+  </source>
+  <dest>
+    *: none
+    erosqnative: "Øyreklokker"
+  </dest>
+  <voice>
+    *: none
+    erosqnative: "Øyreklokker"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LINEOUT
+  desc: in settings_menu
+  user: core
+  <source>
+    *: none
+    erosqnative,lineout_poweroff: "Line Out"
+  </source>
+  <dest>
+    *: none
+    erosqnative,lineout_poweroff: "Lineutgang"
+  </dest>
+  <voice>
+    *: none
+    erosqnative,lineout_poweroff: "Lineutgang"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FONT_LOAD_ERROR
+  desc: Displayed when font loading fails
+  user: core
+  <source>
+    *: "Unable to load font: (%s)"
+  </source>
+  <dest>
+    *: "Greidde ikkje lasta skrift: (%s)"
+  </dest>
+  <voice>
+    *: "Greidde ikkje lasta skrift"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_LOGGING
+  desc: playback logging
+  user: core
+  <source>
+    *: "Logging"
+  </source>
+  <dest>
+    *: "~Logging"
+  </dest>
+  <voice>
+    *: "~logging"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_VIEWLOG
+  desc: view Log
+  user: core
+  <source>
+    *: "View log"
+  </source>
+  <dest>
+    *: "Sjå loggen"
+  </dest>
+  <voice>
+    *: "sjå loggen"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_REPLAY_FINISHED_PLAYLIST
+  desc: Resume playback of finished playlist
+  user: core
+  <source>
+    *: "Playlist finished. Play again?"
+  </source>
+  <dest>
+    *: "Spelelista er ferdig. Spel på nytt?"
+  </dest>
+  <voice>
+    *: "Spelelista er ferdig. Spel på nytt?"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SORT_PLAYLISTS
+  desc: playlists sorting setting
+  user: core
+  <source>
+    *: "Sort Playlists"
+  </source>
+  <dest>
+    *: "Sorter spelelister"
+  </dest>
+  <voice>
+    *: "sorter spelelister"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USE_LED_INDICATORS
+  desc: LED indicators setting
+  user: core
+  <source>
+    *: none
+    general_purpose_led: "Use LED indicators"
+  </source>
+  <dest>
+    *: none
+    general_purpose_led: "Bruk LED-indikatorar"
+  </dest>
+  <voice>
+    *: none
+    general_purpose_led: "Bruk LED-indikatorar"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEEP_DIRECTORY
+  desc: file browser setting
+  user: core
+  <source>
+    *: "Always remember last folder"
+  </source>
+  <dest>
+    *: "Alltid hugs siste mappe"
+  </dest>
+  <voice>
+    *: "Alltid hugs siste mappe"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_USB_MENU
+  desc: in settings_menu
+  user: core
+  <source>
+    *: "USB"
+  </source>
+  <dest>
+    *: "~USB"
+  </dest>
+  <voice>
+    *: "~U S B"
   </voice>
 </phrase>

@@ -397,7 +397,7 @@ foreach my $id (@langorder) {
 	if ($id eq 'LANG_VOICED_DATE_FORMAT') {
 	    my $sane = $lp{$tgt};
 	    $sane =~ s/^~?(.*)/$1/;  # Strip off leading ~ if it's there as it's not a legal character for the format.
-	    $sane =~ tr/YAmd~//d;
+	    $sane =~ tr/yYAmd~//d;
 	    if (length($sane) != 0) {
 		$lang{$id}{'notes'} .= "### The <dest> section for '$id:$tgt' has illegal characters!  Restoring from English!\n";
 		$lang{$id}{'notes'} .= "#### the previously used one is commented below:\n";

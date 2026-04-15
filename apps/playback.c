@@ -27,6 +27,7 @@
 #include "panic.h"
 #include "core_alloc.h"
 #include "sound.h"
+#include "pcm_sink.h"
 #include "codecs.h"
 #include "codec_thread.h"
 #include "voice_thread.h"
@@ -78,11 +79,6 @@
 
 /* Internal support for voice playback */
 #define PLAYBACK_VOICE
-
-#if CONFIG_PLATFORM & PLATFORM_NATIVE
-/* Application builds don't support direct code loading */
-#define HAVE_CODEC_BUFFERING
-#endif
 
 /* Amount of guess-space to allow for codecs that must hunt and peck
  * for their correct seek target, 32k seems a good size */
@@ -331,6 +327,7 @@ static unsigned int track_event_flags = TEF_NONE; /* (A, O-) */
 static int skip_offset = 0; /* (A, O) */
 
 static bool track_skip_is_manual = false;
+static bool pause_on_track_change = false;
 
 /* Track change notification */
 static struct
@@ -494,14 +491,6 @@ static void id3_write_locked(enum audio_id3_types id3_num,
 
 
 /** --- Track info --- **/
-
-#ifdef HAVE_CODEC_BUFFERING
-static void track_info_close_handle(int *hidp)
-{
-    bufclose(*hidp);
-    *hidp = ERR_HANDLE_NOT_FOUND;
-}
-#endif /* HAVE_CODEC_BUFFERING */
 
 /* Invalidate all members to initial values - does not close handles or sync */
 static void track_info_wipe(struct track_info *infop)
@@ -1516,7 +1505,7 @@ static bool halt_decoding_track(bool stop)
 
     codec_skip_pending = false;
     codec_seeking = false;
-
+    pause_on_track_change = false;
     return retval;
 }
 
@@ -1670,7 +1659,8 @@ static bool audio_init_codec(struct track_info *track_infop,
             /* Close any buffered codec (we could have skipped directly to a
                format transistion that is the same format as the current track
                and the buffered one is no longer needed) */
-            track_info_close_handle(&track_infop->codec_hid);
+            bufclose(track_infop->codec_hid);
+            track_infop->codec_hid = ERR_HANDLE_NOT_FOUND;
             track_info_sync(track_infop);
 #endif /* HAVE_CODEC_BUFFERING */
             return true;
@@ -2789,10 +2779,14 @@ static void audio_finalise_track_change(void)
         buf_read_cuesheet(info.cuesheet_hid);
         track_id3 = bufgetid3(info.id3_hid);
 
-        if (single_mode_do_pause(info.id3_hid))
+        /* When pause_on_track_change is calculated, next track_info may be missing
+         * (due to a low buffer or an automatic directory change),
+         * so we need to recalculate it. */
+        if (pause_on_track_change || single_mode_do_pause(info.id3_hid))
         {
             play_status = PLAY_PAUSED;
             pcmbuf_pause(true);
+            pause_on_track_change = false;
         }
     }
     /* Sync the next track information */
@@ -2870,11 +2864,16 @@ static void audio_monitor_end_of_playlist(void)
 }
 
 /* Does this track have an entry allocated? */
-static bool audio_can_change_track(int *trackstat, int *id3_hid)
+static bool audio_can_change_track(int *trackstat, enum pcm_track_change_type *type)
 {
     struct track_info info;
     bool have_track = track_list_advance_current(1, &info);
-    *id3_hid = info.id3_hid;
+
+    pause_on_track_change = have_track && single_mode_do_pause(info.id3_hid);
+    *type = pause_on_track_change
+                ? TRACK_CHANGE_END_OF_DATA
+                : TRACK_CHANGE_AUTO;
+
     if (!have_track || info.audio_hid < 0)
     {
         bool end_of_playlist = false;
@@ -2883,8 +2882,8 @@ static bool audio_can_change_track(int *trackstat, int *id3_hid)
         {
             if (filling == STATE_STOPPED)
             {
-                audio_begin_track_change(TRACK_CHANGE_END_OF_DATA, *trackstat);
-                return false;
+                *type = TRACK_CHANGE_END_OF_DATA;
+                return true;
             }
 
             /* Track load is not complete - it might have stopped on a
@@ -2986,13 +2985,10 @@ static void audio_on_codec_complete(int status)
     track_event_flags = TEF_AUTO_SKIP;
     skip_pending = TRACK_SKIP_AUTO;
 
-    int id3_hid = 0;
-    if (audio_can_change_track(&trackstat, &id3_hid))
+    enum pcm_track_change_type type;
+    if (audio_can_change_track(&trackstat, &type))
     {
-        audio_begin_track_change(
-                single_mode_do_pause(id3_hid)
-                ? TRACK_CHANGE_END_OF_DATA
-                : TRACK_CHANGE_AUTO, trackstat);
+        audio_begin_track_change(type, trackstat);
     }
 }
 
@@ -3083,7 +3079,6 @@ static void audio_start_playback(const struct audio_resume_info *resume_info,
             skip_resume_adjustments = id3_get(PLAYING_ID3)->skip_resume_adjustments;
 
             track_list_clear(TRACK_LIST_CLEAR_ALL);
-            pcmbuf_update_frequency();
         }
         else
         {
@@ -3096,7 +3091,6 @@ static void audio_start_playback(const struct audio_resume_info *resume_info,
             pcmbuf_start_track_change(TRACK_CHANGE_MANUAL);
             wipe_track_metadata(true);
         }
-        pcmbuf_update_frequency();
 
         /* Set after track finish event in case skip was in progress */
         skip_pending = TRACK_SKIP_NONE;
@@ -3118,7 +3112,6 @@ static void audio_start_playback(const struct audio_resume_info *resume_info,
 #ifndef PLATFORM_HAS_VOLUME_CHANGE
         sound_set_volume(global_status.volume);
 #endif
-        pcmbuf_update_frequency();
 
         /* Be sure channel is audible */
         pcmbuf_fade(false, true);
@@ -3905,7 +3898,7 @@ void audio_pcmbuf_track_change(bool pcmbuf)
 /* May pcmbuf start PCM playback when the buffer is full enough? */
 bool audio_pcmbuf_may_play(void)
 {
-    return play_status == PLAY_PLAYING && !ff_rw_mode;
+    return play_status == PLAY_PLAYING && !ff_rw_mode && !pause_on_track_change;
 }
 
 
@@ -4283,29 +4276,13 @@ void audio_set_crossfade(int enable)
 #ifdef HAVE_PLAY_FREQ
 static unsigned long audio_guess_frequency(struct mp3entry *id3)
 {
-    switch (id3->frequency)
+    const struct pcm_sink_caps* caps = pcm_sink_caps(pcm_current_sink());
+    for (size_t i = 0; i < caps->num_samprs; i += 1)
     {
-#if HAVE_PLAY_FREQ >= 48
-    case 44100:
-        return SAMPR_44;
-    case 48000:
-        return SAMPR_48;
-#endif
-#if HAVE_PLAY_FREQ >= 96
-    case 88200:
-        return SAMPR_88;
-    case 96000:
-        return SAMPR_96;
-#endif
-#if HAVE_PLAY_FREQ >= 192
-    case 176400:
-        return SAMPR_176;
-    case 192000:
-        return SAMPR_192;
-#endif
-    default:
-        return (id3->frequency % 4000) ? SAMPR_44 : SAMPR_48;
+        if (id3->frequency == caps->samprs[i])
+            return id3->frequency;
     }
+    return (id3->frequency % 4000) ? SAMPR_44 : SAMPR_48;
 }
 
 static bool audio_auto_change_frequency(struct mp3entry *id3, bool play)
@@ -4330,27 +4307,16 @@ static bool audio_auto_change_frequency(struct mp3entry *id3, bool play)
 
 void audio_set_playback_frequency(unsigned int sample_rate_hz)
 {
-    /* sample_rate_hz == 0 is "automatic", and also a sentinel */
-#if HAVE_PLAY_FREQ >= 192
-    static const unsigned int play_sampr[] = {SAMPR_44, SAMPR_48, SAMPR_88, SAMPR_96, SAMPR_176, SAMPR_192, 0 };
-#elif HAVE_PLAY_FREQ >= 96
-    static const unsigned int play_sampr[] = {SAMPR_44, SAMPR_48, SAMPR_88, SAMPR_96, 0 };
-#elif HAVE_PLAY_FREQ >= 48
-    static const unsigned int play_sampr[] = {SAMPR_44, SAMPR_48, 0 };
-#else
-    #error "HAVE_PLAY_FREQ < 48 ??"
-#endif
-    const unsigned int *p_sampr = play_sampr;
     unsigned int sampr = 0;
 
-    while (*p_sampr != 0)
+    const struct pcm_sink_caps* caps = pcm_sink_caps(pcm_current_sink());
+    for (size_t i = 0; i < caps->num_samprs; i += 1)
     {
-        if (*p_sampr == sample_rate_hz)
+        if (caps->samprs[i] == sample_rate_hz)
         {
-            sampr = *p_sampr;
+            sampr = caps->samprs[i];
             break;
         }
-        p_sampr++;
     }
 
     if (sampr == 0)
@@ -4389,7 +4355,6 @@ void INIT_ATTR playback_init(void)
     mutex_init(&id3_mutex);
     track_list_init();
     buffering_init();
-    pcmbuf_update_frequency();
 #ifdef HAVE_CROSSFADE
     /* Set crossfade setting for next buffer init which should be about... */
     pcmbuf_request_crossfade_enable(global_settings.crossfade);

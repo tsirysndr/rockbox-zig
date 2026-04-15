@@ -43,9 +43,6 @@
 #include "lcd.h"
 #include "version.h"
 
-/* Show the Rockbox logo - in show_logo.c */
-extern void show_logo(void);
-
 #define TAR_CHUNK 512
 #define TAR_HEADER_SIZE 157
 
@@ -126,7 +123,7 @@ static void handle_usb(int connect_timeout)
         /* Got the message - wait for disconnect */
         printf("Bootloader USB mode");
 
-        usb_acknowledge(SYS_USB_CONNECTED_ACK);
+        usb_acknowledge(SYS_USB_CONNECTED_ACK, button_get_data());
 
         while (1)
         {

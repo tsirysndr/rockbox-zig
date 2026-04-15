@@ -21,12 +21,23 @@
  *
  ****************************************************************************/
 
-#include "plugin.h"
-#define _ROCKCONF_H_ /* Protect against unwanted include */
 #include "lua.h"
-#include "lib/pluginlib_actions.h"
+#include "rocklibc.h" /* ROCKLUA ADDED */
 
-extern long strtol(const char *nptr, char **endptr, int base);
+#ifdef PLUGIN
+#include "plugin.h"
+#include "lib/pluginlib_actions.h"
+#define font_getstringsize rb->font_getstringsize
+#define lcd_clear_display rb->lcd_clear_display
+#define lcd_putsxy        rb->lcd_putsxy
+#define lcd_update        rb->lcd_update
+#define beep_play         rb->beep_play
+#define get_action        rb->get_action
+#if 0 /* ndef _WIN32 -- supplied by strfrtime.lua */
+#define gmtime_r          rb->gmtime_r
+#endif
+#endif /* def PLUGIN*/
+
 extern const char *strpbrk_n(const char *s, int smax, const char *accept);
 
 #if (CONFIG_PLATFORM & PLATFORM_NATIVE)
@@ -55,7 +66,13 @@ int splash_scroller(int timeout, const char* str)
     if (!str)
         str = "[nil]";
     int w, ch_w, ch_h;
-    rb->lcd_getstringsize("W", &ch_w, &ch_h);
+
+    struct viewport vp;
+    rb->viewport_set_defaults(&vp, SCREEN_MAIN);
+    struct viewport *last_vp = rb->lcd_set_viewport(&vp);
+    int fontnum = vp.font;
+
+    font_getstringsize("W", &ch_w, &ch_h, fontnum);
 
     const int max_w = LCD_WIDTH - (ch_w * 2);
     const int max_lines = LCD_HEIGHT / ch_h - 1;
@@ -75,7 +92,7 @@ int splash_scroller(int timeout, const char* str)
     while (cycles > 0)
     {
         /* walk whole buffer every refresh, only display relevant portion */
-        rb->lcd_clear_display();
+        lcd_clear_display();
         curline = 0;
         linepos = 0;
         linesdisp = 0;
@@ -90,15 +107,15 @@ int splash_scroller(int timeout, const char* str)
             else if (ch[0] == '\b' && timeout > 0)
             {
                 line[linepos] = ' ';
-                rb->beep_play(1000, HZ, 1000);
+                beep_play(1000, HZ, 1000);
             }
-            else if (ch[0] < ' ') /* Dont copy control characters */
+            else if (ch[0] < ' ' && ch[0] > '\0') /* Dont copy control characters */
                 line[linepos] = (linepos == 0) ? '\0' : ' ';
             else
                 line[linepos] = ch[0];
 
             line[linepos + 1] = '\0'; /* terminate to check text extent */
-            rb->lcd_getstringsize(line, &w, NULL);
+            font_getstringsize(line, &w, NULL, fontnum);
 
             /* try to not split in middle of words */
             if (w + wrap_thresh >= max_w &&
@@ -125,7 +142,7 @@ int splash_scroller(int timeout, const char* str)
                 realline = curline - firstline;
                 if (realline >= 0 && realline < max_lines)
                 {
-                    rb->lcd_putsxy(0, realline * ch_h, line);
+                    lcd_putsxy(0, realline * ch_h, line);
                     linesdisp++;
                 }
                 linepos = 0;
@@ -135,10 +152,10 @@ int splash_scroller(int timeout, const char* str)
             linepos++;
         }
 
-        rb->lcd_update();
+        lcd_update();
         if (timeout >= TIMEOUT_BLOCK)
         {
-            action = rb->get_action(CONTEXT_STD, timeout);
+            action = get_action(CONTEXT_STD, timeout);
             switch(action)
             {
                 case ACTION_STD_OK:
@@ -163,6 +180,8 @@ int splash_scroller(int timeout, const char* str)
         else
             break;
     }
+    rb->lcd_set_viewport(last_vp);
+
     return action;
 }
 
@@ -199,14 +218,14 @@ long rb_pow(long x, long n)
 
 int strcoll(const char * str1, const char * str2)
 {
-    return rb->strcmp(str1, str2);
+    return strcmp(str1, str2);
 }
 
-#ifndef _WIN32
+#if 0 //ndef _WIN32  /* supplied by strfrtime.lua*/
 struct tm * gmtime(const time_t *timep)
 {
     static struct tm time;
-    return rb->gmtime_r(timep, &time);
+    return gmtime_r(timep, &time);
 }
 #endif
 
@@ -221,7 +240,7 @@ int get_current_path(lua_State *L, int level)
         lua_getinfo(L, "S", &ar);
 
         const char* curfile = &ar.source[1];
-        const char* pos = rb->strrchr(curfile, '/');
+        const char* pos = strrchr(curfile, '/');
         if(pos != NULL)
         {
             lua_pushlstring (L, curfile, pos - curfile + 1);
@@ -251,7 +270,7 @@ int filetol(int fd, long *num)
     bool   neg   = false;
     long   val;
 
-    while (rb->read(fd, &chbuf, 1) == 1)
+    while (read(fd, &chbuf, 1) == 1)
     {
         if(retn || !isspace(chbuf))
         {
@@ -276,12 +295,12 @@ int filetol(int fd, long *num)
         }
     }
 
-    while (rb->read(fd, &chbuf, 1) == 1)
+    while (read(fd, &chbuf, 1) == 1)
     {
 get_digits:
         if(!isdigit(chbuf))
         {
-            rb->lseek(fd, -1, SEEK_CUR);
+            lseek(fd, -1, SEEK_CUR);
             break;
         }
         else if (count < LUAI_MAXNUMBER2STR - 2)

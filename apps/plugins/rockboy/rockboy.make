@@ -29,7 +29,7 @@ $(ROCKBOY_OBJDIR)/rockboy.rock: $(ROCKBOY_OBJ)
 $(ROCKBOY_OBJDIR)/rockboy.refmap: $(ROCKBOY_OBJ)
 
 $(ROCKBOY_OUTLDS): $(PLUGIN_LDS) $(ROCKBOY_OBJDIR)/rockboy.refmap
-	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DOVERLAY_OFFSET=$(shell \
+	$(call PRINTS,PP $(@F))$(call preprocess2file,$<,$@,-DPLUGIN -DOVERLAY_OFFSET=$(shell \
 		$(TOOLSDIR)/ovl_offset.pl $(ROCKBOY_OBJDIR)/rockboy.refmap))
 
 $(ROCKBOY_OBJDIR)/rockboy.ovl: $(ROCKBOY_OBJ) $(ROCKBOY_OUTLDS)
@@ -37,4 +37,10 @@ $(ROCKBOY_OBJDIR)/rockboy.ovl: $(ROCKBOY_OBJ) $(ROCKBOY_OUTLDS)
 		$(filter %.o, $^) \
 		$(filter %.a, $+) \
 		-lgcc $(ROCKBOY_OVLFLAGS)
-	$(call PRINTS,LD $(@F))$(call objcopy,$(basename $@).elf,$@)
+	$(call PRINTS,LD $(@F))$(call objcopy_plugin,$(basename $@).elf,$@)
+
+# special rule to build with devkitarm gcc
+ifeq ($(APP_TYPE),ctru-app)
+$(ROCKBOY_OBJDIR)/rockboy.rock: PLUGINFLAGS += -O3
+endif
+

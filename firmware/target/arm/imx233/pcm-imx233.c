@@ -25,6 +25,8 @@
 #include "dma-imx233.h"
 #include "pcm-internal.h"
 #include "audioout-imx233.h"
+#include "pcm_sampr.h"
+#include "pcm_sink.h"
 
 struct pcm_dma_command_t
 {
@@ -47,7 +49,7 @@ static const void *dac_buf; /* current buffer */
 static size_t dac_size; /* remaining size */
 
 /* for both recording and playback: maximum transfer size, see
- * pcm_dma_apply_settings */
+ * sink_set_sampr */
 static size_t dma_max_size = CACHEALIGN_UP(1600);
 
 enum
@@ -110,33 +112,33 @@ void INT_DAC_ERROR(void)
     imx233_dma_clear_channel_interrupt(APB_AUDIO_DAC);
 }
 
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     if(dac_locked++ == 0)
         imx233_dma_enable_channel_interrupt(APB_AUDIO_DAC, false);
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     if(--dac_locked == 0)
         imx233_dma_enable_channel_interrupt(APB_AUDIO_DAC, true);
 }
 
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
     /* do not interrupt the current transaction because resetting the dma
      * would halt the DAC and clearing RUN causes sound havoc so simply
      * wait for the end of transfer */
-    pcm_play_lock();
+    sink_lock();
     dac_buf = NULL;
     dac_size = 0;
     dac_state = DAC_STOP_PENDING;
-    pcm_play_unlock();
+    sink_unlock();
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_start(const void *addr, size_t size)
 {
-    pcm_play_lock();
+    sink_lock();
     /* update pending buffer */
     dac_buf = addr;
     dac_size = size;
@@ -145,15 +147,10 @@ void pcm_play_dma_start(const void *addr, size_t size)
         play();
     else
         dac_state = DAC_PLAYING;
-    pcm_play_unlock();
+    sink_unlock();
 }
 
-void pcm_play_dma_init(void)
-{
-    audiohw_preinit();
-}
-
-void pcm_play_dma_postinit(void)
+static void sink_dma_postinit(void)
 {
     audiohw_postinit();
     imx233_icoll_enable_interrupt(INT_SRC_DAC_DMA, true);
@@ -162,17 +159,34 @@ void pcm_play_dma_postinit(void)
     imx233_dma_enable_channel_interrupt(APB_AUDIO_DAC, true);
 }
 
-void pcm_dma_apply_settings(void)
+static void sink_set_freq(uint16_t freq)
 {
-    pcm_play_lock();
+    sink_lock();
     /* update frequency */
-    audiohw_set_frequency(pcm_fsel);
+    audiohw_set_frequency(freq);
     /* compute maximum transfer size: aim at ~1/100s stop time maximum, make sure
      * the resulting value is a multiple of cache line. At sample rate F we
      * transfer two samples (2 x 2 bytes) F times per second = 4F b/s */
-    dma_max_size = CACHEALIGN_UP(4 * pcm_sampr / 100);
-    pcm_play_unlock();
+    dma_max_size = CACHEALIGN_UP(4 * hw_freq_sampr[freq] / 100);
+    sink_unlock();
 }
+
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = audiohw_preinit,
+        .postinit = sink_dma_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 /*
  * Recording

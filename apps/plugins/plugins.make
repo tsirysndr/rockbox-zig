@@ -15,11 +15,20 @@ ifneq ($(APP_TYPE),sdl-sim)
 endif
 endif
 
+# Let's enable all plugins for ctru target
+ifeq ($(APP_TYPE),ctru-app)
+    is_app_build =
+endif
+
+ifneq ($(SELECTED_PLUGINS_SRC),DEFAULT)
+PLUGINS_SRC = $(SELECTED_PLUGINS_SRC)
+else
 ifdef is_app_build
 PLUGINS_SRC = $(call preprocess, $(APPSDIR)/plugins/SOURCES.app_build)
 else
 PLUGINS_SRC = $(call preprocess, $(APPSDIR)/plugins/SOURCES)
 endif
+endif # if SELECTED_PLUGINS_SRC
 OTHER_SRC += $(PLUGINS_SRC)
 ROCKS1 := $(PLUGINS_SRC:.c=.rock)
 ROCKS1 := $(call full_path_subst,$(ROOTDIR)/%,$(BUILDDIR)/%,$(ROCKS1))
@@ -53,11 +62,15 @@ endif
 OTHER_SRC += $(ROOTDIR)/apps/plugins/plugin_crt0.c
 PLUGIN_CRT0 := $(BUILDDIR)/apps/plugins/plugin_crt0.o
 # multifile plugins (subdirs):
+ifneq ($(SELECTED_PLUGINS_SUBDIRS),DEFAULT)
+PLUGINSUBDIRS := $(SELECTED_PLUGINS_SUBDIRS)
+else
 ifdef is_app_build
 PLUGINSUBDIRS := $(call preprocess, $(APPSDIR)/plugins/SUBDIRS.app_build)
 else
 PLUGINSUBDIRS := $(call preprocess, $(APPSDIR)/plugins/SUBDIRS)
 endif
+endif # if SELECTED_PLUGINS_SUBDIRS
 
 PLUGIN_LIBS := $(PLUGINLIB) $(PLUGINBITMAPLIB) $(SETJMPLIB) $(FIXEDPOINTLIB)
 
@@ -82,12 +95,12 @@ $(PLUGINLIB): $(PLUGINLIB_OBJ)
 $(PLUGINLINK_LDS): $(PLUGIN_LDS) $(CONFIGFILE)
 	$(call PRINTS,PP $(@F))
 	$(shell mkdir -p $(dir $@))
-	$(call preprocess2file,$<,$@,-DLOADADDRESS=$(LOADADDRESS))
+	$(call preprocess2file,$<,$@,-DPLUGIN)
 
 $(OVERLAYREF_LDS): $(PLUGIN_LDS)
 	$(call PRINTS,PP $(@F))
 	$(shell mkdir -p $(dir $@))
-	$(call preprocess2file,$<,$@,-DOVERLAY_OFFSET=0)
+	$(call preprocess2file,$<,$@,-DPLUGIN -DOVERLAY_OFFSET=0)
 
 $(BUILDDIR)/credits.raw credits.raw: $(DOCSDIR)/CREDITS
 	$(call PRINTS,Create credits.raw)perl $(APPSDIR)/plugins/credits.pl < $< > $(BUILDDIR)/$(@F)
@@ -164,7 +177,7 @@ $(BUILDDIR)/%.rock:
 		$(filter %.o, $^) \
 		$(filter %.a, $+) \
 		-lgcc $(PLUGINLDFLAGS)
-	$(SILENT)$(call objcopy,$(BUILDDIR)/$*.elf,$@)
+	$(SILENT)$(call objcopy_plugin,$(BUILDDIR)/$*.elf,$@)
 
 $(BUILDDIR)/apps/plugins/%.lua: $(ROOTDIR)/apps/plugins/%.lua
 	$(call PRINTS,CP $(subst $(ROOTDIR)/,,$<))cp $< $(BUILDDIR)/apps/plugins/

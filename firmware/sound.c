@@ -30,10 +30,6 @@
 #include "settings.h" /* sound_current */
 #endif
 
-#ifdef HAVE_SW_VOLUME_CONTROL
-#include "pcm_sw_volume.h"
-#endif /* HAVE_SW_VOLUME_CONTROL */
-
 /* Define sound_setting_entries table */
 #define AUDIOHW_SOUND_SETTINGS_ENTRIES
 #include "audiohw_settings.h"
@@ -317,6 +313,16 @@ void sound_set_volume(int value)
         return;
 
 #ifndef BOOTLOADER
+    /* Apply limits */
+    const int min_vol = sound_min(SOUND_VOLUME);
+    const int max_vol = sound_max(SOUND_VOLUME);
+    if (value < min_vol)
+        value = min_vol;
+    if (value > max_vol)
+        value = max_vol;
+    if (value > global_settings.volume_limit)
+        value = global_settings.volume_limit;
+
     global_status.volume = value;
 #endif
 

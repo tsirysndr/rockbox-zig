@@ -169,14 +169,6 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define DOWN BUTTON_RC_VOL_DOWN
 #define RC_QUIT BUTTON_REC
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define QUIT BUTTON_BACK
-#define LEFT BUTTON_LEFT
-#define RIGHT BUTTON_RIGHT
-#define SELECT BUTTON_SELECT
-#define UP BUTTON_UP
-#define DOWN BUTTON_DOWN
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define QUIT BUTTON_POWER
 #define LEFT BUTTON_BACK
@@ -362,7 +354,7 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define UP          BUTTON_UP
 #define DOWN        BUTTON_DOWN
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 #define QUIT        BUTTON_POWER
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -388,6 +380,14 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define SELECT          BUTTON_A
 #define UP              BUTTON_UP
 #define DOWN            BUTTON_DOWN
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define QUIT        BUTTON_BACK
+#define LEFT        BUTTON_LEFT
+#define RIGHT       BUTTON_RIGHT
+#define SELECT      BUTTON_SELECT
+#define UP          BUTTON_UP
+#define DOWN        BUTTON_DOWN
 
 #else
 #error No keymap defined!
@@ -1503,8 +1503,7 @@ static int brickmania_help(void)
         "Releases", "the", "ball/Fire!", "",                            /* 30 */
 #if CONFIG_KEYPAD == IAUDIO_M3_PAD
         "REC:",
-#elif (CONFIG_KEYPAD == GIGABEAT_S_PAD) || \
-      (CONFIG_KEYPAD == CREATIVEZVM_PAD)
+#elif (CONFIG_KEYPAD == GIGABEAT_S_PAD)
         "BACK:",
 #elif (CONFIG_KEYPAD == IPOD_4G_PAD) || \
       (CONFIG_KEYPAD == IPOD_3G_PAD) || \
@@ -1608,7 +1607,7 @@ static int brickmania_menu(void)
     rb->touchscreen_set_mode(rb->global_settings->touch_mode);
 #endif
 
-    MENUITEM_STRINGLIST(main_menu, "Brickmania Menu", brickmania_menu_cb,
+    MENUITEM_STRINGLIST(main_menu, "Brickmania", brickmania_menu_cb,
                         "Resume Game", "Start New Game",
                         "Difficulty", "Help", "High Scores",
                         "Playback Control",

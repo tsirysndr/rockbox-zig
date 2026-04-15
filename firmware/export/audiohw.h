@@ -223,9 +223,10 @@ struct sound_settings_info
 #include "es9018.h"
 #elif defined(HAVE_ES9218)
 #include "es9218.h"
-#elif ((CONFIG_PLATFORM & (PLATFORM_ANDROID | PLATFORM_MAEMO \
-       | PLATFORM_PANDORA | PLATFORM_SDL | PLATFORM_CTRU)) | defined(RG_NANO))
-#include "hosted_codec.h"
+#elif (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#include "android_codec.h"
+#elif ((CONFIG_PLATFORM & (PLATFORM_SDL | PLATFORM_CTRU)) | defined(RG_NANO))
+#include "sdl_codec.h"
 #elif defined(DX50)
 #include "codec-dx50.h"
 #elif defined(DX90)
@@ -240,8 +241,10 @@ struct sound_settings_info
 #include "fiiolinux_codec.h"
 #elif defined(HAVE_EROSQ_LINUX_CODEC)
 #include "erosqlinux_codec.h"
-#elif defined(HAVE_TLV320AIC3104)
-#include "tlv320aic3104_codec.h"
+#elif defined(HAVE_ECHOPLAYER_CODEC)
+#include "echoplayer_codec.h"
+#elif defined(HAVE_HIBY_LINUX_CODEC)
+#include "hibylinux_codec.h"
 #endif
 
 #if defined(HAVE_X1000_ICODEC_REC) && !defined(HAVE_X1000_ICODEC_PLAY)

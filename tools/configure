@@ -319,6 +319,7 @@ simcc () {
    GCCOPTS="$GCCOPTS -Wno-format"
    LDOPTS="$LDOPTS -mconsole -static"
    GLOBAL_LDOPTS=`echo $GLOBAL_LDOPTS | sed -e s/\-Wl,-z,defs//`
+   GLOBAL_LDOPTS=`echo $GLOBAL_LDOPTS | sed -e s/\-Wl,-z,noexecstack//`
    LDOPTS=`echo $LDOPTS | sed -e s/-ldl// -e s/-lrt// -e s/-lasound//`
    output="$output.exe"
    winbuild="yes"
@@ -565,13 +566,6 @@ arm9tdmicc () {
  endian="little"
 }
 
-arm940tbecc () {
- findarmgcc
- GCCOPTS="$CCOPTS -mbig-endian -mcpu=arm940t"
- GCCOPTIMIZE="-fomit-frame-pointer"
- endian="big"
-}
-
 arm940tcc () {
  findarmgcc
  GCCOPTS="$CCOPTS -mcpu=arm940t"
@@ -634,132 +628,6 @@ mipsr2elcc () {
  gccchoice="9.5.0"
 }
 
-maemocc () {
- # Scratchbox sets up "gcc" based on the active target
- prefixtools ""
-
- GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib//`
- GCCOPTS="$GCCOPTS -fno-builtin -g -I\$(SIMDIR)"
- GCCOPTIMIZE=''
- LDOPTS="-lm -ldl $LDOPTS"
- GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-z,defs"
- SHARED_LDFLAGS="-shared"
- SHARED_CFLAGS=''
- endian="little"
- thread_support="HAVE_SIGALTSTACK_THREADS"
-
- is_n900=0
- # Determine maemo version
- if pkg-config --atleast-version=5 maemo-version; then
-    if [ "$1" == "4" ]; then
-        echo "ERROR: Maemo 4 SDK required."
-        exit 1
-    fi
-    extradefines="$extradefines -DMAEMO5"
-    echo "Found N900 maemo version"
-    is_n900=1
- elif pkg-config --atleast-version=4 maemo-version; then
-    if [ "$1" == "5" ]; then
-        echo "ERROR: Maemo 5 SDK required."
-        exit 1
-    fi
-    extradefines="$extradefines -DMAEMO4"
-    echo "Found N8xx maemo version"
- else
-    echo "Unable to determine maemo version. Is the maemo-version-dev package installed?"
-    exit 1
- fi
-
- # SDL
- if [ $is_n900 -eq 1 ]; then
-    GCCOPTS="$GCCOPTS `pkg-config --cflags sdl`"
-    LDOPTS="$LDOPTS `pkg-config --libs sdl`"
- else
-    GCCOPTS="$GCCOPTS `${sdl_config} --cflags`"
-    LDOPTS="$LDOPTS `${sdl_config} --libs`"
- fi
-
- # glib and libosso support
- GCCOPTS="$GCCOPTS `pkg-config --cflags libosso glib-2.0 gthread-2.0`"
- LDOPTS="$LDOPTS `pkg-config --libs libosso glib-2.0 gthread-2.0`"
-
- # libhal support: Battery monitoring
- GCCOPTS="$GCCOPTS `pkg-config --cflags hal`"
- LDOPTS="$LDOPTS `pkg-config --libs hal`"
-
- GCCOPTS="$GCCOPTS -O2 -fno-strict-aliasing"
- if [ $is_n900 -eq 1 ]; then
-    # gstreamer support: Audio output.
-    GCCOPTS="$GCCOPTS `pkg-config --cflags gstreamer-base-0.10 gstreamer-plugins-base-0.10 gstreamer-app-0.10`"
-    LDOPTS="$LDOPTS `pkg-config --libs gstreamer-base-0.10 gstreamer-plugins-base-0.10 gstreamer-app-0.10`"
-
-    # N900 specific: libplayback support
-    GCCOPTS="$GCCOPTS `pkg-config --cflags libplayback-1`"
-    LDOPTS="$LDOPTS `pkg-config --libs libplayback-1`"
-
-    # N900 specific: Enable ARMv7 NEON support
-    if sb-conf show -A |grep -q -i arm; then
-        echo "Detected ARM target"
-        GCCOPTS="$GCCOPTS -mcpu=cortex-a8 -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp"
-        extradefines="$extradefines -DMAEMO_ARM_BUILD"
-    else
-        echo "Detected x86 target"
-    fi
- else
-    # N8xx specific: Enable armv5te instructions
-    if sb-conf show -A |grep -q -i arm; then
-        echo "Detected ARM target"
-        GCCOPTS="$GCCOPTS -mcpu=arm1136jf-s -mfloat-abi=softfp -mfpu=vfp"
-        extradefines="$extradefines -DMAEMO_ARM_BUILD"
-    else
-        echo "Detected x86 target"
-    fi
- fi
-}
-
-pandoracc () {
- # Note: The new "Ivanovic" pandora toolchain is not able to compile rockbox.
- #       You have to use the sebt3 toolchain:
- #       http://www.gp32x.com/board/index.php?/topic/58490-yactfeau/
-
- PNDSDK="/usr/local/angstrom/arm"
- if [ ! -x $PNDSDK/bin/arm-angstrom-linux-gnueabi-gcc ]; then
-     echo "Pandora SDK gcc not found in $PNDSDK/bin/arm-angstrom-linux-gnueabi-gcc"
-     exit
- fi
-
- PATH=$PNDSDK/bin:$PATH:$PNDSDK/arm-angstrom-linux-gnueabi/usr/bin
- PKG_CONFIG_PATH=$PNDSDK/arm-angstrom-linux-gnueabi/usr/lib/pkgconfig
- LDOPTS="-L$PNDSDK/arm-angstrom-linux-gnueabi/usr/lib -Wl,-rpath,$PNDSDK/arm-angstrom-linux-gnueabi/usr/lib $LDOPTS"
- PKG_CONFIG="pkg-config"
-
- GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib//`
- GCCOPTS="$GCCOPTS -fno-builtin -g -I\$(SIMDIR)"
- GCCOPTIMIZE=''
- LDOPTS="-lm -ldl $LDOPTS"
- GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-z,defs"
- SHARED_LDFLAGS="-shared"
- SHARED_CFLAGS=''
- endian="little"
- thread_support="HAVE_SIGALTSTACK_THREADS"
-
- # Include path
- GCCOPTS="$GCCOPTS -I$PNDSDK/arm-angstrom-linux-gnueabi/usr/include"
-
- # Set up compiler
- gccchoice="4.3.3"
- prefixtools "$PNDSDK/bin/arm-angstrom-linux-gnueabi-"
-
- # Detect SDL
- GCCOPTS="$GCCOPTS `$PNDSDK/bin/${sdl_config} --cflags`"
- LDOPTS="$LDOPTS `$PNDSDK/bin/${sdl_config} --libs`"
-
- # Compiler options
- GCCOPTS="$GCCOPTS -O2 -fno-strict-aliasing"
- GCCOPTS="$GCCOPTS -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp"
- GCCOPTS="$GCCOPTS -ffast-math -fsingle-precision-constant"
-}
-
 arm1176jzlinuxcc () {
  GCCOPTS=`echo $CCOPTS | sed -e s/-ffreestanding// -e s/-nostdlib//`
  # Although the ARM1176JZ-S supports unaligned accesses, those seems to disabled
@@ -769,7 +637,7 @@ arm1176jzlinuxcc () {
  GCCOPTIMIZE=''
  LDOPTS="-lasound -lpthread -lm -ldl -lrt $LDOPTS"
  GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-z,defs" # warn about undefined symbols in shared libraries
- GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-z,defs -Wl,-z,noexecstack" # Stack is not executable
+ GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-z,noexecstack" # Stack is not executable
  SHARED_LDFLAGS="-shared"
  SHARED_CFLAGS=''
  endian="little"
@@ -1071,7 +939,7 @@ devkitarmcc () {
         GCCOPTS=`echo $GCCOPTS | sed -e s/\ -Os/\ -Og/`
     fi
 
-    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result"
+    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result -Wno-char-subscripts"
     GCCOPTS="$GCCOPTS -I$DEVKITPRO/libctru/include -I$DEVKITPRO/portlibs/3ds/include"
     GCCOPTS="$GCCOPTS -mword-relocations -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft"
     GCCOPTS="$GCCOPTS -D_GNU_SOURCE=1 -D_REENTRANT -masm-syntax-unified"
@@ -1689,6 +1557,7 @@ ARG_THREAD_SUPPORT=
 ARG_32BIT=
 ARG_ADDR_SAN=
 ARG_UBSAN=
+ARG_PLUGINS=
 err=
 for arg in "$@"; do
 	case "$arg" in
@@ -1705,6 +1574,7 @@ for arg in "$@"; do
 		--ttsopts=*)  ARG_TTSOPTS=`echo "$arg" | cut -d = -f 2`;;
 		--type=*)     ARG_TYPE=`echo "$arg" | cut -d = -f 2`;;
 		--voice=*)    ARG_VOICE=`echo "$arg" | cut -d = -f 2`;;
+		--plugins=*)  ARG_PLUGINS=`echo "$arg" | cut -d = -f 2`;;
 		--thumb)      ARG_ARM_THUMB=1;;
 		--no-thumb)   ARG_ARM_THUMB=0;;
 		--32-bit)     ARG_32BIT=1;;
@@ -1819,54 +1689,52 @@ cat <<EOF
  41) Gigabeat S            28) Nano 2G           52) Sansa c200
                            29) Classic/6G        55) Sansa Clip
  ==Olympus=                80) Nano 3G (WIP)     56) Sansa e200v2
- 70) M:Robe 50             81) Nano 4G (WIP)     57) Sansa m200v4
+ 70) M:Robe 500            81) Nano 4G (WIP)     57) Sansa m200v4
  71) M:Robe 100                                  58) Sansa Fuze
                            ==Creative==          59) Sansa c200v2
  ==Philips==               89) Zen X-Fi Style    60) Sansa Clipv2
- 100) GoGear SA9200        90) Zen Vision:M 30GB 61) Sansa View
- 101) GoGear HDD1630/      91) Zen Vision:M 60GB 62) Sansa Clip+
-      HDD1830              92) Zen Vision        63) Sansa Fuze v2
- 102) GoGear HDD6330       93) Zen X-Fi2         64) Sansa Fuze+
-                           94) Zen X-Fi3         65) Sansa Clip Zip
- ==Meizu==                 95) Zen V             66) Sansa Connect
- 110) M6SL                 96) Zen X-Fi
- 111) M6SP                 97) Zen Mozaic        ==Lyre project==
- 112) M3                   98) Zen               130) Lyre proto 1
-                                                 131) Mini2440
- ==Samsung==               ==Onda==
- 140) YH-820               120) VX747            ==Packard Bell==
- 141) YH-920               122) VX747+           160) Vibe 500
- 142) YH-925               121) VX767
- 143) YP-S3                123) VX777            ==ROCKCHIP==
- 144) YP-R0                                      180) rk27xx generic
- 145) YP-R1 (WIP)          ==MPIO==
-                           170) HD200            ==HiFi E.T.==
- ==HiFiMAN==               171) HD300            210) MA9
- 190) HM-60x                                     211) MA9C
- 191) HM-801               ==Application==       212) MA8
-                           200) SDL (Generic)    213) MA8C
- ==Sony==                  201) Android (ARM)
- 219) NWZ-E350 series      202) Android (MIPS)   ==IHIFI==
- 220) NWZ-E370/E380 series 203) Android (x86)    230) 760
- 221) NWZ-E360 series      204) Pandora          231) 770
- 222) NWZ-E450 series      205) Nokia N8xx       232) 770C
- 223) NWZ-E460 series      206) Nokia N900       233) 800
- 224) NWZ-E470 series      209) Anbernic RG Nano 234) 960
- 225) NWZ-E580 series
- 226) NWZ-A10 series       ==AgpTek==            ==AIGO==
- 227) NW-A20 series        240) Rocker           245) Eros Q / K (hosted)
- 228) NWZ-A860 series                            247) Eros Q / K native
- 229) NWZ-S750 series      ==iBasso==                  (hw1/hw2 bl, all hw rb)
-                           250) DX50             248) Eros Q / K native
- ==FiiO==                  251) DX90                   (hw3 bl only)
- 244) M3K Linux                                  249) Eros Q / K native
- 246) M3K baremetal        ==xDuoo==                   (hw4 bl only)
-                           241) X3
- ==Shanling==              242) X3II             ==Nintendo==
- 260) Q1                   243) X20              290) Nintendo 3DS (WIP)
-
- ==Echo project==          ==Surfans==
+ 100) GoGear SA9200        93) Zen X-Fi2         62) Sansa Clip+
+ 101) GoGear HDD1630/      94) Zen X-Fi3         63) Sansa Fuze v2
+      HDD1830              95) Zen V             64) Sansa Fuze+
+ 102) GoGear HDD6330       96) Zen X-Fi          65) Sansa Clip Zip
+                           97) Zen Mozaic        66) Sansa Connect
+ ==Samsung==               98) Zen
+ 140) YH-820                                     ==Packard Bell==
+ 141) YH-920               ==Onda==              160) Vibe 500
+ 142) YH-925               120) VX747
+ 144) YP-R0                122) VX747+           ==ROCKCHIP==
+ 145) YP-R1 (WIP)          121) VX767            180) rk27xx generic
+                           123) VX777
+ ==HiFiMAN==                                     ==HiFi E.T.==
+ 190) HM-60x               ==MPIO==              210) MA9
+ 191) HM-801               170) HD200            211) MA9C
+                           171) HD300            212) MA8
+ ==Sony==                                        213) MA8C
+ 219) NWZ-E350 series      ==Application==
+ 220) NWZ-E370/E380 series 200) SDL (Generic)    ==IHIFI==
+ 221) NWZ-E360 series      201) Android (ARM)    230) 760
+ 222) NWZ-E450 series      202) Android (MIPS)   231) 770
+ 223) NWZ-E460 series      203) Android (x86)    232) 770C
+ 224) NWZ-E470 series      209) Anbernic RG Nano 233) 800
+ 225) NWZ-E580 series                            234) 960
+ 226) NWZ-A10 series       ==AgpTek==
+ 227) NW-A20 series        240) Rocker           ==AIGO==
+ 228) NWZ-A860 series                            245) Eros Q / K (hosted)
+ 229) NWZ-S750 series      ==iBasso==            247) Eros Q / K native
+                           250) DX50                   (hw1/hw2 bl, all hw rb)
+ ==FiiO==                  251) DX90             248) Eros Q / K native
+ 244) M3K Linux                                        (hw3 bl only)
+ 246) M3K baremetal        ==xDuoo==             249) Eros Q / K native
+                           241) X3                     (hw4 bl only)
+ ==Shanling==              242) X3II
+ 260) Q1                   243) X20              ==HiBy==
+                                                 300) R3 Pro II
+ ==Echo project==          ==Surfans==           301) R1
  270) Echo R1 (WIP)        280) F28 (WIP)
+
+ ==Nintendo==
+ 290) Nintendo 3DS (WIP)
+
 EOF
 
   buildfor=`input`;
@@ -1881,12 +1749,15 @@ fi
   ipodbitmaptools="$toolset scramble bmp2rb"
   gigabeatbitmaptools="$toolset scramble descramble bmp2rb"
   tccbitmaptools="$toolset scramble bmp2rb"
-  # generic is used by IFP, Meizu and Onda
+  # generic is used by IFP and Onda
   genericbitmaptools="$toolset bmp2rb"
   # scramble is used by all other targets
   scramblebitmaptools="$genericbitmaptools scramble"
   # used by X1000 targets
   x1000tools="$genericbitmaptools scramble mkspl-x1000 uclpack"
+  # default to not generating ELF files
+  USE_ELF="no"
+  PLUGIN_USE_ELF="no"
 
   #  ---- For each target ----
   #
@@ -2609,28 +2480,6 @@ fi
     arm926ejscc
     ;;
 
-   61|sansaview)
-    target_id=63
-    modelname="sansaview"
-    target="SANSA_VIEW"
-    memory=32
-    arm1176jzscc
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox.mi4"
-    appextra="gui"
-    plugins=""
-    boottool="$rootdir/tools/scramble -mi4v3 -model=view -type=RBBL"
-    bootoutput="firmware.mi4"
-    # toolset is the tools within the tools directory that we build for
-    # this particular target.
-    toolset=$scramblebitmaptools
-    t_cpu="arm"
-    t_soc="pp"
-    t_manufacturer="sandisk"
-    t_model="sansa-view"
-    ;;
-
    62|sansaclipplus)
     target_id=66
     modelname="sansaclipplus"
@@ -2841,72 +2690,6 @@ fi
     arm926ejscc
     ;;
 
-   90|zenvisionm30gb)
-    target_id=35
-    modelname="zenvisionm30gb"
-    target="CREATIVE_ZVM"
-    memory=64
-    arm926ejscc
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    tool="$rootdir/tools/scramble -creative=zvm"
-    USE_ELF="yes"
-    output="rockbox.zvm"
-    appextra="recorder:gui:radio"
-    plugins="yes"
-    toolset=$ipodbitmaptools
-    boottool="$rootdir/tools/scramble -creative=zvm -no-ciff"
-    bootoutput="rockbox.zvmboot"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="arm"
-    t_manufacturer="tms320dm320"
-    t_model="creative-zvm"
-    ;;
-
-   91|zenvisionm60gb)
-    target_id=40
-    modelname="zenvisionm60gb"
-    target="CREATIVE_ZVM60GB"
-    memory=64
-    arm926ejscc
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    tool="$rootdir/tools/scramble -creative=zvm60 -no-ciff"
-    USE_ELF="yes"
-    output="rockbox.zvm60"
-    appextra="recorder:gui:radio"
-    plugins="yes"
-    toolset=$ipodbitmaptools
-    boottool="$rootdir/tools/scramble -creative=zvm60"
-    bootoutput="rockbox.zvm60boot"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="arm"
-    t_manufacturer="tms320dm320"
-    t_model="creative-zvm"
-    ;;
-
-   92|zenvision)
-    target_id=39
-    modelname="zenvision"
-    target="CREATIVE_ZV"
-    memory=64
-    arm926ejscc
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    tool="$rootdir/tools/scramble -creative=zenvision -no-ciff"
-    USE_ELF="yes"
-    output="rockbox.zv"
-    appextra="recorder:gui:radio"
-    plugins=""
-    toolset=$ipodbitmaptools
-    boottool="$rootdir/tools/scramble -creative=zenvision"
-    bootoutput="rockbox.zvboot"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="arm"
-    t_manufacturer="tms320dm320"
-    t_model="creative-zvm"
-    ;;
-
    93|creativezenxfi2)
     target_id=80
     modelname="creativezenxfi2"
@@ -3093,71 +2876,6 @@ fi
     t_model="hdd6330"
     ;;
 
-   110|meizum6sl)
-    target_id=49
-    modelname="meizum6sl"
-    blonly="yes"
-    target="MEIZU_M6SL"
-    memory=16 # always
-    arm940tbecc
-    tool="cp"
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox.meizu"
-    appextra="recorder:gui:radio"
-    plugins="no" #FIXME
-    toolset=$genericbitmaptools
-    boottool="cp"
-    bootoutput="rockboot.ebn"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="arm"
-    t_manufacturer="s5l8700"
-    t_model="meizu-m6sl"
-    ;;
-
-   111|meizum6sp)
-    target_id=46
-    modelname="meizum6sp"
-    blonly="yes"
-    target="MEIZU_M6SP"
-    memory=16 # always
-    arm940tbecc
-    tool="cp"
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox.meizu"
-    appextra="recorder:gui:radio"
-    plugins="no" #FIXME
-    toolset=$genericbitmaptools
-    boottool="cp"
-    bootoutput="rockboot.ebn"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="arm"
-    t_manufacturer="s5l8700"
-    t_model="meizu-m6sp"
-    ;;
-
-   112|meizum3)
-    target_id=47
-    modelname="meizum3"
-    target="MEIZU_M3"
-    memory=16 # always
-    arm940tbecc
-    tool="cp"
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox.meizu"
-    appextra="recorder:gui:radio"
-    plugins="no" #FIXME
-    toolset=$genericbitmaptools
-    boottool="cp"
-    bootoutput="rockboot.ebn"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="arm"
-    t_manufacturer="s5l8700"
-    t_model="meizu-m3"
-    ;;
-
    120|ondavx747)
     target_id=45
     modelname="ondavx747"
@@ -3242,48 +2960,6 @@ fi
     t_model="onda_vx747"
     ;;
 
-   130|lyreproto1)
-    target_id=56
-    modelname="lyreproto1"
-    target="LYRE_PROTO1"
-    memory=64
-    arm926ejscc
-    tool="cp"
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox.lyre"
-    appextra="recorder:gui:radio"
-    plugins=""
-    toolset=$scramblebitmaptools
-    boottool="cp"
-    bootoutput="bootloader-proto1.lyre"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="arm"
-    t_manufacturer="at91sam"
-    t_model="lyre_proto1"
-    ;;
-
-   131|mini2440)
-    target_id=99
-    modelname="mini2440"
-    target="MINI2440"
-    memory=64
-    arm9tdmicc
-    tool="$rootdir/tools/scramble -add=m244"
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox.mini2440"
-    appextra="recorder:gui:radio"
-    plugins=""
-    toolset=$scramblebitmaptools
-    boottool="cp"
-    bootoutput="bootloader-mini2440.lyre"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="arm"
-    t_manufacturer="s3c2440"
-    t_model="mini2440"
-    ;;
-
    140|samsungyh820)
     target_id=57
     modelname="samsungyh820"
@@ -3354,27 +3030,6 @@ fi
     t_soc="pp"
     t_manufacturer="samsung"
     t_model="yh925"
-    ;;
-
-   143|samsungyps3)
-    target_id=72
-    modelname="samsungyps3"
-    target="SAMSUNG_YPS3"
-    memory=16 # always
-    arm940tbecc
-    tool="cp"
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox.yps3"
-    appextra="recorder:gui:radio"
-    plugins="no" #FIXME
-    toolset=$genericbitmaptools
-    boottool="cp"
-    bootoutput="rockboot.ebn"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="arm"
-    t_manufacturer="s5l8700"
-    t_model="yps3"
     ;;
 
    160|vibe500)
@@ -3559,84 +3214,6 @@ fi
     # architecture, manufacturer and model for the target-tree build
     t_cpu="hosted"
     t_manufacturer="android"
-    t_model="app"
-    ;;
-
-   205|nokian8xx)
-    application="yes"
-    target_id=75
-    modelname="nokian8xx"
-    app_type="sdl-app"
-    target="NOKIAN8XX"
-    sharedir="/opt/rockbox/share/rockbox"
-    bindir="/opt/rockbox/bin"
-    libdir="/opt/rockbox/lib"
-    memory=8
-    uname=`uname`
-    maemocc 4
-    tool="cp "
-    boottool="cp "
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox"
-    bootoutput="rockbox"
-    appextra="recorder:gui:radio"
-    plugins="yes"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="hosted"
-    t_manufacturer="maemo"
-    t_model="app"
-    ;;
-
-   206|nokian900)
-    application="yes"
-    target_id=76
-    modelname="nokian900"
-    app_type="sdl-app"
-    target="NOKIAN900"
-    sharedir="/opt/rockbox/share/rockbox"
-    bindir="/opt/rockbox/bin"
-    libdir="/opt/rockbox/lib"
-    memory=8
-    uname=`uname`
-    maemocc 5
-    tool="cp "
-    boottool="cp "
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox"
-    bootoutput="rockbox"
-    appextra="recorder:gui:radio"
-    plugins="yes"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="hosted"
-    t_manufacturer="maemo"
-    t_model="app"
-    ;;
-
-   204|pandora)
-    application="yes"
-    target_id=77
-    modelname="pandora"
-    app_type="sdl-app"
-    target="PANDORA"
-    sharedir="rockbox/share/rockbox"
-    bindir="rockbox/bin"
-    libdir="rockbox/lib"
-    memory=8
-    uname=`uname`
-    pandoracc
-    tool="cp "
-    boottool="cp "
-    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
-    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox"
-    bootoutput="rockbox"
-    appextra="recorder:gui:radio"
-    plugins="yes"
-    # architecture, manufacturer and model for the target-tree build
-    t_cpu="hosted"
-    t_manufacturer="pandora"
     t_model="app"
     ;;
 
@@ -4423,7 +4000,7 @@ fi
     extradefines="$extradefines -DEROSQN_VER=4"
     ;;
 
-   250|ihifi770c)
+   232|ihifi770c)
     target_id=107
     modelname="ihifi770c"
     target="IHIFI770C"
@@ -4445,7 +4022,7 @@ fi
     t_model="ihifi2"
     ;;
 
-   232|ihifi770)
+   231|ihifi770)
     target_id=108
     modelname="ihifi770"
     target="IHIFI770"
@@ -4529,13 +4106,21 @@ fi
     sysfont="14-Rockbox-Mix"
     # toolset is the tools within the tools directory that we build for
     # this particular target.
-    toolset="$genericbitmaptools scramble uclpack"
+    toolset="$genericbitmaptools scramble uclpack reggen"
     bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
     bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
     # architecture, manufacturer and model for the target-tree build
     t_cpu="arm"
     t_manufacturer="stm32"
     t_model="echoplayer"
+    # generate debug symbols by default; these will be present in the
+    # initial '.elf' file but will be stripped from the target binary.
+    GCCOPTS="-g $GCCOPTS"
+    # set page size to 4k to guarantee reasonable on-disk alignment,
+    # which improves disk read speed; on ARM binutils defaults to 64k
+    # which adds quite a bit of unnecessary padding.
+    GCCOPTS="-Wl,-z,max-page-size=4096 $GCCOPTS"
+    USE_ELF="yes"
     ;;
 
     280|surfansf28)
@@ -4574,14 +4159,65 @@ fi
     boottool="cp "
     bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
     bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox"
+    output="rockbox.elf"
     bootoutput="rockbox"
     appextra="recorder:gui"
-    plugins="no"
+    plugins="yes"
     t_cpu="hosted"
     t_manufacturer="ctru"
     t_model="app"
     ;;
+
+    300|hibyr3proii)
+    target_id=123
+    application=yes
+    app_type="hibyos"
+    modelname="hibyr3proii"
+    target="HIBY_R3PROII"
+    memory=16 # The device has 64mb but let's make sure it still boots with things in the background
+    mipsellinuxcc
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    output="rockbox.r3proii"
+    bootoutput="bootloader.r3proii"
+    appextra="recorder:gui:hosted"
+    plugins="yes"
+    # architecture, manufacturer and model for the target-tree build
+    # These align with
+    t_cpu="hosted"
+    t_manufacturer="hiby"
+    t_model="r3proii"
+    sysfontbl="24-Terminus"
+    sysfont="20-Terminus"
+    ;;
+
+    301|hibyr1)
+    target_id=124
+    application=yes
+    app_type="hibyos"
+    modelname="hibyr1"
+    target="HIBY_R1"
+    memory=16 # The device has 64mb but let's make sure it still boots with things in the background
+    mipsellinuxcc
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    output="rockbox.r1"
+    bootoutput="bootloader.r1"
+    appextra="recorder:gui:hosted"
+    plugins="yes"
+    # architecture, manufacturer and model for the target-tree build
+    # These align with
+    t_cpu="hosted"
+    t_manufacturer="hiby"
+    t_model="r1"
+    sysfontbl="24-Terminus"
+    sysfont="20-Terminus"
+    ;;
+
 
    *)
     echo "Please select a supported target platform!"
@@ -4925,21 +4561,30 @@ RANLIB=`findtool ${RANLIB} --lit`
 HOSTCC=${HOSTCC:-${CC}}
 HOSTAR=${HOSTAR:-${AR}}
 
+# This disables all arch-specific code paths (eg inline asm)
+# for builds that target the host system
+if [ "$app_type" = "sdl-sim" -o "$app_type" = "sdl-app" -o "$app_type" = "checkwps" ]; then
+    arch="none"
+fi
+
 if [ -z "$arch" ]; then
     cpp_defines=$(echo "" | $CPP $GCCOPTS -dD)
     if [ -n "$(echo $cpp_defines | grep -w __m68k__)" ]; then
         arch="m68k"
     elif [ -n "$(echo $cpp_defines | grep -w __arm__)" ]; then
         arch="arm"
-        # cpp defines like "#define __ARM_ARCH_4TE__ 1" (where we want to extract the 4)
-        arch_version="$(echo $cpp_defines | tr ' ' '\012' | grep __ARM_ARCH | sed -e 's,.*\([0-9]\).*,\1,' | grep -v __ARM_ARCH | head -1)"
-        arch_profile="$(echo "$cpp_defines" | grep 'define __ARM_ARCH_PROFILE' | sed -e 's,.* \([0-9]\+\)$,\1,')"
+        # cpp defines like "#define __ARM_ARCH 4" (where we want to extract the 4)
+        arch_version="$(echo "$cpp_defines" | grep 'define __ARM_ARCH ' | sed -e 's,.* \([0-9]\).*,\1,')"
+        arch_profile="$(echo "$cpp_defines" | grep 'define __ARM_ARCH_PROFILE ' | sed -e 's/.* \([0-9]\{1,\}\)$/\1/')"
 	if test "$gccnum" -ge "800"; then
 	    # GCC8+ can natively emit unified asm syntax
 	    GCCOPTS="$GCCOPTS -masm-syntax-unified"
 	fi
         case "$arch_profile" in
-            77)
+            65) # Cortex-A
+                arch_profile=application
+                ;;
+            77) # Cortex-M
                 arch_profile=micro
 
                 # We have a lot of assembly written for ARM32, which won't
@@ -4961,16 +4606,35 @@ if [ -z "$arch" ]; then
                 ;;
             *)
                 # On classic ARM we expect an empty string, so only warn if it's nonempty
-                if [ -n "$arch_profile" ]; then
-                    echo "Warning: Cannot determine target ARM profile, assuming classic"
+                if [ -z "$arch_profile" ]; then
+                    arch_profile=classic
+		else
+                    echo "Error: Unsupported target ARM profile ($arch_profile)"
+                    exit 1
                 fi
-
-                arch_profile=classic
+                ;;
+        esac
+    elif [ -n "$(echo $cpp_defines | grep -w __aarch64__)" ]; then
+        arch="arm64"
+        # cpp defines like "#define __ARM_ARCH 8" (where we want to extract the 8)
+        arch_version="$(echo "$cpp_defines" | grep 'define __ARM_ARCH ' | sed -e 's,.* \([0-9]\).*,\1,')"
+        arch_profile="$(echo "$cpp_defines" | grep 'define __ARM_ARCH_PROFILE ' | sed -e 's/.* \([0-9]\{1,\}\)$/\1/')"
+        case "$arch_profile" in
+            65) # Cortex-A
+                arch_profile=application
+                ;;
+            *)
+                echo "Error: Unsupported target AARCH64 profile ($arch_profile)"
+                exit 1
                 ;;
         esac
     elif [ -n "$(echo $cpp_defines | grep -w __mips__)" ]; then
         arch="mips"
-        arch_version="$(echo $cpp_defines | tr ' ' '\012' | grep _MIPS_ARCH_MIPS | sed -e 's,.*\([0-9][0-9]\).*,\1,' | grep -v _MIPS_ARCH_MIPS)"
+        arch_version="$(echo "$cpp_defines" | grep 'define __mips ' | sed -e 's/.* \([0-9]\{1,\}\).*/\1/')"
+#	arch_revision="$(echo "$cpp_defines" | grep 'define __mips_isa_rev ' | sed -e 's/.* \([0-9]\{1,\}\).*/\1/')"
+#	if [ -n "$arch_revision" ] ; then
+#	    arch_version="${arch_version}r${arch_revision}"
+#	fi
     elif [ -n "$(echo $cpp_defines | grep -w __i386__)" ]; then
         arch="x86"
     elif [ -n "$(echo $cpp_defines | grep -w __x86_64__)" ]; then
@@ -5041,8 +4705,8 @@ cat > autoconf.h.new <<EOF
 #define arch_none 0
 #define ARCH_NONE 0
 
-#define arch_sh 1
-#define ARCH_SH 1
+#define arch_arm64 1
+#define ARCH_ARM64 1
 
 #define arch_m68k 2
 #define ARCH_M68K 2
@@ -5061,6 +4725,7 @@ cat > autoconf.h.new <<EOF
 
 #define ARM_PROFILE_CLASSIC     0       /* Classic ARM cores (<= ARMv6) */
 #define ARM_PROFILE_MICRO       1       /* ARMv6/ARMv7+ M-profile cores */
+#define ARM_PROFILE_APPLICATION 2       /* ARMv7+ A-profile cores       */
 
 /* Define target machine architecture */
 ${Darch}
@@ -5123,15 +4788,7 @@ fi
 if test -n "$t_cpu"; then
   TARGET_INC="-I\$(FIRMDIR)/target/$t_cpu/$t_manufacturer/$t_model"
 
-  if [ "$application" = "yes" ] && [ "$t_manufacturer" = "maemo" ]; then
-    # Maemo needs the SDL port, too
-    TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/sdl/app"
-    TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/sdl"
-  elif [ "$application" = "yes" ] && [ "$t_manufacturer" = "pandora" ]; then
-    # Pandora needs the SDL port, too
-    TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/sdl/app"
-    TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/sdl"
-  elif [ "$simulator" = "yes" ]; then # a few more includes for the sim target tree
+  if [ "$simulator" = "yes" ]; then # a few more includes for the sim target tree
     TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/sdl"
     TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted"
   elif [ "$application" = "yes" ] && [ "$t_manufacturer" = "ctru" ]; then
@@ -5173,10 +4830,37 @@ cmdline=`echo $cmdline | sed -e s,--target=[a-zA-Z_0-9]\*,,g \
                             -e s,--type=[a-zA-Z0-9]\*,,g`
 cmdline="$cmdline --target=\$(MODELNAME) --ram=\$(MEMORYSIZE) --rbdir=\$(RBDIR) --type=$btype$advopts"
 
+if [ -n "$ARG_PLUGINS" ]; then
+    echo "Selected plugins: $ARG_PLUGINS"
+    plugins="yes"
+
+    selected_src=""
+    selected_subdirs=""
+    chk_plugin_dir="${rootdir}/apps/plugins"
+
+    IFS=":"
+    for p in $ARG_PLUGINS; do
+        if [ -d "$chk_plugin_dir/$p" ]; then
+             selected_subdirs="$selected_subdirs \$(ROOTDIR)/apps/plugins/$p"
+        elif [ -f "$chk_plugin_dir/$p" ]; then
+             selected_src="$selected_src \$(ROOTDIR)/apps/plugins/$p"
+        else
+             echo "Warning: Plugin '$p' found neither as file nor directory in $chk_plugin_dir. Use ':' as the separator."
+        fi
+    done
+else
+    # Build the default set of plugins
+    selected_src="DEFAULT"
+    selected_subdirs="DEFAULT"
+fi
+
 ### end of cmdline
 
 cat > Makefile <<EOF
 ## Automatically generated. http://www.rockbox.org/
+
+export SELECTED_PLUGINS_SRC=${selected_src}
+export SELECTED_PLUGINS_SUBDIRS=${selected_subdirs}
 
 export ROOTDIR=${rootdir}
 export FIRMDIR=\$(ROOTDIR)/firmware
@@ -5229,7 +4913,6 @@ export APPLICATION=${application}
 export SIMDIR=\$(ROOTDIR)/uisimulator/sdl
 export GCCOPTS=${GCCOPTS}
 export TARGET_INC=${TARGET_INC}
-export LOADADDRESS=${loadaddress}
 export SHARED_LDFLAGS=${SHARED_LDFLAGS}
 export SHARED_CFLAGS=${SHARED_CFLAGS}
 export LDOPTS=${LDOPTS}
@@ -5244,6 +4927,7 @@ export TTS_ENGINE=${TTS_ENGINE}
 export ENC_OPTS=${ENC_OPTS}
 export ENCODER=${ENCODER}
 export USE_ELF=${USE_ELF}
+export PLUGIN_USE_ELF=${PLUGIN_USE_ELF}
 export RBDIR=${rbdir}
 export ROCKBOX_SHARE_PATH=${sharedir}
 export ROCKBOX_BINARY_PATH=${bindir}

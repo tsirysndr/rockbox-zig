@@ -140,6 +140,7 @@
 /* define this if the unit can have USB charging disabled by user -
  * if USB/MAIN power is discernable and hardware doesn't compel charging */
 #define HAVE_USB_CHARGING_ENABLE
+#define TARGET_USB_CHARGING_DEFAULT USB_CHARGING_FORCE
 
 /* define current usage levels */
 #define CURRENT_NORMAL     69  /* ~10h (700mAh), see FS#9072 */

@@ -75,8 +75,12 @@
 #include "statusbar-skinned.h"
 #include "bootchart.h"
 #include "scroll_engine.h"
+#ifdef HAVE_GENERAL_PURPOSE_LED
+#include "led-general-purpose.h"
+#endif
 
 #ifndef __PCTOOL__
+#include "open_plugin.h"
 struct user_settings global_settings;
 struct system_status global_status;
 static uint32_t user_settings_crc;
@@ -106,6 +110,10 @@ static long lasttime = 0;
 #if defined(DX50) || defined(DX90)
 #include "governor-ibasso.h"
 #include "usb-ibasso.h"
+#endif
+
+#if (defined(HIBY_R3PROII) || defined(HIBY_R1))
+#include "usb-hiby-gadget.h"
 #endif
 
 #ifdef LOGF_ENABLE
@@ -286,11 +294,11 @@ bool copy_filename_setting(char *buf, size_t buflen, const char *input,
     return true;
 }
 
-void string_to_cfg(const char *name, char* value, bool *theme_changed)
+bool string_to_cfg(const char *name, char* value, bool *theme_changed)
 {
     const struct settings_list *setting = find_setting_by_cfgname(name);
     if (!setting)
-        return;
+        return false;
 
     uint32_t flags = setting->flags;
 
@@ -359,6 +367,7 @@ void string_to_cfg(const char *name, char* value, bool *theme_changed)
                 {
                     logf("Error: %s: Not Found! [%s]\r\n",
                                       setting->cfg_name, value);
+                    return false;
                 }
             }
         break;
@@ -387,6 +396,7 @@ void string_to_cfg(const char *name, char* value, bool *theme_changed)
         break;
     }
     }
+    return true;
 }
 
 bool settings_load_config(const char* file, bool apply)
@@ -405,7 +415,17 @@ bool settings_load_config(const char* file, bool apply)
         char *name, *value;
         if (!settings_parseline(line, &name, &value))
             continue;
-        string_to_cfg(name, value, &theme_changed);
+
+        if (!string_to_cfg(name, value, &theme_changed))
+        {
+#ifndef __PCTOOL__
+            /* if we are here then name was not a valid setting */
+            if (!strcmp(name, "openplugin"))
+            {
+                open_plugin_import(value);
+            }
+#endif
+        }
     } /* while(...) */
 
     close(fd);
@@ -608,6 +628,11 @@ static bool settings_write_config(const char* filename, int options)
             case SETTINGS_SAVE_RESUMEINFO:
                 if (!(setting->flags & F_RESUMESETTING))
                     continue;
+                if (setting->setting == &global_status.browse_last_folder
+                   && (!global_settings.keep_directory))
+                {
+                        continue;
+                }
                 break;
             case SETTINGS_SAVE_ALL:
             {
@@ -623,6 +648,13 @@ static bool settings_write_config(const char* filename, int options)
 
         fdprintf(fd,"%s: %s\r\n",setting->cfg_name,value);
     } /* for(...) */
+#ifndef __PCTOOL__
+    if (options == SETTINGS_SAVE_ALL)
+    {
+        /* add openplugin entries to the open settings file */
+        open_plugin_export(fd);
+    }
+#endif
     close(fd);
     return true;
 }
@@ -1142,10 +1174,14 @@ void settings_apply(bool read_disk)
 
 #if defined(DX50) || defined(DX90)
     ibasso_set_usb_mode(global_settings.usb_mode);
+#elif (defined(HIBY_R3PROII) || defined(HIBY_R1)) && !defined(SIMULATOR)
+    hiby_set_usb_mode(global_settings.usb_mode);
 #elif defined(HAVE_USB_POWER) && !defined(USB_NONE) && !defined(SIMULATOR)
     usb_set_mode(global_settings.usb_mode);
 #endif
-
+#if defined(HAVE_GENERAL_PURPOSE_LED)
+    led_hw_on();
+#endif
 #if defined(DX50) || defined(DX90)
     ibasso_set_governor(global_settings.governor);
 #endif

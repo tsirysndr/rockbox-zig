@@ -82,6 +82,7 @@ enum jz_device_type {
     JZ_DEVICE_FIIOM3K,
     JZ_DEVICE_SHANLINGQ1,
     JZ_DEVICE_EROSQ,
+    JZ_DEVICE_SHANLINGM0PRO,
     JZ_NUM_DEVICES,
 };
 

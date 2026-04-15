@@ -175,16 +175,6 @@ static long max_cycle;
 
 #define BTN_QUIT BUTTON_POWER
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-
-#define BTN_DIR_UP BUTTON_UP
-#define BTN_DIR_DOWN BUTTON_DOWN
-#define BTN_DIR_LEFT BUTTON_LEFT
-#define BTN_DIR_RIGHT BUTTON_RIGHT
-#define BTN_STARTPAUSE BUTTON_PLAY
-#define BTN_QUIT BUTTON_BACK
-#define BTN_STOPRESET BUTTON_MENU
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 
 #define BTN_DIR_UP BUTTON_UP
@@ -407,7 +397,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define BTN_QUIT        BUTTON_POWER
 #define BTN_STOPRESET   BUTTON_BACK
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -430,6 +420,16 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define BTN_STARTPAUSE  BUTTON_A
 #define BTN_QUIT        BUTTON_START
 #define BTN_STOPRESET   BUTTON_B
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+
+#define BTN_DIR_UP      BUTTON_UP
+#define BTN_DIR_DOWN    BUTTON_DOWN
+#define BTN_DIR_LEFT    BUTTON_LEFT
+#define BTN_DIR_RIGHT   BUTTON_RIGHT
+#define BTN_STARTPAUSE  BUTTON_SELECT
+#define BTN_QUIT        BUTTON_BACK
+#define BTN_STOPRESET   BUTTON_MENU
 
 #else
 #error No keymap defined!
@@ -524,7 +524,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define SPEED 4
 #define MAX_WORM_SEGMENTS 512
 #elif   ((LCD_WIDTH == 640) && (LCD_HEIGHT == 480)) || \
-        ((LCD_WIDTH == 480) && (LCD_HEIGHT == 640))
+        ((LCD_WIDTH == 480) && (LCD_HEIGHT >= 640))
 #define FOOD_SIZE 14
 #define ARGH_SIZE 16
 #define SPEED 4
@@ -2542,7 +2542,7 @@ enum plugin_status plugin_start(const void* parameter)
         { STR(LANG_OUT_OF_CONTROL) }
     };
 
-    MENUITEM_STRINGLIST(menu, "Wormlet Menu", NULL,
+    MENUITEM_STRINGLIST(menu, "Wormlet", NULL,
                         ID2P(LANG_PLAY_WORMLET), ID2P(LANG_NUMBER_OF_WORMS),
                         ID2P(LANG_NUMBER_OF_PLAYERS), ID2P(LANG_CONTROL_STYLE),
                         ID2P(LANG_WORM_GROWTH_PER_FOOD), ID2P(LANG_WORM_SPEED),

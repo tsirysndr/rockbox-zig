@@ -191,16 +191,6 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define JEWELS_CANCEL BUTTON_POWER
 #define HK_CANCEL "POWER"
 
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-#define JEWELS_UP     BUTTON_UP
-#define JEWELS_DOWN   BUTTON_DOWN
-#define JEWELS_LEFT   BUTTON_LEFT
-#define JEWELS_RIGHT  BUTTON_RIGHT
-#define JEWELS_SELECT BUTTON_SELECT
-#define JEWELS_CANCEL BUTTON_BACK
-#define HK_SELECT "MIDDLE"
-#define HK_CANCEL "BACK"
-
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
 #define JEWELS_UP     BUTTON_UP
 #define JEWELS_DOWN   BUTTON_DOWN
@@ -377,7 +367,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define HK_SELECT "SELECT"
 #define HK_CANCEL "BACK"
 
-#elif CONFIG_KEYPAD == SHANLING_Q1_PAD
+#elif CONFIG_KEYPAD == SHANLING_Q1_PAD || CONFIG_KEYPAD == HIBY_R3PROII_PAD
 /* use touchscreen */
 
 #elif CONFIG_KEYPAD == SDL_PAD
@@ -401,6 +391,16 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define JEWELS_CANCEL BUTTON_START
 #define HK_SELECT "A"
 #define HK_CANCEL "START"
+
+#elif CONFIG_KEYPAD == CTRU_PAD
+#define JEWELS_UP     BUTTON_UP
+#define JEWELS_DOWN   BUTTON_DOWN
+#define JEWELS_LEFT   BUTTON_LEFT
+#define JEWELS_RIGHT  BUTTON_RIGHT
+#define JEWELS_SELECT BUTTON_SELECT
+#define JEWELS_CANCEL BUTTON_BACK
+#define HK_SELECT "A"
+#define HK_CANCEL "B"
 
 #else
 #error No keymap defined!
@@ -1482,7 +1482,7 @@ static int jewels_game_menu(struct game_context* bj, bool ingame)
         { "Puzzle", -1 },
     };
 
-    MENUITEM_STRINGLIST (main_menu, "Jewels Menu", jewels_menu_cb,
+    MENUITEM_STRINGLIST (main_menu, "Jewels", jewels_menu_cb,
                              "Resume Game",
                              "Start New Game",
                              "Mode",

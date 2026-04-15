@@ -5,7 +5,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version. See the file COPYING. 
+ * (at your option) any later version. See the file COPYING.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,6 +46,8 @@
 #endif
 
 #include "zxbox_keyb.h"
+
+#include "tapefile.h"
 
 int endofsingle IBSS_ATTR;
 
@@ -133,7 +135,7 @@ int spcf_read_conf_file(const char *filename)
 
 /* set keys */
 static void set_keys(void){
-    char c;
+    char c[8] = {0};
     int selected=0;
     int result;
     int menu_quit=0;
@@ -151,31 +153,31 @@ static void set_keys(void){
             case 0:
                 if (!zx_kbd_input((char*) &c))
                 {
-                    settings.keymap[0]=c;
+                    settings.keymap[0]=c[0];
                 }
                 break;
             case 1:
                 if (!zx_kbd_input((char*) &c))
                 {
-                    settings.keymap[1]=c;
+                    settings.keymap[1]=c[0];
                 }
                 break;
             case 2:
                 if (!zx_kbd_input((char*) &c))
                 {
-                    settings.keymap[2]=c;
+                    settings.keymap[2]=c[0];
                 }
                 break;
             case 3:
                 if (!zx_kbd_input((char*) &c))
                 {
-                    settings.keymap[3]=c;
+                    settings.keymap[3]=c[0];
                 }
                 break;
             case 4:
                 if (!zx_kbd_input((char*) &c))
                 {
-                    settings.keymap[4]=c;
+                    settings.keymap[4]=c[0];
                 }
                 break;
             default:
@@ -290,9 +292,7 @@ static void options_menu(void){
                                no_yes, 2, NULL);
                 if (new_setting != settings.sound )
                     settings.sound=new_setting;
-#if !defined SIMULATOR
-                rb->pcm_play_stop();
-#endif
+                rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
                 break;
             case 5:
                 new_setting = 9 - settings.volume;
@@ -318,20 +318,18 @@ static void options_menu(void){
 /* menu */
 static bool zxbox_menu(void)
 {
-#if !defined SIMULATOR
-    rb->pcm_play_stop();
-#endif
     int selected=0;
     int result;
     int menu_quit=0;
     int exit=0;
-    char c;
-    MENUITEM_STRINGLIST(menu, "ZXBox Menu", NULL,
+    char c[8] = {0};
+    MENUITEM_STRINGLIST(menu, "ZXBox", NULL,
                         "VKeyboard", "Play/Pause Tape",
                         "Save quick snapshot", "Load quick snapshot",
                         "Save Snapshot", "Toggle \"fast\" mode",
                         "Options", "Quit");
 
+    rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
     rb->button_clear_queue();
 
     while (!menu_quit) {
@@ -342,7 +340,7 @@ static bool zxbox_menu(void)
             case 0:
                 if (!zx_kbd_input((char*) &c))
                 {
-                    press_key(c);
+                    press_key(c[0]);
                 }
                 clear_kbd=1;
                 menu_quit=1;
@@ -450,7 +448,7 @@ static void run_singlemode(void)
     halfsec = !(sp_int_ctr % 25);
     evenframe = !(sp_int_ctr & 1);
 
-    if(screen_visible) updateframe = sp_nosync ? halfsec : 
+    if(screen_visible) updateframe = sp_nosync ? halfsec :
       !((sp_int_ctr+SHOW_OFFS) % showframe);
     else updateframe = 0;
     if(halfsec) {
@@ -481,7 +479,7 @@ static void run_singlemode(void)
     }
     else if(updateframe) update();
   }
-  
+
 }
 
 
@@ -500,11 +498,11 @@ static void init_load(const void *parameter)
 #ifndef USE_GREY
     rb->splashf(HZ, "Loading snapshot '%s'", spcf_init_snapshot);
 #endif
-    
+
     load_snapshot_file_type(spcf_init_snapshot, spcf_init_snapshot_type);
     free_string(spcf_init_snapshot);
   }
-  
+
   if(spcf_init_tapefile != NULL) {
     /*sprintf(msgbuf, "Loading tape '%s'", spcf_init_tapefile);
     put_msg(msgbuf);*/
@@ -521,10 +519,7 @@ void start_spectemu(const void *parameter)
   init_spect_scr();
   init_spect_sound();
   init_spect_key();
- 
+
   run_singlemode();
+  close_tapefile(); /* Bugfix leak file handles */
 }
-
-
-
-

@@ -982,6 +982,7 @@ static int parse_progressbar_tag(struct skin_element* element,
     char *image_filename = NULL;
 #ifdef HAVE_TOUCHSCREEN
     bool suppress_touchregion = false;
+    char *touchregion_label = NULL;
 #endif
 
     if (element->params_count == 0 &&
@@ -1156,6 +1157,17 @@ static int parse_progressbar_tag(struct skin_element* element,
 #ifdef HAVE_TOUCHSCREEN
         else if (pb_op == eNOTOUCH)
             suppress_touchregion = true;
+        else if (!strcmp(text, "touchlabel"))
+        {
+            if (curr_param+1 < element->params_count)
+            {
+                curr_param++;
+                param++;
+                touchregion_label = SKINOFFSETTOPTR(skin_buffer, param->data.text);
+            }
+            else /* option needs the next param */
+                return -1;
+        }
 #endif
         else if (token->type == SKIN_TOKEN_SETTING && pb_op == eSETTING_OFFSET)
         {
@@ -1229,6 +1241,8 @@ static int parse_progressbar_tag(struct skin_element* element,
         token->type = SKIN_TOKEN_PEAKMETER_LEFTBAR;
     else if (token->type == SKIN_TOKEN_PEAKMETER_RIGHT)
         token->type = SKIN_TOKEN_PEAKMETER_RIGHTBAR;
+    else if (token->type == SKIN_TOKEN_PLAYLIST_PERCENT)
+        token->type = SKIN_TOKEN_PLAYLIST_PERCENTBAR;
     else if (token->type == SKIN_TOKEN_LIST_NEEDS_SCROLLBAR)
         token->type = SKIN_TOKEN_LIST_SCROLLBAR;
     else if (token->type == SKIN_TOKEN_SETTING)
@@ -1282,11 +1296,11 @@ static int parse_progressbar_tag(struct skin_element* element,
         region->wvp = PTRTOSKINOFFSET(skin_buffer, curr_vp);
         region->reverse_bar = false;
         region->allow_while_locked = false;
+        region->user_region = false;
         region->press_length = PRESS;
         region->last_press = -1;
-        region->armed = false;
         region->bar = PTRTOSKINOFFSET(skin_buffer, pb);
-        region->label = PTRTOSKINOFFSET(skin_buffer, NULL);
+        region->label = PTRTOSKINOFFSET(skin_buffer, touchregion_label);
 
         item = new_skin_token_list_item(NULL, region);
         if (!item)
@@ -1781,13 +1795,14 @@ static int parse_touchregion(struct skin_element *element,
     p++;
 
     region->wvp = PTRTOSKINOFFSET(skin_buffer, curr_vp);
-    region->armed = false;
     region->reverse_bar = false;
     region->value = 0;
     region->last_press = -1;
     region->press_length = PRESS;
     region->allow_while_locked = false;
+    region->user_region = true;
     region->bar = PTRTOSKINOFFSET(skin_buffer, NULL);
+
     action = get_param_text(element, p++);
 
     /* figure out the action */
@@ -2405,6 +2420,7 @@ static int skin_element_callback(struct skin_element* element, void* data)
                 case SKIN_TOKEN_PLAYER_PROGRESSBAR:
                 case SKIN_TOKEN_PEAKMETER_LEFT:
                 case SKIN_TOKEN_PEAKMETER_RIGHT:
+                case SKIN_TOKEN_PLAYLIST_PERCENT:
                 case SKIN_TOKEN_LIST_NEEDS_SCROLLBAR:
 #ifdef HAVE_RADIO_RSSI
                 case SKIN_TOKEN_TUNER_RSSI:
@@ -2710,8 +2726,7 @@ bool skin_data_load(enum screen_type screen, struct wps_data *wps_data,
         struct touchregion *r = NULL;
         if (token)
             r = SKINOFFSETTOPTR(skin_buffer, token->value.data);
-        if (r && r->action != ACTION_TOUCH_SCROLLBAR &&
-            r->action != ACTION_TOUCH_VOLUME)
+        if (r && r->user_region)
         {
             user_touch_region_found = true;
             break;

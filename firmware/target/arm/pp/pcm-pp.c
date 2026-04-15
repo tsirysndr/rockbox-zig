@@ -27,6 +27,7 @@
 #include "pcm.h"
 #include "pcm_sampr.h"
 #include "pcm-internal.h"
+#include "pcm_sink.h"
 
 /** DMA **/
 
@@ -89,10 +90,12 @@ static struct dma_data dma_play_data IBSS_ATTR =
     .state = 0
 };
 
-void pcm_dma_apply_settings(void)
-{
-    audiohw_set_frequency(pcm_fsel);
-}
+/* DMA status cannot be viewed from outside code in control because that can
+ * clear the interrupt from outside the handler and prevent the handler from
+ * from being called. Split up transfers to a reasonable size that is good as
+ * a timer and peaking yet still keeps the FIQ count low.
+ */
+static uint16_t max_dma_chunk_size;
 
 #if defined(CPU_PP502x)
 /* 16-bit, L-R packed into 32 bits with left in the least significant halfword */
@@ -102,12 +105,6 @@ void pcm_dma_apply_settings(void)
 #define DMA_PLAY_CONFIG ((DMA_REQ_IIS << DMA_CMD_REQ_ID_POS) | \
                           DMA_CMD_RAM_TO_PER | DMA_CMD_SINGLE | \
                           DMA_CMD_WAIT_REQ | DMA_CMD_INTR)
-/* DMA status cannot be viewed from outside code in control because that can
- * clear the interrupt from outside the handler and prevent the handler from
- * from being called. Split up transfers to a reasonable size that is good as
- * a timer and peaking yet still keeps the FIQ count low.
- */
-#define MAX_DMA_CHUNK_SIZE (pcm_curr_sampr >> 6) /* ~1/256 seconds */
 
 static inline void dma_tx_init(void)
 {
@@ -145,9 +142,9 @@ static inline unsigned long dma_tx_buf_prepare(const void *addr)
 
 static inline void dma_tx_start(bool begin)
 {
-    size_t size = MAX_DMA_CHUNK_SIZE;
+    size_t size = max_dma_chunk_size;
 
-    /* Not at least MAX_DMA_CHUNK_SIZE left or there would be less
+    /* Not at least max_dma_chunk_size left or there would be less
      * than a FIFO's worth of data after this transfer? */
     if (size + 16*4 > dma_play_data.size)
         size = dma_play_data.size;
@@ -430,10 +427,15 @@ void fiq_playback(void)
 #endif /* ASM / C selection */
 #endif /* CPU_PP502x */
 
+static void sink_set_freq(uint16_t freq) {
+    max_dma_chunk_size = hw_freq_sampr[freq] >> 6;
+    audiohw_set_frequency(freq);
+}
+
 /* For the locks, FIQ must be disabled because the handler manipulates
    IISCONFIG and the operation is not atomic - dual core support
    will require other measures */
-void pcm_play_lock(void)
+static void sink_lock(void)
 {
     int status = disable_fiq_save();
 
@@ -444,7 +446,7 @@ void pcm_play_lock(void)
     restore_fiq(status);
 }
 
-void pcm_play_unlock(void)
+static void sink_unlock(void)
 {
     int status = disable_fiq_save();
 
@@ -455,14 +457,14 @@ void pcm_play_unlock(void)
     restore_fiq(status);
 }
 
-static void play_start_pcm(void)
+static void sink_start_pcm(void)
 {
     fiq_function = fiq_playback;
     dma_play_data.state = 1;
     dma_tx_start(true);
 }
 
-static void play_stop_pcm(void)
+static void sink_stop_pcm(void)
 {
     dma_tx_stop();
 
@@ -472,9 +474,11 @@ static void play_stop_pcm(void)
     dma_play_data.state = 0;
 }
 
-void pcm_play_dma_start(const void *addr, size_t size)
+static void sink_dma_stop(void);
+
+static void sink_dma_start(const void *addr, size_t size)
 {
-    pcm_play_dma_stop();
+    sink_dma_stop();
 
 #if NUM_CORES > 1
     /* This will become more important later - and different ! */
@@ -485,13 +489,13 @@ void pcm_play_dma_start(const void *addr, size_t size)
 
     dma_play_data.addr = dma_tx_buf_prepare(addr);
     dma_play_data.size = size;
-    play_start_pcm();
+    sink_start_pcm();
 }
 
 /* Stops the DMA transfer and interrupt */
-void pcm_play_dma_stop(void)
+static void sink_dma_stop(void)
 {
-    play_stop_pcm();
+    sink_stop_pcm();
     dma_play_data.addr = 0;
     dma_play_data.size = 0;
 #if NUM_CORES > 1
@@ -499,7 +503,7 @@ void pcm_play_dma_stop(void)
 #endif
 }
 
-void pcm_play_dma_init(void)
+static void sink_dma_init(void)
 {
     /* Initialize default register values. */
     audiohw_init();
@@ -509,10 +513,22 @@ void pcm_play_dma_init(void)
     IISCONFIG |= IIS_TXFIFOEN;
 }
 
-void pcm_play_dma_postinit(void)
-{
-    audiohw_postinit();
-}
+struct pcm_sink builtin_pcm_sink = {
+    .caps = {
+        .samprs       = hw_freq_sampr,
+        .num_samprs   = HW_NUM_FREQ,
+        .default_freq = HW_FREQ_DEFAULT,
+    },
+    .ops = {
+        .init     = sink_dma_init,
+        .postinit = audiohw_postinit,
+        .set_freq = sink_set_freq,
+        .lock     = sink_lock,
+        .unlock   = sink_unlock,
+        .play     = sink_dma_start,
+        .stop     = sink_dma_stop,
+    },
+};
 
 /****************************************************************************
  ** Recording DMA transfer

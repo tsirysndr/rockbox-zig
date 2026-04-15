@@ -23,6 +23,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+
+#include <3ds/services/gsplcd.h>
+#include <3ds/result.h>
+
 #include "config.h"
 #include "backlight-target.h"
 #include "sysfs.h"
@@ -30,8 +34,6 @@
 #include "lcd.h"
 #include "debug.h"
 
-#include <3ds/services/gsplcd.h>
-#include <3ds/result.h>
 #include "luminance-ctru.h"
 
 /* TODO: To use calibrated values in rockbox,
@@ -89,8 +91,9 @@ void backlight_hw_off(void)
 {
     lcd_mutex_lock();
     if (last_bl != 0) {
-        /* only power off rockbox ui screen */
+        /* power off both screens to save battery */
         GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTTOM);
+        GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_TOP);
 #ifdef HAVE_LCD_ENABLE
         lcd_enable(false);
 #endif

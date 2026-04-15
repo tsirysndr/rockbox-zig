@@ -639,7 +639,7 @@ static void lo_unplug_change(bool inserted)
 
 long default_event_handler_ex(long event, void (*callback)(void *), void *parameter)
 {
-#if CONFIG_PLATFORM & (PLATFORM_ANDROID|PLATFORM_MAEMO)
+#if CONFIG_PLATFORM & (PLATFORM_ANDROID)
     static bool resume = false;
 #endif
 
@@ -656,24 +656,25 @@ long default_event_handler_ex(long event, void (*callback)(void *), void *parame
             }
             break;
         case SYS_USB_CONNECTED:
+        {
+            intptr_t seqnum = button_get_data();
             if (callback != NULL)
                 callback(parameter);
-            {
-                system_flush();
+            system_flush();
 #ifdef BOOTFILE
 #if !defined(USB_NONE) && !defined(USB_HANDLED_BY_OF)
-                check_bootfile(false); /* gets initial size */
+            check_bootfile(false); /* gets initial size */
 #endif
 #endif
-                gui_usb_screen_run(false);
+            gui_usb_screen_run(false, seqnum);
 #ifdef BOOTFILE
 #if !defined(USB_NONE) && !defined(USB_HANDLED_BY_OF)
-                check_bootfile(true);
+            check_bootfile(true);
 #endif
 #endif
-                system_restore();
-            }
+            system_restore();
             return SYS_USB_CONNECTED;
+        }
 
         case SYS_POWEROFF:
         case SYS_REBOOT:
@@ -737,7 +738,7 @@ long default_event_handler_ex(long event, void (*callback)(void *), void *parame
             lo_unplug_change(false);
             return SYS_LINEOUT_UNPLUGGED;
 #endif
-#if CONFIG_PLATFORM & (PLATFORM_ANDROID|PLATFORM_MAEMO)
+#if CONFIG_PLATFORM & (PLATFORM_ANDROID)
         /* stop playback if we receive a call */
         case SYS_CALL_INCOMING:
             resume = audio_status() == AUDIO_STATUS_PLAY;
@@ -865,20 +866,10 @@ void check_bootfile(bool do_rolo)
 #endif
 #endif
 
-/* check range, set volume and save settings */
+/* set volume and save settings */
 void setvol(void)
 {
-    const int min_vol = sound_min(SOUND_VOLUME);
-    const int max_vol = sound_max(SOUND_VOLUME);
-    int volume = global_status.volume;
-    if (volume < min_vol)
-        volume = min_vol;
-    if (volume > max_vol)
-        volume = max_vol;
-    if (volume > global_settings.volume_limit)
-        volume = global_settings.volume_limit;
-
-    sound_set_volume(volume);
+    sound_set_volume(global_status.volume);
     global_status.last_volume_change = current_tick;
     status_save(false);
 }
@@ -903,7 +894,7 @@ static void update_norm_tab(void)
     norm_tab[0] = min;
     norm_tab_size = 1;
 
-    for (int i = 0; i < lim; ++i)
+    for (int i = 1; i < lim - 1; ++i)
     {
         int vol = from_normalized_volume(i, min, max, lim);
         int rem = vol % step;
@@ -1277,13 +1268,13 @@ char* skip_whitespace(char* const str)
 
 #if !defined(CHECKWPS) && !defined(DBTOOL)
 
-int confirm_delete_yesno(const char *name)
+int confirm_delete_yesno(const char *name, const char *title)
 {
     const char *lines[] = { ID2P(LANG_REALLY_DELETE), name };
     const char *yes_lines[] = { ID2P(LANG_DELETING), name };
     const struct text_message message = { lines, 2 };
     const struct text_message yes_message = { yes_lines, 2 };
-    return gui_syncyesno_run(&message, &yes_message, NULL);
+    return gui_syncyesno_run_w_title(title, &message, &yes_message, NULL);
 }
 
 /*  time_split_units()
@@ -1943,49 +1934,40 @@ int core_load_bmp(const char * filename, struct bitmap *bm, const int bmformat,
 
 #define NVOL_FRACBITS 16
 #define NVOL_UNITY    (1L << NVOL_FRACBITS)
-#define NVOL_FACTOR   (600L << NVOL_FRACBITS)
-
-#define NVOL_MAX_LINEAR_DB_SCALE (240L << NVOL_FRACBITS)
 
 #define nvol_div(x,y) fp_div((x), (y), NVOL_FRACBITS)
 #define nvol_mul(x,y) fp_mul((x), (y), NVOL_FRACBITS)
 #define nvol_exp10(x) fp_exp10((x), NVOL_FRACBITS)
 #define nvol_log10(x) fp_log10((x), NVOL_FRACBITS)
 
-static bool use_linear_dB_scale(long min_vol, long max_vol)
+static long get_nvol_factor(void)
 {
-    /*
-     * Alsamixer uses a linear scale for small ranges.
-     * Commented out so perceptual volume works as advertised on all targets.
-     */
-    /*
-    return max_vol - min_vol <= NVOL_MAX_LINEAR_DB_SCALE;
-    */
+    long factor = 600L << NVOL_FRACBITS;
+    long numdecimals = sound_numdecimals(SOUND_VOLUME);
 
-    (void)min_vol;
-    (void)max_vol;
-    return false;
+    if (numdecimals == 0)
+        factor /= 10;
+
+    /* nothing *actually* needs this, but: */
+    while (numdecimals-- > 1)
+        factor *= 10;
+
+    return factor;
 }
 
 long to_normalized_volume(long vol, long min_vol, long max_vol, long max_norm)
 {
     long norm, min_norm;
+    long factor = get_nvol_factor();
 
     vol <<= NVOL_FRACBITS;
     min_vol <<= NVOL_FRACBITS;
     max_vol <<= NVOL_FRACBITS;
     max_norm <<= NVOL_FRACBITS;
 
-    if (use_linear_dB_scale(min_vol, max_vol))
-    {
-        norm = nvol_div(vol - min_vol, max_vol - min_vol);
-    }
-    else
-    {
-        min_norm = nvol_exp10(nvol_div(min_vol - max_vol, NVOL_FACTOR));
-        norm = nvol_exp10(nvol_div(vol - max_vol, NVOL_FACTOR));
-        norm = nvol_div(norm - min_norm, NVOL_UNITY - min_norm);
-    }
+    min_norm = nvol_exp10(nvol_div(min_vol - max_vol, factor));
+    norm = nvol_exp10(nvol_div(vol - max_vol, factor));
+    norm = nvol_div(norm - min_norm, NVOL_UNITY - min_norm);
 
     return nvol_mul(norm, max_norm) >> NVOL_FRACBITS;
 }
@@ -1993,6 +1975,7 @@ long to_normalized_volume(long vol, long min_vol, long max_vol, long max_norm)
 long from_normalized_volume(long norm, long min_vol, long max_vol, long max_norm)
 {
     long vol, min_norm;
+    long factor = get_nvol_factor();
 
     norm <<= NVOL_FRACBITS;
     min_vol <<= NVOL_FRACBITS;
@@ -2001,16 +1984,9 @@ long from_normalized_volume(long norm, long min_vol, long max_vol, long max_norm
 
     vol = nvol_div(norm, max_norm);
 
-    if (use_linear_dB_scale(min_vol, max_vol))
-    {
-        vol = nvol_mul(vol, max_vol - min_vol) + min_vol;
-    }
-    else
-    {
-        min_norm = nvol_exp10(nvol_div(min_vol - max_vol, NVOL_FACTOR));
-        vol = nvol_mul(vol, NVOL_UNITY - min_norm) + min_norm;
-        vol = nvol_mul(nvol_log10(vol), NVOL_FACTOR) + max_vol;
-    }
+    min_norm = nvol_exp10(nvol_div(min_vol - max_vol, factor));
+    vol = nvol_mul(vol, NVOL_UNITY - min_norm) + min_norm;
+    vol = nvol_mul(nvol_log10(vol), factor) + max_vol;
 
     return vol >> NVOL_FRACBITS;
 }
@@ -2029,6 +2005,35 @@ void clear_screen_buffer(bool update)
             screen->update_viewport();
         }
         screen->set_viewport(last_vp);
+    }
+}
+
+void validate_start_directory_init(void) /* INIT_ATTR */
+{
+    char * const dirpath = global_settings.start_directory;
+    char *slash = strrchr(dirpath, PATH_SEPCH);
+
+    if (!slash)
+    {
+        path_append(dirpath, PATH_ROOTSTR, PA_SEP_HARD,
+                    sizeof(global_settings.start_directory));
+        return; /* if this doesn't exist we have bigger issues */
+    }
+    else if(slash[1] != '\0') /* ending slash required */
+    {
+        path_append(dirpath, dirpath, PA_SEP_HARD,
+                    sizeof(global_settings.start_directory));
+    }
+    if (slash != dirpath && !dir_exists(dirpath))
+    {
+        path_append(dirpath, PATH_ROOTSTR,
+            PA_SEP_HARD, sizeof(global_settings.start_directory));
+    }
+
+    if (!global_settings.keep_directory) /* reset to root / if !keep_directory */
+    {
+        path_append(global_status.browse_last_folder, PATH_ROOTSTR, PA_SEP_HARD,
+                    sizeof(global_status.browse_last_folder));
     }
 }
 

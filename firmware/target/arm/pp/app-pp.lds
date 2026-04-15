@@ -1,3 +1,6 @@
+#define __ASSEMBLER__
+#include "cpu.h"
+
 /* Will have been included from app.lds */
 ENTRY(start)
 
@@ -13,14 +16,6 @@ STARTUP(target/arm/pp/crt0-pp.o)
 #define DRAMORIG 0x00000000
 #define IRAMORIG 0x40000000
 #define IRAMSIZE 0xc000
-
-#ifdef CPU_PP502x
-#define NOCACHE_BASE 	0x10000000
-#else
-#define NOCACHE_BASE 	0x28000000
-#endif
-
-#define CACHEALIGN_SIZE 16
 
 /* End of the audio buffer, where the codec buffer starts */
 #define ENDAUDIOADDR  (DRAMORIG + DRAMSIZE)

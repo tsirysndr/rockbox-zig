@@ -11,6 +11,9 @@ core_keymap.c
 debug_menu.c
 filetypes.c
 fileop.c
+#ifdef HAVE_TOUCHSCREEN
+gesture.c
+#endif
 language.c
 main.c
 menu.c
@@ -213,14 +216,6 @@ keymaps/keymap-mr500.c
 keymaps/keymap-mr100.c
 #elif CONFIG_KEYPAD == COWON_D2_PAD
 keymaps/keymap-cowond2.c
-#elif CONFIG_KEYPAD == MEIZU_M6SL_PAD
-keymaps/keymap-meizu-m6sl.c
-#elif CONFIG_KEYPAD == MEIZU_M6SP_PAD
-keymaps/keymap-meizu-m6sp.c
-#elif CONFIG_KEYPAD == CREATIVEZVM_PAD
-keymaps/keymap-creativezvm.c
-#elif CONFIG_KEYPAD == CREATIVEZV_PAD
-keymaps/keymap-creativezv.c
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI2_PAD
 keymaps/keymap-zenxfi2.c
 #elif CONFIG_KEYPAD == CREATIVE_ZENXFI3_PAD
@@ -242,8 +237,6 @@ keymaps/keymap-ondavx767.c
 #elif (CONFIG_KEYPAD == SAMSUNG_YH820_PAD) \
     || (CONFIG_KEYPAD == SAMSUNG_YH92X_PAD)
 keymaps/keymap-yh8xx_yh9xx.c
-#elif CONFIG_KEYPAD == MINI2440_PAD
-keymaps/keymap-mini2440.c
 #elif CONFIG_KEYPAD == PBELL_VIBE500_PAD
 keymaps/keymap-vibe500.c
 #elif CONFIG_KEYPAD == MPIO_HD200_PAD
@@ -268,6 +261,8 @@ keymaps/keymap-sansa-connect.c
 keymaps/keymap-ypr0.c
 #elif CONFIG_KEYPAD == CREATIVE_ZEN_PAD
 keymaps/keymap-zen.c
+#elif CONFIG_KEYPAD == CREATIVE_ZENV_PAD
+keymaps/keymap-zenv.c
 #elif CONFIG_KEYPAD == MA_PAD
 keymaps/keymap-ma.c
 #elif CONFIG_KEYPAD == SONY_NWZ_PAD
@@ -308,6 +303,8 @@ keymaps/keymap-surfansf28.c
 keymaps/keymap-rgnano.c
 #elif CONFIG_KEYPAD == CTRU_PAD
 keymaps/keymap-ctru.c
+#elif CONFIG_KEYPAD == HIBY_R3PROII_PAD
+keymaps/keymap-hibyr3proii.c
 #endif
 
 #ifdef CONFIG_SERVER

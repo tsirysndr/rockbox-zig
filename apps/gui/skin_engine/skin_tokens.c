@@ -263,7 +263,7 @@ const char *get_id3_token(struct wps_token *token, struct mp3entry *id3,
             case SKIN_TOKEN_METADATA_TRACK_NUMBER:
                 if (id3->track_string)
                     return id3->track_string;
-                if (id3->tracknum) {
+                if (id3->tracknum >= 0) {
                     itoa_buf(buf, buf_size, id3->tracknum);
                     return buf;
                 }
@@ -1164,6 +1164,25 @@ const char *get_token_value(struct gui_wps *gwps,
             numeric_buf = buf;
             goto gtv_ret_numeric_tag_info;
 
+        case SKIN_TOKEN_PLAYLIST_PERCENT:
+        {
+            int playlist_amt = playlist_amount();
+            int current_pos = playlist_get_display_index() + offset;
+            int percentage = current_pos * 100 / playlist_amt;
+
+            if (intval && limit != TOKEN_VALUE_ONLY)
+            {
+                numeric_ret = current_pos * limit / playlist_amt;
+            }
+            else
+            {
+                numeric_ret = percentage;
+            }
+
+            itoa_buf(buf, buf_size, percentage);
+            numeric_buf = buf;
+            goto gtv_ret_numeric_tag_info;
+        }
         case SKIN_TOKEN_PLAYLIST_SHUFFLE:
             if ( global_settings.playlist_shuffle )
                 return "s";
@@ -1457,10 +1476,10 @@ const char *get_token_value(struct gui_wps *gwps,
             return NULL;
         case SKIN_TOKEN_HAVE_TOUCH:
 #ifdef HAVE_TOUCHSCREEN
-            return "t";
-#else
-            return NULL;
+            if (touchscreen_get_mode() == TOUCHSCREEN_POINT)
+                return "t";
 #endif
+            return NULL;
 
 #ifdef HAVE_QUICKSCREEN
         case SKIN_TOKEN_TOP_QUICKSETTING_NAME:

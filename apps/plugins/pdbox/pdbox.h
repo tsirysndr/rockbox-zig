@@ -40,17 +40,9 @@
 #define calloc(elements, elem_size) tlsf_calloc(elements, elem_size)
 
 /* Audio declarations. */
-#ifdef SIMULATOR
-  #define PD_SAMPLERATE 44100
-#elif (HW_SAMPR_CAPS & SAMPR_CAP_22)
-  #define PD_SAMPLERATE 22050
-#elif (HW_SAMPR_CAPS & SAMPR_CAP_32)
-  #define PD_SAMPLERATE 32000
-#elif (HW_SAMPR_CAPS & SAMPR_CAP_44)
-  #define PD_SAMPLERATE 44100
-#else
-  #error No sufficient sample rate available!
-#endif
+/* Maximum sample rate; used for buffer sizing.
+ * Actual rate is determined at runtime from pcm sink capabilities. */
+#define PD_SAMPLERATE 44100
 #define PD_SAMPLES_PER_HZ ((PD_SAMPLERATE / HZ) + \
                            (PD_SAMPLERATE % HZ > 0 ? 1 : 0))
 #define PD_OUT_CHANNELS 2
@@ -195,6 +187,10 @@ void pd_init(void);
 #define ftoan rb_ftoan
 #undef strtok_r
 #define strtok_r rb->strtok_r
+
+// NOTE: historically strstr() was not exported in the plugin API so this
+//       has been defined as strcasestr(). It's likely this is wrong, but
+//       changing it now could break user scripts...
 #define strstr rb->strcasestr
 
 
@@ -305,6 +301,15 @@ enum pd_key_id
     #define PDPOD_PREVIOUS  BUTTON_LEFT
     #define PDPOD_NEXT      BUTTON_RIGHT
     #define PDPOD_MENU      BUTTON_BACK
+    #define PDPOD_WHEELLEFT BUTTON_UP
+    #define PDPOD_WHEELRIGHT BUTTON_DOWN
+    #define PDPOD_ACTION    BUTTON_SELECT
+#elif (CONFIG_KEYPAD == CTRU_PAD)
+    #define PDPOD_QUIT      BUTTON_BACK
+    #define PDPOD_PLAY      BUTTON_USER
+    #define PDPOD_PREVIOUS  BUTTON_LEFT
+    #define PDPOD_NEXT      BUTTON_RIGHT
+    #define PDPOD_MENU      BUTTON_MENU
     #define PDPOD_WHEELLEFT BUTTON_UP
     #define PDPOD_WHEELRIGHT BUTTON_DOWN
     #define PDPOD_ACTION    BUTTON_SELECT

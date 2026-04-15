@@ -1,70 +1,34 @@
 #include "cpu.h"
 
-/*
- * TODO: this is temporary and has not been tested
- */
-
-ENTRY(main)
+ENTRY(crt0_start)
 OUTPUT_FORMAT(elf32-littlearm)
 OUTPUT_ARCH(arm)
 STARTUP(target/arm/stm32/crt0-stm32h7.o)
 
 MEMORY
 {
-    SRAM_AXI (rwx) : ORIGIN = STM32_SRAM_AXI_BASE,    LENGTH = STM32_SRAM_AXI_SIZE
-    DTCM     (rwx) : ORIGIN = STM32_DTCM_BASE,        LENGTH = STM32_DTCM_SIZE
-    ITCM     (rwx) : ORIGIN = STM32_ITCM_BASE,        LENGTH = STM32_ITCM_SIZE
-    SDRAM    (rwx) : ORIGIN = STM32_SDRAM1_BASE,      LENGTH = MEMORYSIZE * 1024 * 1024
+    DTCM     (rw)  : ORIGIN = STM32_DTCM_BASE,     LENGTH = STM32_DTCM_SIZE
+    ITCM     (rx)  : ORIGIN = STM32_ITCM_BASE,     LENGTH = STM32_ITCM_SIZE
+    SRAM_AXI (rw)  : ORIGIN = STM32_SRAM_AXI_BASE, LENGTH = STM32_SRAM_AXI_SIZE
+    SDRAM    (rwx) : ORIGIN = STM32_SDRAM1_BASE,   LENGTH = MEMORYSIZE * 1024 * 1024
 }
-
-/*
- * to control section alignment (only affects on-disk alignment):
- * -Wl,-z,max-page-size=0x1
- */
 
 PHDRS
 {
-    sram_rx PT_LOAD ;
-    sram_ro PT_LOAD ;
-    sram_rw PT_LOAD ;
-    itcm PT_LOAD ;
-    dtcm PT_LOAD ;
-    sdram_rx PT_LOAD ;
-    sdram_rw PT_LOAD ;
+    itcm PT_LOAD;
+    sdram PT_LOAD;
 }
 
 SECTIONS
 {
-    .text :
-    {
-        loadaddress = .; /* only needed to keep ROLO happy */
-
-        KEEP(*(.bootdata))
-        *(.init.text*)
-        *(.text*)
-    } > SRAM_AXI :sram_rx
-
-    .rodata :
-    {
-        *(.rodata*)
-    } > SRAM_AXI :sram_ro
-
-    .data :
-    {
-        _databegin = .;
-        *(.data*)
-        _dataend = .;
-    } > SRAM_AXI :sram_rw
-    _datacopy = LOADADDR(.data);
-
     .itext :
     {
-        KEEP(*(.vectors.arm))
-        KEEP(*(.vectors.platform))
+        KEEP(*(.vectors.arm));
+        KEEP(*(.vectors.platform));
         *(.icode*);
     } > ITCM :itcm
 
-    .stack (NOLOAD) :
+    .stack (NOLOAD) : ALIGN(8)
     {
         irqstackbegin = .;
         . += 0x400;
@@ -73,9 +37,30 @@ SECTIONS
         stackbegin = .;
         . += 0x2000;
         stackend = .;
+    } > DTCM :NONE
 
-        *(.stack);
-    } > DTCM :dtcm
+    .framebuffer (NOLOAD) :
+    {
+        *(.framebuffer);
+    } > SRAM_AXI :NONE
+
+    .text :
+    {
+        loadaddress = .; /* only needed to keep ROLO happy */
+
+        *(.init*);
+        *(.text*);
+    } > SDRAM :sdram
+
+    .rodata :
+    {
+        *(.rodata*);
+    } > SDRAM :sdram
+
+    .data :
+    {
+        *(.data*);
+    } > SDRAM :sdram
 
     .bss (NOLOAD) :
     {
@@ -83,7 +68,7 @@ SECTIONS
         *(.bss*);
         *(COMMON);
         _bssend = .;
-    } > SDRAM :sdram_rw
+    } > SDRAM :sdram
 
     audiobuffer = ALIGN(32);
     audiobufend = ORIGIN(SDRAM) + LENGTH(SDRAM) - CODEC_SIZE - PLUGIN_BUFFER_SIZE;

@@ -40,13 +40,16 @@
 #ifndef __JZ4740_H__
 #define __JZ4740_H__
 
-#ifndef __ASSEMBLY__
+#define CACHEALIGN_BITS (5)
+#define CACHEALIGN_SIZE (32)
+
+#ifndef __ASSEMBLER__
 
 #define REG8(addr)     (*(volatile unsigned char  *)(addr))
 #define REG16(addr)    (*(volatile unsigned short *)(addr))
 #define REG32(addr)    (*(volatile unsigned int   *)(addr))
 
-#endif /* !ASSEMBLY */
+#endif /* !__ASSEMBLER__ */
 
 /*************************************************************************
  *  Boot ROM Specification
@@ -2528,7 +2531,7 @@
 // Module Operation Definitions
 //
 //----------------------------------------------------------------------
-#ifndef __ASSEMBLY__
+#ifndef __ASSEMBLER__
 
 /***************************************************************************
  * GPIO
@@ -4975,7 +4978,7 @@ do{                                 \
 }while(0)
 
 
-#endif /* !__ASSEMBLY__ */
+#endif /* !__ASSEMBLER__ */
 
 
 #ifndef _IPU_H_
@@ -4986,7 +4989,7 @@ do{                                 \
 #define IPU_V_BASE  0xB3080000
 #define IPU__SIZE   0x00001000
 
-#ifndef __ASSEMBLY__
+#ifndef __ASSEMBLER__
 struct ipu_module
 {
     unsigned int reg_ctrl;             // 0x0
@@ -5023,7 +5026,7 @@ struct Ration2m
     float ratio;
     int n, m;
 };
-#endif /* !__ASSEMBLY__ */
+#endif /* !__ASSEMBLER__ */
 
 // Register offset
 #define  REG_CTRL           0x0

@@ -53,6 +53,7 @@
 #include "viewport.h"
 #include "quickscreen.h"
 #include "shortcuts.h"
+#include "statusbar-skinned.h"
 
 #include "icons.h"
 
@@ -197,9 +198,38 @@ static enum themable_icons  menu_get_icon(int selected_item, void * data)
     return menu_icon;
 }
 
+static char* init_title(const struct menu_item_ex *menu, int *icon,
+                        char* buf, size_t buf_sz)
+{
+    char *title;
+
+    if (menu->flags&MENU_HAS_DESC)
+    {
+        *icon = menu->callback_and_desc->icon_id;
+        title = P2STR(menu->callback_and_desc->desc);
+    }
+    else if (menu->flags&MENU_DYNAMIC_DESC)
+    {
+        *icon = menu->menu_get_name_and_icon->icon_id;
+        title = menu->menu_get_name_and_icon->
+                      list_get_name(-1, menu->menu_get_name_and_icon->
+                                    list_get_name_data, buf, buf_sz);
+    }
+    else
+    {
+        *icon = Icon_NOICON;
+        title = "";
+    }
+
+    if (*icon == Icon_NOICON)
+        *icon = Icon_Submenu_Entered;
+
+    return title;
+}
+
 static int init_menu_lists(const struct menu_item_ex *menu,
                      struct gui_synclist *lists, int selected, bool callback,
-                     struct viewport parent[NB_SCREENS])
+                     struct viewport parent[NB_SCREENS], char* buf, size_t buf_sz)
 {
     if (!menu || !lists)
     {
@@ -236,28 +266,7 @@ static int init_menu_lists(const struct menu_item_ex *menu,
     current_submenus_menu = (struct menu_item_ex *)menu;
 
     gui_synclist_init(lists,get_menu_item_name,(void*)menu,false,1, parent);
-
-    if (menu->flags&MENU_HAS_DESC)
-    {
-        icon = menu->callback_and_desc->icon_id;
-        title = P2STR(menu->callback_and_desc->desc);
-    }
-    else if (menu->flags&MENU_DYNAMIC_DESC)
-    {
-        char buffer[80];
-        icon = menu->menu_get_name_and_icon->icon_id;
-        title = menu->menu_get_name_and_icon->
-                      list_get_name(-1, menu->menu_get_name_and_icon->
-                                    list_get_name_data, buffer, sizeof(buffer));
-    }
-    else
-    {
-        icon = Icon_NOICON;
-        title = "";
-    }
-
-    if (icon == Icon_NOICON)
-            icon = Icon_Submenu_Entered;
+    title = init_title(menu, &icon, buf, buf_sz);
     gui_synclist_set_title(lists, title, icon);
     gui_synclist_set_icon_callback(lists, global_settings.show_icons?menu_get_icon:NULL);
     if(global_settings.talk_menu)
@@ -382,6 +391,8 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
     int ret = 0;
     int action;
     int start_action;
+    int icon;
+    char buf[80], *title;
     struct gui_synclist lists;
     const struct menu_item_ex *temp = NULL;
     const struct menu_item_ex *menu = start_menu;
@@ -398,9 +409,12 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
     touchscreen_set_mode(global_settings.touch_mode);
 #endif
 
+    title = init_title(menu, &icon, buf, sizeof buf);
     FOR_NB_SCREENS(i)
+    {
+        sb_set_persistent_title(title, icon, i);
         viewportmanager_theme_enable(i, !hide_theme, NULL);
-
+    }
     struct menu_data_t mstack[MAX_MENUS]; /* menu, selected */
     int stack_top = 0;
 
@@ -411,7 +425,8 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
      * this function, e.g. with viewport_set_defaults(parent, screen)
      * start_action allows an action to be processed
      * by menu logic by bypassing get_action on the initial run */
-    start_action = init_menu_lists(menu, &lists, selected, true, parent);
+    start_action = init_menu_lists(menu, &lists, selected, true, parent,
+                                   buf, sizeof buf);
     vps = *(lists.parent);
     in_stringlist = ((menu->flags&MENU_TYPE_MASK) == MT_RETURN_ID);
     /* load the callback, and only reload it if menu changes */
@@ -472,7 +487,8 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
                 }
             }
             if (!done)
-                init_menu_lists(menu, &lists, lists.selected_item, false, vps);
+                init_menu_lists(menu, &lists, lists.selected_item, false, vps,
+                                buf, sizeof buf);
             redraw_lists = true;
         }
 #endif
@@ -616,7 +632,7 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
                 if (!exiting_menu && (menu->flags&MENU_EXITAFTERTHISMENU))
                     done = true;
                 else
-                    init_menu_lists(menu, &lists, msel, false, vps);
+                    init_menu_lists(menu, &lists, msel, false, vps, buf, sizeof buf);
                 redraw_lists = true;
                 /* new menu, so reload the callback */
                 get_menu_callback(menu, &menu_callback);
@@ -657,7 +673,7 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
                         mstack[stack_top].selected = selected;
                         stack_top++;
                         menu = temp;
-                        init_menu_lists(menu, &lists, 0, true, vps);
+                        init_menu_lists(menu, &lists, 0, true, vps, buf, sizeof buf);
                     }
                     break;
                 case MT_FUNCTION_CALL_W_PARAM:
@@ -677,7 +693,8 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
                             (temp->flags&MENU_EXITAFTERTHISMENU))
                     {
                         /* Reload menu but don't run the calback again FS#8117 */
-                        init_menu_lists(menu, &lists, selected, false, vps);
+                        init_menu_lists(menu, &lists, selected, false, vps,
+                                        buf, sizeof buf);
                     }
                     if (temp->flags&MENU_FUNC_CHECK_RETVAL)
                     {
@@ -693,7 +710,7 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
                 case MT_SETTING_W_TEXT:
                 {
                     do_setting_from_menu(temp, vps);
-                    init_menu_lists(menu, &lists, selected, false, vps);
+                    init_menu_lists(menu, &lists, selected, false, vps, buf, sizeof buf);
                     redraw_lists = true;
 
                     break;
@@ -710,7 +727,7 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
                         mstack[stack_top].selected = selected;
                         stack_top++;
                         menu = temp;
-                        init_menu_lists(menu,&lists,0,false, vps);
+                        init_menu_lists(menu, &lists, 0, false, vps, buf, sizeof buf);
                         in_stringlist = true;
                     }
                     break;
@@ -729,7 +746,7 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
                 menu_callback(ACTION_EXIT_MENUITEM, temp, &lists);
             }
             if (current_submenus_menu != menu)
-                init_menu_lists(menu,&lists,selected,true,vps);
+                init_menu_lists(menu, &lists,selected, true, vps, buf, sizeof buf);
             /* callback was changed, so reload the menu's callback */
             get_menu_callback(menu, &menu_callback);
             if ((menu->flags&MENU_EXITAFTERTHISMENU) &&
@@ -777,7 +794,8 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
         if (stack_top > 0)
         {
             menu = mstack[0].menu;
-            init_menu_lists(menu,&lists,mstack[0].selected,true, vps);
+            init_menu_lists(menu, &lists, mstack[0].selected, true, vps,
+                            buf, sizeof buf);
         }
         *start_selected = get_menu_selection(
                             gui_synclist_get_sel_pos(&lists), menu);
@@ -785,6 +803,7 @@ int do_menu(const struct menu_item_ex *start_menu, int *start_selected,
 
     FOR_NB_SCREENS(i)
     {
+        sb_set_persistent_title(lists.title, lists.title_icon, i);
         viewportmanager_theme_undo(i, false);
         skinlist_set_cfg(i, NULL); /* Bugfix dangling reference in skin_draw() */
     }

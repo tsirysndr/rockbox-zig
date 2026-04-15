@@ -88,6 +88,7 @@
 #define HAVE_STRLCPY      1
 #define HAVE_STRCMP       1
 #define HAVE_STRNCMP      1
+#define HAVE_STRSTR       1
 
 #undef strdup
 
@@ -117,6 +118,7 @@
 #define atexit rb_atexit
 #define atof atof_wrapper
 #define atoi rb->atoi
+#define HAVE_ATOI 1
 #define atol atoi
 #define calloc tlsf_calloc
 #define ceil ceil_wrapper
@@ -171,10 +173,11 @@
 #define strpbrk strpbrk_wrapper
 #endif
 #define strrchr rb->strrchr
-#define strstr SDL_strstr
+#define strstr rb->strstr
 #define strtok strtok_wrapper
 #define strtok_r rb->strtok_r
-#define strtol SDL_strtol
+#define HAVE_STRTOL 1
+#define strtol rb->strtol
 #define tan tan_wrapper
 #define time(x) (*rb->current_tick/HZ)
 #define unlink remove

@@ -23,7 +23,8 @@
 
 /* All info gleaned and/or copied from the iPodLinux project. */
 
-#define CACHEALIGN_BITS (4) /* 2^4 = 16 bytes */
+#define CACHEALIGN_BITS (4)  /* 2^4 = 16 bytes */
+#define CACHEALIGN_SIZE (16)
 
 /* PCM addresses for obtaining buffers will be what DMA is using (physical) */
 #define HAVE_PCM_DMA_ADDRESS
@@ -37,6 +38,7 @@
 
 /* DRAM starts at 0x10000000, but in Rockbox we remap it to 0x00000000 */
 #define DRAM_START       0x10000000
+#define NOCACHE_BASE     0x10000000
 
 /* Processor ID */
 #define PROCESSOR_ID     (*(volatile unsigned long *)(0x60000000))
