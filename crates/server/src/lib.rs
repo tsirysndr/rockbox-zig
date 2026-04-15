@@ -300,11 +300,31 @@ pub extern "C" fn start_broker() {
 
         match rb::playback::current_track() {
             Some(current_track) => {
-                let hash = format!("{:x}", md5::compute(current_track.path.as_bytes()));
-                if let Ok(Some(metadata)) =
+                let path = current_track.path.clone();
+                let is_http = path.starts_with("http://") || path.starts_with("https://");
+                let hash = format!("{:x}", md5::compute(path.as_bytes()));
+
+                // For HTTP stream URLs (e.g. http://host:port/tracks/{id}), extract
+                // the track ID from the last path segment so we can look it up in the
+                // database without hashing the URL.
+                let db_metadata = if is_http {
+                    let track_id = path.rsplit('/').next().unwrap_or("").to_string();
+                    if !track_id.is_empty() {
+                        rt.block_on(repo::track::find(pool.clone(), &track_id))
+                            .ok()
+                            .flatten()
+                    } else {
+                        None
+                    }
+                } else {
                     rt.block_on(repo::track::find_by_md5(pool.clone(), &hash))
-                {
-                    let mut track: Track = current_track.into();
+                        .ok()
+                        .flatten()
+                };
+
+                let mut track: Track = current_track.into();
+
+                if let Some(metadata) = db_metadata {
                     track.id = Some(metadata.id.clone());
                     track.album_art = metadata.album_art;
                     track.album_id = Some(metadata.album_id);
@@ -352,6 +372,10 @@ pub extern "C" fn start_broker() {
                             }
                         }
                     }
+                } else {
+                    // Track not in DB (e.g. an HTTP stream URL not yet scanned).
+                    // Still publish so clients receive elapsed/status updates.
+                    SimpleBroker::publish(track);
                 }
             }
             None => {
@@ -382,18 +406,54 @@ pub extern "C" fn start_broker() {
                 continue;
             }
 
-            let mut entry = rb::metadata::get_metadata(-1, filename);
+            let is_http = filename.starts_with("http://") || filename.starts_with("https://");
 
-            let track = rt
-                .block_on(repo::track::find_by_md5(pool.clone(), hash))
-                .unwrap();
+            let mut entry = if is_http {
+                // For HTTP stream URLs, do NOT call get_metadata(-1, url) — that
+                // opens a live HTTP connection for every queued track and blocks
+                // the broker loop.  Instead, build the entry from the database
+                // using the track ID embedded in the URL path segment.
+                let track_id = filename.rsplit('/').next().unwrap_or("").to_string();
+                let db_track = if !track_id.is_empty() {
+                    rt.block_on(repo::track::find(pool.clone(), &track_id))
+                        .ok()
+                        .flatten()
+                } else {
+                    None
+                };
 
-            if track.is_some() {
-                entry.album_art = track.as_ref().map(|t| t.album_art.clone()).flatten();
-                entry.album_id = track.as_ref().map(|t| t.album_id.clone());
-                entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
-                entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
-            }
+                let mut e = Mp3Entry::default();
+                e.path = filename.clone();
+                if let Some(ref t) = db_track {
+                    e.title = t.title.clone();
+                    e.artist = t.artist.clone();
+                    e.album = t.album.clone();
+                    e.albumartist = t.album_artist.clone();
+                    e.length = t.length as u64;
+                    e.bitrate = t.bitrate;
+                    e.frequency = t.frequency as u64;
+                    e.album_art = t.album_art.clone();
+                    e.album_id = Some(t.album_id.clone());
+                    e.artist_id = Some(t.artist_id.clone());
+                    e.genre_id = Some(t.genre_id.clone());
+                    e.id = Some(t.id.clone());
+                }
+                e
+            } else {
+                let mut e = rb::metadata::get_metadata(-1, filename);
+
+                let track = rt
+                    .block_on(repo::track::find_by_md5(pool.clone(), hash))
+                    .unwrap();
+
+                if track.is_some() {
+                    e.album_art = track.as_ref().map(|t| t.album_art.clone()).flatten();
+                    e.album_id = track.as_ref().map(|t| t.album_id.clone());
+                    e.artist_id = track.as_ref().map(|t| t.artist_id.clone());
+                    e.genre_id = track.as_ref().map(|t| t.genre_id.clone());
+                }
+                e
+            };
 
             metadata_cache.insert(hash.clone(), entry.clone());
             entries.push(entry);

@@ -45,9 +45,11 @@ objcopy = cp $(1) $(1).tmp;mv -f $(1).tmp $(2)
 else
   ifdef DEBUG
     objcopy = cp $(1) $(1).tmp;mv -f $(1).tmp $(2)	# objcopy hosted (DEBUG)
+  else ifeq ($(UNAME), Darwin)
+    objcopy = cp $(1) $(1).tmp;mv -f $(1).tmp $(2)	# objcopy hosted macOS (GNU objcopy strips LC_ID_DYLIB)
   else
     objcopy = $(OC) -S -x $(1) $(2)					# objcopy hosted (!DEBUG)
-   endif
+  endif
 endif
 
 # calculate dependencies for a list of source files $(2) and output them to $(1)

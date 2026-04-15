@@ -32,6 +32,18 @@ pub async fn create_playlist(
         return Ok(());
     }
 
+    // Always create a brand-new playlist before filling it so that the
+    // currently-playing track is fully replaced rather than appended to.
+    // For local paths use the parent directory; for HTTP URLs use "/".
+    let first = &new_playlist.tracks[0];
+    let dir = if first.starts_with("http://") || first.starts_with("https://") {
+        "/".to_string()
+    } else {
+        let parts: Vec<_> = first.split('/').collect();
+        parts[..parts.len().saturating_sub(1)].join("/")
+    };
+    rb::playlist::create(&dir, None);
+
     // URLs are passed as-is; codec detection happens in the C metadata layer
     // via probe_content_type_format(), which reads the HTTP Content-Type header
     // and overrides any extension-based guess.
