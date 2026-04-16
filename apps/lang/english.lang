@@ -17085,3 +17085,17 @@
     *: "Show in Files"
   </voice>
 </phrase>
+<phrase>
+  id: LANG_CHANNEL_SWAP
+  desc: in sound_settings
+  user: core
+  <source>
+    *: "Swap Left & Right"
+  </source>
+  <dest>
+    *: "Swap Left & Right"
+  </dest>
+  <voice>
+    *: "Swap Left & Right"
+  </voice>
+</phrase>

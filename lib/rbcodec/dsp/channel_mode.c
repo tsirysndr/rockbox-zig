@@ -43,6 +43,8 @@ void channel_mode_proc_custom(struct dsp_proc_entry *this,
                               struct dsp_buffer **buf_p);
 void channel_mode_proc_karaoke(struct dsp_proc_entry *this,
                                struct dsp_buffer **buf_p);
+void channel_mode_proc_swap(struct dsp_proc_entry *this,
+                            struct dsp_buffer **buf_p);
 
 static struct channel_mode_data
 {
@@ -131,6 +133,25 @@ void channel_mode_proc_karaoke(struct dsp_proc_entry *this,
 }
 #endif /* CPU */
 
+void channel_mode_proc_swap(struct dsp_proc_entry *this,
+                            struct dsp_buffer **buf_p)
+{
+    struct dsp_buffer *buf = *buf_p;
+    int32_t *sl = buf->p32[0];
+    int32_t *sr = buf->p32[1];
+    int count = buf->remcount;
+
+    do
+    {
+        int32_t l = *sl;
+        *sl++ = *sr;
+        *sr++ = l;
+    }
+    while (--count > 0);
+
+    (void)this;
+}
+
 void channel_mode_proc_mono_left(struct dsp_proc_entry *this,
                                  struct dsp_buffer **buf_p)
 {
@@ -194,6 +215,7 @@ static void update_process_fn(struct dsp_proc_entry *this)
         [SOUND_CHAN_MONO_LEFT]  = channel_mode_proc_mono_left,
         [SOUND_CHAN_MONO_RIGHT] = channel_mode_proc_mono_right,
         [SOUND_CHAN_KARAOKE]    = channel_mode_proc_karaoke,
+        [SOUND_CHAN_SWAP]       = channel_mode_proc_swap,
     };
 
     this->process = fns[((struct channel_mode_data *)this->data)->mode];
