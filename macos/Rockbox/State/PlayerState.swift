@@ -47,38 +47,32 @@ class PlayerState: ObservableObject {
 
   private func setupMediaControls() {
     let manager = MediaControlsManager.shared
-    manager.onPlay = {
-      Task {
-        try? await resume()
-      }
+
+    // MPRemoteCommandCenter callbacks are plain () -> Void closures that may be
+    // invoked outside the @MainActor.  Wrap every callback in a @MainActor Task
+    // so that isPlaying is read from the correct actor context.
+    manager.onPlay = { [weak self] in
+      Task { @MainActor [weak self] in self?.playOrPause() }
     }
 
-    manager.onPause = {
-      Task {
-        try? await pause()
-      }
+    manager.onPause = { [weak self] in
+      Task { @MainActor [weak self] in self?.playOrPause() }
     }
 
     manager.onTogglePlayPause = { [weak self] in
-      self?.playOrPause()
+      Task { @MainActor [weak self] in self?.playOrPause() }
     }
 
     manager.onNext = {
-      Task {
-        try? await next()
-      }
+      Task { try? await next() }
     }
 
     manager.onPrevious = {
-      Task {
-        try? await previous()
-      }
+      Task { try? await previous() }
     }
 
     manager.onSeek = { position in
-      Task {
-        try? await play(elapsed: Int64(position) * 1000)
-      }
+      Task { try? await play(elapsed: Int64(position) * 1000) }
     }
   }
 
@@ -135,6 +129,10 @@ class PlayerState: ObservableObject {
           self.currentTime = TimeInterval(response.elapsed / 1000)
 
           if previousTrack.cuid != self.currentTrack.cuid {
+            // A track change always means playback just started.  Set isPlaying
+            // immediately so the first media key press is correct without waiting
+            // for the status stream (which may never fire).
+            self.isPlaying = true
             self.updateNowPlayingInfo()
           }
         }
@@ -242,6 +240,12 @@ class PlayerState: ObservableObject {
           self.currentTime = TimeInterval(globalStatus.resumeElapsed / 1000)
           self.duration = TimeInterval(data.tracks[index].length / 1000)
 
+          // Sync the actual server playing state so the first media key press
+          // is correct even when the status stream never fires.
+          let serverStatus = try await fetchPlaybackStatus()
+          self.isPlaying = serverStatus == 1
+          self.status = serverStatus
+
           self.updateNowPlayingInfo()
         }
       } catch {
@@ -299,22 +303,30 @@ class PlayerState: ObservableObject {
   }
 
   func playOrPause() {
+    // Don't rely on isPlaying — the status stream may never fire.
+    // Query the real server state first, then act on it.
+    isPlaying.toggle()  // Optimistic toggle for immediate UI feedback
+    updateNowPlayingInfo()
+
     Task {
       do {
-        let globalStatus = try await fetchGlobalStatus()
-        if globalStatus.resumeIndex > -1 && status == 0 {
-          try await resumeTrack()
-          return
-        }
-
-        if isPlaying {
+        let serverStatus = try await fetchPlaybackStatus()
+        if serverStatus == 1 {
           try await pause()
-          return
+        } else {
+          try await resume()
         }
-
-        try await resume()
+        await MainActor.run { [weak self] in
+          guard let self = self else { return }
+          self.isPlaying = serverStatus != 1
+          self.updateNowPlayingInfo()
+        }
       } catch {
-        self.error = error
+        await MainActor.run { [weak self] in
+          guard let self = self else { return }
+          self.isPlaying.toggle()  // revert optimistic toggle
+          self.error = error
+        }
       }
     }
   }
@@ -425,10 +437,18 @@ class PlayerState: ObservableObject {
   // MARK: - Update Now Playing Info
 
   func updateNowPlayingInfo() {
-    // Load artwork asynchronously
+    // Update playbackRate immediately so macOS routes the correct media key command.
+    // Without this, a stale rate=0.0 causes macOS to send playCommand (instead of
+    // pauseCommand) while the song is playing, which makes Rockbox restart the track.
+    MediaControlsManager.shared.updatePlaybackState(
+      isPlaying: isPlaying,
+      currentTime: currentTime,
+      duration: duration
+    )
+
+    // Then update full metadata + artwork asynchronously.
     loadArtwork(from: currentTrack.albumArt) { [weak self] artwork in
       guard let self = self else { return }
-
       MediaControlsManager.shared.updateNowPlaying(
         title: self.currentTrack.title,
         artist: self.currentTrack.artist,

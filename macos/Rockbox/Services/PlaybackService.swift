@@ -76,6 +76,20 @@ func next(host: String = "127.0.0.1", port: Int = 6061) async throws {
   }
 }
 
+func fetchPlaybackStatus(host: String = "127.0.0.1", port: Int = 6061) async throws -> Int32 {
+  try await withGRPCClient(
+    transport: .http2NIOPosix(
+      target: .dns(host: host, port: port),
+      transportSecurity: .plaintext
+    )
+  ) { grpcClient in
+    let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
+    let req = Rockbox_V1alpha1_StatusRequest()
+    let response = try await playback.status(req)
+    return response.status
+  }
+}
+
 func currentTrackStream() -> AsyncThrowingStream<Rockbox_V1alpha1_CurrentTrackResponse, Error> {
   AsyncThrowingStream { continuation in
     Task {

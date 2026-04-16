@@ -96,6 +96,17 @@ class MediaControlsManager {
         }
     }
     
+    // Updates only the playback-state fields (rate, position, duration) without
+    // touching artwork. Called immediately when play/pause state changes so macOS
+    // always sees the correct playbackRate and routes the right media key command.
+    func updatePlaybackState(isPlaying: Bool, currentTime: TimeInterval, duration: TimeInterval) {
+        var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
+        info[MPMediaItemPropertyPlaybackDuration] = duration
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = currentTime
+        info[MPNowPlayingInfoPropertyPlaybackRate] = isPlaying ? 1.0 : 0.0
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+    }
+
     func updateNowPlaying(
         title: String,
         artist: String? = nil,
