@@ -765,7 +765,7 @@ static int _talk_spell(const char* spell, size_t len, bool enqueue)
     do_enqueue(enqueue); /* cut off all the pending stuff */
 
     const char *last = spell;
-    size_t len0 = len - 1;
+    size_t len0 = len;
     /* Tokenize into UTF8 codepoints */
     while ((spell = utf8decode(spell, &c)), c != '\0')
     {
