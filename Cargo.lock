@@ -8887,6 +8887,7 @@ dependencies = [
  "prost",
  "reqwest",
  "rmpc",
+ "rockbox-typesense",
  "serde",
  "serde_json",
  "tokio",
@@ -9210,6 +9211,13 @@ dependencies = [
  "rockbox-search",
  "rockbox-traits",
  "serde",
+]
+
+[[package]]
+name = "rockbox-typesense"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
 ]
 
 [[package]]
