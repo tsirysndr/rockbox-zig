@@ -34,6 +34,9 @@ class PlayerState: ObservableObject {
   private var streamTask: Task<Void, Never>?
   private var streamStatusTask: Task<Void, Never>?
   private var streamPlaylistTask: Task<Void, Never>?
+  // True when the daemon was (re)started and audio is stopped; a full
+  // playlist_resume is required instead of a plain audio_resume.
+  private var needsFullResume: Bool = false
 
   var progress: Double {
     get { duration > 0 ? currentTime / duration : 0 }
@@ -110,6 +113,12 @@ class PlayerState: ObservableObject {
       do {
         isConnected = true
         for try await response in currentTrackStream() {
+          // Skip events where the server hasn't loaded track metadata yet.
+          // This covers two cases:
+          //   • id empty  — truly no active track (just-started daemon)
+          //   • title empty — id echoed from last track but tags not loaded
+          // Both would otherwise blank out title/artist in the UI.
+          guard !response.id.isEmpty, !response.title.isEmpty else { continue }
           let previousTrack = self.currentTrack
           self.currentTrack = Song(
             cuid: response.id,
@@ -128,6 +137,8 @@ class PlayerState: ObservableObject {
           self.duration = TimeInterval(response.length / 1000)
           self.currentTime = TimeInterval(response.elapsed / 1000)
 
+          // Server is delivering real track data — no longer need a full resume.
+          self.needsFullResume = false
           if previousTrack.cuid != self.currentTrack.cuid {
             // A track change always means playback just started.  Set isPlaying
             // immediately so the first media key press is correct without waiting
@@ -190,7 +201,13 @@ class PlayerState: ObservableObject {
             )
           }
 
-          self.currentTrack = self.queue[self.currentIndex]
+          // Guard against an index past the queue end and against tracks
+          // whose metadata hasn't been loaded by the server yet (title empty).
+          // The currentTrackStream will supply proper metadata once loaded.
+          guard self.currentIndex < self.queue.count else { continue }
+          let candidate = self.queue[self.currentIndex]
+          guard !candidate.title.isEmpty else { continue }
+          self.currentTrack = candidate
           self.updateNowPlayingInfo()
         }
       } catch is CancellationError {
@@ -245,6 +262,10 @@ class PlayerState: ObservableObject {
           let serverStatus = try await fetchPlaybackStatus()
           self.isPlaying = serverStatus == 1
           self.status = serverStatus
+          // If audio is stopped (e.g. after daemon restart) but we have a
+          // persisted playlist, a plain audio_resume won't work — we need
+          // playlist_resume to reload the track from saved state.
+          self.needsFullResume = serverStatus != 1
 
           self.updateNowPlayingInfo()
         }
@@ -313,6 +334,12 @@ class PlayerState: ObservableObject {
         let serverStatus = try await fetchPlaybackStatus()
         if serverStatus == 1 {
           try await pause()
+        } else if needsFullResume {
+          // Daemon was restarted: audio engine is stopped, not merely paused.
+          // playlist_resume (resumeTrack) reloads the track from saved state;
+          // plain audio_resume would be a no-op here.
+          try await resumeTrack()
+          needsFullResume = false
         } else {
           try await resume()
         }
