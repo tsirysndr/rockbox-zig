@@ -59,6 +59,10 @@ class PlayerState: ObservableObject {
       }
     }
 
+    manager.onTogglePlayPause = { [weak self] in
+      self?.playOrPause()
+    }
+
     manager.onNext = {
       Task {
         try? await next()
@@ -76,7 +80,6 @@ class PlayerState: ObservableObject {
         try? await play(elapsed: Int64(position) * 1000)
       }
     }
-
   }
 
   private func setInitialNowPlayingInfo() {
