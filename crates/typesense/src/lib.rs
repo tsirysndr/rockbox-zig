@@ -1,22 +1,29 @@
-use std::process::{Command, Stdio};
+use std::{
+    fs,
+    process::{Command, Stdio},
+};
 
 pub fn setup() -> Result<(), anyhow::Error> {
+    let path = format!(
+        "{}:{}",
+        std::env::var("PATH").unwrap_or_default(),
+        "~/.rockbox/bin"
+    );
     let mut cmd = Command::new("command")
         .arg("-v")
         .arg("typesense-server")
-        .env(
-            "PATH",
-            format!(
-                "{}:{}",
-                std::env::var("PATH").unwrap_or_default(),
-                "~/.rockbox/bin"
-            ),
-        )
+        .env("PATH", &path)
         .stderr(std::process::Stdio::null())
         .stdout(std::process::Stdio::null())
         .spawn()?;
 
+    let homedir =
+        dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Could not determine home directory"))?;
+    let data_dir = homedir.join(".config/rockbox.org/typesense");
+    fs::create_dir_all(&data_dir)?;
+
     if cmd.wait()?.success() {
+        println!("Typesense server is already installed and available in PATH.");
         return Ok(());
     }
 

@@ -7,9 +7,8 @@ const settings = @import("rockbox/settings.zig");
 extern fn main_c() c_int;
 extern fn parse_args(argc: usize, argv: [*]const [*]const u8) c_int;
 
-pub fn main() !void {
-    const args = try std.process.argsAlloc(std.heap.page_allocator);
-    defer std.process.argsFree(std.heap.page_allocator, args);
+pub fn main(init: std.process.Init.Minimal) !void {
+    const args = init.args.vector;
 
     var argv: [10][*]const u8 = undefined;
 
@@ -21,7 +20,7 @@ pub fn main() !void {
     }
 
     for (args) |arg| {
-        argv[argc] = @ptrCast(arg.ptr);
+        argv[argc] = @ptrCast(arg);
         argc += 1;
     }
 

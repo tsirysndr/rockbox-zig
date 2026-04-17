@@ -7,6 +7,7 @@ use rockbox_search::album::Album;
 use rockbox_search::artist::Artist;
 use rockbox_search::track::Track;
 use rockbox_search::{create_indexes, delete_all_documents, index_entity};
+use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, ffi::CStr};
@@ -170,6 +171,39 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
         );
     });
 
+    thread::spawn(move || {
+        rockbox_typesense::setup()?;
+
+        let api_key = uuid::Uuid::new_v4().to_string();
+        let api_key = std::env::var("RB_TYPESENSE_API_KEY").unwrap_or(api_key);
+        std::env::set_var("RB_TYPESENSE_API_KEY", &api_key);
+        println!("Using Typesense API key: {}", api_key);
+
+        let port = std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string());
+        std::env::set_var("RB_TYPESENSE_PORT", &port);
+
+        let homedir = dirs::home_dir()
+            .ok_or_else(|| anyhow::anyhow!("Could not determine home directory"))?;
+        let data_dir = homedir.join(".config/rockbox.org/typesense");
+
+        let path = format!(
+            "{}:{}",
+            std::env::var("PATH").unwrap_or_default(),
+            "~/.rockbox/bin"
+        );
+
+        std::process::Command::new("sh")
+            .arg("-c")
+            .arg(&format!("typesense-server --enable-cors --port {port}"))
+            .env("PATH", &path)
+            .env("TYPESENSE_API_KEY", &api_key)
+            .env("TYPESENSE_DATA_DIR", &data_dir)
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
+            .status()?;
+
+        Ok::<(), Error>(())
+    });
     return 0;
 }
 

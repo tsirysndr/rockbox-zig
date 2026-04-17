@@ -83,17 +83,17 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
-    exe.addLibraryPath(.{
+    exe.root_module.addLibraryPath(.{
         .cwd_relative = "../target/release",
     });
 
     if (target.result.os.tag == .macos) {
-        exe.addLibraryPath(.{ .cwd_relative = "/opt/homebrew/lib" });
-        exe.linkFramework("CoreFoundation");
+        exe.root_module.addLibraryPath(.{ .cwd_relative = "/opt/homebrew/lib" });
+        exe.root_module.linkFramework("CoreFoundation", .{});
     }
 
     if (target.result.os.tag == .linux) {
-        exe.linkSystemLibrary("unwind");
+        exe.root_module.linkSystemLibrary("unwind", .{});
     }
 
     const librockbox = b.path("../build-lib/librockbox.a");
@@ -105,17 +105,17 @@ pub fn build(b: *std.Build) void {
     const libspeex_voice = b.path("../build-lib/lib/rbcodec/codecs/libspeex-voice.a");
     const librockbox_cli = b.path("../target/release/librockbox_cli.a");
     const librockbox_server = b.path("../target/release/librockbox_server.a");
-    exe.addObjectFile(librockbox);
-    exe.addObjectFile(libfirmware);
-    exe.addObjectFile(libfixedpoint);
-    exe.addObjectFile(libskin_parser);
-    exe.addObjectFile(librbcodec);
-    exe.addObjectFile(libtlsf);
-    exe.addObjectFile(libspeex_voice);
-    exe.addObjectFile(librockbox_cli);
-    exe.addObjectFile(librockbox_server);
-    exe.linkSystemLibrary("SDL2");
-    exe.linkLibC();
+    exe.root_module.addObjectFile(librockbox);
+    exe.root_module.addObjectFile(libfirmware);
+    exe.root_module.addObjectFile(libfixedpoint);
+    exe.root_module.addObjectFile(libskin_parser);
+    exe.root_module.addObjectFile(librbcodec);
+    exe.root_module.addObjectFile(libtlsf);
+    exe.root_module.addObjectFile(libspeex_voice);
+    exe.root_module.addObjectFile(librockbox_cli);
+    exe.root_module.addObjectFile(librockbox_server);
+    exe.root_module.linkSystemLibrary("SDL2", .{});
+    exe.root_module.link_libc = true;
 
     // This declares intent for the executable to be installed into the
     // install prefix when running `zig build` (i.e. when executing the default

@@ -8923,12 +8923,15 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "dirs 6.0.0",
  "owo-colors 4.1.0",
  "rockbox-library",
  "rockbox-rocksky",
  "rockbox-search",
  "rockbox-settings",
+ "rockbox-typesense",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -9218,6 +9221,7 @@ name = "rockbox-typesense"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "dirs 6.0.0",
 ]
 
 [[package]]
