@@ -15800,16 +15800,16 @@
 </phrase>
 <phrase>
   id: LANG_DEFAULT_BROWSER
-  desc: in Settings
+  desc: deprecated
   user: core
   <source>
-    *: "Default Browser"
+    *: ""
   </source>
   <dest>
-    *: "Default Browser"
+    *: ""
   </dest>
   <voice>
-    *: "Default Browser"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -17052,5 +17052,47 @@
   </dest>
   <voice>
     *: "Finished"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILE_NOT_FOUND
+  desc: When file does not exist
+  user: core
+  <source>
+    *: "File not found"
+  </source>
+  <dest>
+    *: "File not found"
+  </dest>
+  <voice>
+    *: "File not found"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_IN_FILES
+  desc: Reveal item in File Browser
+  user: core
+  <source>
+    *: "Show in Files"
+  </source>
+  <dest>
+    *: "Show in Files"
+  </dest>
+  <voice>
+    *: "Show in Files"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHANNEL_SWAP
+  desc: in sound_settings
+  user: core
+  <source>
+    *: "Swap Left & Right"
+  </source>
+  <dest>
+    *: "Swap Left & Right"
+  </dest>
+  <voice>
+    *: "Swap Left & Right"
   </voice>
 </phrase>
