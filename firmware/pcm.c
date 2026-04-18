@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include "system.h"
 #include "kernel.h"
+#include "panic.h"
 
 /* Define LOGF_ENABLE to enable logf output in this file */
 //#define LOGF_ENABLE
@@ -76,7 +77,7 @@
  *
  */
 
-static struct pcm_sink* sinks[1] = {
+static struct pcm_sink* sinks[PCM_SINK_NUM] = {
     [PCM_SINK_BUILTIN] = &builtin_pcm_sink,
 };
 static enum pcm_sink_ids cur_sink = PCM_SINK_BUILTIN;
@@ -247,7 +248,7 @@ void pcm_init(void)
 {
     logf("pcm_init");
 
-    for(size_t i = 0; i < ARRAYLEN(sinks); i += 1) {
+    for(size_t i = 0; i < PCM_SINK_NUM; i += 1) {
         struct pcm_sink* sink = sinks[i];
         sink->pending_freq = sink->caps.default_freq;
         sink->configured_freq = -1U;
@@ -261,7 +262,7 @@ void pcm_postinit(void)
 {
     logf("pcm_postinit");
 
-    for(size_t i = 0; i < ARRAYLEN(sinks); i += 1) {
+    for(size_t i = 0; i < PCM_SINK_NUM; i += 1) {
         struct pcm_sink* sink = sinks[i];
         sink->ops.postinit();
         sink->pcm_is_ready = true;
@@ -294,15 +295,29 @@ const struct pcm_sink_caps* pcm_current_sink_caps(void)
 bool pcm_switch_sink(enum pcm_sink_ids sink)
 {
     logf("pcm_switch_sink %d to %d", cur_sink, sink);
-    if(sink >= ARRAYLEN(sinks)) {
+    if(sink >= PCM_SINK_NUM) {
         return false;
     }
 
     if(cur_sink == sink) {
         return true;
     }
+
+    /* This should not be possible but it silences
+       a false warning that only occurs with with GCC9.5 on bare metal ARM.
+    */
+#if __GNUC__ == 9 && defined(CPU_ARM)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+
     /* save current sink before switching */
     struct pcm_sink* old_sink = sinks[cur_sink];
+
+#if __GNUC__ == 9
+#pragma GCC diagnostic pop
+#endif
+
     /* update sink index */
     cur_sink = sink;
     /* synchronize frequency */
