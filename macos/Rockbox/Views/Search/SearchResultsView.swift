@@ -17,14 +17,7 @@ struct SearchResultsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                if searchManager.isLoading {
-                    HStack {
-                        Spacer()
-                        ProgressView()
-                        Spacer()
-                    }
-                    .padding(.top, 40)
-                } else if searchManager.searchResults.isEmpty {
+                if searchManager.searchResults.isEmpty {
                     emptyResultsView
                 } else {
                     // Artists section

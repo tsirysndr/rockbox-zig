@@ -12,8 +12,7 @@ class SearchManager: ObservableObject {
     @Published var searchText: String = ""
     @Published var isSearching: Bool = false
     @Published var searchResults: SearchResults = SearchResults()
-    @Published var isLoading: Bool = false
-    
+
     private var searchTask: Task<Void, Never>?
     
     struct SearchResults {
@@ -40,8 +39,7 @@ class SearchManager: ObservableObject {
         }
         
         isSearching = true
-        isLoading = true
-        
+
         searchTask = Task {
             // Debounce
             try? await Task.sleep(for: .milliseconds(300))
@@ -95,10 +93,8 @@ class SearchManager: ObservableObject {
                     }
                 )
                 
-                isLoading = false
             } catch {
                 if !Task.isCancelled {
-                    isLoading = false
                     print("Search error: \(error)")
                 }
             }
@@ -109,7 +105,6 @@ class SearchManager: ObservableObject {
         searchText = ""
         searchResults = SearchResults()
         isSearching = false
-        isLoading = false
         searchTask?.cancel()
     }
 }
