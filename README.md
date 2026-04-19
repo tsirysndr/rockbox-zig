@@ -110,13 +110,13 @@ curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.
 ## 📦 Downloads
 
 - `Linux`: intel:
-  [rockbox_2025.12.27_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.27/rockbox_2025.12.27_x86_64-linux.tar.gz)
+  [rockbox_2026.04.19_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2026.04.19/rockbox_2026.04.19_x86_64-linux.tar.gz)
   arm64:
-  [rockbox_2025.12.27_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.27/rockbox_2025.12.27_aarch64-linux.tar.gz)
+  [rockbox_2026.04.19_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2026.04.19/rockbox_2026.04.19_aarch64-linux.tar.gz)
 - `macOS`: intel:
-  [rockbox-2025.12.27-x86_64.pkg](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.27/rockbox-2025.12.27-x86_64.pkg)
+  [rockbox-2026.04.19-x86_64.pkg](https://github.com/tsirysndr/rockbox-zig/releases/download/2026.04.19/rockbox-2026.04.19-x86_64.pkg)
   arm64:
-  [rockbox-2025.12.27-aarch64.pkg](https://github.com/tsirysndr/rockbox-zig/releases/download/2025.12.27/rockbox-2025.12.27-aarch64.pkg)
+  [rockbox-2026.04.19-aarch64.pkg](https://github.com/tsirysndr/rockbox-zig/releases/download/2026.04.19/rockbox-2026.04.19-aarch64.pkg)
 
 ## 🧙‍♂️ Systemd Service
 
