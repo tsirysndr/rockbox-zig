@@ -9227,6 +9227,7 @@ dependencies = [
  "rockbox-library",
  "serde",
  "serde_json",
+ "uuid",
 ]
 
 [[package]]

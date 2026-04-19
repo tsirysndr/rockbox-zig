@@ -168,7 +168,7 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 
         std::process::Command::new("sh")
             .arg("-c")
-            .arg(&format!("typesense-server --enable-cors --port {port}"))
+            .arg(&format!("typesense-server --enable-cors --api-port {port}"))
             .env("PATH", &path)
             .env("TYPESENSE_API_KEY", &api_key)
             .env("TYPESENSE_DATA_DIR", &data_dir)

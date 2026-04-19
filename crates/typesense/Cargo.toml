@@ -16,3 +16,4 @@ reqwest = { version = "0.12.5", features = [
 rockbox-library = {path = "../library"}
 serde.workspace = true
 serde_json.workspace = true
+uuid.workspace = true

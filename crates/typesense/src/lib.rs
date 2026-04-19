@@ -24,6 +24,21 @@ pub fn setup() -> Result<(), anyhow::Error> {
     let data_dir = homedir.join(".config/rockbox.org/typesense");
     fs::create_dir_all(&data_dir)?;
 
+    if !data_dir.join("api-key").exists() {
+        let api_key = uuid::Uuid::new_v4().to_string();
+        fs::write(data_dir.join("api-key"), &api_key)?;
+        println!("Generated new Typesense API key: {}", api_key);
+        if std::env::var("RB_TYPESENSE_API_KEY").is_err() {
+            std::env::set_var("RB_TYPESENSE_API_KEY", &api_key);
+        }
+    } else {
+        let api_key = fs::read_to_string(data_dir.join("api-key"))?;
+        println!("Using existing Typesense API key: {}", api_key);
+        if std::env::var("RB_TYPESENSE_API_KEY").is_err() {
+            std::env::set_var("RB_TYPESENSE_API_KEY", &api_key);
+        }
+    }
+
     if cmd.wait()?.success() {
         println!("Typesense server is already installed and available in PATH.");
         return Ok(());

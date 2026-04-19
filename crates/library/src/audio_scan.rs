@@ -14,31 +14,43 @@ use owo_colors::OwoColorize;
 use rockbox_sys as rb;
 use rockbox_sys::types::mp3_entry::Mp3Entry;
 use sqlx::{Pool, Sqlite};
-use std::{io::Write, path::PathBuf};
-use tokio::fs;
+use std::{io::Write, path::PathBuf, sync::Arc};
+use tokio::{fs, sync::Semaphore};
 
 const AUDIO_EXTENSIONS: [&str; 18] = [
     "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "aif", "ac3",
     "opus", "spx", "sid", "ape", "wma",
 ];
 
+const MAX_CONCURRENT_SCANS: usize = 8;
+
 pub fn scan_audio_files(
     pool: Pool<Sqlite>,
     audio_dir: PathBuf,
 ) -> BoxFuture<'static, Result<Vec<PathBuf>, Error>> {
+    let sem = Arc::new(Semaphore::new(MAX_CONCURRENT_SCANS));
+    scan_audio_files_inner(pool, audio_dir, sem)
+}
+
+fn scan_audio_files_inner(
+    pool: Pool<Sqlite>,
+    audio_dir: PathBuf,
+    sem: Arc<Semaphore>,
+) -> BoxFuture<'static, Result<Vec<PathBuf>, Error>> {
     Box::pin(async move {
+        // Hold permit only while reading directory entries and processing files.
+        // Release before spawning/awaiting children to prevent deadlock.
+        let _permit = sem.acquire().await?;
+
         let mut result = Vec::new();
+        let mut subdirs = Vec::new();
         let mut dir = fs::read_dir(audio_dir).await?;
-        let mut futures = FuturesUnordered::new();
+
         while let Some(entry) = dir.next_entry().await? {
             let path = entry.path();
             if path.is_dir() {
                 println!("{} {:?}", "Scanning".bright_green(), path);
-                let dir_path = path.clone();
-                let cloned_pool = pool.clone();
-                futures.push(tokio::spawn(async move {
-                    scan_audio_files(cloned_pool, dir_path).await
-                }));
+                subdirs.push(path);
             } else if path.is_file() {
                 let path = path.to_str().unwrap();
                 if !AUDIO_EXTENSIONS
@@ -48,10 +60,19 @@ pub fn scan_audio_files(
                     continue;
                 }
                 save_audio_metadata(pool.clone(), path).await?;
-
-                let path = path.into();
-                result.push(path);
+                result.push(PathBuf::from(path));
             }
+        }
+
+        drop(_permit);
+
+        let mut futures = FuturesUnordered::new();
+        for dir_path in subdirs {
+            let cloned_pool = pool.clone();
+            let cloned_sem = Arc::clone(&sem);
+            futures.push(tokio::spawn(async move {
+                scan_audio_files_inner(cloned_pool, dir_path, cloned_sem).await
+            }));
         }
 
         while let Some(Ok(sub_result)) = futures.next().await {
