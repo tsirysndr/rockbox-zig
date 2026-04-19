@@ -12,9 +12,9 @@ pub fn setup() -> Result<(), anyhow::Error> {
         std::env::var("PATH").unwrap_or_default(),
         "~/.rockbox/bin"
     );
-    let mut cmd = Command::new("command")
-        .arg("-v")
-        .arg("typesense-server")
+    let mut cmd = Command::new("sh")
+        .arg("-c")
+        .arg("command -v typesense-server")
         .env("PATH", &path)
         .stderr(std::process::Stdio::null())
         .stdout(std::process::Stdio::null())
