@@ -9160,6 +9160,7 @@ dependencies = [
  "rockbox-tracklist",
  "rockbox-traits",
  "rockbox-types",
+ "rockbox-typesense",
  "serde",
  "serde_json",
  "sqlx",
@@ -9222,6 +9223,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dirs 6.0.0",
+ "reqwest",
+ "rockbox-library",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

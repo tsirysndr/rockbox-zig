@@ -3,10 +3,7 @@ use clap::Command;
 use owo_colors::OwoColorize;
 use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
-use rockbox_search::album::Album;
-use rockbox_search::artist::Artist;
-use rockbox_search::track::Track;
-use rockbox_search::{create_indexes, delete_all_documents, index_entity};
+use rockbox_typesense::client::*;
 use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;
@@ -72,44 +69,21 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             let pool = create_connection_pool().await?;
             let tracks = repo::track::all(pool.clone()).await?;
             if tracks.is_empty() || update_library {
-                scan_audio_files(pool.clone(), path.into()).await?;
+                match scan_audio_files(pool.clone(), path.into()).await {
+                    Ok(_) => println!("Finished scanning audio files"),
+                    Err(e) => eprintln!("Failed to scan audio files: {}", e),
+                }
                 let tracks = repo::track::all(pool.clone()).await?;
                 let albums = repo::album::all(pool.clone()).await?;
                 let artists = repo::artist::all(pool.clone()).await?;
-                let indexes = create_indexes()?;
-                let tracks_index = indexes.tracks.clone();
-                let albums_index = indexes.albums.clone();
-                let artists_index = indexes.artists.clone();
 
-                thread::spawn(move || {
-                    match delete_all_documents(&tracks_index) {
-                        Ok(_) => {}
-                        Err(e) => eprintln!("Error deleting all documents: {:?}", e),
-                    }
-                    for track in tracks {
-                        index_entity::<Track>(&tracks_index, &track.into()).unwrap();
-                    }
-                });
+                create_tracks_collection().await?;
+                create_albums_collection().await?;
+                create_artists_collection().await?;
 
-                thread::spawn(move || {
-                    match delete_all_documents(&albums_index) {
-                        Ok(_) => {}
-                        Err(e) => eprintln!("Error deleting all documents: {:?}", e),
-                    }
-                    for album in albums {
-                        index_entity::<Album>(&albums_index, &album.into()).unwrap();
-                    }
-                });
-
-                thread::spawn(move || {
-                    match delete_all_documents(&artists_index) {
-                        Ok(_) => {}
-                        Err(e) => eprintln!("Error deleting all documents: {:?}", e),
-                    }
-                    for artist in artists {
-                        index_entity::<Artist>(&artists_index, &artist.into()).unwrap();
-                    }
-                });
+                insert_tracks(tracks.into_iter().map(Track::from).collect()).await?;
+                insert_artists(artists.into_iter().map(Artist::from).collect()).await?;
+                insert_albums(albums.into_iter().map(Album::from).collect()).await?;
             }
             Ok::<(), Error>(())
         })

@@ -3,6 +3,8 @@ use std::{
     process::{Command, Stdio},
 };
 
+pub mod client;
+
 pub fn setup() -> Result<(), anyhow::Error> {
     let path = format!(
         "{}:{}",
