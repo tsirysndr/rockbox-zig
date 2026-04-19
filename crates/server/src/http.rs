@@ -1,7 +1,6 @@
 use anyhow::Error;
 use owo_colors::OwoColorize;
 use rockbox_library::entity::track::Track;
-use rockbox_search::{create_indexes, Indexes};
 use rockbox_sys::{
     self as rb,
     types::{mp3_entry::Mp3Entry, tree::Entry},
@@ -33,7 +32,6 @@ pub struct Context {
     pub pool: sqlx::Pool<Sqlite>,
     pub fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
     pub metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
-    pub indexes: Indexes,
     pub devices: Arc<Mutex<Vec<Device>>>,
     pub current_device: Arc<Mutex<Option<Device>>>,
     pub player: Arc<Mutex<Option<Box<dyn Player + Send>>>>,
@@ -260,8 +258,6 @@ impl RockboxHttpServer {
         scan_chromecast_devices(devices.clone());
         listen_for_playback_changes(player.clone(), db_pool.clone());
 
-        let indexes = create_indexes()?;
-
         loop {
             match listener.accept() {
                 Ok((stream, _)) => {
@@ -274,7 +270,6 @@ impl RockboxHttpServer {
                     let mut cloned_self = self.clone();
                     let cloned_fs_cache = fs_cache.clone();
                     let cloned_metadata_cache = metadata_cache.clone();
-                    let cloned_indexes = indexes.clone();
                     let cloned_devices = devices.clone();
                     let cloned_current_device = current_device.clone();
                     let cloned_player = player.clone();
@@ -344,7 +339,6 @@ impl RockboxHttpServer {
                                 req_body,
                                 cloned_fs_cache,
                                 cloned_metadata_cache,
-                                cloned_indexes,
                                 cloned_devices,
                                 cloned_current_device,
                                 cloned_player,
@@ -392,7 +386,6 @@ impl RockboxHttpServer {
         body: Option<String>,
         fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
         metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
-        indexes: Indexes,
         devices: Arc<Mutex<Vec<Device>>>,
         current_device: Arc<Mutex<Option<Device>>>,
         player: Arc<Mutex<Option<Box<dyn Player + Send>>>>,
@@ -406,7 +399,6 @@ impl RockboxHttpServer {
                     pool,
                     fs_cache,
                     metadata_cache,
-                    indexes,
                     devices,
                     current_device,
                     player,

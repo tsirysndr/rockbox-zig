@@ -5,6 +5,7 @@ use anyhow::Error;
 use rockbox_library::{artists::update_metadata, audio_scan::scan_audio_files, repo};
 use rockbox_sys as rb;
 use rockbox_typesense::client::*;
+use rockbox_typesense::types::*;
 
 pub async fn get_status(_ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
     let status = rb::system::get_global_status();

@@ -4,6 +4,7 @@ use std::{
 };
 
 pub mod client;
+pub mod types;
 
 pub fn setup() -> Result<(), anyhow::Error> {
     let path = format!(

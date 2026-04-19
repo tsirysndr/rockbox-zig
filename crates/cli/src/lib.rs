@@ -4,6 +4,7 @@ use owo_colors::OwoColorize;
 use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
 use rockbox_typesense::client::*;
+use rockbox_typesense::types::*;
 use std::process::Stdio;
 use std::thread::sleep;
 use std::time::Duration;

@@ -1,62 +1,40 @@
 use crate::http::{Context, Request, Response};
 use anyhow::Error;
-use rockbox_search::search_entities;
-use rockbox_types::SearchResults;
+use rockbox_typesense::client::{search_albums, search_artists, search_tracks};
+use serde::Serialize;
 
-pub async fn search(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
+#[derive(Default, Serialize)]
+struct SearchResponse {
+    tracks: Vec<rockbox_typesense::types::Track>,
+    albums: Vec<rockbox_typesense::types::Album>,
+    artists: Vec<rockbox_typesense::types::Artist>,
+}
+
+pub async fn search(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let term = req
         .query_params
         .get("q")
-        .map(|t| t.as_str())
+        .and_then(|t| t.as_str())
         .unwrap_or_default();
 
-    match term {
-        None => {
-            res.json(&SearchResults::default());
-        }
-        Some(term) => {
-            let albums = search_entities(
-                &ctx.indexes.albums,
-                term,
-                &rockbox_search::album::Album::default(),
-            )?;
-            let artists = search_entities(
-                &ctx.indexes.artists,
-                term,
-                &rockbox_search::artist::Artist::default(),
-            )?;
-            let tracks = search_entities(
-                &ctx.indexes.tracks,
-                term,
-                &rockbox_search::track::Track::default(),
-            )?;
-            let files = search_entities(
-                &ctx.indexes.files,
-                term,
-                &rockbox_search::file::File::default(),
-            )?;
-            let liked_tracks = search_entities(
-                &ctx.indexes.liked_tracks,
-                term,
-                &rockbox_search::liked_track::LikedTrack::default(),
-            )?;
-            let liked_albums = search_entities(
-                &ctx.indexes.liked_albums,
-                term,
-                &rockbox_search::liked_album::LikedAlbum::default(),
-            )?;
+    let tracks = search_tracks(term)
+        .await?
+        .map(|r| r.hits.into_iter().map(|h| h.document).collect())
+        .unwrap_or_default();
+    let albums = search_albums(term)
+        .await?
+        .map(|r| r.hits.into_iter().map(|h| h.document).collect())
+        .unwrap_or_default();
+    let artists = search_artists(term)
+        .await?
+        .map(|r| r.hits.into_iter().map(|h| h.document).collect())
+        .unwrap_or_default();
 
-            let results = SearchResults {
-                albums: albums.into_iter().map(|(_, x)| x.into()).collect(),
-                artists: artists.into_iter().map(|(_, x)| x.into()).collect(),
-                tracks: tracks.into_iter().map(|(_, x)| x.into()).collect(),
-                files: files.into_iter().map(|(_, x)| x.into()).collect(),
-                liked_tracks: liked_tracks.into_iter().map(|(_, x)| x.into()).collect(),
-                liked_albums: liked_albums.into_iter().map(|(_, x)| x.into()).collect(),
-            };
+    res.json(&SearchResponse {
+        tracks,
+        albums,
+        artists,
+    });
 
-            res.json(&results);
-        }
-    }
     Ok(())
 }

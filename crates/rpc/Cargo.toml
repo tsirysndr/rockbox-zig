@@ -19,7 +19,7 @@ reqwest = { version = "0.12.5", features = [
 rockbox-graphql = { path = "../graphql" }
 rockbox-library = { path = "../library" }
 rockbox-rocksky = {path = "../rocksky"}
-rockbox-search = { path = "../search" }
+rockbox-typesense = { path = "../typesense" }
 rockbox-sys = { path = "../sys" }
 rockbox-types = { path = "../types" }
 serde = { version = "1.0.210", features = ["derive"] }
@@ -32,7 +32,6 @@ sqlx = { version = "0.8.2", features = [
   "derive",
   "macros",
 ] }
-tantivy = "0.22.0"
 tokio = { version = "1.36.0", features = ["full"] }
 tokio-stream = "0.1.16"
 tonic = "0.12.3"

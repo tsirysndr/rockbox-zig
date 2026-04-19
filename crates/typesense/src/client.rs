@@ -1,112 +1,6 @@
+use crate::types::*;
 use anyhow::Error;
 use reqwest::Client;
-use rockbox_library::entity;
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct Track {
-    pub id: String,
-    pub path: String,
-    pub title: String,
-    pub artist: String,
-    pub album: String,
-    pub album_artist: String,
-    pub bitrate: i64,
-    pub composer: String,
-    pub disc_number: i64,
-    pub filesize: i64,
-    pub frequency: i64,
-    pub length: i64,
-    pub track_number: i64,
-    pub year: i32,
-    pub year_string: String,
-    pub genre: String,
-    pub md5: String,
-    pub album_art: Option<String>,
-    pub artist_id: Option<String>,
-    pub album_id: Option<String>,
-    pub genre_id: Option<String>,
-    pub created_at: String,
-    pub updated_at: String,
-}
-
-impl From<entity::track::Track> for Track {
-    fn from(track: entity::track::Track) -> Self {
-        Self {
-            id: track.id,
-            path: track.path,
-            title: track.title,
-            artist: track.artist,
-            album: track.album,
-            album_artist: track.album_artist,
-            bitrate: track.bitrate as i64,
-            composer: track.composer,
-            disc_number: track.disc_number as i64,
-            filesize: track.filesize as i64,
-            frequency: track.frequency as i64,
-            length: track.length as i64,
-            track_number: track.track_number.unwrap_or_default() as i64,
-            year: track.year.unwrap_or_default() as i32,
-            year_string: track.year_string.unwrap_or_default(),
-            genre: track.genre.unwrap_or_default(),
-            md5: track.md5,
-            album_art: track.album_art,
-            artist_id: Some(track.artist_id),
-            album_id: Some(track.album_id),
-            genre_id: Some(track.genre_id),
-            created_at: track.created_at.to_rfc3339(),
-            updated_at: track.updated_at.to_rfc3339(),
-        }
-    }
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct Album {
-    pub id: String,
-    pub title: String,
-    pub artist: String,
-    pub year: i32,
-    pub year_string: String,
-    pub album_art: Option<String>,
-    pub md5: String,
-    pub artist_id: String,
-    pub label: Option<String>,
-}
-
-impl From<entity::album::Album> for Album {
-    fn from(album: entity::album::Album) -> Self {
-        Self {
-            id: album.id,
-            title: album.title,
-            artist: album.artist,
-            year: album.year as i32,
-            year_string: album.year_string,
-            album_art: album.album_art,
-            md5: album.md5,
-            artist_id: album.artist_id,
-            label: album.label,
-        }
-    }
-}
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct Artist {
-    pub id: String,
-    pub name: String,
-    pub bio: Option<String>,
-    pub image: Option<String>,
-}
-
-impl From<entity::artist::Artist> for Artist {
-    fn from(artist: entity::artist::Artist) -> Self {
-        Self {
-            id: artist.id,
-            name: artist.name,
-            bio: artist.bio,
-            image: artist.image,
-        }
-    }
-}
 
 pub async fn create_tracks_collection() -> Result<(), Error> {
     let client = Client::new();
@@ -341,4 +235,103 @@ pub async fn insert_artists(artists: Vec<Artist>) -> Result<(), Error> {
     println!("Insert artists response: {}", res.status());
 
     Ok(())
+}
+
+pub async fn search_tracks(query: &str) -> Result<Option<TrackResult>, Error> {
+    let client = Client::new();
+
+    let typesense_host = format!(
+        "http://localhost:{}",
+        std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string())
+    );
+
+    let api_key = std::env::var("RB_TYPESENSE_API_KEY");
+    if api_key.is_err() {
+        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        return Ok(None);
+    }
+    let api_key = api_key.unwrap();
+    let res = client
+        .get(format!(
+            "{}/collections/tracks/documents/search",
+            typesense_host,
+        ))
+        .query(&[
+            ("q", query),
+            ("query_by", "title,artist,album,path"),
+            (
+                "include_fields",
+                "id,path,title,artist,album,album_artist,bitrate,composer,disc_number,filesize,frequency,length,track_number,year,year_string,genre,md5,album_art,artist_id,album_id,genre_id,created_at,updated_at",
+            ),
+        ])
+        .header("X-TYPESENSE-API-KEY", &api_key)
+        .send()
+        .await?;
+
+    Ok(Some(res.json::<TrackResult>().await?))
+}
+
+pub async fn search_albums(query: &str) -> Result<Option<AlbumResult>, Error> {
+    let client = Client::new();
+
+    let typesense_host = format!(
+        "http://localhost:{}",
+        std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string())
+    );
+
+    let api_key = std::env::var("RB_TYPESENSE_API_KEY");
+    if api_key.is_err() {
+        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        return Ok(None);
+    }
+    let api_key = api_key.unwrap();
+    let res = client
+        .get(format!(
+            "{}/collections/albums/documents/search",
+            typesense_host,
+        ))
+        .query(&[
+            ("q", query),
+            ("query_by", "title,artist,label"),
+            (
+                "include_fields",
+                "id,title,artist,year,year_string,album_art,md5,artist_id,label",
+            ),
+        ])
+        .header("X-TYPESENSE-API-KEY", &api_key)
+        .send()
+        .await?;
+
+    Ok(Some(res.json::<AlbumResult>().await?))
+}
+
+pub async fn search_artists(query: &str) -> Result<Option<ArtistResult>, Error> {
+    let client = Client::new();
+
+    let typesense_host = format!(
+        "http://localhost:{}",
+        std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string())
+    );
+
+    let api_key = std::env::var("RB_TYPESENSE_API_KEY");
+    if api_key.is_err() {
+        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        return Ok(None);
+    }
+    let api_key = api_key.unwrap();
+    let res = client
+        .get(format!(
+            "{}/collections/artists/documents/search",
+            typesense_host,
+        ))
+        .query(&[
+            ("q", query),
+            ("query_by", "name"),
+            ("include_fields", "id,name,bio,image"),
+        ])
+        .header("X-TYPESENSE-API-KEY", &api_key)
+        .send()
+        .await?;
+
+    Ok(Some(res.json::<ArtistResult>().await?))
 }
