@@ -24,8 +24,10 @@ tokio = { version = "1.36.0", features = ["full"] }
 tonic = "0.12.3"
 tonic-reflection = "0.12.3"
 tonic-web = "0.12.3"
-tungstenite = { version = "0.26.2", features = ["rustls"] }
-tokio-tungstenite = { version = "0.26.2", features = ["tokio-rustls", "rustls-tls-webpki-roots"] }
+tungstenite = { version = "0.26.2", features = ["rustls-tls-webpki-roots"] }
+tokio-tungstenite = { version = "0.26.2", features = ["rustls-tls-webpki-roots"] }
+rustls = "0.23"
+webpki-roots = "0.26"
 futures-util = "0.3.31"
 tokio-stream = "0.1.17"
 

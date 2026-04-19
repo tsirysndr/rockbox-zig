@@ -23,7 +23,7 @@ use std::io::Read;
 use std::sync::Arc;
 use std::thread;
 use tokio::sync::Mutex;
-use tokio_tungstenite::connect_async;
+use tokio_tungstenite::{connect_async_tls_with_config, Connector};
 
 const AUDIO_EXTENSIONS: [&str; 18] = [
     "mp3", "ogg", "flac", "m4a", "aac", "mp4", "alac", "wav", "wv", "mpc", "aiff", "aif", "ac3",
@@ -44,7 +44,17 @@ pub mod api {
 pub async fn run_ws_session(token: String) -> Result<(), Error> {
     let rocksky_ws =
         env::var("ROCKSKY_WS").unwrap_or_else(|_| "wss://api.rocksky.app/ws".to_string());
-    let (ws_stream, _) = connect_async(&rocksky_ws).await?;
+
+    let root_store = rustls::RootCertStore {
+        roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
+    };
+    let tls_config = rustls::ClientConfig::builder()
+        .with_root_certificates(root_store)
+        .with_no_client_auth();
+    let connector = Connector::Rustls(Arc::new(tls_config));
+
+    let (ws_stream, _) =
+        connect_async_tls_with_config(&rocksky_ws, None, false, Some(connector)).await?;
     println!("Connected to {}", rocksky_ws);
 
     let (mut write, mut read) = ws_stream.split();
