@@ -66,3 +66,67 @@ pub fn get_music_dir() -> Result<String, Error> {
     let music_dir = std::env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
     Ok(settings.music_dir.unwrap_or(music_dir))
 }
+
+#[cfg(test)]
+mod tests {
+    use rockbox_sys::types::user_settings::{CompressorSettings, NewGlobalSettings};
+
+    #[test]
+    fn compressor_settings_round_trip() {
+        let original = NewGlobalSettings {
+            compressor_settings: Some(CompressorSettings {
+                threshold: -24,
+                makeup_gain: 1,
+                ratio: 4,
+                knee: 1,
+                release_time: 300,
+                attack_time: 5,
+            }),
+            ..Default::default()
+        };
+
+        let toml_str = toml::to_string(&original).expect("serialize");
+        assert!(toml_str.contains("[compressor_settings]"));
+
+        let restored: NewGlobalSettings = toml::from_str(&toml_str).expect("deserialize");
+        let c = restored
+            .compressor_settings
+            .expect("compressor_settings present");
+        assert_eq!(c.threshold, -24);
+        assert_eq!(c.makeup_gain, 1);
+        assert_eq!(c.ratio, 4);
+        assert_eq!(c.knee, 1);
+        assert_eq!(c.release_time, 300);
+        assert_eq!(c.attack_time, 5);
+    }
+
+    #[test]
+    fn compressor_settings_absent_when_none() {
+        let settings = NewGlobalSettings {
+            compressor_settings: None,
+            ..Default::default()
+        };
+        let toml_str = toml::to_string(&settings).expect("serialize");
+        assert!(!toml_str.contains("compressor_settings"));
+
+        let restored: NewGlobalSettings = toml::from_str(&toml_str).expect("deserialize");
+        assert!(restored.compressor_settings.is_none());
+    }
+
+    #[test]
+    fn existing_toml_without_compressor_deserializes_to_none() {
+        let toml_str = r#"
+music_dir = "/home/user/Music"
+playlist_shuffle = false
+repeat_mode = 1
+
+[replaygain_settings]
+noclip = false
+type = 0
+preamp = -15
+"#;
+        let settings: NewGlobalSettings = toml::from_str(toml_str).expect("deserialize");
+        assert!(settings.compressor_settings.is_none());
+        assert_eq!(settings.repeat_mode, Some(1));
+    }
+}

@@ -5938,6 +5938,8 @@ pub struct SaveSettingsRequest {
     pub eq_band_settings: ::prost::alloc::vec::Vec<EqBandSetting>,
     #[prost(message, optional, tag = "27")]
     pub replaygain_settings: ::core::option::Option<ReplaygainSettings>,
+    #[prost(message, optional, tag = "28")]
+    pub compressor_settings: ::core::option::Option<CompressorSettings>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SaveSettingsResponse {}

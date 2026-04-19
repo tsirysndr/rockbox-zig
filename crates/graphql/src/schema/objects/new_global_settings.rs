@@ -1,7 +1,10 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
-use super::{eq_band_setting::EqBandSettingInput, replaygain_settings::ReplaygainSettingsInput};
+use super::{
+    compressor_settings::CompressorSettingsInput, eq_band_setting::EqBandSettingInput,
+    replaygain_settings::ReplaygainSettingsInput,
+};
 
 #[derive(Default, Serialize, Deserialize, InputObject)]
 pub struct NewGlobalSettings {
@@ -32,4 +35,5 @@ pub struct NewGlobalSettings {
     pub eq_enabled: Option<bool>,
     pub eq_band_settings: Option<Vec<EqBandSettingInput>>,
     pub replaygain_settings: Option<ReplaygainSettingsInput>,
+    pub compressor_settings: Option<CompressorSettingsInput>,
 }

@@ -2,6 +2,16 @@ use async_graphql::*;
 use rockbox_sys as rb;
 use serde::{Deserialize, Serialize};
 
+#[derive(Default, Clone, Serialize, Deserialize, InputObject)]
+pub struct CompressorSettingsInput {
+    pub threshold: i32,
+    pub makeup_gain: i32,
+    pub ratio: i32,
+    pub knee: i32,
+    pub release_time: i32,
+    pub attack_time: i32,
+}
+
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct CompressorSettings {
     pub threshold: i32,

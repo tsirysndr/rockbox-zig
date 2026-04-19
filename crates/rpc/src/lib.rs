@@ -921,6 +921,14 @@ pub mod api {
                             preamp: settings.preamp,
                         }
                     }),
+                    compressor_settings: self.compressor_settings.map(|c| CompressorSettings {
+                        threshold: c.threshold,
+                        makeup_gain: c.makeup_gain,
+                        ratio: c.ratio,
+                        knee: c.knee,
+                        release_time: c.release_time,
+                        attack_time: c.attack_time,
+                    }),
                 }
             }
         }

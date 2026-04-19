@@ -251,6 +251,7 @@ message SaveSettingsRequest {
   optional bool eq_enabled = 25;
   repeated EqBandSetting eq_band_settings = 26;
   optional ReplaygainSettings replaygain_settings = 27;
+  optional CompressorSettings compressor_settings = 28;
 }
 
 message SaveSettingsResponse {}

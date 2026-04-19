@@ -236,6 +236,10 @@ pub fn save_settings(settings: NewGlobalSettings, from_disk: bool) {
         if let Some(replaygain_settings) = settings.replaygain_settings {
             crate::global_settings.replaygain_settings = replaygain_settings.into();
         }
+
+        if let Some(compressor_settings) = settings.compressor_settings {
+            crate::global_settings.compressor_settings = compressor_settings.into();
+        }
     }
 }
 

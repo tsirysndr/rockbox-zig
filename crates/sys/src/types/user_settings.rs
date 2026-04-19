@@ -83,7 +83,7 @@ impl From<crate::TouchscreenParameter> for TouchscreenParameter {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CompressorSettings {
     pub threshold: i32,
     pub makeup_gain: i32,
@@ -102,6 +102,19 @@ impl From<crate::CompressorSettings> for CompressorSettings {
             knee: settings.knee,
             release_time: settings.release_time,
             attack_time: settings.attack_time,
+        }
+    }
+}
+
+impl Into<crate::CompressorSettings> for CompressorSettings {
+    fn into(self) -> crate::CompressorSettings {
+        crate::CompressorSettings {
+            threshold: self.threshold,
+            makeup_gain: self.makeup_gain,
+            ratio: self.ratio,
+            knee: self.knee,
+            release_time: self.release_time,
+            attack_time: self.attack_time,
         }
     }
 }
@@ -663,6 +676,7 @@ pub struct NewGlobalSettings {
     pub eq_enabled: Option<bool>,
     pub eq_band_settings: Option<Vec<EqBandSetting>>,
     pub replaygain_settings: Option<ReplaygainSettings>,
+    pub compressor_settings: Option<CompressorSettings>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -695,6 +709,7 @@ impl From<UserSettings> for NewGlobalSettings {
             eq_enabled: Some(settings.eq_enabled),
             eq_band_settings: Some(settings.eq_band_settings),
             replaygain_settings: Some(settings.replaygain_settings),
+            compressor_settings: Some(settings.compressor_settings),
         }
     }
 }
