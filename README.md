@@ -44,7 +44,7 @@ Rockbox.
 - [x] HTTP API
 - [x] Web Client (React)
 - [x] Fast search engine, built with
-      [Tantivy](https://github.com/quickwit-oss/tantivy)
+      [Typesense](https://typesense.org)
 - [x] Desktop Client (Electron/Gtk)
 - [x] Rockbox REPL
 - [x] Terminal Client (TUI)
