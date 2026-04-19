@@ -14601,11 +14601,11 @@
   </voice>
 </phrase>
 <phrase>
-  id: LANG_HIDE_ALBUM_TITLE_NEW
-  desc: in the pictureflow settings
+  id: LANG_HIDE_INFO
+  desc: Hide Information
   user: core
   <source>
-    *: "Hide information"
+    *: "Hide Information"
   </source>
   <dest>
     *: "隐藏信息"
@@ -14676,7 +14676,7 @@
   user: core
   <source>
     *: "Press LEFT to cancel."
-    android,hifietma*,zenvision: "Press BACK to cancel."
+    android,hifietma*: "Press BACK to cancel."
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "Press POWER to cancel."
     ihifi760,ihifi960: "Double tap RETURN to cancel."
     ihifi770,ihifi770c,ihifi800: "Press HOME to cancel."
@@ -14691,7 +14691,7 @@
   </source>
   <dest>
     *: "请按LEFT键取消。"
-    android,hifietma*,zenvision: "请按BACK键取消。"
+    android,hifietma*: "请按BACK键取消。"
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "请按POWER键取消。"
     ihifi760,ihifi960: "双击RETURN键取消。"
     ihifi770,ihifi770c,ihifi800: "请按HOME键取消。"
@@ -14707,7 +14707,7 @@
   </dest>
   <voice>
     *: "请按LEFT键取消"
-    android,hifietma*,zenvision: "请按BACK键取消"
+    android,hifietma*: "请按BACK键取消"
     cowond2,creativezenxfi2,ibassodx50,ibassodx90,mrobe500,ondavx747: "请按POWER键取消"
     ihifi760,ihifi960: "双击RETURN键取消"
     ihifi770,ihifi770c,ihifi800: "请按HOME键取消"
@@ -15202,7 +15202,7 @@
 </phrase>
 <phrase>
   id: LANG_VOICED_DATE_FORMAT
-  desc: format string for how dates will be read back. Y == 4-digit year, A == month name, m == numeric month, d == numeric day. For example, "AdY" will read "January 21 2021"
+  desc: format string for how dates will be read back. Y == 4-digit year (grouped), y == 4-digit year (numeric), A == month name, m == numeric month, d == numeric day. For example, for 2021-01-05, "AdY" will be voiced as "January 5 twenty twenty-one" and "dmy" will be voiced as "5 1 two thousand twenty one
   user: core
   <source>
     *: "dAY"
@@ -15811,16 +15811,16 @@
 </phrase>
 <phrase>
   id: LANG_DEFAULT_BROWSER
-  desc: in Settings
+  desc: deprecated
   user: core
   <source>
-    *: "Default Browser"
+    *: ""
   </source>
   <dest>
-    *: "默认浏览器"
+    *: ""
   </dest>
   <voice>
-    *: "默认浏览器"
+    *: ""
   </voice>
 </phrase>
 <phrase>
@@ -16965,5 +16965,145 @@
   </dest>
   <voice>
     *: "~U S B"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_ANNOUNCE_STATUS
+  desc: announnnce_status plugin
+  user: core
+  <source>
+    *: "Announce Status"
+  </source>
+  <dest>
+    *: "播报状态"
+  </dest>
+  <voice>
+    *: "播报状态"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_KEEP_DIRECTORY
+  desc: file browser setting
+  user: core
+  <source>
+    *: "Always remember last folder"
+  </source>
+  <dest>
+    *: "总是记住上次的文件夹"
+  </dest>
+  <voice>
+    *: "总是记住上次的文件夹"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_FILE_NOT_FOUND
+  desc: When file does not exist
+  user: core
+  <source>
+    *: "File not found"
+  </source>
+  <dest>
+    *: "找不到文件"
+  </dest>
+  <voice>
+    *: "找不到文件"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_SHOW_IN_FILES
+  desc: Reveal item in File Browser
+  user: core
+  <source>
+    *: "Show in Files"
+  </source>
+  <dest>
+    *: "按文件展示"
+  </dest>
+  <voice>
+    *: "按文件展示"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_CHANNEL_SWAP
+  desc: in sound_settings
+  user: core
+  <source>
+    *: "Swap Left & Right"
+  </source>
+  <dest>
+    *: "切换左&右"
+  </dest>
+  <voice>
+    *: "切换左右"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COUNTDOWN_TIMER_SET
+  desc: countdown_timer plugin - header shown on the setup screen where the user enters the countdown duration
+  user: core
+  <source>
+    *: "SET TIMER"
+  </source>
+  <dest>
+    *: "设定计时器"
+  </dest>
+  <voice>
+    *: "设定计时器"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COUNTDOWN_TIMER_RUNNING
+  desc: countdown_timer plugin - status label shown while the countdown is active
+  user: core
+  <source>
+    *: "RUNNING"
+  </source>
+  <dest>
+    *: "运行中"
+  </dest>
+  <voice>
+    *: "运行中"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COUNTDOWN_TIMER_PAUSED
+  desc: countdown_timer plugin - status label shown while the countdown is paused
+  user: core
+  <source>
+    *: "PAUSED"
+  </source>
+  <dest>
+    *: "暂停"
+  </dest>
+  <voice>
+    *: "暂停"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COUNTDOWN_TIMER_OVERTIME
+  desc: countdown_timer plugin - status label shown when the countdown has passed zero and is counting up
+  user: core
+  <source>
+    *: "OVERTIME"
+  </source>
+  <dest>
+    *: "超时"
+  </dest>
+  <voice>
+    *: "超时"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_COUNTDOWN_TIMER_FINISHED
+  desc: countdown_timer plugin - status label shown at the moment the countdown expires
+  user: core
+  <source>
+    *: "FINISHED"
+  </source>
+  <dest>
+    *: "完成"
+  </dest>
+  <voice>
+    *: "完成"
   </voice>
 </phrase>

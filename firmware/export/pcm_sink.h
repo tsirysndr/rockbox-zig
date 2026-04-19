@@ -52,6 +52,7 @@ struct pcm_sink {
 
 enum pcm_sink_ids {
     PCM_SINK_BUILTIN = 0,
+    PCM_SINK_NUM
 };
 
 /* defined in each platform pcm source */

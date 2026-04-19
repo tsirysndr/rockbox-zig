@@ -62,7 +62,7 @@ static void draw_image_rect(struct image_info *info,
 
 #ifdef HAVE_LCD_COLOR
     rb->lcd_bitmap_part((fb_data *)*pdisp, info->x + x, info->y + y,
-                        STRIDE(SCREEN_MAIN, info->width, info->height), 
+                        STRIDE(SCREEN_MAIN, info->width, info->height),
                         x + MAX(0, (LCD_WIDTH-info->width)/2),
                         y + MAX(0, (LCD_HEIGHT-info->height)/2),
                         width, height);
@@ -82,8 +82,8 @@ static int img_mem(int ds)
 #ifdef USEGSLIB
     return (p_decoder->infoPng.width/ds) * (p_decoder->infoPng.height/ds);
 #else
-    return (p_decoder->infoPng.width/ds) * 
-           (p_decoder->infoPng.height/ds) * 
+    return (p_decoder->infoPng.width/ds) *
+           (p_decoder->infoPng.height/ds) *
            FB_DATA_SZ;
 #endif
 }
@@ -126,7 +126,9 @@ static int load_image(char *filename, struct image_info *info,
 
     DEBUGF("reading file '%s'\n", filename);
 
-    if (!iv->running_slideshow) {
+    if (!iv->settings->hide_info &&
+        !iv->running_slideshow)
+    {
         rb->lcd_puts(0, 0, rb->strrchr(filename,'/')+1);
         rb->lcd_update();
     }
@@ -136,7 +138,9 @@ static int load_image(char *filename, struct image_info *info,
         rb->close(fd);
 
     } else {
-        if (!iv->running_slideshow) {
+        if (!iv->settings->hide_info &&
+            !iv->running_slideshow)
+        {
             rb->lcd_putsf(0, 1, "loading %zu bytes", file_size);
             rb->lcd_update();
         }
@@ -146,7 +150,9 @@ static int load_image(char *filename, struct image_info *info,
         rb->read(fd, image, file_size);
         rb->close(fd);
 
-        if (!iv->running_slideshow) {
+        if (!iv->settings->hide_info &&
+            !iv->running_slideshow)
+        {
             rb->lcd_puts(0, 2, "decoding image");
             rb->lcd_update();
         }
@@ -171,7 +177,8 @@ static int load_image(char *filename, struct image_info *info,
 
         if (!p_decoder->error) {
 
-            if (!iv->running_slideshow) {
+            if (!iv->settings->hide_info &&
+                !iv->running_slideshow) {
                 rb->lcd_putsf(0, 2, "image %dx%d",
                               p_decoder->infoPng.width,
                               p_decoder->infoPng.height);
@@ -194,7 +201,8 @@ static int load_image(char *filename, struct image_info *info,
         }
     }
 
-    if (!iv->running_slideshow && !p_decoder->error)
+    if (!iv->settings->hide_info &&
+        !iv->running_slideshow && !p_decoder->error)
     {
         rb->snprintf(print, sizeof(print), " %ld.%02ld sec ", time/HZ, time%HZ);
         rb->lcd_getstringsize(print, &w, &h); /* centered in progress bar */
@@ -253,7 +261,8 @@ static int get_image(struct image_info *info, int frame, int ds)
 
     /* assign image buffer */
     if (ds > 1) {
-        if (!iv->running_slideshow)
+        if (!iv->settings->hide_info &&
+            !iv->running_slideshow)
         {
             rb->lcd_putsf(0, 3, "resizing %d*%d", info->width, info->height);
             rb->lcd_update();

@@ -897,6 +897,26 @@ static bool onplay_load_plugin(void *param)
     return false;
 }
 
+static int reveal(void)
+{
+#ifdef HAVE_TAGCACHE
+    if (!prepare_database_sel(NULL))
+        return 0;
+#endif
+    if (!file_exists(selected_file.path))
+    {
+        splash(HZ*2, ID2P(LANG_FILE_NOT_FOUND));
+        return 0;
+    }
+
+    strmemccpy(global_status.browse_last_folder, selected_file.path,
+               sizeof global_status.browse_last_folder);
+    onplay_result = ONPLAY_REVEAL_FILE;
+    return 0;
+}
+
+MENUITEM_FUNCTION(reveal_item, 0, ID2P(LANG_SHOW_IN_FILES),
+                  reveal, clipboard_callback, Icon_file_view_menu);
 MENUITEM_FUNCTION(list_viewers_item, 0, ID2P(LANG_ONPLAY_OPEN_WITH),
                   list_viewers, clipboard_callback, Icon_NOICON);
 MENUITEM_FUNCTION_W_PARAM(properties_item, 0, ID2P(LANG_PROPERTIES),
@@ -1033,7 +1053,8 @@ static int clipboard_callback(int action,
             if (selected_file.context == CONTEXT_ID3DB)
             {
                 if (this_item == &track_info_item ||
-                    this_item == &pictureflow_item)
+                    this_item == &pictureflow_item ||
+                    this_item == &reveal_item)
                     return action;
                 return ACTION_EXIT_MENUITEM;
             }
@@ -1088,7 +1109,9 @@ static int clipboard_callback(int action,
                     if (*tree_get_context()->dirfilter != SHOW_M3U)
                         return action;
                 }
-                else if (this_item == &delete_file_item)
+                else if (this_item == &delete_file_item ||
+                         (this_item == &reveal_item &&
+                          selected_file.context == CONTEXT_WPS))
                     return action;
 #if LCD_DEPTH > 1
                 else if (this_item == &set_backdrop_item)
@@ -1124,8 +1147,8 @@ MAKE_ONPLAYMENU( wps_onplay_menu, ID2P(LANG_ONPLAY_MENU_TITLE),
 #endif
            &bookmark_menu,
            &plugin_item,
-           &browse_id3_item, &list_viewers_item,
-           &delete_file_item, &view_cue_item,
+           &browse_id3_item,
+           &reveal_item, &view_cue_item,
 #ifdef HAVE_PITCHCONTROL
            &pitch_menu,
 #endif
@@ -1162,6 +1185,7 @@ MAKE_ONPLAYMENU( tree_onplay_menu, ID2P(LANG_ONPLAY_MENU_TITLE),
            &rename_file_item, &clipboard_cut_item, &clipboard_copy_item,
            &clipboard_paste_item, &delete_file_item, &delete_dir_item,
            &list_viewers_item, &create_dir_item, &properties_item, &track_info_item,
+           &reveal_item,
 #ifdef HAVE_TAGCACHE
            &pictureflow_item,
 #endif

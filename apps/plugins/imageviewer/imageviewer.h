@@ -77,6 +77,7 @@ struct imgview_settings
     int jpeg_dither_mode;
 #endif
     int ss_timeout;
+    bool hide_info;
 };
 
 /* structure passed to image decoder. */

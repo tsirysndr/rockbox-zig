@@ -117,7 +117,8 @@ static int load_image(char *filename, struct image_info *info,
         POS(offset);
     }
 
-    if (!iv->running_slideshow)
+    if (!iv->settings->hide_info &&
+        !iv->running_slideshow)
     {
         rb->lcd_puts(0, 0, rb->strrchr(filename,'/')+1);
         rb->lcd_puts(0, 2, "decoding...");
@@ -142,7 +143,8 @@ static int load_image(char *filename, struct image_info *info,
         return  PLUGIN_ERROR;
     }
 
-    if (!iv->running_slideshow)
+    if (!iv->settings->hide_info &&
+        !iv->running_slideshow)
     {
         rb->lcd_putsf(0, 2, "image %dx%d", p_jpg->X, p_jpg->Y);
         int w, h; /* used to center output */
@@ -262,7 +264,7 @@ static int get_image(struct image_info *info, int frame, int ds)
                 c2 = (sumV + area/2) / area;
             }
 
-            // ITU BT.601 full-range YUV-to-RGB integer approximation 
+            // ITU BT.601 full-range YUV-to-RGB integer approximation
             {
                 int y = (c0 << 5) + 16;
                 int u = c1 - 128;

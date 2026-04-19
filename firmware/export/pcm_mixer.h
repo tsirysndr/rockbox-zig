@@ -23,6 +23,7 @@
 #define PCM_MIXER_H
 
 #include <sys/types.h>
+#include "pcm_sink.h"
 
 /** Simple config **/
 
@@ -110,6 +111,9 @@ void mixer_channel_play_pause(enum pcm_mixer_channel channel, bool play);
 
 /* Stop playback on a channel */
 void mixer_channel_stop(enum pcm_mixer_channel channel);
+
+/* Switch playback sink */
+bool mixer_switch_sink(enum pcm_sink_ids sink);
 
 /* Set channel's amplitude factor */
 void mixer_channel_set_amplitude(enum pcm_mixer_channel channel,

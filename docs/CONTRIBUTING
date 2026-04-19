@@ -72,7 +72,7 @@ check out the latest version of the Rockbox sources.
 See https://www.rockbox.org/wiki/UsingGit for details on how to setup your
 environment and how to upload a change you have made for review.
 
-We'd prefer that you don't submit patches to the bug tracker any more,
+We strongly prefer that you don't submit patches to the bug tracker,
 as it's much harder to read and discuss them there.
 
 Credits
@@ -80,3 +80,20 @@ Credits
 We believe in crediting all contributors by name. Before committing a patch to
 Git, we ask that you give us your full real name (no pseudonyms or nicknames)
 for adding to the credits list.
+
+Generative AI
+-------------
+We are highly unlikely to review or accept AI-generated or "vibe coded"
+code; our time is very limited, and we need to know that *you* understand
+exactly what the code is doing and why, so that we can review it
+effectively with you.
+
+Code is of no value to Rockbox if it is not maintainable, and it cannot
+be maintained if it is not understood.  Quality is more important than
+quantity.
+
+If you really *must* submit AI-generated code, you will need to include
+prompt provenance including the model used, dates and full content of
+prompts, and the unedited LLM output.  See the article "Track Prompt
+Provenance in Version Control" at https://medium.com/@psluaces/track-prompt-provenance-in-version-control-8746e2bad3c2)
+by Pablo Santos Luaces.

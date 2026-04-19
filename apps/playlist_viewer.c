@@ -515,9 +515,15 @@ static void format_line(struct playlist_entry* track, char* str,
                         int len)
 {
     char *id3viewc = NULL;
-    char *skipped = "";
+    char *skipped, *prefix, *suffix;
+    skipped = prefix = suffix = "";
     if (track->attr & PLAYLIST_ATTR_SKIPPED)
         skipped = "(ERR) ";
+    if (track->index == viewer.current_playing_track)
+    {
+        prefix = "[";
+        suffix = "]";
+    }
     if (!(track->attr & PLAYLIST_ATTR_RETRIEVE_ID3_ATTEMPTED) &&
         (global_settings.playlist_viewer_track_display ==
             PLAYLIST_VIEWER_ENTRY_SHOW_ID3_TITLE_AND_ALBUM ||
@@ -591,9 +597,10 @@ static void format_line(struct playlist_entry* track, char* str,
         format_name(name, track->name, sizeof(name));
         if (global_settings.playlist_viewer_indices)
             /* Display playlist index */
-            snprintf(str, len, "%d. %s%s", track->display_index, skipped, name);
+            snprintf(str, len, "%s%d. %s%s%s",
+                     prefix, track->display_index, skipped, name, suffix);
         else
-            snprintf(str, len, "%s%s", skipped, name);
+            snprintf(str, len, "%s%s%s%s", prefix, skipped, name, suffix);
     }
     else
     {
@@ -603,9 +610,10 @@ static void format_line(struct playlist_entry* track, char* str,
         }
         if (global_settings.playlist_viewer_indices)
             /* Display playlist index */
-            snprintf(str, len, "%d. %s%s", track->display_index, skipped, id3viewc);
+            snprintf(str, len, "%s%d. %s%s%s",
+                     prefix, track->display_index, skipped, id3viewc, suffix);
         else
-            snprintf(str, len, "%s%s", skipped, id3viewc);
+            snprintf(str, len, "%s%s%s%s", prefix, skipped, id3viewc, suffix);
     }
 }
 

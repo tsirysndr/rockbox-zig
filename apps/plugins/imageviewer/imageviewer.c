@@ -64,7 +64,8 @@ static struct imgview_settings settings =
     COLOURMODE_COLOUR,
     DITHER_NONE,
 #endif
-    SS_DEFAULT_TIMEOUT
+    SS_DEFAULT_TIMEOUT,
+    true
 };
 static struct imgview_settings old_settings;
 
@@ -78,6 +79,7 @@ static struct configdata config[] =
 #endif
     { TYPE_INT, SS_MIN_TIMEOUT, SS_MAX_TIMEOUT,
         { .int_p = &settings.ss_timeout }, "Slideshow Time", NULL },
+    { TYPE_BOOL, 0, 1, { .bool_p = &settings.hide_info }, "Hide Info", NULL },
 };
 
 static void cb_progress(int current, int total);
@@ -244,12 +246,22 @@ static bool set_option_dithering(void)
     return false;
 }
 
+static bool set_option_hide_info(void)
+{
+    rb->set_bool(rb->str(LANG_HIDE_INFO), &settings.hide_info);
+    return false;
+}
+
 MENUITEM_FUNCTION(grayscale_item, 0, ID2P(LANG_GRAYSCALE),
                   set_option_grayscale, NULL, Icon_NOICON);
 MENUITEM_FUNCTION(dithering_item, 0, ID2P(LANG_DITHERING),
                   set_option_dithering, NULL, Icon_NOICON);
-MAKE_MENU(display_menu, "Display Options", NULL, Icon_NOICON,
-            &grayscale_item, &dithering_item);
+MENUITEM_FUNCTION(hide_info_item, 0, ID2P(LANG_HIDE_INFO),
+                  set_option_hide_info, NULL, Icon_NOICON);
+MAKE_MENU(display_menu, ID2P(LANG_MENU_DISPLAY_OPTIONS), NULL, Icon_NOICON,
+          &grayscale_item,
+          &dithering_item,
+          &hide_info_item);
 
 static void display_options(void)
 {
@@ -451,6 +463,10 @@ static void cb_progress(int current, int total)
 {
     /* do not yield or update the progress bar if we did so too recently */
     long now = *rb->current_tick;
+
+    if (total == 0)
+        next_progress_tick = now + HZ/4; /* delay by 250ms initially */
+
     if(!TIME_AFTER(now, next_progress_tick))
         return;
 
@@ -965,6 +981,7 @@ reload_decoder:
     bool initial_frame = true;
     do  /* loop the image prepare and decoding when zoomed */
     {
+        cb_progress(0, 0); /* delay showing progress bar*/
         status = imgdec->get_image(info, frame, ds); /* decode or fetch from cache */
         if (status == PLUGIN_ERROR)
         {
@@ -973,8 +990,9 @@ reload_decoder:
         }
 
         set_view(info, cx, cy);
-
-        if(!iv_api.running_slideshow && (info->frames_count == 1))
+        if(!settings.hide_info &&
+           !iv_api.running_slideshow &&
+           (info->frames_count == 1))
         {
             rb->lcd_putsf(0, 3, "showing %dx%d", info->width, info->height);
             rb->lcd_update();
