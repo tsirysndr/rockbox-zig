@@ -1,0 +1,19 @@
+[package]
+name = "rockbox-typesense"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+dirs = "6.0.0"
+reqwest = { version = "0.12.5", features = [
+  "rustls-tls",
+  "json",
+], default-features = false }
+rockbox-library = {path = "../library"}
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true

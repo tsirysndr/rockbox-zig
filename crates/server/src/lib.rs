@@ -427,7 +427,7 @@ pub extern "C" fn start_broker() {
                 .block_on(repo::track::find_by_md5(pool.clone(), hash))
                 .unwrap();
 
-            let mut entry = if is_http {
+            let entry = if is_http {
                 // For HTTP stream URLs, do NOT call get_metadata(-1, url) — that
                 // opens a live HTTP connection for every queued track and blocks
                 // the broker loop. Instead, build the entry from the database

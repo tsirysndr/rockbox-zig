@@ -9,6 +9,8 @@ use cmd::{
     webui::*, whoami::*,
 };
 
+use crate::cmd::setup;
+
 pub mod cmd;
 
 fn cli() -> Command {
@@ -90,6 +92,7 @@ fn cli() -> Command {
                 .about("Display information about the currently logged in user")
                 .visible_alias("me"),
         )
+        .subcommand(Command::new("setup").about("Setup Rockbox and its dependencies"))
         .subcommand(Command::new("clear").about("Clear current playlist"))
 }
 
@@ -166,6 +169,9 @@ async fn main() -> Result<(), Error> {
                 Err(e) => {}
             };
             println!("✅ Rockbox Playlist Cleared");
+        }
+        Some(("setup", _)) => {
+            setup::install_dependencies()?;
         }
         Some((_, args)) => {
             if args.get_flag("rebuild") {

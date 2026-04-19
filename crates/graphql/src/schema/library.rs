@@ -1,6 +1,6 @@
 use async_graphql::*;
 use rockbox_library::{entity::favourites::Favourites, repo};
-use rockbox_search::{search_entities, Indexes};
+use rockbox_typesense::client::{search_albums, search_artists, search_tracks};
 use sqlx::{Pool, Sqlite};
 
 use crate::{rockbox_url, schema::objects::track::Track};
@@ -74,40 +74,26 @@ impl LibraryQuery {
         Ok(results.into_iter().map(Into::into).collect())
     }
 
-    async fn search(&self, ctx: &Context<'_>, term: String) -> Result<SearchResults, Error> {
-        let indexes = ctx.data::<Indexes>()?;
-        let albums = search_entities(
-            &indexes.albums,
-            &term,
-            &rockbox_search::album::Album::default(),
-        )?;
-        let artists = search_entities(
-            &indexes.artists,
-            &term,
-            &rockbox_search::artist::Artist::default(),
-        )?;
-        let tracks = search_entities(
-            &indexes.tracks,
-            &term,
-            &rockbox_search::track::Track::default(),
-        )?;
-        let liked_tracks = search_entities(
-            &indexes.liked_tracks,
-            &term,
-            &rockbox_search::liked_track::LikedTrack::default(),
-        )?;
-        let liked_albums = search_entities(
-            &indexes.liked_albums,
-            &term,
-            &rockbox_search::liked_album::LikedAlbum::default(),
-        )?;
+    async fn search(&self, _ctx: &Context<'_>, term: String) -> Result<SearchResults, Error> {
+        let tracks = search_tracks(&term)
+            .await?
+            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+            .unwrap_or_default();
+        let albums = search_albums(&term)
+            .await?
+            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+            .unwrap_or_default();
+        let artists = search_artists(&term)
+            .await?
+            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+            .unwrap_or_default();
 
         Ok(SearchResults {
-            albums: albums.into_iter().map(|(_, x)| x.into()).collect(),
-            artists: artists.into_iter().map(|(_, x)| x.into()).collect(),
-            tracks: tracks.into_iter().map(|(_, x)| x.into()).collect(),
-            liked_tracks: liked_tracks.into_iter().map(|(_, x)| x.into()).collect(),
-            liked_albums: liked_albums.into_iter().map(|(_, x)| x.into()).collect(),
+            tracks,
+            albums,
+            artists,
+            liked_tracks: vec![],
+            liked_albums: vec![],
         })
     }
 }

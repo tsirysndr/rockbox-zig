@@ -1,5 +1,5 @@
 use rockbox_library::{entity::favourites::Favourites, repo};
-use rockbox_search::search_entities;
+use rockbox_typesense::client::{search_albums, search_artists, search_tracks};
 use sqlx::Sqlite;
 
 use crate::{
@@ -18,20 +18,11 @@ use crate::{
 pub struct Library {
     pool: sqlx::Pool<Sqlite>,
     client: reqwest::Client,
-    indexes: rockbox_search::Indexes,
 }
 
 impl Library {
-    pub fn new(
-        pool: sqlx::Pool<Sqlite>,
-        client: reqwest::Client,
-        indexes: rockbox_search::Indexes,
-    ) -> Self {
-        Self {
-            pool,
-            client,
-            indexes,
-        }
+    pub fn new(pool: sqlx::Pool<Sqlite>, client: reqwest::Client) -> Self {
+        Self { pool, client }
     }
 }
 
@@ -277,29 +268,26 @@ impl LibraryService for Library {
         let request = request.into_inner();
         let term = request.term;
 
-        let albums = search_entities(
-            &self.indexes.albums,
-            &term,
-            &rockbox_search::album::Album::default(),
-        )
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let artists = search_entities(
-            &self.indexes.artists,
-            &term,
-            &rockbox_search::artist::Artist::default(),
-        )
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let tracks = search_entities(
-            &self.indexes.tracks,
-            &term,
-            &rockbox_search::track::Track::default(),
-        )
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let tracks = search_tracks(&term)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+            .unwrap_or_default();
+        let albums = search_albums(&term)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+            .unwrap_or_default();
+        let artists = search_artists(&term)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+            .unwrap_or_default();
 
         Ok(tonic::Response::new(SearchResponse {
-            albums: albums.into_iter().map(|(_, x)| x.into()).collect(),
-            artists: artists.into_iter().map(|(_, x)| x.into()).collect(),
-            tracks: tracks.into_iter().map(|(_, x)| x.into()).collect(),
+            tracks,
+            albums,
+            artists,
         }))
     }
 }

@@ -26,8 +26,8 @@ rockbox-mpd = {path = "../mpd"}
 rockbox-mpris = {path = "../mpris"}
 rockbox-network = { path = "../network" }
 rockbox-rpc = {path = "../rpc"}
-rockbox-search = {path = "../search"}
 rockbox-settings = {path = "../settings"}
+rockbox-typesense = { path = "../typesense" }
 netstream = { path = "../netstream" }
 rockbox-sys = {path = "../sys"}
 rockbox-tracklist = {path = "../tracklist"}
