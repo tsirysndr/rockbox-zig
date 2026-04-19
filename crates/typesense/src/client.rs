@@ -113,9 +113,8 @@ pub async fn create_tracks_collection() -> Result<(), Error> {
     let schema = serde_json::json!({
         "name": "tracks",
         "fields": [
-            {"name": "id", "type": "string"},
             {"name": "path", "type": "string"},
-            {"name": "title", "type": "string"},
+            {"name": "title", "type": "string", "sort": true},
             {"name": "artist", "type": "string"},
             {"name": "album", "type": "string"},
             {"name": "album_artist", "type": "string"},
@@ -130,10 +129,10 @@ pub async fn create_tracks_collection() -> Result<(), Error> {
             {"name": "year_string", "type": "string"},
             {"name": "genre", "type": "string"},
             {"name": "md5", "type": "string"},
-            {"name": "album_art", "type": "string"},
-            {"name": "artist_id", "type": "string"},
-            {"name": "album_id", "type": "string"},
-            {"name": "genre_id", "type": "string"}
+            {"name": "album_art", "type": "string", "optional": true},
+            {"name": "artist_id", "type": "string", "optional": true},
+            {"name": "album_id", "type": "string", "optional": true},
+            {"name": "genre_id", "type": "string", "optional": true}
         ],
         "default_sorting_field": "title"
     });
@@ -166,15 +165,14 @@ pub async fn create_albums_collection() -> Result<(), Error> {
     let schema = serde_json::json!({
         "name": "albums",
         "fields": [
-            {"name": "id", "type": "string"},
-            {"name": "title", "type": "string"},
+            {"name": "title", "type": "string", "sort": true},
             {"name": "artist", "type": "string"},
             {"name": "year", "type": "int32"},
             {"name": "year_string", "type": "string"},
-            {"name": "album_art", "type": "string"},
+            {"name": "album_art", "type": "string", "optional": true},
             {"name": "md5", "type": "string"},
             {"name": "artist_id", "type": "string"},
-            {"name": "label", "type": "string"},
+            {"name": "label", "type": "string", "optional": true},
         ],
         "default_sorting_field": "title"
     });
@@ -207,10 +205,9 @@ pub async fn create_artists_collection() -> Result<(), Error> {
     let schema = serde_json::json!({
         "name": "artists",
         "fields": [
-            {"name": "id", "type": "string"},
-            {"name": "name", "type": "string"},
-            {"name": "bio", "type": "string"},
-            {"name": "image", "type": "string"},
+            {"name": "name", "type": "string", "sort": true},
+            {"name": "bio", "type": "string", "optional": true},
+            {"name": "image", "type": "string", "optional": true},
         ],
         "default_sorting_field": "name"
     });
