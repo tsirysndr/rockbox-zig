@@ -41,7 +41,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.91.0
+          toolchain: 1.94.1
           override: true
       - name: Setup Deno
         uses: denoland/setup-deno@v2

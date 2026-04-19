@@ -1,4 +1,6 @@
-FROM rust:1.88-bookworm AS builder
+FROM rust:1.94-bookworm AS builder
+
+ARG TARGETARCH
 
 ARG GITHUB_TOKEN
 
@@ -21,9 +23,20 @@ RUN apt-get update && apt-get install -y build-essential \
   protobuf-compiler \
   cmake
 
+RUN case "${TARGETARCH}" in \
+      amd64) ZIG_ARCH="x86_64" ;; \
+      arm64) ZIG_ARCH="aarch64" ;; \
+      *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
+    esac && \
+    export VERSION=0.16.0 && \
+    wget "https://ziglang.org/download/${VERSION}/zig-${ZIG_ARCH}-linux-${VERSION}.tar.xz" && \
+    tar -xf "zig-${ZIG_ARCH}-linux-${VERSION}.tar.xz" && \
+    mv "zig-${ZIG_ARCH}-linux-${VERSION}" /usr/local/zig && \
+    ln -s /usr/local/zig/zig /usr/local/bin/zig
+
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgm install zig@0.15.1 buf deno
+RUN pkgm install buf deno
 
 COPY . /app
 
