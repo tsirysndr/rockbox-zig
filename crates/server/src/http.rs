@@ -1,6 +1,7 @@
 use anyhow::Error;
 use owo_colors::OwoColorize;
 use rockbox_library::entity::track::Track;
+use tracing::{debug, error};
 use rockbox_sys::{
     self as rb,
     types::{mp3_entry::Mp3Entry, tree::Entry},
@@ -357,7 +358,7 @@ impl RockboxHttpServer {
                     rb::system::sleep(rb::HZ);
                 }
                 Err(e) => {
-                    eprintln!("Error accepting connection: {}", e);
+                    error!("Error accepting connection: {}", e);
                     break;
                 }
             }
@@ -391,7 +392,7 @@ impl RockboxHttpServer {
         player: Arc<Mutex<Option<Box<dyn Player + Send>>>>,
         kv: Arc<Mutex<KV<Track>>>,
     ) {
-        println!("{} {}", method.bright_cyan(), path);
+        debug!("{} {}", method, path);
         match self.router.route(method, path) {
             Some((handler, params)) => {
                 let mut response = Response::new();

@@ -98,6 +98,14 @@ fn cli() -> Command {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
+        )
+        .init();
+
     let args = std::env::args().collect::<Vec<String>>();
     if args.len() > 1 && args[1] == "run" {
         let _args = args

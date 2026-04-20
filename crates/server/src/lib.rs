@@ -1,5 +1,6 @@
 use anyhow::Error;
 use handlers::*;
+use tracing::{error, warn};
 
 use http::RockboxHttpServer;
 use lazy_static::lazy_static;
@@ -59,7 +60,7 @@ lazy_static! {
 pub extern "C" fn debugfn(args: *const c_char, value: c_int) {
     let c_str = unsafe { std::ffi::CStr::from_ptr(args) };
     let str_slice = c_str.to_str().unwrap();
-    println!("{} {}", str_slice, value);
+    tracing::debug!("{} {}", str_slice, value);
 }
 
 #[no_mangle]
@@ -67,7 +68,7 @@ pub extern "C" fn start_server() {
     match rockbox_settings::load_settings(None) {
         Ok(_) => {}
         Err(e) => {
-            println!("Warning loading settings: {}", e);
+            warn!("Warning loading settings: {}", e);
         }
     }
 
@@ -134,7 +135,7 @@ pub extern "C" fn start_server() {
     match app.listen() {
         Ok(_) => {}
         Err(e) => {
-            eprintln!("Error starting server: {}", e);
+            error!("Error starting server: {}", e);
         }
     }
 }
@@ -219,7 +220,7 @@ pub extern "C" fn start_servers() {
         match runtime.block_on(rockbox_rpc::server::start(cmd_tx.clone())) {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("Error starting server: {}", e);
+                error!("Error starting server: {}", e);
             }
         }
     });
@@ -232,7 +233,7 @@ pub extern "C" fn start_servers() {
         match runtime.block_on(rockbox_graphql::server::start(cloned_cmd_tx.clone())) {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("Error starting server: {}", e);
+                error!("Error starting server: {}", e);
             }
         }
     });
@@ -247,7 +248,7 @@ pub extern "C" fn start_servers() {
             move || match async_std::task::block_on(MprisServer::start()) {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Error starting mpris server: {}", e);
+                    error!("Error starting mpris server: {}", e);
                 }
             },
         );
@@ -261,7 +262,7 @@ pub extern "C" fn start_servers() {
         match runtime.block_on(MpdServer::start()) {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("Error starting mpd server: {}", e);
+                error!("Error starting mpd server: {}", e);
             }
         }
     });
@@ -398,7 +399,7 @@ pub extern "C" fn start_broker() {
                                             .block_on(scrobble(cloned_track, cloned_pool.clone()))
                                         {
                                             Ok(_) => {}
-                                            Err(e) => eprintln!("{}", e),
+                                            Err(e) => error!("{}", e),
                                         }
                                     });
                                     scrobbled_tracks.insert(metadata.id.clone());
@@ -536,7 +537,7 @@ async fn scrobble(track: Track, pool: Pool<Sqlite>) -> Result<(), Error> {
         if let Some(album) = album {
             match rockbox_rocksky::scrobble(track, album).await {
                 Ok(_) => {}
-                Err(e) => eprintln!("Failed to scrobble {}", e),
+                Err(e) => error!("Failed to scrobble {}", e),
             };
         }
     }

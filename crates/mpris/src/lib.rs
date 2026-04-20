@@ -1,6 +1,7 @@
 use std::{env, future, sync::Arc};
 
 use anyhow::Error;
+use tracing::warn;
 use async_std::stream::StreamExt;
 use mpris_server::{LoopStatus, Metadata, PlaybackStatus, Player, Time, TrackId};
 use rockbox_graphql::{
@@ -94,19 +95,19 @@ impl MprisServer {
                     1 => match player.set_playback_status(PlaybackStatus::Playing).await {
                         Ok(_) => {}
                         Err(e) => {
-                            eprintln!("Error: {}", e);
+                            warn!("Error: {}", e);
                         }
                     },
                     3 => match player.set_playback_status(PlaybackStatus::Paused).await {
                         Ok(_) => {}
                         Err(e) => {
-                            eprintln!("Error: {}", e);
+                            warn!("Error: {}", e);
                         }
                     },
                     _ => match player.set_playback_status(PlaybackStatus::Stopped).await {
                         Ok(_) => {}
                         Err(e) => {
-                            eprintln!("Error: {}", e);
+                            warn!("Error: {}", e);
                         }
                     },
                 }
@@ -146,7 +147,7 @@ impl MprisServer {
                 match player.set_metadata(metadata).await {
                     Ok(_) => {}
                     Err(e) => {
-                        eprintln!("Error: {}", e);
+                        warn!("Error: {}", e);
                     }
                 }
 
@@ -154,7 +155,7 @@ impl MprisServer {
                 match player.seeked(Time::from_millis(track.elapsed as i64)).await {
                     Ok(_) => {}
                     Err(e) => {
-                        eprintln!("Error: {}", e);
+                        warn!("Error: {}", e);
                     }
                 }
             }

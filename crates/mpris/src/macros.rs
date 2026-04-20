@@ -12,7 +12,7 @@ macro_rules! connect_player_action {
             }) {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Error: {}", e);
+                    tracing::warn!("Error: {}", e);
                 }
             }
         });
@@ -38,7 +38,7 @@ macro_rules! connect_player_seek_action {
             }) {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Error: {}", e);
+                    tracing::warn!("Error: {}", e);
                 }
             }
         });
@@ -64,7 +64,7 @@ macro_rules! connect_player_set_position_action {
             }) {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Error: {}", e);
+                    tracing::warn!("Error: {}", e);
                 }
             }
         });
@@ -92,7 +92,7 @@ macro_rules! connect_player_open_uri_action {
             }) {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Error: {}", e);
+                    tracing::warn!("Error: {}", e);
                 }
             }
         });
@@ -114,7 +114,7 @@ macro_rules! connect_player_volume_action {
             {
                 Ok(response) => response.into_inner().volume,
                 Err(e) => {
-                    eprintln!("Error: {}", e);
+                    tracing::warn!("Error: {}", e);
                     0
                 }
             };
@@ -132,7 +132,7 @@ macro_rules! connect_player_volume_action {
             }) {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Error: {}", e);
+                    tracing::warn!("Error: {}", e);
                 }
             }
         });
@@ -158,7 +158,7 @@ macro_rules! connect_player_shuffle_action {
             }) {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Error: {}", e);
+                    tracing::warn!("Error: {}", e);
                 }
             }
         });
@@ -189,7 +189,7 @@ macro_rules! connect_player_loop_status_action {
             }) {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Error: {}", e);
+                    tracing::warn!("Error: {}", e);
                 }
             }
         });

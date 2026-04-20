@@ -1,5 +1,6 @@
 use crate::entity::album::Album;
 use sqlx::{Pool, Sqlite};
+use tracing::warn;
 
 pub async fn save(pool: Pool<Sqlite>, album: Album) -> Result<String, sqlx::Error> {
     match sqlx::query(
@@ -68,7 +69,7 @@ pub async fn find_by_md5(pool: Pool<Sqlite>, md5: &str) -> Result<Option<Album>,
     {
         Ok(album) => Ok(album),
         Err(e) => {
-            eprintln!("Error finding album: {:?}", e);
+            warn!("Error finding album: {:?}", e);
             Err(e)
         }
     }
@@ -89,7 +90,7 @@ pub async fn find_by_artist(
     {
         Ok(albums) => Ok(albums),
         Err(e) => {
-            eprintln!("Error finding albums: {:?}", e);
+            warn!("Error finding albums: {:?}", e);
             Err(e)
         }
     }
@@ -107,7 +108,7 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Album>, sqlx::E
     {
         Ok(album) => Ok(album),
         Err(e) => {
-            eprintln!("Error finding album: {:?}", e);
+            warn!("Error finding album: {:?}", e);
             Err(e)
         }
     }
@@ -124,7 +125,7 @@ pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Album>, sqlx::Error> {
     {
         Ok(albums) => Ok(albums),
         Err(e) => {
-            eprintln!("Error finding albums: {:?}", e);
+            warn!("Error finding albums: {:?}", e);
             Err(e)
         }
     }

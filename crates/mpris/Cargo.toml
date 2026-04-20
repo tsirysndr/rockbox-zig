@@ -12,3 +12,4 @@ rockbox-rpc = {path = "../rpc"}
 rockbox-library = {path= "../library"}
 tokio = {version = "1.36.0", features = ["full"]}
 urlencoding = "2.1.3"
+tracing = { workspace = true }

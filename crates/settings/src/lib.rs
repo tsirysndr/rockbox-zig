@@ -1,5 +1,5 @@
 use anyhow::Error;
-use rockbox_sys::{self as rb, types::user_settings::NewGlobalSettings};
+use rockbox_sys::{self as rb, sound::pcm, types::user_settings::NewGlobalSettings};
 
 pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Error> {
     let settings: NewGlobalSettings = match new_settings.clone() {
@@ -27,6 +27,17 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
     }
 
     rb::settings::save_settings(settings.clone(), new_settings.is_none());
+
+    if let Some(ref output) = settings.audio_output {
+        if output == "fifo" {
+            let path = settings
+                .fifo_path
+                .as_deref()
+                .unwrap_or("/tmp/rockbox.fifo");
+            pcm::fifo_set_path(path);
+            pcm::switch_sink(pcm::PCM_SINK_FIFO);
+        }
+    }
 
     rb::settings::apply_audio_settings();
 
