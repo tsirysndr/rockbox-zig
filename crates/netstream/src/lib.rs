@@ -5,6 +5,7 @@ use std::io::{self, Read};
 use std::os::raw::c_char;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::{Arc, Mutex};
+use tracing::{debug, warn};
 
 /// Sentinel handle ID returned on error.
 const INVALID_HANDLE: i32 = -1;
@@ -186,14 +187,14 @@ pub unsafe extern "C" fn rb_net_open(url: *const c_char) -> i32 {
 
     let state = match StreamState::new(url_str.clone()) {
         Some(s) => {
-            eprintln!(
+            debug!(
                 "[netstream] rb_net_open: url={} content_length={:?} content_type={:?}",
                 url_str, s.content_length, s.content_type
             );
             s
         }
         None => {
-            eprintln!("[netstream] rb_net_open: FAILED url={}", url_str);
+            warn!("[netstream] rb_net_open: FAILED url={}", url_str);
             return INVALID_HANDLE;
         }
     };
@@ -203,7 +204,7 @@ pub unsafe extern "C" fn rb_net_open(url: *const c_char) -> i32 {
         .lock()
         .unwrap()
         .insert(handle, Arc::new(Mutex::new(state)));
-    eprintln!(
+    debug!(
         "[netstream] rb_net_open: url={} -> handle={}",
         url_str, handle
     );
@@ -239,14 +240,18 @@ pub unsafe extern "C" fn rb_net_read(h: i32, dst: *mut libc::c_void, n: libc::si
     match read_as_file(resp, buf) {
         Ok(bytes_read) => {
             state.pos += bytes_read as u64;
-            eprintln!(
+            tracing::trace!(
                 "[netstream] rb_net_read: h={} n={} pos_before={} -> read={} pos_after={}",
-                h, n, pos_before, bytes_read, state.pos
+                h,
+                n,
+                pos_before,
+                bytes_read,
+                state.pos
             );
             bytes_read as i64
         }
         Err(e) => {
-            eprintln!(
+            warn!(
                 "[netstream] rb_net_read: h={} n={} pos={} -> ERROR {:?}",
                 h, n, pos_before, e
             );
@@ -312,7 +317,7 @@ pub extern "C" fn rb_net_lseek(h: i32, off: i64, whence: libc::c_int) -> i64 {
 
     // Fast-path: already there (no need to restart the request).
     if new_pos == state.pos {
-        eprintln!(
+        debug!(
             "[netstream] rb_net_lseek: h={} off={} whence={} -> already at pos={} (no-op)",
             h, off, whence, state.pos
         );
@@ -321,13 +326,13 @@ pub extern "C" fn rb_net_lseek(h: i32, off: i64, whence: libc::c_int) -> i64 {
 
     let old_pos = state.pos;
     if state.seek_to(new_pos) {
-        eprintln!(
+        debug!(
             "[netstream] rb_net_lseek: h={} off={} whence={} old_pos={} -> new_pos={}",
             h, off, whence, old_pos, state.pos
         );
         state.pos as i64
     } else {
-        eprintln!(
+        warn!(
             "[netstream] rb_net_lseek: h={} off={} whence={} old_pos={} -> FAILED",
             h, off, whence, old_pos
         );
@@ -351,7 +356,7 @@ pub extern "C" fn rb_net_len(h: i32) -> i64 {
         .content_length
         .map(|l| l as i64)
         .unwrap_or(-1);
-    eprintln!("[netstream] rb_net_len: h={} -> {}", h, len);
+    debug!("[netstream] rb_net_len: h={} -> {}", h, len);
     len
 }
 
@@ -388,7 +393,7 @@ pub unsafe extern "C" fn rb_net_content_type(h: i32, dst: *mut c_char, n: libc::
 /// Close stream `h` and release its resources.
 #[no_mangle]
 pub extern "C" fn rb_net_close(h: i32) {
-    eprintln!("[netstream] rb_net_close: h={}", h);
+    debug!("[netstream] rb_net_close: h={}", h);
     STREAMS.lock().unwrap().remove(&h);
 }
 

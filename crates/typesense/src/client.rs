@@ -1,6 +1,7 @@
 use crate::types::*;
 use anyhow::Error;
 use reqwest::Client;
+use tracing::{debug, info, warn};
 
 pub async fn create_tracks_collection() -> Result<(), Error> {
     let client = Client::new();
@@ -38,7 +39,7 @@ pub async fn create_tracks_collection() -> Result<(), Error> {
 
     let api_key = std::env::var("RB_TYPESENSE_API_KEY");
     if api_key.is_err() {
-        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        warn!("RB_TYPESENSE_API_KEY is not set.");
         return Ok(());
     }
     let api_key = api_key.unwrap();
@@ -49,7 +50,7 @@ pub async fn create_tracks_collection() -> Result<(), Error> {
         .send()
         .await?;
 
-    println!("Create tracks collection response: {}", res.status());
+    debug!("Create tracks collection response: {}", res.status());
 
     Ok(())
 }
@@ -78,7 +79,7 @@ pub async fn create_albums_collection() -> Result<(), Error> {
 
     let api_key = std::env::var("RB_TYPESENSE_API_KEY");
     if api_key.is_err() {
-        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        warn!("RB_TYPESENSE_API_KEY is not set.");
         return Ok(());
     }
     let api_key = api_key.unwrap();
@@ -89,7 +90,7 @@ pub async fn create_albums_collection() -> Result<(), Error> {
         .send()
         .await?;
 
-    println!("Create albums collection response: {}", res.status());
+    debug!("Create albums collection response: {}", res.status());
 
     Ok(())
 }
@@ -113,7 +114,7 @@ pub async fn create_artists_collection() -> Result<(), Error> {
 
     let api_key = std::env::var("RB_TYPESENSE_API_KEY");
     if api_key.is_err() {
-        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        warn!("RB_TYPESENSE_API_KEY is not set.");
         return Ok(());
     }
     let api_key = api_key.unwrap();
@@ -124,7 +125,7 @@ pub async fn create_artists_collection() -> Result<(), Error> {
         .send()
         .await?;
 
-    println!("Create artists collection response: {}", res.status());
+    debug!("Create artists collection response: {}", res.status());
 
     Ok(())
 }
@@ -145,7 +146,7 @@ pub async fn insert_tracks(tracks: Vec<Track>) -> Result<(), Error> {
 
     let api_key = std::env::var("RB_TYPESENSE_API_KEY");
     if api_key.is_err() {
-        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        warn!("RB_TYPESENSE_API_KEY is not set.");
         return Ok(());
     }
     let api_key = api_key.unwrap();
@@ -160,7 +161,7 @@ pub async fn insert_tracks(tracks: Vec<Track>) -> Result<(), Error> {
         .send()
         .await?;
 
-    println!("Insert tracks response: {}", res.status());
+    info!("Insert tracks response: {}", res.status());
 
     Ok(())
 }
@@ -181,7 +182,7 @@ pub async fn insert_albums(albums: Vec<Album>) -> Result<(), Error> {
 
     let api_key = std::env::var("RB_TYPESENSE_API_KEY");
     if api_key.is_err() {
-        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        warn!("RB_TYPESENSE_API_KEY is not set.");
         return Ok(());
     }
     let api_key = api_key.unwrap();
@@ -196,7 +197,7 @@ pub async fn insert_albums(albums: Vec<Album>) -> Result<(), Error> {
         .send()
         .await?;
 
-    println!("Insert albums response: {}", res.status());
+    info!("Insert albums response: {}", res.status());
 
     Ok(())
 }
@@ -217,7 +218,7 @@ pub async fn insert_artists(artists: Vec<Artist>) -> Result<(), Error> {
 
     let api_key = std::env::var("RB_TYPESENSE_API_KEY");
     if api_key.is_err() {
-        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        warn!("RB_TYPESENSE_API_KEY is not set.");
         return Ok(());
     }
     let api_key = api_key.unwrap();
@@ -232,7 +233,7 @@ pub async fn insert_artists(artists: Vec<Artist>) -> Result<(), Error> {
         .send()
         .await?;
 
-    println!("Insert artists response: {}", res.status());
+    info!("Insert artists response: {}", res.status());
 
     Ok(())
 }
@@ -247,7 +248,7 @@ pub async fn search_tracks(query: &str) -> Result<Option<TrackResult>, Error> {
 
     let api_key = std::env::var("RB_TYPESENSE_API_KEY");
     if api_key.is_err() {
-        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        warn!("RB_TYPESENSE_API_KEY is not set.");
         return Ok(None);
     }
     let api_key = api_key.unwrap();
@@ -272,8 +273,8 @@ pub async fn search_tracks(query: &str) -> Result<Option<TrackResult>, Error> {
     match serde_json::from_str::<TrackResult>(&text) {
         Ok(result) => Ok(Some(result)),
         Err(e) => {
-            eprintln!("Failed to parse Typesense response: {}", e);
-            eprintln!("Response body: {}", text);
+            warn!("Failed to parse Typesense response: {}", e);
+            warn!("Response body: {}", text);
             Err(e.into())
         }
     }
@@ -289,7 +290,7 @@ pub async fn search_albums(query: &str) -> Result<Option<AlbumResult>, Error> {
 
     let api_key = std::env::var("RB_TYPESENSE_API_KEY");
     if api_key.is_err() {
-        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        warn!("RB_TYPESENSE_API_KEY is not set.");
         return Ok(None);
     }
     let api_key = api_key.unwrap();
@@ -323,7 +324,7 @@ pub async fn search_artists(query: &str) -> Result<Option<ArtistResult>, Error> 
 
     let api_key = std::env::var("RB_TYPESENSE_API_KEY");
     if api_key.is_err() {
-        println!("Warning: RB_TYPESENSE_API_KEY is not set.");
+        warn!("RB_TYPESENSE_API_KEY is not set.");
         return Ok(None);
     }
     let api_key = api_key.unwrap();

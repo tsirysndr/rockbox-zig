@@ -33,6 +33,8 @@ open = "5.3.2"
 warp = "0.3.7"
 dirs = "6.0.0"
 rockbox-typesense = { path = "../crates/typesense" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
 
 [build-dependencies]
 tonic-build = "0.12.3"

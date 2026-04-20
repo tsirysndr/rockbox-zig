@@ -929,6 +929,8 @@ pub mod api {
                         release_time: c.release_time,
                         attack_time: c.attack_time,
                     }),
+                    audio_output: None,
+                    fifo_path: None,
                 }
             }
         }

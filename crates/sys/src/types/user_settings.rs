@@ -677,6 +677,10 @@ pub struct NewGlobalSettings {
     pub eq_band_settings: Option<Vec<EqBandSetting>>,
     pub replaygain_settings: Option<ReplaygainSettings>,
     pub compressor_settings: Option<CompressorSettings>,
+    /// Audio output sink: "builtin" (default) or "fifo"
+    pub audio_output: Option<String>,
+    /// Path for the FIFO sink, e.g. "/tmp/rockbox.fifo" or "-" for stdout
+    pub fifo_path: Option<String>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -710,6 +714,8 @@ impl From<UserSettings> for NewGlobalSettings {
             eq_band_settings: Some(settings.eq_band_settings),
             replaygain_settings: Some(settings.replaygain_settings),
             compressor_settings: Some(settings.compressor_settings),
+            audio_output: None,
+            fifo_path: None,
         }
     }
 }

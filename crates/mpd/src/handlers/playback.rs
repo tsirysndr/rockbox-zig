@@ -4,6 +4,7 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
     SaveSettingsRequest, StartRequest,
 };
 use tokio::sync::mpsc::Sender;
+use tracing::warn;
 
 use crate::Context;
 
@@ -253,7 +254,7 @@ pub async fn handle_seek(
     tx: Sender<String>,
 ) -> Result<String, Error> {
     // TODO: Implement seek
-    println!("{}", request);
+    warn!("handle_seek not implemented: {}", request);
 
     if !ctx.batch {
         tx.send("OK\n".to_string()).await?;
@@ -268,7 +269,7 @@ pub async fn handle_seekid(
     tx: Sender<String>,
 ) -> Result<String, Error> {
     // TODO: Implement seekid
-    println!("{}", request);
+    warn!("handle_seekid not implemented: {}", request);
 
     if !ctx.batch {
         tx.send("OK\n".to_string()).await?;

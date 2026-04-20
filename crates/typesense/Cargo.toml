@@ -17,3 +17,4 @@ rockbox-library = {path = "../library"}
 serde.workspace = true
 serde_json.workspace = true
 uuid.workspace = true
+tracing = { workspace = true }

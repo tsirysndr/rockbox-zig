@@ -14,6 +14,7 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
     PreviousRequest, ResumeRequest, SaveSettingsRequest,
 };
 use tokio::sync::Mutex;
+use tracing::warn;
 
 pub mod macros;
 
@@ -94,19 +95,19 @@ impl MprisServer {
                     1 => match player.set_playback_status(PlaybackStatus::Playing).await {
                         Ok(_) => {}
                         Err(e) => {
-                            eprintln!("Error: {}", e);
+                            warn!("Error: {}", e);
                         }
                     },
                     3 => match player.set_playback_status(PlaybackStatus::Paused).await {
                         Ok(_) => {}
                         Err(e) => {
-                            eprintln!("Error: {}", e);
+                            warn!("Error: {}", e);
                         }
                     },
                     _ => match player.set_playback_status(PlaybackStatus::Stopped).await {
                         Ok(_) => {}
                         Err(e) => {
-                            eprintln!("Error: {}", e);
+                            warn!("Error: {}", e);
                         }
                     },
                 }
@@ -146,7 +147,7 @@ impl MprisServer {
                 match player.set_metadata(metadata).await {
                     Ok(_) => {}
                     Err(e) => {
-                        eprintln!("Error: {}", e);
+                        warn!("Error: {}", e);
                     }
                 }
 
@@ -154,7 +155,7 @@ impl MprisServer {
                 match player.seeked(Time::from_millis(track.elapsed as i64)).await {
                     Ok(_) => {}
                     Err(e) => {
-                        eprintln!("Error: {}", e);
+                        warn!("Error: {}", e);
                     }
                 }
             }

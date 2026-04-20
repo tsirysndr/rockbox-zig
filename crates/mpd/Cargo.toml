@@ -19,3 +19,4 @@ sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", 
 tokio = {version = "1.36.0", features = ["full"]}
 tokio-stream = "0.1"
 tonic = "0.12.2"
+tracing = { workspace = true }

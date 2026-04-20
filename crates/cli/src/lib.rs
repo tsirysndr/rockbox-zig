@@ -5,12 +5,14 @@ use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
 use rockbox_typesense::client::*;
 use rockbox_typesense::types::*;
+use std::io::{BufRead, BufReader};
 use std::process::Stdio;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, ffi::CStr};
 use std::{fs, thread};
+use tracing::{error, info, warn};
 
 /// PID of the spawned typesense-server child, or -1 if not yet started.
 static TYPESENSE_PID: AtomicI32 = AtomicI32::new(-1);
@@ -32,6 +34,15 @@ extern "C" fn handle_shutdown(_sig: libc::c_int) {
 
 #[no_mangle]
 pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
+    let subscriber = tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
+        )
+        .finish();
+    let _ = tracing::subscriber::set_global_default(subscriber);
+
     let string_array = unsafe { std::slice::from_raw_parts(argv, argc) };
     let args: Vec<&str> = string_array
         .iter()
@@ -72,13 +83,25 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         libc::signal(libc::SIGINT, handle_shutdown as libc::sighandler_t);
     }
 
+    // SDL (initialised after parse_args returns) installs its own SIGTERM/SIGINT
+    // handlers and overwrites ours.  Reinstall after a short delay so our
+    // handler — which kills typesense-server and _exit()s — wins.
+    #[cfg(unix)]
+    thread::spawn(|| {
+        sleep(Duration::from_secs(3));
+        unsafe {
+            libc::signal(libc::SIGTERM, handle_shutdown as libc::sighandler_t);
+            libc::signal(libc::SIGINT, handle_shutdown as libc::sighandler_t);
+        }
+    });
+
     thread::spawn(move || {
         let home = env::var("HOME").unwrap();
 
         match fs::create_dir_all(format!("{}/Music", home)) {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("Failed to create Music directory: {}", e);
+                error!("Failed to create Music directory: {}", e);
             }
         }
 
@@ -98,8 +121,8 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             let tracks = repo::track::all(pool.clone()).await?;
             if tracks.is_empty() || update_library {
                 match scan_audio_files(pool.clone(), path.into()).await {
-                    Ok(_) => println!("Finished scanning audio files"),
-                    Err(e) => eprintln!("Failed to scan audio files: {}", e),
+                    Ok(_) => info!("Finished scanning audio files"),
+                    Err(e) => error!("Failed to scan audio files: {}", e),
                 }
                 let tracks = repo::track::all(pool.clone()).await?;
                 let albums = repo::album::all(pool.clone()).await?;
@@ -120,8 +143,8 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         thread::spawn(move || {
             sleep(Duration::from_secs(5));
             match rockbox_rocksky::register_rockbox() {
-                Ok(_) => println!("Successfully registered Rockbox with Rocksky server"),
-                Err(e) => eprintln!("Failed to register Rockbox with Rocksky server: {}", e),
+                Ok(_) => info!("Successfully registered Rockbox with Rocksky server"),
+                Err(e) => error!("Failed to register Rockbox with Rocksky server: {}", e),
             };
         });
 
@@ -139,20 +162,12 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
         let port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".to_string());
         let addr = format!("0.0.0.0:{}", port);
 
-        println!(
-            "{} server is running on {}",
-            "Rockbox TCP".bright_purple(),
-            addr.bright_green()
-        );
+        info!("Rockbox TCP server is running on {}", addr);
 
         let graphql_port = env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string());
         let addr = format!("{}:{}", "0.0.0.0", graphql_port);
 
-        println!(
-            "{} server is running on {}",
-            "Rockbox GraphQL".bright_purple(),
-            addr.bright_green()
-        );
+        info!("Rockbox GraphQL server is running on {}", addr);
 
         let rockbox_port: u16 = std::env::var("ROCKBOX_PORT")
             .unwrap_or_else(|_| "6061".to_string())
@@ -161,16 +176,9 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 
         let host_and_port = format!("0.0.0.0:{}", rockbox_port);
 
-        println!(
-            "{} server is running on {}",
-            "Rockbox gRPC".bright_purple(),
-            host_and_port.bright_green()
-        );
+        info!("Rockbox gRPC server is running on {}", host_and_port);
 
-        println!(
-            "Rockbox Web UI is running on {} ⚡",
-            "http://localhost:6062".bright_green()
-        );
+        info!("Rockbox Web UI is running on http://localhost:6062");
     });
 
     thread::spawn(move || {
@@ -179,7 +187,7 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
         let api_key = uuid::Uuid::new_v4().to_string();
         let api_key = std::env::var("RB_TYPESENSE_API_KEY").unwrap_or(api_key);
         std::env::set_var("RB_TYPESENSE_API_KEY", &api_key);
-        println!("Using Typesense API key: {}", api_key);
+        info!("Using Typesense API key: {}", api_key);
 
         let port = std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string());
         std::env::set_var("RB_TYPESENSE_PORT", &port);
@@ -202,8 +210,8 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
             .arg(format!("--api-port={port}"))
             .env("TYPESENSE_API_KEY", &api_key)
             .env("TYPESENSE_DATA_DIR", &data_dir)
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit());
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
 
         #[cfg(target_os = "linux")]
         unsafe {
@@ -223,16 +231,31 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
         let mut child = cmd.spawn()?;
         TYPESENSE_PID.store(child.id() as i32, Ordering::SeqCst);
 
+        if let Some(stdout) = child.stdout.take() {
+            thread::spawn(move || {
+                for line in BufReader::new(stdout).lines().flatten() {
+                    tracing::debug!(target: "typesense", "{}", line);
+                }
+            });
+        }
+        if let Some(stderr) = child.stderr.take() {
+            thread::spawn(move || {
+                for line in BufReader::new(stderr).lines().flatten() {
+                    tracing::warn!(target: "typesense", "{}", line);
+                }
+            });
+        }
+
         // Poll instead of blocking in waitpid so SIGTERM can reach the process.
         loop {
             match child.try_wait() {
                 Ok(Some(status)) => {
-                    eprintln!("typesense-server exited: {status}");
+                    warn!("typesense-server exited: {status}");
                     break;
                 }
                 Ok(None) => sleep(Duration::from_millis(500)),
                 Err(e) => {
-                    eprintln!("typesense-server monitor error: {e}");
+                    error!("typesense-server monitor error: {e}");
                     break;
                 }
             }
@@ -246,7 +269,7 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 #[no_mangle]
 pub extern "C" fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i32 {
     if url.is_null() {
-        eprintln!("save_remote_track_metadata: null url");
+        warn!("save_remote_track_metadata: null url");
         return -1;
     }
 
@@ -254,7 +277,7 @@ pub extern "C" fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i3
     let url = match url.to_str() {
         Ok(url) => url,
         Err(e) => {
-            eprintln!("save_remote_track_metadata: invalid utf-8: {}", e);
+            warn!("save_remote_track_metadata: invalid utf-8: {}", e);
             return -1;
         }
     };
@@ -262,7 +285,7 @@ pub extern "C" fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i3
     let rt = match tokio::runtime::Runtime::new() {
         Ok(rt) => rt,
         Err(e) => {
-            eprintln!(
+            error!(
                 "save_remote_track_metadata: failed to create runtime: {}",
                 e
             );
@@ -276,7 +299,7 @@ pub extern "C" fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i3
     }) {
         Ok(()) => 0,
         Err(e) => {
-            eprintln!("save_remote_track_metadata: {}", e);
+            error!("save_remote_track_metadata: {}", e);
             -1
         }
     }

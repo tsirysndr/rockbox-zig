@@ -1,6 +1,9 @@
-use std::ffi::c_void;
+use std::ffi::{c_void, CString};
 
 use crate::{PcmPlayCallbackType, PcmStatusCallbackType};
+
+pub const PCM_SINK_BUILTIN: i32 = 0;
+pub const PCM_SINK_FIFO: i32 = 1;
 
 pub fn apply_settings() {
     unsafe {
@@ -42,4 +45,16 @@ pub fn play_unlock() {
     unsafe {
         crate::pcm_play_unlock();
     }
+}
+
+pub fn switch_sink(sink: i32) -> bool {
+    unsafe { crate::pcm_switch_sink(sink) != 0 }
+}
+
+pub fn fifo_set_path(path: &str) {
+    let cpath = CString::new(path).expect("path must not contain null bytes");
+    unsafe { crate::pcm_fifo_set_path(cpath.as_ptr()) }
+    // Keep alive until C code finishes using it — it's only read during init,
+    // so leaking is acceptable here for a startup-time config call.
+    std::mem::forget(cpath);
 }
