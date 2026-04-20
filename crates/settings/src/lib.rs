@@ -30,10 +30,7 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
 
     if let Some(ref output) = settings.audio_output {
         if output == "fifo" {
-            let path = settings
-                .fifo_path
-                .as_deref()
-                .unwrap_or("/tmp/rockbox.fifo");
+            let path = settings.fifo_path.as_deref().unwrap_or("/tmp/rockbox.fifo");
             pcm::fifo_set_path(path);
             pcm::switch_sink(pcm::PCM_SINK_FIFO);
         }

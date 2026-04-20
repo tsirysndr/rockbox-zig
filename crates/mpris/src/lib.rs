@@ -1,7 +1,6 @@
 use std::{env, future, sync::Arc};
 
 use anyhow::Error;
-use tracing::warn;
 use async_std::stream::StreamExt;
 use mpris_server::{LoopStatus, Metadata, PlaybackStatus, Player, Time, TrackId};
 use rockbox_graphql::{
@@ -15,6 +14,7 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
     PreviousRequest, ResumeRequest, SaveSettingsRequest,
 };
 use tokio::sync::Mutex;
+use tracing::warn;
 
 pub mod macros;
 

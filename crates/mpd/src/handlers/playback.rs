@@ -1,10 +1,10 @@
 use anyhow::Error;
-use tracing::warn;
 use rockbox_rpc::api::rockbox::v1alpha1::{
     AdjustVolumeRequest, NextRequest, PauseRequest, PlayRequest, PreviousRequest, ResumeRequest,
     SaveSettingsRequest, StartRequest,
 };
 use tokio::sync::mpsc::Sender;
+use tracing::warn;
 
 use crate::Context;
 

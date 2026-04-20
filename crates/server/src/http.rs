@@ -1,7 +1,6 @@
 use anyhow::Error;
 use owo_colors::OwoColorize;
 use rockbox_library::entity::track::Track;
-use tracing::{debug, error};
 use rockbox_sys::{
     self as rb,
     types::{mp3_entry::Mp3Entry, tree::Entry},
@@ -20,6 +19,7 @@ use std::{
     time::Duration,
 };
 use threadpool::ThreadPool;
+use tracing::{debug, error};
 
 use crate::{
     kv::{build_tracks_kv, KV},

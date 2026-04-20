@@ -242,7 +242,11 @@ pub unsafe extern "C" fn rb_net_read(h: i32, dst: *mut libc::c_void, n: libc::si
             state.pos += bytes_read as u64;
             tracing::trace!(
                 "[netstream] rb_net_read: h={} n={} pos_before={} -> read={} pos_after={}",
-                h, n, pos_before, bytes_read, state.pos
+                h,
+                n,
+                pos_before,
+                bytes_read,
+                state.pos
             );
             bytes_read as i64
         }

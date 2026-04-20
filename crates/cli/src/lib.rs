@@ -5,6 +5,7 @@ use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
 use rockbox_typesense::client::*;
 use rockbox_typesense::types::*;
+use std::io::{BufRead, BufReader};
 use std::process::Stdio;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::thread::sleep;
@@ -196,8 +197,8 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
             .arg(format!("--api-port={port}"))
             .env("TYPESENSE_API_KEY", &api_key)
             .env("TYPESENSE_DATA_DIR", &data_dir)
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit());
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
 
         #[cfg(target_os = "linux")]
         unsafe {
@@ -216,6 +217,21 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 
         let mut child = cmd.spawn()?;
         TYPESENSE_PID.store(child.id() as i32, Ordering::SeqCst);
+
+        if let Some(stdout) = child.stdout.take() {
+            thread::spawn(move || {
+                for line in BufReader::new(stdout).lines().flatten() {
+                    tracing::debug!(target: "typesense", "{}", line);
+                }
+            });
+        }
+        if let Some(stderr) = child.stderr.take() {
+            thread::spawn(move || {
+                for line in BufReader::new(stderr).lines().flatten() {
+                    tracing::warn!(target: "typesense", "{}", line);
+                }
+            });
+        }
 
         // Poll instead of blocking in waitpid so SIGTERM can reach the process.
         loop {
