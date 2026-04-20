@@ -63,7 +63,8 @@ Rockbox.
 - [x] MPD Server
 - [x] MPRIS
 - [ ] UPnP/DLNA
-- [ ] Airplay
+- [x] Airplay
+- [x] Snapcast
 - [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
 - [ ] Wasm extensions
 
