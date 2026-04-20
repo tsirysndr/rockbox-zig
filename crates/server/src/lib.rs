@@ -345,6 +345,18 @@ pub extern "C" fn start_broker() {
                     track.album_art = album_art;
                     track.album_id = Some(metadata.album_id);
                     track.artist_id = Some(metadata.artist_id);
+                    if track.title.is_empty() {
+                        track.title = metadata.title.clone();
+                    }
+                    if track.artist.is_empty() {
+                        track.artist = metadata.artist.clone();
+                    }
+                    if track.album.is_empty() {
+                        track.album = metadata.album.clone();
+                    }
+                    if track.album_artist.is_empty() {
+                        track.album_artist = metadata.album_artist.clone();
+                    }
                     SimpleBroker::publish(track.clone());
 
                     let track_changed = if let Some(ref current) = current_scrobble_track {
