@@ -59,5 +59,8 @@ pub fn decode(data: &[u8]) -> Vec<Tlv8Item> {
 }
 
 pub fn find(items: &[Tlv8Item], typ: u8) -> Option<&[u8]> {
-    items.iter().find(|i| i.typ == typ).map(|i| i.value.as_slice())
+    items
+        .iter()
+        .find(|i| i.typ == typ)
+        .map(|i| i.value.as_slice())
 }

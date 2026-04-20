@@ -4,7 +4,6 @@
 /// Hash: SHA-512.
 /// Username (I): "Pair-Setup"
 /// Password (P): 8-digit PIN string, e.g. "12345678"
-
 use num_bigint::BigUint;
 use num_traits::Zero;
 use sha2::{Digest, Sha512};
@@ -104,7 +103,11 @@ impl SrpClient {
         // S = (B - k*v)^(a + u*x) mod N  where v = g^x mod N
         let v = g.modpow(&x, n);
         let kv = (k * &v) % n;
-        let base = if b >= kv { (b - kv) % n } else { (b + n - kv % n) % n };
+        let base = if b >= kv {
+            (b - kv) % n
+        } else {
+            (b + n - kv % n) % n
+        };
         let exp = (&self.a + &u * &x) % (n - BigUint::from(1u32));
         let s_val = base.modpow(&exp, n);
 
@@ -135,9 +138,7 @@ impl SrpClient {
 
     /// Verify the server's proof M2 = H(A | M1 | K).
     pub fn verify_server(a_pub: &[u8], m1: &[u8], k: &[u8], m2_server: &[u8]) -> bool {
-        let expected = Sha512::digest(
-            [a_pub, m1, k].concat()
-        );
+        let expected = Sha512::digest([a_pub, m1, k].concat());
         expected.as_slice() == m2_server
     }
 }

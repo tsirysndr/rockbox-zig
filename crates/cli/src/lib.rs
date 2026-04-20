@@ -1,10 +1,10 @@
 use anyhow::Error;
 
 // Force rockbox-airplay symbols into librockbox_cli.a
-#[allow(unused_imports)]
-use rockbox_airplay::_link_airplay as _;
 use clap::Command;
 use owo_colors::OwoColorize;
+#[allow(unused_imports)]
+use rockbox_airplay::_link_airplay as _;
 use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
 use rockbox_typesense::client::*;

@@ -55,16 +55,16 @@ pub fn encode_frame(pcm: &[u8]) -> [u8; ALAC_FRAME_BYTES] {
 
     // 23-bit header — matches the exact readbits() sequence in hammerton alac.c:
     w.write(0b001, 3); // channels = 1 (stereo); decoder: readbits(3)
-    w.write(0, 4);     // output_waiting;          decoder: readbits(4) — discarded
-    w.write(0, 12);    // unknown;                  decoder: readbits(12) — discarded
-    w.write(0, 1);     // hassize = 0;              decoder: readbits(1)
-    w.write(0, 2);     // uncompressed_bytes = 0;   decoder: readbits(2)
-    w.write(1, 1);     // isNotCompressed = 1;      decoder: readbits(1) — bit 22
+    w.write(0, 4); // output_waiting;          decoder: readbits(4) — discarded
+    w.write(0, 12); // unknown;                  decoder: readbits(12) — discarded
+    w.write(0, 1); // hassize = 0;              decoder: readbits(1)
+    w.write(0, 2); // uncompressed_bytes = 0;   decoder: readbits(2)
+    w.write(1, 1); // isNotCompressed = 1;      decoder: readbits(1) — bit 22
 
     // Interleaved samples: L0, R0, L1, R1, ...
     for i in 0..FRAME_SAMPLES {
         let base = i * 4;
-        let l = i16::from_le_bytes([pcm[base],     pcm[base + 1]]) as u16 as u32;
+        let l = i16::from_le_bytes([pcm[base], pcm[base + 1]]) as u16 as u32;
         let r = i16::from_le_bytes([pcm[base + 2], pcm[base + 3]]) as u16 as u32;
         w.write(l, 16);
         w.write(r, 16);

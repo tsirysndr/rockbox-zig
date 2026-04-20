@@ -26,7 +26,15 @@ impl RtspClient {
         let base_url = format!("rtsp://{}:{}/{}", host, port, session_token);
         let dacp_id: u64 = rand::random();
         let active_remote: u32 = rand::random();
-        Ok(Self { stream, reader, cseq: 0, session_id: None, base_url, dacp_id, active_remote })
+        Ok(Self {
+            stream,
+            reader,
+            cseq: 0,
+            session_id: None,
+            base_url,
+            dacp_id,
+            active_remote,
+        })
     }
 
     fn send_request(
@@ -121,23 +129,28 @@ impl RtspClient {
              a=min-latency:3528\r\n"
         );
         let url = self.base_url.clone();
-        let resp = self.send_request("ANNOUNCE", &url, &[
-            ("Content-Type", "application/sdp"),
-        ], Some(&sdp))?;
+        let resp = self.send_request(
+            "ANNOUNCE",
+            &url,
+            &[("Content-Type", "application/sdp")],
+            Some(&sdp),
+        )?;
         Self::check_ok(&resp, "ANNOUNCE")
     }
 
     /// Returns (server_audio_port, server_ctrl_port, server_timing_port).
-    pub fn setup(&mut self, local_ctrl_port: u16, local_timing_port: u16) -> io::Result<(u16, u16, u16)> {
+    pub fn setup(
+        &mut self,
+        local_ctrl_port: u16,
+        local_timing_port: u16,
+    ) -> io::Result<(u16, u16, u16)> {
         // interleaved=0-1 is required by Apple receivers even for UDP transport.
         let transport = format!(
             "RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;control_port={};timing_port={}",
             local_ctrl_port, local_timing_port
         );
         let url = self.base_url.clone();
-        let resp = self.send_request("SETUP", &url, &[
-            ("Transport", &transport),
-        ], None)?;
+        let resp = self.send_request("SETUP", &url, &[("Transport", &transport)], None)?;
         Self::check_ok(&resp, "SETUP")?;
 
         if let Some(sid) = resp.headers.get("session") {
@@ -145,10 +158,15 @@ impl RtspClient {
         }
 
         let transport_resp = resp.headers.get("transport").cloned().unwrap_or_default();
-        let server_audio  = parse_port(&transport_resp, "server_port").unwrap_or(6000);
-        let server_ctrl   = parse_port(&transport_resp, "control_port").unwrap_or(6001);
+        let server_audio = parse_port(&transport_resp, "server_port").unwrap_or(6000);
+        let server_ctrl = parse_port(&transport_resp, "control_port").unwrap_or(6001);
         let server_timing = parse_port(&transport_resp, "timing_port").unwrap_or(6002);
-        tracing::debug!("server ports: audio={} ctrl={} timing={}", server_audio, server_ctrl, server_timing);
+        tracing::debug!(
+            "server ports: audio={} ctrl={} timing={}",
+            server_audio,
+            server_ctrl,
+            server_timing
+        );
         Ok((server_audio, server_ctrl, server_timing))
     }
 
@@ -171,10 +189,12 @@ impl RtspClient {
         let body = format!("volume: {:.6}\r\n", volume);
         let sid = self.session_id.clone().unwrap_or_default();
         let url = self.base_url.clone();
-        let resp = self.send_request("SET_PARAMETER", &url, &[
-            ("Session", &sid),
-            ("Content-Type", "text/parameters"),
-        ], Some(&body))?;
+        let resp = self.send_request(
+            "SET_PARAMETER",
+            &url,
+            &[("Session", &sid), ("Content-Type", "text/parameters")],
+            Some(&body),
+        )?;
         Self::check_ok(&resp, "SET_PARAMETER")
     }
 

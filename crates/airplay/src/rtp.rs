@@ -46,7 +46,11 @@ impl RtpSender {
         thread::spawn(move || timing_responder(timing_thread));
 
         let server_ctrl_addr = "0.0.0.0:0".parse().unwrap();
-        tracing::debug!("local ctrl_port={} timing_port={}", local_ctrl_port, local_timing_port);
+        tracing::debug!(
+            "local ctrl_port={} timing_port={}",
+            local_ctrl_port,
+            local_timing_port
+        );
 
         Ok(Self {
             audio_sock,
@@ -65,9 +69,15 @@ impl RtpSender {
     }
 
     /// Connect the audio socket to the server's RTP port and record the ctrl addr.
-    pub fn connect_server(&mut self, host: &str, audio_port: u16, ctrl_port: u16) -> std::io::Result<()> {
+    pub fn connect_server(
+        &mut self,
+        host: &str,
+        audio_port: u16,
+        ctrl_port: u16,
+    ) -> std::io::Result<()> {
         tracing::debug!("connecting audio → {}:{}", host, audio_port);
-        self.audio_sock.connect(format!("{}:{}", host, audio_port))?;
+        self.audio_sock
+            .connect(format!("{}:{}", host, audio_port))?;
         self.server_ctrl_addr = format!("{}:{}", host, ctrl_port)
             .parse()
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e))?;
@@ -86,8 +96,8 @@ impl RtpSender {
         pkt[5] = (self.rtptime >> 16) as u8;
         pkt[6] = (self.rtptime >> 8) as u8;
         pkt[7] = self.rtptime as u8;
-        pkt[8]  = (self.ssrc >> 24) as u8;
-        pkt[9]  = (self.ssrc >> 16) as u8;
+        pkt[8] = (self.ssrc >> 24) as u8;
+        pkt[9] = (self.ssrc >> 16) as u8;
         pkt[10] = (self.ssrc >> 8) as u8;
         pkt[11] = self.ssrc as u8;
         pkt[RTP_HEADER_BYTES..].copy_from_slice(alac_frame);
@@ -95,8 +105,13 @@ impl RtpSender {
         match self.audio_sock.send(&pkt) {
             Ok(_) => {
                 if self.frames_sent < 5 {
-                    tracing::debug!("sent frame {} ts={} seq={} first={}",
-                              self.frames_sent, self.rtptime, self.seqnum, first);
+                    tracing::debug!(
+                        "sent frame {} ts={} seq={} first={}",
+                        self.frames_sent,
+                        self.rtptime,
+                        self.seqnum,
+                        first
+                    );
                 }
             }
             Err(e) => tracing::warn!("send error on frame {}: {}", self.frames_sent, e),
@@ -123,7 +138,7 @@ impl RtpSender {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default();
-        let ntp_sec  = now.as_secs() as u32 + NTP_EPOCH_DELTA;
+        let ntp_sec = now.as_secs() as u32 + NTP_EPOCH_DELTA;
         let ntp_frac = ((now.subsec_nanos() as u64 * (1u64 << 32)) / 1_000_000_000) as u32;
 
         // "current" timestamp = frame we just sent (rtptime was already incremented)
@@ -136,22 +151,22 @@ impl RtpSender {
         pkt[1] = 0xd4;
         pkt[2] = 0x00;
         pkt[3] = 0x07;
-        pkt[4]  = (current_ts >> 24) as u8;
-        pkt[5]  = (current_ts >> 16) as u8;
-        pkt[6]  = (current_ts >> 8)  as u8;
-        pkt[7]  =  current_ts        as u8;
-        pkt[8]  = (ntp_sec >> 24)    as u8;
-        pkt[9]  = (ntp_sec >> 16)    as u8;
-        pkt[10] = (ntp_sec >> 8)     as u8;
-        pkt[11] =  ntp_sec           as u8;
-        pkt[12] = (ntp_frac >> 24)   as u8;
-        pkt[13] = (ntp_frac >> 16)   as u8;
-        pkt[14] = (ntp_frac >> 8)    as u8;
-        pkt[15] =  ntp_frac          as u8;
-        pkt[16] = (next_ts >> 24)    as u8;
-        pkt[17] = (next_ts >> 16)    as u8;
-        pkt[18] = (next_ts >> 8)     as u8;
-        pkt[19] =  next_ts           as u8;
+        pkt[4] = (current_ts >> 24) as u8;
+        pkt[5] = (current_ts >> 16) as u8;
+        pkt[6] = (current_ts >> 8) as u8;
+        pkt[7] = current_ts as u8;
+        pkt[8] = (ntp_sec >> 24) as u8;
+        pkt[9] = (ntp_sec >> 16) as u8;
+        pkt[10] = (ntp_sec >> 8) as u8;
+        pkt[11] = ntp_sec as u8;
+        pkt[12] = (ntp_frac >> 24) as u8;
+        pkt[13] = (ntp_frac >> 16) as u8;
+        pkt[14] = (ntp_frac >> 8) as u8;
+        pkt[15] = ntp_frac as u8;
+        pkt[16] = (next_ts >> 24) as u8;
+        pkt[17] = (next_ts >> 16) as u8;
+        pkt[18] = (next_ts >> 8) as u8;
+        pkt[19] = next_ts as u8;
 
         let _ = self.ctrl_sock.send_to(&pkt, self.server_ctrl_addr);
     }
@@ -162,31 +177,31 @@ impl RtpSender {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default();
-        let ntp_sec  = now.as_secs() as u32 + NTP_EPOCH_DELTA;
+        let ntp_sec = now.as_secs() as u32 + NTP_EPOCH_DELTA;
         let ntp_frac = ((now.subsec_nanos() as u64 * (1u64 << 32)) / 1_000_000_000) as u32;
         let ts = self.initial_rtptime;
 
         let mut pkt = [0u8; 20];
-        pkt[0]  = 0x90; // first sync: extension bit set
-        pkt[1]  = 0xd4;
-        pkt[2]  = 0x00;
-        pkt[3]  = 0x07;
-        pkt[4]  = (ts >> 24) as u8;
-        pkt[5]  = (ts >> 16) as u8;
-        pkt[6]  = (ts >>  8) as u8;
-        pkt[7]  =  ts        as u8;
-        pkt[8]  = (ntp_sec  >> 24) as u8;
-        pkt[9]  = (ntp_sec  >> 16) as u8;
-        pkt[10] = (ntp_sec  >>  8) as u8;
-        pkt[11] =  ntp_sec         as u8;
+        pkt[0] = 0x90; // first sync: extension bit set
+        pkt[1] = 0xd4;
+        pkt[2] = 0x00;
+        pkt[3] = 0x07;
+        pkt[4] = (ts >> 24) as u8;
+        pkt[5] = (ts >> 16) as u8;
+        pkt[6] = (ts >> 8) as u8;
+        pkt[7] = ts as u8;
+        pkt[8] = (ntp_sec >> 24) as u8;
+        pkt[9] = (ntp_sec >> 16) as u8;
+        pkt[10] = (ntp_sec >> 8) as u8;
+        pkt[11] = ntp_sec as u8;
         pkt[12] = (ntp_frac >> 24) as u8;
         pkt[13] = (ntp_frac >> 16) as u8;
-        pkt[14] = (ntp_frac >>  8) as u8;
-        pkt[15] =  ntp_frac        as u8;
+        pkt[14] = (ntp_frac >> 8) as u8;
+        pkt[15] = ntp_frac as u8;
         pkt[16] = (ts >> 24) as u8;
         pkt[17] = (ts >> 16) as u8;
-        pkt[18] = (ts >>  8) as u8;
-        pkt[19] =  ts        as u8;
+        pkt[18] = (ts >> 8) as u8;
+        pkt[19] = ts as u8;
 
         let _ = self.ctrl_sock.send_to(&pkt, self.server_ctrl_addr);
         tracing::debug!("sent initial sync ts={}", ts);
@@ -210,7 +225,12 @@ fn timing_responder(sock: Arc<UdpSocket>) {
             Err(_) => break,
         };
         if len < 32 || buf[1] != 0xD2 {
-            tracing::debug!("timing: unexpected packet len={} type=0x{:02X} from {}", len, buf[1], src);
+            tracing::debug!(
+                "timing: unexpected packet len={} type=0x{:02X} from {}",
+                len,
+                buf[1],
+                src
+            );
             continue;
         }
         tracing::debug!("timing request from {}", src);
@@ -218,7 +238,7 @@ fn timing_responder(sock: Arc<UdpSocket>) {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default();
-        let ntp_sec  = now.as_secs() as u32 + NTP_EPOCH_DELTA;
+        let ntp_sec = now.as_secs() as u32 + NTP_EPOCH_DELTA;
         let ntp_frac = ((now.subsec_nanos() as u64 * (1u64 << 32)) / 1_000_000_000) as u32;
 
         let mut resp = [0u8; 32];
@@ -232,12 +252,12 @@ fn timing_responder(sock: Arc<UdpSocket>) {
         // [24-31] receive + transmit = our current NTP
         resp[24] = (ntp_sec >> 24) as u8;
         resp[25] = (ntp_sec >> 16) as u8;
-        resp[26] = (ntp_sec >> 8)  as u8;
-        resp[27] =  ntp_sec        as u8;
+        resp[26] = (ntp_sec >> 8) as u8;
+        resp[27] = ntp_sec as u8;
         resp[28] = (ntp_frac >> 24) as u8;
         resp[29] = (ntp_frac >> 16) as u8;
-        resp[30] = (ntp_frac >> 8)  as u8;
-        resp[31] =  ntp_frac        as u8;
+        resp[30] = (ntp_frac >> 8) as u8;
+        resp[31] = ntp_frac as u8;
 
         let _ = sock.send_to(&resp, src);
     }

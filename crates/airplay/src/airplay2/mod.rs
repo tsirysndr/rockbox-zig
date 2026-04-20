@@ -18,7 +18,10 @@ pub fn load_or_create_identity() -> io::Result<(SigningKey, String)> {
     let signing_key = if path.exists() {
         let bytes = std::fs::read(&path)?;
         if bytes.len() != 32 {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "bad identity key length"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "bad identity key length",
+            ));
         }
         let arr: [u8; 32] = bytes.try_into().unwrap();
         SigningKey::from_bytes(&arr)

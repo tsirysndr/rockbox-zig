@@ -42,7 +42,9 @@ pub extern "C" fn pcm_airplay_set_host(host: *const c_char, port: c_ushort) {
     if host.is_null() {
         return;
     }
-    let s = unsafe { CStr::from_ptr(host) }.to_string_lossy().into_owned();
+    let s = unsafe { CStr::from_ptr(host) }
+        .to_string_lossy()
+        .into_owned();
     let mut cfg = CONFIG.lock().unwrap();
     cfg.host = Some(s);
     cfg.port = port;
@@ -83,14 +85,20 @@ pub extern "C" fn pcm_airplay_connect() -> c_int {
     // Bind all UDP sockets first so we know the local ports before SETUP.
     let mut sender = match RtpSender::bind(ssrc, initial_rtptime) {
         Ok(s) => s,
-        Err(e) => { tracing::error!("bind failed: {}", e); return -1; }
+        Err(e) => {
+            tracing::error!("bind failed: {}", e);
+            return -1;
+        }
     };
-    let local_ctrl_port   = sender.local_ctrl_port;
+    let local_ctrl_port = sender.local_ctrl_port;
     let local_timing_port = sender.local_timing_port;
 
     let mut rtsp = match RtspClient::connect(&host, port, session_token) {
         Ok(c) => c,
-        Err(e) => { tracing::error!("RTSP TCP connect failed: {}", e); return -1; }
+        Err(e) => {
+            tracing::error!("RTSP TCP connect failed: {}", e);
+            return -1;
+        }
     };
 
     if let Err(e) = rtsp.announce(&local_ip, &host) {
@@ -101,7 +109,10 @@ pub extern "C" fn pcm_airplay_connect() -> c_int {
     let (server_audio, server_ctrl, _server_timing) =
         match rtsp.setup(local_ctrl_port, local_timing_port) {
             Ok(ports) => ports,
-            Err(e) => { tracing::error!("SETUP failed: {}", e); return -1; }
+            Err(e) => {
+                tracing::error!("SETUP failed: {}", e);
+                return -1;
+            }
         };
 
     if let Err(e) = sender.connect_server(&host, server_audio, server_ctrl) {
@@ -120,7 +131,11 @@ pub extern "C" fn pcm_airplay_connect() -> c_int {
     }
 
     sender.send_initial_sync();
-    tracing::info!("session established — sending audio to {}:{}", host, server_audio);
+    tracing::info!(
+        "session established — sending audio to {}:{}",
+        host,
+        server_audio
+    );
 
     let mut guard = SESSION.lock().unwrap();
     *guard = Some(AirPlaySession {
@@ -157,9 +172,8 @@ pub extern "C" fn pcm_airplay_write(data: *const u8, len: usize) -> c_int {
     session.buf.extend_from_slice(input);
 
     while session.buf.len() >= PCM_BYTES_PER_FRAME {
-        let frame_bytes: [u8; PCM_BYTES_PER_FRAME] = session.buf[..PCM_BYTES_PER_FRAME]
-            .try_into()
-            .unwrap();
+        let frame_bytes: [u8; PCM_BYTES_PER_FRAME] =
+            session.buf[..PCM_BYTES_PER_FRAME].try_into().unwrap();
         session.buf.drain(..PCM_BYTES_PER_FRAME);
 
         let alac = encode_frame(&frame_bytes);
