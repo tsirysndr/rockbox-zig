@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Rockbox Zig is a modern wrapper around the [Rockbox](https://www.rockbox.org) open-source audio player firmware. It adds Rust/Zig services on top of the C firmware to expose gRPC, GraphQL, HTTP, and MPD APIs, a Typesense-backed search engine, Chromecast/AirPlay/Snapcast output sinks, and a desktop/web UI.
+Rockbox Zig is a modern wrapper around the [Rockbox](https://www.rockbox.org) open-source audio player firmware. It adds Rust/Zig services on top of the C firmware to expose gRPC, GraphQL, HTTP, and MPD APIs, a Typesense-backed search engine, Chromecast/AirPlay/Snapcast/Squeezelite output sinks, and a desktop/web UI.
 
 The binary is called **`rockboxd`**. It is a single executable built by Zig that links:
 - The Rockbox C firmware (compiled by Make into `build-lib/libfirmware.a` and friends)
@@ -18,6 +18,7 @@ lib/               Codec libraries (rbcodec, fixedpoint, skin_parser, tlsf)
 build-lib/         Out-of-tree Make build directory (generated; do not edit)
 crates/            Rust workspace
   airplay/         ALAC encoder + RAOP/RTP sender (AirPlay 1 output)
+  slim/            Slim Protocol + HTTP broadcast server (Squeezelite multi-room output)
   cli/             Entry point compiled to librockbox_cli.a (staticlib)
   server/          gRPC / HTTP server
   settings/        load_settings() — reads settings.toml, applies sinks
@@ -87,6 +88,16 @@ fifo_path = "/tmp/snapfifo"   # named FIFO for Snapcast; use "-" for stdout
 audio_output = "airplay"
 airplay_host = "192.168.1.x"  # RAOP receiver IP
 airplay_port = 5000            # optional, default 5000
+
+audio_output = "squeezelite"
+squeezelite_port = 3483        # optional, Slim Protocol port (default 3483)
+squeezelite_http_port = 9999   # optional, HTTP PCM stream port (default 9999)
+```
+
+Run one or more squeezelite clients pointing at rockboxd for multi-room:
+```sh
+squeezelite -s localhost -n "Living Room"
+squeezelite -s localhost -n "Kitchen"
 ```
 
 ## PCM sink architecture
@@ -95,9 +106,10 @@ The audio output abstraction lives in `firmware/export/pcm_sink.h`. Each sink im
 
 | Enum constant      | Value | Implementation file                         |
 |--------------------|-------|---------------------------------------------|
-| `PCM_SINK_BUILTIN` | 0     | `firmware/target/hosted/sdl/pcm-sdl.c`     |
-| `PCM_SINK_FIFO`    | 1     | `firmware/target/hosted/pcm-fifo.c`        |
-| `PCM_SINK_AIRPLAY` | 2     | `firmware/target/hosted/pcm-airplay.c`     |
+| `PCM_SINK_BUILTIN`     | 0 | `firmware/target/hosted/sdl/pcm-sdl.c`        |
+| `PCM_SINK_FIFO`        | 1 | `firmware/target/hosted/pcm-fifo.c`           |
+| `PCM_SINK_AIRPLAY`     | 2 | `firmware/target/hosted/pcm-airplay.c`        |
+| `PCM_SINK_SQUEEZELITE` | 3 | `firmware/target/hosted/pcm-squeezelite.c`    |
 
 `crates/settings/src/lib.rs:load_settings()` reads `audio_output` and calls `pcm::switch_sink()`.
 
@@ -120,6 +132,16 @@ Rust constants + helpers live in `crates/sys/src/sound/pcm.rs`.
   - `rtsp.rs` — synchronous RTSP client: ANNOUNCE (SDP) → SETUP → RECORD
 - `pcm_airplay_connect()` is called once per `sink_dma_start()` (idempotent if already connected).
 - The `rockbox-airplay` rlib must be force-included in `librockbox_cli.a` via the `use rockbox_airplay::_link_airplay as _` shim in `crates/cli/src/lib.rs`.
+
+### Squeezelite sink (Slim Protocol + HTTP broadcast)
+- `crates/slim/` implements a Slim Protocol TCP server and an HTTP PCM broadcast server, both in pure Rust.
+  - `slimproto.rs` — accepts squeezelite connections; sends `STRM 's'` pointing at the HTTP port; replies to every `STMt` heartbeat with `audg` to prevent squeezelite's 36-second watchdog from firing.
+  - `http.rs` — concurrent HTTP server (one thread per client); each client gets an independent `BroadcastReceiver` cursor into the shared buffer, enabling true multi-room playback.
+  - `lib.rs` — `BroadcastBuffer`: sequence-numbered chunks, per-reader cursors, 4 MB cap with oldest-first eviction; lagging readers skip forward rather than blocking the writer.
+- `firmware/target/hosted/pcm-squeezelite.c` paces the DMA loop to real time using `CLOCK_MONOTONIC`. **Use `int64_t` for the nanosecond diff** — unsigned subtraction wraps catastrophically when `tv_nsec` rolls over.
+- The `rockbox-slim` rlib must be force-included via `use rockbox_slim::_link_slim as _` in `crates/cli/src/lib.rs`.
+- **Slim Protocol framing**: client→server is `opcode[4] + u32_t length BE + payload`; server→client is `u16_t length BE + opcode[4] + payload` (length does NOT include the 2-byte length field itself).
+- **ASCII-encoded PCM fields in STRM**: squeezelite subtracts `'0'` from `pcm_sample_size`, `pcm_sample_rate`, `pcm_channels`, `pcm_endianness`. Correct values: `'1'` (16-bit), `'3'` (44100 Hz), `'2'` (stereo), `'1'` (little-endian).
 
 ## Key cross-cutting concerns
 
@@ -175,6 +197,14 @@ ls -la zig/zig-out/bin/rockboxd build-lib/libfirmware.a target/release/librockbo
 # Verify AirPlay symbols are present
 nm zig/zig-out/bin/rockboxd | grep pcm_airplay
 
+# Verify squeezelite symbols are present
+nm zig/zig-out/bin/rockboxd | grep pcm_squeezelite
+
 # Verify a crate is in the staticlib
 ar t target/release/librockbox_cli.a | grep airplay
+ar t target/release/librockbox_cli.a | grep slim
+
+# Multi-room squeezelite test
+squeezelite -s localhost -n "Room 1"
+squeezelite -s localhost -n "Room 2"
 ```
