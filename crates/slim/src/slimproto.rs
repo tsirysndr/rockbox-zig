@@ -26,7 +26,10 @@ pub fn serve(slim_port: u16, http_port: u16) {
 }
 
 fn handle_client(mut stream: TcpStream, http_port: u16) {
-    let peer = stream.peer_addr().map(|a| a.to_string()).unwrap_or_default();
+    let peer = stream
+        .peer_addr()
+        .map(|a| a.to_string())
+        .unwrap_or_default();
     tracing::info!("slim: client connected from {peer}");
 
     match read_client_packet(&mut stream) {
@@ -108,20 +111,20 @@ fn send_server_packet(
 fn send_strm_start(stream: &mut TcpStream, http_port: u16) -> std::io::Result<()> {
     let request = b"GET /stream.pcm HTTP/1.0\r\n\r\n";
     let mut payload = Vec::with_capacity(24 + request.len());
-    payload.push(b's');           // command: start
-    payload.push(b'1');           // autostart
-    payload.push(b'p');           // format: raw PCM
-    payload.push(b'1');           // pcm_sample_size: 16-bit
-    payload.push(b'3');           // pcm_sample_rate: 44100 Hz
-    payload.push(b'2');           // pcm_channels: stereo
-    payload.push(b'1');           // pcm_endianness: little-endian
-    payload.push(255u8);          // threshold: 255 KB
-    payload.push(0u8);            // spdif_enable
-    payload.push(0u8);            // transition_period
-    payload.push(b'0');           // transition_type: none
-    payload.push(0u8);            // flags
-    payload.push(0u8);            // output_threshold
-    payload.push(0u8);            // slaves
+    payload.push(b's'); // command: start
+    payload.push(b'1'); // autostart
+    payload.push(b'p'); // format: raw PCM
+    payload.push(b'1'); // pcm_sample_size: 16-bit
+    payload.push(b'3'); // pcm_sample_rate: 44100 Hz
+    payload.push(b'2'); // pcm_channels: stereo
+    payload.push(b'1'); // pcm_endianness: little-endian
+    payload.push(255u8); // threshold: 255 KB
+    payload.push(0u8); // spdif_enable
+    payload.push(0u8); // transition_period
+    payload.push(b'0'); // transition_type: none
+    payload.push(0u8); // flags
+    payload.push(0u8); // output_threshold
+    payload.push(0u8); // slaves
     payload.extend_from_slice(&0x00010000u32.to_be_bytes()); // replay_gain = 1.0
     payload.extend_from_slice(&http_port.to_be_bytes());
     payload.extend_from_slice(&0u32.to_be_bytes()); // server_ip = 0 → use slimproto_ip

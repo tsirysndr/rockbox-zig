@@ -5,10 +5,10 @@ use clap::Command;
 use owo_colors::OwoColorize;
 #[allow(unused_imports)]
 use rockbox_airplay::_link_airplay as _;
-#[allow(unused_imports)]
-use rockbox_slim::_link_slim as _;
 use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
+#[allow(unused_imports)]
+use rockbox_slim::_link_slim as _;
 use rockbox_typesense::client::*;
 use rockbox_typesense::types::*;
 use std::io::{BufRead, BufReader};

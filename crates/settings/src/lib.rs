@@ -59,7 +59,10 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
             tracing::info!("audio output: builtin (SDL)");
         }
         Some(other) => {
-            tracing::warn!("audio output: unknown value {:?}, falling back to builtin", other);
+            tracing::warn!(
+                "audio output: unknown value {:?}, falling back to builtin",
+                other
+            );
         }
     }
 

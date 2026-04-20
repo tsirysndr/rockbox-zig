@@ -73,7 +73,10 @@ impl BroadcastBuffer {
     /// Subscribe from the current write position (live stream, no old data).
     pub(crate) fn subscribe(self: &Arc<Self>) -> BroadcastReceiver {
         let next_seq = self.inner.lock().unwrap().next_seq;
-        BroadcastReceiver { buf: Arc::clone(self), next_seq }
+        BroadcastReceiver {
+            buf: Arc::clone(self),
+            next_seq,
+        }
     }
 
     fn reset(&self) {
@@ -108,7 +111,8 @@ impl BroadcastReceiver {
                 if self.next_seq < front_seq {
                     tracing::debug!(
                         "slim/broadcast: receiver lagging, skipping {} → {}",
-                        self.next_seq, front_seq
+                        self.next_seq,
+                        front_seq
                     );
                     self.next_seq = front_seq;
                 }
@@ -143,7 +147,9 @@ static CONFIG: Mutex<SlimConfig> = Mutex::new(SlimConfig {
 });
 
 fn get_buffer() -> Arc<BroadcastBuffer> {
-    BUFFER.get_or_init(|| Arc::new(BroadcastBuffer::new())).clone()
+    BUFFER
+        .get_or_init(|| Arc::new(BroadcastBuffer::new()))
+        .clone()
 }
 
 // ---------------------------------------------------------------------------
@@ -181,9 +187,7 @@ pub extern "C" fn pcm_squeezelite_start() -> std::os::raw::c_int {
     std::thread::spawn(move || slimproto::serve(slim_port, http_port));
 
     *started = true;
-    tracing::info!(
-        "squeezelite sink: Slim Protocol on :{slim_port}, HTTP audio on :{http_port}"
-    );
+    tracing::info!("squeezelite sink: Slim Protocol on :{slim_port}, HTTP audio on :{http_port}");
     0
 }
 
