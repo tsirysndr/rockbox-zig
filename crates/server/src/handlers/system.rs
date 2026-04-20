@@ -47,7 +47,7 @@ pub async fn scan_library(ctx: &Context, req: &Request, res: &mut Response) -> R
         return Ok(());
     }
 
-    update_metadata(ctx.pool.clone())?;
+    update_metadata(ctx.pool.clone()).await?;
 
     if !rebuild_index {
         res.text("0");

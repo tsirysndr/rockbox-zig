@@ -1237,6 +1237,7 @@ extern "C" {
 
     // Metadata
     fn rb_get_metadata(fd: i32, trackname: *const c_char) -> Mp3Entry;
+    fn get_metadata(id3: *mut Mp3Entry, fd: i32, trackname: *const c_char) -> bool;
     fn get_codec_string(codectype: c_int) -> *const c_char;
     fn count_mp3_frames(
         fd: c_int,

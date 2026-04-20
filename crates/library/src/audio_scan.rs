@@ -22,7 +22,7 @@ const AUDIO_EXTENSIONS: [&str; 18] = [
     "opus", "spx", "sid", "ape", "wma",
 ];
 
-const MAX_CONCURRENT_SCANS: usize = 8;
+const MAX_CONCURRENT_SCANS: usize = 1;
 
 pub fn scan_audio_files(
     pool: Pool<Sqlite>,
@@ -109,7 +109,15 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
         .as_ref()
         .map(|probe| probe.path.as_str())
         .unwrap_or(path);
-    let entry = rb::metadata::get_metadata(-1, metadata_path);
+
+    // Run C FFI call on blocking thread pool to avoid thread-safety issues
+    let metadata_path_owned = metadata_path.to_string();
+    let entry = tokio::task::spawn_blocking(move || {
+        rb::metadata::get_metadata(-1, &metadata_path_owned)
+    })
+    .await
+    .map_err(|e| anyhow!("Failed to get metadata: {}", e))?;
+
     let title = track_title(&entry, path);
     let artist = track_artist(&entry);
     let album_artist = track_album_artist(&entry, &artist);

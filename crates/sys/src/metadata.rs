@@ -1,11 +1,27 @@
 use std::ffi::{c_uchar, CStr, CString};
+use std::sync::Mutex;
 
 use crate::{types::mp3_entry::Mp3Entry, ProgressFunc};
 
+// Global mutex to protect non-thread-safe C metadata parsing code
+static METADATA_MUTEX: Mutex<()> = Mutex::new(());
+
 pub fn get_metadata(fd: i32, trackname: &str) -> Mp3Entry {
     let trackname = CString::new(trackname).unwrap();
-    let id3 = unsafe { crate::rb_get_metadata(fd, trackname.as_ptr()) };
-    id3.into()
+    let _guard = METADATA_MUTEX.lock().unwrap();
+
+    // Create a properly initialized mp3entry struct
+    // Use MaybeUninit to avoid undefined behavior
+    let mut id3 = std::mem::MaybeUninit::<crate::Mp3Entry>::zeroed();
+
+    // Call C function directly to fill the struct in place
+    // This avoids the dangling pointer issue from the Zig wrapper
+    unsafe {
+        crate::get_metadata(id3.as_mut_ptr(), fd, trackname.as_ptr());
+        let id3 = id3.assume_init();
+        // Convert immediately while pointers are still valid
+        id3.into()
+    }
 }
 
 pub fn get_codec_string(codectype: i32) -> String {

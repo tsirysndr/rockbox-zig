@@ -162,9 +162,10 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
         let data_dir = homedir.join(".config/rockbox.org/typesense");
 
         let path = format!(
-            "{}:{}",
+            "{}:{}/{}",
             std::env::var("PATH").unwrap_or_default(),
-            "~/.rockbox/bin"
+            homedir.display(),
+            ".rockbox/bin"
         );
 
         std::process::Command::new("sh")

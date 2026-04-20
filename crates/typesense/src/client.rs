@@ -268,7 +268,15 @@ pub async fn search_tracks(query: &str) -> Result<Option<TrackResult>, Error> {
         .send()
         .await?;
 
-    Ok(Some(res.json::<TrackResult>().await?))
+    let text = res.text().await?;
+    match serde_json::from_str::<TrackResult>(&text) {
+        Ok(result) => Ok(Some(result)),
+        Err(e) => {
+            eprintln!("Failed to parse Typesense response: {}", e);
+            eprintln!("Response body: {}", text);
+            Err(e.into())
+        }
+    }
 }
 
 pub async fn search_albums(query: &str) -> Result<Option<AlbumResult>, Error> {
