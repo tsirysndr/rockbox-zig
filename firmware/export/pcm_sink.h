@@ -55,6 +55,7 @@ enum pcm_sink_ids {
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
     PCM_SINK_FIFO,
     PCM_SINK_AIRPLAY,
+    PCM_SINK_SQUEEZELITE,
 #endif
     PCM_SINK_NUM
 };
@@ -69,4 +70,7 @@ void pcm_fifo_set_path(const char *path);
 
 /* AirPlay (RAOP) sink — streams ALAC-encoded audio over RTP */
 extern struct pcm_sink airplay_pcm_sink;
+
+/* Squeezelite (Slim Protocol) sink — serves PCM via HTTP to squeezelite */
+extern struct pcm_sink squeezelite_pcm_sink;
 #endif
