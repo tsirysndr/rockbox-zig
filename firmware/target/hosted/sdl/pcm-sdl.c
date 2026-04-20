@@ -46,7 +46,7 @@
 #include "pcm_mixer.h"
 #include "pcm_sink.h"
 
-/*#define LOGF_ENABLE*/
+#define LOGF_ENABLE
 #include "logf.h"
 
 #ifdef DEBUG
@@ -123,6 +123,7 @@ static void sink_set_freq_nolock(uint16_t freq)
 #endif
 
     /* Open the audio device and start playing sound! */
+    logf("pcm-sdl: opening device '%s' at %lu Hz", audiodev ? audiodev : "(default)", pcm_sampr);
 #if SDL_MAJOR_VERSION > 1
     if((pcm_devid = SDL_OpenAudioDevice(audiodev, 0, &wanted_spec, &obtained, SDL_AUDIO_ALLOW_SAMPLES_CHANGE)) == 0) {
 #else
@@ -131,6 +132,9 @@ static void sink_set_freq_nolock(uint16_t freq)
         panicf("Unable to open audio: %s", SDL_GetError());
         return;
     }
+    logf("pcm-sdl: device opened id=%u freq=%d fmt=%u ch=%u",
+         (unsigned)pcm_devid, obtained.freq, (unsigned)obtained.format,
+         (unsigned)obtained.channels);
 
     switch (obtained.format)
     {
@@ -176,6 +180,7 @@ static void sink_set_freq(uint16_t freq)
 
 static void sink_dma_start(const void *addr, size_t size)
 {
+    logf("pcm-sdl: start devid=%u size=%zu", (unsigned)pcm_devid, size);
     pcm_data = addr;
     pcm_data_size = size;
 

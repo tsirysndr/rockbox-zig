@@ -34,13 +34,14 @@ extern "C" fn handle_shutdown(_sig: libc::c_int) {
 
 #[no_mangle]
 pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
-    tracing_subscriber::fmt()
+    let subscriber = tracing_subscriber::fmt()
         .with_writer(std::io::stderr)
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
         )
-        .init();
+        .finish();
+    let _ = tracing::subscriber::set_global_default(subscriber);
 
     let string_array = unsafe { std::slice::from_raw_parts(argv, argc) };
     let args: Vec<&str> = string_array
@@ -81,6 +82,18 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         libc::signal(libc::SIGTERM, handle_shutdown as libc::sighandler_t);
         libc::signal(libc::SIGINT, handle_shutdown as libc::sighandler_t);
     }
+
+    // SDL (initialised after parse_args returns) installs its own SIGTERM/SIGINT
+    // handlers and overwrites ours.  Reinstall after a short delay so our
+    // handler — which kills typesense-server and _exit()s — wins.
+    #[cfg(unix)]
+    thread::spawn(|| {
+        sleep(Duration::from_secs(3));
+        unsafe {
+            libc::signal(libc::SIGTERM, handle_shutdown as libc::sighandler_t);
+            libc::signal(libc::SIGINT, handle_shutdown as libc::sighandler_t);
+        }
+    });
 
     thread::spawn(move || {
         let home = env::var("HOME").unwrap();

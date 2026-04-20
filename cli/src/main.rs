@@ -98,13 +98,14 @@ fn cli() -> Command {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    tracing_subscriber::fmt()
+    let subscriber = tracing_subscriber::fmt()
         .with_writer(std::io::stderr)
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
         )
-        .init();
+        .finish();
+    let _ = tracing::subscriber::set_global_default(subscriber);
 
     let args = std::env::args().collect::<Vec<String>>();
     if args.len() > 1 && args[1] == "run" {

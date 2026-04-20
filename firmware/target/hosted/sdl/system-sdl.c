@@ -273,6 +273,9 @@ void system_init(void)
     SDL_DestroySemaphore(s);
 #else
     SDL_AddEventWatch(sdl_event_filter, NULL);
+    /* On macOS the event thread is not created, so SDL_INIT_AUDIO is never
+       initialized there.  Do it here so SDL_OpenAudioDevice can succeed. */
+    SDL_InitSubSystem(SDL_INIT_AUDIO);
 #endif
 }
 
