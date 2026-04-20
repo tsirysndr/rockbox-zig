@@ -30,7 +30,8 @@ __pycache__
 zig-out
 
 # Rust build artifacts
-target
+/target
+!firmware/target
 
 # Intermediate language files
 /apps/lang/*.update
