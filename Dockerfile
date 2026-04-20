@@ -56,6 +56,8 @@ RUN ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 -
 
 RUN make ziginstall -j$(nproc)
 
+RUN ls lib/rbcodec/codecs/*.codec && cp lib/rbcodec/codecs/*.codec /usr/local/lib/rockbox/codecs/
+
 RUN deno install -A -r -g https://cli.fluentci.io -n fluentci
 
 ENV PATH=/root/.local/bin:${PATH}
