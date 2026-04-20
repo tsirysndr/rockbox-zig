@@ -65,6 +65,7 @@ Rockbox.
 - [ ] UPnP/DLNA
 - [x] Airplay
 - [x] Snapcast
+- [x] Slim Protocol 
 - [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
 - [ ] Wasm extensions
 

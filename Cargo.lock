@@ -9163,6 +9163,7 @@ dependencies = [
  "rockbox-library",
  "rockbox-rocksky",
  "rockbox-settings",
+ "rockbox-slim",
  "rockbox-typesense",
  "tokio",
  "tracing",
@@ -9405,6 +9406,14 @@ dependencies = [
  "anyhow",
  "rockbox-sys",
  "toml 0.8.19",
+ "tracing",
+]
+
+[[package]]
+name = "rockbox-slim"
+version = "0.1.0"
+dependencies = [
+ "tracing",
 ]
 
 [[package]]

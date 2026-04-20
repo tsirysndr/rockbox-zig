@@ -5,6 +5,7 @@ use crate::{PcmPlayCallbackType, PcmStatusCallbackType};
 pub const PCM_SINK_BUILTIN: i32 = 0;
 pub const PCM_SINK_FIFO: i32 = 1;
 pub const PCM_SINK_AIRPLAY: i32 = 2;
+pub const PCM_SINK_SQUEEZELITE: i32 = 3;
 
 pub fn apply_settings() {
     unsafe {
@@ -65,4 +66,12 @@ pub fn fifo_set_path(path: &str) {
     // Keep alive until C code finishes using it — it's only read during init,
     // so leaking is acceptable here for a startup-time config call.
     std::mem::forget(cpath);
+}
+
+pub fn squeezelite_set_slim_port(port: u16) {
+    unsafe { crate::pcm_squeezelite_set_slim_port(port) }
+}
+
+pub fn squeezelite_set_http_port(port: u16) {
+    unsafe { crate::pcm_squeezelite_set_http_port(port) }
 }

@@ -677,7 +677,7 @@ pub struct NewGlobalSettings {
     pub eq_band_settings: Option<Vec<EqBandSetting>>,
     pub replaygain_settings: Option<ReplaygainSettings>,
     pub compressor_settings: Option<CompressorSettings>,
-    /// Audio output sink: "builtin" (default), "fifo", or "airplay"
+    /// Audio output sink: "builtin" (default), "fifo", "airplay", or "squeezelite"
     pub audio_output: Option<String>,
     /// Path for the FIFO sink, e.g. "/tmp/rockbox.fifo" or "-" for stdout
     pub fifo_path: Option<String>,
@@ -685,6 +685,10 @@ pub struct NewGlobalSettings {
     pub airplay_host: Option<String>,
     /// RAOP port on the receiver (default: 5000)
     pub airplay_port: Option<u16>,
+    /// Slim Protocol control port for the squeezelite sink (default: 3483)
+    pub squeezelite_port: Option<u16>,
+    /// HTTP audio stream port for the squeezelite sink (default: 9999)
+    pub squeezelite_http_port: Option<u16>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -722,6 +726,8 @@ impl From<UserSettings> for NewGlobalSettings {
             fifo_path: None,
             airplay_host: None,
             airplay_port: None,
+            squeezelite_port: None,
+            squeezelite_http_port: None,
         }
     }
 }

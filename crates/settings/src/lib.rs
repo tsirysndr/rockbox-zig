@@ -28,17 +28,41 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
 
     rb::settings::save_settings(settings.clone(), new_settings.is_none());
 
-    if let Some(ref output) = settings.audio_output {
-        if output == "fifo" {
+    match settings.audio_output.as_deref() {
+        Some("fifo") => {
             let path = settings.fifo_path.as_deref().unwrap_or("/tmp/rockbox.fifo");
             pcm::fifo_set_path(path);
             pcm::switch_sink(pcm::PCM_SINK_FIFO);
-        } else if output == "airplay" {
+            tracing::info!("audio output: fifo ({})", path);
+        }
+        Some("airplay") => {
             if let Some(ref host) = settings.airplay_host {
                 let port = settings.airplay_port.unwrap_or(5000);
                 pcm::airplay_set_host(host, port);
                 pcm::switch_sink(pcm::PCM_SINK_AIRPLAY);
+                tracing::info!("audio output: airplay ({}:{})", host, port);
+            } else {
+                tracing::warn!("audio output: airplay selected but airplay_host is not set");
             }
+        }
+        Some("squeezelite") => {
+            let slim_port = settings.squeezelite_port.unwrap_or(3483);
+            let http_port = settings.squeezelite_http_port.unwrap_or(9999);
+            pcm::squeezelite_set_slim_port(slim_port);
+            pcm::squeezelite_set_http_port(http_port);
+            pcm::switch_sink(pcm::PCM_SINK_SQUEEZELITE);
+            tracing::info!(
+                "audio output: squeezelite (Slim Protocol :{slim_port}, HTTP audio :{http_port})"
+            );
+        }
+        Some("builtin") | None => {
+            tracing::info!("audio output: builtin (SDL)");
+        }
+        Some(other) => {
+            tracing::warn!(
+                "audio output: unknown value {:?}, falling back to builtin",
+                other
+            );
         }
     }
 
