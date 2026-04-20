@@ -72,8 +72,7 @@ pub async fn update_metadata(pool: Pool<Sqlite>) -> Result<(), Error> {
         println!("Updating artist: {}", artist.name.bright_green());
         let artist_id = artist.id;
         if let Some(artist) = artist_map.get(&artist.name) {
-            repo::artist::update_genres(&pool, &artist_id, &artist.genres.join(", "))
-                .await?;
+            repo::artist::update_genres(&pool, &artist_id, &artist.genres.join(", ")).await?;
             if let Some(picture) = artist.picture.clone() {
                 repo::artist::update_picture(&pool, &artist_id, &picture).await?;
             }

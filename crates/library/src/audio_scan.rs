@@ -112,11 +112,10 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
 
     // Run C FFI call on blocking thread pool to avoid thread-safety issues
     let metadata_path_owned = metadata_path.to_string();
-    let entry = tokio::task::spawn_blocking(move || {
-        rb::metadata::get_metadata(-1, &metadata_path_owned)
-    })
-    .await
-    .map_err(|e| anyhow!("Failed to get metadata: {}", e))?;
+    let entry =
+        tokio::task::spawn_blocking(move || rb::metadata::get_metadata(-1, &metadata_path_owned))
+            .await
+            .map_err(|e| anyhow!("Failed to get metadata: {}", e))?;
 
     let title = track_title(&entry, path);
     let artist = track_artist(&entry);
