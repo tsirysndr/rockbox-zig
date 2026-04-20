@@ -6,10 +6,29 @@ use rockbox_library::{create_connection_pool, repo};
 use rockbox_typesense::client::*;
 use rockbox_typesense::types::*;
 use std::process::Stdio;
+use std::sync::atomic::{AtomicI32, Ordering};
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, ffi::CStr};
 use std::{fs, thread};
+
+/// PID of the spawned typesense-server child, or -1 if not yet started.
+static TYPESENSE_PID: AtomicI32 = AtomicI32::new(-1);
+
+/// SIGTERM/SIGINT handler: kill the typesense child then _exit immediately.
+///
+/// system-hosted.c installs a SIGTERM handler that calls system_exception_wait()
+/// which loops forever waiting for an SDL quit event that never arrives on a
+/// headless daemon.  We override it here with a handler that actually exits.
+/// _exit is used because it is async-signal-safe (exit() is not).
+#[cfg(unix)]
+extern "C" fn handle_shutdown(_sig: libc::c_int) {
+    let pid = TYPESENSE_PID.load(Ordering::SeqCst);
+    if pid > 0 {
+        unsafe { libc::kill(pid, libc::SIGTERM) };
+    }
+    unsafe { libc::_exit(0) };
+}
 
 #[no_mangle]
 pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
@@ -44,6 +63,14 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
     let cli = Command::new("rockboxd").version(VERSION).about(&banner);
 
     cli.get_matches_from(args);
+
+    // Install shutdown handler before spawning typesense-server so the PID is
+    // always available when the handler fires.
+    #[cfg(unix)]
+    unsafe {
+        libc::signal(libc::SIGTERM, handle_shutdown as libc::sighandler_t);
+        libc::signal(libc::SIGINT, handle_shutdown as libc::sighandler_t);
+    }
 
     thread::spawn(move || {
         let home = env::var("HOME").unwrap();
@@ -161,13 +188,6 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
             .ok_or_else(|| anyhow::anyhow!("Could not determine home directory"))?;
         let data_dir = homedir.join(".config/rockbox.org/typesense");
 
-        let path = format!(
-            "{}:{}/{}",
-            std::env::var("PATH").unwrap_or_default(),
-            homedir.display(),
-            ".rockbox/bin"
-        );
-
         let ts_bin = {
             let local = homedir.join(".rockbox/bin/typesense-server");
             if local.exists() {
@@ -200,7 +220,23 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
             });
         }
 
-        cmd.status()?;
+        let mut child = cmd.spawn()?;
+        TYPESENSE_PID.store(child.id() as i32, Ordering::SeqCst);
+
+        // Poll instead of blocking in waitpid so SIGTERM can reach the process.
+        loop {
+            match child.try_wait() {
+                Ok(Some(status)) => {
+                    eprintln!("typesense-server exited: {status}");
+                    break;
+                }
+                Ok(None) => sleep(Duration::from_millis(500)),
+                Err(e) => {
+                    eprintln!("typesense-server monitor error: {e}");
+                    break;
+                }
+            }
+        }
 
         Ok::<(), Error>(())
     });
