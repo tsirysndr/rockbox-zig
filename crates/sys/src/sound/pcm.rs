@@ -4,6 +4,7 @@ use crate::{PcmPlayCallbackType, PcmStatusCallbackType};
 
 pub const PCM_SINK_BUILTIN: i32 = 0;
 pub const PCM_SINK_FIFO: i32 = 1;
+pub const PCM_SINK_AIRPLAY: i32 = 2;
 
 pub fn apply_settings() {
     unsafe {
@@ -49,6 +50,13 @@ pub fn play_unlock() {
 
 pub fn switch_sink(sink: i32) -> bool {
     unsafe { crate::pcm_switch_sink(sink) != 0 }
+}
+
+pub fn airplay_set_host(host: &str, port: u16) {
+    use std::ffi::CString;
+    let chost = CString::new(host).expect("host must not contain null bytes");
+    unsafe { crate::pcm_airplay_set_host(chost.as_ptr(), port) }
+    std::mem::forget(chost);
 }
 
 pub fn fifo_set_path(path: &str) {

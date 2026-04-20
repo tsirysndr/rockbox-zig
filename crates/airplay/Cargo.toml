@@ -1,0 +1,20 @@
+[package]
+name = "rockbox-airplay"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+rand = { version = "=0.8.5" }
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+chacha20poly1305 = "0.10"
+sha2 = { workspace = true }
+hkdf = { workspace = true }
+hmac = "0.12"
+num-bigint = { workspace = true }
+num-traits = "0.2"
+dirs = "6.0.0"
+tracing = { workspace = true }

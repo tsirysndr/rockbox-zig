@@ -1,5 +1,4 @@
 use anyhow::Error;
-use owo_colors::OwoColorize;
 use rockbox_library::entity::track::Track;
 use rockbox_sys::{
     self as rb,

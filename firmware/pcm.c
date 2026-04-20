@@ -79,9 +79,10 @@
  */
 
 static struct pcm_sink* sinks[PCM_SINK_NUM] = {
-    [PCM_SINK_BUILTIN] = &builtin_pcm_sink,
+    [PCM_SINK_BUILTIN]  = &builtin_pcm_sink,
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
-    [PCM_SINK_FIFO]    = &fifo_pcm_sink,
+    [PCM_SINK_FIFO]     = &fifo_pcm_sink,
+    [PCM_SINK_AIRPLAY]  = &airplay_pcm_sink,
 #endif
 };
 static enum pcm_sink_ids cur_sink = PCM_SINK_BUILTIN;

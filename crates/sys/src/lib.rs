@@ -1,4 +1,4 @@
-use std::ffi::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong, c_void};
+use std::ffi::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong, c_ushort, c_void};
 
 pub mod browse;
 pub mod dir;
@@ -1148,6 +1148,7 @@ extern "C" {
     fn pcm_play_unlock();
     fn pcm_switch_sink(sink: c_int) -> c_uchar;
     fn pcm_fifo_set_path(path: *const c_char);
+    fn pcm_airplay_set_host(host: *const c_char, port: c_ushort);
     fn beep_play(frequency: c_uint, duration: c_uint, amplitude: c_uint);
     fn dsp_set_crossfeed_type(r#type: c_int);
     fn dsp_eq_enable(enable: c_uchar);

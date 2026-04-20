@@ -8,6 +8,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 anyhow = "1.0.90"
+rockbox-airplay = {path = "../airplay"}
 clap = "4.5.16"
 owo-colors = "4.1.0"
 rockbox-library = {path = "../library"}

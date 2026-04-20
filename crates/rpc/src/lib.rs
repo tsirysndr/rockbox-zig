@@ -931,6 +931,8 @@ pub mod api {
                     }),
                     audio_output: None,
                     fifo_path: None,
+                    airplay_host: None,
+                    airplay_port: None,
                 }
             }
         }
