@@ -537,6 +537,7 @@ pcm.c
 pcm_mixer.c
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
 target/hosted/pcm-fifo.c
+target/hosted/pcm-airplay.c
 #endif
 #ifdef HAVE_SW_VOLUME_CONTROL
 pcm_sw_volume.c

@@ -54,6 +54,7 @@ enum pcm_sink_ids {
     PCM_SINK_BUILTIN = 0,
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
     PCM_SINK_FIFO,
+    PCM_SINK_AIRPLAY,
 #endif
     PCM_SINK_NUM
 };
@@ -65,4 +66,7 @@ extern struct pcm_sink builtin_pcm_sink;
 /* FIFO/pipe sink — writes raw S16LE stereo PCM to a named FIFO or stdout */
 extern struct pcm_sink fifo_pcm_sink;
 void pcm_fifo_set_path(const char *path);
+
+/* AirPlay (RAOP) sink — streams ALAC-encoded audio over RTP */
+extern struct pcm_sink airplay_pcm_sink;
 #endif

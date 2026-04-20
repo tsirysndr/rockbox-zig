@@ -33,6 +33,12 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
             let path = settings.fifo_path.as_deref().unwrap_or("/tmp/rockbox.fifo");
             pcm::fifo_set_path(path);
             pcm::switch_sink(pcm::PCM_SINK_FIFO);
+        } else if output == "airplay" {
+            if let Some(ref host) = settings.airplay_host {
+                let port = settings.airplay_port.unwrap_or(5000);
+                pcm::airplay_set_host(host, port);
+                pcm::switch_sink(pcm::PCM_SINK_AIRPLAY);
+            }
         }
     }
 
