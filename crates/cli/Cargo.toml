@@ -17,3 +17,4 @@ rockbox-rocksky = {path = "../rocksky"}
 tokio = {version = "1.36.0", features = ["full"]}
 dirs = "6.0.0"
 uuid.workspace = true
+libc.workspace = true

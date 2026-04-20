@@ -9061,6 +9061,7 @@ dependencies = [
  "anyhow",
  "clap",
  "dirs 6.0.0",
+ "libc",
  "owo-colors 4.1.0",
  "rockbox-library",
  "rockbox-rocksky",

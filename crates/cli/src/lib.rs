@@ -168,15 +168,39 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
             ".rockbox/bin"
         );
 
-        std::process::Command::new("sh")
-            .arg("-c")
-            .arg(&format!("typesense-server --enable-cors --api-port {port}"))
-            .env("PATH", &path)
+        let ts_bin = {
+            let local = homedir.join(".rockbox/bin/typesense-server");
+            if local.exists() {
+                local
+            } else {
+                std::path::PathBuf::from("typesense-server")
+            }
+        };
+
+        let mut cmd = std::process::Command::new(&ts_bin);
+        cmd.arg("--enable-cors")
+            .arg(format!("--api-port={port}"))
             .env("TYPESENSE_API_KEY", &api_key)
             .env("TYPESENSE_DATA_DIR", &data_dir)
             .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .status()?;
+            .stderr(Stdio::inherit());
+
+        #[cfg(target_os = "linux")]
+        unsafe {
+            use std::os::unix::process::CommandExt;
+            cmd.pre_exec(|| {
+                libc::prctl(
+                    libc::PR_SET_PDEATHSIG,
+                    libc::SIGTERM as libc::c_ulong,
+                    0,
+                    0,
+                    0,
+                );
+                Ok(())
+            });
+        }
+
+        cmd.status()?;
 
         Ok::<(), Error>(())
     });
