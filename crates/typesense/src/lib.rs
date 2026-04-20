@@ -7,10 +7,14 @@ pub mod client;
 pub mod types;
 
 pub fn setup() -> Result<(), anyhow::Error> {
+    let homedir =
+        dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Could not determine home directory"))?;
+
     let path = format!(
-        "{}:{}",
+        "{}:{}/{}",
         std::env::var("PATH").unwrap_or_default(),
-        "~/.rockbox/bin"
+        homedir.display(),
+        ".rockbox/bin"
     );
     let mut cmd = Command::new("sh")
         .arg("-c")
@@ -20,8 +24,6 @@ pub fn setup() -> Result<(), anyhow::Error> {
         .stdout(std::process::Stdio::null())
         .spawn()?;
 
-    let homedir =
-        dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Could not determine home directory"))?;
     let data_dir = homedir.join(".config/rockbox.org/typesense");
     fs::create_dir_all(&data_dir)?;
 
@@ -85,7 +87,7 @@ pub fn setup() -> Result<(), anyhow::Error> {
 
     Command::new("sh")
         .arg("-c")
-        .arg("mkdir -p ~/.rockbox/bin && mv typesense-server ~/.rockbox/bin && chmod +x ~/.rockbox/bin/typesense-server && rm -f typesense-server-*.tar.gz typesense-server.md5.txt")
+        .arg("mkdir -p ~/.rockbox/bin && cp typesense-server ~/.rockbox/bin && chmod +x ~/.rockbox/bin/typesense-server && rm -f typesense-server typesense-server-*.tar.gz typesense-server.md5.txt")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .status()?;

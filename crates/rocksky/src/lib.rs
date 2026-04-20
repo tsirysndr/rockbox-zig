@@ -42,19 +42,27 @@ pub mod api {
 }
 
 pub async fn run_ws_session(token: String) -> Result<(), Error> {
+    // Install the default crypto provider for rustls 0.23+
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+
     let rocksky_ws =
         env::var("ROCKSKY_WS").unwrap_or_else(|_| "wss://api.rocksky.app/ws".to_string());
 
-    let root_store = rustls::RootCertStore {
-        roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
-    };
+    let mut root_store = rustls::RootCertStore::empty();
+    root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
     let tls_config = rustls::ClientConfig::builder()
         .with_root_certificates(root_store)
         .with_no_client_auth();
     let connector = Connector::Rustls(Arc::new(tls_config));
 
     let (ws_stream, _) =
-        connect_async_tls_with_config(&rocksky_ws, None, false, Some(connector)).await?;
+        match connect_async_tls_with_config(&rocksky_ws, None, false, Some(connector)).await {
+            Ok(stream) => stream,
+            Err(e) => {
+                eprintln!("WebSocket connection failed: {:?}", e);
+                return Err(e.into());
+            }
+        };
     println!("Connected to {}", rocksky_ws);
 
     let (mut write, mut read) = ws_stream.split();
@@ -111,14 +119,38 @@ pub async fn run_ws_session(token: String) -> Result<(), Error> {
     let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
     let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
     let url = format!("tcp://{}:{}", host, port);
-    let mut client = PlaybackServiceClient::connect(url).await?;
+
+    // Retry gRPC connection up to 10 times with 1 second delay
+    let mut client = None;
+    for attempt in 1..=10 {
+        match PlaybackServiceClient::connect(url.clone()).await {
+            Ok(c) => {
+                client = Some(c);
+                break;
+            }
+            Err(e) if attempt < 10 => {
+                eprintln!(
+                    "gRPC connection attempt {}/10 failed: {}. Retrying...",
+                    attempt, e
+                );
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            }
+            Err(e) => {
+                return Err(anyhow!(
+                    "Failed to connect to Rockbox gRPC server after 10 attempts: {}",
+                    e
+                ));
+            }
+        }
+    }
+    let mut client = client.unwrap();
 
     while let Some(msg) = read.next().await {
         let msg = match msg {
             Ok(m) => m.to_string(),
             Err(e) => {
-                eprintln!("Read error: {}", e);
-                break;
+                eprintln!("WebSocket read error: {:?}", e);
+                return Err(anyhow!("WebSocket read error: {:?}", e));
             }
         };
 
@@ -172,7 +204,27 @@ pub async fn start_track_stream(tx: tokio::sync::mpsc::Sender<String>) -> Result
     let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
     let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
     let url = format!("tcp://{}:{}", host, port);
-    let mut client = PlaybackServiceClient::connect(url).await?;
+
+    // Retry gRPC connection up to 10 times with 1 second delay
+    let mut client = None;
+    for attempt in 1..=10 {
+        match PlaybackServiceClient::connect(url.clone()).await {
+            Ok(c) => {
+                client = Some(c);
+                break;
+            }
+            Err(_) if attempt < 10 => {
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            }
+            Err(e) => {
+                return Err(anyhow!(
+                    "Failed to connect to Rockbox gRPC server for track stream: {}",
+                    e
+                ));
+            }
+        }
+    }
+    let mut client = client.unwrap();
     let mut stream = client
         .stream_current_track(tonic::Request::new(StreamCurrentTrackRequest {}))
         .await?
@@ -205,7 +257,27 @@ async fn start_status_stream(tx: tokio::sync::mpsc::Sender<String>) -> Result<()
     let host = env::var("ROCKBOX_HOST").unwrap_or_else(|_| "localhost".to_string());
     let port = env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
     let url = format!("tcp://{}:{}", host, port);
-    let mut client = PlaybackServiceClient::connect(url).await?;
+
+    // Retry gRPC connection up to 10 times with 1 second delay
+    let mut client = None;
+    for attempt in 1..=10 {
+        match PlaybackServiceClient::connect(url.clone()).await {
+            Ok(c) => {
+                client = Some(c);
+                break;
+            }
+            Err(_) if attempt < 10 => {
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            }
+            Err(e) => {
+                return Err(anyhow!(
+                    "Failed to connect to Rockbox gRPC server for status stream: {}",
+                    e
+                ));
+            }
+        }
+    }
+    let mut client = client.unwrap();
     let mut stream = client
         .stream_status(tonic::Request::new(StreamStatusRequest {}))
         .await?
@@ -246,7 +318,8 @@ pub fn register_rockbox() -> Result<(), Error> {
                         println!("WebSocket session ended cleanly");
                     }
                     Err(e) => {
-                        eprintln!("WebSocket session error: {}", e);
+                        eprintln!("WebSocket session error: {:?}", e);
+                        eprintln!("Error details: {:#?}", e);
                     }
                 }
 

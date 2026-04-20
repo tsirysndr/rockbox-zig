@@ -449,6 +449,7 @@ static void init(void)
     sb_skin_init();
     viewportmanager_init();
 
+
     storage_init();
     pcm_init();
     dsp_init();
@@ -478,7 +479,6 @@ static void init(void)
     usb_init();
     usb_start_monitoring();
 #endif
-
 #ifdef ROCKBOX_SERVER
     server_init();
     broker_init();

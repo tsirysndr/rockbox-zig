@@ -134,6 +134,12 @@ static int sdl_event_thread(void * param)
     /* let system_init proceed */
     SDL_SemPost((SDL_sem *)param);
 
+#if !defined(__WIN32) && !defined(__APPLE__)
+    /* On Linux, initialize SDL_INIT_AUDIO after system_init can proceed
+     * This must happen in the event thread but after the semaphore post */
+    SDL_InitSubSystem(SDL_INIT_AUDIO);
+#endif
+
     /* finally enter the button loop */
     gui_message_loop();
 

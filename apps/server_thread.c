@@ -62,7 +62,7 @@ void INIT_ATTR server_init(void)
                   IF_COP(, CPU));
 
     sleep(HZ); /* Give it a chance to start */
-    
+
     start_servers();
 
    /* Probably safe to say */

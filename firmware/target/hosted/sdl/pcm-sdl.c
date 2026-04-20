@@ -405,11 +405,7 @@ unsigned long spdif_measure_frequency(void)
 
 static void sink_dma_init(void)
 {
-    if (SDL_InitSubSystem(SDL_INIT_AUDIO))
-    {
-        panicf("Could not initialize SDL audio subsystem!");
-        return;
-    }
+    /* SDL_INIT_AUDIO should already be initialized by the event thread on Linux */
 
 #ifdef SIMULATOR
     int cnt = SDL_GetNumAudioDrivers();
