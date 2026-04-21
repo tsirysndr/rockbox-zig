@@ -180,7 +180,8 @@ impl SyncBroadcaster {
 static SYNC: OnceLock<Arc<SyncBroadcaster>> = OnceLock::new();
 
 pub(crate) fn get_sync() -> Arc<SyncBroadcaster> {
-    SYNC.get_or_init(|| Arc::new(SyncBroadcaster::new())).clone()
+    SYNC.get_or_init(|| Arc::new(SyncBroadcaster::new()))
+        .clone()
 }
 
 /// Milliseconds since the Unix epoch, truncated to u32 (~49-day rollover).
