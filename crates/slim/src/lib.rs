@@ -6,7 +6,8 @@ mod slimproto;
 pub fn _link_slim() {}
 
 use std::collections::VecDeque;
-use std::sync::{Arc, Condvar, Mutex, OnceLock};
+use std::sync::{mpsc, Arc, Condvar, Mutex, OnceLock};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 // ---------------------------------------------------------------------------
 // Broadcast buffer — one writer, N independent readers.
@@ -146,6 +147,51 @@ static CONFIG: Mutex<SlimConfig> = Mutex::new(SlimConfig {
     http_port: 9999,
 });
 
+// ---------------------------------------------------------------------------
+// Sync broadcaster — sends the same jiffies value to all connected clients
+// once per second so squeezelite instances converge to the same playback clock.
+// ---------------------------------------------------------------------------
+
+pub(crate) struct SyncBroadcaster {
+    senders: Mutex<Vec<mpsc::Sender<u32>>>,
+}
+
+impl SyncBroadcaster {
+    fn new() -> Self {
+        SyncBroadcaster {
+            senders: Mutex::new(Vec::new()),
+        }
+    }
+
+    /// Register a new client receiver.  Returns the Receiver end of the channel.
+    pub(crate) fn subscribe(&self) -> mpsc::Receiver<u32> {
+        let (tx, rx) = mpsc::channel();
+        self.senders.lock().unwrap().push(tx);
+        rx
+    }
+
+    /// Broadcast jiffies to all clients, pruning senders whose client has gone.
+    pub(crate) fn broadcast(&self, jiffies: u32) {
+        let mut senders = self.senders.lock().unwrap();
+        senders.retain(|tx| tx.send(jiffies).is_ok());
+    }
+}
+
+static SYNC: OnceLock<Arc<SyncBroadcaster>> = OnceLock::new();
+
+pub(crate) fn get_sync() -> Arc<SyncBroadcaster> {
+    SYNC.get_or_init(|| Arc::new(SyncBroadcaster::new())).clone()
+}
+
+/// Milliseconds since the Unix epoch, truncated to u32 (~49-day rollover).
+/// Sent to all squeezelite clients so they can align their playback clocks.
+fn server_jiffies() -> u32 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as u32
+}
+
 fn get_buffer() -> Arc<BroadcastBuffer> {
     BUFFER
         .get_or_init(|| Arc::new(BroadcastBuffer::new()))
@@ -181,6 +227,16 @@ pub extern "C" fn pcm_squeezelite_start() -> std::os::raw::c_int {
 
     let buf = get_buffer();
     buf.reset();
+
+    // Sync broadcaster: computes jiffies once per second and fans out to all
+    // connected clients so they align to the same playback clock reference.
+    {
+        let sync = get_sync();
+        std::thread::spawn(move || loop {
+            std::thread::sleep(Duration::from_secs(1));
+            sync.broadcast(server_jiffies());
+        });
+    }
 
     let buf_http = buf.clone();
     std::thread::spawn(move || http::serve(http_port, buf_http));

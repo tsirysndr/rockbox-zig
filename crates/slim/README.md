@@ -16,12 +16,13 @@ squeezelite instances.
 6. [Layer 4 — Broadcast buffer (Rust)](#layer-4--broadcast-buffer-rust)
 7. [Layer 5 — HTTP stream server (Rust)](#layer-5--http-stream-server-rust)
 8. [Layer 6 — Slim Protocol server (Rust)](#layer-6--slim-protocol-server-rust)
-9. [Layer 7 — squeezelite client](#layer-7--squeezelite-client)
-10. [Startup sequence](#startup-sequence)
-11. [Track transition](#track-transition)
-12. [Multi-room](#multi-room)
-13. [Configuration](#configuration)
-14. [Gotchas and non-obvious invariants](#gotchas-and-non-obvious-invariants)
+9. [Layer 7 — Sync broadcaster (Rust)](#layer-7--sync-broadcaster-rust)
+10. [Layer 8 — squeezelite client](#layer-8--squeezelite-client)
+11. [Startup sequence](#startup-sequence)
+12. [Track transition](#track-transition)
+13. [Multi-room](#multi-room)
+14. [Configuration](#configuration)
+15. [Gotchas and non-obvious invariants](#gotchas-and-non-obvious-invariants)
 
 ---
 
@@ -44,7 +45,9 @@ Codec → PCM engine                 audio device (CoreAudio / ALSA / …)
           │
           ├── HTTP server :9999 ─── one thread per squeezelite client
           │
-          └── Slim server :3483 ─── sends STRM, keeps connection alive
+          └── Slim server :3483 ─── sends STRM + audg keepalive + sync jiffies
+                    │
+                    └── SyncBroadcaster ─── broadcasts same jiffies to all clients/s
 ```
 
 The PCM data is **never transcoded** — rockboxd pushes raw signed 16-bit
@@ -71,17 +74,17 @@ codec copies it straight to the audio device.
 ┌─────────────────────────────────────────────────────────────────┐
 │  rockbox-slim crate (Rust)                                      │
 │                                                                 │
-│  BroadcastBuffer                                                │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  VecDeque<(seq: u64, chunk: Vec<u8>)>   max 4 MB         │   │
-│  │  next_seq (writer cursor)                                │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│          │                          │                           │
-│  HTTP server :9999          Slim Protocol server :3483          │
-│  (one thread per client)    (one thread per client)             │
-│          │                          │                           │
-│  BroadcastReceiver          HELO → STRM → audg keepalive        │
-│  (per-client seq cursor)                                        │
+│  BroadcastBuffer                    SyncBroadcaster             │
+│  ┌───────────────────────────┐      ┌──────────────────────┐    │
+│  │ VecDeque<(seq,chunk)>     │      │ Vec<Sender<u32>>     │    │
+│  │ max 4 MB                  │      │ → server_jiffies/1 s │    │
+│  └───────────────────────────┘      └──────────────────────┘    │
+│          │                                    │                 │
+│  HTTP server :9999             Slim Protocol server :3483       │
+│  (one thread per client)       (one thread per client)          │
+│          │                         │              │             │
+│  BroadcastReceiver          audg keepalive   sync jiffies=T     │
+│  (per-client seq cursor)    (on STMt)        (every 1 s)        │
 └────────────────────────────┬────────────────────────────────────┘
                              │ TCP :9999
               ┌──────────────┼──────────────┐
@@ -364,22 +367,34 @@ plus the payload, but **not the 2-byte length field itself**.
 
 ### Session flow
 
+Two server-to-client message streams run concurrently on the same TCP
+connection: the **read loop** replies to `STMt` heartbeats with `audg`, while
+the **sync writer thread** independently sends `sync` once per second.  Writes
+are serialised through an `Arc<Mutex<TcpStream>>` clone.
+
 ```
-squeezelite                         Slim server
-───────────                         ───────────
-HELO ──────────────────────────────►
-                                     (no kick — all clients share the stream)
-       ◄────────────────────────── STRM 's'
+squeezelite                       Slim server
+───────────                       ─────────────────────────────────
+HELO ────────────────────────────►
+     ◄─────────────────────────── STRM 's'
 HTTP GET :9999/stream.pcm ─────────────────────────────► HTTP server
-       ◄────────────────────── HTTP 200 + raw PCM stream
-STAT STMc ─────────────────────────►
-STAT STMs ─────────────────────────►
-STAT STMt ─────────────────────────►  (every ~1 s)
-       ◄─────────────────────────── audg (full volume)  ← keepalive
-STAT STMt ─────────────────────────►
-       ◄─────────────────────────── audg
-       …
+     ◄─────────────────────── HTTP 200 + raw PCM stream
+STAT STMc ───────────────────────►
+STAT STMs ───────────────────────►
+                                  [sync broadcaster fires at t=1 s]
+     ◄─────────────────────────── sync  jiffies=T        ← clock alignment
+STAT STMt ───────────────────────►  (~1 s heartbeat)
+     ◄─────────────────────────── audg                   ← watchdog reset
+                                  [sync broadcaster fires at t=2 s]
+     ◄─────────────────────────── sync  jiffies=T+1000
+STAT STMt ───────────────────────►
+     ◄─────────────────────────── audg
+     …
 ```
+
+`sync` and `audg` are sent on different triggers (`sync` from a shared timer
+thread; `audg` from the per-client read loop) and can arrive in either order
+within the same second.
 
 ### STRM 's' payload layout
 
@@ -432,9 +447,105 @@ Offset  Size  Value       Meaning
 
 This resets squeezelite's timeout counter to zero on every tick.
 
+### sync packet
+
+```
+Offset  Size  Value  Meaning
+──────  ────  ─────  ────────────────────────────────────────────────────
+ 0       4    BE u32  server jiffies (ms since Unix epoch, truncated to u32)
+```
+
+squeezelite uses the jiffies value to compute how far ahead or behind it is
+relative to the server clock, then adjusts its output buffer drain rate to
+converge.  Because all clients receive the **same jiffies value at the same
+instant**, they converge to the same playback position.
+
 ---
 
-## Layer 7 — squeezelite client
+## Layer 7 — Sync broadcaster (Rust)
+
+**File:** `crates/slim/src/lib.rs`
+
+### Design
+
+`SyncBroadcaster` is a `Mutex<Vec<mpsc::Sender<u32>>>`.  It is stored in a
+`static OnceLock<Arc<SyncBroadcaster>>` so both `slimproto::serve` and the
+background timer thread share the same instance.
+
+```rust
+pub(crate) struct SyncBroadcaster {
+    senders: Mutex<Vec<mpsc::Sender<u32>>>,
+}
+```
+
+### subscribe
+
+Called from `slimproto::serve` for each new client, **before** the client
+handler thread is spawned:
+
+```rust
+pub(crate) fn subscribe(&self) -> mpsc::Receiver<u32> {
+    let (tx, rx) = mpsc::channel();
+    self.senders.lock().unwrap().push(tx);
+    rx
+}
+```
+
+The `Receiver` is moved into the client thread.  When the client disconnects,
+the thread exits, the `Receiver` is dropped, and the `Sender` is pruned from
+the list on the next `broadcast()` call.
+
+### broadcast
+
+```rust
+pub(crate) fn broadcast(&self, jiffies: u32) {
+    let mut senders = self.senders.lock().unwrap();
+    senders.retain(|tx| tx.send(jiffies).is_ok());
+}
+```
+
+`retain` removes any `Sender` whose `Receiver` has been dropped (i.e. whose
+client has disconnected), keeping the list compact.
+
+### Timer thread
+
+Started once inside `pcm_squeezelite_start()`:
+
+```rust
+let sync = get_sync();
+std::thread::spawn(move || loop {
+    std::thread::sleep(Duration::from_secs(1));
+    sync.broadcast(server_jiffies());
+});
+```
+
+`server_jiffies()` returns `SystemTime::now().as_millis() as u32`.  The u32
+truncation gives a ~49-day rollover; squeezelite handles this correctly with
+signed 32-bit arithmetic.
+
+### Per-client sync writer thread
+
+Each `handle_client` call clones the TCP write stream into an
+`Arc<Mutex<TcpStream>>` shared with a dedicated sync writer thread:
+
+```rust
+let write_stream = Arc::new(Mutex::new(stream.try_clone()?));
+
+let ws = Arc::clone(&write_stream);
+std::thread::spawn(move || {
+    for jiffies in sync_rx {           // blocks until broadcaster fires
+        let mut s = ws.lock().unwrap();
+        send_sync(&mut *s, jiffies)?;  // write `sync` packet
+    }
+});
+```
+
+The read loop uses the same `write_stream` mutex to send `audg` replies, so
+`sync` and `audg` packets never interleave at the byte level.
+
+---
+
+## Layer 8 — squeezelite client
 
 squeezelite handles the audio pipeline in three internal threads:
 
@@ -468,6 +579,7 @@ user plays a track
     └── sink_dma_start(addr, size)           [pcm-squeezelite.c]
             │
             ├── pcm_squeezelite_start()      [lib.rs — idempotent]
+            │       ├── spawn sync broadcaster thread (fires every 1 s)
             │       ├── spawn HTTP server thread on :9999
             │       └── spawn Slim server thread on :3483
             │
@@ -480,7 +592,8 @@ squeezelite -s localhost
     ├── send HELO
     ├── receive STRM 's'  →  TCP connect :9999
     ├── receive HTTP 200
-    └── start buffering PCM
+    ├── start buffering PCM
+    └── receive sync jiffies=T every ~1 s  →  align playback clock
 ```
 
 ---
@@ -513,9 +626,22 @@ Any number of squeezelite instances can connect simultaneously:
 - A slow reader skips forward to the oldest available chunk; other readers
   are unaffected.
 
-Squeezelite clients are not time-synchronised (no NTP/PTP layer).  Clock drift
-between rooms is typically 100–500 ms.  For tighter sync, run squeezelite with
-a Snapcast-compatible back-end or use the FIFO sink instead.
+### Clock synchronisation
+
+Once per second the `SyncBroadcaster` computes `server_jiffies()` once and
+delivers the **same value** to every connected client via `mpsc` channels.
+Each client's sync writer thread immediately sends a `sync` packet over its
+individual TCP connection.
+
+squeezelite's internal sync handler:
+1. Receives `sync jiffies=T`.
+2. Computes `delta = T - my_jiffies + output_buffer_latency`.
+3. Adjusts its buffer drain rate (speeds up or slows down slightly) to converge
+   on the target position.
+
+Because all rooms receive the same `T`, they converge to the same audio
+position.  In practice this achieves sub-100 ms synchronisation over a LAN,
+which is imperceptible to human listeners.
 
 ---
 
