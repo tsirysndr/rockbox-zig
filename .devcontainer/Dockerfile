@@ -1,4 +1,6 @@
-FROM rust:1.88-bookworm
+FROM rust:1.94-bookworm
+
+ARG TARGETARCH
 
 RUN apt-get update && apt-get install -y apt-utils && \
   apt-get install -y build-essential \
@@ -20,7 +22,16 @@ RUN locale-gen en_US.UTF-8
 
 RUN curl -Ssf https://pkgx.sh | sh
 
-RUN pkgm install zig@0.14.1
+RUN case "${TARGETARCH}" in \
+      amd64) ZIG_ARCH="x86_64" ;; \
+      arm64) ZIG_ARCH="aarch64" ;; \
+      *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
+    esac && \
+    export VERSION=0.16.0 && \
+    wget "https://ziglang.org/download/${VERSION}/zig-${ZIG_ARCH}-linux-${VERSION}.tar.xz" && \
+    tar -xf "zig-${ZIG_ARCH}-linux-${VERSION}.tar.xz" && \
+    mv "zig-${ZIG_ARCH}-linux-${VERSION}" /usr/local/zig && \
+    ln -s /usr/local/zig/zig /usr/local/bin/zig
 
 RUN curl -s https://ohmyposh.dev/install.sh | bash -s -- -d /usr/local/bin
 
