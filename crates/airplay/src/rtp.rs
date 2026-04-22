@@ -93,12 +93,16 @@ impl ReceiverHandle {
     }
 
     /// Send an RTCP NTP sync packet on the ctrl socket.
-    pub fn send_sync(&self, current_ts: u32, next_ts: u32, first: bool) {
-        let now = SystemTime::now()
+    ///
+    /// `ntp_offset_us` is how many microseconds in the future `next_ts` will be played.
+    /// Pass 0 for the initial sync; pass the remaining pacing time for periodic syncs.
+    pub fn send_sync(&self, current_ts: u32, next_ts: u32, first: bool, ntp_offset_us: u64) {
+        let wall = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap_or_default();
-        let ntp_sec = now.as_secs() as u32 + NTP_EPOCH_DELTA;
-        let ntp_frac = ((now.subsec_nanos() as u64 * (1u64 << 32)) / 1_000_000_000) as u32;
+            .unwrap_or_default()
+            + Duration::from_micros(ntp_offset_us);
+        let ntp_sec = wall.as_secs() as u32 + NTP_EPOCH_DELTA;
+        let ntp_frac = ((wall.subsec_nanos() as u64 * (1u64 << 32)) / 1_000_000_000) as u32;
 
         let mut pkt = [0u8; 20];
         pkt[0] = if first { 0x90 } else { 0x80 };
@@ -179,6 +183,19 @@ impl PacingClock {
         let now = Instant::now();
         if expected > now {
             std::thread::sleep(expected - now);
+        }
+    }
+
+    /// Microseconds until the current `frames_sent` deadline (i.e. when `rtptime` plays).
+    /// Returns 0 if we're already past the deadline.
+    pub fn us_until_next_frame(&self) -> u64 {
+        let Some(start) = self.stream_start else { return 0 };
+        let deadline = start + Duration::from_micros(self.frames_sent * FRAME_DURATION_US);
+        let now = Instant::now();
+        if deadline > now {
+            (deadline - now).as_micros() as u64
+        } else {
+            0
         }
     }
 

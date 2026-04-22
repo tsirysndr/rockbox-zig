@@ -43,12 +43,14 @@ impl AirPlaySession {
 
         self.pacing.advance();
 
-        // RTCP NTP sync every ~44 frames (~0.35 s)
-        if self.pacing.frames_sent % 44 == 0 {
+        // RTCP NTP sync every ~10 frames (~80 ms) for tighter multi-room alignment.
+        // NTP offset = time until next_ts plays, so receivers anchor on the exact deadline.
+        if self.pacing.frames_sent % 10 == 0 {
             let current_ts = self.pacing.rtptime.wrapping_sub(FRAME_SAMPLES as u32);
             let next_ts = self.pacing.rtptime;
+            let offset_us = self.pacing.us_until_next_frame();
             for rx in &self.receivers {
-                rx.send_sync(current_ts, next_ts, false);
+                rx.send_sync(current_ts, next_ts, false, offset_us);
             }
         }
 
@@ -59,7 +61,7 @@ impl AirPlaySession {
     fn send_initial_sync(&self) {
         let ts = self.pacing.initial_rtptime;
         for rx in &self.receivers {
-            rx.send_sync(ts, ts, true);
+            rx.send_sync(ts, ts, true, 0);
         }
         tracing::debug!(
             "sent initial sync ts={} to {} receiver(s)",
