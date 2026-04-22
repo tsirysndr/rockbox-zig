@@ -123,6 +123,26 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
     let album = track_album(&entry, &title);
     let album_art = extract_and_save_album_cover_with_key(metadata_path, Some(&album))?;
 
+    let title = match title.is_empty() {
+        true => "Unknown Title".to_string(),
+        false => title,
+    };
+
+    let artist = match artist.is_empty() {
+        true => "Unknown Artist".to_string(),
+        false => artist,
+    };
+
+    let album_artist = match album_artist.is_empty() {
+        true => "Unknown Artist".to_string(),
+        false => album_artist,
+    };
+
+    let album = match album.is_empty() {
+        true => "Unknown Album".to_string(),
+        false => album,
+    };
+
     if let Some(existing_track) = existing_track {
         if let Some(ref album_art) = album_art {
             if existing_track.album_art.as_deref() != Some(album_art.as_str()) {
