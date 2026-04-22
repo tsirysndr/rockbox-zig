@@ -67,7 +67,7 @@ impl Render for PlayerPage {
                             .flex()
                             .items_center()
                             .justify_center()
-                            .bg(theme.border)
+                            .bg(theme.library_art_bg)
                             .text_color(theme.player_icons_text)
                             .child(Icon::new(Icons::Music).size_16()),
                     )

@@ -63,6 +63,9 @@ pub struct Theme {
     // Common
     pub border: Rgba,
     pub scrollbar_thumb: Rgba,
+
+    // Library art / avatar placeholder
+    pub library_art_bg: Rgba,
 }
 
 impl Default for Theme {
@@ -125,6 +128,8 @@ impl Default for Theme {
 
             border: rgba(0xFFFFFF29),
             scrollbar_thumb: rgb(0x6F00FF),
+
+            library_art_bg: rgba(0xFFFFFF0D),
         }
     }
 }
