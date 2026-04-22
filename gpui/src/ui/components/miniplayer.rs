@@ -184,7 +184,7 @@ impl Render for MiniPlayer {
                                     .flex()
                                     .items_center()
                                     .gap_x_2()
-                                    .w(px(320.0))
+                                    .w(px(420.0))
                                     .child(
                                         div()
                                             .text_xs()
