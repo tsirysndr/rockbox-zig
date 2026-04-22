@@ -1,5 +1,5 @@
 Name:           rockbox
-Version:        2025.07.19
+Version:        2026.04.22
 Release:        1%{?dist}
 Summary:        High quality audio player
 
@@ -29,4 +29,3 @@ cp -r %{_sourcedir}/arm64/usr %{buildroot}/
 /usr/local/bin/rockboxd
 /usr/local/lib/rockbox/*
 /usr/local/share/rockbox/*
-
