@@ -73,6 +73,93 @@ and Squeezelite.
 ```toml
 music_dir    = "/path/to/your/Music"
 audio_output = "builtin"   # SDL audio — see Audio Output for other options
+playlist_shuffle = false
+repeat_mode = 1
+bass = 0
+treble = 0
+bass_cutoff = 0
+treble_cutoff = 0
+crossfade = 5
+fade_on_stop = false
+fade_in_delay = 2
+fade_in_duration = 7
+fade_out_delay = 4
+fade_out_duration = 0
+fade_out_mixmode = 2
+balance = 0
+stereo_width = 100
+stereosw_mode = 0
+surround_enabled = 0
+surround_balance = 0
+surround_fx1 = 0
+surround_fx2 = 0
+party_mode = true
+channel_config = 0
+player_name = ""
+eq_enabled = true
+
+[[eq_band_settings]]
+cutoff = 0
+q = 64
+gain = 10
+
+[[eq_band_settings]]
+cutoff = 3
+q = 125
+gain = 10
+
+[[eq_band_settings]]
+cutoff = 19
+q = 250
+gain = 10
+
+[[eq_band_settings]]
+cutoff = 5
+q = 500
+gain = 10
+
+[[eq_band_settings]]
+cutoff = -16
+q = 1000
+gain = 10
+
+[[eq_band_settings]]
+cutoff = -66
+q = 2000
+gain = 10
+
+[[eq_band_settings]]
+cutoff = -31
+q = 4000
+gain = 10
+
+[[eq_band_settings]]
+cutoff = 9
+q = 8000
+gain = 10
+
+[[eq_band_settings]]
+cutoff = 32
+q = 16000
+gain = 7
+
+[[eq_band_settings]]
+cutoff = 34
+q = 0
+gain = 0
+
+[replaygain_settings]
+noclip = true
+type = 0
+preamp = 0
+
+[compressor_settings]
+threshold = -24
+makeup_gain = 0
+ratio = 4
+knee = 1
+release_time = 300
+attack_time = 5
 ```
 
 3. **Run the daemon**:
