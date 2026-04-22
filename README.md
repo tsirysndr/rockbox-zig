@@ -274,7 +274,7 @@ sudo dnf install SDL2-devel freetype-devel libunwind-devel zip protobuf-compiler
 brew install sdl2 freetype cmake protobuf
 ```
 
-You also need [Zig](https://ziglang.org/download/) ≥ 0.13 and a recent stable
+You also need [Zig](https://ziglang.org/download/) ≥ 0.16 and a recent stable
 Rust toolchain (`rustup update stable`).
 
 ### Build
