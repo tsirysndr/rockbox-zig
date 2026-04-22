@@ -2,7 +2,7 @@
 resolver = "2"
 
 [package]
-name = "rockbox-gpui"
+name = "Rockbox"
 version = "0.1.0"
 edition = "2021"
 description = "GPUI-based desktop GUI for Rockbox"

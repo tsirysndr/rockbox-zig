@@ -3,6 +3,25 @@
 version = 4
 
 [[package]]
+name = "Rockbox"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "env_logger",
+ "gpui",
+ "log",
+ "prost",
+ "reqwest",
+ "rust-embed",
+ "serde",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tonic-reflection",
+ "tonic-web",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4626,25 +4645,6 @@ dependencies = [
  "libc",
  "untrusted",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "rockbox-gpui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "env_logger",
- "gpui",
- "log",
- "prost",
- "reqwest",
- "rust-embed",
- "serde",
- "tokio",
- "tonic",
- "tonic-build",
- "tonic-reflection",
- "tonic-web",
 ]
 
 [[package]]

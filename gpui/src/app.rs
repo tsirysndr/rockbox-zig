@@ -1,8 +1,11 @@
 use crate::controller::Controller;
 use crate::state::AppState;
+use crate::ui::global_keybinds::{Hide, HideOthers, Next, PlayPause, Prev, Quit, Repeat, Shuffle};
+use crate::ui::global_keybinds::{Library, Player, Queue};
 use crate::ui::{assets::Assets, rockbox::Rockbox};
 use gpui::{
-    px, size, AppContext, Application, Bounds, TitlebarOptions, WindowBounds, WindowOptions,
+    px, size, AppContext, Application, Bounds, Menu, MenuItem, SystemMenuType, TitlebarOptions,
+    WindowBounds, WindowOptions,
 };
 
 pub fn run() {
@@ -17,7 +20,7 @@ pub fn run() {
             cx.open_window(
                 WindowOptions {
                     window_bounds: Some(WindowBounds::Windowed(bounds)),
-                    app_id: Some("rockbox".into()),
+                    app_id: Some("Rockbox".into()),
                     focus: true,
                     titlebar: Some(TitlebarOptions {
                         title: None,
@@ -38,6 +41,39 @@ pub fn run() {
                 },
             )
             .expect("failed to open window");
+
+            cx.set_menus(vec![
+                Menu {
+                    name: "Rockbox".into(),
+                    items: vec![
+                        MenuItem::os_submenu("Services", SystemMenuType::Services),
+                        MenuItem::separator(),
+                        MenuItem::action("Hide Rockbox", Hide),
+                        MenuItem::action("Hide Others", HideOthers),
+                        MenuItem::separator(),
+                        MenuItem::action("Quit Rockbox", Quit),
+                    ],
+                },
+                Menu {
+                    name: "Playback".into(),
+                    items: vec![
+                        MenuItem::action("Play / Pause", PlayPause),
+                        MenuItem::action("Next Track", Next),
+                        MenuItem::action("Previous Track", Prev),
+                        MenuItem::separator(),
+                        MenuItem::action("Shuffle", Shuffle),
+                        MenuItem::action("Repeat", Repeat),
+                    ],
+                },
+                Menu {
+                    name: "View".into(),
+                    items: vec![
+                        MenuItem::action("Library", Library),
+                        MenuItem::action("Player", Player),
+                        MenuItem::action("Queue", Queue),
+                    ],
+                },
+            ]);
 
             cx.activate(true);
         });

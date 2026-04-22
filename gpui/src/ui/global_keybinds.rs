@@ -5,6 +5,7 @@ use gpui::{actions, App, KeyBinding};
 
 actions!(player, [PlayPause, Next, Prev, Shuffle, Repeat]);
 actions!(pages, [CycleNext, CyclePrev, Library, Player, Queue]);
+actions!(app, [Quit, Hide, HideOthers]);
 
 pub fn register_keybinds(cx: &mut App) {
     cx.bind_keys([
@@ -18,6 +19,9 @@ pub fn register_keybinds(cx: &mut App) {
         KeyBinding::new("cmd-1", Library, None),
         KeyBinding::new("cmd-2", Player, None),
         KeyBinding::new("cmd-3", Queue, None),
+        KeyBinding::new("cmd-q", Quit, None),
+        KeyBinding::new("cmd-h", Hide, None),
+        KeyBinding::new("cmd-alt-h", HideOthers, None),
     ]);
 
     cx.on_action(|_: &PlayPause, cx| {
@@ -47,6 +51,10 @@ pub fn register_keybinds(cx: &mut App) {
         let state = cx.global::<Controller>().state.clone();
         state.update(cx, |s, _| s.toggle_repeat());
     });
+
+    cx.on_action(|_: &Quit, cx| cx.quit());
+    cx.on_action(|_: &Hide, cx| cx.hide());
+    cx.on_action(|_: &HideOthers, cx| cx.hide_other_apps());
 
     cx.on_action(|_: &Library, cx| *cx.global_mut::<Page>() = Page::Library);
     cx.on_action(|_: &Player, cx| *cx.global_mut::<Page>() = Page::Player);
