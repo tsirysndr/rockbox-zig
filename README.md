@@ -30,7 +30,7 @@ and Squeezelite.
 
 ### Audio output
 - [x] Built-in SDL audio
-- [x] AirPlay (RAOP) — stream to Apple TV, HomePod, Airport Express, shairport-sync
+- [x] AirPlay (RAOP) — single or multi-room fan-out to Apple TV, HomePod, Airport Express, shairport-sync
 - [x] Snapcast (FIFO/pipe) — synchronised multi-room via snapserver
 - [x] Squeezelite (Slim Protocol + HTTP broadcast) — synchronised multi-room
 - [x] Chromecast
@@ -228,7 +228,9 @@ Pipe to any PCM consumer with `fifo_path = "-"`:
 rockboxd | ffplay -f s16le -ar 44100 -ac 2 -
 ```
 
-### AirPlay (RAOP)
+### AirPlay (RAOP) — single or multi-room
+
+Single receiver:
 
 ```toml
 music_dir    = "/path/to/Music"
@@ -237,9 +239,26 @@ airplay_host = "192.168.1.50"   # IP of the AirPlay receiver
 airplay_port = 5000             # optional, default 5000
 ```
 
+Multi-room (fan-out to N receivers simultaneously):
+
+```toml
+music_dir    = "/path/to/Music"
+audio_output = "airplay"
+
+[[airplay_receivers]]
+host = "192.168.1.50"   # living room
+port = 5000             # optional, default 5000
+
+[[airplay_receivers]]
+host = "192.168.1.51"   # bedroom
+# port defaults to 5000
+```
+
 Streams ALAC-encoded audio over RTP to any RAOP-compatible receiver — Apple
 TV, HomePod, Airport Express, or
-[shairport-sync](https://github.com/mikebrady/shairport-sync).
+[shairport-sync](https://github.com/mikebrady/shairport-sync). All receivers
+share the same `initial_rtptime`, so RTP-level playback synchronisation is
+within one frame (~8 ms) across the LAN.
 
 ### Squeezelite (Slim Protocol — multi-room)
 

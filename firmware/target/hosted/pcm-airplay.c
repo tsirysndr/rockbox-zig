@@ -39,6 +39,8 @@
 /* Rust C API — symbols are provided by the rockbox-airplay crate via
  * librockbox_cli.a. */
 extern void    pcm_airplay_set_host(const char *host, uint16_t port);
+extern void    pcm_airplay_add_receiver(const char *host, uint16_t port);
+extern void    pcm_airplay_clear_receivers(void);
 extern int     pcm_airplay_connect(void);
 extern int     pcm_airplay_write(const uint8_t *data, size_t len);
 extern void    pcm_airplay_stop(void);

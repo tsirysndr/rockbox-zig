@@ -647,6 +647,14 @@ impl From<crate::UserSettings> for UserSettings {
     }
 }
 
+/// One entry in the `airplay_receivers` list in settings.toml.
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct AirPlayReceiverConfig {
+    pub host: String,
+    /// RAOP port (default: 5000)
+    pub port: Option<u16>,
+}
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct NewGlobalSettings {
     pub music_dir: Option<String>,
@@ -681,10 +689,13 @@ pub struct NewGlobalSettings {
     pub audio_output: Option<String>,
     /// Path for the FIFO sink, e.g. "/tmp/rockbox.fifo" or "-" for stdout
     pub fifo_path: Option<String>,
-    /// IP address or hostname of the AirPlay (RAOP) receiver
+    /// Single AirPlay (RAOP) receiver — kept for backward compatibility.
+    /// Prefer `airplay_receivers` for multi-room setups.
     pub airplay_host: Option<String>,
-    /// RAOP port on the receiver (default: 5000)
+    /// RAOP port for the single receiver (default: 5000)
     pub airplay_port: Option<u16>,
+    /// Multi-room AirPlay receiver list. Takes precedence over `airplay_host`/`airplay_port`.
+    pub airplay_receivers: Option<Vec<AirPlayReceiverConfig>>,
     /// Slim Protocol control port for the squeezelite sink (default: 3483)
     pub squeezelite_port: Option<u16>,
     /// HTTP audio stream port for the squeezelite sink (default: 9999)
@@ -726,6 +737,7 @@ impl From<UserSettings> for NewGlobalSettings {
             fifo_path: None,
             airplay_host: None,
             airplay_port: None,
+            airplay_receivers: None,
             squeezelite_port: None,
             squeezelite_http_port: None,
         }
