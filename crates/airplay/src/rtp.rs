@@ -189,7 +189,9 @@ impl PacingClock {
     /// Microseconds until the current `frames_sent` deadline (i.e. when `rtptime` plays).
     /// Returns 0 if we're already past the deadline.
     pub fn us_until_next_frame(&self) -> u64 {
-        let Some(start) = self.stream_start else { return 0 };
+        let Some(start) = self.stream_start else {
+            return 0;
+        };
         let deadline = start + Duration::from_micros(self.frames_sent * FRAME_DURATION_US);
         let now = Instant::now();
         if deadline > now {
