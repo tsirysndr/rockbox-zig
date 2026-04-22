@@ -13,65 +13,180 @@
 
 ![Rockbox UI](./gtk/data/screenshots/1.png)
 
-A modern take on the [Rockbox](https://www.rockbox.org) open source high quality
-audio player with enhancements in Zig and Rust. This project offers:
-
-- gRPC & GraphQL APIs for seamless interaction and control
-- Chromecast support for streaming to your TV
-- [MPD](https://mpd.readthedocs.io/en/stable/protocol.html) server for
-  compatibility with existing clients
-- [MPRIS](https://specifications.freedesktop.org/mpris-spec/) support for
-  desktop integration
-- TypeScript support for building powerful extensions
-
-Take advantage of modern tooling while preserving the core functionality of
-Rockbox.
-
-> [!NOTE] **🐲 It is a work in progress and is not yet ready for use. 🏗️🚧**
+A modern take on the [Rockbox](https://www.rockbox.org) open source audio
+player, extended with Rust and Zig. Rockbox Zig exposes the full Rockbox audio
+engine — gapless playback, DSP, 20+ codecs, tag database — through gRPC,
+GraphQL, HTTP, and MPD APIs, and adds multi-room output via AirPlay, Snapcast,
+and Squeezelite.
 
 ![Preview](./docs/preview.png)
 ![Desktop](./docs/desktop.png)
-![MacOS](./docs/media-controls.png)
-![MacOS](./docs/preview-mac.png)
+![macOS media controls](./docs/media-controls.png)
+![macOS preview](./docs/preview-mac.png)
 
+---
 
 ## ✨ Features
 
-- [x] Zig Build System
-- [x] Rockbox API FFI for Rust
+### Audio output
+- [x] Built-in SDL audio
+- [x] AirPlay (RAOP) — stream to Apple TV, HomePod, Airport Express, shairport-sync
+- [x] Snapcast (FIFO/pipe) — synchronised multi-room via snapserver
+- [x] Squeezelite (Slim Protocol + HTTP broadcast) — synchronised multi-room
+- [x] Chromecast
+- [x] Gapless playback and crossfading
+- [x] Supports 20+ codecs: MP3, OGG, FLAC, WAV, AAC, Opus, and more
+
+### APIs & integrations
 - [x] [gRPC API](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
 - [x] GraphQL API
-- [x] HTTP API
-- [x] Web Client (React)
-- [x] Fast search engine, built with
-      [Typesense](https://typesense.org)
-- [x] Desktop Client (Electron/Gtk)
+- [x] HTTP REST API
+- [x] [MPD](https://mpd.readthedocs.io/en/stable/protocol.html) server — compatible with all MPD clients
+- [x] [MPRIS](https://specifications.freedesktop.org/mpris-spec/) — desktop media key and taskbar integration
+- [x] Fast search powered by [Typesense](https://typesense.org)
+- [x] Navigate by folders or tag database
+
+### Clients
+- [x] Web client (React)
+- [x] Desktop client (Electron / GTK4)
+- [x] Terminal client (TUI)
 - [x] Rockbox REPL
-- [x] Terminal Client (TUI)
-- [x] Systemd service
-- [x] Gapless playback and crossfading
-- [x] Navigate music by folders or tag database
-- [x] Supports over 20 sound codecs: MP3, OGG, WAV, FLAC and many more
-- [ ] Android Library
-- [ ] Mobile version (React Native)
-- [ ] Stream from Youtube (audio only)
-- [ ] Stream from Spotify
-- [ ] Stream from Tidal
-- [x] Stream to Chromecast
-- [ ] Stream to Kodi
+
+### Planned
+- [ ] Android library
+- [ ] Mobile app (React Native)
+- [ ] Stream from YouTube / Spotify / Tidal
 - [ ] TuneIn Radio
-- [x] MPD Server
-- [x] MPRIS
 - [ ] UPnP/DLNA
-- [x] Airplay
-- [x] Snapcast
-- [x] Slim Protocol 
-- [ ] TypeScript ([Deno](https://deno.com)) API (for writing plugins)
+- [ ] Kodi output
+- [ ] TypeScript ([Deno](https://deno.com)) plugin API
 - [ ] Wasm extensions
+
+---
+
+## 🚀 Quick Start
+
+1. **Install** (see [Installation](#-installation) below).
+
+2. **Create `~/.config/rockbox.org/settings.toml`**:
+
+```toml
+music_dir    = "/path/to/your/Music"
+audio_output = "builtin"   # SDL audio — see Audio Output for other options
+```
+
+3. **Run the daemon**:
+
+```sh
+rockboxd
+```
+
+4. **Open the web UI** at [http://localhost:6062/graphiql](http://localhost:6062) or connect any MPD client to `localhost:6600`.
+
+---
+
+## 🔌 Ports
+
+| Service | Default port | Protocol |
+|---|---|---|
+| gRPC | 6061 | gRPC / gRPC-Web |
+| GraphQL + Web UI | 6062 | HTTP |
+| HTTP REST API | 6063 | HTTP |
+| MPD server | 6600 | MPD protocol |
+| Slim Protocol (squeezelite) | 3483 | TCP |
+| HTTP PCM stream (squeezelite) | 9999 | HTTP |
+
+---
+
+## ⚙️ Audio Output Configuration
+
+Rockbox reads `~/.config/rockbox.org/settings.toml` at startup.
+`music_dir` is always required. `audio_output` defaults to `"builtin"` if
+omitted.
+
+### Built-in SDL — default
+
+```toml
+music_dir    = "/path/to/Music"
+audio_output = "builtin"
+```
+
+Uses SDL2 audio — plays through the OS default device. No extra setup needed.
+
+### Snapcast (FIFO / pipe)
+
+```toml
+music_dir    = "/path/to/Music"
+audio_output = "fifo"
+fifo_path    = "/tmp/snapfifo"   # named FIFO for snapserver; use "-" for stdout
+```
+
+Writes raw **S16LE stereo 44100 Hz** PCM to a named FIFO. Feed it into
+[Snapcast](https://github.com/badaix/snapcast) for synchronised multi-room
+playback:
+
+```ini
+# /etc/snapserver.conf  (or /usr/local/etc/snapserver.conf on macOS)
+[stream]
+source = pipe:///tmp/snapfifo?name=default&sampleformat=44100:16:2
+```
+
+> **Startup order**: start `rockboxd` before `snapserver`. Rockbox holds a
+> permanent write reference on the FIFO so snapserver never sees a premature
+> EOF between tracks.
+
+Pipe to any PCM consumer with `fifo_path = "-"`:
+
+```sh
+rockboxd | ffplay -f s16le -ar 44100 -ac 2 -
+```
+
+### AirPlay (RAOP)
+
+```toml
+music_dir    = "/path/to/Music"
+audio_output = "airplay"
+airplay_host = "192.168.1.50"   # IP of the AirPlay receiver
+airplay_port = 5000             # optional, default 5000
+```
+
+Streams ALAC-encoded audio over RTP to any RAOP-compatible receiver — Apple
+TV, HomePod, Airport Express, or
+[shairport-sync](https://github.com/mikebrady/shairport-sync).
+
+### Squeezelite (Slim Protocol — multi-room)
+
+```toml
+music_dir             = "/path/to/Music"
+audio_output          = "squeezelite"
+squeezelite_port      = 3483   # Slim Protocol TCP port, default 3483
+squeezelite_http_port = 9999   # HTTP PCM broadcast port, default 9999
+```
+
+Rockbox acts as a minimal Logitech Media Server. Any number of
+[squeezelite](https://github.com/ralph-irving/squeezelite) clients can connect
+simultaneously; Rockbox sends a `sync` packet to every client once per second
+so they all align to the same playback clock:
+
+```sh
+squeezelite -s localhost -n "Living Room"
+squeezelite -s localhost -n "Kitchen"
+squeezelite -s localhost -n "Bedroom"
+```
+
+Select a specific output device:
+
+```sh
+squeezelite -s localhost -l              # list available devices
+squeezelite -s localhost -o ""           # system default
+squeezelite -s localhost -o "Built-in Output"
+```
+
+---
 
 ## 🚚 Installation
 
-### Ubuntu/Debian
+### Ubuntu / Debian
 
 ```sh
 echo "deb [trusted=yes] https://apt.fury.io/tsiry/ /" | sudo tee /etc/apt/sources.list.d/fury.list
@@ -83,7 +198,7 @@ sudo apt-get install rockbox
 
 Add the following to `/etc/yum.repos.d/fury.repo`:
 
-```
+```ini
 [fury]
 name=Gemfury Private Repo
 baseurl=https://yum.fury.io/tsiry/
@@ -103,97 +218,100 @@ dnf install rockbox
 paru -S rockbox-zig-bin
 ```
 
-### Bash / Linux / MacOS
+### Universal (curl installer)
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
 ```
 
+---
+
 ## 📦 Downloads
 
-- `Linux`: intel:
-  [rockbox_2026.04.20_x86_64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2026.04.20/rockbox_2026.04.20_x86_64-linux.tar.gz)
-  arm64:
-  [rockbox_2026.04.20_aarch64-linux.tar.gz](https://github.com/tsirysndr/rockbox-zig/releases/download/2026.04.20/rockbox_2026.04.20_aarch64-linux.tar.gz)
-- `macOS`: intel:
-  [rockbox-2026.04.20-x86_64.pkg](https://github.com/tsirysndr/rockbox-zig/releases/download/2026.04.20/rockbox-2026.04.20-x86_64.pkg)
-  arm64:
-  [rockbox-2026.04.20-aarch64.pkg](https://github.com/tsirysndr/rockbox-zig/releases/download/2026.04.20/rockbox-2026.04.20-aarch64.pkg)
+Pre-built binaries for the latest release are available on the
+[Releases page](https://github.com/tsirysndr/rockbox-zig/releases/latest).
+
+| Platform | Architecture            | Package   |
+|----------|-------------------------|-----------|
+| Linux    | x86_64                  | `.tar.gz` |
+| Linux    | aarch64                 | `.tar.gz` |
+| macOS    | x86_64                  | `.pkg`    |
+| macOS    | aarch64 (Apple Silicon) | `.pkg`    |
+
+---
 
 ## 🧙‍♂️ Systemd Service
 
-Rockbox daemon can be started as a systemd service. To enable and start the
-service, run the following command:
-
 ```sh
-rockbox service install
+rockbox service install    # enable and start
+rockbox service uninstall  # stop and disable
+rockbox service status     # check status
 ```
 
-To disable and stop the service, run the following command:
+![Systemd service screenshot](https://github.com/user-attachments/assets/1fbd2b58-0e29-4db4-9791-6e377de72728)
+
+---
+
+## 🏗️ Compiling from Source
+
+### Dependencies
+
+**Ubuntu / Debian**
 
 ```sh
-rockbox service uninstall
-```
-
-To check the status of the service, run the following command:
-
-```sh
-rockbox service status
-```
-
-![Screenshot from 2025-01-18 18-57-39](https://github.com/user-attachments/assets/1fbd2b58-0e29-4db4-9791-6e377de72728)
-
-## Compiling from Source
-
-Run the following commands to build the project:
-
-Before building the project, you need to install the necessary dependencies for
-your operating system.
-
-### On Ubuntu/Debian
-
-```bash
 sudo apt-get install libsdl2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler cmake
 ```
 
-### On Fedora40/41:
+**Fedora**
 
 ```sh
 sudo dnf install SDL2-devel freetype-devel libunwind-devel zip protobuf-compiler cmake
 ```
 
-### Build Instructions
-
-1. Clone the repository
+**macOS**
 
 ```sh
+brew install sdl2 freetype cmake protobuf
+```
+
+You also need [Zig](https://ziglang.org/download/) ≥ 0.13 and a recent stable
+Rust toolchain (`rustup update stable`).
+
+### Build
+
+```sh
+# 1. Clone
 git clone https://github.com/tsirysndr/rockbox-zig.git
-git submodule update --init --recursive
-```
-
-2. Navigate to the project directory
-
-```sh
 cd rockbox-zig
-```
+git submodule update --init --recursive
 
-3. Build the webui
-
-```sh
+# 2. Build the web UI
 cd webui/rockbox
 deno install
 deno run build
-```
+cd ../..
 
-4. Run the following command to build the project
-
-```sh
+# 3. Configure and build the C firmware (one-time setup)
 mkdir -p build-lib && cd build-lib
-../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
-make zig
+../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local
+cp ../autoconf/autoconf.h .
+make lib
+cd ..
+
+# 4. Build Rust crates
+cargo build --release -p rockbox-cli -p rockbox-server
+
+# 5. Link everything with Zig
+cd zig && zig build
 ```
 
-### Build GUI (Gtk4)
+The binary is at `zig/zig-out/bin/rockboxd`.
+
+> **Rebuilding after changes**: after editing C code run `make lib` in
+> `build-lib`; after editing Rust run `cargo build --release`. Then re-run
+> `zig build`. Zig only re-links when the `.a` files are newer than the binary.
+
+### Build the GTK4 desktop app
 
 ```sh
 sudo apt-get install flatpak
@@ -208,20 +326,32 @@ flatpak run org.flatpak.Builder --user --disable-rofiles-fuse --repo=repo flatpa
 flatpak run org.flatpak.Builder --run flatpak_app build-aux/io.github.tsirysndr.Rockbox.json rockbox-gtk
 ```
 
+---
+
 ## 🧑‍🔬 Architecture
 
-![architecture](./docs/rockbox-arch.png)
+![Architecture diagram](./docs/rockbox-arch.png)
 
-## 📚 GraphQL API
+The Rockbox C firmware (audio engine, codecs, DSP) is compiled into
+`libfirmware.a` and linked with two Rust static libraries
+(`librockbox_cli.a`, `librockbox_server.a`) and SDL2 by the Zig build script.
+The result is a single `rockboxd` binary. Rust crates expose the firmware over
+gRPC, GraphQL, HTTP, and MPD, and implement output sinks (AirPlay, Squeezelite,
+Snapcast) and the Typesense search integration.
 
-Open [http://localhost:6062/graphiql](http://localhost:6062/graphiql) in your
-browser.
+---
+
+## 📚 APIs
+
+### GraphQL
+
+Open [http://localhost:6062/graphiql](http://localhost:6062/graphiql) in your browser.
 
 <p style="margin-top: 20px; margin-bottom: 20px;">
  <img src="./docs/graphql.png" width="100%" />
 </p>
 
-## 📚 HTTP API
+### HTTP REST
 
 Open [http://localhost:6063](http://localhost:6063) in your browser.
 
@@ -229,11 +359,11 @@ Open [http://localhost:6063](http://localhost:6063) in your browser.
  <img src="./docs/http-api.png" width="100%" />
 </p>
 
-## 📚 gRPC API
+### gRPC
 
-[https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
+Docs: [buf.build/tsiry/rockboxapis](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
 
-Try Rockbox gRPC API using
+Try it live with
 [Buf Studio](https://buf.build/studio/tsiry/rockboxapis/rockbox.v1alpha1.LibraryService/GetAlbums?target=http%3A%2F%2Flocalhost%3A6061&selectedProtocol=grpc-web).
 
 <p style="margin-top: 20px; margin-bottom: 20px;">
