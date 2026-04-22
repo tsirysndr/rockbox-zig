@@ -23,48 +23,55 @@ impl Render for ControlBar {
             .flex_shrink_0()
             .flex()
             .items_center()
-            .gap_x_3()
+            .gap_x_4()
             .px_6()
             .py_3()
-            // Elapsed
-            .child(
-                div()
-                    .text_xs()
-                    .text_color(theme.playback_position_text)
-                    .flex_shrink_0()
-                    .child(format_duration(position)),
-            )
-            // Progress bar
+            // Left spacer — mirrors volume width for symmetry
+            .child(div().w(px(160.0)))
+            // Elapsed + progress + duration
             .child(
                 div()
                     .flex_1()
-                    .h(px(4.0))
-                    .rounded_full()
-                    .bg(theme.playback_slider_track)
-                    .child(
-                        div()
-                            .h_full()
-                            .rounded_full()
-                            .bg(theme.playback_slider_fill)
-                            .w(px(fill_pct / 100.0 * 800.0)),
-                    ),
-            )
-            // Duration
-            .child(
-                div()
-                    .text_xs()
-                    .text_color(theme.playback_position_text)
-                    .flex_shrink_0()
-                    .child(format_duration(duration)),
-            )
-            // Volume
-            .child(
-                div()
-                    .flex_shrink_0()
                     .flex()
                     .items_center()
+                    .gap_x_3()
+                    .child(
+                        div()
+                            .text_xs()
+                            .text_color(theme.playback_position_text)
+                            .flex_shrink_0()
+                            .child(format_duration(position)),
+                    )
+                    .child(
+                        div()
+                            .flex_1()
+                            .h(px(4.0))
+                            .rounded_full()
+                            .bg(theme.playback_slider_track)
+                            .child(
+                                div()
+                                    .h_full()
+                                    .rounded_full()
+                                    .bg(theme.playback_slider_fill)
+                                    .w(px(fill_pct / 100.0 * 800.0)),
+                            ),
+                    )
+                    .child(
+                        div()
+                            .text_xs()
+                            .text_color(theme.playback_position_text)
+                            .flex_shrink_0()
+                            .child(format_duration(duration)),
+                    ),
+            )
+            // Volume — fixed width to match left spacer
+            .child(
+                div()
+                    .w(px(160.0))
+                    .flex()
+                    .items_center()
+                    .justify_end()
                     .gap_x_2()
-                    .ml_4()
                     .child(
                         div()
                             .text_color(theme.volume_icon)
