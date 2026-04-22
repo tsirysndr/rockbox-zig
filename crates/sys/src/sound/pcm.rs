@@ -54,10 +54,19 @@ pub fn switch_sink(sink: i32) -> bool {
 }
 
 pub fn airplay_set_host(host: &str, port: u16) {
-    use std::ffi::CString;
     let chost = CString::new(host).expect("host must not contain null bytes");
     unsafe { crate::pcm_airplay_set_host(chost.as_ptr(), port) }
     std::mem::forget(chost);
+}
+
+pub fn airplay_add_receiver(host: &str, port: u16) {
+    let chost = CString::new(host).expect("host must not contain null bytes");
+    unsafe { crate::pcm_airplay_add_receiver(chost.as_ptr(), port) }
+    std::mem::forget(chost);
+}
+
+pub fn airplay_clear_receivers() {
+    unsafe { crate::pcm_airplay_clear_receivers() }
 }
 
 pub fn fifo_set_path(path: &str) {

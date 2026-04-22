@@ -36,13 +36,25 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
             tracing::info!("audio output: fifo ({})", path);
         }
         Some("airplay") => {
-            if let Some(ref host) = settings.airplay_host {
+            pcm::airplay_clear_receivers();
+            // Multi-room list takes precedence over the legacy single-host fields.
+            if let Some(ref receivers) = settings.airplay_receivers {
+                if receivers.is_empty() {
+                    tracing::warn!("audio output: airplay_receivers is empty");
+                }
+                for r in receivers {
+                    let port = r.port.unwrap_or(5000);
+                    pcm::airplay_add_receiver(&r.host, port);
+                    tracing::info!("audio output: airplay receiver {}:{}", r.host, port);
+                }
+                pcm::switch_sink(pcm::PCM_SINK_AIRPLAY);
+            } else if let Some(ref host) = settings.airplay_host {
                 let port = settings.airplay_port.unwrap_or(5000);
                 pcm::airplay_set_host(host, port);
                 pcm::switch_sink(pcm::PCM_SINK_AIRPLAY);
-                tracing::info!("audio output: airplay ({}:{})", host, port);
+                tracing::info!("audio output: airplay {}:{}", host, port);
             } else {
-                tracing::warn!("audio output: airplay selected but airplay_host is not set");
+                tracing::warn!("audio output: airplay selected but no receiver configured");
             }
         }
         Some("squeezelite") => {

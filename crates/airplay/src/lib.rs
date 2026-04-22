@@ -7,36 +7,89 @@ mod rtsp;
 #[doc(hidden)]
 pub fn _link_airplay() {}
 
-use alac::{encode_frame, PCM_BYTES_PER_FRAME};
-use rtp::RtpSender;
+use alac::{encode_frame, FRAME_SAMPLES, PCM_BYTES_PER_FRAME};
+use rtp::{PacingClock, ReceiverHandle, TimingSocket};
 use rtsp::RtspClient;
 
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int, c_ushort};
 use std::sync::Mutex;
 
+// ---------------------------------------------------------------------------
+// Global state
+// ---------------------------------------------------------------------------
+
 static SESSION: Mutex<Option<AirPlaySession>> = Mutex::new(None);
 
 struct AirPlaySession {
-    sender: RtpSender,
-    rtsp: RtspClient,
+    receivers: Vec<ReceiverHandle>,
+    timing: TimingSocket,
+    rtsp_clients: Vec<RtspClient>,
     buf: Vec<u8>,
     first_frame: bool,
+    pacing: PacingClock,
 }
 
+impl AirPlaySession {
+    /// Encode one ALAC frame and fan it out to every connected receiver.
+    fn send_frame(&mut self, frame_bytes: &[u8; PCM_BYTES_PER_FRAME], first: bool) {
+        let alac = encode_frame(frame_bytes);
+        let rtptime = self.pacing.rtptime;
+        let frame_index = self.pacing.frames_sent;
+
+        for rx in &mut self.receivers {
+            rx.send_audio_packet(&alac, rtptime, frame_index, first);
+        }
+
+        self.pacing.advance();
+
+        // RTCP NTP sync every ~44 frames (~0.35 s)
+        if self.pacing.frames_sent % 44 == 0 {
+            let current_ts = self.pacing.rtptime.wrapping_sub(FRAME_SAMPLES as u32);
+            let next_ts = self.pacing.rtptime;
+            for rx in &self.receivers {
+                rx.send_sync(current_ts, next_ts, false);
+            }
+        }
+
+        // Pace once for all receivers
+        self.pacing.pace();
+    }
+
+    fn send_initial_sync(&self) {
+        let ts = self.pacing.initial_rtptime;
+        for rx in &self.receivers {
+            rx.send_sync(ts, ts, true);
+        }
+        tracing::debug!(
+            "sent initial sync ts={} to {} receiver(s)",
+            ts,
+            self.receivers.len()
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+
 static CONFIG: Mutex<AirPlayConfig> = Mutex::new(AirPlayConfig {
-    host: None,
-    port: 5000,
+    receivers: Vec::new(),
 });
 
 struct AirPlayConfig {
-    host: Option<String>,
-    port: u16,
+    receivers: Vec<(String, u16)>,
 }
 
-// Safety: the raw pointer in host is only touched inside the mutex
+// Safety: Vec<(String, u16)> is Send
 unsafe impl Send for AirPlayConfig {}
 
+// ---------------------------------------------------------------------------
+// FFI — configuration
+// ---------------------------------------------------------------------------
+
+/// Set a single AirPlay receiver, replacing any previously configured list.
+/// Kept for backward compatibility with existing C callers and settings.
 #[no_mangle]
 pub extern "C" fn pcm_airplay_set_host(host: *const c_char, port: c_ushort) {
     if host.is_null() {
@@ -46,109 +99,152 @@ pub extern "C" fn pcm_airplay_set_host(host: *const c_char, port: c_ushort) {
         .to_string_lossy()
         .into_owned();
     let mut cfg = CONFIG.lock().unwrap();
-    cfg.host = Some(s);
-    cfg.port = port;
+    cfg.receivers.clear();
+    cfg.receivers.push((s, port));
 }
+
+/// Append one receiver to the multi-room list.
+#[no_mangle]
+pub extern "C" fn pcm_airplay_add_receiver(host: *const c_char, port: c_ushort) {
+    if host.is_null() {
+        return;
+    }
+    let s = unsafe { CStr::from_ptr(host) }
+        .to_string_lossy()
+        .into_owned();
+    let mut cfg = CONFIG.lock().unwrap();
+    cfg.receivers.push((s, port));
+}
+
+/// Clear the receiver list (call before re-configuring).
+#[no_mangle]
+pub extern "C" fn pcm_airplay_clear_receivers() {
+    CONFIG.lock().unwrap().receivers.clear();
+}
+
+// ---------------------------------------------------------------------------
+// FFI — session lifecycle
+// ---------------------------------------------------------------------------
 
 #[no_mangle]
 pub extern "C" fn pcm_airplay_connect() -> c_int {
-    // Already connected — don't redo the RTSP handshake for every DMA chunk.
     if SESSION.lock().unwrap().is_some() {
-        return 0;
+        return 0; // idempotent
     }
 
-    let cfg = CONFIG.lock().unwrap();
-    let host = match cfg.host.clone() {
-        Some(h) => h,
-        None => {
-            tracing::error!("pcm_airplay_connect: no host configured");
+    let targets = {
+        let cfg = CONFIG.lock().unwrap();
+        if cfg.receivers.is_empty() {
+            tracing::error!("pcm_airplay_connect: no receivers configured");
             return -1;
         }
+        cfg.receivers.clone()
     };
-    let port = cfg.port;
-    drop(cfg);
 
-    let local_ip = local_ip_for(&host).unwrap_or_else(|| "127.0.0.1".to_string());
-    tracing::info!("connecting to {}:{} (local_ip={})", host, port, local_ip);
-
-    // Attempt AirPlay 2 pairing (PAIR-VERIFY / PAIR-SETUP).
-    // Failure here is non-fatal — many AirPlay 1 receivers don't have the endpoint.
-    match airplay2::connect(&host, port, None) {
-        Ok(()) => tracing::info!("AirPlay 2 handshake complete"),
-        Err(e) => tracing::debug!("AirPlay 2 handshake skipped ({}), using AirPlay 1", e),
-    }
-
-    let session_token: u64 = rand::random();
-    let ssrc: u32 = rand::random();
+    // All receivers share the same initial_rtptime for RTP-level synchronisation.
     let initial_rtptime: u32 = rand::random();
 
-    // Bind all UDP sockets first so we know the local ports before SETUP.
-    let mut sender = match RtpSender::bind(ssrc, initial_rtptime) {
-        Ok(s) => s,
+    // Bind the shared timing socket first; every receiver advertises the same port.
+    let timing = match TimingSocket::bind() {
+        Ok(t) => t,
         Err(e) => {
-            tracing::error!("bind failed: {}", e);
+            tracing::error!("timing socket bind failed: {}", e);
             return -1;
         }
     };
-    let local_ctrl_port = sender.local_ctrl_port;
-    let local_timing_port = sender.local_timing_port;
+    let local_timing_port = timing.local_port;
 
-    let mut rtsp = match RtspClient::connect(&host, port, session_token) {
-        Ok(c) => c,
-        Err(e) => {
-            tracing::error!("RTSP TCP connect failed: {}", e);
-            return -1;
-        }
-    };
+    let mut receivers: Vec<ReceiverHandle> = Vec::new();
+    let mut rtsp_clients: Vec<RtspClient> = Vec::new();
+    let mut connected = 0usize;
 
-    if let Err(e) = rtsp.announce(&local_ip, &host) {
-        tracing::error!("ANNOUNCE failed: {}", e);
-        return -1;
-    }
-
-    let (server_audio, server_ctrl, _server_timing) =
-        match rtsp.setup(local_ctrl_port, local_timing_port) {
-            Ok(ports) => ports,
-            Err(e) => {
-                tracing::error!("SETUP failed: {}", e);
-                return -1;
+    for (host, port) in &targets {
+        match connect_one(host, *port, initial_rtptime, local_timing_port) {
+            Ok((rx, rtsp)) => {
+                tracing::info!("connected to {}:{}", host, port);
+                receivers.push(rx);
+                rtsp_clients.push(rtsp);
+                connected += 1;
             }
-        };
+            Err(e) => tracing::warn!("failed to connect to {}:{}: {}", host, port, e),
+        }
+    }
 
-    if let Err(e) = sender.connect_server(&host, server_audio, server_ctrl) {
-        tracing::error!("connect_server failed: {}", e);
+    if connected == 0 {
+        tracing::error!("could not connect to any AirPlay receiver");
         return -1;
     }
 
-    if let Err(e) = rtsp.record(0, initial_rtptime) {
-        tracing::error!("RECORD failed: {}", e);
-        return -1;
-    }
-
-    // Set volume to maximum; RAOP range: -144.0 (mute) to 0.0 (full).
-    if let Err(e) = rtsp.set_parameter_volume(0.0) {
-        tracing::warn!("SET_PARAMETER volume failed (non-fatal): {}", e);
-    }
-
-    sender.send_initial_sync();
-    tracing::info!(
-        "session established — sending audio to {}:{}",
-        host,
-        server_audio
-    );
-
-    let mut guard = SESSION.lock().unwrap();
-    *guard = Some(AirPlaySession {
-        sender,
-        rtsp,
+    let pacing = PacingClock::new(initial_rtptime);
+    let session = AirPlaySession {
+        receivers,
+        timing,
+        rtsp_clients,
         buf: Vec::with_capacity(PCM_BYTES_PER_FRAME * 4),
         first_frame: true,
-    });
+        pacing,
+    };
 
+    session.send_initial_sync();
+    tracing::info!(
+        "session established: {}/{} receiver(s) connected",
+        connected,
+        targets.len()
+    );
+
+    *SESSION.lock().unwrap() = Some(session);
     0
 }
 
-/// Write raw S16LE stereo PCM. Buffers into 352-sample frames, encodes ALAC, sends RTP.
+/// Connect to a single AirPlay receiver. Returns `(ReceiverHandle, RtspClient)` on success.
+fn connect_one(
+    host: &str,
+    port: u16,
+    initial_rtptime: u32,
+    local_timing_port: u16,
+) -> std::io::Result<(ReceiverHandle, RtspClient)> {
+    let local_ip = local_ip_for(host).unwrap_or_else(|| "127.0.0.1".to_string());
+
+    // Attempt AirPlay 2 pairing (non-fatal fallback to AirPlay 1).
+    match airplay2::connect(host, port, None) {
+        Ok(()) => tracing::info!("AirPlay 2 handshake complete for {}:{}", host, port),
+        Err(e) => tracing::debug!(
+            "AirPlay 2 skipped for {}:{} ({}), using AirPlay 1",
+            host,
+            port,
+            e
+        ),
+    }
+
+    let session_token: u64 = rand::random();
+
+    let mut rx = ReceiverHandle::bind()?;
+    let local_ctrl_port = rx.local_ctrl_port;
+
+    let mut rtsp = RtspClient::connect(host, port, session_token)?;
+    rtsp.announce(&local_ip, host)?;
+
+    let (server_audio, server_ctrl, _server_timing) =
+        rtsp.setup(local_ctrl_port, local_timing_port)?;
+
+    rx.connect(host, server_audio, server_ctrl)?;
+    rtsp.record(0, initial_rtptime)?;
+
+    // Set volume to maximum; RAOP range: -144.0 (mute) to 0.0 (full).
+    if let Err(e) = rtsp.set_parameter_volume(0.0) {
+        tracing::warn!(
+            "SET_PARAMETER volume failed for {}:{} (non-fatal): {}",
+            host,
+            port,
+            e
+        );
+    }
+
+    Ok((rx, rtsp))
+}
+
+/// Write raw S16LE stereo PCM. Buffers into 352-sample frames, encodes ALAC,
+/// fans out to every connected receiver, then paces once.
 #[no_mangle]
 pub extern "C" fn pcm_airplay_write(data: *const u8, len: usize) -> c_int {
     if data.is_null() || len == 0 {
@@ -166,7 +262,11 @@ pub extern "C" fn pcm_airplay_write(data: *const u8, len: usize) -> c_int {
     };
 
     if session.first_frame {
-        tracing::debug!("first write: {} bytes", len);
+        tracing::debug!(
+            "first write: {} bytes, {} receiver(s)",
+            len,
+            session.receivers.len()
+        );
     }
 
     session.buf.extend_from_slice(input);
@@ -176,10 +276,9 @@ pub extern "C" fn pcm_airplay_write(data: *const u8, len: usize) -> c_int {
             session.buf[..PCM_BYTES_PER_FRAME].try_into().unwrap();
         session.buf.drain(..PCM_BYTES_PER_FRAME);
 
-        let alac = encode_frame(&frame_bytes);
         let first = session.first_frame;
         session.first_frame = false;
-        session.sender.send_audio(&alac, first);
+        session.send_frame(&frame_bytes, first);
     }
 
     0
@@ -189,7 +288,9 @@ pub extern "C" fn pcm_airplay_write(data: *const u8, len: usize) -> c_int {
 pub extern "C" fn pcm_airplay_stop() {
     let mut guard = SESSION.lock().unwrap();
     if let Some(ref mut session) = *guard {
-        let _ = session.rtsp.teardown();
+        for rtsp in &mut session.rtsp_clients {
+            let _ = rtsp.teardown();
+        }
     }
     *guard = None;
 }
@@ -198,10 +299,16 @@ pub extern "C" fn pcm_airplay_stop() {
 pub extern "C" fn pcm_airplay_close() {
     let mut guard = SESSION.lock().unwrap();
     if let Some(ref mut session) = *guard {
-        let _ = session.rtsp.teardown();
+        for rtsp in &mut session.rtsp_clients {
+            let _ = rtsp.teardown();
+        }
     }
     *guard = None;
 }
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 fn local_ip_for(remote: &str) -> Option<String> {
     use std::net::UdpSocket;

@@ -933,6 +933,7 @@ pub mod api {
                     fifo_path: None,
                     airplay_host: None,
                     airplay_port: None,
+                    airplay_receivers: None,
                     squeezelite_http_port: None,
                     squeezelite_port: None,
                 }

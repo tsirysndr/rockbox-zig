@@ -11,70 +11,38 @@ pub const RTP_PACKET_BYTES: usize = RTP_HEADER_BYTES + ALAC_FRAME_BYTES;
 const NTP_EPOCH_DELTA: u32 = 0x83AA_7E80;
 
 // Duration of one ALAC frame at 44100 Hz
-const FRAME_DURATION_US: u64 = FRAME_SAMPLES as u64 * 1_000_000 / 44100; // ~7982 µs
+pub const FRAME_DURATION_US: u64 = FRAME_SAMPLES as u64 * 1_000_000 / 44100; // ~7982 µs
 
-pub struct RtpSender {
+/// Per-receiver UDP state. One of these per AirPlay endpoint.
+pub struct ReceiverHandle {
     audio_sock: UdpSocket,
     ctrl_sock: UdpSocket,
     server_ctrl_addr: std::net::SocketAddr,
-    ssrc: u32,
-    seqnum: u16,
-    rtptime: u32,
-    initial_rtptime: u32,
-    frames_sent: u64,
     pub local_ctrl_port: u16,
-    pub local_timing_port: u16,
-    stream_start: Option<Instant>,
-    // kept alive so the OS port stays open; responder thread holds the other Arc
-    _timing_sock: Arc<UdpSocket>,
+    pub ssrc: u32,
+    pub seqnum: u16,
 }
 
-impl RtpSender {
-    /// Bind all local UDP sockets. `connect_server()` must be called after SETUP
-    /// once the server's ports are known.
-    pub fn bind(ssrc: u32, initial_rtptime: u32) -> std::io::Result<Self> {
+impl ReceiverHandle {
+    /// Bind local audio and ctrl sockets. Call `connect()` after SETUP.
+    pub fn bind() -> std::io::Result<Self> {
         let audio_sock = UdpSocket::bind("0.0.0.0:0")?;
         let ctrl_sock = UdpSocket::bind("0.0.0.0:0")?;
         let local_ctrl_port = ctrl_sock.local_addr()?.port();
-        let timing_sock = Arc::new(UdpSocket::bind("0.0.0.0:0")?);
-        let local_timing_port = timing_sock.local_addr()?.port();
-
-        // Respond to NTP timing requests from the receiver so it can synchronise
-        // and actually start playing. Without this, the timing port gets ICMP
-        // unreachable replies and many receivers stall indefinitely.
-        let timing_thread = Arc::clone(&timing_sock);
-        thread::spawn(move || timing_responder(timing_thread));
-
+        let ssrc: u32 = rand::random();
         let server_ctrl_addr = "0.0.0.0:0".parse().unwrap();
-        tracing::debug!(
-            "local ctrl_port={} timing_port={}",
-            local_ctrl_port,
-            local_timing_port
-        );
-
         Ok(Self {
             audio_sock,
             ctrl_sock,
             server_ctrl_addr,
+            local_ctrl_port,
             ssrc,
             seqnum: 0,
-            rtptime: initial_rtptime,
-            initial_rtptime,
-            frames_sent: 0,
-            local_ctrl_port,
-            local_timing_port,
-            stream_start: None,
-            _timing_sock: timing_sock,
         })
     }
 
     /// Connect the audio socket to the server's RTP port and record the ctrl addr.
-    pub fn connect_server(
-        &mut self,
-        host: &str,
-        audio_port: u16,
-        ctrl_port: u16,
-    ) -> std::io::Result<()> {
+    pub fn connect(&mut self, host: &str, audio_port: u16, ctrl_port: u16) -> std::io::Result<()> {
         tracing::debug!("connecting audio → {}:{}", host, audio_port);
         self.audio_sock
             .connect(format!("{}:{}", host, audio_port))?;
@@ -84,18 +52,23 @@ impl RtpSender {
         Ok(())
     }
 
-    pub fn send_audio(&mut self, alac_frame: &[u8; ALAC_FRAME_BYTES], first: bool) {
-        let start = *self.stream_start.get_or_insert_with(Instant::now);
-
+    /// Build and send one RTP audio packet. Increments seqnum.
+    pub fn send_audio_packet(
+        &mut self,
+        alac_frame: &[u8; ALAC_FRAME_BYTES],
+        rtptime: u32,
+        frame_index: u64,
+        first: bool,
+    ) {
         let mut pkt = [0u8; RTP_PACKET_BYTES];
         pkt[0] = 0x80;
         pkt[1] = if first { 0x60 | 0x80 } else { 0x60 }; // M=1 on first, PT=96
         pkt[2] = (self.seqnum >> 8) as u8;
         pkt[3] = self.seqnum as u8;
-        pkt[4] = (self.rtptime >> 24) as u8;
-        pkt[5] = (self.rtptime >> 16) as u8;
-        pkt[6] = (self.rtptime >> 8) as u8;
-        pkt[7] = self.rtptime as u8;
+        pkt[4] = (rtptime >> 24) as u8;
+        pkt[5] = (rtptime >> 16) as u8;
+        pkt[6] = (rtptime >> 8) as u8;
+        pkt[7] = rtptime as u8;
         pkt[8] = (self.ssrc >> 24) as u8;
         pkt[9] = (self.ssrc >> 16) as u8;
         pkt[10] = (self.ssrc >> 8) as u8;
@@ -104,47 +77,28 @@ impl RtpSender {
 
         match self.audio_sock.send(&pkt) {
             Ok(_) => {
-                if self.frames_sent < 5 {
+                if frame_index < 5 {
                     tracing::debug!(
                         "sent frame {} ts={} seq={} first={}",
-                        self.frames_sent,
-                        self.rtptime,
+                        frame_index,
+                        rtptime,
                         self.seqnum,
                         first
                     );
                 }
             }
-            Err(e) => tracing::warn!("send error on frame {}: {}", self.frames_sent, e),
+            Err(e) => tracing::warn!("send error on frame {}: {}", frame_index, e),
         }
-
         self.seqnum = self.seqnum.wrapping_add(1);
-        self.rtptime = self.rtptime.wrapping_add(FRAME_SAMPLES as u32);
-        self.frames_sent += 1;
-
-        // RTCP NTP sync every ~44 frames (~0.35 s)
-        if self.frames_sent % 44 == 0 {
-            self.send_sync(false);
-        }
-
-        // Real-time pacing — sleep until the frame's playout deadline.
-        let expected = start + Duration::from_micros(self.frames_sent * FRAME_DURATION_US);
-        let now = Instant::now();
-        if expected > now {
-            std::thread::sleep(expected - now);
-        }
     }
 
-    fn send_sync(&self, first: bool) {
+    /// Send an RTCP NTP sync packet on the ctrl socket.
+    pub fn send_sync(&self, current_ts: u32, next_ts: u32, first: bool) {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default();
         let ntp_sec = now.as_secs() as u32 + NTP_EPOCH_DELTA;
         let ntp_frac = ((now.subsec_nanos() as u64 * (1u64 << 32)) / 1_000_000_000) as u32;
-
-        // "current" timestamp = frame we just sent (rtptime was already incremented)
-        let current_ts = self.rtptime.wrapping_sub(FRAME_SAMPLES as u32);
-        // "next" timestamp = self.rtptime (next frame to be sent)
-        let next_ts = self.rtptime;
 
         let mut pkt = [0u8; 20];
         pkt[0] = if first { 0x90 } else { 0x80 };
@@ -170,46 +124,68 @@ impl RtpSender {
 
         let _ = self.ctrl_sock.send_to(&pkt, self.server_ctrl_addr);
     }
+}
 
-    pub fn send_initial_sync(&self) {
-        // At startup no frames have been sent yet; use initial_rtptime for both
-        // "current" and "next" so we don't send a backwards-wrapped timestamp.
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default();
-        let ntp_sec = now.as_secs() as u32 + NTP_EPOCH_DELTA;
-        let ntp_frac = ((now.subsec_nanos() as u64 * (1u64 << 32)) / 1_000_000_000) as u32;
-        let ts = self.initial_rtptime;
+/// Shared NTP timing socket. One instance serves all receivers — the responder
+/// doesn't care which receiver the request came from, it just replies in place.
+pub struct TimingSocket {
+    pub local_port: u16,
+    // kept alive so the OS port stays open; responder thread holds the other Arc
+    _sock: Arc<UdpSocket>,
+}
 
-        let mut pkt = [0u8; 20];
-        pkt[0] = 0x90; // first sync: extension bit set
-        pkt[1] = 0xd4;
-        pkt[2] = 0x00;
-        pkt[3] = 0x07;
-        pkt[4] = (ts >> 24) as u8;
-        pkt[5] = (ts >> 16) as u8;
-        pkt[6] = (ts >> 8) as u8;
-        pkt[7] = ts as u8;
-        pkt[8] = (ntp_sec >> 24) as u8;
-        pkt[9] = (ntp_sec >> 16) as u8;
-        pkt[10] = (ntp_sec >> 8) as u8;
-        pkt[11] = ntp_sec as u8;
-        pkt[12] = (ntp_frac >> 24) as u8;
-        pkt[13] = (ntp_frac >> 16) as u8;
-        pkt[14] = (ntp_frac >> 8) as u8;
-        pkt[15] = ntp_frac as u8;
-        pkt[16] = (ts >> 24) as u8;
-        pkt[17] = (ts >> 16) as u8;
-        pkt[18] = (ts >> 8) as u8;
-        pkt[19] = ts as u8;
+impl TimingSocket {
+    pub fn bind() -> std::io::Result<Self> {
+        let sock = Arc::new(UdpSocket::bind("0.0.0.0:0")?);
+        let local_port = sock.local_addr()?.port();
+        let thread_sock = Arc::clone(&sock);
+        thread::spawn(move || timing_responder(thread_sock));
+        tracing::debug!("timing responder bound on port {}", local_port);
+        Ok(Self {
+            local_port,
+            _sock: sock,
+        })
+    }
+}
 
-        let _ = self.ctrl_sock.send_to(&pkt, self.server_ctrl_addr);
-        tracing::debug!("sent initial sync ts={}", ts);
+/// Pacing state shared across all receivers.
+pub struct PacingClock {
+    pub stream_start: Option<Instant>,
+    pub frames_sent: u64,
+    pub rtptime: u32,
+    pub initial_rtptime: u32,
+}
+
+impl PacingClock {
+    pub fn new(initial_rtptime: u32) -> Self {
+        Self {
+            stream_start: None,
+            frames_sent: 0,
+            rtptime: initial_rtptime,
+            initial_rtptime,
+        }
     }
 
-    pub fn reset_clock(&mut self) {
+    /// Advance after sending one frame to all receivers.
+    pub fn advance(&mut self) {
+        self.rtptime = self.rtptime.wrapping_add(FRAME_SAMPLES as u32);
+        self.frames_sent += 1;
+    }
+
+    /// Sleep until the current frame's real-time deadline.
+    pub fn pace(&mut self) {
+        let start = *self.stream_start.get_or_insert_with(Instant::now);
+        let expected = start + Duration::from_micros(self.frames_sent * FRAME_DURATION_US);
+        let now = Instant::now();
+        if expected > now {
+            std::thread::sleep(expected - now);
+        }
+    }
+
+    pub fn reset(&mut self) {
         self.stream_start = None;
         self.frames_sent = 0;
+        self.rtptime = self.initial_rtptime;
     }
 }
 
