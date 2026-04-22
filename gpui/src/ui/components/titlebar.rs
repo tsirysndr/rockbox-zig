@@ -2,8 +2,8 @@ use super::navbar::NavBar;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::theme::Theme;
 use gpui::{
-    App, AppContext, Context, Entity, InteractiveElement, IntoElement, ParentElement, Render,
-    Styled, Window, WindowControlArea, div, white,
+    div, white, App, AppContext, Context, Entity, InteractiveElement, IntoElement, ParentElement,
+    Render, Styled, Window, WindowControlArea,
 };
 
 #[derive(Clone)]

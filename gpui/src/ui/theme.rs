@@ -1,4 +1,4 @@
-use gpui::{Rgba, rgb, rgba};
+use gpui::{rgb, rgba, Rgba};
 
 #[allow(dead_code)]
 #[derive(Clone, Copy, Debug)]

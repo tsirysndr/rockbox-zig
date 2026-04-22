@@ -4,8 +4,8 @@ use crate::ui::components::miniplayer::MiniPlayer;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    App, AppContext, Entity, FontWeight, InteractiveElement, IntoElement, ParentElement, Render,
-    StatefulInteractiveElement, Styled, UniformListScrollHandle, Window, div, px, uniform_list,
+    div, px, uniform_list, App, AppContext, Entity, FontWeight, InteractiveElement, IntoElement,
+    ParentElement, Render, StatefulInteractiveElement, Styled, UniformListScrollHandle, Window,
 };
 
 pub struct QueuePage {
@@ -89,7 +89,9 @@ impl Render for QueuePage {
                                 })
                                 .on_click(move |_, _, cx: &mut App| {
                                     let state = cx.global::<Controller>().state.clone();
-                                    state.update(cx, |s: &mut crate::state::AppState, _| s.play_track(track_idx));
+                                    state.update(cx, |s: &mut crate::state::AppState, _| {
+                                        s.play_track(track_idx)
+                                    });
                                 })
                                 .child(
                                     div()

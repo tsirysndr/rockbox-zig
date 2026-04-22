@@ -1,14 +1,14 @@
+use crate::controller::Controller;
 use crate::state::PlaybackStatus;
 use crate::ui::components::Page;
-use crate::controller::Controller;
-use gpui::{App, KeyBinding, actions};
+use gpui::{actions, App, KeyBinding};
 
 actions!(player, [PlayPause, Next, Prev, Shuffle, Repeat]);
 actions!(pages, [CycleNext, CyclePrev, Library, Player, Queue]);
 
 pub fn register_keybinds(cx: &mut App) {
     cx.bind_keys([
-        KeyBinding::new("space", PlayPause, None),
+        KeyBinding::new("space", PlayPause, Some("! SearchInput")),
         KeyBinding::new("cmd-right", Next, None),
         KeyBinding::new("cmd-left", Prev, None),
         KeyBinding::new("shift-s", Shuffle, None),

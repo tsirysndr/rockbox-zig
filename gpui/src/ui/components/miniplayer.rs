@@ -1,12 +1,12 @@
 use crate::controller::Controller;
-use crate::state::{AppState, PlaybackStatus, format_duration};
+use crate::state::{format_duration, AppState, PlaybackStatus};
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::Page;
 use crate::ui::helpers::secs_to_slider;
 use crate::ui::theme::Theme;
 use gpui::{
-    App, Context, FontWeight, InteractiveElement, IntoElement, ParentElement, Render,
-    StatefulInteractiveElement, Styled, Window, div, px, relative,
+    div, px, relative, App, Context, FontWeight, InteractiveElement, IntoElement, ParentElement,
+    Render, StatefulInteractiveElement, Styled, Window,
 };
 
 pub struct MiniPlayer;

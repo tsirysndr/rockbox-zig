@@ -1,14 +1,14 @@
 use crate::ui::animations::ease_in_out_expo;
+use crate::ui::components::controlbar::ControlBar;
 use crate::ui::components::pages::{library::LibraryPage, player::PlayerPage, queue::QueuePage};
 use crate::ui::components::titlebar::Titlebar;
-use crate::ui::components::controlbar::ControlBar;
 use crate::ui::components::Page;
-use crate::ui::theme::Theme;
 use crate::ui::global_keybinds;
+use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    Animation, AnimationExt as _, AppContext, Context, ElementId, Entity, InteractiveElement,
-    IntoElement, ParentElement, Render, Styled, Window, div, px,
+    div, px, Animation, AnimationExt as _, AppContext, Context, ElementId, Entity,
+    InteractiveElement, IntoElement, ParentElement, Render, Styled, Window,
 };
 
 pub struct Rockbox {
@@ -49,9 +49,9 @@ impl Render for Rockbox {
             _ => 0.0,
         };
         let page_el = match page {
-            Page::Player => div().w_full().h_full().child(self.player_page.clone()),
-            Page::Library => div().w_full().h_full().child(self.library_page.clone()),
-            Page::Queue => div().w_full().h_full().child(self.queue_page.clone()),
+            Page::Player => div().w_full().h_full().min_h_0().child(self.player_page.clone()),
+            Page::Library => div().w_full().h_full().min_h_0().child(self.library_page.clone()),
+            Page::Queue => div().w_full().h_full().min_h_0().child(self.queue_page.clone()),
         };
         div()
             .id("root")
@@ -67,6 +67,8 @@ impl Render for Rockbox {
                     .id("page_container")
                     .w_full()
                     .flex_1()
+                    .min_h_0()
+                    .overflow_hidden()
                     .map(move |this| {
                         if prev_page == page {
                             this.child(page_el).into_any_element()

@@ -2,8 +2,8 @@ use super::Page;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    Animation, AnimationExt as _, Context, ElementId, FontWeight, InteractiveElement,
-    IntoElement, ParentElement, Render, StatefulInteractiveElement, Styled, Window, div, px,
+    div, px, Animation, AnimationExt as _, Context, ElementId, FontWeight, InteractiveElement,
+    IntoElement, ParentElement, Render, StatefulInteractiveElement, Styled, Window,
 };
 
 #[derive(Clone)]
@@ -34,8 +34,8 @@ impl Render for NavBar {
             .justify_center()
             .relative()
             .child({
-                let tab_state = window
-                    .use_keyed_state("navbar_tab", cx, |_, _| (page, active_offset));
+                let tab_state =
+                    window.use_keyed_state("navbar_tab", cx, |_, _| (page, active_offset));
 
                 let (prev_page, prev_offset) = *tab_state.read(cx);
                 let duration = std::time::Duration::from_millis(200);

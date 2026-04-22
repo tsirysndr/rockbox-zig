@@ -1,7 +1,7 @@
 use gpui::{
-    AnyElement, App, AppContext, Context, Entity, Hsla, IntoElement, Radians, Render,
-    RenderOnce, SharedString, StyleRefinement, Styled, Svg, Transformation, Window,
-    prelude::FluentBuilder as _, svg, white,
+    prelude::FluentBuilder as _, svg, white, AnyElement, App, AppContext, Context, Entity, Hsla,
+    IntoElement, Radians, Render, RenderOnce, SharedString, StyleRefinement, Styled, Svg,
+    Transformation, Window,
 };
 
 pub trait IconNamed {

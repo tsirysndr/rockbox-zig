@@ -3,7 +3,7 @@ use crate::state::format_duration;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::helpers::secs_to_slider;
 use crate::ui::theme::Theme;
-use gpui::{Context, IntoElement, ParentElement, Render, Styled, Window, div, px};
+use gpui::{div, px, Context, IntoElement, ParentElement, Render, Styled, Window};
 
 pub struct ControlBar;
 
@@ -22,54 +22,49 @@ impl Render for ControlBar {
             .w_full()
             .flex_shrink_0()
             .flex()
-            .flex_col()
-            .gap_y_2()
-            .px_4()
+            .items_center()
+            .gap_x_3()
+            .px_6()
             .py_3()
-            .border_t_1()
-            .border_color(theme.border)
+            // Elapsed
             .child(
-                // Progress bar
                 div()
-                    .w_full()
-                    .flex()
-                    .items_center()
-                    .gap_x_3()
+                    .text_xs()
+                    .text_color(theme.playback_position_text)
+                    .flex_shrink_0()
+                    .child(format_duration(position)),
+            )
+            // Progress bar
+            .child(
+                div()
+                    .flex_1()
+                    .h(px(4.0))
+                    .rounded_full()
+                    .bg(theme.playback_slider_track)
                     .child(
                         div()
-                            .text_xs()
-                            .text_color(theme.playback_position_text)
-                            .child(format_duration(position)),
-                    )
-                    .child(
-                        div()
-                            .flex_1()
-                            .h(px(4.0))
+                            .h_full()
                             .rounded_full()
-                            .bg(theme.playback_slider_track)
-                            .child(
-                                div()
-                                    .h_full()
-                                    .rounded_full()
-                                    .bg(theme.playback_slider_fill)
-                                    .w(px(fill_pct / 100.0 * 800.0)), // approximate fill; will size properly with canvas
-                            ),
-                    )
-                    .child(
-                        div()
-                            .text_xs()
-                            .text_color(theme.playback_position_text)
-                            .child(format_duration(duration)),
+                            .bg(theme.playback_slider_fill)
+                            .w(px(fill_pct / 100.0 * 800.0)),
                     ),
             )
+            // Duration
             .child(
-                // Volume
                 div()
-                    .w_full()
+                    .text_xs()
+                    .text_color(theme.playback_position_text)
+                    .flex_shrink_0()
+                    .child(format_duration(duration)),
+            )
+            // Volume
+            .child(
+                div()
+                    .flex_shrink_0()
                     .flex()
                     .items_center()
-                    .justify_end()
                     .gap_x_2()
+                    .ml_4()
                     .child(
                         div()
                             .text_color(theme.volume_icon)
