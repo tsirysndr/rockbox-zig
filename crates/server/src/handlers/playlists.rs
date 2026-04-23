@@ -1,8 +1,4 @@
-use std::{
-    env,
-    ffi::CString,
-    sync::atomic::Ordering,
-};
+use std::{env, ffi::CString, sync::atomic::Ordering};
 
 use crate::http::{Context, Request, Response};
 use crate::{PLAYER_MUTEX, PLAYLIST_DIRTY};
