@@ -82,7 +82,7 @@ impl Default for Theme {
             switcher_active: rgb(0x6F00FF),
             switcher_text: rgba(0xFFFFFFCC),
             switcher_text_hover: rgb(0xFFFFFF),
-            switcher_text_active: rgb(0x0F1117),
+            switcher_text_active: rgb(0xFFFFFF),
 
             player_bg: rgb(0x0F1117),
             player_title_text: rgb(0xFFFFFF),
@@ -98,7 +98,7 @@ impl Default for Theme {
 
             player_play_pause_bg: rgb(0x6F00FF),
             player_play_pause_hover: rgba(0x6F00FFE6),
-            player_play_pause_text: rgb(0x0F1117),
+            player_play_pause_text: rgb(0xFFFFFF),
 
             queue_bg: rgb(0x0F1117),
             queue_heading_text: rgb(0xFFFFFF),

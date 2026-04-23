@@ -302,7 +302,7 @@ impl Render for StartupGate {
                                     .rounded_lg()
                                     .text_sm()
                                     .font_weight(FontWeight(500.0))
-                                    .text_color(gpui::rgb(0x0F1117))
+                                    .text_color(gpui::rgb(0xFFFFFF))
                                     .bg(gpui::rgb(0x6F00FF))
                                     .cursor_pointer()
                                     .hover(|this| this.bg(gpui::rgb(0x5A00D6)))
