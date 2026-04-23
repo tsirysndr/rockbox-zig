@@ -2,12 +2,13 @@ use crate::controller::Controller;
 use crate::state::PlaybackStatus;
 use crate::ui::components::controlbar::ControlBar;
 use crate::ui::components::icons::{Icon, Icons};
+use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::px;
 use gpui::{
-    div, App, Context, Entity, FontWeight, InteractiveElement, IntoElement, ParentElement, Render,
-    StatefulInteractiveElement, Styled, Window,
+    div, img, App, Context, Entity, FontWeight, InteractiveElement, IntoElement, ObjectFit,
+    ParentElement, Render, StatefulInteractiveElement, Styled, StyledImage, Window,
 };
 
 pub struct PlayerPage {
@@ -40,6 +41,13 @@ impl Render for PlayerPage {
             .current_track()
             .map(|t| t.album.clone())
             .unwrap_or_default();
+        let album_art_url = state
+            .current_track()
+            .and_then(|t| t.album_art.as_deref())
+            .filter(|s| !s.is_empty())
+            .map(|id| format!("http://localhost:6062/covers/{id}"));
+        let queue_total = state.queue.len();
+        let queue_pos = state.current_idx.map(|i| i + 1);
 
         div()
             .size_full()
@@ -56,11 +64,19 @@ impl Render for PlayerPage {
                     .gap_y_6()
                     .px_16()
                     .pt_8()
-                    // Album art placeholder
-                    .child(
+                    .child(if let Some(url) = album_art_url {
                         div()
-                            .w(px(192.0))
-                            .h(px(192.0))
+                            .w(px(360.0))
+                            .h(px(360.0))
+                            .rounded_xl()
+                            .overflow_hidden()
+                            .flex_shrink_0()
+                            .child(img(url).w_full().h_full().object_fit(ObjectFit::Cover))
+                            .into_any_element()
+                    } else {
+                        div()
+                            .w(px(360.0))
+                            .h(px(360.0))
                             .rounded_xl()
                             .border_2()
                             .border_color(theme.border)
@@ -69,9 +85,9 @@ impl Render for PlayerPage {
                             .justify_center()
                             .bg(theme.library_art_bg)
                             .text_color(theme.player_icons_text)
-                            .child(Icon::new(Icons::Music).size_16()),
-                    )
-                    // Track info
+                            .child(Icon::new(Icons::Music).size_16())
+                            .into_any_element()
+                    })
                     .child(
                         div()
                             .flex()
@@ -102,9 +118,15 @@ impl Render for PlayerPage {
                                     .max_w_96()
                                     .truncate()
                                     .child(album),
-                            ),
+                            )
+                            .child(div().text_xs().text_color(theme.player_icons_text).child(
+                                if let Some(pos) = queue_pos {
+                                    format!("{pos} / {queue_total}")
+                                } else {
+                                    String::new()
+                                },
+                            )),
                     )
-                    // Transport controls
                     .child(
                         div()
                             .flex()
@@ -130,8 +152,9 @@ impl Render for PlayerPage {
                                     })
                                     .on_click(|_, _, cx: &mut App| {
                                         let state = cx.global::<Controller>().state.clone();
-                                        state.update(cx, |s: &mut crate::state::AppState, _| {
-                                            s.toggle_shuffle()
+                                        state.update(cx, |s, cx| {
+                                            s.toggle_shuffle();
+                                            cx.notify();
                                         });
                                     })
                                     .child(Icon::new(Icons::Shuffle).size_4()),
@@ -151,10 +174,7 @@ impl Render for PlayerPage {
                                             .text_color(theme.player_icons_text_hover)
                                     })
                                     .on_click(|_, _, cx: &mut App| {
-                                        let state = cx.global::<Controller>().state.clone();
-                                        state.update(cx, |s: &mut crate::state::AppState, _| {
-                                            s.prev()
-                                        });
+                                        cx.global::<Controller>().prev();
                                     })
                                     .child(Icon::new(Icons::Prev).size_4()),
                             )
@@ -171,14 +191,7 @@ impl Render for PlayerPage {
                                     .hover(|this| this.bg(theme.player_play_pause_hover))
                                     .text_color(theme.player_play_pause_text)
                                     .on_click(|_, _, cx: &mut App| {
-                                        let state = cx.global::<Controller>().state.clone();
-                                        state.update(
-                                            cx,
-                                            |s: &mut crate::state::AppState, _| match s.status {
-                                                PlaybackStatus::Playing => s.pause(),
-                                                _ => s.play(),
-                                            },
-                                        );
+                                        play_pause(cx);
                                     })
                                     .child(if is_playing {
                                         Icon::new(Icons::Pause).size_5()
@@ -201,10 +214,7 @@ impl Render for PlayerPage {
                                             .text_color(theme.player_icons_text_hover)
                                     })
                                     .on_click(|_, _, cx: &mut App| {
-                                        let state = cx.global::<Controller>().state.clone();
-                                        state.update(cx, |s: &mut crate::state::AppState, _| {
-                                            s.next()
-                                        });
+                                        cx.global::<Controller>().next();
                                     })
                                     .child(Icon::new(Icons::Next).size_4()),
                             )
@@ -228,8 +238,9 @@ impl Render for PlayerPage {
                                     })
                                     .on_click(|_, _, cx: &mut App| {
                                         let state = cx.global::<Controller>().state.clone();
-                                        state.update(cx, |s: &mut crate::state::AppState, _| {
-                                            s.toggle_repeat()
+                                        state.update(cx, |s, cx| {
+                                            s.toggle_repeat();
+                                            cx.notify();
                                         });
                                     })
                                     .child(Icon::new(Icons::Repeat).size_4()),

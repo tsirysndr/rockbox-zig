@@ -7,10 +7,89 @@ use crate::ui::components::{BackSection, LibrarySection, SelectedAlbum, Selected
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, px, uniform_list, App, AppContext, Entity, FontWeight, InteractiveElement, IntoElement,
-    MouseButton, ParentElement, Render, StatefulInteractiveElement, Styled, UniformListScrollHandle,
-    Window,
+    div, img, px, uniform_list, AnyElement, App, AppContext, Entity, FontWeight,
+    InteractiveElement, IntoElement, MouseButton, ObjectFit, ParentElement, Render,
+    StatefulInteractiveElement, Styled, StyledImage, UniformListScrollHandle, Window,
 };
+
+const COVERS_BASE: &str = "http://localhost:6062/covers/";
+
+/// Square art tile that fills its container (used in grids). `icon_size` is the size_N shorthand number.
+fn art_tile(
+    art: Option<String>,
+    theme: crate::ui::theme::Theme,
+    fallback: Icons,
+    icon_size: u8,
+) -> AnyElement {
+    let art_url = art
+        .filter(|s| !s.is_empty())
+        .map(|id| format!("{COVERS_BASE}{id}"));
+    let mut container = div().w_full().rounded_lg().overflow_hidden();
+    container.style().aspect_ratio = Some(1.0_f32);
+    if let Some(url) = art_url {
+        container
+            .child(img(url).w_full().h_full().object_fit(ObjectFit::Cover))
+            .into_any_element()
+    } else {
+        container
+            .bg(theme.library_art_bg)
+            .flex()
+            .items_center()
+            .justify_center()
+            .text_color(theme.player_icons_text)
+            .child(icon_sized(fallback, icon_size))
+            .into_any_element()
+    }
+}
+
+/// Fixed-size square art element (used in detail headers).
+fn art_fixed(
+    art: Option<String>,
+    theme: crate::ui::theme::Theme,
+    fallback: Icons,
+    size: gpui::Pixels,
+) -> AnyElement {
+    let art_url = art
+        .filter(|s| !s.is_empty())
+        .map(|id| format!("{COVERS_BASE}{id}"));
+    if let Some(url) = art_url {
+        div()
+            .w(size)
+            .h(size)
+            .rounded_lg()
+            .flex_shrink_0()
+            .overflow_hidden()
+            .child(img(url).w_full().h_full().object_fit(ObjectFit::Cover))
+            .into_any_element()
+    } else {
+        div()
+            .w(size)
+            .h(size)
+            .rounded_lg()
+            .flex_shrink_0()
+            .bg(theme.library_art_bg)
+            .flex()
+            .items_center()
+            .justify_center()
+            .text_color(theme.player_icons_text)
+            .child(icon_sized(fallback, 10))
+            .into_any_element()
+    }
+}
+
+fn icon_sized(icon: Icons, size: u8) -> Icon {
+    use crate::ui::components::icons::Icon;
+    let i = Icon::new(icon);
+    match size {
+        4 => i.size_4(),
+        5 => i.size_5(),
+        6 => i.size_6(),
+        8 => i.size_8(),
+        10 => i.size_10(),
+        16 => i.size_16(),
+        _ => i.size_8(),
+    }
+}
 
 pub struct LibraryPage {
     scroll_handle: UniformListScrollHandle,
@@ -48,65 +127,110 @@ impl Render for LibraryPage {
         let detail_album_cols = ((content_width / 180.0).floor() as u16).max(2);
 
         // Pre-compute all section data in a single state borrow
-        let (n_songs, albums, artists, current_idx, album_tracks, album_artist, artist_tracks, artist_albums_detail) = {
+        let (
+            n_songs,
+            albums,
+            artists,
+            current_idx,
+            album_tracks,
+            album_artist,
+            album_detail_art,
+            artist_tracks,
+            artist_albums_detail,
+            artist_detail_image,
+        ) = {
             let state = cx.global::<Controller>().state.read(cx);
 
-            let current_idx = state.current_idx;
+            let current_idx = state.current_library_idx();
             let n_songs = state.tracks.len();
 
-            let mut album_map: std::collections::BTreeMap<String, (String, usize)> =
+            // (name, artist, count, album_art)
+            let mut album_map: std::collections::BTreeMap<String, (String, usize, Option<String>)> =
                 Default::default();
             for track in &state.tracks {
-                let e = album_map
-                    .entry(track.album.clone())
-                    .or_insert((track.artist.clone(), 0));
+                let e = album_map.entry(track.album.clone()).or_insert((
+                    track.artist.clone(),
+                    0,
+                    track.album_art.clone(),
+                ));
                 e.1 += 1;
             }
-            let albums: Vec<(String, String, usize)> = album_map
+            let albums: Vec<(String, String, usize, Option<String>)> = album_map
                 .into_iter()
-                .map(|(name, (artist, count))| (name, artist, count))
+                .map(|(name, (artist, count, art))| (name, artist, count, art))
                 .collect();
 
             let mut artist_map: std::collections::BTreeMap<String, usize> = Default::default();
             for track in &state.tracks {
                 *artist_map.entry(track.artist.clone()).or_default() += 1;
             }
-            let artists: Vec<(String, usize)> = artist_map.into_iter().collect();
+            // (name, count, image)
+            let artists: Vec<(String, usize, Option<String>)> = artist_map
+                .into_iter()
+                .map(|(name, count)| {
+                    let img = state.artist_images.get(&name).cloned();
+                    (name, count, img)
+                })
+                .collect();
 
-            // Album detail: tracks filtered by selected album
-            let album_tracks: Vec<(usize, String, String, u64)> = state
+            // Album detail: tracks filtered by selected album — (global_idx, path, title, num, dur)
+            let mut album_tracks: Vec<(usize, String, String, String, u64)> = state
                 .tracks
                 .iter()
                 .enumerate()
                 .filter(|(_, t)| t.album == selected_album)
-                .map(|(idx, t)| (idx, t.title.clone(), t.track_number.to_string(), t.duration))
+                .map(|(idx, t)| {
+                    (
+                        idx,
+                        t.path.clone(),
+                        t.title.clone(),
+                        t.track_number.to_string(),
+                        t.duration,
+                    )
+                })
                 .collect();
+            album_tracks.sort_by_key(|(_, _, _, num, _)| num.parse::<u32>().unwrap_or(0));
 
-            let album_artist = state
-                .tracks
-                .iter()
-                .find(|t| t.album == selected_album)
+            let album_first_track = state.tracks.iter().find(|t| t.album == selected_album);
+            let album_artist = album_first_track
                 .map(|t| t.artist.clone())
                 .unwrap_or_default();
+            let album_detail_art = album_first_track.and_then(|t| t.album_art.clone());
 
-            // Artist detail: tracks and albums filtered by selected artist
-            let artist_tracks: Vec<(usize, String, String, u64)> = state
+            // Artist detail: tracks filtered by selected artist — (global_idx, path, title, album, dur)
+            let artist_tracks: Vec<(usize, String, String, String, u64)> = state
                 .tracks
                 .iter()
                 .enumerate()
                 .filter(|(_, t)| t.artist == selected_artist)
-                .map(|(idx, t)| (idx, t.title.clone(), t.album.clone(), t.duration))
+                .map(|(idx, t)| {
+                    (
+                        idx,
+                        t.path.clone(),
+                        t.title.clone(),
+                        t.album.clone(),
+                        t.duration,
+                    )
+                })
                 .collect();
 
-            let mut artist_album_map: std::collections::BTreeMap<String, usize> =
+            // (album_name, count, album_art)
+            let mut artist_album_map: std::collections::BTreeMap<String, (usize, Option<String>)> =
                 Default::default();
             for track in &state.tracks {
                 if track.artist == selected_artist {
-                    *artist_album_map.entry(track.album.clone()).or_default() += 1;
+                    let e = artist_album_map
+                        .entry(track.album.clone())
+                        .or_insert((0, track.album_art.clone()));
+                    e.0 += 1;
                 }
             }
-            let artist_albums_detail: Vec<(String, usize)> =
-                artist_album_map.into_iter().collect();
+            let artist_albums_detail: Vec<(String, usize, Option<String>)> = artist_album_map
+                .into_iter()
+                .map(|(n, (c, a))| (n, c, a))
+                .collect();
+
+            let artist_detail_image = state.artist_images.get(&selected_artist).cloned();
 
             (
                 n_songs,
@@ -115,8 +239,10 @@ impl Render for LibraryPage {
                 current_idx,
                 album_tracks,
                 album_artist,
+                album_detail_art,
                 artist_tracks,
                 artist_albums_detail,
+                artist_detail_image,
             )
         };
 
@@ -126,7 +252,7 @@ impl Render for LibraryPage {
         let _detail_scroll_handle = self.detail_scroll_handle.clone();
 
         // Sidebar nav item — Albums/Artists stay active while in their detail view
-        let make_nav_item = move |label: &'static str, target: LibrarySection| {
+        let make_nav_item = move |icon: Icons, label: &'static str, target: LibrarySection| {
             let is_active = section == target
                 || (section == LibrarySection::AlbumDetail && target == LibrarySection::Albums)
                 || (section == LibrarySection::ArtistDetail && target == LibrarySection::Artists)
@@ -157,81 +283,105 @@ impl Render for LibraryPage {
                 .on_click(move |_, _, cx: &mut App| {
                     *cx.global_mut::<LibrarySection>() = target;
                 })
-                .child(label)
+                .child(
+                    div()
+                        .flex()
+                        .items_center()
+                        .gap_x_2()
+                        .child(Icon::new(icon).size_5())
+                        .child(label),
+                )
         };
 
         // ── track row helper (shared between Songs, AlbumDetail, ArtistDetail) ──────
-        let track_row =
-            move |row_id: (&'static str, usize),
-                  global_idx: usize,
-                  num: String,
-                  title: String,
-                  secondary: String, // artist or album depending on context
-                  show_secondary: bool,
-                  duration: u64,
-                  is_current: bool| {
-                div()
-                    .id(row_id)
-                    .w_full()
-                    .flex()
-                    .items_center()
-                    .px_6()
-                    .py_3()
-                    .cursor_pointer()
-                    .hover(|this| this.bg(theme.library_track_bg_hover))
-                    .when(is_current, |this| {
-                        this.bg(theme.library_track_bg_active)
-                            .border_b_2()
-                            .border_color(theme.switcher_active)
-                    })
-                    .on_click(move |_, _, cx: &mut App| {
-                        let state = cx.global::<Controller>().state.clone();
-                        state.update(cx, |s: &mut crate::state::AppState, _| {
-                            s.play_track(global_idx)
-                        });
-                    })
-                    .child(
+        let track_row = move |row_id: (&'static str, usize),
+                              path: String,
+                              num: String,
+                              title: String,
+                              artist: Option<String>,
+                              album: Option<String>,
+                              duration: u64,
+                              is_current: bool| {
+            let show_artist = artist.is_some();
+            let show_album = album.is_some();
+            let artist_text = artist.unwrap_or_default();
+            let album_text = album.unwrap_or_default();
+            div()
+                .id(row_id)
+                .w_full()
+                .flex()
+                .items_center()
+                .gap_x_4()
+                .px_6()
+                .py_3()
+                .cursor_pointer()
+                .hover(|this| this.bg(theme.library_track_bg_hover))
+                .when(is_current, |this| {
+                    this.bg(theme.library_track_bg_active)
+                        .border_b_2()
+                        .border_color(theme.switcher_active)
+                })
+                .on_click(move |_, _, cx: &mut App| {
+                    let rt = cx.global::<Controller>().rt();
+                    rt.spawn(crate::client::play_track(path.clone()));
+                })
+                .child(
+                    div()
+                        .w(px(28.0))
+                        .flex_shrink_0()
+                        .text_sm()
+                        .text_color(theme.library_header_text)
+                        .child(num),
+                )
+                .child(
+                    div()
+                        .flex_1()
+                        .min_w_0()
+                        .text_sm()
+                        .truncate()
+                        .text_color(if is_current {
+                            theme.library_track_title_active
+                        } else {
+                            theme.library_text
+                        })
+                        .font_weight(if is_current {
+                            FontWeight(600.0)
+                        } else {
+                            FontWeight(400.0)
+                        })
+                        .child(title),
+                )
+                .when(show_artist, move |this| {
+                    this.child(
                         div()
-                            .w(px(32.0))
-                            .text_sm()
-                            .text_color(theme.library_header_text)
-                            .child(num),
-                    )
-                    .child(
-                        div()
-                            .flex_1()
+                            .w_40()
+                            .flex_shrink_0()
                             .text_sm()
                             .truncate()
-                            .text_color(if is_current {
-                                theme.library_track_title_active
-                            } else {
-                                theme.library_text
-                            })
-                            .font_weight(if is_current {
-                                FontWeight(600.0)
-                            } else {
-                                FontWeight(400.0)
-                            })
-                            .child(title),
-                    )
-                    .when(show_secondary, |this| {
-                        this.child(
-                            div()
-                                .w_48()
-                                .text_sm()
-                                .truncate()
-                                .text_color(theme.library_header_text)
-                                .child(secondary),
-                        )
-                    })
-                    .child(
-                        div()
-                            .w_16()
-                            .text_sm()
                             .text_color(theme.library_header_text)
-                            .child(format_duration(duration)),
+                            .child(artist_text),
                     )
-            };
+                })
+                .when(show_album, move |this| {
+                    this.child(
+                        div()
+                            .w_40()
+                            .flex_shrink_0()
+                            .text_sm()
+                            .truncate()
+                            .text_color(theme.library_header_text)
+                            .child(album_text),
+                    )
+                })
+                .child(
+                    div()
+                        .w(px(56.0))
+                        .flex_shrink_0()
+                        .text_sm()
+                        .text_color(theme.library_header_text)
+                        .child(format_duration(duration)),
+                )
+        };
 
         let content = match section {
             // ── Songs ─────────────────────────────────────────────────────────────
@@ -246,13 +396,15 @@ impl Render for LibraryPage {
                         .flex_shrink_0()
                         .flex()
                         .items_center()
+                        .gap_x_4()
                         .px_6()
                         .py_4()
                         .border_b_1()
                         .border_color(theme.library_table_border)
                         .child(
                             div()
-                                .w(px(32.0))
+                                .w(px(28.0))
+                                .flex_shrink_0()
                                 .text_xs()
                                 .font_weight(FontWeight::MEDIUM)
                                 .text_color(theme.library_header_text)
@@ -261,6 +413,7 @@ impl Render for LibraryPage {
                         .child(
                             div()
                                 .flex_1()
+                                .min_w_0()
                                 .text_xs()
                                 .font_weight(FontWeight::MEDIUM)
                                 .text_color(theme.library_header_text)
@@ -268,7 +421,8 @@ impl Render for LibraryPage {
                         )
                         .child(
                             div()
-                                .w_48()
+                                .w_40()
+                                .flex_shrink_0()
                                 .text_xs()
                                 .font_weight(FontWeight::MEDIUM)
                                 .text_color(theme.library_header_text)
@@ -276,7 +430,8 @@ impl Render for LibraryPage {
                         )
                         .child(
                             div()
-                                .w_48()
+                                .w_40()
+                                .flex_shrink_0()
                                 .text_xs()
                                 .font_weight(FontWeight::MEDIUM)
                                 .text_color(theme.library_header_text)
@@ -284,7 +439,8 @@ impl Render for LibraryPage {
                         )
                         .child(
                             div()
-                                .w_16()
+                                .w(px(56.0))
+                                .flex_shrink_0()
                                 .text_xs()
                                 .font_weight(FontWeight::MEDIUM)
                                 .text_color(theme.library_header_text)
@@ -293,20 +449,19 @@ impl Render for LibraryPage {
                 )
                 .child(
                     uniform_list("library_tracks", n_songs, move |range, _window, cx| {
-                        let _theme = *cx.global::<Theme>();
                         let state = cx.global::<Controller>().state.read(cx);
-                        let current_idx = state.current_idx;
+                        let current_idx = state.current_library_idx();
                         range
                             .map(|idx| {
                                 let track = &state.tracks[idx];
                                 let is_current = current_idx == Some(idx);
                                 track_row(
                                     ("track_row", idx),
-                                    idx,
-                                    track.track_number.to_string(),
+                                    track.path.clone(),
+                                    (idx + 1).to_string(),
                                     track.title.clone(),
-                                    track.artist.clone(),
-                                    true,
+                                    Some(track.artist.clone()),
+                                    Some(track.album.clone()),
                                     track.duration,
                                     is_current,
                                 )
@@ -333,7 +488,7 @@ impl Render for LibraryPage {
                         .grid_cols(album_cols)
                         .gap_6()
                         .children(albums.into_iter().enumerate().map(
-                            |(idx, (name, artist, _count))| {
+                            |(idx, (name, artist, _count, album_art))| {
                                 let name_clone = name.clone();
                                 div()
                                     .id(("album_card", idx))
@@ -350,19 +505,7 @@ impl Render for LibraryPage {
                                         *cx.global_mut::<LibrarySection>() =
                                             LibrarySection::AlbumDetail;
                                     })
-                                    .child({
-                                        let mut art = div()
-                                            .w_full()
-                                            .rounded_lg()
-                                            .bg(theme.library_art_bg)
-                                            .flex()
-                                            .items_center()
-                                            .justify_center()
-                                            .text_color(theme.player_icons_text)
-                                            .child(Icon::new(Icons::Music).size_8());
-                                        art.style().aspect_ratio = Some(1.0_f32);
-                                        art
-                                    })
+                                    .child(art_tile(album_art, theme, Icons::Music, 8))
                                     .child(
                                         div()
                                             .flex()
@@ -402,57 +545,81 @@ impl Render for LibraryPage {
                         .grid()
                         .grid_cols(artist_cols)
                         .gap_6()
-                        .children(artists.into_iter().enumerate().map(|(idx, (name, count))| {
-                            let name_clone = name.clone();
-                            div()
-                                .id(("artist_card", idx))
-                                .flex()
-                                .flex_col()
-                                .items_center()
-                                .gap_y_2()
-                                .cursor_pointer()
-                                .hover(|this| this.opacity(0.8))
-                                .on_click(move |_, _, cx: &mut App| {
-                                    *cx.global_mut::<SelectedArtist>() =
-                                        SelectedArtist(name_clone.clone());
-                                    *cx.global_mut::<LibrarySection>() =
-                                        LibrarySection::ArtistDetail;
-                                })
-                                .child({
-                                    let mut avatar = div()
-                                        .w_full()
-                                        .rounded_full()
-                                        .bg(theme.library_art_bg)
-                                        .flex()
-                                        .items_center()
-                                        .justify_center()
-                                        .text_color(theme.player_icons_text)
-                                        .child(Icon::new(Icons::Music).size_8());
-                                    avatar.style().aspect_ratio = Some(1.0_f32);
-                                    avatar
-                                })
-                                .child(
-                                    div()
-                                        .flex()
-                                        .flex_col()
-                                        .items_center()
-                                        .gap_y_0p5()
-                                        .child(
-                                            div()
-                                                .text_sm()
-                                                .font_weight(FontWeight(500.0))
-                                                .text_color(theme.library_text)
-                                                .truncate()
-                                                .child(name),
-                                        )
-                                        .child(
-                                            div()
-                                                .text_xs()
-                                                .text_color(theme.library_header_text)
-                                                .child(format!("{count} tracks")),
-                                        ),
-                                )
-                        })),
+                        .children(artists.into_iter().enumerate().map(
+                            |(idx, (name, count, image))| {
+                                let name_clone = name.clone();
+                                div()
+                                    .id(("artist_card", idx))
+                                    .flex()
+                                    .flex_col()
+                                    .items_center()
+                                    .gap_y_2()
+                                    .cursor_pointer()
+                                    .hover(|this| this.opacity(0.8))
+                                    .on_click(move |_, _, cx: &mut App| {
+                                        *cx.global_mut::<SelectedArtist>() =
+                                            SelectedArtist(name_clone.clone());
+                                        *cx.global_mut::<LibrarySection>() =
+                                            LibrarySection::ArtistDetail;
+                                    })
+                                    .child({
+                                        let img_url = image.filter(|s| !s.is_empty()).map(|s| {
+                                            if s.starts_with("http") {
+                                                s
+                                            } else {
+                                                format!("{COVERS_BASE}{s}")
+                                            }
+                                        });
+                                        let mut container = div()
+                                            .w_full()
+                                            .rounded_full()
+                                            .overflow_hidden()
+                                            .flex_shrink_0();
+                                        container.style().aspect_ratio = Some(1.0_f32);
+                                        if let Some(url) = img_url {
+                                            container.child(
+                                                img(url)
+                                                    .w_full()
+                                                    .h_full()
+                                                    .rounded_full()
+                                                    .object_fit(ObjectFit::Cover),
+                                            )
+                                        } else {
+                                            container
+                                                .bg(theme.library_art_bg)
+                                                .flex()
+                                                .items_center()
+                                                .justify_center()
+                                                .text_color(theme.player_icons_text)
+                                                .child(Icon::new(Icons::Artist).size_8())
+                                        }
+                                    })
+                                    .child(
+                                        div()
+                                            .w_full()
+                                            .flex()
+                                            .flex_col()
+                                            .items_center()
+                                            .gap_y_0p5()
+                                            .child(
+                                                div()
+                                                    .w_full()
+                                                    .text_sm()
+                                                    .font_weight(FontWeight(500.0))
+                                                    .text_color(theme.library_text)
+                                                    .text_center()
+                                                    .truncate()
+                                                    .child(name),
+                                            )
+                                            .child(
+                                                div()
+                                                    .text_xs()
+                                                    .text_color(theme.library_header_text)
+                                                    .child(format!("{count} tracks")),
+                                            ),
+                                    )
+                            },
+                        )),
                 )
                 .into_any_element(),
 
@@ -509,19 +676,12 @@ impl Render for LibraryPage {
                                             .flex()
                                             .items_center()
                                             .gap_x_6()
-                                            .child(
-                                                div()
-                                                    .w(px(128.0))
-                                                    .h(px(128.0))
-                                                    .rounded_lg()
-                                                    .flex_shrink_0()
-                                                    .bg(theme.library_art_bg)
-                                                    .flex()
-                                                    .items_center()
-                                                    .justify_center()
-                                                    .text_color(theme.player_icons_text)
-                                                    .child(Icon::new(Icons::Music).size_10()),
-                                            )
+                                            .child(art_fixed(
+                                                album_detail_art,
+                                                theme,
+                                                Icons::Music,
+                                                px(128.0),
+                                            ))
                                             .child(
                                                 div()
                                                     .flex()
@@ -555,13 +715,15 @@ impl Render for LibraryPage {
                                     .w_full()
                                     .flex()
                                     .items_center()
+                                    .gap_x_4()
                                     .px_6()
                                     .py_3()
                                     .border_b_1()
                                     .border_color(theme.library_table_border)
                                     .child(
                                         div()
-                                            .w(px(32.0))
+                                            .w(px(28.0))
+                                            .flex_shrink_0()
                                             .text_xs()
                                             .font_weight(FontWeight::MEDIUM)
                                             .text_color(theme.library_header_text)
@@ -570,6 +732,7 @@ impl Render for LibraryPage {
                                     .child(
                                         div()
                                             .flex_1()
+                                            .min_w_0()
                                             .text_xs()
                                             .font_weight(FontWeight::MEDIUM)
                                             .text_color(theme.library_header_text)
@@ -577,7 +740,8 @@ impl Render for LibraryPage {
                                     )
                                     .child(
                                         div()
-                                            .w_16()
+                                            .w(px(56.0))
+                                            .flex_shrink_0()
                                             .text_xs()
                                             .font_weight(FontWeight::MEDIUM)
                                             .text_color(theme.library_header_text)
@@ -586,15 +750,15 @@ impl Render for LibraryPage {
                             )
                             // Track rows
                             .children(album_tracks.into_iter().enumerate().map(
-                                |(i, (global_idx, title, num, duration))| {
+                                |(i, (global_idx, path, title, num, duration))| {
                                     let is_current = current_idx == Some(global_idx);
                                     track_row(
                                         ("album_detail_row", i),
-                                        global_idx,
+                                        path,
                                         num,
                                         title,
-                                        String::new(),
-                                        false,
+                                        None,
+                                        None,
                                         duration,
                                         is_current,
                                     )
@@ -653,19 +817,46 @@ impl Render for LibraryPage {
                                             .flex()
                                             .items_center()
                                             .gap_x_6()
-                                            .child(
-                                                div()
-                                                    .w(px(96.0))
-                                                    .h(px(96.0))
-                                                    .rounded_full()
-                                                    .flex_shrink_0()
-                                                    .bg(theme.library_art_bg)
-                                                    .flex()
-                                                    .items_center()
-                                                    .justify_center()
-                                                    .text_color(theme.player_icons_text)
-                                                    .child(Icon::new(Icons::Music).size_8()),
-                                            )
+                                            .child({
+                                                let img_url = artist_detail_image
+                                                    .filter(|s| !s.is_empty())
+                                                    .map(|s| {
+                                                        if s.starts_with("http") {
+                                                            s
+                                                        } else {
+                                                            format!("{COVERS_BASE}{s}")
+                                                        }
+                                                    });
+                                                if let Some(url) = img_url {
+                                                    div()
+                                                        .w(px(96.0))
+                                                        .h(px(96.0))
+                                                        .rounded_full()
+                                                        .flex_shrink_0()
+                                                        .overflow_hidden()
+                                                        .child(
+                                                            img(url)
+                                                                .w_full()
+                                                                .h_full()
+                                                                .rounded_full()
+                                                                .object_fit(ObjectFit::Cover),
+                                                        )
+                                                        .into_any_element()
+                                                } else {
+                                                    div()
+                                                        .w(px(96.0))
+                                                        .h(px(96.0))
+                                                        .rounded_full()
+                                                        .flex_shrink_0()
+                                                        .bg(theme.library_art_bg)
+                                                        .flex()
+                                                        .items_center()
+                                                        .justify_center()
+                                                        .text_color(theme.player_icons_text)
+                                                        .child(Icon::new(Icons::Artist).size_8())
+                                                        .into_any_element()
+                                                }
+                                            })
                                             .child(
                                                 div()
                                                     .flex()
@@ -705,52 +896,38 @@ impl Render for LibraryPage {
                                     .grid()
                                     .grid_cols(detail_album_cols)
                                     .gap_4()
-                                    .children(
-                                        artist_albums_detail.into_iter().enumerate().map(
-                                            |(idx, (album_name, _count))| {
-                                                let album_name_clone = album_name.clone();
-                                                let sa = sa_clone.clone();
-                                                div()
-                                                    .id(("artist_album_card", idx))
-                                                    .flex()
-                                                    .flex_col()
-                                                    .gap_y_2()
-                                                    .cursor_pointer()
-                                                    .hover(|this| this.opacity(0.8))
-                                                    .on_click(move |_, _, cx: &mut App| {
-                                                        *cx.global_mut::<SelectedAlbum>() =
-                                                            SelectedAlbum(album_name_clone.clone());
-                                                        *cx.global_mut::<SelectedArtist>() =
-                                                            SelectedArtist(sa.clone());
-                                                        *cx.global_mut::<BackSection>() =
-                                                            BackSection(LibrarySection::ArtistDetail);
-                                                        *cx.global_mut::<LibrarySection>() =
-                                                            LibrarySection::AlbumDetail;
-                                                    })
-                                                    .child({
-                                                        let mut art = div()
-                                                            .w_full()
-                                                            .rounded_lg()
-                                                            .bg(theme.library_art_bg)
-                                                            .flex()
-                                                            .items_center()
-                                                            .justify_center()
-                                                            .text_color(theme.player_icons_text)
-                                                            .child(Icon::new(Icons::Music).size_6());
-                                                        art.style().aspect_ratio = Some(1.0_f32);
-                                                        art
-                                                    })
-                                                    .child(
-                                                        div()
-                                                            .text_xs()
-                                                            .font_weight(FontWeight(500.0))
-                                                            .text_color(theme.library_text)
-                                                            .truncate()
-                                                            .child(album_name),
-                                                    )
-                                            },
-                                        ),
-                                    ),
+                                    .children(artist_albums_detail.into_iter().enumerate().map(
+                                        |(idx, (album_name, _count, album_art))| {
+                                            let album_name_clone = album_name.clone();
+                                            let sa = sa_clone.clone();
+                                            div()
+                                                .id(("artist_album_card", idx))
+                                                .flex()
+                                                .flex_col()
+                                                .gap_y_2()
+                                                .cursor_pointer()
+                                                .hover(|this| this.opacity(0.8))
+                                                .on_click(move |_, _, cx: &mut App| {
+                                                    *cx.global_mut::<SelectedAlbum>() =
+                                                        SelectedAlbum(album_name_clone.clone());
+                                                    *cx.global_mut::<SelectedArtist>() =
+                                                        SelectedArtist(sa.clone());
+                                                    *cx.global_mut::<BackSection>() =
+                                                        BackSection(LibrarySection::ArtistDetail);
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::AlbumDetail;
+                                                })
+                                                .child(art_tile(album_art, theme, Icons::Music, 6))
+                                                .child(
+                                                    div()
+                                                        .text_xs()
+                                                        .font_weight(FontWeight(500.0))
+                                                        .text_color(theme.library_text)
+                                                        .truncate()
+                                                        .child(album_name),
+                                                )
+                                        },
+                                    )),
                             )
                             // Songs section header
                             .child(
@@ -767,13 +944,15 @@ impl Render for LibraryPage {
                                     .w_full()
                                     .flex()
                                     .items_center()
+                                    .gap_x_4()
                                     .px_6()
                                     .py_3()
                                     .border_b_1()
                                     .border_color(theme.library_table_border)
                                     .child(
                                         div()
-                                            .w(px(32.0))
+                                            .w(px(28.0))
+                                            .flex_shrink_0()
                                             .text_xs()
                                             .font_weight(FontWeight::MEDIUM)
                                             .text_color(theme.library_header_text)
@@ -782,6 +961,7 @@ impl Render for LibraryPage {
                                     .child(
                                         div()
                                             .flex_1()
+                                            .min_w_0()
                                             .text_xs()
                                             .font_weight(FontWeight::MEDIUM)
                                             .text_color(theme.library_header_text)
@@ -789,7 +969,8 @@ impl Render for LibraryPage {
                                     )
                                     .child(
                                         div()
-                                            .w_48()
+                                            .w_40()
+                                            .flex_shrink_0()
                                             .text_xs()
                                             .font_weight(FontWeight::MEDIUM)
                                             .text_color(theme.library_header_text)
@@ -797,7 +978,8 @@ impl Render for LibraryPage {
                                     )
                                     .child(
                                         div()
-                                            .w_16()
+                                            .w(px(56.0))
+                                            .flex_shrink_0()
                                             .text_xs()
                                             .font_weight(FontWeight::MEDIUM)
                                             .text_color(theme.library_header_text)
@@ -806,15 +988,15 @@ impl Render for LibraryPage {
                             )
                             // Artist track rows
                             .children(artist_tracks.into_iter().enumerate().map(
-                                |(i, (global_idx, title, album, duration))| {
+                                |(i, (global_idx, path, title, album, duration))| {
                                     let is_current = current_idx == Some(global_idx);
                                     track_row(
                                         ("artist_detail_row", i),
-                                        global_idx,
+                                        path,
                                         format!("{}", i + 1),
                                         title,
-                                        album,
-                                        true,
+                                        None,
+                                        Some(album),
                                         duration,
                                         is_current,
                                     )
@@ -851,9 +1033,13 @@ impl Render for LibraryPage {
                             .pt_4()
                             .child(self.search_input.clone())
                             .gap_y_1()
-                            .child(make_nav_item("Songs", LibrarySection::Songs))
-                            .child(make_nav_item("Albums", LibrarySection::Albums))
-                            .child(make_nav_item("Artists", LibrarySection::Artists)),
+                            .child(make_nav_item(Icons::Music, "Songs", LibrarySection::Songs))
+                            .child(make_nav_item(Icons::Disc, "Albums", LibrarySection::Albums))
+                            .child(make_nav_item(
+                                Icons::Artist,
+                                "Artists",
+                                LibrarySection::Artists,
+                            )),
                     )
                     .child(content),
             )

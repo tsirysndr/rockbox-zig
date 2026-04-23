@@ -1,5 +1,8 @@
+pub mod api;
 pub mod app;
+pub mod client;
 pub mod controller;
+pub mod http_client;
 pub mod state;
 pub mod ui;
 
@@ -8,7 +11,7 @@ extern crate log;
 
 fn main() {
     env_logger::Builder::new()
-        .filter_level(log::LevelFilter::Error)
+        .filter_level(log::LevelFilter::Warn)
         .init();
     app::run();
 }

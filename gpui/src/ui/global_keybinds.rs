@@ -1,7 +1,7 @@
 use crate::controller::Controller;
-use crate::state::PlaybackStatus;
+use crate::state::{AppState, PlaybackStatus};
 use crate::ui::components::Page;
-use gpui::{actions, App, KeyBinding};
+use gpui::{actions, App, Entity, KeyBinding};
 
 actions!(player, [PlayPause, Next, Prev, Shuffle, Repeat]);
 actions!(pages, [CycleNext, CyclePrev, Library, Player, Queue]);
@@ -25,31 +25,31 @@ pub fn register_keybinds(cx: &mut App) {
     ]);
 
     cx.on_action(|_: &PlayPause, cx| {
-        let state = cx.global::<Controller>().state.clone();
-        state.update(cx, |s, _| match s.status {
-            PlaybackStatus::Playing => s.pause(),
-            _ => s.play(),
-        });
+        play_pause(cx);
     });
 
     cx.on_action(|_: &Next, cx| {
-        let state = cx.global::<Controller>().state.clone();
-        state.update(cx, |s, _| s.next());
+        cx.global::<Controller>().next();
     });
 
     cx.on_action(|_: &Prev, cx| {
-        let state = cx.global::<Controller>().state.clone();
-        state.update(cx, |s, _| s.prev());
+        cx.global::<Controller>().prev();
     });
 
     cx.on_action(|_: &Shuffle, cx| {
         let state = cx.global::<Controller>().state.clone();
-        state.update(cx, |s, _| s.toggle_shuffle());
+        state.update(cx, |s, cx| {
+            s.toggle_shuffle();
+            cx.notify();
+        });
     });
 
     cx.on_action(|_: &Repeat, cx| {
         let state = cx.global::<Controller>().state.clone();
-        state.update(cx, |s, _| s.toggle_repeat());
+        state.update(cx, |s, cx| {
+            s.toggle_repeat();
+            cx.notify();
+        });
     });
 
     cx.on_action(|_: &Quit, cx| cx.quit());
@@ -75,4 +75,28 @@ pub fn register_keybinds(cx: &mut App) {
             Page::Queue => Page::Player,
         };
     });
+}
+
+pub fn play_pause(cx: &mut App) {
+    let (rt, state): (tokio::runtime::Handle, Entity<AppState>) = {
+        let ctrl = cx.global::<Controller>();
+        (ctrl.rt(), ctrl.state.clone())
+    };
+    let status = state.read(cx).status;
+    match status {
+        PlaybackStatus::Playing => {
+            rt.spawn(crate::client::pause());
+            state.update(cx, |s, cx| {
+                s.status = PlaybackStatus::Paused;
+                cx.notify();
+            });
+        }
+        _ => {
+            rt.spawn(crate::client::resume());
+            state.update(cx, |s, cx| {
+                s.status = PlaybackStatus::Playing;
+                cx.notify();
+            });
+        }
+    }
 }

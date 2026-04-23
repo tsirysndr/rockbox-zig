@@ -1,12 +1,13 @@
 use crate::controller::Controller;
-use crate::state::{format_duration, AppState, PlaybackStatus};
+use crate::state::{format_duration, PlaybackStatus};
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::Page;
+use crate::ui::global_keybinds::play_pause;
 use crate::ui::helpers::secs_to_slider;
 use crate::ui::theme::Theme;
 use gpui::{
-    div, px, relative, App, Context, FontWeight, InteractiveElement, IntoElement, ParentElement,
-    Render, StatefulInteractiveElement, Styled, Window,
+    div, img, px, relative, App, Context, FontWeight, InteractiveElement, IntoElement, ObjectFit,
+    ParentElement, Render, StatefulInteractiveElement, Styled, StyledImage, Window,
 };
 
 pub struct MiniPlayer;
@@ -27,6 +28,11 @@ impl Render for MiniPlayer {
             .unwrap_or_default();
 
         let duration = state.current_track().map(|t| t.duration).unwrap_or(0);
+        let album_art_url = state
+            .current_track()
+            .and_then(|t| t.album_art.as_deref())
+            .filter(|s| !s.is_empty())
+            .map(|id| format!("http://localhost:6062/covers/{id}"));
         let position = state.position;
         let fill = secs_to_slider(position, duration) / 100.0;
         let vol_pct = (state.volume * 100.0) as u32;
@@ -54,7 +60,16 @@ impl Render for MiniPlayer {
                             .flex()
                             .items_center()
                             .gap_x_3()
-                            .child(
+                            .child(if let Some(url) = album_art_url {
+                                div()
+                                    .w(px(48.0))
+                                    .h(px(48.0))
+                                    .rounded_lg()
+                                    .flex_shrink_0()
+                                    .overflow_hidden()
+                                    .child(img(url).w_full().h_full().object_fit(ObjectFit::Cover))
+                                    .into_any_element()
+                            } else {
                                 div()
                                     .w(px(48.0))
                                     .h(px(48.0))
@@ -65,8 +80,9 @@ impl Render for MiniPlayer {
                                     .justify_center()
                                     .bg(theme.library_art_bg)
                                     .text_color(theme.player_icons_text)
-                                    .child(Icon::new(Icons::Music).size_4()),
-                            )
+                                    .child(Icon::new(Icons::Music).size_4())
+                                    .into_any_element()
+                            })
                             .child(
                                 div()
                                     .id("mini_info")
@@ -125,8 +141,7 @@ impl Render for MiniPlayer {
                                                     .bg(theme.player_icons_bg_hover)
                                             })
                                             .on_click(|_, _, cx: &mut App| {
-                                                let state = cx.global::<Controller>().state.clone();
-                                                state.update(cx, |s: &mut AppState, _| s.prev());
+                                                cx.global::<Controller>().prev();
                                             })
                                             .child(Icon::new(Icons::Prev).size_4()),
                                     )
@@ -143,13 +158,7 @@ impl Render for MiniPlayer {
                                             .hover(|this| this.bg(theme.player_play_pause_hover))
                                             .text_color(theme.player_play_pause_text)
                                             .on_click(|_, _, cx: &mut App| {
-                                                let state = cx.global::<Controller>().state.clone();
-                                                state.update(cx, |s: &mut AppState, _| {
-                                                    match s.status {
-                                                        PlaybackStatus::Playing => s.pause(),
-                                                        _ => s.play(),
-                                                    }
-                                                });
+                                                play_pause(cx);
                                             })
                                             .child(if is_playing {
                                                 Icon::new(Icons::Pause).size_4()
@@ -172,8 +181,7 @@ impl Render for MiniPlayer {
                                                     .bg(theme.player_icons_bg_hover)
                                             })
                                             .on_click(|_, _, cx: &mut App| {
-                                                let state = cx.global::<Controller>().state.clone();
-                                                state.update(cx, |s: &mut AppState, _| s.next());
+                                                cx.global::<Controller>().next();
                                             })
                                             .child(Icon::new(Icons::Next).size_4()),
                                     ),

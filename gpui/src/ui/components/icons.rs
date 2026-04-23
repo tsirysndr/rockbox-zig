@@ -149,6 +149,8 @@ impl Render for Icon {
 pub enum Icons {
     Music,
     MusicList,
+    Artist,
+    Disc,
     WinClose,
     Play,
     Pause,
@@ -170,6 +172,8 @@ impl IconNamed for Icons {
         match self {
             Icons::Music => "icons/music.svg",
             Icons::MusicList => "icons/list-music.svg",
+            Icons::Artist => "icons/artist.svg",
+            Icons::Disc => "icons/disc.svg",
             Icons::WinClose => "icons/window-close.svg",
             Icons::Play => "icons/play.svg",
             Icons::Pause => "icons/pause.svg",

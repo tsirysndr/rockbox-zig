@@ -11,7 +11,15 @@ use gpui::{
 pub fn run() {
     let assets = Assets {};
 
+    let http_rt = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .expect("tokio runtime for http");
+    let http_client = crate::http_client::ReqwestHttpClient::new(http_rt.handle().clone());
+    std::mem::forget(http_rt);
+
     Application::new()
+        .with_http_client(http_client)
         .with_assets(assets.clone())
         .run(move |cx| {
             let bounds = Bounds::centered(None, size(px(1280.0), px(760.0)), cx);
@@ -35,7 +43,7 @@ pub fn run() {
                 },
                 |_window, cx| {
                     let state = cx.new(|_| AppState::new());
-                    let controller = Controller::new(state);
+                    let controller = Controller::new(state, cx);
                     cx.set_global(controller);
                     cx.new(Rockbox::new)
                 },

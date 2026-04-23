@@ -49,9 +49,21 @@ impl Render for Rockbox {
             _ => 0.0,
         };
         let page_el = match page {
-            Page::Player => div().w_full().h_full().min_h_0().child(self.player_page.clone()),
-            Page::Library => div().w_full().h_full().min_h_0().child(self.library_page.clone()),
-            Page::Queue => div().w_full().h_full().min_h_0().child(self.queue_page.clone()),
+            Page::Player => div()
+                .w_full()
+                .h_full()
+                .min_h_0()
+                .child(self.player_page.clone()),
+            Page::Library => div()
+                .w_full()
+                .h_full()
+                .min_h_0()
+                .child(self.library_page.clone()),
+            Page::Queue => div()
+                .w_full()
+                .h_full()
+                .min_h_0()
+                .child(self.queue_page.clone()),
         };
         div()
             .id("root")
