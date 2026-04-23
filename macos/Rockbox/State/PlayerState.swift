@@ -181,9 +181,14 @@ class PlayerState: ObservableObject {
     streamPlaylistTask = Task {
       do {
         for try await data in currentPlaylistStream() {
-          if self.currentIndex == Int(data.index) { continue }
-          self.currentIndex = Int(data.index)
-          self.playlistLength = Int(data.amount)
+          let newIndex = Int(data.index)
+          let newAmount = Int(data.amount)
+          let newIDs = data.tracks.map(\.id)
+          if newIndex == self.currentIndex && newAmount == self.playlistLength && newIDs == self.queue.map(\.cuid) {
+            continue
+          }
+          self.currentIndex = newIndex
+          self.playlistLength = newAmount
           self.queue = data.tracks.map { track in
             Song(
               cuid: track.id,
@@ -204,8 +209,8 @@ class PlayerState: ObservableObject {
           // Guard against an index past the queue end and against tracks
           // whose metadata hasn't been loaded by the server yet (title empty).
           // The currentTrackStream will supply proper metadata once loaded.
-          guard self.currentIndex < self.queue.count else { continue }
-          let candidate = self.queue[self.currentIndex]
+          guard newIndex < self.queue.count else { continue }
+          let candidate = self.queue[newIndex]
           guard !candidate.title.isEmpty else { continue }
           self.currentTrack = candidate
           self.updateNowPlayingInfo()
@@ -223,6 +228,8 @@ class PlayerState: ObservableObject {
     streamTask = nil
     streamStatusTask?.cancel()
     streamStatusTask = nil
+    streamPlaylistTask?.cancel()
+    streamPlaylistTask = nil
   }
 
   func getCurrentTrack() {

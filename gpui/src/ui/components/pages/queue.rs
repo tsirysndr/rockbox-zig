@@ -1,5 +1,7 @@
 use crate::controller::Controller;
-use crate::state::format_duration;
+use crate::state::{format_duration, PlaybackStatus};
+use crate::ui::animations::equalizer_bars;
+use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::miniplayer::MiniPlayer;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -80,6 +82,7 @@ impl Render for QueuePage {
                     let theme = *cx.global::<Theme>();
                     let state = cx.global::<Controller>().state.read(cx);
                     let ctrl = cx.global::<Controller>();
+                    let is_playing = state.status == PlaybackStatus::Playing;
 
                     range
                         .map(|pos| {
@@ -89,9 +92,12 @@ impl Render for QueuePage {
                             let artist = track.artist.clone();
                             let duration = track.duration;
                             let rt = ctrl.rt();
+                            let group_name = format!("qrow_{pos}");
+                            let group_name2 = group_name.clone();
 
                             div()
                                 .id(("queue_row", pos))
+                                .group(group_name)
                                 .w_full()
                                 .flex()
                                 .items_center()
@@ -113,13 +119,21 @@ impl Render for QueuePage {
                                     div()
                                         .w(px(32.0))
                                         .flex_shrink_0()
-                                        .text_xs()
-                                        .text_color(theme.queue_item_artist)
-                                        .child(format!("{}", pos + 1)),
+                                        .flex()
+                                        .items_center()
+                                        .when(!is_current, |this| {
+                                            this.text_xs()
+                                                .text_color(theme.queue_item_artist)
+                                                .child(format!("{}", pos + 1))
+                                        })
+                                        .when(is_current, |this| {
+                                            this.child(equalizer_bars(pos, is_playing))
+                                        }),
                                 )
                                 .child(
                                     div()
                                         .flex_1()
+                                        .min_w_0()
                                         .flex()
                                         .flex_col()
                                         .gap_y_0p5()
@@ -152,6 +166,30 @@ impl Render for QueuePage {
                                         .text_xs()
                                         .text_color(theme.queue_item_artist)
                                         .child(format_duration(duration)),
+                                )
+                                .child(
+                                    div()
+                                        .id(("queue_del", pos))
+                                        .flex_shrink_0()
+                                        .w(px(24.0))
+                                        .h(px(24.0))
+                                        .flex()
+                                        .items_center()
+                                        .justify_center()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .opacity(0.0)
+                                        .group_hover(group_name2, |this| this.opacity(1.0))
+                                        .text_color(theme.queue_item_artist)
+                                        .hover(|this| {
+                                            this.bg(theme.queue_item_bg_hover)
+                                                .text_color(gpui::rgb(0xFF6B6B))
+                                        })
+                                        .on_click(move |_, _, cx: &mut App| {
+                                            cx.stop_propagation();
+                                            cx.global::<Controller>().remove_from_queue(pos);
+                                        })
+                                        .child(Icon::new(Icons::WinClose).size_3p5()),
                                 )
                         })
                         .collect()

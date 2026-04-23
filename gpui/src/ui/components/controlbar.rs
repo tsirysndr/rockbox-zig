@@ -14,9 +14,9 @@ impl Render for ControlBar {
 
         let duration = state.current_track().map(|t| t.duration).unwrap_or(0);
         let position = state.position;
-        let volume = state.volume;
+        let vol_fill = crate::state::volume_fraction(state.volume);
         let fill_pct = secs_to_slider(position, duration);
-        let vol_pct = (volume * 100.0) as u32;
+        let vol_pct = (vol_fill * 100.0) as u32;
 
         div()
             .w_full()
@@ -88,7 +88,7 @@ impl Render for ControlBar {
                                     .h_full()
                                     .rounded_full()
                                     .bg(theme.volume_slider_fill)
-                                    .w(px(vol_pct as f32 / 100.0 * 96.0)),
+                                    .w(px(vol_fill * 96.0)),
                             ),
                     )
                     .child(

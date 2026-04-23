@@ -16,9 +16,16 @@ use sqlx::{Pool, Sqlite};
 use std::{
     collections::{HashMap, HashSet},
     ffi::{c_char, c_int},
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
     thread,
 };
+
+// Set by playlist mutation HTTP handlers so the broker emits a StreamPlaylist
+// event on the next tick even when index and amount haven't changed (e.g. shuffle).
+pub(crate) static PLAYLIST_DIRTY: AtomicBool = AtomicBool::new(false);
 
 pub mod cache;
 pub mod handlers;
@@ -279,6 +286,10 @@ pub extern "C" fn start_broker() {
         .unwrap();
 
     let mut metadata_cache: HashMap<String, Mp3Entry> = HashMap::new();
+    let mut last_playlist_index: i32 = i32::MIN;
+    let mut last_playlist_amount: i32 = i32::MIN;
+    let mut last_entries: Vec<Mp3Entry> = Vec::new();
+    let mut did_initial_restore = false;
 
     let mut current_scrobble_track: Option<Track> = None; // The track we are monitoring for scrobble
     let mut scrobbled_tracks: HashSet<String> = HashSet::new(); // Simple unique ID to prevent duplicates (use track.id if available)
@@ -293,6 +304,17 @@ pub extern "C" fn start_broker() {
         }
 
         drop(mutex);
+
+        // On the first tick after firmware is ready, restore the saved playlist
+        // from the control file so the queue is visible before the user presses play.
+        if !did_initial_restore {
+            did_initial_restore = true;
+            let _guard = PLAYER_MUTEX.lock().unwrap();
+            let status = rb::system::get_global_status();
+            if status.resume_index != -1 && rb::playlist::amount() == 0 {
+                rb::playlist::resume();
+            }
+        }
 
         let player_mutex = PLAYER_MUTEX.lock().unwrap();
 
@@ -420,107 +442,118 @@ pub extern "C" fn start_broker() {
             }
         };
 
-        let mut current_playlist = rb::playlist::get_current();
+        // Detect what changed.  Consuming DIRTY here covers mutations (shuffle,
+        // insert, remove) that leave amount/index unchanged.
         let amount = rb::playlist::amount();
+        let current_index = rb::playlist::index();
+        let dirty = PLAYLIST_DIRTY.swap(false, Ordering::Relaxed);
 
-        // Collect track info while holding the mutex (quick — no I/O).
-        let mut track_infos: Vec<(String, String)> = Vec::with_capacity(amount as usize);
-        for i in 0..amount {
-            let info = rb::playlist::get_track_info(i);
-            let hash = format!("{:x}", md5::compute(info.filename.as_bytes()));
-            track_infos.push((hash, info.filename));
+        let index_changed = current_index != last_playlist_index;
+        let content_changed = amount != last_playlist_amount || dirty;
+
+        if !index_changed && !content_changed {
+            drop(player_mutex);
+            thread::sleep(std::time::Duration::from_millis(100));
+            rb::system::sleep(rb::HZ);
+            continue;
         }
 
-        // Release the mutex before any slow network I/O so that player
-        // commands (play, pause, …) are not blocked while metadata is fetched.
-        drop(player_mutex);
+        last_playlist_index = current_index;
+        last_playlist_amount = amount;
 
-        // Probe metadata for uncached tracks without holding player_mutex.
-        let mut entries: Vec<Mp3Entry> = vec![];
-        for (hash, filename) in &track_infos {
-            if let Some(entry) = metadata_cache.get(hash) {
-                entries.push(entry.clone());
-                continue;
+        let entries: Vec<Mp3Entry> = if content_changed {
+            // Collect filenames while still holding the mutex (no I/O).
+            let mut track_infos: Vec<(String, String)> = Vec::with_capacity(amount as usize);
+            for i in 0..amount {
+                let info = rb::playlist::get_track_info(i);
+                let hash = format!("{:x}", md5::compute(info.filename.as_bytes()));
+                track_infos.push((hash, info.filename));
             }
 
-            let is_http = filename.starts_with("http://") || filename.starts_with("https://");
-            let db_track = rt
-                .block_on(repo::track::find_by_md5(pool.clone(), hash))
-                .unwrap();
+            // Release the mutex before any slow I/O so player commands aren't blocked.
+            drop(player_mutex);
 
-            let entry = if is_http {
-                // For HTTP stream URLs, do NOT call get_metadata(-1, url) — that
-                // opens a live HTTP connection for every queued track and blocks
-                // the broker loop. Instead, build the entry from the database
-                // using the saved track metadata keyed by the URL hash.
-                let mut e = Mp3Entry::default();
-                e.path = filename.clone();
-                if let Some(ref t) = db_track {
-                    e.title = t.title.clone();
-                    e.artist = t.artist.clone();
-                    e.album = t.album.clone();
-                    e.albumartist = t.album_artist.clone();
-                    e.length = t.length as u64;
-                    e.bitrate = t.bitrate;
-                    e.frequency = t.frequency as u64;
-                    // URL-keyed record may have no album_art (stream has no
-                    // embedded art). Fall back to the local track by UUID.
-                    e.album_art = if t.album_art.is_some() {
-                        t.album_art.clone()
-                    } else {
-                        let uuid = filename.rsplit('/').next().unwrap_or("");
-                        if !uuid.is_empty() {
-                            rt.block_on(repo::track::find(pool.clone(), uuid))
-                                .ok()
-                                .flatten()
-                                .and_then(|local| local.album_art)
+            // Build entries, reading from disk only for files not yet in cache.
+            let mut built: Vec<Mp3Entry> = Vec::with_capacity(track_infos.len());
+            for (hash, filename) in &track_infos {
+                if let Some(entry) = metadata_cache.get(hash) {
+                    built.push(entry.clone());
+                    continue;
+                }
+
+                let is_http = filename.starts_with("http://") || filename.starts_with("https://");
+                let db_track = rt
+                    .block_on(repo::track::find_by_md5(pool.clone(), hash))
+                    .unwrap();
+
+                let entry = if is_http {
+                    // For HTTP stream URLs, do NOT call get_metadata(-1, url) — that
+                    // opens a live HTTP connection for every queued track and blocks
+                    // the broker loop. Instead, build the entry from the database
+                    // using the saved track metadata keyed by the URL hash.
+                    let mut e = Mp3Entry::default();
+                    e.path = filename.clone();
+                    if let Some(ref t) = db_track {
+                        e.title = t.title.clone();
+                        e.artist = t.artist.clone();
+                        e.album = t.album.clone();
+                        e.albumartist = t.album_artist.clone();
+                        e.length = t.length as u64;
+                        e.bitrate = t.bitrate;
+                        e.frequency = t.frequency as u64;
+                        // URL-keyed record may have no album_art (stream has no
+                        // embedded art). Fall back to the local track by UUID.
+                        e.album_art = if t.album_art.is_some() {
+                            t.album_art.clone()
                         } else {
-                            None
-                        }
-                    };
-                    e.album_id = Some(t.album_id.clone());
-                    e.artist_id = Some(t.artist_id.clone());
-                    e.genre_id = Some(t.genre_id.clone());
-                    e.id = Some(t.id.clone());
-                }
-                e
-            } else {
-                let mut e = rb::metadata::get_metadata(-1, filename);
-                if db_track.is_some() {
-                    e.album_art = db_track.as_ref().map(|t| t.album_art.clone()).flatten();
-                    e.album_id = db_track.as_ref().map(|t| t.album_id.clone());
-                    e.artist_id = db_track.as_ref().map(|t| t.artist_id.clone());
-                    e.genre_id = db_track.as_ref().map(|t| t.genre_id.clone());
-                }
-                e
-            };
+                            let uuid = filename.rsplit('/').next().unwrap_or("");
+                            if !uuid.is_empty() {
+                                rt.block_on(repo::track::find(pool.clone(), uuid))
+                                    .ok()
+                                    .flatten()
+                                    .and_then(|local| local.album_art)
+                            } else {
+                                None
+                            }
+                        };
+                        e.album_id = Some(t.album_id.clone());
+                        e.artist_id = Some(t.artist_id.clone());
+                        e.genre_id = Some(t.genre_id.clone());
+                        e.id = Some(t.id.clone());
+                    }
+                    e
+                } else {
+                    let mut e = rb::metadata::get_metadata(-1, filename);
+                    if db_track.is_some() {
+                        e.album_art = db_track.as_ref().map(|t| t.album_art.clone()).flatten();
+                        e.album_id = db_track.as_ref().map(|t| t.album_id.clone());
+                        e.artist_id = db_track.as_ref().map(|t| t.artist_id.clone());
+                        e.genre_id = db_track.as_ref().map(|t| t.genre_id.clone());
+                    }
+                    e
+                };
 
-            metadata_cache.insert(hash.clone(), entry.clone());
-            entries.push(entry);
-        }
-
-        current_playlist.amount = amount;
-        current_playlist.max_playlist_size = rb::playlist::max_playlist_size();
-        current_playlist.index = rb::playlist::index();
-        current_playlist.first_index = rb::playlist::first_index();
-        current_playlist.last_insert_pos = rb::playlist::last_insert_pos();
-        current_playlist.seed = rb::playlist::seed();
-        current_playlist.last_shuffled_start = rb::playlist::last_shuffled_start();
-        current_playlist.entries = entries;
+                metadata_cache.insert(hash.clone(), entry.clone());
+                built.push(entry);
+            }
+            last_entries = built.clone();
+            built
+        } else {
+            // Only the current index changed — reuse the cached entry list.
+            // No get_track_info loop, no disk reads, no DB queries.
+            drop(player_mutex);
+            last_entries.clone()
+        };
 
         SimpleBroker::publish(objects::playlist::Playlist {
-            amount: current_playlist.amount,
-            index: current_playlist.index,
-            max_playlist_size: current_playlist.max_playlist_size,
-            first_index: current_playlist.first_index,
-            last_insert_pos: current_playlist.last_insert_pos,
-            seed: current_playlist.seed,
-            last_shuffled_start: current_playlist.last_shuffled_start,
-            tracks: current_playlist
-                .entries
-                .into_iter()
-                .map(|t| t.into())
-                .collect(),
+            amount,
+            index: current_index,
+            max_playlist_size: rb::playlist::max_playlist_size(),
+            first_index: rb::playlist::first_index(),
+            last_insert_pos: rb::playlist::last_insert_pos(),
+            seed: rb::playlist::seed(),
+            last_shuffled_start: rb::playlist::last_shuffled_start(),
+            tracks: entries.into_iter().map(|t| t.into()).collect(),
         });
 
         thread::sleep(std::time::Duration::from_millis(100));

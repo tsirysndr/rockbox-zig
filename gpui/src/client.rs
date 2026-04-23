@@ -1,11 +1,16 @@
 use crate::api::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
-    playlist_service_client::PlaylistServiceClient, GetArtistsRequest, GetCurrentRequest,
-    GetLikedTracksRequest, GetTracksRequest, InsertTracksRequest, LikeTrackRequest, NextRequest,
-    PauseRequest, PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest, PlayTrackRequest,
-    PreviousRequest, ResumeRequest, StartRequest, StreamCurrentTrackRequest, StreamPlaylistRequest,
-    StreamStatusRequest, UnlikeTrackRequest,
+    playlist_service_client::PlaylistServiceClient,
+    settings_service_client::SettingsServiceClient, sound_service_client::SoundServiceClient,
+    system_service_client::SystemServiceClient, AdjustVolumeRequest, GetArtistsRequest,
+    GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest, GetLikedTracksRequest,
+    GetTracksRequest, InsertTracksRequest, LikeTrackRequest, NextRequest, PauseRequest,
+    PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest, PlayTrackRequest,
+    PlaylistResumeRequest, PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest,
+    SaveSettingsRequest, SearchRequest, StartRequest, StreamCurrentTrackRequest,
+    StreamPlaylistRequest, StreamStatusRequest, UnlikeTrackRequest,
 };
+use crate::state::{SearchAlbum, SearchArtist, SearchResults};
 
 // Matches apps/playlist.h PLAYLIST_INSERT_* constants
 pub const INSERT_FIRST: i32 = -4; // play next (after current)
@@ -55,6 +60,13 @@ fn track_from_proto(t: crate::api::v1alpha1::Track) -> Track {
 pub async fn resume() -> Result<()> {
     let mut c = PlaybackServiceClient::connect(URL).await?;
     c.resume(ResumeRequest {}).await?;
+    Ok(())
+}
+
+// Resume from saved state after a daemon restart (playlist_resume + resume_track).
+pub async fn resume_track() -> Result<()> {
+    let mut c = PlaylistServiceClient::connect(URL).await?;
+    c.resume_track(ResumeTrackRequest { start_index: 0, crc: 0, elapsed: 0, offset: 0 }).await?;
     Ok(())
 }
 
@@ -163,6 +175,35 @@ pub async fn insert_tracks(paths: Vec<String>, position: i32, shuffle: bool) -> 
     Ok(())
 }
 
+pub async fn search(term: String) -> Result<SearchResults> {
+    let mut c = LibraryServiceClient::connect(URL).await?;
+    let resp = c.search(SearchRequest { term }).await?;
+    let resp = resp.into_inner();
+    let tracks = resp.tracks.into_iter().map(track_from_proto).collect();
+    let albums = resp
+        .albums
+        .into_iter()
+        .map(|a| SearchAlbum {
+            id: a.id,
+            title: a.title,
+            artist: a.artist,
+            year: a.year,
+            album_art: a.album_art,
+            artist_id: a.artist_id,
+        })
+        .collect();
+    let artists = resp
+        .artists
+        .into_iter()
+        .map(|a| SearchArtist {
+            id: a.id,
+            name: a.name,
+            image: a.image,
+        })
+        .collect();
+    Ok(SearchResults { tracks, albums, artists })
+}
+
 pub async fn fetch_queue(tx: Sender<StateUpdate>) {
     match PlaylistServiceClient::connect(URL).await {
         Ok(mut c) => match c.get_current(GetCurrentRequest {}).await {
@@ -216,6 +257,81 @@ pub async fn play_liked_tracks(paths: Vec<String>, shuffle: bool) -> Result<()> 
     })
     .await?;
     Ok(())
+}
+
+// ── Queue mutation ────────────────────────────────────────────────────────────
+
+pub async fn remove_from_queue(position: i32) -> Result<()> {
+    let mut c = PlaylistServiceClient::connect(URL).await?;
+    c.remove_tracks(RemoveTracksRequest { positions: vec![position] })
+        .await?;
+    Ok(())
+}
+
+// ── Sound / Volume ────────────────────────────────────────────────────────────
+
+pub async fn adjust_volume(steps: i32) -> Result<()> {
+    let mut c = SoundServiceClient::connect(URL).await?;
+    c.adjust_volume(AdjustVolumeRequest { steps }).await?;
+    Ok(())
+}
+
+// ── Settings (shuffle, repeat) ────────────────────────────────────────────────
+
+pub async fn save_shuffle(enabled: bool) -> Result<()> {
+    let mut c = SettingsServiceClient::connect(URL).await?;
+    c.save_settings(SaveSettingsRequest {
+        playlist_shuffle: Some(enabled),
+        ..Default::default()
+    })
+    .await?;
+    Ok(())
+}
+
+pub async fn save_repeat(repeat_mode: i32) -> Result<()> {
+    let mut c = SettingsServiceClient::connect(URL).await?;
+    c.save_settings(SaveSettingsRequest {
+        repeat_mode: Some(repeat_mode),
+        ..Default::default()
+    })
+    .await?;
+    Ok(())
+}
+
+// Fetch the saved resume position on startup so the progress bar shows the
+// right value before the user presses play.
+pub async fn run_resume_info_sync(tx: Sender<StateUpdate>) {
+    match SystemServiceClient::connect(URL).await {
+        Ok(mut c) => match c.get_global_status(GetGlobalStatusRequest {}).await {
+            Ok(resp) => {
+                let s = resp.into_inner();
+                if s.resume_elapsed > 0 {
+                    let _ = tx.send(StateUpdate::Position(s.resume_elapsed as u64 / 1000)).await;
+                }
+            }
+            Err(e) => log::warn!("resume info sync: {e}"),
+        },
+        Err(e) => log::warn!("resume info sync connect: {e}"),
+    }
+}
+
+pub async fn run_settings_sync(tx: Sender<StateUpdate>) {
+    match SettingsServiceClient::connect(URL).await {
+        Ok(mut c) => match c.get_global_settings(GetGlobalSettingsRequest {}).await {
+            Ok(resp) => {
+                let s = resp.into_inner();
+                let _ = tx
+                    .send(StateUpdate::Settings {
+                        volume: s.volume,
+                        shuffling: s.playlist_shuffle,
+                        repeat_mode: s.repeat_mode,
+                    })
+                    .await;
+            }
+            Err(e) => log::warn!("settings sync: {e}"),
+        },
+        Err(e) => log::warn!("settings sync connect: {e}"),
+    }
 }
 
 // ── Likes ─────────────────────────────────────────────────────────────────────
@@ -326,7 +442,12 @@ async fn current_track_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
     loop {
         match stream.message().await {
             Ok(Some(msg)) => {
-                let _ = tx.send(StateUpdate::Position(msg.elapsed / 1000)).await;
+                // Skip elapsed=0 from the server's stopped-state ticker — it
+                // would overwrite the resume position loaded from global status.
+                // Once playback starts, elapsed becomes non-zero immediately.
+                if msg.elapsed > 0 {
+                    let _ = tx.send(StateUpdate::Position(msg.elapsed / 1000)).await;
+                }
             }
             Ok(None) => break,
             Err(e) => {
@@ -348,6 +469,18 @@ pub async fn run_playlist_stream(tx: Sender<StateUpdate>) {
 }
 
 async fn playlist_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
+    // On every (re)connect: restore the playlist from saved state (no-op when
+    // already playing) then snapshot the current queue before waiting for stream
+    // events.  StreamPlaylist uses SimpleBroker which only delivers *future*
+    // publishes — without this fetch the queue would stay empty if we connect
+    // after the broker's initial publish.
+    {
+        if let Ok(mut c) = PlaylistServiceClient::connect(URL).await {
+            let _ = c.playlist_resume(PlaylistResumeRequest {}).await;
+        }
+    }
+    fetch_queue(tx.clone()).await;
+
     let mut c = PlaybackServiceClient::connect(URL).await?;
     let resp = c.stream_playlist(StreamPlaylistRequest {}).await?;
     let mut stream = resp.into_inner();

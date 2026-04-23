@@ -46,8 +46,10 @@ impl gpui::Global for BackSection {}
 pub struct LibraryContextMenu {
     pub pos: gpui::Point<gpui::Pixels>,
     pub path: String,
+    pub title: String,
     pub artist: String,
     pub album: String,
+    pub album_art: Option<String>,
 }
 
 #[derive(Clone, Default)]
@@ -58,6 +60,8 @@ impl gpui::Global for LibraryContextMenuState {}
 pub struct AlbumContextMenu {
     pub pos: gpui::Point<gpui::Pixels>,
     pub album_id: String,
+    pub album_name: String,
+    pub album_art: Option<String>,
     pub artist_name: String,
     pub track_paths: Vec<String>,
 }
@@ -65,3 +69,7 @@ pub struct AlbumContextMenu {
 #[derive(Clone, Default)]
 pub struct AlbumContextMenuState(pub Option<AlbumContextMenu>);
 impl gpui::Global for AlbumContextMenuState {}
+
+#[derive(Clone, Default)]
+pub struct HoveredAlbumIdx(pub Option<usize>);
+impl gpui::Global for HoveredAlbumIdx {}

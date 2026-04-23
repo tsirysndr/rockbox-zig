@@ -1,7 +1,11 @@
-use std::{env, ffi::CString};
+use std::{
+    env,
+    ffi::CString,
+    sync::atomic::Ordering,
+};
 
 use crate::http::{Context, Request, Response};
-use crate::PLAYER_MUTEX;
+use crate::{PLAYER_MUTEX, PLAYLIST_DIRTY};
 use anyhow::{anyhow, Error};
 use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
@@ -61,6 +65,7 @@ pub async fn create_playlist(
         0,
         new_playlist.tracks.len() as i32,
     );
+    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
     res.text(&start_index.to_string());
     drop(player_mutex);
     Ok(())
@@ -85,6 +90,7 @@ pub async fn start_playlist(
         None => 0,
     };
     rb::playlist::start(start_index, elapsed, offset);
+    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
     drop(player_mutex);
     Ok(())
 }
@@ -102,6 +108,7 @@ pub async fn shuffle_playlist(
     let seed = rb::system::current_tick();
     let ret = rb::playlist::shuffle(seed as i32, start_index as i32);
     res.text(&ret.to_string());
+    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
     drop(player_mutex);
     Ok(())
 }
@@ -134,6 +141,7 @@ pub async fn resume_playlist(
 
     let code = rb::playlist::resume();
     res.json(&StatusCode { code });
+    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
     drop(player_mutex);
     Ok(())
 }
@@ -145,12 +153,24 @@ pub async fn resume_track(
 ) -> Result<(), Error> {
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let status = rb::system::get_global_status();
+    if status.resume_index == -1 {
+        return Ok(());
+    }
+    // Rebuild playlist from control file if not already loaded — matches the
+    // root_menu.c pattern: playlist_resume() then playlist_resume_track().
+    if rb::playlist::amount() == 0 {
+        let ret = rb::playlist::resume();
+        if ret == -1 {
+            return Ok(());
+        }
+    }
     rb::playlist::resume_track(
         status.resume_index,
         status.resume_crc32,
         status.resume_elapsed.into(),
         status.resume_offset.into(),
     );
+    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
     drop(player_mutex);
     Ok(())
 }
@@ -261,6 +281,7 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
             tracklist.tracks.len() as i32,
         );
         res.text(&start_index.to_string());
+        PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
         return Ok(());
     }
 
@@ -275,7 +296,7 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
     rb::playlist::insert_tracks(tracks, position, tracklist.tracks.len() as i32);
 
     res.text(&tracklist.position.to_string());
-
+    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
     drop(player_mutex);
 
     Ok(())
@@ -386,10 +407,12 @@ pub async fn remove_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
     if params.positions.is_empty() {
         ret = rb::playlist::remove_all_tracks();
         res.text(&ret.to_string());
+        PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
         return Ok(());
     }
 
     res.text(&ret.to_string());
+    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
     drop(player_mutex);
     Ok(())
 }

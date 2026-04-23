@@ -83,18 +83,29 @@ pub fn play_pause(cx: &mut App) {
         (ctrl.rt(), ctrl.state.clone())
     };
     let status = state.read(cx).status;
+    let lock = std::time::Duration::from_secs(2);
     match status {
         PlaybackStatus::Playing => {
             rt.spawn(crate::client::pause());
             state.update(cx, |s, cx| {
-                s.status = PlaybackStatus::Paused;
+                s.set_status_local(PlaybackStatus::Paused, lock);
                 cx.notify();
             });
         }
-        _ => {
+        PlaybackStatus::Paused => {
             rt.spawn(crate::client::resume());
             state.update(cx, |s, cx| {
-                s.status = PlaybackStatus::Playing;
+                s.set_status_local(PlaybackStatus::Playing, lock);
+                cx.notify();
+            });
+        }
+        PlaybackStatus::Stopped => {
+            // Daemon was (re)started — audio engine is stopped, not merely paused.
+            // resume_track restores the playlist from the control file and seeks
+            // to the saved position; plain resume() would be a no-op here.
+            rt.spawn(crate::client::resume_track());
+            state.update(cx, |s, cx| {
+                s.set_status_local(PlaybackStatus::Playing, lock);
                 cx.notify();
             });
         }

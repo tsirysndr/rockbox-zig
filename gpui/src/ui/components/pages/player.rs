@@ -1,3 +1,4 @@
+use crate::client::{save_repeat, save_shuffle};
 use crate::controller::Controller;
 use crate::state::PlaybackStatus;
 use crate::ui::components::controlbar::ControlBar;
@@ -194,11 +195,16 @@ impl Render for PlayerPage {
                                             .text_color(theme.player_icons_text_hover)
                                     })
                                     .on_click(|_, _, cx: &mut App| {
-                                        let state = cx.global::<Controller>().state.clone();
+                                        let (state, rt) = {
+                                            let ctrl = cx.global::<Controller>();
+                                            (ctrl.state.clone(), ctrl.rt())
+                                        };
+                                        let new_val = !state.read(cx).shuffling;
                                         state.update(cx, |s, cx| {
-                                            s.toggle_shuffle();
+                                            s.shuffling = new_val;
                                             cx.notify();
                                         });
+                                        rt.spawn(save_shuffle(new_val));
                                     })
                                     .child(Icon::new(Icons::Shuffle).size_4()),
                             )
@@ -280,11 +286,17 @@ impl Render for PlayerPage {
                                             .text_color(theme.player_icons_text_hover)
                                     })
                                     .on_click(|_, _, cx: &mut App| {
-                                        let state = cx.global::<Controller>().state.clone();
+                                        let (state, rt) = {
+                                            let ctrl = cx.global::<Controller>();
+                                            (ctrl.state.clone(), ctrl.rt())
+                                        };
+                                        let new_mode =
+                                            if state.read(cx).repeat { 0 } else { 1 };
                                         state.update(cx, |s, cx| {
-                                            s.toggle_repeat();
+                                            s.repeat = new_mode != 0;
                                             cx.notify();
                                         });
+                                        rt.spawn(save_repeat(new_mode));
                                     })
                                     .child(Icon::new(Icons::Repeat).size_4()),
                             ),

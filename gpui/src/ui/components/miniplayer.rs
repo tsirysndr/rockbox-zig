@@ -1,13 +1,16 @@
+use crate::client::{adjust_volume, save_repeat, save_shuffle};
 use crate::controller::Controller;
-use crate::state::{format_duration, PlaybackStatus};
+use crate::state::{format_duration, volume_fraction, PlaybackStatus, VOLUME_MAX_DB, VOLUME_MIN_DB};
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::{LikedSongs, Page};
 use crate::ui::global_keybinds::play_pause;
 use crate::ui::helpers::secs_to_slider;
 use crate::ui::theme::Theme;
+use gpui::prelude::FluentBuilder;
 use gpui::{
     div, img, px, relative, App, Context, FontWeight, InteractiveElement, IntoElement, ObjectFit,
-    ParentElement, Render, StatefulInteractiveElement, Styled, StyledImage, Window,
+    ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled, StyledImage,
+    Window,
 };
 
 pub struct MiniPlayer;
@@ -36,7 +39,10 @@ impl Render for MiniPlayer {
             .map(|id| format!("http://localhost:6062/covers/{id}"));
         let position = state.position;
         let fill = secs_to_slider(position, duration) / 100.0;
-        let vol_pct = (state.volume * 100.0) as u32;
+        let vol_fill = volume_fraction(state.volume);
+        let vol_pct = (vol_fill * 100.0) as u32;
+        let is_shuffling = state.shuffling;
+        let is_repeat = state.repeat;
         let current_path = state.current_track().map(|t| t.path.clone()).unwrap_or_default();
         let track_id = state
             .tracks
@@ -173,6 +179,41 @@ impl Render for MiniPlayer {
                                     .gap_x_1()
                                     .child(
                                         div()
+                                            .id("mini_shuffle")
+                                            .p_2()
+                                            .rounded_md()
+                                            .flex()
+                                            .items_center()
+                                            .justify_center()
+                                            .cursor_pointer()
+                                            .text_color(if is_shuffling {
+                                                theme.player_icons_text_active
+                                            } else {
+                                                theme.player_icons_text
+                                            })
+                                            .when(is_shuffling, |this| {
+                                                this.bg(theme.player_icons_bg_active)
+                                            })
+                                            .hover(|this| {
+                                                this.text_color(theme.player_icons_text_hover)
+                                                    .bg(theme.player_icons_bg_hover)
+                                            })
+                                            .on_click(move |_, _, cx: &mut App| {
+                                                let (state, rt) = {
+                                                    let ctrl = cx.global::<Controller>();
+                                                    (ctrl.state.clone(), ctrl.rt())
+                                                };
+                                                let new_val = !state.read(cx).shuffling;
+                                                state.update(cx, |s, cx| {
+                                                    s.shuffling = new_val;
+                                                    cx.notify();
+                                                });
+                                                rt.spawn(save_shuffle(new_val));
+                                            })
+                                            .child(Icon::new(Icons::Shuffle).size_4()),
+                                    )
+                                    .child(
+                                        div()
                                             .id("mini_prev")
                                             .p_2()
                                             .rounded_md()
@@ -229,6 +270,42 @@ impl Render for MiniPlayer {
                                                 cx.global::<Controller>().next();
                                             })
                                             .child(Icon::new(Icons::Next).size_4()),
+                                    )
+                                    .child(
+                                        div()
+                                            .id("mini_repeat")
+                                            .p_2()
+                                            .rounded_md()
+                                            .flex()
+                                            .items_center()
+                                            .justify_center()
+                                            .cursor_pointer()
+                                            .text_color(if is_repeat {
+                                                theme.player_icons_text_active
+                                            } else {
+                                                theme.player_icons_text
+                                            })
+                                            .when(is_repeat, |this| {
+                                                this.bg(theme.player_icons_bg_active)
+                                            })
+                                            .hover(|this| {
+                                                this.text_color(theme.player_icons_text_hover)
+                                                    .bg(theme.player_icons_bg_hover)
+                                            })
+                                            .on_click(move |_, _, cx: &mut App| {
+                                                let (state, rt) = {
+                                                    let ctrl = cx.global::<Controller>();
+                                                    (ctrl.state.clone(), ctrl.rt())
+                                                };
+                                                let new_mode =
+                                                    if state.read(cx).repeat { 0 } else { 1 };
+                                                state.update(cx, |s, cx| {
+                                                    s.repeat = new_mode != 0;
+                                                    cx.notify();
+                                                });
+                                                rt.spawn(save_repeat(new_mode));
+                                            })
+                                            .child(Icon::new(Icons::Repeat).size_4()),
                                     ),
                             )
                             // Progress bar with elapsed / duration
@@ -286,13 +363,33 @@ impl Render for MiniPlayer {
                                     .w_24()
                                     .h(px(4.0))
                                     .rounded_full()
+                                    .cursor_pointer()
                                     .bg(theme.volume_slider_track)
+                                    .on_scroll_wheel(|event: &ScrollWheelEvent, _window, cx: &mut App| {
+                                        let delta = event.delta.pixel_delta(px(12.0));
+                                        let steps = (-f32::from(delta.y) / 12.0).round() as i32;
+                                        if steps != 0 {
+                                            let (state, rt) = {
+                                                let ctrl = cx.global::<Controller>();
+                                                (ctrl.state.clone(), ctrl.rt())
+                                            };
+                                            let new_vol = {
+                                                let current = state.read(cx).volume;
+                                                (current + steps).clamp(VOLUME_MIN_DB, VOLUME_MAX_DB)
+                                            };
+                                            state.update(cx, |s, cx| {
+                                                s.volume = new_vol;
+                                                cx.notify();
+                                            });
+                                            rt.spawn(adjust_volume(steps));
+                                        }
+                                    })
                                     .child(
                                         div()
                                             .h_full()
                                             .rounded_full()
                                             .bg(theme.volume_slider_fill)
-                                            .w(relative(state.volume)),
+                                            .w(relative(vol_fill)),
                                     ),
                             )
                             .child(

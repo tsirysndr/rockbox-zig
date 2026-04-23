@@ -1,6 +1,10 @@
 use crate::state::{AppState, StateUpdate};
 use crate::ui::components::LikedSongs;
 use gpui::{App, Entity, Global};
+use std::sync::{
+    atomic::{AtomicU64, Ordering},
+    Arc,
+};
 use std::time::Duration;
 use tokio::sync::mpsc;
 
@@ -8,6 +12,7 @@ pub struct Controller {
     pub state: Entity<AppState>,
     rt: tokio::runtime::Runtime,
     tx: mpsc::Sender<StateUpdate>,
+    search_gen: Arc<AtomicU64>,
 }
 
 impl Controller {
@@ -23,6 +28,8 @@ impl Controller {
         rt.spawn(crate::client::run_library_sync(tx.clone()));
         rt.spawn(crate::client::run_liked_tracks_sync(tx.clone()));
         rt.spawn(crate::client::run_artist_images_sync(tx.clone()));
+        rt.spawn(crate::client::run_settings_sync(tx.clone()));
+        rt.spawn(crate::client::run_resume_info_sync(tx.clone()));
         rt.spawn(crate::client::run_status_stream(tx.clone()));
         rt.spawn(crate::client::run_current_track_stream(tx.clone()));
         rt.spawn(crate::client::run_playlist_stream(tx.clone()));
@@ -36,7 +43,7 @@ impl Controller {
                 while let Ok(update) = rx.try_recv() {
                     let _ = cx.update(|app| {
                         state_for_poll.update(app, |s, cx| match update {
-                            StateUpdate::Status(status) => s.status = status,
+                            StateUpdate::Status(status) => s.apply_status_from_stream(status),
                             StateUpdate::Position(pos) => s.position = pos,
                             StateUpdate::Playlist { queue, current_idx } => {
                                 s.queue = queue;
@@ -46,6 +53,14 @@ impl Controller {
                             StateUpdate::ArtistImages(images) => s.artist_images = images,
                             StateUpdate::LikedTracks(ids) => {
                                 cx.set_global(LikedSongs(ids));
+                            }
+                            StateUpdate::SearchResults(results) => {
+                                s.search_results = results;
+                            }
+                            StateUpdate::Settings { volume, shuffling, repeat_mode } => {
+                                s.volume = volume;
+                                s.shuffling = shuffling;
+                                s.repeat = repeat_mode != 0;
                             }
                         });
                     });
@@ -63,7 +78,7 @@ impl Controller {
         })
         .detach();
 
-        Controller { state, rt, tx }
+        Controller { state, rt, tx, search_gen: Arc::new(AtomicU64::new(0)) }
     }
 
     /// Cloneable handle to the tokio runtime — use for fire-and-forget spawns.
@@ -127,11 +142,47 @@ impl Controller {
         });
     }
 
+    pub fn remove_from_queue(&self, pos: usize) {
+        let tx = self.tx.clone();
+        self.rt().spawn(async move {
+            let _ = crate::client::remove_from_queue(pos as i32).await;
+            crate::client::fetch_queue(tx).await;
+        });
+    }
+
+    pub fn adjust_volume(&self, steps: i32) {
+        self.rt().spawn(crate::client::adjust_volume(steps));
+    }
+
     pub fn insert_tracks(&self, paths: Vec<String>, position: i32, shuffle: bool) {
         let tx = self.tx.clone();
         self.rt().spawn(async move {
             let _ = crate::client::insert_tracks(paths, position, shuffle).await;
             crate::client::fetch_queue(tx).await;
+        });
+    }
+
+    pub fn search(&self, query: String) {
+        let tx = self.tx.clone();
+        let gen = self.search_gen.fetch_add(1, Ordering::SeqCst) + 1;
+        let search_gen = self.search_gen.clone();
+        self.rt().spawn(async move {
+            if query.trim().is_empty() {
+                let _ = tx.send(StateUpdate::SearchResults(None)).await;
+                return;
+            }
+            tokio::time::sleep(tokio::time::Duration::from_millis(300)).await;
+            if search_gen.load(Ordering::SeqCst) != gen {
+                return;
+            }
+            match crate::client::search(query).await {
+                Ok(results) => {
+                    if search_gen.load(Ordering::SeqCst) == gen {
+                        let _ = tx.send(StateUpdate::SearchResults(Some(results))).await;
+                    }
+                }
+                Err(e) => log::warn!("search: {e}"),
+            }
         });
     }
 }

@@ -141,6 +141,7 @@ impl Track {
 
 impl From<Mp3Entry> for Track {
     fn from(mp3entry: Mp3Entry) -> Self {
+        let id = mp3entry.id;
         let title = mp3entry.title;
         let artist = mp3entry.artist;
         let album = mp3entry.album;
@@ -168,6 +169,7 @@ impl From<Mp3Entry> for Track {
         let album_art = mp3entry.album_art;
 
         Track {
+            id,
             title,
             artist,
             album,
