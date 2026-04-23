@@ -62,7 +62,7 @@ jobs:
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
       - name: Build Rockbox Binary
-        run: zig build
+        run: zig build ${{ matrix.os == 'macos-15-intel' && '-Dcpu=x86_64' || '' }}
         working-directory: zig
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
