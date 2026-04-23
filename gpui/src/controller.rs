@@ -7,6 +7,7 @@ use tokio::sync::mpsc;
 pub struct Controller {
     pub state: Entity<AppState>,
     rt: tokio::runtime::Runtime,
+    tx: mpsc::Sender<StateUpdate>,
 }
 
 impl Controller {
@@ -62,7 +63,7 @@ impl Controller {
         })
         .detach();
 
-        Controller { state, rt }
+        Controller { state, rt, tx }
     }
 
     /// Cloneable handle to the tokio runtime — use for fire-and-forget spawns.
@@ -108,6 +109,30 @@ impl Controller {
     pub fn play_liked_tracks(&self, paths: Vec<String>, shuffle: bool) {
         self.rt()
             .spawn(crate::client::play_liked_tracks(paths, shuffle));
+    }
+
+    pub fn insert_track_next(&self, path: String) {
+        let tx = self.tx.clone();
+        self.rt().spawn(async move {
+            let _ = crate::client::insert_track_next(path).await;
+            crate::client::fetch_queue(tx).await;
+        });
+    }
+
+    pub fn insert_track_last(&self, path: String) {
+        let tx = self.tx.clone();
+        self.rt().spawn(async move {
+            let _ = crate::client::insert_track_last(path).await;
+            crate::client::fetch_queue(tx).await;
+        });
+    }
+
+    pub fn insert_tracks(&self, paths: Vec<String>, position: i32, shuffle: bool) {
+        let tx = self.tx.clone();
+        self.rt().spawn(async move {
+            let _ = crate::client::insert_tracks(paths, position, shuffle).await;
+            crate::client::fetch_queue(tx).await;
+        });
     }
 }
 

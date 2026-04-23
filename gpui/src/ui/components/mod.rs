@@ -53,3 +53,15 @@ pub struct LibraryContextMenu {
 #[derive(Clone, Default)]
 pub struct LibraryContextMenuState(pub Option<LibraryContextMenu>);
 impl gpui::Global for LibraryContextMenuState {}
+
+#[derive(Clone)]
+pub struct AlbumContextMenu {
+    pub pos: gpui::Point<gpui::Pixels>,
+    pub album_id: String,
+    pub artist_name: String,
+    pub track_paths: Vec<String>,
+}
+
+#[derive(Clone, Default)]
+pub struct AlbumContextMenuState(pub Option<AlbumContextMenu>);
+impl gpui::Global for AlbumContextMenuState {}

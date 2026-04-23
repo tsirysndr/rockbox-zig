@@ -1,11 +1,17 @@
 use crate::api::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
-    playlist_service_client::PlaylistServiceClient, GetArtistsRequest, GetLikedTracksRequest,
-    GetTracksRequest, InsertTracksRequest, LikeTrackRequest, NextRequest, PauseRequest,
-    PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest, PlayTrackRequest,
+    playlist_service_client::PlaylistServiceClient, GetArtistsRequest, GetCurrentRequest,
+    GetLikedTracksRequest, GetTracksRequest, InsertTracksRequest, LikeTrackRequest, NextRequest,
+    PauseRequest, PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest, PlayTrackRequest,
     PreviousRequest, ResumeRequest, StartRequest, StreamCurrentTrackRequest, StreamPlaylistRequest,
     StreamStatusRequest, UnlikeTrackRequest,
 };
+
+// Matches apps/playlist.h PLAYLIST_INSERT_* constants
+pub const INSERT_FIRST: i32 = -4; // play next (after current)
+pub const INSERT_LAST: i32 = -3; // play last
+pub const INSERT_SHUFFLED: i32 = -5; // add shuffled (next)
+pub const INSERT_LAST_SHUFFLED: i32 = -7; // play last shuffled
 use crate::state::{ArtistImages, PlaybackStatus, StateUpdate, Track};
 use anyhow::Result;
 use std::collections::HashSet;
@@ -125,7 +131,7 @@ pub async fn insert_track_next(path: String) -> Result<()> {
     let mut c = PlaylistServiceClient::connect(URL).await?;
     c.insert_tracks(InsertTracksRequest {
         playlist_id: None,
-        position: 0,
+        position: INSERT_FIRST,
         tracks: vec![path],
         shuffle: Some(false),
     })
@@ -137,12 +143,61 @@ pub async fn insert_track_last(path: String) -> Result<()> {
     let mut c = PlaylistServiceClient::connect(URL).await?;
     c.insert_tracks(InsertTracksRequest {
         playlist_id: None,
-        position: -1,
+        position: INSERT_LAST,
         tracks: vec![path],
         shuffle: Some(false),
     })
     .await?;
     Ok(())
+}
+
+pub async fn insert_tracks(paths: Vec<String>, position: i32, shuffle: bool) -> Result<()> {
+    let mut c = PlaylistServiceClient::connect(URL).await?;
+    c.insert_tracks(InsertTracksRequest {
+        playlist_id: None,
+        position,
+        tracks: paths,
+        shuffle: Some(shuffle),
+    })
+    .await?;
+    Ok(())
+}
+
+pub async fn fetch_queue(tx: Sender<StateUpdate>) {
+    match PlaylistServiceClient::connect(URL).await {
+        Ok(mut c) => match c.get_current(GetCurrentRequest {}).await {
+            Ok(resp) => {
+                let resp = resp.into_inner();
+                let current_idx = if resp.index >= 0 {
+                    Some(resp.index as usize)
+                } else {
+                    None
+                };
+                let queue: Vec<Track> = resp
+                    .tracks
+                    .into_iter()
+                    .map(|t| Track {
+                        id: t.id,
+                        path: t.path,
+                        title: t.title,
+                        artist: t.artist,
+                        album_artist: t.album_artist,
+                        album: t.album,
+                        album_id: t.album_id,
+                        artist_id: t.artist_id,
+                        genre: t.genre,
+                        duration: t.length / 1000,
+                        track_number: t.tracknum as u32,
+                        year: t.year as u32,
+                        album_art: t.album_art.filter(|s| !s.is_empty()),
+                    })
+                    .collect();
+                let _ = tx.send(StateUpdate::Playlist { queue, current_idx }).await;
+            }
+            Err(e) => log::warn!("fetch_queue: {e}"),
+        },
+        Err(e) => log::warn!("fetch_queue connect: {e}"),
+    }
 }
 
 pub async fn play_liked_tracks(paths: Vec<String>, shuffle: bool) -> Result<()> {

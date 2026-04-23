@@ -4,8 +4,8 @@ use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::miniplayer::MiniPlayer;
 use crate::ui::components::search_input::SearchInput;
 use crate::ui::components::{
-    BackSection, LibraryContextMenu, LibraryContextMenuState, LibrarySection, LikedSongs,
-    SelectedAlbum, SelectedArtist,
+    AlbumContextMenu, AlbumContextMenuState, BackSection, LibraryContextMenu,
+    LibraryContextMenuState, LibrarySection, LikedSongs, SelectedAlbum, SelectedArtist,
 };
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -108,6 +108,7 @@ impl LibraryPage {
         cx.set_global(SelectedArtist(String::new()));
         cx.set_global(BackSection(LibrarySection::Albums));
         cx.set_global(LibraryContextMenuState::default());
+        cx.set_global(AlbumContextMenuState::default());
         cx.set_global(LikedSongs::default());
         LibraryPage {
             scroll_handle: UniformListScrollHandle::new(),
@@ -154,10 +155,9 @@ impl Render for LibraryPage {
             let current_idx = state.current_library_idx();
             let n_songs = state.tracks.len();
 
-            // (name, artist, year, count, album_art)
             let mut album_map: std::collections::BTreeMap<
                 String,
-                (String, u32, usize, Option<String>),
+                (String, u32, usize, Option<String>, String, Vec<(u32, String)>),
             > = Default::default();
             for track in &state.tracks {
                 let display_artist = if track.album_artist.is_empty() {
@@ -170,13 +170,22 @@ impl Render for LibraryPage {
                     track.year,
                     0,
                     track.album_art.clone(),
+                    track.album_id.clone(),
+                    Vec::new(),
                 ));
                 e.2 += 1;
+                e.5.push((track.track_number, track.path.clone()));
             }
-            let albums: Vec<(String, String, u32, usize, Option<String>)> = album_map
-                .into_iter()
-                .map(|(name, (artist, year, count, art))| (name, artist, year, count, art))
-                .collect();
+            let albums: Vec<(String, String, u32, usize, Option<String>, String, Vec<String>)> =
+                album_map
+                    .into_iter()
+                    .map(|(name, (artist, year, count, art, album_id, mut numbered_paths))| {
+                        numbered_paths.sort_by_key(|(num, _)| *num);
+                        let paths: Vec<String> =
+                            numbered_paths.into_iter().map(|(_, p)| p).collect();
+                        (name, artist, year, count, art, album_id, paths)
+                    })
+                    .collect();
 
             let mut artist_map: std::collections::BTreeMap<String, usize> = Default::default();
             for track in &state.tracks {
@@ -305,6 +314,7 @@ impl Render for LibraryPage {
         };
 
         let context_menu = cx.global::<LibraryContextMenuState>().0.clone();
+        let album_context_menu = cx.global::<AlbumContextMenuState>().0.clone();
         let n_album_tracks = album_tracks.len();
         let n_artist_tracks = artist_tracks.len();
         let scroll_handle = self.scroll_handle.clone();
@@ -625,15 +635,146 @@ impl Render for LibraryPage {
                         .grid_cols(album_cols)
                         .gap_6()
                         .children(albums.into_iter().enumerate().map(
-                            |(idx, (name, artist, year, _count, album_art))| {
+                            |(idx, (name, artist, year, _count, album_art, album_id, track_paths))| {
                                 let name_clone = name.clone();
+                                let art_url = album_art
+                                    .filter(|s| !s.is_empty())
+                                    .map(|id| format!("{COVERS_BASE}{id}"));
+                                let art_group: gpui::SharedString =
+                                    format!("album_art_{idx}").into();
+                                let art_group2 = art_group.clone();
+                                let album_id_play = album_id.clone();
+                                let album_id_opts = album_id.clone();
+                                let artist_for_opts = artist.clone();
+                                let paths_for_opts = track_paths.clone();
+                                let mut art_container = div()
+                                    .w_full()
+                                    .rounded_lg()
+                                    .overflow_hidden()
+                                    .relative()
+                                    .group(art_group);
+                                art_container.style().aspect_ratio = Some(1.0_f32);
+                                let art_content: AnyElement = if let Some(url) = art_url {
+                                    img(url)
+                                        .w_full()
+                                        .h_full()
+                                        .object_fit(ObjectFit::Cover)
+                                        .into_any_element()
+                                } else {
+                                    div()
+                                        .w_full()
+                                        .h_full()
+                                        .bg(theme.library_art_bg)
+                                        .flex()
+                                        .items_center()
+                                        .justify_center()
+                                        .text_color(theme.player_icons_text)
+                                        .child(Icon::new(Icons::Music).size_8())
+                                        .into_any_element()
+                                };
+                                let art_overlay = div()
+                                    .absolute()
+                                    .bottom_0()
+                                    .left_0()
+                                    .right_0()
+                                    .pb_3()
+                                    .flex()
+                                    .items_center()
+                                    .opacity(0.0)
+                                    .group_hover(art_group2, |s| s.opacity(1.0))
+                                    .child(
+                                        // Left half — Play button centered within it
+                                        div()
+                                            .flex_1()
+                                            .flex()
+                                            .justify_center()
+                                            .child(
+                                                div()
+                                                    .id(("album_play_btn", idx))
+                                                    .w(px(36.0))
+                                                    .h(px(36.0))
+                                                    .rounded_full()
+                                                    .flex()
+                                                    .items_center()
+                                                    .justify_center()
+                                                    .cursor_pointer()
+                                                    .bg(gpui::Rgba {
+                                                        r: 0.0,
+                                                        g: 0.0,
+                                                        b: 0.0,
+                                                        a: 0.65,
+                                                    })
+                                                    .text_color(gpui::rgb(0xFFFFFF))
+                                                    .hover(|this| {
+                                                        this.bg(gpui::Rgba {
+                                                            r: 0.0,
+                                                            g: 0.0,
+                                                            b: 0.0,
+                                                            a: 0.85,
+                                                        })
+                                                    })
+                                                    .on_click(move |_, _, cx: &mut App| {
+                                                        cx.stop_propagation();
+                                                        cx.global::<Controller>()
+                                                            .play_album(album_id_play.clone(), false);
+                                                    })
+                                                    .child(Icon::new(Icons::Play).size_4()),
+                                            ),
+                                    )
+                                    .child(
+                                        // Right half — Options button centered within it
+                                        div()
+                                            .flex_1()
+                                            .flex()
+                                            .justify_center()
+                                            .child(
+                                                div()
+                                                    .id(("album_opts_btn", idx))
+                                                    .w(px(36.0))
+                                                    .h(px(36.0))
+                                                    .rounded_full()
+                                                    .flex()
+                                                    .items_center()
+                                                    .justify_center()
+                                                    .cursor_pointer()
+                                                    .bg(gpui::Rgba {
+                                                        r: 0.0,
+                                                        g: 0.0,
+                                                        b: 0.0,
+                                                        a: 0.65,
+                                                    })
+                                                    .text_color(gpui::rgb(0xFFFFFF))
+                                                    .hover(|this| {
+                                                        this.bg(gpui::Rgba {
+                                                            r: 0.0,
+                                                            g: 0.0,
+                                                            b: 0.0,
+                                                            a: 0.85,
+                                                        })
+                                                    })
+                                                    .on_click(move |event, _, cx: &mut App| {
+                                                        cx.stop_propagation();
+                                                        cx.global_mut::<AlbumContextMenuState>().0 =
+                                                            Some(AlbumContextMenu {
+                                                                pos: event.position(),
+                                                                album_id: album_id_opts.clone(),
+                                                                artist_name: artist_for_opts.clone(),
+                                                                track_paths: paths_for_opts.clone(),
+                                                            });
+                                                    })
+                                                    .child(Icon::new(Icons::Options).size_4()),
+                                            ),
+                                    );
+                                let art_tile_overlay = art_container
+                                    .child(art_content)
+                                    .child(art_overlay)
+                                    .into_any_element();
                                 div()
                                     .id(("album_card", idx))
                                     .flex()
                                     .flex_col()
                                     .gap_y_2()
                                     .cursor_pointer()
-                                    .hover(|this| this.opacity(0.8))
                                     .on_click(move |_, _, cx: &mut App| {
                                         *cx.global_mut::<SelectedAlbum>() =
                                             SelectedAlbum(name_clone.clone());
@@ -642,7 +783,7 @@ impl Render for LibraryPage {
                                         *cx.global_mut::<LibrarySection>() =
                                             LibrarySection::AlbumDetail;
                                     })
-                                    .child(art_tile(album_art, theme, Icons::Music, 8))
+                                    .child(art_tile_overlay)
                                     .child(
                                         div()
                                             .flex()
@@ -1567,10 +1708,8 @@ impl Render for LibraryPage {
                                 .text_color(theme.library_text)
                                 .hover(|this| this.bg(theme.library_track_bg_hover))
                                 .on_click(move |_, _, cx: &mut App| {
-                                    let rt = cx.global::<Controller>().rt();
-                                    rt.spawn(crate::client::insert_track_next(
-                                        path_for_next.clone(),
-                                    ));
+                                    cx.global::<Controller>()
+                                        .insert_track_next(path_for_next.clone());
                                     cx.global_mut::<LibraryContextMenuState>().0 = None;
                                 })
                                 .child("Play Next"),
@@ -1585,10 +1724,8 @@ impl Render for LibraryPage {
                                 .text_color(theme.library_text)
                                 .hover(|this| this.bg(theme.library_track_bg_hover))
                                 .on_click(move |_, _, cx: &mut App| {
-                                    let rt = cx.global::<Controller>().rt();
-                                    rt.spawn(crate::client::insert_track_last(
-                                        path_for_last.clone(),
-                                    ));
+                                    cx.global::<Controller>()
+                                        .insert_track_last(path_for_last.clone());
                                     cx.global_mut::<LibraryContextMenuState>().0 = None;
                                 })
                                 .child("Play Last"),
@@ -1630,6 +1767,179 @@ impl Render for LibraryPage {
                                     cx.global_mut::<LibraryContextMenuState>().0 = None;
                                 })
                                 .child("Go to Album"),
+                        ),
+                )
+            })
+            .when_some(album_context_menu, |this, menu| {
+                let album_id_play = menu.album_id.clone();
+                let album_id_shuffled = menu.album_id.clone();
+                let paths_next = menu.track_paths.clone();
+                let paths_last = menu.track_paths.clone();
+                let paths_add_shuffled = menu.track_paths.clone();
+                let paths_last_shuffled = menu.track_paths.clone();
+                let artist_nav = menu.artist_name.clone();
+                let menu_w = px(180.0);
+                let menu_h = px(231.0);
+                let menu_x = if menu.pos.x + menu_w > viewport.width {
+                    menu.pos.x - menu_w
+                } else {
+                    menu.pos.x
+                };
+                let menu_y = if menu.pos.y + menu_h > viewport.height {
+                    menu.pos.y - menu_h
+                } else {
+                    menu.pos.y
+                };
+                this.child(
+                    div()
+                        .id("album_ctx_backdrop")
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .size_full()
+                        .occlude()
+                        .on_click(|_, _, cx: &mut App| {
+                            cx.stop_propagation();
+                            cx.global_mut::<AlbumContextMenuState>().0 = None;
+                        }),
+                )
+                .child(
+                    div()
+                        .absolute()
+                        .left(menu_x)
+                        .top(menu_y)
+                        .bg(theme.titlebar_bg)
+                        .border_1()
+                        .border_color(theme.library_table_border)
+                        .rounded_md()
+                        .overflow_hidden()
+                        .min_w(px(178.0))
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .id("alb_ctx_play")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    cx.global::<Controller>().play_album(album_id_play.clone(), false);
+                                    cx.global_mut::<AlbumContextMenuState>().0 = None;
+                                })
+                                .child("Play"),
+                        )
+                        .child(
+                            div()
+                                .id("alb_ctx_play_shuffled")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    cx.global::<Controller>()
+                                        .play_album(album_id_shuffled.clone(), true);
+                                    cx.global_mut::<AlbumContextMenuState>().0 = None;
+                                })
+                                .child("Play Shuffled"),
+                        )
+                        .child(
+                            div()
+                                .id("alb_ctx_play_next")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    cx.global::<Controller>().insert_tracks(
+                                        paths_next.clone(),
+                                        crate::client::INSERT_FIRST,
+                                        false,
+                                    );
+                                    cx.global_mut::<AlbumContextMenuState>().0 = None;
+                                })
+                                .child("Play Next"),
+                        )
+                        .child(
+                            div()
+                                .id("alb_ctx_play_last")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    cx.global::<Controller>().insert_tracks(
+                                        paths_last.clone(),
+                                        crate::client::INSERT_LAST,
+                                        false,
+                                    );
+                                    cx.global_mut::<AlbumContextMenuState>().0 = None;
+                                })
+                                .child("Play Last"),
+                        )
+                        .child(
+                            div()
+                                .id("alb_ctx_add_shuffled")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    cx.global::<Controller>().insert_tracks(
+                                        paths_add_shuffled.clone(),
+                                        crate::client::INSERT_SHUFFLED,
+                                        false,
+                                    );
+                                    cx.global_mut::<AlbumContextMenuState>().0 = None;
+                                })
+                                .child("Add Shuffled"),
+                        )
+                        .child(
+                            div()
+                                .id("alb_ctx_play_last_shuffled")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    cx.global::<Controller>().insert_tracks(
+                                        paths_last_shuffled.clone(),
+                                        crate::client::INSERT_LAST_SHUFFLED,
+                                        false,
+                                    );
+                                    cx.global_mut::<AlbumContextMenuState>().0 = None;
+                                })
+                                .child("Play Last Shuffled"),
+                        )
+                        .child(
+                            div()
+                                .id("alb_ctx_go_artist")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    *cx.global_mut::<SelectedArtist>() =
+                                        SelectedArtist(artist_nav.clone());
+                                    *cx.global_mut::<LibrarySection>() =
+                                        LibrarySection::ArtistDetail;
+                                    cx.global_mut::<AlbumContextMenuState>().0 = None;
+                                })
+                                .child("Go to Artist"),
                         ),
                 )
             })
