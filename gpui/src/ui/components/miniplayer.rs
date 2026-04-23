@@ -1,7 +1,7 @@
 use crate::controller::Controller;
 use crate::state::{format_duration, PlaybackStatus};
 use crate::ui::components::icons::{Icon, Icons};
-use crate::ui::components::Page;
+use crate::ui::components::{LikedSongs, Page};
 use crate::ui::global_keybinds::play_pause;
 use crate::ui::helpers::secs_to_slider;
 use crate::ui::theme::Theme;
@@ -15,6 +15,7 @@ pub struct MiniPlayer;
 impl Render for MiniPlayer {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = *cx.global::<Theme>();
+        let liked_songs = cx.global::<LikedSongs>().0.clone();
         let state = cx.global::<Controller>().state.read(cx);
         let is_playing = state.status == PlaybackStatus::Playing;
 
@@ -36,6 +37,14 @@ impl Render for MiniPlayer {
         let position = state.position;
         let fill = secs_to_slider(position, duration) / 100.0;
         let vol_pct = (state.volume * 100.0) as u32;
+        let current_path = state.current_track().map(|t| t.path.clone()).unwrap_or_default();
+        let track_id = state
+            .tracks
+            .iter()
+            .find(|t| t.path == current_path)
+            .map(|t| t.id.clone())
+            .unwrap_or_default();
+        let is_liked = liked_songs.contains(&track_id);
 
         div()
             .w_full()
@@ -91,17 +100,53 @@ impl Render for MiniPlayer {
                                     .flex_col()
                                     .gap_y_0p5()
                                     .overflow_hidden()
-                                    .cursor_pointer()
-                                    .on_click(|_, _, cx: &mut App| {
-                                        *cx.global_mut::<Page>() = Page::Player;
-                                    })
                                     .child(
                                         div()
-                                            .text_sm()
-                                            .font_weight(FontWeight(500.0))
-                                            .text_color(theme.player_title_text)
-                                            .truncate()
-                                            .child(title),
+                                            .flex()
+                                            .items_center()
+                                            .gap_x_1p5()
+                                            .overflow_hidden()
+                                            .child(
+                                                div()
+                                                    .id("mini_title")
+                                                    .flex_1()
+                                                    .text_sm()
+                                                    .font_weight(FontWeight(500.0))
+                                                    .text_color(theme.player_title_text)
+                                                    .truncate()
+                                                    .cursor_pointer()
+                                                    .on_click(|_, _, cx: &mut App| {
+                                                        *cx.global_mut::<Page>() = Page::Player;
+                                                    })
+                                                    .child(title),
+                                            )
+                                            .child(
+                                                div()
+                                                    .id("mini_heart")
+                                                    .flex_shrink_0()
+                                                    .p_1()
+                                                    .rounded_full()
+                                                    .cursor_pointer()
+                                                    .text_color(if is_liked {
+                                                        gpui::rgb(0xFFFFFF)
+                                                    } else {
+                                                        theme.player_icons_text
+                                                    })
+                                                    .hover(|this| this.bg(theme.player_icons_bg_hover))
+                                                    .on_click(move |_, _, cx: &mut App| {
+                                                        cx.stop_propagation();
+                                                        let rt = cx.global::<Controller>().rt();
+                                                        let liked = &mut cx.global_mut::<LikedSongs>().0;
+                                                        if liked.contains(&track_id) {
+                                                            liked.remove(&track_id);
+                                                            rt.spawn(crate::client::unlike_track(track_id.clone()));
+                                                        } else {
+                                                            liked.insert(track_id.clone());
+                                                            rt.spawn(crate::client::like_track(track_id.clone()));
+                                                        }
+                                                    })
+                                                    .child(Icon::new(if is_liked { Icons::Heart } else { Icons::HeartOutline }).size_5()),
+                                            ),
                                     )
                                     .child(
                                         div()

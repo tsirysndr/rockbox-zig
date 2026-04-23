@@ -165,6 +165,9 @@ pub enum Icons {
     Search,
     Settings,
     Menu,
+    Options,
+    Heart,
+    HeartOutline,
 }
 
 impl IconNamed for Icons {
@@ -188,6 +191,9 @@ impl IconNamed for Icons {
             Icons::Search => "icons/search.svg",
             Icons::Settings => "icons/settings.svg",
             Icons::Menu => "icons/menu.svg",
+            Icons::Options => "icons/options.svg",
+            Icons::Heart => "icons/heart.svg",
+            Icons::HeartOutline => "icons/heart-outline.svg",
         }
         .into()
     }

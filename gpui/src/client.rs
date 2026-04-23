@@ -1,12 +1,14 @@
 use crate::api::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
-    playlist_service_client::PlaylistServiceClient, GetArtistsRequest, GetTracksRequest,
-    NextRequest, PauseRequest, PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest,
-    PlayTrackRequest, PreviousRequest, ResumeRequest, StartRequest, StreamCurrentTrackRequest,
-    StreamPlaylistRequest, StreamStatusRequest,
+    playlist_service_client::PlaylistServiceClient, GetArtistsRequest, GetLikedTracksRequest,
+    GetTracksRequest, InsertTracksRequest, LikeTrackRequest, NextRequest, PauseRequest,
+    PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest, PlayTrackRequest,
+    PreviousRequest, ResumeRequest, StartRequest, StreamCurrentTrackRequest, StreamPlaylistRequest,
+    StreamStatusRequest, UnlikeTrackRequest,
 };
 use crate::state::{ArtistImages, PlaybackStatus, StateUpdate, Track};
 use anyhow::Result;
+use std::collections::HashSet;
 use tokio::sync::mpsc::Sender;
 
 const URL: &str = "http://127.0.0.1:6061";
@@ -119,6 +121,68 @@ pub async fn jump_to_queue_position(pos: i32) -> Result<()> {
     Ok(())
 }
 
+pub async fn insert_track_next(path: String) -> Result<()> {
+    let mut c = PlaylistServiceClient::connect(URL).await?;
+    c.insert_tracks(InsertTracksRequest {
+        playlist_id: None,
+        position: 0,
+        tracks: vec![path],
+        shuffle: Some(false),
+    })
+    .await?;
+    Ok(())
+}
+
+pub async fn insert_track_last(path: String) -> Result<()> {
+    let mut c = PlaylistServiceClient::connect(URL).await?;
+    c.insert_tracks(InsertTracksRequest {
+        playlist_id: None,
+        position: -1,
+        tracks: vec![path],
+        shuffle: Some(false),
+    })
+    .await?;
+    Ok(())
+}
+
+pub async fn play_liked_tracks(paths: Vec<String>, shuffle: bool) -> Result<()> {
+    let mut c = PlaylistServiceClient::connect(URL).await?;
+    c.insert_tracks(InsertTracksRequest {
+        playlist_id: None,
+        position: 0,
+        tracks: paths,
+        shuffle: Some(shuffle),
+    })
+    .await?;
+    c.start(StartRequest {
+        start_index: Some(0),
+        elapsed: Some(0),
+        offset: Some(0),
+    })
+    .await?;
+    Ok(())
+}
+
+// ── Likes ─────────────────────────────────────────────────────────────────────
+
+pub async fn fetch_liked_tracks() -> Result<HashSet<String>> {
+    let mut c = LibraryServiceClient::connect(URL).await?;
+    let resp = c.get_liked_tracks(GetLikedTracksRequest {}).await?;
+    Ok(resp.into_inner().tracks.into_iter().map(|t| t.id).collect())
+}
+
+pub async fn like_track(id: String) -> Result<()> {
+    let mut c = LibraryServiceClient::connect(URL).await?;
+    c.like_track(LikeTrackRequest { id }).await?;
+    Ok(())
+}
+
+pub async fn unlike_track(id: String) -> Result<()> {
+    let mut c = LibraryServiceClient::connect(URL).await?;
+    c.unlike_track(UnlikeTrackRequest { id }).await?;
+    Ok(())
+}
+
 // ── Streaming loops (tokio tasks — communicate via Sender<StateUpdate>) ───────
 
 pub async fn run_library_sync(tx: Sender<StateUpdate>) {
@@ -128,6 +192,15 @@ pub async fn run_library_sync(tx: Sender<StateUpdate>) {
             let _ = tx.send(StateUpdate::Tracks(tracks)).await;
         }
         Err(e) => log::warn!("library sync: {e}"),
+    }
+}
+
+pub async fn run_liked_tracks_sync(tx: Sender<StateUpdate>) {
+    match fetch_liked_tracks().await {
+        Ok(ids) => {
+            let _ = tx.send(StateUpdate::LikedTracks(ids)).await;
+        }
+        Err(e) => log::warn!("liked tracks sync: {e}"),
     }
 }
 

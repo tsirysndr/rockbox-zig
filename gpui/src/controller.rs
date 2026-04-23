@@ -1,4 +1,5 @@
 use crate::state::{AppState, StateUpdate};
+use crate::ui::components::LikedSongs;
 use gpui::{App, Entity, Global};
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -19,6 +20,7 @@ impl Controller {
 
         // Spawn tokio background tasks — these are Send because Sender<StateUpdate> is Send
         rt.spawn(crate::client::run_library_sync(tx.clone()));
+        rt.spawn(crate::client::run_liked_tracks_sync(tx.clone()));
         rt.spawn(crate::client::run_artist_images_sync(tx.clone()));
         rt.spawn(crate::client::run_status_stream(tx.clone()));
         rt.spawn(crate::client::run_current_track_stream(tx.clone()));
@@ -32,7 +34,7 @@ impl Controller {
                 let mut did_update = false;
                 while let Ok(update) = rx.try_recv() {
                     let _ = cx.update(|app| {
-                        state_for_poll.update(app, |s, _| match update {
+                        state_for_poll.update(app, |s, cx| match update {
                             StateUpdate::Status(status) => s.status = status,
                             StateUpdate::Position(pos) => s.position = pos,
                             StateUpdate::Playlist { queue, current_idx } => {
@@ -41,6 +43,9 @@ impl Controller {
                             }
                             StateUpdate::Tracks(tracks) => s.tracks = tracks,
                             StateUpdate::ArtistImages(images) => s.artist_images = images,
+                            StateUpdate::LikedTracks(ids) => {
+                                cx.set_global(LikedSongs(ids));
+                            }
                         });
                     });
                     did_update = true;
@@ -83,11 +88,13 @@ impl Controller {
     }
 
     pub fn play_album(&self, album_id: String, shuffle: bool) {
-        self.rt().spawn(crate::client::play_album(album_id, shuffle));
+        self.rt()
+            .spawn(crate::client::play_album(album_id, shuffle));
     }
 
     pub fn play_artist_tracks(&self, artist_id: String, shuffle: bool) {
-        self.rt().spawn(crate::client::play_artist_tracks(artist_id, shuffle));
+        self.rt()
+            .spawn(crate::client::play_artist_tracks(artist_id, shuffle));
     }
 
     pub fn play_all_tracks(&self) {
@@ -96,6 +103,11 @@ impl Controller {
 
     pub fn jump_to_queue_position(&self, pos: i32) {
         self.rt().spawn(crate::client::jump_to_queue_position(pos));
+    }
+
+    pub fn play_liked_tracks(&self, paths: Vec<String>, shuffle: bool) {
+        self.rt()
+            .spawn(crate::client::play_liked_tracks(paths, shuffle));
     }
 }
 

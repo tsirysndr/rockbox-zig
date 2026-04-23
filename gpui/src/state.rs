@@ -79,6 +79,7 @@ pub enum StateUpdate {
     },
     Tracks(Vec<Track>),
     ArtistImages(ArtistImages),
+    LikedTracks(std::collections::HashSet<String>),
 }
 
 pub fn format_duration(secs: u64) -> String {

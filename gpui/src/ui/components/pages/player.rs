@@ -2,6 +2,7 @@ use crate::controller::Controller;
 use crate::state::PlaybackStatus;
 use crate::ui::components::controlbar::ControlBar;
 use crate::ui::components::icons::{Icon, Icons};
+use crate::ui::components::LikedSongs;
 use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -24,6 +25,7 @@ impl PlayerPage {
 impl Render for PlayerPage {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let theme = *cx.global::<Theme>();
+        let liked_songs = cx.global::<LikedSongs>().0.clone();
         let state = cx.global::<Controller>().state.read(cx);
         let is_playing = state.status == PlaybackStatus::Playing;
         let is_shuffling = state.shuffling;
@@ -48,6 +50,14 @@ impl Render for PlayerPage {
             .map(|id| format!("http://localhost:6062/covers/{id}"));
         let queue_total = state.queue.len();
         let queue_pos = state.current_idx.map(|i| i + 1);
+        let current_path = state.current_track().map(|t| t.path.clone()).unwrap_or_default();
+        let track_id = state
+            .tracks
+            .iter()
+            .find(|t| t.path == current_path)
+            .map(|t| t.id.clone())
+            .unwrap_or_default();
+        let is_liked = liked_songs.contains(&track_id);
 
         div()
             .size_full()
@@ -96,12 +106,45 @@ impl Render for PlayerPage {
                             .gap_y_1()
                             .child(
                                 div()
-                                    .text_2xl()
-                                    .font_weight(FontWeight(600.0))
-                                    .text_color(theme.player_title_text)
-                                    .max_w_96()
-                                    .truncate()
-                                    .child(title),
+                                    .flex()
+                                    .items_center()
+                                    .gap_x_3()
+                                    .child(
+                                        div()
+                                            .text_2xl()
+                                            .font_weight(FontWeight(600.0))
+                                            .text_color(theme.player_title_text)
+                                            .max_w_96()
+                                            .truncate()
+                                            .child(title),
+                                    )
+                                    .child(
+                                        div()
+                                            .id("player_heart")
+                                            .flex_shrink_0()
+                                            .p_1()
+                                            .mt_2()
+                                            .rounded_full()
+                                            .cursor_pointer()
+                                            .text_color(if is_liked {
+                                                gpui::rgb(0xFFFFFF)
+                                            } else {
+                                                theme.player_icons_text
+                                            })
+                                            .hover(|this| this.bg(theme.player_icons_bg_hover))
+                                            .on_click(move |_, _, cx: &mut App| {
+                                                let rt = cx.global::<Controller>().rt();
+                                                let liked = &mut cx.global_mut::<LikedSongs>().0;
+                                                if liked.contains(&track_id) {
+                                                    liked.remove(&track_id);
+                                                    rt.spawn(crate::client::unlike_track(track_id.clone()));
+                                                } else {
+                                                    liked.insert(track_id.clone());
+                                                    rt.spawn(crate::client::like_track(track_id.clone()));
+                                                }
+                                            })
+                                            .child(Icon::new(if is_liked { Icons::Heart } else { Icons::HeartOutline }).size_7()),
+                                    ),
                             )
                             .child(
                                 div()

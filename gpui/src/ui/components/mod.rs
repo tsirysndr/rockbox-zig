@@ -21,8 +21,13 @@ pub enum LibrarySection {
     Artists,
     AlbumDetail,
     ArtistDetail,
+    Likes,
 }
 impl gpui::Global for LibrarySection {}
+
+#[derive(Clone, Default)]
+pub struct LikedSongs(pub std::collections::HashSet<String>);
+impl gpui::Global for LikedSongs {}
 
 #[derive(Clone, PartialEq)]
 pub struct SelectedAlbum(pub String);
@@ -36,3 +41,15 @@ impl gpui::Global for SelectedArtist {}
 #[derive(Clone, Copy, PartialEq)]
 pub struct BackSection(pub LibrarySection);
 impl gpui::Global for BackSection {}
+
+#[derive(Clone)]
+pub struct LibraryContextMenu {
+    pub pos: gpui::Point<gpui::Pixels>,
+    pub path: String,
+    pub artist: String,
+    pub album: String,
+}
+
+#[derive(Clone, Default)]
+pub struct LibraryContextMenuState(pub Option<LibraryContextMenu>);
+impl gpui::Global for LibraryContextMenuState {}
