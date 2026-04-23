@@ -1,8 +1,7 @@
-use crate::controller::Controller;
-use crate::state::AppState;
 use crate::ui::global_keybinds::{Hide, HideOthers, Next, PlayPause, Prev, Quit, Repeat, Shuffle};
 use crate::ui::global_keybinds::{Library, Player, Queue};
-use crate::ui::{assets::Assets, rockbox::Rockbox};
+use crate::ui::startup_gate::StartupGate;
+use crate::ui::{assets::Assets, theme::Theme};
 use gpui::{
     px, size, AppContext, Application, Bounds, Menu, MenuItem, SystemMenuType, TitlebarOptions,
     WindowBounds, WindowOptions,
@@ -24,6 +23,9 @@ pub fn run() {
         .run(move |cx| {
             let bounds = Bounds::centered(None, size(px(1280.0), px(760.0)), cx);
             assets.load_fonts(cx).expect("failed to load fonts");
+            // Theme is set as a global inside StartupGate / Rockbox::new.
+            // Pre-set it here so the error screen can read it before Rockbox initialises.
+            cx.set_global(Theme::default());
 
             cx.open_window(
                 WindowOptions {
@@ -41,12 +43,7 @@ pub fn run() {
                     }),
                     ..Default::default()
                 },
-                |_window, cx| {
-                    let state = cx.new(|_| AppState::new());
-                    let controller = Controller::new(state, cx);
-                    cx.set_global(controller);
-                    cx.new(Rockbox::new)
-                },
+                |_window, cx| cx.new(StartupGate::new),
             )
             .expect("failed to open window");
 
