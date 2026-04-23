@@ -1,0 +1,30 @@
+[workspace]
+resolver = "2"
+
+[package]
+name = "Rockbox"
+version = "0.1.0"
+edition = "2021"
+description = "GPUI-based desktop GUI for Rockbox"
+
+[dependencies]
+anyhow = "1.0"
+futures = "0.3"
+gpui = "0.2.2"
+rust-embed = "8.0"
+serde = { version = "1.0", features = ["derive"] }
+env_logger = "0.11"
+log = "0.4"
+prost = "0.13.2"
+reqwest = { version = "0.12.5", features = [
+  "rustls-tls",
+  "json",
+], default-features = false }
+tokio = { version = "1.36.0", features = ["full"] }
+tonic = "0.12.3"
+tonic-reflection = "0.12.3"
+tonic-web = "0.12.3"
+http = "1.4.0"
+
+[build-dependencies]
+tonic-build = "0.12.3"
