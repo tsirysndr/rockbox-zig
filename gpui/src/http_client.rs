@@ -3,17 +3,27 @@ use gpui::http_client::{AsyncBody, HttpClient, Request, Response, Url};
 use http::HeaderValue;
 use std::sync::Arc;
 use tokio::runtime::Handle;
+use tokio::sync::Semaphore;
+
+// Cap simultaneous image fetches so rockboxd doesn't exhaust its file descriptor limit
+// when a large album/artist grid triggers many concurrent requests.
+const MAX_CONCURRENT_REQUESTS: usize = 8;
 
 pub struct ReqwestHttpClient {
     client: reqwest::Client,
     handle: Handle,
+    semaphore: Arc<Semaphore>,
 }
 
 impl ReqwestHttpClient {
     pub fn new(handle: Handle) -> Arc<Self> {
         Arc::new(Self {
-            client: reqwest::Client::new(),
+            client: reqwest::Client::builder()
+                .pool_max_idle_per_host(4)
+                .build()
+                .unwrap_or_default(),
             handle,
+            semaphore: Arc::new(Semaphore::new(MAX_CONCURRENT_REQUESTS)),
         })
     }
 }
@@ -35,12 +45,11 @@ impl HttpClient for ReqwestHttpClient {
         &self,
         req: Request<AsyncBody>,
     ) -> BoxFuture<'static, anyhow::Result<Response<AsyncBody>>> {
-        // Bridge tokio (reqwest) and GPUI's smol executor via a tokio oneshot channel.
-        // tokio::sync::oneshot::Receiver implements Future using standard Waker, so it can
-        // be awaited from any executor context — including GPUI's smol background executor.
         let (tx, rx) = tokio::sync::oneshot::channel::<anyhow::Result<Response<AsyncBody>>>();
         let client = self.client.clone();
+        let semaphore = self.semaphore.clone();
         self.handle.spawn(async move {
+            let _permit = semaphore.acquire().await;
             let _ = tx.send(do_fetch(client, req).await);
         });
         Box::pin(async move {
