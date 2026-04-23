@@ -9,7 +9,7 @@ use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::px;
 use gpui::{
-    div, img, App, Context, Entity, FontWeight, InteractiveElement, IntoElement, ObjectFit,
+    div, img, rgba, App, Context, Entity, FontWeight, InteractiveElement, IntoElement, ObjectFit,
     ParentElement, Render, StatefulInteractiveElement, Styled, StyledImage, Window,
 };
 
@@ -49,6 +49,7 @@ impl Render for PlayerPage {
             .and_then(|t| t.album_art.as_deref())
             .filter(|s| !s.is_empty())
             .map(|id| format!("http://localhost:6062/covers/{id}"));
+        let bg_art_url = album_art_url.clone();
         let queue_total = state.queue.len();
         let queue_pos = state.current_idx.map(|i| i + 1);
         let current_path = state.current_track().map(|t| t.path.clone()).unwrap_or_default();
@@ -64,7 +65,32 @@ impl Render for PlayerPage {
             .size_full()
             .flex()
             .flex_col()
+            .relative()
             .bg(theme.player_bg)
+            // Full-screen album art background (low opacity)
+            .when_some(bg_art_url, |this, url| {
+                this.child(
+                    div()
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .w_full()
+                        .h_full()
+                        .opacity(0.4)
+                        .overflow_hidden()
+                        .child(img(url).w_full().h_full().object_fit(ObjectFit::Cover)),
+                )
+                // Dark scrim so text stays readable
+                .child(
+                    div()
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .w_full()
+                        .h_full()
+                        .bg(rgba(0x0F1117BF)),
+                )
+            })
             .child(
                 div()
                     .flex_1()

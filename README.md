@@ -48,7 +48,7 @@ and Squeezelite.
 
 ### Clients
 - [x] Web client (React)
-- [x] Desktop client (Electron / GTK4)
+- [x] Desktop client (Native MacOS / GPUI / GTK4)
 - [x] Terminal client (TUI)
 - [x] Rockbox REPL
 

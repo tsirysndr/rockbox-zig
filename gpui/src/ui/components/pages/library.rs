@@ -418,9 +418,12 @@ impl Render for LibraryPage {
             let group_name: gpui::SharedString =
                 format!("track_group_{}_{}", row_id.0, row_id.1).into();
             let group_name2 = group_name.clone();
-            let _group_name3 = group_name.clone();
+            let group_name_for_num = group_name.clone();
+            let group_name_for_play = group_name.clone();
             let opts_id: gpui::SharedString = format!("{}_opts_{}", row_id.0, row_id.1).into();
             let heart_id: gpui::SharedString = format!("{}_heart_{}", row_id.0, row_id.1).into();
+            let play_id: gpui::SharedString = format!("{}_play_{}", row_id.0, row_id.1).into();
+            let path_for_play = path.clone();
             div()
                 .id(row_id)
                 .group(group_name)
@@ -437,24 +440,54 @@ impl Render for LibraryPage {
                         .border_b_2()
                         .border_color(theme.switcher_active)
                 })
-                .on_click(move |_, _, cx: &mut App| {
-                    let rt = cx.global::<Controller>().rt();
-                    rt.spawn(crate::client::play_track(path.clone()));
-                })
                 .child(
                     div()
                         .w(px(28.0))
+                        .h(px(20.0))
                         .flex_shrink_0()
-                        .flex()
-                        .items_center()
-                        .when(!is_current, |this| {
-                            this.text_sm()
-                                .text_color(theme.library_header_text)
-                                .child(num)
-                        })
-                        .when(is_current, |this| {
-                            this.child(equalizer_bars(row_id.1, is_playing))
-                        }),
+                        .relative()
+                        // Track number / equalizer bars — hidden on row hover
+                        .child(
+                            div()
+                                .absolute()
+                                .top_0()
+                                .left_0()
+                                .w_full()
+                                .h_full()
+                                .flex()
+                                .items_center()
+                                .group_hover(group_name_for_num, |s| s.opacity(0.0))
+                                .when(!is_current, |this| {
+                                    this.text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child(num)
+                                })
+                                .when(is_current, |this| {
+                                    this.child(equalizer_bars(row_id.1, is_playing))
+                                }),
+                        )
+                        // Play icon — appears on row hover
+                        .child(
+                            div()
+                                .id(play_id)
+                                .absolute()
+                                .top_0()
+                                .left(px(-3.0))
+                                .w_full()
+                                .h_full()
+                                .flex()
+                                .items_center()
+                                .opacity(0.0)
+                                .group_hover(group_name_for_play, |s| s.opacity(1.0))
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .on_click(move |_, _, cx: &mut App| {
+                                    cx.stop_propagation();
+                                    let rt = cx.global::<Controller>().rt();
+                                    rt.spawn(crate::client::play_track(path_for_play.clone()));
+                                })
+                                .child(Icon::new(Icons::Play).size_4()),
+                        ),
                 )
                 .child(
                     div()
