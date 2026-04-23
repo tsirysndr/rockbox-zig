@@ -23,8 +23,10 @@ pub enum MediaCommand {
 pub struct NowPlayingManager {
     controls: MediaControls,
     cmd_rx: mpsc::Receiver<MediaCommand>,
-    /// Last track id pushed to the OS so we only re-send metadata on change.
+    /// Last track id pushed to the OS — guards against redundant metadata sends.
     last_track_id: String,
+    /// Last cover URL — re-send metadata when art arrives after the track id.
+    last_cover_url: Option<String>,
 }
 
 impl NowPlayingManager {
@@ -59,7 +61,12 @@ impl NowPlayingManager {
             })
             .ok()?;
 
-        Some(NowPlayingManager { controls, cmd_rx, last_track_id: String::new() })
+        Some(NowPlayingManager {
+            controls,
+            cmd_rx,
+            last_track_id: String::new(),
+            last_cover_url: None,
+        })
     }
 
     /// Drain all pending OS media-key commands (non-blocking).
@@ -82,18 +89,22 @@ impl NowPlayingManager {
         };
         let _ = self.controls.set_playback(playback);
 
-        // Metadata only on track change
         let track_id = track.map(|t| t.id.as_str()).unwrap_or("");
-        if track_id == self.last_track_id {
-            return;
-        }
-        self.last_track_id = track_id.to_string();
-
         // album_art is a bare filename served by rockboxd's cover HTTP server.
         let cover_url = track
             .and_then(|t| t.album_art.as_deref())
             .filter(|s| !s.is_empty())
             .map(|name| format!("http://localhost:6062/covers/{}", name));
+
+        // Re-send metadata when either the track or the cover art changes.
+        // Cover art can arrive in a later poll tick after the track id was set.
+        let track_changed = track_id != self.last_track_id;
+        let cover_changed = cover_url != self.last_cover_url;
+        if !track_changed && !cover_changed {
+            return;
+        }
+        self.last_track_id = track_id.to_string();
+        self.last_cover_url = cover_url.clone();
 
         let meta = track
             .map(|t| MediaMetadata {

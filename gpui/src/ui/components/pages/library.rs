@@ -1992,8 +1992,9 @@ impl Render for LibraryPage {
                 let max_x = viewport.width - menu_w - margin;
                 let menu_x = if menu.pos.x > max_x { max_x } else { menu.pos.x };
                 let menu_x = if menu_x < margin { margin } else { menu_x };
-                let max_y = viewport.height - menu_h - margin;
-                let menu_y = if menu.pos.y > max_y { max_y } else { menu.pos.y };
+                // Flip above cursor when the menu would overflow the bottom edge.
+                let overflows_bottom = (menu.pos.y + menu_h + margin) > viewport.height;
+                let menu_y = if overflows_bottom { menu.pos.y - menu_h } else { menu.pos.y };
                 let menu_y = if menu_y < margin { margin } else { menu_y };
                 this.child(
                     div()
@@ -2176,8 +2177,9 @@ impl Render for LibraryPage {
                 let max_x = viewport.width - menu_w - margin;
                 let menu_x = if menu.pos.x > max_x { max_x } else { menu.pos.x };
                 let menu_x = if menu_x < margin { margin } else { menu_x };
-                let max_y = viewport.height - menu_h - margin;
-                let menu_y = if menu.pos.y > max_y { max_y } else { menu.pos.y };
+                // Flip above cursor when the menu would overflow the bottom edge.
+                let overflows_bottom = (menu.pos.y + menu_h + margin) > viewport.height;
+                let menu_y = if overflows_bottom { menu.pos.y - menu_h } else { menu.pos.y };
                 let menu_y = if menu_y < margin { margin } else { menu_y };
                 this.child(
                     div()
