@@ -30,12 +30,14 @@ fn track_from_proto(t: crate::api::v1alpha1::Track) -> Track {
         path: t.path,
         title: t.title,
         artist: t.artist,
+        album_artist: t.album_artist,
         album: t.album,
         album_id: t.album_id.unwrap_or_default(),
         artist_id: t.artist_id.unwrap_or_default(),
         genre: t.genre,
         duration: t.length as u64 / 1000,
         track_number: t.track_number,
+        year: t.year,
         album_art: t.album_art.filter(|s| !s.is_empty()),
     }
 }
@@ -237,12 +239,14 @@ async fn playlist_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
                         path: t.path,
                         title: t.title,
                         artist: t.artist,
+                        album_artist: t.album_artist,
                         album: t.album,
                         album_id: t.album_id,
                         artist_id: t.artist_id,
                         genre: t.genre,
                         duration: t.length / 1000,
                         track_number: t.tracknum as u32,
+                        year: t.year as u32,
                         album_art: t.album_art.filter(|s| !s.is_empty()),
                     })
                     .collect();

@@ -4,12 +4,14 @@ pub struct Track {
     pub path: String,
     pub title: String,
     pub artist: String,
+    pub album_artist: String,
     pub album: String,
     pub album_id: String,
     pub artist_id: String,
     pub genre: String,
     pub duration: u64,
     pub track_number: u32,
+    pub year: u32,
     pub album_art: Option<String>,
 }
 

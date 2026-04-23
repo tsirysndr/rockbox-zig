@@ -144,20 +144,26 @@ impl Render for LibraryPage {
             let current_idx = state.current_library_idx();
             let n_songs = state.tracks.len();
 
-            // (name, artist, count, album_art)
-            let mut album_map: std::collections::BTreeMap<String, (String, usize, Option<String>)> =
+            // (name, artist, year, count, album_art)
+            let mut album_map: std::collections::BTreeMap<String, (String, u32, usize, Option<String>)> =
                 Default::default();
             for track in &state.tracks {
+                let display_artist = if track.album_artist.is_empty() {
+                    track.artist.clone()
+                } else {
+                    track.album_artist.clone()
+                };
                 let e = album_map.entry(track.album.clone()).or_insert((
-                    track.artist.clone(),
+                    display_artist,
+                    track.year,
                     0,
                     track.album_art.clone(),
                 ));
-                e.1 += 1;
+                e.2 += 1;
             }
-            let albums: Vec<(String, String, usize, Option<String>)> = album_map
+            let albums: Vec<(String, String, u32, usize, Option<String>)> = album_map
                 .into_iter()
-                .map(|(name, (artist, count, art))| (name, artist, count, art))
+                .map(|(name, (artist, year, count, art))| (name, artist, year, count, art))
                 .collect();
 
             let mut artist_map: std::collections::BTreeMap<String, usize> = Default::default();
@@ -193,7 +199,7 @@ impl Render for LibraryPage {
 
             let album_first_track = state.tracks.iter().find(|t| t.album == selected_album);
             let album_artist = album_first_track
-                .map(|t| t.artist.clone())
+                .map(|t| if t.album_artist.is_empty() { t.artist.clone() } else { t.album_artist.clone() })
                 .unwrap_or_default();
             let album_detail_art = album_first_track.and_then(|t| t.album_art.clone());
 
@@ -488,7 +494,7 @@ impl Render for LibraryPage {
                         .grid_cols(album_cols)
                         .gap_6()
                         .children(albums.into_iter().enumerate().map(
-                            |(idx, (name, artist, _count, album_art))| {
+                            |(idx, (name, artist, year, _count, album_art))| {
                                 let name_clone = name.clone();
                                 div()
                                     .id(("album_card", idx))
@@ -524,7 +530,11 @@ impl Render for LibraryPage {
                                                     .text_xs()
                                                     .text_color(theme.library_header_text)
                                                     .truncate()
-                                                    .child(artist),
+                                                    .child(if year > 0 {
+                                                        format!("{artist} · {year}")
+                                                    } else {
+                                                        artist
+                                                    }),
                                             ),
                                     )
                             },
