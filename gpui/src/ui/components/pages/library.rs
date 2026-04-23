@@ -1,12 +1,18 @@
+use crate::client::{
+    insert_directory, insert_track_last, insert_track_next, insert_tracks, play_directory,
+    INSERT_FIRST, INSERT_LAST, INSERT_LAST_SHUFFLED, INSERT_SHUFFLED,
+};
 use crate::controller::Controller;
 use crate::state::{format_duration, PlaybackStatus};
 use crate::ui::animations::equalizer_bars;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::miniplayer::MiniPlayer;
 use crate::ui::components::search_input::SearchInput;
+use crate::ui::components::pages::files::{menu_item, FilesView};
 use crate::ui::components::{
-    AlbumContextMenu, AlbumContextMenuState, BackSection, HoveredAlbumIdx, LibraryContextMenu,
-    LibraryContextMenuState, LibrarySection, LikedSongs, SelectedAlbum, SelectedArtist,
+    AlbumContextMenu, AlbumContextMenuState, BackSection, FileContextMenuState,
+    HoveredAlbumIdx, LibraryContextMenu, LibraryContextMenuState, LibrarySection, LikedSongs,
+    SelectedAlbum, SelectedArtist,
 };
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -100,6 +106,7 @@ pub struct LibraryPage {
     detail_scroll_handle: UniformListScrollHandle,
     miniplayer: Entity<MiniPlayer>,
     search_input: Entity<SearchInput>,
+    files_view: Entity<FilesView>,
     _search_sub: Option<Subscription>,
 }
 
@@ -118,6 +125,7 @@ impl LibraryPage {
             detail_scroll_handle: UniformListScrollHandle::new(),
             miniplayer: cx.new(|_| MiniPlayer),
             search_input: cx.new(|cx| SearchInput::new(cx)),
+            files_view: cx.new(|cx| FilesView::new(cx)),
             _search_sub: None,
         }
     }
@@ -344,13 +352,14 @@ impl Render for LibraryPage {
 
         let context_menu = cx.global::<LibraryContextMenuState>().0.clone();
         let album_context_menu = cx.global::<AlbumContextMenuState>().0.clone();
+        let file_context_menu = cx.global::<FileContextMenuState>().0.clone();
         let n_album_tracks = album_tracks.len();
         let n_artist_tracks = artist_tracks.len();
         let scroll_handle = self.scroll_handle.clone();
         let _detail_scroll_handle = self.detail_scroll_handle.clone();
 
         // Sidebar nav item — Albums/Artists stay active while in their detail view
-        let make_nav_item = move |icon: Icons, label: &'static str, target: LibrarySection| {
+        let make_nav_item = move |icon: Icons, icon_size: u8, label: &'static str, target: LibrarySection| {
             let is_active = section == target
                 || (section == LibrarySection::AlbumDetail && target == LibrarySection::Albums)
                 || (section == LibrarySection::ArtistDetail && target == LibrarySection::Artists)
@@ -386,7 +395,7 @@ impl Render for LibraryPage {
                         .flex()
                         .items_center()
                         .gap_x_2()
-                        .child(Icon::new(icon).size_5())
+                        .child(icon_sized(icon, icon_size))
                         .child(label),
                 )
         };
@@ -599,7 +608,7 @@ impl Render for LibraryPage {
         let show_search = !query.is_empty()
             && !matches!(
                 section,
-                LibrarySection::AlbumDetail | LibrarySection::ArtistDetail
+                LibrarySection::AlbumDetail | LibrarySection::ArtistDetail | LibrarySection::Files
             );
         let content: AnyElement = if show_search {
             // ── Search results ────────────────────────────────────────────────────
@@ -1962,6 +1971,9 @@ impl Render for LibraryPage {
                     )
                     .into_any_element()
             }
+
+            // ── Files ─────────────────────────────────────────────────────────────
+            LibrarySection::Files => self.files_view.clone().into_any_element(),
         };
         content_inner
         }; // end if/else search
@@ -1992,18 +2004,11 @@ impl Render for LibraryPage {
                             .pt_4()
                             .child(self.search_input.clone())
                             .gap_y_1()
-                            .child(make_nav_item(Icons::Music, "Songs", LibrarySection::Songs))
-                            .child(make_nav_item(Icons::Disc, "Albums", LibrarySection::Albums))
-                            .child(make_nav_item(
-                                Icons::Artist,
-                                "Artists",
-                                LibrarySection::Artists,
-                            ))
-                            .child(make_nav_item(
-                                Icons::HeartOutline,
-                                "Likes",
-                                LibrarySection::Likes,
-                            )),
+                            .child(make_nav_item(Icons::Music, 5, "Songs", LibrarySection::Songs))
+                            .child(make_nav_item(Icons::Disc, 5, "Albums", LibrarySection::Albums))
+                            .child(make_nav_item(Icons::Artist, 5, "Artists", LibrarySection::Artists))
+                            .child(make_nav_item(Icons::HeartOutline, 5, "Likes", LibrarySection::Likes))
+                            .child(make_nav_item(Icons::HardDrive, 4, "Files", LibrarySection::Files)),
                     )
                     .child(content),
             )
@@ -2422,6 +2427,151 @@ impl Render for LibraryPage {
                                 })
                                 .child("Go to Artist"),
                         ),
+                )
+            })
+            .when_some(file_context_menu, |this, menu| {
+                let path_next = menu.path.clone();
+                let path_last = menu.path.clone();
+                let path_shuffled = menu.path.clone();
+                let path_last_shuffled = menu.path.clone();
+                let path_play_shuffled = menu.path.clone();
+                let is_dir = menu.is_dir;
+
+                let menu_w = px(220.0);
+                let menu_h = if is_dir { px(230.0) } else { px(140.0) };
+                let margin = px(8.0);
+                let max_x = viewport.width - menu_w - margin;
+                let menu_x = if menu.pos.x > max_x { max_x } else { menu.pos.x };
+                let menu_x = if menu_x < margin { margin } else { menu_x };
+                let overflows_bottom = (menu.pos.y + menu_h + margin) > viewport.height;
+                let menu_y = if overflows_bottom { menu.pos.y - menu_h } else { menu.pos.y };
+                let menu_y = if menu_y < margin { margin } else { menu_y };
+
+                this.child(
+                    div()
+                        .id("file_ctx_backdrop")
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .size_full()
+                        .occlude()
+                        .on_click(|_, _, cx: &mut App| {
+                            cx.stop_propagation();
+                            cx.global_mut::<FileContextMenuState>().0 = None;
+                        }),
+                )
+                .child(
+                    div()
+                        .absolute()
+                        .left(menu_x)
+                        .top(menu_y)
+                        .w(menu_w)
+                        .bg(theme.titlebar_bg)
+                        .border_1()
+                        .border_color(theme.library_table_border)
+                        .rounded_md()
+                        .overflow_hidden()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .px_3()
+                                .py_2p5()
+                                .border_b_1()
+                                .border_color(theme.library_table_border)
+                                .flex()
+                                .items_center()
+                                .gap_x_2()
+                                .child(
+                                    div().text_color(theme.library_header_text).child(
+                                        Icon::new(if is_dir { Icons::Directory } else { Icons::Music })
+                                            .size_4(),
+                                    ),
+                                )
+                                .child(
+                                    div()
+                                        .flex_1()
+                                        .min_w_0()
+                                        .text_sm()
+                                        .font_weight(FontWeight(600.0))
+                                        .text_color(theme.library_text)
+                                        .truncate()
+                                        .child(menu.name.clone()),
+                                ),
+                        )
+                        .child(menu_item(
+                            "file_ctx_next",
+                            "Play Next",
+                            theme,
+                            move |_, _, cx: &mut App| {
+                                let rt = cx.global::<Controller>().rt();
+                                if is_dir {
+                                    rt.spawn(insert_directory(path_next.clone(), INSERT_FIRST));
+                                } else {
+                                    rt.spawn(insert_track_next(path_next.clone()));
+                                }
+                                cx.global_mut::<FileContextMenuState>().0 = None;
+                            },
+                        ))
+                        .child(menu_item(
+                            "file_ctx_last",
+                            "Play Last",
+                            theme,
+                            move |_, _, cx: &mut App| {
+                                let rt = cx.global::<Controller>().rt();
+                                if is_dir {
+                                    rt.spawn(insert_directory(path_last.clone(), INSERT_LAST));
+                                } else {
+                                    rt.spawn(insert_track_last(path_last.clone()));
+                                }
+                                cx.global_mut::<FileContextMenuState>().0 = None;
+                            },
+                        ))
+                        .child(menu_item(
+                            "file_ctx_shuffled",
+                            "Add Shuffled",
+                            theme,
+                            move |_, _, cx: &mut App| {
+                                let rt = cx.global::<Controller>().rt();
+                                if is_dir {
+                                    rt.spawn(insert_directory(path_shuffled.clone(), INSERT_SHUFFLED));
+                                } else {
+                                    rt.spawn(insert_tracks(
+                                        vec![path_shuffled.clone()],
+                                        INSERT_SHUFFLED,
+                                        false,
+                                    ));
+                                }
+                                cx.global_mut::<FileContextMenuState>().0 = None;
+                            },
+                        ))
+                        .when(is_dir, |this| {
+                            this.child(div().h(px(1.0)).bg(theme.library_table_border).mx_2())
+                                .child(menu_item(
+                                    "file_ctx_last_shuffled",
+                                    "Play Last Shuffled",
+                                    theme,
+                                    move |_, _, cx: &mut App| {
+                                        cx.global::<Controller>().rt().spawn(insert_directory(
+                                            path_last_shuffled.clone(),
+                                            INSERT_LAST_SHUFFLED,
+                                        ));
+                                        cx.global_mut::<FileContextMenuState>().0 = None;
+                                    },
+                                ))
+                                .child(menu_item(
+                                    "file_ctx_play_shuffled",
+                                    "Play Shuffled",
+                                    theme,
+                                    move |_, _, cx: &mut App| {
+                                        cx.global::<Controller>().rt().spawn(play_directory(
+                                            path_play_shuffled.clone(),
+                                            true,
+                                        ));
+                                        cx.global_mut::<FileContextMenuState>().0 = None;
+                                    },
+                                ))
+                        }),
                 )
             })
     }

@@ -168,6 +168,9 @@ pub enum Icons {
     Options,
     Heart,
     HeartOutline,
+    HardDrive,
+    Directory,
+    ChevronLeft,
 }
 
 impl IconNamed for Icons {
@@ -194,6 +197,9 @@ impl IconNamed for Icons {
             Icons::Options => "icons/options.svg",
             Icons::Heart => "icons/heart.svg",
             Icons::HeartOutline => "icons/heart-outline.svg",
+            Icons::HardDrive => "icons/harddrive.svg",
+            Icons::Directory => "icons/directory.svg",
+            Icons::ChevronLeft => "icons/chevron-left.svg",
         }
         .into()
     }

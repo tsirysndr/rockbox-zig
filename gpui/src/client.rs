@@ -1,15 +1,16 @@
 use crate::api::v1alpha1::{
+    browse_service_client::BrowseServiceClient,
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
     playlist_service_client::PlaylistServiceClient,
     settings_service_client::SettingsServiceClient, sound_service_client::SoundServiceClient,
     system_service_client::SystemServiceClient, AdjustVolumeRequest, GetArtistsRequest,
     GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest, GetLikedTracksRequest,
-    GetTracksRequest, InsertTracksRequest, LikeTrackRequest, NextRequest, PauseRequest,
-    PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest, PlayTrackRequest,
-    FastForwardRewindRequest, PlaylistResumeRequest, PreviousRequest, RemoveTracksRequest,
-    ResumeRequest, ResumeTrackRequest,
+    GetTracksRequest, InsertDirectoryRequest, InsertTracksRequest, LikeTrackRequest, NextRequest,
+    PauseRequest, PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest,
+    PlayDirectoryRequest, PlayTrackRequest, FastForwardRewindRequest, PlaylistResumeRequest,
+    PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest,
     SaveSettingsRequest, SearchRequest, StartRequest, StreamCurrentTrackRequest,
-    StreamPlaylistRequest, StreamStatusRequest, UnlikeTrackRequest,
+    StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest, UnlikeTrackRequest,
 };
 use crate::state::{SearchAlbum, SearchArtist, SearchResults};
 
@@ -532,5 +533,76 @@ async fn playlist_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
             }
         }
     }
+    Ok(())
+}
+
+// ── File browser ──────────────────────────────────────────────────────────────
+
+#[derive(Clone, Debug)]
+pub struct FileEntry {
+    pub name: String,
+    pub path: String,
+    pub is_dir: bool,
+}
+
+pub async fn tree_get_entries(path: Option<String>) -> Result<Vec<FileEntry>> {
+    let mut c = BrowseServiceClient::connect(URL).await?;
+    let resp = c.tree_get_entries(TreeGetEntriesRequest { path }).await?;
+    let mut entries: Vec<FileEntry> = resp
+        .into_inner()
+        .entries
+        .into_iter()
+        .map(|e| {
+            let is_dir = e.attr == 0x10;
+            let name = std::path::Path::new(&e.name)
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or(&e.name)
+                .to_string();
+            FileEntry { name, path: e.name, is_dir }
+        })
+        .collect();
+    entries.sort_by(|a, b| match (a.is_dir, b.is_dir) {
+        (true, false) => std::cmp::Ordering::Less,
+        (false, true) => std::cmp::Ordering::Greater,
+        _ => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
+    });
+    Ok(entries)
+}
+
+pub async fn play_directory(path: String, shuffle: bool) -> Result<()> {
+    let mut c = PlaybackServiceClient::connect(URL).await?;
+    c.play_directory(PlayDirectoryRequest {
+        path,
+        shuffle: Some(shuffle),
+        recurse: Some(true),
+        position: None,
+    })
+    .await?;
+    Ok(())
+}
+
+pub async fn play_directory_at(path: String, position: i32) -> Result<()> {
+    let mut c = PlaybackServiceClient::connect(URL).await?;
+    c.play_directory(PlayDirectoryRequest {
+        path,
+        shuffle: Some(false),
+        recurse: Some(true),
+        position: Some(position),
+    })
+    .await?;
+    Ok(())
+}
+
+pub async fn insert_directory(path: String, position: i32) -> Result<()> {
+    let mut c = PlaylistServiceClient::connect(URL).await?;
+    c.insert_directory(InsertDirectoryRequest {
+        directory: path,
+        position,
+        recurse: Some(true),
+        shuffle: None,
+        playlist_id: None,
+    })
+    .await?;
     Ok(())
 }

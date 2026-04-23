@@ -23,8 +23,30 @@ pub enum LibrarySection {
     AlbumDetail,
     ArtistDetail,
     Likes,
+    Files,
 }
 impl gpui::Global for LibrarySection {}
+
+#[derive(Clone, Default)]
+pub struct FilesBrowseState {
+    pub current_path: Option<String>,
+    pub path_history: Vec<Option<String>>,
+}
+impl gpui::Global for FilesBrowseState {}
+
+#[derive(Clone)]
+pub struct FileContextMenu {
+    pub pos: gpui::Point<gpui::Pixels>,
+    pub path: String,
+    pub name: String,
+    pub is_dir: bool,
+    pub current_dir: String,
+    pub dir_idx: usize,
+}
+
+#[derive(Clone, Default)]
+pub struct FileContextMenuState(pub Option<FileContextMenu>);
+impl gpui::Global for FileContextMenuState {}
 
 #[derive(Clone, Default)]
 pub struct LikedSongs(pub std::collections::HashSet<String>);
