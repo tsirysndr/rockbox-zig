@@ -1,0 +1,65 @@
+name: release gpui app
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to attach the DMG to"
+        type: string
+        required: true
+
+jobs:
+  build-dmg:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            arch: aarch64
+          - os: macos-15-intel
+            arch: x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: vars
+        run: |
+          VERSION="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "dmg=Rockbox-${VERSION}-${{ matrix.arch }}.dmg" >> "$GITHUB_OUTPUT"
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            gpui/target
+          key: ${{ runner.os }}-gpui-${{ hashFiles('gpui/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-gpui-
+
+      - name: Install protobuf
+        run: brew install protobuf
+
+      - name: Build and package
+        run: bash package.sh
+        working-directory: gpui
+
+      - name: Rename DMG
+        run: mv gpui/dist/Rockbox.dmg "${{ steps.vars.outputs.dmg }}"
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.vars.outputs.dmg }}
+          tag_name: ${{ steps.vars.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
