@@ -3,6 +3,7 @@ pub mod app;
 pub mod client;
 pub mod controller;
 pub mod http_client;
+pub mod now_playing;
 pub mod startup;
 pub mod state;
 pub mod ui;

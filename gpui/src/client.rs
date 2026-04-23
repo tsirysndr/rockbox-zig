@@ -6,7 +6,8 @@ use crate::api::v1alpha1::{
     GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest, GetLikedTracksRequest,
     GetTracksRequest, InsertTracksRequest, LikeTrackRequest, NextRequest, PauseRequest,
     PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest, PlayTrackRequest,
-    PlaylistResumeRequest, PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest,
+    FastForwardRewindRequest, PlaylistResumeRequest, PreviousRequest, RemoveTracksRequest,
+    ResumeRequest, ResumeTrackRequest,
     SaveSettingsRequest, SearchRequest, StartRequest, StreamCurrentTrackRequest,
     StreamPlaylistRequest, StreamStatusRequest, UnlikeTrackRequest,
 };
@@ -73,6 +74,13 @@ pub async fn resume_track() -> Result<()> {
 pub async fn pause() -> Result<()> {
     let mut c = PlaybackServiceClient::connect(URL).await?;
     c.pause(PauseRequest {}).await?;
+    Ok(())
+}
+
+/// Seek to `new_time_ms` milliseconds from the start of the current track.
+pub async fn seek(new_time_ms: i32) -> Result<()> {
+    let mut c = PlaybackServiceClient::connect(URL).await?;
+    c.fast_forward_rewind(FastForwardRewindRequest { new_time: new_time_ms }).await?;
     Ok(())
 }
 
@@ -409,10 +417,14 @@ async fn status_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
     loop {
         match stream.message().await {
             Ok(Some(msg)) => {
-                let new_status = match msg.status {
-                    1 => PlaybackStatus::Playing,
-                    2 => PlaybackStatus::Paused,
-                    _ => PlaybackStatus::Stopped,
+                // audio_status() is a bitmask: PLAY=0x01, PAUSE=0x02.
+                // Paused-while-playing reports 0x03 — check PAUSE bit first.
+                let new_status = if msg.status & 0x02 != 0 {
+                    PlaybackStatus::Paused
+                } else if msg.status & 0x01 != 0 {
+                    PlaybackStatus::Playing
+                } else {
+                    PlaybackStatus::Stopped
                 };
                 let _ = tx.send(StateUpdate::Status(new_status)).await;
             }

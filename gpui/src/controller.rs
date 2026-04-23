@@ -1,9 +1,10 @@
-use crate::state::{AppState, StateUpdate};
+use crate::now_playing::{MediaCommand, NowPlayingManager};
+use crate::state::{AppState, PlaybackStatus, StateUpdate};
 use crate::ui::components::LikedSongs;
 use gpui::{App, Entity, Global};
 use std::sync::{
     atomic::{AtomicU64, Ordering},
-    Arc,
+    Arc, Mutex,
 };
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -13,6 +14,8 @@ pub struct Controller {
     rt: tokio::runtime::Runtime,
     tx: mpsc::Sender<StateUpdate>,
     search_gen: Arc<AtomicU64>,
+    #[allow(dead_code)]
+    now_playing: Option<Arc<Mutex<NowPlayingManager>>>,
 }
 
 impl Controller {
@@ -34,8 +37,13 @@ impl Controller {
         rt.spawn(crate::client::run_current_track_stream(tx.clone()));
         rt.spawn(crate::client::run_playlist_stream(tx.clone()));
 
+        // Initialise OS media controls on the main thread (required by macOS).
+        let now_playing = NowPlayingManager::new().map(|m| Arc::new(Mutex::new(m)));
+
         // GPUI foreground poll task — not required to be Send
         let state_for_poll = state.clone();
+        let np_for_poll = now_playing.clone();
+        let rt_handle = rt.handle().clone();
         cx.spawn(async move |cx| {
             let mut rx = rx;
             loop {
@@ -71,6 +79,53 @@ impl Controller {
                         state_for_poll.update(app, |_, cx| cx.notify());
                     });
                 }
+
+                // Media-controls tick: drain OS key events and push now-playing info.
+                if let Some(np) = &np_for_poll {
+                    if let Ok(mut np) = np.try_lock() {
+                        // Execute any media-key commands.
+                        for cmd in np.drain_commands() {
+                            match cmd {
+                                MediaCommand::Play => {
+                                    rt_handle.spawn(crate::client::resume());
+                                }
+                                MediaCommand::Pause => {
+                                    rt_handle.spawn(crate::client::pause());
+                                }
+                                MediaCommand::Toggle => {
+                                    let status = cx
+                                        .update(|app| state_for_poll.read(app).status)
+                                        .unwrap_or(PlaybackStatus::Stopped);
+                                    match status {
+                                        PlaybackStatus::Playing => {
+                                            rt_handle.spawn(crate::client::pause());
+                                        }
+                                        _ => {
+                                            rt_handle.spawn(crate::client::resume());
+                                        }
+                                    }
+                                }
+                                MediaCommand::Next => {
+                                    rt_handle.spawn(crate::client::next());
+                                }
+                                MediaCommand::Prev => {
+                                    rt_handle.spawn(crate::client::prev());
+                                }
+                                MediaCommand::SeekTo(pos) => {
+                                    let ms = pos.as_millis() as i32;
+                                    rt_handle.spawn(crate::client::seek(ms));
+                                }
+                            }
+                        }
+
+                        // Push current playback state to the OS notification bar.
+                        let _ = cx.update(|app| {
+                            let s = state_for_poll.read(app);
+                            np.update(s.current_track(), s.status, s.position);
+                        });
+                    }
+                }
+
                 cx.background_executor()
                     .timer(Duration::from_millis(100))
                     .await;
@@ -78,7 +133,7 @@ impl Controller {
         })
         .detach();
 
-        Controller { state, rt, tx, search_gen: Arc::new(AtomicU64::new(0)) }
+        Controller { state, rt, tx, search_gen: Arc::new(AtomicU64::new(0)), now_playing }
     }
 
     /// Cloneable handle to the tokio runtime — use for fire-and-forget spawns.
@@ -94,6 +149,13 @@ impl Controller {
 
     pub fn prev(&self) {
         self.rt().spawn(crate::client::prev());
+    }
+
+    /// Seek to `position_secs` seconds from the start of the current track.
+    pub fn seek(&self, position_secs: u64, duration_secs: u64) {
+        if duration_secs == 0 { return; }
+        let ms = (position_secs as i32).saturating_mul(1000);
+        self.rt().spawn(crate::client::seek(ms));
     }
 
     pub fn play_track_at_idx(&self, idx: usize, cx: &App) {

@@ -1,9 +1,9 @@
 use crate::controller::Controller;
 use crate::state::format_duration;
 use crate::ui::components::icons::{Icon, Icons};
-use crate::ui::helpers::secs_to_slider;
+use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::theme::Theme;
-use gpui::{div, px, Context, IntoElement, ParentElement, Render, Styled, Window};
+use gpui::{div, px, App, Context, IntoElement, ParentElement, Render, Styled, Window};
 
 pub struct ControlBar;
 
@@ -15,7 +15,11 @@ impl Render for ControlBar {
         let duration = state.current_track().map(|t| t.duration).unwrap_or(0);
         let position = state.position;
         let vol_fill = crate::state::volume_fraction(state.volume);
-        let fill_pct = secs_to_slider(position, duration);
+        let fill_fraction = if duration > 0 {
+            (position as f32 / duration as f32).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
         let vol_pct = (vol_fill * 100.0) as u32;
 
         div()
@@ -43,18 +47,17 @@ impl Render for ControlBar {
                             .child(format_duration(position)),
                     )
                     .child(
-                        div()
-                            .flex_1()
-                            .h(px(4.0))
-                            .rounded_full()
-                            .bg(theme.playback_slider_track)
-                            .child(
-                                div()
-                                    .h_full()
-                                    .rounded_full()
-                                    .bg(theme.playback_slider_fill)
-                                    .w(px(fill_pct / 100.0 * 800.0)),
-                            ),
+                        SeekBar::new(
+                            "controlbar-seek",
+                            fill_fraction,
+                            theme.playback_slider_track,
+                            theme.playback_slider_fill,
+                            px(4.0),
+                        )
+                        .on_seek(move |frac, _window, cx: &mut App| {
+                            let seek_secs = (frac * duration as f32) as u64;
+                            cx.global::<Controller>().seek(seek_secs, duration);
+                        }),
                     )
                     .child(
                         div()

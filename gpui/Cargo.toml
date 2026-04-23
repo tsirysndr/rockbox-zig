@@ -25,6 +25,7 @@ tonic = "0.12.3"
 tonic-reflection = "0.12.3"
 tonic-web = "0.12.3"
 http = "1.4.0"
+souvlaki = "0.8"
 
 [build-dependencies]
 tonic-build = "0.12.3"

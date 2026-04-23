@@ -4,6 +4,7 @@ pub mod miniplayer;
 pub mod navbar;
 pub mod pages;
 pub mod search_input;
+pub mod seek_bar;
 pub mod titlebar;
 
 #[derive(Clone, Copy, PartialEq)]

@@ -1,0 +1,113 @@
+use crate::state::{PlaybackStatus, Track};
+use souvlaki::{
+    MediaControlEvent, MediaControls, MediaMetadata, MediaPlayback, MediaPosition, PlatformConfig,
+};
+use std::sync::mpsc;
+use std::time::Duration;
+
+/// Commands forwarded from the OS media-control callbacks to the GPUI poll loop.
+pub enum MediaCommand {
+    Play,
+    Pause,
+    Toggle,
+    Next,
+    Prev,
+    SeekTo(Duration),
+}
+
+/// Owns the souvlaki `MediaControls` handle and a channel for incoming OS commands.
+///
+/// Must be created on the main thread (macOS requires MPRemoteCommandCenter
+/// registration on the main thread). The GPUI foreground poll loop — also on
+/// the main thread — calls `drain_commands` and `update` each tick.
+pub struct NowPlayingManager {
+    controls: MediaControls,
+    cmd_rx: mpsc::Receiver<MediaCommand>,
+    /// Last track id pushed to the OS so we only re-send metadata on change.
+    last_track_id: String,
+}
+
+impl NowPlayingManager {
+    /// Returns `None` if the OS media-control API is unavailable.
+    pub fn new() -> Option<Self> {
+        let (cmd_tx, cmd_rx) = mpsc::channel::<MediaCommand>();
+
+        let cfg = PlatformConfig {
+            dbus_name: "org.rockbox.Rockbox",
+            display_name: "Rockbox",
+            hwnd: None,
+        };
+
+        let mut controls = MediaControls::new(cfg).ok()?;
+
+        controls
+            .attach(move |event: MediaControlEvent| {
+                let cmd = match event {
+                    MediaControlEvent::Play => Some(MediaCommand::Play),
+                    MediaControlEvent::Pause => Some(MediaCommand::Pause),
+                    MediaControlEvent::Toggle => Some(MediaCommand::Toggle),
+                    MediaControlEvent::Next => Some(MediaCommand::Next),
+                    MediaControlEvent::Previous => Some(MediaCommand::Prev),
+                    MediaControlEvent::SetPosition(MediaPosition(pos)) => {
+                        Some(MediaCommand::SeekTo(pos))
+                    }
+                    _ => None,
+                };
+                if let Some(c) = cmd {
+                    let _ = cmd_tx.send(c);
+                }
+            })
+            .ok()?;
+
+        Some(NowPlayingManager { controls, cmd_rx, last_track_id: String::new() })
+    }
+
+    /// Drain all pending OS media-key commands (non-blocking).
+    pub fn drain_commands(&mut self) -> Vec<MediaCommand> {
+        let mut out = Vec::new();
+        while let Ok(cmd) = self.cmd_rx.try_recv() {
+            out.push(cmd);
+        }
+        out
+    }
+
+    /// Push the current playback state and track metadata to the OS.
+    pub fn update(&mut self, track: Option<&Track>, status: PlaybackStatus, position: u64) {
+        let progress = Some(MediaPosition(Duration::from_secs(position)));
+
+        let playback = match status {
+            PlaybackStatus::Playing => MediaPlayback::Playing { progress },
+            PlaybackStatus::Paused => MediaPlayback::Paused { progress },
+            PlaybackStatus::Stopped => MediaPlayback::Stopped,
+        };
+        let _ = self.controls.set_playback(playback);
+
+        // Metadata only on track change
+        let track_id = track.map(|t| t.id.as_str()).unwrap_or("");
+        if track_id == self.last_track_id {
+            return;
+        }
+        self.last_track_id = track_id.to_string();
+
+        // album_art is a bare filename served by rockboxd's cover HTTP server.
+        let cover_url = track
+            .and_then(|t| t.album_art.as_deref())
+            .filter(|s| !s.is_empty())
+            .map(|name| format!("http://localhost:6062/covers/{}", name));
+
+        let meta = track
+            .map(|t| MediaMetadata {
+                title: if t.title.is_empty() { None } else { Some(t.title.as_str()) },
+                artist: if t.artist.is_empty() { None } else { Some(t.artist.as_str()) },
+                album: if t.album.is_empty() { None } else { Some(t.album.as_str()) },
+                cover_url: cover_url.as_deref(),
+                duration: if t.duration > 0 {
+                    Some(Duration::from_secs(t.duration))
+                } else {
+                    None
+                },
+            })
+            .unwrap_or_default();
+        let _ = self.controls.set_metadata(meta);
+    }
+}

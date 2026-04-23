@@ -4,7 +4,7 @@ use crate::state::{format_duration, volume_fraction, PlaybackStatus, VOLUME_MAX_
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::{LikedSongs, Page};
 use crate::ui::global_keybinds::play_pause;
-use crate::ui::helpers::secs_to_slider;
+use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
@@ -38,7 +38,11 @@ impl Render for MiniPlayer {
             .filter(|s| !s.is_empty())
             .map(|id| format!("http://localhost:6062/covers/{id}"));
         let position = state.position;
-        let fill = secs_to_slider(position, duration) / 100.0;
+        let fill_fraction = if duration > 0 {
+            (position as f32 / duration as f32).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
         let vol_fill = volume_fraction(state.volume);
         let vol_pct = (vol_fill * 100.0) as u32;
         let is_shuffling = state.shuffling;
@@ -323,18 +327,17 @@ impl Render for MiniPlayer {
                                             .child(format_duration(position)),
                                     )
                                     .child(
-                                        div()
-                                            .flex_1()
-                                            .h(px(3.0))
-                                            .rounded_full()
-                                            .bg(theme.playback_slider_track)
-                                            .child(
-                                                div()
-                                                    .h_full()
-                                                    .rounded_full()
-                                                    .bg(theme.playback_slider_fill)
-                                                    .w(relative(fill)),
-                                            ),
+                                        SeekBar::new(
+                                            "miniplayer-seek",
+                                            fill_fraction,
+                                            theme.playback_slider_track,
+                                            theme.playback_slider_fill,
+                                            px(3.0),
+                                        )
+                                        .on_seek(move |frac, _window, cx: &mut App| {
+                                            let seek_secs = (frac * duration as f32) as u64;
+                                            cx.global::<Controller>().seek(seek_secs, duration);
+                                        }),
                                     )
                                     .child(
                                         div()
