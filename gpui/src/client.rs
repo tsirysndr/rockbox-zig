@@ -9,8 +9,9 @@ use crate::api::v1alpha1::{
     PauseRequest, PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest,
     PlayDirectoryRequest, PlayTrackRequest, FastForwardRewindRequest, PlaylistResumeRequest,
     PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest,
-    SaveSettingsRequest, SearchRequest, StartRequest, StreamCurrentTrackRequest,
-    StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest, UnlikeTrackRequest,
+    SaveSettingsRequest, SearchRequest, ShufflePlaylistRequest, StartRequest,
+    StreamCurrentTrackRequest, StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest,
+    UnlikeTrackRequest,
 };
 use crate::state::{SearchAlbum, SearchArtist, SearchResults};
 
@@ -256,9 +257,12 @@ pub async fn play_liked_tracks(paths: Vec<String>, shuffle: bool) -> Result<()> 
         playlist_id: None,
         position: 0,
         tracks: paths,
-        shuffle: Some(shuffle),
+        shuffle: Some(false),
     })
     .await?;
+    if shuffle {
+        c.shuffle_playlist(ShufflePlaylistRequest { start_index: 0 }).await?;
+    }
     c.start(StartRequest {
         start_index: Some(0),
         elapsed: Some(0),
