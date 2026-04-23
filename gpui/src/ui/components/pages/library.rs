@@ -135,9 +135,11 @@ impl Render for LibraryPage {
             album_tracks,
             album_artist,
             album_detail_art,
+            album_id,
             artist_tracks,
             artist_albums_detail,
             artist_detail_image,
+            artist_id,
         ) = {
             let state = cx.global::<Controller>().state.read(cx);
 
@@ -202,6 +204,14 @@ impl Render for LibraryPage {
                 .map(|t| if t.album_artist.is_empty() { t.artist.clone() } else { t.album_artist.clone() })
                 .unwrap_or_default();
             let album_detail_art = album_first_track.and_then(|t| t.album_art.clone());
+            let album_id = album_first_track.map(|t| t.album_id.clone()).unwrap_or_default();
+
+            let artist_id = state
+                .tracks
+                .iter()
+                .find(|t| t.artist == selected_artist)
+                .map(|t| t.artist_id.clone())
+                .unwrap_or_default();
 
             // Artist detail: tracks filtered by selected artist — (global_idx, path, title, album, dur)
             let artist_tracks: Vec<(usize, String, String, String, u64)> = state
@@ -246,9 +256,11 @@ impl Render for LibraryPage {
                 album_tracks,
                 album_artist,
                 album_detail_art,
+                album_id,
                 artist_tracks,
                 artist_albums_detail,
                 artist_detail_image,
+                artist_id,
             )
         };
 
@@ -715,6 +727,53 @@ impl Render for LibraryPage {
                                                             .text_sm()
                                                             .text_color(theme.library_header_text)
                                                             .child(n_tracks_label),
+                                                    )
+                                                    .child(
+                                                        div()
+                                                            .flex()
+                                                            .items_center()
+                                                            .gap_x_3()
+                                                            .mt_2()
+                                                            .child({
+                                                                let aid = album_id.clone();
+                                                                div()
+                                                                    .id("album_play_btn")
+                                                                    .flex()
+                                                                    .items_center()
+                                                                    .gap_x_2()
+                                                                    .px_4()
+                                                                    .py_2()
+                                                                    .rounded_md()
+                                                                    .cursor_pointer()
+                                                                    .bg(theme.player_play_pause_bg)
+                                                                    .text_color(theme.player_play_pause_text)
+                                                                    .hover(|this| this.bg(theme.player_play_pause_hover))
+                                                                    .on_click(move |_, _, cx: &mut App| {
+                                                                        cx.global::<Controller>().play_album(aid.clone(), false);
+                                                                    })
+                                                                    .child(Icon::new(Icons::Play).size_4())
+                                                                    .child(div().text_sm().font_weight(FontWeight(600.0)).child("Play"))
+                                                            })
+                                                            .child({
+                                                                let aid = album_id.clone();
+                                                                div()
+                                                                    .id("album_shuffle_btn")
+                                                                    .flex()
+                                                                    .items_center()
+                                                                    .gap_x_2()
+                                                                    .px_4()
+                                                                    .py_2()
+                                                                    .rounded_md()
+                                                                    .cursor_pointer()
+                                                                    .bg(theme.player_icons_bg_active)
+                                                                    .text_color(theme.library_text)
+                                                                    .hover(|this| this.bg(theme.player_icons_bg_hover))
+                                                                    .on_click(move |_, _, cx: &mut App| {
+                                                                        cx.global::<Controller>().play_album(aid.clone(), true);
+                                                                    })
+                                                                    .child(Icon::new(Icons::Shuffle).size_4())
+                                                                    .child(div().text_sm().font_weight(FontWeight(500.0)).child("Shuffle"))
+                                                            }),
                                                     ),
                                             ),
                                     ),
@@ -884,6 +943,53 @@ impl Render for LibraryPage {
                                                             .text_sm()
                                                             .text_color(theme.library_header_text)
                                                             .child(n_tracks_label),
+                                                    )
+                                                    .child(
+                                                        div()
+                                                            .flex()
+                                                            .items_center()
+                                                            .gap_x_3()
+                                                            .mt_2()
+                                                            .child({
+                                                                let aid = artist_id.clone();
+                                                                div()
+                                                                    .id("artist_play_btn")
+                                                                    .flex()
+                                                                    .items_center()
+                                                                    .gap_x_2()
+                                                                    .px_4()
+                                                                    .py_2()
+                                                                    .rounded_md()
+                                                                    .cursor_pointer()
+                                                                    .bg(theme.player_play_pause_bg)
+                                                                    .text_color(theme.player_play_pause_text)
+                                                                    .hover(|this| this.bg(theme.player_play_pause_hover))
+                                                                    .on_click(move |_, _, cx: &mut App| {
+                                                                        cx.global::<Controller>().play_artist_tracks(aid.clone(), false);
+                                                                    })
+                                                                    .child(Icon::new(Icons::Play).size_4())
+                                                                    .child(div().text_sm().font_weight(FontWeight(600.0)).child("Play"))
+                                                            })
+                                                            .child({
+                                                                let aid = artist_id.clone();
+                                                                div()
+                                                                    .id("artist_shuffle_btn")
+                                                                    .flex()
+                                                                    .items_center()
+                                                                    .gap_x_2()
+                                                                    .px_4()
+                                                                    .py_2()
+                                                                    .rounded_md()
+                                                                    .cursor_pointer()
+                                                                    .bg(theme.player_icons_bg_active)
+                                                                    .text_color(theme.library_text)
+                                                                    .hover(|this| this.bg(theme.player_icons_bg_hover))
+                                                                    .on_click(move |_, _, cx: &mut App| {
+                                                                        cx.global::<Controller>().play_artist_tracks(aid.clone(), true);
+                                                                    })
+                                                                    .child(Icon::new(Icons::Shuffle).size_4())
+                                                                    .child(div().text_sm().font_weight(FontWeight(500.0)).child("Shuffle"))
+                                                            }),
                                                     ),
                                             ),
                                     ),

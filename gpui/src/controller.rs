@@ -82,13 +82,12 @@ impl Controller {
         }
     }
 
-    pub fn play_album(&self, album_id: String) {
-        self.rt().spawn(crate::client::play_album(album_id));
+    pub fn play_album(&self, album_id: String, shuffle: bool) {
+        self.rt().spawn(crate::client::play_album(album_id, shuffle));
     }
 
-    pub fn play_artist_tracks(&self, artist_id: String) {
-        self.rt()
-            .spawn(crate::client::play_artist_tracks(artist_id));
+    pub fn play_artist_tracks(&self, artist_id: String, shuffle: bool) {
+        self.rt().spawn(crate::client::play_artist_tracks(artist_id, shuffle));
     }
 
     pub fn play_all_tracks(&self) {

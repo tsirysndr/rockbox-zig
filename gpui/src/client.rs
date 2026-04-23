@@ -74,22 +74,22 @@ pub async fn play_track(path: String) -> Result<()> {
     Ok(())
 }
 
-pub async fn play_album(album_id: String) -> Result<()> {
+pub async fn play_album(album_id: String, shuffle: bool) -> Result<()> {
     let mut c = PlaybackServiceClient::connect(URL).await?;
     c.play_album(PlayAlbumRequest {
         album_id,
-        shuffle: Some(false),
+        shuffle: Some(shuffle),
         position: Some(0),
     })
     .await?;
     Ok(())
 }
 
-pub async fn play_artist_tracks(artist_id: String) -> Result<()> {
+pub async fn play_artist_tracks(artist_id: String, shuffle: bool) -> Result<()> {
     let mut c = PlaybackServiceClient::connect(URL).await?;
     c.play_artist_tracks(PlayArtistTracksRequest {
         artist_id,
-        shuffle: Some(false),
+        shuffle: Some(shuffle),
         position: Some(0),
     })
     .await?;
