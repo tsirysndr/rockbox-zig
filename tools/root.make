@@ -457,10 +457,10 @@ $(BUILDDIR)/apps/recorder/jpeg_load.o: $(ROOTDIR)/apps/recorder/jpeg_load.c
 
 zig: lib
 	cd .. \
-	&& cargo build -p rockbox-cli --release \
-	&& cargo build -p rockbox-server --release \
-	&& cargo build -p rockbox --release \
-	&& cd zig && zig build 
+	&& cargo build --locked -p rockbox-cli --release \
+	&& cargo build --locked -p rockbox-server --release \
+	&& cargo build --locked -p rockbox --release \
+	&& cd zig && zig build
 help:
 	@echo "A few helpful make targets"
 	@echo ""
