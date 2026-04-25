@@ -52,6 +52,10 @@ impl gpui::Global for FileContextMenuState {}
 pub struct LikedSongs(pub std::collections::HashSet<String>);
 impl gpui::Global for LikedSongs {}
 
+#[derive(Clone, Default)]
+pub struct LikedOrder(pub Vec<String>);
+impl gpui::Global for LikedOrder {}
+
 #[derive(Clone, PartialEq)]
 pub struct SelectedAlbum(pub String);
 impl gpui::Global for SelectedAlbum {}

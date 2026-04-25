@@ -22,7 +22,6 @@ pub const INSERT_SHUFFLED: i32 = -5; // add shuffled (next)
 pub const INSERT_LAST_SHUFFLED: i32 = -7; // play last shuffled
 use crate::state::{ArtistImages, PlaybackStatus, StateUpdate, Track};
 use anyhow::Result;
-use std::collections::HashSet;
 use tokio::sync::mpsc::Sender;
 
 const URL: &str = "http://127.0.0.1:6061";
@@ -349,7 +348,7 @@ pub async fn run_settings_sync(tx: Sender<StateUpdate>) {
 
 // ── Likes ─────────────────────────────────────────────────────────────────────
 
-pub async fn fetch_liked_tracks() -> Result<HashSet<String>> {
+pub async fn fetch_liked_tracks() -> Result<Vec<String>> {
     let mut c = LibraryServiceClient::connect(URL).await?;
     let resp = c.get_liked_tracks(GetLikedTracksRequest {}).await?;
     Ok(resp.into_inner().tracks.into_iter().map(|t| t.id).collect())

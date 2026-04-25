@@ -136,7 +136,7 @@ pub enum StateUpdate {
     },
     Tracks(Vec<Track>),
     ArtistImages(ArtistImages),
-    LikedTracks(std::collections::HashSet<String>),
+    LikedTracks(Vec<String>),
     SearchResults(Option<SearchResults>),
     Settings { volume: i32, shuffling: bool, repeat_mode: i32 },
 }

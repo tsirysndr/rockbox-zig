@@ -11,8 +11,8 @@ use crate::ui::components::search_input::SearchInput;
 use crate::ui::components::pages::files::{menu_item, FilesView};
 use crate::ui::components::{
     AlbumContextMenu, AlbumContextMenuState, BackSection, FileContextMenuState,
-    HoveredAlbumIdx, LibraryContextMenu, LibraryContextMenuState, LibrarySection, LikedSongs,
-    SelectedAlbum, SelectedArtist,
+    HoveredAlbumIdx, LibraryContextMenu, LibraryContextMenuState, LibrarySection, LikedOrder,
+    LikedSongs, SelectedAlbum, SelectedArtist,
 };
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -120,6 +120,7 @@ impl LibraryPage {
         cx.set_global(AlbumContextMenuState::default());
         cx.set_global(HoveredAlbumIdx::default());
         cx.set_global(LikedSongs::default());
+        cx.set_global(LikedOrder::default());
         LibraryPage {
             scroll_handle: UniformListScrollHandle::new(),
             detail_scroll_handle: UniformListScrollHandle::new(),
@@ -142,6 +143,7 @@ impl Render for LibraryPage {
 
         let viewport = window.viewport_size();
         let liked_songs = cx.global::<LikedSongs>().0.clone();
+        let liked_order = cx.global::<LikedOrder>().0.clone();
         let content_width = f32::from(viewport.width) - 200.0;
         let album_cols = ((content_width / 200.0).floor() as u16).max(2);
         let artist_cols = ((content_width / 160.0).floor() as u16).max(2);
@@ -296,7 +298,12 @@ impl Render for LibraryPage {
             let artist_detail_image = state.artist_images.get(&selected_artist).cloned();
 
             // (global_idx, path, title, artist, album, duration, id, album_art)
-            let liked_tracks: Vec<(usize, String, String, String, String, u64, String, Option<String>)> = state
+            let liked_order_map: std::collections::HashMap<&str, usize> = liked_order
+                .iter()
+                .enumerate()
+                .map(|(i, id)| (id.as_str(), i))
+                .collect();
+            let mut liked_tracks: Vec<(usize, String, String, String, String, u64, String, Option<String>)> = state
                 .tracks
                 .iter()
                 .enumerate()
@@ -314,6 +321,9 @@ impl Render for LibraryPage {
                     )
                 })
                 .collect();
+            liked_tracks.sort_by_key(|(_, _, _, _, _, _, id, _)| {
+                liked_order_map.get(id.as_str()).copied().unwrap_or(usize::MAX)
+            });
 
             let current_path = state.current_track().map(|t| t.path.clone());
             let search_results = state.search_results.clone();

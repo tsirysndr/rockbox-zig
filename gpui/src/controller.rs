@@ -1,6 +1,6 @@
 use crate::now_playing::{MediaCommand, NowPlayingManager};
 use crate::state::{AppState, PlaybackStatus, StateUpdate};
-use crate::ui::components::LikedSongs;
+use crate::ui::components::{LikedOrder, LikedSongs};
 use gpui::{App, Entity, Global};
 use std::sync::{
     atomic::{AtomicU64, Ordering},
@@ -60,7 +60,9 @@ impl Controller {
                             StateUpdate::Tracks(tracks) => s.tracks = tracks,
                             StateUpdate::ArtistImages(images) => s.artist_images = images,
                             StateUpdate::LikedTracks(ids) => {
-                                cx.set_global(LikedSongs(ids));
+                                let set = ids.iter().cloned().collect();
+                                cx.set_global(LikedSongs(set));
+                                cx.set_global(LikedOrder(ids));
                             }
                             StateUpdate::SearchResults(results) => {
                                 s.search_results = results;
