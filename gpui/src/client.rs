@@ -10,8 +10,8 @@ use crate::api::v1alpha1::{
     PlayDirectoryRequest, PlayTrackRequest, FastForwardRewindRequest, PlaylistResumeRequest,
     PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest,
     SaveSettingsRequest, SearchRequest, ShufflePlaylistRequest, StartRequest,
-    StreamCurrentTrackRequest, StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest,
-    TreeGetEntriesRequest, UnlikeTrackRequest,
+    StatusRequest, StreamCurrentTrackRequest, StreamLibraryRequest, StreamPlaylistRequest,
+    StreamStatusRequest, TreeGetEntriesRequest, UnlikeTrackRequest,
 };
 use crate::state::{SearchAlbum, SearchArtist, SearchResults};
 
@@ -326,6 +326,26 @@ pub async fn run_resume_info_sync(tx: Sender<StateUpdate>) {
             Err(e) => log::warn!("resume info sync: {e}"),
         },
         Err(e) => log::warn!("resume info sync connect: {e}"),
+    }
+
+    // The status stream only fires on changes; fetch the initial status once so
+    // the Now Playing widget shows correctly when the app opens with a paused track.
+    match PlaybackServiceClient::connect(URL).await {
+        Ok(mut c) => match c.status(StatusRequest {}).await {
+            Ok(resp) => {
+                let s = resp.into_inner();
+                let init_status = if s.status & 0x02 != 0 {
+                    PlaybackStatus::Paused
+                } else if s.status & 0x01 != 0 {
+                    PlaybackStatus::Playing
+                } else {
+                    PlaybackStatus::Stopped
+                };
+                let _ = tx.send(StateUpdate::Status(init_status)).await;
+            }
+            Err(e) => log::warn!("initial status fetch: {e}"),
+        },
+        Err(e) => log::warn!("initial status connect: {e}"),
     }
 }
 
