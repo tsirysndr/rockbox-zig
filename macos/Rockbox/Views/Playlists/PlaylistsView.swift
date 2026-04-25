@@ -21,35 +21,6 @@ struct PlaylistsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                if !smartPlaylists.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Smart Playlists")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 20)
-
-                        LazyVGrid(columns: columns, spacing: 24) {
-                            ForEach(smartPlaylists) { pl in
-                                SmartPlaylistCardView(
-                                    playlist: pl,
-                                    onSelect: { navigation.goToSmartPlaylist(pl) },
-                                    onPlay: {
-                                        Task {
-                                            do {
-                                                try await playSmartPlaylist(id: pl.id)
-                                                await player.fetchQueue()
-                                            } catch {
-                                                errorText = String(describing: error)
-                                            }
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                    }
-                }
-
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         Text("Saved Playlists")
@@ -96,6 +67,35 @@ struct PlaylistsView: View {
                                             do {
                                                 try await deleteSavedPlaylist(id: pl.id)
                                                 savedPlaylists.removeAll { $0.id == pl.id }
+                                            } catch {
+                                                errorText = String(describing: error)
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                    }
+                }
+
+                if !smartPlaylists.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Smart Playlists")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 20)
+
+                        LazyVGrid(columns: columns, spacing: 24) {
+                            ForEach(smartPlaylists) { pl in
+                                SmartPlaylistCardView(
+                                    playlist: pl,
+                                    onSelect: { navigation.goToSmartPlaylist(pl) },
+                                    onPlay: {
+                                        Task {
+                                            do {
+                                                try await playSmartPlaylist(id: pl.id)
+                                                await player.fetchQueue()
                                             } catch {
                                                 errorText = String(describing: error)
                                             }

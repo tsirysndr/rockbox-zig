@@ -619,6 +619,34 @@ struct Rockbox_V1alpha1_SearchRequest: Sendable {
   init() {}
 }
 
+struct Rockbox_V1alpha1_SearchPlaylist: Sendable {
+  var id: String = String()
+  var name: String = String()
+
+  var description_p: String {
+    get { return _description_p ?? String() }
+    set { _description_p = newValue }
+  }
+  var _description_p: String? = nil
+  var hasDescription_p: Bool { return _description_p != nil }
+  mutating func clearDescription_p() { _description_p = nil }
+
+  var image: String {
+    get { return _image ?? String() }
+    set { _image = newValue }
+  }
+  var _image: String? = nil
+  var hasImage: Bool { return _image != nil }
+  mutating func clearImage() { _image = nil }
+
+  var isSmart: Bool = false
+  var trackCount: Int64 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 struct Rockbox_V1alpha1_SearchResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -629,6 +657,8 @@ struct Rockbox_V1alpha1_SearchResponse: Sendable {
   var albums: [Rockbox_V1alpha1_Album] = []
 
   var artists: [Rockbox_V1alpha1_Artist] = []
+
+  var playlists: [Rockbox_V1alpha1_SearchPlaylist] = []
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1732,19 +1762,57 @@ extension Rockbox_V1alpha1_SearchRequest: SwiftProtobuf.Message, SwiftProtobuf._
   }
 }
 
-extension Rockbox_V1alpha1_SearchResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = _protobuf_package + ".SearchResponse"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}tracks\0\u{1}albums\0\u{1}artists\0")
+extension Rockbox_V1alpha1_SearchPlaylist: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".SearchPlaylist"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}name\0\u{1}description\0\u{1}image\0\u{2}is_smart\0\u{3}track_count\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._description_p) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._image) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.isSmart) }()
+      case 6: try { try decoder.decodeSingularInt64Field(value: &self.trackCount) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.id.isEmpty { try visitor.visitSingularStringField(value: self.id, fieldNumber: 1) }
+    if !self.name.isEmpty { try visitor.visitSingularStringField(value: self.name, fieldNumber: 2) }
+    if let v = self._description_p { try visitor.visitSingularStringField(value: v, fieldNumber: 3) }
+    if let v = self._image { try visitor.visitSingularStringField(value: v, fieldNumber: 4) }
+    if self.isSmart { try visitor.visitSingularBoolField(value: self.isSmart, fieldNumber: 5) }
+    if self.trackCount != 0 { try visitor.visitSingularInt64Field(value: self.trackCount, fieldNumber: 6) }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_SearchPlaylist, rhs: Rockbox_V1alpha1_SearchPlaylist) -> Bool {
+    if lhs.id != rhs.id {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs._description_p != rhs._description_p {return false}
+    if lhs._image != rhs._image {return false}
+    if lhs.isSmart != rhs.isSmart {return false}
+    if lhs.trackCount != rhs.trackCount {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Rockbox_V1alpha1_SearchResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".SearchResponse"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}tracks\0\u{1}albums\0\u{1}artists\0\u{1}playlists\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedMessageField(value: &self.tracks) }()
       case 2: try { try decoder.decodeRepeatedMessageField(value: &self.albums) }()
       case 3: try { try decoder.decodeRepeatedMessageField(value: &self.artists) }()
+      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.playlists) }()
       default: break
       }
     }
@@ -1760,6 +1828,9 @@ extension Rockbox_V1alpha1_SearchResponse: SwiftProtobuf.Message, SwiftProtobuf.
     if !self.artists.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.artists, fieldNumber: 3)
     }
+    if !self.playlists.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.playlists, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1767,6 +1838,7 @@ extension Rockbox_V1alpha1_SearchResponse: SwiftProtobuf.Message, SwiftProtobuf.
     if lhs.tracks != rhs.tracks {return false}
     if lhs.albums != rhs.albums {return false}
     if lhs.artists != rhs.artists {return false}
+    if lhs.playlists != rhs.playlists {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

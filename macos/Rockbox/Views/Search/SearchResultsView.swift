@@ -12,82 +12,116 @@ struct SearchResultsView: View {
     @EnvironmentObject var navigation: NavigationManager
     @EnvironmentObject var player: PlayerState
     @ObservedObject var library: MusicLibrary
-    @State private var savedPlaylists: [SavedPlaylist] = []
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                if searchManager.searchResults.isEmpty {
+
+                // Empty state
+                if searchManager.searchResults.isEmpty && !searchManager.hasPlaylistResults {
                     emptyResultsView
-                } else {
-                    // Artists section
-                    if !searchManager.searchResults.artists.isEmpty {
-                        searchSection(title: "Artists") {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    ForEach(searchManager.searchResults.artists) { artist in
-                                        SearchArtistCard(artist: artist) {
-                                            navigation.goToArtist(artist)
-                                            searchManager.clear()
-                                        }
+                }
+
+                // Artists
+                if !searchManager.searchResults.artists.isEmpty {
+                    searchSection(title: "Artists") {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(searchManager.searchResults.artists) { artist in
+                                    SearchArtistCard(artist: artist) {
+                                        navigation.goToArtist(artist)
+                                        searchManager.clear()
                                     }
-                                }
-                                .padding(.horizontal, 20)
-                            }
-                        }
-                    }
-                    
-                    // Albums section
-                    if !searchManager.searchResults.albums.isEmpty {
-                        searchSection(title: "Albums") {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    ForEach(searchManager.searchResults.albums) { album in
-                                        SearchAlbumCard(album: album, savedPlaylists: savedPlaylists) {
-                                            navigation.goToAlbum(album)
-                                            searchManager.clear()
-                                        }
-                                    }
-                                }
-                                .padding(.horizontal, 20)
-                            }
-                        }
-                    }
-                    
-                    // Songs section
-                    if !searchManager.searchResults.songs.isEmpty {
-                        searchSection(title: "Songs") {
-                            LazyVStack(spacing: 0) {
-                                ForEach(Array(searchManager.searchResults.songs.prefix(10).enumerated()), id: \.element.id) { index, song in
-                                    SearchSongRow(
-                                        song: song,
-                                        index: index,
-                                        library: library,
-                                        savedPlaylists: savedPlaylists
-                                    )
                                 }
                             }
                             .padding(.horizontal, 20)
                         }
                     }
                 }
-            }
-            .padding(.vertical, 20)
-        }
-        .task {
-            if savedPlaylists.isEmpty {
-                if let data = try? await fetchSavedPlaylists() {
-                    savedPlaylists = data.map {
-                        SavedPlaylist(
-                            id: $0.id, name: $0.name,
-                            description: $0.hasDescription_p ? $0.description_p : nil,
-                            image: $0.hasImage ? $0.image : nil,
-                            folderID: $0.hasFolderID ? $0.folderID : nil,
-                            trackCount: $0.trackCount
-                        )
+
+                // Albums
+                if !searchManager.searchResults.albums.isEmpty {
+                    searchSection(title: "Albums") {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(searchManager.searchResults.albums) { album in
+                                    SearchAlbumCard(
+                                        album: album,
+                                        savedPlaylists: searchManager.allSavedPlaylists
+                                    ) {
+                                        navigation.goToAlbum(album)
+                                        searchManager.clear()
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                        }
                     }
                 }
+
+                // Songs
+                if !searchManager.searchResults.songs.isEmpty {
+                    searchSection(title: "Songs") {
+                        LazyVStack(spacing: 0) {
+                            ForEach(Array(searchManager.searchResults.songs.prefix(10).enumerated()), id: \.element.id) { index, song in
+                                SearchSongRow(
+                                    song: song,
+                                    index: index,
+                                    library: library,
+                                    savedPlaylists: searchManager.allSavedPlaylists
+                                )
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                    }
+                }
+
+                // Playlists
+                if searchManager.hasPlaylistResults {
+                    searchSection(title: "Playlists") {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(searchManager.filteredSavedPlaylists) { pl in
+                                    PlaylistCardView(
+                                        playlist: pl,
+                                        onSelect: {
+                                            navigation.goToPlaylist(pl)
+                                            searchManager.clear()
+                                        },
+                                        onPlay: {
+                                            Task {
+                                                try? await playSavedPlaylist(id: pl.id)
+                                                await player.fetchQueue()
+                                            }
+                                        },
+                                        onDelete: {}
+                                    )
+                                    .frame(width: 130)
+                                }
+                                ForEach(searchManager.filteredSmartPlaylists) { pl in
+                                    SmartPlaylistCardView(
+                                        playlist: pl,
+                                        onSelect: {
+                                            navigation.goToSmartPlaylist(pl)
+                                            searchManager.clear()
+                                        },
+                                        onPlay: {
+                                            Task {
+                                                try? await playSmartPlaylist(id: pl.id)
+                                                await player.fetchQueue()
+                                            }
+                                        }
+                                    )
+                                    .frame(width: 130)
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                        }
+                    }
+                }
+
             }
+            .padding(.vertical, 20)
         }
     }
 
