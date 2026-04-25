@@ -205,7 +205,7 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             sleep(Duration::from_secs(5));
             match rockbox_rocksky::register_rockbox() {
                 Ok(_) => info!("Successfully registered Rockbox with Rocksky server"),
-                Err(e) => error!("Failed to register Rockbox with Rocksky server: {}", e),
+                Err(e) => tracing::debug!("Failed to register Rockbox with Rocksky server: {}", e),
             };
         });
 
