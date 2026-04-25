@@ -7,11 +7,13 @@ use crate::ui::global_keybinds;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, px, Animation, AnimationExt as _, AppContext, Context, ElementId, Entity,
-    InteractiveElement, IntoElement, ParentElement, Render, Styled, Window,
+    div, px, Animation, AnimationExt as _, AppContext, Context, ElementId, Entity, FocusHandle,
+    InteractiveElement, IntoElement, ParentElement, Render, Styled,
+    Window,
 };
 
 pub struct Rockbox {
+    pub focus_handle: FocusHandle,
     pub titlebar: Entity<Titlebar>,
     pub player_page: Entity<PlayerPage>,
     pub library_page: Entity<LibraryPage>,
@@ -29,6 +31,7 @@ impl Rockbox {
         let library_page = cx.new(|cx| LibraryPage::new(cx));
         let queue_page = cx.new(|cx| QueuePage::new(cx));
         Rockbox {
+            focus_handle: cx.focus_handle(),
             titlebar,
             player_page,
             library_page,
@@ -39,6 +42,13 @@ impl Rockbox {
 
 impl Render for Rockbox {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        // When no other element has keyboard focus, grab it so the "Rockbox"
+        // key context is always in the dispatch path and global bindings
+        // (e.g. space → PlayPause) can fire.
+        if window.focused(cx).is_none() {
+            window.focus(&self.focus_handle);
+        }
+
         let theme = *cx.global::<Theme>();
         let page = *cx.global::<Page>();
         let page_state = window.use_keyed_state("page_transition", cx, |_, _| page);
@@ -67,6 +77,8 @@ impl Render for Rockbox {
         };
         div()
             .id("root")
+            .key_context("Rockbox")
+            .track_focus(&self.focus_handle)
             .size_full()
             .font_family("Space Grotesk")
             .relative()

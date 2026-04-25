@@ -9,7 +9,7 @@ actions!(app, [Quit, Hide, HideOthers]);
 
 pub fn register_keybinds(cx: &mut App) {
     cx.bind_keys([
-        KeyBinding::new("space", PlayPause, Some("! SearchInput")),
+        KeyBinding::new("space", PlayPause, Some("Rockbox && !SearchInput && !TextInput")),
         KeyBinding::new("cmd-right", Next, None),
         KeyBinding::new("cmd-left", Prev, None),
         KeyBinding::new("shift-s", Shuffle, None),

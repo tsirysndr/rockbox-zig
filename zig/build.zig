@@ -88,7 +88,12 @@ pub fn build(b: *std.Build) void {
     });
 
     if (target.result.os.tag == .macos) {
-        exe.root_module.addLibraryPath(.{ .cwd_relative = "/opt/homebrew/lib" });
+        // Homebrew path differs by architecture: /opt/homebrew on aarch64, /usr/local on x86_64
+        if (target.result.cpu.arch == .aarch64) {
+            exe.root_module.addLibraryPath(.{ .cwd_relative = "/opt/homebrew/lib" });
+        } else {
+            exe.root_module.addLibraryPath(.{ .cwd_relative = "/usr/local/lib" });
+        }
         exe.root_module.linkFramework("CoreFoundation", .{});
     }
 

@@ -119,6 +119,38 @@ pub extern "C" fn start_server() {
     app.delete("/playlists/:id/tracks", remove_tracks);
     app.get("/playlists/:id", get_playlist);
 
+    app.get("/saved-playlists/folders", list_playlist_folders);
+    app.post("/saved-playlists/folders", create_playlist_folder);
+    app.delete("/saved-playlists/folders/:id", delete_playlist_folder);
+    app.get("/saved-playlists", list_saved_playlists);
+    app.post("/saved-playlists", create_saved_playlist);
+    app.get("/saved-playlists/:id/tracks", get_saved_playlist_tracks);
+    app.get(
+        "/saved-playlists/:id/track-ids",
+        get_saved_playlist_track_ids,
+    );
+    app.post("/saved-playlists/:id/tracks", add_tracks_to_saved_playlist);
+    app.delete(
+        "/saved-playlists/:id/tracks/:track_id",
+        remove_track_from_saved_playlist,
+    );
+    app.post("/saved-playlists/:id/play", play_saved_playlist);
+    app.get("/saved-playlists/:id", get_saved_playlist);
+    app.put("/saved-playlists/:id", update_saved_playlist);
+    app.delete("/saved-playlists/:id", delete_saved_playlist);
+
+    app.get("/smart-playlists", list_smart_playlists);
+    app.post("/smart-playlists", create_smart_playlist);
+    app.get("/smart-playlists/:id/tracks", get_smart_playlist_tracks);
+    app.post("/smart-playlists/:id/play", play_smart_playlist);
+    app.get("/smart-playlists/:id", get_smart_playlist);
+    app.put("/smart-playlists/:id", update_smart_playlist);
+    app.delete("/smart-playlists/:id", delete_smart_playlist);
+
+    app.post("/track-stats/:id/played", record_track_played);
+    app.post("/track-stats/:id/skipped", record_track_skipped);
+    app.get("/track-stats/:id", get_track_stats);
+
     app.get("/tracks", get_tracks);
     app.get("/tracks/:id", get_track);
 
@@ -294,6 +326,12 @@ pub extern "C" fn start_broker() {
     let mut current_scrobble_track: Option<Track> = None; // The track we are monitoring for scrobble
     let mut scrobbled_tracks: HashSet<String> = HashSet::new(); // Simple unique ID to prevent duplicates (use track.id if available)
 
+    // Track stats auto-recording: detect play/skip on track change
+    let playlist_store = rockbox_playlists::PlaylistStore::new(pool.clone());
+    let mut last_stats_track_id: Option<String> = None;
+    let mut last_stats_elapsed: u64 = 0;
+    let mut last_stats_length: u64 = 0;
+
     loop {
         let mutex = GLOBAL_MUTEX.lock().unwrap();
         if *mutex == 1 {
@@ -397,8 +435,25 @@ pub extern "C" fn start_broker() {
                     };
 
                     if track_changed {
+                        // Auto-record play or skip for the previous track (direct DB write,
+                        // no HTTP roundtrip — avoids blocking the broker loop).
+                        if let Some(prev_id) = last_stats_track_id.take() {
+                            if last_stats_length > 10_000 && last_stats_elapsed > 2_000 {
+                                let ratio = last_stats_elapsed as f64 / last_stats_length as f64;
+                                if ratio >= 0.40 {
+                                    let _ = rt.block_on(playlist_store.record_play(&prev_id));
+                                } else {
+                                    let _ = rt.block_on(playlist_store.record_skip(&prev_id));
+                                }
+                            }
+                        }
                         current_scrobble_track = Some(track.clone());
                     }
+
+                    // Update tracking state for the current track
+                    last_stats_track_id = Some(metadata.id.clone());
+                    last_stats_elapsed = track.elapsed;
+                    last_stats_length = track.length;
 
                     // Check progress for scrobbling (only if we have a track to monitor)
                     if let Some(ref monitored_track) = current_scrobble_track {

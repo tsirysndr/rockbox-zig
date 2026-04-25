@@ -7,6 +7,7 @@ use owo_colors::OwoColorize;
 use rockbox_airplay::_link_airplay as _;
 use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
+use rockbox_playlists::PlaylistStore;
 #[allow(unused_imports)]
 use rockbox_slim::_link_slim as _;
 use rockbox_typesense::client::*;
@@ -22,6 +23,26 @@ use tracing::{error, info, warn};
 
 /// PID of the spawned typesense-server child, or -1 if not yet started.
 static TYPESENSE_PID: AtomicI32 = AtomicI32::new(-1);
+
+/// Poll the Typesense health endpoint until it responds, giving the server
+/// time to start before any collection or indexing calls are made.
+async fn wait_for_typesense() {
+    let port = std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string());
+    let url = format!("http://localhost:{}/health", port);
+    let client = reqwest::Client::new();
+    for attempt in 1..=30 {
+        match client.get(&url).send().await {
+            Ok(r) if r.status().is_success() => {
+                info!("Typesense ready after {} attempt(s)", attempt);
+                return;
+            }
+            _ => {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+            }
+        }
+    }
+    warn!("Typesense did not become ready in time; proceeding anyway");
+}
 
 /// SIGTERM/SIGINT handler: kill the typesense child then _exit immediately.
 ///
@@ -142,6 +163,40 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
                 insert_artists(artists.into_iter().map(Artist::from).collect()).await?;
                 insert_albums(albums.into_iter().map(Album::from).collect()).await?;
             }
+
+            // Always sync playlists on startup so the collection exists even when the
+            // library scan was skipped.  Wait for Typesense to be ready first since it
+            // may still be starting when tracks are already indexed (no scan delay).
+            wait_for_typesense().await;
+            create_playlists_collection().await?;
+            let playlist_store = PlaylistStore::new(pool.clone());
+            let saved = playlist_store.list().await.unwrap_or_default();
+            let smart = playlist_store
+                .list_smart_playlists()
+                .await
+                .unwrap_or_default();
+            let ts_playlists: Vec<Playlist> = saved
+                .into_iter()
+                .map(|p| Playlist {
+                    id: p.id,
+                    name: p.name,
+                    description: p.description,
+                    image: p.image,
+                    is_smart: false,
+                    track_count: p.track_count,
+                })
+                .chain(smart.into_iter().map(|p| Playlist {
+                    id: p.id,
+                    name: p.name,
+                    description: p.description,
+                    image: p.image,
+                    is_smart: true,
+                    track_count: 0,
+                }))
+                .collect();
+            if !ts_playlists.is_empty() {
+                insert_playlists(ts_playlists).await?;
+            }
             Ok::<(), Error>(())
         })
         .unwrap();
@@ -150,7 +205,7 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             sleep(Duration::from_secs(5));
             match rockbox_rocksky::register_rockbox() {
                 Ok(_) => info!("Successfully registered Rockbox with Rocksky server"),
-                Err(e) => error!("Failed to register Rockbox with Rocksky server: {}", e),
+                Err(e) => tracing::debug!("Failed to register Rockbox with Rocksky server: {}", e),
             };
         });
 

@@ -7,7 +7,9 @@ use crate::api::rockbox::v1alpha1::device_service_server::DeviceServiceServer;
 use crate::api::rockbox::v1alpha1::library_service_server::LibraryServiceServer;
 use crate::api::rockbox::v1alpha1::playback_service_server::PlaybackServiceServer;
 use crate::api::rockbox::v1alpha1::playlist_service_server::PlaylistServiceServer;
+use crate::api::rockbox::v1alpha1::saved_playlist_service_server::SavedPlaylistServiceServer;
 use crate::api::rockbox::v1alpha1::settings_service_server::SettingsServiceServer;
+use crate::api::rockbox::v1alpha1::smart_playlist_service_server::SmartPlaylistServiceServer;
 use crate::api::rockbox::v1alpha1::sound_service_server::SoundServiceServer;
 use crate::api::rockbox::FILE_DESCRIPTOR_SET;
 use crate::browse::Browse;
@@ -15,10 +17,13 @@ use crate::device::Device;
 use crate::library::Library;
 use crate::playback::Playback;
 use crate::playlist::Playlist;
+use crate::saved_playlist::SavedPlaylist;
 use crate::settings::Settings;
+use crate::smart_playlist::SmartPlaylistRpc;
 use crate::sound::Sound;
 use crate::system::System;
 use rockbox_library::create_connection_pool;
+use rockbox_playlists::PlaylistStore;
 use rockbox_sys::events::RockboxCommand;
 use tonic::transport::Server;
 
@@ -34,6 +39,7 @@ pub async fn start(
 
     let client = reqwest::Client::new();
     let pool = create_connection_pool().await?;
+    let playlist_store = PlaylistStore::new(pool.clone());
 
     Server::builder()
         .accept_http1(true)
@@ -69,6 +75,12 @@ pub async fn start(
                 System::new(client.clone()),
             ),
         ))
+        .add_service(tonic_web::enable(SavedPlaylistServiceServer::new(
+            SavedPlaylist::new(playlist_store.clone(), client.clone()),
+        )))
+        .add_service(tonic_web::enable(SmartPlaylistServiceServer::new(
+            SmartPlaylistRpc::new(playlist_store.clone(), pool.clone(), client.clone()),
+        )))
         .serve(addr)
         .await?;
     Ok(())

@@ -4,7 +4,8 @@ use crate::api::v1alpha1::{
     settings_service_client::SettingsServiceClient, sound_service_client::SoundServiceClient,
     system_service_client::SystemServiceClient, AdjustVolumeRequest, FastForwardRewindRequest,
     GetArtistsRequest, GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest,
-    GetLikedTracksRequest, GetTracksRequest, InsertDirectoryRequest, InsertTracksRequest,
+    GetAlbumRequest, GetLikedTracksRequest, GetTracksRequest, InsertDirectoryRequest,
+    InsertTracksRequest,
     LikeTrackRequest, NextRequest, PauseRequest, PlayAlbumRequest, PlayAllTracksRequest,
     PlayArtistTracksRequest, PlayDirectoryRequest, PlayTrackRequest, PlaylistResumeRequest,
     PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest,
@@ -12,7 +13,7 @@ use crate::api::v1alpha1::{
     StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest,
     UnlikeTrackRequest,
 };
-use crate::state::{SearchAlbum, SearchArtist, SearchResults};
+use crate::state::{SearchAlbum, SearchArtist, SearchPlaylist, SearchResults};
 
 // Matches apps/playlist.h PLAYLIST_INSERT_* constants
 pub const INSERT_FIRST: i32 = -4; // play next (after current)
@@ -38,6 +39,17 @@ pub async fn fetch_tracks() -> Result<Vec<Track>> {
         .collect())
 }
 
+pub async fn get_album(
+    id: &str,
+) -> Result<(String, Option<String>)> {
+    let mut c = LibraryServiceClient::connect(URL).await?;
+    let resp = c.get_album(GetAlbumRequest { id: id.to_string() }).await?;
+    let album = resp.into_inner().album;
+    Ok(album
+        .map(|a| (a.year_string, a.copyright_message))
+        .unwrap_or_default())
+}
+
 fn track_from_proto(t: crate::api::v1alpha1::Track) -> Track {
     Track {
         id: t.id,
@@ -53,6 +65,7 @@ fn track_from_proto(t: crate::api::v1alpha1::Track) -> Track {
         track_number: t.track_number,
         disc_number: t.disc_number,
         year: t.year,
+        year_string: t.year_string,
         album_art: t.album_art.filter(|s| !s.is_empty()),
     }
 }
@@ -219,10 +232,23 @@ pub async fn search(term: String) -> Result<SearchResults> {
             image: a.image,
         })
         .collect();
+    let playlists = resp
+        .playlists
+        .into_iter()
+        .map(|p| SearchPlaylist {
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            image: p.image,
+            is_smart: p.is_smart,
+            track_count: p.track_count,
+        })
+        .collect();
     Ok(SearchResults {
         tracks,
         albums,
         artists,
+        playlists,
     })
 }
 
@@ -253,6 +279,7 @@ pub async fn fetch_queue(tx: Sender<StateUpdate>) {
                         track_number: t.tracknum as u32,
                         disc_number: 0,
                         year: t.year as u32,
+                        year_string: String::new(),
                         album_art: t.album_art.filter(|s| !s.is_empty()),
                     })
                     .collect();
@@ -598,6 +625,7 @@ async fn playlist_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
                         track_number: t.tracknum as u32,
                         disc_number: 0,
                         year: t.year as u32,
+                        year_string: String::new(),
                         album_art: t.album_art.filter(|s| !s.is_empty()),
                     })
                     .collect();
@@ -685,5 +713,203 @@ pub async fn insert_directory(path: String, position: i32) -> Result<()> {
         playlist_id: None,
     })
     .await?;
+    Ok(())
+}
+
+// ── Saved Playlist API (gRPC) ─────────────────────────────────────────────────
+
+pub async fn fetch_saved_playlists() -> Result<Vec<crate::ui::components::SavedPlaylistItem>> {
+    use crate::api::v1alpha1::{
+        saved_playlist_service_client::SavedPlaylistServiceClient, GetSavedPlaylistsRequest,
+    };
+    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let resp = c
+        .get_saved_playlists(GetSavedPlaylistsRequest { folder_id: None })
+        .await?;
+    Ok(resp
+        .into_inner()
+        .playlists
+        .into_iter()
+        .map(|p| crate::ui::components::SavedPlaylistItem {
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            image: p.image,
+            folder_id: p.folder_id,
+            track_count: p.track_count,
+            created_at: p.created_at,
+            updated_at: p.updated_at,
+        })
+        .collect())
+}
+
+pub async fn fetch_smart_playlists() -> Result<Vec<crate::ui::components::SmartPlaylistItem>> {
+    use crate::api::v1alpha1::{
+        smart_playlist_service_client::SmartPlaylistServiceClient, GetSmartPlaylistsRequest,
+    };
+    let mut c = SmartPlaylistServiceClient::connect(URL).await?;
+    let resp = c
+        .get_smart_playlists(GetSmartPlaylistsRequest {})
+        .await?;
+    Ok(resp
+        .into_inner()
+        .playlists
+        .into_iter()
+        .map(|p| crate::ui::components::SmartPlaylistItem {
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            is_system: p.is_system,
+            rules: p
+                .rules
+                .map(|r| format!("{} conditions", r.conditions.len()))
+                .unwrap_or_default(),
+            created_at: p.created_at,
+            updated_at: p.updated_at,
+        })
+        .collect())
+}
+
+pub async fn create_saved_playlist(
+    name: String,
+    description: Option<String>,
+    track_ids: Vec<String>,
+) -> Result<()> {
+    use crate::api::v1alpha1::{
+        saved_playlist_service_client::SavedPlaylistServiceClient, CreateSavedPlaylistRequest,
+    };
+    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    c.create_saved_playlist(CreateSavedPlaylistRequest {
+        name,
+        description,
+        image: None,
+        folder_id: None,
+        track_ids,
+    })
+    .await?;
+    Ok(())
+}
+
+pub async fn add_track_to_playlist(playlist_id: String, track_id: String) -> Result<()> {
+    use crate::api::v1alpha1::{
+        saved_playlist_service_client::SavedPlaylistServiceClient,
+        AddTracksToSavedPlaylistRequest,
+    };
+    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    c.add_tracks_to_saved_playlist(AddTracksToSavedPlaylistRequest {
+        playlist_id,
+        track_ids: vec![track_id],
+    })
+    .await?;
+    Ok(())
+}
+
+/// Fetch track IDs for a saved playlist and resolve them from the provided tracks map.
+pub async fn fetch_saved_playlist_track_ids(playlist_id: String) -> Result<Vec<String>> {
+    use crate::api::v1alpha1::{
+        saved_playlist_service_client::SavedPlaylistServiceClient,
+        GetSavedPlaylistTracksRequest,
+    };
+    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let resp = c
+        .get_saved_playlist_tracks(GetSavedPlaylistTracksRequest { playlist_id })
+        .await?;
+    Ok(resp.into_inner().track_ids)
+}
+
+/// Fetch track IDs for a smart playlist.
+pub async fn fetch_smart_playlist_track_ids(playlist_id: String) -> Result<Vec<String>> {
+    use crate::api::v1alpha1::{
+        smart_playlist_service_client::SmartPlaylistServiceClient,
+        GetSmartPlaylistTracksRequest,
+    };
+    let mut c = SmartPlaylistServiceClient::connect(URL).await?;
+    let resp = c
+        .get_smart_playlist_tracks(GetSmartPlaylistTracksRequest { id: playlist_id })
+        .await?;
+    Ok(resp.into_inner().track_ids)
+}
+
+pub async fn play_saved_playlist(playlist_id: String) -> Result<()> {
+    use crate::api::v1alpha1::{
+        saved_playlist_service_client::SavedPlaylistServiceClient, PlaySavedPlaylistRequest,
+    };
+    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    c.play_saved_playlist(PlaySavedPlaylistRequest { playlist_id })
+        .await?;
+    Ok(())
+}
+
+pub async fn play_smart_playlist(playlist_id: String) -> Result<()> {
+    use crate::api::v1alpha1::{
+        smart_playlist_service_client::SmartPlaylistServiceClient, PlaySmartPlaylistRequest,
+    };
+    let mut c = SmartPlaylistServiceClient::connect(URL).await?;
+    c.play_smart_playlist(PlaySmartPlaylistRequest { id: playlist_id })
+        .await?;
+    Ok(())
+}
+
+pub async fn delete_saved_playlist(playlist_id: String) -> Result<()> {
+    use crate::api::v1alpha1::{
+        saved_playlist_service_client::SavedPlaylistServiceClient, DeleteSavedPlaylistRequest,
+    };
+    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    c.delete_saved_playlist(DeleteSavedPlaylistRequest { id: playlist_id })
+        .await?;
+    Ok(())
+}
+
+pub async fn update_saved_playlist(
+    id: String,
+    name: String,
+    description: Option<String>,
+) -> Result<()> {
+    use crate::api::v1alpha1::{
+        saved_playlist_service_client::SavedPlaylistServiceClient, UpdateSavedPlaylistRequest,
+    };
+    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    c.update_saved_playlist(UpdateSavedPlaylistRequest {
+        id,
+        name,
+        description,
+        image: None,
+        folder_id: None,
+    })
+    .await?;
+    Ok(())
+}
+
+pub async fn remove_track_from_saved_playlist(
+    playlist_id: String,
+    track_id: String,
+) -> Result<()> {
+    use crate::api::v1alpha1::{
+        saved_playlist_service_client::SavedPlaylistServiceClient,
+        RemoveTrackFromSavedPlaylistRequest,
+    };
+    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    c.remove_track_from_saved_playlist(RemoveTrackFromSavedPlaylistRequest {
+        playlist_id,
+        track_id,
+    })
+    .await?;
+    Ok(())
+}
+
+pub async fn play_saved_playlist_shuffled(playlist_id: String) -> Result<()> {
+    use crate::api::v1alpha1::{
+        saved_playlist_service_client::SavedPlaylistServiceClient, PlaySavedPlaylistRequest,
+    };
+    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    c.play_saved_playlist(PlaySavedPlaylistRequest { playlist_id })
+        .await?;
+    // After loading, shuffle
+    use crate::api::v1alpha1::{
+        playlist_service_client::PlaylistServiceClient, ShufflePlaylistRequest,
+    };
+    let mut pc = PlaylistServiceClient::connect(URL).await?;
+    pc.shuffle_playlist(ShufflePlaylistRequest { start_index: 0 })
+        .await?;
     Ok(())
 }
