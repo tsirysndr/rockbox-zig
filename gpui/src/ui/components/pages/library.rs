@@ -658,11 +658,7 @@ impl Render for LibraryPage {
                 )
         };
 
-        let show_search = !query.is_empty()
-            && !matches!(
-                section,
-                LibrarySection::AlbumDetail | LibrarySection::ArtistDetail | LibrarySection::Files
-            );
+        let show_search = !query.is_empty();
         let content: AnyElement = if show_search {
             // ── Search results ────────────────────────────────────────────────────
             match search_results {
