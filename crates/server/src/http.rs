@@ -1,5 +1,6 @@
 use anyhow::Error;
 use rockbox_library::entity::track::Track;
+use rockbox_playlists::PlaylistStore;
 use rockbox_sys::{
     self as rb,
     types::{mp3_entry::Mp3Entry, tree::Entry},
@@ -36,6 +37,7 @@ pub struct Context {
     pub current_device: Arc<Mutex<Option<Device>>>,
     pub player: Arc<Mutex<Option<Box<dyn Player + Send>>>>,
     pub kv: Arc<Mutex<KV<Track>>>,
+    pub playlist_store: PlaylistStore,
 }
 
 #[derive(Debug)]
@@ -254,6 +256,10 @@ impl RockboxHttpServer {
         let player = Arc::new(Mutex::new(None));
         let kv = Arc::new(Mutex::new(rt.block_on(build_tracks_kv(db_pool.clone()))?));
 
+        let playlist_store = PlaylistStore::new(db_pool.clone());
+        rt.block_on(playlist_store.seed())
+            .expect("Failed to seed playlist store");
+
         // Start scanning for devices
         scan_chromecast_devices(devices.clone());
         listen_for_playback_changes(player.clone(), db_pool.clone());
@@ -274,6 +280,7 @@ impl RockboxHttpServer {
                     let cloned_current_device = current_device.clone();
                     let cloned_player = player.clone();
                     let cloned_kv = kv.clone();
+                    let cloned_playlist_store = playlist_store.clone();
                     pool.execute(move || {
                         let mut buf_reader = BufReader::new(&stream);
                         let mut request = String::new();
@@ -343,6 +350,7 @@ impl RockboxHttpServer {
                                 cloned_current_device,
                                 cloned_player,
                                 cloned_kv,
+                                cloned_playlist_store,
                             );
                         }
 
@@ -390,6 +398,7 @@ impl RockboxHttpServer {
         current_device: Arc<Mutex<Option<Device>>>,
         player: Arc<Mutex<Option<Box<dyn Player + Send>>>>,
         kv: Arc<Mutex<KV<Track>>>,
+        playlist_store: PlaylistStore,
     ) {
         debug!("{} {}", method, path);
         match self.router.route(method, path) {
@@ -403,6 +412,7 @@ impl RockboxHttpServer {
                     current_device,
                     player,
                     kv,
+                    playlist_store,
                 };
                 let request = Request {
                     method: method.to_string(),

@@ -90,6 +90,7 @@ async fn index_file(req: HttpRequest) -> Result<NamedFile, actix_web::Error> {
 pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Error> {
     let client = reqwest::Client::new();
     let pool = create_connection_pool().await?;
+
     let schema = Schema::build(
         Query::default(),
         Mutation::default(),

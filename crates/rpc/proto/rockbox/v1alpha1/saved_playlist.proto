@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+// ── Folders ────────────────────────────────────────────────────────────────
+
+message PlaylistFolder {
+  string id = 1;
+  string name = 2;
+  int64 created_at = 3;
+  int64 updated_at = 4;
+}
+
+message CreatePlaylistFolderRequest { string name = 1; }
+message CreatePlaylistFolderResponse { PlaylistFolder folder = 1; }
+
+message GetPlaylistFoldersRequest {}
+message GetPlaylistFoldersResponse { repeated PlaylistFolder folders = 1; }
+
+message DeletePlaylistFolderRequest { string id = 1; }
+message DeletePlaylistFolderResponse {}
+
+// ── Playlists ──────────────────────────────────────────────────────────────
+
+message SavedPlaylist {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional string image = 4;
+  optional string folder_id = 5;
+  int64 track_count = 6;
+  int64 created_at = 7;
+  int64 updated_at = 8;
+}
+
+message GetSavedPlaylistsRequest {
+  optional string folder_id = 1;
+}
+message GetSavedPlaylistsResponse { repeated SavedPlaylist playlists = 1; }
+
+message GetSavedPlaylistRequest { string id = 1; }
+message GetSavedPlaylistResponse { optional SavedPlaylist playlist = 1; }
+
+message CreateSavedPlaylistRequest {
+  string name = 1;
+  optional string description = 2;
+  optional string image = 3;
+  optional string folder_id = 4;
+  repeated string track_ids = 5;
+}
+message CreateSavedPlaylistResponse { SavedPlaylist playlist = 1; }
+
+message UpdateSavedPlaylistRequest {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional string image = 4;
+  optional string folder_id = 5;
+}
+message UpdateSavedPlaylistResponse {}
+
+message DeleteSavedPlaylistRequest { string id = 1; }
+message DeleteSavedPlaylistResponse {}
+
+// ── Tracks ─────────────────────────────────────────────────────────────────
+
+message GetSavedPlaylistTracksRequest { string playlist_id = 1; }
+message GetSavedPlaylistTracksResponse { repeated string track_ids = 1; }
+
+message AddTracksToSavedPlaylistRequest {
+  string playlist_id = 1;
+  repeated string track_ids = 2;
+}
+message AddTracksToSavedPlaylistResponse {}
+
+message RemoveTrackFromSavedPlaylistRequest {
+  string playlist_id = 1;
+  string track_id = 2;
+}
+message RemoveTrackFromSavedPlaylistResponse {}
+
+message PlaySavedPlaylistRequest { string playlist_id = 1; }
+message PlaySavedPlaylistResponse {}
+
+// ── Service ────────────────────────────────────────────────────────────────
+
+service SavedPlaylistService {
+  rpc CreatePlaylistFolder(CreatePlaylistFolderRequest)
+      returns (CreatePlaylistFolderResponse) {}
+  rpc GetPlaylistFolders(GetPlaylistFoldersRequest)
+      returns (GetPlaylistFoldersResponse) {}
+  rpc DeletePlaylistFolder(DeletePlaylistFolderRequest)
+      returns (DeletePlaylistFolderResponse) {}
+
+  rpc GetSavedPlaylists(GetSavedPlaylistsRequest)
+      returns (GetSavedPlaylistsResponse) {}
+  rpc GetSavedPlaylist(GetSavedPlaylistRequest)
+      returns (GetSavedPlaylistResponse) {}
+  rpc CreateSavedPlaylist(CreateSavedPlaylistRequest)
+      returns (CreateSavedPlaylistResponse) {}
+  rpc UpdateSavedPlaylist(UpdateSavedPlaylistRequest)
+      returns (UpdateSavedPlaylistResponse) {}
+  rpc DeleteSavedPlaylist(DeleteSavedPlaylistRequest)
+      returns (DeleteSavedPlaylistResponse) {}
+
+  rpc GetSavedPlaylistTracks(GetSavedPlaylistTracksRequest)
+      returns (GetSavedPlaylistTracksResponse) {}
+  rpc AddTracksToSavedPlaylist(AddTracksToSavedPlaylistRequest)
+      returns (AddTracksToSavedPlaylistResponse) {}
+  rpc RemoveTrackFromSavedPlaylist(RemoveTrackFromSavedPlaylistRequest)
+      returns (RemoveTrackFromSavedPlaylistResponse) {}
+  rpc PlaySavedPlaylist(PlaySavedPlaylistRequest)
+      returns (PlaySavedPlaylistResponse) {}
+}

@@ -4,7 +4,9 @@ use device::{DeviceMutation, DeviceQuery};
 use library::{LibraryMutation, LibraryQuery};
 use playback::{PlaybackMutation, PlaybackQuery, PlaybackSubscription};
 use playlist::{PlaylistMutation, PlaylistQuery, PlaylistSubscription};
+use saved_playlist::{SavedPlaylistMutation, SavedPlaylistQuery};
 use settings::{SettingsMutation, SettingsQuery};
+use smart_playlist::{SmartPlaylistMutation, SmartPlaylistQuery};
 use sound::{SoundMutation, SoundQuery};
 use system::SystemQuery;
 
@@ -15,7 +17,9 @@ pub mod metadata;
 pub mod objects;
 pub mod playback;
 pub mod playlist;
+pub mod saved_playlist;
 pub mod settings;
+pub mod smart_playlist;
 pub mod sound;
 pub mod system;
 
@@ -26,6 +30,8 @@ pub struct Query(
     LibraryQuery,
     PlaybackQuery,
     PlaylistQuery,
+    SavedPlaylistQuery,
+    SmartPlaylistQuery,
     SoundQuery,
     SettingsQuery,
     SystemQuery,
@@ -36,6 +42,8 @@ pub struct Mutation(
     DeviceMutation,
     PlaybackMutation,
     PlaylistMutation,
+    SavedPlaylistMutation,
+    SmartPlaylistMutation,
     SoundMutation,
     LibraryMutation,
     SettingsMutation,

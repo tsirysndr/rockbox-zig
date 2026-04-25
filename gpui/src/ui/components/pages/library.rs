@@ -9,10 +9,13 @@ use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::miniplayer::MiniPlayer;
 use crate::ui::components::pages::files::{menu_item, FilesView};
 use crate::ui::components::search_input::SearchInput;
+use crate::ui::components::text_input::TextInput;
 use crate::ui::components::{
-    AlbumContextMenu, AlbumContextMenuState, BackSection, FileContextMenuState, HoveredAlbumIdx,
-    LibraryContextMenu, LibraryContextMenuState, LibrarySection, LikedOrder, LikedSongs,
-    SelectedAlbum, SelectedArtist,
+    AddToPlaylistMenuState, AlbumContextMenu, AlbumContextMenuState, BackSection,
+    CreatePlaylistModal, DeletePlaylistModal, EditPlaylistModal, FileContextMenuState,
+    HoveredAlbumIdx, LibraryContextMenu, LibraryContextMenuState, LibrarySection, LikedOrder,
+    LikedSongs, PlaylistsSidebarCollapsed, PlaylistsState, SelectedAlbum, SelectedAlbumMeta,
+    SelectedArtist, SelectedPlaylist,
 };
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -23,6 +26,27 @@ use gpui::{
 };
 
 const COVERS_BASE: &str = "http://localhost:6062/covers/";
+
+/// Parse "yyyy-MM-dd" into "9 December 2014". Falls back to the raw string on any parse failure.
+fn format_release_date(s: &str) -> String {
+    const MONTHS: [&str; 12] = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+    ];
+    let parts: Vec<&str> = s.splitn(3, '-').collect();
+    if parts.len() == 3 {
+        if let (Ok(y), Ok(m), Ok(d)) = (
+            parts[0].parse::<u32>(),
+            parts[1].parse::<usize>(),
+            parts[2].parse::<u32>(),
+        ) {
+            if m >= 1 && m <= 12 {
+                return format!("{} {} {}", d, MONTHS[m - 1], y);
+            }
+        }
+    }
+    s.to_string()
+}
 
 /// Square art tile that fills its container (used in grids). `icon_size` is the size_N shorthand number.
 fn art_tile(
@@ -107,11 +131,19 @@ pub struct LibraryPage {
     miniplayer: Entity<MiniPlayer>,
     search_input: Entity<SearchInput>,
     files_view: Entity<FilesView>,
+    modal_name_input: Entity<TextInput>,
+    modal_desc_input: Entity<TextInput>,
+    edit_name_input: Entity<TextInput>,
+    edit_desc_input: Entity<TextInput>,
     _search_sub: Option<Subscription>,
+    _playlists_sub: Subscription,
+    _edit_modal_sub: Subscription,
+    _delete_modal_sub: Subscription,
+    _album_meta_sub: Subscription,
 }
 
 impl LibraryPage {
-    pub fn new(cx: &mut App) -> Self {
+    pub fn new(cx: &mut gpui::Context<Self>) -> Self {
         cx.set_global(LibrarySection::Songs);
         cx.set_global(SelectedAlbum(String::new()));
         cx.set_global(SelectedArtist(String::new()));
@@ -121,13 +153,109 @@ impl LibraryPage {
         cx.set_global(HoveredAlbumIdx::default());
         cx.set_global(LikedSongs::default());
         cx.set_global(LikedOrder::default());
+        cx.set_global(PlaylistsState::default());
+        cx.set_global(SelectedPlaylist::default());
+        cx.set_global(PlaylistsSidebarCollapsed(false));
+        cx.set_global(CreatePlaylistModal::default());
+        cx.set_global(AddToPlaylistMenuState::default());
+        cx.set_global(EditPlaylistModal::default());
+        cx.set_global(DeletePlaylistModal::default());
+        cx.set_global(SelectedAlbumMeta::default());
+
+        // Re-render whenever PlaylistsState changes (initial load, post-create refresh, etc.)
+        let _playlists_sub = cx.observe_global::<PlaylistsState>(|_, cx| cx.notify());
+        let _edit_modal_sub = cx.observe_global::<EditPlaylistModal>(|this, cx| {
+            let modal = cx.global::<EditPlaylistModal>().clone();
+            if modal.open {
+                this.edit_name_input.update(cx, |input, cx| {
+                    input.value = modal.name.clone();
+                    cx.notify();
+                });
+                this.edit_desc_input.update(cx, |input, cx| {
+                    input.value = modal.description.clone();
+                    cx.notify();
+                });
+            }
+            cx.notify();
+        });
+        let _delete_modal_sub = cx.observe_global::<DeletePlaylistModal>(|_, cx| cx.notify());
+
+        // Fetch album metadata (year + copyright) whenever the selected album changes.
+        let _album_meta_sub = cx.observe_global::<SelectedAlbum>(|_this, cx| {
+            let album_name = cx.global::<SelectedAlbum>().0.clone();
+            let album_id = cx
+                .global::<Controller>()
+                .state
+                .read(cx)
+                .tracks
+                .iter()
+                .find(|t| t.album == album_name)
+                .map(|t| t.album_id.clone())
+                .unwrap_or_default();
+            if album_id.is_empty() {
+                return;
+            }
+            let tokio = cx.global::<crate::state::TokioHandle>().0.clone();
+            cx.spawn(async move |_, cx| {
+                let result = cx
+                    .background_executor()
+                    .spawn(async move {
+                        tokio.block_on(async {
+                            crate::client::get_album(&album_id).await
+                        })
+                    })
+                    .await;
+                let _ = cx.update(|app: &mut gpui::App| {
+                    if let Ok((year_string, copyright_message)) = result {
+                        let meta = app.global_mut::<SelectedAlbumMeta>();
+                        meta.year_string = year_string;
+                        meta.copyright_message = copyright_message;
+                    }
+                });
+            })
+            .detach();
+        });
+
+        // Kick off the initial playlist load so the sidebar is populated from the start.
+        let tokio = cx.global::<crate::state::TokioHandle>().0.clone();
+        cx.spawn(async move |_this, cx| {
+            let (saved, smart) = cx
+                .background_executor()
+                .spawn(async move {
+                    tokio.block_on(async {
+                        let saved = crate::client::fetch_saved_playlists()
+                            .await
+                            .unwrap_or_default();
+                        let smart = crate::client::fetch_smart_playlists()
+                            .await
+                            .unwrap_or_default();
+                        (saved, smart)
+                    })
+                })
+                .await;
+            let _ = cx.update(|app: &mut gpui::App| {
+                let state = app.global_mut::<PlaylistsState>();
+                state.saved = saved;
+                state.smart = smart;
+            });
+        })
+        .detach();
+
         LibraryPage {
             scroll_handle: UniformListScrollHandle::new(),
             detail_scroll_handle: UniformListScrollHandle::new(),
             miniplayer: cx.new(|_| MiniPlayer),
             search_input: cx.new(|cx| SearchInput::new(cx)),
             files_view: cx.new(|cx| FilesView::new(cx)),
+            modal_name_input: cx.new(|cx| TextInput::new("Title", cx)),
+            modal_desc_input: cx.new(|cx| TextInput::new("Description (optional)", cx)),
+            edit_name_input: cx.new(|cx| TextInput::new("Title", cx)),
+            edit_desc_input: cx.new(|cx| TextInput::new("Description (optional)", cx)),
             _search_sub: None,
+            _playlists_sub,
+            _edit_modal_sub,
+            _delete_modal_sub,
+            _album_meta_sub,
         }
     }
 }
@@ -140,6 +268,61 @@ impl Render for LibraryPage {
         let hovered_album_idx = cx.global::<HoveredAlbumIdx>().0;
         let selected_album = cx.global::<SelectedAlbum>().0.clone();
         let selected_artist = cx.global::<SelectedArtist>().0.clone();
+        let playlists_collapsed = cx.global::<PlaylistsSidebarCollapsed>().0;
+        let saved_playlists = cx.global::<PlaylistsState>().saved.clone();
+        let smart_playlists = cx.global::<PlaylistsState>().smart.clone();
+        let playlist_tracks = cx.global::<PlaylistsState>().playlist_tracks.clone();
+        let selected_playlist = cx.global::<SelectedPlaylist>().clone();
+        let create_modal = cx.global::<CreatePlaylistModal>().clone();
+        let edit_modal = cx.global::<EditPlaylistModal>().clone();
+        let delete_modal = cx.global::<DeletePlaylistModal>().clone();
+        let add_to_playlist_menu = cx.global::<AddToPlaylistMenuState>().0.clone();
+        let album_meta = cx.global::<SelectedAlbumMeta>().clone();
+
+        // Trigger playlist tracks load when in detail views
+        if (section == LibrarySection::PlaylistDetail
+            || section == LibrarySection::SmartPlaylistDetail)
+            && playlist_tracks.is_empty()
+            && !selected_playlist.id.is_empty()
+        {
+            let pid = selected_playlist.id.clone();
+            let is_smart = selected_playlist.is_smart;
+            let all_tracks = cx.global::<Controller>().state.read(cx).tracks.clone();
+            let tokio = cx.global::<crate::state::TokioHandle>().0.clone();
+            cx.spawn(async move |_this: gpui::WeakEntity<LibraryPage>, cx| {
+                let track_ids = cx
+                    .background_executor()
+                    .spawn(async move {
+                        tokio.block_on(async move {
+                            if is_smart {
+                                crate::client::fetch_smart_playlist_track_ids(pid)
+                                    .await
+                                    .unwrap_or_default()
+                            } else {
+                                crate::client::fetch_saved_playlist_track_ids(pid)
+                                    .await
+                                    .unwrap_or_default()
+                            }
+                        })
+                    })
+                    .await;
+                let id_set: std::collections::HashSet<String> =
+                    track_ids.iter().cloned().collect();
+                let mut resolved: Vec<crate::state::Track> = all_tracks
+                    .into_iter()
+                    .filter(|t| id_set.contains(&t.id))
+                    .collect();
+                let order_map: std::collections::HashMap<String, usize> =
+                    track_ids.into_iter().enumerate().map(|(i, id)| (id, i)).collect();
+                resolved.sort_by_key(|t| {
+                    order_map.get(&t.id).copied().unwrap_or(usize::MAX)
+                });
+                let _ = cx.update(|app: &mut gpui::App| {
+                    app.global_mut::<PlaylistsState>().playlist_tracks = resolved;
+                });
+            })
+            .detach();
+        }
 
         let viewport = window.viewport_size();
         let liked_songs = cx.global::<LikedSongs>().0.clone();
@@ -400,6 +583,7 @@ impl Render for LibraryPage {
             }));
         }
         let query = self.search_input.read(cx).query.clone();
+        let search_input = self.search_input.clone();
 
         let context_menu = cx.global::<LibraryContextMenuState>().0.clone();
         let album_context_menu = cx.global::<AlbumContextMenuState>().0.clone();
@@ -407,6 +591,14 @@ impl Render for LibraryPage {
         let n_album_tracks = album_tracks.len();
         let n_artist_tracks = artist_tracks.len();
         let scroll_handle = self.scroll_handle.clone();
+        let modal_name_input = self.modal_name_input.clone();
+        let modal_desc_input = self.modal_desc_input.clone();
+        let modal_name_value = self.modal_name_input.read(cx).value.clone();
+        let modal_desc_value = self.modal_desc_input.read(cx).value.clone();
+        let edit_name_input = self.edit_name_input.clone();
+        let edit_desc_input = self.edit_desc_input.clone();
+        let edit_name_value = self.edit_name_input.read(cx).value.clone();
+        let edit_desc_value = self.edit_desc_input.read(cx).value.clone();
         let _detail_scroll_handle = self.detail_scroll_handle.clone();
 
         // Sidebar nav item — Albums/Artists stay active while in their detail view
@@ -466,7 +658,8 @@ impl Render for LibraryPage {
                               track_artist: String,
                               track_album: String,
                               track_id: String,
-                              track_art: Option<String>| {
+                              track_art: Option<String>,
+                              remove_playlist_id: Option<String>| {
             let show_artist = artist.is_some();
             let show_album = album.is_some();
             let artist_text = artist.unwrap_or_default();
@@ -486,6 +679,7 @@ impl Render for LibraryPage {
             let heart_id: gpui::SharedString = format!("{}_heart_{}", row_id.0, row_id.1).into();
             let play_id: gpui::SharedString = format!("{}_play_{}", row_id.0, row_id.1).into();
             let path_for_play = path.clone();
+            let track_id_for_remove = track_id.clone();
             div()
                 .id(row_id)
                 .group(group_name)
@@ -573,7 +767,8 @@ impl Render for LibraryPage {
                     this.child(
                         div()
                             .w_40()
-                            .flex_shrink_0()
+                            .min_w_0()
+                            .overflow_hidden()
                             .text_sm()
                             .truncate()
                             .text_color(theme.library_header_text)
@@ -584,7 +779,8 @@ impl Render for LibraryPage {
                     this.child(
                         div()
                             .w_40()
-                            .flex_shrink_0()
+                            .min_w_0()
+                            .overflow_hidden()
                             .text_sm()
                             .truncate()
                             .text_color(theme.library_header_text)
@@ -652,10 +848,58 @@ impl Render for LibraryPage {
                                     artist: opts_artist.clone(),
                                     album: opts_album.clone(),
                                     album_art: opts_art.clone(),
+                                    track_id: track_id.clone(),
                                 });
                         })
                         .child(Icon::new(Icons::Options).size_4()),
                 )
+                .when_some(remove_playlist_id, |this, pid| {
+                    let remove_id: gpui::SharedString =
+                        format!("{}_remove_{}", row_id.0, row_id.1).into();
+                    let tid_for_remove = track_id_for_remove.clone();
+                    this.child(
+                        div()
+                            .id(remove_id)
+                            .w(px(28.0))
+                            .flex_shrink_0()
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .cursor_pointer()
+                            .text_color(theme.library_header_text)
+                            .hover(|s| s.text_color(gpui::rgb(0xef4444)))
+                            .on_click(move |_, _, cx: &mut App| {
+                                cx.stop_propagation();
+                                let tokio =
+                                    cx.global::<crate::state::TokioHandle>().0.clone();
+                                let pid2 = pid.clone();
+                                let tid2 = tid_for_remove.clone();
+                                cx.spawn(async move |cx| {
+                                    let result = cx
+                                        .background_executor()
+                                        .spawn(async move {
+                                            tokio.block_on(async move {
+                                                let _ = crate::client::remove_track_from_saved_playlist(pid2, tid2).await;
+                                                let saved = crate::client::fetch_saved_playlists()
+                                                    .await
+                                                    .ok();
+                                                saved
+                                            })
+                                        })
+                                        .await;
+                                    let _ = cx.update(|app: &mut gpui::App| {
+                                        if let Some(saved) = result {
+                                            app.global_mut::<PlaylistsState>().saved = saved;
+                                        }
+                                        app.global_mut::<PlaylistsState>().playlist_tracks =
+                                            vec![];
+                                    });
+                                })
+                                .detach();
+                            })
+                            .child(Icon::new(Icons::Trash).size_4()),
+                    )
+                })
         };
 
         let show_search = !query.is_empty();
@@ -724,6 +968,7 @@ impl Render for LibraryPage {
                                                 r.artists.iter().take(8).enumerate().map(
                                                     |(idx, artist)| {
                                                         let name_clone = artist.name.clone();
+                                                        let si = search_input.clone();
                                                         let img_url = artist
                                                             .image
                                                             .as_deref()
@@ -751,6 +996,10 @@ impl Render for LibraryPage {
                                                                 );
                                                                 *cx.global_mut::<LibrarySection>(
                                                                 ) = LibrarySection::ArtistDetail;
+                                                                si.update(cx, |this, cx| {
+                                                                    this.query.clear();
+                                                                    cx.notify();
+                                                                });
                                                             })
                                                             .child({
                                                                 let mut c = div()
@@ -819,6 +1068,7 @@ impl Render for LibraryPage {
                                                 r.albums.iter().take(8).enumerate().map(
                                                     |(idx, album)| {
                                                         let title_clone = album.title.clone();
+                                                        let si = search_input.clone();
                                                         let art_url = album
                                                             .album_art
                                                             .as_deref()
@@ -843,6 +1093,10 @@ impl Render for LibraryPage {
                                                                     );
                                                                 *cx.global_mut::<LibrarySection>(
                                                                 ) = LibrarySection::AlbumDetail;
+                                                                si.update(cx, |this, cx| {
+                                                                    this.query.clear();
+                                                                    cx.notify();
+                                                                });
                                                             })
                                                             .child({
                                                                 let mut c = div()
@@ -917,6 +1171,7 @@ impl Render for LibraryPage {
                                                 track.album.clone(),
                                                 track.id.clone(),
                                                 track.album_art.clone(),
+                                                None,
                                             )
                                         });
                                     this.child(
@@ -978,7 +1233,8 @@ impl Render for LibraryPage {
                             .child(
                                 div()
                                     .w_40()
-                                    .flex_shrink_0()
+                                    .min_w_0()
+                                    .overflow_hidden()
                                     .text_xs()
                                     .font_weight(FontWeight::MEDIUM)
                                     .text_color(theme.library_header_text)
@@ -987,7 +1243,8 @@ impl Render for LibraryPage {
                             .child(
                                 div()
                                     .w_40()
-                                    .flex_shrink_0()
+                                    .min_w_0()
+                                    .overflow_hidden()
                                     .text_xs()
                                     .font_weight(FontWeight::MEDIUM)
                                     .text_color(theme.library_header_text)
@@ -1029,6 +1286,7 @@ impl Render for LibraryPage {
                                         track.album.clone(),
                                         track.id.clone(),
                                         track.album_art.clone(),
+                                        None,
                                     )
                                 })
                                 .collect()
@@ -1347,11 +1605,13 @@ impl Render for LibraryPage {
                     div()
                     .id("album_detail_scroll")
                     .flex_1()
+                    .min_w_0()
                     .min_h_0()
                     .overflow_y_scroll()
                     .child(
                         div()
                             .w_full()
+                            .min_w_0()
                             .flex()
                             .flex_col()
                             // Header
@@ -1553,11 +1813,43 @@ impl Render for LibraryPage {
                                             row_album,
                                             track_id,
                                             art,
+                                            None,
                                         )
                                         .into_any_element(),
                                     );
                                 }
                                 div().children(rows)
+                            })
+                            // Footer: release year and copyright
+                            .child({
+                                let year = album_meta.year_string.clone();
+                                let copyright = album_meta.copyright_message.clone();
+                                let show_footer = !year.is_empty() || copyright.is_some();
+                                div()
+                                    .when(show_footer, |d| {
+                                        d.flex()
+                                            .flex_col()
+                                            .gap_y_1()
+                                            .px_6()
+                                            .pt_6()
+                                            .pb_8()
+                                            .when(!year.is_empty(), |d| {
+                                                d.child(
+                                                    div()
+                                                        .text_sm()
+                                                        .text_color(theme.library_header_text)
+                                                        .child(format_release_date(&year)),
+                                                )
+                                            })
+                                            .when_some(copyright, |d, msg| {
+                                                d.child(
+                                                    div()
+                                                        .text_sm()
+                                                        .text_color(theme.library_header_text)
+                                                        .child(msg),
+                                                )
+                                            })
+                                    })
                             }),
                     )
                     .into_any_element()
@@ -1576,11 +1868,13 @@ impl Render for LibraryPage {
                     div()
                     .id("artist_detail_scroll")
                     .flex_1()
+                    .min_w_0()
                     .min_h_0()
                     .overflow_y_scroll()
                     .child(
                         div()
                             .w_full()
+                            .min_w_0()
                             .flex()
                             .flex_col()
                             // Header
@@ -1812,7 +2106,8 @@ impl Render for LibraryPage {
                                     .child(
                                         div()
                                             .w_40()
-                                            .flex_shrink_0()
+                                            .min_w_0()
+                                            .overflow_hidden()
                                             .text_xs()
                                             .font_weight(FontWeight::MEDIUM)
                                             .text_color(theme.library_header_text)
@@ -1851,6 +2146,7 @@ impl Render for LibraryPage {
                                         row_album,
                                         track_id,
                                         art,
+                                        None,
                                     )
                                 },
                             )),
@@ -2022,7 +2318,7 @@ impl Render for LibraryPage {
                                         .child(
                                             div()
                                                 .w_40()
-                                                .flex_shrink_0()
+                                                .overflow_hidden()
                                                 .text_xs()
                                                 .font_weight(FontWeight::MEDIUM)
                                                 .text_color(theme.library_header_text)
@@ -2031,7 +2327,8 @@ impl Render for LibraryPage {
                                         .child(
                                             div()
                                                 .w_40()
-                                                .flex_shrink_0()
+                                                .min_w_0()
+                                                .overflow_hidden()
                                                 .text_xs()
                                                 .font_weight(FontWeight::MEDIUM)
                                                 .text_color(theme.library_header_text)
@@ -2081,6 +2378,7 @@ impl Render for LibraryPage {
                                             row_album,
                                             track_id,
                                             art,
+                                            None,
                                         )
                                     },
                                 )),
@@ -2090,6 +2388,654 @@ impl Render for LibraryPage {
 
                 // ── Files ─────────────────────────────────────────────────────────────
                 LibrarySection::Files => self.files_view.clone().into_any_element(),
+
+                // ── Playlists ──────────────────────────────────────────────────────────
+                LibrarySection::Playlists => {
+                    div()
+                        .id("playlists_scroll")
+                        .flex_1()
+                        .min_h_0()
+                        .overflow_y_scroll()
+                        .child(
+                            div()
+                                .w_full()
+                                .flex()
+                                .flex_col()
+                                // ── Header ──────────────────────────────────
+                                .child(
+                                    div()
+                                        .px_6()
+                                        .pt_5()
+                                        .pb_4()
+                                        .flex()
+                                        .items_center()
+                                        .justify_between()
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_3()
+                                                .child(
+                                                    Icon::new(Icons::Playlist)
+                                                        .size_8()
+                                                        .text_color(theme.library_text),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .text_2xl()
+                                                        .font_weight(FontWeight(700.0))
+                                                        .text_color(theme.library_text)
+                                                        .child("Playlists"),
+                                                ),
+                                        )
+                                        .child(
+                                            div()
+                                                .id("new_playlist_header_btn")
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_1()
+                                                .px_3()
+                                                .py_1p5()
+                                                .rounded_md()
+                                                .cursor_pointer()
+                                                .bg(theme.player_play_pause_bg)
+                                                .text_color(theme.player_play_pause_text)
+                                                .hover(|this| {
+                                                    this.bg(theme.player_play_pause_hover)
+                                                })
+                                                .on_click(|_, _, cx: &mut App| {
+                                                    cx.global_mut::<CreatePlaylistModal>().open =
+                                                        true;
+                                                })
+                                                .child(Icon::new(Icons::CirclePlus).size_4())
+                                                .child(
+                                                    div()
+                                                        .text_sm()
+                                                        .font_weight(FontWeight(600.0))
+                                                        .child("New Playlist"),
+                                                ),
+                                        ),
+                                )
+                                // ── Saved playlists grid ─────────────────────
+                                .when(!saved_playlists.is_empty(), |this| {
+                                    this.child(
+                                        div()
+                                            .px_6()
+                                            .pb_2()
+                                            .text_xs()
+                                            .font_weight(FontWeight(600.0))
+                                            .text_color(theme.library_header_text)
+                                            .child("MY PLAYLISTS"),
+                                    )
+                                    .child(
+                                        div()
+                                            .px_6()
+                                            .pb_6()
+                                            .grid()
+                                            .grid_cols(album_cols)
+                                            .gap_4()
+                                            .children(
+                                                saved_playlists.clone().into_iter().enumerate().map(
+                                                    |(i, pl)| {
+                                                        let pl_id_click = pl.id.clone();
+                                                        let pl_name = pl.name.clone();
+                                                        let pl_name_click = pl.name.clone();
+                                                        let group_name: gpui::SharedString =
+                                                            format!("pl_card_{}", i).into();
+                                                        div()
+                                                            .id(("saved_pl", i))
+                                                            .group(group_name.clone())
+                                                            .flex()
+                                                            .flex_col()
+                                                            .gap_y_2()
+                                                            .cursor_pointer()
+                                                            .p_2()
+                                                            .rounded_lg()
+                                                            .hover(|this| {
+                                                                this.bg(theme.library_track_bg_hover)
+                                                            })
+                                                            .on_click(move |_, _, cx: &mut App| {
+                                                                *cx.global_mut::<SelectedPlaylist>() =
+                                                                    SelectedPlaylist {
+                                                                        id: pl_id_click.clone(),
+                                                                        name: pl_name_click.clone(),
+                                                                        is_smart: false,
+                                                                    };
+                                                                cx.global_mut::<PlaylistsState>()
+                                                                    .playlist_tracks = vec![];
+                                                                *cx.global_mut::<LibrarySection>() =
+                                                                    LibrarySection::PlaylistDetail;
+                                                            })
+                                                            .child(
+                                                                div()
+                                                                    .relative()
+                                                                    .child(art_tile(
+                                                                        pl.image.clone(),
+                                                                        theme,
+                                                                        Icons::Playlist,
+                                                                        8,
+                                                                    ))
+                                                                    .child(
+                                                                        div()
+                                                                            .absolute()
+                                                                            .bottom(px(4.0))
+                                                                            .right(px(4.0))
+                                                                            .flex()
+                                                                            .gap_x_1()
+                                                                            .opacity(0.0)
+                                                                            .group_hover(group_name.clone(), |s| s.opacity(1.0))
+                                                                            .child(
+                                                                                div()
+                                                                                    .id(("pl_edit_btn", i))
+                                                                                    .p_1()
+                                                                                    .rounded_md()
+                                                                                    .bg(theme.titlebar_bg)
+                                                                                    .cursor_pointer()
+                                                                                    .text_color(theme.library_header_text)
+                                                                                    .hover(|s| s.text_color(theme.library_text))
+                                                                                    .on_click({
+                                                                                        let pl_id = pl.id.clone();
+                                                                                        let pl_name2 = pl.name.clone();
+                                                                                        let pl_desc = pl.description.clone().unwrap_or_default();
+                                                                                        move |_, _, cx: &mut App| {
+                                                                                            cx.stop_propagation();
+                                                                                            let modal = cx.global_mut::<EditPlaylistModal>();
+                                                                                            modal.open = true;
+                                                                                            modal.id = pl_id.clone();
+                                                                                            modal.name = pl_name2.clone();
+                                                                                            modal.description = pl_desc.clone();
+                                                                                        }
+                                                                                    })
+                                                                                    .child(Icon::new(Icons::Pencil).size_4()),
+                                                                            )
+                                                                            .child(
+                                                                                div()
+                                                                                    .id(("pl_del_btn", i))
+                                                                                    .p_1()
+                                                                                    .rounded_md()
+                                                                                    .bg(theme.titlebar_bg)
+                                                                                    .cursor_pointer()
+                                                                                    .text_color(theme.library_header_text)
+                                                                                    .hover(|s| s.text_color(gpui::rgb(0xef4444)))
+                                                                                    .on_click({
+                                                                                        let pl_id = pl.id.clone();
+                                                                                        let pl_name2 = pl.name.clone();
+                                                                                        move |_, _, cx: &mut App| {
+                                                                                            cx.stop_propagation();
+                                                                                            let modal = cx.global_mut::<DeletePlaylistModal>();
+                                                                                            modal.open = true;
+                                                                                            modal.id = pl_id.clone();
+                                                                                            modal.name = pl_name2.clone();
+                                                                                        }
+                                                                                    })
+                                                                                    .child(Icon::new(Icons::Trash).size_4()),
+                                                                            ),
+                                                                    ),
+                                                            )
+                                                            .child(
+                                                                div()
+                                                                    .flex()
+                                                                    .flex_col()
+                                                                    .gap_y_0p5()
+                                                                    .child(
+                                                                        div()
+                                                                            .text_sm()
+                                                                            .font_weight(
+                                                                                FontWeight(600.0),
+                                                                            )
+                                                                            .text_color(
+                                                                                theme.library_text,
+                                                                            )
+                                                                            .truncate()
+                                                                            .child(pl_name.clone()),
+                                                                    )
+                                                                    .child(
+                                                                        div()
+                                                                            .text_xs()
+                                                                            .text_color(
+                                                                                theme
+                                                                                    .library_header_text,
+                                                                            )
+                                                                            .child(format!(
+                                                                                "{} tracks",
+                                                                                pl.track_count
+                                                                            )),
+                                                                    ),
+                                                            )
+                                                    },
+                                                ),
+                                            ),
+                                    )
+                                })
+                                // ── Smart playlists ──────────────────────────
+                                .when(!smart_playlists.is_empty(), |this| {
+                                    this.child(
+                                        div()
+                                            .px_6()
+                                            .pb_2()
+                                            .text_xs()
+                                            .font_weight(FontWeight(600.0))
+                                            .text_color(theme.library_header_text)
+                                            .child("SMART PLAYLISTS"),
+                                    )
+                                    .child(
+                                        div()
+                                            .px_6()
+                                            .pb_6()
+                                            .grid()
+                                            .grid_cols(album_cols)
+                                            .gap_4()
+                                            .children(
+                                                smart_playlists
+                                                    .clone()
+                                                    .into_iter()
+                                                    .enumerate()
+                                                    .map(|(i, pl)| {
+                                                        let pl_id_click = pl.id.clone();
+                                                        let pl_name = pl.name.clone();
+                                                        let pl_name_click = pl.name.clone();
+                                                        div()
+                                                            .id(("smart_pl", i))
+                                                            .flex()
+                                                            .flex_col()
+                                                            .gap_y_2()
+                                                            .cursor_pointer()
+                                                            .p_2()
+                                                            .rounded_lg()
+                                                            .hover(|this| {
+                                                                this.bg(theme.library_track_bg_hover)
+                                                            })
+                                                            .on_click(move |_, _, cx: &mut App| {
+                                                                *cx.global_mut::<SelectedPlaylist>() =
+                                                                    SelectedPlaylist {
+                                                                        id: pl_id_click.clone(),
+                                                                        name: pl_name_click.clone(),
+                                                                        is_smart: true,
+                                                                    };
+                                                                cx.global_mut::<PlaylistsState>()
+                                                                    .playlist_tracks = vec![];
+                                                                *cx.global_mut::<LibrarySection>() =
+                                                                    LibrarySection::SmartPlaylistDetail;
+                                                            })
+                                                            .child(art_tile(
+                                                                None,
+                                                                theme,
+                                                                Icons::MusicList,
+                                                                8,
+                                                            ))
+                                                            .child(
+                                                                div()
+                                                                    .flex()
+                                                                    .flex_col()
+                                                                    .gap_y_0p5()
+                                                                    .child(
+                                                                        div()
+                                                                            .text_sm()
+                                                                            .font_weight(
+                                                                                FontWeight(600.0),
+                                                                            )
+                                                                            .text_color(
+                                                                                theme.library_text,
+                                                                            )
+                                                                            .truncate()
+                                                                            .child(pl_name.clone()),
+                                                                    )
+                                                                    .child(
+                                                                        div()
+                                                                            .text_xs()
+                                                                            .text_color(
+                                                                                theme
+                                                                                    .library_header_text,
+                                                                            )
+                                                                            .child("Smart Playlist"),
+                                                                    ),
+                                                            )
+                                                    }),
+                                            ),
+                                    )
+                                })
+                                .when(
+                                    saved_playlists.is_empty() && smart_playlists.is_empty(),
+                                    |this| {
+                                        this.child(
+                                            div()
+                                                .flex_1()
+                                                .flex()
+                                                .flex_col()
+                                                .items_center()
+                                                .justify_center()
+                                                .gap_y_3()
+                                                .py_16()
+                                                .text_color(theme.library_header_text)
+                                                .child(
+                                                    Icon::new(Icons::Playlist)
+                                                        .size_10()
+                                                        .text_color(theme.library_header_text),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .text_sm()
+                                                        .child("No playlists yet"),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .id("create_first_playlist_btn")
+                                                        .px_4()
+                                                        .py_2()
+                                                        .rounded_md()
+                                                        .cursor_pointer()
+                                                        .bg(theme.player_play_pause_bg)
+                                                        .text_color(theme.player_play_pause_text)
+                                                        .text_sm()
+                                                        .hover(|this| {
+                                                            this.bg(theme.player_play_pause_hover)
+                                                        })
+                                                        .on_click(|_, _, cx: &mut App| {
+                                                            cx.global_mut::<CreatePlaylistModal>()
+                                                                .open = true;
+                                                        })
+                                                        .child("Create your first playlist"),
+                                                ),
+                                        )
+                                    },
+                                ),
+                        )
+                        .into_any_element()
+                }
+
+                // ── PlaylistDetail ─────────────────────────────────────────────────────
+                LibrarySection::PlaylistDetail | LibrarySection::SmartPlaylistDetail => {
+                    let pl_name = selected_playlist.name.clone();
+                    let pl_id_play = selected_playlist.id.clone();
+                    let pl_id_shuffled = selected_playlist.id.clone();
+                    let pl_is_smart = selected_playlist.is_smart;
+                    let selected_playlist_id_for_remove = selected_playlist.id.clone();
+                    let n_pl_tracks = playlist_tracks.len();
+                    div()
+                        .id("playlist_detail_scroll")
+                        .flex_1()
+                        .min_w_0()
+                        .min_h_0()
+                        .overflow_y_scroll()
+                        .child(
+                            div()
+                                .w_full()
+                                .min_w_0()
+                                .flex()
+                                .flex_col()
+                                // ── Back + Header ─────────────────────────────
+                                .child(
+                                    div()
+                                        .px_6()
+                                        .pt_5()
+                                        .pb_4()
+                                        .flex()
+                                        .flex_col()
+                                        .gap_y_4()
+                                        .child(
+                                            div()
+                                                .id("pl_back_btn")
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_1()
+                                                .cursor_pointer()
+                                                .text_xs()
+                                                .text_color(theme.library_header_text)
+                                                .hover(|this| this.text_color(theme.library_text))
+                                                .on_click(|_, _, cx: &mut App| {
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::Playlists;
+                                                })
+                                                .child(
+                                                    Icon::new(Icons::ChevronLeft)
+                                                        .size_3()
+                                                        .text_color(theme.library_header_text),
+                                                )
+                                                .child("Playlists"),
+                                        )
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_4()
+                                                .child(art_fixed(
+                                                    None,
+                                                    theme,
+                                                    if pl_is_smart {
+                                                        Icons::MusicList
+                                                    } else {
+                                                        Icons::Playlist
+                                                    },
+                                                    px(120.0),
+                                                ))
+                                                .child(
+                                                    div()
+                                                        .flex()
+                                                        .flex_col()
+                                                        .gap_y_2()
+                                                        .child(
+                                                            div()
+                                                                .text_2xl()
+                                                                .font_weight(FontWeight(700.0))
+                                                                .text_color(theme.library_text)
+                                                                .child(pl_name.clone()),
+                                                        )
+                                                        .child(
+                                                            div()
+                                                                .text_sm()
+                                                                .text_color(
+                                                                    theme.library_header_text,
+                                                                )
+                                                                .child(format!(
+                                                                    "{} track{}",
+                                                                    n_pl_tracks,
+                                                                    if n_pl_tracks == 1 { "" } else { "s" }
+                                                                )),
+                                                        )
+                                                        .child(
+                                                            div()
+                                                                .flex()
+                                                                .items_center()
+                                                                .gap_x_3()
+                                                                .child(
+                                                                    div()
+                                                                        .id("pl_play_btn")
+                                                                        .flex()
+                                                                        .items_center()
+                                                                        .gap_x_2()
+                                                                        .px_4()
+                                                                        .py_2()
+                                                                        .rounded_md()
+                                                                        .bg(
+                                                                            theme
+                                                                                .player_play_pause_bg,
+                                                                        )
+                                                                        .text_color(
+                                                                            theme
+                                                                                .player_play_pause_text,
+                                                                        )
+                                                                        .when(n_pl_tracks == 0, |this| {
+                                                                            this.opacity(0.5).cursor_default()
+                                                                        })
+                                                                        .when(n_pl_tracks > 0, |this| {
+                                                                            this.cursor_pointer()
+                                                                                .hover(|s| {
+                                                                                    s.bg(theme.player_play_pause_hover)
+                                                                                })
+                                                                                .on_click(
+                                                                                    move |_, _, cx: &mut App| {
+                                                                                        let rt = cx
+                                                                                            .global::<Controller>()
+                                                                                            .rt();
+                                                                                        let pid = pl_id_play.clone();
+                                                                                        if pl_is_smart {
+                                                                                            rt.spawn(
+                                                                                                crate::client::play_smart_playlist(pid),
+                                                                                            );
+                                                                                        } else {
+                                                                                            rt.spawn(
+                                                                                                crate::client::play_saved_playlist(pid),
+                                                                                            );
+                                                                                        }
+                                                                                    },
+                                                                                )
+                                                                        })
+                                                                        .child(
+                                                                            Icon::new(Icons::Play)
+                                                                                .size_4(),
+                                                                        )
+                                                                        .child(
+                                                                            div()
+                                                                                .text_sm()
+                                                                                .font_weight(
+                                                                                    FontWeight(600.0),
+                                                                                )
+                                                                                .child("Play"),
+                                                                        ),
+                                                                )
+                                                                .child(
+                                                                    div()
+                                                                        .id("pl_shuffle_btn")
+                                                                        .flex()
+                                                                        .items_center()
+                                                                        .gap_x_2()
+                                                                        .px_4()
+                                                                        .py_2()
+                                                                        .rounded_md()
+                                                                        .bg(theme.player_icons_bg_active)
+                                                                        .text_color(theme.library_text)
+                                                                        .when(n_pl_tracks == 0, |this| {
+                                                                            this.opacity(0.5).cursor_default()
+                                                                        })
+                                                                        .when(n_pl_tracks > 0, |this| {
+                                                                            this.cursor_pointer()
+                                                                                .hover(|s| s.bg(theme.player_icons_bg_hover))
+                                                                                .on_click({
+                                                                                    let pid = pl_id_shuffled.clone();
+                                                                                    move |_, _, cx: &mut App| {
+                                                                                        let rt = cx.global::<Controller>().rt();
+                                                                                        rt.spawn(crate::client::play_saved_playlist_shuffled(pid.clone()));
+                                                                                    }
+                                                                                })
+                                                                        })
+                                                                        .child(Icon::new(Icons::Shuffle).size_4())
+                                                                        .child(
+                                                                            div()
+                                                                                .text_sm()
+                                                                                .font_weight(FontWeight(500.0))
+                                                                                .child("Shuffle"),
+                                                                        ),
+                                                                ),
+                                                        ),
+                                                ),
+                                        ),
+                                )
+                                // ── Column headers ──────────────────────────────
+                                .child(
+                                    div()
+                                        .w_full()
+                                        .flex_shrink_0()
+                                        .flex()
+                                        .items_center()
+                                        .gap_x_4()
+                                        .px_6()
+                                        .py_4()
+                                        .border_b_1()
+                                        .border_color(theme.library_table_border)
+                                        .child(
+                                            div()
+                                                .w(px(28.0))
+                                                .flex_shrink_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("#"),
+                                        )
+                                        .child(
+                                            div()
+                                                .flex_1()
+                                                .min_w_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("TITLE"),
+                                        )
+                                        .child(
+                                            div()
+                                                .w_40()
+                                                .overflow_hidden()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("ARTIST"),
+                                        )
+                                        .child(
+                                            div()
+                                                .w_40()
+                                                .min_w_0()
+                                                .overflow_hidden()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("ALBUM"),
+                                        )
+                                        .child(
+                                            div()
+                                                .w(px(56.0))
+                                                .flex_shrink_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("TIME"),
+                                        )
+                                        .child(div().w(px(28.0)).flex_shrink_0())
+                                        .child(div().w(px(28.0)).flex_shrink_0())
+                                        .when(!pl_is_smart, |this| {
+                                            this.child(div().w(px(28.0)).flex_shrink_0())
+                                        }),
+                                )
+                                // ── Track rows ──────────────────────────────
+                                .children(
+                                    playlist_tracks
+                                        .into_iter()
+                                        .enumerate()
+                                        .map(|(i, t)| {
+                                            let is_current = current_idx
+                                                == cx
+                                                    .global::<Controller>()
+                                                    .state
+                                                    .read(cx)
+                                                    .tracks
+                                                    .iter()
+                                                    .position(|tr| tr.path == t.path);
+                                            let is_liked = liked_songs.contains(&t.id);
+                                            let row_artist = t.artist.clone();
+                                            let row_album = t.album.clone();
+                                            track_row(
+                                                ("pl_detail_row", i),
+                                                t.path,
+                                                (i + 1).to_string(),
+                                                t.title,
+                                                Some(t.artist),
+                                                Some(t.album),
+                                                t.duration,
+                                                is_current,
+                                                is_liked,
+                                                row_artist,
+                                                row_album,
+                                                t.id,
+                                                t.album_art,
+                                                if pl_is_smart {
+                                                    None
+                                                } else {
+                                                    Some(selected_playlist_id_for_remove.clone())
+                                                },
+                                            )
+                                        }),
+                                ),
+                        )
+                        .into_any_element()
+                }
             };
             content_inner
         }; // end if/else search
@@ -2110,11 +3056,13 @@ impl Render for LibraryPage {
                     // Sidebar
                     .child(
                         div()
+                            .id("sidebar_scroll")
                             .w(px(200.0))
                             .h_full()
                             .flex_shrink_0()
                             .flex()
                             .flex_col()
+                            .overflow_y_scroll()
                             .border_r_1()
                             .border_color(theme.library_table_border)
                             .pt_4()
@@ -2149,7 +3097,228 @@ impl Render for LibraryPage {
                                 4,
                                 "Files",
                                 LibrarySection::Files,
-                            )),
+                            ))
+                            // ── Playlists sidebar section ──────────────────
+                            .child(
+                                div()
+                                    .w_full()
+                                    .flex()
+                                    .flex_col()
+                                    .child(
+                                        // Section header row: label navigates, chevron toggles collapse
+                                        div()
+                                            .id("playlists_sidebar_header")
+                                            .w_full()
+                                            .flex()
+                                            .items_center()
+                                            .justify_between()
+                                            .px_4()
+                                            .py_2p5()
+                                            .cursor_pointer()
+                                            .hover(|this| this.text_color(theme.library_text))
+                                            .on_click(|_, _, cx: &mut App| {
+                                                // Navigate to the Playlists grid and expand the list.
+                                                *cx.global_mut::<LibrarySection>() =
+                                                    LibrarySection::Playlists;
+                                                cx.global_mut::<PlaylistsSidebarCollapsed>().0 =
+                                                    false;
+                                            })
+                                            .child(
+                                                div()
+                                                    .flex()
+                                                    .items_center()
+                                                    .gap_x_2()
+                                                    .text_sm()
+                                                    .text_color(theme.library_header_text)
+                                                    .child(
+                                                        // Chevron is its own button — stops propagation
+                                                        // so it only toggles collapse without navigating.
+                                                        div()
+                                                            .id("playlists_collapse_btn")
+                                                            .cursor_pointer()
+                                                            .on_click(|_, _, cx: &mut App| {
+                                                                cx.stop_propagation();
+                                                                let c = cx.global_mut::<PlaylistsSidebarCollapsed>();
+                                                                c.0 = !c.0;
+                                                            })
+                                                            .child(
+                                                                Icon::new(Icons::ChevronLeft)
+                                                                    .size_3()
+                                                                    .rotate(if playlists_collapsed {
+                                                                        gpui::Radians(
+                                                                            -std::f32::consts::PI,
+                                                                        )
+                                                                    } else {
+                                                                        gpui::Radians(
+                                                                            -std::f32::consts::FRAC_PI_2,
+                                                                        )
+                                                                    })
+                                                                    .text_color(theme.library_header_text),
+                                                            ),
+                                                    )
+                                                    .child(
+                                                        Icon::new(Icons::Playlist)
+                                                            .size_4()
+                                                            .text_color(theme.library_header_text),
+                                                    )
+                                                    .child("Playlists"),
+                                            )
+                                            .child(
+                                                div()
+                                                    .id("sidebar_new_playlist_btn")
+                                                    .cursor_pointer()
+                                                    .text_color(theme.library_header_text)
+                                                    .hover(|this| {
+                                                        this.text_color(theme.library_text)
+                                                    })
+                                                    .on_click(|_, _, cx: &mut App| {
+                                                        cx.stop_propagation();
+                                                        cx.global_mut::<CreatePlaylistModal>()
+                                                            .open = true;
+                                                    })
+                                                    .child(Icon::new(Icons::CirclePlus).size_4()),
+                                            ),
+                                    )
+                                    // Playlist items (when not collapsed)
+                                    .when(!playlists_collapsed, |this| {
+                                        this.children(
+                                            saved_playlists
+                                                .iter()
+                                                .enumerate()
+                                                .map(|(i, pl)| {
+                                                    let pl_id = pl.id.clone();
+                                                    let pl_name = pl.name.clone();
+                                                    let pl_name_label = pl.name.clone();
+                                                    let is_active = section
+                                                        == LibrarySection::PlaylistDetail
+                                                        && selected_playlist.id == pl.id;
+                                                    div()
+                                                        .id(("sidebar_pl", i))
+                                                        .w_full()
+                                                        .px_4()
+                                                        .pl_8()
+                                                        .py_2()
+                                                        .cursor_pointer()
+                                                        .text_xs()
+                                                        .font_weight(if is_active {
+                                                            FontWeight(600.0)
+                                                        } else {
+                                                            FontWeight(400.0)
+                                                        })
+                                                        .text_color(if is_active {
+                                                            gpui::rgb(0xFFFFFF)
+                                                        } else {
+                                                            theme.library_header_text
+                                                        })
+                                                        .when(is_active, |this| {
+                                                            this.border_l_2()
+                                                                .border_color(theme.switcher_active)
+                                                        })
+                                                        .hover(|this| {
+                                                            this.text_color(theme.library_text)
+                                                        })
+                                                        .on_click(move |_, _, cx: &mut App| {
+                                                            *cx.global_mut::<SelectedPlaylist>() =
+                                                                SelectedPlaylist {
+                                                                    id: pl_id.clone(),
+                                                                    name: pl_name.clone(),
+                                                                    is_smart: false,
+                                                                };
+                                                            cx.global_mut::<PlaylistsState>()
+                                                                .playlist_tracks = vec![];
+                                                            *cx.global_mut::<LibrarySection>() =
+                                                                LibrarySection::PlaylistDetail;
+                                                        })
+                                                        .child(
+                                                            div()
+                                                                .flex()
+                                                                .items_center()
+                                                                .gap_x_2()
+                                                                .child(
+                                                                    Icon::new(Icons::Playlist)
+                                                                        .size_3(),
+                                                                )
+                                                                .child(
+                                                                    div()
+                                                                        .flex_1()
+                                                                        .min_w_0()
+                                                                        .truncate()
+                                                                        .child(pl_name_label),
+                                                                ),
+                                                        )
+                                                })
+                                                .collect::<Vec<_>>(),
+                                        )
+                                        .children(
+                                            smart_playlists
+                                                .iter()
+                                                .enumerate()
+                                                .map(|(i, pl)| {
+                                                    let pl_id = pl.id.clone();
+                                                    let pl_name = pl.name.clone();
+                                                    let pl_name_label = pl.name.clone();
+                                                    let is_active = section
+                                                        == LibrarySection::SmartPlaylistDetail
+                                                        && selected_playlist.id == pl.id;
+                                                    div()
+                                                        .id(("sidebar_smart_pl", i))
+                                                        .w_full()
+                                                        .px_4()
+                                                        .pl_8()
+                                                        .py_2()
+                                                        .cursor_pointer()
+                                                        .text_xs()
+                                                        .font_weight(if is_active {
+                                                            FontWeight(600.0)
+                                                        } else {
+                                                            FontWeight(400.0)
+                                                        })
+                                                        .text_color(if is_active {
+                                                            gpui::rgb(0xFFFFFF)
+                                                        } else {
+                                                            theme.library_header_text
+                                                        })
+                                                        .when(is_active, |this| {
+                                                            this.border_l_2()
+                                                                .border_color(theme.switcher_active)
+                                                        })
+                                                        .hover(|this| {
+                                                            this.text_color(theme.library_text)
+                                                        })
+                                                        .on_click(move |_, _, cx: &mut App| {
+                                                            *cx.global_mut::<SelectedPlaylist>() =
+                                                                SelectedPlaylist {
+                                                                    id: pl_id.clone(),
+                                                                    name: pl_name.clone(),
+                                                                    is_smart: true,
+                                                                };
+                                                            cx.global_mut::<PlaylistsState>()
+                                                                .playlist_tracks = vec![];
+                                                            *cx.global_mut::<LibrarySection>() =
+                                                                LibrarySection::SmartPlaylistDetail;
+                                                        })
+                                                        .child(
+                                                            div()
+                                                                .flex()
+                                                                .items_center()
+                                                                .gap_x_2()
+                                                                .child(
+                                                                    Icon::new(Icons::MusicList)
+                                                                        .size_3(),
+                                                                )
+                                                                .child(
+                                                                    div()
+                                                                        .flex_1()
+                                                                        .min_w_0()
+                                                                        .truncate()
+                                                                        .child(pl_name_label),
+                                                                ),
+                                                        )
+                                                })
+                                                .collect::<Vec<_>>(),
+                                        )
+                                    }),
+                            ),
                     )
                     .child(content),
             )
@@ -2159,14 +3328,16 @@ impl Render for LibraryPage {
                 let path_for_last = menu.path.clone();
                 let menu_artist = menu.artist.clone();
                 let menu_album = menu.album.clone();
+                let menu_track_id = menu.track_id.clone();
+                let menu_track_path = menu.path.clone();
                 let header_art_url = menu
                     .album_art
                     .as_deref()
                     .filter(|s| !s.is_empty())
                     .map(|id| format!("{COVERS_BASE}{id}"));
-                // header ~64px + 4 items × ~33px + borders
+                // header ~64px + 6 items × ~33px + separator + borders
                 let menu_w = px(240.0);
-                let menu_h = px(198.0);
+                let menu_h = px(264.0);
                 let margin = px(8.0);
                 let max_x = viewport.width - menu_w - margin;
                 let menu_x = if menu.pos.x > max_x {
@@ -2277,6 +3448,11 @@ impl Render for LibraryPage {
                                 .cursor_pointer()
                                 .text_color(theme.library_text)
                                 .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_hover(|hovered, _window, cx: &mut App| {
+                                    if *hovered {
+                                        cx.global_mut::<AddToPlaylistMenuState>().0 = None;
+                                    }
+                                })
                                 .on_click(move |_, _, cx: &mut App| {
                                     cx.global::<Controller>()
                                         .insert_track_next(path_for_next.clone());
@@ -2293,6 +3469,11 @@ impl Render for LibraryPage {
                                 .cursor_pointer()
                                 .text_color(theme.library_text)
                                 .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_hover(|hovered, _window, cx: &mut App| {
+                                    if *hovered {
+                                        cx.global_mut::<AddToPlaylistMenuState>().0 = None;
+                                    }
+                                })
                                 .on_click(move |_, _, cx: &mut App| {
                                     cx.global::<Controller>()
                                         .insert_track_last(path_for_last.clone());
@@ -2309,6 +3490,11 @@ impl Render for LibraryPage {
                                 .cursor_pointer()
                                 .text_color(theme.library_text)
                                 .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_hover(|hovered, _window, cx: &mut App| {
+                                    if *hovered {
+                                        cx.global_mut::<AddToPlaylistMenuState>().0 = None;
+                                    }
+                                })
                                 .on_click(move |_, _, cx: &mut App| {
                                     *cx.global_mut::<SelectedArtist>() =
                                         SelectedArtist(menu_artist.clone());
@@ -2327,6 +3513,11 @@ impl Render for LibraryPage {
                                 .cursor_pointer()
                                 .text_color(theme.library_text)
                                 .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_hover(|hovered, _window, cx: &mut App| {
+                                    if *hovered {
+                                        cx.global_mut::<AddToPlaylistMenuState>().0 = None;
+                                    }
+                                })
                                 .on_click(move |_, _, cx: &mut App| {
                                     *cx.global_mut::<SelectedAlbum>() =
                                         SelectedAlbum(menu_album.clone());
@@ -2337,7 +3528,169 @@ impl Render for LibraryPage {
                                     cx.global_mut::<LibraryContextMenuState>().0 = None;
                                 })
                                 .child("Go to Album"),
+                        )
+                        .child(div().h(px(1.0)).bg(theme.library_table_border).mx_2())
+                        .child(
+                            div()
+                                .id("ctx_add_to_playlist")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_hover(move |hovered, _window, cx: &mut App| {
+                                    if *hovered {
+                                        // item starts after: header(65) + 4 items(132) + separator(1)
+                                        let item_y = menu_y + px(198.0);
+                                        cx.global_mut::<AddToPlaylistMenuState>().0 =
+                                            Some(crate::ui::components::AddToPlaylistMenu {
+                                                anchor_x: menu_x + menu_w,
+                                                flip_x: menu_x,
+                                                anchor_y: item_y,
+                                                track_path: menu_track_path.clone(),
+                                                track_id: menu_track_id.clone(),
+                                            });
+                                    }
+                                })
+                                .child(
+                                    div()
+                                        .flex()
+                                        .items_center()
+                                        .justify_between()
+                                        .child("Add to Playlist")
+                                        .child(Icon::new(Icons::ChevronLeft).size_3().rotate(
+                                            gpui::Radians(std::f32::consts::PI),
+                                        )),
+                                ),
                         ),
+                )
+            })
+            // ── Add-to-playlist submenu ────────────────────────────────────────────
+            .when_some(add_to_playlist_menu, |this, atpm| {
+                let saved_for_menu = saved_playlists.clone();
+                let sub_menu_w = px(220.0);
+                let sub_menu_h = px((saved_for_menu.len() as f32 * 33.0 + 50.0).max(80.0));
+                let margin = px(8.0);
+                // Flyout to the right of the parent menu; flip left when right edge overflows.
+                let sub_x = if atpm.anchor_x + sub_menu_w + margin > viewport.width {
+                    (atpm.flip_x - sub_menu_w).max(margin)
+                } else {
+                    atpm.anchor_x
+                };
+                // Align with the hovered row, clamped to stay within the viewport.
+                let sub_y = atpm
+                    .anchor_y
+                    .min(viewport.height - sub_menu_h - margin)
+                    .max(margin);
+                this.child(
+                    div()
+                        .id("atp_backdrop")
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .size_full()
+                        .occlude()
+                        .on_click(|_, _, cx: &mut App| {
+                            cx.stop_propagation();
+                            cx.global_mut::<AddToPlaylistMenuState>().0 = None;
+                            cx.global_mut::<LibraryContextMenuState>().0 = None;
+                        }),
+                )
+                .child(
+                    div()
+                        .absolute()
+                        .left(sub_x)
+                        .top(sub_y)
+                        .w(sub_menu_w)
+                        .bg(theme.titlebar_bg)
+                        .border_1()
+                        .border_color(theme.library_table_border)
+                        .rounded_md()
+                        .overflow_hidden()
+                        .flex()
+                        .flex_col()
+                        .child(
+                            div()
+                                .px_3()
+                                .py_2()
+                                .border_b_1()
+                                .border_color(theme.library_table_border)
+                                .text_xs()
+                                .font_weight(FontWeight(600.0))
+                                .text_color(theme.library_header_text)
+                                .child("ADD TO PLAYLIST"),
+                        )
+                        .child(
+                            div()
+                                .id("atp_new")
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click({
+                                    let pending_id = atpm.track_id.clone();
+                                    move |_, _, cx: &mut App| {
+                                    cx.global_mut::<AddToPlaylistMenuState>().0 = None;
+                                    cx.global_mut::<LibraryContextMenuState>().0 = None;
+                                    let modal = cx.global_mut::<CreatePlaylistModal>();
+                                    modal.open = true;
+                                    modal.pending_track_id = Some(pending_id.clone());
+                                }})
+                                .child(
+                                    div()
+                                        .flex()
+                                        .items_center()
+                                        .gap_x_2()
+                                        .child(Icon::new(Icons::CirclePlus).size_4())
+                                        .child("New Playlist..."),
+                                ),
+                        )
+                        .children(saved_for_menu.into_iter().enumerate().map(|(i, pl)| {
+                            let track_id_for_add = atpm.track_id.clone();
+                            let pl_id_for_add = pl.id.clone();
+                            div()
+                                .id(("atp_item", i))
+                                .px_4()
+                                .py_2()
+                                .text_sm()
+                                .cursor_pointer()
+                                .text_color(theme.library_text)
+                                .hover(|this| this.bg(theme.library_track_bg_hover))
+                                .on_click(move |_, _, cx: &mut App| {
+                                    let tokio =
+                                        cx.global::<crate::state::TokioHandle>().0.clone();
+                                    let tid = track_id_for_add.clone();
+                                    let pid = pl_id_for_add.clone();
+                                    cx.global_mut::<AddToPlaylistMenuState>().0 = None;
+                                    cx.global_mut::<LibraryContextMenuState>().0 = None;
+                                    cx.spawn(async move |cx| {
+                                        let saved = cx
+                                            .background_executor()
+                                            .spawn(async move {
+                                                tokio.block_on(async move {
+                                                    let _ = crate::client::add_track_to_playlist(
+                                                        pid, tid,
+                                                    )
+                                                    .await;
+                                                    crate::client::fetch_saved_playlists()
+                                                        .await
+                                                        .ok()
+                                                })
+                                            })
+                                            .await;
+                                        if let Some(saved) = saved {
+                                            let _ = cx.update(|app: &mut gpui::App| {
+                                                app.global_mut::<PlaylistsState>().saved = saved;
+                                            });
+                                        }
+                                    })
+                                    .detach();
+                                })
+                                .child(pl.name.clone())
+                        })),
                 )
             })
             .when_some(album_context_menu, |this, menu| {
@@ -2749,6 +4102,436 @@ impl Render for LibraryPage {
                                     },
                                 ))
                         }),
+                )
+            })
+            // ── Create Playlist Modal ─────────────────────────────────────────────���
+            .when(create_modal.open, |this| {
+                this.child(
+                    // Backdrop
+                    div()
+                        .id("modal_backdrop")
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .size_full()
+                        .bg(gpui::rgba(0x00000099))
+                        .occlude()
+                        .on_click(|_, _, cx: &mut App| {
+                            cx.global_mut::<CreatePlaylistModal>().open = false;
+                        }),
+                )
+                .child(
+                    // Modal card — centred
+                    div()
+                        .id("create_pl_modal_card")
+                        .absolute()
+                        .top(viewport.height * 0.25)
+                        .left((viewport.width - px(380.0)) / 2.0)
+                        .w(px(380.0))
+                        .bg(theme.titlebar_bg)
+                        .border_1()
+                        .border_color(theme.library_table_border)
+                        .rounded_lg()
+                        .p_6()
+                        .flex()
+                        .flex_col()
+                        .gap_y_4()
+                        .on_click(|_, _, cx: &mut App| cx.stop_propagation())
+                        // Title
+                        .child(
+                            div()
+                                .text_lg()
+                                .font_weight(FontWeight(700.0))
+                                .text_color(theme.library_text)
+                                .child("New Playlist"),
+                        )
+                        // Name field
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .gap_y_1()
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child("Title"),
+                                )
+                                .child(modal_name_input.clone()),
+                        )
+                        // Description field
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .gap_y_1()
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child("Description (optional)"),
+                                )
+                                .child(modal_desc_input.clone()),
+                        )
+                        // Buttons
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .justify_end()
+                                .gap_x_3()
+                                .child(
+                                    div()
+                                        .id("modal_cancel_btn")
+                                        .px_4()
+                                        .py_2()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .hover(|this| this.text_color(theme.library_text))
+                                        .on_click(|_, _, cx: &mut App| {
+                                            let modal = cx.global_mut::<CreatePlaylistModal>();
+                                            modal.open = false;
+                                            modal.pending_track_id = None;
+                                        })
+                                        .child("Cancel"),
+                                )
+                                .child(
+                                    div()
+                                        .id("modal_create_btn")
+                                        .px_4()
+                                        .py_2()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .font_weight(FontWeight(600.0))
+                                        .bg(theme.player_play_pause_bg)
+                                        .text_color(theme.player_play_pause_text)
+                                        .hover(|this| this.bg(theme.player_play_pause_hover))
+                                        .on_click({
+                                            let modal_name_input = modal_name_input.clone();
+                                            let modal_desc_input = modal_desc_input.clone();
+                                            move |_, _, cx: &mut App| {
+                                            let name = modal_name_value.clone();
+                                            if name.trim().is_empty() {
+                                                return;
+                                            }
+                                            let desc = if modal_desc_value.is_empty() {
+                                                None
+                                            } else {
+                                                Some(modal_desc_value.clone())
+                                            };
+                                            let modal = cx.global_mut::<CreatePlaylistModal>();
+                                            modal.open = false;
+                                            let pending_id = modal.pending_track_id.take();
+                                            // Clear inputs
+                                            modal_name_input.update(cx, |i, cx| {
+                                                i.value.clear();
+                                                cx.notify();
+                                            });
+                                            modal_desc_input.update(cx, |i, cx| {
+                                                i.value.clear();
+                                                cx.notify();
+                                            });
+                                            let track_ids = pending_id
+                                                .map(|id| vec![id])
+                                                .unwrap_or_default();
+                                            let tokio = cx.global::<crate::state::TokioHandle>().0.clone();
+                                            cx.spawn(async move |cx| {
+                                                let saved = cx
+                                                    .background_executor()
+                                                    .spawn(async move {
+                                                        tokio.block_on(async move {
+                                                            let _ = crate::client::create_saved_playlist(name, desc, track_ids).await;
+                                                            crate::client::fetch_saved_playlists().await.ok()
+                                                        })
+                                                    })
+                                                    .await;
+                                                if let Some(saved) = saved {
+                                                    let _ = cx.update(|app: &mut gpui::App| {
+                                                        app.global_mut::<PlaylistsState>().saved = saved;
+                                                    });
+                                                }
+                                            })
+                                            .detach();
+                                        }})
+                                        .child("Create"),
+                                ),
+                        ),
+                )
+            })
+            // ── Edit Playlist Modal ───────────────────────────────────────────────
+            .when(edit_modal.open, |this| {
+                let edit_id = edit_modal.id.clone();
+                this.child(
+                    div()
+                        .id("edit_modal_backdrop")
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .size_full()
+                        .bg(gpui::rgba(0x00000099))
+                        .occlude()
+                        .on_click(|_, _, cx: &mut App| {
+                            cx.global_mut::<EditPlaylistModal>().open = false;
+                        }),
+                )
+                .child(
+                    div()
+                        .id("edit_pl_modal_card")
+                        .absolute()
+                        .top(viewport.height * 0.25)
+                        .left((viewport.width - px(380.0)) / 2.0)
+                        .w(px(380.0))
+                        .bg(theme.titlebar_bg)
+                        .border_1()
+                        .border_color(theme.library_table_border)
+                        .rounded_lg()
+                        .p_6()
+                        .flex()
+                        .flex_col()
+                        .gap_y_4()
+                        .on_click(|_, _, cx: &mut App| cx.stop_propagation())
+                        .child(
+                            div()
+                                .text_lg()
+                                .font_weight(FontWeight(700.0))
+                                .text_color(theme.library_text)
+                                .child("Edit Playlist"),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .gap_y_1()
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child("Title"),
+                                )
+                                .child(edit_name_input.clone()),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .gap_y_1()
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child("Description (optional)"),
+                                )
+                                .child(edit_desc_input.clone()),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .justify_end()
+                                .gap_x_3()
+                                .child(
+                                    div()
+                                        .id("edit_modal_cancel_btn")
+                                        .px_4()
+                                        .py_2()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .hover(|this| this.text_color(theme.library_text))
+                                        .on_click(|_, _, cx: &mut App| {
+                                            cx.global_mut::<EditPlaylistModal>().open = false;
+                                        })
+                                        .child("Cancel"),
+                                )
+                                .child(
+                                    div()
+                                        .id("edit_modal_save_btn")
+                                        .px_4()
+                                        .py_2()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .font_weight(FontWeight(600.0))
+                                        .bg(theme.player_play_pause_bg)
+                                        .text_color(theme.player_play_pause_text)
+                                        .hover(|this| this.bg(theme.player_play_pause_hover))
+                                        .on_click({
+                                            let edit_name_input2 = edit_name_input.clone();
+                                            let edit_desc_input2 = edit_desc_input.clone();
+                                            move |_, _, cx: &mut App| {
+                                                let name = edit_name_value.clone();
+                                                if name.trim().is_empty() {
+                                                    return;
+                                                }
+                                                let desc = if edit_desc_value.is_empty() {
+                                                    None
+                                                } else {
+                                                    Some(edit_desc_value.clone())
+                                                };
+                                                let id = edit_id.clone();
+                                                cx.global_mut::<EditPlaylistModal>().open = false;
+                                                edit_name_input2.update(cx, |i, cx| {
+                                                    i.value.clear();
+                                                    cx.notify();
+                                                });
+                                                edit_desc_input2.update(cx, |i, cx| {
+                                                    i.value.clear();
+                                                    cx.notify();
+                                                });
+                                                let tokio =
+                                                    cx.global::<crate::state::TokioHandle>()
+                                                        .0
+                                                        .clone();
+                                                cx.spawn(async move |cx| {
+                                                    let saved = cx
+                                                        .background_executor()
+                                                        .spawn(async move {
+                                                            tokio.block_on(async move {
+                                                                let _ = crate::client::update_saved_playlist(id, name, desc).await;
+                                                                crate::client::fetch_saved_playlists().await.ok()
+                                                            })
+                                                        })
+                                                        .await;
+                                                    if let Some(saved) = saved {
+                                                        let _ = cx.update(|app: &mut gpui::App| {
+                                                            app.global_mut::<PlaylistsState>()
+                                                                .saved = saved;
+                                                        });
+                                                    }
+                                                })
+                                                .detach();
+                                            }
+                                        })
+                                        .child("Save"),
+                                ),
+                        ),
+                )
+            })
+            // ── Delete Playlist Modal ─────────────────────────────────────────────
+            .when(delete_modal.open, |this| {
+                let del_id = delete_modal.id.clone();
+                let del_name = delete_modal.name.clone();
+                let del_name_msg = delete_modal.name.clone();
+                this.child(
+                    div()
+                        .id("delete_modal_backdrop")
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .size_full()
+                        .bg(gpui::rgba(0x00000099))
+                        .occlude()
+                        .on_click(|_, _, cx: &mut App| {
+                            cx.global_mut::<DeletePlaylistModal>().open = false;
+                        }),
+                )
+                .child(
+                    div()
+                        .id("delete_pl_modal_card")
+                        .absolute()
+                        .top(viewport.height * 0.3)
+                        .left((viewport.width - px(360.0)) / 2.0)
+                        .w(px(360.0))
+                        .bg(theme.titlebar_bg)
+                        .border_1()
+                        .border_color(theme.library_table_border)
+                        .rounded_lg()
+                        .p_6()
+                        .flex()
+                        .flex_col()
+                        .gap_y_4()
+                        .on_click(|_, _, cx: &mut App| cx.stop_propagation())
+                        .child(
+                            div()
+                                .text_lg()
+                                .font_weight(FontWeight(700.0))
+                                .text_color(theme.library_text)
+                                .child("Delete Playlist"),
+                        )
+                        .child(
+                            div()
+                                .text_sm()
+                                .text_color(theme.library_header_text)
+                                .child(format!(
+                                    "{} will be permanently deleted.",
+                                    del_name_msg
+                                )),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .items_center()
+                                .justify_end()
+                                .gap_x_3()
+                                .child(
+                                    div()
+                                        .id("delete_modal_cancel_btn")
+                                        .px_4()
+                                        .py_2()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .hover(|this| this.text_color(theme.library_text))
+                                        .on_click(|_, _, cx: &mut App| {
+                                            cx.global_mut::<DeletePlaylistModal>().open = false;
+                                        })
+                                        .child("Cancel"),
+                                )
+                                .child(
+                                    div()
+                                        .id("delete_modal_delete_btn")
+                                        .px_4()
+                                        .py_2()
+                                        .rounded_md()
+                                        .cursor_pointer()
+                                        .text_sm()
+                                        .font_weight(FontWeight(600.0))
+                                        .bg(gpui::rgb(0xef4444))
+                                        .text_color(gpui::rgb(0xFFFFFF))
+                                        .hover(|this| this.bg(gpui::rgb(0xdc2626)))
+                                        .on_click(move |_, _, cx: &mut App| {
+                                            let id = del_id.clone();
+                                            let name = del_name.clone();
+                                            cx.global_mut::<DeletePlaylistModal>().open = false;
+                                            // If currently viewing this playlist, navigate back
+                                            let cur_id =
+                                                cx.global::<SelectedPlaylist>().id.clone();
+                                            if cur_id == id {
+                                                *cx.global_mut::<LibrarySection>() =
+                                                    LibrarySection::Playlists;
+                                            }
+                                            let tokio =
+                                                cx.global::<crate::state::TokioHandle>()
+                                                    .0
+                                                    .clone();
+                                            let _ = name;
+                                            cx.spawn(async move |cx| {
+                                                let saved = cx
+                                                    .background_executor()
+                                                    .spawn(async move {
+                                                        tokio.block_on(async move {
+                                                            let _ = crate::client::delete_saved_playlist(id).await;
+                                                            crate::client::fetch_saved_playlists().await.ok()
+                                                        })
+                                                    })
+                                                    .await;
+                                                if let Some(saved) = saved {
+                                                    let _ = cx.update(|app: &mut gpui::App| {
+                                                        app.global_mut::<PlaylistsState>()
+                                                            .saved = saved;
+                                                    });
+                                                }
+                                            })
+                                            .detach();
+                                        })
+                                        .child("Delete"),
+                                ),
+                        ),
                 )
             })
     }

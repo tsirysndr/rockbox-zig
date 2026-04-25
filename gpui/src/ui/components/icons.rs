@@ -171,6 +171,10 @@ pub enum Icons {
     HardDrive,
     Directory,
     ChevronLeft,
+    Playlist,
+    CirclePlus,
+    Pencil,
+    Trash,
 }
 
 impl IconNamed for Icons {
@@ -200,6 +204,10 @@ impl IconNamed for Icons {
             Icons::HardDrive => "icons/harddrive.svg",
             Icons::Directory => "icons/directory.svg",
             Icons::ChevronLeft => "icons/chevron-left.svg",
+            Icons::Playlist => "icons/playlist.svg",
+            Icons::CirclePlus => "icons/circle-plus.svg",
+            Icons::Pencil => "icons/pencil.svg",
+            Icons::Trash => "icons/trash.svg",
         }
         .into()
     }

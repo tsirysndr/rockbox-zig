@@ -14,13 +14,15 @@ pub fn run() {
         .enable_all()
         .build()
         .expect("tokio runtime for http");
-    let http_client = crate::http_client::ReqwestHttpClient::new(http_rt.handle().clone());
+    let tokio_handle = http_rt.handle().clone();
+    let http_client = crate::http_client::ReqwestHttpClient::new(tokio_handle.clone());
     std::mem::forget(http_rt);
 
     Application::new()
         .with_http_client(http_client)
         .with_assets(assets.clone())
         .run(move |cx| {
+            cx.set_global(crate::state::TokioHandle(tokio_handle));
             let bounds = Bounds::centered(None, size(px(1280.0), px(760.0)), cx);
             assets.load_fonts(cx).expect("failed to load fonts");
             // Theme is set as a global inside StartupGate / Rockbox::new.

@@ -13,6 +13,7 @@ pub struct Track {
     pub track_number: u32,
     pub disc_number: u32,
     pub year: u32,
+    pub year_string: String,
     pub album_art: Option<String>,
 }
 
@@ -149,3 +150,8 @@ pub enum StateUpdate {
 pub fn format_duration(secs: u64) -> String {
     format!("{}:{:02}", secs / 60, secs % 60)
 }
+
+/// Stores the Tokio runtime handle so GPUI code can run async tasks that require a Tokio reactor.
+#[derive(Clone)]
+pub struct TokioHandle(pub tokio::runtime::Handle);
+impl gpui::Global for TokioHandle {}

@@ -18,6 +18,7 @@ reqwest = { version = "0.12.5", features = [
 ], default-features = false }
 rockbox-graphql = { path = "../graphql" }
 rockbox-library = { path = "../library" }
+rockbox-playlists = { path = "../playlists" }  # needed for Playlist/PlaylistFolder type deserialization
 rockbox-rocksky = {path = "../rocksky"}
 rockbox-typesense = { path = "../typesense" }
 rockbox-sys = { path = "../sys" }

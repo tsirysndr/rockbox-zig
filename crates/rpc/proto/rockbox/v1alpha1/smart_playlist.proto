@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+// ── Rule types ─────────────────────────────────────────────────────────────
+
+message RuleCondition {
+  string field = 1;
+  string operator = 2;
+  optional string value = 3;
+  optional string value2 = 4;
+  optional string unit = 5;
+}
+
+message RuleCriteria {
+  string match_type = 1;
+  repeated RuleCondition conditions = 2;
+  optional int32 limit = 3;
+  optional string sort_by = 4;
+  optional string sort_order = 5;
+}
+
+// ── Smart playlists ────────────────────────────────────────────────────────
+
+message SmartPlaylist {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional string image = 4;
+  optional string folder_id = 5;
+  bool is_system = 6;
+  RuleCriteria rules = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+message GetSmartPlaylistsRequest {}
+message GetSmartPlaylistsResponse { repeated SmartPlaylist playlists = 1; }
+
+message GetSmartPlaylistRequest { string id = 1; }
+message GetSmartPlaylistResponse { optional SmartPlaylist playlist = 1; }
+
+message CreateSmartPlaylistRequest {
+  string name = 1;
+  optional string description = 2;
+  optional string image = 3;
+  optional string folder_id = 4;
+  RuleCriteria rules = 5;
+}
+message CreateSmartPlaylistResponse { SmartPlaylist playlist = 1; }
+
+message UpdateSmartPlaylistRequest {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional string image = 4;
+  optional string folder_id = 5;
+  RuleCriteria rules = 6;
+}
+message UpdateSmartPlaylistResponse {}
+
+message DeleteSmartPlaylistRequest { string id = 1; }
+message DeleteSmartPlaylistResponse {}
+
+message GetSmartPlaylistTracksRequest { string id = 1; }
+message GetSmartPlaylistTracksResponse { repeated string track_ids = 1; }
+
+message PlaySmartPlaylistRequest { string id = 1; }
+message PlaySmartPlaylistResponse {}
+
+// ── Track stats ────────────────────────────────────────────────────────────
+
+message TrackStats {
+  string track_id = 1;
+  int64 play_count = 2;
+  int64 skip_count = 3;
+  optional int64 last_played = 4;
+  optional int64 last_skipped = 5;
+  int64 updated_at = 6;
+}
+
+message RecordTrackPlayedRequest { string track_id = 1; }
+message RecordTrackPlayedResponse {}
+
+message RecordTrackSkippedRequest { string track_id = 1; }
+message RecordTrackSkippedResponse {}
+
+message GetTrackStatsRequest { string track_id = 1; }
+message GetTrackStatsResponse { optional TrackStats stats = 1; }
+
+// ── Service ────────────────────────────────────────────────────────────────
+
+service SmartPlaylistService {
+  rpc GetSmartPlaylists(GetSmartPlaylistsRequest) returns (GetSmartPlaylistsResponse);
+  rpc GetSmartPlaylist(GetSmartPlaylistRequest) returns (GetSmartPlaylistResponse);
+  rpc CreateSmartPlaylist(CreateSmartPlaylistRequest) returns (CreateSmartPlaylistResponse);
+  rpc UpdateSmartPlaylist(UpdateSmartPlaylistRequest) returns (UpdateSmartPlaylistResponse);
+  rpc DeleteSmartPlaylist(DeleteSmartPlaylistRequest) returns (DeleteSmartPlaylistResponse);
+  rpc GetSmartPlaylistTracks(GetSmartPlaylistTracksRequest) returns (GetSmartPlaylistTracksResponse);
+  rpc PlaySmartPlaylist(PlaySmartPlaylistRequest) returns (PlaySmartPlaylistResponse);
+  rpc RecordTrackPlayed(RecordTrackPlayedRequest) returns (RecordTrackPlayedResponse);
+  rpc RecordTrackSkipped(RecordTrackSkippedRequest) returns (RecordTrackSkippedResponse);
+  rpc GetTrackStats(GetTrackStatsRequest) returns (GetTrackStatsResponse);
+}
