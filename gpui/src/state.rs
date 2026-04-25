@@ -139,7 +139,11 @@ pub enum StateUpdate {
     ArtistImages(ArtistImages),
     LikedTracks(Vec<String>),
     SearchResults(Option<SearchResults>),
-    Settings { volume: i32, shuffling: bool, repeat_mode: i32 },
+    Settings {
+        volume: i32,
+        shuffling: bool,
+        repeat_mode: i32,
+    },
 }
 
 pub fn format_duration(secs: u64) -> String {

@@ -1,6 +1,6 @@
 use gpui::{
-    div, px, rgb, AnyElement, Animation, AnimationExt as _, IntoElement, ParentElement, SharedString,
-    Styled,
+    div, px, rgb, Animation, AnimationExt as _, AnyElement, IntoElement, ParentElement,
+    SharedString, Styled,
 };
 use std::f32::consts::PI;
 use std::time::Duration;
@@ -14,10 +14,7 @@ pub fn equalizer_bars(id: usize, is_playing: bool) -> impl IntoElement {
     const STATIC_H: [f32; 3] = [5.0, 9.0, 7.0];
 
     let make_bar = move |bar_idx: usize| -> AnyElement {
-        let b = div()
-            .w(px(3.0))
-            .rounded(px(1.5))
-            .bg(rgb(COLOR));
+        let b = div().w(px(3.0)).rounded(px(1.5)).bg(rgb(COLOR));
         if is_playing {
             let anim_id: SharedString = format!("eq-{bar_idx}-{id}").into();
             b.with_animation(

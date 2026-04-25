@@ -191,8 +191,7 @@ impl Render for StartupGate {
 
         let start_hint = matches!(self.error, Some(StartupError::NotInstalled));
 
-        let main_code_block =
-            self.code_block("copy-main-cmd", code, CopiedState::Main, theme, cx);
+        let main_code_block = self.code_block("copy-main-cmd", code, CopiedState::Main, theme, cx);
         let start_code_block =
             self.code_block("copy-start-cmd", "rockboxd", CopiedState::Start, theme, cx);
 
@@ -306,9 +305,7 @@ impl Render for StartupGate {
                                     .bg(gpui::rgb(0x6F00FF))
                                     .cursor_pointer()
                                     .hover(|this| this.bg(gpui::rgb(0x5A00D6)))
-                                    .when(checking, |this| {
-                                        this.opacity(0.6).cursor_default()
-                                    })
+                                    .when(checking, |this| this.opacity(0.6).cursor_default())
                                     .on_click(cx.listener(|this, _, _, cx| {
                                         this.retry(cx);
                                     }))

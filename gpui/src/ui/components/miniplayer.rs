@@ -1,10 +1,12 @@
 use crate::client::{adjust_volume, save_repeat, save_shuffle};
 use crate::controller::Controller;
-use crate::state::{format_duration, volume_fraction, PlaybackStatus, VOLUME_MAX_DB, VOLUME_MIN_DB};
+use crate::state::{
+    format_duration, volume_fraction, PlaybackStatus, VOLUME_MAX_DB, VOLUME_MIN_DB,
+};
 use crate::ui::components::icons::{Icon, Icons};
+use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::components::{LikedSongs, Page};
 use crate::ui::global_keybinds::play_pause;
-use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
@@ -47,7 +49,10 @@ impl Render for MiniPlayer {
         let vol_pct = (vol_fill * 100.0) as u32;
         let is_shuffling = state.shuffling;
         let is_repeat = state.repeat;
-        let current_path = state.current_track().map(|t| t.path.clone()).unwrap_or_default();
+        let current_path = state
+            .current_track()
+            .map(|t| t.path.clone())
+            .unwrap_or_default();
         let track_id = state
             .tracks
             .iter()
@@ -142,20 +147,34 @@ impl Render for MiniPlayer {
                                                     } else {
                                                         theme.player_icons_text
                                                     })
-                                                    .hover(|this| this.bg(theme.player_icons_bg_hover))
+                                                    .hover(|this| {
+                                                        this.bg(theme.player_icons_bg_hover)
+                                                    })
                                                     .on_click(move |_, _, cx: &mut App| {
                                                         cx.stop_propagation();
                                                         let rt = cx.global::<Controller>().rt();
-                                                        let liked = &mut cx.global_mut::<LikedSongs>().0;
+                                                        let liked =
+                                                            &mut cx.global_mut::<LikedSongs>().0;
                                                         if liked.contains(&track_id) {
                                                             liked.remove(&track_id);
-                                                            rt.spawn(crate::client::unlike_track(track_id.clone()));
+                                                            rt.spawn(crate::client::unlike_track(
+                                                                track_id.clone(),
+                                                            ));
                                                         } else {
                                                             liked.insert(track_id.clone());
-                                                            rt.spawn(crate::client::like_track(track_id.clone()));
+                                                            rt.spawn(crate::client::like_track(
+                                                                track_id.clone(),
+                                                            ));
                                                         }
                                                     })
-                                                    .child(Icon::new(if is_liked { Icons::Heart } else { Icons::HeartOutline }).size_5()),
+                                                    .child(
+                                                        Icon::new(if is_liked {
+                                                            Icons::Heart
+                                                        } else {
+                                                            Icons::HeartOutline
+                                                        })
+                                                        .size_5(),
+                                                    ),
                                             ),
                                     )
                                     .child(
@@ -334,10 +353,12 @@ impl Render for MiniPlayer {
                                             theme.playback_slider_fill,
                                             px(3.0),
                                         )
-                                        .on_seek(move |frac, _window, cx: &mut App| {
-                                            let seek_secs = (frac * duration as f32) as u64;
-                                            cx.global::<Controller>().seek(seek_secs, duration);
-                                        }),
+                                        .on_seek(
+                                            move |frac, _window, cx: &mut App| {
+                                                let seek_secs = (frac * duration as f32) as u64;
+                                                cx.global::<Controller>().seek(seek_secs, duration);
+                                            },
+                                        ),
                                     )
                                     .child(
                                         div()
@@ -368,25 +389,28 @@ impl Render for MiniPlayer {
                                     .rounded_full()
                                     .cursor_pointer()
                                     .bg(theme.volume_slider_track)
-                                    .on_scroll_wheel(|event: &ScrollWheelEvent, _window, cx: &mut App| {
-                                        let delta = event.delta.pixel_delta(px(12.0));
-                                        let steps = (-f32::from(delta.y) / 12.0).round() as i32;
-                                        if steps != 0 {
-                                            let (state, rt) = {
-                                                let ctrl = cx.global::<Controller>();
-                                                (ctrl.state.clone(), ctrl.rt())
-                                            };
-                                            let new_vol = {
-                                                let current = state.read(cx).volume;
-                                                (current + steps).clamp(VOLUME_MIN_DB, VOLUME_MAX_DB)
-                                            };
-                                            state.update(cx, |s, cx| {
-                                                s.volume = new_vol;
-                                                cx.notify();
-                                            });
-                                            rt.spawn(adjust_volume(steps));
-                                        }
-                                    })
+                                    .on_scroll_wheel(
+                                        |event: &ScrollWheelEvent, _window, cx: &mut App| {
+                                            let delta = event.delta.pixel_delta(px(12.0));
+                                            let steps = (-f32::from(delta.y) / 12.0).round() as i32;
+                                            if steps != 0 {
+                                                let (state, rt) = {
+                                                    let ctrl = cx.global::<Controller>();
+                                                    (ctrl.state.clone(), ctrl.rt())
+                                                };
+                                                let new_vol = {
+                                                    let current = state.read(cx).volume;
+                                                    (current + steps)
+                                                        .clamp(VOLUME_MIN_DB, VOLUME_MAX_DB)
+                                                };
+                                                state.update(cx, |s, cx| {
+                                                    s.volume = new_vol;
+                                                    cx.notify();
+                                                });
+                                                rt.spawn(adjust_volume(steps));
+                                            }
+                                        },
+                                    )
                                     .child(
                                         div()
                                             .h_full()

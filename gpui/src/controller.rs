@@ -68,7 +68,11 @@ impl Controller {
                             StateUpdate::SearchResults(results) => {
                                 s.search_results = results;
                             }
-                            StateUpdate::Settings { volume, shuffling, repeat_mode } => {
+                            StateUpdate::Settings {
+                                volume,
+                                shuffling,
+                                repeat_mode,
+                            } => {
                                 s.volume = volume;
                                 s.shuffling = shuffling;
                                 s.repeat = repeat_mode != 0;
@@ -136,7 +140,13 @@ impl Controller {
         })
         .detach();
 
-        Controller { state, rt, tx, search_gen: Arc::new(AtomicU64::new(0)), now_playing }
+        Controller {
+            state,
+            rt,
+            tx,
+            search_gen: Arc::new(AtomicU64::new(0)),
+            now_playing,
+        }
     }
 
     /// Cloneable handle to the tokio runtime — use for fire-and-forget spawns.
@@ -156,7 +166,9 @@ impl Controller {
 
     /// Seek to `position_secs` seconds from the start of the current track.
     pub fn seek(&self, position_secs: u64, duration_secs: u64) {
-        if duration_secs == 0 { return; }
+        if duration_secs == 0 {
+            return;
+        }
         let ms = (position_secs as i32).saturating_mul(1000);
         self.rt().spawn(crate::client::seek(ms));
     }

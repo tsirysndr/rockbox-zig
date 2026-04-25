@@ -18,7 +18,10 @@ impl FilesView {
     pub fn new(cx: &mut App) -> Self {
         cx.set_global(FilesBrowseState::default());
         cx.set_global(FileContextMenuState::default());
-        FilesView { entries: Vec::new(), last_requested_path: None }
+        FilesView {
+            entries: Vec::new(),
+            last_requested_path: None,
+        }
     }
 
     fn load_if_needed(&mut self, cx: &mut Context<Self>) {
@@ -36,8 +39,9 @@ impl FilesView {
         // Run the gRPC fetch on the Tokio runtime (requires a Tokio reactor).
         let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
         cx.global::<Controller>().rt().spawn(async move {
-            let entries =
-                crate::client::tree_get_entries(current_path).await.unwrap_or_default();
+            let entries = crate::client::tree_get_entries(current_path)
+                .await
+                .unwrap_or_default();
             let _ = tx.send(entries);
         });
 
@@ -100,13 +104,14 @@ impl Render for FilesView {
                             .text_color(theme.library_text)
                             .opacity(if can_go_back { 1.0 } else { 0.3 })
                             .when(can_go_back, |this| {
-                                this.hover(|t| t.bg(theme.library_track_bg_hover))
-                                    .on_click(|_, _, cx: &mut App| {
+                                this.hover(|t| t.bg(theme.library_track_bg_hover)).on_click(
+                                    |_, _, cx: &mut App| {
                                         let state = cx.global_mut::<FilesBrowseState>();
                                         if let Some(prev) = state.path_history.pop() {
                                             state.current_path = prev;
                                         }
-                                    })
+                                    },
+                                )
                             })
                             .child(Icon::new(Icons::ChevronLeft).size_4()),
                     )
@@ -124,8 +129,7 @@ impl Render for FilesView {
                     range
                         .map(|idx| {
                             let entry = entries[idx].clone();
-                            let group_name: gpui::SharedString =
-                                format!("file_row_{}", idx).into();
+                            let group_name: gpui::SharedString = format!("file_row_{}", idx).into();
                             let gn_icon = group_name.clone();
                             let gn_play = group_name.clone();
                             let gn_opts = group_name.clone();

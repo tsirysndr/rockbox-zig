@@ -112,9 +112,21 @@ impl NowPlayingManager {
             if has_track {
                 let meta = track
                     .map(|t| MediaMetadata {
-                        title: if t.title.is_empty() { None } else { Some(t.title.as_str()) },
-                        artist: if t.artist.is_empty() { None } else { Some(t.artist.as_str()) },
-                        album: if t.album.is_empty() { None } else { Some(t.album.as_str()) },
+                        title: if t.title.is_empty() {
+                            None
+                        } else {
+                            Some(t.title.as_str())
+                        },
+                        artist: if t.artist.is_empty() {
+                            None
+                        } else {
+                            Some(t.artist.as_str())
+                        },
+                        album: if t.album.is_empty() {
+                            None
+                        } else {
+                            Some(t.album.as_str())
+                        },
                         cover_url: cover_url.as_deref(),
                         duration: if t.duration > 0 {
                             Some(Duration::from_secs(t.duration))

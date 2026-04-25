@@ -1,17 +1,16 @@
 use crate::api::v1alpha1::{
-    browse_service_client::BrowseServiceClient,
-    library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
-    playlist_service_client::PlaylistServiceClient,
+    browse_service_client::BrowseServiceClient, library_service_client::LibraryServiceClient,
+    playback_service_client::PlaybackServiceClient, playlist_service_client::PlaylistServiceClient,
     settings_service_client::SettingsServiceClient, sound_service_client::SoundServiceClient,
-    system_service_client::SystemServiceClient, AdjustVolumeRequest, GetArtistsRequest,
-    GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest, GetLikedTracksRequest,
-    GetTracksRequest, InsertDirectoryRequest, InsertTracksRequest, LikeTrackRequest, NextRequest,
-    PauseRequest, PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest,
-    PlayDirectoryRequest, PlayTrackRequest, FastForwardRewindRequest, PlaylistResumeRequest,
-    PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest,
-    SaveSettingsRequest, SearchRequest, ShufflePlaylistRequest, StartRequest,
-    StatusRequest, StreamCurrentTrackRequest, StreamLibraryRequest, StreamPlaylistRequest,
-    StreamStatusRequest, TreeGetEntriesRequest, UnlikeTrackRequest,
+    system_service_client::SystemServiceClient, AdjustVolumeRequest, FastForwardRewindRequest,
+    GetArtistsRequest, GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest,
+    GetLikedTracksRequest, GetTracksRequest, InsertDirectoryRequest, InsertTracksRequest,
+    LikeTrackRequest, NextRequest, PauseRequest, PlayAlbumRequest, PlayAllTracksRequest,
+    PlayArtistTracksRequest, PlayDirectoryRequest, PlayTrackRequest, PlaylistResumeRequest,
+    PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest,
+    SearchRequest, ShufflePlaylistRequest, StartRequest, StatusRequest, StreamCurrentTrackRequest,
+    StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest,
+    UnlikeTrackRequest,
 };
 use crate::state::{SearchAlbum, SearchArtist, SearchResults};
 
@@ -69,7 +68,13 @@ pub async fn resume() -> Result<()> {
 // Resume from saved state after a daemon restart (playlist_resume + resume_track).
 pub async fn resume_track() -> Result<()> {
     let mut c = PlaylistServiceClient::connect(URL).await?;
-    c.resume_track(ResumeTrackRequest { start_index: 0, crc: 0, elapsed: 0, offset: 0 }).await?;
+    c.resume_track(ResumeTrackRequest {
+        start_index: 0,
+        crc: 0,
+        elapsed: 0,
+        offset: 0,
+    })
+    .await?;
     Ok(())
 }
 
@@ -82,7 +87,10 @@ pub async fn pause() -> Result<()> {
 /// Seek to `new_time_ms` milliseconds from the start of the current track.
 pub async fn seek(new_time_ms: i32) -> Result<()> {
     let mut c = PlaybackServiceClient::connect(URL).await?;
-    c.fast_forward_rewind(FastForwardRewindRequest { new_time: new_time_ms }).await?;
+    c.fast_forward_rewind(FastForwardRewindRequest {
+        new_time: new_time_ms,
+    })
+    .await?;
     Ok(())
 }
 
@@ -211,7 +219,11 @@ pub async fn search(term: String) -> Result<SearchResults> {
             image: a.image,
         })
         .collect();
-    Ok(SearchResults { tracks, albums, artists })
+    Ok(SearchResults {
+        tracks,
+        albums,
+        artists,
+    })
 }
 
 pub async fn fetch_queue(tx: Sender<StateUpdate>) {
@@ -262,7 +274,8 @@ pub async fn play_liked_tracks(paths: Vec<String>, shuffle: bool) -> Result<()> 
     })
     .await?;
     if shuffle {
-        c.shuffle_playlist(ShufflePlaylistRequest { start_index: 0 }).await?;
+        c.shuffle_playlist(ShufflePlaylistRequest { start_index: 0 })
+            .await?;
     }
     c.start(StartRequest {
         start_index: Some(0),
@@ -277,8 +290,10 @@ pub async fn play_liked_tracks(paths: Vec<String>, shuffle: bool) -> Result<()> 
 
 pub async fn remove_from_queue(position: i32) -> Result<()> {
     let mut c = PlaylistServiceClient::connect(URL).await?;
-    c.remove_tracks(RemoveTracksRequest { positions: vec![position] })
-        .await?;
+    c.remove_tracks(RemoveTracksRequest {
+        positions: vec![position],
+    })
+    .await?;
     Ok(())
 }
 
@@ -320,7 +335,9 @@ pub async fn run_resume_info_sync(tx: Sender<StateUpdate>) {
             Ok(resp) => {
                 let s = resp.into_inner();
                 if s.resume_elapsed > 0 {
-                    let _ = tx.send(StateUpdate::Position(s.resume_elapsed as u64 / 1000)).await;
+                    let _ = tx
+                        .send(StateUpdate::Position(s.resume_elapsed as u64 / 1000))
+                        .await;
                 }
             }
             Err(e) => log::warn!("resume info sync: {e}"),
@@ -619,7 +636,11 @@ pub async fn tree_get_entries(path: Option<String>) -> Result<Vec<FileEntry>> {
                 .and_then(|n| n.to_str())
                 .unwrap_or(&e.name)
                 .to_string();
-            FileEntry { name, path: e.name, is_dir }
+            FileEntry {
+                name,
+                path: e.name,
+                is_dir,
+            }
         })
         .collect();
     entries.sort_by(|a, b| match (a.is_dir, b.is_dir) {

@@ -52,7 +52,10 @@ impl Render for PlayerPage {
         let bg_art_url = album_art_url.clone();
         let queue_total = state.queue.len();
         let queue_pos = state.current_idx.map(|i| i + 1);
-        let current_path = state.current_track().map(|t| t.path.clone()).unwrap_or_default();
+        let current_path = state
+            .current_track()
+            .map(|t| t.path.clone())
+            .unwrap_or_default();
         let track_id = state
             .tracks
             .iter()
@@ -164,13 +167,24 @@ impl Render for PlayerPage {
                                                 let liked = &mut cx.global_mut::<LikedSongs>().0;
                                                 if liked.contains(&track_id) {
                                                     liked.remove(&track_id);
-                                                    rt.spawn(crate::client::unlike_track(track_id.clone()));
+                                                    rt.spawn(crate::client::unlike_track(
+                                                        track_id.clone(),
+                                                    ));
                                                 } else {
                                                     liked.insert(track_id.clone());
-                                                    rt.spawn(crate::client::like_track(track_id.clone()));
+                                                    rt.spawn(crate::client::like_track(
+                                                        track_id.clone(),
+                                                    ));
                                                 }
                                             })
-                                            .child(Icon::new(if is_liked { Icons::Heart } else { Icons::HeartOutline }).size_7()),
+                                            .child(
+                                                Icon::new(if is_liked {
+                                                    Icons::Heart
+                                                } else {
+                                                    Icons::HeartOutline
+                                                })
+                                                .size_7(),
+                                            ),
                                     ),
                             )
                             .child(
@@ -316,8 +330,7 @@ impl Render for PlayerPage {
                                             let ctrl = cx.global::<Controller>();
                                             (ctrl.state.clone(), ctrl.rt())
                                         };
-                                        let new_mode =
-                                            if state.read(cx).repeat { 0 } else { 1 };
+                                        let new_mode = if state.read(cx).repeat { 0 } else { 1 };
                                         state.update(cx, |s, cx| {
                                             s.repeat = new_mode != 0;
                                             cx.notify();

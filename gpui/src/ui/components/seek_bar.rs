@@ -1,7 +1,7 @@
 use gpui::{
-    App, BorderStyle, Bounds, CursorStyle, DispatchPhase, Element, ElementId, GlobalElementId,
+    px, App, BorderStyle, Bounds, CursorStyle, DispatchPhase, Element, ElementId, GlobalElementId,
     Hitbox, HitboxBehavior, InspectorElementId, IntoElement, LayoutId, MouseDownEvent, Pixels,
-    Window, px,
+    Window,
 };
 
 /// A clickable horizontal seek bar.
@@ -35,10 +35,7 @@ impl SeekBar {
         }
     }
 
-    pub fn on_seek(
-        mut self,
-        f: impl Fn(f32, &mut Window, &mut App) + 'static,
-    ) -> Self {
+    pub fn on_seek(mut self, f: impl Fn(f32, &mut Window, &mut App) + 'static) -> Self {
         self.on_seek = Some(Box::new(f));
         self
     }
@@ -46,7 +43,9 @@ impl SeekBar {
 
 impl IntoElement for SeekBar {
     type Element = Self;
-    fn into_element(self) -> Self { self }
+    fn into_element(self) -> Self {
+        self
+    }
 }
 
 pub struct SeekBarPrepaint {
@@ -57,9 +56,13 @@ impl Element for SeekBar {
     type RequestLayoutState = LayoutId;
     type PrepaintState = SeekBarPrepaint;
 
-    fn id(&self) -> Option<ElementId> { Some(self.id.clone()) }
+    fn id(&self) -> Option<ElementId> {
+        Some(self.id.clone())
+    }
 
-    fn source_location(&self) -> Option<&'static std::panic::Location<'static>> { None }
+    fn source_location(&self) -> Option<&'static std::panic::Location<'static>> {
+        None
+    }
 
     fn request_layout(
         &mut self,
@@ -142,17 +145,19 @@ impl Element for SeekBar {
             let hitbox = prepaint.hitbox.clone();
             let origin_x = bounds.origin.x;
             let width = bounds.size.width;
-            window.on_mouse_event(
-                move |event: &MouseDownEvent, phase, window, cx| {
-                    if phase == DispatchPhase::Bubble && hitbox.is_hovered(window) {
-                        let rel_x = f32::from(event.position.x - origin_x);
-                        let w = f32::from(width);
-                        let fraction = if w > 0.0 { (rel_x / w).clamp(0.0, 1.0) } else { 0.0 };
-                        on_seek(fraction, window, cx);
-                        cx.stop_propagation();
-                    }
-                },
-            );
+            window.on_mouse_event(move |event: &MouseDownEvent, phase, window, cx| {
+                if phase == DispatchPhase::Bubble && hitbox.is_hovered(window) {
+                    let rel_x = f32::from(event.position.x - origin_x);
+                    let w = f32::from(width);
+                    let fraction = if w > 0.0 {
+                        (rel_x / w).clamp(0.0, 1.0)
+                    } else {
+                        0.0
+                    };
+                    on_seek(fraction, window, cx);
+                    cx.stop_propagation();
+                }
+            });
         }
     }
 }
