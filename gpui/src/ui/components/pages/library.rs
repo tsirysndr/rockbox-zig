@@ -577,12 +577,12 @@ impl Render for LibraryPage {
         if self._search_sub.is_none() {
             let si = self.search_input.clone();
             self._search_sub = Some(cx.observe(&si, |_this, si_entity, cx| {
-                let query = si_entity.read(cx).query.clone();
+                let query = si_entity.read(cx).query.trim().to_string();
                 cx.global::<Controller>().search(query);
                 cx.notify();
             }));
         }
-        let query = self.search_input.read(cx).query.clone();
+        let query = self.search_input.read(cx).query.trim().to_string();
         let search_input = self.search_input.clone();
 
         let context_menu = cx.global::<LibraryContextMenuState>().0.clone();
@@ -593,12 +593,12 @@ impl Render for LibraryPage {
         let scroll_handle = self.scroll_handle.clone();
         let modal_name_input = self.modal_name_input.clone();
         let modal_desc_input = self.modal_desc_input.clone();
-        let modal_name_value = self.modal_name_input.read(cx).value.clone();
-        let modal_desc_value = self.modal_desc_input.read(cx).value.clone();
+        let modal_name_value = self.modal_name_input.read(cx).value.trim().to_string();
+        let modal_desc_value = self.modal_desc_input.read(cx).value.trim().to_string();
         let edit_name_input = self.edit_name_input.clone();
         let edit_desc_input = self.edit_desc_input.clone();
-        let edit_name_value = self.edit_name_input.read(cx).value.clone();
-        let edit_desc_value = self.edit_desc_input.read(cx).value.clone();
+        let edit_name_value = self.edit_name_input.read(cx).value.trim().to_string();
+        let edit_desc_value = self.edit_desc_input.read(cx).value.trim().to_string();
         let _detail_scroll_handle = self.detail_scroll_handle.clone();
 
         // Sidebar nav item — Albums/Artists stay active while in their detail view
