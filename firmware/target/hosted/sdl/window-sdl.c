@@ -150,6 +150,9 @@ static void rebuild_gui_texture(void)
 
 void sdl_window_render(void)
 {
+    if (!sdlWindow || !sdlRenderer)
+        return; /* headless: no window available */
+
     if (new_gui_texture_needed)
     {
         new_gui_texture_needed = false;
@@ -168,6 +171,9 @@ void sdl_window_render(void)
 bool sdl_window_adjust(void)
 {
     int w, h;
+
+    if (!sdlWindow)
+        return false; /* headless: no window available */
 
     if (!window_adjustment_needed)
         return false;
@@ -225,12 +231,26 @@ void sdl_window_setup(void)
 
     get_window_dimensions(&width, &height);
 
-    if ((sdlWindow = SDL_CreateWindow(UI_TITLE, SDL_WINDOWPOS_CENTERED,
-                                   SDL_WINDOWPOS_CENTERED, width * display_zoom,
-                                   height * display_zoom , flags)) == NULL)
-        panicf("%s", SDL_GetError());
+    sdlWindow = SDL_CreateWindow(UI_TITLE, SDL_WINDOWPOS_CENTERED,
+                                 SDL_WINDOWPOS_CENTERED, width * display_zoom,
+                                 height * display_zoom, flags);
+    if (sdlWindow == NULL)
+    {
+        /* Window creation failed (e.g., running headlessly without a display).
+         * Continue without a GUI — the daemon still operates normally. */
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                    "SDL_CreateWindow failed: %s — running headless", SDL_GetError());
+        return;
+    }
+
     if ((sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC)) == NULL)
-        panicf("%s", SDL_GetError());
+    {
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                    "SDL_CreateRenderer failed: %s — running headless", SDL_GetError());
+        SDL_DestroyWindow(sdlWindow);
+        sdlWindow = NULL;
+        return;
+    }
 
     /* Surface for LCD content only. Needs to fit largest LCD */
     if ((sim_lcd_surface = SDL_CreateRGBSurface(0,
@@ -243,7 +263,15 @@ void sdl_window_setup(void)
                                                 SIM_LCD_WIDTH, SIM_LCD_HEIGHT,
 #endif
                                                 depth, 0, 0, 0, 0)) == NULL)
-        panicf("%s", SDL_GetError());
+    {
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                    "SDL_CreateRGBSurface failed: %s — running headless", SDL_GetError());
+        SDL_DestroyRenderer(sdlRenderer);
+        SDL_DestroyWindow(sdlWindow);
+        sdlRenderer = NULL;
+        sdlWindow = NULL;
+        return;
+    }
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, display_zoom == 1 ? "best" : "nearest");
     display_zoom = 0; /* reset to 0 unless/until user requests a scale level change */

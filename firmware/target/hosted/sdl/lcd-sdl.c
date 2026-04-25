@@ -95,6 +95,11 @@ void sdl_update_rect(SDL_Surface *surface, int x_start, int y_start, int width,
 void sdl_gui_update(SDL_Surface *surface, int x_start, int y_start, int width,
                     int height, int max_x, int max_y, int ui_x, int ui_y)
 {
+    extern SDL_Window *sdlWindow;
+    extern SDL_Surface *sim_lcd_surface;
+    if (!sdlWindow || !sim_lcd_surface)
+        return; /* headless: no display — skip rendering */
+
     if (x_start + width > max_x)
         width = max_x - x_start;
     if (y_start + height > max_y)

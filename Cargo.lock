@@ -9153,6 +9153,7 @@ dependencies = [
  "dirs 6.0.0",
  "libc",
  "owo-colors 4.1.0",
+ "reqwest",
  "rockbox-airplay",
  "rockbox-library",
  "rockbox-playlists",

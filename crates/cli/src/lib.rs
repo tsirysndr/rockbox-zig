@@ -24,6 +24,26 @@ use tracing::{error, info, warn};
 /// PID of the spawned typesense-server child, or -1 if not yet started.
 static TYPESENSE_PID: AtomicI32 = AtomicI32::new(-1);
 
+/// Poll the Typesense health endpoint until it responds, giving the server
+/// time to start before any collection or indexing calls are made.
+async fn wait_for_typesense() {
+    let port = std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string());
+    let url = format!("http://localhost:{}/health", port);
+    let client = reqwest::Client::new();
+    for attempt in 1..=30 {
+        match client.get(&url).send().await {
+            Ok(r) if r.status().is_success() => {
+                info!("Typesense ready after {} attempt(s)", attempt);
+                return;
+            }
+            _ => {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+            }
+        }
+    }
+    warn!("Typesense did not become ready in time; proceeding anyway");
+}
+
 /// SIGTERM/SIGINT handler: kill the typesense child then _exit immediately.
 ///
 /// system-hosted.c installs a SIGTERM handler that calls system_exception_wait()
@@ -144,8 +164,10 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
                 insert_albums(albums.into_iter().map(Album::from).collect()).await?;
             }
 
-            // Always sync playlists on startup so the collection exists even if
-            // the library scan was skipped (tracks already indexed).
+            // Always sync playlists on startup so the collection exists even when the
+            // library scan was skipped.  Wait for Typesense to be ready first since it
+            // may still be starting when tracks are already indexed (no scan delay).
+            wait_for_typesense().await;
             create_playlists_collection().await?;
             let playlist_store = PlaylistStore::new(pool.clone());
             let saved = playlist_store.list().await.unwrap_or_default();
