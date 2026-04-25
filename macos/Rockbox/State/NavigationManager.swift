@@ -11,9 +11,13 @@ import SwiftUI
 class NavigationManager: ObservableObject {
     @Published var selectedAlbum: Album? = nil
     @Published var selectedArtist: Artist? = nil
+    @Published var selectedPlaylist: SavedPlaylist? = nil
+    @Published var selectedSmartPlaylist: SmartPlaylist? = nil
     
     func goToAlbum(_ album: Album) {
         selectedArtist = nil
+        selectedPlaylist = nil
+        selectedSmartPlaylist = nil
         selectedAlbum = album
     }
     
@@ -39,8 +43,24 @@ class NavigationManager: ObservableObject {
         }
     }
     
+    func goToPlaylist(_ playlist: SavedPlaylist) {
+        selectedAlbum = nil
+        selectedArtist = nil
+        selectedSmartPlaylist = nil
+        selectedPlaylist = playlist
+    }
+
+    func goToSmartPlaylist(_ playlist: SmartPlaylist) {
+        selectedAlbum = nil
+        selectedArtist = nil
+        selectedPlaylist = nil
+        selectedSmartPlaylist = playlist
+    }
+
     func goToArtist(_ artist: Artist) {
         selectedAlbum = nil
+        selectedPlaylist = nil
+        selectedSmartPlaylist = nil
         selectedArtist = artist
     }
     
@@ -66,12 +86,18 @@ class NavigationManager: ObservableObject {
             selectedAlbum = nil
         } else if selectedArtist != nil {
             selectedArtist = nil
+        } else if selectedPlaylist != nil {
+            selectedPlaylist = nil
+        } else if selectedSmartPlaylist != nil {
+            selectedSmartPlaylist = nil
         }
     }
-    
+
     func reset() {
         selectedAlbum = nil
         selectedArtist = nil
+        selectedPlaylist = nil
+        selectedSmartPlaylist = nil
     }
 }
 

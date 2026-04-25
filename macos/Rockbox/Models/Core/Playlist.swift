@@ -14,3 +14,20 @@ struct Playlist: Identifiable {
     let description: String?
     let tracks: [Song]
 }
+
+struct SavedPlaylist: Identifiable {
+    let id: String
+    let name: String
+    let description: String?
+    let image: String?
+    let folderID: String?
+    let trackCount: Int64
+}
+
+struct SmartPlaylist: Identifiable {
+    let id: String
+    let name: String
+    let description: String?
+    let image: String?
+    let isSystem: Bool
+}

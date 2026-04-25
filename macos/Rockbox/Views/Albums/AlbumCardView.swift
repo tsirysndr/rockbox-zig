@@ -8,7 +8,7 @@ import SwiftUI
 
 struct AlbumCardView: View {
     let album: Album
-    var playlists: [Playlist] = []
+    var savedPlaylists: [SavedPlaylist] = []
     @EnvironmentObject var player: PlayerState
     @EnvironmentObject var navigation: NavigationManager
     
@@ -146,14 +146,32 @@ struct AlbumCardView: View {
                                                 title: "Add to Playlist",
                                                 icon: "music.note.list",
                                                 hasSubmenu: true,
-                                                submenuItems: playlists,
+                                                savedPlaylists: savedPlaylists,
                                                 onSubmenuSelect: { playlist in
                                                     showMenu = false
-                                                    // Add to selected playlist
+                                                    Task {
+                                                        do {
+                                                            let tracks = try await fetchAlbumTracks(albumID: album.cuid)
+                                                            let trackIDs = tracks.map { $0.id }
+                                                            try await addTracksToSavedPlaylist(
+                                                                playlistID: playlist.id, trackIDs: trackIDs)
+                                                        } catch {
+                                                            errorText = String(describing: error)
+                                                        }
+                                                    }
                                                 },
                                                 onCreateNew: {
                                                     showMenu = false
-                                                    // Create new playlist
+                                                    Task {
+                                                        do {
+                                                            let tracks = try await fetchAlbumTracks(albumID: album.cuid)
+                                                            let trackIDs = tracks.map { $0.id }
+                                                            let _ = try await createSavedPlaylist(
+                                                                name: album.title, trackIDs: trackIDs)
+                                                        } catch {
+                                                            errorText = String(describing: error)
+                                                        }
+                                                    }
                                                 },
                                                 action: {}
                                             )
@@ -250,8 +268,8 @@ struct MenuItemButton: View {
     let title: String
     let icon: String
     var hasSubmenu: Bool = false
-    var submenuItems: [Playlist] = []
-    var onSubmenuSelect: ((Playlist) -> Void)? = nil
+    var savedPlaylists: [SavedPlaylist] = []
+    var onSubmenuSelect: ((SavedPlaylist) -> Void)? = nil
     var onCreateNew: (() -> Void)? = nil
     let action: () -> Void
     
@@ -264,10 +282,10 @@ struct MenuItemButton: View {
                     Label("New Playlist...", systemImage: "plus")
                 }
                 
-                if !submenuItems.isEmpty {
+                if !savedPlaylists.isEmpty {
                     Divider()
-                    
-                    ForEach(submenuItems) { playlist in
+
+                    ForEach(savedPlaylists) { playlist in
                         Button(action: { onSubmenuSelect?(playlist) }) {
                             Label(playlist.name, systemImage: "music.note.list")
                         }

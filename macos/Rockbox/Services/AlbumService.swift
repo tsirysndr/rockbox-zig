@@ -48,6 +48,13 @@ func fetchAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async 
   }
 }
 
+func fetchAlbumTracks(albumID: String, host: String = "127.0.0.1", port: Int = 6061) async throws
+  -> [Rockbox_V1alpha1_Track]
+{
+  let album = try await fetchAlbum(id: albumID, host: host, port: port)
+  return album.tracks
+}
+
 func likeAlbum(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws {
   try await withGRPCClient(
     transport: .http2NIOPosix(

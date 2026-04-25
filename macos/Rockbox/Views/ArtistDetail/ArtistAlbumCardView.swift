@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ArtistAlbumCardView: View {
     let album: Album
-    var playlists: [Playlist] = []
+    var savedPlaylists: [SavedPlaylist] = []
     var onSelect: () -> Void
 
     @State private var isHovering = false
@@ -147,14 +147,32 @@ struct ArtistAlbumCardView: View {
                                                 title: "Add to Playlist",
                                                 icon: "music.note.list",
                                                 hasSubmenu: true,
-                                                submenuItems: playlists,
+                                                savedPlaylists: savedPlaylists,
                                                 onSubmenuSelect: { playlist in
                                                     showMenu = false
-                                                    // Add to selected playlist
+                                                    Task {
+                                                        do {
+                                                            let tracks = try await fetchAlbumTracks(albumID: album.cuid)
+                                                            try await addTracksToSavedPlaylist(
+                                                                playlistID: playlist.id,
+                                                                trackIDs: tracks.map { $0.id })
+                                                        } catch {
+                                                            errorText = String(describing: error)
+                                                        }
+                                                    }
                                                 },
                                                 onCreateNew: {
                                                     showMenu = false
-                                                    // Create new playlist
+                                                    Task {
+                                                        do {
+                                                            let tracks = try await fetchAlbumTracks(albumID: album.cuid)
+                                                            let _ = try await createSavedPlaylist(
+                                                                name: album.title,
+                                                                trackIDs: tracks.map { $0.id })
+                                                        } catch {
+                                                            errorText = String(describing: error)
+                                                        }
+                                                    }
                                                 },
                                                 action: {}
                                             )

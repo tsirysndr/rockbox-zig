@@ -12,7 +12,7 @@ struct SearchResultsView: View {
     @EnvironmentObject var navigation: NavigationManager
     @EnvironmentObject var player: PlayerState
     @ObservedObject var library: MusicLibrary
-    var playlists: [Playlist] = []
+    @State private var savedPlaylists: [SavedPlaylist] = []
     
     var body: some View {
         ScrollView {
@@ -43,7 +43,7 @@ struct SearchResultsView: View {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 16) {
                                     ForEach(searchManager.searchResults.albums) { album in
-                                        SearchAlbumCard(album: album, playlists: playlists) {
+                                        SearchAlbumCard(album: album, savedPlaylists: savedPlaylists) {
                                             navigation.goToAlbum(album)
                                             searchManager.clear()
                                         }
@@ -63,7 +63,7 @@ struct SearchResultsView: View {
                                         song: song,
                                         index: index,
                                         library: library,
-                                        playlists: playlists
+                                        savedPlaylists: savedPlaylists
                                     )
                                 }
                             }
@@ -74,8 +74,23 @@ struct SearchResultsView: View {
             }
             .padding(.vertical, 20)
         }
+        .task {
+            if savedPlaylists.isEmpty {
+                if let data = try? await fetchSavedPlaylists() {
+                    savedPlaylists = data.map {
+                        SavedPlaylist(
+                            id: $0.id, name: $0.name,
+                            description: $0.hasDescription_p ? $0.description_p : nil,
+                            image: $0.hasImage ? $0.image : nil,
+                            folderID: $0.hasFolderID ? $0.folderID : nil,
+                            trackCount: $0.trackCount
+                        )
+                    }
+                }
+            }
+        }
     }
-    
+
     private var emptyResultsView: some View {
         VStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
@@ -200,7 +215,7 @@ struct SearchArtistCard: View {
 
 struct SearchAlbumCard: View {
     let album: Album
-    var playlists: [Playlist] = []
+    var savedPlaylists: [SavedPlaylist] = []
     let onSelect: () -> Void
     
     @State private var isHovering = false
@@ -319,12 +334,28 @@ struct SearchAlbumCard: View {
                                                 title: "Add to Playlist",
                                                 icon: "music.note.list",
                                                 hasSubmenu: true,
-                                                submenuItems: playlists,
+                                                savedPlaylists: savedPlaylists,
                                                 onSubmenuSelect: { playlist in
                                                     showMenu = false
+                                                    Task {
+                                                        do {
+                                                            let tracks = try await fetchAlbumTracks(albumID: album.cuid)
+                                                            try await addTracksToSavedPlaylist(
+                                                                playlistID: playlist.id,
+                                                                trackIDs: tracks.map { $0.id })
+                                                        } catch {}
+                                                    }
                                                 },
                                                 onCreateNew: {
                                                     showMenu = false
+                                                    Task {
+                                                        do {
+                                                            let tracks = try await fetchAlbumTracks(albumID: album.cuid)
+                                                            let _ = try await createSavedPlaylist(
+                                                                name: album.title,
+                                                                trackIDs: tracks.map { $0.id })
+                                                        } catch {}
+                                                    }
                                                 },
                                                 action: {}
                                             )
@@ -385,7 +416,7 @@ struct SearchSongRow: View {
     let song: Song
     let index: Int
     @ObservedObject var library: MusicLibrary
-    var playlists: [Playlist] = []
+    var savedPlaylists: [SavedPlaylist] = []
     
     @State private var isHovering = false
     @State private var isHoveringPlay = false
@@ -507,12 +538,17 @@ struct SearchSongRow: View {
                     title: "Add to Playlist",
                     icon: "music.note.list",
                     hasSubmenu: true,
-                    submenuItems: playlists,
+                    savedPlaylists: savedPlaylists,
                     onSubmenuSelect: { playlist in
-                        // Add to playlist
+                        Task {
+                            try? await addTracksToSavedPlaylist(
+                                playlistID: playlist.id, trackIDs: [song.cuid])
+                        }
                     },
                     onCreateNew: {
-                        // Create new playlist
+                        Task {
+                            try? await createSavedPlaylist(name: song.title, trackIDs: [song.cuid])
+                        }
                     },
                     action: {}
                 )

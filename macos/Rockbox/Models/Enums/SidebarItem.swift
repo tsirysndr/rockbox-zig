@@ -12,16 +12,18 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     case artists = "Artists"
     case songs = "Songs"
     case likes = "Likes"
+    case playlists = "Playlists"
     case files = "Files"
-    
+
     var id: String { rawValue }
-    
+
     var icon: String {
         switch self {
         case .albums: return "square.stack"
         case .artists: return "music.mic"
         case .songs: return "music.note"
         case .likes: return "heart"
+        case .playlists: return "music.note.list"
         case .files: return "folder"
         }
     }

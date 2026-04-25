@@ -13,6 +13,7 @@ struct AlbumTrackRowView: View {
     let isEven: Bool
     let albumID: String
     @State private var errorText: String?
+    @State private var savedPlaylists: [SavedPlaylist] = []
     @State private var isHoveringMenu: Bool = false
     @ObservedObject var library: MusicLibrary
     @EnvironmentObject var player: PlayerState
@@ -91,17 +92,46 @@ struct AlbumTrackRowView: View {
                     Label("Play Next", systemImage: "text.insert")
                 }
                 
-                Button(action: {
-                    Task {
-                        do {
-                            // Add to Playlist
-                        } catch {
-                            errorText = String(describing: error)
+                Menu {
+                    Button(action: {
+                        Task {
+                            do {
+                                let pl = try await createSavedPlaylist(
+                                    name: track.title, trackIDs: [track.cuid])
+                                let saved = SavedPlaylist(
+                                    id: pl.id, name: pl.name,
+                                    description: nil, image: nil, folderID: nil,
+                                    trackCount: pl.trackCount)
+                                savedPlaylists.append(saved)
+                            } catch {
+                                errorText = String(describing: error)
+                            }
+                        }
+                    }) {
+                        Label("New Playlist...", systemImage: "plus")
+                    }
+                    if !savedPlaylists.isEmpty {
+                        Divider()
+                        ForEach(savedPlaylists) { pl in
+                            Button(action: {
+                                Task {
+                                    do {
+                                        try await addTracksToSavedPlaylist(
+                                            playlistID: pl.id, trackIDs: [track.cuid])
+                                    } catch {
+                                        errorText = String(describing: error)
+                                    }
+                                }
+                            }) {
+                                Label(pl.name, systemImage: "music.note.list")
+                            }
                         }
                     }
-                }) {
+                } label: {
                     Label("Add to Playlist", systemImage: "text.append")
                 }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
                 
                 Button(action: {
                     Task {
@@ -157,6 +187,21 @@ struct AlbumTrackRowView: View {
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovering = hovering
+            }
+        }
+        .task {
+            if savedPlaylists.isEmpty {
+                if let data = try? await fetchSavedPlaylists() {
+                    savedPlaylists = data.map {
+                        SavedPlaylist(
+                            id: $0.id, name: $0.name,
+                            description: $0.hasDescription_p ? $0.description_p : nil,
+                            image: $0.hasImage ? $0.image : nil,
+                            folderID: $0.hasFolderID ? $0.folderID : nil,
+                            trackCount: $0.trackCount
+                        )
+                    }
+                }
             }
         }
     }

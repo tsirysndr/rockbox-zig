@@ -61,15 +61,25 @@ struct DetailView: View {
     } else if let album = navigation.selectedAlbum {
       AlbumDetailView(
         album: album, library: library,
-        onBack: {
-          navigation.selectedAlbum = nil
-        })
+        onBack: { navigation.selectedAlbum = nil })
     } else if let artist = navigation.selectedArtist {
       ArtistDetailView(
         artist: artist,
         library: library,
         onBack: { navigation.selectedArtist = nil },
         onAlbumSelected: { album in navigation.goToAlbum(album) }
+      )
+    } else if let playlist = navigation.selectedPlaylist {
+      SavedPlaylistDetailView(
+        playlist: playlist,
+        library: library,
+        onBack: { navigation.selectedPlaylist = nil }
+      )
+    } else if let smartPlaylist = navigation.selectedSmartPlaylist {
+      SmartPlaylistDetailView(
+        playlist: smartPlaylist,
+        library: library,
+        onBack: { navigation.selectedSmartPlaylist = nil }
       )
     } else if let selection {
       selectionView(for: selection)
@@ -91,6 +101,8 @@ struct DetailView: View {
       SongsListView(library: library)
     case .likes:
       LikesListView(library: library)
+    case .playlists:
+      PlaylistsView()
     case .files:
       FilesListView()
     }
