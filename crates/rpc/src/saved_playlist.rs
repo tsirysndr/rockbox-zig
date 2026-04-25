@@ -1,4 +1,6 @@
 use rockbox_playlists::{Playlist, PlaylistFolder, PlaylistStore};
+use rockbox_typesense::client::{delete_playlist as ts_delete_playlist, insert_playlists};
+use rockbox_typesense::types::Playlist as TsPlaylist;
 
 use crate::api::rockbox::v1alpha1::{
     saved_playlist_service_server::SavedPlaylistService, AddTracksToSavedPlaylistRequest,
@@ -22,6 +24,17 @@ pub struct SavedPlaylist {
 impl SavedPlaylist {
     pub fn new(store: PlaylistStore, client: reqwest::Client) -> Self {
         Self { store, client }
+    }
+}
+
+fn to_ts_playlist(p: &Playlist) -> TsPlaylist {
+    TsPlaylist {
+        id: p.id.clone(),
+        name: p.name.clone(),
+        description: p.description.clone(),
+        image: p.image.clone(),
+        is_smart: false,
+        track_count: p.track_count,
     }
 }
 
@@ -147,6 +160,8 @@ impl SavedPlaylistService for SavedPlaylist {
                 .await
                 .map_err(|e| tonic::Status::internal(e.to_string()))?;
         }
+        let ts_p = to_ts_playlist(&playlist);
+        let _ = insert_playlists(vec![ts_p]).await;
         Ok(tonic::Response::new(CreateSavedPlaylistResponse {
             playlist: Some(to_proto_playlist(playlist)),
         }))
@@ -167,6 +182,10 @@ impl SavedPlaylistService for SavedPlaylist {
             )
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        if let Ok(Some(updated)) = self.store.get(&req.id).await {
+            let ts_p = to_ts_playlist(&updated);
+            let _ = insert_playlists(vec![ts_p]).await;
+        }
         Ok(tonic::Response::new(UpdateSavedPlaylistResponse {}))
     }
 
@@ -179,6 +198,7 @@ impl SavedPlaylistService for SavedPlaylist {
             .delete(&id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let _ = ts_delete_playlist(&id).await;
         Ok(tonic::Response::new(DeleteSavedPlaylistResponse {}))
     }
 

@@ -37,10 +37,21 @@ pub struct SearchArtist {
 }
 
 #[derive(Clone, Default)]
+pub struct SearchPlaylist {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub image: Option<String>,
+    pub is_smart: bool,
+    pub track_count: i64,
+}
+
+#[derive(Clone, Default)]
 pub struct SearchResults {
     pub tracks: Vec<Track>,
     pub albums: Vec<SearchAlbum>,
     pub artists: Vec<SearchArtist>,
+    pub playlists: Vec<SearchPlaylist>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

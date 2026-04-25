@@ -314,6 +314,149 @@ pub async fn search_albums(query: &str) -> Result<Option<AlbumResult>, Error> {
     Ok(Some(res.json::<AlbumResult>().await?))
 }
 
+pub async fn create_playlists_collection() -> Result<(), Error> {
+    let client = Client::new();
+    let schema = serde_json::json!({
+        "name": "playlists",
+        "fields": [
+            {"name": "name", "type": "string", "sort": true},
+            {"name": "description", "type": "string", "optional": true},
+            {"name": "image", "type": "string", "optional": true},
+            {"name": "is_smart", "type": "bool"},
+            {"name": "track_count", "type": "int64"},
+        ],
+        "default_sorting_field": "name"
+    });
+
+    let typesense_host = format!(
+        "http://localhost:{}",
+        std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string())
+    );
+
+    let api_key = std::env::var("RB_TYPESENSE_API_KEY");
+    if api_key.is_err() {
+        warn!("RB_TYPESENSE_API_KEY is not set.");
+        return Ok(());
+    }
+    let api_key = api_key.unwrap();
+    let res = client
+        .post(format!("{}/collections", typesense_host))
+        .header("X-TYPESENSE-API-KEY", &api_key)
+        .json(&schema)
+        .send()
+        .await?;
+
+    debug!("Create playlists collection response: {}", res.status());
+
+    Ok(())
+}
+
+pub async fn insert_playlists(playlists: Vec<Playlist>) -> Result<(), Error> {
+    let client = Client::new();
+
+    let jsonl = playlists
+        .into_iter()
+        .map(|p| serde_json::to_string(&p).unwrap())
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    let typesense_host = format!(
+        "http://localhost:{}",
+        std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string())
+    );
+
+    let api_key = std::env::var("RB_TYPESENSE_API_KEY");
+    if api_key.is_err() {
+        warn!("RB_TYPESENSE_API_KEY is not set.");
+        return Ok(());
+    }
+    let api_key = api_key.unwrap();
+    let res = client
+        .post(format!(
+            "{}/collections/playlists/documents/import?action=upsert",
+            typesense_host
+        ))
+        .header("X-TYPESENSE-API-KEY", &api_key)
+        .header("Content-Type", "text/plain")
+        .body(jsonl)
+        .send()
+        .await?;
+
+    info!("Insert playlists response: {}", res.status());
+
+    Ok(())
+}
+
+pub async fn delete_playlist(id: &str) -> Result<(), Error> {
+    let client = Client::new();
+
+    let typesense_host = format!(
+        "http://localhost:{}",
+        std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string())
+    );
+
+    let api_key = std::env::var("RB_TYPESENSE_API_KEY");
+    if api_key.is_err() {
+        warn!("RB_TYPESENSE_API_KEY is not set.");
+        return Ok(());
+    }
+    let api_key = api_key.unwrap();
+    let res = client
+        .delete(format!(
+            "{}/collections/playlists/documents/{}",
+            typesense_host, id
+        ))
+        .header("X-TYPESENSE-API-KEY", &api_key)
+        .send()
+        .await?;
+
+    debug!("Delete playlist response: {}", res.status());
+
+    Ok(())
+}
+
+pub async fn search_playlists(query: &str) -> Result<Option<PlaylistResult>, Error> {
+    let client = Client::new();
+
+    let typesense_host = format!(
+        "http://localhost:{}",
+        std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string())
+    );
+
+    let api_key = std::env::var("RB_TYPESENSE_API_KEY");
+    if api_key.is_err() {
+        warn!("RB_TYPESENSE_API_KEY is not set.");
+        return Ok(None);
+    }
+    let api_key = api_key.unwrap();
+    let res = client
+        .get(format!(
+            "{}/collections/playlists/documents/search",
+            typesense_host,
+        ))
+        .query(&[
+            ("q", query),
+            ("query_by", "name,description"),
+            (
+                "include_fields",
+                "id,name,description,image,is_smart,track_count",
+            ),
+        ])
+        .header("X-TYPESENSE-API-KEY", &api_key)
+        .send()
+        .await?;
+
+    let text = res.text().await?;
+    match serde_json::from_str::<PlaylistResult>(&text) {
+        Ok(result) => Ok(Some(result)),
+        Err(e) => {
+            warn!("Failed to parse Typesense playlists response: {}", e);
+            warn!("Response body: {}", text);
+            Err(e.into())
+        }
+    }
+}
+
 pub async fn search_artists(query: &str) -> Result<Option<ArtistResult>, Error> {
     let client = Client::new();
 

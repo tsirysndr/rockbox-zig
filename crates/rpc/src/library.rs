@@ -2,7 +2,7 @@ use std::pin::Pin;
 
 use rockbox_graphql::{simplebroker::SimpleBroker, types::ScanCompleted};
 use rockbox_library::{entity::favourites::Favourites, repo};
-use rockbox_typesense::client::{search_albums, search_artists, search_tracks};
+use rockbox_typesense::client::{search_albums, search_artists, search_playlists, search_tracks};
 use sqlx::Sqlite;
 use tokio_stream::{Stream, StreamExt};
 
@@ -13,9 +13,9 @@ use crate::{
         GetArtistsRequest, GetArtistsResponse, GetLikedAlbumsRequest, GetLikedAlbumsResponse,
         GetLikedTracksRequest, GetLikedTracksResponse, GetTrackRequest, GetTrackResponse,
         GetTracksRequest, GetTracksResponse, LikeAlbumRequest, LikeAlbumResponse, LikeTrackRequest,
-        LikeTrackResponse, ScanLibraryRequest, ScanLibraryResponse, SearchRequest, SearchResponse,
-        StreamLibraryRequest, StreamLibraryResponse, UnlikeAlbumRequest, UnlikeAlbumResponse,
-        UnlikeTrackRequest, UnlikeTrackResponse,
+        LikeTrackResponse, ScanLibraryRequest, ScanLibraryResponse, SearchPlaylist, SearchRequest,
+        SearchResponse, StreamLibraryRequest, StreamLibraryResponse, UnlikeAlbumRequest,
+        UnlikeAlbumResponse, UnlikeTrackRequest, UnlikeTrackResponse,
     },
     rockbox_url,
 };
@@ -288,11 +288,29 @@ impl LibraryService for Library {
             .map_err(|e| tonic::Status::internal(e.to_string()))?
             .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
             .unwrap_or_default();
+        let playlists = search_playlists(&term)
+            .await
+            .unwrap_or_default()
+            .map(|r| {
+                r.hits
+                    .into_iter()
+                    .map(|h| SearchPlaylist {
+                        id: h.document.id,
+                        name: h.document.name,
+                        description: h.document.description,
+                        image: h.document.image,
+                        is_smart: h.document.is_smart,
+                        track_count: h.document.track_count,
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
 
         Ok(tonic::Response::new(SearchResponse {
             tracks,
             albums,
             artists,
+            playlists,
         }))
     }
 

@@ -145,10 +145,20 @@ message SearchRequest {
   string term = 1;
 }
 
+message SearchPlaylist {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional string image = 4;
+  bool is_smart = 5;
+  int64 track_count = 6;
+}
+
 message SearchResponse {
   repeated Track tracks = 1;
   repeated Album albums = 2;
   repeated Artist artists = 3;
+  repeated SearchPlaylist playlists = 4;
 }
 
 service LibraryService {

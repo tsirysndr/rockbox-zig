@@ -9155,6 +9155,7 @@ dependencies = [
  "owo-colors 4.1.0",
  "rockbox-airplay",
  "rockbox-library",
+ "rockbox-playlists",
  "rockbox-rocksky",
  "rockbox-settings",
  "rockbox-slim",

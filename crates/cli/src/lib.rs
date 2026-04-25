@@ -7,6 +7,7 @@ use owo_colors::OwoColorize;
 use rockbox_airplay::_link_airplay as _;
 use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
+use rockbox_playlists::PlaylistStore;
 #[allow(unused_imports)]
 use rockbox_slim::_link_slim as _;
 use rockbox_typesense::client::*;
@@ -141,6 +142,38 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
                 insert_tracks(tracks.into_iter().map(Track::from).collect()).await?;
                 insert_artists(artists.into_iter().map(Artist::from).collect()).await?;
                 insert_albums(albums.into_iter().map(Album::from).collect()).await?;
+            }
+
+            // Always sync playlists on startup so the collection exists even if
+            // the library scan was skipped (tracks already indexed).
+            create_playlists_collection().await?;
+            let playlist_store = PlaylistStore::new(pool.clone());
+            let saved = playlist_store.list().await.unwrap_or_default();
+            let smart = playlist_store
+                .list_smart_playlists()
+                .await
+                .unwrap_or_default();
+            let ts_playlists: Vec<Playlist> = saved
+                .into_iter()
+                .map(|p| Playlist {
+                    id: p.id,
+                    name: p.name,
+                    description: p.description,
+                    image: p.image,
+                    is_smart: false,
+                    track_count: p.track_count,
+                })
+                .chain(smart.into_iter().map(|p| Playlist {
+                    id: p.id,
+                    name: p.name,
+                    description: p.description,
+                    image: p.image,
+                    is_smart: true,
+                    track_count: 0,
+                }))
+                .collect();
+            if !ts_playlists.is_empty() {
+                insert_playlists(ts_playlists).await?;
             }
             Ok::<(), Error>(())
         })

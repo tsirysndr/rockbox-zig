@@ -539,6 +539,21 @@ pub struct SearchRequest {
     pub term: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SearchPlaylist {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "3")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "4")]
+    pub image: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bool, tag = "5")]
+    pub is_smart: bool,
+    #[prost(int64, tag = "6")]
+    pub track_count: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SearchResponse {
     #[prost(message, repeated, tag = "1")]
     pub tracks: ::prost::alloc::vec::Vec<Track>,
@@ -546,6 +561,8 @@ pub struct SearchResponse {
     pub albums: ::prost::alloc::vec::Vec<Album>,
     #[prost(message, repeated, tag = "3")]
     pub artists: ::prost::alloc::vec::Vec<Artist>,
+    #[prost(message, repeated, tag = "4")]
+    pub playlists: ::prost::alloc::vec::Vec<SearchPlaylist>,
 }
 /// Generated client implementations.
 pub mod library_service_client {

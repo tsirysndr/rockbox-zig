@@ -169,3 +169,34 @@ pub struct ArtistResult {
     pub search_cutoff: bool,
     pub search_time_ms: i64,
 }
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct Playlist {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub image: Option<String>,
+    pub is_smart: bool,
+    pub track_count: i64,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct PlaylistHit {
+    pub document: Playlist,
+    pub highlight: Option<serde_json::Value>,
+    pub highlights: Vec<serde_json::Value>,
+    pub text_match: i64,
+    pub text_match_info: serde_json::Value,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct PlaylistResult {
+    pub facet_counts: Vec<serde_json::Value>,
+    pub found: i64,
+    pub hits: Vec<PlaylistHit>,
+    pub out_of: i64,
+    pub page: i64,
+    pub request_params: serde_json::Value,
+    pub search_cutoff: bool,
+    pub search_time_ms: i64,
+}

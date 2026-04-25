@@ -908,7 +908,10 @@ impl Render for LibraryPage {
             match search_results {
                 None => div().flex_1().into_any_element(),
                 Some(ref r)
-                    if r.tracks.is_empty() && r.albums.is_empty() && r.artists.is_empty() =>
+                    if r.tracks.is_empty()
+                        && r.albums.is_empty()
+                        && r.artists.is_empty()
+                        && r.playlists.is_empty() =>
                 {
                     div()
                         .flex_1()
@@ -1187,6 +1190,99 @@ impl Render for LibraryPage {
                                                     .child("Songs"),
                                             )
                                             .children(rows),
+                                    )
+                                })
+                                // ── Playlists ─────────────────────────────────────
+                                .when(!r.playlists.is_empty(), |this| {
+                                    this.child(
+                                        div()
+                                            .flex()
+                                            .flex_col()
+                                            .gap_y_4()
+                                            .child(
+                                                div()
+                                                    .text_base()
+                                                    .font_weight(FontWeight(600.0))
+                                                    .text_color(theme.library_text)
+                                                    .child("Playlists"),
+                                            )
+                                            .child(div().flex().flex_col().gap_y_1().children(
+                                                r.playlists.iter().take(10).enumerate().map(
+                                                    |(idx, pl)| {
+                                                        let pl_id = pl.id.clone();
+                                                        let pl_name = pl.name.clone();
+                                                        let pl_is_smart = pl.is_smart;
+                                                        let si = search_input.clone();
+                                                        div()
+                                                            .id(("spl", idx))
+                                                            .flex()
+                                                            .items_center()
+                                                            .gap_x_3()
+                                                            .px_2()
+                                                            .py_2()
+                                                            .rounded_md()
+                                                            .cursor_pointer()
+                                                            .hover(|s| s.bg(theme.library_table_border))
+                                                            .on_click(move |_, _, cx: &mut App| {
+                                                                *cx.global_mut::<SelectedPlaylist>() =
+                                                                    SelectedPlaylist {
+                                                                        id: pl_id.clone(),
+                                                                        name: pl_name.clone(),
+                                                                        is_smart: pl_is_smart,
+                                                                    };
+                                                                *cx.global_mut::<LibrarySection>() =
+                                                                    if pl_is_smart {
+                                                                        LibrarySection::SmartPlaylistDetail
+                                                                    } else {
+                                                                        LibrarySection::PlaylistDetail
+                                                                    };
+                                                                si.update(cx, |this, cx| {
+                                                                    this.query.clear();
+                                                                    cx.notify();
+                                                                });
+                                                            })
+                                                            .child(
+                                                                div()
+                                                                    .flex()
+                                                                    .items_center()
+                                                                    .justify_center()
+                                                                    .w_8()
+                                                                    .h_8()
+                                                                    .rounded_md()
+                                                                    .bg(theme.library_art_bg)
+                                                                    .text_color(theme.player_icons_text)
+                                                                    .child(
+                                                                        Icon::new(Icons::Playlist)
+                                                                            .size_4(),
+                                                                    ),
+                                                            )
+                                                            .child(
+                                                                div()
+                                                                    .flex()
+                                                                    .flex_col()
+                                                                    .gap_y_0p5()
+                                                                    .child(
+                                                                        div()
+                                                                            .text_sm()
+                                                                            .font_weight(FontWeight(500.0))
+                                                                            .text_color(theme.library_text)
+                                                                            .truncate()
+                                                                            .child(pl.name.clone()),
+                                                                    )
+                                                                    .child(
+                                                                        div()
+                                                                            .text_xs()
+                                                                            .text_color(theme.library_header_text)
+                                                                            .child(if pl_is_smart {
+                                                                                "Smart Playlist"
+                                                                            } else {
+                                                                                "Playlist"
+                                                                            }),
+                                                                    ),
+                                                            )
+                                                    },
+                                                ),
+                                            )),
                                     )
                                 }),
                         )

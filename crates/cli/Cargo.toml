@@ -13,6 +13,7 @@ rockbox-slim = {path = "../slim"}
 clap = "4.5.16"
 owo-colors = "4.1.0"
 rockbox-library = {path = "../library"}
+rockbox-playlists = {path = "../playlists"}
 rockbox-typesense = {path = "../typesense"}
 rockbox-settings = {path = "../settings"}
 rockbox-rocksky = {path = "../rocksky"}

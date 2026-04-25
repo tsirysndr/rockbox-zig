@@ -13,7 +13,7 @@ use crate::api::v1alpha1::{
     StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest,
     UnlikeTrackRequest,
 };
-use crate::state::{SearchAlbum, SearchArtist, SearchResults};
+use crate::state::{SearchAlbum, SearchArtist, SearchPlaylist, SearchResults};
 
 // Matches apps/playlist.h PLAYLIST_INSERT_* constants
 pub const INSERT_FIRST: i32 = -4; // play next (after current)
@@ -232,10 +232,23 @@ pub async fn search(term: String) -> Result<SearchResults> {
             image: a.image,
         })
         .collect();
+    let playlists = resp
+        .playlists
+        .into_iter()
+        .map(|p| SearchPlaylist {
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            image: p.image,
+            is_smart: p.is_smart,
+            track_count: p.track_count,
+        })
+        .collect();
     Ok(SearchResults {
         tracks,
         albums,
         artists,
+        playlists,
     })
 }
 

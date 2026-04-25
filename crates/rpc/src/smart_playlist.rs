@@ -1,4 +1,6 @@
 use rockbox_playlists::{SmartPlaylist, TrackStats};
+use rockbox_typesense::client::{delete_playlist as ts_delete_playlist, insert_playlists};
+use rockbox_typesense::types::Playlist as TsPlaylist;
 
 use crate::api::rockbox::v1alpha1::{
     smart_playlist_service_server::SmartPlaylistService, CreateSmartPlaylistRequest,
@@ -312,6 +314,15 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             )
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let ts_p = TsPlaylist {
+            id: playlist.id.clone(),
+            name: playlist.name.clone(),
+            description: playlist.description.clone(),
+            image: playlist.image.clone(),
+            is_smart: true,
+            track_count: 0,
+        };
+        let _ = insert_playlists(vec![ts_p]).await;
         Ok(tonic::Response::new(CreateSmartPlaylistResponse {
             playlist: Some(to_proto_smart_playlist(playlist)),
         }))
@@ -338,6 +349,17 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             )
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        if let Ok(Some(updated)) = self.store.get_smart_playlist(&req.id).await {
+            let ts_p = TsPlaylist {
+                id: updated.id.clone(),
+                name: updated.name.clone(),
+                description: updated.description.clone(),
+                image: updated.image.clone(),
+                is_smart: true,
+                track_count: 0,
+            };
+            let _ = insert_playlists(vec![ts_p]).await;
+        }
         Ok(tonic::Response::new(UpdateSmartPlaylistResponse {}))
     }
 
@@ -350,6 +372,7 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             .delete_smart_playlist(&id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let _ = ts_delete_playlist(&id).await;
         Ok(tonic::Response::new(DeleteSmartPlaylistResponse {}))
     }
 
