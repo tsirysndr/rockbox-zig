@@ -80,7 +80,8 @@ impl NowPlayingManager {
 
     /// Push the current playback state and track metadata to the OS.
     pub fn update(&mut self, track: Option<&Track>, status: PlaybackStatus, position: u64) {
-        let track_id = track.map(|t| t.id.as_str()).unwrap_or("");
+        // Use path (always populated) not id (often empty for queue tracks) to detect changes.
+        let track_path = track.map(|t| t.path.as_str()).unwrap_or("");
         // album_art is a bare filename served by rockboxd's cover HTTP server.
         let cover_url = track
             .and_then(|t| t.album_art.as_deref())
@@ -92,12 +93,12 @@ impl NowPlayingManager {
         // any queue data arrives causes macOS to deregister the app from Now Playing,
         // and a subsequent set_playback(Paused/Playing) then fails to re-show the widget.
         let had_track = !self.last_track_id.is_empty();
-        let has_track = !track_id.is_empty();
+        let has_track = !track_path.is_empty();
         if !had_track && !has_track {
             return;
         }
 
-        let track_changed = track_id != self.last_track_id;
+        let track_changed = track_path != self.last_track_id;
         let cover_changed = cover_url != self.last_cover_url;
 
         // souvlaki's macOS set_playback_metadata() replaces nowPlayingInfo with a fresh
@@ -106,7 +107,7 @@ impl NowPlayingManager {
         // same tick ensures the progress merge sees the fresh metadata dict, so the
         // final nowPlayingInfo always contains both metadata and elapsed time.
         if track_changed || cover_changed {
-            self.last_track_id = track_id.to_string();
+            self.last_track_id = track_path.to_string();
             self.last_cover_url = cover_url.clone();
 
             if has_track {
@@ -140,9 +141,13 @@ impl NowPlayingManager {
         }
 
         let progress = Some(MediaPosition(Duration::from_secs(position)));
+        // macOS hides the Now Playing widget for Stopped state. When a track is loaded
+        // but Rockbox hasn't started the audio engine yet (e.g. on first open), show as
+        // Paused so the controls appear immediately — the user can press play from there.
         let playback = match status {
             PlaybackStatus::Playing => MediaPlayback::Playing { progress },
             PlaybackStatus::Paused => MediaPlayback::Paused { progress },
+            PlaybackStatus::Stopped if has_track => MediaPlayback::Paused { progress },
             PlaybackStatus::Stopped => MediaPlayback::Stopped,
         };
         let _ = self.controls.set_playback(playback);

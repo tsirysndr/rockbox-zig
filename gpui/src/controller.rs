@@ -126,9 +126,12 @@ impl Controller {
                         }
 
                         // Push current playback state to the OS notification bar.
+                        // Fall back to queue.first() when current_idx is not yet set
+                        // (playlist loaded but audio engine still initialising on open).
                         let _ = cx.update(|app| {
                             let s = state_for_poll.read(app);
-                            np.update(s.current_track(), s.status, s.position);
+                            let track = s.current_track().or_else(|| s.queue.first());
+                            np.update(track, s.status, s.position);
                         });
                     }
                 }
