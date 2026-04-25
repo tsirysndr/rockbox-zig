@@ -1,6 +1,10 @@
+use std::pin::Pin;
+
+use rockbox_graphql::{simplebroker::SimpleBroker, types::ScanCompleted};
 use rockbox_library::{entity::favourites::Favourites, repo};
 use rockbox_typesense::client::{search_albums, search_artists, search_tracks};
 use sqlx::Sqlite;
+use tokio_stream::{Stream, StreamExt};
 
 use crate::{
     api::rockbox::v1alpha1::{
@@ -10,7 +14,8 @@ use crate::{
         GetLikedTracksRequest, GetLikedTracksResponse, GetTrackRequest, GetTrackResponse,
         GetTracksRequest, GetTracksResponse, LikeAlbumRequest, LikeAlbumResponse, LikeTrackRequest,
         LikeTrackResponse, ScanLibraryRequest, ScanLibraryResponse, SearchRequest, SearchResponse,
-        UnlikeAlbumRequest, UnlikeAlbumResponse, UnlikeTrackRequest, UnlikeTrackResponse,
+        StreamLibraryRequest, StreamLibraryResponse, UnlikeAlbumRequest, UnlikeAlbumResponse,
+        UnlikeTrackRequest, UnlikeTrackResponse,
     },
     rockbox_url,
 };
@@ -289,5 +294,26 @@ impl LibraryService for Library {
             albums,
             artists,
         }))
+    }
+
+    type StreamLibraryStream = Pin<
+        Box<
+            dyn Stream<Item = Result<StreamLibraryResponse, tonic::Status>> + Send + Sync + 'static,
+        >,
+    >;
+
+    async fn stream_library(
+        &self,
+        _request: tonic::Request<StreamLibraryRequest>,
+    ) -> Result<tonic::Response<Self::StreamLibraryStream>, tonic::Status> {
+        let mut stream = SimpleBroker::<ScanCompleted>::subscribe();
+        let output = async_stream::try_stream! {
+            while let Some(_) = stream.next().await {
+                yield StreamLibraryResponse {};
+            }
+        };
+        Ok(tonic::Response::new(
+            Box::pin(output) as Self::StreamLibraryStream
+        ))
     }
 }

@@ -29,6 +29,7 @@ impl Controller {
 
         // Spawn tokio background tasks — these are Send because Sender<StateUpdate> is Send
         rt.spawn(crate::client::run_library_sync(tx.clone()));
+        rt.spawn(crate::client::run_library_stream(tx.clone()));
         rt.spawn(crate::client::run_liked_tracks_sync(tx.clone()));
         rt.spawn(crate::client::run_artist_images_sync(tx.clone()));
         rt.spawn(crate::client::run_settings_sync(tx.clone()));

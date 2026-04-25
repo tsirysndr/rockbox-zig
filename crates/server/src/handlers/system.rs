@@ -2,6 +2,7 @@ use std::env;
 
 use crate::http::{Context, Request, Response};
 use anyhow::Error;
+use rockbox_graphql::{simplebroker::SimpleBroker, types::ScanCompleted};
 use rockbox_library::{artists::update_metadata, audio_scan::scan_audio_files, repo};
 use rockbox_sys as rb;
 use rockbox_typesense::client::*;
@@ -43,6 +44,7 @@ pub async fn scan_library(ctx: &Context, req: &Request, res: &mut Response) -> R
     };
 
     if path != music_library {
+        SimpleBroker::publish(ScanCompleted);
         res.text("0");
         return Ok(());
     }
@@ -50,6 +52,7 @@ pub async fn scan_library(ctx: &Context, req: &Request, res: &mut Response) -> R
     update_metadata(ctx.pool.clone()).await?;
 
     if !rebuild_index {
+        SimpleBroker::publish(ScanCompleted);
         res.text("0");
         return Ok(());
     }
@@ -66,6 +69,7 @@ pub async fn scan_library(ctx: &Context, req: &Request, res: &mut Response) -> R
     insert_artists(artists.into_iter().map(Artist::from).collect()).await?;
     insert_albums(albums.into_iter().map(Album::from).collect()).await?;
 
+    SimpleBroker::publish(ScanCompleted);
     res.text("0");
     Ok(())
 }

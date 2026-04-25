@@ -10,8 +10,8 @@ use crate::api::v1alpha1::{
     PlayDirectoryRequest, PlayTrackRequest, FastForwardRewindRequest, PlaylistResumeRequest,
     PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest,
     SaveSettingsRequest, SearchRequest, ShufflePlaylistRequest, StartRequest,
-    StreamCurrentTrackRequest, StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest,
-    UnlikeTrackRequest,
+    StreamCurrentTrackRequest, StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest,
+    TreeGetEntriesRequest, UnlikeTrackRequest,
 };
 use crate::state::{SearchAlbum, SearchArtist, SearchResults};
 
@@ -52,6 +52,7 @@ fn track_from_proto(t: crate::api::v1alpha1::Track) -> Track {
         genre: t.genre,
         duration: t.length as u64 / 1000,
         track_number: t.track_number,
+        disc_number: t.disc_number,
         year: t.year,
         album_art: t.album_art.filter(|s| !s.is_empty()),
     }
@@ -238,6 +239,7 @@ pub async fn fetch_queue(tx: Sender<StateUpdate>) {
                         genre: t.genre,
                         duration: t.length / 1000,
                         track_number: t.tracknum as u32,
+                        disc_number: 0,
                         year: t.year as u32,
                         album_art: t.album_art.filter(|s| !s.is_empty()),
                     })
@@ -376,6 +378,40 @@ pub async fn run_library_sync(tx: Sender<StateUpdate>) {
         }
         Err(e) => log::warn!("library sync: {e}"),
     }
+}
+
+pub async fn run_library_stream(tx: Sender<StateUpdate>) {
+    loop {
+        if let Err(e) = library_stream_inner(&tx).await {
+            log::warn!("library stream: {e}");
+        }
+        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    }
+}
+
+async fn library_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
+    let mut c = LibraryServiceClient::connect(URL).await?;
+    let resp = c.stream_library(StreamLibraryRequest {}).await?;
+    let mut stream = resp.into_inner();
+    loop {
+        match stream.message().await {
+            Ok(Some(_)) => {
+                if let Ok(mut tracks) = fetch_tracks().await {
+                    tracks.sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase()));
+                    let _ = tx.send(StateUpdate::Tracks(tracks)).await;
+                }
+                if let Ok(ids) = fetch_liked_tracks().await {
+                    let _ = tx.send(StateUpdate::LikedTracks(ids)).await;
+                }
+            }
+            Ok(None) => break,
+            Err(e) => {
+                log::warn!("library stream message: {e}");
+                break;
+            }
+        }
+    }
+    Ok(())
 }
 
 pub async fn run_liked_tracks_sync(tx: Sender<StateUpdate>) {
@@ -523,6 +559,7 @@ async fn playlist_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
                         genre: t.genre,
                         duration: t.length / 1000,
                         track_number: t.tracknum as u32,
+                        disc_number: 0,
                         year: t.year as u32,
                         album_art: t.album_art.filter(|s| !s.is_empty()),
                     })

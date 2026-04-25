@@ -11,6 +11,7 @@ pub struct Track {
     pub genre: String,
     pub duration: u64,
     pub track_number: u32,
+    pub disc_number: u32,
     pub year: u32,
     pub album_art: Option<String>,
 }

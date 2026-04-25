@@ -506,6 +506,10 @@ pub struct ScanLibraryRequest {
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ScanLibraryResponse {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct StreamLibraryRequest {}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct StreamLibraryResponse {}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SearchRequest {
     #[prost(string, tag = "1")]
@@ -842,6 +846,27 @@ pub mod library_service_client {
             ));
             self.inner.unary(req, path, codec).await
         }
+        pub async fn stream_library(
+            &mut self,
+            request: impl tonic::IntoRequest<super::StreamLibraryRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::StreamLibraryResponse>>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/StreamLibrary",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut().insert(GrpcMethod::new(
+                "rockbox.v1alpha1.LibraryService",
+                "StreamLibrary",
+            ));
+            self.inner.server_streaming(req, path, codec).await
+        }
         pub async fn search(
             &mut self,
             request: impl tonic::IntoRequest<super::SearchRequest>,
@@ -924,6 +949,15 @@ pub mod library_service_server {
             &self,
             request: tonic::Request<super::ScanLibraryRequest>,
         ) -> std::result::Result<tonic::Response<super::ScanLibraryResponse>, tonic::Status>;
+        /// Server streaming response type for the StreamLibrary method.
+        type StreamLibraryStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<super::StreamLibraryResponse, tonic::Status>,
+            > + std::marker::Send
+            + 'static;
+        async fn stream_library(
+            &self,
+            request: tonic::Request<super::StreamLibraryRequest>,
+        ) -> std::result::Result<tonic::Response<Self::StreamLibraryStream>, tonic::Status>;
         async fn search(
             &self,
             request: tonic::Request<super::SearchRequest>,
@@ -1517,6 +1551,50 @@ pub mod library_service_server {
                                 max_encoding_message_size,
                             );
                         let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/StreamLibrary" => {
+                    #[allow(non_camel_case_types)]
+                    struct StreamLibrarySvc<T: LibraryService>(pub Arc<T>);
+                    impl<T: LibraryService>
+                        tonic::server::ServerStreamingService<super::StreamLibraryRequest>
+                        for StreamLibrarySvc<T>
+                    {
+                        type Response = super::StreamLibraryResponse;
+                        type ResponseStream = T::StreamLibraryStream;
+                        type Future =
+                            BoxFuture<tonic::Response<Self::ResponseStream>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::StreamLibraryRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::stream_library(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = StreamLibrarySvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.server_streaming(method, req).await;
                         Ok(res)
                     };
                     Box::pin(fut)

@@ -7,12 +7,12 @@ use crate::state::{format_duration, PlaybackStatus};
 use crate::ui::animations::equalizer_bars;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::miniplayer::MiniPlayer;
-use crate::ui::components::search_input::SearchInput;
 use crate::ui::components::pages::files::{menu_item, FilesView};
+use crate::ui::components::search_input::SearchInput;
 use crate::ui::components::{
-    AlbumContextMenu, AlbumContextMenuState, BackSection, FileContextMenuState,
-    HoveredAlbumIdx, LibraryContextMenu, LibraryContextMenuState, LibrarySection, LikedOrder,
-    LikedSongs, SelectedAlbum, SelectedArtist,
+    AlbumContextMenu, AlbumContextMenuState, BackSection, FileContextMenuState, HoveredAlbumIdx,
+    LibraryContextMenu, LibraryContextMenuState, LibrarySection, LikedOrder, LikedSongs,
+    SelectedAlbum, SelectedArtist,
 };
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -175,7 +175,14 @@ impl Render for LibraryPage {
 
             let mut album_map: std::collections::BTreeMap<
                 String,
-                (String, u32, usize, Option<String>, String, Vec<(u32, String)>),
+                (
+                    String,
+                    u32,
+                    usize,
+                    Option<String>,
+                    String,
+                    Vec<(u32, String)>,
+                ),
             > = Default::default();
             for track in &state.tracks {
                 let display_artist = if track.album_artist.is_empty() {
@@ -194,16 +201,25 @@ impl Render for LibraryPage {
                 e.2 += 1;
                 e.5.push((track.track_number, track.path.clone()));
             }
-            let albums: Vec<(String, String, u32, usize, Option<String>, String, Vec<String>)> =
-                album_map
-                    .into_iter()
-                    .map(|(name, (artist, year, count, art, album_id, mut numbered_paths))| {
+            let albums: Vec<(
+                String,
+                String,
+                u32,
+                usize,
+                Option<String>,
+                String,
+                Vec<String>,
+            )> = album_map
+                .into_iter()
+                .map(
+                    |(name, (artist, year, count, art, album_id, mut numbered_paths))| {
                         numbered_paths.sort_by_key(|(num, _)| *num);
                         let paths: Vec<String> =
                             numbered_paths.into_iter().map(|(_, p)| p).collect();
                         (name, artist, year, count, art, album_id, paths)
-                    })
-                    .collect();
+                    },
+                )
+                .collect();
 
             let mut artist_map: std::collections::BTreeMap<String, usize> = Default::default();
             for track in &state.tracks {
@@ -218,8 +234,17 @@ impl Render for LibraryPage {
                 })
                 .collect();
 
-            // Album detail: tracks filtered by selected album — (global_idx, path, title, num, dur, id, album_art)
-            let mut album_tracks: Vec<(usize, String, String, String, u64, String, Option<String>)> = state
+            // Album detail: tracks filtered by selected album — (global_idx, path, title, num, dur, id, album_art, disc_number)
+            let mut album_tracks: Vec<(
+                usize,
+                String,
+                String,
+                String,
+                u64,
+                String,
+                Option<String>,
+                u32,
+            )> = state
                 .tracks
                 .iter()
                 .enumerate()
@@ -233,10 +258,13 @@ impl Render for LibraryPage {
                         t.duration,
                         t.id.clone(),
                         t.album_art.clone(),
+                        t.disc_number,
                     )
                 })
                 .collect();
-            album_tracks.sort_by_key(|(_, _, _, num, _, _, _)| num.parse::<u32>().unwrap_or(0));
+            album_tracks.sort_by_key(|(_, _, _, num, _, _, _, disc)| {
+                (*disc, num.parse::<u32>().unwrap_or(0))
+            });
 
             let album_first_track = state.tracks.iter().find(|t| t.album == selected_album);
             let album_artist = album_first_track
@@ -261,23 +289,24 @@ impl Render for LibraryPage {
                 .unwrap_or_default();
 
             // Artist detail: tracks filtered by selected artist — (global_idx, path, title, album, dur, id, album_art)
-            let artist_tracks: Vec<(usize, String, String, String, u64, String, Option<String>)> = state
-                .tracks
-                .iter()
-                .enumerate()
-                .filter(|(_, t)| t.artist == selected_artist)
-                .map(|(idx, t)| {
-                    (
-                        idx,
-                        t.path.clone(),
-                        t.title.clone(),
-                        t.album.clone(),
-                        t.duration,
-                        t.id.clone(),
-                        t.album_art.clone(),
-                    )
-                })
-                .collect();
+            let artist_tracks: Vec<(usize, String, String, String, u64, String, Option<String>)> =
+                state
+                    .tracks
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, t)| t.artist == selected_artist)
+                    .map(|(idx, t)| {
+                        (
+                            idx,
+                            t.path.clone(),
+                            t.title.clone(),
+                            t.album.clone(),
+                            t.duration,
+                            t.id.clone(),
+                            t.album_art.clone(),
+                        )
+                    })
+                    .collect();
 
             // (album_name, count, album_art)
             let mut artist_album_map: std::collections::BTreeMap<String, (usize, Option<String>)> =
@@ -303,7 +332,16 @@ impl Render for LibraryPage {
                 .enumerate()
                 .map(|(i, id)| (id.as_str(), i))
                 .collect();
-            let mut liked_tracks: Vec<(usize, String, String, String, String, u64, String, Option<String>)> = state
+            let mut liked_tracks: Vec<(
+                usize,
+                String,
+                String,
+                String,
+                String,
+                u64,
+                String,
+                Option<String>,
+            )> = state
                 .tracks
                 .iter()
                 .enumerate()
@@ -322,7 +360,10 @@ impl Render for LibraryPage {
                 })
                 .collect();
             liked_tracks.sort_by_key(|(_, _, _, _, _, _, id, _)| {
-                liked_order_map.get(id.as_str()).copied().unwrap_or(usize::MAX)
+                liked_order_map
+                    .get(id.as_str())
+                    .copied()
+                    .unwrap_or(usize::MAX)
             });
 
             let current_path = state.current_track().map(|t| t.path.clone());
@@ -369,46 +410,48 @@ impl Render for LibraryPage {
         let _detail_scroll_handle = self.detail_scroll_handle.clone();
 
         // Sidebar nav item — Albums/Artists stay active while in their detail view
-        let make_nav_item = move |icon: Icons, icon_size: u8, label: &'static str, target: LibrarySection| {
-            let is_active = section == target
-                || (section == LibrarySection::AlbumDetail && target == LibrarySection::Albums)
-                || (section == LibrarySection::ArtistDetail && target == LibrarySection::Artists)
-                || (section == LibrarySection::AlbumDetail
-                    && back_section == LibrarySection::ArtistDetail
-                    && target == LibrarySection::Artists);
-            div()
-                .id(label)
-                .w_full()
-                .px_4()
-                .py_2p5()
-                .cursor_pointer()
-                .text_sm()
-                .font_weight(if is_active {
-                    FontWeight(600.0)
-                } else {
-                    FontWeight(400.0)
-                })
-                .text_color(if is_active {
-                    gpui::rgb(0xFFFFFF)
-                } else {
-                    theme.library_header_text
-                })
-                .when(is_active, |this| {
-                    this.border_l_2().border_color(theme.switcher_active)
-                })
-                .hover(|this| this.text_color(theme.library_text))
-                .on_click(move |_, _, cx: &mut App| {
-                    *cx.global_mut::<LibrarySection>() = target;
-                })
-                .child(
-                    div()
-                        .flex()
-                        .items_center()
-                        .gap_x_2()
-                        .child(icon_sized(icon, icon_size))
-                        .child(label),
-                )
-        };
+        let make_nav_item =
+            move |icon: Icons, icon_size: u8, label: &'static str, target: LibrarySection| {
+                let is_active = section == target
+                    || (section == LibrarySection::AlbumDetail && target == LibrarySection::Albums)
+                    || (section == LibrarySection::ArtistDetail
+                        && target == LibrarySection::Artists)
+                    || (section == LibrarySection::AlbumDetail
+                        && back_section == LibrarySection::ArtistDetail
+                        && target == LibrarySection::Artists);
+                div()
+                    .id(label)
+                    .w_full()
+                    .px_4()
+                    .py_2p5()
+                    .cursor_pointer()
+                    .text_sm()
+                    .font_weight(if is_active {
+                        FontWeight(600.0)
+                    } else {
+                        FontWeight(400.0)
+                    })
+                    .text_color(if is_active {
+                        gpui::rgb(0xFFFFFF)
+                    } else {
+                        theme.library_header_text
+                    })
+                    .when(is_active, |this| {
+                        this.border_l_2().border_color(theme.switcher_active)
+                    })
+                    .hover(|this| this.text_color(theme.library_text))
+                    .on_click(move |_, _, cx: &mut App| {
+                        *cx.global_mut::<LibrarySection>() = target;
+                    })
+                    .child(
+                        div()
+                            .flex()
+                            .items_center()
+                            .gap_x_2()
+                            .child(icon_sized(icon, icon_size))
+                            .child(label),
+                    )
+            };
 
         // ── track row helper (shared between Songs, AlbumDetail, ArtistDetail, Likes) ──────
         let track_row = move |row_id: (&'static str, usize),
@@ -681,77 +724,85 @@ impl Render for LibraryPage {
                                                     .text_color(theme.library_text)
                                                     .child("Artists"),
                                             )
-                                            .child(
-                                                div()
-                                                    .flex()
-                                                    .items_start()
-                                                    .gap_x_4()
-                                                    .children(r.artists.iter().take(8).enumerate().map(
-                                                        |(idx, artist)| {
-                                                            let name_clone = artist.name.clone();
-                                                            let img_url = artist
-                                                                .image
-                                                                .as_deref()
-                                                                .filter(|s| !s.is_empty())
-                                                                .map(|s| {
-                                                                    if s.starts_with("http") {
-                                                                        s.to_string()
-                                                                    } else {
-                                                                        format!("{COVERS_BASE}{s}")
-                                                                    }
-                                                                });
-                                                            div()
-                                                                .id(("sa", idx))
-                                                                .w(px(112.0))
-                                                                .flex_shrink_0()
-                                                                .flex()
-                                                                .flex_col()
-                                                                .items_center()
-                                                                .gap_y_2()
-                                                                .cursor_pointer()
-                                                                .on_click(move |_, _, cx: &mut App| {
-                                                                    *cx.global_mut::<SelectedArtist>() =
-                                                                        SelectedArtist(name_clone.clone());
-                                                                    *cx.global_mut::<LibrarySection>() =
-                                                                        LibrarySection::ArtistDetail;
-                                                                })
-                                                                .child({
-                                                                    let mut c = div()
-                                                                        .w(px(88.0))
-                                                                        .rounded_full()
-                                                                        .overflow_hidden()
-                                                                        .flex_shrink_0();
-                                                                    c.style().aspect_ratio = Some(1.0_f32);
-                                                                    if let Some(url) = img_url {
-                                                                        c.child(
-                                                                            img(url)
-                                                                                .w_full()
-                                                                                .h_full()
-                                                                                .rounded_full()
-                                                                                .object_fit(ObjectFit::Cover),
+                                            .child(div().flex().items_start().gap_x_4().children(
+                                                r.artists.iter().take(8).enumerate().map(
+                                                    |(idx, artist)| {
+                                                        let name_clone = artist.name.clone();
+                                                        let img_url = artist
+                                                            .image
+                                                            .as_deref()
+                                                            .filter(|s| !s.is_empty())
+                                                            .map(|s| {
+                                                                if s.starts_with("http") {
+                                                                    s.to_string()
+                                                                } else {
+                                                                    format!("{COVERS_BASE}{s}")
+                                                                }
+                                                            });
+                                                        div()
+                                                            .id(("sa", idx))
+                                                            .w(px(112.0))
+                                                            .flex_shrink_0()
+                                                            .flex()
+                                                            .flex_col()
+                                                            .items_center()
+                                                            .gap_y_2()
+                                                            .cursor_pointer()
+                                                            .on_click(move |_, _, cx: &mut App| {
+                                                                *cx.global_mut::<SelectedArtist>(
+                                                                ) = SelectedArtist(
+                                                                    name_clone.clone(),
+                                                                );
+                                                                *cx.global_mut::<LibrarySection>(
+                                                                ) = LibrarySection::ArtistDetail;
+                                                            })
+                                                            .child({
+                                                                let mut c = div()
+                                                                    .w(px(88.0))
+                                                                    .rounded_full()
+                                                                    .overflow_hidden()
+                                                                    .flex_shrink_0();
+                                                                c.style().aspect_ratio =
+                                                                    Some(1.0_f32);
+                                                                if let Some(url) = img_url {
+                                                                    c.child(
+                                                                        img(url)
+                                                                            .w_full()
+                                                                            .h_full()
+                                                                            .rounded_full()
+                                                                            .object_fit(
+                                                                                ObjectFit::Cover,
+                                                                            ),
+                                                                    )
+                                                                } else {
+                                                                    c.bg(theme.library_art_bg)
+                                                                        .flex()
+                                                                        .items_center()
+                                                                        .justify_center()
+                                                                        .text_color(
+                                                                            theme.player_icons_text,
                                                                         )
-                                                                    } else {
-                                                                        c.bg(theme.library_art_bg)
-                                                                            .flex()
-                                                                            .items_center()
-                                                                            .justify_center()
-                                                                            .text_color(theme.player_icons_text)
-                                                                            .child(Icon::new(Icons::Artist).size_8())
-                                                                    }
-                                                                })
-                                                                .child(
-                                                                    div()
-                                                                        .w_full()
-                                                                        .text_xs()
-                                                                        .font_weight(FontWeight(500.0))
-                                                                        .text_color(theme.library_text)
-                                                                        .text_center()
-                                                                        .truncate()
-                                                                        .child(artist.name.clone()),
-                                                                )
-                                                        },
-                                                    )),
-                                            ),
+                                                                        .child(
+                                                                            Icon::new(
+                                                                                Icons::Artist,
+                                                                            )
+                                                                            .size_8(),
+                                                                        )
+                                                                }
+                                                            })
+                                                            .child(
+                                                                div()
+                                                                    .w_full()
+                                                                    .text_xs()
+                                                                    .font_weight(FontWeight(500.0))
+                                                                    .text_color(theme.library_text)
+                                                                    .text_center()
+                                                                    .truncate()
+                                                                    .child(artist.name.clone()),
+                                                            )
+                                                    },
+                                                ),
+                                            )),
                                     )
                                 })
                                 // ── Albums ────────────────────────────────────────
@@ -768,101 +819,110 @@ impl Render for LibraryPage {
                                                     .text_color(theme.library_text)
                                                     .child("Albums"),
                                             )
-                                            .child(
-                                                div()
-                                                    .flex()
-                                                    .items_start()
-                                                    .gap_x_4()
-                                                    .children(r.albums.iter().take(8).enumerate().map(
-                                                        |(idx, album)| {
-                                                            let title_clone = album.title.clone();
-                                                            let art_url = album
-                                                                .album_art
-                                                                .as_deref()
-                                                                .filter(|s| !s.is_empty())
-                                                                .map(|id| {
-                                                                    format!("{COVERS_BASE}{id}")
-                                                                });
-                                                            div()
-                                                                .id(("sab", idx))
-                                                                .w(px(130.0))
-                                                                .flex_shrink_0()
-                                                                .flex()
-                                                                .flex_col()
-                                                                .gap_y_1()
-                                                                .cursor_pointer()
-                                                                .on_click(move |_, _, cx: &mut App| {
-                                                                    *cx.global_mut::<SelectedAlbum>() =
-                                                                        SelectedAlbum(title_clone.clone());
-                                                                    *cx.global_mut::<BackSection>() =
-                                                                        BackSection(LibrarySection::Albums);
-                                                                    *cx.global_mut::<LibrarySection>() =
-                                                                        LibrarySection::AlbumDetail;
-                                                                })
-                                                                .child({
-                                                                    let mut c = div()
-                                                                        .w_full()
-                                                                        .rounded_lg()
-                                                                        .overflow_hidden();
-                                                                    c.style().aspect_ratio = Some(1.0_f32);
-                                                                    if let Some(url) = art_url {
-                                                                        c.child(
-                                                                            img(url)
-                                                                                .w_full()
-                                                                                .h_full()
-                                                                                .object_fit(ObjectFit::Cover),
+                                            .child(div().flex().items_start().gap_x_4().children(
+                                                r.albums.iter().take(8).enumerate().map(
+                                                    |(idx, album)| {
+                                                        let title_clone = album.title.clone();
+                                                        let art_url = album
+                                                            .album_art
+                                                            .as_deref()
+                                                            .filter(|s| !s.is_empty())
+                                                            .map(|id| format!("{COVERS_BASE}{id}"));
+                                                        div()
+                                                            .id(("sab", idx))
+                                                            .w(px(130.0))
+                                                            .flex_shrink_0()
+                                                            .flex()
+                                                            .flex_col()
+                                                            .gap_y_1()
+                                                            .cursor_pointer()
+                                                            .on_click(move |_, _, cx: &mut App| {
+                                                                *cx.global_mut::<SelectedAlbum>() =
+                                                                    SelectedAlbum(
+                                                                        title_clone.clone(),
+                                                                    );
+                                                                *cx.global_mut::<BackSection>() =
+                                                                    BackSection(
+                                                                        LibrarySection::Albums,
+                                                                    );
+                                                                *cx.global_mut::<LibrarySection>(
+                                                                ) = LibrarySection::AlbumDetail;
+                                                            })
+                                                            .child({
+                                                                let mut c = div()
+                                                                    .w_full()
+                                                                    .rounded_lg()
+                                                                    .overflow_hidden();
+                                                                c.style().aspect_ratio =
+                                                                    Some(1.0_f32);
+                                                                if let Some(url) = art_url {
+                                                                    c.child(
+                                                                        img(url)
+                                                                            .w_full()
+                                                                            .h_full()
+                                                                            .object_fit(
+                                                                                ObjectFit::Cover,
+                                                                            ),
+                                                                    )
+                                                                } else {
+                                                                    c.bg(theme.library_art_bg)
+                                                                        .flex()
+                                                                        .items_center()
+                                                                        .justify_center()
+                                                                        .text_color(
+                                                                            theme.player_icons_text,
                                                                         )
-                                                                    } else {
-                                                                        c.bg(theme.library_art_bg)
-                                                                            .flex()
-                                                                            .items_center()
-                                                                            .justify_center()
-                                                                            .text_color(theme.player_icons_text)
-                                                                            .child(Icon::new(Icons::Music).size_8())
-                                                                    }
-                                                                })
-                                                                .child(
-                                                                    div()
-                                                                        .text_xs()
-                                                                        .font_weight(FontWeight(500.0))
-                                                                        .text_color(theme.library_text)
-                                                                        .truncate()
-                                                                        .child(album.title.clone()),
-                                                                )
-                                                                .child(
-                                                                    div()
-                                                                        .text_xs()
-                                                                        .text_color(theme.library_header_text)
-                                                                        .truncate()
-                                                                        .child(album.artist.clone()),
-                                                                )
-                                                        },
-                                                    )),
-                                            ),
+                                                                        .child(
+                                                                            Icon::new(Icons::Music)
+                                                                                .size_8(),
+                                                                        )
+                                                                }
+                                                            })
+                                                            .child(
+                                                                div()
+                                                                    .text_xs()
+                                                                    .font_weight(FontWeight(500.0))
+                                                                    .text_color(theme.library_text)
+                                                                    .truncate()
+                                                                    .child(album.title.clone()),
+                                                            )
+                                                            .child(
+                                                                div()
+                                                                    .text_xs()
+                                                                    .text_color(
+                                                                        theme.library_header_text,
+                                                                    )
+                                                                    .truncate()
+                                                                    .child(album.artist.clone()),
+                                                            )
+                                                    },
+                                                ),
+                                            )),
                                     )
                                 })
                                 // ── Songs ─────────────────────────────────────────
                                 .when(!r.tracks.is_empty(), |this| {
-                                    let rows = r.tracks.iter().take(20).enumerate().map(|(i, track)| {
-                                        let is_current =
-                                            current_path.as_deref() == Some(track.path.as_str());
-                                        let is_liked = liked_songs.contains(&track.id);
-                                        track_row(
-                                            ("search_track", i),
-                                            track.path.clone(),
-                                            (i + 1).to_string(),
-                                            track.title.clone(),
-                                            Some(track.artist.clone()),
-                                            Some(track.album.clone()),
-                                            track.duration,
-                                            is_current,
-                                            is_liked,
-                                            track.artist.clone(),
-                                            track.album.clone(),
-                                            track.id.clone(),
-                                            track.album_art.clone(),
-                                        )
-                                    });
+                                    let rows =
+                                        r.tracks.iter().take(20).enumerate().map(|(i, track)| {
+                                            let is_current = current_path.as_deref()
+                                                == Some(track.path.as_str());
+                                            let is_liked = liked_songs.contains(&track.id);
+                                            track_row(
+                                                ("search_track", i),
+                                                track.path.clone(),
+                                                (i + 1).to_string(),
+                                                track.title.clone(),
+                                                Some(track.artist.clone()),
+                                                Some(track.album.clone()),
+                                                track.duration,
+                                                is_current,
+                                                is_liked,
+                                                track.artist.clone(),
+                                                track.album.clone(),
+                                                track.id.clone(),
+                                                track.album_art.clone(),
+                                            )
+                                        });
                                     this.child(
                                         div()
                                             .flex()
@@ -883,178 +943,179 @@ impl Render for LibraryPage {
                 }
             }
         } else {
-        let content_inner = match section {
-            // ── Songs ─────────────────────────────────────────────────────────────
-            LibrarySection::Songs => div()
-                .flex_1()
-                .min_h_0()
-                .flex()
-                .flex_col()
-                .child(
-                    div()
-                        .w_full()
-                        .flex_shrink_0()
-                        .flex()
-                        .items_center()
-                        .gap_x_4()
-                        .px_6()
-                        .py_4()
-                        .border_b_1()
-                        .border_color(theme.library_table_border)
-                        .child(
-                            div()
-                                .w(px(28.0))
-                                .flex_shrink_0()
-                                .text_xs()
-                                .font_weight(FontWeight::MEDIUM)
-                                .text_color(theme.library_header_text)
-                                .child("#"),
-                        )
-                        .child(
-                            div()
-                                .flex_1()
-                                .min_w_0()
-                                .text_xs()
-                                .font_weight(FontWeight::MEDIUM)
-                                .text_color(theme.library_header_text)
-                                .child("TITLE"),
-                        )
-                        .child(
-                            div()
-                                .w_40()
-                                .flex_shrink_0()
-                                .text_xs()
-                                .font_weight(FontWeight::MEDIUM)
-                                .text_color(theme.library_header_text)
-                                .child("ARTIST"),
-                        )
-                        .child(
-                            div()
-                                .w_40()
-                                .flex_shrink_0()
-                                .text_xs()
-                                .font_weight(FontWeight::MEDIUM)
-                                .text_color(theme.library_header_text)
-                                .child("ALBUM"),
-                        )
-                        .child(
-                            div()
-                                .w(px(56.0))
-                                .flex_shrink_0()
-                                .text_xs()
-                                .font_weight(FontWeight::MEDIUM)
-                                .text_color(theme.library_header_text)
-                                .child("TIME"),
-                        )
-                        .child(div().w(px(28.0)).flex_shrink_0())
-                        .child(div().w(px(28.0)).flex_shrink_0()),
-                )
-                .child(
-                    uniform_list("library_tracks", n_songs, move |range, _window, cx| {
-                        let state = cx.global::<Controller>().state.read(cx);
-                        let current_idx = state.current_library_idx();
-                        let liked = cx.global::<LikedSongs>().0.clone();
-                        range
-                            .map(|idx| {
-                                let track = &state.tracks[idx];
-                                let is_current = current_idx == Some(idx);
-                                let is_liked = liked.contains(&track.id);
-                                track_row(
-                                    ("track_row", idx),
-                                    track.path.clone(),
-                                    (idx + 1).to_string(),
-                                    track.title.clone(),
-                                    Some(track.artist.clone()),
-                                    Some(track.album.clone()),
-                                    track.duration,
-                                    is_current,
-                                    is_liked,
-                                    track.artist.clone(),
-                                    track.album.clone(),
-                                    track.id.clone(),
-                                    track.album_art.clone(),
-                                )
-                            })
-                            .collect()
-                    })
+            let content_inner = match section {
+                // ── Songs ─────────────────────────────────────────────────────────────
+                LibrarySection::Songs => div()
                     .flex_1()
-                    .w_full()
-                    .track_scroll(scroll_handle),
-                )
-                .into_any_element(),
-
-            // ── Albums grid ───────────────────────────────────────────────────────
-            LibrarySection::Albums => div()
-                .id("albums_scroll")
-                .flex_1()
-                .min_h_0()
-                .overflow_y_scroll()
-                .child(
-                    div()
+                    .min_h_0()
+                    .flex()
+                    .flex_col()
+                    .child(
+                        div()
+                            .w_full()
+                            .flex_shrink_0()
+                            .flex()
+                            .items_center()
+                            .gap_x_4()
+                            .px_6()
+                            .py_4()
+                            .border_b_1()
+                            .border_color(theme.library_table_border)
+                            .child(
+                                div()
+                                    .w(px(28.0))
+                                    .flex_shrink_0()
+                                    .text_xs()
+                                    .font_weight(FontWeight::MEDIUM)
+                                    .text_color(theme.library_header_text)
+                                    .child("#"),
+                            )
+                            .child(
+                                div()
+                                    .flex_1()
+                                    .min_w_0()
+                                    .text_xs()
+                                    .font_weight(FontWeight::MEDIUM)
+                                    .text_color(theme.library_header_text)
+                                    .child("TITLE"),
+                            )
+                            .child(
+                                div()
+                                    .w_40()
+                                    .flex_shrink_0()
+                                    .text_xs()
+                                    .font_weight(FontWeight::MEDIUM)
+                                    .text_color(theme.library_header_text)
+                                    .child("ARTIST"),
+                            )
+                            .child(
+                                div()
+                                    .w_40()
+                                    .flex_shrink_0()
+                                    .text_xs()
+                                    .font_weight(FontWeight::MEDIUM)
+                                    .text_color(theme.library_header_text)
+                                    .child("ALBUM"),
+                            )
+                            .child(
+                                div()
+                                    .w(px(56.0))
+                                    .flex_shrink_0()
+                                    .text_xs()
+                                    .font_weight(FontWeight::MEDIUM)
+                                    .text_color(theme.library_header_text)
+                                    .child("TIME"),
+                            )
+                            .child(div().w(px(28.0)).flex_shrink_0())
+                            .child(div().w(px(28.0)).flex_shrink_0()),
+                    )
+                    .child(
+                        uniform_list("library_tracks", n_songs, move |range, _window, cx| {
+                            let state = cx.global::<Controller>().state.read(cx);
+                            let current_idx = state.current_library_idx();
+                            let liked = cx.global::<LikedSongs>().0.clone();
+                            range
+                                .map(|idx| {
+                                    let track = &state.tracks[idx];
+                                    let is_current = current_idx == Some(idx);
+                                    let is_liked = liked.contains(&track.id);
+                                    track_row(
+                                        ("track_row", idx),
+                                        track.path.clone(),
+                                        (idx + 1).to_string(),
+                                        track.title.clone(),
+                                        Some(track.artist.clone()),
+                                        Some(track.album.clone()),
+                                        track.duration,
+                                        is_current,
+                                        is_liked,
+                                        track.artist.clone(),
+                                        track.album.clone(),
+                                        track.id.clone(),
+                                        track.album_art.clone(),
+                                    )
+                                })
+                                .collect()
+                        })
+                        .flex_1()
                         .w_full()
-                        .p_6()
-                        .grid()
-                        .grid_cols(album_cols)
-                        .gap_6()
-                        .children(albums.into_iter().enumerate().map(
-                            |(idx, (name, artist, year, _count, album_art, album_id, track_paths))| {
-                                let name_clone = name.clone();
-                                let name_clone_opts = name.clone();
-                                let art_url = album_art
-                                    .filter(|s| !s.is_empty())
-                                    .map(|id| format!("{COVERS_BASE}{id}"));
-                                let art_url_opts = art_url.clone();
-                                let album_id_play = album_id.clone();
-                                let album_id_opts = album_id.clone();
-                                let artist_for_opts = artist.clone();
-                                let paths_for_opts = track_paths.clone();
-                                let is_hovered = hovered_album_idx == Some(idx);
-                                let mut art_container = div()
-                                    .id(("album_art_hover", idx))
-                                    .w_full()
-                                    .rounded_lg()
-                                    .overflow_hidden()
-                                    .relative()
-                                    .on_hover(move |hovered, _window, cx: &mut App| {
-                                        cx.set_global(HoveredAlbumIdx(
-                                            if *hovered { Some(idx) } else { None },
-                                        ));
-                                    });
-                                art_container.style().aspect_ratio = Some(1.0_f32);
-                                let art_content: AnyElement = if let Some(url) = art_url {
-                                    img(url)
+                        .track_scroll(scroll_handle),
+                    )
+                    .into_any_element(),
+
+                // ── Albums grid ───────────────────────────────────────────────────────
+                LibrarySection::Albums => div()
+                    .id("albums_scroll")
+                    .flex_1()
+                    .min_h_0()
+                    .overflow_y_scroll()
+                    .child(
+                        div()
+                            .w_full()
+                            .p_6()
+                            .grid()
+                            .grid_cols(album_cols)
+                            .gap_6()
+                            .children(albums.into_iter().enumerate().map(
+                                |(
+                                    idx,
+                                    (name, artist, year, _count, album_art, album_id, track_paths),
+                                )| {
+                                    let name_clone = name.clone();
+                                    let name_clone_opts = name.clone();
+                                    let art_url = album_art
+                                        .filter(|s| !s.is_empty())
+                                        .map(|id| format!("{COVERS_BASE}{id}"));
+                                    let art_url_opts = art_url.clone();
+                                    let album_id_play = album_id.clone();
+                                    let album_id_opts = album_id.clone();
+                                    let artist_for_opts = artist.clone();
+                                    let paths_for_opts = track_paths.clone();
+                                    let is_hovered = hovered_album_idx == Some(idx);
+                                    let mut art_container = div()
+                                        .id(("album_art_hover", idx))
                                         .w_full()
-                                        .h_full()
-                                        .object_fit(ObjectFit::Cover)
-                                        .into_any_element()
-                                } else {
-                                    div()
-                                        .w_full()
-                                        .h_full()
-                                        .bg(theme.library_art_bg)
+                                        .rounded_lg()
+                                        .overflow_hidden()
+                                        .relative()
+                                        .on_hover(move |hovered, _window, cx: &mut App| {
+                                            cx.set_global(HoveredAlbumIdx(if *hovered {
+                                                Some(idx)
+                                            } else {
+                                                None
+                                            }));
+                                        });
+                                    art_container.style().aspect_ratio = Some(1.0_f32);
+                                    let art_content: AnyElement = if let Some(url) = art_url {
+                                        img(url)
+                                            .w_full()
+                                            .h_full()
+                                            .object_fit(ObjectFit::Cover)
+                                            .into_any_element()
+                                    } else {
+                                        div()
+                                            .w_full()
+                                            .h_full()
+                                            .bg(theme.library_art_bg)
+                                            .flex()
+                                            .items_center()
+                                            .justify_center()
+                                            .text_color(theme.player_icons_text)
+                                            .child(Icon::new(Icons::Music).size_8())
+                                            .into_any_element()
+                                    };
+                                    let art_overlay = div()
+                                        .absolute()
+                                        .bottom_0()
+                                        .left_0()
+                                        .right_0()
+                                        .pb_3()
                                         .flex()
                                         .items_center()
-                                        .justify_center()
-                                        .text_color(theme.player_icons_text)
-                                        .child(Icon::new(Icons::Music).size_8())
-                                        .into_any_element()
-                                };
-                                let art_overlay = div()
-                                    .absolute()
-                                    .bottom_0()
-                                    .left_0()
-                                    .right_0()
-                                    .pb_3()
-                                    .flex()
-                                    .items_center()
-                                    .opacity(if is_hovered { 1.0 } else { 0.0 })
-                                    .child(
-                                        // Left half — Play button centered within it
-                                        div()
-                                            .flex_1()
-                                            .flex()
-                                            .justify_center()
-                                            .child(
+                                        .opacity(if is_hovered { 1.0 } else { 0.0 })
+                                        .child(
+                                            // Left half — Play button centered within it
+                                            div().flex_1().flex().justify_center().child(
                                                 div()
                                                     .id(("album_play_btn", idx))
                                                     .w(px(36.0))
@@ -1081,19 +1142,17 @@ impl Render for LibraryPage {
                                                     })
                                                     .on_click(move |_, _, cx: &mut App| {
                                                         cx.stop_propagation();
-                                                        cx.global::<Controller>()
-                                                            .play_album(album_id_play.clone(), false);
+                                                        cx.global::<Controller>().play_album(
+                                                            album_id_play.clone(),
+                                                            false,
+                                                        );
                                                     })
                                                     .child(Icon::new(Icons::Play).size_4()),
                                             ),
-                                    )
-                                    .child(
-                                        // Right half — Options button centered within it
-                                        div()
-                                            .flex_1()
-                                            .flex()
-                                            .justify_center()
-                                            .child(
+                                        )
+                                        .child(
+                                            // Right half — Options button centered within it
+                                            div().flex_1().flex().justify_center().child(
                                                 div()
                                                     .id(("album_opts_btn", idx))
                                                     .w(px(36.0))
@@ -1120,175 +1179,176 @@ impl Render for LibraryPage {
                                                     })
                                                     .on_click(move |event, _, cx: &mut App| {
                                                         cx.stop_propagation();
-                                                        cx.global_mut::<AlbumContextMenuState>().0 =
-                                                            Some(AlbumContextMenu {
-                                                                pos: event.position(),
-                                                                album_id: album_id_opts.clone(),
-                                                                album_name: name_clone_opts.clone(),
-                                                                album_art: art_url_opts.clone(),
-                                                                artist_name: artist_for_opts.clone(),
-                                                                track_paths: paths_for_opts.clone(),
-                                                            });
+                                                        cx.global_mut::<AlbumContextMenuState>()
+                                                            .0 = Some(AlbumContextMenu {
+                                                            pos: event.position(),
+                                                            album_id: album_id_opts.clone(),
+                                                            album_name: name_clone_opts.clone(),
+                                                            album_art: art_url_opts.clone(),
+                                                            artist_name: artist_for_opts.clone(),
+                                                            track_paths: paths_for_opts.clone(),
+                                                        });
                                                     })
                                                     .child(Icon::new(Icons::Options).size_4()),
                                             ),
-                                    );
-                                let art_tile_overlay = art_container
-                                    .child(art_content)
-                                    .child(art_overlay)
-                                    .into_any_element();
-                                div()
-                                    .id(("album_card", idx))
-                                    .flex()
-                                    .flex_col()
-                                    .gap_y_2()
-                                    .cursor_pointer()
-                                    .on_click(move |_, _, cx: &mut App| {
-                                        *cx.global_mut::<SelectedAlbum>() =
-                                            SelectedAlbum(name_clone.clone());
-                                        *cx.global_mut::<BackSection>() =
-                                            BackSection(LibrarySection::Albums);
-                                        *cx.global_mut::<LibrarySection>() =
-                                            LibrarySection::AlbumDetail;
-                                    })
-                                    .child(art_tile_overlay)
-                                    .child(
-                                        div()
-                                            .flex()
-                                            .flex_col()
-                                            .gap_y_0p5()
-                                            .child(
-                                                div()
-                                                    .text_sm()
-                                                    .font_weight(FontWeight(500.0))
-                                                    .text_color(theme.library_text)
-                                                    .truncate()
-                                                    .child(name),
-                                            )
-                                            .child(
-                                                div()
-                                                    .text_xs()
-                                                    .text_color(theme.library_header_text)
-                                                    .truncate()
-                                                    .child(if year > 0 {
-                                                        format!("{artist} · {year}")
-                                                    } else {
-                                                        artist
-                                                    }),
-                                            ),
-                                    )
-                            },
-                        )),
-                )
-                .into_any_element(),
-
-            // ── Artists grid ──────────────────────────────────────────────────────
-            LibrarySection::Artists => div()
-                .id("artists_scroll")
-                .flex_1()
-                .min_h_0()
-                .overflow_y_scroll()
-                .child(
-                    div()
-                        .w_full()
-                        .p_6()
-                        .grid()
-                        .grid_cols(artist_cols)
-                        .gap_6()
-                        .children(artists.into_iter().enumerate().map(
-                            |(idx, (name, count, image))| {
-                                let name_clone = name.clone();
-                                div()
-                                    .id(("artist_card", idx))
-                                    .flex()
-                                    .flex_col()
-                                    .items_center()
-                                    .gap_y_2()
-                                    .cursor_pointer()
-                                    .hover(|this| this.opacity(0.8))
-                                    .on_click(move |_, _, cx: &mut App| {
-                                        *cx.global_mut::<SelectedArtist>() =
-                                            SelectedArtist(name_clone.clone());
-                                        *cx.global_mut::<LibrarySection>() =
-                                            LibrarySection::ArtistDetail;
-                                    })
-                                    .child({
-                                        let img_url = image.filter(|s| !s.is_empty()).map(|s| {
-                                            if s.starts_with("http") {
-                                                s
-                                            } else {
-                                                format!("{COVERS_BASE}{s}")
-                                            }
-                                        });
-                                        let mut container = div()
-                                            .w_full()
-                                            .rounded_full()
-                                            .overflow_hidden()
-                                            .flex_shrink_0();
-                                        container.style().aspect_ratio = Some(1.0_f32);
-                                        if let Some(url) = img_url {
-                                            container.child(
-                                                img(url)
-                                                    .w_full()
-                                                    .h_full()
-                                                    .rounded_full()
-                                                    .object_fit(ObjectFit::Cover),
-                                            )
-                                        } else {
-                                            container
-                                                .bg(theme.library_art_bg)
+                                        );
+                                    let art_tile_overlay = art_container
+                                        .child(art_content)
+                                        .child(art_overlay)
+                                        .into_any_element();
+                                    div()
+                                        .id(("album_card", idx))
+                                        .flex()
+                                        .flex_col()
+                                        .gap_y_2()
+                                        .cursor_pointer()
+                                        .on_click(move |_, _, cx: &mut App| {
+                                            *cx.global_mut::<SelectedAlbum>() =
+                                                SelectedAlbum(name_clone.clone());
+                                            *cx.global_mut::<BackSection>() =
+                                                BackSection(LibrarySection::Albums);
+                                            *cx.global_mut::<LibrarySection>() =
+                                                LibrarySection::AlbumDetail;
+                                        })
+                                        .child(art_tile_overlay)
+                                        .child(
+                                            div()
                                                 .flex()
+                                                .flex_col()
+                                                .gap_y_0p5()
+                                                .child(
+                                                    div()
+                                                        .text_sm()
+                                                        .font_weight(FontWeight(500.0))
+                                                        .text_color(theme.library_text)
+                                                        .truncate()
+                                                        .child(name),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .text_xs()
+                                                        .text_color(theme.library_header_text)
+                                                        .truncate()
+                                                        .child(if year > 0 {
+                                                            format!("{artist} · {year}")
+                                                        } else {
+                                                            artist
+                                                        }),
+                                                ),
+                                        )
+                                },
+                            )),
+                    )
+                    .into_any_element(),
+
+                // ── Artists grid ──────────────────────────────────────────────────────
+                LibrarySection::Artists => div()
+                    .id("artists_scroll")
+                    .flex_1()
+                    .min_h_0()
+                    .overflow_y_scroll()
+                    .child(
+                        div()
+                            .w_full()
+                            .p_6()
+                            .grid()
+                            .grid_cols(artist_cols)
+                            .gap_6()
+                            .children(artists.into_iter().enumerate().map(
+                                |(idx, (name, count, image))| {
+                                    let name_clone = name.clone();
+                                    div()
+                                        .id(("artist_card", idx))
+                                        .flex()
+                                        .flex_col()
+                                        .items_center()
+                                        .gap_y_2()
+                                        .cursor_pointer()
+                                        .hover(|this| this.opacity(0.8))
+                                        .on_click(move |_, _, cx: &mut App| {
+                                            *cx.global_mut::<SelectedArtist>() =
+                                                SelectedArtist(name_clone.clone());
+                                            *cx.global_mut::<LibrarySection>() =
+                                                LibrarySection::ArtistDetail;
+                                        })
+                                        .child({
+                                            let img_url =
+                                                image.filter(|s| !s.is_empty()).map(|s| {
+                                                    if s.starts_with("http") {
+                                                        s
+                                                    } else {
+                                                        format!("{COVERS_BASE}{s}")
+                                                    }
+                                                });
+                                            let mut container = div()
+                                                .w_full()
+                                                .rounded_full()
+                                                .overflow_hidden()
+                                                .flex_shrink_0();
+                                            container.style().aspect_ratio = Some(1.0_f32);
+                                            if let Some(url) = img_url {
+                                                container.child(
+                                                    img(url)
+                                                        .w_full()
+                                                        .h_full()
+                                                        .rounded_full()
+                                                        .object_fit(ObjectFit::Cover),
+                                                )
+                                            } else {
+                                                container
+                                                    .bg(theme.library_art_bg)
+                                                    .flex()
+                                                    .items_center()
+                                                    .justify_center()
+                                                    .text_color(theme.player_icons_text)
+                                                    .child(Icon::new(Icons::Artist).size_8())
+                                            }
+                                        })
+                                        .child(
+                                            div()
+                                                .w_full()
+                                                .flex()
+                                                .flex_col()
                                                 .items_center()
-                                                .justify_center()
-                                                .text_color(theme.player_icons_text)
-                                                .child(Icon::new(Icons::Artist).size_8())
-                                        }
-                                    })
-                                    .child(
-                                        div()
-                                            .w_full()
-                                            .flex()
-                                            .flex_col()
-                                            .items_center()
-                                            .gap_y_0p5()
-                                            .child(
-                                                div()
-                                                    .w_full()
-                                                    .text_sm()
-                                                    .font_weight(FontWeight(500.0))
-                                                    .text_color(theme.library_text)
-                                                    .text_center()
-                                                    .truncate()
-                                                    .child(name),
-                                            )
-                                            .child(
-                                                div()
-                                                    .text_xs()
-                                                    .text_color(theme.library_header_text)
-                                                    .child(format!("{count} tracks")),
-                                            ),
-                                    )
-                            },
-                        )),
-                )
-                .into_any_element(),
+                                                .gap_y_0p5()
+                                                .child(
+                                                    div()
+                                                        .w_full()
+                                                        .text_sm()
+                                                        .font_weight(FontWeight(500.0))
+                                                        .text_color(theme.library_text)
+                                                        .text_center()
+                                                        .truncate()
+                                                        .child(name),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .text_xs()
+                                                        .text_color(theme.library_header_text)
+                                                        .child(format!("{count} tracks")),
+                                                ),
+                                        )
+                                },
+                            )),
+                    )
+                    .into_any_element(),
 
-            // ── Album Detail ──────────────────────────────────────────────────────
-            LibrarySection::AlbumDetail => {
-                let back_label = if back_section == LibrarySection::ArtistDetail {
-                    format!("← {}", selected_artist)
-                } else {
-                    "← Albums".to_string()
-                };
-                let n_tracks_label = format!(
-                    "{} track{}",
-                    n_album_tracks,
-                    if n_album_tracks == 1 { "" } else { "s" }
-                );
-                let album_name_display = selected_album.clone();
-                let album_artist_display = album_artist.clone();
+                // ── Album Detail ──────────────────────────────────────────────────────
+                LibrarySection::AlbumDetail => {
+                    let back_label = if back_section == LibrarySection::ArtistDetail {
+                        format!("← {}", selected_artist)
+                    } else {
+                        "← Albums".to_string()
+                    };
+                    let n_tracks_label = format!(
+                        "{} track{}",
+                        n_album_tracks,
+                        if n_album_tracks == 1 { "" } else { "s" }
+                    );
+                    let album_name_display = selected_album.clone();
+                    let album_artist_display = album_artist.clone();
 
-                div()
+                    div()
                     .id("album_detail_scroll")
                     .flex_1()
                     .min_h_0()
@@ -1447,45 +1507,77 @@ impl Render for LibraryPage {
                                     .child(div().w(px(28.0)).flex_shrink_0())
                                     .child(div().w(px(28.0)).flex_shrink_0()),
                             )
-                            // Track rows
-                            .children(album_tracks.into_iter().enumerate().map(
-                                |(i, (global_idx, path, title, num, duration, track_id, art))| {
+                            // Track rows (with disc headers for multi-disc albums)
+                            .child({
+                                let has_multiple_discs = album_tracks
+                                    .iter()
+                                    .any(|(_, _, _, _, _, _, _, disc)| *disc > 1);
+                                let mut rows: Vec<AnyElement> = Vec::new();
+                                let mut current_disc = 0u32;
+                                for (i, (global_idx, path, title, num, duration, track_id, art, disc)) in
+                                    album_tracks.into_iter().enumerate()
+                                {
+                                    if has_multiple_discs && disc != current_disc {
+                                        current_disc = disc;
+                                        rows.push(
+                                            div()
+                                                .w_full()
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_3()
+                                                .px_6()
+                                                .pt_4()
+                                                .pb_2()
+                                                .child(
+                                                    div()
+                                                        .text_xs()
+                                                        .font_weight(FontWeight::MEDIUM)
+                                                        .text_color(theme.library_header_text)
+                                                        .child(format!("DISC {}", disc)),
+                                                )
+                                                .into_any_element(),
+                                        );
+                                    }
                                     let is_current = current_idx == Some(global_idx);
                                     let is_liked = liked_songs.contains(&track_id);
                                     let row_album = selected_album.clone();
                                     let row_artist = album_artist.clone();
-                                    track_row(
-                                        ("album_detail_row", i),
-                                        path,
-                                        num,
-                                        title,
-                                        None,
-                                        None,
-                                        duration,
-                                        is_current,
-                                        is_liked,
-                                        row_artist,
-                                        row_album,
-                                        track_id,
-                                        art,
-                                    )
-                                },
-                            )),
+                                    rows.push(
+                                        track_row(
+                                            ("album_detail_row", i),
+                                            path,
+                                            num,
+                                            title,
+                                            None,
+                                            None,
+                                            duration,
+                                            is_current,
+                                            is_liked,
+                                            row_artist,
+                                            row_album,
+                                            track_id,
+                                            art,
+                                        )
+                                        .into_any_element(),
+                                    );
+                                }
+                                div().children(rows)
+                            }),
                     )
                     .into_any_element()
-            }
+                }
 
-            // ── Artist Detail ─────────────────────────────────────────────────────
-            LibrarySection::ArtistDetail => {
-                let n_tracks_label = format!(
-                    "{} track{}",
-                    n_artist_tracks,
-                    if n_artist_tracks == 1 { "" } else { "s" }
-                );
-                let artist_name_display = selected_artist.clone();
-                let sa_clone = selected_artist.clone();
+                // ── Artist Detail ─────────────────────────────────────────────────────
+                LibrarySection::ArtistDetail => {
+                    let n_tracks_label = format!(
+                        "{} track{}",
+                        n_artist_tracks,
+                        if n_artist_tracks == 1 { "" } else { "s" }
+                    );
+                    let artist_name_display = selected_artist.clone();
+                    let sa_clone = selected_artist.clone();
 
-                div()
+                    div()
                     .id("artist_detail_scroll")
                     .flex_1()
                     .min_h_0()
@@ -1768,224 +1860,242 @@ impl Render for LibraryPage {
                             )),
                     )
                     .into_any_element()
-            }
+                }
 
-            // ── Likes ─────────────────────────────────────────────────────────────
-            LibrarySection::Likes => {
-                let n_liked = liked_tracks.len();
-                let liked_paths: Vec<String> =
-                    liked_tracks.iter().map(|(_, p, ..)| p.clone()).collect();
-                let liked_paths_shuffle = liked_paths.clone();
-                div()
-                    .id("likes_scroll")
-                    .flex_1()
-                    .min_h_0()
-                    .overflow_y_scroll()
-                    .child(
-                        div()
-                            .w_full()
-                            .flex()
-                            .flex_col()
-                            // Header
-                            .child(
-                                div()
-                                    .px_6()
-                                    .pt_5()
-                                    .pb_6()
-                                    .flex()
-                                    .flex_col()
-                                    .gap_y_4()
-                                    .child(
-                                        div()
-                                            .flex()
-                                            .items_center()
-                                            .gap_x_3()
-                                            .child(
-                                                Icon::new(Icons::Heart)
-                                                    .size_8()
-                                                    .text_color(gpui::rgb(0xFFFFFF)),
-                                            )
-                                            .child(
-                                                div()
-                                                    .flex()
-                                                    .flex_col()
-                                                    .gap_y_1()
-                                                    .child(
-                                                        div()
-                                                            .text_2xl()
-                                                            .font_weight(FontWeight(700.0))
-                                                            .text_color(theme.library_text)
-                                                            .child("Liked Songs"),
-                                                    )
-                                                    .child(
-                                                        div()
-                                                            .text_sm()
-                                                            .text_color(theme.library_header_text)
-                                                            .child(format!(
-                                                                "{} track{}",
-                                                                n_liked,
-                                                                if n_liked == 1 { "" } else { "s" }
-                                                            )),
-                                                    ),
-                                            ),
-                                    )
-                                    .child(
-                                        div()
-                                            .flex()
-                                            .items_center()
-                                            .gap_x_3()
-                                            .child(
-                                                div()
-                                                    .id("likes_play_btn")
-                                                    .flex()
-                                                    .items_center()
-                                                    .gap_x_2()
-                                                    .px_4()
-                                                    .py_2()
-                                                    .rounded_md()
-                                                    .cursor_pointer()
-                                                    .bg(theme.player_play_pause_bg)
-                                                    .text_color(theme.player_play_pause_text)
-                                                    .hover(|this| {
-                                                        this.bg(theme.player_play_pause_hover)
-                                                    })
-                                                    .on_click(move |_, _, cx: &mut App| {
-                                                        cx.global::<Controller>()
-                                                            .play_liked_tracks(
-                                                                liked_paths.clone(),
-                                                                false,
-                                                            );
-                                                    })
-                                                    .child(Icon::new(Icons::Play).size_4())
-                                                    .child(
-                                                        div()
-                                                            .text_sm()
-                                                            .font_weight(FontWeight(600.0))
-                                                            .child("Play"),
-                                                    ),
-                                            )
-                                            .child(
-                                                div()
-                                                    .id("likes_shuffle_btn")
-                                                    .flex()
-                                                    .items_center()
-                                                    .gap_x_2()
-                                                    .px_4()
-                                                    .py_2()
-                                                    .rounded_md()
-                                                    .cursor_pointer()
-                                                    .bg(theme.player_icons_bg_active)
-                                                    .text_color(theme.library_text)
-                                                    .hover(|this| {
-                                                        this.bg(theme.player_icons_bg_hover)
-                                                    })
-                                                    .on_click(move |_, _, cx: &mut App| {
-                                                        cx.global::<Controller>()
-                                                            .play_liked_tracks(
-                                                                liked_paths_shuffle.clone(),
-                                                                true,
-                                                            );
-                                                    })
-                                                    .child(Icon::new(Icons::Shuffle).size_4())
-                                                    .child(
-                                                        div()
-                                                            .text_sm()
-                                                            .font_weight(FontWeight(500.0))
-                                                            .child("Shuffle"),
-                                                    ),
-                                            ),
-                                    ),
-                            )
-                            // Track list header
-                            .child(
-                                div()
-                                    .w_full()
-                                    .flex()
-                                    .items_center()
-                                    .gap_x_4()
-                                    .px_6()
-                                    .py_3()
-                                    .border_b_1()
-                                    .border_color(theme.library_table_border)
-                                    .child(
-                                        div()
-                                            .w(px(28.0))
-                                            .flex_shrink_0()
-                                            .text_xs()
-                                            .font_weight(FontWeight::MEDIUM)
-                                            .text_color(theme.library_header_text)
-                                            .child("#"),
-                                    )
-                                    .child(
-                                        div()
-                                            .flex_1()
-                                            .min_w_0()
-                                            .text_xs()
-                                            .font_weight(FontWeight::MEDIUM)
-                                            .text_color(theme.library_header_text)
-                                            .child("TITLE"),
-                                    )
-                                    .child(
-                                        div()
-                                            .w_40()
-                                            .flex_shrink_0()
-                                            .text_xs()
-                                            .font_weight(FontWeight::MEDIUM)
-                                            .text_color(theme.library_header_text)
-                                            .child("ARTIST"),
-                                    )
-                                    .child(
-                                        div()
-                                            .w_40()
-                                            .flex_shrink_0()
-                                            .text_xs()
-                                            .font_weight(FontWeight::MEDIUM)
-                                            .text_color(theme.library_header_text)
-                                            .child("ALBUM"),
-                                    )
-                                    .child(
-                                        div()
-                                            .w(px(56.0))
-                                            .flex_shrink_0()
-                                            .text_xs()
-                                            .font_weight(FontWeight::MEDIUM)
-                                            .text_color(theme.library_header_text)
-                                            .child("TIME"),
-                                    )
-                                    .child(div().w(px(28.0)).flex_shrink_0())
-                                    .child(div().w(px(28.0)).flex_shrink_0()),
-                            )
-                            // Liked track rows
-                            .children(liked_tracks.into_iter().enumerate().map(
-                                |(i, (global_idx, path, title, artist, album, duration, track_id, art))| {
-                                    let is_current = current_idx == Some(global_idx);
-                                    let row_artist = artist.clone();
-                                    let row_album = album.clone();
-                                    track_row(
-                                        ("liked_row", i),
-                                        path,
-                                        (i + 1).to_string(),
-                                        title,
-                                        Some(artist),
-                                        Some(album),
-                                        duration,
-                                        is_current,
-                                        true,
-                                        row_artist,
-                                        row_album,
-                                        track_id,
-                                        art,
-                                    )
-                                },
-                            )),
-                    )
-                    .into_any_element()
-            }
+                // ── Likes ─────────────────────────────────────────────────────────────
+                LibrarySection::Likes => {
+                    let n_liked = liked_tracks.len();
+                    let liked_paths: Vec<String> =
+                        liked_tracks.iter().map(|(_, p, ..)| p.clone()).collect();
+                    let liked_paths_shuffle = liked_paths.clone();
+                    div()
+                        .id("likes_scroll")
+                        .flex_1()
+                        .min_h_0()
+                        .overflow_y_scroll()
+                        .child(
+                            div()
+                                .w_full()
+                                .flex()
+                                .flex_col()
+                                // Header
+                                .child(
+                                    div()
+                                        .px_6()
+                                        .pt_5()
+                                        .pb_6()
+                                        .flex()
+                                        .flex_col()
+                                        .gap_y_4()
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_3()
+                                                .child(
+                                                    Icon::new(Icons::Heart)
+                                                        .size_8()
+                                                        .text_color(gpui::rgb(0xFFFFFF)),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .flex()
+                                                        .flex_col()
+                                                        .gap_y_1()
+                                                        .child(
+                                                            div()
+                                                                .text_2xl()
+                                                                .font_weight(FontWeight(700.0))
+                                                                .text_color(theme.library_text)
+                                                                .child("Liked Songs"),
+                                                        )
+                                                        .child(
+                                                            div()
+                                                                .text_sm()
+                                                                .text_color(
+                                                                    theme.library_header_text,
+                                                                )
+                                                                .child(format!(
+                                                                    "{} track{}",
+                                                                    n_liked,
+                                                                    if n_liked == 1 {
+                                                                        ""
+                                                                    } else {
+                                                                        "s"
+                                                                    }
+                                                                )),
+                                                        ),
+                                                ),
+                                        )
+                                        .child(
+                                            div()
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_3()
+                                                .child(
+                                                    div()
+                                                        .id("likes_play_btn")
+                                                        .flex()
+                                                        .items_center()
+                                                        .gap_x_2()
+                                                        .px_4()
+                                                        .py_2()
+                                                        .rounded_md()
+                                                        .cursor_pointer()
+                                                        .bg(theme.player_play_pause_bg)
+                                                        .text_color(theme.player_play_pause_text)
+                                                        .hover(|this| {
+                                                            this.bg(theme.player_play_pause_hover)
+                                                        })
+                                                        .on_click(move |_, _, cx: &mut App| {
+                                                            cx.global::<Controller>()
+                                                                .play_liked_tracks(
+                                                                    liked_paths.clone(),
+                                                                    false,
+                                                                );
+                                                        })
+                                                        .child(Icon::new(Icons::Play).size_4())
+                                                        .child(
+                                                            div()
+                                                                .text_sm()
+                                                                .font_weight(FontWeight(600.0))
+                                                                .child("Play"),
+                                                        ),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .id("likes_shuffle_btn")
+                                                        .flex()
+                                                        .items_center()
+                                                        .gap_x_2()
+                                                        .px_4()
+                                                        .py_2()
+                                                        .rounded_md()
+                                                        .cursor_pointer()
+                                                        .bg(theme.player_icons_bg_active)
+                                                        .text_color(theme.library_text)
+                                                        .hover(|this| {
+                                                            this.bg(theme.player_icons_bg_hover)
+                                                        })
+                                                        .on_click(move |_, _, cx: &mut App| {
+                                                            cx.global::<Controller>()
+                                                                .play_liked_tracks(
+                                                                    liked_paths_shuffle.clone(),
+                                                                    true,
+                                                                );
+                                                        })
+                                                        .child(Icon::new(Icons::Shuffle).size_4())
+                                                        .child(
+                                                            div()
+                                                                .text_sm()
+                                                                .font_weight(FontWeight(500.0))
+                                                                .child("Shuffle"),
+                                                        ),
+                                                ),
+                                        ),
+                                )
+                                // Track list header
+                                .child(
+                                    div()
+                                        .w_full()
+                                        .flex()
+                                        .items_center()
+                                        .gap_x_4()
+                                        .px_6()
+                                        .py_3()
+                                        .border_b_1()
+                                        .border_color(theme.library_table_border)
+                                        .child(
+                                            div()
+                                                .w(px(28.0))
+                                                .flex_shrink_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("#"),
+                                        )
+                                        .child(
+                                            div()
+                                                .flex_1()
+                                                .min_w_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("TITLE"),
+                                        )
+                                        .child(
+                                            div()
+                                                .w_40()
+                                                .flex_shrink_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("ARTIST"),
+                                        )
+                                        .child(
+                                            div()
+                                                .w_40()
+                                                .flex_shrink_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("ALBUM"),
+                                        )
+                                        .child(
+                                            div()
+                                                .w(px(56.0))
+                                                .flex_shrink_0()
+                                                .text_xs()
+                                                .font_weight(FontWeight::MEDIUM)
+                                                .text_color(theme.library_header_text)
+                                                .child("TIME"),
+                                        )
+                                        .child(div().w(px(28.0)).flex_shrink_0())
+                                        .child(div().w(px(28.0)).flex_shrink_0()),
+                                )
+                                // Liked track rows
+                                .children(liked_tracks.into_iter().enumerate().map(
+                                    |(
+                                        i,
+                                        (
+                                            global_idx,
+                                            path,
+                                            title,
+                                            artist,
+                                            album,
+                                            duration,
+                                            track_id,
+                                            art,
+                                        ),
+                                    )| {
+                                        let is_current = current_idx == Some(global_idx);
+                                        let row_artist = artist.clone();
+                                        let row_album = album.clone();
+                                        track_row(
+                                            ("liked_row", i),
+                                            path,
+                                            (i + 1).to_string(),
+                                            title,
+                                            Some(artist),
+                                            Some(album),
+                                            duration,
+                                            is_current,
+                                            true,
+                                            row_artist,
+                                            row_album,
+                                            track_id,
+                                            art,
+                                        )
+                                    },
+                                )),
+                        )
+                        .into_any_element()
+                }
 
-            // ── Files ─────────────────────────────────────────────────────────────
-            LibrarySection::Files => self.files_view.clone().into_any_element(),
-        };
-        content_inner
+                // ── Files ─────────────────────────────────────────────────────────────
+                LibrarySection::Files => self.files_view.clone().into_any_element(),
+            };
+            content_inner
         }; // end if/else search
 
         div()
@@ -2014,11 +2124,36 @@ impl Render for LibraryPage {
                             .pt_4()
                             .child(self.search_input.clone())
                             .gap_y_1()
-                            .child(make_nav_item(Icons::Music, 5, "Songs", LibrarySection::Songs))
-                            .child(make_nav_item(Icons::Disc, 5, "Albums", LibrarySection::Albums))
-                            .child(make_nav_item(Icons::Artist, 5, "Artists", LibrarySection::Artists))
-                            .child(make_nav_item(Icons::HeartOutline, 5, "Likes", LibrarySection::Likes))
-                            .child(make_nav_item(Icons::HardDrive, 4, "Files", LibrarySection::Files)),
+                            .child(make_nav_item(
+                                Icons::Music,
+                                5,
+                                "Songs",
+                                LibrarySection::Songs,
+                            ))
+                            .child(make_nav_item(
+                                Icons::Disc,
+                                5,
+                                "Albums",
+                                LibrarySection::Albums,
+                            ))
+                            .child(make_nav_item(
+                                Icons::Artist,
+                                5,
+                                "Artists",
+                                LibrarySection::Artists,
+                            ))
+                            .child(make_nav_item(
+                                Icons::HeartOutline,
+                                5,
+                                "Likes",
+                                LibrarySection::Likes,
+                            ))
+                            .child(make_nav_item(
+                                Icons::HardDrive,
+                                4,
+                                "Files",
+                                LibrarySection::Files,
+                            )),
                     )
                     .child(content),
             )
@@ -2038,11 +2173,19 @@ impl Render for LibraryPage {
                 let menu_h = px(198.0);
                 let margin = px(8.0);
                 let max_x = viewport.width - menu_w - margin;
-                let menu_x = if menu.pos.x > max_x { max_x } else { menu.pos.x };
+                let menu_x = if menu.pos.x > max_x {
+                    max_x
+                } else {
+                    menu.pos.x
+                };
                 let menu_x = if menu_x < margin { margin } else { menu_x };
                 // Flip above cursor when the menu would overflow the bottom edge.
                 let overflows_bottom = (menu.pos.y + menu_h + margin) > viewport.height;
-                let menu_y = if overflows_bottom { menu.pos.y - menu_h } else { menu.pos.y };
+                let menu_y = if overflows_bottom {
+                    menu.pos.y - menu_h
+                } else {
+                    menu.pos.y
+                };
                 let menu_y = if menu_y < margin { margin } else { menu_y };
                 this.child(
                     div()
@@ -2087,7 +2230,9 @@ impl Render for LibraryPage {
                                         .rounded_md()
                                         .flex_shrink_0()
                                         .overflow_hidden()
-                                        .child(img(url).w_full().h_full().object_fit(ObjectFit::Cover))
+                                        .child(
+                                            img(url).w_full().h_full().object_fit(ObjectFit::Cover),
+                                        )
                                         .into_any_element()
                                 } else {
                                     div()
@@ -2207,27 +2352,35 @@ impl Render for LibraryPage {
                 let paths_add_shuffled = menu.track_paths.clone();
                 let paths_last_shuffled = menu.track_paths.clone();
                 let artist_nav = menu.artist_name.clone();
-                let alb_header_art_url = menu
-                    .album_art
-                    .as_deref()
-                    .filter(|s| !s.is_empty())
-                    .map(|s| {
-                        if s.starts_with("http") {
-                            s.to_string()
-                        } else {
-                            format!("{COVERS_BASE}{s}")
-                        }
-                    });
+                let alb_header_art_url =
+                    menu.album_art
+                        .as_deref()
+                        .filter(|s| !s.is_empty())
+                        .map(|s| {
+                            if s.starts_with("http") {
+                                s.to_string()
+                            } else {
+                                format!("{COVERS_BASE}{s}")
+                            }
+                        });
                 // header ~64px + 7 items × ~33px + borders
                 let menu_w = px(250.0);
                 let menu_h = px(296.0);
                 let margin = px(8.0);
                 let max_x = viewport.width - menu_w - margin;
-                let menu_x = if menu.pos.x > max_x { max_x } else { menu.pos.x };
+                let menu_x = if menu.pos.x > max_x {
+                    max_x
+                } else {
+                    menu.pos.x
+                };
                 let menu_x = if menu_x < margin { margin } else { menu_x };
                 // Flip above cursor when the menu would overflow the bottom edge.
                 let overflows_bottom = (menu.pos.y + menu_h + margin) > viewport.height;
-                let menu_y = if overflows_bottom { menu.pos.y - menu_h } else { menu.pos.y };
+                let menu_y = if overflows_bottom {
+                    menu.pos.y - menu_h
+                } else {
+                    menu.pos.y
+                };
                 let menu_y = if menu_y < margin { margin } else { menu_y };
                 this.child(
                     div()
@@ -2272,7 +2425,9 @@ impl Render for LibraryPage {
                                         .rounded_md()
                                         .flex_shrink_0()
                                         .overflow_hidden()
-                                        .child(img(url).w_full().h_full().object_fit(ObjectFit::Cover))
+                                        .child(
+                                            img(url).w_full().h_full().object_fit(ObjectFit::Cover),
+                                        )
                                         .into_any_element()
                                 } else {
                                     div()
@@ -2322,7 +2477,8 @@ impl Render for LibraryPage {
                                 .text_color(theme.library_text)
                                 .hover(|this| this.bg(theme.library_track_bg_hover))
                                 .on_click(move |_, _, cx: &mut App| {
-                                    cx.global::<Controller>().play_album(album_id_play.clone(), false);
+                                    cx.global::<Controller>()
+                                        .play_album(album_id_play.clone(), false);
                                     cx.global_mut::<AlbumContextMenuState>().0 = None;
                                 })
                                 .child("Play"),
@@ -2451,10 +2607,18 @@ impl Render for LibraryPage {
                 let menu_h = if is_dir { px(230.0) } else { px(140.0) };
                 let margin = px(8.0);
                 let max_x = viewport.width - menu_w - margin;
-                let menu_x = if menu.pos.x > max_x { max_x } else { menu.pos.x };
+                let menu_x = if menu.pos.x > max_x {
+                    max_x
+                } else {
+                    menu.pos.x
+                };
                 let menu_x = if menu_x < margin { margin } else { menu_x };
                 let overflows_bottom = (menu.pos.y + menu_h + margin) > viewport.height;
-                let menu_y = if overflows_bottom { menu.pos.y - menu_h } else { menu.pos.y };
+                let menu_y = if overflows_bottom {
+                    menu.pos.y - menu_h
+                } else {
+                    menu.pos.y
+                };
                 let menu_y = if menu_y < margin { margin } else { menu_y };
 
                 this.child(
@@ -2494,8 +2658,12 @@ impl Render for LibraryPage {
                                 .gap_x_2()
                                 .child(
                                     div().text_color(theme.library_header_text).child(
-                                        Icon::new(if is_dir { Icons::Directory } else { Icons::Music })
-                                            .size_4(),
+                                        Icon::new(if is_dir {
+                                            Icons::Directory
+                                        } else {
+                                            Icons::Music
+                                        })
+                                        .size_4(),
                                     ),
                                 )
                                 .child(
@@ -2544,7 +2712,10 @@ impl Render for LibraryPage {
                             move |_, _, cx: &mut App| {
                                 let rt = cx.global::<Controller>().rt();
                                 if is_dir {
-                                    rt.spawn(insert_directory(path_shuffled.clone(), INSERT_SHUFFLED));
+                                    rt.spawn(insert_directory(
+                                        path_shuffled.clone(),
+                                        INSERT_SHUFFLED,
+                                    ));
                                 } else {
                                     rt.spawn(insert_tracks(
                                         vec![path_shuffled.clone()],

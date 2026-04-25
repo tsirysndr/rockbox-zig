@@ -4,3 +4,6 @@ use serde::{Deserialize, Serialize};
 pub struct StatusCode {
     pub code: i32,
 }
+
+#[derive(Clone, Debug)]
+pub struct ScanCompleted;
