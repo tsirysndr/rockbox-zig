@@ -11,7 +11,7 @@
 [![discord](https://img.shields.io/discord/1292855167921815715?label=discord&logo=discord&color=5865F2)](https://discord.gg/tXPrgcPKSt)
 [![storybook](https://raw.githubusercontent.com/storybooks/brand/master/badge/badge-storybook.svg)](https://master--670ceec25af685dcdc87c0df.chromatic.com/?path=/story/components-albums--default)
 
-![Rockbox UI](./gtk/data/screenshots/1.png)
+![Rockbox UI](./docs/gpui.png)
 
 A modern take on the [Rockbox](https://www.rockbox.org) open source audio
 player, extended with Rust and Zig. Rockbox Zig exposes the full Rockbox audio
