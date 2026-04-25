@@ -32,7 +32,7 @@ jobs:
         run: |
           VERSION="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "dmg=Rockbox-gpui-${VERSION}-${{ matrix.arch }}.dmg" >> "$GITHUB_OUTPUT"
+          echo "dmg=Rockbox-${VERSION}-gpui-${{ matrix.arch }}.dmg" >> "$GITHUB_OUTPUT"
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
