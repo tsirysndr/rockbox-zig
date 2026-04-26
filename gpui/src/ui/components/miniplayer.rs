@@ -1,8 +1,9 @@
 use crate::client::{adjust_volume, save_repeat, save_shuffle};
 use crate::controller::Controller;
 use crate::state::{
-    format_duration, volume_fraction, PlaybackStatus, VOLUME_MAX_DB, VOLUME_MIN_DB,
+    format_duration, volume_fraction, DevicesState, PlaybackStatus, VOLUME_MAX_DB, VOLUME_MIN_DB,
 };
+use crate::ui::components::device_picker::device_icon;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::components::{LikedSongs, Page};
@@ -10,9 +11,9 @@ use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, img, px, relative, App, Context, FontWeight, InteractiveElement, IntoElement, ObjectFit,
-    ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled, StyledImage,
-    Window,
+    div, img, px, relative, App, Context, FontWeight, InteractiveElement, IntoElement,
+    ObjectFit, ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled,
+    StyledImage, Window,
 };
 
 pub struct MiniPlayer;
@@ -23,6 +24,13 @@ impl Render for MiniPlayer {
         let liked_songs = cx.global::<LikedSongs>().0.clone();
         let state = cx.global::<Controller>().state.read(cx);
         let is_playing = state.status == PlaybackStatus::Playing;
+        let current_device_icon = cx
+            .global::<DevicesState>()
+            .devices
+            .iter()
+            .find(|d| d.is_current_device)
+            .map(|d| device_icon(d))
+            .unwrap_or(Icons::Speaker);
 
         let title = state
             .current_track()
@@ -66,6 +74,7 @@ impl Render for MiniPlayer {
             .flex_shrink_0()
             .flex()
             .flex_col()
+            .relative()
             .border_t_1()
             .border_color(theme.border)
             .bg(theme.app_bg)
@@ -369,7 +378,7 @@ impl Render for MiniPlayer {
                                     ),
                             ),
                     )
-                    // Right — volume control
+                    // Right — volume control + device picker trigger
                     .child(
                         div()
                             .flex_1()
@@ -377,6 +386,27 @@ impl Render for MiniPlayer {
                             .items_center()
                             .justify_end()
                             .gap_x_2()
+                            .child(
+                                div()
+                                    .id("mini_device")
+                                    .p_1p5()
+                                    .rounded_md()
+                                    .flex()
+                                    .items_center()
+                                    .justify_center()
+                                    .cursor_pointer()
+                                    .text_color(theme.player_icons_text)
+                                    .hover(|this| {
+                                        this.text_color(theme.player_icons_text_hover)
+                                            .bg(theme.player_icons_bg_hover)
+                                    })
+                                    .on_click(move |_, _, cx: &mut App| {
+                                        let mut state = cx.global::<DevicesState>().clone();
+                                        state.picker_open = !state.picker_open;
+                                        cx.set_global(state);
+                                    })
+                                    .child(Icon::new(current_device_icon).size_4()),
+                            )
                             .child(
                                 div()
                                     .text_color(theme.volume_icon)

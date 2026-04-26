@@ -11,15 +11,17 @@ struct RockboxApp: App {
     @StateObject private var player = PlayerState()
     @StateObject private var navigation = NavigationManager()
     @StateObject private var searchManager = SearchManager()
+    @StateObject private var deviceState = DeviceState()
     @State private var startupFailed = false
     @State private var startupError: Error?
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(player)
                 .environmentObject(navigation)
                 .environmentObject(searchManager)
+                .environmentObject(deviceState)
                 .alert("Connection Failed", isPresented: $startupFailed) {
                     Button("Retry") {
                         retry()
@@ -48,6 +50,7 @@ struct RockboxApp: App {
             // If successful, start normal operations
             player.startStreaming()
             player.fetchSettings()
+            await deviceState.refresh()
             
         } catch {
             // Show error and allow retry or quit

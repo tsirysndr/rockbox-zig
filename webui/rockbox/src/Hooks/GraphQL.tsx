@@ -691,14 +691,14 @@ export type DisconnectFromDeviceMutation = { __typename?: 'Mutation', disconnect
 export type GetDevicesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetDevicesQuery = { __typename?: 'Query', devices: Array<{ __typename?: 'Device', id: string, name: string, app: string, ip: string, host: string, port: number, isCastDevice: boolean, service: string, isConnected: boolean }> };
+export type GetDevicesQuery = { __typename?: 'Query', devices: Array<{ __typename?: 'Device', id: string, name: string, app: string, ip: string, host: string, port: number, isCastDevice: boolean, service: string, isConnected: boolean, isCurrentDevice: boolean }> };
 
 export type GetDeviceQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetDeviceQuery = { __typename?: 'Query', device?: { __typename?: 'Device', id: string, name: string, app: string, ip: string, host: string, port: number, isCastDevice: boolean, service: string, isConnected: boolean } | null };
+export type GetDeviceQuery = { __typename?: 'Query', device?: { __typename?: 'Device', id: string, name: string, app: string, ip: string, host: string, port: number, isCastDevice: boolean, service: string, isConnected: boolean, isCurrentDevice: boolean } | null };
 
 export type LikeTrackMutationVariables = Exact<{
   trackId: Scalars['String']['input'];
@@ -1094,6 +1094,7 @@ export const GetDevicesDocument = gql`
     isCastDevice
     service
     isConnected
+    isCurrentDevice
   }
 }
     `;
@@ -1141,6 +1142,7 @@ export const GetDeviceDocument = gql`
     isCastDevice
     service
     isConnected
+    isCurrentDevice
   }
 }
     `;

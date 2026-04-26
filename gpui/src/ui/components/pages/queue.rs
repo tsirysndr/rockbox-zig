@@ -1,5 +1,5 @@
 use crate::controller::Controller;
-use crate::state::{format_duration, PlaybackStatus};
+use crate::state::{format_duration, DevicesState, PlaybackStatus};
 use crate::ui::animations::equalizer_bars;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::miniplayer::MiniPlayer;
@@ -21,7 +21,10 @@ impl QueuePage {
     pub fn new(cx: &mut App) -> Self {
         QueuePage {
             scroll_handle: UniformListScrollHandle::new(),
-            miniplayer: cx.new(|_| MiniPlayer),
+            miniplayer: cx.new(|cx| {
+                let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
+                MiniPlayer
+            }),
             last_scrolled_idx: None,
         }
     }

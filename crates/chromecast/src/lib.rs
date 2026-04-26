@@ -66,7 +66,12 @@ impl<'a> Chromecast<'a> {
             player.port.unwrap(),
         ) {
             Ok(cast_device) => cast_device,
-            Err(err) => panic!("Could not establish connection with Cast Device: {:?}", err),
+            Err(err) => {
+                return Err(anyhow::anyhow!(
+                    "Could not establish connection with Cast Device: {:?}",
+                    err
+                ))
+            }
         };
 
         cast_device
@@ -107,7 +112,12 @@ impl<'a> Chromecast<'a> {
             self.port.unwrap(),
         ) {
             Ok(cast_device) => cast_device,
-            Err(err) => panic!("Could not establish connection with Cast Device: {:?}", err),
+            Err(err) => {
+                return Err(anyhow::anyhow!(
+                    "Could not establish connection with Cast Device: {:?}",
+                    err
+                ))
+            }
         };
 
         cast_device
@@ -269,8 +279,7 @@ impl<'a> Player for Chromecast<'a> {
                 Some(start_index.unwrap_or(0)),
                 None,
             )?;
-            println!("[chromecast] Tracks loaded");
-            println!("[chromecast] Playing track {:#?}", media[0]);
+            tracing::info!("chromecast: tracks loaded, first={:?}", media[0].content_id);
             return Ok(());
         }
 
@@ -374,7 +383,10 @@ impl CastPlayer {
         thread::spawn(move || {
             let cast_device = match CastDevice::connect_without_host_verification(host, port) {
                 Ok(cast_device) => cast_device,
-                Err(err) => panic!("Could not establish connection with Cast Device: {:?}", err),
+                Err(err) => {
+                    tracing::warn!("CastPlayer: could not connect to Cast Device: {:?}", err);
+                    return;
+                }
             };
 
             cast_device
@@ -552,7 +564,7 @@ impl<'a> CastPlayerInternal<'a> {
         });
     }
 
-    fn current_app_session(&self) -> Result<(String, i32, String), Error> {
+    fn current_app_session(&self) -> Result<Option<(String, i32, String)>, Error> {
         let app_to_manage = CastDeviceApp::from_str(DEFAULT_APP_ID).unwrap();
         self.cast_device
             .connection
@@ -578,20 +590,26 @@ impl<'a> CastPlayerInternal<'a> {
                     .get_status(app.transport_id.as_str(), None)?;
 
                 if status.entries.is_empty() {
-                    return Err(Error::msg("No media session running"));
+                    return Ok(None);
                 }
 
                 let status = status.entries.first().unwrap();
                 let media_session_id = status.media_session_id;
                 let transport_id = app.transport_id.as_str();
-                Ok((transport_id.to_string(), media_session_id, "".to_string()))
+                Ok(Some((
+                    transport_id.to_string(),
+                    media_session_id,
+                    "".to_string(),
+                )))
             }
-            None => Err(Error::msg(format!("{:?} is not running", app_to_manage))),
+            None => Ok(None),
         }
     }
 
     fn handle_play(&self) -> Result<(), Error> {
-        let (transport_id, media_session_id, _) = self.current_app_session()?;
+        let Some((transport_id, media_session_id, _)) = self.current_app_session()? else {
+            return Ok(());
+        };
         self.cast_device
             .media
             .play(transport_id.as_str(), media_session_id)?;
@@ -599,7 +617,9 @@ impl<'a> CastPlayerInternal<'a> {
     }
 
     fn handle_pause(&self) -> Result<(), Error> {
-        let (transport_id, media_session_id, _) = self.current_app_session()?;
+        let Some((transport_id, media_session_id, _)) = self.current_app_session()? else {
+            return Ok(());
+        };
         self.cast_device
             .media
             .pause(transport_id.as_str(), media_session_id)?;
@@ -607,7 +627,9 @@ impl<'a> CastPlayerInternal<'a> {
     }
 
     fn handle_stop(&self) -> Result<(), Error> {
-        let (transport_id, media_session_id, _) = self.current_app_session()?;
+        let Some((transport_id, media_session_id, _)) = self.current_app_session()? else {
+            return Ok(());
+        };
         self.cast_device
             .media
             .stop(transport_id.as_str(), media_session_id)?;
@@ -615,7 +637,9 @@ impl<'a> CastPlayerInternal<'a> {
     }
 
     fn handle_next(&self) -> Result<(), Error> {
-        let (transport_id, media_session_id, _) = self.current_app_session()?;
+        let Some((transport_id, media_session_id, _)) = self.current_app_session()? else {
+            return Ok(());
+        };
         self.cast_device
             .media
             .next(transport_id.as_str(), media_session_id)?;
@@ -623,7 +647,9 @@ impl<'a> CastPlayerInternal<'a> {
     }
 
     fn handle_previous(&self) -> Result<(), Error> {
-        let (transport_id, media_session_id, _) = self.current_app_session()?;
+        let Some((transport_id, media_session_id, _)) = self.current_app_session()? else {
+            return Ok(());
+        };
         self.cast_device
             .media
             .previous(transport_id.as_str(), media_session_id)?;
@@ -676,7 +702,9 @@ impl<'a> CastPlayerInternal<'a> {
             }
         }
 
-        let (transport_id, media_session_id, _) = self.current_app_session()?;
+        let Some((transport_id, media_session_id, _)) = self.current_app_session()? else {
+            return Ok(());
+        };
         self.cast_device.media.queue_insert(
             transport_id.as_str(),
             media_session_id,
@@ -732,7 +760,7 @@ impl<'a> Future for CastPlayerInternal<'a> {
 
             if let Some(cmd) = cmd {
                 if let Err(e) = self.handle_command(cmd) {
-                    println!("{:?}", e);
+                    tracing::warn!("chromecast: command error: {:?}", e);
                 }
             }
 
@@ -742,7 +770,7 @@ impl<'a> Future for CastPlayerInternal<'a> {
                     current_playback.current = Some(playback);
                 }
                 Err(e) => {
-                    println!("{:?}", e);
+                    tracing::warn!("chromecast: get_current_playback error: {:?}", e);
                 }
             }
             thread::sleep(Duration::from_millis(500));

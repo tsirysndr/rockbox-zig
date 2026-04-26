@@ -148,6 +148,28 @@ pub fn write_settings() -> Result<(), Error> {
     Ok(())
 }
 
+/// Read the current settings.toml without applying anything.
+pub fn read_settings() -> Result<NewGlobalSettings, Error> {
+    let home = std::env::var("HOME")?;
+    let path = format!("{}/.config/rockbox.org/settings.toml", home);
+    match std::fs::read_to_string(&path) {
+        Ok(content) => Ok(toml::from_str(&content)?),
+        Err(_) => Ok(NewGlobalSettings::default()),
+    }
+}
+
+/// Persist `settings` to settings.toml as-is (all fields preserved, no C
+/// firmware involvement).  Use this instead of `write_settings()` when you
+/// want to save audio-output-related fields that the C firmware doesn't know
+/// about.
+pub fn save_settings_to_file(settings: &NewGlobalSettings) -> Result<(), Error> {
+    let home = std::env::var("HOME")?;
+    let path = format!("{}/.config/rockbox.org/settings.toml", home);
+    let content = toml::to_string(settings)?;
+    std::fs::write(&path, content)?;
+    Ok(())
+}
+
 pub fn get_music_dir() -> Result<String, Error> {
     let home = std::env::var("HOME")?;
     let path = format!("{}/.config/rockbox.org/settings.toml", home);

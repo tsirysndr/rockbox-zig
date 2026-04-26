@@ -24,7 +24,10 @@ use tracing::{debug, error};
 use crate::{
     kv::{build_tracks_kv, KV},
     player_events::listen_for_playback_changes,
-    scan::{scan_chromecast_devices, scan_upnp_devices},
+    scan::{
+        scan_airplay_devices, scan_chromecast_devices, scan_squeezelite_clients, scan_upnp_devices,
+        virtual_devices,
+    },
 };
 
 type Handler = fn(&Context, &Request, &mut Response) -> Result<(), Error>;
@@ -248,8 +251,91 @@ impl RockboxHttpServer {
         let db_pool = rt.block_on(rockbox_library::create_connection_pool())?;
         let fs_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
         let metadata_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
-        let devices = Arc::new(Mutex::new(Vec::new()));
-        let current_device = Arc::new(Mutex::new(None));
+        // Seed device list with always-present virtual outputs.
+        let devices = Arc::new(Mutex::new(virtual_devices()));
+
+        // Determine which device is currently active from settings.toml.
+        let current_device = {
+            let active = rockbox_settings::read_settings().ok().and_then(|s| {
+                let output = s.audio_output.as_deref().unwrap_or("builtin");
+                let mut device = match output {
+                    "builtin" | "fifo" => {
+                        virtual_devices().into_iter().find(|d| d.service == output)
+                    }
+                    "airplay" => {
+                        let host = s.airplay_host.clone().unwrap_or_default();
+                        Some(Device {
+                            id: format!("airplay-{}", host),
+                            name: if host.is_empty() {
+                                "AirPlay".to_string()
+                            } else {
+                                format!("AirPlay ({})", host)
+                            },
+                            host: host.clone(),
+                            ip: host,
+                            port: s.airplay_port.unwrap_or(5000),
+                            service: "airplay".to_string(),
+                            app: "AirPlay".to_string(),
+                            ..Default::default()
+                        })
+                    }
+                    "squeezelite" => Some(Device {
+                        id: "squeezelite".to_string(),
+                        name: "Squeezelite".to_string(),
+                        host: "localhost".to_string(),
+                        ip: "127.0.0.1".to_string(),
+                        port: s.squeezelite_port.unwrap_or(3483),
+                        service: "squeezelite".to_string(),
+                        app: "squeezelite".to_string(),
+                        ..Default::default()
+                    }),
+                    "upnp" => {
+                        let url = s.upnp_renderer_url.clone().unwrap_or_default();
+                        Some(Device {
+                            id: format!(
+                                "upnp-{:.8}",
+                                format!("{:x}", md5::compute(url.as_bytes()))
+                            ),
+                            name: "UPnP/DLNA".to_string(),
+                            host: "localhost".to_string(),
+                            ip: "127.0.0.1".to_string(),
+                            port: 0,
+                            service: "upnp".to_string(),
+                            app: "upnp".to_string(),
+                            base_url: Some(url),
+                            ..Default::default()
+                        })
+                    }
+                    "chromecast" => {
+                        let host = s.chromecast_host.clone().unwrap_or_default();
+                        Some(Device {
+                            id: format!("chromecast-{}", host),
+                            name: if host.is_empty() {
+                                "Chromecast".to_string()
+                            } else {
+                                format!("Chromecast ({})", host)
+                            },
+                            host: host.clone(),
+                            ip: host,
+                            port: s.chromecast_port.unwrap_or(8009),
+                            service: "chromecast".to_string(),
+                            app: "Chromecast".to_string(),
+                            is_cast_device: true,
+                            ..Default::default()
+                        })
+                    }
+                    _ => virtual_devices()
+                        .into_iter()
+                        .find(|d| d.service == "builtin"),
+                };
+                if let Some(ref mut d) = device {
+                    d.is_current_device = true;
+                }
+                device
+            });
+            Arc::new(Mutex::new(active))
+        };
+
         let player = Arc::new(Mutex::new(None));
         let kv = Arc::new(Mutex::new(rt.block_on(build_tracks_kv(db_pool.clone()))?));
 
@@ -260,6 +346,8 @@ impl RockboxHttpServer {
         // Start scanning for devices
         scan_chromecast_devices(devices.clone());
         scan_upnp_devices(devices.clone());
+        scan_airplay_devices(devices.clone());
+        scan_squeezelite_clients(devices.clone());
         listen_for_playback_changes(player.clone(), db_pool.clone());
 
         loop {

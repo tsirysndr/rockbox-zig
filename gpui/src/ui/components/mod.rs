@@ -1,4 +1,5 @@
 pub mod controlbar;
+pub mod device_picker;
 pub mod icons;
 pub mod miniplayer;
 pub mod navbar;

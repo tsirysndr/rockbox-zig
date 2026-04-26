@@ -12,6 +12,7 @@ export const GET_DEVICES = gql`
       isCastDevice
       service
       isConnected
+      isCurrentDevice
     }
   }
 `;
@@ -28,6 +29,7 @@ export const GET_DEVICE = gql`
       isCastDevice
       service
       isConnected
+      isCurrentDevice
     }
   }
 `;

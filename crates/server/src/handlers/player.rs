@@ -415,37 +415,19 @@ pub async fn resume(ctx: &Context, _req: &Request, _res: &mut Response) -> Resul
 
 pub async fn next(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let player = ctx.player.lock().unwrap();
-
-    match player.as_deref() {
-        Some(player) => {
-            player.next().await?;
-        }
-        None => {
-            rb::playback::next();
-        }
-    }
-
+    // Always advance the Rockbox playlist regardless of active player (e.g.
+    // Chromecast). The Cast monitor loop detects the track change and reloads.
+    rb::playback::next();
     drop(player_mutex);
-
+    let _ = ctx;
     Ok(())
 }
 
 pub async fn previous(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let player = ctx.player.lock().unwrap();
-
-    match player.as_deref() {
-        Some(player) => {
-            player.previous().await?;
-        }
-        None => {
-            rb::playback::prev();
-        }
-    }
-
+    rb::playback::prev();
     drop(player_mutex);
-
+    let _ = ctx;
     Ok(())
 }
 

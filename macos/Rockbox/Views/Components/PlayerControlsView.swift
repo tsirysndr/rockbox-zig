@@ -10,15 +10,18 @@ import SwiftUI
 struct PlayerControlsView: View {
     @EnvironmentObject var player: PlayerState
     @EnvironmentObject var navigation: NavigationManager
+    @EnvironmentObject var deviceState: DeviceState
     @State private var isHoveringProgress = false
     @State private var isHoveringTrackInfo = false
     @State private var isHoveringQueue = false
+    @State private var isHoveringDevice = false
     @State private var isHoveringMenu = false
     @State private var isHoveringShuffle = false
     @State private var isHoveringRepeat = false
+    @State private var showDevicePicker = false
     @State private var errorText: String? = nil
     @ObservedObject var library: MusicLibrary
-    @Binding var showQueue: Bool  // Add this binding
+    @Binding var showQueue: Bool
     
     
     var body: some View {
@@ -231,28 +234,65 @@ struct PlayerControlsView: View {
                 }
             }
             
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showQueue.toggle()
+            HStack(spacing: 6) {
+                // Device picker button
+                Button(action: { showDevicePicker.toggle() }) {
+                    let symbol = deviceState.currentDevice.map { d in
+                        switch d.service {
+                        case "builtin":     return "macmini"
+                        case "fifo":        return "antenna.radiowaves.left.and.right"
+                        case "squeezelite": return "hifispeaker"
+                        case "airplay":     return "airplayvideo"
+                        case "chromecast":  return "tv.and.mediabox"
+                        case "upnp":        return "network"
+                        default:            return "hifispeaker"
+                        }
+                    } ?? "hifispeaker"
+                    Image(systemName: symbol)
+                        .font(.system(size: 14))
+                        .foregroundStyle(showDevicePicker ? Color(hex: "fe09a3") : (isHoveringDevice ? .primary : .secondary))
+                        .frame(width: 32, height: 32)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(isHoveringDevice || showDevicePicker ? Color.secondary.opacity(0.15) : Color.clear)
+                        )
+                        .contentShape(Rectangle())
                 }
-            }) {
-                Image(systemName: "list.bullet")
-                    .font(.system(size: 14))
-                    .foregroundStyle(showQueue ? .primary : .secondary)
-                    .frame(width: 32, height: 32)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(isHoveringQueue || showQueue ? Color.secondary.opacity(0.15) : Color.clear)
-                    )
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isHoveringQueue = hovering
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    withAnimation(.easeInOut(duration: 0.1)) {
+                        isHoveringDevice = hovering
+                    }
+                }
+                .popover(isPresented: $showDevicePicker, arrowEdge: .top) {
+                    DeviceListView()
+                        .environmentObject(deviceState)
+                }
+
+                // Queue button
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showQueue.toggle()
+                    }
+                }) {
+                    Image(systemName: "list.bullet")
+                        .font(.system(size: 14))
+                        .foregroundStyle(showQueue ? .primary : .secondary)
+                        .frame(width: 32, height: 32)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(isHoveringQueue || showQueue ? Color.secondary.opacity(0.15) : Color.clear)
+                        )
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    withAnimation(.easeInOut(duration: 0.1)) {
+                        isHoveringQueue = hovering
+                    }
                 }
             }
-            .frame(width: 60)
+            .frame(width: 80)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)

@@ -10,6 +10,40 @@ use std::sync::{mpsc, Arc, Condvar, Mutex, OnceLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 // ---------------------------------------------------------------------------
+// Connected-client registry — updated as squeezelite instances connect /
+// disconnect.  Readable from outside the crate via `get_connected_clients()`.
+// ---------------------------------------------------------------------------
+
+/// A squeezelite client currently connected to the Slim Protocol server.
+#[derive(Clone, Debug)]
+pub struct SlimClient {
+    /// MAC-address-based unique ID (lowercase hex, no colons).
+    pub id: String,
+    /// Friendly name from HELO capabilities ("Name=…" field), or IP as fallback.
+    pub name: String,
+    /// Peer IP address.
+    pub ip: String,
+}
+
+static CLIENTS: Mutex<Vec<SlimClient>> = Mutex::new(Vec::new());
+
+/// Snapshot of all currently connected squeezelite clients.
+pub fn get_connected_clients() -> Vec<SlimClient> {
+    CLIENTS.lock().unwrap().clone()
+}
+
+pub(crate) fn add_client(client: SlimClient) {
+    let mut c = CLIENTS.lock().unwrap();
+    if !c.iter().any(|x| x.id == client.id) {
+        c.push(client);
+    }
+}
+
+pub(crate) fn remove_client(id: &str) {
+    CLIENTS.lock().unwrap().retain(|c| c.id != id);
+}
+
+// ---------------------------------------------------------------------------
 // Broadcast buffer — one writer, N independent readers.
 //
 // Each chunk is stored with a monotonically-increasing sequence number.

@@ -175,6 +175,10 @@ pub enum Icons {
     CirclePlus,
     Pencil,
     Trash,
+    Speaker,
+    Device,
+    Chromecast,
+    Airplay,
 }
 
 impl IconNamed for Icons {
@@ -208,6 +212,10 @@ impl IconNamed for Icons {
             Icons::CirclePlus => "icons/circle-plus.svg",
             Icons::Pencil => "icons/pencil.svg",
             Icons::Trash => "icons/trash.svg",
+            Icons::Speaker => "icons/speaker.svg",
+            Icons::Device => "icons/device.svg",
+            Icons::Chromecast => "icons/chromecast.svg",
+            Icons::Airplay => "icons/airplay.svg",
         }
         .into()
     }

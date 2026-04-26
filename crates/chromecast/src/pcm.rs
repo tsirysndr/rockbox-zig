@@ -23,7 +23,7 @@ use std::io::Write as _;
 use std::net::TcpListener;
 use std::path::Path;
 use std::str::FromStr;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Condvar, Mutex, OnceLock};
 use std::thread;
 use std::time::Duration;
@@ -159,6 +159,13 @@ static BUFFER: OnceLock<Arc<BroadcastBuffer>> = OnceLock::new();
 static PCM_STARTED: Mutex<bool> = Mutex::new(false);
 static CAST_PLAYING: Mutex<bool> = Mutex::new(false);
 static CAST_STOP: AtomicBool = AtomicBool::new(false);
+// Monotonically increasing; incremented by teardown so an old cast_loop
+// recognises it is stale and exits even after CAST_STOP is re-armed.
+static CAST_GENERATION: AtomicU32 = AtomicU32::new(0);
+// Set when the cast loop is already running and the sink resumes (pause/resume
+// or track change); the monitor loop reloads the media URL so the Chromecast
+// reconnects to the WAV stream.
+static RELOAD_REQUESTED: AtomicBool = AtomicBool::new(false);
 
 struct ChromecastPcmConfig {
     device_host: String,
@@ -480,7 +487,13 @@ fn build_media(stream_url: &str, art_url_base: &str, art_seq: u64) -> Media {
 
 const ROCKBOX_APP_ID: &str = "88DCBD57";
 
-fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url_base: &str) -> bool {
+fn cast_session(
+    host: &str,
+    device_port: u16,
+    stream_url: &str,
+    art_url_base: &str,
+    gen: u32,
+) -> bool {
     let cast_device = match CastDevice::connect_without_host_verification(host, device_port) {
         Ok(d) => d,
         Err(e) => {
@@ -560,7 +573,9 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url_base: &s
 
     // Monitor loop: heartbeat + track-change metadata updates
     loop {
-        if CAST_STOP.load(Ordering::SeqCst) {
+        let stale =
+            CAST_STOP.load(Ordering::SeqCst) || CAST_GENERATION.load(Ordering::SeqCst) != gen;
+        if stale {
             let _ = cast_device.receiver.stop_app(app.session_id.as_str());
             return true;
         }
@@ -575,10 +590,19 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url_base: &s
         let current = rockbox_sys::playback::current_track();
         let current_path = current.as_ref().map(|t| t.path.clone()).unwrap_or_default();
 
-        if !current_path.is_empty() && current_path != last_track_path {
-            last_track_path = current_path;
-            // Increment art_seq so the Chromecast re-fetches cover art
-            art_seq += 1;
+        let reload = RELOAD_REQUESTED.swap(false, Ordering::SeqCst);
+        let track_changed = !current_path.is_empty() && current_path != last_track_path;
+
+        if reload || track_changed {
+            if track_changed {
+                last_track_path = current_path;
+                art_seq += 1;
+            }
+            // Reset the buffer so the Chromecast fetches a clean stream start.
+            if reload {
+                get_buffer().reset();
+                tracing::info!("chromecast/pcm: sink resumed — reloading media");
+            }
             let updated = build_media(stream_url, art_url_base, art_seq);
             let new_title = updated
                 .metadata
@@ -593,29 +617,35 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url_base: &s
                 .media
                 .load(app.transport_id.as_str(), "", &updated)
             {
-                tracing::warn!("chromecast/pcm: track reload failed: {}, reconnecting", e);
+                tracing::warn!("chromecast/pcm: reload failed: {}, reconnecting", e);
                 return false;
             }
-            tracing::info!("chromecast/pcm: track change → «{}»", new_title);
+            if track_changed {
+                tracing::info!("chromecast/pcm: track change → «{}»", new_title);
+            }
         }
     }
 }
 
-fn cast_loop(host: String, device_port: u16, http_port: u16) {
+fn cast_loop(host: String, device_port: u16, http_port: u16, gen: u32) {
     let local_ip = get_local_ip();
     let stream_url = format!("http://{}:{}/stream.wav", local_ip, http_port);
     let art_url_base = format!("http://{}:{}/now-playing/art", local_ip, http_port);
 
-    while !CAST_STOP.load(Ordering::SeqCst) {
-        let ok = cast_session(&host, device_port, &stream_url, &art_url_base);
-        if ok || CAST_STOP.load(Ordering::SeqCst) {
+    while !CAST_STOP.load(Ordering::SeqCst) && CAST_GENERATION.load(Ordering::SeqCst) == gen {
+        let ok = cast_session(&host, device_port, &stream_url, &art_url_base, gen);
+        if ok || CAST_STOP.load(Ordering::SeqCst) || CAST_GENERATION.load(Ordering::SeqCst) != gen {
             break;
         }
         // Brief pause before reconnect attempt
         thread::sleep(Duration::from_secs(3));
     }
 
-    *CAST_PLAYING.lock().unwrap() = false;
+    // Only clear CAST_PLAYING if this is still the current generation — a newer
+    // cast_loop may already have set it to true.
+    if CAST_GENERATION.load(Ordering::SeqCst) == gen {
+        *CAST_PLAYING.lock().unwrap() = false;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -657,7 +687,8 @@ pub extern "C" fn pcm_chromecast_set_sample_rate(rate: u32) {
 #[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_chromecast_start() -> c_int {
-    // Start the HTTP broadcast server once
+    // Start the HTTP broadcast server once; on subsequent calls just re-open
+    // the buffer (teardown closes it without stopping the listener thread).
     {
         let mut started = PCM_STARTED.lock().unwrap();
         if !*started {
@@ -671,10 +702,13 @@ pub extern "C" fn pcm_chromecast_start() -> c_int {
             thread::spawn(move || serve_http(http_port, sample_rate, buf_http));
             *started = true;
             tracing::info!("chromecast/pcm: WAV stream started on :{http_port}");
+        } else {
+            // Re-open the buffer so new WAV readers can connect after teardown.
+            get_buffer().reset();
         }
     }
 
-    // Spawn the Cast protocol thread if not already running
+    // Spawn a Cast protocol thread if not already running for this generation.
     let already_playing = {
         let mut p = CAST_PLAYING.lock().unwrap();
         let was = *p;
@@ -686,6 +720,7 @@ pub extern "C" fn pcm_chromecast_start() -> c_int {
 
     if !already_playing {
         CAST_STOP.store(false, Ordering::SeqCst);
+        let gen = CAST_GENERATION.load(Ordering::SeqCst);
         let (host, device_port, http_port) = {
             let cfg = CONFIG.lock().unwrap();
             (cfg.device_host.clone(), cfg.device_port, cfg.http_port)
@@ -696,7 +731,13 @@ pub extern "C" fn pcm_chromecast_start() -> c_int {
             );
             *CAST_PLAYING.lock().unwrap() = false;
         } else {
-            thread::spawn(move || cast_loop(host, device_port, http_port));
+            thread::spawn(move || cast_loop(host, device_port, http_port, gen));
+        }
+    } else {
+        // cast_loop already running; signal it to reload media so the Chromecast
+        // reconnects to the WAV stream (it may have dropped the connection during a pause).
+        if !CAST_STOP.load(Ordering::SeqCst) {
+            RELOAD_REQUESTED.store(true, Ordering::SeqCst);
         }
     }
 
@@ -719,6 +760,20 @@ pub extern "C" fn pcm_chromecast_write(data: *const u8, len: usize) -> c_int {
 pub extern "C" fn pcm_chromecast_stop() {
     // No-op: the Cast session stays connected during pause so the Chromecast
     // player UI remains open and resumes seamlessly when data flows again.
+}
+
+/// Tear down the active Cast session without shutting down the HTTP server.
+/// Called when switching away from the Chromecast output.  The next call to
+/// pcm_chromecast_start() will spawn a fresh cast_loop and re-open the buffer.
+#[cfg(feature = "ffi")]
+#[no_mangle]
+pub extern "C" fn pcm_chromecast_teardown() {
+    CAST_GENERATION.fetch_add(1, Ordering::SeqCst);
+    CAST_STOP.store(true, Ordering::SeqCst);
+    *CAST_PLAYING.lock().unwrap() = false;
+    RELOAD_REQUESTED.store(false, Ordering::SeqCst);
+    // Close the buffer so any in-flight WAV readers unblock and exit cleanly.
+    get_buffer().close();
 }
 
 #[cfg(feature = "ffi")]

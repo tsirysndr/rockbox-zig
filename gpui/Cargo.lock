@@ -16,6 +16,7 @@ dependencies = [
  "reqwest",
  "rust-embed",
  "serde",
+ "serde_json",
  "souvlaki",
  "tokio",
  "tonic",

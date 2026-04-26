@@ -2,10 +2,10 @@ import { useTheme } from "@emotion/react";
 import styled from "@emotion/styled";
 import { ListItem, ListItemLabel } from "baseui/list";
 import { FC } from "react";
-import { MusicPlayer } from "@styled-icons/bootstrap";
 import { Laptop } from "@styled-icons/ionicons-outline";
 import { Kodi, Airplayaudio, Chromecast } from "@styled-icons/simple-icons";
 import { Speaker } from "@styled-icons/remix-fill";
+import { Radio, HardDrive, Cast } from "@styled-icons/feather";
 import {
   Container,
   CurrentDevice,
@@ -22,8 +22,11 @@ import {
 export type Device = {
   id: string;
   name: string;
+  /** Maps to the `app` field from the server (e.g. "builtin", "fifo", "squeezelite",
+   *  "AirPlay", "Chromecast", "UPnP/DLNA", "xbmc") */
   type: string;
   isConnected: boolean;
+  isCurrentDevice: boolean;
 };
 
 export type ArtworkProps = {
@@ -31,28 +34,65 @@ export type ArtworkProps = {
   color?: string;
 };
 
-const Artwork: FC<ArtworkProps> = (
-  { icon, color } = {
-    icon: "music-player",
-  }
-) => {
+const iconColors: Record<string, string> = {
+  builtin:      "#28fce3",
+  fifo:         "#9090ff",
+  squeezelite:  "#ffa028",
+  xbmc:         "#28cbfc",
+  AirPlay:      "#ff00c3",
+  airplay:      "#ff00c3",
+  Chromecast:   "#28cbfc",
+  chromecast:   "#28cbfc",
+  "UPnP/DLNA":  "#ff00c3",
+  dlna:         "#ff00c3",
+};
+
+const bgColors: Record<string, string> = {
+  builtin:      "rgba(40, 252, 227, 0.09)",
+  fifo:         "rgba(144, 144, 255, 0.10)",
+  squeezelite:  "rgba(255, 160, 40, 0.10)",
+  xbmc:         "rgba(40, 203, 252, 0.08)",
+  AirPlay:      "rgba(255, 0, 195, 0.06)",
+  airplay:      "rgba(255, 0, 195, 0.06)",
+  Chromecast:   "rgba(40, 203, 252, 0.08)",
+  chromecast:   "rgba(40, 203, 252, 0.08)",
+  "UPnP/DLNA":  "rgba(255, 0, 195, 0.06)",
+  dlna:         "rgba(255, 0, 195, 0.06)",
+};
+
+const Artwork: FC<ArtworkProps> = ({ icon, color }) => {
   const theme = useTheme();
+  const c = iconColors[icon ?? ""] ?? theme.colors.text;
   return (
     <Icon color={color}>
-      {icon === "music-player" && <MusicPlayer size={18} color="#28fce3" />}
-      {icon === "xbmc" && <Kodi size={18} color="#28cbfc" />}
-      {icon === "airplay" && <Airplayaudio size={18} color={"#ff00c3"} />}
-      {icon === "chromecast" && (
-        <Chromecast size={18} color={theme.colors.text} />
+      {icon === "builtin"     && <HardDrive size={18} color={c} />}
+      {icon === "fifo"        && <Radio     size={18} color={c} />}
+      {icon === "squeezelite" && <Cast      size={18} color={c} />}
+      {icon === "xbmc"        && <Kodi      size={18} color={c} />}
+      {(icon === "AirPlay" || icon === "airplay") && (
+        <Airplayaudio size={18} color={c} />
       )}
-      {icon === "dlna" && <Speaker size={18} color={"#ff00c3"} />}
+      {(icon === "Chromecast" || icon === "chromecast") && (
+        <Chromecast size={18} color={c} />
+      )}
+      {(icon === "UPnP/DLNA" || icon === "dlna") && (
+        <Speaker size={18} color={c} />
+      )}
     </Icon>
   );
 };
 
 const DeviceName = styled.div`
   font-size: 14px;
-  color: "#fe099c";
+`;
+
+const ActiveDot = styled.div`
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #28fce3;
+  flex-shrink: 0;
+  margin-right: 8px;
 `;
 
 export type DeviceListProps = {
@@ -73,14 +113,6 @@ const DeviceList: FC<DeviceListProps> = ({
   loading,
 }) => {
   const theme = useTheme();
-  const colors: {
-    [key: string]: string;
-  } = {
-    "music-player": "rgba(40, 252, 227, 0.088)",
-    xbmc: "rgba(40, 203, 252, 0.082)",
-    airplay: "rgba(255, 0, 195, 0.063)",
-    dlna: "rgba(255, 0, 195, 0.063)",
-  };
 
   const _onConnectToCastDevice = (deviceId: string) => {
     connectToCastDevice(deviceId);
@@ -92,16 +124,33 @@ const DeviceList: FC<DeviceListProps> = ({
     close();
   };
 
+  // The active device is either what DeviceState tracks or derived from the list.
+  const activeDevice =
+    currentCastDevice ??
+    castDevices.find((d) => d.isCurrentDevice) ??
+    null;
+
+  // Show all other devices in the list.
+  const otherDevices = castDevices.filter((d) => !d.isCurrentDevice);
+
   return (
     <Container>
+      {/* Current device header */}
       <CurrentDeviceWrapper>
         <IconWrapper>
-          <Laptop size={30} color={"#fe099c"} />
+          {activeDevice ? (
+            <Artwork
+              icon={activeDevice.type}
+              color={bgColors[activeDevice.type]}
+            />
+          ) : (
+            <Laptop size={30} color="#fe099c" />
+          )}
         </IconWrapper>
         <div style={{ flex: 1 }}>
           <CurrentDevice>Current device</CurrentDevice>
           <CurrentDeviceName>
-            {currentCastDevice ? currentCastDevice.name : "Rockbox"}
+            {activeDevice ? activeDevice.name : "Rockbox (Built-in)"}
           </CurrentDeviceName>
         </div>
         {currentCastDevice && (
@@ -110,24 +159,30 @@ const DeviceList: FC<DeviceListProps> = ({
           </Disconnect>
         )}
       </CurrentDeviceWrapper>
-      {!loading && <Title>Select another output device</Title>}
+
+      {!loading && otherDevices.length > 0 && (
+        <Title>Switch output device</Title>
+      )}
+
       <List>
-        {castDevices.length === 0 && !loading && (
+        {otherDevices.length === 0 && !loading && (
           <Placeholder>
-            No devices found. Please make sure your device is connected to the
-            same network as this device.
+            No other devices found. Make sure your devices are on the same
+            network.
           </Placeholder>
         )}
-        {castDevices.map((device) => (
+        {otherDevices.map((device) => (
           <div
             key={device.id}
             onClick={() => _onConnectToCastDevice(device.id)}
           >
             <ListItem
-              key={device.id}
               artwork={() => (
-                <Artwork icon={device.type} color={colors[device.type]} />
+                <Artwork icon={device.type} color={bgColors[device.type]} />
               )}
+              endEnhancer={() =>
+                device.isCurrentDevice ? <ActiveDot /> : null
+              }
               overrides={{
                 Root: {
                   style: {
@@ -139,9 +194,7 @@ const DeviceList: FC<DeviceListProps> = ({
                   },
                 },
                 Content: {
-                  style: {
-                    borderBottom: "none",
-                  },
+                  style: { borderBottom: "none" },
                 },
               }}
             >

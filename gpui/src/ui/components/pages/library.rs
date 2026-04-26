@@ -3,7 +3,7 @@ use crate::client::{
     INSERT_FIRST, INSERT_LAST, INSERT_LAST_SHUFFLED, INSERT_SHUFFLED,
 };
 use crate::controller::Controller;
-use crate::state::{format_duration, PlaybackStatus};
+use crate::state::{format_duration, DevicesState, PlaybackStatus};
 use crate::ui::animations::equalizer_bars;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::miniplayer::MiniPlayer;
@@ -244,7 +244,12 @@ impl LibraryPage {
         LibraryPage {
             scroll_handle: UniformListScrollHandle::new(),
             detail_scroll_handle: UniformListScrollHandle::new(),
-            miniplayer: cx.new(|_| MiniPlayer),
+            miniplayer: {
+                cx.new(|cx| {
+                    let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
+                    MiniPlayer
+                })
+            },
             search_input: cx.new(|cx| SearchInput::new(cx)),
             files_view: cx.new(|cx| FilesView::new(cx)),
             modal_name_input: cx.new(|cx| TextInput::new("Title", cx)),

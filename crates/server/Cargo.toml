@@ -18,6 +18,7 @@ queryst = "3.0.0"
 rand = "0.8.5"
 reqwest = {version = "0.12.5", features = ["blocking", "rustls-tls"], default-features = false}
 rockbox-chromecast = {path = "../chromecast"}
+rockbox-slim = {path = "../slim"}
 rockbox-upnp = {path = "../upnp"}
 rockbox-discovery = {path = "../discovery"}
 rockbox-graphql = {path = "../graphql"}
