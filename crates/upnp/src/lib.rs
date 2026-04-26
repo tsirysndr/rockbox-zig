@@ -481,15 +481,21 @@ fn ensure_track_monitor(renderer_url: String, port: u16) {
                 // If pcm_upnp_start() didn't fire (e.g. natural end-of-track on some
                 // Rockbox builds, or initial play), send Play as a fallback so the
                 // renderer reconnects if it stopped.
-                let pcm_boundary_fired =
-                    *LAST_PCM_TRACK_PATH.lock().unwrap() == current_path;
+                let pcm_boundary_fired = *LAST_PCM_TRACK_PATH.lock().unwrap() == current_path;
 
                 let send_play = !is_first && !pcm_boundary_fired;
 
                 tracing::info!(
                     "UPnP monitor: {} «{}» (pcm_boundary={pcm_boundary_fired}, play={send_play})",
-                    if is_first { "first track" } else { "track changed →" },
-                    current_track.as_ref().map(|t| t.title.as_str()).unwrap_or("?")
+                    if is_first {
+                        "first track"
+                    } else {
+                        "track changed →"
+                    },
+                    current_track
+                        .as_ref()
+                        .map(|t| t.title.as_str())
+                        .unwrap_or("?")
                 );
 
                 let stream_url = format!("http://{}:{}/stream.wav", local_ip, port);
