@@ -91,7 +91,7 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
             pcm::chromecast_set_device_host(&device.ip);
             pcm::chromecast_set_device_port(device.port);
             pcm::switch_sink(pcm::PCM_SINK_CHROMECAST);
-            *GLOBAL_MUTEX.lock().unwrap() = 1;
+            *GLOBAL_MUTEX.lock().unwrap() = 0;
         }
         other => {
             tracing::warn!("connect: unknown device service {:?}", other);

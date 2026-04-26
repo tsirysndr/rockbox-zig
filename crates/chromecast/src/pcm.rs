@@ -159,6 +159,10 @@ static BUFFER: OnceLock<Arc<BroadcastBuffer>> = OnceLock::new();
 static PCM_STARTED: Mutex<bool> = Mutex::new(false);
 static CAST_PLAYING: Mutex<bool> = Mutex::new(false);
 static CAST_STOP: AtomicBool = AtomicBool::new(false);
+// Set when switching back to Chromecast while the cast loop is already running;
+// the monitor loop sees this and reloads the media URL so the Chromecast
+// reconnects to the WAV stream (which it dropped while audio was paused).
+static RELOAD_REQUESTED: AtomicBool = AtomicBool::new(false);
 
 struct ChromecastPcmConfig {
     device_host: String,
@@ -575,10 +579,19 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url_base: &s
         let current = rockbox_sys::playback::current_track();
         let current_path = current.as_ref().map(|t| t.path.clone()).unwrap_or_default();
 
-        if !current_path.is_empty() && current_path != last_track_path {
-            last_track_path = current_path;
-            // Increment art_seq so the Chromecast re-fetches cover art
-            art_seq += 1;
+        let reload = RELOAD_REQUESTED.swap(false, Ordering::SeqCst);
+        let track_changed = !current_path.is_empty() && current_path != last_track_path;
+
+        if reload || track_changed {
+            if track_changed {
+                last_track_path = current_path;
+                art_seq += 1;
+            }
+            // Reset the buffer so the Chromecast fetches a clean stream start.
+            if reload {
+                get_buffer().reset();
+                tracing::info!("chromecast/pcm: sink resumed — reloading media");
+            }
             let updated = build_media(stream_url, art_url_base, art_seq);
             let new_title = updated
                 .metadata
@@ -593,10 +606,12 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url_base: &s
                 .media
                 .load(app.transport_id.as_str(), "", &updated)
             {
-                tracing::warn!("chromecast/pcm: track reload failed: {}, reconnecting", e);
+                tracing::warn!("chromecast/pcm: reload failed: {}, reconnecting", e);
                 return false;
             }
-            tracing::info!("chromecast/pcm: track change → «{}»", new_title);
+            if track_changed {
+                tracing::info!("chromecast/pcm: track change → «{}»", new_title);
+            }
         }
     }
 }
@@ -698,6 +713,10 @@ pub extern "C" fn pcm_chromecast_start() -> c_int {
         } else {
             thread::spawn(move || cast_loop(host, device_port, http_port));
         }
+    } else {
+        // cast_loop already running; signal it to reload media so the Chromecast
+        // reconnects to the WAV stream (it dropped the connection while audio was paused).
+        RELOAD_REQUESTED.store(true, Ordering::SeqCst);
     }
 
     0
