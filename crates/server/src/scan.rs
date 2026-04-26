@@ -89,8 +89,11 @@ pub fn scan_chromecast_devices(devices: Arc<Mutex<Vec<Device>>>) {
                 {
                     continue;
                 }
-                devices.push(Device::from(info.clone()));
-                SimpleBroker::<Device>::publish(Device::from(info.clone()));
+                let mut device = Device::from(info.clone());
+                device.service = "chromecast".to_string();
+                device.is_cast_device = true;
+                devices.push(device.clone());
+                SimpleBroker::<Device>::publish(device);
             }
         });
     });

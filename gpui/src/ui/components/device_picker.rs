@@ -5,7 +5,7 @@ use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
     div, px, App, Context, FontWeight, InteractiveElement, IntoElement, MouseButton,
-    ParentElement, Render, StatefulInteractiveElement, Styled, Window,
+    ParentElement, Render, StatefulInteractiveElement, Styled, Window, MouseMoveEvent,
 };
 
 pub fn device_icon(device: &DeviceItem) -> Icons {
@@ -46,6 +46,9 @@ impl Render for DevicePicker {
                 let mut state = cx.global::<DevicesState>().clone();
                 state.picker_open = false;
                 cx.set_global(state);
+                cx.stop_propagation();
+            })
+            .on_mouse_move(|_: &MouseMoveEvent, _, cx| {
                 cx.stop_propagation();
             })
             .on_scroll_wheel(|_, _, _| {})
