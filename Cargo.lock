@@ -9402,6 +9402,7 @@ dependencies = [
  "rockbox-rocksky",
  "rockbox-rpc",
  "rockbox-settings",
+ "rockbox-slim",
  "rockbox-sys",
  "rockbox-tracklist",
  "rockbox-traits",

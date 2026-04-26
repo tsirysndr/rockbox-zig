@@ -33,6 +33,7 @@ const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
       name: x.name,
       type: x.app,
       isConnected: x.isConnected,
+      isCurrentDevice: x.isCurrentDevice ?? false,
     }));
   }, [data, loading]);
 
@@ -50,6 +51,7 @@ const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
           name: currentDevice.device.name || "",
           type: currentDevice.device.app || "",
           isConnected: currentDevice.device.isConnected || false,
+          isCurrentDevice: currentDevice.device.isCurrentDevice ?? true,
         },
       });
     }

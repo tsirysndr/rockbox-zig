@@ -6,6 +6,7 @@ use crate::controller::Controller;
 use crate::state::{format_duration, PlaybackStatus};
 use crate::ui::animations::equalizer_bars;
 use crate::ui::components::icons::{Icon, Icons};
+use crate::ui::components::device_picker::DevicePicker;
 use crate::ui::components::miniplayer::MiniPlayer;
 use crate::ui::components::pages::files::{menu_item, FilesView};
 use crate::ui::components::search_input::SearchInput;
@@ -244,7 +245,10 @@ impl LibraryPage {
         LibraryPage {
             scroll_handle: UniformListScrollHandle::new(),
             detail_scroll_handle: UniformListScrollHandle::new(),
-            miniplayer: cx.new(|_| MiniPlayer),
+            miniplayer: {
+                let device_picker = cx.new(|_| DevicePicker);
+                cx.new(|_| MiniPlayer { device_picker })
+            },
             search_input: cx.new(|cx| SearchInput::new(cx)),
             files_view: cx.new(|cx| FilesView::new(cx)),
             modal_name_input: cx.new(|cx| TextInput::new("Title", cx)),

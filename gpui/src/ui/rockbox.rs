@@ -1,3 +1,4 @@
+use crate::state::DevicesState;
 use crate::ui::animations::ease_in_out_expo;
 use crate::ui::components::controlbar::ControlBar;
 use crate::ui::components::pages::{library::LibraryPage, player::PlayerPage, queue::QueuePage};
@@ -24,6 +25,7 @@ impl Rockbox {
     pub fn new(cx: &mut Context<Self>) -> Self {
         cx.set_global(Theme::default());
         cx.set_global(Page::Player);
+        cx.set_global(DevicesState::default());
         global_keybinds::register_keybinds(cx);
         let titlebar = cx.new(|cx| Titlebar::new(cx));
         let controlbar = cx.new(|_| ControlBar);

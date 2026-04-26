@@ -1,3 +1,22 @@
+#[derive(Clone, Debug, Default, serde::Deserialize)]
+pub struct DeviceItem {
+    pub id: String,
+    pub name: String,
+    pub ip: String,
+    pub port: u16,
+    pub service: String,
+    pub app: String,
+    pub is_connected: bool,
+    pub is_current_device: bool,
+}
+
+#[derive(Clone, Default)]
+pub struct DevicesState {
+    pub devices: Vec<DeviceItem>,
+    pub picker_open: bool,
+}
+impl gpui::Global for DevicesState {}
+
 #[derive(Clone, Debug, Default)]
 pub struct Track {
     pub id: String,

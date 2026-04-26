@@ -2,6 +2,7 @@ use crate::controller::Controller;
 use crate::state::{format_duration, PlaybackStatus};
 use crate::ui::animations::equalizer_bars;
 use crate::ui::components::icons::{Icon, Icons};
+use crate::ui::components::device_picker::DevicePicker;
 use crate::ui::components::miniplayer::MiniPlayer;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -21,7 +22,10 @@ impl QueuePage {
     pub fn new(cx: &mut App) -> Self {
         QueuePage {
             scroll_handle: UniformListScrollHandle::new(),
-            miniplayer: cx.new(|_| MiniPlayer),
+            miniplayer: {
+                let device_picker = cx.new(|_| DevicePicker);
+                cx.new(|_| MiniPlayer { device_picker })
+            },
             last_scrolled_idx: None,
         }
     }

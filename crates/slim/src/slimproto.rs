@@ -37,9 +37,21 @@ fn handle_client(mut stream: TcpStream, http_port: u16, sync_rx: mpsc::Receiver<
         .unwrap_or_default();
     tracing::info!("slim: client connected from {peer}");
 
-    match read_client_packet(&mut stream) {
-        Ok((opcode, _body)) if opcode == "HELO" => {
-            tracing::info!("slim: HELO from {peer}");
+    let client_id = match read_client_packet(&mut stream) {
+        Ok((opcode, body)) if opcode == "HELO" => {
+            let id = parse_helo_mac_id(&body);
+            let peer_ip = stream
+                .peer_addr()
+                .map(|a| a.ip().to_string())
+                .unwrap_or_default();
+            let name = parse_helo_name(&body).unwrap_or_else(|| peer_ip.clone());
+            tracing::info!("slim: HELO from {peer} id={id} name={name:?}");
+            crate::add_client(crate::SlimClient {
+                id: id.clone(),
+                name,
+                ip: peer_ip,
+            });
+            id
         }
         Ok((opcode, _)) => {
             tracing::warn!("slim: expected HELO, got '{opcode}' from {peer}");
@@ -49,7 +61,7 @@ fn handle_client(mut stream: TcpStream, http_port: u16, sync_rx: mpsc::Receiver<
             tracing::debug!("slim: read error from {peer}: {e}");
             return;
         }
-    }
+    };
 
     if let Err(e) = send_strm_start(&mut stream, http_port) {
         tracing::error!("slim: send STRM to {peer} failed: {e}");
@@ -121,6 +133,7 @@ fn handle_client(mut stream: TcpStream, http_port: u16, sync_rx: mpsc::Receiver<
             }
         }
     }
+    crate::remove_client(&client_id);
 }
 
 // ---------------------------------------------------------------------------
@@ -234,4 +247,45 @@ fn read_u32_be(data: &[u8], offset: usize) -> u32 {
         data[offset + 2],
         data[offset + 3],
     ])
+}
+
+// ---------------------------------------------------------------------------
+// HELO body parsers
+//
+// HELO body layout:
+//   [0]      device_id
+//   [1]      revision
+//   [2..8]   mac address (6 bytes)
+//   [8..24]  uuid (16 bytes)
+//   [24..26] wlan_channel_list (2 bytes)
+//   [26..34] bytes_received (8 bytes)
+//   [34..36] language (2 bytes)
+//   [36..]   capabilities (variable, comma-separated key=value pairs)
+// ---------------------------------------------------------------------------
+
+fn parse_helo_mac_id(body: &[u8]) -> String {
+    if body.len() < 8 {
+        return "unknown".to_string();
+    }
+    let mac = &body[2..8];
+    format!(
+        "{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
+    )
+}
+
+fn parse_helo_name(body: &[u8]) -> Option<String> {
+    const CAP_OFFSET: usize = 36;
+    if body.len() <= CAP_OFFSET {
+        return None;
+    }
+    let cap_str = std::str::from_utf8(&body[CAP_OFFSET..]).ok()?;
+    for part in cap_str.trim_end_matches('\0').split(',') {
+        if let Some(name) = part.strip_prefix("Name=") {
+            if !name.is_empty() {
+                return Some(name.to_string());
+            }
+        }
+    }
+    None
 }

@@ -13,7 +13,7 @@ use crate::api::v1alpha1::{
     StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest,
     UnlikeTrackRequest,
 };
-use crate::state::{SearchAlbum, SearchArtist, SearchPlaylist, SearchResults};
+use crate::state::{DeviceItem, SearchAlbum, SearchArtist, SearchPlaylist, SearchResults};
 
 // Matches apps/playlist.h PLAYLIST_INSERT_* constants
 pub const INSERT_FIRST: i32 = -4; // play next (after current)
@@ -25,6 +25,7 @@ use anyhow::Result;
 use tokio::sync::mpsc::Sender;
 
 const URL: &str = "http://127.0.0.1:6061";
+const HTTP_URL: &str = "http://127.0.0.1:6062";
 
 // ── Library ───────────────────────────────────────────────────────────────────
 
@@ -910,6 +911,35 @@ pub async fn play_saved_playlist_shuffled(playlist_id: String) -> Result<()> {
     };
     let mut pc = PlaylistServiceClient::connect(URL).await?;
     pc.shuffle_playlist(ShufflePlaylistRequest { start_index: 0 })
+        .await?;
+    Ok(())
+}
+
+// ── Device output API ─────────────────────────────────────────────────────────
+
+pub async fn fetch_devices() -> Result<Vec<DeviceItem>> {
+    let body = reqwest::get(format!("{HTTP_URL}/devices"))
+        .await?
+        .text()
+        .await?;
+    let items: Vec<DeviceItem> = serde_json::from_str(&body)?;
+    Ok(items)
+}
+
+pub async fn connect_device(id: String) -> Result<()> {
+    let client = reqwest::Client::new();
+    client
+        .put(format!("{HTTP_URL}/devices/{id}/connect"))
+        .send()
+        .await?;
+    Ok(())
+}
+
+pub async fn disconnect_device(id: String) -> Result<()> {
+    let client = reqwest::Client::new();
+    client
+        .put(format!("{HTTP_URL}/devices/{id}/disconnect"))
+        .send()
         .await?;
     Ok(())
 }
