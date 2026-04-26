@@ -292,6 +292,39 @@ squeezelite -s localhost -o ""           # system default
 squeezelite -s localhost -o "Built-in Output"
 ```
 
+### Chromecast
+
+```toml
+music_dir            = "/path/to/Music"
+audio_output         = "chromecast"
+chromecast_host      = "192.168.1.60"  # LAN IP of the target Chromecast
+chromecast_port      = 8009            # optional, default 8009 (Cast protocol)
+chromecast_http_port = 7881            # optional, default 7881 (WAV HTTP stream)
+```
+
+Rockbox streams audio to any Google Cast-compatible device — Google Home,
+Chromecast Audio, Chromecast with Google TV, Nest Hub, or third-party Cast
+receivers. It uses two channels simultaneously:
+
+- **Cast protocol** (TCP 8009, TLS + Protobuf) — sends playback commands and
+  tells the device where to fetch the audio stream.
+- **WAV over HTTP** (port 7881) — serves a live `audio/wav` stream with a
+  finite `Content-Length` so the Chromecast can show a progress bar and
+  auto-advance the queue at track boundaries.
+
+Track metadata (title, artist, album, duration) and album art are pushed to the
+device on every track change. Chromecast devices on the LAN are also discovered
+automatically via mDNS (`_googlecast._tcp.local.`) and appear in the UI device
+picker; connecting through the picker starts the Cast session on demand without
+requiring `audio_output = "chromecast"` in the config file.
+
+> **Network requirement**: the Chromecast device must be able to reach port 7881
+> on the machine running rockboxd. If rockboxd is inside a VM or container,
+> forward that port to the host.
+
+See [`crates/chromecast/README.md`](crates/chromecast/README.md) for a detailed
+description of the architecture, protocols, and FFI surface.
+
 ### UPnP / DLNA
 
 Rockbox has three independent UPnP/DLNA modes that can be combined freely.
