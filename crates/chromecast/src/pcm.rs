@@ -344,11 +344,11 @@ fn serve_wav(
     buf: Arc<BroadcastBuffer>,
     peer: &str,
 ) {
-    let hdr = "HTTP/1.0 200 OK\r\nContent-Type: audio/wav\r\nCache-Control: no-cache\r\n\r\n";
-
-    // Compute the exact PCM byte count from the track length so the Chromecast
-    // can display an accurate progress bar. Falls back to 0xFFFFFFFF only when
-    // no track info is available (pre-playback probe connections, etc.).
+    // Compute the exact PCM byte count from the track length.
+    // Without Content-Length, Chrome/Chromecast treats any HTTP response as a
+    // live stream and shows ∞ — it does NOT read duration from the WAV header
+    // alone.  We must set Content-Length AND enforce the byte limit so the
+    // response is a properly-bounded file the receiver can fully parse.
     let duration_ms = rockbox_sys::playback::current_track()
         .map(|t| t.length)
         .filter(|&l| l > 0)
@@ -361,23 +361,51 @@ fn serve_wav(
     };
 
     let wav_hdr = wav_header(sample_rate, data_size);
+    let known_length = data_size != 0xFFFF_FFFF;
+
+    let hdr = if known_length {
+        format!(
+            "HTTP/1.0 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: {}\r\nCache-Control: no-cache\r\n\r\n",
+            44u64 + data_size as u64
+        )
+    } else {
+        "HTTP/1.0 200 OK\r\nContent-Type: audio/wav\r\nCache-Control: no-cache\r\n\r\n".to_string()
+    };
+
     if stream.write_all(hdr.as_bytes()).is_err() || stream.write_all(&wav_hdr).is_err() {
         return;
     }
-    tracing::info!("chromecast/pcm: streaming WAV to {peer}");
+    tracing::info!(
+        "chromecast/pcm: streaming WAV to {peer} ({} bytes)",
+        if known_length { data_size as u64 } else { 0 }
+    );
 
     let mut rx = buf.subscribe();
+    let mut written: u64 = 0;
+    let limit: u64 = if known_length {
+        data_size as u64
+    } else {
+        u64::MAX
+    };
+
     loop {
+        if written >= limit {
+            break;
+        }
         match rx.recv_blocking() {
             RecvResult::Data(chunk) => {
-                if stream.write_all(&chunk).is_err() {
+                let remaining = (limit - written) as usize;
+                let to_write = chunk.len().min(remaining);
+                if stream.write_all(&chunk[..to_write]).is_err() {
                     tracing::debug!("chromecast/pcm: {peer} disconnected");
                     break;
                 }
+                written += to_write as u64;
             }
             RecvResult::Closed => break,
         }
     }
+    tracing::debug!("chromecast/pcm: {peer} done ({written} bytes)");
 }
 
 // ---------------------------------------------------------------------------
