@@ -596,7 +596,11 @@ impl<'a> CastPlayerInternal<'a> {
                 let status = status.entries.first().unwrap();
                 let media_session_id = status.media_session_id;
                 let transport_id = app.transport_id.as_str();
-                Ok(Some((transport_id.to_string(), media_session_id, "".to_string())))
+                Ok(Some((
+                    transport_id.to_string(),
+                    media_session_id,
+                    "".to_string(),
+                )))
             }
             None => Ok(None),
         }

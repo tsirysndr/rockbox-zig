@@ -1,8 +1,6 @@
 use anyhow::Error;
-use rockbox_chromecast::Chromecast;
 use rockbox_settings::{read_settings, save_settings_to_file};
 use rockbox_sys::sound::pcm;
-use std::thread;
 
 use crate::{
     http::{Context, Request, Response},
@@ -26,12 +24,22 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
         }
     };
 
-    // Stop any existing player session (e.g. Chromecast).
+    // Stop any existing player session.
     if let Some(p) = player.as_mut() {
         let _ = p.stop().await;
         let _ = p.disconnect().await;
     }
     *player = None;
+
+    // If switching away from or to Chromecast, tear down the cast session so
+    // the next pcm_chromecast_start() always gets a clean slate.
+    let old_service = current_device
+        .as_ref()
+        .map(|d| d.service.as_str())
+        .unwrap_or("");
+    if old_service == "chromecast" || device.service == "chromecast" {
+        pcm::chromecast_teardown();
+    }
 
     // Read current settings so we preserve all other fields.
     let mut settings = read_settings().unwrap_or_default();
@@ -112,16 +120,8 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
     }
     *current_device = Some(device.clone());
 
-    // For Chromecast, establish the player session in a background thread so this
-    // handler returns immediately (the TCP + RTSP handshake can take several seconds).
-    // The PCM sink is already armed; settings are already saved.
-    if device.service == "chromecast" {
-        let player_arc = ctx.player.clone();
-        thread::spawn(move || match Chromecast::connect(device) {
-            Ok(p) => *player_arc.lock().unwrap() = p,
-            Err(e) => tracing::warn!("chromecast: connect failed (sink still armed): {e}"),
-        });
-    }
+    // The Cast protocol session is managed entirely by the pcm.rs cast_loop;
+    // no separate lib.rs Chromecast::connect() needed here.
 
     res.set_status(200);
     Ok(())
@@ -139,6 +139,14 @@ pub async fn disconnect(ctx: &Context, req: &Request, res: &mut Response) -> Res
     }
     *GLOBAL_MUTEX.lock().unwrap() = 0;
     *player = None;
+
+    // If disconnecting from Chromecast, stop the cast loop before switching sink.
+    if current_device
+        .as_ref()
+        .map_or(false, |d| d.service == "chromecast")
+    {
+        pcm::chromecast_teardown();
+    }
 
     // Fall back to built-in sink.
     pcm::switch_sink(pcm::PCM_SINK_BUILTIN);

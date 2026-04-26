@@ -114,3 +114,7 @@ pub fn chromecast_set_device_host(host: &str) {
 pub fn chromecast_set_device_port(port: u16) {
     unsafe { crate::pcm_chromecast_set_device_port(port) }
 }
+
+pub fn chromecast_teardown() {
+    unsafe { crate::pcm_chromecast_teardown() }
+}
