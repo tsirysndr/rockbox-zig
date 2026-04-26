@@ -174,14 +174,17 @@ rockboxd
 
 ## 🔌 Ports
 
-| Service | Default port | Protocol |
-|---|---|---|
-| gRPC | 6061 | gRPC / gRPC-Web |
-| GraphQL + Web UI | 6062 | HTTP |
-| HTTP REST API | 6063 | HTTP |
-| MPD server | 6600 | MPD protocol |
-| Slim Protocol (squeezelite) | 3483 | TCP |
-| HTTP PCM stream (squeezelite) | 9999 | HTTP |
+| Service                               | Default port | Protocol        |
+|---------------------------------------|--------------|-----------------|
+| gRPC                                  | 6061         | gRPC / gRPC-Web |
+| GraphQL + Web UI                      | 6062         | HTTP            |
+| HTTP REST API                         | 6063         | HTTP            |
+| MPD server                            | 6600         | MPD protocol    |
+| Slim Protocol (squeezelite)           | 3483         | TCP             |
+| HTTP PCM stream (squeezelite)         | 9999         | HTTP            |
+| UPnP Media Server (ContentDirectory)  | 7878         | HTTP / SSDP     |
+| UPnP WAV broadcast (PCM sink)         | 7879         | HTTP            |
+| UPnP MediaRenderer (AVTransport)      | 7880         | HTTP / SSDP     |
 
 ---
 
@@ -287,6 +290,70 @@ squeezelite -s localhost -l              # list available devices
 squeezelite -s localhost -o ""           # system default
 squeezelite -s localhost -o "Built-in Output"
 ```
+
+### UPnP / DLNA
+
+Rockbox has three independent UPnP/DLNA modes that can be combined freely.
+
+#### PCM sink — stream live audio to a UPnP renderer (Kodi, VLC, …)
+
+```toml
+music_dir          = "/path/to/Music"
+audio_output       = "upnp"
+
+# AVTransport controlURL of the target renderer (required for metadata push)
+upnp_renderer_url  = "http://192.168.1.x:7777/AVTransport/control"
+
+# Port for the WAV HTTP broadcast server (default: 7879)
+upnp_http_port     = 7879
+```
+
+Rockbox encodes live PCM as a continuous WAV-over-HTTP stream and commands the
+renderer to play it via AVTransport SOAP. Track metadata (title, artist, album,
+album art, duration) is sent as DIDL-Lite XML in `SetAVTransportURI` and
+auto-refreshed on every track change so the renderer's "Now Playing" display
+stays accurate.
+
+> **Finding `upnp_renderer_url`**: start `rockboxd` with `RUST_LOG=info` — it
+> scans the LAN on startup and logs `upnp scan: found renderer "…" av=http://…`
+> for every discovered renderer.
+
+#### Media Server — expose library to control points (BubbleUPnP, Kodi, …)
+
+```toml
+upnp_server_enabled = true
+upnp_server_port    = 7878        # default
+upnp_friendly_name  = "Rockbox"  # name shown in apps
+```
+
+Starts a ContentDirectory service so control points can browse artists, albums,
+and tracks and pull audio directly from Rockbox.
+
+#### MediaRenderer — let control points push media to Rockbox
+
+```toml
+upnp_renderer_enabled = true
+upnp_renderer_port    = 7880        # default
+upnp_friendly_name    = "Rockbox"
+```
+
+Rockbox registers as a `MediaRenderer:1`. Any DLNA control point (BubbleUPnP,
+Foobar2000, etc.) can push a URI to Rockbox and control playback remotely.
+Incoming DIDL-Lite metadata (title, artist, album, album art, duration) is
+parsed and displayed.
+
+#### All UPnP settings
+
+| Key                        | Default      | Description                                    |
+|----------------------------|--------------|------------------------------------------------|
+| `audio_output = "upnp"`    | —            | Enable the PCM → WAV streaming sink            |
+| `upnp_renderer_url`        | —            | AVTransport controlURL of the target renderer  |
+| `upnp_http_port`           | `7879`       | WAV broadcast HTTP port                        |
+| `upnp_server_enabled`      | `false`      | Start the ContentDirectory media server        |
+| `upnp_server_port`         | `7878`       | Media server HTTP port                         |
+| `upnp_renderer_enabled`    | `false`      | Start the MediaRenderer endpoint               |
+| `upnp_renderer_port`       | `7880`       | MediaRenderer HTTP port                        |
+| `upnp_friendly_name`       | `"Rockbox"`  | Display name shown to control points           |
 
 ---
 
