@@ -1153,6 +1153,9 @@ extern "C" {
     fn pcm_airplay_clear_receivers();
     fn pcm_squeezelite_set_slim_port(port: c_ushort);
     fn pcm_squeezelite_set_http_port(port: c_ushort);
+    fn pcm_upnp_set_http_port(port: c_ushort);
+    fn pcm_upnp_set_renderer_url(url: *const c_char);
+    fn pcm_upnp_set_sample_rate(rate: c_uint);
     fn beep_play(frequency: c_uint, duration: c_uint, amplitude: c_uint);
     fn dsp_set_crossfeed_type(r#type: c_int);
     fn dsp_eq_enable(enable: c_uchar);

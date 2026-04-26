@@ -10,6 +10,7 @@ crate-type = ["staticlib"]
 anyhow = "1.0.90"
 rockbox-airplay = {path = "../airplay"}
 rockbox-slim = {path = "../slim"}
+rockbox-upnp = {path = "../upnp"}
 clap = "4.5.16"
 owo-colors = "4.1.0"
 reqwest = { workspace = true, features = ["rustls-tls", "json"] }

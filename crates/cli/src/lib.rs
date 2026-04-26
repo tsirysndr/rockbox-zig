@@ -12,6 +12,8 @@ use rockbox_playlists::PlaylistStore;
 use rockbox_slim::_link_slim as _;
 use rockbox_typesense::client::*;
 use rockbox_typesense::types::*;
+#[allow(unused_imports)]
+use rockbox_upnp::_link_upnp as _;
 use std::io::{BufRead, BufReader};
 use std::process::Stdio;
 use std::sync::atomic::{AtomicI32, Ordering};

@@ -9161,6 +9161,7 @@ dependencies = [
  "rockbox-settings",
  "rockbox-slim",
  "rockbox-typesense",
+ "rockbox-upnp",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -9419,6 +9420,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "rockbox-sys",
+ "rockbox-upnp",
  "toml 0.8.19",
  "tracing",
 ]
@@ -9478,6 +9480,25 @@ dependencies = [
  "rockbox-library",
  "serde",
  "serde_json",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "rockbox-upnp"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "http 1.1.0",
+ "http-body-util",
+ "hyper 1.4.1",
+ "hyper-util",
+ "rockbox-sys",
+ "serde",
+ "socket2 0.5.7",
+ "sqlx",
+ "tokio",
  "tracing",
  "uuid",
 ]

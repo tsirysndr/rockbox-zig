@@ -67,6 +67,18 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
                 "audio output: squeezelite (Slim Protocol :{slim_port}, HTTP audio :{http_port})"
             );
         }
+        Some("upnp") => {
+            let http_port = settings.upnp_http_port.unwrap_or(7879);
+            pcm::upnp_set_http_port(http_port);
+            if let Some(ref url) = settings.upnp_renderer_url {
+                pcm::upnp_set_renderer_url(url);
+                tracing::info!("audio output: upnp (WAV stream :{http_port}, renderer {url})");
+            } else {
+                pcm::upnp_clear_renderer_url();
+                tracing::info!("audio output: upnp (WAV stream :{http_port})");
+            }
+            pcm::switch_sink(pcm::PCM_SINK_UPNP);
+        }
         Some("builtin") | None => {
             tracing::info!("audio output: builtin (SDL)");
         }
@@ -76,6 +88,20 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
                 other
             );
         }
+    }
+
+    // Start UPnP/DLNA ContentDirectory media server if enabled.
+    if settings.upnp_server_enabled.unwrap_or(false) {
+        let port = settings.upnp_server_port.unwrap_or(7878);
+        let name = settings.upnp_friendly_name.as_deref().unwrap_or("Rockbox");
+        rockbox_upnp::start_media_server(port, name);
+    }
+
+    // Start UPnP/DLNA MediaRenderer:1 if enabled.
+    if settings.upnp_renderer_enabled.unwrap_or(false) {
+        let port = settings.upnp_renderer_port.unwrap_or(7880);
+        let name = settings.upnp_friendly_name.as_deref().unwrap_or("Rockbox");
+        rockbox_upnp::start_renderer(port, name);
     }
 
     rb::settings::apply_audio_settings();

@@ -6,6 +6,7 @@ pub const PCM_SINK_BUILTIN: i32 = 0;
 pub const PCM_SINK_FIFO: i32 = 1;
 pub const PCM_SINK_AIRPLAY: i32 = 2;
 pub const PCM_SINK_SQUEEZELITE: i32 = 3;
+pub const PCM_SINK_UPNP: i32 = 4;
 
 pub fn apply_settings() {
     unsafe {
@@ -83,4 +84,18 @@ pub fn squeezelite_set_slim_port(port: u16) {
 
 pub fn squeezelite_set_http_port(port: u16) {
     unsafe { crate::pcm_squeezelite_set_http_port(port) }
+}
+
+pub fn upnp_set_http_port(port: u16) {
+    unsafe { crate::pcm_upnp_set_http_port(port) }
+}
+
+pub fn upnp_set_renderer_url(url: &str) {
+    let curl = std::ffi::CString::new(url).expect("url must not contain null bytes");
+    unsafe { crate::pcm_upnp_set_renderer_url(curl.as_ptr()) }
+    std::mem::forget(curl);
+}
+
+pub fn upnp_clear_renderer_url() {
+    unsafe { crate::pcm_upnp_set_renderer_url(std::ptr::null()) }
 }
