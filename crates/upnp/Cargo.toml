@@ -9,6 +9,10 @@ repository.workspace = true
 [lib]
 crate-type = ["rlib"]
 
+[features]
+default = []
+ffi = []
+
 [dependencies]
 anyhow = { workspace = true }
 tokio = { workspace = true }

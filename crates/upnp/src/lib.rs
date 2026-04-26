@@ -20,7 +20,9 @@ pub(crate) mod ssdp;
 pub fn _link_upnp() {}
 
 use std::collections::VecDeque;
+#[cfg(feature = "ffi")]
 use std::ffi::CStr;
+#[cfg(feature = "ffi")]
 use std::os::raw::{c_char, c_int};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Condvar, Mutex, OnceLock};
@@ -238,16 +240,16 @@ pub fn start_renderer(port: u16, friendly_name: &str) {
 
 // ---------------------------------------------------------------------------
 // FFI exports — UPnP PCM sink (WAV streaming to UPnP/DLNA renderers)
+// Only compiled when the `ffi` feature is enabled (rockbox-cli staticlib).
 // ---------------------------------------------------------------------------
 
-/// Set the HTTP port for the WAV PCM stream (default: 7879).
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_upnp_set_http_port(port: u16) {
     CONFIG.lock().unwrap().pcm_port = port;
 }
 
-/// Set the AVTransport control URL of a UPnP renderer to auto-command on start.
-/// Pass NULL to clear.
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_upnp_set_renderer_url(url: *const c_char) {
     let mut cfg = CONFIG.lock().unwrap();
@@ -262,15 +264,13 @@ pub extern "C" fn pcm_upnp_set_renderer_url(url: *const c_char) {
     cfg.renderer_url = if s.is_empty() { None } else { Some(s) };
 }
 
-/// Inform the PCM sink of the current sample rate (called by set_freq).
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_upnp_set_sample_rate(rate: u32) {
     CONFIG.lock().unwrap().sample_rate = rate;
 }
 
-/// Start the WAV PCM stream HTTP server.  The HTTP server starts once; the
-/// renderer is notified with fresh DIDL-Lite metadata on every call (track
-/// change), but Play is only issued on the first call after a full stop.
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_upnp_start() -> c_int {
     // --- Start the HTTP broadcast server once ---
@@ -333,7 +333,7 @@ pub extern "C" fn pcm_upnp_start() -> c_int {
     0
 }
 
-/// Push raw S16LE stereo PCM into the WAV broadcast buffer.
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_upnp_write(data: *const u8, len: usize) -> c_int {
     if data.is_null() || len == 0 {
@@ -344,11 +344,11 @@ pub extern "C" fn pcm_upnp_write(data: *const u8, len: usize) -> c_int {
     0
 }
 
-/// No-op between tracks — HTTP connections stay alive.
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_upnp_stop() {}
 
-/// Shut down the PCM stream server (called on daemon exit).
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_upnp_close() {
     let mut started = PCM_STARTED.lock().unwrap();
