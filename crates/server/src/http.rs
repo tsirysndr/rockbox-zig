@@ -24,7 +24,7 @@ use tracing::{debug, error};
 use crate::{
     kv::{build_tracks_kv, KV},
     player_events::listen_for_playback_changes,
-    scan::scan_chromecast_devices,
+    scan::{scan_chromecast_devices, scan_upnp_devices},
 };
 
 type Handler = fn(&Context, &Request, &mut Response) -> Result<(), Error>;
@@ -91,23 +91,20 @@ impl Response {
         let status_line = format!("HTTP/1.1 {} OK\r\n", self.status_code);
         let mut response = status_line;
 
-        // Add headers
         for (key, value) in self.headers {
             response.push_str(&format!("{}: {}\r\n", key, value));
         }
-
-        // Add content length header
         response.push_str(&format!("Content-Length: {}\r\n", self.body.len()));
-
-        // End headers
         response.push_str("\r\n");
-
-        // Add body
         response.push_str(&self.body);
 
-        // Write response to the stream
-        stream.write_all(response.as_bytes()).unwrap();
-        stream.flush().unwrap();
+        if let Err(e) = stream.write_all(response.as_bytes()) {
+            tracing::debug!("http: write error: {e}");
+            return;
+        }
+        if let Err(e) = stream.flush() {
+            tracing::debug!("http: flush error: {e}");
+        }
     }
 }
 
@@ -262,11 +259,19 @@ impl RockboxHttpServer {
 
         // Start scanning for devices
         scan_chromecast_devices(devices.clone());
+        scan_upnp_devices(devices.clone());
         listen_for_playback_changes(player.clone(), db_pool.clone());
 
         loop {
             match listener.accept() {
                 Ok((stream, _)) => {
+                    // The listener is non-blocking so the accept loop can check
+                    // active connections; reset the accepted stream to blocking
+                    // so handler-thread reads/writes don't get WouldBlock.
+                    if let Err(e) = stream.set_nonblocking(false) {
+                        tracing::warn!("http: set_nonblocking(false) failed: {e}");
+                        continue;
+                    }
                     let db_pool = db_pool.clone();
                     let active_connections = Arc::clone(&active_connections);
                     {
@@ -285,7 +290,11 @@ impl RockboxHttpServer {
                         let mut buf_reader = BufReader::new(&stream);
                         let mut request = String::new();
 
-                        buf_reader.read_line(&mut request).unwrap();
+                        if buf_reader.read_line(&mut request).is_err() {
+                            let mut active_connections = active_connections.lock().unwrap();
+                            *active_connections -= 1;
+                            return;
+                        }
 
                         let request_line_parts: Vec<&str> = request.split_whitespace().collect();
                         if request_line_parts.len() >= 2 {
@@ -294,7 +303,6 @@ impl RockboxHttpServer {
 
                             let (path, query_string) = split_path_and_query(path_with_query);
 
-                            // Parse query parameters if present
                             let query_params: Value = match query_string {
                                 Some(query_str) => queryst::parse(query_str).unwrap_or_default(),
                                 None => Value::default(),
@@ -310,7 +318,7 @@ impl RockboxHttpServer {
                                         || line.starts_with("content-length")
                                     {
                                         let parts: Vec<_> = line.split(":").collect();
-                                        content_length = parts[1].trim().parse().unwrap();
+                                        content_length = parts[1].trim().parse().unwrap_or(0);
                                     }
 
                                     if line.as_str() == "\r\n" || line == "\n" {
@@ -325,11 +333,11 @@ impl RockboxHttpServer {
                             let mut total_read: usize = 0;
 
                             while total_read < content_length {
-                                let read_size = buf_reader.read(&mut body[total_read..]).unwrap();
-                                if read_size == 0 {
-                                    break;
+                                match buf_reader.read(&mut body[total_read..]) {
+                                    Ok(0) => break,
+                                    Ok(n) => total_read += n,
+                                    Err(_) => break,
                                 }
-                                total_read += read_size;
                             }
 
                             let req_body = match content_length {

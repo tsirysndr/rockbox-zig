@@ -3989,8 +3989,17 @@ void audio_play(unsigned long elapsed, unsigned long offset)
 #endif
 
     LOGFQUEUE("audio >| audio Q_AUDIO_PLAY: %lu %lX", elapsed, offset);
-    audio_queue_send(Q_AUDIO_PLAY,
-                     (intptr_t)&(struct audio_resume_info){ elapsed, offset });
+    if (elapsed == 0 && offset == 0)
+    {
+        /* Non-blocking post: safe to call from any OS thread (no resume
+         * position needed; audio_start_playback handles NULL gracefully). */
+        audio_queue_post(Q_AUDIO_PLAY, 0);
+    }
+    else
+    {
+        audio_queue_send(Q_AUDIO_PLAY,
+                         (intptr_t)&(struct audio_resume_info){ elapsed, offset });
+    }
 }
 
 /* Stop playback if playing */
@@ -4024,7 +4033,8 @@ void audio_hard_stop(void)
 void audio_resume(void)
 {
     LOGFQUEUE("audio >| audio Q_AUDIO_PAUSE resume");
-    audio_queue_send(Q_AUDIO_PAUSE, false);
+    /* Non-blocking post: safe to call from any OS thread. */
+    audio_queue_post(Q_AUDIO_PAUSE, false);
 }
 
 /* Internal function used by REPEAT_ONE extern playlist.c */

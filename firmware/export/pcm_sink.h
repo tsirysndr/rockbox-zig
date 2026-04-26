@@ -56,6 +56,7 @@ enum pcm_sink_ids {
     PCM_SINK_FIFO,
     PCM_SINK_AIRPLAY,
     PCM_SINK_SQUEEZELITE,
+    PCM_SINK_UPNP,
 #endif
     PCM_SINK_NUM
 };
@@ -73,4 +74,9 @@ extern struct pcm_sink airplay_pcm_sink;
 
 /* Squeezelite (Slim Protocol) sink — serves PCM via HTTP to squeezelite */
 extern struct pcm_sink squeezelite_pcm_sink;
+
+/* UPnP/DLNA sink — streams WAV over HTTP to UPnP renderers */
+extern struct pcm_sink upnp_pcm_sink;
+void pcm_upnp_set_http_port(uint16_t port);
+void pcm_upnp_set_renderer_url(const char *url);
 #endif

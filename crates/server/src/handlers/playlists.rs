@@ -19,6 +19,11 @@ unsafe extern "C" {
     fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i32;
 }
 
+fn trim_path(s: String) -> String {
+    let s = s.trim();
+    s.split('#').next().unwrap_or(s).to_string()
+}
+
 pub async fn create_playlist(
     _ctx: &Context,
     req: &Request,
@@ -29,7 +34,8 @@ pub async fn create_playlist(
         return Ok(());
     }
     let body = req.body.as_ref().unwrap();
-    let new_playlist: NewPlaylist = serde_json::from_str(body).unwrap();
+    let mut new_playlist: NewPlaylist = serde_json::from_str(body).unwrap();
+    new_playlist.tracks = new_playlist.tracks.into_iter().map(trim_path).collect();
 
     if new_playlist.tracks.is_empty() {
         return Ok(());
@@ -195,6 +201,7 @@ pub async fn get_playlist_tracks(
 pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let req_body = req.body.as_ref().unwrap();
     let mut tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
+    tracklist.tracks = tracklist.tracks.into_iter().map(trim_path).collect();
 
     if let Some(dir) = &tracklist.directory {
         tracklist.tracks = read_files(dir.clone()).await?;

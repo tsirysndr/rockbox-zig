@@ -700,6 +700,21 @@ pub struct NewGlobalSettings {
     pub squeezelite_port: Option<u16>,
     /// HTTP audio stream port for the squeezelite sink (default: 9999)
     pub squeezelite_http_port: Option<u16>,
+    /// Enable the UPnP/DLNA ContentDirectory media server (default: false)
+    pub upnp_server_enabled: Option<bool>,
+    /// HTTP port for the UPnP media server (default: 7878)
+    pub upnp_server_port: Option<u16>,
+    /// Friendly device name advertised via SSDP (default: "Rockbox")
+    pub upnp_friendly_name: Option<String>,
+    /// HTTP port for the UPnP PCM WAV stream sink (default: 7879)
+    pub upnp_http_port: Option<u16>,
+    /// AVTransport control URL of a UPnP renderer to auto-command when the
+    /// upnp sink starts (e.g. "http://192.168.1.x:PORT/AVTransport/control")
+    pub upnp_renderer_url: Option<String>,
+    /// Enable the UPnP/DLNA MediaRenderer:1 (default: false)
+    pub upnp_renderer_enabled: Option<bool>,
+    /// HTTP port for the UPnP renderer (default: 7880)
+    pub upnp_renderer_port: Option<u16>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -740,6 +755,13 @@ impl From<UserSettings> for NewGlobalSettings {
             airplay_receivers: None,
             squeezelite_port: None,
             squeezelite_http_port: None,
+            upnp_server_enabled: None,
+            upnp_server_port: None,
+            upnp_friendly_name: None,
+            upnp_http_port: None,
+            upnp_renderer_url: None,
+            upnp_renderer_enabled: None,
+            upnp_renderer_port: None,
         }
     }
 }

@@ -938,6 +938,13 @@ pub mod api {
                     airplay_receivers: None,
                     squeezelite_http_port: None,
                     squeezelite_port: None,
+                    upnp_friendly_name: None,
+                    upnp_renderer_enabled: None,
+                    upnp_renderer_port: None,
+                    upnp_server_port: None,
+                    upnp_renderer_url: None,
+                    upnp_http_port: None,
+                    upnp_server_enabled: None,
                 }
             }
         }

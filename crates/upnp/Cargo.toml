@@ -1,0 +1,33 @@
+[package]
+name = "rockbox-upnp"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+serde = { workspace = true }
+socket2 = { workspace = true }
+sqlx = { version = "0.8.2", features = ["runtime-tokio", "sqlite"] }
+bytes = { workspace = true }
+reqwest = { workspace = true }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+http-body-util = { workspace = true }
+http = { workspace = true }
+rockbox-sys = { path = "../sys" }
+prost = "0.13.2"
+tonic = "0.12.3"
+tonic-reflection = "0.12.3"
+tonic-web = "0.12.3"
+
+[build-dependencies]
+tonic-build = "0.12.3"
