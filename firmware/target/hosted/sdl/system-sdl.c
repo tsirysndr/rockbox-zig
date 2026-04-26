@@ -252,7 +252,16 @@ void system_init(void)
 #endif
 
 #ifndef __WIN32  /* Fails on Windows */
-    SDL_InitSubSystem(SDL_INIT_VIDEO);
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
+#ifdef __APPLE__
+        /* Video init failed (likely headless — no display available on this Mac).
+         * Retry with the offscreen driver so SDL's internal event/semaphore
+         * machinery stays fully functional; without it the cooperative scheduler
+         * spins at 100% CPU instead of sleeping. */
+        SDL_setenv("SDL_VIDEODRIVER", "offscreen", 1);
+        SDL_InitSubSystem(SDL_INIT_VIDEO);
+#endif
+    }
 
 #if SDL_MAJOR_VERSION > 1
     sdl_window_setup();
