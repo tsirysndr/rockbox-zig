@@ -358,15 +358,13 @@ fn serve_wav_stream(
 
     tracing::info!(
         "upnp/pcm: streaming WAV{} to {peer}",
-        if req.wants_icy { " (ICY metadata)" } else { "" }
+        if req.wants_icy { " (ICY)" } else { "" }
     );
 
     let mut rx = buf.subscribe();
 
     if req.wants_icy {
         let art_url = art_base_url(local_ip, port);
-        // The WAV header bytes already occupy the start of the body, so the first
-        // ICY boundary arrives after (ICY_METAINT - 44) bytes of PCM data.
         let mut bytes_since_meta: usize = wav_hdr.len();
         let mut last_track_key = String::new();
 

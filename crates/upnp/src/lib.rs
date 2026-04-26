@@ -290,7 +290,7 @@ pub extern "C" fn pcm_upnp_start() -> c_int {
         }
     }
 
-    // --- Notify the renderer with current track metadata ---
+    // --- Notify the renderer on initial play only ---
     let (port, sample_rate, renderer_url) = {
         let cfg = CONFIG.lock().unwrap();
         (cfg.pcm_port, cfg.sample_rate, cfg.renderer_url.clone())
@@ -302,33 +302,36 @@ pub extern "C" fn pcm_upnp_start() -> c_int {
             *rp = true;
             !was
         };
-        let local_ip = get_local_ip();
-        let track = rockbox_sys::playback::current_track();
-        let rt = get_runtime();
 
-        // Start (or replace) the track-change monitor.
-        ensure_track_monitor(url.clone(), port);
-
-        rt.spawn(async move {
+        if need_play {
+            ensure_track_monitor(url.clone(), port);
+            let local_ip = get_local_ip();
             let stream_url = format!("http://{}:{}/stream.wav", local_ip, port);
-            let album_art_url = if let Some(ref t) = track {
-                get_album_art_url(&t.path, local_ip).await
-            } else {
-                None
-            };
-            if let Err(e) = avtransport_play(
-                &url,
-                &stream_url,
-                track.as_ref(),
-                sample_rate,
-                need_play,
-                album_art_url.as_deref(),
-            )
-            .await
-            {
-                tracing::warn!("UPnP AVTransport play failed: {}", e);
-            }
-        });
+            let rt = get_runtime();
+            rt.spawn(async move {
+                let track = rockbox_sys::playback::current_track();
+                let album_art_url = if let Some(ref t) = track {
+                    get_album_art_url(&t.path, local_ip).await
+                } else {
+                    None
+                };
+                if let Err(e) = avtransport_play(
+                    &url,
+                    &stream_url,
+                    track.as_ref(),
+                    sample_rate,
+                    true,
+                    album_art_url.as_deref(),
+                )
+                .await
+                {
+                    tracing::warn!("UPnP AVTransport play failed: {}", e);
+                }
+            });
+        }
+        // On subsequent sink_dma_start calls (track change or resume after pause),
+        // the monitor handles everything: it detects the new current_track() path
+        // and sends SetAVTransportURI+Play with fresh metadata. No action needed here.
     }
     0
 }
@@ -381,46 +384,73 @@ async fn get_album_art_url(path: &str, local_ip: std::net::Ipv4Addr) -> Option<S
 // ---------------------------------------------------------------------------
 
 fn ensure_track_monitor(renderer_url: String, port: u16) {
-    let gen = MONITOR_GEN.fetch_add(1, Ordering::SeqCst) + 1;
+    let monitor_gen = MONITOR_GEN.fetch_add(1, Ordering::SeqCst) + 1;
     let rt = get_runtime();
     rt.spawn(async move {
-        let mut last_path = String::new();
-        loop {
-            tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+        let mut last_current_path = String::new();
 
-            // Exit if a newer monitor was started (e.g. renderer changed).
-            if MONITOR_GEN.load(Ordering::SeqCst) != gen {
+        loop {
+            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+
+            if MONITOR_GEN.load(Ordering::SeqCst) != monitor_gen {
                 return;
             }
-
             if !*RENDERER_PLAYING.lock().unwrap() {
                 return;
             }
 
-            let track = rockbox_sys::playback::current_track();
-            let current_path = track.as_ref().map(|t| t.path.clone()).unwrap_or_default();
-
-            if current_path.is_empty() || current_path == last_path {
-                continue;
-            }
-            last_path = current_path.clone();
-
-            let local_ip = get_local_ip();
-            let stream_url = format!("http://{}:{}/stream.wav", local_ip, port);
             let sample_rate = CONFIG.lock().unwrap().sample_rate;
-            let album_art_url = get_album_art_url(&current_path, local_ip).await;
+            let local_ip = get_local_ip();
 
-            if let Err(e) = avtransport_play(
-                &renderer_url,
-                &stream_url,
-                track.as_ref(),
-                sample_rate,
-                false,
-                album_art_url.as_deref(),
-            )
-            .await
-            {
-                tracing::warn!("UPnP track monitor: failed to update metadata: {}", e);
+            let current_track = rockbox_sys::playback::current_track();
+            let current_path = current_track
+                .as_ref()
+                .map(|t| t.path.clone())
+                .unwrap_or_default();
+
+            if !current_path.is_empty() && current_path != last_current_path {
+                let is_first = last_current_path.is_empty();
+                last_current_path = current_path.clone();
+
+                // Send SetAVTransportURI+Play on every track detection — including the
+                // first one — so the renderer always has up-to-date metadata and the
+                // stream URL is always correct. For the very first track this also
+                // corrects any stale metadata from the initial async play call.
+                if !is_first {
+                    tracing::info!(
+                        "UPnP monitor: track changed → «{}»",
+                        current_track
+                            .as_ref()
+                            .map(|t| t.title.as_str())
+                            .unwrap_or("?")
+                    );
+                } else {
+                    tracing::info!(
+                        "UPnP monitor: first track «{}»",
+                        current_track
+                            .as_ref()
+                            .map(|t| t.title.as_str())
+                            .unwrap_or("?")
+                    );
+                }
+
+                let stream_url = format!("http://{}:{}/stream.wav", local_ip, port);
+                let art = get_album_art_url(&current_path, local_ip).await;
+                if let Err(e) = avtransport_play(
+                    &renderer_url,
+                    &stream_url,
+                    current_track.as_ref(),
+                    sample_rate,
+                    // Only send Play on a real track change (not the first detection)
+                    // because the renderer is already playing from the initial start.
+                    // For the first track, re-sending Play causes an audible blip.
+                    !is_first,
+                    art.as_deref(),
+                )
+                .await
+                {
+                    tracing::warn!("UPnP: SetAVTransportURI failed: {e}");
+                }
             }
         }
     });
@@ -448,7 +478,7 @@ async fn avtransport_play(
 
     let metadata = build_didl_metadata(track, stream_url, sample_rate, album_art_url);
     let metadata_escaped = xml_escape(&metadata);
-    tracing::info!("UPnP AVTransport: setting URI to {stream_url} with metadata:\n{metadata}");
+    tracing::info!("UPnP AVTransport: setting URI to {stream_url}");
 
     let set_uri_body = format!(
         r#"<?xml version="1.0" encoding="utf-8"?>
