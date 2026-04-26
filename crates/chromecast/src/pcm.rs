@@ -382,7 +382,11 @@ fn serve_wav(
 
     let mut rx = buf.subscribe();
     let mut written: u64 = 0;
-    let limit: u64 = if known_length { data_size as u64 } else { u64::MAX };
+    let limit: u64 = if known_length {
+        data_size as u64
+    } else {
+        u64::MAX
+    };
 
     loop {
         if written >= limit {

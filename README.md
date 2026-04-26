@@ -182,6 +182,7 @@ rockboxd
 | MPD server                            | 6600         | MPD protocol    |
 | Slim Protocol (squeezelite)           | 3483         | TCP             |
 | HTTP PCM stream (squeezelite)         | 9999         | HTTP            |
+| Chromecast WAV stream                 | 7881         | HTTP            |
 | UPnP Media Server (ContentDirectory)  | 7878         | HTTP / SSDP     |
 | UPnP WAV broadcast (PCM sink)         | 7879         | HTTP            |
 | UPnP MediaRenderer (AVTransport)      | 7880         | HTTP / SSDP     |
