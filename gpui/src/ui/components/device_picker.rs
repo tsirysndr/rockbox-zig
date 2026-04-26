@@ -65,6 +65,9 @@ impl Render for DevicePicker {
                     .on_mouse_down(MouseButton::Left, |_, _, cx| {
                         cx.stop_propagation();
                     })
+                    .on_scroll_wheel(|_, _, cx| {
+                        cx.stop_propagation();
+                    })
                     .child(
                         div()
                             .px_4()

@@ -1,9 +1,13 @@
 use crate::controller::Controller;
-use crate::state::format_duration;
+use crate::state::{format_duration, DevicesState};
+use crate::ui::components::device_picker::{device_icon, fetch_and_update_devices};
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::theme::Theme;
-use gpui::{div, px, App, Context, IntoElement, ParentElement, Render, Styled, Window};
+use gpui::{
+    div, px, App, Context, InteractiveElement, IntoElement, ParentElement, Render,
+    StatefulInteractiveElement, Styled, Window,
+};
 
 pub struct ControlBar;
 
@@ -14,13 +18,18 @@ impl Render for ControlBar {
 
         let duration = state.current_track().map(|t| t.duration).unwrap_or(0);
         let position = state.position;
-        let vol_fill = crate::state::volume_fraction(state.volume);
         let fill_fraction = if duration > 0 {
             (position as f32 / duration as f32).clamp(0.0, 1.0)
         } else {
             0.0
         };
-        let vol_pct = (vol_fill * 100.0) as u32;
+        let current_device_icon = cx
+            .global::<DevicesState>()
+            .devices
+            .iter()
+            .find(|d| d.is_current_device)
+            .map(|d| device_icon(d))
+            .unwrap_or(Icons::Speaker);
 
         div()
             .w_full()
@@ -30,9 +39,9 @@ impl Render for ControlBar {
             .gap_x_4()
             .px_6()
             .py_3()
-            // Left spacer — mirrors volume width for symmetry
+            // Left spacer — mirrors device button width for symmetry
             .child(div().w(px(160.0)))
-            // Elapsed + progress + duration
+            // Elapsed + progress + duration — center
             .child(
                 div()
                     .flex_1()
@@ -67,38 +76,34 @@ impl Render for ControlBar {
                             .child(format_duration(duration)),
                     ),
             )
-            // Volume — fixed width to match left spacer
+            // Device picker — right
             .child(
                 div()
                     .w(px(160.0))
                     .flex()
                     .items_center()
                     .justify_end()
-                    .gap_x_2()
                     .child(
                         div()
-                            .text_color(theme.volume_icon)
-                            .child(Icon::new(Icons::Volume1).size_4()),
-                    )
-                    .child(
-                        div()
-                            .w_24()
-                            .h(px(4.0))
-                            .rounded_full()
-                            .bg(theme.volume_slider_track)
-                            .child(
-                                div()
-                                    .h_full()
-                                    .rounded_full()
-                                    .bg(theme.volume_slider_fill)
-                                    .w(px(vol_fill * 96.0)),
-                            ),
-                    )
-                    .child(
-                        div()
-                            .text_xs()
-                            .text_color(theme.playback_position_text)
-                            .child(format!("{vol_pct}%")),
+                            .id("controlbar-device-btn")
+                            .p_1p5()
+                            .rounded_md()
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .cursor_pointer()
+                            .text_color(theme.player_icons_text)
+                            .hover(|this| {
+                                this.bg(theme.player_icons_bg_hover)
+                                    .text_color(theme.player_icons_text_hover)
+                            })
+                            .on_click(move |_, _, cx: &mut App| {
+                                fetch_and_update_devices(cx);
+                                let mut state = cx.global::<DevicesState>().clone();
+                                state.picker_open = !state.picker_open;
+                                cx.set_global(state);
+                            })
+                            .child(Icon::new(current_device_icon).size_4()),
                     ),
             )
     }

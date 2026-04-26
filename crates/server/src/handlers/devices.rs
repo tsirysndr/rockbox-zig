@@ -15,7 +15,10 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
     let mut current_device = ctx.current_device.lock().unwrap();
     let mut devices = ctx.devices.lock().unwrap();
 
-    let device = match devices.iter().find(|d| d.id == *id).cloned() {
+    let device = match devices.iter().find(|d| d.id == *id).cloned().or_else(|| {
+        // Synthetic device from settings (mDNS not yet found it).
+        current_device.as_ref().filter(|d| d.id == *id).cloned()
+    }) {
         Some(d) => d,
         None => {
             res.set_status(404);

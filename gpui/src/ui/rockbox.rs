@@ -30,7 +30,10 @@ impl Rockbox {
         cx.set_global(DevicesState::default());
         global_keybinds::register_keybinds(cx);
         let titlebar = cx.new(|cx| Titlebar::new(cx));
-        let controlbar = cx.new(|_| ControlBar);
+        let controlbar = cx.new(|cx| {
+            let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
+            ControlBar
+        });
         let player_page = cx.new(|cx| PlayerPage::new(cx, controlbar));
         let library_page = cx.new(|cx| LibraryPage::new(cx));
         let queue_page = cx.new(|cx| QueuePage::new(cx));
