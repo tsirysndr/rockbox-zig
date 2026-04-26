@@ -225,16 +225,16 @@ upnp_friendly_name    = "Rockbox"
 
 ### All UPnP settings at a glance
 
-| Key | Type | Default | Description |
-|---|---|---|---|
-| `audio_output` | string | `"builtin"` | Set to `"upnp"` to use the PCM sink |
-| `upnp_renderer_url` | string | — | AVTransport controlURL of the target renderer |
-| `upnp_http_port` | integer | `7879` | Port for the WAV broadcast HTTP server |
-| `upnp_server_enabled` | bool | `false` | Start the ContentDirectory media server |
-| `upnp_server_port` | integer | `7878` | HTTP port for the media server |
-| `upnp_renderer_enabled` | bool | `false` | Start the MediaRenderer |
-| `upnp_renderer_port` | integer | `7880` | HTTP port for the renderer |
-| `upnp_friendly_name` | string | `"Rockbox"` | Display name shown to control points |
+| Key                      | Type      | Default      | Description                                    |
+|--------------------------|-----------|--------------|------------------------------------------------|
+| `audio_output`           | string    | `"builtin"`  | Set to `"upnp"` to use the PCM sink            |
+| `upnp_renderer_url`      | string    | —            | AVTransport controlURL of the target renderer  |
+| `upnp_http_port`         | integer   | `7879`       | Port for the WAV broadcast HTTP server         |
+| `upnp_server_enabled`    | bool      | `false`      | Start the ContentDirectory media server        |
+| `upnp_server_port`       | integer   | `7878`       | HTTP port for the media server                 |
+| `upnp_renderer_enabled`  | bool      | `false`      | Start the MediaRenderer                        |
+| `upnp_renderer_port`     | integer   | `7880`       | HTTP port for the renderer                     |
+| `upnp_friendly_name`     | string    | `"Rockbox"`  | Display name shown to control points           |
 
 ---
 
