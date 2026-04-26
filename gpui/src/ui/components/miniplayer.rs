@@ -406,8 +406,9 @@ impl Render for MiniPlayer {
                                     })
                                     .on_click(move |_, _, cx: &mut App| {
                                         fetch_and_update_devices(cx);
-                                        let open = cx.global::<DevicesState>().picker_open;
-                                        cx.global_mut::<DevicesState>().picker_open = !open;
+                                        let mut state = cx.global::<DevicesState>().clone();
+                                        state.picker_open = !state.picker_open;
+                                        cx.set_global(state);
                                     })
                                     .child(Icon::new(current_device_icon).size_4()),
                             )

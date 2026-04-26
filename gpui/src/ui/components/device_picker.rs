@@ -4,8 +4,8 @@ use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, px, App, Context, Div, FontWeight, InteractiveElement, IntoElement, ParentElement,
-    Render, Stateful, StatefulInteractiveElement, Styled, Window,
+    div, px, App, Context, FontWeight, InteractiveElement, IntoElement, ParentElement,
+    Render, StatefulInteractiveElement, Styled, Window,
 };
 
 pub fn device_icon(device: &DeviceItem) -> Icons {
@@ -46,7 +46,9 @@ impl Render for DevicePicker {
             .shadow_lg()
             .overflow_hidden()
             .on_mouse_down_out(|_, _, cx: &mut App| {
-                cx.global_mut::<DevicesState>().picker_open = false;
+                let mut state = cx.global::<DevicesState>().clone();
+                state.picker_open = false;
+                cx.set_global(state);
             })
             .child(
                 div()
@@ -95,11 +97,12 @@ impl Render for DevicePicker {
                                     let _ = crate::client::connect_device(id_clone).await;
                                 });
                                 // Optimistically update current device in local state.
-                                let devs = &mut cx.global_mut::<DevicesState>();
-                                for d in devs.devices.iter_mut() {
+                                let mut state = cx.global::<DevicesState>().clone();
+                                for d in state.devices.iter_mut() {
                                     d.is_current_device = d.id == id;
                                 }
-                                devs.picker_open = false;
+                                state.picker_open = false;
+                                cx.set_global(state);
                             })
                             .child(
                                 div()
@@ -152,7 +155,9 @@ pub fn fetch_and_update_devices(cx: &mut App) {
     cx.spawn(async move |cx| {
         if let Some(devices) = rx.recv().await {
             let _ = cx.update(|cx| {
-                cx.global_mut::<DevicesState>().devices = devices;
+                let mut state = cx.global::<DevicesState>().clone();
+                state.devices = devices;
+                cx.set_global(state);
             });
         }
     })
