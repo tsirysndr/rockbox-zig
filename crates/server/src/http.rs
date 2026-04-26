@@ -259,9 +259,9 @@ impl RockboxHttpServer {
             let active = rockbox_settings::read_settings().ok().and_then(|s| {
                 let output = s.audio_output.as_deref().unwrap_or("builtin");
                 let mut device = match output {
-                    "builtin" | "fifo" => virtual_devices()
-                        .into_iter()
-                        .find(|d| d.service == output),
+                    "builtin" | "fifo" => {
+                        virtual_devices().into_iter().find(|d| d.service == output)
+                    }
                     "airplay" => {
                         let host = s.airplay_host.clone().unwrap_or_default();
                         Some(Device {
@@ -292,7 +292,10 @@ impl RockboxHttpServer {
                     "upnp" => {
                         let url = s.upnp_renderer_url.clone().unwrap_or_default();
                         Some(Device {
-                            id: format!("upnp-{:.8}", format!("{:x}", md5::compute(url.as_bytes()))),
+                            id: format!(
+                                "upnp-{:.8}",
+                                format!("{:x}", md5::compute(url.as_bytes()))
+                            ),
                             name: "UPnP/DLNA".to_string(),
                             host: "localhost".to_string(),
                             ip: "127.0.0.1".to_string(),
@@ -321,7 +324,9 @@ impl RockboxHttpServer {
                             ..Default::default()
                         })
                     }
-                    _ => virtual_devices().into_iter().find(|d| d.service == "builtin"),
+                    _ => virtual_devices()
+                        .into_iter()
+                        .find(|d| d.service == "builtin"),
                 };
                 if let Some(ref mut d) = device {
                     d.is_current_device = true;
