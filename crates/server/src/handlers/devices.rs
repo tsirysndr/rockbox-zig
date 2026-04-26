@@ -2,6 +2,7 @@ use anyhow::Error;
 use rockbox_chromecast::Chromecast;
 use rockbox_settings::{read_settings, save_settings_to_file};
 use rockbox_sys::sound::pcm;
+use std::thread;
 
 use crate::{
     http::{Context, Request, Response},
@@ -88,7 +89,6 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
             pcm::chromecast_set_device_port(device.port);
             pcm::switch_sink(pcm::PCM_SINK_CHROMECAST);
             *GLOBAL_MUTEX.lock().unwrap() = 1;
-            *player = Chromecast::connect(device.clone())?;
         }
         other => {
             tracing::warn!("connect: unknown device service {:?}", other);
@@ -97,7 +97,8 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
         }
     }
 
-    // Persist the new output selection to settings.toml.
+    // Persist and update state before any potentially-failing connection attempt
+    // so that the selection survives even if e.g. the Chromecast is temporarily unreachable.
     if let Err(e) = save_settings_to_file(&settings) {
         tracing::warn!("connect: failed to save settings: {e}");
     }
@@ -106,7 +107,18 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
     for d in devices.iter_mut() {
         d.is_current_device = d.id == device.id;
     }
-    *current_device = Some(device);
+    *current_device = Some(device.clone());
+
+    // For Chromecast, establish the player session in a background thread so this
+    // handler returns immediately (the TCP + RTSP handshake can take several seconds).
+    // The PCM sink is already armed; settings are already saved.
+    if device.service == "chromecast" {
+        let player_arc = ctx.player.clone();
+        thread::spawn(move || match Chromecast::connect(device) {
+            Ok(p) => *player_arc.lock().unwrap() = p,
+            Err(e) => tracing::warn!("chromecast: connect failed (sink still armed): {e}"),
+        });
+    }
 
     res.set_status(200);
     Ok(())
@@ -145,9 +157,47 @@ pub async fn disconnect(ctx: &Context, req: &Request, res: &mut Response) -> Res
 }
 
 pub async fn get_devices(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+    let current = ctx.current_device.lock().unwrap().clone();
     let devices = ctx.devices.lock().unwrap();
-    res.json(&devices.clone());
+
+    let mut result: Vec<_> = devices
+        .iter()
+        .map(|d| {
+            let mut d = d.clone();
+            d.is_current_device = current
+                .as_ref()
+                .map(|c| devices_match(c, &d))
+                .unwrap_or(false);
+            d
+        })
+        .collect();
+
+    // If the current device isn't in the discovered list yet (e.g. Chromecast
+    // from settings but mDNS hasn't found it), include it so UIs can show it.
+    if let Some(ref cd) = current {
+        if !result.iter().any(|d| devices_match(cd, d)) {
+            result.push(cd.clone());
+        }
+    }
+
+    res.json(&result);
     Ok(())
+}
+
+/// Two devices represent the same physical output if their IDs match OR if
+/// their service + IP match (handles ID format differences between settings-
+/// based synthetic devices and mDNS-discovered ones).
+fn devices_match(a: &rockbox_types::device::Device, b: &rockbox_types::device::Device) -> bool {
+    if a.id == b.id {
+        return true;
+    }
+    if a.service != b.service {
+        return false;
+    }
+    match a.service.as_str() {
+        "builtin" | "fifo" | "squeezelite" => true,
+        _ => !a.ip.is_empty() && a.ip == b.ip,
+    }
 }
 
 pub async fn get_device(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {

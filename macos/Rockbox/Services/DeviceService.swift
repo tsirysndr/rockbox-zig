@@ -5,7 +5,7 @@
 
 import Foundation
 
-private let httpBase = "http://127.0.0.1:6062"
+private let httpBase = "http://127.0.0.1:6063"
 
 struct DeviceInfo: Codable, Identifiable, Hashable {
     var id: String

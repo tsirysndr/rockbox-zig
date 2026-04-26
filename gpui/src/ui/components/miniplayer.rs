@@ -3,7 +3,7 @@ use crate::controller::Controller;
 use crate::state::{
     format_duration, volume_fraction, DevicesState, PlaybackStatus, VOLUME_MAX_DB, VOLUME_MIN_DB,
 };
-use crate::ui::components::device_picker::{fetch_and_update_devices, DevicePicker};
+use crate::ui::components::device_picker::device_icon;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::components::{LikedSongs, Page};
@@ -11,14 +11,12 @@ use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, img, px, relative, App, Context, Entity, FontWeight, InteractiveElement, IntoElement,
+    div, img, px, relative, App, Context, FontWeight, InteractiveElement, IntoElement,
     ObjectFit, ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled,
     StyledImage, Window,
 };
 
-pub struct MiniPlayer {
-    pub device_picker: Entity<DevicePicker>,
-}
+pub struct MiniPlayer;
 
 impl Render for MiniPlayer {
     fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
@@ -26,13 +24,12 @@ impl Render for MiniPlayer {
         let liked_songs = cx.global::<LikedSongs>().0.clone();
         let state = cx.global::<Controller>().state.read(cx);
         let is_playing = state.status == PlaybackStatus::Playing;
-        let device_picker = self.device_picker.clone();
         let current_device_icon = cx
             .global::<DevicesState>()
             .devices
             .iter()
             .find(|d| d.is_current_device)
-            .map(|d| crate::ui::components::device_picker::device_icon(d))
+            .map(|d| device_icon(d))
             .unwrap_or(Icons::Speaker);
 
         let title = state
@@ -81,7 +78,6 @@ impl Render for MiniPlayer {
             .border_t_1()
             .border_color(theme.border)
             .bg(theme.app_bg)
-            .child(device_picker)
             // Main row: [left: art+info] [center: controls+progress] [right: volume]
             .child(
                 div()
@@ -405,7 +401,6 @@ impl Render for MiniPlayer {
                                             .bg(theme.player_icons_bg_hover)
                                     })
                                     .on_click(move |_, _, cx: &mut App| {
-                                        fetch_and_update_devices(cx);
                                         let mut state = cx.global::<DevicesState>().clone();
                                         state.picker_open = !state.picker_open;
                                         cx.set_global(state);

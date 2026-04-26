@@ -1,6 +1,7 @@
 use crate::state::DevicesState;
 use crate::ui::animations::ease_in_out_expo;
 use crate::ui::components::controlbar::ControlBar;
+use crate::ui::components::device_picker::{fetch_and_update_devices, DevicePicker};
 use crate::ui::components::pages::{library::LibraryPage, player::PlayerPage, queue::QueuePage};
 use crate::ui::components::titlebar::Titlebar;
 use crate::ui::components::Page;
@@ -19,6 +20,7 @@ pub struct Rockbox {
     pub player_page: Entity<PlayerPage>,
     pub library_page: Entity<LibraryPage>,
     pub queue_page: Entity<QueuePage>,
+    pub device_picker: Entity<DevicePicker>,
 }
 
 impl Rockbox {
@@ -32,12 +34,18 @@ impl Rockbox {
         let player_page = cx.new(|cx| PlayerPage::new(cx, controlbar));
         let library_page = cx.new(|cx| LibraryPage::new(cx));
         let queue_page = cx.new(|cx| QueuePage::new(cx));
+        let device_picker = cx.new(|cx| {
+            let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
+            DevicePicker
+        });
+        fetch_and_update_devices(cx);
         Rockbox {
             focus_handle: cx.focus_handle(),
             titlebar,
             player_page,
             library_page,
             queue_page,
+            device_picker,
         }
     }
 }
@@ -123,5 +131,6 @@ impl Render for Rockbox {
                         }
                     }),
             )
+            .child(self.device_picker.clone())
     }
 }

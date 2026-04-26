@@ -1,16 +1,19 @@
-use crate::client::{save_repeat, save_shuffle};
+use crate::client::{adjust_volume, save_repeat, save_shuffle};
 use crate::controller::Controller;
-use crate::state::PlaybackStatus;
+use crate::state::{format_duration, volume_fraction, DevicesState, PlaybackStatus, VOLUME_MAX_DB, VOLUME_MIN_DB};
 use crate::ui::components::controlbar::ControlBar;
+use crate::ui::components::device_picker::device_icon;
 use crate::ui::components::icons::{Icon, Icons};
+use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::components::LikedSongs;
 use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::px;
 use gpui::{
-    div, img, rgba, App, Context, Entity, FontWeight, InteractiveElement, IntoElement, ObjectFit,
-    ParentElement, Render, StatefulInteractiveElement, Styled, StyledImage, Window,
+    div, img, relative, rgba, App, Context, Entity, FontWeight, InteractiveElement, IntoElement,
+    ObjectFit, ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled,
+    StyledImage, Window,
 };
 
 pub struct PlayerPage {
@@ -18,7 +21,8 @@ pub struct PlayerPage {
 }
 
 impl PlayerPage {
-    pub fn new(_cx: &mut App, controlbar: Entity<ControlBar>) -> Self {
+    pub fn new(cx: &mut Context<Self>, controlbar: Entity<ControlBar>) -> Self {
+        let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
         PlayerPage { controlbar }
     }
 }
@@ -63,6 +67,22 @@ impl Render for PlayerPage {
             .map(|t| t.id.clone())
             .unwrap_or_default();
         let is_liked = liked_songs.contains(&track_id);
+        let duration = state.current_track().map(|t| t.duration).unwrap_or(0);
+        let position = state.position;
+        let fill_fraction = if duration > 0 {
+            (position as f32 / duration as f32).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        let vol_fill = volume_fraction(state.volume);
+        let vol_pct = (vol_fill * 100.0) as u32;
+        let current_device_icon = cx
+            .global::<DevicesState>()
+            .devices
+            .iter()
+            .find(|d| d.is_current_device)
+            .map(|d| device_icon(d))
+            .unwrap_or(Icons::Speaker);
 
         div()
             .size_full()
@@ -338,6 +358,127 @@ impl Render for PlayerPage {
                                         rt.spawn(save_repeat(new_mode));
                                     })
                                     .child(Icon::new(Icons::Repeat).size_4()),
+                            ),
+                    )
+                    // Row: [volume] [elapsed --- seek --- duration] [device]
+                    .child(
+                        div()
+                            .flex()
+                            .items_center()
+                            .gap_x_3()
+                            .w(px(520.0))
+                            // Volume left
+                            .child(
+                                div()
+                                    .flex()
+                                    .items_center()
+                                    .gap_x_2()
+                                    .child(
+                                        div()
+                                            .text_color(theme.volume_icon)
+                                            .child(Icon::new(Icons::Volume1).size_4()),
+                                    )
+                                    .child(
+                                        div()
+                                            .w_20()
+                                            .h(px(4.0))
+                                            .rounded_full()
+                                            .cursor_pointer()
+                                            .bg(theme.volume_slider_track)
+                                            .on_scroll_wheel(
+                                                |event: &ScrollWheelEvent, _window, cx: &mut App| {
+                                                    let delta = event.delta.pixel_delta(px(12.0));
+                                                    let steps =
+                                                        (-f32::from(delta.y) / 12.0).round() as i32;
+                                                    if steps != 0 {
+                                                        let (state, rt) = {
+                                                            let ctrl = cx.global::<Controller>();
+                                                            (ctrl.state.clone(), ctrl.rt())
+                                                        };
+                                                        let new_vol = {
+                                                            let current = state.read(cx).volume;
+                                                            (current + steps)
+                                                                .clamp(VOLUME_MIN_DB, VOLUME_MAX_DB)
+                                                        };
+                                                        state.update(cx, |s, cx| {
+                                                            s.volume = new_vol;
+                                                            cx.notify();
+                                                        });
+                                                        rt.spawn(adjust_volume(steps));
+                                                    }
+                                                },
+                                            )
+                                            .child(
+                                                div()
+                                                    .h_full()
+                                                    .rounded_full()
+                                                    .bg(theme.volume_slider_fill)
+                                                    .w(relative(vol_fill)),
+                                            ),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .text_color(theme.playback_position_text)
+                                            .child(format!("{vol_pct}%")),
+                                    ),
+                            )
+                            // Seek bar center
+                            .child(
+                                div()
+                                    .flex()
+                                    .flex_1()
+                                    .items_center()
+                                    .gap_x_2()
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .text_color(theme.playback_position_text)
+                                            .flex_shrink_0()
+                                            .child(format_duration(position)),
+                                    )
+                                    .child(
+                                        SeekBar::new(
+                                            "player-seek",
+                                            fill_fraction,
+                                            theme.playback_slider_track,
+                                            theme.playback_slider_fill,
+                                            px(3.0),
+                                        )
+                                        .on_seek(move |frac, _window, cx: &mut App| {
+                                            let seek_secs = (frac * duration as f32) as u64;
+                                            cx.global::<Controller>().seek(seek_secs, duration);
+                                        }),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .text_color(theme.playback_position_text)
+                                            .flex_shrink_0()
+                                            .child(format_duration(duration)),
+                                    ),
+                            )
+                            // Device button right
+                            .child(
+                                div()
+                                    .id("player_device_btn")
+                                    .p_1p5()
+                                    .rounded_md()
+                                    .flex()
+                                    .items_center()
+                                    .justify_center()
+                                    .cursor_pointer()
+                                    .text_color(theme.player_icons_text)
+                                    .hover(|this| {
+                                        this.bg(theme.player_icons_bg_hover)
+                                            .text_color(theme.player_icons_text_hover)
+                                    })
+                                    .on_click(move |_, _, cx: &mut App| {
+                                        let mut state = cx.global::<DevicesState>().clone();
+                                        state.picker_open = !state.picker_open;
+                                        cx.set_global(state);
+                                    })
+                                    .child(Icon::new(current_device_icon).size_4()),
                             ),
                     ),
             )

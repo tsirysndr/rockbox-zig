@@ -17,11 +17,13 @@ export type DeviceListWithDataProps = {
 const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
   const [, setControlBarState] = useRecoilState(controlBarState);
   const [device, setDeviceState] = useRecoilState(deviceState);
-  const { data: currentDevice } = useGetDeviceQuery({
+  const { data: currentDevice, refetch: refetchCurrentDevice } = useGetDeviceQuery({
     variables: { id: "current" },
     fetchPolicy: "network-only",
   });
-  const { data, loading } = useGetDevicesQuery();
+  const { data, loading, refetch: refetchDevices } = useGetDevicesQuery({
+    fetchPolicy: "network-only",
+  });
   const [connect] = useConnectToDeviceMutation();
   const [disconnect] = useDisconnectFromDeviceMutation();
   const devices = useMemo(() => {
@@ -60,6 +62,7 @@ const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
 
   const connectToCastDevice = async (id: string) => {
     await connect({ variables: { id } });
+    await Promise.all([refetchCurrentDevice(), refetchDevices()]);
     setControlBarState((state) => ({
       ...state,
       nowPlaying: undefined,

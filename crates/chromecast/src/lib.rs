@@ -66,7 +66,12 @@ impl<'a> Chromecast<'a> {
             player.port.unwrap(),
         ) {
             Ok(cast_device) => cast_device,
-            Err(err) => panic!("Could not establish connection with Cast Device: {:?}", err),
+            Err(err) => {
+                return Err(anyhow::anyhow!(
+                    "Could not establish connection with Cast Device: {:?}",
+                    err
+                ))
+            }
         };
 
         cast_device
@@ -107,7 +112,12 @@ impl<'a> Chromecast<'a> {
             self.port.unwrap(),
         ) {
             Ok(cast_device) => cast_device,
-            Err(err) => panic!("Could not establish connection with Cast Device: {:?}", err),
+            Err(err) => {
+                return Err(anyhow::anyhow!(
+                    "Could not establish connection with Cast Device: {:?}",
+                    err
+                ))
+            }
         };
 
         cast_device
@@ -374,7 +384,10 @@ impl CastPlayer {
         thread::spawn(move || {
             let cast_device = match CastDevice::connect_without_host_verification(host, port) {
                 Ok(cast_device) => cast_device,
-                Err(err) => panic!("Could not establish connection with Cast Device: {:?}", err),
+                Err(err) => {
+                    tracing::warn!("CastPlayer: could not connect to Cast Device: {:?}", err);
+                    return;
+                }
             };
 
             cast_device

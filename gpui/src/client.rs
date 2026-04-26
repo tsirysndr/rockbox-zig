@@ -25,7 +25,7 @@ use anyhow::Result;
 use tokio::sync::mpsc::Sender;
 
 const URL: &str = "http://127.0.0.1:6061";
-const HTTP_URL: &str = "http://127.0.0.1:6062";
+const HTTP_URL: &str = "http://127.0.0.1:6063";
 
 // ── Library ───────────────────────────────────────────────────────────────────
 
