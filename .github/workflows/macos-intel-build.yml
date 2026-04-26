@@ -70,7 +70,6 @@ jobs:
           echo "version=${{ github.event.inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
       - name: Show artifacts
         run: |
-          ls rockbox-*.pkg
           echo build-lib
           ls -l build-lib
           echo zig-out
