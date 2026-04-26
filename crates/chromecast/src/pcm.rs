@@ -22,6 +22,7 @@ use std::collections::VecDeque;
 use std::io::Write as _;
 use std::net::TcpListener;
 use std::path::Path;
+use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Condvar, Mutex, OnceLock};
 use std::thread;
@@ -196,14 +197,17 @@ fn get_local_ip() -> std::net::Ipv4Addr {
 // Minimal HTTP server — WAV stream + album art endpoint
 // ---------------------------------------------------------------------------
 
-fn wav_header(sample_rate: u32) -> [u8; 44] {
+// `data_size` = number of PCM bytes for this track (2ch * 2B * samples).
+// Chromecast reads the WAV RIFF/data sizes to derive the duration for its
+// progress bar — an 0xFFFFFFFF sentinel causes it to display ∞.
+fn wav_header(sample_rate: u32, data_size: u32) -> [u8; 44] {
     let channels: u32 = 2;
     let bits: u32 = 16;
     let byte_rate = sample_rate * channels * bits / 8;
     let block_align = (channels * bits / 8) as u16;
     let mut h = [0u8; 44];
     h[0..4].copy_from_slice(b"RIFF");
-    h[4..8].copy_from_slice(&0xFFFF_FFFFu32.to_le_bytes());
+    h[4..8].copy_from_slice(&data_size.saturating_add(36).to_le_bytes());
     h[8..12].copy_from_slice(b"WAVE");
     h[12..16].copy_from_slice(b"fmt ");
     h[16..20].copy_from_slice(&16u32.to_le_bytes());
@@ -214,7 +218,7 @@ fn wav_header(sample_rate: u32) -> [u8; 44] {
     h[32..34].copy_from_slice(&block_align.to_le_bytes());
     h[34..36].copy_from_slice(&(bits as u16).to_le_bytes());
     h[36..40].copy_from_slice(b"data");
-    h[40..44].copy_from_slice(&0xFFFF_FFFFu32.to_le_bytes());
+    h[40..44].copy_from_slice(&data_size.to_le_bytes());
     h
 }
 
@@ -296,7 +300,10 @@ pub(crate) fn serve_http(port: u16, sample_rate: u32, buf: Arc<BroadcastBuffer>)
                         }
                     };
 
-                    match path.as_str() {
+                    // Strip query string before matching so ?t=N cache-busting
+                    // parameters on the art URL are ignored by the router.
+                    let path_clean = path.split('?').next().unwrap_or(&path);
+                    match path_clean {
                         "/now-playing/art" | "/now-playing/art.jpg" | "/now-playing/art.png" => {
                             serve_art(&mut tcp);
                         }
@@ -338,7 +345,22 @@ fn serve_wav(
     peer: &str,
 ) {
     let hdr = "HTTP/1.0 200 OK\r\nContent-Type: audio/wav\r\nCache-Control: no-cache\r\n\r\n";
-    let wav_hdr = wav_header(sample_rate);
+
+    // Compute the exact PCM byte count from the track length so the Chromecast
+    // can display an accurate progress bar. Falls back to 0xFFFFFFFF only when
+    // no track info is available (pre-playback probe connections, etc.).
+    let duration_ms = rockbox_sys::playback::current_track()
+        .map(|t| t.length)
+        .filter(|&l| l > 0)
+        .unwrap_or(0);
+    let byte_rate = sample_rate as u64 * 4; // 2 channels × 2 bytes/sample
+    let data_size = if duration_ms > 0 {
+        ((duration_ms * byte_rate) / 1000).min(u32::MAX as u64) as u32
+    } else {
+        0xFFFF_FFFF
+    };
+
+    let wav_hdr = wav_header(sample_rate, data_size);
     if stream.write_all(hdr.as_bytes()).is_err() || stream.write_all(&wav_hdr).is_err() {
         return;
     }
@@ -362,7 +384,9 @@ fn serve_wav(
 // Cast protocol thread — connects, loads stream, monitors track changes
 // ---------------------------------------------------------------------------
 
-fn build_media(stream_url: &str, art_url: &str) -> Media {
+// `art_seq` is incremented on every track change so the Chromecast sees a
+// distinct URL and re-fetches the cover art rather than using its cached copy.
+fn build_media(stream_url: &str, art_url_base: &str, art_seq: u64) -> Media {
     let track = rockbox_sys::playback::current_track();
     let (title, artist, album) = match &track {
         Some(t) => {
@@ -384,20 +408,34 @@ fn build_media(stream_url: &str, art_url: &str) -> Media {
         None => ("Live Stream".to_string(), String::new(), String::new()),
     };
 
-    let images = if art_url.is_empty() {
+    let images = if art_url_base.is_empty() {
         vec![]
     } else {
         vec![Image {
-            url: art_url.to_string(),
+            url: format!("{}?t={}", art_url_base, art_seq),
             dimensions: None,
         }]
     };
 
+    // Duration in seconds for the Cast receiver UI. Chromecast shows ∞/NaN when
+    // this is None with StreamType::Live, so we provide the real track length.
+    let duration_secs = track.as_ref().and_then(|t| {
+        if t.length > 0 {
+            Some(t.length as f32 / 1000.0)
+        } else {
+            None
+        }
+    });
+
     Media {
         content_id: stream_url.to_string(),
         content_type: "audio/wav".to_string(),
-        stream_type: StreamType::Live,
-        duration: None,
+        stream_type: if duration_secs.is_some() {
+            StreamType::Buffered
+        } else {
+            StreamType::Live
+        },
+        duration: duration_secs,
         metadata: Some(Metadata::MusicTrack(MusicTrackMediaMetadata {
             title: Some(title),
             artist: Some(artist),
@@ -412,7 +450,9 @@ fn build_media(stream_url: &str, art_url: &str) -> Media {
     }
 }
 
-fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url: &str) -> bool {
+const ROCKBOX_APP_ID: &str = "88DCBD57";
+
+fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url_base: &str) -> bool {
     let cast_device = match CastDevice::connect_without_host_verification(host, device_port) {
         Ok(d) => d,
         Err(e) => {
@@ -439,13 +479,15 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url: &str) -
         return false;
     }
 
-    let app = match cast_device
-        .receiver
-        .launch_app(&CastDeviceApp::DefaultMediaReceiver)
-    {
+    let app_to_run = CastDeviceApp::from_str(ROCKBOX_APP_ID).unwrap();
+    let app = match cast_device.receiver.launch_app(&app_to_run) {
         Ok(app) => app,
         Err(e) => {
-            tracing::error!("chromecast/pcm: launch_app failed: {}", e);
+            tracing::error!(
+                "chromecast/pcm: launch_app({}) failed: {}",
+                ROCKBOX_APP_ID,
+                e
+            );
             return false;
         }
     };
@@ -459,7 +501,8 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url: &str) -
         return false;
     }
 
-    let media = build_media(stream_url, art_url);
+    let mut art_seq: u64 = 0;
+    let media = build_media(stream_url, art_url_base, art_seq);
     let track_title = media
         .metadata
         .as_ref()
@@ -506,7 +549,9 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url: &str) -
 
         if !current_path.is_empty() && current_path != last_track_path {
             last_track_path = current_path;
-            let updated = build_media(stream_url, art_url);
+            // Increment art_seq so the Chromecast re-fetches cover art
+            art_seq += 1;
+            let updated = build_media(stream_url, art_url_base, art_seq);
             let new_title = updated
                 .metadata
                 .as_ref()
@@ -516,7 +561,6 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url: &str) -
                 })
                 .unwrap_or_default();
 
-            // Reload with new metadata; brief HTTP reconnect is acceptable
             if let Err(e) = cast_device
                 .media
                 .load(app.transport_id.as_str(), "", &updated)
@@ -532,10 +576,10 @@ fn cast_session(host: &str, device_port: u16, stream_url: &str, art_url: &str) -
 fn cast_loop(host: String, device_port: u16, http_port: u16) {
     let local_ip = get_local_ip();
     let stream_url = format!("http://{}:{}/stream.wav", local_ip, http_port);
-    let art_url = format!("http://{}:{}/now-playing/art", local_ip, http_port);
+    let art_url_base = format!("http://{}:{}/now-playing/art", local_ip, http_port);
 
     while !CAST_STOP.load(Ordering::SeqCst) {
-        let ok = cast_session(&host, device_port, &stream_url, &art_url);
+        let ok = cast_session(&host, device_port, &stream_url, &art_url_base);
         if ok || CAST_STOP.load(Ordering::SeqCst) {
             break;
         }
@@ -645,7 +689,8 @@ pub extern "C" fn pcm_chromecast_write(data: *const u8, len: usize) -> c_int {
 #[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_chromecast_stop() {
-    CAST_STOP.store(true, Ordering::SeqCst);
+    // No-op: the Cast session stays connected during pause so the Chromecast
+    // player UI remains open and resumes seamlessly when data flows again.
 }
 
 #[cfg(feature = "ffi")]
