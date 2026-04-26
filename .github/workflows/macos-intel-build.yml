@@ -1,0 +1,115 @@
+name: macos-build
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Setup Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zig/.zig-cache
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - name: Setup LLVM
+        run: |
+          brew install llvm gcc@15 sdl2 cmake protobuf
+          cp /opt/homebrew/opt/llvm/bin/llvm-objcopy /opt/homebrew/opt/llvm/bin/objcopy || cp /usr/local/opt/llvm/bin/llvm-objcopy /usr/local/opt/llvm/bin/objcopy
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: denoland/setup-deno@v2
+      - name: Build Web UI
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+      - name: Build Rockbox Lib
+        run: |
+          export PATH="/opt/homebrew/opt/llvm/bin:/usr/local/opt/llvm/bin:$PATH"
+          mkdir -p build-lib
+          cd build-lib
+          ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
+          make lib -j8
+      - name: Skip Rust Warnings
+        run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
+      - name: Build Rust Libs
+        run: |
+          cargo build -p rockbox-cli --release
+          cargo build -p rockbox-server --release
+          cargo build -p rockbox --release
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+      - name: Build Rockbox Binary
+        run: zig build -Dcpu=x86_64
+        working-directory: zig
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+      - name: Install Rockbox Libraries
+        run: sudo make install
+        working-directory: build-lib
+      - name: Install Rockbox Binaries
+        run: |
+          sudo cp target/release/rockbox /usr/local/bin/
+          sudo cp zig/zig-out/bin/rockboxd /usr/local/bin/
+      - name: Determine architecture
+        id: vars
+        run: |
+          echo "arch=x86_64" >> $GITHUB_OUTPUT
+          echo "version=${{ github.event.inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
+      - name: Show artifacts
+        run: |
+          ls rockbox-*.pkg
+          echo build-lib
+          ls -l build-lib
+          echo zig-out
+          ls -l zig/zig-out/bin
+          echo target
+          ls -l target/release
+          echo lib
+          ls -l /usr/local/lib/rockbox/*
+          echo share
+          ls -l /usr/local/share/rockbox
+      - name: Show Rockbox version
+        run: |
+          ./target/release/rockbox --version
+          ./zig/zig-out/bin/rockboxd --version
+      - name: Archive artifacts
+        run: |
+          VERSION="${{ steps.vars.outputs.version }}"
+          ARCH="${{ steps.vars.outputs.arch }}"
+          sudo bash -c """
+          cp target/release/rockbox .
+          cp zig/zig-out/bin/rockboxd .
+          tar czvf rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockbox
+          sha256 rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          tar czvf rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockboxd
+          sha256 rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          cd /usr/local/lib/rockbox && tar czvf rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
+          cd /usr/local/lib/rockbox && shasum -a 256 rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          cd /usr/local/share/rockbox && tar czvf rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
+          cd /usr/local/share/rockbox && shasum -a 256 rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
+          """
+      - name: Copy Archives
+        run: |
+          cp /usr/local/lib/rockbox/rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz .
+          cp /usr/local/lib/rockbox/rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256 .
+          cp /usr/local/share/rockbox/rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz .
+          cp /usr/local/share/rockbox/rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256 .
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rockboxd.tar.gz
+          path: rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz
+          if-no-files-found: error
