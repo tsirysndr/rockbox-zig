@@ -37,12 +37,15 @@ impl TransportState {
 
 struct RendererState {
     current_uri: Option<String>,
+    /// Raw (unescaped) DIDL-Lite XML received in CurrentURIMetaData.
+    current_metadata: String,
     transport_state: TransportState,
     mute: bool,
 }
 
 static RENDERER_STATE: Mutex<RendererState> = Mutex::new(RendererState {
     current_uri: None,
+    current_metadata: String::new(),
     transport_state: TransportState::NoMediaPresent,
     mute: false,
 });
@@ -359,10 +362,15 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
             if uri.is_empty() {
                 return soap_error(402, "Invalid Args");
             }
+            // CurrentURIMetaData is XML-escaped DIDL-Lite inside the SOAP body.
+            let metadata = extract_tag(&body, "CurrentURIMetaData")
+                .map(|s| xml_unescape(&s))
+                .unwrap_or_default();
             tracing::info!("UPnP renderer: SetAVTransportURI = {uri}");
             {
                 let mut st = RENDERER_STATE.lock().unwrap();
                 st.current_uri = Some(uri);
+                st.current_metadata = metadata;
                 st.transport_state = TransportState::Stopped;
             }
             soap_ok(
@@ -397,7 +405,11 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
             if was_active {
                 tokio::task::spawn_blocking(stop_playback).await.ok();
             }
-            RENDERER_STATE.lock().unwrap().transport_state = TransportState::Stopped;
+            {
+                let mut st = RENDERER_STATE.lock().unwrap();
+                st.transport_state = TransportState::Stopped;
+                st.current_metadata = String::new();
+            }
             soap_ok("urn:schemas-upnp-org:service:AVTransport:1", "Stop", "")
         }
 
@@ -463,12 +475,14 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
 
         Some("GetPositionInfo") => {
             let (uri, elapsed_ms, duration_ms) = get_position_info();
+            let metadata_raw = RENDERER_STATE.lock().unwrap().current_metadata.clone();
             let rel_time = ms_to_time(elapsed_ms);
             let track_duration = ms_to_time(duration_ms);
+            let track_metadata_escaped = xml_escape(&metadata_raw);
             let inner = format!(
                 "<Track>1</Track>\
                  <TrackDuration>{track_duration}</TrackDuration>\
-                 <TrackMetaData></TrackMetaData>\
+                 <TrackMetaData>{track_metadata_escaped}</TrackMetaData>\
                  <TrackURI>{uri}</TrackURI>\
                  <RelTime>{rel_time}</RelTime>\
                  <AbsTime>{rel_time}</AbsTime>\
@@ -485,12 +499,14 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
 
         Some("GetMediaInfo") => {
             let (uri, _, duration_ms) = get_position_info();
+            let metadata_raw = RENDERER_STATE.lock().unwrap().current_metadata.clone();
             let duration = ms_to_time(duration_ms);
+            let metadata_escaped = xml_escape(&metadata_raw);
             let inner = format!(
                 "<NrTracks>1</NrTracks>\
                  <MediaDuration>{duration}</MediaDuration>\
                  <CurrentURI>{uri}</CurrentURI>\
-                 <CurrentURIMetaData></CurrentURIMetaData>\
+                 <CurrentURIMetaData>{metadata_escaped}</CurrentURIMetaData>\
                  <NextURI></NextURI>\
                  <NextURIMetaData></NextURIMetaData>\
                  <PlayMedium>NETWORK</PlayMedium>\
@@ -1010,4 +1026,13 @@ fn xml_escape(s: &str) -> String {
         .replace('<', "&lt;")
         .replace('>', "&gt;")
         .replace('"', "&quot;")
+}
+
+fn xml_unescape(s: &str) -> String {
+    // Order matters: &amp; must be last to avoid double-unescaping.
+    s.replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&apos;", "'")
+        .replace("&amp;", "&")
 }

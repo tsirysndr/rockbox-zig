@@ -11,6 +11,7 @@ pub(crate) mod didl;
 pub mod format;
 pub(crate) mod pcm_server;
 pub mod renderer;
+pub mod scan;
 pub mod server;
 pub(crate) mod ssdp;
 
@@ -142,6 +143,7 @@ impl BroadcastReceiver {
 
 static BUFFER: OnceLock<Arc<BroadcastBuffer>> = OnceLock::new();
 static PCM_STARTED: Mutex<bool> = Mutex::new(false);
+static RENDERER_PLAYING: Mutex<bool> = Mutex::new(false);
 static SERVER_STARTED: Mutex<bool> = Mutex::new(false);
 static DEVICE_UUID: OnceLock<String> = OnceLock::new();
 static RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
@@ -264,33 +266,52 @@ pub extern "C" fn pcm_upnp_set_sample_rate(rate: u32) {
     CONFIG.lock().unwrap().sample_rate = rate;
 }
 
-/// Start the WAV PCM stream HTTP server.  Idempotent.
+/// Start the WAV PCM stream HTTP server.  The HTTP server starts once; the
+/// renderer is notified with fresh DIDL-Lite metadata on every call (track
+/// change), but Play is only issued on the first call after a full stop.
 #[no_mangle]
 pub extern "C" fn pcm_upnp_start() -> c_int {
-    let mut started = PCM_STARTED.lock().unwrap();
-    if *started {
-        return 0;
+    // --- Start the HTTP broadcast server once ---
+    {
+        let mut started = PCM_STARTED.lock().unwrap();
+        if !*started {
+            let buf = get_buffer();
+            buf.reset();
+            let (port, sample_rate) = {
+                let cfg = CONFIG.lock().unwrap();
+                (cfg.pcm_port, cfg.sample_rate)
+            };
+            let buf_http = buf.clone();
+            std::thread::spawn(move || pcm_server::serve(port, sample_rate, buf_http));
+            *started = true;
+            tracing::info!("UPnP PCM sink: WAV stream on :{port}");
+        }
     }
-    let buf = get_buffer();
-    buf.reset();
+
+    // --- Notify the renderer with current track metadata ---
     let (port, sample_rate, renderer_url) = {
         let cfg = CONFIG.lock().unwrap();
         (cfg.pcm_port, cfg.sample_rate, cfg.renderer_url.clone())
     };
-    let buf_http = buf.clone();
-    std::thread::spawn(move || pcm_server::serve(port, sample_rate, buf_http));
     if let Some(url) = renderer_url {
+        let need_play = {
+            let mut rp = RENDERER_PLAYING.lock().unwrap();
+            let was = *rp;
+            *rp = true;
+            !was
+        };
         let local_ip = get_local_ip();
+        let track = rockbox_sys::playback::current_track();
         let rt = get_runtime();
         rt.spawn(async move {
             let stream_url = format!("http://{}:{}/stream.wav", local_ip, port);
-            if let Err(e) = avtransport_play(&url, &stream_url).await {
+            if let Err(e) =
+                avtransport_play(&url, &stream_url, track.as_ref(), sample_rate, need_play).await
+            {
                 tracing::warn!("UPnP AVTransport play failed: {}", e);
             }
         });
     }
-    *started = true;
-    tracing::info!("UPnP PCM sink: WAV stream on :{port}");
     0
 }
 
@@ -313,15 +334,23 @@ pub extern "C" fn pcm_upnp_stop() {}
 #[no_mangle]
 pub extern "C" fn pcm_upnp_close() {
     let mut started = PCM_STARTED.lock().unwrap();
+    let mut rp = RENDERER_PLAYING.lock().unwrap();
     get_buffer().close();
     *started = false;
+    *rp = false;
 }
 
 // ---------------------------------------------------------------------------
 // AVTransport SOAP client — tells a UPnP renderer to play our WAV stream
 // ---------------------------------------------------------------------------
 
-async fn avtransport_play(control_url: &str, stream_url: &str) -> anyhow::Result<()> {
+async fn avtransport_play(
+    control_url: &str,
+    stream_url: &str,
+    track: Option<&rockbox_sys::types::mp3_entry::Mp3Entry>,
+    sample_rate: u32,
+    send_play: bool,
+) -> anyhow::Result<()> {
     use bytes::Bytes;
     use http_body_util::Full;
     use hyper::Request;
@@ -329,6 +358,10 @@ async fn avtransport_play(control_url: &str, stream_url: &str) -> anyhow::Result
     use hyper_util::rt::TokioExecutor;
 
     let client: Client<_, Full<Bytes>> = Client::builder(TokioExecutor::new()).build_http();
+
+    let metadata = build_didl_metadata(track, stream_url, sample_rate);
+    let metadata_escaped = xml_escape(&metadata);
+    tracing::info!("UPnP AVTransport: setting URI to {stream_url} with metadata:\n{metadata}");
 
     let set_uri_body = format!(
         r#"<?xml version="1.0" encoding="utf-8"?>
@@ -338,7 +371,7 @@ async fn avtransport_play(control_url: &str, stream_url: &str) -> anyhow::Result
     <u:SetAVTransportURI xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">
       <InstanceID>0</InstanceID>
       <CurrentURI>{stream_url}</CurrentURI>
-      <CurrentURIMetaData></CurrentURIMetaData>
+      <CurrentURIMetaData>{metadata_escaped}</CurrentURIMetaData>
     </u:SetAVTransportURI>
   </s:Body>
 </s:Envelope>"#
@@ -360,6 +393,10 @@ async fn avtransport_play(control_url: &str, stream_url: &str) -> anyhow::Result
         anyhow::bail!("SetAVTransportURI returned HTTP {}", resp.status().as_u16());
     }
     tracing::debug!("UPnP AVTransport: SetAVTransportURI OK");
+
+    if !send_play {
+        return Ok(());
+    }
 
     let play_body = r#"<?xml version="1.0" encoding="utf-8"?>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"
@@ -389,4 +426,108 @@ async fn avtransport_play(control_url: &str, stream_url: &str) -> anyhow::Result
     }
     tracing::info!("UPnP AVTransport: renderer playing WAV stream at {stream_url}");
     Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// DIDL-Lite metadata helpers
+// ---------------------------------------------------------------------------
+
+fn ms_to_upnp_duration(ms: u64) -> String {
+    let total_secs = ms / 1000;
+    let frac_ms = ms % 1000;
+    let h = total_secs / 3600;
+    let m = (total_secs % 3600) / 60;
+    let s = total_secs % 60;
+    format!("{}:{:02}:{:02}.{:03}", h, m, s, frac_ms)
+}
+
+fn xml_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&apos;")
+}
+
+fn build_didl_metadata(
+    track: Option<&rockbox_sys::types::mp3_entry::Mp3Entry>,
+    stream_url: &str,
+    sample_rate: u32,
+) -> String {
+    let (title, artist, album, duration_ms, album_art) = match track {
+        Some(t) => {
+            let title = if t.title.trim().is_empty() {
+                t.path
+                    .rsplit('/')
+                    .next()
+                    .and_then(|f| {
+                        f.rsplit('.')
+                            .nth(1)
+                            .map(|_| f.rsplit('.').skip(1).collect::<Vec<_>>().join("."))
+                    })
+                    .unwrap_or_else(|| t.path.clone())
+            } else {
+                t.title.clone()
+            };
+            (
+                title,
+                t.artist.clone(),
+                t.album.clone(),
+                t.length,
+                t.album_art.clone(),
+            )
+        }
+        None => (
+            "stream.wav".to_string(),
+            String::new(),
+            String::new(),
+            0u64,
+            None,
+        ),
+    };
+
+    let duration_str = if duration_ms > 0 {
+        ms_to_upnp_duration(duration_ms)
+    } else {
+        "0:00:00.000".to_string()
+    };
+
+    let t = xml_escape(&title);
+    let ar = xml_escape(&artist);
+    let al = xml_escape(&album);
+    let url_esc = xml_escape(stream_url);
+
+    let artist_elem = if ar.is_empty() {
+        String::new()
+    } else {
+        format!("\n    <upnp:artist>{ar}</upnp:artist>")
+    };
+    let album_elem = if al.is_empty() {
+        String::new()
+    } else {
+        format!("\n    <upnp:album>{al}</upnp:album>")
+    };
+    let art_elem = match album_art.as_deref().filter(|s| !s.is_empty()) {
+        Some(filename) => {
+            let local_ip = get_local_ip();
+            let graphql_port =
+                std::env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or_else(|_| "6062".to_string());
+            let art_url = xml_escape(&format!(
+                "http://{}:{}/covers/{}",
+                local_ip, graphql_port, filename
+            ));
+            format!("\n    <upnp:albumArtURI>{art_url}</upnp:albumArtURI>")
+        }
+        None => String::new(),
+    };
+
+    format!(
+        r#"<DIDL-Lite xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/">
+  <item id="1" parentID="0" restricted="1">
+    <dc:title>{t}</dc:title>{artist_elem}{album_elem}{art_elem}
+    <upnp:class>object.item.audioItem.musicTrack</upnp:class>
+    <res protocolInfo="http-get:*:audio/wav:DLNA.ORG_PN=LPCM;DLNA.ORG_FLAGS=01700000000000000000000000000000" duration="{duration_str}" sampleFrequency="{sample_rate}" nrAudioChannels="2" bitsPerSample="16">{url_esc}</res>
+  </item>
+</DIDL-Lite>"#
+    )
 }
