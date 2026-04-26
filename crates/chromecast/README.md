@@ -16,23 +16,23 @@ The Chromecast implementation has two independent, complementary halves:
 │                                                                      │
 │  Rockbox firmware (C)                                                │
 │  ┌────────────────────┐                                              │
-│  │  PCM engine        │──pcm_chromecast_write()──►  BroadcastBuffer │
-│  │  (44.1 kHz S16LE)  │                               (ring buffer) │
+│  │  PCM engine        │──pcm_chromecast_write()──►  BroadcastBuffer  │
+│  │  (44.1 kHz S16LE)  │                               (ring buffer)  │
 │  └────────────────────┘                                    │         │
 │                                                            │         │
-│  ┌─────────────────────────────────────────────┐          │         │
-│  │  HTTP server  (port 7881)                   │◄─────────┘         │
-│  │  GET /stream.wav  →  WAV header + PCM chunks│                    │
-│  │  GET /now-playing/art  →  album art (JPEG…) │                    │
-│  └─────────────────────┬───────────────────────┘                    │
+│  ┌─────────────────────────────────────────────┐           │         │
+│  │  HTTP server  (port 7881)                   │◄──────────┘         │
+│  │  GET /stream.wav  →  WAV header + PCM chunks│                     │
+│  │  GET /now-playing/art  →  album art (JPEG…) │                     │
+│  └─────────────────────┬───────────────────────┘                     │
 │                         │  HTTP (WAV)                                │
-│  ┌──────────────────────▼──────────────────────┐                    │
-│  │  Cast protocol thread                       │                    │
-│  │  (Cast TCP 8009, TLS, Protobuf)             │                    │
-│  │  · media.load(url=http://host:7881/…)       │                    │
-│  │  · heartbeat.ping() every 500 ms            │                    │
-│  │  · on track change → media.load() again     │                    │
-│  └──────────────────────┬───────────────────────┘                   │
+│  ┌──────────────────────▼──────────────────────┐                     │
+│  │  Cast protocol thread                       │                     │
+│  │  (Cast TCP 8009, TLS, Protobuf)             │                     │
+│  │  · media.load(url=http://host:7881/…)       │                     │
+│  │  · heartbeat.ping() every 500 ms            │                     │
+│  │  · on track change → media.load() again     │                     │
+│  └──────────────────────┬──────────────────────┘                     │
 └─────────────────────────┼────────────────────────────────────────────┘
                           │  Cast protocol (TLS, port 8009)
                           │  + WAV stream (HTTP, port 7881)
