@@ -57,6 +57,7 @@ enum pcm_sink_ids {
     PCM_SINK_AIRPLAY,
     PCM_SINK_SQUEEZELITE,
     PCM_SINK_UPNP,
+    PCM_SINK_CHROMECAST,
 #endif
     PCM_SINK_NUM
 };
@@ -79,4 +80,10 @@ extern struct pcm_sink squeezelite_pcm_sink;
 extern struct pcm_sink upnp_pcm_sink;
 void pcm_upnp_set_http_port(uint16_t port);
 void pcm_upnp_set_renderer_url(const char *url);
+
+/* Chromecast sink — streams WAV over HTTP and loads via Cast protocol */
+extern struct pcm_sink chromecast_pcm_sink;
+void pcm_chromecast_set_http_port(uint16_t port);
+void pcm_chromecast_set_device_host(const char *host);
+void pcm_chromecast_set_device_port(uint16_t port);
 #endif

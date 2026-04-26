@@ -79,6 +79,25 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
             }
             pcm::switch_sink(pcm::PCM_SINK_UPNP);
         }
+        Some("chromecast") => {
+            let http_port = settings.chromecast_http_port.unwrap_or(7881);
+            pcm::chromecast_set_http_port(http_port);
+            if let Some(ref host) = settings.chromecast_host {
+                let device_port = settings.chromecast_port.unwrap_or(8009);
+                pcm::chromecast_set_device_host(host);
+                pcm::chromecast_set_device_port(device_port);
+                tracing::info!(
+                    "audio output: chromecast (WAV stream :{http_port}, device {}:{})",
+                    host,
+                    device_port
+                );
+            } else {
+                tracing::warn!(
+                    "audio output: chromecast selected but no chromecast_host configured"
+                );
+            }
+            pcm::switch_sink(pcm::PCM_SINK_CHROMECAST);
+        }
         Some("builtin") | None => {
             tracing::info!("audio output: builtin (SDL)");
         }

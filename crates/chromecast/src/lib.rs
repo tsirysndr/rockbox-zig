@@ -1,3 +1,5 @@
+pub mod pcm;
+
 use std::{
     future::Future,
     pin::Pin,
@@ -24,6 +26,10 @@ use rockbox_traits::types::track::Track;
 use rockbox_traits::Player;
 use rockbox_types::device::Device;
 use tokio::sync::mpsc;
+
+// Called from rockbox-cli to force this crate's symbols into librockbox_cli.a
+#[doc(hidden)]
+pub fn _link_chromecast() {}
 
 const DEFAULT_DESTINATION_ID: &str = "receiver-0";
 const DEFAULT_APP_ID: &str = "88DCBD57";

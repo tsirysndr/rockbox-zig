@@ -945,6 +945,9 @@ pub mod api {
                     upnp_renderer_url: None,
                     upnp_http_port: None,
                     upnp_server_enabled: None,
+                    chromecast_host: None,
+                    chromecast_http_port: None,
+                    chromecast_port: None,
                 }
             }
         }

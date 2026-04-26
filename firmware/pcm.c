@@ -85,6 +85,7 @@ static struct pcm_sink* sinks[PCM_SINK_NUM] = {
     [PCM_SINK_AIRPLAY]      = &airplay_pcm_sink,
     [PCM_SINK_SQUEEZELITE]  = &squeezelite_pcm_sink,
     [PCM_SINK_UPNP]         = &upnp_pcm_sink,
+    [PCM_SINK_CHROMECAST]   = &chromecast_pcm_sink,
 #endif
 };
 static enum pcm_sink_ids cur_sink = PCM_SINK_BUILTIN;

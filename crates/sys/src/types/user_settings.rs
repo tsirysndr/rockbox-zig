@@ -715,6 +715,12 @@ pub struct NewGlobalSettings {
     pub upnp_renderer_enabled: Option<bool>,
     /// HTTP port for the UPnP renderer (default: 7880)
     pub upnp_renderer_port: Option<u16>,
+    /// IP address of the Chromecast device (required for chromecast output)
+    pub chromecast_host: Option<String>,
+    /// Cast protocol port on the Chromecast device (default: 8009)
+    pub chromecast_port: Option<u16>,
+    /// HTTP port for the Chromecast WAV stream (default: 7881)
+    pub chromecast_http_port: Option<u16>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -762,6 +768,9 @@ impl From<UserSettings> for NewGlobalSettings {
             upnp_renderer_url: None,
             upnp_renderer_enabled: None,
             upnp_renderer_port: None,
+            chromecast_host: None,
+            chromecast_port: None,
+            chromecast_http_port: None,
         }
     }
 }

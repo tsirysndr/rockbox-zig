@@ -540,6 +540,7 @@ target/hosted/pcm-fifo.c
 target/hosted/pcm-airplay.c
 target/hosted/pcm-squeezelite.c
 target/hosted/pcm-upnp.c
+target/hosted/pcm-chromecast.c
 #endif
 #ifdef HAVE_SW_VOLUME_CONTROL
 pcm_sw_volume.c

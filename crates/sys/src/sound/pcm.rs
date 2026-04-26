@@ -7,6 +7,7 @@ pub const PCM_SINK_FIFO: i32 = 1;
 pub const PCM_SINK_AIRPLAY: i32 = 2;
 pub const PCM_SINK_SQUEEZELITE: i32 = 3;
 pub const PCM_SINK_UPNP: i32 = 4;
+pub const PCM_SINK_CHROMECAST: i32 = 5;
 
 pub fn apply_settings() {
     unsafe {
@@ -98,4 +99,18 @@ pub fn upnp_set_renderer_url(url: &str) {
 
 pub fn upnp_clear_renderer_url() {
     unsafe { crate::pcm_upnp_set_renderer_url(std::ptr::null()) }
+}
+
+pub fn chromecast_set_http_port(port: u16) {
+    unsafe { crate::pcm_chromecast_set_http_port(port) }
+}
+
+pub fn chromecast_set_device_host(host: &str) {
+    let chost = std::ffi::CString::new(host).expect("host must not contain null bytes");
+    unsafe { crate::pcm_chromecast_set_device_host(chost.as_ptr()) }
+    std::mem::forget(chost);
+}
+
+pub fn chromecast_set_device_port(port: u16) {
+    unsafe { crate::pcm_chromecast_set_device_port(port) }
 }

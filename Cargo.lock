@@ -9137,11 +9137,13 @@ dependencies = [
  "md5",
  "rockbox-graphql",
  "rockbox-library",
+ "rockbox-sys",
  "rockbox-traits",
  "rockbox-types",
  "sqlx",
  "tokio",
  "tokio-stream",
+ "tracing",
 ]
 
 [[package]]
@@ -9155,6 +9157,7 @@ dependencies = [
  "owo-colors 4.1.0",
  "reqwest",
  "rockbox-airplay",
+ "rockbox-chromecast",
  "rockbox-library",
  "rockbox-playlists",
  "rockbox-rocksky",
