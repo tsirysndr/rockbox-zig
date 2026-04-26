@@ -146,6 +146,8 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         let path = rockbox_settings::get_music_dir().unwrap_or(format!("{}/Music", home));
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
+            rockbox_typesense::setup()?;
+
             let pool = create_connection_pool().await?;
             let tracks = repo::track::all(pool.clone()).await?;
             if tracks.is_empty() || update_library {
@@ -245,8 +247,6 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
     });
 
     thread::spawn(move || {
-        rockbox_typesense::setup()?;
-
         let api_key = uuid::Uuid::new_v4().to_string();
         let api_key = std::env::var("RB_TYPESENSE_API_KEY").unwrap_or(api_key);
         std::env::set_var("RB_TYPESENSE_API_KEY", &api_key);
