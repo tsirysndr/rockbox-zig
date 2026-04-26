@@ -234,6 +234,7 @@ impl PlaybackMutation {
         shuffle: Option<bool>,
         position: Option<i32>,
     ) -> Result<i32, Error> {
+        let path = path.trim().to_string();
         let client = ctx.data::<reqwest::Client>().unwrap();
         let mut tracks: Vec<String> = vec![];
 

@@ -12,6 +12,11 @@ use crate::{
     rockbox_url, schema::objects::playlist::Playlist, simplebroker::SimpleBroker, types::StatusCode,
 };
 
+fn trim_path(s: &str) -> String {
+    let s = s.trim();
+    s.split('#').next().unwrap_or(s).to_string()
+}
+
 #[derive(Default)]
 pub struct PlaylistQuery;
 
@@ -148,6 +153,7 @@ impl PlaylistMutation {
         name: String,
         tracks: Vec<String>,
     ) -> Result<i32, Error> {
+        let tracks: Vec<String> = tracks.into_iter().map(|t| trim_path(&t)).collect();
         let client = ctx.data::<reqwest::Client>().unwrap();
         let body = serde_json::json!({
             "name": name,
@@ -167,6 +173,7 @@ impl PlaylistMutation {
         position: i32,
         tracks: Vec<String>,
     ) -> Result<i32, Error> {
+        let tracks: Vec<String> = tracks.into_iter().map(|t| trim_path(&t)).collect();
         let client = ctx.data::<reqwest::Client>().unwrap();
         let body = serde_json::json!({
             "position": position,

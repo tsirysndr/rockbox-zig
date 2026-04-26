@@ -93,11 +93,15 @@ impl StreamState {
     /// Falls back to reopening from byte 0 and discarding bytes if the server
     /// ignores Range and responds with the full body.
     fn seek_to(&mut self, new_pos: u64) -> bool {
+        // Use a bounded range when content_length is known so the request is
+        // always within [0, content_length).  This prevents spurious 416
+        // responses and tells the server exactly how many bytes we want.
+        let range_header = match self.content_length {
+            Some(cl) if cl > 0 => format!("bytes={}-{}", new_pos, cl - 1),
+            _ => format!("bytes={}-", new_pos),
+        };
         self.response = None;
-        let result = CLIENT
-            .get(&self.url)
-            .header("Range", format!("bytes={}-", new_pos))
-            .send();
+        let result = CLIENT.get(&self.url).header("Range", range_header).send();
 
         match result {
             Ok(resp) if resp.status().as_u16() == 206 => {
@@ -181,7 +185,12 @@ pub unsafe extern "C" fn rb_net_open(url: *const c_char) -> i32 {
         return INVALID_HANDLE;
     }
     let url_str = match CStr::from_ptr(url).to_str() {
-        Ok(s) => s.to_owned(),
+        Ok(s) => {
+            let s = s.trim();
+            // Drop any URL fragment — the codec only needs the resource itself.
+            let s = s.split('#').next().unwrap_or(s);
+            s.to_owned()
+        }
         Err(_) => return INVALID_HANDLE,
     };
 
@@ -234,7 +243,15 @@ pub unsafe extern "C" fn rb_net_read(h: i32, dst: *mut libc::c_void, n: libc::si
     let pos_before = state.pos;
     let resp = match &mut state.response {
         Some(r) => r,
-        None => return -1,
+        None => {
+            // No active response.  If we know content_length and pos is at or
+            // beyond it, signal EOF (0) rather than an error (-1) so callers
+            // that iterate until EOF terminate cleanly.
+            if state.content_length.map_or(false, |cl| state.pos >= cl) {
+                return 0;
+            }
+            return -1;
+        }
     };
     let buf = std::slice::from_raw_parts_mut(dst as *mut u8, n);
     match read_as_file(resp, buf) {
@@ -314,6 +331,22 @@ pub extern "C" fn rb_net_lseek(h: i32, off: i64, whence: libc::c_int) -> i64 {
         }
         _ => return -1,
     };
+
+    // Guard: never issue a Range request past EOF — the server would return 416
+    // and seek_to would leave response=None, permanently breaking the stream.
+    // This can happen when the C MP4 parser has a uint32_t underflow in its
+    // atom-size arithmetic and tries to seek gigabytes forward.
+    if let Some(cl) = state.content_length {
+        if new_pos >= cl {
+            warn!(
+                "[netstream] rb_net_lseek: h={} off={} whence={} new_pos={} >= content_length={}, clamping to EOF",
+                h, off, whence, new_pos, cl
+            );
+            state.pos = cl;
+            state.response = None; // EOF: rb_net_read will return 0
+            return cl as i64;
+        }
+    }
 
     // Fast-path: already there (no need to restart the request).
     if new_pos == state.pos {
@@ -664,10 +697,10 @@ mod tests {
             .with_body(full_body)
             .create();
 
-        // Range request from byte 8.
+        // Range request from byte 8 — bounded range since content-length is known.
         let _range = server
             .mock("GET", "/seekable.mp3")
-            .match_header("range", "bytes=8-")
+            .match_header("range", "bytes=8-15")
             .with_status(206)
             .with_header("content-range", "bytes 8-15/16")
             .with_header("content-length", "8")
@@ -734,7 +767,7 @@ mod tests {
 
         let _range = server
             .mock("GET", "/end.mp3")
-            .match_header("range", "bytes=8-")
+            .match_header("range", "bytes=8-9")
             .with_status(206)
             .with_header("content-range", "bytes 8-9/10")
             .with_body(&full_body[8..])
@@ -840,7 +873,7 @@ mod tests {
 
         let _ignored_range = server
             .mock("GET", "/ignore-range.mp3")
-            .match_header("range", "bytes=8-")
+            .match_header("range", "bytes=8-15")
             .with_status(200)
             .with_header("content-length", "16")
             .with_body(full_body)
@@ -878,7 +911,7 @@ mod tests {
 
         let _bad_range = server
             .mock("GET", "/bad-range.mp3")
-            .match_header("range", "bytes=8-")
+            .match_header("range", "bytes=8-15")
             .with_status(206)
             .with_header("content-range", "bytes 0-7/16")
             .with_body(&full_body[..8])
@@ -914,7 +947,7 @@ mod tests {
         // Range request: 206 includes Content-Range which also reveals total size.
         let _range = server
             .mock("GET", "/range-len.mp3")
-            .match_header("range", "bytes=5-")
+            .match_header("range", "bytes=5-9")
             .with_status(206)
             .with_header("content-range", "bytes 5-9/10")
             .with_body(&full_body[5..])
@@ -941,6 +974,39 @@ mod tests {
             10,
             "length should remain correct after seek"
         );
+
+        rb_net_close(handle);
+    }
+
+    /// Seeking past content_length (e.g. from a uint32_t underflow in the MP4
+    /// parser) is clamped to content_length.  The stream is not permanently
+    /// broken: reads return 0 (EOF) rather than -1 (error).
+    #[test]
+    fn test_seek_past_eof_is_clamped() {
+        let full_body: &[u8] = b"0123456789"; // 10 bytes, content-length=10
+        let mut server = mockito::Server::new();
+
+        let _initial = server
+            .mock("GET", "/clamped.mp3")
+            .match_header("range", Matcher::Missing)
+            .with_status(200)
+            .with_header("content-length", "10")
+            .with_body(full_body)
+            .create();
+
+        let url = c_url(&server, "/clamped.mp3");
+        let handle = unsafe { rb_net_open(url.as_ptr()) };
+        assert!(handle >= 0);
+
+        // Seek 4 GB past current position (simulates uint32_t underflow in C).
+        let result = rb_net_lseek(handle, 4_294_967_295, libc::SEEK_CUR);
+        // Should clamp to content_length (10), not return -1.
+        assert_eq!(result, 10, "seek past EOF should clamp to content_length");
+
+        // Subsequent reads must return 0 (EOF), not -1 (broken stream).
+        let mut buf = vec![0u8; 16];
+        let n = unsafe { rb_net_read(handle, buf.as_mut_ptr() as *mut libc::c_void, buf.len()) };
+        assert_eq!(n, 0, "read after clamped seek should return 0 (EOF)");
 
         rb_net_close(handle);
     }

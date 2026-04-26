@@ -340,6 +340,10 @@ async fn download_partial_remote_file(url: &str) -> Result<RemoteProbeFile, Erro
     const MAX_PROBE_BYTES: usize = 8 * 1024 * 1024;
 
     let client = reqwest::Client::new();
+
+    // Try a bounded range first. If the file is smaller than MAX_PROBE_BYTES
+    // some servers return 416; in that case fall back to an open-ended range
+    // which downloads only to the (small) end of file.
     let mut response = client
         .get(url)
         .header(
@@ -348,6 +352,18 @@ async fn download_partial_remote_file(url: &str) -> Result<RemoteProbeFile, Erro
         )
         .send()
         .await?;
+
+    if response.status() == reqwest::StatusCode::RANGE_NOT_SATISFIABLE {
+        tracing::info!(
+            "probe remote media {}: 416 Range Not Satisfiable, retrying with open-ended range",
+            url
+        );
+        response = client
+            .get(url)
+            .header(reqwest::header::RANGE, "bytes=0-")
+            .send()
+            .await?;
+    }
 
     if !response.status().is_success() && response.status() != reqwest::StatusCode::PARTIAL_CONTENT
     {

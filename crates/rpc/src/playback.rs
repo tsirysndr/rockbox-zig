@@ -397,7 +397,7 @@ impl PlaybackService for Playback {
         request: tonic::Request<PlayDirectoryRequest>,
     ) -> Result<tonic::Response<PlayDirectoryResponse>, tonic::Status> {
         let request = request.into_inner();
-        let path = request.path;
+        let path = request.path.trim().to_string();
         let recurse = request.recurse;
         let shuffle = request.shuffle;
         let position = request.position;
@@ -583,7 +583,9 @@ impl PlaybackService for Playback {
         request: tonic::Request<PlayTrackRequest>,
     ) -> Result<tonic::Response<PlayTrackResponse>, tonic::Status> {
         let request = request.into_inner();
-        let path = request.path.replace("file://", "");
+        let raw = request.path.replace("file://", "");
+        let raw = raw.trim();
+        let path = raw.split('#').next().unwrap_or(raw).to_string();
         let tracks = vec![path.clone()];
 
         let body = serde_json::json!({

@@ -355,6 +355,7 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
     match action.as_deref() {
         Some("SetAVTransportURI") => {
             let uri = extract_tag(&body, "CurrentURI").unwrap_or_default();
+            let uri = trim_url(&uri);
             if uri.is_empty() {
                 return soap_error(402, "Invalid Args");
             }
@@ -380,11 +381,7 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
                 None => soap_error(701, "Transition not available"),
                 Some(uri) => {
                     tracing::info!("UPnP renderer: Play {uri}");
-                    tokio::task::spawn_blocking(move || {
-                        play_url(&uri);
-                    })
-                    .await
-                    .ok();
+                    play_url(&uri).await;
                     RENDERER_STATE.lock().unwrap().transport_state = TransportState::Playing;
                     soap_ok("urn:schemas-upnp-org:service:AVTransport:1", "Play", "")
                 }
@@ -393,11 +390,13 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
 
         Some("Stop") => {
             tracing::info!("UPnP renderer: Stop");
-            tokio::task::spawn_blocking(|| {
-                stop_playback();
-            })
-            .await
-            .ok();
+            let was_active = matches!(
+                RENDERER_STATE.lock().unwrap().transport_state,
+                TransportState::Playing | TransportState::PausedPlayback
+            );
+            if was_active {
+                tokio::task::spawn_blocking(stop_playback).await.ok();
+            }
             RENDERER_STATE.lock().unwrap().transport_state = TransportState::Stopped;
             soap_ok("urn:schemas-upnp-org:service:AVTransport:1", "Stop", "")
         }
@@ -428,6 +427,10 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
         }
 
         Some("Seek") => {
+            let ts = RENDERER_STATE.lock().unwrap().transport_state.clone();
+            if !matches!(ts, TransportState::Playing | TransportState::PausedPlayback) {
+                return soap_error(701, "Transition not available");
+            }
             let unit = extract_tag(&body, "Unit").unwrap_or_default();
             let target = extract_tag(&body, "Target").unwrap_or_default();
             if unit == "REL_TIME" || unit == "ABS_TIME" {
@@ -618,15 +621,23 @@ fn renderer_connection_manager(
     soap_error(401, "Invalid Action")
 }
 
-// ---------------------------------------------------------------------------
-// Playback helpers — call into rockbox-sys via spawn_blocking
-// ---------------------------------------------------------------------------
-
-fn play_url(uri: &str) {
-    use rockbox_sys::{playback, playlist};
-    playlist::build_playlist(vec![uri], 0, 1);
-    playlist::start(0, 0, 0);
-    playback::play(0, 0);
+async fn play_url(uri: &str) {
+    use crate::api::rockbox::v1alpha1::{
+        playback_service_client::PlaybackServiceClient, PlayTrackRequest,
+    };
+    let port = std::env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
+    let url = format!("tcp://127.0.0.1:{}", port);
+    match PlaybackServiceClient::connect(url).await {
+        Ok(mut client) => {
+            let req = PlayTrackRequest {
+                path: uri.to_string(),
+            };
+            if let Err(e) = client.play_track(req).await {
+                tracing::error!("UPnP renderer: PlayTrack gRPC error: {e}");
+            }
+        }
+        Err(e) => tracing::error!("UPnP renderer: gRPC connect error: {e}"),
+    }
 }
 
 fn stop_playback() {
@@ -893,6 +904,12 @@ fn soap_action_from_body(body: &str) -> Option<String> {
 
 fn resolve_action(header_action: Option<String>, body: &str) -> Option<String> {
     header_action.or_else(|| soap_action_from_body(body))
+}
+
+/// Strip leading/trailing whitespace and any URL fragment from a URI string.
+fn trim_url(uri: &str) -> String {
+    let s = uri.trim();
+    s.split('#').next().unwrap_or(s).to_string()
 }
 
 fn extract_tag(xml: &str, tag: &str) -> Option<String> {

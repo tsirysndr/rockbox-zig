@@ -45,6 +45,7 @@ and Squeezelite.
 - [x] [MPRIS](https://specifications.freedesktop.org/mpris-spec/) — desktop media key and taskbar integration
 - [x] Fast search powered by [Typesense](https://typesense.org)
 - [x] Navigate by folders or tag database
+- [x] UPnP/DLNA
 
 ### Clients
 - [x] Web client (React)
@@ -57,7 +58,6 @@ and Squeezelite.
 - [ ] Mobile app (React Native)
 - [ ] Stream from YouTube / Spotify / Tidal
 - [ ] TuneIn Radio
-- [ ] UPnP/DLNA
 - [ ] Kodi output
 - [ ] TypeScript ([Deno](https://deno.com)) plugin API
 - [ ] Wasm extensions

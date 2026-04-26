@@ -23,3 +23,10 @@ hyper-util = { workspace = true }
 http-body-util = { workspace = true }
 http = { workspace = true }
 rockbox-sys = { path = "../sys" }
+prost = "0.13.2"
+tonic = "0.12.3"
+tonic-reflection = "0.12.3"
+tonic-web = "0.12.3"
+
+[build-dependencies]
+tonic-build = "0.12.3"
