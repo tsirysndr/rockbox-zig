@@ -152,6 +152,12 @@ static DEVICE_UUID: OnceLock<String> = OnceLock::new();
 static RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
 static MONITOR_GEN: AtomicU64 = AtomicU64::new(0);
 
+/// The track path that `pcm_upnp_start()` most recently sent a SetAVTransportURI
+/// for (without Play). The monitor uses this to avoid double-sending Play on
+/// normal track changes, while still sending Play as a fallback for any renderer
+/// that disconnects after a metadata-only update.
+static LAST_PCM_TRACK_PATH: Mutex<String> = Mutex::new(String::new());
+
 pub(crate) struct UpnpConfig {
     pub server_port: u16,
     pub pcm_port: u16,
@@ -310,6 +316,10 @@ pub extern "C" fn pcm_upnp_start() -> c_int {
             let rt = get_runtime();
             rt.spawn(async move {
                 let track = rockbox_sys::playback::current_track();
+                // Record path so the monitor knows pcm_upnp_start handled this track.
+                if let Some(ref t) = track {
+                    *LAST_PCM_TRACK_PATH.lock().unwrap() = t.path.clone();
+                }
                 let album_art_url = if let Some(ref t) = track {
                     get_album_art_url(&t.path, local_ip).await
                 } else {
@@ -328,10 +338,62 @@ pub extern "C" fn pcm_upnp_start() -> c_int {
                     tracing::warn!("UPnP AVTransport play failed: {}", e);
                 }
             });
+        } else {
+            // Subsequent sink_dma_start: could be a track change OR a resume after pause.
+            // Distinguish by comparing the current track path against what we last played.
+            let current_path = rockbox_sys::playback::current_track()
+                .map(|t| t.path)
+                .unwrap_or_default();
+
+            let is_track_change = if current_path.is_empty() {
+                false // can't tell yet — treat as resume
+            } else {
+                let mut last = LAST_PCM_TRACK_PATH.lock().unwrap();
+                if current_path != *last {
+                    *last = current_path.clone();
+                    true
+                } else {
+                    false // same path → resume from pause
+                }
+            };
+
+            if is_track_change {
+                // Fire SetAVTransportURI *without* Play at the exact PCM boundary.
+                // The renderer updates its metadata display and — if it supports
+                // metadata-only updates — stays connected to the live /stream.wav
+                // with zero gap. The monitor will confirm the update ~500 ms later
+                // and send Play only if it detects the renderer has stopped.
+                let rt = get_runtime();
+                let url_c = url.clone();
+                let local_ip = get_local_ip();
+                rt.spawn(async move {
+                    let track = rockbox_sys::playback::current_track();
+                    let stream_url = format!("http://{}:{}/stream.wav", local_ip, port);
+                    let art = if let Some(ref t) = track {
+                        get_album_art_url(&t.path, local_ip).await
+                    } else {
+                        None
+                    };
+                    tracing::info!(
+                        "UPnP: track change at PCM boundary → «{}»",
+                        track.as_ref().map(|t| t.title.as_str()).unwrap_or("?")
+                    );
+                    if let Err(e) = avtransport_play(
+                        &url_c,
+                        &stream_url,
+                        track.as_ref(),
+                        sample_rate,
+                        false, // no Play — keep renderer connected
+                        art.as_deref(),
+                    )
+                    .await
+                    {
+                        tracing::warn!("UPnP: SetAVTransportURI at PCM boundary failed: {e}");
+                    }
+                });
+            }
+            // Resume (same path): do nothing — buffer streams naturally, no gap.
         }
-        // On subsequent sink_dma_start calls (track change or resume after pause),
-        // the monitor handles everything: it detects the new current_track() path
-        // and sends SetAVTransportURI+Play with fresh metadata. No action needed here.
     }
     0
 }
@@ -412,27 +474,23 @@ fn ensure_track_monitor(renderer_url: String, port: u16) {
                 let is_first = last_current_path.is_empty();
                 last_current_path = current_path.clone();
 
-                // Send SetAVTransportURI+Play on every track detection — including the
-                // first one — so the renderer always has up-to-date metadata and the
-                // stream URL is always correct. For the very first track this also
-                // corrects any stale metadata from the initial async play call.
-                if !is_first {
-                    tracing::info!(
-                        "UPnP monitor: track changed → «{}»",
-                        current_track
-                            .as_ref()
-                            .map(|t| t.title.as_str())
-                            .unwrap_or("?")
-                    );
-                } else {
-                    tracing::info!(
-                        "UPnP monitor: first track «{}»",
-                        current_track
-                            .as_ref()
-                            .map(|t| t.title.as_str())
-                            .unwrap_or("?")
-                    );
-                }
+                // Did pcm_upnp_start() already fire SetAVTransportURI (no Play) at the
+                // PCM boundary for this exact track? If so, the renderer is already
+                // streaming and we should NOT send Play — that would force a reconnect
+                // and reintroduce the gap we're trying to eliminate.
+                // If pcm_upnp_start() didn't fire (e.g. natural end-of-track on some
+                // Rockbox builds, or initial play), send Play as a fallback so the
+                // renderer reconnects if it stopped.
+                let pcm_boundary_fired =
+                    *LAST_PCM_TRACK_PATH.lock().unwrap() == current_path;
+
+                let send_play = !is_first && !pcm_boundary_fired;
+
+                tracing::info!(
+                    "UPnP monitor: {} «{}» (pcm_boundary={pcm_boundary_fired}, play={send_play})",
+                    if is_first { "first track" } else { "track changed →" },
+                    current_track.as_ref().map(|t| t.title.as_str()).unwrap_or("?")
+                );
 
                 let stream_url = format!("http://{}:{}/stream.wav", local_ip, port);
                 let art = get_album_art_url(&current_path, local_ip).await;
@@ -441,10 +499,7 @@ fn ensure_track_monitor(renderer_url: String, port: u16) {
                     &stream_url,
                     current_track.as_ref(),
                     sample_rate,
-                    // Only send Play on a real track change (not the first detection)
-                    // because the renderer is already playing from the initial start.
-                    // For the first track, re-sending Play causes an audible blip.
-                    !is_first,
+                    send_play,
                     art.as_deref(),
                 )
                 .await
