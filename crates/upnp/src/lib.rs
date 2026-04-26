@@ -22,6 +22,7 @@ pub fn _link_upnp() {}
 use std::collections::VecDeque;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Condvar, Mutex, OnceLock};
 
 // ---------------------------------------------------------------------------
@@ -147,6 +148,7 @@ static RENDERER_PLAYING: Mutex<bool> = Mutex::new(false);
 static SERVER_STARTED: Mutex<bool> = Mutex::new(false);
 static DEVICE_UUID: OnceLock<String> = OnceLock::new();
 static RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+static MONITOR_GEN: AtomicU64 = AtomicU64::new(0);
 
 pub(crate) struct UpnpConfig {
     pub server_port: u16,
@@ -303,10 +305,26 @@ pub extern "C" fn pcm_upnp_start() -> c_int {
         let local_ip = get_local_ip();
         let track = rockbox_sys::playback::current_track();
         let rt = get_runtime();
+
+        // Start (or replace) the track-change monitor.
+        ensure_track_monitor(url.clone(), port);
+
         rt.spawn(async move {
             let stream_url = format!("http://{}:{}/stream.wav", local_ip, port);
-            if let Err(e) =
-                avtransport_play(&url, &stream_url, track.as_ref(), sample_rate, need_play).await
+            let album_art_url = if let Some(ref t) = track {
+                get_album_art_url(&t.path, local_ip).await
+            } else {
+                None
+            };
+            if let Err(e) = avtransport_play(
+                &url,
+                &stream_url,
+                track.as_ref(),
+                sample_rate,
+                need_play,
+                album_art_url.as_deref(),
+            )
+            .await
             {
                 tracing::warn!("UPnP AVTransport play failed: {}", e);
             }
@@ -341,6 +359,74 @@ pub extern "C" fn pcm_upnp_close() {
 }
 
 // ---------------------------------------------------------------------------
+// Album art DB lookup
+// ---------------------------------------------------------------------------
+
+async fn get_album_art_url(path: &str, local_ip: std::net::Ipv4Addr) -> Option<String> {
+    let pool = db::open_pool().await.ok()?;
+    let db_track = db::track_by_path(&pool, path).await.ok()??;
+    let filename = db_track.album_art?;
+    if filename.is_empty() {
+        return None;
+    }
+    let graphql_port = std::env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or_else(|_| "6062".to_string());
+    Some(format!(
+        "http://{}:{}/covers/{}",
+        local_ip, graphql_port, filename
+    ))
+}
+
+// ---------------------------------------------------------------------------
+// Track-change monitor — sends updated SetAVTransportURI when track changes
+// ---------------------------------------------------------------------------
+
+fn ensure_track_monitor(renderer_url: String, port: u16) {
+    let gen = MONITOR_GEN.fetch_add(1, Ordering::SeqCst) + 1;
+    let rt = get_runtime();
+    rt.spawn(async move {
+        let mut last_path = String::new();
+        loop {
+            tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+
+            // Exit if a newer monitor was started (e.g. renderer changed).
+            if MONITOR_GEN.load(Ordering::SeqCst) != gen {
+                return;
+            }
+
+            if !*RENDERER_PLAYING.lock().unwrap() {
+                return;
+            }
+
+            let track = rockbox_sys::playback::current_track();
+            let current_path = track.as_ref().map(|t| t.path.clone()).unwrap_or_default();
+
+            if current_path.is_empty() || current_path == last_path {
+                continue;
+            }
+            last_path = current_path.clone();
+
+            let local_ip = get_local_ip();
+            let stream_url = format!("http://{}:{}/stream.wav", local_ip, port);
+            let sample_rate = CONFIG.lock().unwrap().sample_rate;
+            let album_art_url = get_album_art_url(&current_path, local_ip).await;
+
+            if let Err(e) = avtransport_play(
+                &renderer_url,
+                &stream_url,
+                track.as_ref(),
+                sample_rate,
+                false,
+                album_art_url.as_deref(),
+            )
+            .await
+            {
+                tracing::warn!("UPnP track monitor: failed to update metadata: {}", e);
+            }
+        }
+    });
+}
+
+// ---------------------------------------------------------------------------
 // AVTransport SOAP client — tells a UPnP renderer to play our WAV stream
 // ---------------------------------------------------------------------------
 
@@ -350,6 +436,7 @@ async fn avtransport_play(
     track: Option<&rockbox_sys::types::mp3_entry::Mp3Entry>,
     sample_rate: u32,
     send_play: bool,
+    album_art_url: Option<&str>,
 ) -> anyhow::Result<()> {
     use bytes::Bytes;
     use http_body_util::Full;
@@ -359,7 +446,7 @@ async fn avtransport_play(
 
     let client: Client<_, Full<Bytes>> = Client::builder(TokioExecutor::new()).build_http();
 
-    let metadata = build_didl_metadata(track, stream_url, sample_rate);
+    let metadata = build_didl_metadata(track, stream_url, sample_rate, album_art_url);
     let metadata_escaped = xml_escape(&metadata);
     tracing::info!("UPnP AVTransport: setting URI to {stream_url} with metadata:\n{metadata}");
 
@@ -453,8 +540,9 @@ fn build_didl_metadata(
     track: Option<&rockbox_sys::types::mp3_entry::Mp3Entry>,
     stream_url: &str,
     sample_rate: u32,
+    album_art_url: Option<&str>,
 ) -> String {
-    let (title, artist, album, duration_ms, album_art) = match track {
+    let (title, artist, album, duration_ms) = match track {
         Some(t) => {
             let title = if t.title.trim().is_empty() {
                 t.path
@@ -469,21 +557,9 @@ fn build_didl_metadata(
             } else {
                 t.title.clone()
             };
-            (
-                title,
-                t.artist.clone(),
-                t.album.clone(),
-                t.length,
-                t.album_art.clone(),
-            )
+            (title, t.artist.clone(), t.album.clone(), t.length)
         }
-        None => (
-            "stream.wav".to_string(),
-            String::new(),
-            String::new(),
-            0u64,
-            None,
-        ),
+        None => ("stream.wav".to_string(), String::new(), String::new(), 0u64),
     };
 
     let duration_str = if duration_ms > 0 {
@@ -507,15 +583,9 @@ fn build_didl_metadata(
     } else {
         format!("\n    <upnp:album>{al}</upnp:album>")
     };
-    let art_elem = match album_art.as_deref().filter(|s| !s.is_empty()) {
-        Some(filename) => {
-            let local_ip = get_local_ip();
-            let graphql_port =
-                std::env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or_else(|_| "6062".to_string());
-            let art_url = xml_escape(&format!(
-                "http://{}:{}/covers/{}",
-                local_ip, graphql_port, filename
-            ));
+    let art_elem = match album_art_url.filter(|s| !s.is_empty()) {
+        Some(url) => {
+            let art_url = xml_escape(url);
             format!("\n    <upnp:albumArtURI>{art_url}</upnp:albumArtURI>")
         }
         None => String::new(),

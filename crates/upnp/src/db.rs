@@ -59,6 +59,17 @@ pub async fn all_tracks(pool: &Pool<Sqlite>) -> anyhow::Result<Vec<Track>> {
     Ok(rows)
 }
 
+pub async fn track_by_path(pool: &Pool<Sqlite>, path: &str) -> anyhow::Result<Option<Track>> {
+    let row = sqlx::query_as::<_, Track>(
+        "SELECT id, path, title, artist, album, album_id, artist_id, \
+         track_number, length, filesize, album_art, genre, year FROM track WHERE path = ?",
+    )
+    .bind(path)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
 pub async fn track_by_id(pool: &Pool<Sqlite>, id: &str) -> anyhow::Result<Option<Track>> {
     let row = sqlx::query_as::<_, Track>(
         "SELECT id, path, title, artist, album, album_id, artist_id, \
