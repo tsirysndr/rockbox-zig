@@ -92,6 +92,20 @@ impl BroadcastBuffer {
         }
     }
 
+    /// Start a subscriber `n` chunks *behind* the live edge so the remote
+    /// client can drain historical buffered data at network speed instead of
+    /// waiting for new chunks to arrive in real time.  Clamped to the oldest
+    /// chunk still in the buffer.
+    pub(crate) fn subscribe_from_behind(self: &Arc<Self>, n: u64) -> BroadcastReceiver {
+        let g = self.inner.lock().unwrap();
+        let front_seq = g.chunks.front().map(|(s, _)| *s).unwrap_or(g.next_seq);
+        let next_seq = g.next_seq.saturating_sub(n).max(front_seq);
+        BroadcastReceiver {
+            buf: Arc::clone(self),
+            next_seq,
+        }
+    }
+
     fn reset(&self) {
         let mut g = self.inner.lock().unwrap();
         g.chunks.clear();
@@ -320,22 +334,29 @@ pub extern "C" fn pcm_upnp_start() -> c_int {
                 if let Some(ref t) = track {
                     *LAST_PCM_TRACK_PATH.lock().unwrap() = t.path.clone();
                 }
-                let album_art_url = if let Some(ref t) = track {
-                    get_album_art_url(&t.path, local_ip).await
-                } else {
-                    None
-                };
-                if let Err(e) = avtransport_play(
-                    &url,
-                    &stream_url,
-                    track.as_ref(),
-                    sample_rate,
-                    true,
-                    album_art_url.as_deref(),
-                )
-                .await
+                // Send SetAVTransportURI + Play immediately without waiting for the
+                // album art DB lookup — this cuts 100–500 ms of startup latency.
+                if let Err(e) =
+                    avtransport_play(&url, &stream_url, track.as_ref(), sample_rate, true, None)
+                        .await
                 {
                     tracing::warn!("UPnP AVTransport play failed: {}", e);
+                    return;
+                }
+                // Follow up with album art once the DB lookup completes (metadata-
+                // only update, no second Play so the renderer stays connected).
+                if let Some(ref t) = track {
+                    if let Some(art) = get_album_art_url(&t.path, local_ip).await {
+                        let _ = avtransport_play(
+                            &url,
+                            &stream_url,
+                            track.as_ref(),
+                            sample_rate,
+                            false,
+                            Some(&art),
+                        )
+                        .await;
+                    }
                 }
             });
         } else {
@@ -357,7 +378,15 @@ pub extern "C" fn pcm_upnp_start() -> c_int {
                 }
             };
 
-            if is_track_change {
+            // If the "new track" is our own WAV stream the renderer is re-ingesting
+            // (http://<ip>:<port>/stream.wav), skip SetAVTransportURI entirely.
+            // Sending it would overwrite the correct DIDL metadata (duration, album
+            // art) stored for the real file with stream.wav's codec values (duration
+            // 0, no art), and would create an infinite feedback loop.
+            let is_our_stream =
+                current_path.starts_with("http://") && current_path.ends_with("/stream.wav");
+
+            if is_track_change && !is_our_stream {
                 // Fire SetAVTransportURI *without* Play at the exact PCM boundary.
                 // The renderer updates its metadata display and — if it supports
                 // metadata-only updates — stays connected to the live /stream.wav
@@ -423,6 +452,22 @@ pub extern "C" fn pcm_upnp_close() {
     *rp = false;
 }
 
+/// Reset the renderer-side state so the next `pcm_upnp_start()` always sends
+/// a fresh SetAVTransportURI + Play to the renderer.  Call this whenever the
+/// UPnP sink is selected (e.g. the user connects to a UPnP device from the UI)
+/// to make output switch-in work without restarting the daemon.
+#[cfg(feature = "ffi")]
+#[no_mangle]
+pub extern "C" fn pcm_upnp_reset_renderer() {
+    // Kill any running track-change monitor — a new one will start with pcm_upnp_start().
+    MONITOR_GEN.fetch_add(1, Ordering::SeqCst);
+    // Clear the last-track hint so the next start is always treated as "first play".
+    *LAST_PCM_TRACK_PATH.lock().unwrap() = String::new();
+    // Reset the "renderer already playing" flag so pcm_upnp_start() sends Play.
+    *RENDERER_PLAYING.lock().unwrap() = false;
+    tracing::debug!("UPnP PCM sink: renderer state reset");
+}
+
 // ---------------------------------------------------------------------------
 // Album art DB lookup
 // ---------------------------------------------------------------------------
@@ -470,7 +515,10 @@ fn ensure_track_monitor(renderer_url: String, port: u16) {
                 .map(|t| t.path.clone())
                 .unwrap_or_default();
 
-            if !current_path.is_empty() && current_path != last_current_path {
+            let is_our_stream =
+                current_path.starts_with("http://") && current_path.ends_with("/stream.wav");
+
+            if !current_path.is_empty() && current_path != last_current_path && !is_our_stream {
                 let is_first = last_current_path.is_empty();
                 last_current_path = current_path.clone();
 

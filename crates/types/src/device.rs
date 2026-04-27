@@ -6,13 +6,18 @@ pub const CHROMECAST_SERVICE_NAME: &str = "_googlecast._tcp.local.";
 pub const AIRPLAY_SERVICE_NAME: &str = "_raop._tcp.local.";
 pub const ROCKBOX_SERVICE_NAME: &str = "_rockbox._tcp.local.";
 pub const XBMC_SERVICE_NAME: &str = "_xbmc-jsonrpc-h._tcp.local.";
+pub const SNAPCAST_SERVICE_NAME: &str = "_snapcast._tcp.local.";
 
 pub const AIRPLAY_DEVICE: &str = "AirPlay";
 pub const CHROMECAST_DEVICE: &str = "Chromecast";
 pub const XBMC_DEVICE: &str = "XBMC";
 pub const MUSIC_PLAYER_DEVICE: &str = "MusicPlayer";
 pub const UPNP_DLNA_DEVICE: &str = "UPnP/DLNA";
+
+// Port for Snapcast TCP source input (not the client streaming port 1704 advertised via mDNS).
+pub const SNAPCAST_TCP_SOURCE_PORT: u16 = 4953;
 pub const ROCKBOX_DEVICE: &str = "Rockbox";
+pub const SNAPCAST_DEVICE: &str = "Snapcast";
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct Device {
@@ -120,6 +125,43 @@ impl From<ServiceInfo> for Device {
                 port: srv.get_port(),
                 service: srv.get_fullname().to_owned(),
                 app: "chromecast".to_owned(),
+                is_connected: false,
+                base_url: None,
+                is_cast_device: true,
+                is_source_device: false,
+                is_current_device: false,
+            };
+        }
+
+        if srv.get_fullname().contains(SNAPCAST_SERVICE_NAME) {
+            let ip = srv
+                .get_addresses()
+                .iter()
+                .next()
+                .map(|a| a.to_string())
+                .unwrap_or_default();
+            let name = srv
+                .get_fullname()
+                .replace(SNAPCAST_SERVICE_NAME, "")
+                .trim_matches('.')
+                .to_owned();
+            let name = if name.is_empty() {
+                SNAPCAST_DEVICE.to_owned()
+            } else {
+                name
+            };
+            return Self {
+                id: format!("snapcast-{}", ip),
+                name,
+                host: srv
+                    .get_hostname()
+                    .split_at(srv.get_hostname().len() - 1)
+                    .0
+                    .to_owned(),
+                ip,
+                port: SNAPCAST_TCP_SOURCE_PORT,
+                service: "snapcast".to_owned(),
+                app: SNAPCAST_DEVICE.to_owned(),
                 is_connected: false,
                 base_url: None,
                 is_cast_device: true,

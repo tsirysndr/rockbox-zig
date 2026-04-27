@@ -17,13 +17,24 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
         rb::system::set_sleeptimer_duration(0);
     }
 
+    let home = std::env::var("HOME")?;
+    let default_music_dir = format!("{}/Music", home);
+    // Ensure the default music directory always exists.
+    if let Err(e) = std::fs::create_dir_all(&default_music_dir) {
+        tracing::warn!("could not create default music dir {default_music_dir}: {e}");
+    }
+
     if let Some(music_dir) = settings.clone().music_dir {
-        if let Ok(_) = std::fs::metadata(&music_dir) {
-            std::env::set_var(
-                "ROCKBOX_LIBRARY",
-                music_dir.replace("$HOME", &std::env::var("HOME")?),
-            );
+        let resolved = music_dir.replace("$HOME", &home);
+        if std::fs::metadata(&resolved).is_ok() {
+            std::env::set_var("ROCKBOX_LIBRARY", &resolved);
+        } else {
+            // Configured dir doesn't exist yet; fall back to the default so
+            // the library scanner has somewhere to point.
+            std::env::set_var("ROCKBOX_LIBRARY", &default_music_dir);
         }
+    } else {
+        std::env::set_var("ROCKBOX_LIBRARY", &default_music_dir);
     }
 
     rb::settings::save_settings(settings.clone(), new_settings.is_none());
@@ -98,6 +109,19 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
             }
             pcm::switch_sink(pcm::PCM_SINK_CHROMECAST);
         }
+        Some("snapcast_tcp") => {
+            if let Some(ref host) = settings.snapcast_tcp_host {
+                let port = settings.snapcast_tcp_port.unwrap_or(4953);
+                pcm::tcp_set_host(host);
+                pcm::tcp_set_port(port);
+                pcm::switch_sink(pcm::PCM_SINK_SNAPCAST_TCP);
+                tracing::info!("audio output: snapcast_tcp ({}:{})", host, port);
+            } else {
+                tracing::warn!(
+                    "audio output: snapcast_tcp selected but no snapcast_tcp_host configured"
+                );
+            }
+        }
         Some("builtin") | None => {
             tracing::info!("audio output: builtin (SDL)");
         }
@@ -134,15 +158,49 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
 }
 
 pub fn write_settings() -> Result<(), Error> {
-    let settings = rb::settings::get_global_settings();
-    let mut settings: NewGlobalSettings = settings.into();
+    let from_c: NewGlobalSettings = rb::settings::get_global_settings().into();
     let home = std::env::var("HOME")?;
 
-    settings.music_dir =
-        Some(std::env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home)));
+    // Start from whatever is already on disk so Rust-only fields
+    // (audio_output, upnp_*, airplay_*, fifo_path, etc.) are never lost
+    // when writing back only the C-firmware-owned settings.
+    let mut settings = read_settings().unwrap_or_default();
+
+    // Only update music_dir when ROCKBOX_LIBRARY was explicitly set at runtime.
+    // If it was never set (e.g. the directory didn't exist at startup), keep
+    // whatever the TOML already has to avoid resetting to the default ~/Music.
+    if let Ok(library) = std::env::var("ROCKBOX_LIBRARY") {
+        settings.music_dir = Some(library);
+    }
+    settings.playlist_shuffle = from_c.playlist_shuffle;
+    settings.repeat_mode = from_c.repeat_mode;
+    settings.bass = from_c.bass;
+    settings.treble = from_c.treble;
+    settings.bass_cutoff = from_c.bass_cutoff;
+    settings.treble_cutoff = from_c.treble_cutoff;
+    settings.crossfade = from_c.crossfade;
+    settings.fade_on_stop = from_c.fade_on_stop;
+    settings.fade_in_delay = from_c.fade_in_delay;
+    settings.fade_in_duration = from_c.fade_in_duration;
+    settings.fade_out_delay = from_c.fade_out_delay;
+    settings.fade_out_duration = from_c.fade_out_duration;
+    settings.fade_out_mixmode = from_c.fade_out_mixmode;
+    settings.balance = from_c.balance;
+    settings.stereo_width = from_c.stereo_width;
+    settings.stereosw_mode = from_c.stereosw_mode;
+    settings.surround_enabled = from_c.surround_enabled;
+    settings.surround_balance = from_c.surround_balance;
+    settings.surround_fx1 = from_c.surround_fx1;
+    settings.surround_fx2 = from_c.surround_fx2;
+    settings.party_mode = from_c.party_mode;
+    settings.channel_config = from_c.channel_config;
+    settings.player_name = from_c.player_name;
+    settings.eq_enabled = from_c.eq_enabled;
+    settings.eq_band_settings = from_c.eq_band_settings;
+    settings.replaygain_settings = from_c.replaygain_settings;
+    settings.compressor_settings = from_c.compressor_settings;
 
     let content = toml::to_string(&settings)?;
-
     let path = format!("{}/.config/rockbox.org/settings.toml", home);
     std::fs::write(&path, content)?;
     Ok(())

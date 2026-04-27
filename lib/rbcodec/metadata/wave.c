@@ -364,6 +364,10 @@ static bool read_header(int fd, struct mp3entry* id3, const unsigned char *chunk
             fmt.numbytes = chunksize;
             if (fmt.formattag == WAVE_FORMAT_ATRAC3)
                 id3->first_frame_offset = offset;
+            /* 'data' is always the last meaningful chunk. Stop here so the
+             * parser never tries to seek past an infinite-size data chunk
+             * (e.g. live WAV streams use 0xFFFFFFFF as a sentinel size). */
+            break;
         }
         else if (memcmp(buf, chunknames + LIST_CHUNK * namelen, namelen) == 0)
         {

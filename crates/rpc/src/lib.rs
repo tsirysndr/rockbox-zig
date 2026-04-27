@@ -948,6 +948,8 @@ pub mod api {
                     chromecast_host: None,
                     chromecast_http_port: None,
                     chromecast_port: None,
+                    snapcast_tcp_host: None,
+                    snapcast_tcp_port: None,
                 }
             }
         }
@@ -1021,7 +1023,7 @@ macro_rules! check_and_load_player {
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        if !player.host.is_empty() && player.port != 0 {
+        if player.is_cast_device {
             let client = reqwest::Client::new();
             let body = serde_json::json!({
                 "tracks": $tracks,

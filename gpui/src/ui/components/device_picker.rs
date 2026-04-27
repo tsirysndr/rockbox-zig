@@ -12,6 +12,7 @@ pub fn device_icon(device: &DeviceItem) -> Icons {
     match device.service.as_str() {
         "chromecast" => Icons::Chromecast,
         "airplay" => Icons::Airplay,
+        "snapcast" => Icons::Speaker,
         _ => {
             if device.is_current_device {
                 Icons::Device

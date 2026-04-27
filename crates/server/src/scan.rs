@@ -1,7 +1,9 @@
 use futures_util::StreamExt;
 use rockbox_discovery::{discover, CHROMECAST_SERVICE_NAME};
 use rockbox_graphql::simplebroker::SimpleBroker;
-use rockbox_types::device::{Device, AIRPLAY_DEVICE, AIRPLAY_SERVICE_NAME, UPNP_DLNA_DEVICE};
+use rockbox_types::device::{
+    Device, AIRPLAY_DEVICE, AIRPLAY_SERVICE_NAME, SNAPCAST_SERVICE_NAME, UPNP_DLNA_DEVICE,
+};
 use std::{
     sync::{Arc, Mutex},
     thread,
@@ -117,6 +119,33 @@ pub fn scan_airplay_devices(devices: Arc<Mutex<Vec<Device>>>) {
                 device.is_cast_device = true;
                 devices.push(device.clone());
                 SimpleBroker::<Device>::publish(device);
+            }
+        });
+    });
+}
+
+/// Discover Snapcast servers on the local network via mDNS (`_snapcast._tcp.local.`).
+/// Runs in a background thread; newly found servers are added to the shared device list.
+pub fn scan_snapcast_servers(devices: Arc<Mutex<Vec<Device>>>) {
+    thread::spawn(move || {
+        tokio::runtime::Runtime::new().unwrap().block_on(async {
+            let services = discover(SNAPCAST_SERVICE_NAME);
+            tokio::pin!(services);
+            while let Some(info) = services.next().await {
+                let device = Device::from(info.clone());
+
+                let mut devs = devices.lock().unwrap();
+                if devs.iter().any(|d| d.id == device.id) {
+                    continue;
+                }
+                tracing::info!(
+                    "snapcast: discovered server {} ({}:{})",
+                    device.name,
+                    device.ip,
+                    device.port
+                );
+                SimpleBroker::<Device>::publish(device.clone());
+                devs.push(device);
             }
         });
     });

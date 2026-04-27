@@ -8,6 +8,7 @@ pub const PCM_SINK_AIRPLAY: i32 = 2;
 pub const PCM_SINK_SQUEEZELITE: i32 = 3;
 pub const PCM_SINK_UPNP: i32 = 4;
 pub const PCM_SINK_CHROMECAST: i32 = 5;
+pub const PCM_SINK_SNAPCAST_TCP: i32 = 6;
 
 pub fn apply_settings() {
     unsafe {
@@ -101,6 +102,12 @@ pub fn upnp_clear_renderer_url() {
     unsafe { crate::pcm_upnp_set_renderer_url(std::ptr::null()) }
 }
 
+/// Reset renderer-side state so the next play always sends SetAVTransportURI+Play.
+/// Call this before switch_sink(PCM_SINK_UPNP) so output switching works live.
+pub fn upnp_reset_renderer() {
+    unsafe { crate::pcm_upnp_reset_renderer() }
+}
+
 pub fn chromecast_set_http_port(port: u16) {
     unsafe { crate::pcm_chromecast_set_http_port(port) }
 }
@@ -117,4 +124,14 @@ pub fn chromecast_set_device_port(port: u16) {
 
 pub fn chromecast_teardown() {
     unsafe { crate::pcm_chromecast_teardown() }
+}
+
+pub fn tcp_set_host(host: &str) {
+    let chost = CString::new(host).expect("host must not contain null bytes");
+    unsafe { crate::pcm_tcp_set_host(chost.as_ptr()) }
+    std::mem::forget(chost);
+}
+
+pub fn tcp_set_port(port: u16) {
+    unsafe { crate::pcm_tcp_set_port(port) }
 }

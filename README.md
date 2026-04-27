@@ -31,7 +31,7 @@ and Squeezelite.
 ### Audio output
 - [x] Built-in SDL audio
 - [x] AirPlay (RAOP) — single or multi-room fan-out to Apple TV, HomePod, Airport Express, shairport-sync
-- [x] Snapcast (FIFO/pipe) — synchronised multi-room via snapserver
+- [x] Snapcast — synchronised multi-room via snapserver (FIFO/pipe **and** direct TCP with mDNS auto-discovery)
 - [x] Squeezelite (Slim Protocol + HTTP broadcast) — synchronised multi-room
 - [x] Chromecast
 - [x] Gapless playback and crossfading
@@ -204,7 +204,39 @@ audio_output = "builtin"
 
 Uses SDL2 audio — plays through the OS default device. No extra setup needed.
 
-### Snapcast (FIFO / pipe)
+### Snapcast
+
+Rockbox supports two ways to feed [Snapcast](https://github.com/badaix/snapcast)
+for synchronised multi-room playback. Both write raw **S16LE stereo 44100 Hz**
+PCM to snapserver.
+
+#### TCP (recommended — auto-discovery)
+
+```toml
+music_dir         = "/path/to/Music"
+audio_output      = "snapcast_tcp"
+snapcast_tcp_host = "192.168.1.x"   # IP of the machine running snapserver
+snapcast_tcp_port = 4953            # default snapserver TCP source port
+```
+
+Connects directly to snapserver's TCP source port. No named FIFO or filesystem
+dependency needed.
+
+```ini
+# /etc/snapserver.conf  (or /usr/local/etc/snapserver.conf on macOS)
+[stream]
+source = tcp://0.0.0.0:4953?name=default&sampleformat=44100:16:2
+```
+
+> **Startup order**: start `snapserver` first so it is already listening when
+> rockboxd begins playback. If the connection drops (e.g. snapserver restarts),
+> it is re-established automatically on the next play call.
+
+> **Auto-discovery**: rockboxd scans for `_snapcast._tcp.local.` via mDNS at
+> startup. Discovered servers appear in the web UI and desktop app device
+> picker — just click to connect, no config file editing needed.
+
+#### FIFO / pipe
 
 ```toml
 music_dir    = "/path/to/Music"
@@ -212,9 +244,8 @@ audio_output = "fifo"
 fifo_path    = "/tmp/snapfifo"   # named FIFO for snapserver; use "-" for stdout
 ```
 
-Writes raw **S16LE stereo 44100 Hz** PCM to a named FIFO. Feed it into
-[Snapcast](https://github.com/badaix/snapcast) for synchronised multi-room
-playback:
+Writes to a named FIFO. Use this when you need stdout piping or prefer the
+traditional pipe model.
 
 ```ini
 # /etc/snapserver.conf  (or /usr/local/etc/snapserver.conf on macOS)
@@ -231,6 +262,9 @@ Pipe to any PCM consumer with `fifo_path = "-"`:
 ```sh
 rockboxd | ffplay -f s16le -ar 44100 -ac 2 -
 ```
+
+See [SNAPCAST.md](./SNAPCAST.md) for a detailed comparison of both modes,
+connection lifecycle, reconnect behaviour, and macOS quirks.
 
 ### AirPlay (RAOP) — single or multi-room
 

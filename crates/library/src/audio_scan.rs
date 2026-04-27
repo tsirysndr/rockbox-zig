@@ -253,6 +253,104 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
     Ok(())
 }
 
+/// Save metadata for a streaming URL directly to the DB without probing the stream.
+/// Called by the UPnP renderer which already has title/artist/album/duration from DIDL-Lite.
+pub async fn save_stream_metadata(
+    pool: Pool<Sqlite>,
+    url: &str,
+    title: &str,
+    artist: &str,
+    album: &str,
+    duration_ms: u32,
+) -> Result<(), Error> {
+    let track_md5 = format!("{:x}", md5::compute(url.as_bytes()));
+    let length_secs = duration_ms / 1000;
+
+    if repo::track::find_by_md5(pool.clone(), &track_md5)
+        .await?
+        .is_some()
+    {
+        repo::track::update_stream_metadata(pool, &track_md5, title, artist, album, length_secs)
+            .await?;
+        return Ok(());
+    }
+
+    let artist_id = repo::artist::save(
+        pool.clone(),
+        Artist {
+            id: cuid::cuid1()?,
+            name: artist.to_string(),
+            bio: None,
+            image: None,
+            genres: None,
+        },
+    )
+    .await?;
+
+    let album_md5 = format!(
+        "{:x}",
+        md5::compute(format!("{}{}", artist, album).as_bytes())
+    );
+    let album_id = repo::album::save(
+        pool.clone(),
+        Album {
+            id: cuid::cuid1()?,
+            title: album.to_string(),
+            artist: artist.to_string(),
+            year: 0,
+            year_string: String::new(),
+            album_art: None,
+            md5: album_md5,
+            artist_id: artist_id.clone(),
+            label: None,
+            copyright_message: None,
+        },
+    )
+    .await?;
+
+    let track_id = repo::track::save(
+        pool.clone(),
+        Track {
+            id: cuid::cuid1()?,
+            path: url.to_string(),
+            title: title.to_string(),
+            artist: artist.to_string(),
+            album: album.to_string(),
+            album_artist: artist.to_string(),
+            length: length_secs,
+            md5: track_md5,
+            artist_id: artist_id.clone(),
+            album_id: album_id.clone(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            ..Default::default()
+        },
+    )
+    .await?;
+
+    repo::album_tracks::save(
+        pool.clone(),
+        AlbumTracks {
+            id: cuid::cuid1()?,
+            album_id,
+            track_id: track_id.clone(),
+        },
+    )
+    .await?;
+
+    repo::artist_tracks::save(
+        pool.clone(),
+        ArtistTracks {
+            id: cuid::cuid1()?,
+            artist_id,
+            track_id,
+        },
+    )
+    .await?;
+
+    Ok(())
+}
+
 fn is_remote_path(path: &str) -> bool {
     path.starts_with("http://") || path.starts_with("https://")
 }
