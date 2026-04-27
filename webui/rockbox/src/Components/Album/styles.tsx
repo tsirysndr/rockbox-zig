@@ -40,6 +40,14 @@ export const AlbumTitle = styled.div`
   color: ${(props) => props.theme.colors.text};
 `;
 
+export const CoverWrapper = styled.div`
+  position: relative;
+  &:hover .album-footer-menu {
+    opacity: 1;
+    pointer-events: auto;
+  }
+`;
+
 export const AlbumFooterMenu = styled.div`
   position: absolute;
   bottom: 0;
@@ -50,22 +58,10 @@ export const AlbumFooterMenu = styled.div`
   align-items: center;
   justify-content: space-between;
   width: calc(100% - 20px);
-`;
-
-export const Hover = styled.button`
-  position: absolute;
-  inset: 0;
-  color: transparent;
-  background-color: transparent;
-  border: none;
-  opacity: 0 !important;
-  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
   z-index: 1;
-  &:hover,
-  &:focus {
-    color: ${(props) => props.theme.colors.text};
-    opacity: 1 !important;
-  }
 `;
 
 export const FloatingButton = styled.button`
