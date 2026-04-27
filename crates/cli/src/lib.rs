@@ -150,6 +150,11 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         rt.block_on(async {
             rockbox_typesense::setup()?;
 
+            // Wait for Typesense to accept connections before any HTTP calls.
+            // The subprocess thread starts typesense-server concurrently, so it
+            // may not be listening yet when we reach the first collection call.
+            wait_for_typesense().await;
+
             let pool = create_connection_pool().await?;
             let tracks = repo::track::all(pool.clone()).await?;
             if tracks.is_empty() || update_library {
@@ -170,10 +175,6 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
                 insert_albums(albums.into_iter().map(Album::from).collect()).await?;
             }
 
-            // Always sync playlists on startup so the collection exists even when the
-            // library scan was skipped.  Wait for Typesense to be ready first since it
-            // may still be starting when tracks are already indexed (no scan delay).
-            wait_for_typesense().await;
             create_playlists_collection().await?;
             let playlist_store = PlaylistStore::new(pool.clone());
             let saved = playlist_store.list().await.unwrap_or_default();
@@ -205,7 +206,7 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             }
             Ok::<(), Error>(())
         })
-        .unwrap();
+        .unwrap_or_else(|e| warn!("Library indexing failed: {}", e));
 
         thread::spawn(move || {
             sleep(Duration::from_secs(5));
