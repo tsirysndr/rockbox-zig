@@ -295,6 +295,7 @@ exports[`ControlBar > should render 1`] = `
           <svg
             aria-hidden="true"
             class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+            color="#9090a0"
             fill="currentColor"
             focusable="false"
             height="21"
