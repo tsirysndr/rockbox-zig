@@ -50,7 +50,6 @@ jobs:
         run: |
           cargo build -p rockbox-cli --release
           cargo build -p rockbox-server --release
-          cargo build -p rockbox --release
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
       - name: Build Rockbox Binary
@@ -84,17 +83,13 @@ jobs:
           ls -l /usr/local/share/rockbox
       - name: Show Rockbox version
         run: |
-          ./target/release/rockbox --version
           ./zig/zig-out/bin/rockboxd --version
       - name: Archive artifacts
         run: |
           VERSION="${{ steps.vars.outputs.version }}"
           ARCH="${{ steps.vars.outputs.arch }}"
           sudo bash -c """
-          cp target/release/rockbox .
           cp zig/zig-out/bin/rockboxd .
-          tar czvf rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockbox
-          sha256 rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
           tar czvf rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockboxd
           sha256 rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
           cd /usr/local/lib/rockbox && tar czvf rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
