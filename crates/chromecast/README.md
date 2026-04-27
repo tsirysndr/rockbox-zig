@@ -8,7 +8,10 @@ Audio, Chromecast with Google TV, Nest Hub, and third-party Cast receivers.
 
 ## Architecture overview
 
-The Chromecast implementation has two independent, complementary halves:
+All Chromecast functionality is driven by `src/pcm.rs`. The `src/lib.rs` module
+contains a `Player` trait implementation that is retained for internal use but is
+**not** invoked from the server connect handler — the `cast_loop` thread in
+`pcm.rs` owns the Cast session exclusively.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -27,11 +30,15 @@ The Chromecast implementation has two independent, complementary halves:
 │  └─────────────────────┬───────────────────────┘                     │
 │                         │  HTTP (WAV)                                │
 │  ┌──────────────────────▼──────────────────────┐                     │
-│  │  Cast protocol thread                       │                     │
-│  │  (Cast TCP 8009, TLS, Protobuf)             │                     │
+│  │  cast_loop thread  (src/pcm.rs)             │                     │
+│  │  · connects to Cast device on port 8009     │                     │
+│  │  · launches Rockbox app (ID 88DCBD57)       │                     │
 │  │  · media.load(url=http://host:7881/…)       │                     │
 │  │  · heartbeat.ping() every 500 ms            │                     │
 │  │  · on track change → media.load() again     │                     │
+│  │  · on RELOAD_REQUESTED → buffer.reset()     │                     │
+│  │    + media.load() (pause/resume recovery)   │                     │
+│  │  · exits when CAST_GENERATION changes       │                     │
 │  └──────────────────────┬──────────────────────┘                     │
 └─────────────────────────┼────────────────────────────────────────────┘
                           │  Cast protocol (TLS, port 8009)
@@ -42,105 +49,22 @@ The Chromecast implementation has two independent, complementary halves:
                     └────────────┘
 ```
 
-The two halves communicate through a standard URL: the Cast protocol thread
-tells the device to fetch `http://<rockboxd-host>:7881/stream.wav`, and the HTTP
-server serves that stream from the broadcast buffer filled by the firmware.
-
 ---
 
 ## Module map
 
-| File          | Responsibility                                                                     |
-|---------------|------------------------------------------------------------------------------------|
-| `src/lib.rs`  | `Player` trait implementation; Cast protocol control thread; MPSC command dispatch |
-| `src/pcm.rs`  | HTTP WAV broadcast server; album art server; `BroadcastBuffer`; C FFI surface      |
-| `src/main.rs` | Example binary (connects to a hardcoded IP for manual testing)                     |
+| File          | Responsibility                                                                          |
+|---------------|-----------------------------------------------------------------------------------------|
+| `src/pcm.rs`  | Primary: HTTP WAV server; `BroadcastBuffer`; `cast_loop`; full C FFI surface           |
+| `src/lib.rs`  | Secondary: `Player` trait impl; Cast command dispatch (retained, not called by server) |
+| `src/main.rs` | Example binary (connects to a hardcoded IP for manual testing)                          |
 
 ---
 
-## Part 1 — Cast protocol (src/lib.rs)
+## Part 1 — WAV/HTTP broadcast + cast_loop (src/pcm.rs)
 
-### Connection
-
-`Chromecast::connect(device: Device)` establishes the Cast session:
-
-1. Open a TLS TCP connection to the device on port 8009
-   (`CastDevice::connect_without_host_verification`) — host verification is
-   skipped because Chromecast devices use self-signed certificates.
-2. Connect to the built-in `receiver-0` destination.
-3. Ping the heartbeat channel.
-4. Launch the **Default Media Receiver** (app ID `"88DCBD57"`).
-5. Save the resulting `transport_id` and `session_id`.
-6. Spawn a background Tokio task (`CastPlayerInternal`) that owns the
-   `CastDevice` handle and processes commands.
-
-The method returns a `Box<dyn Player>` usable through the shared `Player` trait.
-
-### Command dispatch
-
-All player operations (play, pause, next, previous, load_tracks, …) send a
-`CastPlayerCommand` over an unbounded MPSC channel to the background task.
-This avoids blocking the calling thread and keeps the Cast device handle
-single-owner.
-
-```
-caller thread                background task (CastPlayerInternal)
-     │                                   │
-     │──CastPlayerCommand::Play─────────►│
-     │                                   │── cast_device.media.play()
-     │──CastPlayerCommand::Next─────────►│
-     │                                   │── cast_device.media.next()
-     │──CastPlayerCommand::LoadTracks──►│
-     │                                   │── cast_device.media.queue_load([…])
-```
-
-### Status polling
-
-Every 500 ms the background task calls `media.get_status()` and updates a
-shared `Arc<Mutex<CurrentPlayback>>`. `get_current_playback()` reads this value
-without talking to the device, so it is always fast and non-blocking.
-
-### Track metadata
-
-When loading a track or a queue, Rockbox builds a Cast `Media` object with:
-
-- `content_id` — the stream URL (`http://<host>:7881/stream.wav`)
-- `content_type` — `"audio/wav"`
-- `stream_type` — `Buffered` when duration is known, `Live` otherwise
-- `duration` — seconds from the Rockbox track entry
-- `metadata` — `MusicTrackMediaMetadata` with title, artist, album, and an
-  album art URL (`http://<host>:7881/now-playing/art?t=<seq>`)
-
-The `?t=<seq>` cache-buster increments on every track change so the Chromecast
-re-fetches the art rather than using its internal cache.
-
-### Queue management
-
-- `load_tracks(tracks, start_index)` → `media.queue_load([Media…])` — replaces
-  the entire queue and starts playback from `start_index`.
-- `play_next(track)` → `media.queue_insert(Media)` — inserts one track before
-  the next queue item.
-
-### Session lifecycle
-
-| Player method  | Cast action                                             |
-|----------------|---------------------------------------------------------|
-| `play()`       | `media.play()`                                          |
-| `pause()`      | `media.pause()`                                         |
-| `resume()`     | `media.play()`                                          |
-| `stop()`       | no-op — session stays alive so pause/resume is seamless |
-| `next()`       | `media.next()`                                          |
-| `previous()`   | `media.previous()`                                      |
-| `disconnect()` | `receiver.stop_app(session_id)`                         |
-
-`stop()` is intentionally a no-op at the Cast level. The Cast app is only
-stopped when `disconnect()` is called explicitly (e.g. the user switches to
-another output or closes the app). This prevents the Chromecast UI from
-dismissing the "Now Playing" card between tracks.
-
----
-
-## Part 2 — WAV/HTTP broadcast (src/pcm.rs)
+This is the **primary implementation**. The server connect handler arms the PCM
+sink and the C firmware drives everything else through the FFI surface.
 
 ### BroadcastBuffer
 
@@ -151,121 +75,194 @@ firmware (writer)
 ┌────────────────────────────────────────────┐
 │  BroadcastBuffer  (max 4 MB)               │
 │  - sequence counter (u64)                  │
-│  - Vec of (seq, chunk) pairs               │
+│  - VecDeque of (seq, chunk) pairs          │
 │  - Condvar to wake sleeping readers        │
 │  - evict oldest chunks when full           │
+│  - close() / reset() for session teardown  │
 └────────────────────────────────────────────┘
-     │  reader cursor per HTTP client
+     │  independent cursor per HTTP client
      ▼
-HTTP client 1, HTTP client 2, …
+HTTP client 1 (Chromecast), HTTP client 2, …
 ```
 
-Each HTTP client (i.e. the Chromecast device) gets its own cursor into the
-buffer. A slow client skips forward to the current position rather than
-blocking the writer — this prevents audio glitches when network conditions are
-poor.
+Each HTTP client gets its own `BroadcastReceiver` cursor. A lagging reader skips
+forward to the current position so it never blocks the writer.
 
 ### WAV HTTP server
 
-The server listens on `chromecast_http_port` (default **7881**) and handles two
-routes:
+Listens on `chromecast_http_port` (default **7881**). Started once on the first
+`pcm_chromecast_start()` call and kept alive for the process lifetime.
 
-#### `GET /stream.wav` (or any path)
+#### `GET /stream.wav`
 
-1. Computes a WAV RIFF header from the current track's sample rate, channel
-   count, and duration:
+1. Derives a WAV RIFF header from the current track:
    - `data_size = (duration_ms × byte_rate) / 1000`
    - `byte_rate = sample_rate × 4` (stereo 16-bit)
    - `Content-Length = 44 (header) + data_size`
    - If duration is unknown, `data_size = 0xFFFFFFFF` (Chromecast shows ∞).
-2. Streams the header, then sends chunks from the broadcast buffer as they
-   arrive until `data_size` bytes have been sent or the client disconnects.
-
-Using a finite `Content-Length` is important: Chromecast's Default Media
-Receiver uses it to show a progress bar and to know when a track ends so it
-can automatically advance to the next queue item.
+2. Streams the header then drains `BroadcastBuffer` chunks until `data_size`
+   bytes are sent or the client disconnects.
 
 #### `GET /now-playing/art`
 
-Searches the directory of the currently playing track for common album art
-filenames:
+Searches the current track's directory for common album art filenames and
+returns the first match. Returns 404 if none found.
+
+### cast_loop and session lifecycle
+
+`cast_loop(host, port, http_port, gen)` runs in a background thread. `gen` is
+the current `CAST_GENERATION` value at spawn time.
 
 ```
-cover.jpg  cover.png  cover.webp  folder.jpg  folder.png
-front.jpg  front.png  artwork.jpg  artwork.jpeg  artwork.png
+cast_loop(gen)
+  │
+  └─► cast_session(gen)
+         · CastDevice::connect_without_host_verification
+         · connection.connect("receiver-0")
+         · heartbeat.ping()
+         · receiver.launch_app("88DCBD57")   ← Rockbox Cast app
+         · connection.connect(transport_id)
+         · media.load(initial)
+         │
+         └─► monitor loop (every 500 ms)
+               · if CAST_STOP || CAST_GENERATION != gen → stop_app, return true
+               · heartbeat.ping()  (failure → return false → reconnect)
+               · if track path changed → art_seq++ → media.load(new metadata)
+               · if RELOAD_REQUESTED && !CAST_STOP → buffer.reset() + media.load()
 ```
 
-Returns the first match with the correct MIME type, or 404 if none is found.
+If `cast_session` returns `false` (heartbeat lost), `cast_loop` retries after
+3 seconds. If it returns `true` (graceful stop), `cast_loop` exits and sets
+`CAST_PLAYING = false` — but only if the generation is still current.
 
-### Track change detection
+### Generation counter
 
-A dedicated `cast_loop` thread polls `rockbox_sys::playback::current_track()`
-every 500 ms and compares the path to the previously known path. On a change:
+`CAST_GENERATION: AtomicU32` is the mechanism that allows a stale `cast_loop`
+to exit cleanly even after `CAST_STOP` has been re-armed for a new session:
 
-1. Increments the global `art_seq` counter.
-2. Calls `media.load(Media{…})` on the active Cast session with fresh
-   metadata and a cache-busted art URL.
-3. The Chromecast fetches the new `/stream.wav` URL and the updated album art.
+- `pcm_chromecast_teardown()` increments the generation.
+- Each `cast_loop` captures the generation at spawn time and exits when it
+  diverges, preventing two concurrent cast loops from fighting over the device.
+
+### RELOAD_REQUESTED
+
+Set by `pcm_chromecast_start()` when `CAST_PLAYING = true` and `CAST_STOP =
+false` (i.e. the cast loop is running normally). This covers the pause/resume
+case: after a pause the C sink calls `sink_dma_stop()` then `sink_dma_start()`,
+and `RELOAD_REQUESTED` signals the monitor loop to reset the buffer and reload
+media so the Chromecast reconnects to the fresh stream.
+
+`RELOAD_REQUESTED` is **not** set when `CAST_STOP = true` (teardown is in
+progress) — in that case `pcm_chromecast_start()` detects `CAST_PLAYING = false`
+and spawns a new `cast_loop` from scratch instead.
 
 ### FFI surface
 
-The C firmware calls these symbols (defined with `#[no_mangle]` in `pcm.rs`):
+The C firmware calls these symbols (`#[cfg(feature = "ffi")]` in `pcm.rs`):
 
 ```c
 void  pcm_chromecast_set_http_port(uint16_t port);
 void  pcm_chromecast_set_device_host(const char *host);
 void  pcm_chromecast_set_device_port(uint16_t port);
 void  pcm_chromecast_set_sample_rate(uint32_t rate);
-int   pcm_chromecast_start(void);   /* idempotent; starts HTTP + cast threads */
+
+// Called from sink_dma_start(). Starts HTTP server on first call (idempotent),
+// resets buffer on subsequent calls, spawns cast_loop if not running.
+int   pcm_chromecast_start(void);
+
 int   pcm_chromecast_write(const uint8_t *buf, size_t len);
-void  pcm_chromecast_stop(void);    /* no-op — session stays open */
-void  pcm_chromecast_close(void);   /* stops threads, frees resources */
+
+// No-op — Cast session stays alive during pause for seamless resume.
+void  pcm_chromecast_stop(void);
+
+// Graceful teardown: increments CAST_GENERATION, sets CAST_STOP, clears
+// CAST_PLAYING, closes buffer. HTTP server stays alive.
+// Called by the server when switching away from or to the Chromecast sink.
+void  pcm_chromecast_teardown(void);
+
+// Full shutdown (process exit): also resets PCM_STARTED.
+void  pcm_chromecast_close(void);
 ```
 
-The C implementation lives in
-`firmware/target/hosted/pcm-chromecast.c`, which is registered as
-`PCM_SINK_CHROMECAST` in `firmware/export/pcm_sink.h`.
+The C implementation lives in `firmware/target/hosted/pcm-chromecast.c`,
+registered as `PCM_SINK_CHROMECAST` in `firmware/export/pcm_sink.h`.
+
+---
+
+## Part 2 — Player trait (src/lib.rs)
+
+`Chromecast::connect(device)` and the `CastPlayerInternal` background task are
+retained for completeness but are **not** called by the server connect handler.
+The `cast_loop` in `pcm.rs` owns the Cast session exclusively.
+
+If you need to drive the Cast protocol directly (e.g. from a test binary or a
+future multi-session feature), `lib.rs` provides:
+
+| Player method  | Cast action                          |
+|----------------|--------------------------------------|
+| `play()`       | `media.play()`                       |
+| `pause()`      | `media.pause()`                      |
+| `resume()`     | `media.play()`                       |
+| `stop()`       | no-op                                |
+| `disconnect()` | `receiver.stop_app(session_id)`      |
+
+Next / previous are **not** routed through `lib.rs` — the server always calls
+`rb::playback::next()` / `rb::playback::prev()` directly, and the `cast_loop`
+monitor detects the resulting track-path change and calls `media.load()`.
+
+---
+
+## Connect / disconnect flow
+
+### Connecting to Chromecast
+
+```
+server: PUT /devices/:id/connect  (service = "chromecast")
+  1. pcm::chromecast_teardown()        ← stops any running cast_loop cleanly
+  2. pcm::chromecast_set_device_host / port / http_port
+  3. pcm::switch_sink(PCM_SINK_CHROMECAST)
+  4. settings saved, device marked active
+
+  [firmware starts playing]
+  5. sink_dma_start() → pcm_chromecast_start()
+       · HTTP server starts (first time) or buffer is reset (subsequent)
+       · CAST_PLAYING = false → spawn cast_loop(gen)
+       · cast_loop: connect → launch app → media.load → monitor loop
+```
+
+### Switching away / disconnecting
+
+```
+server: PUT /devices/:id/connect  (service != "chromecast")
+  — or —
+server: PUT /devices/:id/disconnect
+
+  1. pcm::chromecast_teardown()
+       · CAST_GENERATION++            ← old cast_loop will see generation mismatch
+       · CAST_STOP = true             ← cast_loop exits monitor loop, stop_app()
+       · CAST_PLAYING = false
+       · buffer.close()               ← WAV readers unblock and exit
+  2. pcm::switch_sink(new sink)
+```
+
+### Reconnecting to Chromecast (e.g. after using built-in)
+
+Because `teardown()` set `CAST_PLAYING = false`, the next `pcm_chromecast_start()`
+call always spawns a **fresh** `cast_loop` with a new generation — no stale state
+from the previous session.
 
 ---
 
 ## Device discovery
 
-Chromecast devices are discovered automatically via **mDNS** (`_googlecast._tcp.local.`).
-The `rockbox-discovery` crate (using `mdns_sd`) browses the LAN and publishes
-each found device as a `Device` struct:
+Chromecast devices are discovered via **mDNS** (`_googlecast._tcp.local.`).
+`scan_chromecast_devices()` in `crates/server/src/scan.rs` browses the LAN and
+sets `device.service = "chromecast"` on each result. Devices appear in the
+GraphQL `devices` query and the UI device picker in real time.
 
-| Field            | Value                                 |
-|------------------|---------------------------------------|
-| `app`            | `"chromecast"`                        |
-| `port`           | `8009` (Cast protocol)                |
-| `ip`             | IPv4 address of the device            |
-| `name`           | Friendly name from mDNS `fn` property |
-| `is_cast_device` | `true`                                |
-
-Discovered devices appear in the GraphQL `devices` query and in the web/desktop
-UI device picker in real time.
-
----
-
-## Connecting a device
-
-Once discovered, connect via:
-
-```
-POST /devices/:id/connect
-```
-
-This calls `Chromecast::connect(device)`, stores the resulting `Player` in the
-shared HTTP server context, and marks the device as active. All subsequent
-play/pause/next/… calls go through this player.
-
-Disconnect with:
-
-```
-POST /devices/:id/disconnect
-```
-
-This stops the Cast app session and clears the player context.
+> **Note**: the `Device::from(ServiceInfo)` conversion does not set the
+> `service` field — `scan_chromecast_devices` overrides it explicitly to
+> `"chromecast"` so the connect handler routes correctly.
 
 ---
 
@@ -282,10 +279,9 @@ chromecast_port      = 8009            # optional, default 8009
 chromecast_http_port = 7881            # optional, default 7881
 ```
 
-`chromecast_host` must be the LAN IP of the Chromecast device you want to use
-as the fixed PCM output sink. If you prefer to select the device dynamically
-through the UI, use `audio_output = "builtin"` and connect via the device
-picker instead — the WAV stream and Cast session are started on demand.
+If you prefer to select the device dynamically via the UI, use
+`audio_output = "builtin"` at startup and connect through the device picker.
+The WAV stream and Cast session are started on demand when audio plays.
 
 ### Port summary
 
@@ -303,9 +299,10 @@ picker instead — the WAV stream and Cast session are started on demand.
 
 | Feature                               | Status                                      |
 |---------------------------------------|---------------------------------------------|
-| Play / pause / stop / next / previous | ✅ Implemented                               |
-| Queue management (load, insert)       | ✅ Implemented                               |
-| Metadata + album art display          | ✅ Implemented                               |
+| Play / pause / resume                 | ✅ Implemented                               |
+| Next / previous track                 | ✅ Via `rb::playback::next/prev` + cast_loop |
+| Track metadata + album art display    | ✅ Implemented                               |
+| Reconnect after output switch         | ✅ Via teardown + fresh cast_loop            |
 | Volume control                        | ⏳ Not yet implemented                       |
 | Seek within track                     | ⏳ Not yet implemented                       |
 | Multi-device fan-out                  | ⏳ Not yet implemented (single device only)  |
