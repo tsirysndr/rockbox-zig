@@ -1,4 +1,5 @@
 import { FC, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTheme } from "@emotion/react";
 
 type PlaylistModalProps = {
@@ -28,7 +29,7 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
     setSaving(false);
   }
 
-  return (
+  return createPortal(
     <div
       style={{
         position: "fixed",
@@ -149,7 +150,8 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
