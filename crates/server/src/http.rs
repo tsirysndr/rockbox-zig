@@ -25,8 +25,8 @@ use crate::{
     kv::{build_tracks_kv, KV},
     player_events::listen_for_playback_changes,
     scan::{
-        scan_airplay_devices, scan_chromecast_devices, scan_squeezelite_clients, scan_upnp_devices,
-        virtual_devices,
+        scan_airplay_devices, scan_chromecast_devices, scan_snapcast_servers,
+        scan_squeezelite_clients, scan_upnp_devices, virtual_devices,
     },
 };
 
@@ -324,6 +324,24 @@ impl RockboxHttpServer {
                             ..Default::default()
                         })
                     }
+                    "snapcast_tcp" => {
+                        let host = s.snapcast_tcp_host.clone().unwrap_or_default();
+                        Some(Device {
+                            id: format!("snapcast-{}", host),
+                            name: if host.is_empty() {
+                                "Snapcast".to_string()
+                            } else {
+                                format!("Snapcast ({})", host)
+                            },
+                            host: host.clone(),
+                            ip: host,
+                            port: s.snapcast_tcp_port.unwrap_or(4953),
+                            service: "snapcast".to_string(),
+                            app: "Snapcast".to_string(),
+                            is_cast_device: true,
+                            ..Default::default()
+                        })
+                    }
                     _ => virtual_devices()
                         .into_iter()
                         .find(|d| d.service == "builtin"),
@@ -347,6 +365,7 @@ impl RockboxHttpServer {
         scan_chromecast_devices(devices.clone());
         scan_upnp_devices(devices.clone());
         scan_airplay_devices(devices.clone());
+        scan_snapcast_servers(devices.clone());
         scan_squeezelite_clients(devices.clone());
         listen_for_playback_changes(player.clone(), db_pool.clone());
 

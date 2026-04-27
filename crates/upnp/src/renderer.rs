@@ -41,6 +41,10 @@ struct RendererState {
     current_metadata: String,
     transport_state: TransportState,
     mute: bool,
+    /// Value of `current_track().elapsed` when the current track started.
+    /// Subtracted from the live elapsed so RelTime resets to 0 on each track
+    /// change even though the underlying WAV stream is continuous.
+    elapsed_offset: u64,
 }
 
 static RENDERER_STATE: Mutex<RendererState> = Mutex::new(RendererState {
@@ -48,6 +52,7 @@ static RENDERER_STATE: Mutex<RendererState> = Mutex::new(RendererState {
     current_metadata: String::new(),
     transport_state: TransportState::NoMediaPresent,
     mute: false,
+    elapsed_offset: 0,
 });
 
 static RENDERER_UUID: OnceLock<String> = OnceLock::new();
@@ -369,6 +374,14 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
             tracing::info!("UPnP renderer: SetAVTransportURI = {uri}");
             {
                 let mut st = RENDERER_STATE.lock().unwrap();
+                // Track-change while playing: capture current elapsed so that
+                // GetPositionInfo resets RelTime to 0 for the new track.
+                if st.transport_state == TransportState::Playing {
+                    let elapsed = rockbox_sys::playback::current_track()
+                        .map(|t| t.elapsed)
+                        .unwrap_or(0);
+                    st.elapsed_offset = elapsed;
+                }
                 st.current_uri = Some(uri);
                 st.current_metadata = metadata;
                 st.transport_state = TransportState::Stopped;
@@ -381,16 +394,60 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
         }
 
         Some("Play") => {
-            let uri = {
+            let (uri, metadata) = {
                 let st = RENDERER_STATE.lock().unwrap();
-                st.current_uri.clone()
+                (st.current_uri.clone(), st.current_metadata.clone())
             };
+            tracing::info!("UPnP renderer: Play action received, uri={uri:?}");
             match uri {
                 None => soap_error(701, "Transition not available"),
                 Some(uri) => {
                     tracing::info!("UPnP renderer: Play {uri}");
+
+                    // Guard against the self-referential loop: when the UPnP PCM
+                    // output sink sends Play(stream.wav) to the same rockboxd
+                    // instance's renderer, playing the stream back would create a
+                    // circular audio path (engine reads stream.wav → PCM output →
+                    // BroadcastBuffer → stream.wav → ...), overflowing the codec
+                    // thread stack and crashing.  Detect this by matching our own
+                    // PCM HTTP port in the URI.  Audio is already flowing via the
+                    // UPnP sink, so just acknowledge without re-routing.
+                    let own_pcm_port = crate::CONFIG.lock().unwrap().pcm_port;
+                    let is_own_stream = (uri.ends_with("/stream.wav"))
+                        && (uri.contains(&format!(":{own_pcm_port}/"))
+                            || uri.ends_with(&format!(":{own_pcm_port}")));
+                    if is_own_stream {
+                        tracing::warn!(
+                            "UPnP renderer: Play for own PCM stream (port {own_pcm_port}) — \
+                             acknowledging without re-routing to prevent feedback loop"
+                        );
+                        RENDERER_STATE.lock().unwrap().transport_state = TransportState::Playing;
+                        return soap_ok("urn:schemas-upnp-org:service:AVTransport:1", "Play", "");
+                    }
+
+                    let title =
+                        extract_didl_field(&metadata, "title").unwrap_or_else(|| uri.clone());
+                    let artist = extract_didl_field(&metadata, "artist")
+                        .or_else(|| extract_didl_field(&metadata, "creator"))
+                        .unwrap_or_default();
+                    let album = extract_didl_field(&metadata, "album").unwrap_or_default();
+                    let duration_ms = parse_didl_duration_ms(&metadata).unwrap_or(0) as u64;
+                    let album_art_url =
+                        extract_didl_field(&metadata, "albumArtURI").unwrap_or_default();
+                    rockbox_sys::playback::set_metadata_override(
+                        &uri,
+                        &title,
+                        &artist,
+                        &album,
+                        duration_ms,
+                        &album_art_url,
+                    );
                     play_url(&uri).await;
-                    RENDERER_STATE.lock().unwrap().transport_state = TransportState::Playing;
+                    {
+                        let mut st = RENDERER_STATE.lock().unwrap();
+                        st.transport_state = TransportState::Playing;
+                        st.elapsed_offset = 0; // stream restarts from 0
+                    }
                     soap_ok("urn:schemas-upnp-org:service:AVTransport:1", "Play", "")
                 }
             }
@@ -407,6 +464,9 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
             }
             {
                 let mut st = RENDERER_STATE.lock().unwrap();
+                if let Some(ref uri) = st.current_uri {
+                    rockbox_sys::playback::clear_metadata_override(uri);
+                }
                 st.transport_state = TransportState::Stopped;
                 st.current_metadata = String::new();
             }
@@ -521,7 +581,10 @@ async fn avtransport_control(body: String, header_action: Option<String>) -> Res
             )
         }
 
-        _ => soap_error(401, "Invalid Action"),
+        other => {
+            tracing::warn!("UPnP renderer: unknown AVTransport action: {other:?}");
+            soap_error(401, "Invalid Action")
+        }
     }
 }
 
@@ -637,22 +700,58 @@ fn renderer_connection_manager(
     soap_error(401, "Invalid Action")
 }
 
-async fn play_url(uri: &str) {
-    use crate::api::rockbox::v1alpha1::{
-        playback_service_client::PlaybackServiceClient, PlayTrackRequest,
-    };
-    let port = std::env::var("ROCKBOX_PORT").unwrap_or_else(|_| "6061".to_string());
-    let url = format!("tcp://127.0.0.1:{}", port);
-    match PlaybackServiceClient::connect(url).await {
-        Ok(mut client) => {
-            let req = PlayTrackRequest {
-                path: uri.to_string(),
-            };
-            if let Err(e) = client.play_track(req).await {
-                tracing::error!("UPnP renderer: PlayTrack gRPC error: {e}");
+/// Extract a DIDL-Lite field by its local name, trying common namespace prefixes.
+fn extract_didl_field(didl: &str, local_name: &str) -> Option<String> {
+    for prefix in &["dc:", "upnp:", "r:", ""] {
+        let tag = format!("{}{}", prefix, local_name);
+        if let Some(v) = extract_tag(didl, &tag) {
+            if !v.is_empty() {
+                return Some(v);
             }
         }
-        Err(e) => tracing::error!("UPnP renderer: gRPC connect error: {e}"),
+    }
+    None
+}
+
+async fn play_url(uri: &str) {
+    let tcp_port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".to_string());
+    let base = format!("http://127.0.0.1:{tcp_port}");
+    // The internal HTTP server closes the TCP socket after each response.
+    // pool_max_idle_per_host(0) disables connection pooling so each request
+    // opens a fresh connection instead of reusing a server-closed socket.
+    let client = reqwest::Client::builder()
+        .pool_max_idle_per_host(0)
+        .build()
+        .unwrap_or_default();
+
+    let body = serde_json::json!({ "tracks": [uri] });
+    tracing::info!("UPnP renderer: POST {base}/playlists tracks=[{uri}]");
+    match client
+        .post(format!("{base}/playlists"))
+        .json(&body)
+        .send()
+        .await
+    {
+        Ok(r) if r.status().is_success() => {
+            tracing::info!("UPnP renderer: playlist created, starting playback");
+        }
+        Ok(r) => {
+            tracing::error!("UPnP renderer: POST /playlists failed: {}", r.status());
+            return;
+        }
+        Err(e) => {
+            tracing::error!("UPnP renderer: POST /playlists error: {e}");
+            return;
+        }
+    }
+
+    tracing::info!("UPnP renderer: PUT {base}/playlists/start");
+    match client.put(format!("{base}/playlists/start")).send().await {
+        Ok(r) if r.status().is_success() => {
+            tracing::info!("UPnP renderer: playback started");
+        }
+        Ok(r) => tracing::error!("UPnP renderer: PUT /playlists/start failed: {}", r.status()),
+        Err(e) => tracing::error!("UPnP renderer: PUT /playlists/start error: {e}"),
     }
 }
 
@@ -673,18 +772,50 @@ fn seek_to(ms: i32) {
 }
 
 fn get_position_info() -> (String, i32, i32) {
-    let uri = RENDERER_STATE
-        .lock()
-        .unwrap()
-        .current_uri
-        .clone()
-        .unwrap_or_default();
-
-    let (elapsed, duration) = match rockbox_sys::playback::current_track() {
-        Some(track) => (track.elapsed as i32, track.length as i32),
-        None => (0, 0),
+    let (uri, metadata, elapsed_offset) = {
+        let st = RENDERER_STATE.lock().unwrap();
+        (
+            st.current_uri.clone().unwrap_or_default(),
+            st.current_metadata.clone(),
+            st.elapsed_offset,
+        )
     };
+
+    // Elapsed from the codec minus the offset captured at the last track
+    // boundary, so RelTime resets to 0 on each track change even though the
+    // underlying WAV stream is continuous.
+    let elapsed = match rockbox_sys::playback::current_track() {
+        Some(track) => (track.elapsed.saturating_sub(elapsed_offset)) as i32,
+        None => 0,
+    };
+
+    // Duration from the DIDL-Lite sent by the source (accurate per-track).
+    let duration = parse_didl_duration_ms(&metadata).unwrap_or(0);
+
     (uri, elapsed, duration)
+}
+
+/// Parse `duration="H:MM:SS.mmm"` from a DIDL-Lite string.
+fn parse_didl_duration_ms(didl: &str) -> Option<i32> {
+    let key = "duration=\"";
+    let start = didl.find(key)? + key.len();
+    let end = didl[start..].find('"')? + start;
+    parse_upnp_duration_ms(&didl[start..end])
+}
+
+/// Parse a UPnP duration string `[H+]:MM:SS[.F+]` into milliseconds.
+fn parse_upnp_duration_ms(s: &str) -> Option<i32> {
+    let mut parts = s.splitn(3, ':');
+    let h: i32 = parts.next()?.parse().ok()?;
+    let m: i32 = parts.next()?.parse().ok()?;
+    let sec_frac = parts.next()?;
+    let mut sec_parts = sec_frac.splitn(2, '.');
+    let sec: i32 = sec_parts.next()?.parse().ok()?;
+    let ms: i32 = sec_parts.next().map_or(0, |f| {
+        let padded = format!("{:0<3}", &f[..f.len().min(3)]);
+        padded.parse().unwrap_or(0)
+    });
+    Some((h * 3600 + m * 60 + sec) * 1000 + ms)
 }
 
 // SOUND_VOLUME = 0 in Rockbox (first entry in the sound settings enum).

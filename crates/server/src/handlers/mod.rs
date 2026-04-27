@@ -77,6 +77,7 @@ async_handler!(saved_playlists, create_playlist_folder);
 async_handler!(saved_playlists, delete_playlist_folder);
 async_handler!(tracks, get_tracks);
 async_handler!(tracks, get_track);
+async_handler!(tracks, save_stream_track_metadata);
 async_handler!(system, get_rockbox_version);
 async_handler!(system, get_status);
 async_handler!(system, scan_library);

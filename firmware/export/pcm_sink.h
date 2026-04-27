@@ -58,6 +58,7 @@ enum pcm_sink_ids {
     PCM_SINK_SQUEEZELITE,
     PCM_SINK_UPNP,
     PCM_SINK_CHROMECAST,
+    PCM_SINK_SNAPCAST_TCP,
 #endif
     PCM_SINK_NUM
 };
@@ -86,4 +87,9 @@ extern struct pcm_sink chromecast_pcm_sink;
 void pcm_chromecast_set_http_port(uint16_t port);
 void pcm_chromecast_set_device_host(const char *host);
 void pcm_chromecast_set_device_port(uint16_t port);
+
+/* Snapcast TCP sink — streams raw S16LE PCM to snapserver's tcp:// source */
+extern struct pcm_sink tcp_pcm_sink;
+void pcm_tcp_set_host(const char *host);
+void pcm_tcp_set_port(uint16_t port);
 #endif

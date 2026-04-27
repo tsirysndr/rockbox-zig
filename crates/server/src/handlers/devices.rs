@@ -87,6 +87,11 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
                 pcm::upnp_set_renderer_url(url);
             }
             pcm::upnp_set_http_port(http_port);
+            // Reset renderer state so the very next sink_dma_start always fires
+            // SetAVTransportURI + Play — without this, switching back to UPnP after
+            // using another output would leave RENDERER_PLAYING=true and send no
+            // play command, silently producing no audio until daemon restart.
+            pcm::upnp_reset_renderer();
             pcm::switch_sink(pcm::PCM_SINK_UPNP);
             *GLOBAL_MUTEX.lock().unwrap() = 0;
         }
@@ -99,6 +104,15 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
             pcm::chromecast_set_device_host(&device.ip);
             pcm::chromecast_set_device_port(device.port);
             pcm::switch_sink(pcm::PCM_SINK_CHROMECAST);
+            *GLOBAL_MUTEX.lock().unwrap() = 0;
+        }
+        "snapcast" => {
+            settings.audio_output = Some("snapcast_tcp".to_string());
+            settings.snapcast_tcp_host = Some(device.ip.clone());
+            settings.snapcast_tcp_port = Some(device.port);
+            pcm::tcp_set_host(&device.ip);
+            pcm::tcp_set_port(device.port);
+            pcm::switch_sink(pcm::PCM_SINK_SNAPCAST_TCP);
             *GLOBAL_MUTEX.lock().unwrap() = 0;
         }
         other => {

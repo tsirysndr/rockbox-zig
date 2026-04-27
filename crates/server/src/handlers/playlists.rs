@@ -45,6 +45,21 @@ pub async fn create_playlist(
 
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
 
+    // For HTTP streams: flush the audio thread's message queue before replacing
+    // the playlist.  Stale Q_AUDIO_FILL_BUFFER messages from a previous HTTP
+    // session (e.g. auto-resume) would otherwise act on the new playlist's
+    // handle with the old stream context, causing the new play to be silently
+    // ignored.  For local files the queue is always drained by the time the
+    // user starts a new playlist, so hard_stop is a no-op cost there.
+    let current_is_http = rb::playback::current_track()
+        .map(|t| t.path.starts_with("http://") || t.path.starts_with("https://"))
+        .unwrap_or(false);
+    let new_is_http = new_playlist.tracks[0].starts_with("http://")
+        || new_playlist.tracks[0].starts_with("https://");
+    if current_is_http || new_is_http {
+        rb::playback::hard_stop();
+    }
+
     // Always create a fresh playlist so the currently-playing track is
     // fully replaced rather than appended to.
     // Local paths: use the track's parent directory (required by Rockbox).
@@ -308,6 +323,14 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
 async fn persist_remote_track_metadata(ctx: &Context, tracks: &[String]) -> Result<(), Error> {
     for track in tracks {
         if track.starts_with("http://") || track.starts_with("https://") {
+            // Raw PCM streams served at /stream.wav have no embedded metadata and
+            // probing them would block for ~47 s (8 MB at audio bitrate) then time out.
+            if reqwest::Url::parse(track)
+                .map(|u| u.path() == "/stream.wav")
+                .unwrap_or(false)
+            {
+                continue;
+            }
             if find_internal_track_by_url(ctx, track).await?.is_some() {
                 continue;
             }

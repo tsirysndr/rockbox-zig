@@ -153,6 +153,7 @@ pub extern "C" fn start_server() {
 
     app.get("/tracks", get_tracks);
     app.get("/tracks/:id", get_track);
+    app.put("/tracks/stream-metadata", save_stream_track_metadata);
 
     app.get("/version", get_rockbox_version);
     app.get("/status", get_status);

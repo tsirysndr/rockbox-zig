@@ -721,6 +721,10 @@ pub struct NewGlobalSettings {
     pub chromecast_port: Option<u16>,
     /// HTTP port for the Chromecast WAV stream (default: 7881)
     pub chromecast_http_port: Option<u16>,
+    /// Host address of the Snapcast TCP source (required for snapcast_tcp output)
+    pub snapcast_tcp_host: Option<String>,
+    /// TCP port for the Snapcast source (default: 4953)
+    pub snapcast_tcp_port: Option<u16>,
 }
 
 impl From<UserSettings> for NewGlobalSettings {
@@ -771,6 +775,8 @@ impl From<UserSettings> for NewGlobalSettings {
             chromecast_host: None,
             chromecast_port: None,
             chromecast_http_port: None,
+            snapcast_tcp_host: None,
+            snapcast_tcp_port: None,
         }
     }
 }

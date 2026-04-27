@@ -361,7 +361,10 @@ fn serve_wav_stream(
         if req.wants_icy { " (ICY)" } else { "" }
     );
 
-    let mut rx = buf.subscribe();
+    // Start ~2 s behind the live edge so the renderer can drain historical
+    // buffered chunks at network speed instead of filling at real-time rate.
+    // Each chunk ≈ 8192 bytes ≈ 46 ms; 44 chunks ≈ 2 s.
+    let mut rx = buf.subscribe_from_behind(44);
 
     if req.wants_icy {
         let art_url = art_base_url(local_ip, port);
@@ -476,6 +479,7 @@ pub fn serve(port: u16, sample_rate: u32, buf: Arc<BroadcastBuffer>) {
     for stream in listener.incoming() {
         match stream {
             Ok(mut tcp) => {
+                let _ = tcp.set_nodelay(true);
                 let buf = buf.clone();
                 std::thread::spawn(move || {
                     let peer = tcp.peer_addr().map(|a| a.to_string()).unwrap_or_default();

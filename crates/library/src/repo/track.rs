@@ -155,6 +155,28 @@ pub async fn find_by_filename(pool: Pool<Sqlite>, filename: &str) -> Result<Vec<
     Ok(result)
 }
 
+pub async fn update_stream_metadata(
+    pool: Pool<Sqlite>,
+    md5: &str,
+    title: &str,
+    artist: &str,
+    album: &str,
+    length: u32,
+) -> Result<(), Error> {
+    sqlx::query(
+        "UPDATE track SET title = $2, artist = $3, album = $4, length = $5, updated_at = $6 WHERE md5 = $1",
+    )
+    .bind(md5)
+    .bind(title)
+    .bind(artist)
+    .bind(album)
+    .bind(length)
+    .bind(chrono::Utc::now())
+    .execute(&pool)
+    .await?;
+    Ok(())
+}
+
 pub async fn find_by_artist_album_date(
     pool: Pool<Sqlite>,
     artist: &str,

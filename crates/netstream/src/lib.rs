@@ -332,10 +332,26 @@ pub extern "C" fn rb_net_lseek(h: i32, off: i64, whence: libc::c_int) -> i64 {
         _ => return -1,
     };
 
-    // Guard: never issue a Range request past EOF — the server would return 416
-    // and seek_to would leave response=None, permanently breaking the stream.
-    // This can happen when the C MP4 parser has a uint32_t underflow in its
-    // atom-size arithmetic and tries to seek gigabytes forward.
+    // Guard 1: never seek gigabytes forward regardless of content_length.
+    // A seek >256 MB past current position is always a codec arithmetic bug
+    // (e.g. WAV trying to skip a 0xFFFFFFFF-byte data chunk, or MP4 with
+    // uint32_t underflow).  Issue a Range request for such an offset and the
+    // server either returns 416 or streams from the beginning — either way
+    // skip_bytes would block for hours reading a live stream.
+    const MAX_SKIP: u64 = 256 * 1024 * 1024; // 256 MB
+    if new_pos > state.pos && new_pos - state.pos > MAX_SKIP {
+        warn!(
+            "[netstream] rb_net_lseek: h={} off={} whence={} huge skip ({} bytes) clamped",
+            h,
+            off,
+            whence,
+            new_pos - state.pos
+        );
+        return -1;
+    }
+
+    // Guard 2: never issue a Range request past EOF — the server would return
+    // 416 and leave response=None, permanently breaking the stream.
     if let Some(cl) = state.content_length {
         if new_pos >= cl {
             warn!(
