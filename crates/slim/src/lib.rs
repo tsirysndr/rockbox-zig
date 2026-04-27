@@ -234,20 +234,25 @@ fn get_buffer() -> Arc<BroadcastBuffer> {
 }
 
 // ---------------------------------------------------------------------------
-// FFI exports
+// FFI exports — only compiled when the "ffi" feature is enabled so that
+// crates which depend on rockbox-slim without needing the C symbols (e.g.
+// rockbox-server) don't produce duplicate-symbol linker errors.
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_squeezelite_set_slim_port(port: u16) {
     CONFIG.lock().unwrap().slim_port = port;
 }
 
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_squeezelite_set_http_port(port: u16) {
     CONFIG.lock().unwrap().http_port = port;
 }
 
 /// Start Slim Protocol + HTTP servers. Idempotent.
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_squeezelite_start() -> std::os::raw::c_int {
     let mut started = STARTED.lock().unwrap();
@@ -283,6 +288,7 @@ pub extern "C" fn pcm_squeezelite_start() -> std::os::raw::c_int {
 }
 
 /// Push raw S16LE stereo PCM into the broadcast buffer.
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_squeezelite_write(data: *const u8, len: usize) -> std::os::raw::c_int {
     if data.is_null() || len == 0 {
@@ -294,10 +300,12 @@ pub extern "C" fn pcm_squeezelite_write(data: *const u8, len: usize) -> std::os:
 }
 
 /// No-op between tracks — all squeezelite clients keep their HTTP connections.
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_squeezelite_stop() {}
 
 /// Shut down servers (called on daemon exit).
+#[cfg(feature = "ffi")]
 #[no_mangle]
 pub extern "C" fn pcm_squeezelite_close() {
     let mut started = STARTED.lock().unwrap();

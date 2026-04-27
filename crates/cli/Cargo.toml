@@ -9,7 +9,7 @@ crate-type = ["staticlib"]
 [dependencies]
 anyhow = "1.0.90"
 rockbox-airplay = {path = "../airplay"}
-rockbox-slim = {path = "../slim"}
+rockbox-slim = {path = "../slim", features = ["ffi"]}
 rockbox-upnp = {path = "../upnp", features = ["ffi"]}
 rockbox-chromecast = {path = "../chromecast", features = ["ffi"]}
 clap = "4.5.16"
