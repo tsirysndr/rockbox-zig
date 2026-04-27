@@ -168,7 +168,7 @@ attack_time = 5
 rockbox
 ```
 
-4. **Open the web UI** at [http://localhost:6062/graphiql](http://localhost:6062) or connect any MPD client to `localhost:6600`.
+4. **Open the web UI** at [http://localhost:6062](http://localhost:6062) or connect any MPD client to `localhost:6600`.
 
 ---
 
