@@ -15,8 +15,12 @@ export const Container = styled.div<{ cover?: string }>`
   `}
 `;
 
-export const Blur = styled.div`
-  background: rgba(256, 256, 256, 0.8);
-  backdrop-filter: blur(30px);
+export const Blur = styled.div<{ enabled?: boolean }>`
   height: 100vh;
+  ${({ enabled }) =>
+    enabled &&
+    css`
+      background: rgba(256, 256, 256, 0.8);
+      backdrop-filter: blur(30px);
+    `}
 `;

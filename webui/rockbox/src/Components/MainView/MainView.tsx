@@ -9,8 +9,7 @@ export type MainViewProps = {
 const MainView: FC<MainViewProps> = ({ cover, children }) => {
   return (
     <Container cover={cover}>
-      {cover && <Blur>{children}</Blur>}
-      {!cover && children}
+      <Blur enabled={!!cover}>{children}</Blur>
     </Container>
   );
 };
