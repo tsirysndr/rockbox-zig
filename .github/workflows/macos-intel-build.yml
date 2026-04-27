@@ -62,7 +62,6 @@ jobs:
         working-directory: build-lib
       - name: Install Rockbox Binaries
         run: |
-          sudo cp target/release/rockbox /usr/local/bin/
           sudo cp zig/zig-out/bin/rockboxd /usr/local/bin/
       - name: Determine architecture
         id: vars
