@@ -162,10 +162,10 @@ release_time = 300
 attack_time = 5
 ```
 
-3. **Run the daemon**:
+3. **Start Rockbox**:
 
 ```sh
-rockboxd
+rockbox
 ```
 
 4. **Open the web UI** at [http://localhost:6062/graphiql](http://localhost:6062) or connect any MPD client to `localhost:6600`.
