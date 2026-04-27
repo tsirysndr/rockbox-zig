@@ -83,7 +83,7 @@ const PlaylistDetailsWithData: FC<Props> = ({ isSmart = false }) => {
       playSmart({ variables: { id: id! } });
     } else {
       if (shuffle) {
-        const paths = tracks.map((t) => t.path);
+        const paths = tracks.map((t) => t.path).filter((p): p is string => !!p);
         const shuffled = [...paths].sort(() => Math.random() - 0.5);
         insertTracks({
           variables: { position: PLAYLIST_INSERT_FIRST, tracks: shuffled },
@@ -98,7 +98,7 @@ const PlaylistDetailsWithData: FC<Props> = ({ isSmart = false }) => {
     if (isSmart) {
       playSmart({ variables: { id: id! } });
     } else {
-      const paths = tracks.map((t) => t.path);
+      const paths = tracks.map((t) => t.path).filter((p): p is string => !!p);
       const ordered = [...paths.slice(position), ...paths.slice(0, position)];
       insertTracks({
         variables: { position: PLAYLIST_INSERT_FIRST, tracks: ordered },
