@@ -7,6 +7,9 @@ import ArtistDetails from "./Components/ArtistDetails";
 import FilesPage from "./Containers/Files";
 import LikesPage from "./Containers/Likes";
 import SettingsPage from "./Containers/Settings";
+import PlaylistsPage from "./Containers/Playlists";
+import PlaylistDetailsPage from "./Containers/PlaylistDetails";
+import SmartPlaylistDetailsPage from "./Containers/PlaylistDetails/SmartPlaylistDetailsPage";
 
 function App() {
   return (
@@ -21,6 +24,12 @@ function App() {
         <Route path="/files" element={<FilesPage />} />
         <Route path="/likes" element={<LikesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/playlists" element={<PlaylistsPage />} />
+        <Route path="/playlists/:id" element={<PlaylistDetailsPage />} />
+        <Route
+          path="/playlists/smart/:id"
+          element={<SmartPlaylistDetailsPage />}
+        />
       </Routes>
     </BrowserRouter>
   );

@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { SidebarContainer, MenuItem, Header, SettingsButton } from "./styles";
-import { Disc } from "@styled-icons/boxicons-regular";
+import { Disc, Music } from "@styled-icons/boxicons-regular";
 import { HardDrive } from "@styled-icons/feather";
 import Artist from "../Icons/Artist";
 import Track from "../Icons/Track";
@@ -77,6 +77,17 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
           color={active === "files" ? "#fe099c" : "initial"}
         />
         <div>Files</div>
+      </MenuItem>
+      <MenuItem
+        color={active === "playlists" ? "#fe099c" : "initial"}
+        to="/playlists"
+      >
+        <Music
+          size={20}
+          style={{ marginRight: 6 }}
+          color={active === "playlists" ? "#fe099c" : "initial"}
+        />
+        <div>Playlists</div>
       </MenuItem>
     </SidebarContainer>
   );

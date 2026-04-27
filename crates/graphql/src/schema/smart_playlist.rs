@@ -1,9 +1,13 @@
 use async_graphql::*;
+use rockbox_library::entity::track::Track as LibraryTrack;
 use rockbox_playlists::SmartPlaylist as RsSmartPlaylist;
 
 use crate::{
     rockbox_url,
-    schema::objects::smart_playlist::{SmartPlaylist, TrackStats},
+    schema::objects::{
+        smart_playlist::{SmartPlaylist, TrackStats},
+        track::Track,
+    },
 };
 
 #[derive(Default)]
@@ -56,6 +60,22 @@ impl SmartPlaylistQuery {
             .into_iter()
             .filter_map(|t| t.get("id").and_then(|v| v.as_str()).map(|s| s.to_string()))
             .collect())
+    }
+
+    async fn smart_playlist_tracks(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+    ) -> Result<Vec<Track>, Error> {
+        let client = ctx.data::<reqwest::Client>()?;
+        let url = format!("{}/smart-playlists/{}/tracks", rockbox_url(), id);
+        let tracks = client
+            .get(&url)
+            .send()
+            .await?
+            .json::<Vec<LibraryTrack>>()
+            .await?;
+        Ok(tracks.into_iter().map(Track::from).collect())
     }
 
     async fn track_stats(

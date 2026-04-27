@@ -1,0 +1,44 @@
+{
+  "name": "@rockbox-zig/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Rockbox — GraphQL API client with subscriptions and plugin system",
+  "module": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "bun": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target node --minify",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "keywords": [
+    "rockbox",
+    "graphql",
+    "audio",
+    "music-player",
+    "sdk"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "vitest": "^4.1.5"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "graphql-ws": "^6.0.8"
+  }
+}

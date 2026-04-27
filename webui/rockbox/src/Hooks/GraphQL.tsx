@@ -2889,3 +2889,296 @@ export type GetGlobalStatusQueryHookResult = ReturnType<typeof useGetGlobalStatu
 export type GetGlobalStatusLazyQueryHookResult = ReturnType<typeof useGetGlobalStatusLazyQuery>;
 export type GetGlobalStatusSuspenseQueryHookResult = ReturnType<typeof useGetGlobalStatusSuspenseQuery>;
 export type GetGlobalStatusQueryResult = Apollo.QueryResult<GetGlobalStatusQuery, GetGlobalStatusQueryVariables>;
+
+// ── SavedPlaylist types ──────────────────────────────────────────────────────
+
+export type SavedPlaylist = {
+  __typename?: 'SavedPlaylist';
+  id: string;
+  name: string;
+  description?: string | null;
+  image?: string | null;
+  trackCount: number;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type SmartPlaylist = {
+  __typename?: 'SmartPlaylist';
+  id: string;
+  name: string;
+  description?: string | null;
+  image?: string | null;
+  isSystem: boolean;
+  createdAt: number;
+  updatedAt: number;
+};
+
+// ── Saved Playlist Queries ───────────────────────────────────────────────────
+
+export type GetSavedPlaylistsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetSavedPlaylistsQuery = { __typename?: 'Query', savedPlaylists: Array<{ __typename?: 'SavedPlaylist', id: string, name: string, description?: string | null, image?: string | null, trackCount: number, createdAt: number, updatedAt: number }> };
+
+export const GetSavedPlaylistsDocument = gql`
+    query GetSavedPlaylists {
+  savedPlaylists {
+    id
+    name
+    description
+    image
+    trackCount
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export function useGetSavedPlaylistsQuery(baseOptions?: Apollo.QueryHookOptions<GetSavedPlaylistsQuery, GetSavedPlaylistsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSavedPlaylistsQuery, GetSavedPlaylistsQueryVariables>(GetSavedPlaylistsDocument, options);
+      }
+export function useGetSavedPlaylistsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSavedPlaylistsQuery, GetSavedPlaylistsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSavedPlaylistsQuery, GetSavedPlaylistsQueryVariables>(GetSavedPlaylistsDocument, options);
+        }
+export type GetSavedPlaylistsQueryResult = Apollo.QueryResult<GetSavedPlaylistsQuery, GetSavedPlaylistsQueryVariables>;
+
+export type GetSavedPlaylistQueryVariables = Exact<{ id: string; }>;
+export type GetSavedPlaylistQuery = { __typename?: 'Query', savedPlaylist?: { __typename?: 'SavedPlaylist', id: string, name: string, description?: string | null, image?: string | null, trackCount: number, createdAt: number, updatedAt: number } | null };
+
+export const GetSavedPlaylistDocument = gql`
+    query GetSavedPlaylist($id: String!) {
+  savedPlaylist(id: $id) {
+    id
+    name
+    description
+    image
+    trackCount
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export function useGetSavedPlaylistQuery(baseOptions: Apollo.QueryHookOptions<GetSavedPlaylistQuery, GetSavedPlaylistQueryVariables> & ({ variables: GetSavedPlaylistQueryVariables; skip?: boolean; } | { skip: boolean; })) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSavedPlaylistQuery, GetSavedPlaylistQueryVariables>(GetSavedPlaylistDocument, options);
+      }
+export function useGetSavedPlaylistLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSavedPlaylistQuery, GetSavedPlaylistQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSavedPlaylistQuery, GetSavedPlaylistQueryVariables>(GetSavedPlaylistDocument, options);
+        }
+export type GetSavedPlaylistQueryResult = Apollo.QueryResult<GetSavedPlaylistQuery, GetSavedPlaylistQueryVariables>;
+
+export type GetSavedPlaylistTracksQueryVariables = Exact<{ playlistId: string; }>;
+export type GetSavedPlaylistTracksQuery = { __typename?: 'Query', savedPlaylistTracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, path: string, length: number, tracknum: number }> };
+
+export const GetSavedPlaylistTracksDocument = gql`
+    query GetSavedPlaylistTracks($playlistId: String!) {
+  savedPlaylistTracks(playlistId: $playlistId) {
+    id
+    title
+    artist
+    album
+    albumArt
+    artistId
+    albumId
+    path
+    length
+    tracknum
+  }
+}
+    `;
+export function useGetSavedPlaylistTracksQuery(baseOptions: Apollo.QueryHookOptions<GetSavedPlaylistTracksQuery, GetSavedPlaylistTracksQueryVariables> & ({ variables: GetSavedPlaylistTracksQueryVariables; skip?: boolean; } | { skip: boolean; })) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSavedPlaylistTracksQuery, GetSavedPlaylistTracksQueryVariables>(GetSavedPlaylistTracksDocument, options);
+      }
+export function useGetSavedPlaylistTracksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSavedPlaylistTracksQuery, GetSavedPlaylistTracksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSavedPlaylistTracksQuery, GetSavedPlaylistTracksQueryVariables>(GetSavedPlaylistTracksDocument, options);
+        }
+export type GetSavedPlaylistTracksQueryResult = Apollo.QueryResult<GetSavedPlaylistTracksQuery, GetSavedPlaylistTracksQueryVariables>;
+
+// ── Smart Playlist Queries ───────────────────────────────────────────────────
+
+export type GetSmartPlaylistsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetSmartPlaylistsQuery = { __typename?: 'Query', smartPlaylists: Array<{ __typename?: 'SmartPlaylist', id: string, name: string, description?: string | null, image?: string | null, isSystem: boolean, createdAt: number, updatedAt: number }> };
+
+export const GetSmartPlaylistsDocument = gql`
+    query GetSmartPlaylists {
+  smartPlaylists {
+    id
+    name
+    description
+    image
+    isSystem
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export function useGetSmartPlaylistsQuery(baseOptions?: Apollo.QueryHookOptions<GetSmartPlaylistsQuery, GetSmartPlaylistsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSmartPlaylistsQuery, GetSmartPlaylistsQueryVariables>(GetSmartPlaylistsDocument, options);
+      }
+export function useGetSmartPlaylistsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmartPlaylistsQuery, GetSmartPlaylistsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSmartPlaylistsQuery, GetSmartPlaylistsQueryVariables>(GetSmartPlaylistsDocument, options);
+        }
+export type GetSmartPlaylistsQueryResult = Apollo.QueryResult<GetSmartPlaylistsQuery, GetSmartPlaylistsQueryVariables>;
+
+export type GetSmartPlaylistQueryVariables = Exact<{ id: string; }>;
+export type GetSmartPlaylistQuery = { __typename?: 'Query', smartPlaylist?: { __typename?: 'SmartPlaylist', id: string, name: string, description?: string | null, image?: string | null, isSystem: boolean, createdAt: number, updatedAt: number } | null };
+
+export const GetSmartPlaylistDocument = gql`
+    query GetSmartPlaylist($id: String!) {
+  smartPlaylist(id: $id) {
+    id
+    name
+    description
+    image
+    isSystem
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export function useGetSmartPlaylistQuery(baseOptions: Apollo.QueryHookOptions<GetSmartPlaylistQuery, GetSmartPlaylistQueryVariables> & ({ variables: GetSmartPlaylistQueryVariables; skip?: boolean; } | { skip: boolean; })) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSmartPlaylistQuery, GetSmartPlaylistQueryVariables>(GetSmartPlaylistDocument, options);
+      }
+export type GetSmartPlaylistQueryResult = Apollo.QueryResult<GetSmartPlaylistQuery, GetSmartPlaylistQueryVariables>;
+
+export type GetSmartPlaylistTracksQueryVariables = Exact<{ id: string; }>;
+export type GetSmartPlaylistTracksQuery = { __typename?: 'Query', smartPlaylistTracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArt?: string | null, artistId?: string | null, albumId?: string | null, path: string, length: number, tracknum: number }> };
+
+export const GetSmartPlaylistTracksDocument = gql`
+    query GetSmartPlaylistTracks($id: String!) {
+  smartPlaylistTracks(id: $id) {
+    id
+    title
+    artist
+    album
+    albumArt
+    artistId
+    albumId
+    path
+    length
+    tracknum
+  }
+}
+    `;
+export function useGetSmartPlaylistTracksQuery(baseOptions: Apollo.QueryHookOptions<GetSmartPlaylistTracksQuery, GetSmartPlaylistTracksQueryVariables> & ({ variables: GetSmartPlaylistTracksQueryVariables; skip?: boolean; } | { skip: boolean; })) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSmartPlaylistTracksQuery, GetSmartPlaylistTracksQueryVariables>(GetSmartPlaylistTracksDocument, options);
+      }
+export function useGetSmartPlaylistTracksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmartPlaylistTracksQuery, GetSmartPlaylistTracksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSmartPlaylistTracksQuery, GetSmartPlaylistTracksQueryVariables>(GetSmartPlaylistTracksDocument, options);
+        }
+export type GetSmartPlaylistTracksQueryResult = Apollo.QueryResult<GetSmartPlaylistTracksQuery, GetSmartPlaylistTracksQueryVariables>;
+
+// ── Saved Playlist Mutations ─────────────────────────────────────────────────
+
+export type CreateSavedPlaylistMutationVariables = Exact<{ name: string; description?: InputMaybe<string>; trackIds?: InputMaybe<Array<string>>; }>;
+export type CreateSavedPlaylistMutation = { __typename?: 'Mutation', createSavedPlaylist: { __typename?: 'SavedPlaylist', id: string, name: string, description?: string | null, trackCount: number } };
+
+export const CreateSavedPlaylistDocument = gql`
+    mutation CreateSavedPlaylist($name: String!, $description: String, $trackIds: [String!]) {
+  createSavedPlaylist(name: $name, description: $description, trackIds: $trackIds) {
+    id
+    name
+    description
+    trackCount
+  }
+}
+    `;
+export function useCreateSavedPlaylistMutation(baseOptions?: Apollo.MutationHookOptions<CreateSavedPlaylistMutation, CreateSavedPlaylistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateSavedPlaylistMutation, CreateSavedPlaylistMutationVariables>(CreateSavedPlaylistDocument, options);
+      }
+export type CreateSavedPlaylistMutationResult = Apollo.MutationResult<CreateSavedPlaylistMutation>;
+
+export type UpdateSavedPlaylistMutationVariables = Exact<{ id: string; name: string; description?: InputMaybe<string>; }>;
+export type UpdateSavedPlaylistMutation = { __typename?: 'Mutation', updateSavedPlaylist: boolean };
+
+export const UpdateSavedPlaylistDocument = gql`
+    mutation UpdateSavedPlaylist($id: String!, $name: String!, $description: String) {
+  updateSavedPlaylist(id: $id, name: $name, description: $description)
+}
+    `;
+export function useUpdateSavedPlaylistMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSavedPlaylistMutation, UpdateSavedPlaylistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSavedPlaylistMutation, UpdateSavedPlaylistMutationVariables>(UpdateSavedPlaylistDocument, options);
+      }
+export type UpdateSavedPlaylistMutationResult = Apollo.MutationResult<UpdateSavedPlaylistMutation>;
+
+export type DeleteSavedPlaylistMutationVariables = Exact<{ id: string; }>;
+export type DeleteSavedPlaylistMutation = { __typename?: 'Mutation', deleteSavedPlaylist: boolean };
+
+export const DeleteSavedPlaylistDocument = gql`
+    mutation DeleteSavedPlaylist($id: String!) {
+  deleteSavedPlaylist(id: $id)
+}
+    `;
+export function useDeleteSavedPlaylistMutation(baseOptions?: Apollo.MutationHookOptions<DeleteSavedPlaylistMutation, DeleteSavedPlaylistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteSavedPlaylistMutation, DeleteSavedPlaylistMutationVariables>(DeleteSavedPlaylistDocument, options);
+      }
+export type DeleteSavedPlaylistMutationResult = Apollo.MutationResult<DeleteSavedPlaylistMutation>;
+
+export type AddTracksToSavedPlaylistMutationVariables = Exact<{ playlistId: string; trackIds: Array<string>; }>;
+export type AddTracksToSavedPlaylistMutation = { __typename?: 'Mutation', addTracksToSavedPlaylist: boolean };
+
+export const AddTracksToSavedPlaylistDocument = gql`
+    mutation AddTracksToSavedPlaylist($playlistId: String!, $trackIds: [String!]!) {
+  addTracksToSavedPlaylist(playlistId: $playlistId, trackIds: $trackIds)
+}
+    `;
+export function useAddTracksToSavedPlaylistMutation(baseOptions?: Apollo.MutationHookOptions<AddTracksToSavedPlaylistMutation, AddTracksToSavedPlaylistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddTracksToSavedPlaylistMutation, AddTracksToSavedPlaylistMutationVariables>(AddTracksToSavedPlaylistDocument, options);
+      }
+export type AddTracksToSavedPlaylistMutationResult = Apollo.MutationResult<AddTracksToSavedPlaylistMutation>;
+
+export type RemoveTrackFromSavedPlaylistMutationVariables = Exact<{ playlistId: string; trackId: string; }>;
+export type RemoveTrackFromSavedPlaylistMutation = { __typename?: 'Mutation', removeTrackFromSavedPlaylist: boolean };
+
+export const RemoveTrackFromSavedPlaylistDocument = gql`
+    mutation RemoveTrackFromSavedPlaylist($playlistId: String!, $trackId: String!) {
+  removeTrackFromSavedPlaylist(playlistId: $playlistId, trackId: $trackId)
+}
+    `;
+export function useRemoveTrackFromSavedPlaylistMutation(baseOptions?: Apollo.MutationHookOptions<RemoveTrackFromSavedPlaylistMutation, RemoveTrackFromSavedPlaylistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveTrackFromSavedPlaylistMutation, RemoveTrackFromSavedPlaylistMutationVariables>(RemoveTrackFromSavedPlaylistDocument, options);
+      }
+export type RemoveTrackFromSavedPlaylistMutationResult = Apollo.MutationResult<RemoveTrackFromSavedPlaylistMutation>;
+
+export type PlaySavedPlaylistMutationVariables = Exact<{ playlistId: string; }>;
+export type PlaySavedPlaylistMutation = { __typename?: 'Mutation', playSavedPlaylist: boolean };
+
+export const PlaySavedPlaylistDocument = gql`
+    mutation PlaySavedPlaylist($playlistId: String!) {
+  playSavedPlaylist(playlistId: $playlistId)
+}
+    `;
+export function usePlaySavedPlaylistMutation(baseOptions?: Apollo.MutationHookOptions<PlaySavedPlaylistMutation, PlaySavedPlaylistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PlaySavedPlaylistMutation, PlaySavedPlaylistMutationVariables>(PlaySavedPlaylistDocument, options);
+      }
+export type PlaySavedPlaylistMutationResult = Apollo.MutationResult<PlaySavedPlaylistMutation>;
+
+// ── Smart Playlist Mutations ─────────────────────────────────────────────────
+
+export type PlaySmartPlaylistMutationVariables = Exact<{ id: string; }>;
+export type PlaySmartPlaylistMutation = { __typename?: 'Mutation', playSmartPlaylist: boolean };
+
+export const PlaySmartPlaylistDocument = gql`
+    mutation PlaySmartPlaylist($id: String!) {
+  playSmartPlaylist(id: $id)
+}
+    `;
+export function usePlaySmartPlaylistMutation(baseOptions?: Apollo.MutationHookOptions<PlaySmartPlaylistMutation, PlaySmartPlaylistMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PlaySmartPlaylistMutation, PlaySmartPlaylistMutationVariables>(PlaySmartPlaylistDocument, options);
+      }
+export type PlaySmartPlaylistMutationResult = Apollo.MutationResult<PlaySmartPlaylistMutation>;

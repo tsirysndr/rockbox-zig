@@ -1,3 +1,1 @@
-import PlaylistDetails from "./PlaylistDetails";
-
-export default PlaylistDetails;
+export { default } from "./PlaylistDetailsWithData";

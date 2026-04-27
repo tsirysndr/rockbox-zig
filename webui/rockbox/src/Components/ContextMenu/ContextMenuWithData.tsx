@@ -2,9 +2,11 @@ import { FC } from "react";
 import ContextMenu from "./ContextMenu";
 import {
   useGetLikedTracksQuery,
+  useGetSavedPlaylistsQuery,
   useInsertTracksMutation,
   useLikeTrackMutation,
   useUnlikeTrackMutation,
+  useAddTracksToSavedPlaylistMutation,
 } from "../../Hooks/GraphQL";
 import {
   PLAYLIST_INSERT_FIRST,
@@ -24,9 +26,13 @@ const ContextMenuWithData: FC<ContextMenuWithDataProps> = ({ track }) => {
   const { refetch } = useGetLikedTracksQuery({
     fetchPolicy: "network-only",
   });
+  const { data: playlistsData } = useGetSavedPlaylistsQuery({
+    fetchPolicy: "cache-and-network",
+  });
   const [insertTracks] = useInsertTracksMutation();
   const [likeTrack] = useLikeTrackMutation();
   const [unlikeTrack] = useUnlikeTrackMutation();
+  const [addTracksToPlaylist] = useAddTracksToSavedPlaylistMutation();
 
   const onPlayNext = (path: string) => {
     insertTracks({
@@ -81,17 +87,26 @@ const ContextMenuWithData: FC<ContextMenuWithDataProps> = ({ track }) => {
     await refetch();
   };
 
+  const onAddTrackToPlaylist = (playlistId: string, trackId: string) => {
+    addTracksToPlaylist({
+      variables: {
+        playlistId,
+        trackIds: [trackId],
+      },
+    });
+  };
+
   return (
     <ContextMenu
       track={track}
       onPlayNext={onPlayNext}
       onCreatePlaylist={() => {}}
-      onAddTrackToPlaylist={() => {}}
+      onAddTrackToPlaylist={onAddTrackToPlaylist}
       onPlayLast={onPlayLast}
       onAddShuffled={onAddShuffled}
       onLike={onLike}
       onUnlike={onUnlike}
-      recentPlaylists={[]}
+      recentPlaylists={playlistsData?.savedPlaylists ?? []}
       liked={likes[track.id]}
     />
   );

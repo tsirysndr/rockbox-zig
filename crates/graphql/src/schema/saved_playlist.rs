@@ -1,9 +1,13 @@
 use async_graphql::*;
+use rockbox_library::entity::track::Track as LibraryTrack;
 use rockbox_playlists::{Playlist, PlaylistFolder};
 
 use crate::{
     rockbox_url,
-    schema::objects::saved_playlist::{SavedPlaylist, SavedPlaylistFolder},
+    schema::objects::{
+        saved_playlist::{SavedPlaylist, SavedPlaylistFolder},
+        track::Track,
+    },
 };
 
 #[derive(Default)]
@@ -58,6 +62,22 @@ impl SavedPlaylistQuery {
             playlist_id
         );
         Ok(client.get(&url).send().await?.json::<Vec<String>>().await?)
+    }
+
+    async fn saved_playlist_tracks(
+        &self,
+        ctx: &Context<'_>,
+        playlist_id: String,
+    ) -> Result<Vec<Track>, Error> {
+        let client = ctx.data::<reqwest::Client>()?;
+        let url = format!("{}/saved-playlists/{}/tracks", rockbox_url(), playlist_id);
+        let tracks = client
+            .get(&url)
+            .send()
+            .await?
+            .json::<Vec<LibraryTrack>>()
+            .await?;
+        Ok(tracks.into_iter().map(Track::from).collect())
     }
 
     async fn playlist_folders(&self, ctx: &Context<'_>) -> Result<Vec<SavedPlaylistFolder>, Error> {
