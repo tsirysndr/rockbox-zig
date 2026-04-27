@@ -30,34 +30,28 @@ import { controlBarState } from "./ControlBarState";
 const ControlBarWithData: FC = () => {
   const [{ nowPlaying, locked, resumeIndex }, setControlBarState] =
     useRecoilState(controlBarState);
-  const { data, loading } = useGetCurrentTrackQuery();
-  const { data: playback } = useGetPlaybackStatusQuery({
-    fetchPolicy: "network-only",
-  });
-  const [pause] = usePauseMutation();
-  const [resume] = useResumeMutation();
-  const [previous] = usePreviousMutation();
-  const [next] = useNextMutation();
+  const { data, isLoading } = useGetCurrentTrackQuery();
+  const { data: playback } = useGetPlaybackStatusQuery();
+  const { mutate: pause } = usePauseMutation();
+  const { mutate: resume } = useResumeMutation();
+  const { mutate: previous } = usePreviousMutation();
+  const { mutate: next } = useNextMutation();
   const { data: playbackSubscription } = useCurrentlyPlayingSongSubscription();
   const { data: playbackStatus } = usePlaybackStatusSubscription();
   const { previousTracks, nextTracks } = usePlayQueue();
   const { resumePlaylistTrack } = useResumePlaylist();
-  const [likeTrack] = useLikeTrackMutation();
-  const [unlikeTrack] = useUnlikeTrackMutation();
-  const [seek] = useSeekMutation();
-  const [saveSettings] = useSaveSettingsMutation();
+  const { mutateAsync: likeTrackAsync } = useLikeTrackMutation();
+  const { mutateAsync: unlikeTrackAsync } = useUnlikeTrackMutation();
+  const { mutate: seek } = useSeekMutation();
+  const { mutateAsync: saveSettingsAsync } = useSaveSettingsMutation();
   const { refetch: refetchSettings } = useGetGlobalSettingsQuery();
   const [settings] = useRecoilState(settingsState);
 
   const [likes, setLikes] = useRecoilState(likesState);
-  const { data: likedTracksData, loading: likedTracksLoading } =
-    useGetLikedTracksQuery({
-      fetchPolicy: "network-only",
-    });
-  const { data: likedAlbumsData, loading: likedAlbumsLoading } =
-    useGetLikedAlbumsQuery({
-      fetchPolicy: "network-only",
-    });
+  const { data: likedTracksData, isLoading: likedTracksLoading } =
+    useGetLikedTracksQuery();
+  const { data: likedAlbumsData, isLoading: likedAlbumsLoading } =
+    useGetLikedAlbumsQuery();
 
   useSettings();
 
@@ -134,7 +128,7 @@ const ControlBarWithData: FC = () => {
   }, [playbackSubscription, playbackStatus]);
 
   useEffect(() => {
-    if (loading || !data) {
+    if (isLoading || !data) {
       return;
     }
 
@@ -158,7 +152,7 @@ const ControlBarWithData: FC = () => {
       albumId: data.currentTrack?.albumId,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, loading, playback]);
+  }, [data, isLoading, playback]);
 
   const onPlay = async () => {
     setControlBarState((state) => ({
@@ -172,7 +166,7 @@ const ControlBarWithData: FC = () => {
 
     if (resumeIndex > -1) {
       try {
-        await resumePlaylistTrack();
+        await resumePlaylistTrack({});
       } catch (e) {
         console.error(e);
       }
@@ -191,7 +185,7 @@ const ControlBarWithData: FC = () => {
       }, 3000);
       return;
     }
-    resume();
+    resume({});
 
     setTimeout(() => {
       setControlBarState((state) => ({
@@ -210,7 +204,7 @@ const ControlBarWithData: FC = () => {
       },
       locked: true,
     }));
-    pause();
+    pause({});
     setTimeout(() => {
       setControlBarState((state) => ({
         ...state,
@@ -230,11 +224,7 @@ const ControlBarWithData: FC = () => {
     }));
 
     try {
-      await likeTrack({
-        variables: {
-          trackId,
-        },
-      });
+      await likeTrackAsync({ trackId });
     } catch (e) {
       console.error(e);
     }
@@ -251,11 +241,7 @@ const ControlBarWithData: FC = () => {
     }));
 
     try {
-      await unlikeTrack({
-        variables: {
-          trackId,
-        },
-      });
+      await unlikeTrackAsync({ trackId });
     } catch (e) {
       console.error(e);
     }
@@ -266,31 +252,22 @@ const ControlBarWithData: FC = () => {
       return;
     }
 
-    seek({
-      variables: {
-        elapsed,
-        offset: 0,
-      },
-    });
+    seek({ elapsed, offset: 0 });
   };
 
   const onShuffle = async () => {
-    await saveSettings({
-      variables: {
-        settings: {
-          playlistShuffle: !settings.playlistShuffle,
-        },
+    await saveSettingsAsync({
+      settings: {
+        playlistShuffle: !settings.playlistShuffle,
       },
     });
     await refetchSettings();
   };
 
   const onRepeat = async () => {
-    await saveSettings({
-      variables: {
-        settings: {
-          repeatMode: settings.repeatMode === 0 ? 1 : 0,
-        },
+    await saveSettingsAsync({
+      settings: {
+        repeatMode: settings.repeatMode === 0 ? 1 : 0,
       },
     });
     await refetchSettings();
@@ -301,8 +278,8 @@ const ControlBarWithData: FC = () => {
       nowPlaying={nowPlaying}
       onPlay={onPlay}
       onPause={onPause}
-      onNext={() => next()}
-      onPrevious={() => previous()}
+      onNext={() => next({})}
+      onPrevious={() => previous({})}
       onShuffle={onShuffle}
       onRepeat={onRepeat}
       shuffle={settings.playlistShuffle}

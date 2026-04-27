@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "graphql-tag";
 
 export const GET_GLOBAL_SETTINGS = gql`
   query GetGlobalSettings {

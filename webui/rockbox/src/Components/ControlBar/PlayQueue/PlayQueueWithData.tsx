@@ -8,23 +8,15 @@ import {
 
 const PlayQueueWithData: FC = () => {
   const { nextTracks, previousTracks } = usePlayQueue();
-  const [removeTrack] = usePlaylistRemoveTrackMutation();
-  const [startPlaylist] = useStartPlaylistMutation();
+  const { mutate: removeTrack } = usePlaylistRemoveTrackMutation();
+  const { mutate: startPlaylist } = useStartPlaylistMutation();
 
   const onPlayTrackAt = (startIndex: number) => {
-    startPlaylist({
-      variables: {
-        startIndex,
-      },
-    });
+    startPlaylist({ startIndex });
   };
 
   const onRemoveTrackAt = (index: number) => {
-    removeTrack({
-      variables: {
-        index,
-      },
-    });
+    removeTrack({ index });
   };
 
   return (

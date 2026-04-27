@@ -8,7 +8,7 @@ const AlbumsWithData: FC = () => {
   const filter = useRecoilValue(filterState);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [albums, setAlbums] = useState<any[]>([]);
-  const { data, loading } = useGetAlbumsQuery();
+  const { data, isLoading } = useGetAlbumsQuery();
 
   useEffect(() => {
     if (filter.term.length > 0 && filter.results) {
@@ -66,7 +66,7 @@ const AlbumsWithData: FC = () => {
       onLike={() => {}}
       onUnLike={() => {}}
       keyword={filter.term}
-      loading={loading}
+      loading={isLoading}
     />
   );
 };

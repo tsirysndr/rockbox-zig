@@ -4,14 +4,12 @@ import ArtistDetails from "./ArtistDetails";
 import { albums, tracks } from "./mocks";
 import Providers from "../../Providers";
 import { MemoryRouter } from "react-router-dom";
-import { MockedProvider } from "@apollo/client/testing";
-import { mocks } from "../../mocks";
 
 describe("ArtistDetails", () => {
   it("should render", () => {
     const { container } = render(
       <MemoryRouter initialEntries={["/"]}>
-        <MockedProvider mocks={mocks}>
+        
           <Providers>
             <ArtistDetails
               name="Daft Punk"
@@ -28,7 +26,7 @@ describe("ArtistDetails", () => {
               onPlayTrack={vi.fn()}
             />
           </Providers>
-        </MockedProvider>
+        
       </MemoryRouter>
     );
     expect(container).toMatchSnapshot();

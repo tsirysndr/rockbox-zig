@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "graphql-tag";
 
 export const CURRENTLY_PLAYING_SONG = gql`
   subscription CurrentlyPlayingSong {

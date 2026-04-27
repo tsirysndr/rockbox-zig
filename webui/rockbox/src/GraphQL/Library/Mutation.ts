@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "graphql-tag";
 
 export const LIKE_TRACK = gql`
   mutation LikeTrack($trackId: String!) {

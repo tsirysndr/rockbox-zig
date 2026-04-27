@@ -10,12 +10,8 @@ import ArtistDetails from "./ArtistDetails";
 const ArtistDetailsWithData: FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { data } = useGetArtistQuery({
-    variables: {
-      id: id!,
-    },
-  });
-  const [playArtistTracks] = usePlayArtistTracksMutation();
+  const { data } = useGetArtistQuery({ id: id! });
+  const { mutate: playArtistTracks } = usePlayArtistTracksMutation();
   const { formatTime } = useTimeFormat();
   const tracks =
     data?.artist?.tracks.map((x) => ({
@@ -34,21 +30,11 @@ const ArtistDetailsWithData: FC = () => {
     })) || [];
 
   const onPlayAll = (shuffle: boolean) => {
-    playArtistTracks({
-      variables: {
-        artistId: id!,
-        shuffle,
-      },
-    });
+    playArtistTracks({ artistId: id!, shuffle });
   };
 
   const onPlayTrack = (position: number) => {
-    playArtistTracks({
-      variables: {
-        artistId: id!,
-        position,
-      },
-    });
+    playArtistTracks({ artistId: id!, position });
   };
 
   return (

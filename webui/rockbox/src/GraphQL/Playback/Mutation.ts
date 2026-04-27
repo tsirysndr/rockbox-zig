@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "graphql-tag";
 
 export const PLAY = gql`
   mutation Play($elapsed: Int!, $offset: Int!) {

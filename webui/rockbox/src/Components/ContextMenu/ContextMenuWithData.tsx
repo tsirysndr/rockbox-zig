@@ -2,12 +2,9 @@ import { FC } from "react";
 import ContextMenu from "./ContextMenu";
 import {
   useGetLikedTracksQuery,
-  useGetSavedPlaylistsQuery,
   useInsertTracksMutation,
   useLikeTrackMutation,
   useUnlikeTrackMutation,
-  useAddTracksToSavedPlaylistMutation,
-  useCreateSavedPlaylistMutation,
 } from "../../Hooks/GraphQL";
 import {
   PLAYLIST_INSERT_FIRST,
@@ -24,102 +21,47 @@ export type ContextMenuWithDataProps = {
 
 const ContextMenuWithData: FC<ContextMenuWithDataProps> = ({ track }) => {
   const [likes, setLikes] = useRecoilState(likesState);
-  const { refetch } = useGetLikedTracksQuery({
-    fetchPolicy: "network-only",
-  });
-  const { data: playlistsData } = useGetSavedPlaylistsQuery({
-    fetchPolicy: "cache-and-network",
-  });
-  const [insertTracks] = useInsertTracksMutation();
-  const [likeTrack] = useLikeTrackMutation();
-  const [unlikeTrack] = useUnlikeTrackMutation();
-  const [addTracksToPlaylist] = useAddTracksToSavedPlaylistMutation();
-  const [createPlaylist] = useCreateSavedPlaylistMutation();
+  const { refetch } = useGetLikedTracksQuery();
+  const { mutate: insertTracks } = useInsertTracksMutation();
+  const { mutateAsync: likeTrackAsync } = useLikeTrackMutation();
+  const { mutateAsync: unlikeTrackAsync } = useUnlikeTrackMutation();
 
   const onPlayNext = (path: string) => {
-    insertTracks({
-      variables: {
-        position: PLAYLIST_INSERT_FIRST,
-        tracks: [path],
-      },
-    });
+    insertTracks({ position: PLAYLIST_INSERT_FIRST, tracks: [path] });
   };
 
   const onPlayLast = (path: string) => {
-    insertTracks({
-      variables: {
-        position: PLAYLIST_INSERT_LAST,
-        tracks: [path],
-      },
-    });
+    insertTracks({ position: PLAYLIST_INSERT_LAST, tracks: [path] });
   };
 
   const onAddShuffled = (path: string) => {
-    insertTracks({
-      variables: {
-        position: PLAYLIST_INSERT_SHUFFLED,
-        tracks: [path],
-      },
-    });
+    insertTracks({ position: PLAYLIST_INSERT_SHUFFLED, tracks: [path] });
   };
 
   const onLike = async (trackId: string) => {
-    setLikes({
-      ...likes,
-      [trackId]: true,
-    });
-    await likeTrack({
-      variables: {
-        trackId,
-      },
-    });
+    setLikes({ ...likes, [trackId]: true });
+    await likeTrackAsync({ trackId });
     await refetch();
   };
 
   const onUnlike = async (trackId: string) => {
-    setLikes({
-      ...likes,
-      [trackId]: false,
-    });
-    await unlikeTrack({
-      variables: {
-        trackId,
-      },
-    });
+    setLikes({ ...likes, [trackId]: false });
+    await unlikeTrackAsync({ trackId });
     await refetch();
-  };
-
-  const onAddTrackToPlaylist = (playlistId: string, trackId: string) => {
-    addTracksToPlaylist({
-      variables: {
-        playlistId,
-        trackIds: [trackId],
-      },
-    });
-  };
-
-  const onCreatePlaylist = async (name: string, trackId: string, description?: string) => {
-    await createPlaylist({
-      variables: {
-        name,
-        description,
-        trackIds: [trackId],
-      },
-    });
   };
 
   return (
     <ContextMenu
       track={track}
       onPlayNext={onPlayNext}
-      onCreatePlaylist={onCreatePlaylist}
-      onAddTrackToPlaylist={onAddTrackToPlaylist}
       onPlayLast={onPlayLast}
       onAddShuffled={onAddShuffled}
       onLike={onLike}
       onUnlike={onUnlike}
-      recentPlaylists={playlistsData?.savedPlaylists ?? []}
+      recentPlaylists={[]}
       liked={likes[track.id]}
+      onCreatePlaylist={() => {}}
+      onAddTrackToPlaylist={() => {}}
     />
   );
 };

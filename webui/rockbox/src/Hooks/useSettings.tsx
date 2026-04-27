@@ -5,10 +5,10 @@ import { useEffect } from "react";
 
 export const useSettings = () => {
   const [, setSettings] = useRecoilState(settingsState);
-  const { data, loading } = useGetGlobalSettingsQuery();
+  const { data, isLoading } = useGetGlobalSettingsQuery();
 
   useEffect(() => {
-    if (!data || loading) {
+    if (!data || isLoading) {
       return;
     }
     setSettings((state) => ({
@@ -43,5 +43,5 @@ export const useSettings = () => {
       surroundFx2: data.globalSettings.surroundFx2,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, loading]);
+  }, [data, isLoading]);
 };

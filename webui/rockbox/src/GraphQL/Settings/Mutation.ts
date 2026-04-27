@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "graphql-tag";
 
 export const SAVE_SETTINGS = gql`
   mutation SaveSettings($settings: NewGlobalSettings!) {

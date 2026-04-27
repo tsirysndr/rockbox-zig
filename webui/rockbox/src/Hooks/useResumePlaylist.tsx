@@ -15,17 +15,19 @@ export const useResumePlaylist = () => {
   const { data: globalStatusData } = useGetGlobalStatusQuery();
   const {
     data: currentPlaylistData,
-    loading,
+    isLoading,
     refetch: refetchCurrentPlaylist,
   } = useGetCurrentPlaylistQuery();
-  const [resumePlaylist] = useResumePlaylistMutation();
-  const [resumePlaylistTrack] = useResumePlaylistTrackMutation();
-  const { data: getPlaybackStatusData, loading: getPlaybackStatusLoading } =
-    useGetPlaybackStatusQuery();
+  const { mutateAsync: resumePlaylist } = useResumePlaylistMutation();
+  const { mutateAsync: resumePlaylistTrack } = useResumePlaylistTrackMutation();
+  const {
+    data: getPlaybackStatusData,
+    isLoading: getPlaybackStatusLoading,
+  } = useGetPlaybackStatusQuery();
 
   useEffect(() => {
     if (
-      loading ||
+      isLoading ||
       !currentPlaylistData ||
       !globalStatusData ||
       getPlaybackStatusLoading
@@ -37,9 +39,9 @@ export const useResumePlaylist = () => {
       globalStatusData.globalStatus.resumeIndex > -1 &&
       getPlaybackStatusData?.status !== 1
     ) {
-      resumePlaylist()
+      resumePlaylist({})
         .then((res) => {
-          if (res.data?.playlistResume === 0) {
+          if (res.playlistResume === 0) {
             return refetchCurrentPlaylist();
           }
         })
@@ -100,7 +102,7 @@ export const useResumePlaylist = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    loading,
+    isLoading,
     currentPlaylistData,
     globalStatusData,
     getPlaybackStatusLoading,

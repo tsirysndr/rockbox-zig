@@ -15,40 +15,22 @@ export type AlbumWithDataProps = {
 
 const AlbumWithData: FC<AlbumWithDataProps> = ({ album }) => {
   const [likes, setLikes] = useRecoilState(likesState);
-  const [playAlbum] = usePlayAlbumMutation();
-  const [likeAlbum] = useLikeAlbumMutation();
-  const [unlikeAlbum] = useUnlikeAlbumMutation();
+  const { mutate: playAlbum } = usePlayAlbumMutation();
+  const { mutate: likeAlbum } = useLikeAlbumMutation();
+  const { mutate: unlikeAlbum } = useUnlikeAlbumMutation();
 
   const onPlay = ({ id: albumId }: any) => {
-    playAlbum({
-      variables: {
-        albumId,
-      },
-    });
+    playAlbum({ albumId });
   };
 
   const onLike = ({ id: albumId }: any) => {
-    setLikes({
-      ...likes,
-      [albumId]: true,
-    });
-    likeAlbum({
-      variables: {
-        albumId,
-      },
-    });
+    setLikes({ ...likes, [albumId]: true });
+    likeAlbum({ albumId });
   };
 
   const onUnlike = ({ id: albumId }: any) => {
-    setLikes({
-      ...likes,
-      [albumId]: false,
-    });
-    unlikeAlbum({
-      variables: {
-        albumId,
-      },
-    });
+    setLikes({ ...likes, [albumId]: false });
+    unlikeAlbum({ albumId });
   };
 
   return (

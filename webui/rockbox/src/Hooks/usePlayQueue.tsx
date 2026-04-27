@@ -11,12 +11,9 @@ import {
 export const usePlayQueue = () => {
   const { currentDevice } = useRecoilValue(deviceState);
   const { resumeIndex } = useRecoilValue(controlBarState);
-  const { data: playlistSubscription } = usePlaylistChangedSubscription({
-    fetchPolicy: "network-only",
-  });
-  const { data } = useGetCurrentPlaylistQuery({
-    fetchPolicy: "cache-and-network",
-  });
+  const { data: playlistSubscription } = usePlaylistChangedSubscription();
+  const { data } = useGetCurrentPlaylistQuery();
+
   const previousTracks = useMemo(() => {
     if (playlistSubscription?.playlistChanged) {
       const currentTrackIndex =
@@ -24,7 +21,8 @@ export const usePlayQueue = () => {
           ? resumeIndex
           : _.get(playlistSubscription, "playlistChanged.index", 0);
       const tracks = _.get(playlistSubscription, "playlistChanged.tracks", []);
-      return tracks.slice(0, currentTrackIndex + 1).map((x, index) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return tracks.slice(0, currentTrackIndex + 1).map((x: any, index: number) => ({
         ...x,
         id: index.toString(),
         cover: x.albumArt
@@ -39,7 +37,8 @@ export const usePlayQueue = () => {
         ? resumeIndex
         : _.get(data, "playlistGetCurrent.index", 0);
     const tracks = _.get(data, "playlistGetCurrent.tracks", []);
-    return tracks.slice(0, currentTrackIndex + 1).map((x, index) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return tracks.slice(0, currentTrackIndex + 1).map((x: any, index: number) => ({
       ...x,
       id: index.toString(),
       cover: x.albumArt
@@ -58,7 +57,8 @@ export const usePlayQueue = () => {
           ? resumeIndex
           : _.get(playlistSubscription, "playlistChanged.index", 0);
       const tracks = _.get(playlistSubscription, "playlistChanged.tracks", []);
-      return tracks.slice(currentTrackIndex + 1).map((x, index) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return tracks.slice(currentTrackIndex + 1).map((x: any, index: number) => ({
         ...x,
         id: index.toString(),
         cover: x.albumArt
@@ -73,7 +73,8 @@ export const usePlayQueue = () => {
         ? resumeIndex
         : _.get(data, "playlistGetCurrent.index", 0);
     const tracks = _.get(data, "playlistGetCurrent.tracks", []);
-    return tracks.slice(currentTrackIndex + 1).map((x, index) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return tracks.slice(currentTrackIndex + 1).map((x: any, index: number) => ({
       ...x,
       id: index.toString(),
       cover: x.albumArt

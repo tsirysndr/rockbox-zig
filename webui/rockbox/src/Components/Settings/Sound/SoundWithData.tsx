@@ -6,35 +6,18 @@ import { useSaveSettingsMutation } from "../../../Hooks/GraphQL";
 
 const SoundWithData: FC = () => {
   const [settings] = useRecoilState(settingsState);
-  const [saveSettings] = useSaveSettingsMutation();
+  const { mutate: saveSettings } = useSaveSettingsMutation();
 
   const onBalanceChange = (balance: number) => {
-    saveSettings({
-      variables: {
-        settings: {
-          balance,
-        },
-      },
-    });
+    saveSettings({ settings: { balance } });
   };
 
   const onBassChange = (bass: number) => {
-    saveSettings({
-      variables: {
-        settings: {
-          bass,
-        },
-      },
-    });
+    saveSettings({ settings: { bass } });
   };
+
   const onTrebleChange = (treble: number) => {
-    saveSettings({
-      variables: {
-        settings: {
-          treble,
-        },
-      },
-    });
+    saveSettings({ settings: { treble } });
   };
   return (
     <Sound

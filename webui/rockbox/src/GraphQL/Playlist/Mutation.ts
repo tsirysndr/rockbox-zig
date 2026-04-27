@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "graphql-tag";
 
 export const RESUME_PLAYLIST = gql`
   mutation ResumePlaylist {
@@ -51,5 +51,11 @@ export const INSERT_DIRECTORY = gql`
 export const INSERT_ALBUM = gql`
   mutation InsertAlbum($albumId: String!, $position: Int!) {
     insertAlbum(albumId: $albumId, position: $position)
+  }
+`;
+
+export const SHUFFLE_PLAYLIST = gql`
+  mutation ShufflePlaylist {
+    shufflePlaylist
   }
 `;

@@ -14,12 +14,8 @@ const AlbumDetailsWithData: FC = () => {
   const { formatTime } = useTimeFormat();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { data, refetch } = useGetAlbumQuery({
-    variables: {
-      id: id!,
-    },
-  });
-  const [playAlbum] = usePlayAlbumMutation();
+  const { data, refetch } = useGetAlbumQuery({ id: id! });
+  const { mutate: playAlbum } = usePlayAlbumMutation();
 
   const album = useMemo(
     () =>
@@ -83,12 +79,7 @@ const AlbumDetailsWithData: FC = () => {
   }
 
   function onPlayAll(shuffle: boolean) {
-    playAlbum({
-      variables: {
-        albumId: id!,
-        shuffle,
-      },
-    });
+    playAlbum({ albumId: id!, shuffle });
   }
 
   function onPlayTrack(position: number, disc: number) {
@@ -102,12 +93,7 @@ const AlbumDetailsWithData: FC = () => {
       }
       realPosition += position;
     }
-    playAlbum({
-      variables: {
-        albumId: id!,
-        position: disc > 1 ? realPosition : position,
-      },
-    });
+    playAlbum({ albumId: id!, position: disc > 1 ? realPosition : position });
   }
 
   return (

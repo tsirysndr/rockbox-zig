@@ -3,8 +3,6 @@ import { vi } from "vitest";
 import AlbumDetails from "./AlbumDetails";
 import { tracks } from "./mocks";
 import { MemoryRouter } from "react-router-dom";
-import { MockedProvider } from "@apollo/client/testing";
-import { mocks } from "../../mocks";
 import { RecoilRoot } from "recoil";
 import Providers from "../../Providers";
 
@@ -15,7 +13,7 @@ describe("AlbumDetails", () => {
     const onShuffleAll = vi.fn();
     const { container } = render(
       <MemoryRouter initialEntries={["/"]}>
-        <MockedProvider mocks={mocks}>
+        
           <Providers>
             <RecoilRoot>
               <AlbumDetails
@@ -40,7 +38,7 @@ describe("AlbumDetails", () => {
               />
             </RecoilRoot>
           </Providers>
-        </MockedProvider>
+        
       </MemoryRouter>
     );
     expect(container).toMatchSnapshot();

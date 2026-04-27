@@ -2,8 +2,6 @@ import { render } from "@testing-library/react";
 import { vi } from "vitest";
 import ControlBar from "./ControlBar";
 import Providers from "../../Providers";
-import { MockedProvider } from "@apollo/client/testing";
-import { mocks } from "../../mocks";
 import { MemoryRouter } from "react-router-dom";
 
 describe("ControlBar", () => {
@@ -11,7 +9,7 @@ describe("ControlBar", () => {
     const { container } = render(
       <Providers>
         <MemoryRouter initialEntries={["/"]}>
-          <MockedProvider mocks={mocks}>
+          
             <ControlBar
               nowPlaying={{
                 album: "Forgotten Shapes",
@@ -34,7 +32,7 @@ describe("ControlBar", () => {
               onUnlike={vi.fn()}
               onSeek={vi.fn()}
             />
-          </MockedProvider>
+          
         </MemoryRouter>
       </Providers>
     );

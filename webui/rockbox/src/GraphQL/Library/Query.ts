@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "graphql-tag";
 
 export const GET_ALBUMS = gql`
   query GetAlbums {
@@ -31,6 +31,7 @@ export const GET_ARTISTS = gql`
     artists {
       id
       name
+      image
     }
   }
 `;
@@ -40,6 +41,7 @@ export const GET_ARTIST = gql`
     artist(id: $id) {
       id
       name
+      image
       albums {
         id
         title

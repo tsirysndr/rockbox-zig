@@ -6,16 +6,10 @@ import { useSaveSettingsMutation } from "../../../../Hooks/GraphQL";
 
 const EqualizerWithData: FC = () => {
   const [settings] = useRecoilState(settingsState);
-  const [saveSettings] = useSaveSettingsMutation();
+  const { mutate: saveSettings } = useSaveSettingsMutation();
 
   const onEnableEq = (eqEnabled: boolean) => {
-    saveSettings({
-      variables: {
-        settings: {
-          eqEnabled,
-        },
-      },
-    });
+    saveSettings({ settings: { eqEnabled } });
   };
 
   const onEqBandSettingsChange = (
@@ -25,13 +19,7 @@ const EqualizerWithData: FC = () => {
       cutoff: number;
     }[]
   ) => {
-    saveSettings({
-      variables: {
-        settings: {
-          eqBandSettings,
-        },
-      },
-    });
+    saveSettings({ settings: { eqBandSettings } });
   };
 
   return (

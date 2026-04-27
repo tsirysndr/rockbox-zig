@@ -7,16 +7,10 @@ import {
 
 const LibraryWithData: FC = () => {
   const { data } = useGetGlobalSettingsQuery();
-  const [saveSettings] = useSaveSettingsMutation();
+  const { mutate: saveSettings } = useSaveSettingsMutation();
 
   const onSaveMusicDirectoryPath = (musicDir: string) =>
-    saveSettings({
-      variables: {
-        settings: {
-          musicDir,
-        },
-      },
-    });
+    saveSettings({ settings: { musicDir } });
 
   return (
     <Library

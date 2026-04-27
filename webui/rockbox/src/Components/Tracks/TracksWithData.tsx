@@ -8,10 +8,10 @@ import Tracks from "./Tracks";
 
 const TracksWithData: FC = () => {
   const filter = useRecoilValue(filterState);
-  const { data, loading } = useTracksQuery();
+  const { data, isLoading } = useTracksQuery();
   const [tracks, setTracks] = useState<Track[]>([]);
   const { formatTime } = useTimeFormat();
-  const [playAllTracks] = usePlayAllTracksMutation();
+  const { mutate: playAllTracks } = usePlayAllTracksMutation();
 
   useEffect(() => {
     if (filter.term.length > 0 && filter.results) {
@@ -55,7 +55,7 @@ const TracksWithData: FC = () => {
   }, [filter, data]);
 
   useEffect(() => {
-    if (!data || loading) {
+    if (!data || isLoading) {
       return;
     }
 
@@ -76,14 +76,10 @@ const TracksWithData: FC = () => {
       }))
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, loading]);
+  }, [data, isLoading]);
 
   const onPlayTrack = (position: number) => {
-    playAllTracks({
-      variables: {
-        position,
-      },
-    });
+    playAllTracks({ position });
   };
 
   return (
@@ -91,7 +87,7 @@ const TracksWithData: FC = () => {
       tracks={tracks}
       onPlayTrack={onPlayTrack}
       keyword={filter.term}
-      loading={loading}
+      loading={isLoading}
     />
   );
 };

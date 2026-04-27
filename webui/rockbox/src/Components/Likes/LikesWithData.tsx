@@ -12,11 +12,9 @@ import { likedTracks, likesState } from "./LikesState";
 const LikesWithData: FC = () => {
   const filter = useRecoilValue(filterState);
   const [likes, setLikes] = useRecoilState(likesState);
-  const { data, loading } = useGetLikedTracksQuery({
-    fetchPolicy: "network-only",
-  });
+  const { data, isLoading } = useGetLikedTracksQuery();
   const [tracks, setTracks] = useRecoilState(likedTracks);
-  const [playLikedTracks] = usePlayLikedTracksMutation();
+  const { mutate: playLikedTracks } = usePlayLikedTracksMutation();
   const { formatTime } = useTimeFormat();
 
   useEffect(() => {
@@ -61,7 +59,7 @@ const LikesWithData: FC = () => {
   }, [filter, data]);
 
   useEffect(() => {
-    if (!data || loading) {
+    if (!data || isLoading) {
       return;
     }
 
@@ -90,26 +88,18 @@ const LikesWithData: FC = () => {
       }))
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, loading]);
+  }, [data, isLoading]);
 
   const onPlayTrack = (position: number) => {
-    playLikedTracks({
-      variables: {
-        position,
-      },
-    });
+    playLikedTracks({ position });
   };
 
   const onPlayAll = () => {
-    playLikedTracks();
+    playLikedTracks({});
   };
 
   const onShuffleAll = () => {
-    playLikedTracks({
-      variables: {
-        shuffle: true,
-      },
-    });
+    playLikedTracks({ shuffle: true });
   };
 
   return (
@@ -119,7 +109,7 @@ const LikesWithData: FC = () => {
       onPlayAll={onPlayAll}
       onShuffleAll={onShuffleAll}
       keyword={filter.term}
-      loading={loading}
+      loading={isLoading}
     />
   );
 };

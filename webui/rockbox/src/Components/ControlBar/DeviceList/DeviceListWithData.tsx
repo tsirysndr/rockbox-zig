@@ -17,17 +17,12 @@ export type DeviceListWithDataProps = {
 const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
   const [, setControlBarState] = useRecoilState(controlBarState);
   const [device, setDeviceState] = useRecoilState(deviceState);
-  const { data: currentDevice, refetch: refetchCurrentDevice } = useGetDeviceQuery({
-    variables: { id: "current" },
-    fetchPolicy: "network-only",
-  });
-  const { data, loading, refetch: refetchDevices } = useGetDevicesQuery({
-    fetchPolicy: "network-only",
-  });
-  const [connect] = useConnectToDeviceMutation();
-  const [disconnect] = useDisconnectFromDeviceMutation();
+  const { data: currentDevice, refetch: refetchCurrentDevice } = useGetDeviceQuery({ id: "current" });
+  const { data, isLoading, refetch: refetchDevices } = useGetDevicesQuery();
+  const { mutateAsync: connectAsync } = useConnectToDeviceMutation();
+  const { mutateAsync: disconnectAsync } = useDisconnectFromDeviceMutation();
   const devices = useMemo(() => {
-    if (loading || !data) {
+    if (isLoading || !data) {
       return [];
     }
     return (data.devices || []).map((x) => ({
@@ -37,7 +32,7 @@ const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
       isConnected: x.isConnected,
       isCurrentDevice: x.isCurrentDevice ?? false,
     }));
-  }, [data, loading]);
+  }, [data, isLoading]);
 
   useEffect(() => {
     if (currentDevice) {
@@ -61,7 +56,7 @@ const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
   }, [currentDevice]);
 
   const connectToCastDevice = async (id: string) => {
-    await connect({ variables: { id } });
+    await connectAsync({ id });
     await Promise.all([refetchCurrentDevice(), refetchDevices()]);
     setControlBarState((state) => ({
       ...state,
@@ -70,7 +65,7 @@ const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
   };
 
   const disconnectDevice = async () => {
-    await disconnect({ variables: { id: currentDevice?.device?.id || "" } });
+    await disconnectAsync({ id: currentDevice?.device?.id || "" });
     // reload page to reset the state
     window.location.reload();
   };
@@ -79,7 +74,7 @@ const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
     <>
       {
         <DeviceList
-          loading={loading}
+          loading={isLoading}
           castDevices={devices}
           connectToCastDevice={connectToCastDevice}
           disconnectFromCastDevice={disconnectDevice}

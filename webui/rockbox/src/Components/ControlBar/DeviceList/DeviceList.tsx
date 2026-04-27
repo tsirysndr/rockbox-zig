@@ -38,6 +38,8 @@ const iconColors: Record<string, string> = {
   builtin:      "#28fce3",
   fifo:         "#9090ff",
   squeezelite:  "#ffa028",
+  snapcast:     "#a0e040",
+  Snapcast:     "#a0e040",
   xbmc:         "#28cbfc",
   AirPlay:      "#ff00c3",
   airplay:      "#ff00c3",
@@ -51,6 +53,8 @@ const bgColors: Record<string, string> = {
   builtin:      "rgba(40, 252, 227, 0.09)",
   fifo:         "rgba(144, 144, 255, 0.10)",
   squeezelite:  "rgba(255, 160, 40, 0.10)",
+  snapcast:     "rgba(160, 224, 64, 0.10)",
+  Snapcast:     "rgba(160, 224, 64, 0.10)",
   xbmc:         "rgba(40, 203, 252, 0.08)",
   AirPlay:      "rgba(255, 0, 195, 0.06)",
   airplay:      "rgba(255, 0, 195, 0.06)",
@@ -68,6 +72,9 @@ const Artwork: FC<ArtworkProps> = ({ icon, color }) => {
       {icon === "builtin"     && <HardDrive size={18} color={c} />}
       {icon === "fifo"        && <Radio     size={18} color={c} />}
       {icon === "squeezelite" && <Cast      size={18} color={c} />}
+      {(icon === "snapcast" || icon === "Snapcast") && (
+        <Radio size={18} color={c} />
+      )}
       {icon === "xbmc"        && <Kodi      size={18} color={c} />}
       {(icon === "AirPlay" || icon === "airplay") && (
         <Airplayaudio size={18} color={c} />

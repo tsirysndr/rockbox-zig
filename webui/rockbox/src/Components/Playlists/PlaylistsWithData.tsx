@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Playlists from "./Playlists";
 import {
   useGetSavedPlaylistsQuery,
@@ -11,46 +12,51 @@ import {
 } from "../../Hooks/GraphQL";
 
 const PlaylistsWithData: FC = () => {
-  const { data: savedData, refetch: refetchSaved } = useGetSavedPlaylistsQuery({
-    fetchPolicy: "cache-and-network",
-  });
-  const { data: smartData } = useGetSmartPlaylistsQuery({
-    fetchPolicy: "cache-and-network",
-  });
+  const queryClient = useQueryClient();
+  const { data: savedData } = useGetSavedPlaylistsQuery();
+  const { data: smartData } = useGetSmartPlaylistsQuery();
+  const { mutateAsync: createSavedPlaylist } = useCreateSavedPlaylistMutation();
+  const { mutateAsync: updateSavedPlaylist } = useUpdateSavedPlaylistMutation();
+  const { mutateAsync: deleteSavedPlaylist } = useDeleteSavedPlaylistMutation();
+  const { mutate: playSavedPlaylist } = usePlaySavedPlaylistMutation();
+  const { mutate: playSmartPlaylist } = usePlaySmartPlaylistMutation();
 
-  const [createPlaylist] = useCreateSavedPlaylistMutation();
-  const [updatePlaylist] = useUpdateSavedPlaylistMutation();
-  const [deletePlaylist] = useDeleteSavedPlaylistMutation();
-  const [playSaved] = usePlaySavedPlaylistMutation();
-  const [playSmart] = usePlaySmartPlaylistMutation();
+  const savedPlaylists = savedData?.savedPlaylists ?? [];
+  const smartPlaylists = smartData?.smartPlaylists ?? [];
 
-  async function onCreate(name: string, description?: string) {
-    await createPlaylist({ variables: { name, description } });
-    await refetchSaved();
-  }
-
-  async function onUpdate(id: string, name: string, description?: string) {
-    await updatePlaylist({ variables: { id, name, description } });
-    await refetchSaved();
-  }
-
-  async function onDelete(id: string) {
-    await deletePlaylist({ variables: { id } });
-    await refetchSaved();
-  }
-
-  function onPlay(id: string, isSmart: boolean) {
+  const onPlay = (id: string, isSmart: boolean) => {
     if (isSmart) {
-      playSmart({ variables: { id } });
+      playSmartPlaylist({ id });
     } else {
-      playSaved({ variables: { playlistId: id } });
+      playSavedPlaylist({ playlistId: id });
     }
-  }
+  };
+
+  const onCreate = async (name: string, description?: string) => {
+    await createSavedPlaylist({ name, description });
+    queryClient.invalidateQueries({
+      queryKey: useGetSavedPlaylistsQuery.getKey(),
+    });
+  };
+
+  const onUpdate = async (id: string, name: string, description?: string) => {
+    await updateSavedPlaylist({ id, name, description });
+    queryClient.invalidateQueries({
+      queryKey: useGetSavedPlaylistsQuery.getKey(),
+    });
+  };
+
+  const onDelete = async (id: string) => {
+    await deleteSavedPlaylist({ id });
+    queryClient.invalidateQueries({
+      queryKey: useGetSavedPlaylistsQuery.getKey(),
+    });
+  };
 
   return (
     <Playlists
-      savedPlaylists={savedData?.savedPlaylists ?? []}
-      smartPlaylists={smartData?.smartPlaylists ?? []}
+      savedPlaylists={savedPlaylists}
+      smartPlaylists={smartPlaylists}
       onPlay={onPlay}
       onEdit={() => {}}
       onDelete={onDelete}

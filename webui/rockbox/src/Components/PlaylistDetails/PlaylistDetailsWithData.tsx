@@ -1,5 +1,7 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import PlaylistDetails from "./PlaylistDetails";
 import {
   useGetSavedPlaylistQuery,
   useGetSavedPlaylistTracksQuery,
@@ -7,113 +9,103 @@ import {
   useGetSmartPlaylistTracksQuery,
   usePlaySavedPlaylistMutation,
   usePlaySmartPlaylistMutation,
+  useShufflePlaylistMutation,
+  useStartPlaylistMutation,
   useRemoveTrackFromSavedPlaylistMutation,
-  useInsertTracksMutation,
 } from "../../Hooks/GraphQL";
 import { useTimeFormat } from "../../Hooks/useFormat";
 import { Track } from "../../Types/track";
-import { PLAYLIST_INSERT_FIRST } from "../../Types/playlist";
-import PlaylistDetails from "./PlaylistDetails";
 
 type Props = { isSmart?: boolean };
 
 const PlaylistDetailsWithData: FC<Props> = ({ isSmart = false }) => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const { formatTime } = useTimeFormat();
-  const [tracks, setTracks] = useState<Track[]>([]);
+  const queryClient = useQueryClient();
 
-  const { data: savedData } = useGetSavedPlaylistQuery({
-    variables: { id: id! },
-    skip: isSmart,
-  });
-  const { data: savedTracksData, refetch: refetchTracks } =
-    useGetSavedPlaylistTracksQuery({
-      variables: { playlistId: id! },
-      skip: isSmart,
-    });
+  const { data: savedPlaylistData } = useGetSavedPlaylistQuery(
+    { id: id! },
+    { enabled: !isSmart }
+  );
+  const { data: savedTracksData, refetch: refetchSavedTracks } =
+    useGetSavedPlaylistTracksQuery(
+      { playlistId: id! },
+      { enabled: !isSmart }
+    );
 
-  const { data: smartData } = useGetSmartPlaylistQuery({
-    variables: { id: id! },
-    skip: !isSmart,
-  });
-  const { data: smartTracksData } = useGetSmartPlaylistTracksQuery({
-    variables: { id: id! },
-    skip: !isSmart,
-  });
-
-  const [playSaved] = usePlaySavedPlaylistMutation();
-  const [playSmart] = usePlaySmartPlaylistMutation();
-  const [removeTrack] = useRemoveTrackFromSavedPlaylistMutation();
-  const [insertTracks] = useInsertTracksMutation();
-
-  const playlist = useMemo(
-    () => (isSmart ? smartData?.smartPlaylist : savedData?.savedPlaylist),
-    [isSmart, savedData, smartData]
+  const { data: smartPlaylistData } = useGetSmartPlaylistQuery(
+    { id: id! },
+    { enabled: isSmart }
+  );
+  const { data: smartTracksData } = useGetSmartPlaylistTracksQuery(
+    { id: id! },
+    { enabled: isSmart }
   );
 
-  const rawTracks = useMemo(
+  const { mutate: playSavedPlaylist } = usePlaySavedPlaylistMutation();
+  const { mutate: playSmartPlaylist } = usePlaySmartPlaylistMutation();
+  const { mutate: shufflePlaylist } = useShufflePlaylistMutation();
+  const { mutate: startPlaylist } = useStartPlaylistMutation();
+  const { mutateAsync: removeTrack } = useRemoveTrackFromSavedPlaylistMutation();
+
+  const playlist = isSmart
+    ? smartPlaylistData?.smartPlaylist
+    : savedPlaylistData?.savedPlaylist;
+
+  const rawTracks = isSmart
+    ? (smartTracksData?.smartPlaylistTracks ?? [])
+    : (savedTracksData?.savedPlaylistTracks ?? []);
+
+  const tracks: Track[] = useMemo(
     () =>
-      isSmart
-        ? smartTracksData?.smartPlaylistTracks
-        : savedTracksData?.savedPlaylistTracks,
-    [isSmart, savedTracksData, smartTracksData]
-  );
-
-  useEffect(() => {
-    if (!rawTracks) return;
-    setTracks(
       rawTracks.map((t, i) => ({
         id: t.id ?? "",
         trackNumber: i + 1,
         title: t.title,
         artist: t.artist,
-        artistId: t.artistId ?? undefined,
-        albumId: t.albumId ?? undefined,
+        artistId: t.artistId ?? "",
+        albumId: t.albumId ?? "",
+        album: t.album,
         time: formatTime(t.length),
-        albumArt: t.albumArt
-          ? `${location.protocol}//${location.host}/covers/${t.albumArt}`
-          : undefined,
+        albumArt: t.albumArt ?? undefined,
         path: t.path,
-      }))
-    );
+      })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawTracks]);
+    [rawTracks]
+  );
 
-  function onPlayAll(shuffle = false) {
+  const onPlayAll = () => {
     if (isSmart) {
-      playSmart({ variables: { id: id! } });
+      playSmartPlaylist({ id: id! });
     } else {
-      if (shuffle) {
-        const paths = tracks.map((t) => t.path).filter((p): p is string => !!p);
-        const shuffled = [...paths].sort(() => Math.random() - 0.5);
-        insertTracks({
-          variables: { position: PLAYLIST_INSERT_FIRST, tracks: shuffled },
+      playSavedPlaylist({ playlistId: id! });
+    }
+  };
+
+  const onShuffleAll = () => {
+    onPlayAll();
+    shufflePlaylist({});
+  };
+
+  const onPlayTrack = (position: number) => {
+    if (isSmart) {
+      playSmartPlaylist({ id: id! });
+    } else {
+      playSavedPlaylist({ playlistId: id! });
+    }
+    startPlaylist({ startIndex: position });
+  };
+
+  const onRemoveTrack = isSmart
+    ? undefined
+    : async (trackId: string) => {
+        await removeTrack({ playlistId: id!, trackId });
+        refetchSavedTracks();
+        queryClient.invalidateQueries({
+          queryKey: useGetSavedPlaylistTracksQuery.getKey({ playlistId: id! }),
         });
-      } else {
-        playSaved({ variables: { playlistId: id! } });
-      }
-    }
-  }
-
-  function onPlayTrack(position: number) {
-    if (isSmart) {
-      playSmart({ variables: { id: id! } });
-    } else {
-      const paths = tracks.map((t) => t.path).filter((p): p is string => !!p);
-      const ordered = [...paths.slice(position), ...paths.slice(0, position)];
-      insertTracks({
-        variables: { position: PLAYLIST_INSERT_FIRST, tracks: ordered },
-      });
-    }
-  }
-
-  async function onRemoveTrack(trackId: string) {
-    await removeTrack({
-      variables: { playlistId: id!, trackId },
-    });
-    await refetchTracks();
-  }
+      };
 
   return (
     <PlaylistDetails
@@ -121,10 +113,10 @@ const PlaylistDetailsWithData: FC<Props> = ({ isSmart = false }) => {
       tracks={tracks}
       isSmart={isSmart}
       onGoBack={() => navigate(-1)}
-      onPlayAll={() => onPlayAll(false)}
-      onShuffleAll={() => onPlayAll(true)}
+      onPlayAll={onPlayAll}
+      onShuffleAll={onShuffleAll}
       onPlayTrack={onPlayTrack}
-      onRemoveTrack={!isSmart ? onRemoveTrack : undefined}
+      onRemoveTrack={onRemoveTrack}
     />
   );
 };

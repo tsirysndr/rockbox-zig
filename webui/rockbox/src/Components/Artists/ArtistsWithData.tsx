@@ -6,7 +6,7 @@ import { filterState } from "../Filter/FilterState";
 
 const ArtistsWithData: FC = () => {
   const filter = useRecoilValue(filterState);
-  const { data, loading } = useGetArtistsQuery();
+  const { data, isLoading } = useGetArtistsQuery();
   const artists = useMemo(() => {
     if (filter.term.length > 0 && filter.results) {
       return (filter.results?.artists || []).map((x) => ({
@@ -28,7 +28,7 @@ const ArtistsWithData: FC = () => {
       onClickArtist={() => {}}
       artists={artists}
       keyword={filter.term}
-      loading={loading}
+      loading={isLoading}
     />
   );
 };
