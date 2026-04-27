@@ -205,321 +205,350 @@ exports[`Tracks > should render 1`] = `
             Files
           </div>
         </a>
+        <a
+          class="css-tujm8o"
+          color="initial"
+          href="/playlists"
+        >
+          <svg
+            aria-hidden="true"
+            class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+            color="initial"
+            fill="currentColor"
+            focusable="false"
+            height="20"
+            style="margin-right: 6px;"
+            viewBox="0 0 24 24"
+            width="20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m19.684 5.821-9-3.272A1.998 1.998 0 0 0 8 4.428v6.129A3.953 3.953 0 0 0 6 10c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4V4.428L19 7.7v6.856A3.962 3.962 0 0 0 17 14c-2.206 0-4 1.794-4 4s1.794 4 4 4 4-1.794 4-4V7.7c0-.838-.529-1.594-1.316-1.879zM6 16c-1.103 0-2-.897-2-2s.897-2 2-2 2 .897 2 2-.897 2-2 2zm11 4c-1.103 0-2-.897-2-2s.897-2 2-2 2 .897 2 2-.897 2-2 2z"
+            />
+          </svg>
+          <div>
+            Playlists
+          </div>
+        </a>
       </div>
       <div
         class="css-y9r6ap"
       >
         <div
-          class="css-14bvc2y"
+          class="css-19i1zwv"
         >
           <div
-            class="css-1h69jy4"
+            class="css-14bvc2y"
           >
             <div
-              class="css-1ytum11"
-            >
-              <button
-                class="css-174s4i9"
-              >
-                <svg
-                  data-test="icon-PlaybackShuffle"
-                  fill="none"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    clip-rule="evenodd"
-                    d="M16.2 7h2.85l-1.3 1.3c-.4.4-.4 1 0 1.4.25.2.5.3.75.3s.5-.1.7-.3l3-3 .15-.15.05-.05c0-.025.013-.037.025-.05.012-.013.025-.025.025-.05 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056.05-.15.05-.25 0-.4 0-.05 0-.05-.05-.1 0-.021 0-.033-.004-.044-.005-.015-.017-.027-.046-.056 0-.025-.012-.037-.025-.05-.012-.013-.025-.025-.025-.05 0 0 0-.05-.05-.05l-.15-.15-3-3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4L19.1 5h-2.85c-1.75 0-3.3.9-4.25 2.35L6.85 15.6c-.55.9-1.5 1.4-2.55 1.4H2.5c-.55 0-1 .45-1 1s.45 1 1 1h1.8c1.75 0 3.3-.9 4.25-2.35L13.7 8.4c.5-.85 1.5-1.4 2.5-1.4ZM2.5 7h1.8c1.05 0 2 .5 2.55 1.4l.45.75 1.2-1.9C7.55 5.8 6 4.95 4.3 4.95H2.5c-.55 0-1 .45-1 1 0 .6.45 1.05 1 1.05Zm19.95 11.2v.05c0 .05 0 .1-.05.1v.05c-.05.1-.1.2-.2.3l-3 3c-.2.2-.45.3-.7.3-.25 0-.5-.1-.75-.3-.4-.4-.4-1 0-1.4l1.3-1.3H16.2c-1.7 0-3.25-.85-4.2-2.3l1.25-1.9.45.75c.55.9 1.5 1.4 2.55 1.4h2.85l-1.3-1.3c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l3 3c.1.1.15.2.2.3v.05c.05.05.05.1.05.15v.05c.05.15.05.25 0 .4Z"
-                    fill="#000"
-                    fill-rule="evenodd"
-                  />
-                </svg>
-              </button>
-              <button
-                class="css-174s4i9"
-              >
-                <svg
-                  fill="none"
-                  height="18"
-                  width="18"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    class="ionicon"
-                    d="M3.55 2c.304 0 .55.243.55.542V7.16l8.001-4.716a1.224 1.224 0 0 1 1.23-.015c.413.23.669.677.669 1.162v9.818c0 .486-.256.932-.669 1.162-.382.216-.853.21-1.23-.015L4.1 9.84v4.618a.546.546 0 0 1-.55.542.546.546 0 0 1-.55-.542V2.542C3 2.243 3.246 2 3.55 2Z"
-                    style="fill: #000;"
-                  />
-                </svg>
-              </button>
-              <button
-                class="css-174s4i9"
-              >
-                <svg
-                  fill="none"
-                  height="32"
-                  width="32"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M10.657 27a2.842 2.842 0 0 1-1.258-.292C8.536 26.283 8 25.458 8 24.563V6.438c0-.899.536-1.721 1.399-2.146a2.856 2.856 0 0 1 2.571.028l17.817 9.273c.755.411 1.213 1.131 1.213 1.906 0 .774-.458 1.495-1.213 1.906l-17.82 9.275a2.846 2.846 0 0 1-1.31.32Z"
-                    style="fill: #000;"
-                  />
-                </svg>
-              </button>
-              <button
-                class="css-174s4i9"
-              >
-                <svg
-                  fill="none"
-                  height="18"
-                  width="18"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    class="ionicon"
-                    d="M14.45 2a.546.546 0 0 0-.55.542V7.16L5.899 2.444a1.224 1.224 0 0 0-1.23-.015C4.256 2.659 4 3.105 4 3.591v9.818c0 .486.256.932.669 1.162.382.216.853.21 1.23-.015L13.9 9.84v4.618c0 .299.246.542.55.542.304 0 .55-.243.55-.542V2.542A.546.546 0 0 0 14.45 2Z"
-                    style="fill: #000;"
-                  />
-                </svg>
-              </button>
-              <button
-                class="css-174s4i9"
-              >
-                <svg
-                  data-test="icon-PlaybackInactiveRepeat"
-                  fill="none"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  width="16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    clip-rule="evenodd"
-                    d="M16.293 1.293a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1 0 1.414l-3 3a1 1 0 1 1-1.414-1.414L17.586 6H8.5c-3.298 0-6 2.702-6 6a1 1 0 1 1-2 0c0-4.402 3.598-8 8-8h9.086l-1.293-1.293a1 1 0 0 1 0-1.414ZM23.5 12a1 1 0 1 0-2 0c0 3.298-2.702 6-6 6H6.414l1.293-1.293a1 1 0 1 0-1.414-1.414l-3 3a1 1 0 0 0 0 1.414l3 3a1 1 0 0 0 1.414-1.414L6.414 20H15.5c4.402 0 8-3.598 8-8Z"
-                    fill="#000"
-                    fill-rule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-          <div
-            class="css-frud38"
-          >
-            <div
-              class="css-4ijxew"
-            >
-              <svg
-                height="28"
-                viewBox="0 0 24 24"
-                width="28"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M8.1 4.65v11.26a3.45 3.45 0 1 0 1.5 2.84V5.85l10.2-2.36v10.62A3.45 3.45 0 1 0 21.3 17V1.61Zm-2 16a2 2 0 1 1 2-2 2 2 0 0 1-1.95 2.05Zm11.7-1.8a1.95 1.95 0 1 1 2-1.85 2 2 0 0 1-1.95 1.9Z"
-                  fill="#b1b2b5"
-                />
-              </svg>
-            </div>
-            <div
-              class="css-rbpzuh"
+              class="css-1h69jy4"
             >
               <div
-                style="color: rgb(177, 178, 181); text-align: center;"
+                class="css-1ytum11"
               >
-                No track playing
+                <button
+                  class="css-174s4i9"
+                >
+                  <svg
+                    data-test="icon-PlaybackShuffle"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      clip-rule="evenodd"
+                      d="M16.2 7h2.85l-1.3 1.3c-.4.4-.4 1 0 1.4.25.2.5.3.75.3s.5-.1.7-.3l3-3 .15-.15.05-.05c0-.025.013-.037.025-.05.012-.013.025-.025.025-.05 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056.05-.15.05-.25 0-.4 0-.05 0-.05-.05-.1 0-.021 0-.033-.004-.044-.005-.015-.017-.027-.046-.056 0-.025-.012-.037-.025-.05-.012-.013-.025-.025-.025-.05 0 0 0-.05-.05-.05l-.15-.15-3-3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4L19.1 5h-2.85c-1.75 0-3.3.9-4.25 2.35L6.85 15.6c-.55.9-1.5 1.4-2.55 1.4H2.5c-.55 0-1 .45-1 1s.45 1 1 1h1.8c1.75 0 3.3-.9 4.25-2.35L13.7 8.4c.5-.85 1.5-1.4 2.5-1.4ZM2.5 7h1.8c1.05 0 2 .5 2.55 1.4l.45.75 1.2-1.9C7.55 5.8 6 4.95 4.3 4.95H2.5c-.55 0-1 .45-1 1 0 .6.45 1.05 1 1.05Zm19.95 11.2v.05c0 .05 0 .1-.05.1v.05c-.05.1-.1.2-.2.3l-3 3c-.2.2-.45.3-.7.3-.25 0-.5-.1-.75-.3-.4-.4-.4-1 0-1.4l1.3-1.3H16.2c-1.7 0-3.25-.85-4.2-2.3l1.25-1.9.45.75c.55.9 1.5 1.4 2.55 1.4h2.85l-1.3-1.3c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l3 3c.1.1.15.2.2.3v.05c.05.05.05.1.05.15v.05c.05.15.05.25 0 .4Z"
+                      fill="#000"
+                      fill-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="css-174s4i9"
+                >
+                  <svg
+                    fill="none"
+                    height="18"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      class="ionicon"
+                      d="M3.55 2c.304 0 .55.243.55.542V7.16l8.001-4.716a1.224 1.224 0 0 1 1.23-.015c.413.23.669.677.669 1.162v9.818c0 .486-.256.932-.669 1.162-.382.216-.853.21-1.23-.015L4.1 9.84v4.618a.546.546 0 0 1-.55.542.546.546 0 0 1-.55-.542V2.542C3 2.243 3.246 2 3.55 2Z"
+                      style="fill: #000;"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="css-174s4i9"
+                >
+                  <svg
+                    fill="none"
+                    height="32"
+                    width="32"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10.657 27a2.842 2.842 0 0 1-1.258-.292C8.536 26.283 8 25.458 8 24.563V6.438c0-.899.536-1.721 1.399-2.146a2.856 2.856 0 0 1 2.571.028l17.817 9.273c.755.411 1.213 1.131 1.213 1.906 0 .774-.458 1.495-1.213 1.906l-17.82 9.275a2.846 2.846 0 0 1-1.31.32Z"
+                      style="fill: #000;"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="css-174s4i9"
+                >
+                  <svg
+                    fill="none"
+                    height="18"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      class="ionicon"
+                      d="M14.45 2a.546.546 0 0 0-.55.542V7.16L5.899 2.444a1.224 1.224 0 0 0-1.23-.015C4.256 2.659 4 3.105 4 3.591v9.818c0 .486.256.932.669 1.162.382.216.853.21 1.23-.015L13.9 9.84v4.618c0 .299.246.542.55.542.304 0 .55-.243.55-.542V2.542A.546.546 0 0 0 14.45 2Z"
+                      style="fill: #000;"
+                    />
+                  </svg>
+                </button>
+                <button
+                  class="css-174s4i9"
+                >
+                  <svg
+                    data-test="icon-PlaybackInactiveRepeat"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      clip-rule="evenodd"
+                      d="M16.293 1.293a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1 0 1.414l-3 3a1 1 0 1 1-1.414-1.414L17.586 6H8.5c-3.298 0-6 2.702-6 6a1 1 0 1 1-2 0c0-4.402 3.598-8 8-8h9.086l-1.293-1.293a1 1 0 0 1 0-1.414ZM23.5 12a1 1 0 1 0-2 0c0 3.298-2.702 6-6 6H6.414l1.293-1.293a1 1 0 1 0-1.414-1.414l-3 3a1 1 0 0 0 0 1.414l3 3a1 1 0 0 0 1.414-1.414L6.414 20H15.5c4.402 0 8-3.598 8-8Z"
+                      fill="#000"
+                      fill-rule="evenodd"
+                    />
+                  </svg>
+                </button>
               </div>
             </div>
-          </div>
-          <div
-            class="css-1jirr0j"
-          >
             <div
-              class="css-1p6caij"
+              class="css-frud38"
             >
               <div
-                style="width: 100px; margin-top: 5px;"
+                class="css-4ijxew"
               >
-                <span
-                  class="MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-m0hede-MuiSlider-root"
+                <svg
+                  height="28"
+                  viewBox="0 0 24 24"
+                  width="28"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8.1 4.65v11.26a3.45 3.45 0 1 0 1.5 2.84V5.85l10.2-2.36v10.62A3.45 3.45 0 1 0 21.3 17V1.61Zm-2 16a2 2 0 1 1 2-2 2 2 0 0 1-1.95 2.05Zm11.7-1.8a1.95 1.95 0 1 1 2-1.85 2 2 0 0 1-1.95 1.9Z"
+                    fill="#b1b2b5"
+                  />
+                </svg>
+              </div>
+              <div
+                class="css-rbpzuh"
+              >
+                <div
+                  style="color: rgb(177, 178, 181); text-align: center;"
+                >
+                  No track playing
+                </div>
+              </div>
+            </div>
+            <div
+              class="css-1jirr0j"
+            >
+              <div
+                class="css-1p6caij"
+              >
+                <div
+                  style="width: 100px; margin-top: 5px;"
                 >
                   <span
-                    class="MuiSlider-rail css-r64h58-MuiSlider-rail"
-                  />
-                  <span
-                    class="MuiSlider-track css-xvk2i-MuiSlider-track"
-                    style="left: 0%; width: 80%;"
-                  />
-                  <span
-                    class="MuiSlider-thumb MuiSlider-thumbSizeMedium MuiSlider-thumbColorPrimary MuiSlider-thumb MuiSlider-thumbSizeMedium MuiSlider-thumbColorPrimary css-b1410s-MuiSlider-thumb"
-                    data-index="0"
-                    style="left: 80%;"
+                    class="MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-m0hede-MuiSlider-root"
                   >
-                    <input
-                      aria-label="Volume"
-                      aria-orientation="horizontal"
-                      aria-valuemax="100"
-                      aria-valuemin="0"
-                      aria-valuenow="80"
+                    <span
+                      class="MuiSlider-rail css-r64h58-MuiSlider-rail"
+                    />
+                    <span
+                      class="MuiSlider-track css-xvk2i-MuiSlider-track"
+                      style="left: 0%; width: 80%;"
+                    />
+                    <span
+                      class="MuiSlider-thumb MuiSlider-thumbSizeMedium MuiSlider-thumbColorPrimary MuiSlider-thumb MuiSlider-thumbSizeMedium MuiSlider-thumbColorPrimary css-b1410s-MuiSlider-thumb"
                       data-index="0"
-                      max="100"
-                      min="0"
-                      step="1"
-                      style="border: 0px; height: 100%; margin: -1px; overflow: hidden; padding: 0px; position: absolute; white-space: nowrap; width: 100%; direction: ltr;"
-                      type="range"
-                      value="80"
-                    />
+                      style="left: 80%;"
+                    >
+                      <input
+                        aria-label="Volume"
+                        aria-orientation="horizontal"
+                        aria-valuemax="100"
+                        aria-valuemin="0"
+                        aria-valuenow="80"
+                        data-index="0"
+                        max="100"
+                        min="0"
+                        step="1"
+                        style="border: 0px; height: 100%; margin: -1px; overflow: hidden; padding: 0px; position: absolute; white-space: nowrap; width: 100%; direction: ltr;"
+                        type="range"
+                        value="80"
+                      />
+                    </span>
                   </span>
-                </span>
+                </div>
               </div>
-            </div>
-            <button
-              aria-expanded="false"
-              aria-haspopup="true"
-              style="cursor: pointer;"
-            >
-              <svg
-                aria-hidden="true"
-                class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-                color="#000"
-                fill="currentColor"
-                focusable="false"
-                height="18"
-                viewBox="0 0 16 16"
-                width="18"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"
-                />
-                <path
-                  d="M8 4.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 3a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-3.5 1.5a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"
-                />
-              </svg>
-            </button>
-            <button
-              aria-expanded="false"
-              aria-haspopup="true"
-              class="css-174s4i9"
-            >
-              <svg
-                aria-hidden="true"
-                class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-                fill="currentColor"
-                focusable="false"
-                height="21"
-                viewBox="0 0 20 20"
-                width="21"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M14.4 9H8.6c-.552 0-.6.447-.6 1s.048 1 .6 1h5.8c.552 0 .6-.447.6-1s-.048-1-.6-1zm2 5H8.6c-.552 0-.6.447-.6 1s.048 1 .6 1h7.8c.552 0 .6-.447.6-1s-.048-1-.6-1zM8.6 6h7.8c.552 0 .6-.447.6-1s-.048-1-.6-1H8.6c-.552 0-.6.447-.6 1s.048 1 .6 1zM5.4 9H3.6c-.552 0-.6.447-.6 1s.048 1 .6 1h1.8c.552 0 .6-.447.6-1s-.048-1-.6-1zm0 5H3.6c-.552 0-.6.447-.6 1s.048 1 .6 1h1.8c.552 0 .6-.447.6-1s-.048-1-.6-1zm0-10H3.6c-.552 0-.6.447-.6 1s.048 1 .6 1h1.8c.552 0 .6-.447.6-1s-.048-1-.6-1z"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div
-          class="css-18cz59b"
-        >
-          <div
-            class="css-b8ko1a"
-          >
-            Songs
-          </div>
-          <div
-            class="css-9wcbnz"
-          >
-            <div
-              class="ae af ag ah ai aj ak al am an ao ap aq ar as at au av aw ax ay az b0 b1 b2 b3 b4 b5 b6 b7 b8"
-              data-baseweb="input"
-            >
-              <div
-                class="af b9 ba bb ar as ax ay az b0 b7 bc bd b5 be bf"
+              <button
+                aria-expanded="false"
+                aria-haspopup="true"
+                style="cursor: pointer;"
               >
                 <svg
-                  data-test="icon-ActionActiveSearch"
-                  fill="none"
-                  height="20"
-                  width="20"
+                  aria-hidden="true"
+                  class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                  color="#000"
+                  fill="currentColor"
+                  focusable="false"
+                  height="18"
+                  viewBox="0 0 16 16"
+                  width="18"
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    clip-rule="evenodd"
-                    d="M4 9.5a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0ZM9.5 2a7.5 7.5 0 1 0 4.549 13.463l2.744 2.744a1 1 0 0 0 1.414-1.414l-2.744-2.744A7.5 7.5 0 0 0 9.5 2Z"
-                    fill="#ACAAAA"
-                    fill-rule="evenodd"
+                    d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"
+                  />
+                  <path
+                    d="M8 4.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 3a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-3.5 1.5a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"
                   />
                 </svg>
-              </div>
-              <div
-                class="af bg bh ar as ax ay az b0 bd b5"
-                data-baseweb="base-input"
+              </button>
+              <button
+                aria-expanded="false"
+                aria-haspopup="true"
+                class="css-174s4i9"
               >
-                <input
-                  aria-invalid="false"
-                  aria-required="false"
-                  autocomplete="on"
-                  class="ae b5 bi bj bk bl bm bn bo bp bq bg br bs bt bu bv bw b6 bx ax by az b0 bz c0 c1"
-                  inputmode="text"
-                  name="filter"
-                  placeholder="Search song"
-                  type="text"
-                  value=""
-                />
-              </div>
+                <svg
+                  aria-hidden="true"
+                  class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                  fill="currentColor"
+                  focusable="false"
+                  height="21"
+                  viewBox="0 0 20 20"
+                  width="21"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M14.4 9H8.6c-.552 0-.6.447-.6 1s.048 1 .6 1h5.8c.552 0 .6-.447.6-1s-.048-1-.6-1zm2 5H8.6c-.552 0-.6.447-.6 1s.048 1 .6 1h7.8c.552 0 .6-.447.6-1s-.048-1-.6-1zM8.6 6h7.8c.552 0 .6-.447.6-1s-.048-1-.6-1H8.6c-.552 0-.6.447-.6 1s.048 1 .6 1zM5.4 9H3.6c-.552 0-.6.447-.6 1s.048 1 .6 1h1.8c.552 0 .6-.447.6-1s-.048-1-.6-1zm0 5H3.6c-.552 0-.6.447-.6 1s.048 1 .6 1h1.8c.552 0 .6-.447.6-1s-.048-1-.6-1zm0-10H3.6c-.552 0-.6.447-.6 1s.048 1 .6 1h1.8c.552 0 .6-.447.6-1s-.048-1-.6-1z"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
           <div
-            style="margin-bottom: 60px;"
+            class="css-18cz59b"
           >
             <div
-              style="height: 96px; margin-bottom: 100px;"
+              class="css-b8ko1a"
             >
-              <table
-                style="width: 100%;"
+              Songs
+            </div>
+            <div
+              class="css-9wcbnz"
+            >
+              <div
+                class="ae af ag ah ai aj ak al am an ao ap aq ar as at au av aw ax ay az b0 b1 b2 b3 b4 b5 b6 b7 b8"
+                data-baseweb="input"
               >
-                <thead>
-                  <tr
-                    style="height: 48px; color: rgba(0, 0, 0, 0.54);"
+                <div
+                  class="af b9 ba bb ar as ax ay az b0 b7 bc bd b5 be bf"
+                >
+                  <svg
+                    data-test="icon-ActionActiveSearch"
+                    fill="none"
+                    height="20"
+                    width="20"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <th
-                      style="width: 20px;"
-                    >
-                      #
-                    </th>
-                    <th
-                      style="text-align: left; width: 54px;"
-                    >
-                      Title
-                    </th>
-                    <th
-                      style="text-align: left; width: 150px;"
+                    <path
+                      clip-rule="evenodd"
+                      d="M4 9.5a5.5 5.5 0 1 1 11 0 5.5 5.5 0 0 1-11 0ZM9.5 2a7.5 7.5 0 1 0 4.549 13.463l2.744 2.744a1 1 0 0 0 1.414-1.414l-2.744-2.744A7.5 7.5 0 0 0 9.5 2Z"
+                      fill="#ACAAAA"
+                      fill-rule="evenodd"
                     />
-                    <th
-                      style="text-align: left; width: 150px;"
+                  </svg>
+                </div>
+                <div
+                  class="af bg bh ar as ax ay az b0 bd b5"
+                  data-baseweb="base-input"
+                >
+                  <input
+                    aria-invalid="false"
+                    aria-required="false"
+                    autocomplete="on"
+                    class="ae b5 bi bj bk bl bm bn bo bp bq bg br bs bt bu bv bw b6 bx ax by az b0 bz c0 c1"
+                    inputmode="text"
+                    name="filter"
+                    placeholder="Search song"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              style="margin-bottom: 60px;"
+            >
+              <div
+                style="height: 96px; margin-bottom: 100px;"
+              >
+                <table
+                  style="width: 100%;"
+                >
+                  <thead>
+                    <tr
+                      style="height: 48px; color: rgba(0, 0, 0, 0.54);"
                     >
-                      Artist
-                    </th>
-                    <th
-                      style="text-align: left; width: 150px;"
-                    >
-                      Album
-                    </th>
-                    <th
-                      style="text-align: left; width: 50px;"
-                    >
-                      Time
-                    </th>
-                    <th
-                      style="text-align: left; width: 100px;"
-                    />
-                  </tr>
-                </thead>
-                <tbody />
-              </table>
+                      <th
+                        style="width: 20px;"
+                      >
+                        #
+                      </th>
+                      <th
+                        style="text-align: left; width: 54px;"
+                      >
+                        Title
+                      </th>
+                      <th
+                        style="text-align: left; width: 150px;"
+                      />
+                      <th
+                        style="text-align: left; width: 150px;"
+                      >
+                        Artist
+                      </th>
+                      <th
+                        style="text-align: left; width: 150px;"
+                      >
+                        Album
+                      </th>
+                      <th
+                        style="text-align: left; width: 50px;"
+                      >
+                        Time
+                      </th>
+                      <th
+                        style="text-align: left; width: 100px;"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
             </div>
           </div>
         </div>
