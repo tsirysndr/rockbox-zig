@@ -49,7 +49,7 @@ exports[`Tracks > should render 1`] = `
           </a>
         </div>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/albums"
         >
           <svg
@@ -76,7 +76,7 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/artists"
         >
           <svg
@@ -97,8 +97,7 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-1hl5flw"
-          color="#6F00FF"
+          class="css-11lm6h2"
           href="/tracks"
         >
           <svg
@@ -108,7 +107,7 @@ exports[`Tracks > should render 1`] = `
           >
             <path
               d="M8.1 4.65v11.26a3.45 3.45 0 1 0 1.5 2.84V5.85l10.2-2.36v10.62A3.45 3.45 0 1 0 21.3 17V1.61Zm-2 16a2 2 0 1 1 2-2 2 2 0 0 1-1.95 2.05Zm11.7-1.8a1.95 1.95 0 1 1 2-1.85 2 2 0 0 1-1.95 1.9Z"
-              fill="#6F00FF"
+              fill="#e8e8e8"
             />
           </svg>
           <div
@@ -118,7 +117,7 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/likes"
         >
           <svg
@@ -157,7 +156,7 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/files"
         >
           <svg
@@ -202,7 +201,7 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/playlists"
         >
           <svg
@@ -430,6 +429,7 @@ exports[`Tracks > should render 1`] = `
                 <svg
                   aria-hidden="true"
                   class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                  color="#9090a0"
                   fill="currentColor"
                   focusable="false"
                   height="21"
@@ -506,7 +506,7 @@ exports[`Tracks > should render 1`] = `
                 >
                   <thead>
                     <tr
-                      style="height: 48px; color: rgba(0, 0, 0, 0.54);"
+                      style="height: 48px; color: rgb(120, 120, 160);"
                     >
                       <th
                         style="width: 20px;"

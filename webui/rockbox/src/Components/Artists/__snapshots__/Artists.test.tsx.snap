@@ -49,7 +49,7 @@ exports[`Artists > should render 1`] = `
           </a>
         </div>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/albums"
         >
           <svg
@@ -76,8 +76,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-1hl5flw"
-          color="#6F00FF"
+          class="css-11lm6h2"
           href="/artists"
         >
           <svg
@@ -88,7 +87,7 @@ exports[`Artists > should render 1`] = `
           >
             <path
               d="M20 4.22a5.67 5.67 0 0 0-9.68 4.57l-8 9.79 3.3 3.3 9.79-8c.18 0 .36.05.55.05a5.7 5.7 0 0 0 4-9.73ZM5.74 19.86l-1.38-1.38 6.44-7.89a5.48 5.48 0 0 0 2.83 2.84Zm13.21-8.65a4.2 4.2 0 1 1 0-5.94 4.17 4.17 0 0 1 0 5.95Z"
-              fill="#6F00FF"
+              fill="#e8e8e8"
             />
           </svg>
           <div
@@ -98,7 +97,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/tracks"
         >
           <svg
@@ -118,7 +117,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/likes"
         >
           <svg
@@ -157,7 +156,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/files"
         >
           <svg
@@ -202,7 +201,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-j9huyi"
+          class="css-t8r4i5"
           href="/playlists"
         >
           <svg
@@ -430,6 +429,7 @@ exports[`Artists > should render 1`] = `
                 <svg
                   aria-hidden="true"
                   class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
+                  color="#9090a0"
                   fill="currentColor"
                   focusable="false"
                   height="21"

@@ -46,14 +46,13 @@ exports[`Sidebar > should render 1`] = `
         </a>
       </div>
       <a
-        class="css-1hl5flw"
-        color="#6F00FF"
+        class="css-11lm6h2"
         href="/albums"
       >
         <svg
           aria-hidden="true"
           class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-          color="#6F00FF"
+          color="#e8e8e8"
           fill="currentColor"
           focusable="false"
           height="20"
@@ -74,7 +73,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-j9huyi"
+        class="css-t8r4i5"
         href="/artists"
       >
         <svg
@@ -95,7 +94,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-j9huyi"
+        class="css-t8r4i5"
         href="/tracks"
       >
         <svg
@@ -115,7 +114,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-j9huyi"
+        class="css-t8r4i5"
         href="/likes"
       >
         <svg
@@ -154,7 +153,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-j9huyi"
+        class="css-t8r4i5"
         href="/files"
       >
         <svg
@@ -199,7 +198,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-j9huyi"
+        class="css-t8r4i5"
         href="/playlists"
       >
         <svg
