@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useRef } from "react";
+import { useTheme } from "@emotion/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
@@ -39,6 +40,7 @@ export type TracksProps = {
 };
 
 const Likes: FC<TracksProps> = (props) => {
+  const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const columns = [
     columnHelper.accessor("trackNumber", {
@@ -76,7 +78,7 @@ const Likes: FC<TracksProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play small color={info.getValue() ? "#fff" : "#000"} />
+                <Play small color={info.getValue() ? "#fff" : theme.colors.text} />
               </div>
             </div>
           )}
@@ -89,7 +91,7 @@ const Likes: FC<TracksProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play small color={info.getValue() ? "#fff" : "#000"} />
+                <Play small color={info.getValue() ? "#fff" : theme.colors.text} />
               </div>
             </div>
           )}
@@ -108,7 +110,7 @@ const Likes: FC<TracksProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           {info.getValue()}
@@ -127,7 +129,7 @@ const Likes: FC<TracksProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           <Link to={`/artists/${info.row.original.artistId}`}>
@@ -148,7 +150,7 @@ const Likes: FC<TracksProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           <Link to={`/albums/${info.row.original.albumId}`}>
@@ -203,7 +205,7 @@ const Likes: FC<TracksProps> = (props) => {
                   <Separator />
                   <Button onClick={props.onShuffleAll} kind="secondary">
                     <Label>
-                      <Shuffle color="#fe099c" />
+                      <Shuffle color="#6F00FF" />
                       <div style={{ marginLeft: 7 }}>Shuffle</div>
                     </Label>
                   </Button>

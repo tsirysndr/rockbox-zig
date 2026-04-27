@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useRef } from "react";
+import { useTheme } from "@emotion/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
@@ -32,6 +33,7 @@ export type TracksProps = {
 };
 
 const Tracks: FC<TracksProps> = (props) => {
+  const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const columns = [
     columnHelper.accessor("trackNumber", {
@@ -68,7 +70,7 @@ const Tracks: FC<TracksProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play size={16} color={info.getValue() ? "#fff" : "#000"} />
+                <Play size={16} color={info.getValue() ? "#fff" : theme.colors.text} />
               </div>
             </div>
           )}
@@ -81,7 +83,7 @@ const Tracks: FC<TracksProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play size={16} color={info.getValue() ? "#fff" : "#000"} />
+                <Play size={16} color={info.getValue() ? "#fff" : theme.colors.text} />
               </div>
             </div>
           )}
@@ -100,7 +102,7 @@ const Tracks: FC<TracksProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           {info.getValue()}
@@ -119,7 +121,7 @@ const Tracks: FC<TracksProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           <Link to={`/artists/${info.row.original.artistId}`}>
@@ -140,7 +142,7 @@ const Tracks: FC<TracksProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           <Link to={`/albums/${info.row.original.albumId}`}>

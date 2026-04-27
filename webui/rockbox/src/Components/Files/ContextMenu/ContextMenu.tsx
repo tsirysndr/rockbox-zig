@@ -7,6 +7,7 @@ import TrackIcon from "../../Icons/Track";
 import { useTheme } from "@emotion/react";
 import ChildMenu from "./ChildMenu";
 import { FC, useMemo, useState } from "react";
+import PlaylistModal from "../../Playlists/PlaylistModal";
 import {
   AlbumCoverAlt,
   Artist,
@@ -21,7 +22,7 @@ import {
 export type ContextMenuProps = {
   entry: any;
   onPlayNext: (path: string) => void;
-  onCreatePlaylist: (name: string, description?: string) => void;
+  onCreatePlaylist: (name: string, trackId: string, description?: string) => void;
   onAddTrackToPlaylist: (playlistId: string, path: string) => void;
   onPlayLast: (path: string) => void;
   onAddShuffled: (path: string) => void;
@@ -33,7 +34,7 @@ export type ContextMenuProps = {
 const ContextMenu: FC<ContextMenuProps> = ({
   entry,
   onPlayNext,
-  // onCreatePlaylist,
+  onCreatePlaylist,
   onPlayLast,
   onAddTrackToPlaylist,
   onAddShuffled,
@@ -42,55 +43,28 @@ const ContextMenu: FC<ContextMenuProps> = ({
   recentPlaylists,
 }) => {
   const theme = useTheme();
-  const [, setIsNewPlaylistModalOpen] = useState(false);
+  const [isNewPlaylistModalOpen, setIsNewPlaylistModalOpen] = useState(false);
   const items = useMemo(() => {
+    const base = [
+      { id: "1", label: "Play Next" },
+      { id: "3", label: "Play Last" },
+      { id: "4", label: "Add Shuffled" },
+    ];
     if (entry.isDirectory) {
       return [
-        {
-          id: "1",
-          label: "Play Next",
-        },
-        {
-          id: "2",
-          label: "Add to Playlist",
-        },
-        {
-          id: "3",
-          label: "Play Last",
-        },
-        {
-          id: "4",
-          label: "Add Shuffled",
-        },
-        {
-          id: "5",
-          label: "Play Last Shuffled",
-        },
-        {
-          id: "6",
-          label: "Play Shuffled",
-        },
+        ...base,
+        { id: "5", label: "Play Last Shuffled" },
+        { id: "6", label: "Play Shuffled" },
       ];
     }
     return [
-      {
-        id: "1",
-        label: "Play Next",
-      },
-      {
-        id: "2",
-        label: "Add to Playlist",
-      },
-      {
-        id: "3",
-        label: "Play Last",
-      },
-      {
-        id: "4",
-        label: "Add Shuffled",
-      },
+      { id: "1", label: "Play Next" },
+      { id: "2", label: "Add to Playlist" },
+      { id: "3", label: "Play Last" },
+      { id: "4", label: "Add Shuffled" },
     ];
   }, [entry]);
+
   return (
     <Container>
       <Hover>
@@ -98,18 +72,13 @@ const ContextMenu: FC<ContextMenuProps> = ({
           placement="left"
           autoFocus={false}
           content={({ close }) => (
-            <div
-              style={{
-                width: 205,
-              }}
-            >
+            <div style={{ width: 205 }}>
               <Track>
-                {entry.isDirectory && (
+                {entry.isDirectory ? (
                   <AlbumCoverAlt>
                     <Folder2 size={18} />
                   </AlbumCoverAlt>
-                )}
-                {!entry.isDirectory && (
+                ) : (
                   <AlbumCoverAlt>
                     <TrackIcon width={24} height={24} color="#a4a3a3" />
                   </AlbumCoverAlt>
@@ -135,14 +104,11 @@ const ContextMenu: FC<ContextMenuProps> = ({
                             return (
                               <ChildMenu
                                 recentPlaylists={recentPlaylists}
-                                onSelect={(item: {
-                                  id: string;
-                                  label: string;
-                                }) => {
+                                onSelect={(item: { id: string; label: string }) => {
                                   if (item.label === "Create new playlist") {
                                     setIsNewPlaylistModalOpen(true);
                                   } else {
-                                    onAddTrackToPlaylist(item.id, entry.id);
+                                    onAddTrackToPlaylist(item.id, entry.path);
                                   }
                                   close();
                                 }}
@@ -172,6 +138,8 @@ const ContextMenu: FC<ContextMenuProps> = ({
                       case "Play Last Shuffled":
                         onPlayLastShuffled(entry.path);
                         break;
+                      case "Add to Playlist":
+                        return;
                       default:
                         break;
                     }
@@ -183,15 +151,9 @@ const ContextMenu: FC<ContextMenuProps> = ({
           )}
           overrides={{
             Inner: {
-              style: {
-                backgroundColor: theme.colors.popoverBackground,
-              },
+              style: { backgroundColor: theme.colors.popoverBackground },
             },
-            Body: {
-              style: {
-                zIndex: 1,
-              },
-            },
+            Body: { style: { zIndex: 1 } },
           }}
         >
           <Icon>
@@ -199,14 +161,16 @@ const ContextMenu: FC<ContextMenuProps> = ({
           </Icon>
         </StatefulPopover>
       </Hover>
-      {/*<NewPlaylistModal
-        onClose={() => {
-          setIsNewPlaylistModalOpen(false);
-        }}
-        isOpen={isNewPlaylistModalOpen}
-        onCreatePlaylist={onCreatePlaylist}
-      />
-      */}
+      {isNewPlaylistModalOpen && (
+        <PlaylistModal
+          title="New Playlist"
+          onClose={() => setIsNewPlaylistModalOpen(false)}
+          onSave={async (name, description) => {
+            await onCreatePlaylist(name, entry.path, description);
+            setIsNewPlaylistModalOpen(false);
+          }}
+        />
+      )}
     </Container>
   );
 };

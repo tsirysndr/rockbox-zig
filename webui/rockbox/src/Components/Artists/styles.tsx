@@ -40,7 +40,7 @@ export const NoArtistCover = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f3f3f3b9;
+  background-color: ${(props) => props.theme.colors.cover};
 `;
 
 export const ArtistName = styled.div`
@@ -53,7 +53,7 @@ export const ArtistName = styled.div`
   margin-bottom: 18px;
   text-align: center;
   width: 194px;
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
 `;
 
 export const FilterContainer = styled.div`

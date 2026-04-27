@@ -7,6 +7,7 @@ export const Container = styled.div<{ cover?: string }>`
   flex-direction: column;
   position: relative;
   width: calc(100% - 240px);
+  background-color: ${(props) => props.theme.colors.background};
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -20,7 +21,7 @@ export const Blur = styled.div<{ enabled?: boolean }>`
   ${({ enabled }) =>
     enabled &&
     css`
-      background: rgba(256, 256, 256, 0.8);
+      background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(30px);
     `}
 `;

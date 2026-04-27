@@ -71,7 +71,9 @@ const PlaylistDetailsWithData: FC<Props> = ({ isSmart = false }) => {
         artistId: t.artistId ?? undefined,
         albumId: t.albumId ?? undefined,
         time: formatTime(t.length),
-        albumArt: t.albumArt ?? undefined,
+        albumArt: t.albumArt
+          ? `${location.protocol}//${location.host}/covers/${t.albumArt}`
+          : undefined,
         path: t.path,
       }))
     );

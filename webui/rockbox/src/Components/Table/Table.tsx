@@ -6,6 +6,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { FC, useEffect, useState } from "react";
+import { useTheme } from "@emotion/react";
 import { Track } from "../../Types/track";
 
 export type TableProps = {
@@ -15,6 +16,7 @@ export type TableProps = {
 };
 
 const Table: FC<TableProps> = ({ columns, tracks }) => {
+  const theme = useTheme();
   const [data, setData] = useState<Track[]>(() => [...tracks]);
 
   useEffect(() => {
@@ -33,7 +35,7 @@ const Table: FC<TableProps> = ({ columns, tracks }) => {
         {table.getHeaderGroups().map((headerGroup) => (
           <tr
             key={headerGroup.id}
-            style={{ height: 36, color: "rgba(0, 0, 0, 0.54)" }}
+            style={{ height: 36, color: theme.colors.secondaryText }}
           >
             {headerGroup.headers.map((header) => (
               <th

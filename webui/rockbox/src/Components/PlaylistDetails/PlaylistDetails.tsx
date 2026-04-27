@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
+import { useTheme } from "@emotion/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
@@ -51,6 +52,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
   onPlayTrack,
   onRemoveTrack,
 }) => {
+  const theme = useTheme();
   const columns = [
     columnHelper.accessor("trackNumber", {
       header: "#",
@@ -62,7 +64,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
             className="floating-play"
             onClick={() => onPlayTrack(info.row.index)}
           >
-            <Play color="#000" small />
+            <Play color={theme.colors.icon} small />
           </div>
         </div>
       ),
@@ -80,7 +82,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           {info.getValue()}
@@ -100,7 +102,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           <Link to={`/artists/${info.row.original.artistId}`}>
@@ -158,7 +160,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
         <ContentWrapper>
           <BackButton onClick={onGoBack}>
             <div style={{ marginTop: 2 }}>
-              <ArrowBack color="#000" />
+              <ArrowBack color={theme.colors.icon} />
             </div>
           </BackButton>
           <div style={{ marginBottom: 100 }}>
@@ -193,7 +195,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
                   <Separator />
                   <Button onClick={onShuffleAll} kind="secondary">
                     <Label>
-                      <Shuffle color="#fe099c" />
+                      <Shuffle color="#6F00FF" />
                       <div style={{ marginLeft: 7 }}>Shuffle</div>
                     </Label>
                   </Button>

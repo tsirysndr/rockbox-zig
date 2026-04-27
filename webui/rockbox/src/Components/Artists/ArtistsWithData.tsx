@@ -12,11 +12,13 @@ const ArtistsWithData: FC = () => {
       return (filter.results?.artists || []).map((x) => ({
         id: x.id,
         name: x.name,
+        cover: x.image ?? null,
       }));
     }
     return (data?.artists || []).map((x) => ({
       id: x.id,
       name: x.name,
+      cover: x.image ?? null,
     }));
   }, [data, filter]);
 

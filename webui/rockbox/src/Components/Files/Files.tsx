@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
+import { useTheme } from "@emotion/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
@@ -34,6 +35,7 @@ export type FilesProps = {
 };
 
 const Files: FC<FilesProps> = (props) => {
+  const theme = useTheme();
   const columns = [
     columnHelper.accessor("name", {
       header: "",
@@ -53,7 +55,7 @@ const Files: FC<FilesProps> = (props) => {
                 className="play"
                 onClick={() => props.onPlayDirectory(info.row.original.path)}
               >
-                <Play small />
+                <Play small color={theme.colors.icon} />
               </div>
               <div className="folder">
                 <Folder2 size={20} />
@@ -69,7 +71,7 @@ const Files: FC<FilesProps> = (props) => {
                   props.onPlayTrack(parent.join("/") || "/", info.row.index);
                 }}
               >
-                <Play small />
+                <Play small color={theme.colors.icon} />
               </div>
               <div className="folder">
                 <MusicNoteBeamed size={20} />
@@ -129,7 +131,7 @@ const Files: FC<FilesProps> = (props) => {
           {props.canGoBack && (
             <BackButton onClick={() => props.onGoBack()}>
               <div style={{ marginTop: 2 }}>
-                <ArrowBack color={"#000"} />
+                <ArrowBack color={theme.colors.icon} />
               </div>
             </BackButton>
           )}

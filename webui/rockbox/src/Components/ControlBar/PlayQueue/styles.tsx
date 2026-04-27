@@ -21,7 +21,7 @@ export const Title = styled.div`
 `;
 
 export const Switch = styled(Title)`
-  color: #fe099c;
+  color: #6F00FF;
   flex: 1;
   text-align: end;
   cursor: pointer;

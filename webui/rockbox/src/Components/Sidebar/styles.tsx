@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 export const SettingsButton = styled.button`
   display: flex;
-  background-color: #f6f9fc;
+  background-color: transparent;
   border: none;
   cursor: pointer;
   margin-top: 3px;
@@ -23,16 +23,16 @@ export const SidebarContainer = styled.div<{ cover?: string }>`
   flex-direction: column;
   height: 100vh;
   width: 222px;
-  background-color: #f6f9fc;
+  background-color: ${(props) => props.theme.colors.surface};
   padding: 20px;
   ${(props) =>
     props.cover &&
     css`
-      background-color: #fff;
+      background-color: ${props.theme.colors.background};
     `}
 `;
 
-export const MenuItem = styled(Link)<{ color?: string }>`
+export const MenuItem = styled(Link)<{ active?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -41,9 +41,11 @@ export const MenuItem = styled(Link)<{ color?: string }>`
   cursor: pointer;
   font-size: 14px;
   text-decoration: none;
-  ${({ color }) =>
-    color &&
-    css`
-      color: ${color};
-    `}
+  border-radius: 8px;
+  color: ${(props) => props.active ? props.theme.colors.text : props.theme.colors.icon};
+  background-color: ${(props) => props.active ? props.theme.colors.hover : "transparent"};
+  &:hover {
+    background-color: ${(props) => props.theme.colors.hover};
+    color: ${(props) => props.theme.colors.text};
+  }
 `;

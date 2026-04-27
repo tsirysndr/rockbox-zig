@@ -33,12 +33,11 @@ async fn resolve_smart_playlist_tracks(
         .map(|s| (s.track_id.clone(), s))
         .collect();
 
-    let liked_ids: std::collections::HashSet<String> =
-        repo::favourites::all_tracks(pool.clone())
-            .await?
-            .into_iter()
-            .map(|t| t.id)
-            .collect();
+    let liked_ids: std::collections::HashSet<String> = repo::favourites::all_tracks(pool.clone())
+        .await?
+        .into_iter()
+        .map(|t| t.id)
+        .collect();
 
     let candidates: Vec<Candidate> = all_tracks
         .iter()
@@ -70,7 +69,11 @@ async fn resolve_smart_playlist_tracks(
 
     Ok(resolved
         .iter()
-        .filter_map(|c| track_map.get(c.id.as_str()).map(|t| Track::from((*t).clone())))
+        .filter_map(|c| {
+            track_map
+                .get(c.id.as_str())
+                .map(|t| Track::from((*t).clone()))
+        })
         .collect())
 }
 
@@ -91,7 +94,10 @@ impl SmartPlaylistQuery {
         id: String,
     ) -> Result<Option<SmartPlaylist>, Error> {
         let store = ctx.data::<PlaylistStore>()?;
-        Ok(store.get_smart_playlist(&id).await?.map(SmartPlaylist::from))
+        Ok(store
+            .get_smart_playlist(&id)
+            .await?
+            .map(SmartPlaylist::from))
     }
 
     async fn smart_playlist_tracks(
@@ -181,20 +187,15 @@ impl SmartPlaylistMutation {
         Ok(true)
     }
 
-    async fn delete_smart_playlist(
-        &self,
-        ctx: &Context<'_>,
-        id: String,
-    ) -> Result<bool, Error> {
+    async fn delete_smart_playlist(&self, ctx: &Context<'_>, id: String) -> Result<bool, Error> {
         let store = ctx.data::<PlaylistStore>()?;
-        store.delete_smart_playlist(&id).await.map_err(|e| async_graphql::Error::new(e.to_string()))
+        store
+            .delete_smart_playlist(&id)
+            .await
+            .map_err(|e| async_graphql::Error::new(e.to_string()))
     }
 
-    async fn play_smart_playlist(
-        &self,
-        ctx: &Context<'_>,
-        id: String,
-    ) -> Result<bool, Error> {
+    async fn play_smart_playlist(&self, ctx: &Context<'_>, id: String) -> Result<bool, Error> {
         let client = ctx.data::<reqwest::Client>()?;
         let url = format!("{}/smart-playlists/{}/play", rockbox_url(), id);
         client.post(&url).send().await?;

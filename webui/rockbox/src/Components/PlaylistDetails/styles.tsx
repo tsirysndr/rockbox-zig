@@ -27,7 +27,7 @@ export const CoverArt = styled.div<{ image?: string }>`
   height: 240px;
   width: 240px;
   border-radius: 6px;
-  background-color: #e8e8e8;
+  background-color: ${(props) => props.theme.colors.cover};
   background-image: ${({ image }) => (image ? `url(${image})` : "none")};
   background-size: cover;
   background-position: center;
@@ -82,7 +82,7 @@ export const BackButton = styled.button`
   height: 30px;
   width: 30px;
   border-radius: 15px;
-  background-color: #f7f7f8;
+  background-color: ${(props) => props.theme.colors.backButton};
   margin-top: 26px;
   margin-bottom: 46px;
   position: absolute;
@@ -96,7 +96,7 @@ export const Label = styled.div`
 `;
 
 export const Link = styled(RouterLink)`
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
   text-decoration: none;
   font-family: RockfordSansRegular;
   &:hover {

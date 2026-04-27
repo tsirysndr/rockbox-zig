@@ -35,6 +35,10 @@ body {
   overflow-y: hidden;
 }
 
+tbody > tr:hover {
+  background-color: var(--row-hover-bg);
+}
+
 tr td div .floating-play {
   cursor: pointer;
   display: none;

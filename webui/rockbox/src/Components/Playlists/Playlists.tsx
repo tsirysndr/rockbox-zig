@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useState } from "react";
+import { useTheme } from "@emotion/react";
 import MainView from "../MainView";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
@@ -40,6 +41,7 @@ const Playlists: FC<PlaylistsProps> = ({
   onCreate,
   onUpdate,
 }) => {
+  const theme = useTheme();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editPlaylist, setEditPlaylist] = useState<any>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -62,7 +64,7 @@ const Playlists: FC<PlaylistsProps> = ({
             <button
               onClick={() => setCreateModalOpen(true)}
               style={{
-                background: "#fe099c",
+                background: "#6F00FF",
                 color: "#fff",
                 border: "none",
                 borderRadius: 20,
@@ -89,11 +91,11 @@ const Playlists: FC<PlaylistsProps> = ({
                     </Link>
                     <CardActions className="card-actions">
                       <CardAction onClick={() => onPlay(playlist.id, false)}>
-                        <Play small color="#000" />
+                        <Play small color={theme.colors.icon} />
                       </CardAction>
                       <div style={{ display: "flex", gap: 4 }}>
                         <CardAction onClick={() => setEditPlaylist(playlist)}>
-                          <Edit2 size={15} color="#000" />
+                          <Edit2 size={15} color={theme.colors.icon} />
                         </CardAction>
                         <CardAction
                           onClick={() => setDeleteConfirmId(playlist.id)}
@@ -120,12 +122,12 @@ const Playlists: FC<PlaylistsProps> = ({
                   <PlaylistCard key={playlist.id}>
                     <Link to={`/playlists/smart/${playlist.id}`}>
                       <PlaylistCover>
-                        <Music size={48} color="#fe099c" />
+                        <Music size={48} color="#6F00FF" />
                       </PlaylistCover>
                     </Link>
                     <CardActions className="card-actions">
                       <CardAction onClick={() => onPlay(playlist.id, true)}>
-                        <Play small color="#000" />
+                        <Play small color={theme.colors.icon} />
                       </CardAction>
                     </CardActions>
                     <Link to={`/playlists/smart/${playlist.id}`}>
@@ -187,11 +189,11 @@ const Playlists: FC<PlaylistsProps> = ({
         >
           <div
             style={{
-              background: "#fff",
+              background: theme.colors.surface,
               borderRadius: 12,
               padding: 28,
               width: 320,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -200,11 +202,12 @@ const Playlists: FC<PlaylistsProps> = ({
                 fontSize: 16,
                 fontFamily: "RockfordSansMedium",
                 marginBottom: 12,
+                color: theme.colors.text,
               }}
             >
               Delete playlist?
             </div>
-            <div style={{ fontSize: 14, color: "#555", marginBottom: 24 }}>
+            <div style={{ fontSize: 14, color: theme.colors.secondaryText, marginBottom: 24 }}>
               This action cannot be undone.
             </div>
             <div
@@ -217,11 +220,12 @@ const Playlists: FC<PlaylistsProps> = ({
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 style={{
-                  border: "1px solid #ddd",
+                  border: `1px solid ${theme.colors.separator}`,
                   borderRadius: 8,
                   padding: "8px 16px",
                   cursor: "pointer",
-                  background: "#fff",
+                  background: theme.colors.hover,
+                  color: theme.colors.text,
                   fontSize: 13,
                 }}
               >

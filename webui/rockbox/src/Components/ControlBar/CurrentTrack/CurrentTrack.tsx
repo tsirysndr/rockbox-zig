@@ -21,6 +21,7 @@ import { CurrentTrack as NowPlaying } from "../../../Types/track";
 import _ from "lodash";
 import HeartOutline from "../../Icons/HeartOutline";
 import Heart from "../../Icons/Heart";
+import { useTheme } from "@emotion/react";
 
 export type CurrentTrackProps = {
   nowPlaying?: NowPlaying;
@@ -39,6 +40,7 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
 }) => {
   const progressbarRef = useRef<HTMLDivElement>(null);
   const { formatTime } = useTimeFormat();
+  const theme = useTheme();
   const album = `${nowPlaying?.artist} - ${nowPlaying?.album}`;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,12 +83,12 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
               <Actions>
                 {!liked && (
                   <Icon onClick={() => onLike(nowPlaying!.id!)}>
-                    <HeartOutline color="#000" />
+                    <HeartOutline color={theme.colors.icon} />
                   </Icon>
                 )}
                 {liked && (
                   <Icon onClick={() => onUnlike(nowPlaying!.id!)}>
-                    <Heart color="#fe09a3" />
+                    <Heart color={theme.colors.primary} />
                   </Icon>
                 )}
               </Actions>

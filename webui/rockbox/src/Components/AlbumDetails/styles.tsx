@@ -24,10 +24,11 @@ export const ContentWrapper = styled.div`
 export const AlbumTitle = styled.div`
   font-size: 32px;
   font-family: RockfordSansBold;
+  color: ${(props) => props.theme.colors.text};
 `;
 
 export const Artist = styled(RouterLink)`
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
   text-decoration: none;
   font-family: RockfordSansMedium;
   font-size: 14px;
@@ -41,6 +42,7 @@ export const Tracks = styled.div`
   margin-top: 25px;
   font-weight: 400;
   font-size: 14px;
+  color: ${(props) => props.theme.colors.secondaryText};
 `;
 
 export const Year = styled.div`
@@ -48,6 +50,7 @@ export const Year = styled.div`
   font-weight: 400;
   font-size: 14px;
   margin-bottom: 10px;
+  color: ${(props) => props.theme.colors.secondaryText};
 `;
 
 export const Header = styled.div`
@@ -85,7 +88,7 @@ export const BackButton = styled.button`
   height: 30px;
   width: 30px;
   border-radius: 15px;
-  background-color: #f7f7f8;
+  background-color: ${(props) => props.theme.colors.backButton};
   margin-top: 26px;
   margin-bottom: 46px;
   position: absolute;
@@ -112,7 +115,7 @@ export const Hover = styled.button`
   cursor: pointer;
   &:hover,
   &:focus {
-    color: #000;
+    color: ${(props) => props.theme.colors.text};
     opacity: 1 !important;
   }
 `;
@@ -124,7 +127,7 @@ export const Label = styled.div`
 `;
 
 export const Link = styled(RouterLink)`
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
   text-decoration: none;
   font-family: RockfordSansRegular;
   &:hover {

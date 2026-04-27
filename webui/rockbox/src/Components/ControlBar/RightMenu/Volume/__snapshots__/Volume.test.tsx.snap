@@ -12,7 +12,7 @@ exports[`Volume > should render 1`] = `
         style="width: 100px; margin-top: 5px;"
       >
         <span
-          class="MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-m0hede-MuiSlider-root"
+          class="MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-1javce1-MuiSlider-root"
         >
           <span
             class="MuiSlider-rail css-r64h58-MuiSlider-rail"

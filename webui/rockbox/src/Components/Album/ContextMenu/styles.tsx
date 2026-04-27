@@ -11,12 +11,13 @@ export const Separator = styled.div`
 `;
 
 export const Hover = styled.button`
-  color: transparent;
+  color: ${(props) => props.theme.colors.icon};
   background-color: transparent;
   border: none;
+  cursor: pointer;
   &:hover,
   &:focus {
-    color: #000;
+    color: ${(props) => props.theme.colors.text};
   }
 `;
 
@@ -75,6 +76,7 @@ export const Title = styled.div`
   white-space: nowrap;
   overflow: hidden;
   max-width: 125px;
+  color: ${(props) => props.theme.colors.text};
 `;
 
 export const TrackInfos = styled.div`

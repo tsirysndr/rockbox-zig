@@ -24,6 +24,7 @@ const RightMenu: FC = () => {
             style: {
               top: "10px",
               left: "-70px",
+              zIndex: 100,
             },
           },
           Inner: {
@@ -51,6 +52,7 @@ const RightMenu: FC = () => {
           Body: {
             style: {
               left: "-21px",
+              zIndex: 100,
             },
           },
           Inner: {
@@ -61,7 +63,7 @@ const RightMenu: FC = () => {
         }}
       >
         <Button>
-          <List size={21} />
+          <List size={21} color={theme.colors.icon} />
         </Button>
       </StatefulPopover>
     </Container>

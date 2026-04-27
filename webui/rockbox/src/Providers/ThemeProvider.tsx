@@ -1,5 +1,5 @@
 import { createContext, useState, FC } from "react";
-import { ThemeProvider as EmotionThemeProvider } from "@emotion/react";
+import { ThemeProvider as EmotionThemeProvider, Global, css } from "@emotion/react";
 import {
   BaseUIDarkTheme,
   BaseUILightTheme,
@@ -18,7 +18,7 @@ export type ThemeContextType = {
 };
 
 export const ThemeContext = createContext<ThemeContextType>({
-  theme: "light",
+  theme: "dark",
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setTheme: (_theme: Theme) => {},
 });
@@ -27,7 +27,7 @@ const muitheme = createTheme({
   cssVariables: true,
   palette: {
     primary: {
-      main: "#fe099c",
+      main: "#6F00FF",
     },
   },
 });
@@ -37,11 +37,29 @@ export type ThemeProviderProps = {
 };
 
 const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("dark");
+  const emotionTheme = theme === "dark" ? DarkTheme : LightTheme;
   return (
     <MaterialThemeProvider theme={muitheme}>
       <ThemeContext.Provider value={{ theme, setTheme }}>
-        <EmotionThemeProvider theme={theme === "dark" ? DarkTheme : LightTheme}>
+        <EmotionThemeProvider theme={emotionTheme}>
+          <Global
+            styles={css`
+              body {
+                background-color: ${emotionTheme.colors.background};
+                color: ${emotionTheme.colors.text};
+              }
+              :root {
+                --row-hover-bg: ${emotionTheme.colors.hover};
+                --text-color: ${emotionTheme.colors.text};
+                --secondary-text: ${emotionTheme.colors.secondaryText};
+                --separator-color: ${emotionTheme.colors.separator};
+              }
+              tbody > tr:hover {
+                background-color: ${emotionTheme.colors.hover} !important;
+              }
+            `}
+          />
           <BaseProvider
             theme={theme === "dark" ? BaseUIDarkTheme : BaseUILightTheme}
           >

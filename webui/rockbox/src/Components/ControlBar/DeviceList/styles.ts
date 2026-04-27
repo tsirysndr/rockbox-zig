@@ -53,7 +53,7 @@ export const CurrentDevice = styled.div`
 `;
 
 export const CurrentDeviceName = styled.div`
-  color: #fe099c;
+  color: #6F00FF;
   font-size: 14px;
 `;
 

@@ -9,14 +9,14 @@ export const Container = styled.div`
   flex: 1;
   height: 60px;
   border-radius: 4px;
-  border: 1px solid rgba(177, 178, 181, 0.25);
+  border: 1px solid ${(props) => props.theme.colors.currentTrackBorder};
   margin-left: 20px;
 `;
 
 export const NoCover = styled.div`
   width: 60px;
   height: 60px;
-  background-color: #f5f5f5;
+  background-color: ${(props) => props.theme.colors.cover};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -58,7 +58,7 @@ export const Separator = styled.span`
 
 export const Time = styled.div`
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.542);
+  color: ${(props) => props.theme.colors.secondaryText};
   font-family: RockfordSansRegular;
   text-align: center;
   width: 60px;
@@ -66,7 +66,7 @@ export const Time = styled.div`
 
 export const ArtistAlbum = styled.div`
   text-align: center;
-  color: rgba(0, 0, 0, 0.54);
+  color: ${(props) => props.theme.colors.secondaryText};
   font-family: RockfordSansLight;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -82,6 +82,7 @@ export const Title = styled.div`
   width: calc(100% - 20px);
   margin-left: 10px;
   margin-right: 10px;
+  color: ${(props) => props.theme.colors.text};
 `;
 
 export const Actions = styled.div`
@@ -118,7 +119,7 @@ export const styles = {
     },
     BarProgress: {
       style: () => ({
-        backgroundColor: "rgb(254, 9, 156)",
+        backgroundColor: "#6F00FF",
       }),
     },
     Bar: {

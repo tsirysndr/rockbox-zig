@@ -50,6 +50,8 @@ impl SavedPlaylistQuery {
         for id in &track_ids {
             if let Some(t) = repo::track::find(pool.clone(), id).await? {
                 tracks.push(Track::from(t));
+            } else if let Some(t) = repo::track::find_by_path(pool.clone(), id).await? {
+                tracks.push(Track::from(t));
             }
         }
         Ok(tracks)
@@ -64,10 +66,7 @@ impl SavedPlaylistQuery {
         Ok(store.get_track_ids(&playlist_id).await?)
     }
 
-    async fn playlist_folders(
-        &self,
-        ctx: &Context<'_>,
-    ) -> Result<Vec<SavedPlaylistFolder>, Error> {
+    async fn playlist_folders(&self, ctx: &Context<'_>) -> Result<Vec<SavedPlaylistFolder>, Error> {
         let store = ctx.data::<PlaylistStore>()?;
         let folders = store.list_folders().await?;
         Ok(folders.into_iter().map(SavedPlaylistFolder::from).collect())
@@ -89,11 +88,7 @@ impl SavedPlaylistMutation {
         Ok(SavedPlaylistFolder::from(folder))
     }
 
-    async fn delete_playlist_folder(
-        &self,
-        ctx: &Context<'_>,
-        id: String,
-    ) -> Result<bool, Error> {
+    async fn delete_playlist_folder(&self, ctx: &Context<'_>, id: String) -> Result<bool, Error> {
         let store = ctx.data::<PlaylistStore>()?;
         store.delete_folder(&id).await?;
         Ok(true)
@@ -147,13 +142,12 @@ impl SavedPlaylistMutation {
         Ok(true)
     }
 
-    async fn delete_saved_playlist(
-        &self,
-        ctx: &Context<'_>,
-        id: String,
-    ) -> Result<bool, Error> {
+    async fn delete_saved_playlist(&self, ctx: &Context<'_>, id: String) -> Result<bool, Error> {
         let store = ctx.data::<PlaylistStore>()?;
-        store.delete(&id).await.map_err(|e| async_graphql::Error::new(e.to_string()))
+        store
+            .delete(&id)
+            .await
+            .map_err(|e| async_graphql::Error::new(e.to_string()))
     }
 
     async fn add_tracks_to_saved_playlist(
@@ -174,7 +168,10 @@ impl SavedPlaylistMutation {
         track_id: String,
     ) -> Result<bool, Error> {
         let store = ctx.data::<PlaylistStore>()?;
-        store.remove_track(&playlist_id, &track_id).await.map_err(|e| async_graphql::Error::new(e.to_string()))
+        store
+            .remove_track(&playlist_id, &track_id)
+            .await
+            .map_err(|e| async_graphql::Error::new(e.to_string()))
     }
 
     async fn play_saved_playlist(

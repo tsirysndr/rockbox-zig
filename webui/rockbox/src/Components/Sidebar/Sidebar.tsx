@@ -8,6 +8,7 @@ import RockboxLogo from "../../Assets/rockbox-icon.svg";
 import HeartOutline from "../Icons/HeartOutline";
 import { Options } from "@styled-icons/fluentui-system-regular";
 import { Link } from "react-router-dom";
+import { useTheme } from "@emotion/react";
 
 export type SidebarProps = {
   active: string;
@@ -15,6 +16,10 @@ export type SidebarProps = {
 };
 
 const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
+  const theme = useTheme();
+  const icon = theme.colors.icon;
+  const activeColor = theme.colors.text;
+
   return (
     <SidebarContainer cover={cover}>
       <Header>
@@ -32,60 +37,51 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
         </a>
         <Link to="/settings">
           <SettingsButton>
-            <Options size={24} color="#000" />
+            <Options size={24} color={icon} />
           </SettingsButton>
         </Link>
       </Header>
-      <MenuItem
-        color={active === "albums" ? "#fe099c" : "initial"}
-        to="/albums"
-      >
+      <MenuItem active={active === "albums"} to="/albums">
         <Disc
           size={20}
           style={{ marginRight: 6 }}
-          color={active === "albums" ? "#fe099c" : "initial"}
+          color={active === "albums" ? activeColor : icon}
         />
         <div>Albums</div>
       </MenuItem>
-      <MenuItem
-        color={active === "artists" ? "#fe099c" : "initial"}
-        to="/artists"
-      >
+      <MenuItem active={active === "artists"} to="/artists">
         <Artist
           width={20}
           height={20}
-          color={active === "artists" ? "#fe099c" : "initial"}
+          color={active === "artists" ? activeColor : icon}
         />
         <div style={{ marginLeft: 6 }}>Artists</div>
       </MenuItem>
-      <MenuItem color={active === "songs" ? "#fe099c" : "initial"} to="/tracks">
-        <Track height={20} color={active === "songs" ? "#fe099c" : "initial"} />
+      <MenuItem active={active === "songs"} to="/tracks">
+        <Track height={20} color={active === "songs" ? activeColor : icon} />
         <div style={{ marginLeft: 6 }}>Songs</div>
       </MenuItem>
-      <MenuItem color={active === "likes" ? "#fe099c" : "initial"} to="/likes">
+      <MenuItem active={active === "likes"} to="/likes">
         <HeartOutline
           height={20}
           width={20}
-          color={active === "likes" ? "#fe099c" : "initial"}
+          color={active === "likes" ? activeColor : icon}
         />
         <div style={{ marginLeft: 6 }}>Likes</div>
       </MenuItem>
-      <MenuItem color={active === "files" ? "#fe099c" : "initial"} to="/files">
+      <MenuItem active={active === "files"} to="/files">
         <HardDrive
           size={19}
           style={{ marginRight: 6 }}
-          color={active === "files" ? "#fe099c" : "initial"}
+          color={active === "files" ? activeColor : icon}
         />
         <div>Files</div>
       </MenuItem>
-      <MenuItem
-        color={active === "playlists" ? "#fe099c" : "initial"}
-        to="/playlists"
-      >
+      <MenuItem active={active === "playlists"} to="/playlists">
         <Music
           size={20}
           style={{ marginRight: 6 }}
-          color={active === "playlists" ? "#fe099c" : "initial"}
+          color={active === "playlists" ? activeColor : icon}
         />
         <div>Playlists</div>
       </MenuItem>

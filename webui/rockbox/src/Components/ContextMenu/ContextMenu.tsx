@@ -9,6 +9,7 @@ import TrackIcon from "../Icons/Track";
 import { useTheme } from "@emotion/react";
 import ChildMenu from "./ChildMenu";
 import { FC, useState } from "react";
+import PlaylistModal from "../Playlists/PlaylistModal";
 import {
   AlbumCover,
   AlbumCoverAlt,
@@ -26,7 +27,7 @@ export type ContextMenuProps = {
   liked?: boolean;
   track: any;
   onPlayNext: (path: string) => void;
-  onCreatePlaylist: (name: string, description?: string) => void;
+  onCreatePlaylist: (name: string, trackId: string, description?: string) => void;
   onAddTrackToPlaylist: (playlistId: string, trackId: string) => void;
   onPlayLast: (path: string) => void;
   onAddShuffled: (path: string) => void;
@@ -39,7 +40,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
   liked = false,
   track,
   onPlayNext,
-  // onCreatePlaylist,
+  onCreatePlaylist,
   onPlayLast,
   onAddTrackToPlaylist,
   onAddShuffled,
@@ -48,7 +49,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
   recentPlaylists,
 }) => {
   const theme = useTheme();
-  const [, setIsNewPlaylistModalOpen] = useState(false);
+  const [isNewPlaylistModalOpen, setIsNewPlaylistModalOpen] = useState(false);
   return (
     <Container>
       <Hover>
@@ -201,7 +202,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
       <Separator />
       {liked && (
         <Icon onClick={() => onUnlike(track.id)}>
-          <Heart height={24} width={24} color={"#fe09a3"} />
+          <Heart height={24} width={24} color={"#6F00FF"} />
         </Icon>
       )}
       {!liked && (
@@ -213,14 +214,16 @@ const ContextMenu: FC<ContextMenuProps> = ({
           <HeartOutline height={24} width={24} color={theme.colors.icon} />
         </Icon>
       )}
-      {/*<NewPlaylistModal
-        onClose={() => {
-          setIsNewPlaylistModalOpen(false);
-        }}
-        isOpen={isNewPlaylistModalOpen}
-        onCreatePlaylist={onCreatePlaylist}
-      />
-      */}
+      {isNewPlaylistModalOpen && (
+        <PlaylistModal
+          title="New Playlist"
+          onClose={() => setIsNewPlaylistModalOpen(false)}
+          onSave={async (name, description) => {
+            await onCreatePlaylist(name, track.id, description);
+            setIsNewPlaylistModalOpen(false);
+          }}
+        />
+      )}
     </Container>
   );
 };

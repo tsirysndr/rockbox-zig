@@ -9,7 +9,7 @@ exports[`Tracks > should render 1`] = `
       class="css-e1989k"
     >
       <div
-        class="css-1tlxqlf"
+        class="css-1iac89y"
       >
         <div
           class="css-1osgnyu"
@@ -28,12 +28,12 @@ exports[`Tracks > should render 1`] = `
             href="/settings"
           >
             <button
-              class="css-fduwnf"
+              class="css-1i2ljwf"
             >
               <svg
                 aria-hidden="true"
                 class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-                color="#000"
+                color="#9090a0"
                 fill="currentColor"
                 focusable="false"
                 height="24"
@@ -49,14 +49,13 @@ exports[`Tracks > should render 1`] = `
           </a>
         </div>
         <a
-          class="css-tujm8o"
-          color="initial"
+          class="css-j9huyi"
           href="/albums"
         >
           <svg
             aria-hidden="true"
             class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-            color="initial"
+            color="#9090a0"
             fill="currentColor"
             focusable="false"
             height="20"
@@ -77,8 +76,7 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-tujm8o"
-          color="initial"
+          class="css-j9huyi"
           href="/artists"
         >
           <svg
@@ -89,7 +87,7 @@ exports[`Tracks > should render 1`] = `
           >
             <path
               d="M20 4.22a5.67 5.67 0 0 0-9.68 4.57l-8 9.79 3.3 3.3 9.79-8c.18 0 .36.05.55.05a5.7 5.7 0 0 0 4-9.73ZM5.74 19.86l-1.38-1.38 6.44-7.89a5.48 5.48 0 0 0 2.83 2.84Zm13.21-8.65a4.2 4.2 0 1 1 0-5.94 4.17 4.17 0 0 1 0 5.95Z"
-              fill="initial"
+              fill="#9090a0"
             />
           </svg>
           <div
@@ -99,8 +97,8 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-8v05qj"
-          color="#fe099c"
+          class="css-1hl5flw"
+          color="#6F00FF"
           href="/tracks"
         >
           <svg
@@ -110,7 +108,7 @@ exports[`Tracks > should render 1`] = `
           >
             <path
               d="M8.1 4.65v11.26a3.45 3.45 0 1 0 1.5 2.84V5.85l10.2-2.36v10.62A3.45 3.45 0 1 0 21.3 17V1.61Zm-2 16a2 2 0 1 1 2-2 2 2 0 0 1-1.95 2.05Zm11.7-1.8a1.95 1.95 0 1 1 2-1.85 2 2 0 0 1-1.95 1.9Z"
-              fill="#fe099c"
+              fill="#6F00FF"
             />
           </svg>
           <div
@@ -120,8 +118,7 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-tujm8o"
-          color="initial"
+          class="css-j9huyi"
           href="/likes"
         >
           <svg
@@ -133,7 +130,7 @@ exports[`Tracks > should render 1`] = `
           >
             <g
               class="ionicon"
-              style="fill: initial;"
+              style="fill: #9090a0;"
             >
               <path
                 d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
@@ -149,7 +146,7 @@ exports[`Tracks > should render 1`] = `
                 stroke="currentColor"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                style="fill: none; stroke-width: 2; stroke: initial; stroke-opacity: 1;"
+                style="fill: none; stroke-width: 2; stroke: #9090a0; stroke-opacity: 1;"
               />
             </g>
           </svg>
@@ -160,14 +157,13 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-tujm8o"
-          color="initial"
+          class="css-j9huyi"
           href="/files"
         >
           <svg
             aria-hidden="true"
             class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-            color="initial"
+            color="#9090a0"
             fill="none"
             focusable="false"
             height="19"
@@ -206,14 +202,13 @@ exports[`Tracks > should render 1`] = `
           </div>
         </a>
         <a
-          class="css-tujm8o"
-          color="initial"
+          class="css-j9huyi"
           href="/playlists"
         >
           <svg
             aria-hidden="true"
             class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-            color="initial"
+            color="#9090a0"
             fill="currentColor"
             focusable="false"
             height="20"
@@ -232,7 +227,7 @@ exports[`Tracks > should render 1`] = `
         </a>
       </div>
       <div
-        class="css-y9r6ap"
+        class="css-joklj2"
       >
         <div
           class="css-19i1zwv"
@@ -260,7 +255,7 @@ exports[`Tracks > should render 1`] = `
                     <path
                       clip-rule="evenodd"
                       d="M16.2 7h2.85l-1.3 1.3c-.4.4-.4 1 0 1.4.25.2.5.3.75.3s.5-.1.7-.3l3-3 .15-.15.05-.05c0-.025.013-.037.025-.05.012-.013.025-.025.025-.05 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056 0-.021 0-.033.004-.044.005-.015.017-.027.046-.056.05-.15.05-.25 0-.4 0-.05 0-.05-.05-.1 0-.021 0-.033-.004-.044-.005-.015-.017-.027-.046-.056 0-.025-.012-.037-.025-.05-.012-.013-.025-.025-.025-.05 0 0 0-.05-.05-.05l-.15-.15-3-3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4L19.1 5h-2.85c-1.75 0-3.3.9-4.25 2.35L6.85 15.6c-.55.9-1.5 1.4-2.55 1.4H2.5c-.55 0-1 .45-1 1s.45 1 1 1h1.8c1.75 0 3.3-.9 4.25-2.35L13.7 8.4c.5-.85 1.5-1.4 2.5-1.4ZM2.5 7h1.8c1.05 0 2 .5 2.55 1.4l.45.75 1.2-1.9C7.55 5.8 6 4.95 4.3 4.95H2.5c-.55 0-1 .45-1 1 0 .6.45 1.05 1 1.05Zm19.95 11.2v.05c0 .05 0 .1-.05.1v.05c-.05.1-.1.2-.2.3l-3 3c-.2.2-.45.3-.7.3-.25 0-.5-.1-.75-.3-.4-.4-.4-1 0-1.4l1.3-1.3H16.2c-1.7 0-3.25-.85-4.2-2.3l1.25-1.9.45.75c.55.9 1.5 1.4 2.55 1.4h2.85l-1.3-1.3c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l3 3c.1.1.15.2.2.3v.05c.05.05.05.1.05.15v.05c.05.15.05.25 0 .4Z"
-                      fill="#000"
+                      fill="#9090a0"
                       fill-rule="evenodd"
                     />
                   </svg>
@@ -277,7 +272,7 @@ exports[`Tracks > should render 1`] = `
                     <path
                       class="ionicon"
                       d="M3.55 2c.304 0 .55.243.55.542V7.16l8.001-4.716a1.224 1.224 0 0 1 1.23-.015c.413.23.669.677.669 1.162v9.818c0 .486-.256.932-.669 1.162-.382.216-.853.21-1.23-.015L4.1 9.84v4.618a.546.546 0 0 1-.55.542.546.546 0 0 1-.55-.542V2.542C3 2.243 3.246 2 3.55 2Z"
-                      style="fill: #000;"
+                      style="fill: #9090a0;"
                     />
                   </svg>
                 </button>
@@ -292,7 +287,7 @@ exports[`Tracks > should render 1`] = `
                   >
                     <path
                       d="M10.657 27a2.842 2.842 0 0 1-1.258-.292C8.536 26.283 8 25.458 8 24.563V6.438c0-.899.536-1.721 1.399-2.146a2.856 2.856 0 0 1 2.571.028l17.817 9.273c.755.411 1.213 1.131 1.213 1.906 0 .774-.458 1.495-1.213 1.906l-17.82 9.275a2.846 2.846 0 0 1-1.31.32Z"
-                      style="fill: #000;"
+                      style="fill: #9090a0;"
                     />
                   </svg>
                 </button>
@@ -308,7 +303,7 @@ exports[`Tracks > should render 1`] = `
                     <path
                       class="ionicon"
                       d="M14.45 2a.546.546 0 0 0-.55.542V7.16L5.899 2.444a1.224 1.224 0 0 0-1.23-.015C4.256 2.659 4 3.105 4 3.591v9.818c0 .486.256.932.669 1.162.382.216.853.21 1.23-.015L13.9 9.84v4.618c0 .299.246.542.55.542.304 0 .55-.243.55-.542V2.542A.546.546 0 0 0 14.45 2Z"
-                      style="fill: #000;"
+                      style="fill: #9090a0;"
                     />
                   </svg>
                 </button>
@@ -326,7 +321,7 @@ exports[`Tracks > should render 1`] = `
                     <path
                       clip-rule="evenodd"
                       d="M16.293 1.293a1 1 0 0 1 1.414 0l3 3a1 1 0 0 1 0 1.414l-3 3a1 1 0 1 1-1.414-1.414L17.586 6H8.5c-3.298 0-6 2.702-6 6a1 1 0 1 1-2 0c0-4.402 3.598-8 8-8h9.086l-1.293-1.293a1 1 0 0 1 0-1.414ZM23.5 12a1 1 0 1 0-2 0c0 3.298-2.702 6-6 6H6.414l1.293-1.293a1 1 0 1 0-1.414-1.414l-3 3a1 1 0 0 0 0 1.414l3 3a1 1 0 0 0 1.414-1.414L6.414 20H15.5c4.402 0 8-3.598 8-8Z"
-                      fill="#000"
+                      fill="#9090a0"
                       fill-rule="evenodd"
                     />
                   </svg>
@@ -334,10 +329,10 @@ exports[`Tracks > should render 1`] = `
               </div>
             </div>
             <div
-              class="css-frud38"
+              class="css-1qa5636"
             >
               <div
-                class="css-4ijxew"
+                class="css-19t4u9x"
               >
                 <svg
                   height="28"
@@ -371,7 +366,7 @@ exports[`Tracks > should render 1`] = `
                   style="width: 100px; margin-top: 5px;"
                 >
                   <span
-                    class="MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-m0hede-MuiSlider-root"
+                    class="MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-1javce1-MuiSlider-root"
                   >
                     <span
                       class="MuiSlider-rail css-r64h58-MuiSlider-rail"
@@ -411,7 +406,7 @@ exports[`Tracks > should render 1`] = `
                 <svg
                   aria-hidden="true"
                   class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-                  color="#000"
+                  color="#9090a0"
                   fill="currentColor"
                   focusable="false"
                   height="18"

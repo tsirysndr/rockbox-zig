@@ -7,6 +7,7 @@ import {
   useLikeTrackMutation,
   useUnlikeTrackMutation,
   useAddTracksToSavedPlaylistMutation,
+  useCreateSavedPlaylistMutation,
 } from "../../Hooks/GraphQL";
 import {
   PLAYLIST_INSERT_FIRST,
@@ -33,6 +34,7 @@ const ContextMenuWithData: FC<ContextMenuWithDataProps> = ({ track }) => {
   const [likeTrack] = useLikeTrackMutation();
   const [unlikeTrack] = useUnlikeTrackMutation();
   const [addTracksToPlaylist] = useAddTracksToSavedPlaylistMutation();
+  const [createPlaylist] = useCreateSavedPlaylistMutation();
 
   const onPlayNext = (path: string) => {
     insertTracks({
@@ -96,11 +98,21 @@ const ContextMenuWithData: FC<ContextMenuWithDataProps> = ({ track }) => {
     });
   };
 
+  const onCreatePlaylist = async (name: string, trackId: string, description?: string) => {
+    await createPlaylist({
+      variables: {
+        name,
+        description,
+        trackIds: [trackId],
+      },
+    });
+  };
+
   return (
     <ContextMenu
       track={track}
       onPlayNext={onPlayNext}
-      onCreatePlaylist={() => {}}
+      onCreatePlaylist={onCreatePlaylist}
       onAddTrackToPlaylist={onAddTrackToPlaylist}
       onPlayLast={onPlayLast}
       onAddShuffled={onAddShuffled}

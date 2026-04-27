@@ -54,6 +54,7 @@ const ArtistDetailsWithData: FC = () => {
   return (
     <ArtistDetails
       name={data?.artist?.name || ""}
+      image={data?.artist?.image ?? undefined}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tracks={(tracks as any) || []}
       albums={albums || []}

@@ -34,7 +34,7 @@ export const Hover = styled.button`
   cursor: pointer;
   &:hover,
   &:focus {
-    color: #000;
+    color: ${(props) => props.theme.colors.text};
     opacity: 1 !important;
   }
 `;
@@ -58,7 +58,7 @@ export const AlbumCover = styled.img`
 `;
 
 export const Directory = styled(Link)`
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
   margin-left: 10px;
   text-decoration: none;
   font-family: RockfordSansRegular;
@@ -74,7 +74,7 @@ export const Directory = styled(Link)`
 `;
 
 export const AudioFile = styled.div`
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
   margin-left: 10px;
   text-decoration: none;
   font-family: RockfordSansRegular;
@@ -100,7 +100,7 @@ export const BackButton = styled.button`
   width: 30px;
   left: 20px;
   border-radius: 15px;
-  background-color: #f7f7f8;
+  background-color: ${(props) => props.theme.colors.backButton};
   margin-top: 45px;
   margin-bottom: 46px;
   position: absolute;

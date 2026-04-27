@@ -1,4 +1,5 @@
 import { FC, useEffect, useState } from "react";
+import { useTheme } from "@emotion/react";
 import Play from "../Icons/Play";
 import Previous from "../Icons/Previous";
 import Next from "../Icons/Next";
@@ -27,6 +28,7 @@ export type ControlBarProps = {
 };
 
 const ControlBar: FC<ControlBarProps> = (props) => {
+  const theme = useTheme();
   const [shuffle, setShuffle] = useState(props.shuffle);
   const [repeat, setRepeat] = useState(props.repeat);
 
@@ -50,26 +52,26 @@ const ControlBar: FC<ControlBarProps> = (props) => {
       <Controls>
         <ControlsContainer>
           <Button onClick={onShuffle} active={shuffle}>
-            <Shuffle />
+            <Shuffle color={theme.colors.icon} />
           </Button>
           <Button onClick={props.onPrevious}>
-            <Previous />
+            <Previous color={theme.colors.icon} />
           </Button>
           {!props.nowPlaying?.isPlaying && (
             <Button onClick={props.onPlay}>
-              <Play />
+              <Play color={theme.colors.icon} />
             </Button>
           )}
           {props.nowPlaying?.isPlaying && (
             <Button onClick={props.onPause}>
-              <Pause />
+              <Pause color={theme.colors.icon} />
             </Button>
           )}
           <Button onClick={props.onNext}>
-            <Next />
+            <Next color={theme.colors.icon} />
           </Button>
           <Button onClick={onRepeat} active={repeat}>
-            <Repeat />
+            <Repeat color={theme.colors.icon} />
           </Button>
         </ControlsContainer>
       </Controls>

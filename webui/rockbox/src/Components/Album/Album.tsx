@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
+import { useTheme } from "@emotion/react";
 import {
   AlbumCover,
   AlbumFooterMenu,
@@ -26,42 +27,47 @@ export type AlbumProps = {
 };
 
 const Album: FC<AlbumProps> = (props) => {
+  const theme = useTheme();
   return (
-    <div style={{ position: "relative", width: "100%" }}>
-      <Hover>
-        <AlbumFooterMenu>
-          <div
-            style={{
-              backgroundColor: "#ffffffda",
-              height: 40,
-              width: 40,
-              borderRadius: 20,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onClick={() => props.onPlay(props.album)}
-          >
-            <Play small color="#000" />
-          </div>
-          <ContextMenu item={props.album} />
-          {!props.liked && (
-            <FloatingButton onClick={() => props.onLike(props.album)}>
-              <HeartOutline color="#fff" size={20} />
-            </FloatingButton>
+    <div style={{ width: "100%" }}>
+      <div style={{ position: "relative" }}>
+        <Hover>
+          <AlbumFooterMenu>
+            <div
+              style={{
+                backgroundColor: theme.colors.surface,
+                height: 40,
+                width: 40,
+                borderRadius: 20,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onClick={() => props.onPlay(props.album)}
+            >
+              <Play small color={theme.colors.icon} />
+            </div>
+            <ContextMenu item={props.album} />
+            {!props.liked && (
+              <FloatingButton onClick={() => props.onLike(props.album)}>
+                <HeartOutline color="#fff" size={20} />
+              </FloatingButton>
+            )}
+            {props.liked && (
+              <FloatingButton onClick={() => props.onUnLike(props.album)}>
+                <Heart color="#6F00FF" size={20} />
+              </FloatingButton>
+            )}
+          </AlbumFooterMenu>
+        </Hover>
+        <Link to={`/albums/${props.album.id}`}>
+          {props.album.cover && (
+            <AlbumCover src={props.album.cover} effect="opacity" />
           )}
-          {props.liked && (
-            <FloatingButton onClick={() => props.onUnLike(props.album)}>
-              <Heart color="#fe09a3" size={20} />
-            </FloatingButton>
-          )}
-        </AlbumFooterMenu>
-      </Hover>
+          {!props.album.cover && <NoAlbumCover src={AlbumArt} />}
+        </Link>
+      </div>
       <Link to={`/albums/${props.album.id}`}>
-        {props.album.cover && (
-          <AlbumCover src={props.album.cover} effect="opacity" />
-        )}
-        {!props.album.cover && <NoAlbumCover src={AlbumArt} />}
         <AlbumTitle>{props.album.title}</AlbumTitle>
       </Link>
       <Artist to={`/artists/${props.album.artistId}`}>

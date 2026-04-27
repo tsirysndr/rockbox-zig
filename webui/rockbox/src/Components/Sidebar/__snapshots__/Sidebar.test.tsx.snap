@@ -6,7 +6,7 @@ exports[`Sidebar > should render 1`] = `
     class=""
   >
     <div
-      class="css-1tlxqlf"
+      class="css-1iac89y"
     >
       <div
         class="css-1osgnyu"
@@ -25,12 +25,12 @@ exports[`Sidebar > should render 1`] = `
           href="/settings"
         >
           <button
-            class="css-fduwnf"
+            class="css-1i2ljwf"
           >
             <svg
               aria-hidden="true"
               class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-              color="#000"
+              color="#9090a0"
               fill="currentColor"
               focusable="false"
               height="24"
@@ -46,14 +46,14 @@ exports[`Sidebar > should render 1`] = `
         </a>
       </div>
       <a
-        class="css-8v05qj"
-        color="#fe099c"
+        class="css-1hl5flw"
+        color="#6F00FF"
         href="/albums"
       >
         <svg
           aria-hidden="true"
           class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-          color="#fe099c"
+          color="#6F00FF"
           fill="currentColor"
           focusable="false"
           height="20"
@@ -74,8 +74,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-tujm8o"
-        color="initial"
+        class="css-j9huyi"
         href="/artists"
       >
         <svg
@@ -86,7 +85,7 @@ exports[`Sidebar > should render 1`] = `
         >
           <path
             d="M20 4.22a5.67 5.67 0 0 0-9.68 4.57l-8 9.79 3.3 3.3 9.79-8c.18 0 .36.05.55.05a5.7 5.7 0 0 0 4-9.73ZM5.74 19.86l-1.38-1.38 6.44-7.89a5.48 5.48 0 0 0 2.83 2.84Zm13.21-8.65a4.2 4.2 0 1 1 0-5.94 4.17 4.17 0 0 1 0 5.95Z"
-            fill="initial"
+            fill="#9090a0"
           />
         </svg>
         <div
@@ -96,8 +95,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-tujm8o"
-        color="initial"
+        class="css-j9huyi"
         href="/tracks"
       >
         <svg
@@ -107,7 +105,7 @@ exports[`Sidebar > should render 1`] = `
         >
           <path
             d="M8.1 4.65v11.26a3.45 3.45 0 1 0 1.5 2.84V5.85l10.2-2.36v10.62A3.45 3.45 0 1 0 21.3 17V1.61Zm-2 16a2 2 0 1 1 2-2 2 2 0 0 1-1.95 2.05Zm11.7-1.8a1.95 1.95 0 1 1 2-1.85 2 2 0 0 1-1.95 1.9Z"
-            fill="initial"
+            fill="#9090a0"
           />
         </svg>
         <div
@@ -117,8 +115,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-tujm8o"
-        color="initial"
+        class="css-j9huyi"
         href="/likes"
       >
         <svg
@@ -130,7 +127,7 @@ exports[`Sidebar > should render 1`] = `
         >
           <g
             class="ionicon"
-            style="fill: initial;"
+            style="fill: #9090a0;"
           >
             <path
               d="M13.534 4C11.167 4 10 6.364 10 6.364S8.833 4 6.466 4C4.543 4 3.02 5.63 3 7.575c-.04 4.038 3.162 6.91 6.672 9.323a.578.578 0 0 0 .656 0c3.51-2.413 6.712-5.285 6.672-9.323C16.98 5.63 15.457 4 13.534 4Z"
@@ -146,7 +143,7 @@ exports[`Sidebar > should render 1`] = `
               stroke="currentColor"
               stroke-linecap="round"
               stroke-linejoin="round"
-              style="fill: none; stroke-width: 2; stroke: initial; stroke-opacity: 1;"
+              style="fill: none; stroke-width: 2; stroke: #9090a0; stroke-opacity: 1;"
             />
           </g>
         </svg>
@@ -157,14 +154,13 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-tujm8o"
-        color="initial"
+        class="css-j9huyi"
         href="/files"
       >
         <svg
           aria-hidden="true"
           class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-          color="initial"
+          color="#9090a0"
           fill="none"
           focusable="false"
           height="19"
@@ -203,14 +199,13 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="css-tujm8o"
-        color="initial"
+        class="css-j9huyi"
         href="/playlists"
       >
         <svg
           aria-hidden="true"
           class="StyledIconBase-sc-ea9ulj-0 dmvaRK"
-          color="initial"
+          color="#9090a0"
           fill="currentColor"
           focusable="false"
           height="20"

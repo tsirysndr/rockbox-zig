@@ -56,8 +56,8 @@ const iOSBoxShadow =
 
 export default {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  slider: (t: any) => ({
-    color: "rgba(0, 0, 0, 0.682)",
+  slider: (_t: any) => ({
+    color: "#6F00FF",
     "& .MuiSlider-track": {
       border: "none",
     },
@@ -72,13 +72,10 @@ export default {
         boxShadow: "none",
       },
     },
-    ...t.applyStyles("dark", {
-      color: "#fff",
-    }),
   }),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sliderIOS: (theme: any) => ({
-    color: "#7C00FE",
+    color: "#6F00FF",
 
     "& .MuiSlider-thumb": {
       height: 20,
@@ -108,10 +105,7 @@ export default {
       },
       "& *": {
         background: "transparent",
-        color: "#000",
-        ...theme.applyStyles("dark", {
-          color: "#fff",
-        }),
+        color: "inherit",
       },
     },
     "& .MuiSlider-track": {
@@ -124,7 +118,7 @@ export default {
       backgroundColor: "#d0d0d0",
     },
     ...theme.applyStyles("dark", {
-      color: "#7C00FE",
+      color: "#6F00FF",
     }),
   }),
 };

@@ -6,6 +6,7 @@ import TrackIcon from "../../Icons/Track";
 import { useTheme } from "@emotion/react";
 import ChildMenu from "./ChildMenu";
 import { FC, useState } from "react";
+import PlaylistModal from "../../Playlists/PlaylistModal";
 import {
   AlbumCover,
   AlbumCoverAlt,
@@ -21,8 +22,8 @@ import {
 export type ContextMenuProps = {
   album: any;
   onPlayNext: (id: string) => void;
-  onCreatePlaylist: (name: string, description?: string) => void;
-  onAddTrackToPlaylist: (playlistId: string, trackId: string) => void;
+  onCreatePlaylist: (name: string, albumId: string, description?: string) => void;
+  onAddAlbumToPlaylist: (playlistId: string, albumId: string) => void;
   onPlayLast: (id: string) => void;
   onPlayShuffled: (id: string) => void;
   onAddShuffled: (id: string) => void;
@@ -33,16 +34,16 @@ export type ContextMenuProps = {
 const ContextMenu: FC<ContextMenuProps> = ({
   album,
   onPlayNext,
-  // onCreatePlaylist,
+  onCreatePlaylist,
   onPlayLast,
-  onAddTrackToPlaylist,
+  onAddAlbumToPlaylist,
   onPlayShuffled,
   onAddShuffled,
   onPlayLastShuffled,
   recentPlaylists,
 }) => {
   const theme = useTheme();
-  const [, setIsNewPlaylistModalOpen] = useState(false);
+  const [isNewPlaylistModalOpen, setIsNewPlaylistModalOpen] = useState(false);
   return (
     <Container>
       <Hover>
@@ -90,7 +91,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
                                   if (item.label === "Create new playlist") {
                                     setIsNewPlaylistModalOpen(true);
                                   } else {
-                                    onAddTrackToPlaylist(item.id, album.id);
+                                    onAddAlbumToPlaylist(item.id, album.id);
                                   }
                                   close();
                                 }}
@@ -170,14 +171,16 @@ const ContextMenu: FC<ContextMenuProps> = ({
           </Icon>
         </StatefulPopover>
       </Hover>
-      {/*<NewPlaylistModal
-        onClose={() => {
-          setIsNewPlaylistModalOpen(false);
-        }}
-        isOpen={isNewPlaylistModalOpen}
-        onCreatePlaylist={onCreatePlaylist}
-      />
-      */}
+      {isNewPlaylistModalOpen && (
+        <PlaylistModal
+          title="New Playlist"
+          onClose={() => setIsNewPlaylistModalOpen(false)}
+          onSave={async (name, description) => {
+            await onCreatePlaylist(name, album.id, description);
+            setIsNewPlaylistModalOpen(false);
+          }}
+        />
+      )}
     </Container>
   );
 };

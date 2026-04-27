@@ -25,7 +25,7 @@ export const BackButton = styled.button`
   height: 30px;
   width: 30px;
   border-radius: 15px;
-  background-color: #f7f7f8;
+  background-color: ${(props) => props.theme.colors.backButton};
   margin-top: 26px;
   margin-bottom: 46px;
   position: absolute;
@@ -39,11 +39,38 @@ export const ContentWrapper = styled.div`
   height: calc(100vh - 60px);
 `;
 
+export const ArtistHeader = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 24px;
+  margin-top: 30px;
+  margin-bottom: 32px;
+`;
+
+export const ArtistPicture = styled.img`
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+`;
+
+export const ArtistPicturePlaceholder = styled.div`
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background-color: ${(props) => props.theme.colors.cover};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
+
 export const Name = styled.div`
   font-family: RockfordSansMedium;
   font-size: 30px;
-  margin-top: 94px;
-  margin-bottom: 40px;
+  margin-bottom: 4px;
 `;
 
 export const ButtonGroup = styled.div`
@@ -82,7 +109,7 @@ export const Hover = styled.button`
   cursor: pointer;
   &:hover,
   &:focus {
-    color: #000;
+    color: ${(props) => props.theme.colors.text};
     opacity: 1 !important;
   }
 `;
@@ -109,12 +136,12 @@ export const AlbumTitle = styled(RouterLink)`
   overflow: hidden;
   white-space: nowrap;
   cursor: pointer;
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
   text-decoration: none;
 `;
 
 export const Artist = styled.div`
-  color: #828282;
+  color: ${(props) => props.theme.colors.secondaryText};
   font-size: 14px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -123,7 +150,7 @@ export const Artist = styled.div`
 `;
 
 export const Year = styled.div`
-  color: #828282;
+  color: ${(props) => props.theme.colors.secondaryText};
   font-size: 12px;
   font-weight: 400;
   margin-bottom: 56px;
@@ -136,7 +163,7 @@ export const AlbumCover = styled(LazyLoadImage)`
 `;
 
 export const Link = styled(RouterLink)`
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
   text-decoration: none;
   font-family: RockfordSansRegular;
   &:hover {

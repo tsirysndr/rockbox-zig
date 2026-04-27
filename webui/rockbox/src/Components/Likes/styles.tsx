@@ -35,7 +35,7 @@ export const Hover = styled.button`
   cursor: pointer;
   &:hover,
   &:focus {
-    color: #000;
+    color: ${(props) => props.theme.colors.text};
     opacity: 1 !important;
   }
 `;
@@ -85,7 +85,7 @@ export const BackButton = styled.button`
   height: 30px;
   width: 30px;
   border-radius: 15px;
-  background-color: #f7f7f8;
+  background-color: ${(props) => props.theme.colors.backButton};
   margin-top: 26px;
   margin-bottom: 46px;
   position: absolute;
@@ -93,7 +93,7 @@ export const BackButton = styled.button`
 `;
 
 export const Link = styled(RouterLink)`
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
   text-decoration: none;
   font-family: RockfordSansRegular;
   &:hover {

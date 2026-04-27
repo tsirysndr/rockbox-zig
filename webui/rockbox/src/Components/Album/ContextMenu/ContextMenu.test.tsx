@@ -16,7 +16,7 @@ describe("ContextMenu", () => {
           }}
           onPlayNext={vi.fn()}
           onCreatePlaylist={vi.fn()}
-          onAddTrackToPlaylist={vi.fn()}
+          onAddAlbumToPlaylist={vi.fn()}
           onPlayLast={vi.fn()}
           onAddShuffled={vi.fn()}
           onPlayLastShuffled={vi.fn()}

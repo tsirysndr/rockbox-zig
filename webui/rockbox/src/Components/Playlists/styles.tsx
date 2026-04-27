@@ -30,7 +30,7 @@ export const SectionTitle = styled.div`
   padding-right: 20px;
   margin-bottom: 16px;
   margin-top: 24px;
-  color: #555;
+  color: ${(props) => props.theme.colors.secondaryText};
 `;
 
 export const PlaylistGrid = styled.div`
@@ -55,7 +55,7 @@ export const PlaylistCover = styled.div<{ image?: string }>`
   width: 100%;
   aspect-ratio: 1;
   border-radius: 6px;
-  background-color: #e8e8e8;
+  background-color: ${(props) => props.theme.colors.cover};
   background-image: ${({ image }) => (image ? `url(${image})` : "none")};
   background-size: cover;
   background-position: center;
@@ -72,18 +72,18 @@ export const PlaylistName = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
 `;
 
 export const PlaylistMeta = styled.div`
   font-size: 12px;
-  color: #828282;
+  color: ${(props) => props.theme.colors.secondaryText};
   margin-top: 2px;
 `;
 
 export const CardActions = styled.div`
   position: absolute;
-  bottom: 44px;
+  bottom: 48px;
   left: 8px;
   right: 8px;
   display: flex;
@@ -92,6 +92,7 @@ export const CardActions = styled.div`
   justify-content: space-between;
   opacity: 0;
   transition: opacity 0.15s;
+  padding-bottom: 6px;
 `;
 
 export const CardAction = styled.button`
@@ -103,11 +104,11 @@ export const CardAction = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: ${(props) => props.theme.colors.surface};
   backdrop-filter: blur(4px);
 
   &:hover {
-    background-color: #fff;
+    background-color: ${(props) => props.theme.colors.hover};
   }
 `;
 

@@ -1,5 +1,5 @@
 tbody > tr:hover  {
-  background-color: #f9f9f97a;
+  background-color: var(--row-hover-bg);
 }
 
 table {

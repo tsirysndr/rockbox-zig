@@ -736,14 +736,14 @@ export type GetAlbumsQuery = { __typename?: 'Query', albums: Array<{ __typename?
 export type GetArtistsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetArtistsQuery = { __typename?: 'Query', artists: Array<{ __typename?: 'Artist', id: string, name: string }> };
+export type GetArtistsQuery = { __typename?: 'Query', artists: Array<{ __typename?: 'Artist', id: string, name: string, image?: string | null }> };
 
 export type GetArtistQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetArtistQuery = { __typename?: 'Query', artist?: { __typename?: 'Artist', id: string, name: string, albums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string }>, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArt?: string | null, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
+export type GetArtistQuery = { __typename?: 'Query', artist?: { __typename?: 'Artist', id: string, name: string, image?: string | null, albums: Array<{ __typename?: 'Album', id: string, title: string, artist: string, albumArt?: string | null, year: number, yearString: string, artistId: string, md5: string }>, tracks: Array<{ __typename?: 'Track', id?: string | null, title: string, artist: string, album: string, albumArt?: string | null, albumArtist: string, artistId?: string | null, albumId?: string | null, path: string, length: number }> } | null };
 
 export type TracksQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1365,6 +1365,7 @@ export const GetArtistsDocument = gql`
   artists {
     id
     name
+    image
   }
 }
     `;
@@ -1405,6 +1406,7 @@ export const GetArtistDocument = gql`
   artist(id: $id) {
     id
     name
+    image
     albums {
       id
       title

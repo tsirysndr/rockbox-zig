@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
+import { useTheme } from "@emotion/react";
 import Sidebar from "../Sidebar/Sidebar";
 import ControlBar from "../ControlBar";
 import {
+  ArtistHeader,
+  ArtistPicture,
+  ArtistPicturePlaceholder,
   BackButton,
   ButtonGroup,
   Container,
@@ -28,11 +32,13 @@ import "./styles.css";
 import ContextMenu from "../ContextMenu";
 import Album from "../Album";
 import TrackIcon from "../Icons/Track";
+import ArtistIcon from "../Icons/Artist";
 
 const columnHelper = createColumnHelper<Track>();
 
 export type ArtistDetailsProps = {
   name: string;
+  image?: string;
   tracks: Track[];
   albums: any[];
   onPlayAll: () => void;
@@ -47,6 +53,8 @@ export type ArtistDetailsProps = {
 };
 
 const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
+  const { image } = props;
+  const theme = useTheme();
   const columns = [
     columnHelper.accessor("albumArt", {
       header: "Title",
@@ -64,7 +72,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play small color={info.getValue() ? "#fff" : "#000"} />
+                <Play small color={info.getValue() ? "#fff" : theme.colors.text} />
               </div>
             </div>
           )}
@@ -77,7 +85,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play small color={info.getValue() ? "#fff" : "#000"} />
+                <Play small color={info.getValue() ? "#fff" : theme.colors.text} />
               </div>
             </div>
           )}
@@ -97,7 +105,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           {info.getValue()}
@@ -117,7 +125,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           <Link to={`/artists/${info.row.original.artistId}`}>
@@ -138,7 +146,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: "#000",
+            color: theme.colors.text,
           }}
         >
           <Link to={`/albums/${info.row.original.albumId}`}>
@@ -182,10 +190,21 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
         <ContentWrapper>
           <BackButton onClick={() => props.onGoBack()}>
             <div style={{ marginTop: 2 }}>
-              <ArrowBack color={"#000"} />
+              <ArrowBack color={theme.colors.icon} />
             </div>
           </BackButton>
-          <Name>{props.name}</Name>
+          <ArtistHeader>
+            {image ? (
+              <ArtistPicture src={image} alt={props.name} />
+            ) : (
+              <ArtistPicturePlaceholder>
+                <ArtistIcon width={64} height={64} color="#bbb" />
+              </ArtistPicturePlaceholder>
+            )}
+            <div>
+              <Name>{props.name}</Name>
+            </div>
+          </ArtistHeader>
           <ButtonGroup>
             <Button onClick={props.onPlayAll} kind="primary">
               <Label>
@@ -196,7 +215,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             <Separator />
             <Button onClick={props.onShuffleAll} kind="secondary">
               <Label>
-                <Shuffle color="#fe099c" />
+                <Shuffle color="#6F00FF" />
                 <div style={{ marginLeft: 7 }}>Shuffle</div>
               </Label>
             </Button>

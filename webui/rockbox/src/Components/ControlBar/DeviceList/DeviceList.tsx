@@ -144,7 +144,7 @@ const DeviceList: FC<DeviceListProps> = ({
               color={bgColors[activeDevice.type]}
             />
           ) : (
-            <Laptop size={30} color="#fe099c" />
+            <Laptop size={30} color="#6F00FF" />
           )}
         </IconWrapper>
         <div style={{ flex: 1 }}>
@@ -187,6 +187,7 @@ const DeviceList: FC<DeviceListProps> = ({
                 Root: {
                   style: {
                     cursor: "pointer",
+                    backgroundColor: "transparent",
                     ":hover": {
                       backgroundColor: theme.colors.hover,
                     },

@@ -32,7 +32,7 @@ export const NoAlbumCover = styled.img`
 `;
 
 export const Artist = styled(RouterLink)`
-  color: #828282;
+  color: ${(props) => props.theme.colors.secondaryText};
   font-size: 14px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -42,7 +42,7 @@ export const Artist = styled(RouterLink)`
 `;
 
 export const Year = styled.div`
-  color: #828282;
+  color: ${(props) => props.theme.colors.secondaryText};
   font-size: 12px;
   font-weight: 400;
   margin-bottom: 56px;
@@ -54,7 +54,7 @@ export const AlbumTitle = styled.div`
   overflow: hidden;
   white-space: nowrap;
   cursor: pointer;
-  color: #000;
+  color: ${(props) => props.theme.colors.text};
 `;
 
 export const Scrollable = styled.div`
@@ -90,7 +90,7 @@ export const Hover = styled.button`
   cursor: pointer;
   &:hover,
   &:focus {
-    color: #000;
+    color: ${(props) => props.theme.colors.text};
     opacity: 1 !important;
   }
 `;

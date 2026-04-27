@@ -30,7 +30,7 @@ export const Button = styled.button<{ active?: boolean }>`
   ${(props) =>
     props.active &&
     css`
-      background-color: #e9e9ea8c;
+      background-color: ${props.theme.colors.hover};
     `}
   &:hover {
     opacity: 0.6;

@@ -2,3 +2,7 @@
 table {
   border-spacing: 0;
 }
+
+tbody > tr:hover {
+  background-color: var(--row-hover-bg);
+}

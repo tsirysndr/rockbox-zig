@@ -1,6 +1,7 @@
 import { FC, SyntheticEvent, useEffect, useState } from "react";
+import { useTheme } from "@emotion/react";
 import Slider from "@mui/material/Slider";
-import styles, { Container } from "./styles";
+import { Container } from "./styles";
 
 export type VolumeProps = {
   volume: number;
@@ -8,6 +9,7 @@ export type VolumeProps = {
 };
 
 const Volume: FC<VolumeProps> = (props) => {
+  const theme = useTheme();
   const [volume, setVolume] = useState<number>(props.volume);
 
   useEffect(() => {
@@ -29,7 +31,17 @@ const Volume: FC<VolumeProps> = (props) => {
           value={volume}
           onChange={(_event, value) => setVolume(value as number)}
           onChangeCommitted={handleVolumeChange}
-          sx={styles.slider}
+          sx={{
+            color: theme.colors.primary,
+            "& .MuiSlider-track": { border: "none" },
+            "& .MuiSlider-thumb": {
+              width: 18,
+              height: 18,
+              backgroundColor: theme.colors.text,
+              "&::before": { boxShadow: "0 4px 8px rgba(0,0,0,0.18)" },
+              "&:hover, &.Mui-focusVisible, &.Mui-active": { boxShadow: "none" },
+            },
+          }}
         />
       </div>
     </Container>
