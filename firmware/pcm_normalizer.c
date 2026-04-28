@@ -41,27 +41,27 @@
  *               Very slow: prevents the "pumping" artefact during pauses
  *               or quiet passages between tracks.
  *
- * MAX_GAIN      Hard upper bound on the boost, +12 dB.
+ * MAX_GAIN      Hard upper bound on the boost, +18 dB.
  *               Prevents amplifying near-silence to noise.
  *
- * MIN_GAIN      Hard lower bound, -12 dB.
+ * MIN_GAIN      Hard lower bound, -18 dB.
  *               Prevents crushing content that is louder than target.
  *
  * GATE_THRESH   RMS below this level → chunk is silence; neither the RMS
  *               estimate nor the gain are updated.  -60 dBFS ≈ 0.001.
  * ──────────────────────────────────────────────────────────────────────────── */
-#define TARGET_RMS    0.0708f
-#define RMS_ATTACK    0.3f
-#define RMS_RELEASE   0.997f
-#define GAIN_ATTACK   0.3f
-#define GAIN_RELEASE  0.9995f
-#define MAX_GAIN      4.0f
-#define MIN_GAIN      0.25f
+#define TARGET_RMS    0.35f     /* -9 dBFS — loud, punchy target */
+#define RMS_ATTACK    0.3f      /* fast: track loud transients in ~2-3 chunks */
+#define RMS_RELEASE   0.99f     /* ~7 s to settle on a quieter signal */
+#define GAIN_ATTACK   0.3f      /* reduce gain quickly to prevent clipping */
+#define GAIN_RELEASE  0.98f     /* ~3 s to raise gain — feels responsive without pumping */
+#define MAX_GAIN      10.0f     /* +20 dB — handles very quiet classical / ambient */
+#define MIN_GAIN      0.1f      /* -20 dB */
 #define GATE_THRESH   0.001f
 
 static bool  normalizer_enabled = false;
 static float gain               = 1.0f;
-static float rms_estimate       = TARGET_RMS; /* warm-start avoids over-correction on first chunk */
+static float rms_estimate       = 0.1f; /* warm-start below target → gain > 1 from the first chunk */
 
 void pcm_normalizer_enable(bool enable)
 {
@@ -69,7 +69,7 @@ void pcm_normalizer_enable(bool enable)
         /* Reset state on each fresh enable so a stale gain from a previous
          * session doesn't immediately blast or mute the first chunk. */
         gain         = 1.0f;
-        rms_estimate = TARGET_RMS;
+        rms_estimate = 0.1f;
     }
     normalizer_enabled = enable;
 }
