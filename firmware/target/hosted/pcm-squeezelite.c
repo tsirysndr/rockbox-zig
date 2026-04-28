@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -50,6 +51,10 @@ extern void pcm_squeezelite_close(void);
 static const void *pcm_data = NULL;
 static size_t      pcm_size = 0;
 
+/* Scratch buffer for SW volume scaling */
+static void  *squeezelite_vol_buf     = NULL;
+static size_t squeezelite_vol_buf_cap = 0;
+
 static pthread_mutex_t squeezelite_mtx;
 static pthread_t       squeezelite_tid;
 static volatile bool   squeezelite_running = false;
@@ -69,11 +74,21 @@ static void *squeezelite_thread(void *arg)
 
     while (!squeezelite_stop) {
         pthread_mutex_lock(&squeezelite_mtx);
-        const void *data = pcm_data;
+        const void *raw  = pcm_data;
         size_t      size = pcm_size;
         pcm_data = NULL;
         pcm_size = 0;
         pthread_mutex_unlock(&squeezelite_mtx);
+
+        /* Apply SW volume scaling */
+        if (size > squeezelite_vol_buf_cap) {
+            free(squeezelite_vol_buf);
+            squeezelite_vol_buf     = malloc(size);
+            squeezelite_vol_buf_cap = squeezelite_vol_buf ? size : 0;
+        }
+        const void *data = (squeezelite_vol_buf && size > 0)
+            ? (pcm_copy_buffer(squeezelite_vol_buf, raw, size), squeezelite_vol_buf)
+            : raw;
 
         if (data && size > 0) {
             if (pcm_squeezelite_write((const uint8_t *)data, size) < 0) {

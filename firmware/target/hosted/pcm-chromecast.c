@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -53,6 +54,10 @@ extern void pcm_chromecast_close(void);
 static const void *pcm_data = NULL;
 static size_t      pcm_size = 0;
 
+/* Scratch buffer for SW volume scaling */
+static void  *chromecast_vol_buf     = NULL;
+static size_t chromecast_vol_buf_cap = 0;
+
 static pthread_mutex_t chromecast_mtx;
 static pthread_t       chromecast_tid;
 static volatile bool   chromecast_running = false;
@@ -72,11 +77,21 @@ static void *chromecast_thread(void *arg)
 
     while (!chromecast_stop) {
         pthread_mutex_lock(&chromecast_mtx);
-        const void *data = pcm_data;
+        const void *raw  = pcm_data;
         size_t      size = pcm_size;
         pcm_data = NULL;
         pcm_size = 0;
         pthread_mutex_unlock(&chromecast_mtx);
+
+        /* Apply SW volume scaling */
+        if (size > chromecast_vol_buf_cap) {
+            free(chromecast_vol_buf);
+            chromecast_vol_buf     = malloc(size);
+            chromecast_vol_buf_cap = chromecast_vol_buf ? size : 0;
+        }
+        const void *data = (chromecast_vol_buf && size > 0)
+            ? (pcm_copy_buffer(chromecast_vol_buf, raw, size), chromecast_vol_buf)
+            : raw;
 
         if (data && size > 0) {
             if (pcm_chromecast_write((const uint8_t *)data, size) < 0) {

@@ -57,6 +57,10 @@ static int fifo_fd = -1;
 static const void *pcm_data = NULL;
 static size_t      pcm_size = 0;
 
+/* Scratch buffer for SW volume scaling */
+static void  *fifo_vol_buf     = NULL;
+static size_t fifo_vol_buf_cap = 0;
+
 static pthread_mutex_t fifo_mtx;
 static pthread_t       fifo_tid;
 static volatile bool   fifo_running = false;
@@ -118,11 +122,21 @@ static void *fifo_thread(void *arg)
 
     while (!fifo_stop) {
         pthread_mutex_lock(&fifo_mtx);
-        const void *data = pcm_data;
+        const void *raw  = pcm_data;
         size_t      size = pcm_size;
         pcm_data = NULL;
         pcm_size = 0;
         pthread_mutex_unlock(&fifo_mtx);
+
+        /* Apply SW volume scaling before writing */
+        if (size > fifo_vol_buf_cap) {
+            free(fifo_vol_buf);
+            fifo_vol_buf     = malloc(size);
+            fifo_vol_buf_cap = fifo_vol_buf ? size : 0;
+        }
+        const void *data = (fifo_vol_buf && size > 0)
+            ? (pcm_copy_buffer(fifo_vol_buf, raw, size), fifo_vol_buf)
+            : raw;
 
         /* Write current chunk in pieces so stop() can interrupt promptly */
         while (size > 0 && !fifo_stop) {

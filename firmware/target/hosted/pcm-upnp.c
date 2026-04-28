@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -50,6 +51,10 @@ extern void pcm_upnp_close(void);
 static const void *pcm_data = NULL;
 static size_t      pcm_size = 0;
 
+/* Scratch buffer for SW volume scaling */
+static void  *upnp_vol_buf     = NULL;
+static size_t upnp_vol_buf_cap = 0;
+
 static pthread_mutex_t upnp_mtx;
 static pthread_t       upnp_tid;
 static volatile bool   upnp_running = false;
@@ -69,11 +74,21 @@ static void *upnp_thread(void *arg)
 
     while (!upnp_stop) {
         pthread_mutex_lock(&upnp_mtx);
-        const void *data = pcm_data;
+        const void *raw  = pcm_data;
         size_t      size = pcm_size;
         pcm_data = NULL;
         pcm_size = 0;
         pthread_mutex_unlock(&upnp_mtx);
+
+        /* Apply SW volume scaling */
+        if (size > upnp_vol_buf_cap) {
+            free(upnp_vol_buf);
+            upnp_vol_buf     = malloc(size);
+            upnp_vol_buf_cap = upnp_vol_buf ? size : 0;
+        }
+        const void *data = (upnp_vol_buf && size > 0)
+            ? (pcm_copy_buffer(upnp_vol_buf, raw, size), upnp_vol_buf)
+            : raw;
 
         if (data && size > 0) {
             if (pcm_upnp_write((const uint8_t *)data, size) < 0) {

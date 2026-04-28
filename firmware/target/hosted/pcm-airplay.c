@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "pcm.h"
@@ -49,6 +50,10 @@ extern void    pcm_airplay_close(void);
 static const void *pcm_data = NULL;
 static size_t      pcm_size = 0;
 
+/* Scratch buffer for SW volume scaling */
+static void  *airplay_vol_buf     = NULL;
+static size_t airplay_vol_buf_cap = 0;
+
 static pthread_mutex_t airplay_mtx;
 static pthread_t       airplay_tid;
 static volatile bool   airplay_running = false;
@@ -60,11 +65,21 @@ static void *airplay_thread(void *arg)
 
     while (!airplay_stop) {
         pthread_mutex_lock(&airplay_mtx);
-        const void *data = pcm_data;
+        const void *raw  = pcm_data;
         size_t      size = pcm_size;
         pcm_data = NULL;
         pcm_size = 0;
         pthread_mutex_unlock(&airplay_mtx);
+
+        /* Apply SW volume scaling */
+        if (size > airplay_vol_buf_cap) {
+            free(airplay_vol_buf);
+            airplay_vol_buf     = malloc(size);
+            airplay_vol_buf_cap = airplay_vol_buf ? size : 0;
+        }
+        const void *data = (airplay_vol_buf && size > 0)
+            ? (pcm_copy_buffer(airplay_vol_buf, raw, size), airplay_vol_buf)
+            : raw;
 
         if (data && size > 0) {
             if (pcm_airplay_write((const uint8_t *)data, size) < 0) {

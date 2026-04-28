@@ -65,6 +65,10 @@ static int      tcp_fd        = -1;
 static const void    *pcm_data = NULL;
 static size_t         pcm_size = 0;
 
+/* Scratch buffer for SW volume scaling */
+static void  *tcp_vol_buf     = NULL;
+static size_t tcp_vol_buf_cap = 0;
+
 static pthread_mutex_t tcp_mtx;
 static pthread_t       tcp_tid;
 static volatile bool   tcp_running = false;
@@ -125,11 +129,21 @@ static void *tcp_thread(void *arg)
 
     while (!tcp_stop) {
         pthread_mutex_lock(&tcp_mtx);
-        const void *data = pcm_data;
+        const void *raw  = pcm_data;
         size_t      size = pcm_size;
         pcm_data = NULL;
         pcm_size = 0;
         pthread_mutex_unlock(&tcp_mtx);
+
+        /* Apply SW volume scaling */
+        if (size > tcp_vol_buf_cap) {
+            free(tcp_vol_buf);
+            tcp_vol_buf     = malloc(size);
+            tcp_vol_buf_cap = tcp_vol_buf ? size : 0;
+        }
+        const void *data = (tcp_vol_buf && size > 0)
+            ? (pcm_copy_buffer(tcp_vol_buf, raw, size), tcp_vol_buf)
+            : raw;
 
         /* Write current chunk in pieces so stop() can interrupt promptly */
         while (size > 0 && !tcp_stop) {
