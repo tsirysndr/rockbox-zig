@@ -22,6 +22,7 @@ import TrackIcon from "../Icons/Track";
 import { Play } from "@styled-icons/ionicons-sharp";
 import "./styles.css";
 import ContextMenu from "../ContextMenu";
+import TrackListSkeleton from "../Skeletons/TrackListSkeleton";
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -184,6 +185,11 @@ const Tracks: FC<TracksProps> = (props) => {
         <ControlBar />
         <ContentWrapper ref={containerRef}>
           <Title>Songs</Title>
+          {props.loading && (
+            <div style={{ marginBottom: 60 }}>
+              <TrackListSkeleton />
+            </div>
+          )}
           {(props.tracks.length > 0 || props.keyword) && !props.loading && (
             <>
               <FilterContainer>

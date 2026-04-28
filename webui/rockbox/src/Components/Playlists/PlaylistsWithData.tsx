@@ -13,7 +13,7 @@ import {
 
 const PlaylistsWithData: FC = () => {
   const queryClient = useQueryClient();
-  const { data: savedData } = useGetSavedPlaylistsQuery();
+  const { data: savedData, isLoading } = useGetSavedPlaylistsQuery();
   const { data: smartData } = useGetSmartPlaylistsQuery();
   const { mutateAsync: createSavedPlaylist } = useCreateSavedPlaylistMutation();
   const { mutateAsync: updateSavedPlaylist } = useUpdateSavedPlaylistMutation();
@@ -57,6 +57,7 @@ const PlaylistsWithData: FC = () => {
     <Playlists
       savedPlaylists={savedPlaylists}
       smartPlaylists={smartPlaylists}
+      loading={isLoading}
       onPlay={onPlay}
       onEdit={() => {}}
       onDelete={onDelete}

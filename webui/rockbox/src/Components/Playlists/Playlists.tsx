@@ -22,10 +22,12 @@ import Play from "../Icons/Play";
 import { Music } from "@styled-icons/boxicons-regular";
 import { Edit2, Trash2 } from "@styled-icons/feather";
 import PlaylistModal from "./PlaylistModal";
+import AlbumCardSkeleton from "../Skeletons/AlbumCardSkeleton";
 
 export type PlaylistsProps = {
   savedPlaylists: any[];
   smartPlaylists: any[];
+  loading?: boolean;
   onPlay: (id: string, isSmart: boolean) => void;
   onEdit: (playlist: any) => void;
   onDelete: (id: string) => void;
@@ -36,6 +38,7 @@ export type PlaylistsProps = {
 const Playlists: FC<PlaylistsProps> = ({
   savedPlaylists,
   smartPlaylists,
+  loading,
   onPlay,
   onDelete,
   onCreate,
@@ -78,7 +81,17 @@ const Playlists: FC<PlaylistsProps> = ({
             </button>
           </div>
 
-          {savedPlaylists.length > 0 && (
+          {loading && (
+            <PlaylistGrid>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i}>
+                  <AlbumCardSkeleton />
+                </div>
+              ))}
+            </PlaylistGrid>
+          )}
+
+          {!loading && savedPlaylists.length > 0 && (
             <>
               <SectionTitle>MY PLAYLISTS</SectionTitle>
               <PlaylistGrid>
@@ -114,7 +127,7 @@ const Playlists: FC<PlaylistsProps> = ({
             </>
           )}
 
-          {smartPlaylists.length > 0 && (
+          {!loading && smartPlaylists.length > 0 && (
             <>
               <SectionTitle>SMART PLAYLISTS</SectionTitle>
               <PlaylistGrid>
@@ -142,7 +155,7 @@ const Playlists: FC<PlaylistsProps> = ({
             </>
           )}
 
-          {savedPlaylists.length === 0 && smartPlaylists.length === 0 && (
+          {!loading && savedPlaylists.length === 0 && smartPlaylists.length === 0 && (
             <div style={{ padding: "40px 20px", color: "#888", fontSize: 14 }}>
               No playlists yet. Create one to get started.
             </div>

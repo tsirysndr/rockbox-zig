@@ -10,7 +10,7 @@ import ArtistDetails from "./ArtistDetails";
 const ArtistDetailsWithData: FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { data } = useGetArtistQuery({ id: id! });
+  const { data, isLoading } = useGetArtistQuery({ id: id! });
   const { mutate: playArtistTracks } = usePlayArtistTracksMutation();
   const { formatTime } = useTimeFormat();
   const tracks =
@@ -41,6 +41,7 @@ const ArtistDetailsWithData: FC = () => {
     <ArtistDetails
       name={data?.artist?.name || ""}
       image={data?.artist?.image ?? undefined}
+      loading={isLoading}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tracks={(tracks as any) || []}
       albums={albums || []}

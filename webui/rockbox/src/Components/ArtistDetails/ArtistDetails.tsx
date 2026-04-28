@@ -33,6 +33,9 @@ import ContextMenu from "../ContextMenu";
 import Album from "../Album";
 import TrackIcon from "../Icons/Track";
 import ArtistIcon from "../Icons/Artist";
+import ArtistHeaderSkeleton from "../Skeletons/ArtistHeaderSkeleton";
+import TrackListSkeleton from "../Skeletons/TrackListSkeleton";
+import AlbumCardSkeleton from "../Skeletons/AlbumCardSkeleton";
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -41,6 +44,7 @@ export type ArtistDetailsProps = {
   image?: string;
   tracks: Track[];
   albums: any[];
+  loading?: boolean;
   onPlayAll: () => void;
   onShuffleAll: () => void;
   onPlayAlbum: (album: any) => void;
@@ -53,7 +57,7 @@ export type ArtistDetailsProps = {
 };
 
 const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
-  const { image } = props;
+  const { image, loading } = props;
   const theme = useTheme();
   const columns = [
     columnHelper.accessor("albumArt", {
@@ -193,7 +197,28 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
               <ArrowBack color={theme.colors.icon} />
             </div>
           </BackButton>
-          <ArtistHeader>
+          {loading && (
+            <div style={{ marginTop: 20, marginBottom: 100 }}>
+              <ArtistHeaderSkeleton />
+              <div style={{ marginTop: 40 }}>
+                <TrackListSkeleton />
+              </div>
+              <div style={{ marginTop: 40 }}>
+                <Grid
+                  gridColumns={[2, 4, 5]}
+                  gridMargins={[0, 0, 0]}
+                  gridGutters={[20, 20, 20]}
+                >
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Cell key={i}>
+                      <AlbumCardSkeleton />
+                    </Cell>
+                  ))}
+                </Grid>
+              </div>
+            </div>
+          )}
+          {!loading && <><ArtistHeader>
             {image ? (
               <ArtistPicture src={image} alt={props.name} />
             ) : (
@@ -236,6 +261,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
               ))}
             </Grid>
           </div>
+          </>}
         </ContentWrapper>
       </MainView>
     </Container>

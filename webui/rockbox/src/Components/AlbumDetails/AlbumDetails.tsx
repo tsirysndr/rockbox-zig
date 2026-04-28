@@ -31,6 +31,8 @@ import { Album } from "../../Hooks/GraphQL";
 import AlbumArt from "../../Assets/albumart.svg";
 import ContextMenu from "../ContextMenu";
 import _ from "lodash";
+import DetailHeaderSkeleton from "../Skeletons/DetailHeaderSkeleton";
+import TrackListSkeleton from "../Skeletons/TrackListSkeleton";
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -42,6 +44,7 @@ export type AlbumDetailsProps = {
   album?: Album | null;
   volumes: Track[][];
   enableBlur?: boolean;
+  loading?: boolean;
   onPlayTrack: (position: number, disc: number) => void;
 };
 
@@ -150,7 +153,13 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
               <ArrowBack color={theme.colors.icon} />
             </div>
           </BackButton>
-          <div style={{ marginBottom: 100 }}>
+          {props.loading && (
+            <div style={{ marginTop: 60, marginBottom: 100 }}>
+              <DetailHeaderSkeleton />
+              <TrackListSkeleton />
+            </div>
+          )}
+          {!props.loading && <div style={{ marginBottom: 100 }}>
             <Header>
               <AlbumCover src={props.album?.albumArt || AlbumArt} />
               <AlbumInfos>
@@ -205,7 +214,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
                 ))}
               </div>
             )}
-          </div>
+          </div>}
         </ContentWrapper>
       </MainView>
     </Container>

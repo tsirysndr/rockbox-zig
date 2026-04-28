@@ -27,6 +27,7 @@ import ContextMenu from "../ContextMenu";
 import Button from "../Button";
 import Play from "../Icons/Play";
 import Shuffle from "../Icons/Shuffle";
+import TrackListSkeleton from "../Skeletons/TrackListSkeleton";
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -192,6 +193,11 @@ const Likes: FC<TracksProps> = (props) => {
         <ControlBar />
         <ContentWrapper ref={containerRef}>
           <Title>Likes</Title>
+          {props.loading && (
+            <div style={{ marginBottom: 60 }}>
+              <TrackListSkeleton />
+            </div>
+          )}
           {(props.tracks.length > 0 || props.keyword) && !props.loading && (
             <>
               <HeaderWrapper>

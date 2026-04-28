@@ -24,24 +24,28 @@ const PlaylistDetailsWithData: FC<Props> = ({ isSmart = false }) => {
   const { formatTime } = useTimeFormat();
   const queryClient = useQueryClient();
 
-  const { data: savedPlaylistData } = useGetSavedPlaylistQuery(
+  const { data: savedPlaylistData, isLoading: savedPlaylistLoading } = useGetSavedPlaylistQuery(
     { id: id! },
     { enabled: !isSmart }
   );
-  const { data: savedTracksData, refetch: refetchSavedTracks } =
+  const { data: savedTracksData, isLoading: savedTracksLoading, refetch: refetchSavedTracks } =
     useGetSavedPlaylistTracksQuery(
       { playlistId: id! },
       { enabled: !isSmart }
     );
 
-  const { data: smartPlaylistData } = useGetSmartPlaylistQuery(
+  const { data: smartPlaylistData, isLoading: smartPlaylistLoading } = useGetSmartPlaylistQuery(
     { id: id! },
     { enabled: isSmart }
   );
-  const { data: smartTracksData } = useGetSmartPlaylistTracksQuery(
+  const { data: smartTracksData, isLoading: smartTracksLoading } = useGetSmartPlaylistTracksQuery(
     { id: id! },
     { enabled: isSmart }
   );
+
+  const isLoading = isSmart
+    ? smartPlaylistLoading || smartTracksLoading
+    : savedPlaylistLoading || savedTracksLoading;
 
   const { mutate: playSavedPlaylist } = usePlaySavedPlaylistMutation();
   const { mutate: playSmartPlaylist } = usePlaySmartPlaylistMutation();
@@ -112,6 +116,7 @@ const PlaylistDetailsWithData: FC<Props> = ({ isSmart = false }) => {
       playlist={playlist}
       tracks={tracks}
       isSmart={isSmart}
+      loading={isLoading}
       onGoBack={() => navigate(-1)}
       onPlayAll={onPlayAll}
       onShuffleAll={onShuffleAll}

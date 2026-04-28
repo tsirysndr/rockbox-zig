@@ -28,6 +28,8 @@ import Table from "../Table";
 import { Track } from "../../Types/track";
 import ContextMenu from "../ContextMenu";
 import { Music } from "@styled-icons/boxicons-regular";
+import DetailHeaderSkeleton from "../Skeletons/DetailHeaderSkeleton";
+import TrackListSkeleton from "../Skeletons/TrackListSkeleton";
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -35,6 +37,7 @@ export type PlaylistDetailsProps = {
   playlist?: any;
   tracks: Track[];
   isSmart?: boolean;
+  loading?: boolean;
   onGoBack: () => void;
   onPlayAll: () => void;
   onShuffleAll: () => void;
@@ -46,6 +49,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
   playlist,
   tracks,
   isSmart,
+  loading,
   onGoBack,
   onPlayAll,
   onShuffleAll,
@@ -163,7 +167,13 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
               <ArrowBack color={theme.colors.icon} />
             </div>
           </BackButton>
-          <div style={{ marginBottom: 100 }}>
+          {loading && (
+            <div style={{ marginTop: 60, marginBottom: 100 }}>
+              <DetailHeaderSkeleton />
+              <TrackListSkeleton />
+            </div>
+          )}
+          {!loading && <div style={{ marginBottom: 100 }}>
             <Header>
               <CoverArt image={playlist?.image}>
                 {!playlist?.image && <Music size={64} color="#bbb" />}
@@ -205,7 +215,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
             {tracks.length > 0 && (
               <Table columns={columns as any} tracks={tracks} />
             )}
-          </div>
+          </div>}
         </ContentWrapper>
       </MainView>
     </Container>

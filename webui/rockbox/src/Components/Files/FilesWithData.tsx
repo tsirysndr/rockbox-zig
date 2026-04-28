@@ -11,7 +11,7 @@ const FilesWithData: FC = () => {
   const [refetching, setRefetching] = useState(false);
   const [params] = useSearchParams();
   const path = params.get("q");
-  const { data, refetch } = useGetEntriesQuery(path !== null ? { path } : undefined);
+  const { data, isLoading, refetch } = useGetEntriesQuery(path !== null ? { path } : undefined);
   const canGoBack = !!path;
   const { mutate: playDirectory } = usePlayDirectoryMutation();
 
@@ -45,7 +45,7 @@ const FilesWithData: FC = () => {
       files={files}
       canGoBack={canGoBack}
       onGoBack={onGoBack}
-      refetching={refetching}
+      refetching={isLoading || refetching}
       onPlayDirectory={onPlayDirectory}
       onPlayTrack={onPlayTrack}
     />

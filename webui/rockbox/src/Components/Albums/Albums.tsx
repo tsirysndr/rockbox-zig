@@ -7,6 +7,7 @@ import ControlBar from "../ControlBar";
 import { Container, FilterContainer, Scrollable, Title } from "./styles";
 import Filter from "../Filter";
 import Album from "../Album";
+import AlbumCardSkeleton from "../Skeletons/AlbumCardSkeleton";
 
 export type AlbumsProps = {
   albums: any[];
@@ -26,6 +27,21 @@ const Albums: FC<AlbumsProps> = (props) => {
         <ControlBar />
         <Scrollable>
           <Title>Albums</Title>
+          {props.loading && (
+            <div style={{ marginBottom: 100 }}>
+              <Grid
+                gridColumns={[2, 4, 5]}
+                gridMargins={[20, 20, 20]}
+                gridGutters={[25, 25, 25]}
+              >
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <Cell key={i}>
+                    <AlbumCardSkeleton />
+                  </Cell>
+                ))}
+              </Grid>
+            </div>
+          )}
           {(props.albums.length > 0 || props.keyword) && !props.loading && (
             <>
               <FilterContainer>

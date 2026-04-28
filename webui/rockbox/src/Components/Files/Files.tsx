@@ -18,10 +18,10 @@ import { File } from "../../Types/file";
 import Table from "../Table";
 import "./styles.css";
 import ArrowBack from "../Icons/ArrowBack";
-import { Spinner } from "baseui/spinner";
 import MainView from "../MainView";
 import ContextMenu from "./ContextMenu";
 import Play from "../Icons/Play";
+import FileListSkeleton from "../Skeletons/FileListSkeleton";
 
 const columnHelper = createColumnHelper<File>();
 
@@ -139,18 +139,7 @@ const Files: FC<FilesProps> = (props) => {
           {!props.refetching && (
             <Table columns={columns as any} tracks={props.files as any} />
           )}
-          {props.refetching && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "calc(100vh - 200px)",
-              }}
-            >
-              <Spinner $size={"30px"} $borderWidth={"4px"} />
-            </div>
-          )}
+          {props.refetching && <FileListSkeleton />}
         </ContentWrapper>
       </MainView>
     </Container>

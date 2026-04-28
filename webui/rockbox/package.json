@@ -66,6 +66,7 @@
     "jsdom": "^25.0.1",
     "lodash": "^4.17.21",
     "react": "^18.3.1",
+    "react-content-loader": "^7.1.2",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
     "react-infinite-scroll-component": "^6.1.0",

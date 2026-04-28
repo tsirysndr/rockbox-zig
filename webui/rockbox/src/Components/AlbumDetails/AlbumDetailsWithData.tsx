@@ -14,7 +14,7 @@ const AlbumDetailsWithData: FC = () => {
   const { formatTime } = useTimeFormat();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { data, refetch } = useGetAlbumQuery({ id: id! });
+  const { data, isLoading, refetch } = useGetAlbumQuery({ id: id! });
   const { mutate: playAlbum } = usePlayAlbumMutation();
 
   const album = useMemo(
@@ -107,6 +107,7 @@ const AlbumDetailsWithData: FC = () => {
       album={album as any}
       volumes={volumes}
       enableBlur={enableBlur}
+      loading={isLoading}
       onPlayTrack={onPlayTrack}
     />
   );

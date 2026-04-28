@@ -16,6 +16,7 @@ import {
 import Artist from "../Icons/Artist";
 import { Link } from "react-router-dom";
 import Filter from "../Filter";
+import ArtistCardSkeleton from "../Skeletons/ArtistCardSkeleton";
 
 export type ArtistsProps = {
   artists: any[];
@@ -34,6 +35,21 @@ const Artists: FC<ArtistsProps> = (props) => {
         <ControlBar />
         <Scrollable>
           <Title>Artists</Title>
+          {props.loading && (
+            <div style={{ marginBottom: 100 }}>
+              <Grid
+                gridColumns={[2, 3, 4]}
+                gridMargins={[18, 18, 18]}
+                gridGutters={[10, 10, 10]}
+              >
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Cell key={i} align="center">
+                    <ArtistCardSkeleton />
+                  </Cell>
+                ))}
+              </Grid>
+            </div>
+          )}
           {(props.artists.length > 0 || props.keyword) && !props.loading && (
             <>
               <FilterContainer>
