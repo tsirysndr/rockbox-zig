@@ -137,9 +137,6 @@ const DeviceList: FC<DeviceListProps> = ({
     castDevices.find((d) => d.isCurrentDevice) ??
     null;
 
-  // Show all other devices in the list.
-  const otherDevices = castDevices.filter((d) => !d.isCurrentDevice);
-
   return (
     <Container>
       {/* Current device header */}
@@ -167,21 +164,24 @@ const DeviceList: FC<DeviceListProps> = ({
         )}
       </CurrentDeviceWrapper>
 
-      {!loading && otherDevices.length > 0 && (
-        <Title>Switch output device</Title>
+      {!loading && castDevices.length > 0 && (
+        <Title>Output device</Title>
       )}
 
       <List>
-        {otherDevices.length === 0 && !loading && (
+        {castDevices.length === 0 && !loading && (
           <Placeholder>
-            No other devices found. Make sure your devices are on the same
-            network.
+            No devices found. Make sure your devices are on the same network.
           </Placeholder>
         )}
-        {otherDevices.map((device) => (
+        {castDevices.map((device) => (
           <div
             key={device.id}
-            onClick={() => _onConnectToCastDevice(device.id)}
+            onClick={() => {
+              if (!device.isCurrentDevice) {
+                _onConnectToCastDevice(device.id);
+              }
+            }}
           >
             <ListItem
               artwork={() => (
@@ -193,10 +193,12 @@ const DeviceList: FC<DeviceListProps> = ({
               overrides={{
                 Root: {
                   style: {
-                    cursor: "pointer",
+                    cursor: device.isCurrentDevice ? "default" : "pointer",
                     backgroundColor: "transparent",
                     ":hover": {
-                      backgroundColor: theme.colors.hover,
+                      backgroundColor: device.isCurrentDevice
+                        ? "transparent"
+                        : theme.colors.hover,
                     },
                     borderRadius: "5px",
                   },
