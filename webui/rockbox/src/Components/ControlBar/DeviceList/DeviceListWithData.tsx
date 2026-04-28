@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo } from "react";
+import { FC, useMemo } from "react";
 import DeviceList from "./DeviceList";
 import {
   useConnectToDeviceMutation,
@@ -16,7 +16,7 @@ export type DeviceListWithDataProps = {
 
 const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
   const [, setControlBarState] = useRecoilState(controlBarState);
-  const [device, setDeviceState] = useRecoilState(deviceState);
+  const [device] = useRecoilState(deviceState);
   const { data: currentDevice, refetch: refetchCurrentDevice } = useGetDeviceQuery({ id: "current" });
   const { data, isLoading, refetch: refetchDevices } = useGetDevicesQuery();
   const { mutateAsync: connectAsync } = useConnectToDeviceMutation();
@@ -33,27 +33,6 @@ const DeviceListWithData: FC<DeviceListWithDataProps> = ({ close }) => {
       isCurrentDevice: x.isCurrentDevice ?? false,
     }));
   }, [data, isLoading]);
-
-  useEffect(() => {
-    if (currentDevice) {
-      if (!currentDevice.device) {
-        setDeviceState({
-          currentDevice: null,
-        });
-        return;
-      }
-      setDeviceState({
-        currentDevice: {
-          id: currentDevice.device.id || "",
-          name: currentDevice.device.name || "",
-          type: currentDevice.device.app || "",
-          isConnected: currentDevice.device.isConnected || false,
-          isCurrentDevice: currentDevice.device.isCurrentDevice ?? true,
-        },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDevice]);
 
   const connectToCastDevice = async (id: string) => {
     await connectAsync({ id });

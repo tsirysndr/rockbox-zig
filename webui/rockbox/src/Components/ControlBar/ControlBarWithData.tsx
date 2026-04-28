@@ -4,6 +4,8 @@ import { useRecoilState } from "recoil";
 import {
   useCurrentlyPlayingSongSubscription,
   useGetCurrentTrackQuery,
+  useGetDeviceQuery,
+  useGetDevicesQuery,
   useGetGlobalSettingsQuery,
   useGetLikedAlbumsQuery,
   useGetLikedTracksQuery,
@@ -26,10 +28,36 @@ import { likesState } from "../Likes/LikesState";
 import { settingsState } from "../Settings/SettingsState";
 import ControlBar from "./ControlBar";
 import { controlBarState } from "./ControlBarState";
+import { deviceState } from "./DeviceList/DeviceState";
 
 const ControlBarWithData: FC = () => {
   const [{ nowPlaying, locked, resumeIndex }, setControlBarState] =
     useRecoilState(controlBarState);
+  const [, setDeviceState] = useRecoilState(deviceState);
+
+  // Preload device list and current device on mount so the popup shows
+  // instantly without a loading delay.
+  useGetDevicesQuery();
+  const { data: currentDevice } = useGetDeviceQuery({ id: "current" });
+
+  useEffect(() => {
+    if (!currentDevice) return;
+    if (!currentDevice.device) {
+      setDeviceState({ currentDevice: null });
+      return;
+    }
+    setDeviceState({
+      currentDevice: {
+        id: currentDevice.device.id || "",
+        name: currentDevice.device.name || "",
+        type: currentDevice.device.app || "",
+        isConnected: currentDevice.device.isConnected || false,
+        isCurrentDevice: currentDevice.device.isCurrentDevice ?? true,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDevice]);
+
   const { data, isLoading } = useGetCurrentTrackQuery();
   const { data: playback } = useGetPlaybackStatusQuery();
   const { mutate: pause } = usePauseMutation();
