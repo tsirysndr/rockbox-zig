@@ -26,9 +26,10 @@ pub async fn save(pool: Pool<Sqlite>, track: Track) -> Result<String, Error> {
           updated_at,
           artist_id,
           album_id,
-          album_art
+          album_art,
+          is_remote
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
         "#,
     )
     .bind(&track.id)
@@ -53,6 +54,7 @@ pub async fn save(pool: Pool<Sqlite>, track: Track) -> Result<String, Error> {
     .bind(&track.artist_id)
     .bind(&track.album_id)
     .bind(&track.album_art)
+    .bind(track.is_remote)
     .execute(&pool)
     .await {
         Ok(_) => Ok(track.id.clone()),
@@ -76,7 +78,7 @@ pub async fn filter(
     pool: Pool<Sqlite>,
     r#where: (String, Vec<String>),
 ) -> Result<Vec<Track>, Error> {
-    let sql = format!("SELECT * FROM track WHERE {}", r#where.0);
+    let sql = format!("SELECT * FROM track WHERE is_remote = 0 AND {}", r#where.0);
     let mut query = sqlx::query_as(&sql);
 
     for value in r#where.1 {
@@ -104,9 +106,10 @@ pub async fn find_by_path(pool: Pool<Sqlite>, path: &str) -> Result<Option<Track
 }
 
 pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Track>, Error> {
-    let result: Vec<Track> = sqlx::query_as("SELECT * FROM track ORDER BY title ASC")
-        .fetch_all(&pool)
-        .await?;
+    let result: Vec<Track> =
+        sqlx::query_as("SELECT * FROM track WHERE is_remote = 0 ORDER BY title ASC")
+            .fetch_all(&pool)
+            .await?;
     Ok(result)
 }
 
@@ -120,17 +123,18 @@ pub async fn update_album_art(pool: Pool<Sqlite>, id: &str, album_art: &str) -> 
 }
 
 pub async fn find_by_artist(pool: Pool<Sqlite>, artist: &str) -> Result<Vec<Track>, Error> {
-    let result: Vec<Track> =
-        sqlx::query_as("SELECT * FROM track WHERE artist = $1 ORDER BY title ASC")
-            .bind(artist)
-            .fetch_all(&pool)
-            .await?;
+    let result: Vec<Track> = sqlx::query_as(
+        "SELECT * FROM track WHERE is_remote = 0 AND artist = $1 ORDER BY title ASC",
+    )
+    .bind(artist)
+    .fetch_all(&pool)
+    .await?;
     Ok(result)
 }
 
 pub async fn find_by_album(pool: Pool<Sqlite>, album: &str) -> Result<Vec<Track>, Error> {
     let result: Vec<Track> =
-        sqlx::query_as("SELECT * FROM track WHERE album = $1 ORDER BY title ASC")
+        sqlx::query_as("SELECT * FROM track WHERE is_remote = 0 AND album = $1 ORDER BY title ASC")
             .bind(album)
             .fetch_all(&pool)
             .await?;
@@ -139,7 +143,7 @@ pub async fn find_by_album(pool: Pool<Sqlite>, album: &str) -> Result<Vec<Track>
 
 pub async fn find_by_title(pool: Pool<Sqlite>, title: &str) -> Result<Vec<Track>, Error> {
     let result: Vec<Track> =
-        sqlx::query_as("SELECT * FROM track WHERE title = $1 ORDER BY title ASC")
+        sqlx::query_as("SELECT * FROM track WHERE is_remote = 0 AND title = $1 ORDER BY title ASC")
             .bind(title)
             .fetch_all(&pool)
             .await?;
@@ -184,7 +188,7 @@ pub async fn find_by_artist_album_date(
     date: &str,
 ) -> Result<Vec<Track>, Error> {
     let result: Vec<Track> = sqlx::query_as(
-        "SELECT * FROM track WHERE artist = $1 AND album = $2 AND year_string = $3 ORDER BY title ASC",
+        "SELECT * FROM track WHERE is_remote = 0 AND artist = $1 AND album = $2 AND year_string = $3 ORDER BY title ASC",
     )
     .bind(artist)
     .bind(album)

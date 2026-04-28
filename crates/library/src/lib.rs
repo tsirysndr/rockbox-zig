@@ -85,6 +85,16 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         Err(_) => println!("playlist tables already exist"),
     }
 
+    match pool
+        .execute(include_str!(
+            "../migrations/20260428000000_add_is_remote_to_track.sql"
+        ))
+        .await
+    {
+        Ok(_) => {}
+        Err(_) => println!("is_remote column already exists"),
+    }
+
     sqlx::query("PRAGMA journal_mode=WAL")
         .execute(&pool)
         .await?;

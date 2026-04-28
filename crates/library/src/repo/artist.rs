@@ -88,7 +88,9 @@ pub async fn filter(
 pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Artist>, Error> {
     match sqlx::query_as::<_, Artist>(
         r#"
-        SELECT * FROM artist ORDER BY name ASC
+        SELECT * FROM artist WHERE EXISTS (
+          SELECT 1 FROM track WHERE track.artist_id = artist.id AND track.is_remote = 0
+        ) ORDER BY name ASC
         "#,
     )
     .fetch_all(&pool)

@@ -225,6 +225,7 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
             artist_id: artist_id.clone(),
             album_id: album_id.clone(),
             album_art,
+            is_remote: is_remote_path(path),
             ..Default::default()
         },
     )
@@ -323,6 +324,7 @@ pub async fn save_stream_metadata(
             album_id: album_id.clone(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
+            is_remote: is_remote_path(url),
             ..Default::default()
         },
     )

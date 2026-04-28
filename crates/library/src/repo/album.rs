@@ -81,7 +81,9 @@ pub async fn find_by_artist(
 ) -> Result<Vec<Album>, sqlx::Error> {
     match sqlx::query_as::<_, Album>(
         r#"
-        SELECT * FROM album WHERE artist_id = $1 ORDER BY title ASC
+        SELECT * FROM album WHERE artist_id = $1 AND EXISTS (
+          SELECT 1 FROM track WHERE track.album_id = album.id AND track.is_remote = 0
+        ) ORDER BY title ASC
         "#,
     )
     .bind(artist_id)
@@ -117,7 +119,9 @@ pub async fn find(pool: Pool<Sqlite>, id: &str) -> Result<Option<Album>, sqlx::E
 pub async fn all(pool: Pool<Sqlite>) -> Result<Vec<Album>, sqlx::Error> {
     match sqlx::query_as::<_, Album>(
         r#"
-        SELECT * FROM album ORDER BY title ASC
+        SELECT * FROM album WHERE EXISTS (
+          SELECT 1 FROM track WHERE track.album_id = album.id AND track.is_remote = 0
+        ) ORDER BY title ASC
         "#,
     )
     .fetch_all(&pool)

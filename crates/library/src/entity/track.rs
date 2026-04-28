@@ -29,6 +29,7 @@ pub struct Track {
     pub artist_id: String,
     pub album_id: String,
     pub genre_id: String,
+    pub is_remote: bool,
     #[serde(with = "chrono::serde::ts_seconds")]
     pub created_at: DateTime<Utc>,
     #[serde(with = "chrono::serde::ts_seconds")]
