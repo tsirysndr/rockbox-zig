@@ -1006,7 +1006,10 @@ async fn build_file_metadata(tracks: Vec<Track>, response: &mut String) -> Resul
         let file = track.path.replace(&music_dir, "");
         let file = file.chars().skip(1).collect::<String>();
 
-        let last_modified = fs::metadata(track.path)?.modified().unwrap();
+        let last_modified = match fs::metadata(&track.path) {
+            Ok(m) => m.modified().unwrap_or(std::time::SystemTime::UNIX_EPOCH),
+            Err(_) => std::time::SystemTime::UNIX_EPOCH,
+        };
         let last_modified = chrono::DateTime::from_timestamp(
             last_modified
                 .duration_since(std::time::UNIX_EPOCH)
