@@ -49,6 +49,7 @@
 #include "pcm.h"
 #include "pcm-internal.h"
 #include "pcm_mixer.h"
+#include "pcm_normalizer.h"
 #include "pcm_sampr.h"
 #include "pcm_sink.h"
 
@@ -144,6 +145,8 @@ static void *tcp_thread(void *arg)
         const void *data = (tcp_vol_buf && size > 0)
             ? (pcm_copy_buffer(tcp_vol_buf, raw, size), tcp_vol_buf)
             : raw;
+        if (data == tcp_vol_buf)
+            pcm_normalizer_apply(tcp_vol_buf, size);
 
         /* Write current chunk in pieces so stop() can interrupt promptly */
         while (size > 0 && !tcp_stop) {

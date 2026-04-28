@@ -542,6 +542,7 @@ target/hosted/pcm-squeezelite.c
 target/hosted/pcm-upnp.c
 target/hosted/pcm-chromecast.c
 target/hosted/pcm-tcp.c
+pcm_normalizer.c
 #endif
 #ifdef HAVE_SW_VOLUME_CONTROL
 pcm_sw_volume.c

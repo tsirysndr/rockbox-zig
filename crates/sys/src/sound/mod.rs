@@ -4,6 +4,7 @@ use crate::SystemSound;
 
 pub mod dsp;
 pub mod mixer;
+pub mod normalizer;
 pub mod pcm;
 
 pub fn adjust_volume(steps: i32) {

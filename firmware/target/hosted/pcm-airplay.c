@@ -31,6 +31,7 @@
 #include "pcm.h"
 #include "pcm-internal.h"
 #include "pcm_mixer.h"
+#include "pcm_normalizer.h"
 #include "pcm_sampr.h"
 #include "pcm_sink.h"
 
@@ -80,6 +81,8 @@ static void *airplay_thread(void *arg)
         const void *data = (airplay_vol_buf && size > 0)
             ? (pcm_copy_buffer(airplay_vol_buf, raw, size), airplay_vol_buf)
             : raw;
+        if (data == airplay_vol_buf)
+            pcm_normalizer_apply(airplay_vol_buf, size);
 
         if (data && size > 0) {
             if (pcm_airplay_write((const uint8_t *)data, size) < 0) {

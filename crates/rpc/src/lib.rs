@@ -950,6 +950,7 @@ pub mod api {
                     chromecast_port: None,
                     snapcast_tcp_host: None,
                     snapcast_tcp_port: None,
+                    normalize_volume: None,
                 }
             }
         }

@@ -372,26 +372,26 @@ exports[`Tracks > should render 1`] = `
                     />
                     <span
                       class="MuiSlider-track css-xvk2i-MuiSlider-track"
-                      style="left: 0%; width: 80%;"
+                      style="left: 0%; width: 0%;"
                     />
                     <span
                       class="MuiSlider-thumb MuiSlider-thumbSizeMedium MuiSlider-thumbColorPrimary MuiSlider-thumb MuiSlider-thumbSizeMedium MuiSlider-thumbColorPrimary css-b1410s-MuiSlider-thumb"
                       data-index="0"
-                      style="left: 80%;"
+                      style="left: 0%;"
                     >
                       <input
                         aria-label="Volume"
                         aria-orientation="horizontal"
                         aria-valuemax="100"
                         aria-valuemin="0"
-                        aria-valuenow="80"
+                        aria-valuenow="0"
                         data-index="0"
                         max="100"
                         min="0"
                         step="1"
                         style="border: 0px; height: 100%; margin: -1px; overflow: hidden; padding: 0px; position: absolute; white-space: nowrap; width: 100%; direction: ltr;"
                         type="range"
-                        value="80"
+                        value="0"
                       />
                     </span>
                   </span>

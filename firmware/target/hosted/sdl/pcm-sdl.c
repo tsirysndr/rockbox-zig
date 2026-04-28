@@ -42,6 +42,7 @@
 
 #include "pcm.h"
 #include "pcm-internal.h"
+#include "pcm_normalizer.h"
 #include "pcm_sampr.h"
 #include "pcm_mixer.h"
 #include "pcm_sink.h"
@@ -242,6 +243,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
             cvt.buf = (Uint8 *) malloc(cvt.len * cvt.len_mult);
 
             pcm_copy_buffer(cvt.buf, pcm_data, cvt.len);
+            pcm_normalizer_apply(cvt.buf, cvt.len);
 
             SDL_ConvertAudio(&cvt);
             memcpy(udata->stream, cvt.buf, cvt.len_cvt);
@@ -288,6 +290,7 @@ static void write_to_soundcard(struct pcm_udata *udata)
         udata->num_in = udata->num_out = MIN(udata->num_in, udata->num_out);
         pcm_copy_buffer(udata->stream, pcm_data,
                         udata->num_out * pcm_sample_bytes);
+        pcm_normalizer_apply(udata->stream, udata->num_out * pcm_sample_bytes);
 #ifdef DEBUG
         if (udata->debug != NULL) {
            fwrite(pcm_data, sizeof(Uint8), udata->num_out * pcm_sample_bytes,

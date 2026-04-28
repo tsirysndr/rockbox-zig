@@ -1,5 +1,9 @@
 use anyhow::Error;
-use rockbox_sys::{self as rb, sound::pcm, types::user_settings::NewGlobalSettings};
+use rockbox_sys::{
+    self as rb,
+    sound::{normalizer, pcm},
+    types::user_settings::NewGlobalSettings,
+};
 
 pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Error> {
     let settings: NewGlobalSettings = match new_settings.clone() {
@@ -147,6 +151,8 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
         rockbox_upnp::start_renderer(port, name);
     }
 
+    normalizer::enable(settings.normalize_volume.unwrap_or(false));
+
     rb::settings::apply_audio_settings();
 
     let enabled = unsafe { rb::global_settings.eq_enabled };
@@ -199,6 +205,7 @@ pub fn write_settings() -> Result<(), Error> {
     settings.eq_band_settings = from_c.eq_band_settings;
     settings.replaygain_settings = from_c.replaygain_settings;
     settings.compressor_settings = from_c.compressor_settings;
+    settings.normalize_volume = Some(normalizer::is_enabled());
 
     let content = toml::to_string(&settings)?;
     let path = format!("{}/.config/rockbox.org/settings.toml", home);

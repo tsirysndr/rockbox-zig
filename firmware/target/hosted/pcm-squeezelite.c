@@ -34,6 +34,7 @@
 #include "pcm.h"
 #include "pcm-internal.h"
 #include "pcm_mixer.h"
+#include "pcm_normalizer.h"
 #include "pcm_sampr.h"
 #include "pcm_sink.h"
 
@@ -89,6 +90,8 @@ static void *squeezelite_thread(void *arg)
         const void *data = (squeezelite_vol_buf && size > 0)
             ? (pcm_copy_buffer(squeezelite_vol_buf, raw, size), squeezelite_vol_buf)
             : raw;
+        if (data == squeezelite_vol_buf)
+            pcm_normalizer_apply(squeezelite_vol_buf, size);
 
         if (data && size > 0) {
             if (pcm_squeezelite_write((const uint8_t *)data, size) < 0) {
