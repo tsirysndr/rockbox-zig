@@ -74,6 +74,8 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
             let slim_port = settings.squeezelite_port.unwrap_or(3483);
             let http_port = settings.squeezelite_http_port.unwrap_or(9999);
             settings.audio_output = Some("squeezelite".to_string());
+            settings.squeezelite_port = Some(slim_port);
+            settings.squeezelite_http_port = Some(http_port);
             pcm::squeezelite_set_slim_port(slim_port);
             pcm::squeezelite_set_http_port(http_port);
             pcm::switch_sink(pcm::PCM_SINK_SQUEEZELITE);

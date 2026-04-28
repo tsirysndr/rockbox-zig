@@ -10,9 +10,9 @@ use std::{
     time::Duration,
 };
 
-/// Returns the always-present virtual output devices (built-in SDL and
-/// Snapcast/FIFO).  Squeezelite clients are discovered dynamically via Slim
-/// Protocol HELO tracking, not listed here.
+/// Returns the always-present virtual output devices (built-in SDL,
+/// Snapcast/FIFO, and Squeezelite).  Squeezelite clients discovered via Slim
+/// Protocol HELO are listed separately alongside this entry.
 pub fn virtual_devices() -> Vec<Device> {
     vec![
         Device {
@@ -35,6 +35,18 @@ pub fn virtual_devices() -> Vec<Device> {
             port: 0,
             service: "fifo".to_string(),
             app: "fifo".to_string(),
+            is_cast_device: false,
+            is_source_device: false,
+            ..Default::default()
+        },
+        Device {
+            id: "squeezelite".to_string(),
+            name: "Squeezelite".to_string(),
+            host: "localhost".to_string(),
+            ip: "127.0.0.1".to_string(),
+            port: 3483,
+            service: "squeezelite".to_string(),
+            app: "squeezelite".to_string(),
             is_cast_device: false,
             is_source_device: false,
             ..Default::default()
@@ -181,9 +193,11 @@ pub fn scan_squeezelite_clients(devices: Arc<Mutex<Vec<Device>>>) {
             }
         }
 
-        // Remove clients that have disconnected.
+        // Remove clients that have disconnected, but keep the always-present
+        // virtual "squeezelite" entry so users can select the output before
+        // any client has connected.
         devs.retain(|d| {
-            if d.service != "squeezelite" {
+            if d.service != "squeezelite" || d.id == "squeezelite" {
                 return true;
             }
             connected.iter().any(|c| c.id == d.id)
