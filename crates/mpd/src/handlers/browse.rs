@@ -10,7 +10,7 @@ use tokio::sync::mpsc::Sender;
 pub async fn handle_lsinfo(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     repo::track::all(ctx.pool.clone()).await?;
 
@@ -30,7 +30,7 @@ pub async fn handle_lsinfo(
     // verify if path is a file or directory or doesn't exist
     if fs::metadata(path).is_err() {
         if !ctx.batch {
-            tx.send("ACK [50@0] {lsinfo} No such file or directory\n".to_string())
+            tx.send(b"ACK [50@0] {lsinfo} No such file or directory\n".to_vec())
                 .await?;
         }
         return Ok("ACK [50@0] {lsinfo} No such file or directory\n".to_string());
@@ -49,7 +49,7 @@ pub async fn handle_lsinfo(
     }
 
     if !ctx.batch {
-        tx.send(response.clone()).await?;
+        tx.send(response.clone().into_bytes()).await?;
     }
 
     Ok(response)
@@ -58,7 +58,7 @@ pub async fn handle_lsinfo(
 pub async fn handle_listall(
     ctx: &mut Context,
     _request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let mut response: String = "".to_string();
     let music_dir = get_music_dir()?;
@@ -70,7 +70,7 @@ pub async fn handle_listall(
     }
 
     if !ctx.batch {
-        tx.send(response.clone()).await?;
+        tx.send(response.clone().into_bytes()).await?;
     }
 
     Ok(response)
@@ -79,7 +79,7 @@ pub async fn handle_listall(
 pub async fn handle_listallinfo(
     ctx: &mut Context,
     _request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     repo::track::all(ctx.pool.clone()).await?;
     let music_dir = get_music_dir()?;
@@ -88,7 +88,7 @@ pub async fn handle_listallinfo(
     // verify if path is a file or directory or doesn't exist
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
-            tx.send("ACK [50@0] {lsinfo} No such file or directory\n".to_string())
+            tx.send(b"ACK [50@0] {lsinfo} No such file or directory\n".to_vec())
                 .await?;
         }
         return Ok("ACK [50@0] {lsinfo} No such file or directory\n".to_string());
@@ -101,7 +101,7 @@ pub async fn handle_listallinfo(
     response.push_str("OK\n");
 
     if !ctx.batch {
-        tx.send(response.clone()).await?;
+        tx.send(response.clone().into_bytes()).await?;
     }
 
     Ok(response)
@@ -110,7 +110,7 @@ pub async fn handle_listallinfo(
 pub async fn handle_listfiles(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let request = request.trim();
     let re = Regex::new(r#"^([\w-]+)(?:\s+"([^"]*)")?$"#).unwrap();
@@ -128,7 +128,7 @@ pub async fn handle_listfiles(
     // verify if path is a file or directory or doesn't exist
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
-            tx.send("ACK [50@0] {lsinfo} No such file or directory\n".to_string())
+            tx.send(b"ACK [50@0] {lsinfo} No such file or directory\n".to_vec())
                 .await?;
         }
         return Ok("ACK [50@0] {lsinfo} No such file or directory\n".to_string());
@@ -147,7 +147,7 @@ pub async fn handle_listfiles(
     }
 
     if !ctx.batch {
-        tx.send(response.clone()).await?;
+        tx.send(response.clone().into_bytes()).await?;
     }
 
     Ok(response)

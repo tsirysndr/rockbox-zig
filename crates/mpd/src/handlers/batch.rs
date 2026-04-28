@@ -4,13 +4,14 @@ use tokio::sync::mpsc::Sender;
 use crate::{parse_command, setup_context, Context};
 
 use super::{
+    albumart::{handle_albumart, handle_readpicture},
     browse::{handle_listall, handle_listallinfo, handle_listfiles, handle_lsinfo},
     library::{
         handle_config, handle_count, handle_find_album, handle_find_artist, handle_find_title,
         handle_findadd, handle_list_album, handle_list_artist, handle_list_date, handle_list_genre,
-        handle_list_title, handle_listplaylists, handle_load, handle_rename, handle_rescan,
-        handle_rm, handle_save, handle_search, handle_searchadd, handle_stats, handle_tagtypes,
-        handle_tagtypes_clear, handle_tagtypes_enable,
+        handle_list_title, handle_listplaylistinfo, handle_listplaylists, handle_load,
+        handle_rename, handle_rescan, handle_rm, handle_save, handle_search, handle_searchadd,
+        handle_stats, handle_tagtypes, handle_tagtypes_clear, handle_tagtypes_enable,
     },
     playback::{
         handle_consume, handle_currentsong, handle_disableoutput, handle_enableoutput,
@@ -29,7 +30,7 @@ use super::{
 pub async fn handle_command_list_begin(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let mut ctx = setup_context(true, Some(ctx.clone())).await?;
 
@@ -38,21 +39,23 @@ pub async fn handle_command_list_begin(
         .filter(|x| !vec!["command_list_begin", "command_list_end", ""].contains(x))
         .collect();
 
-    let mut response = String::new();
     for request in commands {
         let command = parse_command(&request)?;
-        response.push_str(&match_command(&command, &mut ctx, request, tx.clone()).await?);
+        let response = match_command(&command, &mut ctx, request, tx.clone()).await?;
+        // Binary commands already sent via tx; send non-empty text responses now.
+        if !response.is_empty() {
+            tx.send(response.into_bytes()).await?;
+        }
     }
 
-    tx.send(response.clone()).await?;
-
-    Ok(response)
+    tx.send(b"OK\n".to_vec()).await?;
+    Ok("OK\n".to_string())
 }
 
 pub async fn handle_command_list_ok_begin(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let mut ctx = setup_context(true, Some(ctx.clone())).await?;
 
@@ -61,24 +64,26 @@ pub async fn handle_command_list_ok_begin(
         .filter(|x| !vec!["command_list_ok_begin", "command_list_end", ""].contains(x))
         .collect();
 
-    let mut response = String::new();
-
     for request in commands {
         let command = parse_command(&request)?;
-        response.push_str(&match_command(&command, &mut ctx, request, tx.clone()).await?);
+        let response = match_command(&command, &mut ctx, request, tx.clone()).await?;
+        // Binary commands (albumart/readpicture) already sent via tx with list_OK;
+        // text commands return their response string here.
+        if !response.is_empty() {
+            let response = response.replace("OK\n", "list_OK\n");
+            tx.send(response.into_bytes()).await?;
+        }
     }
 
-    let mut response = response.replace("OK\n", "list_OK\n");
-    response.push_str("OK\n");
-    tx.send(response.clone()).await?;
-    Ok(response)
+    tx.send(b"OK\n".to_vec()).await?;
+    Ok("OK\n".to_string())
 }
 
 pub async fn match_command(
     command: &str,
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     match command {
         "play" => handle_play(ctx, request, tx.clone()).await,
@@ -138,7 +143,10 @@ pub async fn match_command(
         "listall" => handle_listall(ctx, request, tx.clone()).await,
         "listallinfo" => handle_listallinfo(ctx, request, tx.clone()).await,
         "listfiles" => handle_listfiles(ctx, request, tx.clone()).await,
+        "albumart" => handle_albumart(ctx, request, tx.clone()).await,
+        "readpicture" => handle_readpicture(ctx, request, tx.clone()).await,
         "listplaylists" => handle_listplaylists(ctx, request, tx.clone()).await,
+        "listplaylistinfo" => handle_listplaylistinfo(ctx, request, tx.clone()).await,
         "load" => handle_load(ctx, request, tx.clone()).await,
         "save" => handle_save(ctx, request, tx.clone()).await,
         "rm" => handle_rm(ctx, request, tx.clone()).await,
@@ -151,7 +159,7 @@ pub async fn match_command(
         "urlhandlers" => handle_urlhandlers(ctx, request, tx.clone()).await,
         _ => {
             if !ctx.batch {
-                tx.send("ACK [5@0] {unhandled} unknown command\n".to_string())
+                tx.send(b"ACK [5@0] {unhandled} unknown command\n".to_vec())
                     .await?;
             }
             Ok("ACK [5@0] {unhandled} unknown command\n".to_string())

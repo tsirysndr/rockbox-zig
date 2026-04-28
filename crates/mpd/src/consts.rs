@@ -316,6 +316,7 @@ OK
 
 pub const COMMANDS: &str = r#"command: add
 command: addid
+command: albumart
 command: clear
 command: commands
 command: consume
@@ -349,8 +350,10 @@ command: playid
 command: playlistid
 command: playlistinfo
 command: playlistsearch
+command: listplaylistinfo
 command: plchanges
 command: previous
+command: readpicture
 command: random
 command: rename
 command: repeat

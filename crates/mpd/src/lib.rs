@@ -1,13 +1,15 @@
 use anyhow::Error;
 use handlers::{
+    albumart::{handle_albumart, handle_readpicture},
     batch::{handle_command_list_begin, handle_command_list_ok_begin},
     browse::{handle_listall, handle_listallinfo, handle_listfiles, handle_lsinfo},
     library::{
         handle_config, handle_count, handle_find, handle_find_album, handle_find_artist,
         handle_find_title, handle_findadd, handle_list_album, handle_list_artist, handle_list_date,
-        handle_list_genre, handle_list_title, handle_listplaylists, handle_load, handle_rename,
-        handle_rescan, handle_rm, handle_save, handle_search, handle_searchadd, handle_stats,
-        handle_tagtypes, handle_tagtypes_clear, handle_tagtypes_enable,
+        handle_list_genre, handle_list_title, handle_listplaylistinfo, handle_listplaylists,
+        handle_load, handle_rename, handle_rescan, handle_rm, handle_save, handle_search,
+        handle_searchadd, handle_stats, handle_tagtypes, handle_tagtypes_clear,
+        handle_tagtypes_enable,
     },
     playback::{
         handle_consume, handle_currentsong, handle_disableoutput, handle_enableoutput,
@@ -37,9 +39,10 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
     playlist_service_client::PlaylistServiceClient,
     saved_playlist_service_client::SavedPlaylistServiceClient,
-    settings_service_client::SettingsServiceClient, sound_service_client::SoundServiceClient,
-    system_service_client::SystemServiceClient, GetCurrentRequest, GetGlobalStatusRequest,
-    PlaylistResumeRequest,
+    settings_service_client::SettingsServiceClient,
+    smart_playlist_service_client::SmartPlaylistServiceClient,
+    sound_service_client::SoundServiceClient, system_service_client::SystemServiceClient,
+    GetCurrentRequest, GetGlobalStatusRequest, PlaylistResumeRequest,
 };
 use rockbox_sys::types::user_settings::UserSettings;
 use sqlx::{Pool, Sqlite};
@@ -67,6 +70,7 @@ pub struct Context {
     pub playlist: PlaylistServiceClient<Channel>,
     pub system: SystemServiceClient<Channel>,
     pub saved_playlist: SavedPlaylistServiceClient<Channel>,
+    pub smart_playlist: SmartPlaylistServiceClient<Channel>,
     pub single: Arc<Mutex<String>>,
     pub consume: Arc<Mutex<bool>>,
     pub batch: bool,
@@ -117,17 +121,17 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
     let mut reader = tokio::io::BufReader::new(reader_stream);
     let mut writer = tokio::io::BufWriter::new(writer_stream);
 
-    let (tx, mut rx) = tokio::sync::mpsc::channel::<String>(32);
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<Vec<u8>>(32);
 
     tokio::spawn(async move {
         while let Some(msg) = rx.recv().await {
-            writer.write_all(msg.as_bytes()).await?;
+            writer.write_all(&msg).await?;
             writer.flush().await?;
         }
         Ok::<(), Error>(())
     });
 
-    tx.send("OK MPD 0.23.15\n".to_string()).await?;
+    tx.send(b"OK MPD 0.23.15\n".to_vec()).await?;
 
     while let Ok(n) = reader.read(&mut buf).await {
         if n == 0 {
@@ -198,7 +202,10 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "listall" => handle_listall(&mut ctx, &request, tx.clone()).await?,
             "listallinfo" => handle_listallinfo(&mut ctx, &request, tx.clone()).await?,
             "listfiles" => handle_listfiles(&mut ctx, &request, tx.clone()).await?,
+            "albumart" => handle_albumart(&mut ctx, &request, tx.clone()).await?,
+            "readpicture" => handle_readpicture(&mut ctx, &request, tx.clone()).await?,
             "listplaylists" => handle_listplaylists(&mut ctx, &request, tx.clone()).await?,
+            "listplaylistinfo" => handle_listplaylistinfo(&mut ctx, &request, tx.clone()).await?,
             "load" => handle_load(&mut ctx, &request, tx.clone()).await?,
             "save" => handle_save(&mut ctx, &request, tx.clone()).await?,
             "rm" => handle_rm(&mut ctx, &request, tx.clone()).await?,
@@ -224,10 +231,13 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
                     continue;
                 }
                 debug!("unhandled MPD command: {}", command);
-                tx.send(format!(
-                    "ACK [5@0] {{{}}} unknown command \"{}\"\n",
-                    command, command
-                ))
+                tx.send(
+                    format!(
+                        "ACK [5@0] {{{}}} unknown command \"{}\"\n",
+                        command, command
+                    )
+                    .into_bytes(),
+                )
                 .await?;
                 format!("ACK [5@0] {{{}}} unknown command\n", command)
             }
@@ -272,6 +282,7 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
     let playlist = PlaylistServiceClient::connect(url.clone()).await?;
     let system = SystemServiceClient::connect(url.clone()).await?;
     let saved_playlist = SavedPlaylistServiceClient::connect(url.clone()).await?;
+    let smart_playlist = SmartPlaylistServiceClient::connect(url.clone()).await?;
 
     let (event_sender, event_receiver) = broadcast::channel(16);
 
@@ -283,6 +294,7 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
         playlist,
         system,
         saved_playlist,
+        smart_playlist,
         single: Arc::new(Mutex::new("0".to_string())),
         consume: match ctx {
             Some(ref ctx) => ctx.consume.clone(),
@@ -337,6 +349,13 @@ pub fn listen_events(ctx: Context) {
         while let Some(track) = rt.block_on(subscription.next()) {
             let mut current_track = rt.block_on(ctx.current_track.lock());
             *current_track = Some(track);
+            drop(current_track);
+            match ctx.event_sender.send(Subsystem::Player) {
+                Ok(_) => {}
+                Err(e) => {
+                    warn!("player event send error on track change: {}", e);
+                }
+            }
         }
     });
 

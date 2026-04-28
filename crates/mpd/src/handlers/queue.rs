@@ -12,13 +12,13 @@ use tokio::sync::mpsc::Sender;
 pub async fn handle_shuffle(
     ctx: &mut Context,
     _request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     ctx.playlist
         .shuffle_playlist(ShufflePlaylistRequest { start_index: 0 })
         .await?;
     if !ctx.batch {
-        tx.send("OK\n".to_string()).await?;
+        tx.send(b"OK\n".to_vec()).await?;
     }
 
     match ctx.event_sender.send(Subsystem::Playlist) {
@@ -32,7 +32,7 @@ pub async fn handle_shuffle(
 pub async fn handle_add(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let response = ctx
         .settings
@@ -46,7 +46,7 @@ pub async fn handle_add(
     let captures = re.captures(request);
     if captures.is_none() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {add} missing argument\n".to_string())
+            tx.send(b"ACK [2@0] {add} missing argument\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {add} missing argument\n".to_string());
@@ -61,7 +61,7 @@ pub async fn handle_add(
 
     if path.is_empty() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {add} missing argument\n".to_string())
+            tx.send(b"ACK [2@0] {add} missing argument\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {add} missing argument\n".to_string());
@@ -74,7 +74,7 @@ pub async fn handle_add(
 
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
-            tx.send("ACK [50@0] {add} No such file or directory\n".to_string())
+            tx.send(b"ACK [50@0] {add} No such file or directory\n".to_vec())
                 .await?;
         }
         return Ok("ACK [50@0] {add} No such file or directory\n".to_string());
@@ -108,7 +108,7 @@ pub async fn handle_add(
     }
 
     if !ctx.batch {
-        tx.send("OK\n".to_string()).await?;
+        tx.send(b"OK\n".to_vec()).await?;
     }
 
     match ctx.event_sender.send(Subsystem::Playlist) {
@@ -122,7 +122,7 @@ pub async fn handle_add(
 pub async fn handle_addid(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let response = ctx
         .settings
@@ -137,7 +137,7 @@ pub async fn handle_addid(
 
     if captures.is_none() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {addid} missing argument\n".to_string())
+            tx.send(b"ACK [2@0] {addid} missing argument\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {addid} missing argument\n".to_string());
@@ -152,7 +152,7 @@ pub async fn handle_addid(
 
     if path.is_empty() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {addid} missing argument\n".to_string())
+            tx.send(b"ACK [2@0] {addid} missing argument\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {addid} missing argument\n".to_string());
@@ -165,7 +165,7 @@ pub async fn handle_addid(
 
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
-            tx.send("ACK [50@0] {addid} No such file or directory\n".to_string())
+            tx.send(b"ACK [50@0] {addid} No such file or directory\n".to_vec())
                 .await?;
         }
         return Ok("ACK [50@0] {addid} No such file or directory\n".to_string());
@@ -173,7 +173,7 @@ pub async fn handle_addid(
 
     if fs::metadata(&path)?.is_dir() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {addid} cannot add directory; use add instead\n".to_string())
+            tx.send(b"ACK [2@0] {addid} cannot add directory; use add instead\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {addid} cannot add directory; use add instead\n".to_string());
@@ -210,7 +210,7 @@ pub async fn handle_addid(
     let response = format!("Id: {}\nOK\n", new_id);
 
     if !ctx.batch {
-        tx.send(response.clone()).await?;
+        tx.send(response.clone().into_bytes()).await?;
     }
 
     match ctx.event_sender.send(Subsystem::Playlist) {
@@ -224,13 +224,13 @@ pub async fn handle_addid(
 pub async fn handle_playlistinfo(
     ctx: &mut Context,
     _request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let current_playlist = ctx.current_playlist.lock().await;
 
     if current_playlist.is_none() {
         if !ctx.batch {
-            tx.send("OK\n".to_string()).await?;
+            tx.send(b"OK\n".to_vec()).await?;
         }
         return Ok("OK\n".to_string());
     }
@@ -262,7 +262,7 @@ pub async fn handle_playlistinfo(
     let response = format!("{}OK\n", response);
 
     if !ctx.batch {
-        tx.send(response.clone()).await?;
+        tx.send(response.clone().into_bytes()).await?;
     }
 
     Ok(response)
@@ -271,7 +271,7 @@ pub async fn handle_playlistinfo(
 pub async fn handle_playlistid(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let arg = request.split_whitespace().nth(1);
     let id = arg.and_then(|x| x.trim_matches('"').parse::<usize>().ok());
@@ -280,7 +280,7 @@ pub async fn handle_playlistid(
 
     if current_playlist.is_none() {
         if !ctx.batch {
-            tx.send("OK\n".to_string()).await?;
+            tx.send(b"OK\n".to_vec()).await?;
         }
         return Ok("OK\n".to_string());
     }
@@ -301,7 +301,7 @@ pub async fn handle_playlistid(
                 return {
                     let msg = format!("ACK [50@0] {{playlistid}} No such song\n");
                     if !ctx.batch {
-                        tx.send(msg.clone()).await?;
+                        tx.send(msg.clone().into_bytes()).await?;
                     }
                     Ok(msg)
                 };
@@ -325,7 +325,7 @@ pub async fn handle_playlistid(
     let response = format!("{}OK\n", response);
 
     if !ctx.batch {
-        tx.send(response.clone()).await?;
+        tx.send(response.clone().into_bytes()).await?;
     }
 
     Ok(response)
@@ -334,12 +334,12 @@ pub async fn handle_playlistid(
 pub async fn handle_deleteid(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let arg = request.split_whitespace().last();
     if arg.is_none() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {deleteid} missing argument\n".to_string())
+            tx.send(b"ACK [2@0] {deleteid} missing argument\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {deleteid} missing argument\n".to_string());
@@ -351,7 +351,7 @@ pub async fn handle_deleteid(
         Ok(x) => vec![x - 1],
         Err(_) => {
             if !ctx.batch {
-                tx.send("ACK [2@0] {deleteid} invalid argument\n".to_string())
+                tx.send(b"ACK [2@0] {deleteid} invalid argument\n".to_vec())
                     .await?;
             }
             return Ok("ACK [2@0] {deleteid} invalid argument\n".to_string());
@@ -361,7 +361,7 @@ pub async fn handle_deleteid(
         .remove_tracks(RemoveTracksRequest { positions })
         .await?;
     if !ctx.batch {
-        tx.send("OK\n".to_string()).await?;
+        tx.send(b"OK\n".to_vec()).await?;
     }
 
     match ctx.event_sender.send(Subsystem::Playlist) {
@@ -374,12 +374,12 @@ pub async fn handle_deleteid(
 pub async fn handle_delete(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let arg = request.split_whitespace().last();
     if arg.is_none() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {delete} missing argument\n".to_string())
+            tx.send(b"ACK [2@0] {delete} missing argument\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {delete} missing argument\n".to_string());
@@ -394,7 +394,7 @@ pub async fn handle_delete(
             .remove_tracks(RemoveTracksRequest { positions })
             .await?;
         if !ctx.batch {
-            tx.send("OK\n".to_string()).await?;
+            tx.send(b"OK\n".to_vec()).await?;
         }
         match ctx.event_sender.send(Subsystem::Playlist) {
             Ok(_) => {}
@@ -406,7 +406,7 @@ pub async fn handle_delete(
         Ok(x) => vec![x],
         Err(_) => {
             if !ctx.batch {
-                tx.send("ACK [2@0] {delete} invalid argument\n".to_string())
+                tx.send(b"ACK [2@0] {delete} invalid argument\n".to_vec())
                     .await?;
             }
             return Ok("ACK [2@0] {delete} invalid argument\n".to_string());
@@ -416,7 +416,7 @@ pub async fn handle_delete(
         .remove_tracks(RemoveTracksRequest { positions })
         .await?;
     if !ctx.batch {
-        tx.send("OK\n".to_string()).await?;
+        tx.send(b"OK\n".to_vec()).await?;
     }
 
     match ctx.event_sender.send(Subsystem::Playlist) {
@@ -430,13 +430,13 @@ pub async fn handle_delete(
 pub async fn handle_clear(
     ctx: &mut Context,
     _request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     ctx.playlist
         .remove_all_tracks(RemoveAllTracksRequest {})
         .await?;
     if !ctx.batch {
-        tx.send("OK\n".to_string()).await?;
+        tx.send(b"OK\n".to_vec()).await?;
     }
 
     match ctx.event_sender.send(Subsystem::Playlist) {
@@ -450,7 +450,7 @@ pub async fn handle_clear(
 pub async fn handle_move(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let mut parts = request.split_whitespace().skip(1);
     let from_str = parts.next();
@@ -458,7 +458,7 @@ pub async fn handle_move(
 
     if from_str.is_none() || to_str.is_none() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {move} incorrect arguments\n".to_string())
+            tx.send(b"ACK [2@0] {move} incorrect arguments\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {move} incorrect arguments\n".to_string());
@@ -469,7 +469,7 @@ pub async fn handle_move(
 
     if from.is_err() || to.is_err() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {move} invalid argument\n".to_string())
+            tx.send(b"ACK [2@0] {move} invalid argument\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {move} invalid argument\n".to_string());
@@ -508,7 +508,7 @@ pub async fn handle_move(
     }
 
     if !ctx.batch {
-        tx.send("OK\n".to_string()).await?;
+        tx.send(b"OK\n".to_vec()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -516,7 +516,7 @@ pub async fn handle_move(
 pub async fn handle_moveid(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let mut parts = request.split_whitespace().skip(1);
     let id_str = parts.next();
@@ -524,7 +524,7 @@ pub async fn handle_moveid(
 
     if id_str.is_none() || to_str.is_none() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {moveid} incorrect arguments\n".to_string())
+            tx.send(b"ACK [2@0] {moveid} incorrect arguments\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {moveid} incorrect arguments\n".to_string());
@@ -535,7 +535,7 @@ pub async fn handle_moveid(
 
     if id.is_err() || to.is_err() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {moveid} invalid argument\n".to_string())
+            tx.send(b"ACK [2@0] {moveid} invalid argument\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {moveid} invalid argument\n".to_string());
@@ -574,7 +574,7 @@ pub async fn handle_moveid(
     }
 
     if !ctx.batch {
-        tx.send("OK\n".to_string()).await?;
+        tx.send(b"OK\n".to_vec()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -582,7 +582,7 @@ pub async fn handle_moveid(
 pub async fn handle_swap(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let mut parts = request.split_whitespace().skip(1);
     let pos1 = parts
@@ -594,7 +594,7 @@ pub async fn handle_swap(
 
     if pos1.is_none() || pos2.is_none() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {swap} incorrect arguments\n".to_string())
+            tx.send(b"ACK [2@0] {swap} incorrect arguments\n".to_vec())
                 .await?;
         }
         return Ok("ACK [2@0] {swap} incorrect arguments\n".to_string());
@@ -655,7 +655,7 @@ pub async fn handle_swap(
     }
 
     if !ctx.batch {
-        tx.send("OK\n".to_string()).await?;
+        tx.send(b"OK\n".to_vec()).await?;
     }
     Ok("OK\n".to_string())
 }
@@ -663,7 +663,7 @@ pub async fn handle_swap(
 pub async fn handle_swapid(
     ctx: &mut Context,
     request: &str,
-    tx: Sender<String>,
+    tx: Sender<Vec<u8>>,
 ) -> Result<String, Error> {
     let mut parts = request.split_whitespace().skip(1);
     let id1 = parts
@@ -680,7 +680,7 @@ pub async fn handle_swapid(
         }
         _ => {
             if !ctx.batch {
-                tx.send("ACK [2@0] {swapid} incorrect arguments\n".to_string())
+                tx.send(b"ACK [2@0] {swapid} incorrect arguments\n".to_vec())
                     .await?;
             }
             Ok("ACK [2@0] {swapid} incorrect arguments\n".to_string())

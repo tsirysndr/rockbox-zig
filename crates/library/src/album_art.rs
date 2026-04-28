@@ -3,6 +3,22 @@ use std::io::Write;
 use anyhow::Error;
 use lofty::{file::TaggedFileExt, probe::Probe, tag::Accessor};
 
+/// Read the first embedded picture from an audio file's tags and return the raw bytes + MIME type.
+/// Returns None if the file has no embedded art or cannot be read.
+pub fn read_album_art_bytes(track_path: &str) -> Option<(Vec<u8>, &'static str)> {
+    let tagged_file = Probe::open(track_path).ok()?.read().ok()?;
+    let tag = tagged_file
+        .primary_tag()
+        .filter(|t| !t.pictures().is_empty())
+        .or_else(|| tagged_file.tags().iter().find(|t| !t.pictures().is_empty()))?;
+    let picture = tag.pictures().first()?;
+    let mime = match picture.mime_type() {
+        Some(lofty::picture::MimeType::Png) => "image/png",
+        _ => "image/jpeg",
+    };
+    Some((picture.data().to_vec(), mime))
+}
+
 pub fn extract_and_save_album_cover(track_path: &str) -> Result<Option<String>, Error> {
     extract_and_save_album_cover_with_key(track_path, None)
 }
