@@ -214,13 +214,13 @@ source = pipe:///tmp/snapfifo?name=default&sampleformat=44100:16:2
 │    pcm_play_dma_complete_callback() per chunk          │
 └───────────────────┬────────────────────────────────────┘
                     │ raw S16LE stereo PCM chunks
-┌───────────────────▼────────────────────────────────────┐
-│  firmware/target/hosted/pcm-tcp.c                      │
-│    pcm_tcp_set_host() / pcm_tcp_set_port()             │
-│    sink_dma_start()  — connects if needed, spawns thread│
-│    tcp_thread()      — blocking write() loop           │
-│    sink_dma_stop()   — signals thread, keeps socket    │
-└───────────────────┬────────────────────────────────────┘
+┌───────────────────▼──────────────────────────────────────┐
+│  firmware/target/hosted/pcm-tcp.c                        │
+│    pcm_tcp_set_host() / pcm_tcp_set_port()               │
+│    sink_dma_start()  — connects if needed, spawns thread │
+│    tcp_thread()      — blocking write() loop             │
+│    sink_dma_stop()   — signals thread, keeps socket      │
+└───────────────────┬──────────────────────────────────────┘
                     │ blocking write() over TCP
 ┌───────────────────▼────────────────────────────────────┐
 │  TCP socket  (snapserver host:port)                    │
@@ -229,8 +229,8 @@ source = pipe:///tmp/snapfifo?name=default&sampleformat=44100:16:2
 ┌───────────────────▼────────────────────────────────────┐
 │  snapserver  (tcp:// source, server mode)              │
 │      │                                                 │
-│  ┌───┴──────┬──────────┐                              │
-│  ▼          ▼          ▼                              │
+│  ┌───┴──────┬──────────┐                               │
+│  ▼          ▼          ▼                               │
 │ snapclient snapclient snapclient                       │
 └────────────────────────────────────────────────────────┘
 ```
