@@ -80,8 +80,8 @@ pub enum PlaybackStatus {
     Paused,
 }
 
-// Rockbox volume is in dB; typical SDL target range -74..0
-pub const VOLUME_MIN_DB: i32 = -74;
+// Rockbox volume is in dB; SDL target range is -80..0 (AUDIOHW_SETTING in sdl_codec.h)
+pub const VOLUME_MIN_DB: i32 = -80;
 pub const VOLUME_MAX_DB: i32 = 0;
 
 pub fn volume_fraction(db: i32) -> f32 {

@@ -2,13 +2,28 @@ use async_graphql::*;
 
 use crate::rockbox_url;
 
+#[derive(SimpleObject)]
+struct VolumeInfo {
+    volume: i32,
+    min: i32,
+    max: i32,
+}
+
 #[derive(Default)]
 pub struct SoundQuery;
 
 #[Object]
 impl SoundQuery {
-    async fn sound_current(&self) -> String {
-        "sound".to_string()
+    async fn volume(&self, ctx: &Context<'_>) -> Result<VolumeInfo, Error> {
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let url = format!("{}/player/volume", rockbox_url());
+        let resp = client.get(&url).send().await?;
+        let body: serde_json::Value = resp.json().await?;
+        Ok(VolumeInfo {
+            volume: body["volume"].as_i64().unwrap_or(0) as i32,
+            min: body["min"].as_i64().unwrap_or(-80) as i32,
+            max: body["max"].as_i64().unwrap_or(0) as i32,
+        })
     }
 
     async fn sound_default(&self) -> String {
@@ -31,13 +46,13 @@ pub struct SoundMutation;
 impl SoundMutation {
     async fn adjust_volume(&self, ctx: &Context<'_>, steps: i32) -> Result<i32, Error> {
         let client = ctx.data::<reqwest::Client>().unwrap();
-        let body = serde_json::json!({
-            "steps": steps,
-        });
+        let body = serde_json::json!({ "steps": steps });
         let url = format!("{}/player/volume", rockbox_url());
         client.put(&url).json(&body).send().await?;
 
-        Ok(0)
+        let resp = client.get(&url).send().await?;
+        let info: serde_json::Value = resp.json().await?;
+        Ok(info["volume"].as_i64().unwrap_or(0) as i32)
     }
 
     async fn sound_set(&self) -> String {

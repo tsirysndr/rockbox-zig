@@ -9,9 +9,9 @@ use crate::api::v1alpha1::{
     LikeTrackRequest, NextRequest, PauseRequest, PlayAlbumRequest, PlayAllTracksRequest,
     PlayArtistTracksRequest, PlayDirectoryRequest, PlayTrackRequest, PlaylistResumeRequest,
     PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest,
-    SearchRequest, ShufflePlaylistRequest, StartRequest, StatusRequest, StreamCurrentTrackRequest,
-    StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest,
-    UnlikeTrackRequest,
+    SearchRequest, ShufflePlaylistRequest, SoundCurrentRequest, StartRequest, StatusRequest,
+    StreamCurrentTrackRequest, StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest,
+    TreeGetEntriesRequest, UnlikeTrackRequest,
 };
 use crate::state::{DeviceItem, SearchAlbum, SearchArtist, SearchPlaylist, SearchResults};
 
@@ -333,6 +333,17 @@ pub async fn adjust_volume(steps: i32) -> Result<()> {
     Ok(())
 }
 
+pub async fn get_current_volume() -> Result<i32> {
+    const SOUND_VOLUME: i32 = 0;
+    let mut c = SoundServiceClient::connect(URL).await?;
+    let resp = c
+        .sound_current(SoundCurrentRequest {
+            setting: SOUND_VOLUME,
+        })
+        .await?;
+    Ok(resp.into_inner().value)
+}
+
 // ── Settings (shuffle, repeat) ────────────────────────────────────────────────
 
 pub async fn save_shuffle(enabled: bool) -> Result<()> {
@@ -395,13 +406,16 @@ pub async fn run_resume_info_sync(tx: Sender<StateUpdate>) {
 }
 
 pub async fn run_settings_sync(tx: Sender<StateUpdate>) {
+    let live_volume = get_current_volume().await.ok();
+
     match SettingsServiceClient::connect(URL).await {
         Ok(mut c) => match c.get_global_settings(GetGlobalSettingsRequest {}).await {
             Ok(resp) => {
                 let s = resp.into_inner();
+                let volume = live_volume.unwrap_or(s.volume);
                 let _ = tx
                     .send(StateUpdate::Settings {
-                        volume: s.volume,
+                        volume,
                         shuffling: s.playlist_shuffle,
                         repeat_mode: s.repeat_mode,
                     })

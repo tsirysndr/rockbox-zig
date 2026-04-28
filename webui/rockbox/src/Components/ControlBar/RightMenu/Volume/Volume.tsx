@@ -29,6 +29,8 @@ const Volume: FC<VolumeProps> = (props) => {
         <Slider
           aria-label="Volume"
           value={volume}
+          min={0}
+          max={100}
           onChange={(_event, value) => setVolume(value as number)}
           onChangeCommitted={handleVolumeChange}
           sx={{

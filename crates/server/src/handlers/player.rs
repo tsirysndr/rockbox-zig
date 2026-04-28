@@ -455,6 +455,15 @@ pub async fn get_file_position(
     Ok(())
 }
 
+pub async fn get_volume(_ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+    const SOUND_VOLUME: i32 = 0;
+    let volume = rb::sound::current(SOUND_VOLUME);
+    let min = rb::sound::min(SOUND_VOLUME);
+    let max = rb::sound::max(SOUND_VOLUME);
+    res.json(&serde_json::json!({ "volume": volume, "min": min, "max": max }));
+    Ok(())
+}
+
 pub async fn adjust_volume(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
     let req_body = req.body.as_ref().unwrap();
     let new_volume: NewVolume = serde_json::from_str(&req_body).unwrap();

@@ -44,9 +44,11 @@ impl SoundService for Sound {
 
     async fn sound_current(
         &self,
-        _request: tonic::Request<SoundCurrentRequest>,
+        request: tonic::Request<SoundCurrentRequest>,
     ) -> Result<tonic::Response<SoundCurrentResponse>, tonic::Status> {
-        Ok(tonic::Response::new(SoundCurrentResponse::default()))
+        let setting = request.into_inner().setting;
+        let value = rockbox_sys::sound::current(setting);
+        Ok(tonic::Response::new(SoundCurrentResponse { value }))
     }
 
     async fn sound_default(

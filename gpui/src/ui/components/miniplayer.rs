@@ -11,7 +11,7 @@ use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, img, px, relative, App, Context, FontWeight, InteractiveElement, IntoElement,
+    div, img, px, App, Context, FontWeight, InteractiveElement, IntoElement,
     ObjectFit, ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled,
     StyledImage, Window,
 };
@@ -415,10 +415,6 @@ impl Render for MiniPlayer {
                             .child(
                                 div()
                                     .w_24()
-                                    .h(px(4.0))
-                                    .rounded_full()
-                                    .cursor_pointer()
-                                    .bg(theme.volume_slider_track)
                                     .on_scroll_wheel(
                                         |event: &ScrollWheelEvent, _window, cx: &mut App| {
                                             let delta = event.delta.pixel_delta(px(12.0));
@@ -441,13 +437,34 @@ impl Render for MiniPlayer {
                                             }
                                         },
                                     )
-                                    .child(
-                                        div()
-                                            .h_full()
-                                            .rounded_full()
-                                            .bg(theme.volume_slider_fill)
-                                            .w(relative(vol_fill)),
-                                    ),
+                                    .child({
+                                        let state_ref = cx.global::<Controller>().state.clone();
+                                        let rt = cx.global::<Controller>().rt();
+                                        SeekBar::new(
+                                            "vol_bar",
+                                            vol_fill,
+                                            theme.volume_slider_track,
+                                            theme.volume_slider_fill,
+                                            px(4.0),
+                                        )
+                                        .on_seek(move |fraction, _window, cx| {
+                                            let range = (VOLUME_MAX_DB - VOLUME_MIN_DB) as f32;
+                                            let new_vol = (VOLUME_MIN_DB as f32
+                                                + fraction * range)
+                                                .round() as i32;
+                                            let steps = {
+                                                let current = state_ref.read(cx).volume;
+                                                new_vol - current
+                                            };
+                                            if steps != 0 {
+                                                state_ref.update(cx, |s, cx| {
+                                                    s.volume = new_vol;
+                                                    cx.notify();
+                                                });
+                                                rt.spawn(adjust_volume(steps));
+                                            }
+                                        })
+                                    }),
                             )
                             .child(
                                 div()

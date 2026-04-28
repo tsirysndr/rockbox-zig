@@ -3038,6 +3038,36 @@ export const usePlaybackStatusSubscription = () =>
     PlaybackStatusDocument.toString()
   );
 
+export type GetVolumeQuery = { __typename?: 'Query', volume: { __typename?: 'VolumeInfo', volume: number, min: number, max: number } };
+
+export const GetVolumeDocument = new TypedDocumentString(`
+    query GetVolume {
+  volume {
+    volume
+    min
+    max
+  }
+}
+    `);
+
+export const useGetVolumeQuery = <
+      TData = GetVolumeQuery,
+      TError = unknown
+    >(
+      variables?: Record<string, never>,
+      options?: Omit<UseQueryOptions<GetVolumeQuery, TError, TData>, 'queryKey'> & { queryKey?: UseQueryOptions<GetVolumeQuery, TError, TData>['queryKey'] }
+    ) => {
+    return useQuery<GetVolumeQuery, TError, TData>(
+      {
+    queryKey: ['GetVolume'],
+    queryFn: fetchData<GetVolumeQuery, Record<string, never>>(GetVolumeDocument, variables),
+    ...options
+  }
+    )};
+
+useGetVolumeQuery.document = GetVolumeDocument;
+useGetVolumeQuery.getKey = () => ['GetVolume'];
+
 export const usePlaylistChangedSubscription = () =>
   useSubscription<PlaylistChangedSubscription>(
     PlaylistChangedDocument.toString()

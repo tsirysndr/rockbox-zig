@@ -50,6 +50,7 @@ async_handler!(player, next);
 async_handler!(player, previous);
 async_handler!(player, stop);
 async_handler!(player, get_file_position);
+async_handler!(player, get_volume);
 async_handler!(player, adjust_volume);
 async_handler!(player, get_current_player);
 async_handler!(playlists, create_playlist);
