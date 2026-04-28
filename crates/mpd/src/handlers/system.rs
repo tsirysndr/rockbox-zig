@@ -75,3 +75,38 @@ pub async fn handle_binarylimit(
     }
     Ok("OK\n".to_string())
 }
+
+pub async fn handle_ping(
+    ctx: &mut Context,
+    _request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    if !ctx.batch {
+        tx.send("OK\n".to_string()).await?;
+    }
+    Ok("OK\n".to_string())
+}
+
+pub async fn handle_notcommands(
+    ctx: &mut Context,
+    _request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let response = "OK\n".to_string();
+    if !ctx.batch {
+        tx.send(response.clone()).await?;
+    }
+    Ok(response)
+}
+
+pub async fn handle_urlhandlers(
+    ctx: &mut Context,
+    _request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let response = "handler: file://\nOK\n".to_string();
+    if !ctx.batch {
+        tx.send(response.clone()).await?;
+    }
+    Ok(response)
+}

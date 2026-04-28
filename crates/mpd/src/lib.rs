@@ -3,20 +3,28 @@ use handlers::{
     batch::{handle_command_list_begin, handle_command_list_ok_begin},
     browse::{handle_listall, handle_listallinfo, handle_listfiles, handle_lsinfo},
     library::{
-        handle_config, handle_find, handle_find_album, handle_find_artist, handle_find_title,
-        handle_list_album, handle_list_artist, handle_list_title, handle_rescan, handle_search,
-        handle_stats, handle_tagtypes, handle_tagtypes_enable,
+        handle_config, handle_count, handle_find, handle_find_album, handle_find_artist,
+        handle_find_title, handle_findadd, handle_list_album, handle_list_artist, handle_list_date,
+        handle_list_genre, handle_list_title, handle_listplaylists, handle_load, handle_rename,
+        handle_rescan, handle_rm, handle_save, handle_search, handle_searchadd, handle_stats,
+        handle_tagtypes, handle_tagtypes_clear, handle_tagtypes_enable,
     },
     playback::{
-        handle_currentsong, handle_getvol, handle_next, handle_outputs, handle_pause, handle_play,
-        handle_playid, handle_previous, handle_random, handle_repeat, handle_seek, handle_seekcur,
-        handle_seekid, handle_setvol, handle_single, handle_status, handle_toggle,
+        handle_consume, handle_currentsong, handle_disableoutput, handle_enableoutput,
+        handle_getvol, handle_next, handle_outputs, handle_pause, handle_play, handle_playid,
+        handle_previous, handle_random, handle_repeat, handle_seek, handle_seekcur, handle_seekid,
+        handle_setvol, handle_single, handle_status, handle_stop, handle_toggle,
+        handle_toggleoutput,
     },
     queue::{
         handle_add, handle_addid, handle_clear, handle_delete, handle_deleteid, handle_move,
-        handle_playlistinfo, handle_shuffle,
+        handle_moveid, handle_playlistid, handle_playlistinfo, handle_shuffle, handle_swap,
+        handle_swapid,
     },
-    system::{handle_binarylimit, handle_commands, handle_decoders, handle_idle, handle_noidle},
+    system::{
+        handle_binarylimit, handle_commands, handle_decoders, handle_idle, handle_noidle,
+        handle_notcommands, handle_ping, handle_urlhandlers,
+    },
     Subsystem,
 };
 use kv::{build_tracks_kv, KV};
@@ -27,9 +35,11 @@ use rockbox_graphql::{
 use rockbox_library::{create_connection_pool, entity, repo};
 use rockbox_rpc::api::rockbox::v1alpha1::{
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
-    playlist_service_client::PlaylistServiceClient, settings_service_client::SettingsServiceClient,
-    sound_service_client::SoundServiceClient, system_service_client::SystemServiceClient,
-    GetCurrentRequest, GetGlobalStatusRequest, PlaylistResumeRequest,
+    playlist_service_client::PlaylistServiceClient,
+    saved_playlist_service_client::SavedPlaylistServiceClient,
+    settings_service_client::SettingsServiceClient, sound_service_client::SoundServiceClient,
+    system_service_client::SystemServiceClient, GetCurrentRequest, GetGlobalStatusRequest,
+    PlaylistResumeRequest,
 };
 use rockbox_sys::types::user_settings::UserSettings;
 use sqlx::{Pool, Sqlite};
@@ -41,6 +51,7 @@ use tokio::{
 };
 use tokio_stream::StreamExt;
 use tonic::transport::Channel;
+use tracing::{debug, warn};
 
 pub mod consts;
 pub mod dir;
@@ -55,7 +66,9 @@ pub struct Context {
     pub sound: SoundServiceClient<Channel>,
     pub playlist: PlaylistServiceClient<Channel>,
     pub system: SystemServiceClient<Channel>,
+    pub saved_playlist: SavedPlaylistServiceClient<Channel>,
     pub single: Arc<Mutex<String>>,
+    pub consume: Arc<Mutex<bool>>,
     pub batch: bool,
     pub event_sender: broadcast::Sender<Subsystem>,
     pub event_receiver: Arc<Mutex<broadcast::Receiver<Subsystem>>>,
@@ -90,7 +103,7 @@ impl MpdServer {
                 match handle_client(context, stream).await {
                     Ok(_) => {}
                     Err(e) => {
-                        eprintln!("Error: {}", e);
+                        warn!("MPD client error: {}", e);
                     }
                 }
             });
@@ -122,10 +135,11 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
         }
         let request = String::from_utf8_lossy(&buf[..n]);
         let command = parse_command(&request)?;
-        println!("request: {}", request);
+        debug!("mpd request: {}", request.trim());
 
         match command.as_str() {
             "play" => handle_play(&mut ctx, &request, tx.clone()).await?,
+            "stop" => handle_stop(&mut ctx, &request, tx.clone()).await?,
             "pause" => handle_pause(&mut ctx, &request, tx.clone()).await?,
             "toggle" => handle_toggle(&mut ctx, &request, tx.clone()).await?,
             "next" => handle_next(&mut ctx, &request, tx.clone()).await?,
@@ -136,6 +150,7 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "seekcur" => handle_seekcur(&mut ctx, &request, tx.clone()).await?,
             "random" => handle_random(&mut ctx, &request, tx.clone()).await?,
             "repeat" => handle_repeat(&mut ctx, &request, tx.clone()).await?,
+            "consume" => handle_consume(&mut ctx, &request, tx.clone()).await?,
             "getvol" => handle_getvol(&mut ctx, &request, tx.clone()).await?,
             "setvol" => handle_setvol(&mut ctx, &request, tx.clone()).await?,
             "volume" => handle_setvol(&mut ctx, &request, tx.clone()).await?,
@@ -145,25 +160,37 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "addid" => handle_addid(&mut ctx, &request, tx.clone()).await?,
             "deleteid" => handle_deleteid(&mut ctx, &request, tx.clone()).await?,
             "playlistinfo" => handle_playlistinfo(&mut ctx, &request, tx.clone()).await?,
+            "playlistid" => handle_playlistid(&mut ctx, &request, tx.clone()).await?,
+            "plchanges" => handle_playlistinfo(&mut ctx, &request, tx.clone()).await?,
             "delete" => handle_delete(&mut ctx, &request, tx.clone()).await?,
             "clear" => handle_clear(&mut ctx, &request, tx.clone()).await?,
             "move" => handle_move(&mut ctx, &request, tx.clone()).await?,
+            "moveid" => handle_moveid(&mut ctx, &request, tx.clone()).await?,
+            "swap" => handle_swap(&mut ctx, &request, tx.clone()).await?,
+            "swapid" => handle_swapid(&mut ctx, &request, tx.clone()).await?,
             "list album" => handle_list_album(&mut ctx, &request, tx.clone()).await?,
             "list albumartist" => handle_list_artist(&mut ctx, &request, tx.clone()).await?,
             "list artist" => handle_list_artist(&mut ctx, &request, tx.clone()).await?,
             "list title" => handle_list_title(&mut ctx, &request, tx.clone()).await?,
+            "list genre" => handle_list_genre(&mut ctx, &request, tx.clone()).await?,
+            "list date" => handle_list_date(&mut ctx, &request, tx.clone()).await?,
             "update" => handle_rescan(&mut ctx, &request, tx.clone()).await?,
             "search" => handle_search(&mut ctx, &request, tx.clone()).await?,
+            "searchadd" => handle_searchadd(&mut ctx, &request, tx.clone()).await?,
             "rescan" => handle_rescan(&mut ctx, &request, tx.clone()).await?,
+            "count" => handle_count(&mut ctx, &request, tx.clone()).await?,
+            "findadd" => handle_findadd(&mut ctx, &request, tx.clone()).await?,
             "status" => handle_status(&mut ctx, &request, tx.clone()).await?,
             "currentsong" => handle_currentsong(&mut ctx, &request, tx.clone()).await?,
             "config" => handle_config(&mut ctx, &request, tx.clone()).await?,
             "tagtypes " => handle_tagtypes(&mut ctx, &request, tx.clone()).await?,
-            "tagtypes clear" => handle_clear(&mut ctx, &request, tx.clone()).await?,
+            "tagtypes clear" => handle_tagtypes_clear(&mut ctx, &request, tx.clone()).await?,
             "tagtypes enable" => handle_tagtypes_enable(&mut ctx, &request, tx.clone()).await?,
             "stats" => handle_stats(&mut ctx, &request, tx.clone()).await?,
-            "plchanges" => handle_playlistinfo(&mut ctx, &request, tx.clone()).await?,
             "outputs" => handle_outputs(&mut ctx, &request, tx.clone()).await?,
+            "enableoutput" => handle_enableoutput(&mut ctx, &request, tx.clone()).await?,
+            "disableoutput" => handle_disableoutput(&mut ctx, &request, tx.clone()).await?,
+            "toggleoutput" => handle_toggleoutput(&mut ctx, &request, tx.clone()).await?,
             "idle" => handle_idle(&mut ctx, &request, tx.clone()).await?,
             "noidle" => handle_noidle(&mut ctx, &request, tx.clone()).await?,
             "decoders" => handle_decoders(&mut ctx, &request, tx.clone()).await?,
@@ -171,10 +198,18 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "listall" => handle_listall(&mut ctx, &request, tx.clone()).await?,
             "listallinfo" => handle_listallinfo(&mut ctx, &request, tx.clone()).await?,
             "listfiles" => handle_listfiles(&mut ctx, &request, tx.clone()).await?,
+            "listplaylists" => handle_listplaylists(&mut ctx, &request, tx.clone()).await?,
+            "load" => handle_load(&mut ctx, &request, tx.clone()).await?,
+            "save" => handle_save(&mut ctx, &request, tx.clone()).await?,
+            "rm" => handle_rm(&mut ctx, &request, tx.clone()).await?,
+            "rename" => handle_rename(&mut ctx, &request, tx.clone()).await?,
             "find artist" => handle_find_artist(&mut ctx, &request, tx.clone()).await?,
             "find album" => handle_find_album(&mut ctx, &request, tx.clone()).await?,
             "find title" => handle_find_title(&mut ctx, &request, tx.clone()).await?,
             "binarylimit" => handle_binarylimit(&mut ctx, &request, tx.clone()).await?,
+            "ping" => handle_ping(&mut ctx, &request, tx.clone()).await?,
+            "notcommands" => handle_notcommands(&mut ctx, &request, tx.clone()).await?,
+            "urlhandlers" => handle_urlhandlers(&mut ctx, &request, tx.clone()).await?,
             "commands" => handle_commands(&mut ctx, &request, tx.clone()).await?,
             "command_list_begin" => {
                 handle_command_list_begin(&mut ctx, &request, tx.clone()).await?
@@ -182,16 +217,19 @@ pub async fn handle_client(mut ctx: Context, stream: TcpStream) -> Result<(), Er
             "command_list_ok_begin" => {
                 handle_command_list_ok_begin(&mut ctx, &request, tx.clone()).await?
             }
+            "close" => break,
             _ => {
                 if command.starts_with("find ") {
                     handle_find(&mut ctx, &request, tx.clone()).await?;
-                    return Ok(());
+                    continue;
                 }
-                println!("Unhandled command: {}", command);
-                println!("Unhandled request: {}", request);
-                tx.send("ACK [5@0] {unhandled} unknown command\n".to_string())
-                    .await?;
-                "ACK [5@0] {unhandled} unknown command\n".to_string()
+                debug!("unhandled MPD command: {}", command);
+                tx.send(format!(
+                    "ACK [5@0] {{{}}} unknown command \"{}\"\n",
+                    command, command
+                ))
+                .await?;
+                format!("ACK [5@0] {{{}}} unknown command\n", command)
             }
         };
     }
@@ -202,7 +240,6 @@ fn parse_command(request: &str) -> Result<String, Error> {
     let command = request.split_whitespace().next().unwrap_or_default();
 
     if command == "list" {
-        // should parse the next word, and return "list album" or "list artist" or "list title"
         let r#type = request.split_whitespace().nth(1).unwrap_or_default();
         return Ok(format!("list {}", r#type.to_lowercase()));
     }
@@ -234,6 +271,7 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
     let sound = SoundServiceClient::connect(url.clone()).await?;
     let playlist = PlaylistServiceClient::connect(url.clone()).await?;
     let system = SystemServiceClient::connect(url.clone()).await?;
+    let saved_playlist = SavedPlaylistServiceClient::connect(url.clone()).await?;
 
     let (event_sender, event_receiver) = broadcast::channel(16);
 
@@ -244,7 +282,12 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
         sound,
         playlist,
         system,
-        single: Arc::new(Mutex::new("\"0\"".to_string())),
+        saved_playlist,
+        single: Arc::new(Mutex::new("0".to_string())),
+        consume: match ctx {
+            Some(ref ctx) => ctx.consume.clone(),
+            None => Arc::new(Mutex::new(false)),
+        },
         batch,
         event_sender: match ctx {
             Some(ref ctx) => ctx.clone().event_sender,
@@ -304,7 +347,6 @@ pub fn listen_events(ctx: Context) {
         while let Some(playlist) = rt.block_on(subscription.next()) {
             let mut current_playlist = rt.block_on(ctx_clone.current_playlist.lock());
 
-            // verify if current_playlist index is different from playlist index
             if (current_playlist.is_some()
                 && current_playlist.as_ref().unwrap().index != playlist.index)
                 || current_playlist.is_none()
@@ -313,7 +355,7 @@ pub fn listen_events(ctx: Context) {
                 match ctx.event_sender.send(Subsystem::Playlist) {
                     Ok(_) => {}
                     Err(e) => {
-                        eprintln!("Error: {}", e)
+                        warn!("playlist event send error: {}", e)
                     }
                 }
             }
@@ -328,7 +370,6 @@ pub fn listen_events(ctx: Context) {
 
         while let Some(status) = rt.block_on(subscription.next()) {
             let mut playback_status = rt.block_on(another_ctx.playback_status.lock());
-            // verify if playback_status status is different from status status
             if playback_status.is_some()
                 && playback_status.as_ref().unwrap().status != status.status
             {
@@ -336,7 +377,7 @@ pub fn listen_events(ctx: Context) {
                 match ctx.event_sender.send(Subsystem::Player) {
                     Ok(_) => {}
                     Err(e) => {
-                        eprintln!("Error: {}", e)
+                        warn!("player event send error: {}", e)
                     }
                 }
             }
@@ -363,6 +404,7 @@ pub fn restore_playlist(ctx: Context) -> Result<(), Error> {
             if playback_status.is_some() {
                 status = playback_status.as_ref().unwrap().status;
             }
+            drop(playback_status);
 
             if response.resume_index > -1 && status != 1 {
                 ctx.playlist
@@ -399,7 +441,7 @@ pub fn restore_playlist(ctx: Context) -> Result<(), Error> {
                     track.album_art = metadata.album_art;
                     track.album_id = Some(metadata.album_id);
                     track.artist_id = Some(metadata.artist_id);
-                    SimpleBroker::publish(track);
+                    rockbox_graphql::simplebroker::SimpleBroker::publish(track);
                 }
             }
 

@@ -5,13 +5,16 @@ use mpd_filters::{Expression, Parser, SqlOptions, ToSql};
 use regex::Regex;
 use rockbox_library::{entity::track::Track, repo};
 use rockbox_rpc::api::rockbox::v1alpha1::{
-    GetAlbumsRequest, GetArtistsRequest, GetGlobalSettingsRequest, GetTracksRequest,
-    ScanLibraryRequest, SearchRequest,
+    CreateSavedPlaylistRequest, DeleteSavedPlaylistRequest, GetAlbumsRequest, GetArtistsRequest,
+    GetGlobalSettingsRequest, GetSavedPlaylistsRequest, GetTracksRequest, InsertTracksRequest,
+    PlaySavedPlaylistRequest, ScanLibraryRequest, SearchRequest, UpdateSavedPlaylistRequest,
 };
 use rockbox_settings::get_music_dir;
 use tokio::sync::mpsc::Sender;
 
-use crate::Context;
+use crate::{consts::PLAYLIST_INSERT_LAST, Context};
+
+use super::Subsystem;
 
 pub async fn handle_list_album(
     ctx: &mut Context,
@@ -51,15 +54,70 @@ pub async fn handle_list_album(
 
 pub async fn handle_list_artist(
     ctx: &mut Context,
-    _request: &str,
+    request: &str,
     tx: Sender<String>,
 ) -> Result<String, Error> {
+    let tag = if request.contains("albumartist") || request.contains("AlbumArtist") {
+        "AlbumArtist"
+    } else {
+        "Artist"
+    };
     let response = ctx.library.get_artists(GetArtistsRequest {}).await?;
     let response = response.into_inner();
     let response = response
         .artists
         .iter()
-        .map(|x| format!("Artist: {}\n", x.name))
+        .map(|x| format!("{}: {}\n", tag, x.name))
+        .collect::<String>();
+    let response = format!("{}OK\n", response);
+    if !ctx.batch {
+        tx.send(response.clone()).await?;
+    }
+    Ok(response)
+}
+
+pub async fn handle_list_genre(
+    ctx: &mut Context,
+    _request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let tracks = repo::track::all(ctx.pool.clone()).await?;
+    let mut genres: Vec<String> = tracks
+        .iter()
+        .filter_map(|t| t.genre.clone())
+        .filter(|g| !g.is_empty())
+        .collect::<std::collections::HashSet<_>>()
+        .into_iter()
+        .collect();
+    genres.sort();
+    let response = genres
+        .iter()
+        .map(|g| format!("Genre: {}\n", g))
+        .collect::<String>();
+    let response = format!("{}OK\n", response);
+    if !ctx.batch {
+        tx.send(response.clone()).await?;
+    }
+    Ok(response)
+}
+
+pub async fn handle_list_date(
+    ctx: &mut Context,
+    _request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let tracks = repo::track::all(ctx.pool.clone()).await?;
+    let mut dates: Vec<String> = tracks
+        .iter()
+        .filter_map(|t| t.year_string.clone())
+        .filter(|y| !y.is_empty())
+        .collect::<std::collections::HashSet<_>>()
+        .into_iter()
+        .collect();
+    dates.sort();
+    let response = dates
+        .iter()
+        .map(|d| format!("Date: {}\n", d))
         .collect::<String>();
     let response = format!("{}OK\n", response);
     if !ctx.batch {
@@ -442,6 +500,377 @@ async fn evaluate_search_expression(
         })
         .collect();
     Ok(tracks)
+}
+
+pub async fn handle_count(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let arg = request
+        .splitn(2, ' ')
+        .nth(1)
+        .unwrap_or("")
+        .trim()
+        .to_string();
+
+    let tracks = if arg.is_empty() {
+        repo::track::all(ctx.pool.clone()).await?
+    } else {
+        let mut parser = Parser::new(&arg);
+        match parser.parse() {
+            Ok(expr) => evaluate_search_expression(ctx, &expr, true).await?,
+            Err(_) => repo::track::all(ctx.pool.clone()).await?,
+        }
+    };
+
+    let playtime: u64 = tracks.iter().map(|t| (t.length / 1000) as u64).sum();
+    let response = format!("songs: {}\nplaytime: {}\nOK\n", tracks.len(), playtime);
+
+    if !ctx.batch {
+        tx.send(response.clone()).await?;
+    }
+    Ok(response)
+}
+
+pub async fn handle_findadd(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let arg = request
+        .splitn(2, ' ')
+        .nth(1)
+        .unwrap_or("")
+        .trim()
+        .to_string();
+
+    let mut parser = Parser::new(&arg);
+    let tracks = match parser.parse() {
+        Ok(expr) => evaluate_search_expression(ctx, &expr, true).await?,
+        Err(_) => vec![],
+    };
+
+    for track in &tracks {
+        ctx.playlist
+            .insert_tracks(InsertTracksRequest {
+                tracks: vec![track.path.clone()],
+                position: PLAYLIST_INSERT_LAST,
+                ..Default::default()
+            })
+            .await?;
+    }
+
+    if !tracks.is_empty() {
+        match ctx.event_sender.send(Subsystem::Playlist) {
+            Ok(_) => {}
+            Err(_) => {}
+        }
+    }
+
+    if !ctx.batch {
+        tx.send("OK\n".to_string()).await?;
+    }
+    Ok("OK\n".to_string())
+}
+
+pub async fn handle_searchadd(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let arg = request
+        .splitn(2, ' ')
+        .nth(1)
+        .unwrap_or("")
+        .trim()
+        .to_string();
+
+    let mut parser = Parser::new(&arg);
+    let tracks = match parser.parse() {
+        Ok(expr) => evaluate_search_expression(ctx, &expr, false).await?,
+        Err(_) => vec![],
+    };
+
+    for track in &tracks {
+        ctx.playlist
+            .insert_tracks(InsertTracksRequest {
+                tracks: vec![track.path.clone()],
+                position: PLAYLIST_INSERT_LAST,
+                ..Default::default()
+            })
+            .await?;
+    }
+
+    if !tracks.is_empty() {
+        match ctx.event_sender.send(Subsystem::Playlist) {
+            Ok(_) => {}
+            Err(_) => {}
+        }
+    }
+
+    if !ctx.batch {
+        tx.send("OK\n".to_string()).await?;
+    }
+    Ok("OK\n".to_string())
+}
+
+pub async fn handle_listplaylists(
+    ctx: &mut Context,
+    _request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let response = ctx
+        .saved_playlist
+        .get_saved_playlists(GetSavedPlaylistsRequest { folder_id: None })
+        .await?
+        .into_inner();
+
+    let response = response
+        .playlists
+        .iter()
+        .map(|p| {
+            let last_modified = chrono::DateTime::from_timestamp(p.updated_at, 0)
+                .unwrap_or_default()
+                .format("%Y-%m-%dT%H:%M:%SZ")
+                .to_string();
+            format!("playlist: {}\nLast-Modified: {}\n", p.name, last_modified)
+        })
+        .collect::<String>();
+    let response = format!("{}OK\n", response);
+
+    if !ctx.batch {
+        tx.send(response.clone()).await?;
+    }
+    Ok(response)
+}
+
+pub async fn handle_load(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let name = request
+        .splitn(2, ' ')
+        .nth(1)
+        .unwrap_or("")
+        .trim()
+        .trim_matches('"')
+        .to_string();
+
+    if name.is_empty() {
+        if !ctx.batch {
+            tx.send("ACK [2@0] {load} missing argument\n".to_string())
+                .await?;
+        }
+        return Ok("ACK [2@0] {load} missing argument\n".to_string());
+    }
+
+    let playlists = ctx
+        .saved_playlist
+        .get_saved_playlists(GetSavedPlaylistsRequest { folder_id: None })
+        .await?
+        .into_inner();
+
+    let playlist = playlists.playlists.into_iter().find(|p| p.name == name);
+
+    match playlist {
+        Some(p) => {
+            ctx.saved_playlist
+                .play_saved_playlist(PlaySavedPlaylistRequest {
+                    playlist_id: p.id.clone(),
+                })
+                .await?;
+            match ctx.event_sender.send(Subsystem::Playlist) {
+                Ok(_) => {}
+                Err(_) => {}
+            }
+        }
+        None => {
+            let msg = format!("ACK [50@0] {{load}} No such playlist\n");
+            if !ctx.batch {
+                tx.send(msg.clone()).await?;
+            }
+            return Ok(msg);
+        }
+    }
+
+    if !ctx.batch {
+        tx.send("OK\n".to_string()).await?;
+    }
+    Ok("OK\n".to_string())
+}
+
+pub async fn handle_save(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let name = request
+        .splitn(2, ' ')
+        .nth(1)
+        .unwrap_or("")
+        .trim()
+        .trim_matches('"')
+        .to_string();
+
+    if name.is_empty() {
+        if !ctx.batch {
+            tx.send("ACK [2@0] {save} missing argument\n".to_string())
+                .await?;
+        }
+        return Ok("ACK [2@0] {save} missing argument\n".to_string());
+    }
+
+    let track_paths: Vec<String> = {
+        let current_playlist = ctx.current_playlist.lock().await;
+        current_playlist
+            .as_ref()
+            .map(|p| p.tracks.iter().map(|t| t.path.clone()).collect())
+            .unwrap_or_default()
+    };
+
+    let track_ids: Vec<String> = {
+        let kv = ctx.kv.lock().await;
+        track_paths
+            .iter()
+            .filter_map(|path| kv.get(path).map(|t| t.id.clone()))
+            .collect()
+    };
+
+    ctx.saved_playlist
+        .create_saved_playlist(CreateSavedPlaylistRequest {
+            name,
+            description: None,
+            image: None,
+            folder_id: None,
+            track_ids,
+        })
+        .await?;
+
+    match ctx.event_sender.send(Subsystem::StoredPlaylist) {
+        Ok(_) => {}
+        Err(_) => {}
+    }
+
+    if !ctx.batch {
+        tx.send("OK\n".to_string()).await?;
+    }
+    Ok("OK\n".to_string())
+}
+
+pub async fn handle_rm(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let name = request
+        .splitn(2, ' ')
+        .nth(1)
+        .unwrap_or("")
+        .trim()
+        .trim_matches('"')
+        .to_string();
+
+    if name.is_empty() {
+        if !ctx.batch {
+            tx.send("ACK [2@0] {rm} missing argument\n".to_string())
+                .await?;
+        }
+        return Ok("ACK [2@0] {rm} missing argument\n".to_string());
+    }
+
+    let playlists = ctx
+        .saved_playlist
+        .get_saved_playlists(GetSavedPlaylistsRequest { folder_id: None })
+        .await?
+        .into_inner();
+
+    let playlist = playlists.playlists.into_iter().find(|p| p.name == name);
+
+    match playlist {
+        Some(p) => {
+            ctx.saved_playlist
+                .delete_saved_playlist(DeleteSavedPlaylistRequest { id: p.id })
+                .await?;
+            match ctx.event_sender.send(Subsystem::StoredPlaylist) {
+                Ok(_) => {}
+                Err(_) => {}
+            }
+        }
+        None => {
+            let msg = format!("ACK [50@0] {{rm}} No such playlist\n");
+            if !ctx.batch {
+                tx.send(msg.clone()).await?;
+            }
+            return Ok(msg);
+        }
+    }
+
+    if !ctx.batch {
+        tx.send("OK\n".to_string()).await?;
+    }
+    Ok("OK\n".to_string())
+}
+
+pub async fn handle_rename(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let args: Vec<&str> = request.splitn(3, '"').collect();
+    let old_name = args.get(1).map(|s| s.trim()).unwrap_or("").to_string();
+    let new_name = args.get(3).map(|s| s.trim()).unwrap_or("").to_string();
+
+    if old_name.is_empty() || new_name.is_empty() {
+        // fallback: space-separated
+        let parts: Vec<&str> = request.split_whitespace().collect();
+        if parts.len() < 3 {
+            if !ctx.batch {
+                tx.send("ACK [2@0] {rename} missing arguments\n".to_string())
+                    .await?;
+            }
+            return Ok("ACK [2@0] {rename} missing arguments\n".to_string());
+        }
+    }
+
+    let playlists = ctx
+        .saved_playlist
+        .get_saved_playlists(GetSavedPlaylistsRequest { folder_id: None })
+        .await?
+        .into_inner();
+
+    let playlist = playlists.playlists.into_iter().find(|p| p.name == old_name);
+
+    match playlist {
+        Some(p) => {
+            ctx.saved_playlist
+                .update_saved_playlist(UpdateSavedPlaylistRequest {
+                    id: p.id,
+                    name: new_name,
+                    description: p.description,
+                    image: p.image,
+                    folder_id: p.folder_id,
+                })
+                .await?;
+            match ctx.event_sender.send(Subsystem::StoredPlaylist) {
+                Ok(_) => {}
+                Err(_) => {}
+            }
+        }
+        None => {
+            let msg = format!("ACK [50@0] {{rename}} No such playlist\n");
+            if !ctx.batch {
+                tx.send(msg.clone()).await?;
+            }
+            return Ok(msg);
+        }
+    }
+
+    if !ctx.batch {
+        tx.send("OK\n".to_string()).await?;
+    }
+    Ok("OK\n".to_string())
 }
 
 async fn build_file_metadata(tracks: Vec<Track>, response: &mut String) -> Result<(), Error> {

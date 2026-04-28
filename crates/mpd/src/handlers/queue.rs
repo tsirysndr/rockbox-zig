@@ -72,7 +72,6 @@ pub async fn handle_add(
         false => format!("{}/{}", music_dir, path),
     };
 
-    // verify if path is a file or directory or doesn't exist
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
             tx.send("ACK [50@0] {add} No such file or directory\n".to_string())
@@ -104,6 +103,7 @@ pub async fn handle_add(
     let current_track = ctx.current_track.lock().await;
 
     if current_track.is_none() {
+        drop(current_track);
         ctx.playlist.start(StartRequest::default()).await?;
     }
 
@@ -135,14 +135,12 @@ pub async fn handle_addid(
     let re = Regex::new(r#"^(\w+)\s+"([^"]+)"(?:\s+"?(-?\d+)"?)?$"#).unwrap();
     let captures = re.captures(request);
 
-    println!("captures: {:?}", captures);
-
     if captures.is_none() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {add} missing argument\n".to_string())
+            tx.send("ACK [2@0] {addid} missing argument\n".to_string())
                 .await?;
         }
-        return Ok("ACK [2@0] {add} missing argument\n".to_string());
+        return Ok("ACK [2@0] {addid} missing argument\n".to_string());
     }
     let captures = captures.unwrap();
 
@@ -154,10 +152,10 @@ pub async fn handle_addid(
 
     if path.is_empty() {
         if !ctx.batch {
-            tx.send("ACK [2@0] {add} missing argument\n".to_string())
+            tx.send("ACK [2@0] {addid} missing argument\n".to_string())
                 .await?;
         }
-        return Ok("ACK [2@0] {add} missing argument\n".to_string());
+        return Ok("ACK [2@0] {addid} missing argument\n".to_string());
     }
 
     let path = match path.starts_with('/') {
@@ -165,41 +163,54 @@ pub async fn handle_addid(
         false => format!("{}/{}", music_dir, path),
     };
 
-    // verify if path is a file or directory or doesn't exist
     if fs::metadata(&path).is_err() {
         if !ctx.batch {
-            tx.send("ACK [50@0] {add} No such file or directory\n".to_string())
+            tx.send("ACK [50@0] {addid} No such file or directory\n".to_string())
                 .await?;
         }
-        return Ok("ACK [50@0] {add} No such file or directory\n".to_string());
-    }
-
-    if fs::metadata(&path)?.is_file() {
-        ctx.playlist
-            .insert_tracks(InsertTracksRequest {
-                tracks: vec![path.clone()],
-                position,
-                ..Default::default()
-            })
-            .await?;
+        return Ok("ACK [50@0] {addid} No such file or directory\n".to_string());
     }
 
     if fs::metadata(&path)?.is_dir() {
-        // return error if directory, invalid for addid
         if !ctx.batch {
-            tx.send("ACK [2@0] {addid} invalid argument\n".to_string())
+            tx.send("ACK [2@0] {addid} cannot add directory; use add instead\n".to_string())
                 .await?;
         }
-        return Ok("ACK [2@0] {addid} invalid argument\n".to_string());
+        return Ok("ACK [2@0] {addid} cannot add directory; use add instead\n".to_string());
     }
+
+    let current_len = {
+        let current_playlist = ctx.current_playlist.lock().await;
+        current_playlist
+            .as_ref()
+            .map(|p| p.tracks.len())
+            .unwrap_or(0)
+    };
+
+    ctx.playlist
+        .insert_tracks(InsertTracksRequest {
+            tracks: vec![path.clone()],
+            position,
+            ..Default::default()
+        })
+        .await?;
 
     let current_track = ctx.current_track.lock().await;
     if current_track.is_none() {
+        drop(current_track);
         ctx.playlist.start(StartRequest::default()).await?;
     }
 
+    let new_id = if position == PLAYLIST_INSERT_LAST {
+        (current_len + 1) as i32
+    } else {
+        position + 1
+    };
+
+    let response = format!("Id: {}\nOK\n", new_id);
+
     if !ctx.batch {
-        tx.send("OK\n".to_string()).await?;
+        tx.send(response.clone()).await?;
     }
 
     match ctx.event_sender.send(Subsystem::Playlist) {
@@ -207,7 +218,7 @@ pub async fn handle_addid(
         Err(_) => {}
     }
 
-    Ok("OK\n".to_string())
+    Ok(response)
 }
 
 pub async fn handle_playlistinfo(
@@ -248,6 +259,69 @@ pub async fn handle_playlistinfo(
             )
         })
         .collect::<String>();
+    let response = format!("{}OK\n", response);
+
+    if !ctx.batch {
+        tx.send(response.clone()).await?;
+    }
+
+    Ok(response)
+}
+
+pub async fn handle_playlistid(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let arg = request.split_whitespace().nth(1);
+    let id = arg.and_then(|x| x.trim_matches('"').parse::<usize>().ok());
+
+    let current_playlist = ctx.current_playlist.lock().await;
+
+    if current_playlist.is_none() {
+        if !ctx.batch {
+            tx.send("OK\n".to_string()).await?;
+        }
+        return Ok("OK\n".to_string());
+    }
+
+    let current_playlist = current_playlist.as_ref().unwrap();
+
+    let response = match id {
+        Some(id) => {
+            let idx = id.saturating_sub(1);
+            if let Some(x) = current_playlist.tracks.get(idx) {
+                format!(
+                    "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTime: {}\nDuration: {}\nPos: {}\nDisc: {}\nDate: {}\nAlbumArtist: {}\nTrack: {}\nId: {}\n",
+                    x.path, x.title, x.artist, x.album,
+                    (x.length / 1000) as u32, (x.length / 1000) as u32,
+                    idx, x.discnum, x.year_string, x.album_artist, x.tracknum, id
+                )
+            } else {
+                return {
+                    let msg = format!("ACK [50@0] {{playlistid}} No such song\n");
+                    if !ctx.batch {
+                        tx.send(msg.clone()).await?;
+                    }
+                    Ok(msg)
+                };
+            }
+        }
+        None => current_playlist
+            .tracks
+            .iter()
+            .enumerate()
+            .map(|(idx, x)| {
+                format!(
+                    "file: {}\nTitle: {}\nArtist: {}\nAlbum: {}\nTime: {}\nDuration: {}\nPos: {}\nDisc: {}\nDate: {}\nAlbumArtist: {}\nTrack: {}\nId: {}\n",
+                    x.path, x.title, x.artist, x.album,
+                    (x.length / 1000) as u32, (x.length / 1000) as u32,
+                    idx, x.discnum, x.year_string, x.album_artist, x.tracknum, idx + 1
+                )
+            })
+            .collect::<String>(),
+    };
+
     let response = format!("{}OK\n", response);
 
     if !ctx.batch {
@@ -314,14 +388,17 @@ pub async fn handle_delete(
     let arg = arg.trim();
     let arg = arg.trim_matches('"');
     if arg.contains(':') {
-        // get the range
         let range: Vec<i32> = arg.split(':').map(|x| x.parse::<i32>().unwrap()).collect();
-        let positions: Vec<i32> = (range[0]..=range[1]).collect();
+        let positions: Vec<i32> = (range[0]..range[1]).collect();
         ctx.playlist
             .remove_tracks(RemoveTracksRequest { positions })
             .await?;
         if !ctx.batch {
             tx.send("OK\n".to_string()).await?;
+        }
+        match ctx.event_sender.send(Subsystem::Playlist) {
+            Ok(_) => {}
+            Err(_) => {}
         }
         return Ok("OK\n".to_string());
     }
@@ -375,9 +452,238 @@ pub async fn handle_move(
     request: &str,
     tx: Sender<String>,
 ) -> Result<String, Error> {
-    println!("{}", request);
+    let mut parts = request.split_whitespace().skip(1);
+    let from_str = parts.next();
+    let to_str = parts.next();
+
+    if from_str.is_none() || to_str.is_none() {
+        if !ctx.batch {
+            tx.send("ACK [2@0] {move} incorrect arguments\n".to_string())
+                .await?;
+        }
+        return Ok("ACK [2@0] {move} incorrect arguments\n".to_string());
+    }
+
+    let from = from_str.unwrap().trim_matches('"').parse::<i32>();
+    let to = to_str.unwrap().trim_matches('"').parse::<i32>();
+
+    if from.is_err() || to.is_err() {
+        if !ctx.batch {
+            tx.send("ACK [2@0] {move} invalid argument\n".to_string())
+                .await?;
+        }
+        return Ok("ACK [2@0] {move} invalid argument\n".to_string());
+    }
+
+    let from = from.unwrap();
+    let to = to.unwrap();
+
+    let track_path = {
+        let current_playlist = ctx.current_playlist.lock().await;
+        current_playlist
+            .as_ref()
+            .and_then(|p| p.tracks.get(from as usize))
+            .map(|t| t.path.clone())
+    };
+
+    if let Some(path) = track_path {
+        ctx.playlist
+            .remove_tracks(RemoveTracksRequest {
+                positions: vec![from],
+            })
+            .await?;
+        let insert_pos = if to > from { to - 1 } else { to };
+        ctx.playlist
+            .insert_tracks(InsertTracksRequest {
+                tracks: vec![path],
+                position: insert_pos,
+                ..Default::default()
+            })
+            .await?;
+
+        match ctx.event_sender.send(Subsystem::Playlist) {
+            Ok(_) => {}
+            Err(_) => {}
+        }
+    }
+
     if !ctx.batch {
         tx.send("OK\n".to_string()).await?;
     }
     Ok("OK\n".to_string())
+}
+
+pub async fn handle_moveid(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let mut parts = request.split_whitespace().skip(1);
+    let id_str = parts.next();
+    let to_str = parts.next();
+
+    if id_str.is_none() || to_str.is_none() {
+        if !ctx.batch {
+            tx.send("ACK [2@0] {moveid} incorrect arguments\n".to_string())
+                .await?;
+        }
+        return Ok("ACK [2@0] {moveid} incorrect arguments\n".to_string());
+    }
+
+    let id = id_str.unwrap().trim_matches('"').parse::<i32>();
+    let to = to_str.unwrap().trim_matches('"').parse::<i32>();
+
+    if id.is_err() || to.is_err() {
+        if !ctx.batch {
+            tx.send("ACK [2@0] {moveid} invalid argument\n".to_string())
+                .await?;
+        }
+        return Ok("ACK [2@0] {moveid} invalid argument\n".to_string());
+    }
+
+    let from = id.unwrap() - 1;
+    let to = to.unwrap();
+
+    let track_path = {
+        let current_playlist = ctx.current_playlist.lock().await;
+        current_playlist
+            .as_ref()
+            .and_then(|p| p.tracks.get(from as usize))
+            .map(|t| t.path.clone())
+    };
+
+    if let Some(path) = track_path {
+        ctx.playlist
+            .remove_tracks(RemoveTracksRequest {
+                positions: vec![from],
+            })
+            .await?;
+        let insert_pos = if to > from { to - 1 } else { to };
+        ctx.playlist
+            .insert_tracks(InsertTracksRequest {
+                tracks: vec![path],
+                position: insert_pos,
+                ..Default::default()
+            })
+            .await?;
+
+        match ctx.event_sender.send(Subsystem::Playlist) {
+            Ok(_) => {}
+            Err(_) => {}
+        }
+    }
+
+    if !ctx.batch {
+        tx.send("OK\n".to_string()).await?;
+    }
+    Ok("OK\n".to_string())
+}
+
+pub async fn handle_swap(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let mut parts = request.split_whitespace().skip(1);
+    let pos1 = parts
+        .next()
+        .and_then(|x| x.trim_matches('"').parse::<i32>().ok());
+    let pos2 = parts
+        .next()
+        .and_then(|x| x.trim_matches('"').parse::<i32>().ok());
+
+    if pos1.is_none() || pos2.is_none() {
+        if !ctx.batch {
+            tx.send("ACK [2@0] {swap} incorrect arguments\n".to_string())
+                .await?;
+        }
+        return Ok("ACK [2@0] {swap} incorrect arguments\n".to_string());
+    }
+
+    let pos1 = pos1.unwrap();
+    let pos2 = pos2.unwrap();
+
+    let (path1, path2) = {
+        let current_playlist = ctx.current_playlist.lock().await;
+        let p1 = current_playlist
+            .as_ref()
+            .and_then(|p| p.tracks.get(pos1 as usize))
+            .map(|t| t.path.clone());
+        let p2 = current_playlist
+            .as_ref()
+            .and_then(|p| p.tracks.get(pos2 as usize))
+            .map(|t| t.path.clone());
+        (p1, p2)
+    };
+
+    if let (Some(path1), Some(path2)) = (path1, path2) {
+        let (lo, hi, lo_path, hi_path) = if pos1 < pos2 {
+            (pos1, pos2, path1, path2)
+        } else {
+            (pos2, pos1, path2, path1)
+        };
+        // Remove higher index first to avoid position shifts
+        ctx.playlist
+            .remove_tracks(RemoveTracksRequest {
+                positions: vec![hi],
+            })
+            .await?;
+        ctx.playlist
+            .insert_tracks(InsertTracksRequest {
+                tracks: vec![lo_path],
+                position: hi,
+                ..Default::default()
+            })
+            .await?;
+        ctx.playlist
+            .remove_tracks(RemoveTracksRequest {
+                positions: vec![lo],
+            })
+            .await?;
+        ctx.playlist
+            .insert_tracks(InsertTracksRequest {
+                tracks: vec![hi_path],
+                position: lo,
+                ..Default::default()
+            })
+            .await?;
+
+        match ctx.event_sender.send(Subsystem::Playlist) {
+            Ok(_) => {}
+            Err(_) => {}
+        }
+    }
+
+    if !ctx.batch {
+        tx.send("OK\n".to_string()).await?;
+    }
+    Ok("OK\n".to_string())
+}
+
+pub async fn handle_swapid(
+    ctx: &mut Context,
+    request: &str,
+    tx: Sender<String>,
+) -> Result<String, Error> {
+    let mut parts = request.split_whitespace().skip(1);
+    let id1 = parts
+        .next()
+        .and_then(|x| x.trim_matches('"').parse::<i32>().ok());
+    let id2 = parts
+        .next()
+        .and_then(|x| x.trim_matches('"').parse::<i32>().ok());
+
+    match (id1, id2) {
+        (Some(id1), Some(id2)) => {
+            let modified = format!("swap {} {}", id1 - 1, id2 - 1);
+            handle_swap(ctx, &modified, tx).await
+        }
+        _ => {
+            if !ctx.batch {
+                tx.send("ACK [2@0] {swapid} incorrect arguments\n".to_string())
+                    .await?;
+            }
+            Ok("ACK [2@0] {swapid} incorrect arguments\n".to_string())
+        }
+    }
 }
