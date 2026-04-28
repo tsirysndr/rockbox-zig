@@ -224,8 +224,8 @@ Rockbox audio engine
         │
         ▼ normalised PCM
 ┌───────────────────────┐
-│    PCM sink            │  SDL / FIFO / AirPlay / Squeezelite /
-│                        │  UPnP / Chromecast / Snapcast TCP
+│    PCM sink           │  SDL / FIFO / AirPlay / Squeezelite /
+│                       │  UPnP / Chromecast / Snapcast TCP
 └───────────────────────┘
 ```
 
