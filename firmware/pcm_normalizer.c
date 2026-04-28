@@ -50,7 +50,7 @@
  * GATE_THRESH   RMS below this level → chunk is silence; neither the RMS
  *               estimate nor the gain are updated.  -60 dBFS ≈ 0.001.
  * ──────────────────────────────────────────────────────────────────────────── */
-#define TARGET_RMS    0.35f     /* -9 dBFS — loud, punchy target */
+#define TARGET_RMS    0.50f     /* -6 dBFS — loud, punchy target */
 #define RMS_ATTACK    0.3f      /* fast: track loud transients in ~2-3 chunks */
 #define RMS_RELEASE   0.99f     /* ~7 s to settle on a quieter signal */
 #define GAIN_ATTACK   0.3f      /* reduce gain quickly to prevent clipping */
