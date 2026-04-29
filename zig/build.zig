@@ -99,6 +99,7 @@ pub fn build(b: *std.Build) void {
 
     if (target.result.os.tag == .linux) {
         exe.root_module.linkSystemLibrary("unwind", .{});
+        exe.root_module.linkSystemLibrary("dbus-1", .{});
     }
 
     const librockbox = b.path("../build-lib/librockbox.a");
