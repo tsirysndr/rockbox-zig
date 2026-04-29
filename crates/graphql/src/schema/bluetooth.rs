@@ -1,7 +1,5 @@
 use async_graphql::*;
 
-use crate::rockbox_url;
-
 use super::objects::bluetooth_device::BluetoothDevice;
 
 #[derive(Default)]
@@ -10,11 +8,23 @@ pub struct BluetoothQuery;
 #[Object]
 impl BluetoothQuery {
     async fn bluetooth_devices(&self, _ctx: &Context<'_>) -> Result<Vec<BluetoothDevice>, Error> {
-        let client = reqwest::Client::new();
-        let url = format!("{}/bluetooth/devices", rockbox_url());
-        let response = client.get(&url).send().await?;
-        let devices = response.json::<Vec<BluetoothDevice>>().await?;
-        Ok(devices)
+        #[cfg(target_os = "linux")]
+        {
+            let devices = rockbox_bluetooth::get_devices().await?;
+            return Ok(devices
+                .into_iter()
+                .map(|d| BluetoothDevice {
+                    address: d.address,
+                    name: d.name,
+                    paired: d.paired,
+                    trusted: d.trusted,
+                    connected: d.connected,
+                    rssi: d.rssi.map(|r| r as i32),
+                })
+                .collect());
+        }
+        #[allow(unreachable_code)]
+        Err(Error::new("Bluetooth is only supported on Linux"))
     }
 }
 
@@ -28,19 +38,34 @@ impl BluetoothMutation {
         _ctx: &Context<'_>,
         timeout_secs: Option<i32>,
     ) -> Result<Vec<BluetoothDevice>, Error> {
-        let secs = timeout_secs.unwrap_or(10).max(1);
-        let client = reqwest::Client::new();
-        let url = format!("{}/bluetooth/scan?timeout_secs={}", rockbox_url(), secs);
-        let response = client.post(&url).send().await?;
-        let devices = response.json::<Vec<BluetoothDevice>>().await?;
-        Ok(devices)
+        #[cfg(target_os = "linux")]
+        {
+            let secs = timeout_secs.unwrap_or(10).max(1) as u64;
+            let devices = rockbox_bluetooth::scan(secs).await?;
+            return Ok(devices
+                .into_iter()
+                .map(|d| BluetoothDevice {
+                    address: d.address,
+                    name: d.name,
+                    paired: d.paired,
+                    trusted: d.trusted,
+                    connected: d.connected,
+                    rssi: d.rssi.map(|r| r as i32),
+                })
+                .collect());
+        }
+        #[allow(unreachable_code)]
+        Err(Error::new("Bluetooth is only supported on Linux"))
     }
 
     async fn bluetooth_connect(&self, _ctx: &Context<'_>, address: String) -> Result<bool, Error> {
-        let client = reqwest::Client::new();
-        let url = format!("{}/bluetooth/devices/{}/connect", rockbox_url(), address);
-        client.put(&url).send().await?;
-        Ok(true)
+        #[cfg(target_os = "linux")]
+        {
+            rockbox_bluetooth::connect(&address).await?;
+            return Ok(true);
+        }
+        #[allow(unreachable_code)]
+        Err(Error::new("Bluetooth is only supported on Linux"))
     }
 
     async fn bluetooth_disconnect(
@@ -48,9 +73,12 @@ impl BluetoothMutation {
         _ctx: &Context<'_>,
         address: String,
     ) -> Result<bool, Error> {
-        let client = reqwest::Client::new();
-        let url = format!("{}/bluetooth/devices/{}/disconnect", rockbox_url(), address);
-        client.put(&url).send().await?;
-        Ok(true)
+        #[cfg(target_os = "linux")]
+        {
+            rockbox_bluetooth::disconnect(&address).await?;
+            return Ok(true);
+        }
+        #[allow(unreachable_code)]
+        Err(Error::new("Bluetooth is only supported on Linux"))
     }
 }

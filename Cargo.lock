@@ -9241,6 +9241,7 @@ dependencies = [
  "once_cell",
  "owo-colors 4.1.0",
  "reqwest",
+ "rockbox-bluetooth",
  "rockbox-library",
  "rockbox-playlists",
  "rockbox-rocksky",
