@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.04.29]
+
+### Added
+- UPnP device browsing in the Files view — queue and play tracks directly from any UPnP/DLNA media server on the local network
+
+### Fixed
+- HTTP stream (`netstream`) no longer permanently breaks after a failed seek: `seek_to()` now only replaces the active response on success, so a failed Range request leaves the stream readable at the current position
+- Small forward seeks (≤ 128 KB) in HTTP streams are now satisfied by skipping bytes in the existing response body instead of issuing a new Range request, avoiding unnecessary round-trips during codec metadata parsing
+- Buffering: `TYPE_ID3` handles for remote tracks that fail to open now send `BUFFER_EVENT_FINISHED` with an empty `mp3entry` instead of silently never posting `Q_AUDIO_FINISH_LOAD_TRACK`, which caused the track-loading chain to stall on playlist restore with many queued UPnP tracks
+- Web UI Files view: Music and UPnP Devices row icons no longer disappear on hover — CSS selector changed from descendant (` `) to direct-child (`>`) combinator so the `.no-play` guard is respected
+
 ## [2026.04.28-1]
 
 ### Added
