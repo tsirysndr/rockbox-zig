@@ -71,6 +71,6 @@ tr:hover td div .play {
 }
 
 
-tr:hover td div .folder {
+tr:hover td div:not(.no-play) > .folder {
  display: none;
 }

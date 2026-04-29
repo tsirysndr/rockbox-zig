@@ -84,6 +84,7 @@ export type Entry = {
   __typename?: 'Entry';
   attr: Scalars['Int']['output'];
   customaction: Scalars['Int']['output'];
+  displayName?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   timeWrite: Scalars['Int']['output'];
 };
@@ -878,7 +879,7 @@ export type GetEntriesQueryVariables = Exact<{
 }>;
 
 
-export type GetEntriesQuery = { __typename?: 'Query', treeGetEntries: Array<{ __typename?: 'Entry', name: string, attr: number, timeWrite: number }> };
+export type GetEntriesQuery = { __typename?: 'Query', treeGetEntries: Array<{ __typename?: 'Entry', name: string, attr: number, timeWrite: number, displayName?: string | null }> };
 
 export type ConnectToDeviceMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -1289,6 +1290,7 @@ export const GetEntriesDocument = new TypedDocumentString(`
     name
     attr
     timeWrite
+    displayName
   }
 }
     `);

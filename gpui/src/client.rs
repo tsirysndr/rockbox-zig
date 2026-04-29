@@ -665,6 +665,17 @@ pub struct FileEntry {
     pub is_dir: bool,
 }
 
+fn entry_display_name(path: &str, display_name: Option<String>) -> String {
+    if let Some(dn) = display_name {
+        return dn;
+    }
+    std::path::Path::new(path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or(path)
+        .to_string()
+}
+
 pub async fn tree_get_entries(path: Option<String>) -> Result<Vec<FileEntry>> {
     let mut c = BrowseServiceClient::connect(URL).await?;
     let resp = c.tree_get_entries(TreeGetEntriesRequest { path }).await?;
@@ -674,11 +685,7 @@ pub async fn tree_get_entries(path: Option<String>) -> Result<Vec<FileEntry>> {
         .into_iter()
         .map(|e| {
             let is_dir = e.attr == 0x10;
-            let name = std::path::Path::new(&e.name)
-                .file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or(&e.name)
-                .to_string();
+            let name = entry_display_name(&e.name, e.display_name);
             FileEntry {
                 name,
                 path: e.name,

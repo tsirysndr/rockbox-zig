@@ -92,7 +92,25 @@ impl StreamState {
     /// Re-issue the request starting at `new_pos` using an HTTP Range header.
     /// Falls back to reopening from byte 0 and discarding bytes if the server
     /// ignores Range and responds with the full body.
+    ///
+    /// The existing response is only replaced on success.  A failed seek leaves
+    /// the stream at its current position so reads can still continue.
     fn seek_to(&mut self, new_pos: u64) -> bool {
+        // Small forward seek: skip bytes in the existing response body rather
+        // than issuing a new Range request.  Avoids a full round-trip for the
+        // tiny metadata seeks that codecs commonly do (ID3 tags, MP4 atoms).
+        const INLINE_SKIP_MAX: u64 = 128 * 1024; // 128 KB
+        if new_pos > self.pos && new_pos - self.pos <= INLINE_SKIP_MAX {
+            if let Some(resp) = &mut self.response {
+                let to_skip = new_pos - self.pos;
+                if Self::skip_bytes(resp, to_skip) {
+                    self.pos = new_pos;
+                    return true;
+                }
+                // Inline skip failed (connection dropped); fall through to Range request.
+            }
+        }
+
         // Use a bounded range when content_length is known so the request is
         // always within [0, content_length).  This prevents spurious 416
         // responses and tells the server exactly how many bytes we want.
@@ -100,7 +118,8 @@ impl StreamState {
             Some(cl) if cl > 0 => format!("bytes={}-{}", new_pos, cl - 1),
             _ => format!("bytes={}-", new_pos),
         };
-        self.response = None;
+        // Do NOT clear self.response before the request succeeds.  If the new
+        // request fails the stream stays readable at the current position.
         let result = CLIENT.get(&self.url).header("Range", range_header).send();
 
         match result {

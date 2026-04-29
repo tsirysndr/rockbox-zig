@@ -22,6 +22,8 @@ pub struct Entry {
     pub time_write: u32,
     #[prost(int32, tag = "4")]
     pub customaction: i32,
+    #[prost(string, optional, tag = "5")]
+    pub display_name: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TreeGetEntriesResponse {

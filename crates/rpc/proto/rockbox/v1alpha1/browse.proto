@@ -19,6 +19,7 @@ message Entry {
   int32 attr = 2;
   uint32 time_write = 3;
   int32 customaction = 4;
+  optional string display_name = 5;
 }
 
 message TreeGetEntriesResponse {

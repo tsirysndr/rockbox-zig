@@ -4,7 +4,7 @@ import { useTheme } from "@emotion/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
-import { Folder2, MusicNoteBeamed } from "@styled-icons/bootstrap";
+import { Folder2, HddNetwork, MusicNoteBeamed } from "@styled-icons/bootstrap";
 import {
   AudioFile,
   BackButton,
@@ -32,6 +32,7 @@ export type FilesProps = {
   refetching?: boolean;
   onPlayTrack: (path: string, index: number) => void;
   onPlayDirectory: (path: string) => void;
+  onNavigateDirectory?: (file: File) => void;
 };
 
 const Files: FC<FilesProps> = (props) => {
@@ -49,7 +50,9 @@ const Files: FC<FilesProps> = (props) => {
             marginLeft: 10,
           }}
         >
-          {info.row.original.isDirectory && (
+          {info.row.original.isDirectory &&
+            info.row.original.path !== "__local__" &&
+            info.row.original.path !== "upnp://" && (
             <div>
               <div
                 className="play"
@@ -59,6 +62,20 @@ const Files: FC<FilesProps> = (props) => {
               </div>
               <div className="folder">
                 <Folder2 size={20} />
+              </div>
+            </div>
+          )}
+          {info.row.original.path === "__local__" && (
+            <div className="no-play">
+              <div className="folder">
+                <Folder2 size={20} />
+              </div>
+            </div>
+          )}
+          {info.row.original.path === "upnp://" && (
+            <div className="no-play">
+              <div className="folder">
+                <HddNetwork size={20} />
               </div>
             </div>
           )}
@@ -85,7 +102,18 @@ const Files: FC<FilesProps> = (props) => {
       header: "",
       cell: (info) => (
         <>
-          {info.row.original.isDirectory && (
+          {info.row.original.isDirectory && props.onNavigateDirectory && (
+            <Directory
+              to="#"
+              onClick={(e) => {
+                e.preventDefault();
+                props.onNavigateDirectory!(info.row.original);
+              }}
+            >
+              {info.getValue()}
+            </Directory>
+          )}
+          {info.row.original.isDirectory && !props.onNavigateDirectory && (
             <Directory to={`/files?q=${info.row.original.path}`}>
               {info.getValue()}
             </Directory>
@@ -106,19 +134,25 @@ const Files: FC<FilesProps> = (props) => {
     columnHelper.accessor("name", {
       header: "",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      cell: (info) => (
-        <ButtonGroup
-          style={{ justifyContent: "flex-end", alignItems: "center" }}
-        >
-          <ContextMenu
-            entry={{
-              title: info.row.original.name,
-              isDirectory: info.row.original.isDirectory,
-              path: info.row.original.path,
-            }}
-          />
-        </ButtonGroup>
-      ),
+      cell: (info) => {
+        const isRootEntry =
+          info.row.original.path === "__local__" ||
+          info.row.original.path === "upnp://";
+        if (isRootEntry) return <ButtonGroup />;
+        return (
+          <ButtonGroup
+            style={{ justifyContent: "flex-end", alignItems: "center" }}
+          >
+            <ContextMenu
+              entry={{
+                title: info.row.original.name,
+                isDirectory: info.row.original.isDirectory,
+                path: info.row.original.path,
+              }}
+            />
+          </ButtonGroup>
+        );
+      },
     }),
   ];
 

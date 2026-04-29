@@ -6,6 +6,7 @@ pub mod api {
     }
 }
 
+pub mod control_point;
 pub mod db;
 pub(crate) mod didl;
 pub mod format;
@@ -220,6 +221,13 @@ pub(crate) fn get_local_ip() -> std::net::Ipv4Addr {
 // ---------------------------------------------------------------------------
 // Public API — UPnP Media Server (ContentDirectory + SSDP)
 // ---------------------------------------------------------------------------
+
+/// Pre-initialize the UPnP tokio runtime.  Call this once at server startup,
+/// before any HTTP handler runs, to ensure `Runtime::new()` is never called
+/// from inside a `block_on` context (tokio 1.27+ panics in that case).
+pub fn init() {
+    let _ = get_runtime();
+}
 
 /// Start the UPnP/DLNA Media Server so control points can browse and stream
 /// the music library.  Idempotent.
