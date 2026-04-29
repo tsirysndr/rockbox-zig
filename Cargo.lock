@@ -1352,6 +1352,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "bluer"
+version = "0.17.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af68112f5c60196495c8b0eea68349817855f565df5b04b2477916d09fb1a901"
+dependencies = [
+ "futures",
+ "hex",
+ "libc",
+ "log",
+ "macaddr",
+ "nix 0.29.0",
+ "num-derive",
+ "num-traits",
+ "serde",
+ "serde_json",
+ "strum 0.26.3",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "boxed_error"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6792,6 +6813,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "macaddr"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baee0bbc17ce759db233beb01648088061bf678383130602a298e6998eedb2d8"
+
+[[package]]
 name = "malloc_buf"
 version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9127,6 +9154,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-bluetooth"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bluer",
+ "futures",
+ "serde",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "rockbox-chromecast"
 version = "0.1.0"
 dependencies = [
@@ -9202,6 +9241,7 @@ dependencies = [
  "once_cell",
  "owo-colors 4.1.0",
  "reqwest",
+ "rockbox-bluetooth",
  "rockbox-library",
  "rockbox-playlists",
  "rockbox-rocksky",
@@ -9359,6 +9399,7 @@ dependencies = [
  "owo-colors 5.0.0",
  "prost",
  "reqwest",
+ "rockbox-bluetooth",
  "rockbox-graphql",
  "rockbox-library",
  "rockbox-playlists",
@@ -9393,6 +9434,7 @@ dependencies = [
  "queryst",
  "rand 0.8.5",
  "reqwest",
+ "rockbox-bluetooth",
  "rockbox-chromecast",
  "rockbox-discovery",
  "rockbox-graphql",

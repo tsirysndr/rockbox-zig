@@ -1,4 +1,5 @@
 use async_graphql::{MergedObject, MergedSubscription};
+use bluetooth::{BluetoothMutation, BluetoothQuery};
 use browse::BrowseQuery;
 use device::{DeviceMutation, DeviceQuery};
 use library::{LibraryMutation, LibraryQuery};
@@ -10,6 +11,7 @@ use smart_playlist::{SmartPlaylistMutation, SmartPlaylistQuery};
 use sound::{SoundMutation, SoundQuery};
 use system::SystemQuery;
 
+pub mod bluetooth;
 pub mod browse;
 pub mod device;
 pub mod library;
@@ -25,6 +27,7 @@ pub mod system;
 
 #[derive(MergedObject, Default)]
 pub struct Query(
+    BluetoothQuery,
     BrowseQuery,
     DeviceQuery,
     LibraryQuery,
@@ -39,6 +42,7 @@ pub struct Query(
 
 #[derive(MergedObject, Default)]
 pub struct Mutation(
+    BluetoothMutation,
     DeviceMutation,
     PlaybackMutation,
     PlaylistMutation,

@@ -1,0 +1,44 @@
+syntax = "proto3";
+package rockbox.v1alpha1;
+
+message BluetoothDevice {
+  string address = 1;
+  string name = 2;
+  bool paired = 3;
+  bool trusted = 4;
+  bool connected = 5;
+  optional int32 rssi = 6;
+}
+
+message ScanBluetoothRequest {
+  uint32 timeout_secs = 1;
+}
+
+message ScanBluetoothResponse {
+  repeated BluetoothDevice devices = 1;
+}
+
+message GetBluetoothDevicesRequest {}
+
+message GetBluetoothDevicesResponse {
+  repeated BluetoothDevice devices = 1;
+}
+
+message ConnectBluetoothDeviceRequest {
+  string address = 1;
+}
+
+message ConnectBluetoothDeviceResponse {}
+
+message DisconnectBluetoothDeviceRequest {
+  string address = 1;
+}
+
+message DisconnectBluetoothDeviceResponse {}
+
+service BluetoothService {
+  rpc Scan(ScanBluetoothRequest) returns (ScanBluetoothResponse);
+  rpc GetDevices(GetBluetoothDevicesRequest) returns (GetBluetoothDevicesResponse);
+  rpc ConnectDevice(ConnectBluetoothDeviceRequest) returns (ConnectBluetoothDeviceResponse);
+  rpc Disconnect(DisconnectBluetoothDeviceRequest) returns (DisconnectBluetoothDeviceResponse);
+}

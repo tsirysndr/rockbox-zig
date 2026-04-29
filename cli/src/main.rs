@@ -30,7 +30,7 @@ fn cli() -> Command {
         Some(tag) => tag,
         None => env!("CARGO_PKG_VERSION"),
     };
-    Command::new("rockbox")
+    let cli = Command::new("rockbox")
         .version(VERSION)
         .about(&banner)
         .arg(arg!(--rebuild -r "Rebuild index after scan"))
@@ -93,7 +93,47 @@ fn cli() -> Command {
                 .visible_alias("me"),
         )
         .subcommand(Command::new("setup").about("Setup Rockbox and its dependencies"))
-        .subcommand(Command::new("clear").about("Clear current playlist"))
+        .subcommand(Command::new("clear").about("Clear current playlist"));
+    #[cfg(target_os = "linux")]
+    let cli = cli.subcommand(
+        Command::new("bluetooth")
+            .about("Manage Bluetooth audio devices")
+            .subcommand_required(true)
+            .arg_required_else_help(true)
+            .subcommand(
+                Command::new("scan")
+                    .about("Scan for nearby Bluetooth devices")
+                    .arg(
+                        clap::Arg::new("timeout")
+                            .long("timeout")
+                            .short('t')
+                            .value_name("SECS")
+                            .default_value("10")
+                            .value_parser(clap::value_parser!(u64))
+                            .help("Scan duration in seconds"),
+                    ),
+            )
+            .subcommand(Command::new("devices").about("List known Bluetooth devices"))
+            .subcommand(
+                Command::new("connect")
+                    .about("Connect (pair) a Bluetooth audio device")
+                    .arg(
+                        clap::Arg::new("address")
+                            .required(true)
+                            .help("Bluetooth device address (e.g. AA:BB:CC:DD:EE:FF)"),
+                    ),
+            )
+            .subcommand(
+                Command::new("disconnect")
+                    .about("Disconnect a Bluetooth device")
+                    .arg(
+                        clap::Arg::new("address")
+                            .required(true)
+                            .help("Bluetooth device address"),
+                    ),
+            ),
+    );
+    cli
 }
 
 #[tokio::main]
@@ -182,6 +222,25 @@ async fn main() -> Result<(), Error> {
         Some(("setup", _)) => {
             setup::install_dependencies()?;
         }
+        #[cfg(target_os = "linux")]
+        Some(("bluetooth", sub_m)) => match sub_m.subcommand() {
+            Some(("scan", m)) => {
+                let timeout = *m.get_one::<u64>("timeout").unwrap_or(&10);
+                cmd::bluetooth::scan(timeout).await?;
+            }
+            Some(("devices", _)) => {
+                cmd::bluetooth::devices().await?;
+            }
+            Some(("connect", m)) => {
+                let address = m.get_one::<String>("address").unwrap();
+                cmd::bluetooth::connect(address).await?;
+            }
+            Some(("disconnect", m)) => {
+                let address = m.get_one::<String>("address").unwrap();
+                cmd::bluetooth::disconnect(address).await?;
+            }
+            _ => {}
+        },
         Some((_, args)) => {
             if args.get_flag("rebuild") {
                 env::set_var("ROCKBOX_UPDATE_LIBRARY", "1");

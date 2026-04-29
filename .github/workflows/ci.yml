@@ -37,6 +37,7 @@ jobs:
             zip \
             unzip \
             protobuf-compiler \
+            libdbus-1-dev \
             cmake
           curl -Ssf https://pkgx.sh | sh
           pkgm install buf

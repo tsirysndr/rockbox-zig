@@ -44,3 +44,6 @@ tokio = {version = "1.36.0", features = ["full"]}
 url = "2.3.1"
 urlencoding = "2.1.3"
 tracing = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rockbox-bluetooth = { path = "../bluetooth" }

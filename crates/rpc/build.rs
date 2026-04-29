@@ -4,6 +4,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .file_descriptor_set_path("src/api/rockbox_descriptor.bin")
         .compile_protos(
             &[
+                "proto/rockbox/v1alpha1/bluetooth.proto",
                 "proto/rockbox/v1alpha1/browse.proto",
                 "proto/rockbox/v1alpha1/device.proto",
                 "proto/rockbox/v1alpha1/library.proto",

@@ -168,6 +168,17 @@ pub extern "C" fn start_server() {
     app.put("/devices/:id/connect", connect);
     app.put("/devices/:id/disconnect", disconnect);
 
+    #[cfg(target_os = "linux")]
+    {
+        app.post("/bluetooth/scan", scan_bluetooth);
+        app.get("/bluetooth/devices", get_bluetooth_devices);
+        app.put("/bluetooth/devices/:addr/connect", connect_bluetooth_device);
+        app.put(
+            "/bluetooth/devices/:addr/disconnect",
+            disconnect_bluetooth_device,
+        );
+    }
+
     app.get("/", index);
     app.get("/operations/:id", index);
     app.get("/schemas/:id", index);

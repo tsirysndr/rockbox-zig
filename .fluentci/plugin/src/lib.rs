@@ -27,6 +27,7 @@ pub fn build(_arg: String) -> FnResult<String> {
             "zip",
             "unzip",
             "cmake",
+            "libdbus-1-dev",
         ])?
         .with_exec(vec![
             "pkgm",

@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y build-essential \
   zip \
   unzip \
   protobuf-compiler \
+  libdbus-1-dev \
   cmake
 
 RUN case "${TARGETARCH}" in \
@@ -74,7 +75,8 @@ RUN apt-get update && apt-get install -y \
   libunwind-dev \
   alsa-utils \
   libasound2 \
-  pulseaudio
+  libdbus-1-dev \
+pulseaudio
 
 COPY --from=builder /usr/local/lib/rockbox /usr/local/lib/rockbox
 

@@ -2,6 +2,7 @@ use std::net::SocketAddr;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 
+use crate::api::rockbox::v1alpha1::bluetooth_service_server::BluetoothServiceServer;
 use crate::api::rockbox::v1alpha1::browse_service_server::BrowseServiceServer;
 use crate::api::rockbox::v1alpha1::device_service_server::DeviceServiceServer;
 use crate::api::rockbox::v1alpha1::library_service_server::LibraryServiceServer;
@@ -12,6 +13,7 @@ use crate::api::rockbox::v1alpha1::settings_service_server::SettingsServiceServe
 use crate::api::rockbox::v1alpha1::smart_playlist_service_server::SmartPlaylistServiceServer;
 use crate::api::rockbox::v1alpha1::sound_service_server::SoundServiceServer;
 use crate::api::rockbox::FILE_DESCRIPTOR_SET;
+use crate::bluetooth::Bluetooth;
 use crate::browse::Browse;
 use crate::device::Device;
 use crate::library::Library;
@@ -80,6 +82,9 @@ pub async fn start(
         )))
         .add_service(tonic_web::enable(SmartPlaylistServiceServer::new(
             SmartPlaylistRpc::new(playlist_store.clone(), pool.clone(), client.clone()),
+        )))
+        .add_service(tonic_web::enable(BluetoothServiceServer::new(
+            Bluetooth::new(client.clone()),
         )))
         .serve(addr)
         .await?;

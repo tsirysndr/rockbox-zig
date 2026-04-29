@@ -500,7 +500,7 @@ rockbox service status     # check status
 **Ubuntu / Debian**
 
 ```sh
-sudo apt-get install libsdl2-dev libfreetype6-dev libunwind-dev zip protobuf-compiler cmake
+sudo apt-get install libsdl2-dev libfreetype6-dev libdbus-1-dev libunwind-dev zip protobuf-compiler cmake
 ```
 
 **Fedora**

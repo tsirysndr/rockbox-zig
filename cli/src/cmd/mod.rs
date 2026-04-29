@@ -1,3 +1,5 @@
+#[cfg(target_os = "linux")]
+pub mod bluetooth;
 pub mod clear;
 pub mod community;
 pub mod login;
