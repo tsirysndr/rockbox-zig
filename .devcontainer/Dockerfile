@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y apt-utils && \
   locales \
   vim \
   cmake \
+  libdbus-1-dev \
   flatpak
 
 RUN locale-gen en_US.UTF-8

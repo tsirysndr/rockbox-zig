@@ -1,5 +1,7 @@
 pub mod albums;
 pub mod artists;
+#[cfg(target_os = "linux")]
+pub mod bluetooth;
 pub mod browse;
 pub mod devices;
 pub mod docs;
@@ -101,3 +103,12 @@ async_handler!(smart_playlists, play_smart_playlist);
 async_handler!(smart_playlists, record_track_played);
 async_handler!(smart_playlists, record_track_skipped);
 async_handler!(smart_playlists, get_track_stats);
+
+#[cfg(target_os = "linux")]
+async_handler!(bluetooth, scan_bluetooth);
+#[cfg(target_os = "linux")]
+async_handler!(bluetooth, get_bluetooth_devices);
+#[cfg(target_os = "linux")]
+async_handler!(bluetooth, connect_bluetooth_device);
+#[cfg(target_os = "linux")]
+async_handler!(bluetooth, disconnect_bluetooth_device);

@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y build-essential \
   libsdl2-dev \
   libfreetype6-dev \
   libunwind-dev \
+  libdbus-1-dev \
   curl \
   wget \
   zip \

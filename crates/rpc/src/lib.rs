@@ -2,6 +2,7 @@ use anyhow::Error;
 use futures::{future::BoxFuture, stream::FuturesUnordered, StreamExt};
 use tokio::fs;
 
+pub mod bluetooth;
 pub mod browse;
 pub mod device;
 pub mod library;

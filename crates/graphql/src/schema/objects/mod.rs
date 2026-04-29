@@ -1,6 +1,7 @@
 pub mod album;
 pub mod artist;
 pub mod audio_status;
+pub mod bluetooth_device;
 pub mod compressor_settings;
 pub mod device;
 pub mod entry;
