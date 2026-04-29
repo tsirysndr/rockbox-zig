@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.04.29-2]
+
+### Added
+- Bluetooth speaker management commands in the `rockbox` CLI (`bluetooth scan`, `bluetooth devices`, `bluetooth connect <address>`, `bluetooth disconnect <address>`) — Linux only, talks to a running `rockboxd` via gRPC
+- Bluetooth GraphQL resolvers (`bluetoothDevices` query, `bluetoothScan` / `bluetoothConnect` / `bluetoothDisconnect` mutations) now call `rockbox-bluetooth` directly instead of going through the HTTP server — eliminates an extra round-trip on Linux
+
+### Fixed
+- `BluetoothService` gRPC RPC renamed from `Connect` to `ConnectDevice` to avoid a name collision with tonic's auto-generated transport `connect` constructor, which caused a compile error (`duplicate definitions with name connect`)
+
 ## [2026.04.29-1]
 
 ### Fixed
