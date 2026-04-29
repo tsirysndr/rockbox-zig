@@ -9,6 +9,6 @@ serde = { version = "1", features = ["derive"] }
 tracing = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-bluer = "0.17"
+bluer = { version = "0.17", features = ["bluetoothd"] }
 futures = "0.3"
 tokio = { version = "1", features = ["time"] }
