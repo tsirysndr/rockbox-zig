@@ -7,7 +7,7 @@ License:        GPL-2.0
 
 BuildArch:      x86_64
 
-Requires: SDL2, freetype, libunwind, alsa-utils, alsa-lib-devel
+Requires: SDL2, freetype, libunwind, alsa-utils, alsa-lib-devel, dbus-devel, bluez, pulseaudio-module-bluetooth
 
 %description
 Rockbox open source high quality audio player
