@@ -16,6 +16,7 @@ enum FilesMode {
 struct FilesListView: View {
     @State private var files: [FileItem] = []
     @State private var errorText: String?
+    @State private var isLoading = false
     @State private var currentPath: String? = nil
     @State private var mode: FilesMode = .root
     @State private var history: [(FilesMode, String?)] = []
@@ -47,11 +48,14 @@ struct FilesListView: View {
 
             if mode == .root {
                 rootView
+            } else if isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 fileListView
             }
         }
-        .task(id: currentPath) {
+        .task(id: "\(mode)-\(currentPath ?? "")") {
             guard mode != .root else { return }
             await loadFiles()
         }
@@ -156,6 +160,8 @@ struct FilesListView: View {
     // MARK: - Data loading
 
     private func loadFiles() async {
+        isLoading = true
+        defer { isLoading = false }
         do {
             let entries = try await fetchFiles(path: currentPath)
             files = entries.compactMap { entry -> FileItem? in

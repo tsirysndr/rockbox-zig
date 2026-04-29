@@ -10,6 +10,7 @@ private func deviceSymbol(_ device: DeviceInfo) -> String {
     switch device.service {
     case "builtin":      return "macmini"
     case "fifo":         return "antenna.radiowaves.left.and.right"
+    case "snapcast":     return "antenna.radiowaves.left.and.right"
     case "squeezelite":  return "hifispeaker"
     case "airplay":      return "airplayvideo"
     case "chromecast":   return "tv.and.mediabox"
@@ -23,6 +24,7 @@ private func deviceColor(_ device: DeviceInfo) -> Color {
     switch device.service {
     case "builtin":      return Color(hex: "28fce3")
     case "fifo":         return Color(hex: "9090ff")
+    case "snapcast":     return Color(hex: "9090ff")
     case "squeezelite":  return Color(hex: "ffa028")
     case "airplay":      return Color(hex: "fe09a3")
     case "chromecast":   return Color(hex: "28cbfc")
@@ -37,42 +39,16 @@ struct DeviceListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header — current device
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.secondary.opacity(0.12))
-                        .frame(width: 36, height: 36)
-                    if let current = deviceState.currentDevice {
-                        Image(systemName: deviceSymbol(current))
-                            .font(.system(size: 16))
-                            .foregroundStyle(deviceColor(current))
-                    } else {
-                        Image(systemName: "macmini")
-                            .font(.system(size: 16))
-                            .foregroundStyle(Color(hex: "fe09a3"))
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Current device")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                    Text(deviceState.currentDevice?.name ?? "Rockbox (Built-in)")
-                        .font(.system(size: 13, weight: .medium))
-                        .lineLimit(1)
-                }
-
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 14)
-            .padding(.bottom, 10)
+            Text("Output Device")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+                .padding(.bottom, 8)
 
             Divider()
                 .padding(.horizontal, 8)
 
-            // Device list
             if deviceState.isLoading {
                 HStack {
                     Spacer()
@@ -80,31 +56,28 @@ struct DeviceListView: View {
                         .padding()
                     Spacer()
                 }
+            } else if deviceState.devices.isEmpty {
+                Text("No devices found.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
             } else {
-                let others = deviceState.devices.filter { !$0.isCurrentDevice }
-                if others.isEmpty {
-                    Text("No other devices found.")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                } else {
-                    ScrollView {
-                        VStack(spacing: 2) {
-                            ForEach(others) { device in
-                                DeviceRow(device: device) {
-                                    Task {
-                                        await deviceState.connect(device)
-                                        dismiss()
-                                    }
+                ScrollView {
+                    VStack(spacing: 2) {
+                        ForEach(deviceState.devices) { device in
+                            DeviceRow(device: device) {
+                                Task {
+                                    await deviceState.connect(device)
+                                    dismiss()
                                 }
                             }
                         }
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 8)
                     }
-                    .frame(maxHeight: 280)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 8)
                 }
+                .frame(maxHeight: 280)
             }
         }
         .frame(width: 280)

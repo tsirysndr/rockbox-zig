@@ -11,11 +11,24 @@ use gpui::{
     InteractiveElement, IntoElement, ParentElement, Render, StatefulInteractiveElement, Styled,
     WeakEntity, Window,
 };
+use std::collections::HashMap;
+use std::time::{Duration, Instant};
+
+/// How long the UPnP device list (upnp://) stays fresh. SSDP is time-sensitive.
+const UPNP_DEVICE_TTL: Duration = Duration::from_secs(30);
+/// How long a browsed UPnP content folder stays fresh. Content is stable.
+const UPNP_CONTENT_TTL: Duration = Duration::from_secs(300);
+
+struct CacheEntry {
+    entries: Vec<FileEntry>,
+    fetched_at: Instant,
+}
 
 pub struct FilesView {
     entries: Vec<FileEntry>,
-    upnp_devices: Vec<FileEntry>,
     last_loaded: Option<(FilesMode, Option<String>)>,
+    loading: bool,
+    upnp_cache: HashMap<String, CacheEntry>,
 }
 
 impl FilesView {
@@ -23,22 +36,21 @@ impl FilesView {
         cx.set_global(FilesBrowseState::default());
         cx.set_global(FileContextMenuState::default());
 
-        // Kick off a background prefetch of UPnP devices so they appear instantly
-        // when the user opens "UPnP Devices". The result is stored in upnp_devices.
+        // Prefetch UPnP device list into the cache so the first open is instant.
         let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
         cx.global::<Controller>().rt().spawn(async move {
-            let devices =
-                crate::client::tree_get_entries(Some("upnp://".to_string()))
-                    .await
-                    .unwrap_or_default();
+            let devices = crate::client::tree_get_entries(Some("upnp://".to_string()))
+                .await
+                .unwrap_or_default();
             let _ = tx.send(devices);
         });
         cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
             if let Ok(devices) = rx.await {
                 let _ = this.update(cx, |this, _cx| {
-                    this.upnp_devices = devices;
-                    // Do NOT notify or touch entries here — initial prefetch only
-                    // populates the cache; entries are set in load_if_needed.
+                    this.upnp_cache.insert(
+                        "upnp://".to_string(),
+                        CacheEntry { entries: devices, fetched_at: Instant::now() },
+                    );
                 });
             }
         })
@@ -46,8 +58,9 @@ impl FilesView {
 
         FilesView {
             entries: Vec::new(),
-            upnp_devices: Vec::new(),
             last_loaded: None,
+            loading: false,
+            upnp_cache: HashMap::new(),
         }
     }
 
@@ -58,6 +71,7 @@ impl FilesView {
         if self.last_loaded.as_ref() == Some(&key) {
             return;
         }
+
         // Root mode renders static tiles — no fetch needed.
         if browse.mode == FilesMode::Root {
             self.entries.clear();
@@ -65,56 +79,84 @@ impl FilesView {
             return;
         }
 
-        // UpnpDevices: show preloaded cache immediately, then re-fetch in background.
-        if browse.mode == FilesMode::UpnpDevices {
-            self.entries = self.upnp_devices.clone();
-            self.last_loaded = Some(key.clone());
-            // Re-fetch to refresh the device list (SSDP discovery is time-sensitive).
-            let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
-            cx.global::<Controller>().rt().spawn(async move {
-                let devices =
-                    crate::client::tree_get_entries(Some("upnp://".to_string()))
-                        .await
-                        .unwrap_or_default();
-                let _ = tx.send(devices);
-            });
-            cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
-                if let Ok(devices) = rx.await {
-                    let _ = this.update(cx, |this, cx| {
-                        this.upnp_devices = devices.clone();
-                        // Only apply to displayed entries if still on the device list.
-                        let current_mode = cx.global::<FilesBrowseState>().mode.clone();
-                        if current_mode == FilesMode::UpnpDevices {
-                            this.entries = devices;
-                            cx.notify();
-                        }
-                    });
+        // Determine if this is a UPnP path and its cache key.
+        let cache_key: Option<String> = match browse.mode {
+            FilesMode::UpnpDevices => Some("upnp://".to_string()),
+            FilesMode::UpnpBrowse => browse.current_path.clone(),
+            _ => None,
+        };
+        let ttl = match browse.mode {
+            FilesMode::UpnpDevices => UPNP_DEVICE_TTL,
+            _ => UPNP_CONTENT_TTL,
+        };
+
+        if let Some(ref ck) = cache_key {
+            let cached_entries = self.upnp_cache.get(ck).filter(|c| !c.entries.is_empty());
+            if let Some(cached) = cached_entries {
+                let fresh = cached.fetched_at.elapsed() < ttl;
+                // Show cached entries immediately — no spinner.
+                self.entries = cached.entries.clone();
+                self.loading = false;
+                self.last_loaded = Some(key.clone());
+                cx.notify();
+
+                if fresh {
+                    // Cache is warm — nothing more to do.
+                    return;
                 }
-            })
-            .detach();
+                // Cache is stale: silent background refresh (stale-while-revalidate).
+                self.spawn_fetch(cx, browse.current_path.clone(), key, Some(ck.clone()));
+                return;
+            }
+            // Cache miss (or empty result from a previous failed fetch): show
+            // loading spinner and fetch.
+            self.entries.clear();
+            self.loading = true;
+            self.last_loaded = Some(key.clone());
+            cx.notify();
+            self.spawn_fetch(cx, browse.current_path.clone(), key, Some(ck.clone()));
             return;
         }
 
+        // Local filesystem — no caching, plain fetch with spinner.
+        self.entries.clear();
+        self.loading = true;
         self.last_loaded = Some(key.clone());
-        let path = browse.current_path.clone();
+        cx.notify();
+        self.spawn_fetch(cx, browse.current_path.clone(), key, None);
+    }
 
+    fn spawn_fetch(
+        &self,
+        cx: &mut Context<Self>,
+        path: Option<String>,
+        key: (FilesMode, Option<String>),
+        cache_key: Option<String>,
+    ) {
         let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
         cx.global::<Controller>().rt().spawn(async move {
             let entries = crate::client::tree_get_entries(path).await.unwrap_or_default();
             let _ = tx.send(entries);
         });
-
         cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
             if let Ok(entries) = rx.await {
                 let _ = this.update(cx, |this, cx| {
-                    // Only apply if the user is still on the same page that triggered
-                    // this fetch — guards against races when navigating quickly.
+                    // Always update the cache.
+                    if let Some(ref ck) = cache_key {
+                        this.upnp_cache.insert(
+                            ck.clone(),
+                            CacheEntry { entries: entries.clone(), fetched_at: Instant::now() },
+                        );
+                    }
+                    // Only update the displayed entries if the user is still
+                    // on the page that triggered this fetch.
                     let current_key = {
                         let browse = cx.global::<FilesBrowseState>();
                         (browse.mode.clone(), browse.current_path.clone())
                     };
                     if current_key == key {
                         this.entries = entries;
+                        this.loading = false;
                         cx.notify();
                     }
                 });
@@ -153,6 +195,7 @@ impl Render for FilesView {
         let current_dir = browse.current_path.clone().unwrap_or_default();
         let mode = browse.mode.clone();
         let entries = self.entries.clone();
+        let loading = self.loading;
 
         div()
             .size_full()
@@ -199,9 +242,26 @@ impl Render for FilesView {
             // ── Content ───────────────────────────────────────────────────────
             .child(match mode {
                 FilesMode::Root => render_root(theme).into_any_element(),
+                _ if loading => render_loading(theme).into_any_element(),
                 _ => render_entries(entries, current_dir, mode, theme).into_any_element(),
             })
     }
+}
+
+fn render_loading(theme: Theme) -> AnyElement {
+    div()
+        .flex_1()
+        .min_h_0()
+        .flex()
+        .items_center()
+        .justify_center()
+        .child(
+            div()
+                .text_sm()
+                .text_color(theme.library_header_text)
+                .child("Loading…"),
+        )
+        .into_any_element()
 }
 
 fn render_root(theme: Theme) -> AnyElement {

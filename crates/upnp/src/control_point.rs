@@ -108,8 +108,12 @@ pub async fn browse_content_directory(control_url: &str, object_id: &str) -> Vec
         Err(_) => return vec![],
     };
 
-    let soap_body = format!(
-        r#"<?xml version="1.0"?>
+    let mut all_entries: Vec<ContentEntry> = Vec::new();
+    let mut starting_index: u32 = 0;
+
+    loop {
+        let soap_body = format!(
+            r#"<?xml version="1.0"?>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"
             s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
   <s:Body>
@@ -117,53 +121,83 @@ pub async fn browse_content_directory(control_url: &str, object_id: &str) -> Vec
       <ObjectID>{}</ObjectID>
       <BrowseFlag>BrowseDirectChildren</BrowseFlag>
       <Filter>*</Filter>
-      <StartingIndex>0</StartingIndex>
-      <RequestedCount>0</RequestedCount>
+      <StartingIndex>{}</StartingIndex>
+      <RequestedCount>200</RequestedCount>
       <SortCriteria></SortCriteria>
     </u:Browse>
   </s:Body>
 </s:Envelope>"#,
-        xml_escape(object_id)
-    );
+            xml_escape(object_id),
+            starting_index,
+        );
 
-    let resp = match client
-        .post(control_url)
-        .header("Content-Type", r#"text/xml; charset="utf-8""#)
-        .header(
-            "SOAPAction",
-            r#""urn:schemas-upnp-org:service:ContentDirectory:1#Browse""#,
-        )
-        .body(soap_body)
-        .send()
-        .await
-    {
-        Ok(r) => r,
-        Err(e) => {
-            tracing::warn!("UPnP browse {control_url}: {e}");
-            return vec![];
+        let resp = match client
+            .post(control_url)
+            .header("Content-Type", r#"text/xml; charset="utf-8""#)
+            .header(
+                "SOAPAction",
+                r#""urn:schemas-upnp-org:service:ContentDirectory:1#Browse""#,
+            )
+            .body(soap_body)
+            .send()
+            .await
+        {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::warn!("UPnP browse {control_url}: {e}");
+                break;
+            }
+        };
+
+        let body = match resp.text().await {
+            Ok(b) => b,
+            Err(_) => break,
+        };
+
+        tracing::debug!("UPnP browse response body (start={starting_index}): {body}");
+
+        let result_xml = match extract_result_tag(&body) {
+            Some(r) => html_unescape(&r),
+            None => {
+                tracing::warn!("UPnP browse: no <Result> tag found in response");
+                break;
+            }
+        };
+
+        tracing::debug!("UPnP DIDL-Lite XML: {result_xml}");
+
+        let page = parse_didl_lite(&result_xml);
+        let number_returned = parse_u32_tag(&body, "NumberReturned").unwrap_or(page.len() as u32);
+        let total_matches = parse_u32_tag(&body, "TotalMatches").unwrap_or(0);
+
+        tracing::debug!(
+            "UPnP browse: start={} returned={} total={} parsed={}",
+            starting_index,
+            number_returned,
+            total_matches,
+            page.len()
+        );
+
+        let fetched = page.len() as u32;
+        all_entries.extend(page);
+
+        // Stop if the server returned nothing, or we've collected everything.
+        if fetched == 0 || number_returned == 0 {
+            break;
         }
-    };
-
-    let body = match resp.text().await {
-        Ok(b) => b,
-        Err(_) => return vec![],
-    };
-
-    tracing::debug!("UPnP browse response body: {body}");
-
-    let result_xml = match extract_result_tag(&body) {
-        Some(r) => html_unescape(&r),
-        None => {
-            tracing::warn!("UPnP browse: no <Result> tag found in response");
-            return vec![];
+        starting_index += number_returned;
+        if total_matches > 0 && starting_index >= total_matches {
+            break;
         }
-    };
+        // If the server doesn't report TotalMatches, stop when it returns fewer
+        // items than we requested (last page).
+        if total_matches == 0 && number_returned < 200 {
+            break;
+        }
+    }
 
-    tracing::debug!("UPnP DIDL-Lite XML: {result_xml}");
-
-    let entries = parse_didl_lite(&result_xml);
-    tracing::debug!("UPnP parsed {} entries", entries.len());
-    entries
+    tracing::debug!("UPnP browse total entries collected: {}", all_entries.len());
+    all_entries
 }
 
 // ── DIDL-Lite parser ──────────────────────────────────────────────────────────
@@ -215,6 +249,14 @@ fn parse_elements(xml: &str, tag: &str, is_container: bool, out: &mut Vec<Conten
 }
 
 // ── XML/HTML helpers ──────────────────────────────────────────────────────────
+
+fn parse_u32_tag(xml: &str, tag: &str) -> Option<u32> {
+    extract_tag(xml, tag)
+        .or_else(|| extract_namespaced(xml, tag))?
+        .trim()
+        .parse()
+        .ok()
+}
 
 /// Extracts the content of the SOAP <Result> element, handling optional namespace prefixes
 /// like <u:Result> that some UPnP servers emit.

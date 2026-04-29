@@ -16,7 +16,7 @@ class DeviceState: ObservableObject {
     }
 
     func refresh() async {
-        isLoading = true
+        if devices.isEmpty { isLoading = true }
         do {
             devices = try await fetchDevices()
         } catch {
