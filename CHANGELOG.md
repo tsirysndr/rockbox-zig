@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.04.29-1]
+
+### Fixed
+- macOS app Files view: navigating from the root into Music no longer yields an empty list — `.task` ID now encodes both mode and path so a mode change with a nil path correctly triggers a reload
+- macOS app device picker: now lists all output devices (including the current one, marked with a checkmark) instead of only non-current devices; added `snapcast` icon/colour entry
+- macOS app device picker: no longer shows a loading spinner on open when devices were already preloaded at startup — `refresh()` only sets `isLoading` when the device list is empty
+
 ## [2026.04.29]
 
 ### Added
