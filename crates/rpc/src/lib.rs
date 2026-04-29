@@ -747,6 +747,7 @@ pub mod api {
                     attr,
                     time_write,
                     customaction,
+                    display_name: None,
                 }
             }
         }
@@ -983,6 +984,9 @@ pub fn rockbox_url() -> String {
 
 pub fn read_files(path: String) -> BoxFuture<'static, Result<Vec<String>, Error>> {
     Box::pin(async move {
+        if path.starts_with("upnp://") {
+            return read_upnp_files(path).await;
+        }
         let mut result = Vec::new();
         let mut dir = fs::read_dir(path).await?;
         let mut futures = FuturesUnordered::new();
@@ -1005,6 +1009,38 @@ pub fn read_files(path: String) -> BoxFuture<'static, Result<Vec<String>, Error>
         }
         while let Some(Ok(future)) = futures.next().await {
             result.extend(future?);
+        }
+        Ok(result)
+    })
+}
+
+pub fn read_upnp_files(path: String) -> BoxFuture<'static, Result<Vec<String>, Error>> {
+    Box::pin(async move {
+        use rockbox_upnp::control_point::{
+            browse_content_directory, percent_decode, percent_encode,
+        };
+        let rest = path.trim_start_matches("upnp://");
+        let (ctrl_encoded, object_id_raw) = match rest.find('/') {
+            None => (rest, "0"),
+            Some(i) => (&rest[..i], &rest[i + 1..]),
+        };
+        let object_id = if object_id_raw.is_empty() {
+            "0".to_string()
+        } else {
+            percent_decode(object_id_raw)
+        };
+        let control_url = percent_decode(ctrl_encoded);
+        let ctrl_encoded = ctrl_encoded.to_string();
+        let entries = browse_content_directory(&control_url, &object_id).await;
+        let mut result = Vec::new();
+        for entry in entries {
+            if entry.is_container {
+                let sub_path = format!("upnp://{}/{}", ctrl_encoded, percent_encode(&entry.id));
+                let sub = read_upnp_files(sub_path).await?;
+                result.extend(sub);
+            } else if let Some(uri) = entry.uri {
+                result.push(uri);
+            }
         }
         Ok(result)
     })

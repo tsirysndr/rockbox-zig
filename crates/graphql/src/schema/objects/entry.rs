@@ -7,6 +7,7 @@ pub struct Entry {
     pub attr: i32,
     pub time_write: u32,
     pub customaction: i32,
+    pub display_name: Option<String>,
 }
 
 #[Object]
@@ -26,6 +27,10 @@ impl Entry {
     async fn customaction(&self) -> i32 {
         self.customaction
     }
+
+    async fn display_name(&self) -> Option<&str> {
+        self.display_name.as_deref()
+    }
 }
 
 impl From<rockbox_sys::types::tree::Entry> for Entry {
@@ -35,6 +40,7 @@ impl From<rockbox_sys::types::tree::Entry> for Entry {
             attr: entry.attr,
             time_write: entry.time_write,
             customaction: entry.customaction,
+            display_name: None,
         }
     }
 }

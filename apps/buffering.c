@@ -648,6 +648,18 @@ static bool buffer_handle(int handle_id, size_t to_buffer)
         if (h->fd == -1) {
             /* could not open the file, truncate it where it is */
             h->filesize = h->end;
+            /* For TYPE_ID3 the playback chain waits for BUFFER_EVENT_FINISHED
+             * before it posts Q_AUDIO_FINISH_LOAD_TRACK.  If we return here
+             * without sending it the track loading stalls permanently.  Send
+             * the event with a zeroed mp3entry (no metadata) so the chain
+             * keeps moving. */
+            if (h->type == TYPE_ID3) {
+                wipe_mp3entry((struct mp3entry *)ringbuf_ptr(h->data));
+                h->filesize = sizeof(struct mp3entry);
+                h->widx     = ringbuf_add(h->data, h->filesize);
+                h->end      = h->filesize;
+                send_event(BUFFER_EVENT_FINISHED, &handle_id);
+            }
             return true;
         }
 

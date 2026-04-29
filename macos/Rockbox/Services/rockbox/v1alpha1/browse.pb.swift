@@ -94,9 +94,20 @@ struct Rockbox_V1alpha1_Entry: Sendable {
 
   var customaction: Int32 = 0
 
+  var displayName: String {
+    get {return _displayName ?? String()}
+    set {_displayName = newValue}
+  }
+  /// Returns true if `displayName` has been explicitly set.
+  var hasDisplayName: Bool {return self._displayName != nil}
+  /// Clears the value of `displayName`. Subsequent reads from it will return its default value.
+  mutating func clearDisplayName() {self._displayName = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
+
+  fileprivate var _displayName: String? = nil
 }
 
 struct Rockbox_V1alpha1_TreeGetEntriesResponse: Sendable {
@@ -267,7 +278,7 @@ extension Rockbox_V1alpha1_TreeGetEntriesRequest: SwiftProtobuf.Message, SwiftPr
 
 extension Rockbox_V1alpha1_Entry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".Entry"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}attr\0\u{3}time_write\0\u{1}customaction\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}attr\0\u{3}time_write\0\u{1}customaction\0\u{4}display_name\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -279,6 +290,7 @@ extension Rockbox_V1alpha1_Entry: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       case 2: try { try decoder.decodeSingularInt32Field(value: &self.attr) }()
       case 3: try { try decoder.decodeSingularUInt32Field(value: &self.timeWrite) }()
       case 4: try { try decoder.decodeSingularInt32Field(value: &self.customaction) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self._displayName) }()
       default: break
       }
     }
@@ -297,6 +309,9 @@ extension Rockbox_V1alpha1_Entry: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if self.customaction != 0 {
       try visitor.visitSingularInt32Field(value: self.customaction, fieldNumber: 4)
     }
+    if let v = self._displayName {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -305,6 +320,7 @@ extension Rockbox_V1alpha1_Entry: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if lhs.attr != rhs.attr {return false}
     if lhs.timeWrite != rhs.timeWrite {return false}
     if lhs.customaction != rhs.customaction {return false}
+    if lhs._displayName != rhs._displayName {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

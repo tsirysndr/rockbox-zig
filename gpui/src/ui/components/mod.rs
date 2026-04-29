@@ -32,11 +32,51 @@ pub enum LibrarySection {
 }
 impl gpui::Global for LibrarySection {}
 
+#[derive(Clone, PartialEq)]
+pub enum FilesMode {
+    /// Root landing: show "Music" and "UPnP Devices" tiles.
+    Root,
+    /// Browsing the local music directory (current_path = current dir, None = music root).
+    Local,
+    /// Listing discovered UPnP/DLNA media servers.
+    UpnpDevices,
+    /// Browsing a UPnP device's ContentDirectory.
+    UpnpBrowse,
+}
+
+impl Default for FilesMode {
+    fn default() -> Self {
+        FilesMode::Root
+    }
+}
+
 #[derive(Clone, Default)]
 pub struct FilesBrowseState {
+    pub mode: FilesMode,
     pub current_path: Option<String>,
-    pub path_history: Vec<Option<String>>,
+    pub history: Vec<(FilesMode, Option<String>)>,
 }
+
+impl FilesBrowseState {
+    pub fn can_go_back(&self) -> bool {
+        !self.history.is_empty()
+    }
+
+    pub fn go_back(&mut self) {
+        if let Some((prev_mode, prev_path)) = self.history.pop() {
+            self.mode = prev_mode;
+            self.current_path = prev_path;
+        }
+    }
+
+    pub fn navigate(&mut self, new_mode: FilesMode, new_path: Option<String>) {
+        let old_mode = std::mem::replace(&mut self.mode, new_mode);
+        let old_path = self.current_path.take();
+        self.history.push((old_mode, old_path));
+        self.current_path = new_path;
+    }
+}
+
 impl gpui::Global for FilesBrowseState {}
 
 #[derive(Clone)]

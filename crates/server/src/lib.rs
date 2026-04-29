@@ -173,6 +173,11 @@ pub extern "C" fn start_server() {
     app.get("/schemas/:id", index);
     app.get("/openapi.json", get_openapi);
 
+    // Pre-initialize the UPnP tokio runtime before any HTTP handler runs.
+    // If initialized lazily inside a handler's block_on context, tokio 1.27+
+    // panics with "Cannot start a runtime from within a runtime."
+    rockbox_upnp::init();
+
     match app.listen() {
         Ok(_) => {}
         Err(e) => {

@@ -408,41 +408,45 @@ impl PlaybackService for Playback {
             None => recurse,
         };
 
-        if !std::path::Path::new(&path).is_dir() {
-            return Err(tonic::Status::invalid_argument("Path is not a directory"));
-        }
-
-        match recurse {
-            Some(true) => {
-                tracks = read_files(path)
-                    .await
-                    .map_err(|e| tonic::Status::internal(e.to_string()))?
+        if path.starts_with("upnp://") {
+            tracks = crate::read_upnp_files(path)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        } else {
+            if !std::path::Path::new(&path).is_dir() {
+                return Err(tonic::Status::invalid_argument("Path is not a directory"));
             }
-            _ => {
-                for file in
-                    fs::read_dir(&path).map_err(|e| tonic::Status::internal(e.to_string()))?
-                {
-                    let file = file.map_err(|e| tonic::Status::internal(e.to_string()))?;
-
-                    if file
-                        .metadata()
+            match recurse {
+                Some(true) => {
+                    tracks = read_files(path)
+                        .await
                         .map_err(|e| tonic::Status::internal(e.to_string()))?
-                        .is_file()
-                        && !AUDIO_EXTENSIONS.iter().any(|ext| {
-                            file.path()
-                                .to_string_lossy()
-                                .ends_with(&format!(".{}", ext))
-                        })
+                }
+                _ => {
+                    for file in
+                        fs::read_dir(&path).map_err(|e| tonic::Status::internal(e.to_string()))?
                     {
-                        continue;
-                    }
+                        let file = file.map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-                    tracks.push(file.path().to_string_lossy().to_string());
+                        if file
+                            .metadata()
+                            .map_err(|e| tonic::Status::internal(e.to_string()))?
+                            .is_file()
+                            && !AUDIO_EXTENSIONS.iter().any(|ext| {
+                                file.path()
+                                    .to_string_lossy()
+                                    .ends_with(&format!(".{}", ext))
+                            })
+                        {
+                            continue;
+                        }
+
+                        tracks.push(file.path().to_string_lossy().to_string());
+                    }
                 }
             }
+            tracks.sort();
         }
-
-        tracks.sort();
 
         let body = serde_json::json!({
             "tracks": tracks
