@@ -22,6 +22,7 @@ export type Album = {
   albumArt?: Maybe<Scalars['String']['output']>;
   artist: Scalars['String']['output'];
   artistId: Scalars['String']['output'];
+  copyrightMessage?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   md5: Scalars['String']['output'];
   title: Scalars['String']['output'];

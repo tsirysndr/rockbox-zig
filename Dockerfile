@@ -67,6 +67,8 @@ WORKDIR /app
 
 RUN [ -n "$TAG" ] && fluentci run --wasm . release  ; exit 0
 
+FROM typesense/typesense:30.1 AS typesense
+
 FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y \
@@ -83,6 +85,8 @@ COPY --from=builder /usr/local/lib/rockbox /usr/local/lib/rockbox
 COPY --from=builder /usr/local/share/rockbox /usr/local/share/rockbox
 
 COPY --from=builder /usr/local/bin/rockboxd /usr/local/bin/rockboxd
+
+COPY --from=typesense /opt/typesense-server /usr/local/bin/typesense-server
 
 ENV SDL_VIDEODRIVER=dummy
 

@@ -98,6 +98,7 @@ export const GET_ALBUM = gql`
       yearString
       artistId
       md5
+      copyrightMessage
       tracks {
         id
         title

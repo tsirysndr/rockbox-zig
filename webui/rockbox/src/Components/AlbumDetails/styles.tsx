@@ -134,3 +134,15 @@ export const Link = styled(RouterLink)`
     text-decoration: underline;
   }
 `;
+
+export const Footer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 24px 0 32px;
+`;
+
+export const FooterText = styled.div`
+  font-size: 12px;
+  color: ${(props) => props.theme.colors.secondaryText};
+`;

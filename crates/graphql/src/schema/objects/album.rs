@@ -12,6 +12,7 @@ pub struct Album {
     pub album_art: Option<String>,
     pub md5: String,
     pub artist_id: String,
+    pub copyright_message: Option<String>,
     pub tracks: Vec<Track>,
 }
 
@@ -49,6 +50,10 @@ impl Album {
         &self.artist_id
     }
 
+    async fn copyright_message(&self) -> Option<&str> {
+        self.copyright_message.as_deref()
+    }
+
     async fn tracks(&self) -> Vec<Track> {
         self.tracks.clone()
     }
@@ -65,6 +70,7 @@ impl From<rockbox_library::entity::album::Album> for Album {
             album_art: album.album_art,
             md5: album.md5,
             artist_id: album.artist_id,
+            copyright_message: album.copyright_message,
             tracks: vec![],
         }
     }
@@ -81,6 +87,7 @@ impl From<rockbox_typesense::types::Album> for Album {
             album_art: album.album_art,
             md5: album.md5,
             artist_id: album.artist_id,
+            copyright_message: None,
             tracks: vec![],
         }
     }

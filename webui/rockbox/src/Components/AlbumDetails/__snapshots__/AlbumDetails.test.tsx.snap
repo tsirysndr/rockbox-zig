@@ -2966,6 +2966,15 @@ exports[`AlbumDetails > should render 1`] = `
                   </tr>
                 </tbody>
               </table>
+              <div
+                class="css-rimww3"
+              >
+                <div
+                  class="css-ngpkdm"
+                >
+                  2006
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -20,6 +20,8 @@ import {
   BackButton,
   Label,
   Link,
+  Footer,
+  FooterText,
 } from "./styles";
 import Button from "../Button";
 import ArrowBack from "../Icons/ArrowBack";
@@ -33,6 +35,24 @@ import ContextMenu from "../ContextMenu";
 import _ from "lodash";
 import DetailHeaderSkeleton from "../Skeletons/DetailHeaderSkeleton";
 import TrackListSkeleton from "../Skeletons/TrackListSkeleton";
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function formatReleaseDate(s: string): string {
+  const parts = s.split("-");
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d) && m >= 1 && m <= 12) {
+      return `${d} ${MONTHS[m - 1]} ${y}`;
+    }
+  }
+  return s;
+}
 
 const columnHelper = createColumnHelper<Track>();
 
@@ -213,6 +233,18 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
                   </div>
                 ))}
               </div>
+            )}
+            {(props.album?.yearString || props.album?.copyrightMessage) && (
+              <Footer>
+                {props.album?.yearString && (
+                  <FooterText>
+                    {formatReleaseDate(props.album.yearString)}
+                  </FooterText>
+                )}
+                {props.album?.copyrightMessage && (
+                  <FooterText>{props.album.copyrightMessage}</FooterText>
+                )}
+              </Footer>
             )}
           </div>}
         </ContentWrapper>
