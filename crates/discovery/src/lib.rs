@@ -1,7 +1,8 @@
 use async_stream::stream;
 use futures_util::Stream;
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
-use std::{env, thread};
+use rand::RngCore as _;
+use std::{env, fs, path::PathBuf, thread};
 
 pub const ROCKBOX_SERVICE_NAME: &'static str = "_rockbox._tcp.local.";
 pub const MUSIC_PLAYER_SERVICE_NAME: &'static str = "_music-player._tcp.local.";
@@ -35,8 +36,29 @@ impl MdnsResponder {
     }
 }
 
+fn get_or_create_device_id() -> String {
+    let path = dirs::home_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join(".config/rockbox.org/device-id");
+
+    if let Ok(id) = fs::read_to_string(&path) {
+        let id = id.trim().to_string();
+        if !id.is_empty() {
+            return id;
+        }
+    }
+
+    let id = format!("{:016x}", rand::thread_rng().next_u64());
+
+    if let Some(parent) = path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    let _ = fs::write(&path, &id);
+    id
+}
+
 pub fn register_services() {
-    let device_id = "123";
+    let device_id = get_or_create_device_id();
     let http_service = format!("http-{}", device_id);
     let graphql_service = format!("graphql-{}", device_id);
     let grpc_service = format!("grpc-{}", device_id);

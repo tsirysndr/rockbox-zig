@@ -9267,10 +9267,12 @@ name = "rockbox-discovery"
 version = "0.1.0"
 dependencies = [
  "async-stream 0.3.6",
+ "dirs 6.0.0",
  "futures-util",
  "libmdns",
  "mdns",
  "mdns-sd",
+ "rand 0.8.5",
  "tokio",
 ]
 
