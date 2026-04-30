@@ -17,6 +17,7 @@ pub struct ContentEntry {
     pub title: String,
     pub is_container: bool,
     pub uri: Option<String>,
+    pub album_art_uri: Option<String>,
 }
 
 pub async fn discover_media_servers() -> Vec<DiscoveredDevice> {
@@ -238,11 +239,17 @@ fn parse_elements(xml: &str, tag: &str, is_container: bool, out: &mut Vec<Conten
         } else {
             extract_res_uri(element)
         };
+        let album_art_uri = if is_container {
+            None
+        } else {
+            extract_namespaced(element, "albumArtURI")
+        };
         out.push(ContentEntry {
             id,
             title,
             is_container,
             uri,
+            album_art_uri,
         });
         pos = end_abs;
     }

@@ -53,7 +53,23 @@ pub fn read_files(path: String) -> BoxFuture<'static, Result<Vec<String>, Error>
     })
 }
 
-pub fn read_upnp_files(path: String) -> BoxFuture<'static, Result<Vec<String>, Error>> {
+/// Like `read_files` but also returns the `albumArtURI` for UPnP tracks.
+/// Local files always have `None` for the art URI.
+pub fn read_files_with_art(
+    path: String,
+) -> BoxFuture<'static, Result<Vec<(String, Option<String>)>, Error>> {
+    Box::pin(async move {
+        if path.starts_with("upnp://") {
+            return read_upnp_entries(path).await;
+        }
+        let files = read_files(path).await?;
+        Ok(files.into_iter().map(|f| (f, None)).collect())
+    })
+}
+
+pub fn read_upnp_entries(
+    path: String,
+) -> BoxFuture<'static, Result<Vec<(String, Option<String>)>, Error>> {
     Box::pin(async move {
         use rockbox_upnp::control_point::{
             browse_content_directory, percent_decode, percent_encode,
@@ -72,15 +88,25 @@ pub fn read_upnp_files(path: String) -> BoxFuture<'static, Result<Vec<String>, E
         let ctrl_encoded = ctrl_encoded.to_string();
         let entries = browse_content_directory(&control_url, &object_id).await;
         let mut result = Vec::new();
+        let mut futures = FuturesUnordered::new();
         for entry in entries {
             if entry.is_container {
                 let sub_path = format!("upnp://{}/{}", ctrl_encoded, percent_encode(&entry.id));
-                let sub = read_upnp_files(sub_path).await?;
-                result.extend(sub);
+                futures.push(tokio::spawn(read_upnp_entries(sub_path)));
             } else if let Some(uri) = entry.uri {
-                result.push(uri);
+                result.push((uri, entry.album_art_uri));
             }
         }
+        while let Some(Ok(sub)) = futures.next().await {
+            result.extend(sub?);
+        }
         Ok(result)
+    })
+}
+
+pub fn read_upnp_files(path: String) -> BoxFuture<'static, Result<Vec<String>, Error>> {
+    Box::pin(async move {
+        let entries = read_upnp_entries(path).await?;
+        Ok(entries.into_iter().map(|(uri, _)| uri).collect())
     })
 }

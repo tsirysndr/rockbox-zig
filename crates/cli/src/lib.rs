@@ -421,7 +421,7 @@ pub extern "C" fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i3
 
     match rt.block_on(async {
         let pool = create_connection_pool().await?;
-        save_audio_metadata(pool, url).await
+        save_audio_metadata(pool, url, None).await
     }) {
         Ok(()) => 0,
         Err(e) => {

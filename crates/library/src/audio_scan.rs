@@ -14,7 +14,7 @@ use owo_colors::OwoColorize;
 use rockbox_sys as rb;
 use rockbox_sys::types::mp3_entry::Mp3Entry;
 use sqlx::{Pool, Sqlite};
-use std::{io::Write, path::PathBuf, sync::Arc};
+use std::{io::Write, path::PathBuf, sync::Arc, time::Duration};
 use tokio::{fs, sync::Semaphore};
 
 const AUDIO_EXTENSIONS: [&str; 18] = [
@@ -59,7 +59,7 @@ fn scan_audio_files_inner(
                 {
                     continue;
                 }
-                save_audio_metadata(pool.clone(), path).await?;
+                save_audio_metadata(pool.clone(), path, None).await?;
                 result.push(PathBuf::from(path));
             }
         }
@@ -86,7 +86,11 @@ fn scan_audio_files_inner(
     })
 }
 
-pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), Error> {
+pub async fn save_audio_metadata(
+    pool: Pool<Sqlite>,
+    path: &str,
+    album_art_uri: Option<&str>,
+) -> Result<(), Error> {
     if !is_supported_audio_path(path) {
         return Ok(());
     }
@@ -121,7 +125,14 @@ pub async fn save_audio_metadata(pool: Pool<Sqlite>, path: &str) -> Result<(), E
     let artist = track_artist(&entry);
     let album_artist = track_album_artist(&entry, &artist);
     let album = track_album(&entry, &title);
-    let album_art = extract_and_save_album_cover_with_key(metadata_path, Some(&album))?;
+    let mut album_art = extract_and_save_album_cover_with_key(metadata_path, Some(&album))?;
+
+    // Fall back to the UPnP albumArtURI when the audio file has no embedded art.
+    if album_art.is_none() {
+        if let Some(art_url) = album_art_uri {
+            album_art = download_and_save_album_art(art_url, &album).await?;
+        }
+    }
 
     let title = match title.is_empty() {
         true => "Unknown Title".to_string(),
@@ -553,4 +564,63 @@ fn content_type_to_extension(content_type: &str) -> Option<&'static str> {
         "audio/x-ms-wma" => Some("wma"),
         _ => None,
     }
+}
+
+/// Download album art from a URL (e.g. UPnP `albumArtURI`) and save it to the covers directory.
+/// Returns the filename (e.g. `"abc123.jpg"`) on success, or `None` if unavailable.
+async fn download_and_save_album_art(
+    art_url: &str,
+    album_key: &str,
+) -> Result<Option<String>, Error> {
+    let client = match reqwest::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()
+    {
+        Ok(c) => c,
+        Err(_) => return Ok(None),
+    };
+
+    let response = match client.get(art_url).send().await {
+        Ok(r) if r.status().is_success() => r,
+        Ok(r) => {
+            tracing::debug!("album art download {} returned {}", art_url, r.status());
+            return Ok(None);
+        }
+        Err(e) => {
+            tracing::debug!("album art download {} failed: {}", art_url, e);
+            return Ok(None);
+        }
+    };
+
+    let ext = response
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|ct| ct.to_str().ok())
+        .map(|ct| {
+            if ct.contains("png") {
+                "png"
+            } else if ct.contains("gif") {
+                "gif"
+            } else if ct.contains("bmp") {
+                "bmp"
+            } else {
+                "jpg"
+            }
+        })
+        .unwrap_or("jpg");
+
+    let bytes = match response.bytes().await {
+        Ok(b) if !b.is_empty() => b,
+        _ => return Ok(None),
+    };
+
+    let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
+    let covers_path = format!("{}/.config/rockbox.org/covers", home);
+    std::fs::create_dir_all(&covers_path)?;
+
+    let album_md5 = md5::compute(album_key.as_bytes());
+    let filename = format!("{:x}.{}", album_md5, ext);
+    std::fs::write(format!("{}/{}", covers_path, filename), &bytes)?;
+
+    Ok(Some(filename))
 }

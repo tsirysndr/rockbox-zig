@@ -1,11 +1,15 @@
-use std::{env, ffi::CString, sync::atomic::Ordering};
+use std::{env, sync::atomic::Ordering, sync::Arc};
+
+use futures_util::stream::{FuturesUnordered, StreamExt};
+use tokio::sync::Semaphore;
 
 use crate::http::{Context, Request, Response};
 use crate::{PLAYER_MUTEX, PLAYLIST_DIRTY};
 use anyhow::{anyhow, Error};
 use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
-use rockbox_graphql::read_files;
+use rockbox_graphql::{read_files, read_files_with_art};
+use rockbox_library::audio_scan::save_audio_metadata;
 use rockbox_library::repo;
 use rockbox_sys::{
     self as rb,
@@ -14,10 +18,6 @@ use rockbox_sys::{
 };
 use rockbox_traits::types::track::Track;
 use rockbox_types::{DeleteTracks, InsertTracks, NewPlaylist, StatusCode};
-
-unsafe extern "C" {
-    fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i32;
-}
 
 fn trim_path(s: String) -> String {
     let s = s.trim();
@@ -41,7 +41,12 @@ pub async fn create_playlist(
         return Ok(());
     }
 
-    persist_remote_track_metadata(_ctx, &new_playlist.tracks).await?;
+    let tracks_with_art: Vec<(String, Option<String>)> = new_playlist
+        .tracks
+        .iter()
+        .map(|t| (t.clone(), None))
+        .collect();
+    persist_remote_track_metadata(_ctx.pool.clone(), tracks_with_art).await;
 
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
 
@@ -218,8 +223,13 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
     let mut tracklist: InsertTracks = serde_json::from_str(&req_body).unwrap();
     tracklist.tracks = tracklist.tracks.into_iter().map(trim_path).collect();
 
+    let mut tracks_with_art: Vec<(String, Option<String>)> =
+        tracklist.tracks.iter().map(|t| (t.clone(), None)).collect();
+
     if let Some(dir) = &tracklist.directory {
-        tracklist.tracks = read_files(dir.clone()).await?;
+        let entries = read_files_with_art(dir.clone()).await?;
+        tracklist.tracks = entries.iter().map(|(uri, _)| uri.clone()).collect();
+        tracks_with_art = entries;
     }
 
     if tracklist.tracks.is_empty() {
@@ -227,7 +237,7 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
         return Ok(());
     }
 
-    persist_remote_track_metadata(ctx, &tracklist.tracks).await?;
+    persist_remote_track_metadata(ctx.pool.clone(), tracks_with_art).await;
 
     let player_mutex = PLAYER_MUTEX.lock().unwrap();
     let amount = rb::playlist::amount();
@@ -320,34 +330,45 @@ pub async fn insert_tracks(ctx: &Context, req: &Request, res: &mut Response) -> 
     Ok(())
 }
 
-async fn persist_remote_track_metadata(ctx: &Context, tracks: &[String]) -> Result<(), Error> {
-    for track in tracks {
-        if track.starts_with("http://") || track.starts_with("https://") {
-            // Raw PCM streams served at /stream.wav have no embedded metadata and
-            // probing them would block for ~47 s (8 MB at audio bitrate) then time out.
-            if reqwest::Url::parse(track)
-                .map(|u| u.path() == "/stream.wav")
-                .unwrap_or(false)
-            {
+async fn persist_remote_track_metadata(
+    pool: sqlx::Pool<sqlx::Sqlite>,
+    tracks: Vec<(String, Option<String>)>,
+) {
+    // Raw PCM streams served at /stream.wav have no embedded metadata and
+    // probing them would block for ~47 s (8 MB at audio bitrate) then time out.
+    let sem = Arc::new(Semaphore::new(8));
+    let mut futs: FuturesUnordered<tokio::task::JoinHandle<()>> = FuturesUnordered::new();
+
+    for (track, art_uri) in tracks {
+        if !track.starts_with("http://") && !track.starts_with("https://") {
+            continue;
+        }
+        if reqwest::Url::parse(&track)
+            .map(|u| u.path() == "/stream.wav")
+            .unwrap_or(false)
+        {
+            continue;
+        }
+        // Internal /tracks/{id} URLs are already in the library DB.
+        match find_internal_track_by_pool(&pool, &track).await {
+            Ok(Some(_)) => continue,
+            Ok(None) => {}
+            Err(e) => {
+                tracing::warn!("metadata db check failed for {}: {}", track, e);
                 continue;
-            }
-            if find_internal_track_by_url(ctx, track).await?.is_some() {
-                continue;
-            }
-            let track = track.clone();
-            let track_for_worker = track.clone();
-            let status = tokio::task::spawn_blocking(move || -> Result<i32, Error> {
-                let track_cstr = CString::new(track_for_worker.as_str())?;
-                Ok(unsafe { save_remote_track_metadata(track_cstr.as_ptr()) })
-            })
-            .await??;
-            if status != 0 {
-                return Err(anyhow!("failed to save remote metadata for {}", track));
             }
         }
+        let pool = pool.clone();
+        let sem = sem.clone();
+        futs.push(tokio::spawn(async move {
+            let _permit = sem.acquire_owned().await.unwrap();
+            if let Err(e) = save_audio_metadata(pool, &track, art_uri.as_deref()).await {
+                tracing::warn!("save_audio_metadata failed for {}: {}", track, e);
+            }
+        }));
     }
 
-    Ok(())
+    while futs.next().await.is_some() {}
 }
 
 async fn find_track_metadata(
@@ -368,23 +389,23 @@ async fn find_track_metadata(
         }
     }
 
-    if path.starts_with("http://") || path.starts_with("https://") {
-        if metadata
-            .as_ref()
-            .map(|track| track.album_art.is_none())
-            .unwrap_or(true)
-            && internal_track.is_none()
-        {
-            persist_remote_track_metadata(ctx, &[path.to_string()]).await?;
-            metadata = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
-        }
-    }
+    // Metadata for remote tracks is probed in the background when tracks are
+    // inserted (insert_tracks / create_playlist). Do not probe here — this
+    // function is called once per track while holding PLAYER_MUTEX, so a
+    // synchronous HTTP probe per track would block the entire server.
 
     Ok(metadata)
 }
 
 async fn find_internal_track_by_url(
     ctx: &Context,
+    path: &str,
+) -> Result<Option<rockbox_library::entity::track::Track>, Error> {
+    find_internal_track_by_pool(&ctx.pool, path).await
+}
+
+async fn find_internal_track_by_pool(
+    pool: &sqlx::Pool<sqlx::Sqlite>,
     path: &str,
 ) -> Result<Option<rockbox_library::entity::track::Track>, Error> {
     let url = match reqwest::Url::parse(path) {
@@ -408,7 +429,7 @@ async fn find_internal_track_by_url(
         return Ok(None);
     }
 
-    repo::track::find(ctx.pool.clone(), track_id)
+    repo::track::find(pool.clone(), track_id)
         .await
         .map_err(Into::into)
 }

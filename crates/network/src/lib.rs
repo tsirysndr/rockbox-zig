@@ -36,7 +36,7 @@ pub async fn download(url: &str) -> Result<String, Error> {
     copy(&mut content.as_ref(), &mut file)?;
 
     let pool = create_connection_pool().await?;
-    save_audio_metadata(pool, &file_path).await?;
+    save_audio_metadata(pool, &file_path, None).await?;
 
     Ok(file_path)
 }
