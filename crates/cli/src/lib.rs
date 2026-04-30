@@ -34,18 +34,31 @@ async fn wait_for_typesense() {
     let port = std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string());
     let url = format!("http://localhost:{}/health", port);
     let client = reqwest::Client::new();
+    info!(
+        "Waiting for Typesense to accept connections on port {}...",
+        port
+    );
     for attempt in 1..=30 {
         match client.get(&url).send().await {
             Ok(r) if r.status().is_success() => {
-                info!("Typesense ready after {} attempt(s)", attempt);
+                info!("Typesense is ready (took {} attempt(s))", attempt);
                 return;
             }
-            _ => {
+            Ok(r) => {
+                tracing::debug!(
+                    "Typesense health check attempt {}: HTTP {}",
+                    attempt,
+                    r.status()
+                );
+                tokio::time::sleep(Duration::from_secs(1)).await;
+            }
+            Err(e) => {
+                tracing::debug!("Typesense health check attempt {}: {}", attempt, e);
                 tokio::time::sleep(Duration::from_secs(1)).await;
             }
         }
     }
-    warn!("Typesense did not become ready in time; proceeding anyway");
+    warn!("Typesense did not become ready within 30s; proceeding anyway");
 }
 
 /// SIGTERM/SIGINT handler: kill the typesense child then _exit immediately.
@@ -148,6 +161,7 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         let path = rockbox_settings::get_music_dir().unwrap_or(format!("{}/Music", home));
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
+            info!("Setting up Typesense search engine...");
             rockbox_typesense::setup()?;
 
             // Wait for Typesense to accept connections before any HTTP calls.
@@ -155,26 +169,57 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
             // may not be listening yet when we reach the first collection call.
             wait_for_typesense().await;
 
+            info!("Connecting to library database...");
             let pool = create_connection_pool().await?;
             let tracks = repo::track::all(pool.clone()).await?;
             if tracks.is_empty() || update_library {
+                if tracks.is_empty() {
+                    info!(
+                        "Library is empty — starting first-time audio scan of: {}",
+                        path
+                    );
+                } else {
+                    info!(
+                        "ROCKBOX_UPDATE_LIBRARY set — rescanning audio library at: {}",
+                        path
+                    );
+                }
                 match scan_audio_files(pool.clone(), path.into()).await {
-                    Ok(_) => info!("Finished scanning audio files"),
+                    Ok(_) => info!("Audio scan complete"),
                     Err(e) => error!("Failed to scan audio files: {}", e),
                 }
                 let tracks = repo::track::all(pool.clone()).await?;
                 let albums = repo::album::all(pool.clone()).await?;
                 let artists = repo::artist::all(pool.clone()).await?;
 
+                info!(
+                    "Indexing {} tracks, {} albums, {} artists into Typesense...",
+                    tracks.len(),
+                    albums.len(),
+                    artists.len()
+                );
+
+                info!("Creating Typesense collections...");
                 create_tracks_collection().await?;
                 create_albums_collection().await?;
                 create_artists_collection().await?;
 
+                info!("Inserting {} tracks...", tracks.len());
                 insert_tracks(tracks.into_iter().map(Track::from).collect()).await?;
+                info!("Inserting {} artists...", artists.len());
                 insert_artists(artists.into_iter().map(Artist::from).collect()).await?;
+                info!("Inserting {} albums...", albums.len());
                 insert_albums(albums.into_iter().map(Album::from).collect()).await?;
+
+                info!("Search index build complete.");
+            } else {
+                info!(
+                    "Library already indexed ({} tracks); skipping scan.",
+                    tracks.len()
+                );
             }
 
+            info!("Setting up playlists collection...");
             create_playlists_collection().await?;
             let playlist_store = PlaylistStore::new(pool.clone());
             let saved = playlist_store.list().await.unwrap_or_default();
@@ -202,7 +247,14 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
                 }))
                 .collect();
             if !ts_playlists.is_empty() {
+                info!(
+                    "Indexing {} playlist(s) into Typesense...",
+                    ts_playlists.len()
+                );
                 insert_playlists(ts_playlists).await?;
+                info!("Playlist index complete.");
+            } else {
+                info!("No playlists to index.");
             }
             Ok::<(), Error>(())
         })
@@ -294,8 +346,16 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
             });
         }
 
+        info!(
+            "Starting typesense-server (binary: {}, port: {}, data: {})",
+            ts_bin.display(),
+            port,
+            data_dir.display()
+        );
         let mut child = cmd.spawn()?;
-        TYPESENSE_PID.store(child.id() as i32, Ordering::SeqCst);
+        let pid = child.id();
+        TYPESENSE_PID.store(pid as i32, Ordering::SeqCst);
+        info!("typesense-server started with PID {}", pid);
 
         if let Some(stdout) = child.stdout.take() {
             thread::spawn(move || {

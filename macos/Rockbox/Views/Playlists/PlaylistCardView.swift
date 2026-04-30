@@ -23,7 +23,7 @@ struct PlaylistCardView: View {
                 .aspectRatio(1, contentMode: .fit)
                 .overlay {
                     if let imageURL = playlist.image, !imageURL.isEmpty {
-                        CachedAsyncImage(url: URL(string: "http://localhost:6062/covers/" + imageURL)) { phase in
+                        CachedAsyncImage(url: URL(string: ServerConfig.shared.coversBaseURL + imageURL)) { phase in
                             switch phase {
                             case .success(let image):
                                 image.resizable().aspectRatio(contentMode: .fill)

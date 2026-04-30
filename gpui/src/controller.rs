@@ -38,6 +38,22 @@ impl Controller {
         rt.spawn(crate::client::run_current_track_stream(tx.clone()));
         rt.spawn(crate::client::run_playlist_stream(tx.clone()));
 
+        // Re-run one-shot syncs whenever the user switches the active server.
+        let tx_for_switch = tx.clone();
+        let notify_for_switch = crate::server::server_notify();
+        rt.spawn(async move {
+            loop {
+                notify_for_switch.notified().await;
+                // Small delay to let the new server's gRPC port come up.
+                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                crate::client::run_library_sync(tx_for_switch.clone()).await;
+                crate::client::run_liked_tracks_sync(tx_for_switch.clone()).await;
+                crate::client::run_artist_images_sync(tx_for_switch.clone()).await;
+                crate::client::run_settings_sync(tx_for_switch.clone()).await;
+                crate::client::run_resume_info_sync(tx_for_switch.clone()).await;
+            }
+        });
+
         // Initialise OS media controls on the main thread (required by macOS).
         let now_playing = NowPlayingManager::new().map(|m| Arc::new(Mutex::new(m)));
 

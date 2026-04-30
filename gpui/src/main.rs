@@ -4,6 +4,7 @@ pub mod client;
 pub mod controller;
 pub mod http_client;
 pub mod now_playing;
+pub mod server;
 pub mod startup;
 pub mod state;
 pub mod ui;

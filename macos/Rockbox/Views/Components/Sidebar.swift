@@ -10,6 +10,7 @@ import SwiftUI
 struct Sidebar: View {
   @Binding var selection: SidebarItem?
   @EnvironmentObject var searchManager: SearchManager
+  @ObservedObject var serverManager = ServerManager.shared
 
   var body: some View {
     ZStack {
@@ -60,6 +61,8 @@ struct Sidebar: View {
         }
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
+
+        ServerPickerView(serverManager: serverManager)
       }
     }
   }

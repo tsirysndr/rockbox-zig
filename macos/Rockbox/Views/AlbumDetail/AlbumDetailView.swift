@@ -96,7 +96,7 @@ struct AlbumDetailView: View {
                         title: track.title,
                         artist: track.artist,
                         album: track.album,
-                        albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+                        albumArt: URL(string: ServerConfig.shared.coversBaseURL + track.albumArt),
                         duration: TimeInterval(track.length / 1000),
                         trackNumber: Int(track.trackNumber),
                         discNumber: Int(track.discNumber),
