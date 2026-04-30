@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.04.30]
+
+### Added
+- Bluetooth device support in the GPUI and web UIs — list paired/discovered devices, connect and disconnect directly from the device picker
+- mDNS-based server discovery and runtime server switching — `scan_mdns()` in the daemon registers itself via mDNS; the GPUI app and macOS app gain a Server Picker UI that enumerates nearby `rockboxd` instances and switches without restart; a notification triggers one-shot syncs to re-run on server change
+- UPnP album art saved for remote tracks — `album_art_uri` is returned from UPnP directory listings; `save_audio_metadata` downloads and caches the cover when no embedded art is present; remote metadata is persisted concurrently (semaphore-limited) without blocking C/FFI
+- `copyright_message` field on the `Album` GraphQL type, displayed in `AlbumDetails` alongside a formatted release date
+- Typesense bundled in the Docker image — the Dockerfile now pulls the typesense image and copies `typesense-server` into the final image
+
 ## [2026.04.29-2]
 
 ### Added
