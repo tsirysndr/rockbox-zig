@@ -1,5 +1,8 @@
-use crate::state::DevicesState;
+use crate::state::{BluetoothState, DevicesState};
 use crate::ui::animations::ease_in_out_expo;
+use crate::ui::components::bluetooth_picker::{
+    check_and_set_bluetooth_available, BluetoothPicker,
+};
 use crate::ui::components::controlbar::ControlBar;
 use crate::ui::components::device_picker::{fetch_and_update_devices, DevicePicker};
 use crate::ui::components::pages::{library::LibraryPage, player::PlayerPage, queue::QueuePage};
@@ -21,6 +24,7 @@ pub struct Rockbox {
     pub library_page: Entity<LibraryPage>,
     pub queue_page: Entity<QueuePage>,
     pub device_picker: Entity<DevicePicker>,
+    pub bluetooth_picker: Entity<BluetoothPicker>,
 }
 
 impl Rockbox {
@@ -28,10 +32,12 @@ impl Rockbox {
         cx.set_global(Theme::default());
         cx.set_global(Page::Player);
         cx.set_global(DevicesState::default());
+        cx.set_global(BluetoothState::default());
         global_keybinds::register_keybinds(cx);
         let titlebar = cx.new(|cx| Titlebar::new(cx));
         let controlbar = cx.new(|cx| {
             let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
+            let _ = cx.observe_global::<BluetoothState>(|_, cx| cx.notify());
             ControlBar
         });
         let player_page = cx.new(|cx| PlayerPage::new(cx, controlbar));
@@ -41,7 +47,12 @@ impl Rockbox {
             let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
             DevicePicker
         });
+        let bluetooth_picker = cx.new(|cx| {
+            let _ = cx.observe_global::<BluetoothState>(|_, cx| cx.notify());
+            BluetoothPicker
+        });
         fetch_and_update_devices(cx);
+        check_and_set_bluetooth_available(cx);
         Rockbox {
             focus_handle: cx.focus_handle(),
             titlebar,
@@ -49,6 +60,7 @@ impl Rockbox {
             library_page,
             queue_page,
             device_picker,
+            bluetooth_picker,
         }
     }
 }
@@ -135,5 +147,6 @@ impl Render for Rockbox {
                     }),
             )
             .child(self.device_picker.clone())
+            .child(self.bluetooth_picker.clone())
     }
 }

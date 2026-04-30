@@ -11,14 +11,17 @@ struct PlayerControlsView: View {
     @EnvironmentObject var player: PlayerState
     @EnvironmentObject var navigation: NavigationManager
     @EnvironmentObject var deviceState: DeviceState
+    @EnvironmentObject var bluetoothState: BluetoothState
     @State private var isHoveringProgress = false
     @State private var isHoveringTrackInfo = false
     @State private var isHoveringQueue = false
     @State private var isHoveringDevice = false
+    @State private var isHoveringBluetooth = false
     @State private var isHoveringMenu = false
     @State private var isHoveringShuffle = false
     @State private var isHoveringRepeat = false
     @State private var showDevicePicker = false
+    @State private var showBluetoothPicker = false
     @State private var errorText: String? = nil
     @ObservedObject var library: MusicLibrary
     @Binding var showQueue: Bool
@@ -235,6 +238,31 @@ struct PlayerControlsView: View {
             }
             
             HStack(spacing: 6) {
+                // Bluetooth picker button — only shown when bluetooth is available
+                if bluetoothState.available {
+                    Button(action: { showBluetoothPicker.toggle() }) {
+                        Image(systemName: "bluetooth")
+                            .font(.system(size: 14))
+                            .foregroundStyle(showBluetoothPicker ? Color(hex: "1a91ff") : (isHoveringBluetooth ? .primary : .secondary))
+                            .frame(width: 32, height: 32)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(isHoveringBluetooth || showBluetoothPicker ? Color.secondary.opacity(0.15) : Color.clear)
+                            )
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { hovering in
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            isHoveringBluetooth = hovering
+                        }
+                    }
+                    .popover(isPresented: $showBluetoothPicker, arrowEdge: .top) {
+                        BluetoothListView()
+                            .environmentObject(bluetoothState)
+                    }
+                }
+
                 // Device picker button
                 Button(action: { showDevicePicker.toggle() }) {
                     let symbol = deviceState.currentDevice.map { d in

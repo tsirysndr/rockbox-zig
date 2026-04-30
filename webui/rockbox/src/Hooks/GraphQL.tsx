@@ -3076,3 +3076,87 @@ export const usePlaylistChangedSubscription = () =>
   useSubscription<PlaylistChangedSubscription>(
     PlaylistChangedDocument.toString()
   );
+
+// ── Bluetooth ─────────────────────────────────────────────────────────────────
+
+export type BluetoothDeviceGql = {
+  address: string;
+  name: string;
+  paired: boolean;
+  trusted: boolean;
+  connected: boolean;
+  rssi?: Maybe<number>;
+};
+
+export type GetBluetoothDevicesQuery = { bluetoothDevices: Array<BluetoothDeviceGql> };
+export type BluetoothConnectMutation = { bluetoothConnect: boolean };
+export type BluetoothConnectMutationVariables = { address: string };
+export type BluetoothDisconnectMutation = { bluetoothDisconnect: boolean };
+export type BluetoothDisconnectMutationVariables = { address: string };
+
+export const GetBluetoothDevicesDocument = new TypedDocumentString(`
+    query GetBluetoothDevices {
+  bluetoothDevices {
+    address
+    name
+    paired
+    trusted
+    connected
+    rssi
+  }
+}
+    `);
+
+export const BluetoothConnectDocument = new TypedDocumentString(`
+    mutation BluetoothConnect($address: String!) {
+  bluetoothConnect(address: $address)
+}
+    `);
+
+export const BluetoothDisconnectDocument = new TypedDocumentString(`
+    mutation BluetoothDisconnect($address: String!) {
+  bluetoothDisconnect(address: $address)
+}
+    `);
+
+export const useGetBluetoothDevicesQuery = <
+  TData = GetBluetoothDevicesQuery,
+  TError = unknown
+>(
+  options?: Omit<UseQueryOptions<GetBluetoothDevicesQuery, TError, TData>, 'queryKey'> &
+    { queryKey?: UseQueryOptions<GetBluetoothDevicesQuery, TError, TData>['queryKey'] }
+) => {
+  return useQuery<GetBluetoothDevicesQuery, TError, TData>({
+    queryKey: ['GetBluetoothDevices'],
+    queryFn: fetchData<GetBluetoothDevicesQuery, Record<string, never>>(GetBluetoothDevicesDocument),
+    retry: false,
+    ...options,
+  });
+};
+
+useGetBluetoothDevicesQuery.document = GetBluetoothDevicesDocument;
+useGetBluetoothDevicesQuery.getKey = () => ['GetBluetoothDevices'];
+
+export const useBluetoothConnectMutation = <
+  TError = unknown,
+  TContext = unknown
+>(options?: UseMutationOptions<BluetoothConnectMutation, TError, BluetoothConnectMutationVariables, TContext>) => {
+  return useMutation<BluetoothConnectMutation, TError, BluetoothConnectMutationVariables, TContext>({
+    mutationKey: ['BluetoothConnect'],
+    mutationFn: (variables: BluetoothConnectMutationVariables) =>
+      fetchData<BluetoothConnectMutation, BluetoothConnectMutationVariables>(BluetoothConnectDocument, variables)(),
+    ...options,
+  });
+};
+
+export const useBluetoothDisconnectMutation = <
+  TError = unknown,
+  TContext = unknown
+>(options?: UseMutationOptions<BluetoothDisconnectMutation, TError, BluetoothDisconnectMutationVariables, TContext>) => {
+  return useMutation<BluetoothDisconnectMutation, TError, BluetoothDisconnectMutationVariables, TContext>({
+    mutationKey: ['BluetoothDisconnect'],
+    mutationFn: (variables: BluetoothDisconnectMutationVariables) =>
+      fetchData<BluetoothDisconnectMutation, BluetoothDisconnectMutationVariables>(BluetoothDisconnectDocument, variables)(),
+    ...options,
+  });
+};

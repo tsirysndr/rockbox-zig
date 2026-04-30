@@ -181,6 +181,24 @@ pub fn format_duration(secs: u64) -> String {
     format!("{}:{:02}", secs / 60, secs % 60)
 }
 
+#[derive(Clone, Debug, Default)]
+pub struct BluetoothDevice {
+    pub address: String,
+    pub name: String,
+    pub paired: bool,
+    pub trusted: bool,
+    pub connected: bool,
+    pub rssi: Option<i32>,
+}
+
+#[derive(Clone, Default)]
+pub struct BluetoothState {
+    pub devices: Vec<BluetoothDevice>,
+    pub picker_open: bool,
+    pub available: bool,
+}
+impl gpui::Global for BluetoothState {}
+
 /// Stores the Tokio runtime handle so GPUI code can run async tasks that require a Tokio reactor.
 #[derive(Clone)]
 pub struct TokioHandle(pub tokio::runtime::Handle);

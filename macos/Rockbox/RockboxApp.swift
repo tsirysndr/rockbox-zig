@@ -12,6 +12,7 @@ struct RockboxApp: App {
     @StateObject private var navigation = NavigationManager()
     @StateObject private var searchManager = SearchManager()
     @StateObject private var deviceState = DeviceState()
+    @StateObject private var bluetoothState = BluetoothState()
     @State private var startupFailed = false
     @State private var startupError: Error?
 
@@ -22,6 +23,7 @@ struct RockboxApp: App {
                 .environmentObject(navigation)
                 .environmentObject(searchManager)
                 .environmentObject(deviceState)
+                .environmentObject(bluetoothState)
                 .alert("Connection Failed", isPresented: $startupFailed) {
                     Button("Retry") {
                         retry()
@@ -67,6 +69,7 @@ struct RockboxApp: App {
             player.startStreaming()
             player.fetchSettings()
             await deviceState.refresh()
+            await bluetoothState.checkAvailability()
 
         } catch {
             startupError = error
