@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.04.31]
+
+### Fixed
+- mDNS device ID is now persisted across restarts — a 64-bit hex ID is generated once and cached in `~/.config/rockbox.org/device-id`, so the registered mDNS service name remains stable between daemon restarts instead of changing on every launch
+
 ## [2026.04.30]
 
 ### Added
