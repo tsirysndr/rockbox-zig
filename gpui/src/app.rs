@@ -23,6 +23,8 @@ pub fn run() {
         .with_assets(assets.clone())
         .run(move |cx| {
             cx.set_global(crate::state::TokioHandle(tokio_handle));
+            cx.set_global(crate::ui::components::ServerPickerOpen(false));
+            cx.set_global(crate::ui::components::DiscoveredServers::default());
             let bounds = Bounds::centered(None, size(px(1280.0), px(760.0)), cx);
             assets.load_fonts(cx).expect("failed to load fonts");
             // Theme is set as a global inside StartupGate / Rockbox::new.

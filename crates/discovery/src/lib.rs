@@ -43,9 +43,9 @@ pub fn register_services() {
     let mpd_service = format!("mpd-{}", device_id);
 
     thread::spawn(move || {
-        let http_port = env::var("ROCKBOX_HTTP_PORT").unwrap_or("6061".to_string());
+        let grpc_port = env::var("ROCKBOX_PORT").unwrap_or("6061".to_string());
         let graphql_port = env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or("6062".to_string());
-        let grpc_port = env::var("ROCKBOX_PORT").unwrap_or("6063".to_string());
+        let http_port = env::var("ROCKBOX_TCP_PORT").unwrap_or("6063".to_string());
         let mpd_port = env::var("ROCKBOX_MPD_PORT").unwrap_or("6600".to_string());
         let mut responder = MdnsResponder::new();
         responder.register_service(&http_service, http_port.parse::<u16>().unwrap());

@@ -242,3 +242,16 @@ pub struct AddToPlaylistMenu {
 #[derive(Clone, Default)]
 pub struct AddToPlaylistMenuState(pub Option<AddToPlaylistMenu>);
 impl gpui::Global for AddToPlaylistMenuState {}
+
+// ── Server picker ─────────────────────────────────────────────────────────────
+
+#[derive(Clone, Default)]
+pub struct ServerPickerOpen(pub bool);
+impl gpui::Global for ServerPickerOpen {}
+
+#[derive(Clone, Default)]
+pub struct DiscoveredServers {
+    pub servers: Vec<crate::server::ServerInfo>,
+    pub scanning: bool,
+}
+impl gpui::Global for DiscoveredServers {}

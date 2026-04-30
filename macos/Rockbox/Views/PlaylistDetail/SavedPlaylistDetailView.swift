@@ -50,7 +50,7 @@ struct SavedPlaylistDetailView: View {
                                 .frame(width: 120, height: 120)
                                 .overlay {
                                     if let img = playlist.image, !img.isEmpty {
-                                        CachedAsyncImage(url: URL(string: "http://localhost:6062/covers/" + img)) { phase in
+                                        CachedAsyncImage(url: URL(string: ServerConfig.shared.coversBaseURL + img)) { phase in
                                             switch phase {
                                             case .success(let image):
                                                 image.resizable().aspectRatio(contentMode: .fill)
@@ -203,7 +203,7 @@ struct SavedPlaylistDetailView: View {
                         title: track.title,
                         artist: track.artist,
                         album: track.album,
-                        albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+                        albumArt: URL(string: ServerConfig.shared.coversBaseURL + track.albumArt),
                         duration: TimeInterval(track.length / 1000),
                         trackNumber: Int(track.trackNumber),
                         discNumber: Int(track.discNumber),

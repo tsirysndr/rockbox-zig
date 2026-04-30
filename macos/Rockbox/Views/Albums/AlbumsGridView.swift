@@ -41,7 +41,7 @@ struct AlbumsGridView: View {
                         artist: $0.artist,
                         year: Int($0.year),
                         color: .gray.opacity(0.3),
-                        cover: "http://localhost:6062/covers/" + $0.albumArt,
+                        cover: ServerConfig.shared.coversBaseURL + $0.albumArt,
                         releaseDate: $0.yearString,
                         copyrightMessage: $0.copyrightMessage,
                         artistID: $0.artistID,

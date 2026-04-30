@@ -30,7 +30,7 @@ class NavigationManager: ObservableObject {
                 artist: albumData.artist,
                 year: Int(albumData.year),
                 color: .gray.opacity(0.3),
-                cover: "http://localhost:6062/covers/" + albumData.albumArt,
+                cover: ServerConfig.shared.coversBaseURL + albumData.albumArt,
                 releaseDate: albumData.yearString,
                 copyrightMessage: albumData.copyrightMessage,
                 artistID: albumData.artistID,

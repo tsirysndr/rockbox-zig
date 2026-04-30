@@ -46,6 +46,15 @@ class PlayerState: ObservableObject {
   init() {
     setupMediaControls()
     setInitialNowPlayingInfo()
+    NotificationCenter.default.addObserver(
+      forName: .rockboxServerDidChange, object: nil, queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor [weak self] in
+        self?.stopStreaming()
+        self?.startStreaming()
+        self?.fetchSettings()
+      }
+    }
   }
 
   private func setupMediaControls() {
@@ -126,7 +135,7 @@ class PlayerState: ObservableObject {
             title: response.title,
             artist: response.artist,
             album: response.album,
-            albumArt: URL(string: "http://localhost:6062/covers/" + response.albumArt),
+            albumArt: URL(string: ServerConfig.shared.coversBaseURL + response.albumArt),
             duration: TimeInterval(response.length / 1000),
             trackNumber: Int(response.tracknum),
             discNumber: Int(response.discnum),
@@ -196,7 +205,7 @@ class PlayerState: ObservableObject {
               title: track.title,
               artist: track.artist,
               album: track.album,
-              albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+              albumArt: URL(string: ServerConfig.shared.coversBaseURL + track.albumArt),
               duration: TimeInterval(track.length / 1000),
               trackNumber: Int(track.tracknum),
               discNumber: Int(track.discnum),
@@ -248,7 +257,7 @@ class PlayerState: ObservableObject {
               title: track.title,
               artist: track.artist,
               album: track.album,
-              albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+              albumArt: URL(string: ServerConfig.shared.coversBaseURL + track.albumArt),
               duration: TimeInterval(track.length / 1000),
               trackNumber: Int(track.tracknum),
               discNumber: Int(track.discnum),
@@ -295,7 +304,7 @@ class PlayerState: ObservableObject {
             title: track.title,
             artist: track.artist,
             album: track.album,
-            albumArt: URL(string: "http://localhost:6062/covers/" + track.albumArt),
+            albumArt: URL(string: ServerConfig.shared.coversBaseURL + track.albumArt),
             duration: TimeInterval(track.length / 1000),
             trackNumber: Int(track.tracknum),
             discNumber: Int(track.discnum),

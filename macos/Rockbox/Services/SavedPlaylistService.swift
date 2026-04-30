@@ -6,17 +6,8 @@
 import GRPCCore
 import GRPCNIOTransportHTTP2
 
-func fetchSavedPlaylists(
-  folderID: String? = nil,
-  host: String = "127.0.0.1",
-  port: Int = 6061
-) async throws -> [Rockbox_V1alpha1_SavedPlaylist] {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func fetchSavedPlaylists(folderID: String? = nil) async throws -> [Rockbox_V1alpha1_SavedPlaylist] {
+  try await withRockboxGRPCClient { grpcClient in
     let service = Rockbox_V1alpha1_SavedPlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_GetSavedPlaylistsRequest()
     if let fid = folderID { req.folderID = fid }
@@ -25,15 +16,8 @@ func fetchSavedPlaylists(
   }
 }
 
-func fetchSavedPlaylist(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws
-  -> Rockbox_V1alpha1_SavedPlaylist?
-{
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func fetchSavedPlaylist(id: String) async throws -> Rockbox_V1alpha1_SavedPlaylist? {
+  try await withRockboxGRPCClient { grpcClient in
     let service = Rockbox_V1alpha1_SavedPlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_GetSavedPlaylistRequest()
     req.id = id
@@ -43,18 +27,9 @@ func fetchSavedPlaylist(id: String, host: String = "127.0.0.1", port: Int = 6061
 }
 
 func createSavedPlaylist(
-  name: String,
-  description: String? = nil,
-  trackIDs: [String] = [],
-  host: String = "127.0.0.1",
-  port: Int = 6061
+  name: String, description: String? = nil, trackIDs: [String] = []
 ) async throws -> Rockbox_V1alpha1_SavedPlaylist {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+  try await withRockboxGRPCClient { grpcClient in
     let service = Rockbox_V1alpha1_SavedPlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_CreateSavedPlaylistRequest()
     req.name = name
@@ -65,19 +40,8 @@ func createSavedPlaylist(
   }
 }
 
-func updateSavedPlaylist(
-  id: String,
-  name: String,
-  description: String? = nil,
-  host: String = "127.0.0.1",
-  port: Int = 6061
-) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func updateSavedPlaylist(id: String, name: String, description: String? = nil) async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let service = Rockbox_V1alpha1_SavedPlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_UpdateSavedPlaylistRequest()
     req.id = id
@@ -87,13 +51,8 @@ func updateSavedPlaylist(
   }
 }
 
-func deleteSavedPlaylist(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func deleteSavedPlaylist(id: String) async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let service = Rockbox_V1alpha1_SavedPlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_DeleteSavedPlaylistRequest()
     req.id = id
@@ -101,17 +60,8 @@ func deleteSavedPlaylist(id: String, host: String = "127.0.0.1", port: Int = 606
   }
 }
 
-func fetchSavedPlaylistTracks(
-  playlistID: String,
-  host: String = "127.0.0.1",
-  port: Int = 6061
-) async throws -> [String] {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func fetchSavedPlaylistTracks(playlistID: String) async throws -> [String] {
+  try await withRockboxGRPCClient { grpcClient in
     let service = Rockbox_V1alpha1_SavedPlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_GetSavedPlaylistTracksRequest()
     req.playlistID = playlistID
@@ -120,18 +70,8 @@ func fetchSavedPlaylistTracks(
   }
 }
 
-func addTracksToSavedPlaylist(
-  playlistID: String,
-  trackIDs: [String],
-  host: String = "127.0.0.1",
-  port: Int = 6061
-) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func addTracksToSavedPlaylist(playlistID: String, trackIDs: [String]) async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let service = Rockbox_V1alpha1_SavedPlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_AddTracksToSavedPlaylistRequest()
     req.playlistID = playlistID
@@ -140,18 +80,8 @@ func addTracksToSavedPlaylist(
   }
 }
 
-func removeTrackFromSavedPlaylist(
-  playlistID: String,
-  trackID: String,
-  host: String = "127.0.0.1",
-  port: Int = 6061
-) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func removeTrackFromSavedPlaylist(playlistID: String, trackID: String) async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let service = Rockbox_V1alpha1_SavedPlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_RemoveTrackFromSavedPlaylistRequest()
     req.playlistID = playlistID
@@ -160,13 +90,8 @@ func removeTrackFromSavedPlaylist(
   }
 }
 
-func playSavedPlaylist(id: String, host: String = "127.0.0.1", port: Int = 6061) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func playSavedPlaylist(id: String) async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let service = Rockbox_V1alpha1_SavedPlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_PlaySavedPlaylistRequest()
     req.playlistID = id

@@ -27,7 +27,7 @@ struct RockboxApp: App {
                         retry()
                     }
                     .keyboardShortcut(.defaultAction)
-                    
+
                     Button("Quit") {
                         NSApplication.shared.terminate(nil)
                     }
@@ -41,24 +41,39 @@ struct RockboxApp: App {
         }
         .windowStyle(.hiddenTitleBar)
     }
-    
+
     private func performStartup() async {
         do {
-            // Check if server is available first
-            _ = try await fetchGlobalStatus()
-            
-            // If successful, start normal operations
+            // Priority 1: localhost. Priority 2: first mDNS-discovered server.
+            // ServerManager already kicked off a background scan; if localhost is
+            // unreachable we wait for it to finish and try the first result.
+            if (try? await fetchGlobalStatus()) == nil {
+                // localhost not available — wait for mDNS scan results
+                let serverManager = ServerManager.shared
+                if !serverManager.isScanning {
+                    await serverManager.scan()
+                } else {
+                    // Already scanning (started at init) — poll until done
+                    while serverManager.isScanning {
+                        try? await Task.sleep(nanoseconds: 100_000_000)
+                    }
+                }
+                if let first = serverManager.discoveredServers.first {
+                    serverManager.selectServer(first)
+                }
+                _ = try await fetchGlobalStatus()
+            }
+
             player.startStreaming()
             player.fetchSettings()
             await deviceState.refresh()
-            
+
         } catch {
-            // Show error and allow retry or quit
             startupError = error
             startupFailed = true
         }
     }
-    
+
     private func retry() {
         Task {
             await performStartup()

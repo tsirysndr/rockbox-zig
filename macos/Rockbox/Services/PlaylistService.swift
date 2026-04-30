@@ -8,32 +8,16 @@
 import GRPCCore
 import GRPCNIOTransportHTTP2
 
-func fetchCurrentPlaylist(host: String = "127.0.0.1", port: Int = 6061) async throws
-  -> Rockbox_V1alpha1_GetCurrentResponse
-{
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func fetchCurrentPlaylist() async throws -> Rockbox_V1alpha1_GetCurrentResponse {
+  try await withRockboxGRPCClient { grpcClient in
     let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
-
     let req = Rockbox_V1alpha1_GetCurrentRequest()
-
-    let res = try await playlist.getCurrent(req)
-
-    return res
+    return try await playlist.getCurrent(req)
   }
 }
 
-func resumeTrack(host: String = "127.0.0.1", port: Int = 6061) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func resumeTrack() async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
     let req = Rockbox_V1alpha1_ResumeTrackRequest()
     let _ = try await playlist.resumeTrack(req)
@@ -44,15 +28,9 @@ func currentPlaylistStream() -> AsyncThrowingStream<Rockbox_V1alpha1_PlaylistRes
   AsyncThrowingStream { continuation in
     Task {
       do {
-        try await withGRPCClient(
-          transport: .http2NIOPosix(
-            target: .dns(host: "127.0.0.1", port: 6061),
-            transportSecurity: .plaintext
-          )
-        ) { grpcClient in
+        try await withRockboxGRPCClient { grpcClient in
           let playback = Rockbox_V1alpha1_PlaybackService.Client(wrapping: grpcClient)
           let req = Rockbox_V1alpha1_StreamPlaylistRequest()
-
           try await playback.streamPlaylist(req) { response in
             for try await message in response.messages {
               continuation.yield(message)
@@ -67,13 +45,8 @@ func currentPlaylistStream() -> AsyncThrowingStream<Rockbox_V1alpha1_PlaylistRes
   }
 }
 
-func startPlaylist(position: Int32, host: String = "127.0.0.1", port: Int = 6061) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func startPlaylist(position: Int32) async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_StartRequest()
     req.startIndex = position
@@ -81,14 +54,8 @@ func startPlaylist(position: Int32, host: String = "127.0.0.1", port: Int = 6061
   }
 }
 
-func removeFromPlaylist(position: Int32, host: String = "127.0.0.1", port: Int = 6061) async throws
-{
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func removeFromPlaylist(position: Int32) async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_RemoveTracksRequest()
     req.positions = [position]
@@ -96,19 +63,8 @@ func removeFromPlaylist(position: Int32, host: String = "127.0.0.1", port: Int =
   }
 }
 
-func insertTracks(
-  tracks: [String],
-  position: Int32,
-  shuffle: Bool = false,
-  host: String = "127.0.0.1",
-  port: Int = 6061
-) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func insertTracks(tracks: [String], position: Int32, shuffle: Bool = false) async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_InsertTracksRequest()
     req.tracks = tracks
@@ -118,19 +74,8 @@ func insertTracks(
   }
 }
 
-func insertAlbum(
-  albumID: String,
-  position: Int32,
-  shuffle: Bool = false,
-  host: String = "127.0.0.1",
-  port: Int = 6061
-) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func insertAlbum(albumID: String, position: Int32, shuffle: Bool = false) async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_InsertAlbumRequest()
     req.albumID = albumID
@@ -141,19 +86,9 @@ func insertAlbum(
 }
 
 func insertDirectory(
-  directory: String,
-  position: Int32,
-  recurse: Bool = false,
-  shuffle: Bool = false,
-  host: String = "127.0.0.1",
-  port: Int = 6061
+  directory: String, position: Int32, recurse: Bool = false, shuffle: Bool = false
 ) async throws {
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+  try await withRockboxGRPCClient { grpcClient in
     let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
     var req = Rockbox_V1alpha1_InsertDirectoryRequest()
     req.directory = directory
@@ -164,14 +99,8 @@ func insertDirectory(
   }
 }
 
-func clearPlaylist(host: String = "127.0.0.1", port: Int = 6061) async throws
-{
-  try await withGRPCClient(
-    transport: .http2NIOPosix(
-      target: .dns(host: host, port: port),
-      transportSecurity: .plaintext
-    )
-  ) { grpcClient in
+func clearPlaylist() async throws {
+  try await withRockboxGRPCClient { grpcClient in
     let playlist = Rockbox_V1alpha1_PlaylistService.Client(wrapping: grpcClient)
     let req = Rockbox_V1alpha1_RemoveAllTracksRequest()
     let _ = try await playlist.removeAllTracks(req)

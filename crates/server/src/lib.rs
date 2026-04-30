@@ -298,6 +298,8 @@ pub extern "C" fn start_servers() {
     // Wait for the rpc server to start
     thread::sleep(std::time::Duration::from_millis(500));
 
+    rockbox_discovery::register_services();
+
     #[cfg(target_os = "linux")]
     {
         use rockbox_mpris::MprisServer;

@@ -12,10 +12,10 @@ use crate::ui::components::search_input::SearchInput;
 use crate::ui::components::text_input::TextInput;
 use crate::ui::components::{
     AddToPlaylistMenuState, AlbumContextMenu, AlbumContextMenuState, BackSection,
-    CreatePlaylistModal, DeletePlaylistModal, EditPlaylistModal, FileContextMenuState,
-    HoveredAlbumIdx, LibraryContextMenu, LibraryContextMenuState, LibrarySection, LikedOrder,
-    LikedSongs, PlaylistsSidebarCollapsed, PlaylistsState, SelectedAlbum, SelectedAlbumMeta,
-    SelectedArtist, SelectedPlaylist,
+    CreatePlaylistModal, DeletePlaylistModal, DiscoveredServers, EditPlaylistModal,
+    FileContextMenuState, HoveredAlbumIdx, LibraryContextMenu, LibraryContextMenuState,
+    LibrarySection, LikedOrder, LikedSongs, PlaylistsSidebarCollapsed, PlaylistsState,
+    SelectedAlbum, SelectedAlbumMeta, SelectedArtist, SelectedPlaylist, ServerPickerOpen,
 };
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -241,6 +241,23 @@ impl LibraryPage {
         })
         .detach();
 
+        // Background mDNS scan on startup so the server list is pre-populated.
+        cx.global_mut::<DiscoveredServers>().scanning = true;
+        cx.spawn(async move |_, cx| {
+            let found = cx
+                .background_executor()
+                .spawn(async move {
+                    crate::server::scan_mdns(std::time::Duration::from_secs(3))
+                })
+                .await;
+            let _ = cx.update(|app: &mut gpui::App| {
+                let state = app.global_mut::<DiscoveredServers>();
+                state.scanning = false;
+                state.servers = found;
+            });
+        })
+        .detach();
+
         LibraryPage {
             scroll_handle: UniformListScrollHandle::new(),
             detail_scroll_handle: UniformListScrollHandle::new(),
@@ -283,6 +300,10 @@ impl Render for LibraryPage {
         let delete_modal = cx.global::<DeletePlaylistModal>().clone();
         let add_to_playlist_menu = cx.global::<AddToPlaylistMenuState>().0.clone();
         let album_meta = cx.global::<SelectedAlbumMeta>().clone();
+        let cur_server = crate::server::current_server();
+        let picker_open = cx.global::<ServerPickerOpen>().0;
+        let server_scanning = cx.global::<DiscoveredServers>().scanning;
+        let discovered_servers = cx.global::<DiscoveredServers>().servers.clone();
 
         // Trigger playlist tracks load when in detail views
         if (section == LibrarySection::PlaylistDetail
@@ -3141,6 +3162,283 @@ impl Render for LibraryPage {
             content_inner
         }; // end if/else search
 
+        let cur_is_local = cur_server.is_localhost();
+        let server_is_empty = !server_scanning && discovered_servers.is_empty();
+        let servers_for_picker = discovered_servers.clone();
+        let cur_host_for_picker = cur_server.host.clone();
+        let server_footer = div()
+            .w_full()
+            .border_t_1()
+            .border_color(theme.library_table_border)
+            .flex()
+            .flex_col()
+            .when(picker_open, |this| {
+                let servers = servers_for_picker;
+                let cur_host = cur_host_for_picker;
+                let scanning = server_scanning;
+                let is_empty = server_is_empty;
+                this.child(
+                    div()
+                        .id("server-panel")
+                        .w_full()
+                        .bg(theme.titlebar_bg)
+                        .flex()
+                        .flex_col()
+                        .max_h(px(200.0))
+                        .overflow_y_scroll()
+                        .child(
+                            div()
+                                .w_full()
+                                .flex()
+                                .items_center()
+                                .justify_between()
+                                .px(px(10.0))
+                                .py(px(6.0))
+                                .child(
+                                    div()
+                                        .text_xs()
+                                        .font_weight(FontWeight::BOLD)
+                                        .text_color(theme.library_header_text)
+                                        .child("Servers"),
+                                )
+                                .child(
+                                    div()
+                                        .id("server-scan-btn")
+                                        .px(px(6.0))
+                                        .py(px(2.0))
+                                        .rounded_md()
+                                        .text_xs()
+                                        .cursor_pointer()
+                                        .text_color(if scanning {
+                                            gpui::rgb(0x6F00FF)
+                                        } else {
+                                            theme.library_header_text
+                                        })
+                                        .hover(|s| s.text_color(theme.library_text))
+                                        .on_click(cx.listener(|_, _, _, cx| {
+                                            if cx.global::<DiscoveredServers>().scanning {
+                                                return;
+                                            }
+                                            cx.global_mut::<DiscoveredServers>().scanning = true;
+                                            cx.global_mut::<DiscoveredServers>().servers = vec![];
+                                            cx.notify();
+                                            cx.spawn(async move |this, cx| {
+                                                let found = cx
+                                                    .background_executor()
+                                                    .spawn(async move {
+                                                        crate::server::scan_mdns(
+                                                            std::time::Duration::from_secs(3),
+                                                        )
+                                                    })
+                                                    .await;
+                                                let _ = this.update(cx, |_, cx| {
+                                                    cx.global_mut::<DiscoveredServers>().scanning =
+                                                        false;
+                                                    cx.global_mut::<DiscoveredServers>().servers =
+                                                        found;
+                                                    cx.notify();
+                                                });
+                                            })
+                                            .detach();
+                                        }))
+                                        .child(if scanning { "Scanning…" } else { "Scan" }),
+                                ),
+                        )
+                        .child(
+                            div()
+                                .id("server-localhost")
+                                .w_full()
+                                .flex()
+                                .items_center()
+                                .gap_x_2()
+                                .px(px(10.0))
+                                .py(px(5.0))
+                                .cursor_pointer()
+                                .bg(if cur_is_local {
+                                    gpui::rgba(0x6F00FF20)
+                                } else {
+                                    theme.titlebar_bg
+                                })
+                                .hover(|s| s.bg(theme.library_table_border))
+                                .on_click(cx.listener(|_, _, _, cx| {
+                                    crate::server::set_server(
+                                        crate::server::ServerInfo::localhost(),
+                                    );
+                                    cx.global_mut::<ServerPickerOpen>().0 = false;
+                                    let tokio = cx.global::<crate::state::TokioHandle>().0.clone();
+                                    cx.spawn(async move |_, cx| {
+                                        let (saved, smart) = cx
+                                            .background_executor()
+                                            .spawn(async move {
+                                                tokio.block_on(async {
+                                                    let saved = crate::client::fetch_saved_playlists().await.unwrap_or_default();
+                                                    let smart = crate::client::fetch_smart_playlists().await.unwrap_or_default();
+                                                    (saved, smart)
+                                                })
+                                            })
+                                            .await;
+                                        let _ = cx.update(|app: &mut gpui::App| {
+                                            let state = app.global_mut::<PlaylistsState>();
+                                            state.saved = saved;
+                                            state.smart = smart;
+                                        });
+                                    })
+                                    .detach();
+                                    cx.notify();
+                                }))
+                                .child(
+                                    div()
+                                        .w(px(6.0))
+                                        .h(px(6.0))
+                                        .rounded_full()
+                                        .bg(if cur_is_local {
+                                            gpui::rgb(0x39FF14)
+                                        } else {
+                                            theme.library_header_text
+                                        }),
+                                )
+                                .child(
+                                    div()
+                                        .flex_1()
+                                        .min_w_0()
+                                        .truncate()
+                                        .text_xs()
+                                        .text_color(if cur_is_local {
+                                            theme.library_text
+                                        } else {
+                                            theme.library_header_text
+                                        })
+                                        .child("localhost"),
+                                ),
+                        )
+                        .children(servers.into_iter().enumerate().map(|(idx, server)| {
+                            let is_active = server.host == cur_host;
+                            let s = server.clone();
+                            let label = server.display_name();
+                            div()
+                                .id(gpui::SharedString::from(format!("server-row-{idx}")))
+                                .w_full()
+                                .flex()
+                                .items_center()
+                                .gap_x_2()
+                                .px(px(10.0))
+                                .py(px(5.0))
+                                .cursor_pointer()
+                                .bg(if is_active {
+                                    gpui::rgba(0x6F00FF20)
+                                } else {
+                                    theme.titlebar_bg
+                                })
+                                .hover(|sv| sv.bg(theme.library_table_border))
+                                .on_click(cx.listener(move |_, _, _, cx| {
+                                    crate::server::set_server(s.clone());
+                                    cx.global_mut::<ServerPickerOpen>().0 = false;
+                                    let tokio = cx.global::<crate::state::TokioHandle>().0.clone();
+                                    cx.spawn(async move |_, cx| {
+                                        let (saved, smart) = cx
+                                            .background_executor()
+                                            .spawn(async move {
+                                                tokio.block_on(async {
+                                                    let saved = crate::client::fetch_saved_playlists().await.unwrap_or_default();
+                                                    let smart = crate::client::fetch_smart_playlists().await.unwrap_or_default();
+                                                    (saved, smart)
+                                                })
+                                            })
+                                            .await;
+                                        let _ = cx.update(|app: &mut gpui::App| {
+                                            let state = app.global_mut::<PlaylistsState>();
+                                            state.saved = saved;
+                                            state.smart = smart;
+                                        });
+                                    })
+                                    .detach();
+                                    cx.notify();
+                                }))
+                                .child(
+                                    div()
+                                        .w(px(6.0))
+                                        .h(px(6.0))
+                                        .rounded_full()
+                                        .bg(if is_active {
+                                            gpui::rgb(0x39FF14)
+                                        } else {
+                                            theme.library_header_text
+                                        }),
+                                )
+                                .child(
+                                    div()
+                                        .flex_1()
+                                        .min_w_0()
+                                        .truncate()
+                                        .text_xs()
+                                        .text_color(if is_active {
+                                            theme.library_text
+                                        } else {
+                                            theme.library_header_text
+                                        })
+                                        .child(label),
+                                )
+                        }))
+                        .when(scanning, |s| {
+                            s.child(
+                                div()
+                                    .w_full()
+                                    .px(px(10.0))
+                                    .py(px(6.0))
+                                    .text_xs()
+                                    .text_color(theme.library_header_text)
+                                    .child("Scanning network…"),
+                            )
+                        })
+                        .when(is_empty, |s| {
+                            s.child(
+                                div()
+                                    .w_full()
+                                    .px(px(10.0))
+                                    .py(px(6.0))
+                                    .text_xs()
+                                    .text_color(theme.library_header_text)
+                                    .child("No servers found. Press Scan."),
+                            )
+                        }),
+                )
+            })
+            .child(
+                div()
+                    .id("server-picker-toggle")
+                    .w_full()
+                    .flex()
+                    .items_center()
+                    .gap_x_2()
+                    .px(px(10.0))
+                    .py(px(8.0))
+                    .cursor_pointer()
+                    .hover(|s| s.bg(theme.library_table_border))
+                    .on_click(cx.listener(|_, _, _, cx| {
+                        let open = !cx.global::<ServerPickerOpen>().0;
+                        cx.global_mut::<ServerPickerOpen>().0 = open;
+                        cx.notify();
+                    }))
+                    .child(
+                        Icon::new(Icons::Device)
+                            .size_3()
+                            .text_color(if picker_open {
+                                gpui::rgb(0x6F00FF)
+                            } else {
+                                theme.library_header_text
+                            }),
+                    )
+                    .child(
+                        div()
+                            .flex_1()
+                            .min_w_0()
+                            .truncate()
+                            .text_xs()
+                            .text_color(theme.library_header_text)
+                            .child(cur_server.display_name()),
+                    ),
+            );
+
         div()
             .size_full()
             .flex()
@@ -3157,18 +3455,23 @@ impl Render for LibraryPage {
                     // Sidebar
                     .child(
                         div()
-                            .id("sidebar_scroll")
                             .w(px(200.0))
                             .h_full()
                             .flex_shrink_0()
                             .flex()
                             .flex_col()
-                            .overflow_y_scroll()
                             .border_r_1()
                             .border_color(theme.library_table_border)
-                            .pt_4()
-                            .child(self.search_input.clone())
-                            .gap_y_1()
+                            .child(div()
+                                .id("sidebar_scroll")
+                                .flex_1()
+                                .min_h_0()
+                                .flex()
+                                .flex_col()
+                                .overflow_y_scroll()
+                                .pt_4()
+                                .child(self.search_input.clone())
+                                .gap_y_1()
                             .child(make_nav_item(
                                 Icons::Music,
                                 5,
@@ -3420,6 +3723,8 @@ impl Render for LibraryPage {
                                         )
                                     }),
                             ),
+                            )
+                            .child(server_footer)
                     )
                     .child(content),
             )

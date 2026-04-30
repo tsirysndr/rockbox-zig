@@ -24,13 +24,17 @@ use crate::state::{ArtistImages, PlaybackStatus, StateUpdate, Track};
 use anyhow::Result;
 use tokio::sync::mpsc::Sender;
 
-const URL: &str = "http://127.0.0.1:6061";
-const HTTP_URL: &str = "http://127.0.0.1:6063";
+fn url() -> String {
+    crate::server::get_grpc_url()
+}
+fn http_url() -> String {
+    crate::server::get_http_url()
+}
 
 // ── Library ───────────────────────────────────────────────────────────────────
 
 pub async fn fetch_tracks() -> Result<Vec<Track>> {
-    let mut c = LibraryServiceClient::connect(URL).await?;
+    let mut c = LibraryServiceClient::connect(url()).await?;
     let resp = c.get_tracks(GetTracksRequest {}).await?;
     Ok(resp
         .into_inner()
@@ -43,7 +47,7 @@ pub async fn fetch_tracks() -> Result<Vec<Track>> {
 pub async fn get_album(
     id: &str,
 ) -> Result<(String, Option<String>)> {
-    let mut c = LibraryServiceClient::connect(URL).await?;
+    let mut c = LibraryServiceClient::connect(url()).await?;
     let resp = c.get_album(GetAlbumRequest { id: id.to_string() }).await?;
     let album = resp.into_inner().album;
     Ok(album
@@ -74,14 +78,14 @@ fn track_from_proto(t: crate::api::v1alpha1::Track) -> Track {
 // ── Playback control ──────────────────────────────────────────────────────────
 
 pub async fn resume() -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.resume(ResumeRequest {}).await?;
     Ok(())
 }
 
 // Resume from saved state after a daemon restart (playlist_resume + resume_track).
 pub async fn resume_track() -> Result<()> {
-    let mut c = PlaylistServiceClient::connect(URL).await?;
+    let mut c = PlaylistServiceClient::connect(url()).await?;
     c.resume_track(ResumeTrackRequest {
         start_index: 0,
         crc: 0,
@@ -93,14 +97,14 @@ pub async fn resume_track() -> Result<()> {
 }
 
 pub async fn pause() -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.pause(PauseRequest {}).await?;
     Ok(())
 }
 
 /// Seek to `new_time_ms` milliseconds from the start of the current track.
 pub async fn seek(new_time_ms: i32) -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.fast_forward_rewind(FastForwardRewindRequest {
         new_time: new_time_ms,
     })
@@ -109,25 +113,25 @@ pub async fn seek(new_time_ms: i32) -> Result<()> {
 }
 
 pub async fn next() -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.next(NextRequest {}).await?;
     Ok(())
 }
 
 pub async fn prev() -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.previous(PreviousRequest {}).await?;
     Ok(())
 }
 
 pub async fn play_track(path: String) -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.play_track(PlayTrackRequest { path }).await?;
     Ok(())
 }
 
 pub async fn play_album(album_id: String, shuffle: bool) -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.play_album(PlayAlbumRequest {
         album_id,
         shuffle: Some(shuffle),
@@ -138,7 +142,7 @@ pub async fn play_album(album_id: String, shuffle: bool) -> Result<()> {
 }
 
 pub async fn play_artist_tracks(artist_id: String, shuffle: bool) -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.play_artist_tracks(PlayArtistTracksRequest {
         artist_id,
         shuffle: Some(shuffle),
@@ -149,7 +153,7 @@ pub async fn play_artist_tracks(artist_id: String, shuffle: bool) -> Result<()> 
 }
 
 pub async fn play_all_tracks() -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.play_all_tracks(PlayAllTracksRequest {
         shuffle: Some(false),
         position: Some(0),
@@ -161,7 +165,7 @@ pub async fn play_all_tracks() -> Result<()> {
 // ── Queue / Playlist ──────────────────────────────────────────────────────────
 
 pub async fn jump_to_queue_position(pos: i32) -> Result<()> {
-    let mut c = PlaylistServiceClient::connect(URL).await?;
+    let mut c = PlaylistServiceClient::connect(url()).await?;
     c.start(StartRequest {
         start_index: Some(pos),
         elapsed: Some(0),
@@ -172,7 +176,7 @@ pub async fn jump_to_queue_position(pos: i32) -> Result<()> {
 }
 
 pub async fn insert_track_next(path: String) -> Result<()> {
-    let mut c = PlaylistServiceClient::connect(URL).await?;
+    let mut c = PlaylistServiceClient::connect(url()).await?;
     c.insert_tracks(InsertTracksRequest {
         playlist_id: None,
         position: INSERT_FIRST,
@@ -184,7 +188,7 @@ pub async fn insert_track_next(path: String) -> Result<()> {
 }
 
 pub async fn insert_track_last(path: String) -> Result<()> {
-    let mut c = PlaylistServiceClient::connect(URL).await?;
+    let mut c = PlaylistServiceClient::connect(url()).await?;
     c.insert_tracks(InsertTracksRequest {
         playlist_id: None,
         position: INSERT_LAST,
@@ -196,7 +200,7 @@ pub async fn insert_track_last(path: String) -> Result<()> {
 }
 
 pub async fn insert_tracks(paths: Vec<String>, position: i32, shuffle: bool) -> Result<()> {
-    let mut c = PlaylistServiceClient::connect(URL).await?;
+    let mut c = PlaylistServiceClient::connect(url()).await?;
     c.insert_tracks(InsertTracksRequest {
         playlist_id: None,
         position,
@@ -208,7 +212,7 @@ pub async fn insert_tracks(paths: Vec<String>, position: i32, shuffle: bool) -> 
 }
 
 pub async fn search(term: String) -> Result<SearchResults> {
-    let mut c = LibraryServiceClient::connect(URL).await?;
+    let mut c = LibraryServiceClient::connect(url()).await?;
     let resp = c.search(SearchRequest { term }).await?;
     let resp = resp.into_inner();
     let tracks = resp.tracks.into_iter().map(track_from_proto).collect();
@@ -254,7 +258,7 @@ pub async fn search(term: String) -> Result<SearchResults> {
 }
 
 pub async fn fetch_queue(tx: Sender<StateUpdate>) {
-    match PlaylistServiceClient::connect(URL).await {
+    match PlaylistServiceClient::connect(url()).await {
         Ok(mut c) => match c.get_current(GetCurrentRequest {}).await {
             Ok(resp) => {
                 let resp = resp.into_inner();
@@ -293,7 +297,7 @@ pub async fn fetch_queue(tx: Sender<StateUpdate>) {
 }
 
 pub async fn play_liked_tracks(paths: Vec<String>, shuffle: bool) -> Result<()> {
-    let mut c = PlaylistServiceClient::connect(URL).await?;
+    let mut c = PlaylistServiceClient::connect(url()).await?;
     c.insert_tracks(InsertTracksRequest {
         playlist_id: None,
         position: 0,
@@ -317,7 +321,7 @@ pub async fn play_liked_tracks(paths: Vec<String>, shuffle: bool) -> Result<()> 
 // ── Queue mutation ────────────────────────────────────────────────────────────
 
 pub async fn remove_from_queue(position: i32) -> Result<()> {
-    let mut c = PlaylistServiceClient::connect(URL).await?;
+    let mut c = PlaylistServiceClient::connect(url()).await?;
     c.remove_tracks(RemoveTracksRequest {
         positions: vec![position],
     })
@@ -328,14 +332,14 @@ pub async fn remove_from_queue(position: i32) -> Result<()> {
 // ── Sound / Volume ────────────────────────────────────────────────────────────
 
 pub async fn adjust_volume(steps: i32) -> Result<()> {
-    let mut c = SoundServiceClient::connect(URL).await?;
+    let mut c = SoundServiceClient::connect(url()).await?;
     c.adjust_volume(AdjustVolumeRequest { steps }).await?;
     Ok(())
 }
 
 pub async fn get_current_volume() -> Result<i32> {
     const SOUND_VOLUME: i32 = 0;
-    let mut c = SoundServiceClient::connect(URL).await?;
+    let mut c = SoundServiceClient::connect(url()).await?;
     let resp = c
         .sound_current(SoundCurrentRequest {
             setting: SOUND_VOLUME,
@@ -347,7 +351,7 @@ pub async fn get_current_volume() -> Result<i32> {
 // ── Settings (shuffle, repeat) ────────────────────────────────────────────────
 
 pub async fn save_shuffle(enabled: bool) -> Result<()> {
-    let mut c = SettingsServiceClient::connect(URL).await?;
+    let mut c = SettingsServiceClient::connect(url()).await?;
     c.save_settings(SaveSettingsRequest {
         playlist_shuffle: Some(enabled),
         ..Default::default()
@@ -357,7 +361,7 @@ pub async fn save_shuffle(enabled: bool) -> Result<()> {
 }
 
 pub async fn save_repeat(repeat_mode: i32) -> Result<()> {
-    let mut c = SettingsServiceClient::connect(URL).await?;
+    let mut c = SettingsServiceClient::connect(url()).await?;
     c.save_settings(SaveSettingsRequest {
         repeat_mode: Some(repeat_mode),
         ..Default::default()
@@ -369,7 +373,7 @@ pub async fn save_repeat(repeat_mode: i32) -> Result<()> {
 // Fetch the saved resume position on startup so the progress bar shows the
 // right value before the user presses play.
 pub async fn run_resume_info_sync(tx: Sender<StateUpdate>) {
-    match SystemServiceClient::connect(URL).await {
+    match SystemServiceClient::connect(url()).await {
         Ok(mut c) => match c.get_global_status(GetGlobalStatusRequest {}).await {
             Ok(resp) => {
                 let s = resp.into_inner();
@@ -386,7 +390,7 @@ pub async fn run_resume_info_sync(tx: Sender<StateUpdate>) {
 
     // The status stream only fires on changes; fetch the initial status once so
     // the Now Playing widget shows correctly when the app opens with a paused track.
-    match PlaybackServiceClient::connect(URL).await {
+    match PlaybackServiceClient::connect(url()).await {
         Ok(mut c) => match c.status(StatusRequest {}).await {
             Ok(resp) => {
                 let s = resp.into_inner();
@@ -408,7 +412,7 @@ pub async fn run_resume_info_sync(tx: Sender<StateUpdate>) {
 pub async fn run_settings_sync(tx: Sender<StateUpdate>) {
     let live_volume = get_current_volume().await.ok();
 
-    match SettingsServiceClient::connect(URL).await {
+    match SettingsServiceClient::connect(url()).await {
         Ok(mut c) => match c.get_global_settings(GetGlobalSettingsRequest {}).await {
             Ok(resp) => {
                 let s = resp.into_inner();
@@ -430,19 +434,19 @@ pub async fn run_settings_sync(tx: Sender<StateUpdate>) {
 // ── Likes ─────────────────────────────────────────────────────────────────────
 
 pub async fn fetch_liked_tracks() -> Result<Vec<String>> {
-    let mut c = LibraryServiceClient::connect(URL).await?;
+    let mut c = LibraryServiceClient::connect(url()).await?;
     let resp = c.get_liked_tracks(GetLikedTracksRequest {}).await?;
     Ok(resp.into_inner().tracks.into_iter().map(|t| t.id).collect())
 }
 
 pub async fn like_track(id: String) -> Result<()> {
-    let mut c = LibraryServiceClient::connect(URL).await?;
+    let mut c = LibraryServiceClient::connect(url()).await?;
     c.like_track(LikeTrackRequest { id }).await?;
     Ok(())
 }
 
 pub async fn unlike_track(id: String) -> Result<()> {
-    let mut c = LibraryServiceClient::connect(URL).await?;
+    let mut c = LibraryServiceClient::connect(url()).await?;
     c.unlike_track(UnlikeTrackRequest { id }).await?;
     Ok(())
 }
@@ -460,16 +464,20 @@ pub async fn run_library_sync(tx: Sender<StateUpdate>) {
 }
 
 pub async fn run_library_stream(tx: Sender<StateUpdate>) {
+    let notify = crate::server::server_notify();
     loop {
-        if let Err(e) = library_stream_inner(&tx).await {
-            log::warn!("library stream: {e}");
+        tokio::select! {
+            result = library_stream_inner(&tx) => {
+                if let Err(e) = result { log::warn!("library stream: {e}"); }
+                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+            }
+            _ = notify.notified() => {} // server changed — drop connection and reconnect
         }
-        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
     }
 }
 
 async fn library_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
-    let mut c = LibraryServiceClient::connect(URL).await?;
+    let mut c = LibraryServiceClient::connect(url()).await?;
     let resp = c.stream_library(StreamLibraryRequest {}).await?;
     let mut stream = resp.into_inner();
     loop {
@@ -503,7 +511,7 @@ pub async fn run_liked_tracks_sync(tx: Sender<StateUpdate>) {
 }
 
 pub async fn run_artist_images_sync(tx: Sender<StateUpdate>) {
-    match LibraryServiceClient::connect(URL).await {
+    match LibraryServiceClient::connect(url()).await {
         Ok(mut c) => match c.get_artists(GetArtistsRequest {}).await {
             Ok(resp) => {
                 let images: ArtistImages = resp
@@ -521,16 +529,20 @@ pub async fn run_artist_images_sync(tx: Sender<StateUpdate>) {
 }
 
 pub async fn run_status_stream(tx: Sender<StateUpdate>) {
+    let notify = crate::server::server_notify();
     loop {
-        if let Err(e) = status_stream_inner(&tx).await {
-            log::warn!("status stream: {e}");
+        tokio::select! {
+            result = status_stream_inner(&tx) => {
+                if let Err(e) = result { log::warn!("status stream: {e}"); }
+                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+            }
+            _ = notify.notified() => {}
         }
-        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
     }
 }
 
 async fn status_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     let resp = c.stream_status(StreamStatusRequest {}).await?;
     let mut stream = resp.into_inner();
     loop {
@@ -558,16 +570,20 @@ async fn status_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
 }
 
 pub async fn run_current_track_stream(tx: Sender<StateUpdate>) {
+    let notify = crate::server::server_notify();
     loop {
-        if let Err(e) = current_track_stream_inner(&tx).await {
-            log::warn!("current track stream: {e}");
+        tokio::select! {
+            result = current_track_stream_inner(&tx) => {
+                if let Err(e) = result { log::warn!("current track stream: {e}"); }
+                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+            }
+            _ = notify.notified() => {}
         }
-        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
     }
 }
 
 async fn current_track_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     let resp = c.stream_current_track(StreamCurrentTrackRequest {}).await?;
     let mut stream = resp.into_inner();
     loop {
@@ -591,11 +607,15 @@ async fn current_track_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
 }
 
 pub async fn run_playlist_stream(tx: Sender<StateUpdate>) {
+    let notify = crate::server::server_notify();
     loop {
-        if let Err(e) = playlist_stream_inner(&tx).await {
-            log::warn!("playlist stream: {e}");
+        tokio::select! {
+            result = playlist_stream_inner(&tx) => {
+                if let Err(e) = result { log::warn!("playlist stream: {e}"); }
+                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+            }
+            _ = notify.notified() => {}
         }
-        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
     }
 }
 
@@ -606,13 +626,13 @@ async fn playlist_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
     // publishes — without this fetch the queue would stay empty if we connect
     // after the broker's initial publish.
     {
-        if let Ok(mut c) = PlaylistServiceClient::connect(URL).await {
+        if let Ok(mut c) = PlaylistServiceClient::connect(url()).await {
             let _ = c.playlist_resume(PlaylistResumeRequest {}).await;
         }
     }
     fetch_queue(tx.clone()).await;
 
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     let resp = c.stream_playlist(StreamPlaylistRequest {}).await?;
     let mut stream = resp.into_inner();
     loop {
@@ -677,7 +697,7 @@ fn entry_display_name(path: &str, display_name: Option<String>) -> String {
 }
 
 pub async fn tree_get_entries(path: Option<String>) -> Result<Vec<FileEntry>> {
-    let mut c = BrowseServiceClient::connect(URL).await?;
+    let mut c = BrowseServiceClient::connect(url()).await?;
     let resp = c.tree_get_entries(TreeGetEntriesRequest { path }).await?;
     let mut entries: Vec<FileEntry> = resp
         .into_inner()
@@ -702,7 +722,7 @@ pub async fn tree_get_entries(path: Option<String>) -> Result<Vec<FileEntry>> {
 }
 
 pub async fn play_directory(path: String, shuffle: bool) -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.play_directory(PlayDirectoryRequest {
         path,
         shuffle: Some(shuffle),
@@ -714,7 +734,7 @@ pub async fn play_directory(path: String, shuffle: bool) -> Result<()> {
 }
 
 pub async fn play_directory_at(path: String, position: i32) -> Result<()> {
-    let mut c = PlaybackServiceClient::connect(URL).await?;
+    let mut c = PlaybackServiceClient::connect(url()).await?;
     c.play_directory(PlayDirectoryRequest {
         path,
         shuffle: Some(false),
@@ -726,7 +746,7 @@ pub async fn play_directory_at(path: String, position: i32) -> Result<()> {
 }
 
 pub async fn insert_directory(path: String, position: i32) -> Result<()> {
-    let mut c = PlaylistServiceClient::connect(URL).await?;
+    let mut c = PlaylistServiceClient::connect(url()).await?;
     c.insert_directory(InsertDirectoryRequest {
         directory: path,
         position,
@@ -744,7 +764,7 @@ pub async fn fetch_saved_playlists() -> Result<Vec<crate::ui::components::SavedP
     use crate::api::v1alpha1::{
         saved_playlist_service_client::SavedPlaylistServiceClient, GetSavedPlaylistsRequest,
     };
-    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     let resp = c
         .get_saved_playlists(GetSavedPlaylistsRequest { folder_id: None })
         .await?;
@@ -769,7 +789,7 @@ pub async fn fetch_smart_playlists() -> Result<Vec<crate::ui::components::SmartP
     use crate::api::v1alpha1::{
         smart_playlist_service_client::SmartPlaylistServiceClient, GetSmartPlaylistsRequest,
     };
-    let mut c = SmartPlaylistServiceClient::connect(URL).await?;
+    let mut c = SmartPlaylistServiceClient::connect(url()).await?;
     let resp = c
         .get_smart_playlists(GetSmartPlaylistsRequest {})
         .await?;
@@ -800,7 +820,7 @@ pub async fn create_saved_playlist(
     use crate::api::v1alpha1::{
         saved_playlist_service_client::SavedPlaylistServiceClient, CreateSavedPlaylistRequest,
     };
-    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     c.create_saved_playlist(CreateSavedPlaylistRequest {
         name,
         description,
@@ -817,7 +837,7 @@ pub async fn add_track_to_playlist(playlist_id: String, track_id: String) -> Res
         saved_playlist_service_client::SavedPlaylistServiceClient,
         AddTracksToSavedPlaylistRequest,
     };
-    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     c.add_tracks_to_saved_playlist(AddTracksToSavedPlaylistRequest {
         playlist_id,
         track_ids: vec![track_id],
@@ -832,7 +852,7 @@ pub async fn fetch_saved_playlist_track_ids(playlist_id: String) -> Result<Vec<S
         saved_playlist_service_client::SavedPlaylistServiceClient,
         GetSavedPlaylistTracksRequest,
     };
-    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     let resp = c
         .get_saved_playlist_tracks(GetSavedPlaylistTracksRequest { playlist_id })
         .await?;
@@ -845,7 +865,7 @@ pub async fn fetch_smart_playlist_track_ids(playlist_id: String) -> Result<Vec<S
         smart_playlist_service_client::SmartPlaylistServiceClient,
         GetSmartPlaylistTracksRequest,
     };
-    let mut c = SmartPlaylistServiceClient::connect(URL).await?;
+    let mut c = SmartPlaylistServiceClient::connect(url()).await?;
     let resp = c
         .get_smart_playlist_tracks(GetSmartPlaylistTracksRequest { id: playlist_id })
         .await?;
@@ -856,7 +876,7 @@ pub async fn play_saved_playlist(playlist_id: String) -> Result<()> {
     use crate::api::v1alpha1::{
         saved_playlist_service_client::SavedPlaylistServiceClient, PlaySavedPlaylistRequest,
     };
-    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     c.play_saved_playlist(PlaySavedPlaylistRequest { playlist_id })
         .await?;
     Ok(())
@@ -866,7 +886,7 @@ pub async fn play_smart_playlist(playlist_id: String) -> Result<()> {
     use crate::api::v1alpha1::{
         smart_playlist_service_client::SmartPlaylistServiceClient, PlaySmartPlaylistRequest,
     };
-    let mut c = SmartPlaylistServiceClient::connect(URL).await?;
+    let mut c = SmartPlaylistServiceClient::connect(url()).await?;
     c.play_smart_playlist(PlaySmartPlaylistRequest { id: playlist_id })
         .await?;
     Ok(())
@@ -876,7 +896,7 @@ pub async fn delete_saved_playlist(playlist_id: String) -> Result<()> {
     use crate::api::v1alpha1::{
         saved_playlist_service_client::SavedPlaylistServiceClient, DeleteSavedPlaylistRequest,
     };
-    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     c.delete_saved_playlist(DeleteSavedPlaylistRequest { id: playlist_id })
         .await?;
     Ok(())
@@ -890,7 +910,7 @@ pub async fn update_saved_playlist(
     use crate::api::v1alpha1::{
         saved_playlist_service_client::SavedPlaylistServiceClient, UpdateSavedPlaylistRequest,
     };
-    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     c.update_saved_playlist(UpdateSavedPlaylistRequest {
         id,
         name,
@@ -910,7 +930,7 @@ pub async fn remove_track_from_saved_playlist(
         saved_playlist_service_client::SavedPlaylistServiceClient,
         RemoveTrackFromSavedPlaylistRequest,
     };
-    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     c.remove_track_from_saved_playlist(RemoveTrackFromSavedPlaylistRequest {
         playlist_id,
         track_id,
@@ -923,14 +943,14 @@ pub async fn play_saved_playlist_shuffled(playlist_id: String) -> Result<()> {
     use crate::api::v1alpha1::{
         saved_playlist_service_client::SavedPlaylistServiceClient, PlaySavedPlaylistRequest,
     };
-    let mut c = SavedPlaylistServiceClient::connect(URL).await?;
+    let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     c.play_saved_playlist(PlaySavedPlaylistRequest { playlist_id })
         .await?;
     // After loading, shuffle
     use crate::api::v1alpha1::{
         playlist_service_client::PlaylistServiceClient, ShufflePlaylistRequest,
     };
-    let mut pc = PlaylistServiceClient::connect(URL).await?;
+    let mut pc = PlaylistServiceClient::connect(url()).await?;
     pc.shuffle_playlist(ShufflePlaylistRequest { start_index: 0 })
         .await?;
     Ok(())
@@ -939,7 +959,7 @@ pub async fn play_saved_playlist_shuffled(playlist_id: String) -> Result<()> {
 // ── Device output API ─────────────────────────────────────────────────────────
 
 pub async fn fetch_devices() -> Result<Vec<DeviceItem>> {
-    let body = reqwest::get(format!("{HTTP_URL}/devices"))
+    let body = reqwest::get(format!("{}/devices", http_url()))
         .await?
         .text()
         .await?;
@@ -950,7 +970,7 @@ pub async fn fetch_devices() -> Result<Vec<DeviceItem>> {
 pub async fn connect_device(id: String) -> Result<()> {
     let client = reqwest::Client::new();
     client
-        .put(format!("{HTTP_URL}/devices/{id}/connect"))
+        .put(format!("{}/devices/{id}/connect", http_url()))
         .send()
         .await?;
     Ok(())
@@ -959,7 +979,7 @@ pub async fn connect_device(id: String) -> Result<()> {
 pub async fn disconnect_device(id: String) -> Result<()> {
     let client = reqwest::Client::new();
     client
-        .put(format!("{HTTP_URL}/devices/{id}/disconnect"))
+        .put(format!("{}/devices/{id}/disconnect", http_url()))
         .send()
         .await?;
     Ok(())
