@@ -12,12 +12,15 @@ struct DetailView: View {
   @ObservedObject var library: MusicLibrary
   @EnvironmentObject var navigation: NavigationManager
   @EnvironmentObject var searchManager: SearchManager
+  @ObservedObject private var serverManager = ServerManager.shared
   @Binding var showQueue: Bool
 
   var body: some View {
     VStack(spacing: 0) {
-      // Main content area
+      // Main content area — re-keyed on server host so all child .task{}
+      // blocks re-run automatically when the user switches servers.
       contentView
+        .id(serverManager.currentServer.host)
         .background(.white)
 
       Divider()
@@ -29,7 +32,8 @@ struct DetailView: View {
     .onChange(of: selection) {
       navigation.reset()
     }
-    .task {
+    .task(id: serverManager.currentServer.host) {
+      library.likedSongIds = []
       do {
         let likes = try await fetchLikedTracks()
         for track in likes {

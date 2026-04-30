@@ -48,7 +48,7 @@ impl Render for PlayerPage {
             .current_track()
             .and_then(|t| t.album_art.as_deref())
             .filter(|s| !s.is_empty())
-            .map(|id| format!("http://localhost:6062/covers/{id}"));
+            .map(|id| format!("{}{id}", crate::server::get_covers_base()));
         let bg_art_url = album_art_url.clone();
         let queue_total = state.queue.len();
         let queue_pos = state.current_idx.map(|i| i + 1);

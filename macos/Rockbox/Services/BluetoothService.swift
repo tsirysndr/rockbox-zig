@@ -18,8 +18,11 @@ func fetchBluetoothDevices() async throws -> [Rockbox_V1alpha1_BluetoothDevice] 
 
 @available(macOS 15.0, *)
 func checkBluetoothAvailable() async -> Bool {
+    // Mirror GPUI: bluetooth is considered available whenever the server is
+    // reachable. Calling getDevices here made the button disappear whenever
+    // the service returned UNIMPLEMENTED or any transient error.
     do {
-        _ = try await fetchBluetoothDevices()
+        _ = try await fetchGlobalStatus()
         return true
     } catch {
         return false

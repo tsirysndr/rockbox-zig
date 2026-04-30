@@ -25,7 +25,9 @@ use gpui::{
     StatefulInteractiveElement, Styled, StyledImage, Subscription, UniformListScrollHandle, Window,
 };
 
-const COVERS_BASE: &str = "http://localhost:6062/covers/";
+fn covers_base() -> String {
+    crate::server::get_covers_base()
+}
 
 /// Parse "yyyy-MM-dd" into "9 December 2014". Falls back to the raw string on any parse failure.
 fn format_release_date(s: &str) -> String {
@@ -57,7 +59,7 @@ fn art_tile(
 ) -> AnyElement {
     let art_url = art
         .filter(|s| !s.is_empty())
-        .map(|id| format!("{COVERS_BASE}{id}"));
+        .map(|id| format!("{}{id}", covers_base()));
     let mut container = div().w_full().rounded_lg().overflow_hidden();
     container.style().aspect_ratio = Some(1.0_f32);
     if let Some(url) = art_url {
@@ -85,7 +87,7 @@ fn art_fixed(
 ) -> AnyElement {
     let art_url = art
         .filter(|s| !s.is_empty())
-        .map(|id| format!("{COVERS_BASE}{id}"));
+        .map(|id| format!("{}{id}", covers_base()));
     if let Some(url) = art_url {
         div()
             .w(size)
@@ -1006,7 +1008,7 @@ impl Render for LibraryPage {
                                                                 if s.starts_with("http") {
                                                                     s.to_string()
                                                                 } else {
-                                                                    format!("{COVERS_BASE}{s}")
+                                                                    format!("{}{s}", covers_base())
                                                                 }
                                                             });
                                                         div()
@@ -1102,7 +1104,7 @@ impl Render for LibraryPage {
                                                             .album_art
                                                             .as_deref()
                                                             .filter(|s| !s.is_empty())
-                                                            .map(|id| format!("{COVERS_BASE}{id}"));
+                                                            .map(|id| format!("{}{id}", covers_base()));
                                                         div()
                                                             .id(("sab", idx))
                                                             .w(px(130.0))
@@ -1441,7 +1443,7 @@ impl Render for LibraryPage {
                                     let name_clone_opts = name.clone();
                                     let art_url = album_art
                                         .filter(|s| !s.is_empty())
-                                        .map(|id| format!("{COVERS_BASE}{id}"));
+                                        .map(|id| format!("{}{id}", covers_base()));
                                     let art_url_opts = art_url.clone();
                                     let album_id_play = album_id.clone();
                                     let album_id_opts = album_id.clone();
@@ -1653,7 +1655,7 @@ impl Render for LibraryPage {
                                                     if s.starts_with("http") {
                                                         s
                                                     } else {
-                                                        format!("{COVERS_BASE}{s}")
+                                                        format!("{}{s}", covers_base())
                                                     }
                                                 });
                                             let mut container = div()
@@ -2035,7 +2037,7 @@ impl Render for LibraryPage {
                                                         if s.starts_with("http") {
                                                             s
                                                         } else {
-                                                            format!("{COVERS_BASE}{s}")
+                                                            format!("{}{s}", covers_base())
                                                         }
                                                     });
                                                 if let Some(url) = img_url {
@@ -3740,7 +3742,7 @@ impl Render for LibraryPage {
                     .album_art
                     .as_deref()
                     .filter(|s| !s.is_empty())
-                    .map(|id| format!("{COVERS_BASE}{id}"));
+                    .map(|id| format!("{}{id}", covers_base()));
                 // header ~64px + 6 items × ~33px + separator + borders
                 let menu_w = px(240.0);
                 let menu_h = px(264.0);
@@ -4115,7 +4117,7 @@ impl Render for LibraryPage {
                             if s.starts_with("http") {
                                 s.to_string()
                             } else {
-                                format!("{COVERS_BASE}{s}")
+                                format!("{}{s}", covers_base())
                             }
                         });
                 // header ~64px + 7 items × ~33px + borders

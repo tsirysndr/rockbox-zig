@@ -84,6 +84,33 @@ pub fn server_notify() -> Arc<tokio::sync::Notify> {
 /// Blocking mDNS scan — returns all discovered rockboxd instances within `timeout`.
 /// Looks for `_rockbox._tcp.local.` services; service names prefixed with `grpc-`,
 /// `graphql-`, or `http-` update the corresponding port for that host.
+/// Rank an IPv4 address by how likely it is to be a real local-network address.
+/// Lower is better: 192.168.x.x → 0, 10.x.x.x → 1, others (172.x.x.x Docker bridges) → 2.
+fn addr_preference(a: &std::net::Ipv4Addr) -> u8 {
+    let o = a.octets();
+    if o[0] == 192 && o[1] == 168 {
+        0
+    } else if o[0] == 10 {
+        1
+    } else {
+        2
+    }
+}
+
+/// Pick the most-preferred non-loopback, non-link-local IPv4 address from a set.
+/// Prefers home-network ranges (192.168.x.x, 10.x.x.x) over Docker/VM bridge ranges
+/// (172.16.x.x – 172.31.x.x) so that all service records for the same physical host
+/// always resolve to the same key and get merged into a single ServerInfo entry.
+fn best_addr(addrs: &std::collections::HashSet<std::net::Ipv4Addr>) -> Option<String> {
+    let mut candidates: Vec<std::net::Ipv4Addr> = addrs
+        .iter()
+        .filter(|a| !a.is_loopback() && !a.is_link_local())
+        .cloned()
+        .collect();
+    candidates.sort_by_key(addr_preference);
+    candidates.into_iter().next().map(|a| a.to_string())
+}
+
 pub fn scan_mdns(timeout: std::time::Duration) -> Vec<ServerInfo> {
     use mdns_sd::{ServiceDaemon, ServiceEvent};
     use std::collections::HashMap;
@@ -110,16 +137,9 @@ pub fn scan_mdns(timeout: std::time::Duration) -> Vec<ServerInfo> {
 
         match receiver.recv_timeout(poll) {
             Ok(ServiceEvent::ServiceResolved(info)) => {
-                // Prefer an IPv4 address; only fall back to the hostname when none is present.
-                // Hostnames like `foo.local` may resolve to an IPv6 link-local address, which
-                // tonic's http2 transport rejects or connects to the wrong interface.
-                // get_addresses() returns &HashSet<Ipv4Addr> — all entries are IPv4.
-                // Prefer the raw IP over the .local hostname to avoid IPv6 resolution.
-                let host = info
-                    .get_addresses()
-                    .iter()
-                    .next()
-                    .map(|a| a.to_string())
+                // Always pick the best-ranked address so that grpc-, graphql-, and http-
+                // records for the same physical host all hash to the same key.
+                let host = best_addr(info.get_addresses())
                     .unwrap_or_else(|| info.get_hostname().trim_end_matches('.').to_string());
                 let port = info.get_port();
                 let fullname = info.get_fullname().to_string();

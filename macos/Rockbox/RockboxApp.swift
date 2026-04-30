@@ -40,6 +40,9 @@ struct RockboxApp: App {
                 .task {
                     await performStartup()
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .rockboxServerDidChange)) { _ in
+                    Task { await onServerChanged() }
+                }
         }
         .windowStyle(.hiddenTitleBar)
     }
@@ -75,6 +78,13 @@ struct RockboxApp: App {
             startupError = error
             startupFailed = true
         }
+    }
+
+    private func onServerChanged() async {
+        player.startStreaming()
+        player.fetchSettings()
+        await deviceState.refresh()
+        await bluetoothState.checkAvailability()
     }
 
     private func retry() {

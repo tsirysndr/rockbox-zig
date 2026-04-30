@@ -101,12 +101,9 @@ impl Render for BluetoothPicker {
                                     .gap_x_3()
                                     .cursor_pointer()
                                     .text_color(if is_connected {
-                                        theme.player_icons_text_active
+                                        gpui::rgb(0xFFFFFF)
                                     } else {
                                         theme.player_title_text
-                                    })
-                                    .when(is_connected, |this: gpui::Stateful<gpui::Div>| {
-                                        this.bg(theme.player_icons_bg_active)
                                     })
                                     .hover(|this| this.bg(theme.player_icons_bg_hover))
                                     .on_click(move |_, _, cx: &mut App| {
@@ -146,7 +143,10 @@ impl Render for BluetoothPicker {
                                         this.child(
                                             div()
                                                 .flex_shrink_0()
-                                                .child(Icon::new(Icons::Bluetooth).size_3()),
+                                                .w(px(6.0))
+                                                .h(px(6.0))
+                                                .rounded_full()
+                                                .bg(gpui::rgb(0x39FF14)),
                                         )
                                     })
                             })),

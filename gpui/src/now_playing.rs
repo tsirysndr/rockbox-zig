@@ -86,7 +86,7 @@ impl NowPlayingManager {
         let cover_url = track
             .and_then(|t| t.album_art.as_deref())
             .filter(|s| !s.is_empty())
-            .map(|name| format!("http://localhost:6062/covers/{}", name));
+            .map(|name| format!("{}{name}", crate::server::get_covers_base()));
 
         // Don't touch MPNowPlayingInfoCenter until we have (or previously had) a track.
         // Calling set_playback(Stopped) every 100ms during the startup window before

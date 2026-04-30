@@ -1,8 +1,10 @@
 use crate::client::{adjust_volume, save_repeat, save_shuffle};
 use crate::controller::Controller;
 use crate::state::{
-    format_duration, volume_fraction, DevicesState, PlaybackStatus, VOLUME_MAX_DB, VOLUME_MIN_DB,
+    format_duration, volume_fraction, BluetoothState, DevicesState, PlaybackStatus, VOLUME_MAX_DB,
+    VOLUME_MIN_DB,
 };
+use crate::ui::components::bluetooth_picker::fetch_and_update_bluetooth_devices;
 use crate::ui::components::device_picker::device_icon;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::seek_bar::SeekBar;
@@ -11,7 +13,7 @@ use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, img, px, App, Context, FontWeight, InteractiveElement, IntoElement,
+    div, img, px, App, Context, Div, FontWeight, InteractiveElement, IntoElement,
     ObjectFit, ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled,
     StyledImage, Window,
 };
@@ -46,7 +48,7 @@ impl Render for MiniPlayer {
             .current_track()
             .and_then(|t| t.album_art.as_deref())
             .filter(|s| !s.is_empty())
-            .map(|id| format!("http://localhost:6062/covers/{id}"));
+            .map(|id| format!("{}{id}", crate::server::get_covers_base()));
         let position = state.position;
         let fill_fraction = if duration > 0 {
             (position as f32 / duration as f32).clamp(0.0, 1.0)
@@ -68,6 +70,7 @@ impl Render for MiniPlayer {
             .map(|t| t.id.clone())
             .unwrap_or_default();
         let is_liked = liked_songs.contains(&track_id);
+        let bluetooth_available = cx.global::<BluetoothState>().available;
 
         div()
             .w_full()
@@ -386,6 +389,30 @@ impl Render for MiniPlayer {
                             .items_center()
                             .justify_end()
                             .gap_x_2()
+                            .when(bluetooth_available, |this: Div| {
+                                this.child(
+                                    div()
+                                        .id("mini_bluetooth")
+                                        .p_1p5()
+                                        .rounded_md()
+                                        .flex()
+                                        .items_center()
+                                        .justify_center()
+                                        .cursor_pointer()
+                                        .text_color(theme.player_icons_text)
+                                        .hover(|this| {
+                                            this.bg(theme.player_icons_bg_hover)
+                                                .text_color(theme.player_icons_text_hover)
+                                        })
+                                        .on_click(move |_, _, cx: &mut App| {
+                                            fetch_and_update_bluetooth_devices(cx);
+                                            let mut state = cx.global::<BluetoothState>().clone();
+                                            state.picker_open = !state.picker_open;
+                                            cx.set_global(state);
+                                        })
+                                        .child(Icon::new(Icons::Bluetooth).size_4()),
+                                )
+                            })
                             .child(
                                 div()
                                     .id("mini_device")
