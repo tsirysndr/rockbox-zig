@@ -14,6 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "proto/rockbox/v1alpha1/system.proto",
                 "proto/rockbox/v1alpha1/saved_playlist.proto",
                 "proto/rockbox/v1alpha1/smart_playlist.proto",
+                "proto/rockbox/v1alpha1/bluetooth.proto",
             ],
             &["proto"],
         )?;

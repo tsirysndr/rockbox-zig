@@ -1,11 +1,13 @@
 use crate::controller::Controller;
-use crate::state::{format_duration, DevicesState};
+use crate::state::{format_duration, BluetoothState, DevicesState};
+use crate::ui::components::bluetooth_picker::fetch_and_update_bluetooth_devices;
 use crate::ui::components::device_picker::{device_icon, fetch_and_update_devices};
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::theme::Theme;
+use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, px, App, Context, InteractiveElement, IntoElement, ParentElement, Render,
+    div, px, App, Context, Div, InteractiveElement, IntoElement, ParentElement, Render,
     StatefulInteractiveElement, Styled, Window,
 };
 
@@ -30,6 +32,7 @@ impl Render for ControlBar {
             .find(|d| d.is_current_device)
             .map(|d| device_icon(d))
             .unwrap_or(Icons::Speaker);
+        let bluetooth_available = cx.global::<BluetoothState>().available;
 
         div()
             .w_full()
@@ -76,13 +79,38 @@ impl Render for ControlBar {
                             .child(format_duration(duration)),
                     ),
             )
-            // Device picker — right
+            // Device + Bluetooth pickers — right
             .child(
                 div()
                     .w(px(160.0))
                     .flex()
                     .items_center()
                     .justify_end()
+                    .gap_x_1()
+                    .when(bluetooth_available, |this: Div| {
+                        this.child(
+                            div()
+                                .id("controlbar-bluetooth-btn")
+                                .p_1p5()
+                                .rounded_md()
+                                .flex()
+                                .items_center()
+                                .justify_center()
+                                .cursor_pointer()
+                                .text_color(theme.player_icons_text)
+                                .hover(|this| {
+                                    this.bg(theme.player_icons_bg_hover)
+                                        .text_color(theme.player_icons_text_hover)
+                                })
+                                .on_click(move |_, _, cx: &mut App| {
+                                    fetch_and_update_bluetooth_devices(cx);
+                                    let mut state = cx.global::<BluetoothState>().clone();
+                                    state.picker_open = !state.picker_open;
+                                    cx.set_global(state);
+                                })
+                                .child(Icon::new(Icons::Bluetooth).size_4()),
+                        )
+                    })
                     .child(
                         div()
                             .id("controlbar-device-btn")

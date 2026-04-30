@@ -1,3 +1,4 @@
+pub mod bluetooth_picker;
 pub mod controlbar;
 pub mod device_picker;
 pub mod icons;

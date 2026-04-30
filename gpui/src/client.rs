@@ -1,11 +1,13 @@
 use crate::api::v1alpha1::{
-    browse_service_client::BrowseServiceClient, library_service_client::LibraryServiceClient,
+    bluetooth_service_client::BluetoothServiceClient, browse_service_client::BrowseServiceClient,
+    library_service_client::LibraryServiceClient,
     playback_service_client::PlaybackServiceClient, playlist_service_client::PlaylistServiceClient,
     settings_service_client::SettingsServiceClient, sound_service_client::SoundServiceClient,
     system_service_client::SystemServiceClient, AdjustVolumeRequest, FastForwardRewindRequest,
     GetArtistsRequest, GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest,
     GetAlbumRequest, GetLikedTracksRequest, GetTracksRequest, InsertDirectoryRequest,
-    InsertTracksRequest,
+    ConnectBluetoothDeviceRequest, DisconnectBluetoothDeviceRequest,
+    GetBluetoothDevicesRequest, InsertTracksRequest,
     LikeTrackRequest, NextRequest, PauseRequest, PlayAlbumRequest, PlayAllTracksRequest,
     PlayArtistTracksRequest, PlayDirectoryRequest, PlayTrackRequest, PlaylistResumeRequest,
     PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest,
@@ -982,5 +984,43 @@ pub async fn disconnect_device(id: String) -> Result<()> {
         .put(format!("{}/devices/{id}/disconnect", http_url()))
         .send()
         .await?;
+    Ok(())
+}
+
+// ── Bluetooth API (gRPC) ──────────────────────────────────────────────────────
+
+pub async fn check_bluetooth_available() -> bool {
+    BluetoothServiceClient::connect(url())
+        .await
+        .is_ok()
+}
+
+pub async fn fetch_bluetooth_devices() -> Result<Vec<crate::state::BluetoothDevice>> {
+    let mut c = BluetoothServiceClient::connect(url()).await?;
+    let resp = c.get_devices(GetBluetoothDevicesRequest {}).await?;
+    Ok(resp
+        .into_inner()
+        .devices
+        .into_iter()
+        .map(|d| crate::state::BluetoothDevice {
+            address: d.address,
+            name: d.name,
+            paired: d.paired,
+            trusted: d.trusted,
+            connected: d.connected,
+            rssi: d.rssi,
+        })
+        .collect())
+}
+
+pub async fn connect_bluetooth_device(address: String) -> Result<()> {
+    let mut c = BluetoothServiceClient::connect(url()).await?;
+    c.connect_device(ConnectBluetoothDeviceRequest { address }).await?;
+    Ok(())
+}
+
+pub async fn disconnect_bluetooth_device(address: String) -> Result<()> {
+    let mut c = BluetoothServiceClient::connect(url()).await?;
+    c.disconnect(DisconnectBluetoothDeviceRequest { address }).await?;
     Ok(())
 }
