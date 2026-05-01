@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.01]
+
+### Added
+- Bluetooth button in the GPUI mini-player — shown when Bluetooth is available; opens the device picker and fetches paired devices on toggle
+- Cover URLs in GPUI now follow the active server via `get_covers_base()` instead of the hardcoded `http://localhost:6062/covers/` base
+
+### Changed
+- HTTP server (`crates/server`) migrated from a custom request/response layer to **Actix-web** — handlers now accept `web::Data`, `web::Path`, and `web::Query` and return `actix_web::Result<HttpResponse>`; blocking C FFI work is offloaded to `web::block`
+- Tokio runtimes for the controls and MPD servers are now shared via `OnceLock` instead of being created per-thread, reducing overhead and avoiding nested-runtime panics
+- `RLIMIT_NOFILE` is raised to 4 096 at startup on Unix to accommodate large music libraries
+
+### Fixed
+- Audio `stop` and `pause` are now non-blocking — they use `audio_queue_post` so they can safely be called from any OS thread; `audio_hard_stop` posts `Q_AUDIO_STOP` with `data=2` and the audio thread frees `audiobuf_handle` itself, preventing cross-thread frees
+- Blocking C FFI calls in playlist handlers run on `web::block` threads to avoid starving Actix worker threads and prevent nested tokio/reqwest blocking contexts
+- Live metadata lookups are skipped for HTTP tracks; Rockbox's own UPnP renderers are excluded from the UPnP device list
+- Bluetooth availability check uses `fetchGlobalStatus()` (gRPC `GetGlobalStatus`) instead of `getDevices()` to avoid spurious `UNIMPLEMENTED` errors on probe
+- Bluetooth availability is now polled in a background task and updated via `std::sync::mpsc` to avoid cross-runtime waker issues when bridging Tokio → GPUI
+- `observe_global` registrations in GPUI now call `.detach()` instead of silently dropping the subscription handle
+- RFC3339 datetime migration — a SQL migration normalises `NULL`/blank and `YYYY-MM-DD HH:MM:SS` timestamps in the library database to RFC3339 so SQLx `DateTime<Utc>` decoding no longer fails
+- Favourites queries now use `INNER JOIN` and filter out empty-string IDs, excluding bogus entries from results
+- mDNS scanning now prefers IPv4 addresses (192.168 → 10 → others) and selects the best non-loopback/link-local address so multiple records for the same host coalesce correctly
+- `println!`/`eprintln!` diagnostics in `crates/controls` and `crates/mpd` replaced with `tracing::error!`
+- macOS app listens for server-change notifications and restarts streaming, re-fetches settings, device state, and Bluetooth state on server switch
+
 ## [2026.04.31]
 
 ### Fixed
