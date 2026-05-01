@@ -2287,11 +2287,13 @@ impl Render for LibraryPage {
                     div()
                         .id("likes_scroll")
                         .flex_1()
+                        .min_w_0()
                         .min_h_0()
                         .overflow_y_scroll()
                         .child(
                             div()
                                 .w_full()
+                                .min_w_0()
                                 .flex()
                                 .flex_col()
                                 // Header
@@ -2414,6 +2416,7 @@ impl Render for LibraryPage {
                                 .child(
                                     div()
                                         .w_full()
+                                        .flex_shrink_0()
                                         .flex()
                                         .items_center()
                                         .gap_x_4()
@@ -2442,6 +2445,7 @@ impl Render for LibraryPage {
                                         .child(
                                             div()
                                                 .w_40()
+                                                .min_w_0()
                                                 .overflow_hidden()
                                                 .text_xs()
                                                 .font_weight(FontWeight::MEDIUM)
@@ -3087,6 +3091,7 @@ impl Render for LibraryPage {
                                         .child(
                                             div()
                                                 .w_40()
+                                                .min_w_0()
                                                 .overflow_hidden()
                                                 .text_xs()
                                                 .font_weight(FontWeight::MEDIUM)
