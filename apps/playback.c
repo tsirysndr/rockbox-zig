@@ -3997,8 +3997,17 @@ void audio_play(unsigned long elapsed, unsigned long offset)
     }
     else
     {
-        audio_queue_send(Q_AUDIO_PLAY,
-                         (intptr_t)&(struct audio_resume_info){ elapsed, offset });
+        /* Use static storage so the pointer stays valid after audio_play()
+         * returns.  audio_queue_send() uses Rockbox's cooperative scheduler
+         * (block_thread / switch_thread) which is unsafe from non-Rockbox OS
+         * threads such as the HTTP server worker pool.  audio_queue_post() is
+         * non-blocking and safe from any thread; the audio thread reads
+         * ev->data before the next queue_wait() releases the slot, so the
+         * static pointer is always valid when it is consumed. */
+        static struct audio_resume_info static_resume;
+        static_resume.elapsed = elapsed;
+        static_resume.offset  = offset;
+        audio_queue_post(Q_AUDIO_PLAY, (intptr_t)&static_resume);
     }
 }
 

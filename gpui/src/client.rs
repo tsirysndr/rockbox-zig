@@ -990,9 +990,10 @@ pub async fn disconnect_device(id: String) -> Result<()> {
 // ── Bluetooth API (gRPC) ──────────────────────────────────────────────────────
 
 pub async fn check_bluetooth_available() -> bool {
-    BluetoothServiceClient::connect(url())
-        .await
-        .is_ok()
+    let Ok(mut c) = BluetoothServiceClient::connect(url()).await else {
+        return false;
+    };
+    c.get_devices(GetBluetoothDevicesRequest {}).await.is_ok()
 }
 
 pub async fn fetch_bluetooth_devices() -> Result<Vec<crate::state::BluetoothDevice>> {

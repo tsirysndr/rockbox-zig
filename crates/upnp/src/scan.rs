@@ -100,6 +100,13 @@ async fn probe_renderer(client: &reqwest::Client, location: &str) -> Option<Rend
         return None;
     }
 
+    // Skip Rockbox's own UPnP media renderer — using it as an output from
+    // another Rockbox instance is currently unstable.
+    if tag_value(&xml, "manufacturer") == Some("Rockbox") {
+        tracing::debug!("upnp scan: skipping Rockbox renderer at {location}");
+        return None;
+    }
+
     let friendly_name = tag_value(&xml, "friendlyName")?.to_string();
     let udn = tag_value(&xml, "UDN").unwrap_or("").to_string();
 

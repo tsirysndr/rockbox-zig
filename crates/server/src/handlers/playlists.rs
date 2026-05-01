@@ -44,32 +44,37 @@ pub async fn create_playlist(
         .collect();
     persist_remote_track_metadata(state.pool.clone(), tracks_with_art).await;
 
-    let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+    let start_index = web::block(move || {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
 
-    let current_is_http = rb::playback::current_track()
-        .map(|t| t.path.starts_with("http://") || t.path.starts_with("https://"))
-        .unwrap_or(false);
-    let new_is_http = new_playlist.tracks[0].starts_with("http://")
-        || new_playlist.tracks[0].starts_with("https://");
-    if current_is_http || new_is_http {
-        rb::playback::hard_stop();
-    }
+        let current_is_http = rb::playback::current_track()
+            .map(|t| t.path.starts_with("http://") || t.path.starts_with("https://"))
+            .unwrap_or(false);
+        let new_is_http = new_playlist.tracks[0].starts_with("http://")
+            || new_playlist.tracks[0].starts_with("https://");
+        if current_is_http || new_is_http {
+            rb::playback::hard_stop();
+        }
 
-    let first = &new_playlist.tracks[0];
-    let dir = if first.starts_with("http://") || first.starts_with("https://") {
-        std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string())
-    } else {
-        let parts: Vec<_> = first.split('/').collect();
-        parts[..parts.len().saturating_sub(1)].join("/")
-    };
-    rb::playlist::create(&dir, None);
+        let first = &new_playlist.tracks[0];
+        let dir = if first.starts_with("http://") || first.starts_with("https://") {
+            std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string())
+        } else {
+            let parts: Vec<_> = first.split('/').collect();
+            parts[..parts.len().saturating_sub(1)].join("/")
+        };
+        rb::playlist::create(&dir, None);
 
-    let start_index = rb::playlist::build_playlist(
-        new_playlist.tracks.iter().map(|t| t.as_str()).collect(),
-        0,
-        new_playlist.tracks.len() as i32,
-    );
-    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+        let start_index = rb::playlist::build_playlist(
+            new_playlist.tracks.iter().map(|t| t.as_str()).collect(),
+            0,
+            new_playlist.tracks.len() as i32,
+        );
+        PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+        start_index
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
     Ok(HttpResponse::Ok().body(start_index.to_string()))
 }
 
@@ -173,7 +178,17 @@ pub async fn get_playlist_tracks(_path: web::Path<String>) -> HandlerResult {
         let mut entries = Vec::with_capacity(amount as usize);
         for i in 0..amount {
             let info = rb::playlist::get_track_info(i);
-            entries.push(rb::metadata::get_metadata(-1, &info.filename));
+            // Skip get_metadata for HTTP files — it opens a live connection.
+            let entry = if info.filename.starts_with("http://")
+                || info.filename.starts_with("https://")
+            {
+                let mut e = rb::types::mp3_entry::Mp3Entry::default();
+                e.path = info.filename;
+                e
+            } else {
+                rb::metadata::get_metadata(-1, &info.filename)
+            };
+            entries.push(entry);
         }
         entries
     })
@@ -207,89 +222,104 @@ pub async fn insert_tracks(
 
     persist_remote_track_metadata(state.pool.clone(), tracks_with_art).await;
 
-    let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let amount = rb::playlist::amount();
-    let mut player = state.player.lock().unwrap();
+    // Check for external player first (async path, no PLAYER_MUTEX needed).
+    {
+        let mut player = state.player.lock().unwrap();
+        if let Some(player) = player.as_deref_mut() {
+            let kv = state.kv.lock().unwrap();
+            let rockbox_addr =
+                env::var("ROCKBOX_ADDR").unwrap_or_else(|_| get_local_ip_address().unwrap());
+            let rockbox_port =
+                env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or_else(|_| "6062".to_string());
 
-    if let Some(player) = player.as_deref_mut() {
-        let kv = state.kv.lock().unwrap();
-        let rockbox_addr =
-            env::var("ROCKBOX_ADDR").unwrap_or_else(|_| get_local_ip_address().unwrap());
-        let rockbox_port = env::var("ROCKBOX_GRAPHQL_PORT").unwrap_or_else(|_| "6062".to_string());
+            let tracks = tracklist
+                .tracks
+                .iter()
+                .filter(|t| kv.get(*t).is_some())
+                .map(|t| {
+                    let track = kv.get(t).unwrap();
+                    Track {
+                        id: track.id.clone(),
+                        title: track.title.clone(),
+                        artist: track.artist.clone(),
+                        album: track.album.clone(),
+                        album_artist: Some(track.album_artist.clone()),
+                        artist_id: Some(track.artist_id.clone()),
+                        album_id: Some(track.album_id.clone()),
+                        album_cover: track.album_art.clone().map(|cover| {
+                            format!("http://{}:{}/covers/{}", rockbox_addr, rockbox_port, cover)
+                        }),
+                        track_number: track.track_number,
+                        path: track.path.clone(),
+                        uri: format!(
+                            "http://{}:{}/tracks/{}",
+                            rockbox_addr, rockbox_port, track.id
+                        ),
+                        disc_number: track.disc_number,
+                        duration: Some(track.length as f32 / 1000.0),
+                        ..Default::default()
+                    }
+                })
+                .collect::<Vec<Track>>();
 
-        let tracks = tracklist
-            .tracks
-            .iter()
-            .filter(|t| kv.get(*t).is_some())
-            .map(|t| {
-                let track = kv.get(t).unwrap();
-                Track {
-                    id: track.id.clone(),
-                    title: track.title.clone(),
-                    artist: track.artist.clone(),
-                    album: track.album.clone(),
-                    album_artist: Some(track.album_artist.clone()),
-                    artist_id: Some(track.artist_id.clone()),
-                    album_id: Some(track.album_id.clone()),
-                    album_cover: track.album_art.clone().map(|cover| {
-                        format!("http://{}:{}/covers/{}", rockbox_addr, rockbox_port, cover)
-                    }),
-                    track_number: track.track_number,
-                    path: track.path.clone(),
-                    uri: format!(
-                        "http://{}:{}/tracks/{}",
-                        rockbox_addr, rockbox_port, track.id
-                    ),
-                    disc_number: track.disc_number,
-                    duration: Some(track.length as f32 / 1000.0),
-                    ..Default::default()
-                }
-            })
-            .collect::<Vec<Track>>();
+            drop(kv);
 
-        for track in tracks {
-            player
-                .play_next(track)
-                .await
-                .map_err(ErrorInternalServerError)?;
+            for track in tracks {
+                player
+                    .play_next(track)
+                    .await
+                    .map_err(ErrorInternalServerError)?;
+            }
+
+            return Ok(HttpResponse::Ok().body("0"));
         }
-
-        return Ok(HttpResponse::Ok().body("0"));
     }
 
-    if amount == 0 {
-        let first = &tracklist.tracks[0];
-        let dir = if first.starts_with("http://") || first.starts_with("https://") {
-            "/".to_string()
-        } else {
-            let dir_parts: Vec<_> = first.split('/').collect();
-            dir_parts[0..dir_parts.len() - 1].join("/")
+    // Built-in player: all C FFI calls must run on a blocking thread so that
+    // reqwest::blocking (used by rb_net_open for HTTP tracks) does not create a
+    // nested tokio context on the actix worker thread.
+    let response_body = web::block(move || -> Result<String, String> {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        let amount = rb::playlist::amount();
+
+        if amount == 0 {
+            let first = &tracklist.tracks[0];
+            let dir = if first.starts_with("http://") || first.starts_with("https://") {
+                "/".to_string()
+            } else {
+                let dir_parts: Vec<_> = first.split('/').collect();
+                dir_parts[0..dir_parts.len() - 1].join("/")
+            };
+            let status = rb::playlist::create(&dir, None);
+            if status == -1 {
+                return Err("Failed to create playlist".to_string());
+            }
+            let start_index = rb::playlist::build_playlist(
+                tracklist.tracks.iter().map(|t| t.as_str()).collect(),
+                0,
+                tracklist.tracks.len() as i32,
+            );
+            PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+            return Ok(start_index.to_string());
+        }
+
+        let mut tracks: Vec<&str> = tracklist.tracks.iter().map(|t| t.as_str()).collect();
+        let position = match tracklist.position {
+            PLAYLIST_INSERT_LAST_SHUFFLED => {
+                tracks.shuffle(&mut rand::thread_rng());
+                PLAYLIST_INSERT_LAST
+            }
+            _ => tracklist.position,
         };
-        let status = rb::playlist::create(&dir, None);
-        if status == -1 {
-            return Ok(HttpResponse::InternalServerError().body("Failed to create playlist"));
-        }
-        let start_index = rb::playlist::build_playlist(
-            tracklist.tracks.iter().map(|t| t.as_str()).collect(),
-            0,
-            tracklist.tracks.len() as i32,
-        );
+        rb::playlist::insert_tracks(tracks, position, tracklist.tracks.len() as i32);
         PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
-        return Ok(HttpResponse::Ok().body(start_index.to_string()));
-    }
+        Ok(tracklist.position.to_string())
+    })
+    .await
+    .map_err(ErrorInternalServerError)?
+    .map_err(ErrorInternalServerError)?;
 
-    let mut tracks: Vec<&str> = tracklist.tracks.iter().map(|t| t.as_str()).collect();
-    let position = match tracklist.position {
-        PLAYLIST_INSERT_LAST_SHUFFLED => {
-            tracks.shuffle(&mut rand::thread_rng());
-            PLAYLIST_INSERT_LAST
-        }
-        _ => tracklist.position,
-    };
-    rb::playlist::insert_tracks(tracks, position, tracklist.tracks.len() as i32);
-
-    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
-    Ok(HttpResponse::Ok().body(tracklist.position.to_string()))
+    Ok(HttpResponse::Ok().body(response_body))
 }
 
 pub async fn remove_tracks(
@@ -297,93 +327,136 @@ pub async fn remove_tracks(
     _path: web::Path<String>,
     body: web::Json<DeleteTracks>,
 ) -> HandlerResult {
-    let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let player = state.player.lock().unwrap();
-
-    if player.as_deref().is_some() {
-        return Ok(HttpResponse::Ok().body("0"));
-    }
-
     let params = body.into_inner();
-    let mut ret = 0;
+    let ret = web::block(move || {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        let player = state.player.lock().unwrap();
 
-    for position in &params.positions {
-        ret = rb::playlist::delete_track(*position);
-    }
+        if player.as_deref().is_some() {
+            return 0;
+        }
+        drop(player);
 
-    if params.positions.is_empty() {
-        ret = rb::playlist::remove_all_tracks();
+        let mut ret = 0;
+
+        for position in &params.positions {
+            ret = rb::playlist::delete_track(*position);
+        }
+
+        if params.positions.is_empty() {
+            ret = rb::playlist::remove_all_tracks();
+        }
+
         PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
-        return Ok(HttpResponse::Ok().body(ret.to_string()));
-    }
-
-    PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+        ret
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
     Ok(HttpResponse::Ok().body(ret.to_string()))
 }
 
 pub async fn get_playlist(state: web::Data<AppState>, _path: web::Path<String>) -> HandlerResult {
-    let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let mut player = state.player.lock().unwrap();
+    // External player path (async) — do not hold PLAYER_MUTEX across awaits.
+    {
+        let mut player = state.player.lock().unwrap();
+        if let Some(player) = player.as_deref_mut() {
+            let current_playback = player
+                .get_current_playback()
+                .await
+                .map_err(ErrorInternalServerError)?;
+            let tracks = current_playback.items;
+            let index = match tracks.len() >= 2 {
+                true => tracks.len() - 2,
+                false => 0,
+            } as i32;
 
-    if let Some(player) = player.as_deref_mut() {
-        let current_playback = player
-            .get_current_playback()
-            .await
-            .map_err(ErrorInternalServerError)?;
-        let tracks = current_playback.items;
-        let index = match tracks.len() >= 2 {
-            true => tracks.len() - 2,
-            false => 0,
-        } as i32;
-
-        let mut entries = Vec::with_capacity(tracks.len());
-        for (mut track, _) in tracks {
-            if track.path.is_empty() {
-                track.path = track.uri.clone();
-            }
-
-            let mut entry: rockbox_sys::types::mp3_entry::Mp3Entry = track.into();
-            if !entry.path.is_empty() {
-                if let Some(metadata) = find_track_metadata(&state, &entry.path)
-                    .await
-                    .map_err(ErrorInternalServerError)?
-                {
-                    entry.id = Some(metadata.id);
-                    entry.album_art = metadata.album_art.or(entry.album_art.clone());
-                    entry.album_id = Some(metadata.album_id);
-                    entry.artist_id = Some(metadata.artist_id);
-                    entry.genre_id = Some(metadata.genre_id);
+            let mut entries = Vec::with_capacity(tracks.len());
+            for (mut track, _) in tracks {
+                if track.path.is_empty() {
+                    track.path = track.uri.clone();
                 }
+
+                let mut entry: rockbox_sys::types::mp3_entry::Mp3Entry = track.into();
+                if !entry.path.is_empty() {
+                    if let Some(metadata) = find_track_metadata(&state, &entry.path)
+                        .await
+                        .map_err(ErrorInternalServerError)?
+                    {
+                        entry.id = Some(metadata.id);
+                        entry.album_art = metadata.album_art.or(entry.album_art.clone());
+                        entry.album_id = Some(metadata.album_id);
+                        entry.artist_id = Some(metadata.artist_id);
+                        entry.genre_id = Some(metadata.genre_id);
+                    }
+                }
+
+                entries.push(entry);
             }
 
-            entries.push(entry);
+            let result = PlaylistInfo {
+                amount: entries.len() as i32,
+                index,
+                entries,
+                ..Default::default()
+            };
+            return Ok(HttpResponse::Ok().json(result));
         }
-
-        let result = PlaylistInfo {
-            amount: entries.len() as i32,
-            index,
-            entries,
-            ..Default::default()
-        };
-        return Ok(HttpResponse::Ok().json(result));
     }
 
-    let mut metadata_cache = state.metadata_cache.lock().await;
-    let mut result = rb::playlist::get_current();
-    let mut entries = vec![];
-    let amount = rb::playlist::amount();
+    // Built-in player: collect C data on a blocking thread. Never call
+    // get_metadata(-1, url) for HTTP filenames — that opens a live reqwest
+    // blocking connection and would nest a tokio context inside the actix
+    // worker's context, causing `EnterGuard` out-of-order panics.
+    let (playlist_meta, raw_entries) = web::block(move || {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        let result = rb::playlist::get_current();
+        let amount = rb::playlist::amount();
 
-    for i in 0..amount {
-        let info = rb::playlist::get_track_info(i);
-        let mut entry = rb::metadata::get_metadata(-1, &info.filename);
-        let hash = format!("{:x}", md5::compute(info.filename.as_bytes()));
+        let raw_entries: Vec<(rockbox_sys::types::mp3_entry::Mp3Entry, String)> = (0..amount)
+            .map(|i| {
+                let info = rb::playlist::get_track_info(i);
+                let filename = info.filename.clone();
+                let entry =
+                    if filename.starts_with("http://") || filename.starts_with("https://") {
+                        let mut e = rockbox_sys::types::mp3_entry::Mp3Entry::default();
+                        e.path = filename.clone();
+                        e
+                    } else {
+                        rb::metadata::get_metadata(-1, &filename)
+                    };
+                (entry, filename)
+            })
+            .collect();
+
+        let meta = (
+            result,
+            rb::playlist::max_playlist_size(),
+            rb::playlist::index(),
+            rb::playlist::first_index(),
+            rb::playlist::last_insert_pos(),
+            rb::playlist::seed(),
+            rb::playlist::last_shuffled_start(),
+        );
+        (meta, raw_entries)
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+
+    let (result_base, max_playlist_size, index, first_index, last_insert_pos, seed, last_shuffled_start) = playlist_meta;
+    let amount = raw_entries.len() as i32;
+
+    let mut entries = Vec::with_capacity(raw_entries.len());
+    let mut metadata_cache = state.metadata_cache.lock().await;
+
+    for (mut entry, filename) in raw_entries {
+        let hash = format!("{:x}", md5::compute(filename.as_bytes()));
 
         if let Some(cached) = metadata_cache.get(&hash) {
             entries.push(cached.clone());
             continue;
         }
 
-        let track = find_track_metadata(&state, &info.filename)
+        let track = find_track_metadata(&state, &filename)
             .await
             .map_err(ErrorInternalServerError)?;
 
@@ -402,13 +475,14 @@ pub async fn get_playlist(state: web::Data<AppState>, _path: web::Path<String>) 
         entries.push(entry);
     }
 
+    let mut result = result_base;
     result.amount = amount;
-    result.max_playlist_size = rb::playlist::max_playlist_size();
-    result.index = rb::playlist::index();
-    result.first_index = rb::playlist::first_index();
-    result.last_insert_pos = rb::playlist::last_insert_pos();
-    result.seed = rb::playlist::seed();
-    result.last_shuffled_start = rb::playlist::last_shuffled_start();
+    result.max_playlist_size = max_playlist_size;
+    result.index = index;
+    result.first_index = first_index;
+    result.last_insert_pos = last_insert_pos;
+    result.seed = seed;
+    result.last_shuffled_start = last_shuffled_start;
     result.entries = entries;
 
     Ok(HttpResponse::Ok().json(result))
