@@ -4,9 +4,17 @@ use souvlaki::{
 };
 use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{mpsc, Arc};
+use std::sync::{mpsc, Arc, OnceLock};
 use std::time::Duration;
 use tonic::transport::Channel;
+
+static CONTROLS_RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+
+fn controls_rt() -> &'static tokio::runtime::Runtime {
+    CONTROLS_RUNTIME.get_or_init(|| {
+        tokio::runtime::Runtime::new().expect("failed to create controls runtime")
+    })
+}
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
@@ -139,32 +147,26 @@ pub fn run_media_controls() -> Result<(), Box<dyn std::error::Error>> {
     let sender = command_sender.clone();
     let playing_state = Arc::clone(&is_playing);
     std::thread::spawn(move || {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        match runtime.block_on(spawn_metadata_update_task(sender.clone(), playing_state)) {
-            Ok(_) => println!("Metadata update task completed"),
-            Err(e) => eprintln!("Metadata update task failed: {}", e),
+        if let Err(e) = controls_rt().block_on(spawn_metadata_update_task(sender.clone(), playing_state)) {
+            tracing::error!("Metadata update task failed: {}", e);
         }
     });
 
     let sender = command_sender.clone();
     std::thread::spawn(move || {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        match runtime.block_on(spawn_event_handler_task(
+        if let Err(e) = controls_rt().block_on(spawn_event_handler_task(
             sender.clone(),
             media_event_receiver,
         )) {
-            Ok(()) => println!("Event handler task completed"),
-            Err(e) => eprintln!("Event handler task failed: {}", e),
+            tracing::error!("Event handler task failed: {}", e);
         }
     });
 
     let sender = command_sender.clone();
     let playing_state = Arc::clone(&is_playing);
     std::thread::spawn(move || {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        match runtime.block_on(spawn_status_update_task(sender.clone(), playing_state)) {
-            Ok(_) => println!("Status update task completed"),
-            Err(e) => eprintln!("Status update task failed: {}", e),
+        if let Err(e) = controls_rt().block_on(spawn_status_update_task(sender.clone(), playing_state)) {
+            tracing::error!("Status update task failed: {}", e);
         }
     });
 

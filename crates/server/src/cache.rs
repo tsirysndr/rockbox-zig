@@ -9,8 +9,7 @@ pub fn update_cache(ctx: &Context, path: &str, show_hidden: bool) {
     let fs_cache = ctx.fs_cache.clone();
     let path = path.to_string();
     thread::spawn(move || {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let mut fs_cache = rt.block_on(fs_cache.lock());
+        let mut fs_cache = fs_cache.blocking_lock();
         let mut entries = vec![];
 
         for file in fs::read_dir(&path)? {

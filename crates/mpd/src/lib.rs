@@ -46,7 +46,12 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
 };
 use rockbox_sys::types::user_settings::UserSettings;
 use sqlx::{Pool, Sqlite};
-use std::{env, sync::Arc, thread, time::Duration};
+use std::{
+    env,
+    sync::{Arc, OnceLock},
+    thread,
+    time::Duration,
+};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
@@ -55,6 +60,13 @@ use tokio::{
 use tokio_stream::StreamExt;
 use tonic::transport::Channel;
 use tracing::{debug, warn};
+
+static MPD_RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+
+fn mpd_rt() -> &'static tokio::runtime::Runtime {
+    MPD_RUNTIME
+        .get_or_init(|| tokio::runtime::Runtime::new().expect("failed to create MPD runtime"))
+}
 
 pub mod consts;
 pub mod dir;
@@ -333,7 +345,7 @@ pub fn listen_events(ctx: Context) {
     let another_cloned_ctx = ctx.clone();
 
     thread::spawn(move || {
-        let rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = mpd_rt();
         loop {
             let mut current_settings = rt.block_on(another_cloned_ctx.current_settings.lock());
             *current_settings = rockbox_sys::settings::get_global_settings();
@@ -344,7 +356,7 @@ pub fn listen_events(ctx: Context) {
 
     thread::spawn(move || {
         let mut subscription = SimpleBroker::<Track>::subscribe();
-        let rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = mpd_rt();
 
         while let Some(track) = rt.block_on(subscription.next()) {
             let mut current_track = rt.block_on(ctx.current_track.lock());
@@ -361,7 +373,7 @@ pub fn listen_events(ctx: Context) {
 
     thread::spawn(move || {
         let mut subscription = SimpleBroker::<Playlist>::subscribe();
-        let rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = mpd_rt();
 
         while let Some(playlist) = rt.block_on(subscription.next()) {
             let mut current_playlist = rt.block_on(ctx_clone.current_playlist.lock());
@@ -385,7 +397,7 @@ pub fn listen_events(ctx: Context) {
 
     thread::spawn(move || {
         let mut subscription = SimpleBroker::<AudioStatus>::subscribe();
-        let rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = mpd_rt();
 
         while let Some(status) = rt.block_on(subscription.next()) {
             let mut playback_status = rt.block_on(another_ctx.playback_status.lock());
@@ -409,7 +421,7 @@ pub fn restore_playlist(ctx: Context) -> Result<(), Error> {
     let ctx_clone = ctx.clone();
     thread::spawn(move || {
         let mut ctx = ctx_clone.clone();
-        let rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = mpd_rt();
         rt.block_on(async {
             let response = ctx
                 .system

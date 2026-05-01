@@ -76,8 +76,26 @@ extern "C" fn handle_shutdown(_sig: libc::c_int) {
     unsafe { libc::_exit(0) };
 }
 
+#[cfg(unix)]
+fn raise_fd_limit() {
+    unsafe {
+        let mut rlim: libc::rlimit = std::mem::zeroed();
+        if libc::getrlimit(libc::RLIMIT_NOFILE, &mut rlim) == 0 {
+            // Raise to 4096 or the hard limit, whichever is lower
+            let target = 4096_u64.min(rlim.rlim_max);
+            if rlim.rlim_cur < target {
+                rlim.rlim_cur = target;
+                libc::setrlimit(libc::RLIMIT_NOFILE, &rlim);
+            }
+        }
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
+    #[cfg(unix)]
+    raise_fd_limit();
+
     let subscriber = tracing_subscriber::fmt()
         .with_writer(std::io::stderr)
         .with_env_filter(
