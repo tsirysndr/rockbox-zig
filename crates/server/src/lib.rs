@@ -82,14 +82,14 @@ pub extern "C" fn start_server() {
 
     // Run the HTTP server in its own Rust OS thread so actix gets a proper
     // multi-worker runtime instead of collapsing onto the Rockbox C thread.
-    thread::spawn(|| {
-        match actix_rt::System::new().block_on(run_http_server()) {
+    thread::spawn(
+        || match actix_rt::System::new().block_on(run_http_server()) {
             Ok(_) => {}
             Err(e) => {
                 error!("Error starting HTTP server: {}", e);
             }
-        }
-    });
+        },
+    );
 
     // Yield to the Rockbox cooperative scheduler periodically. Without this
     // the server_thread holds the Rockbox CPU token indefinitely and starves
