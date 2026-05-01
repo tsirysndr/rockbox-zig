@@ -162,6 +162,7 @@ version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "24eda4e2a6e042aa4e55ac438a2ae052d3b5da0ecf83d7411e1a368946925208"
 dependencies = [
+ "actix-macros",
  "futures-core",
  "tokio",
 ]
@@ -8563,19 +8564,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "queryst"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1cbeb75ac695daf201ca2d66d9c684f873b135f28af4f2c79952478cab3b9d9"
-dependencies = [
- "lazy_static",
- "percent-encoding",
- "regex",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "quick-error"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9477,6 +9465,9 @@ dependencies = [
 name = "rockbox-server"
 version = "0.1.0"
 dependencies = [
+ "actix-cors",
+ "actix-rt",
+ "actix-web",
  "anyhow",
  "async-std",
  "futures-util",
@@ -9485,7 +9476,6 @@ dependencies = [
  "md5",
  "netstream",
  "owo-colors 4.1.0",
- "queryst",
  "rand 0.8.5",
  "reqwest",
  "rockbox-bluetooth",
@@ -9510,7 +9500,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "threadpool",
  "tokio",
  "tracing",
  "url",
@@ -11703,15 +11692,6 @@ checksum = "8b9ef9bad013ada3808854ceac7b46812a6465ba368859a37e2100283d2d719c"
 dependencies = [
  "cfg-if 1.0.0",
  "once_cell",
-]
-
-[[package]]
-name = "threadpool"
-version = "1.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d050e60b33d41c19108b32cea32164033a9013fe3b46cbd4457559bfbf77afaa"
-dependencies = [
- "num_cpus",
 ]
 
 [[package]]

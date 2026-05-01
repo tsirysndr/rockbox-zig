@@ -1,12 +1,16 @@
-use std::{fs, thread};
+use std::{collections::HashMap, fs, sync::Arc, thread};
 
 use anyhow::Error;
 use rockbox_sys::types::tree::Entry;
+use tokio::sync::Mutex;
 
-use crate::{http::Context, AUDIO_EXTENSIONS};
+use crate::AUDIO_EXTENSIONS;
 
-pub fn update_cache(ctx: &Context, path: &str, show_hidden: bool) {
-    let fs_cache = ctx.fs_cache.clone();
+pub fn update_cache(
+    fs_cache: Arc<Mutex<HashMap<String, Vec<Entry>>>>,
+    path: &str,
+    show_hidden: bool,
+) {
     let path = path.to_string();
     thread::spawn(move || {
         let mut fs_cache = fs_cache.blocking_lock();
@@ -25,7 +29,7 @@ pub fn update_cache(ctx: &Context, path: &str, show_hidden: bool) {
                 continue;
             }
 
-            if file.file_name().to_string_lossy().starts_with(".") && !show_hidden {
+            if file.file_name().to_string_lossy().starts_with('.') && !show_hidden {
                 continue;
             }
 
@@ -44,7 +48,7 @@ pub fn update_cache(ctx: &Context, path: &str, show_hidden: bool) {
             });
         }
 
-        fs_cache.insert(path, entries.clone());
+        fs_cache.insert(path, entries);
         Ok::<(), Error>(())
     });
 }

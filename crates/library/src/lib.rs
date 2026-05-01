@@ -1,6 +1,7 @@
 use std::env;
 
 use sqlx::{sqlite::SqliteConnectOptions, Error, Executor, Pool, Sqlite, SqlitePool};
+use tracing::{debug, warn};
 
 pub mod album_art;
 pub mod artists;
@@ -16,11 +17,12 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
     std::fs::create_dir_all(&rockbox_dir).unwrap();
     let rockbox_db_path = format!("{}/rockbox-library.db", rockbox_dir);
     let db_url = env::var("DATABASE_URL").unwrap_or(rockbox_db_path);
-    println!("db url {}", db_url);
+    debug!("db url {}", db_url);
     env::set_var("DATABASE_URL", &db_url);
     let options = SqliteConnectOptions::new()
         .filename(db_url)
-        .create_if_missing(true);
+        .create_if_missing(true)
+        .busy_timeout(std::time::Duration::from_secs(30));
     let pool = SqlitePool::connect_with(options).await?;
     pool.execute(include_str!(
         "../migrations/20240923093823_create_tables.sql"
@@ -33,7 +35,7 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         .await
     {
         Ok(_) => {}
-        Err(_) => println!("artist_id column already exists"),
+        Err(_) => warn!("artist_id column already exists"),
     }
 
     match pool
@@ -43,7 +45,7 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         .await
     {
         Ok(_) => {}
-        Err(_) => println!("album_id column already exists"),
+        Err(_) => warn!("album_id column already exists"),
     }
     match pool
         .execute(include_str!(
@@ -52,7 +54,7 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         .await
     {
         Ok(_) => {}
-        Err(_) => println!("label column already exists"),
+        Err(_) => warn!("label column already exists"),
     }
 
     match pool
@@ -62,7 +64,7 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         .await
     {
         Ok(_) => {}
-        Err(_) => println!("copyright_message column already exists"),
+        Err(_) => warn!("copyright_message column already exists"),
     }
 
     match pool
@@ -72,7 +74,7 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         .await
     {
         Ok(_) => {}
-        Err(_) => println!("genres column already exists"),
+        Err(_) => warn!("genres column already exists"),
     }
 
     match pool
@@ -82,7 +84,7 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         .await
     {
         Ok(_) => {}
-        Err(_) => println!("playlist tables already exist"),
+        Err(_) => warn!("playlist tables already exist"),
     }
 
     match pool
@@ -92,7 +94,7 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         .await
     {
         Ok(_) => {}
-        Err(_) => println!("is_remote column already exists"),
+        Err(_) => warn!("is_remote column already exists"),
     }
 
     pool.execute(include_str!(

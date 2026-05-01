@@ -14,9 +14,11 @@ lazy_static = "1.5.0"
 local-ip-addr = "0.1.1"
 md5 = "0.7.0"
 owo-colors = "4.0.0"
-queryst = "3.0.0"
 rand = "0.8.5"
 reqwest = {version = "0.12.5", features = ["blocking", "rustls-tls"], default-features = false}
+actix-web = "4"
+actix-rt = "2"
+actix-cors = "0.7"
 rockbox-chromecast = {path = "../chromecast"}
 rockbox-slim = {path = "../slim"}
 rockbox-upnp = {path = "../upnp"}
@@ -39,7 +41,6 @@ rockbox-types = {path = "../types"}
 serde = {version = "1.0.210", features = ["derive"]}
 serde_json = "1.0.128"
 sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
-threadpool = "1.8.1"
 tokio = {version = "1.36.0", features = ["full"]}
 url = "2.3.1"
 urlencoding = "2.1.3"

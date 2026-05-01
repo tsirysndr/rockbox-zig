@@ -1,12 +1,14 @@
-use crate::http::{Context, Request, Response};
-use crate::PLAYER_MUTEX;
-use anyhow::Error;
+use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use rockbox_library::repo;
 use rockbox_sys::{self as rb};
 use serde::Deserialize;
 
+use crate::{http::AppState, PLAYER_MUTEX};
+
+type HandlerResult = actix_web::Result<HttpResponse>;
+
 #[derive(Deserialize)]
-struct CreatePlaylistBody {
+pub struct CreatePlaylistBody {
     name: String,
     description: Option<String>,
     image: Option<String>,
@@ -15,7 +17,7 @@ struct CreatePlaylistBody {
 }
 
 #[derive(Deserialize)]
-struct UpdatePlaylistBody {
+pub struct UpdatePlaylistBody {
     name: String,
     description: Option<String>,
     image: Option<String>,
@@ -23,66 +25,65 @@ struct UpdatePlaylistBody {
 }
 
 #[derive(Deserialize)]
-struct AddTracksBody {
+pub struct AddTracksBody {
     track_ids: Vec<String>,
 }
 
 #[derive(Deserialize)]
-struct CreateFolderBody {
+pub struct CreateFolderBody {
     name: String,
 }
 
-pub async fn list_saved_playlists(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let folder_id = req
-        .query_params
-        .get("folder_id")
-        .and_then(|v| v.as_str())
-        .map(|s| s.to_string());
+#[derive(Deserialize)]
+pub struct ListQuery {
+    folder_id: Option<String>,
+}
 
-    let playlists = match folder_id.as_deref() {
-        Some(fid) if !fid.is_empty() => ctx.playlist_store.list_by_folder(fid).await?,
-        _ => ctx.playlist_store.list().await?,
+pub async fn list_saved_playlists(
+    state: web::Data<AppState>,
+    query: web::Query<ListQuery>,
+) -> HandlerResult {
+    let playlists = match query.folder_id.as_deref() {
+        Some(fid) if !fid.is_empty() => state
+            .playlist_store
+            .list_by_folder(fid)
+            .await
+            .map_err(ErrorInternalServerError)?,
+        _ => state
+            .playlist_store
+            .list()
+            .await
+            .map_err(ErrorInternalServerError)?,
     };
-    res.json(&playlists);
-    Ok(())
+    Ok(HttpResponse::Ok().json(playlists))
 }
 
 pub async fn get_saved_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    match ctx.playlist_store.get(id).await? {
-        Some(p) => res.json(&p),
-        None => res.set_status(404),
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let id = path.into_inner();
+    match state
+        .playlist_store
+        .get(&id)
+        .await
+        .map_err(ErrorInternalServerError)?
+    {
+        Some(p) => Ok(HttpResponse::Ok().json(p)),
+        None => Ok(HttpResponse::NotFound().finish()),
     }
-    Ok(())
 }
 
 pub async fn create_saved_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let body = match req.body.as_ref() {
-        Some(b) => b,
-        None => {
-            res.set_status(400);
-            return Ok(());
-        }
-    };
-    let payload: CreatePlaylistBody = serde_json::from_str(body)?;
+    state: web::Data<AppState>,
+    body: web::Json<CreatePlaylistBody>,
+) -> HandlerResult {
+    let payload = body.into_inner();
     if payload.name.is_empty() {
-        res.set_status(400);
-        return Ok(());
+        return Ok(HttpResponse::BadRequest().finish());
     }
 
-    let playlist = ctx
+    let playlist = state
         .playlist_store
         .create(
             &payload.name,
@@ -90,149 +91,153 @@ pub async fn create_saved_playlist(
             payload.image.as_deref(),
             payload.folder_id.as_deref(),
         )
-        .await?;
+        .await
+        .map_err(ErrorInternalServerError)?;
     if let Some(ids) = payload.track_ids {
         if !ids.is_empty() {
-            ctx.playlist_store.add_tracks(&playlist.id, &ids).await?;
+            state
+                .playlist_store
+                .add_tracks(&playlist.id, &ids)
+                .await
+                .map_err(ErrorInternalServerError)?;
         }
     }
-    let playlist = ctx
+    let playlist = state
         .playlist_store
         .get(&playlist.id)
-        .await?
+        .await
+        .map_err(ErrorInternalServerError)?
         .unwrap_or(playlist);
-    res.set_status(201);
-    res.json(&playlist);
-    Ok(())
+    Ok(HttpResponse::Created().json(playlist))
 }
 
 pub async fn update_saved_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    let body = match req.body.as_ref() {
-        Some(b) => b,
-        None => {
-            res.set_status(400);
-            return Ok(());
-        }
-    };
-    let payload: UpdatePlaylistBody = serde_json::from_str(body)?;
-    ctx.playlist_store
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+    body: web::Json<UpdatePlaylistBody>,
+) -> HandlerResult {
+    let id = path.into_inner();
+    let payload = body.into_inner();
+    state
+        .playlist_store
         .update(
-            id,
+            &id,
             &payload.name,
             payload.description.as_deref(),
             payload.image.as_deref(),
             payload.folder_id.as_deref(),
         )
-        .await?;
-    res.set_status(204);
-    Ok(())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::NoContent().finish())
 }
 
 pub async fn delete_saved_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    ctx.playlist_store.delete(id).await?;
-    res.set_status(204);
-    Ok(())
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let id = path.into_inner();
+    state
+        .playlist_store
+        .delete(&id)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::NoContent().finish())
 }
 
 pub async fn get_saved_playlist_tracks(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let playlist_id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    let track_ids = ctx.playlist_store.get_track_ids(playlist_id).await?;
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let playlist_id = path.into_inner();
+    let track_ids = state
+        .playlist_store
+        .get_track_ids(&playlist_id)
+        .await
+        .map_err(ErrorInternalServerError)?;
     let mut tracks = Vec::with_capacity(track_ids.len());
     for id in &track_ids {
-        if let Some(track) = repo::track::find(ctx.pool.clone(), id).await? {
+        if let Some(track) = repo::track::find(state.pool.clone(), id)
+            .await
+            .map_err(ErrorInternalServerError)?
+        {
             tracks.push(track);
         }
     }
-    res.json(&tracks);
-    Ok(())
-}
-
-pub async fn add_tracks_to_saved_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let playlist_id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    let body = match req.body.as_ref() {
-        Some(b) => b,
-        None => {
-            res.set_status(400);
-            return Ok(());
-        }
-    };
-    let payload: AddTracksBody = serde_json::from_str(body)?;
-    ctx.playlist_store
-        .add_tracks(playlist_id, &payload.track_ids)
-        .await?;
-    res.set_status(204);
-    Ok(())
+    Ok(HttpResponse::Ok().json(tracks))
 }
 
 pub async fn get_saved_playlist_track_ids(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let playlist_id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    let track_ids = ctx.playlist_store.get_track_ids(playlist_id).await?;
-    res.json(&track_ids);
-    Ok(())
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let playlist_id = path.into_inner();
+    let track_ids = state
+        .playlist_store
+        .get_track_ids(&playlist_id)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(track_ids))
+}
+
+pub async fn add_tracks_to_saved_playlist(
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+    body: web::Json<AddTracksBody>,
+) -> HandlerResult {
+    let playlist_id = path.into_inner();
+    let payload = body.into_inner();
+    state
+        .playlist_store
+        .add_tracks(&playlist_id, &payload.track_ids)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::NoContent().finish())
 }
 
 pub async fn remove_track_from_saved_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let playlist_id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    let track_id = req.params.get(1).map(|s| s.as_str()).unwrap_or("");
-    ctx.playlist_store
-        .remove_track(playlist_id, track_id)
-        .await?;
-    res.set_status(204);
-    Ok(())
+    state: web::Data<AppState>,
+    path: web::Path<(String, String)>,
+) -> HandlerResult {
+    let (playlist_id, track_id) = path.into_inner();
+    state
+        .playlist_store
+        .remove_track(&playlist_id, &track_id)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::NoContent().finish())
 }
 
 pub async fn play_saved_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let playlist_id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    let track_ids = ctx.playlist_store.get_track_ids(playlist_id).await?;
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let playlist_id = path.into_inner();
+    let track_ids = state
+        .playlist_store
+        .get_track_ids(&playlist_id)
+        .await
+        .map_err(ErrorInternalServerError)?;
 
     if track_ids.is_empty() {
-        res.set_status(422);
-        return Ok(());
+        return Ok(HttpResponse::UnprocessableEntity().finish());
     }
 
     let mut paths = Vec::with_capacity(track_ids.len());
     for id in &track_ids {
-        if let Some(track) = repo::track::find(ctx.pool.clone(), id).await? {
+        if let Some(track) = repo::track::find(state.pool.clone(), id)
+            .await
+            .map_err(ErrorInternalServerError)?
+        {
             paths.push(track.path);
         }
     }
 
     if paths.is_empty() {
-        res.set_status(422);
-        return Ok(());
+        return Ok(HttpResponse::UnprocessableEntity().finish());
     }
 
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
+    let _player_mutex = PLAYER_MUTEX.lock().unwrap();
     let first = &paths[0];
     let dir = {
         let parts: Vec<_> = first.split('/').collect();
@@ -245,54 +250,44 @@ pub async fn play_saved_playlist(
         paths.len() as i32,
     );
     rb::playlist::start(0, 0, 0);
-    drop(player_mutex);
 
-    res.set_status(204);
-    Ok(())
+    Ok(HttpResponse::NoContent().finish())
 }
 
-// ── Folders ────────────────────────────────────────────────────────────────
-
-pub async fn list_playlist_folders(
-    ctx: &Context,
-    _req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let folders = ctx.playlist_store.list_folders().await?;
-    res.json(&folders);
-    Ok(())
+pub async fn list_playlist_folders(state: web::Data<AppState>) -> HandlerResult {
+    let folders = state
+        .playlist_store
+        .list_folders()
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(folders))
 }
 
 pub async fn create_playlist_folder(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let body = match req.body.as_ref() {
-        Some(b) => b,
-        None => {
-            res.set_status(400);
-            return Ok(());
-        }
-    };
-    let payload: CreateFolderBody = serde_json::from_str(body)?;
+    state: web::Data<AppState>,
+    body: web::Json<CreateFolderBody>,
+) -> HandlerResult {
+    let payload = body.into_inner();
     if payload.name.is_empty() {
-        res.set_status(400);
-        return Ok(());
+        return Ok(HttpResponse::BadRequest().finish());
     }
-    let folder = ctx.playlist_store.create_folder(&payload.name).await?;
-    res.set_status(201);
-    res.json(&folder);
-    Ok(())
+    let folder = state
+        .playlist_store
+        .create_folder(&payload.name)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Created().json(folder))
 }
 
 pub async fn delete_playlist_folder(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    ctx.playlist_store.delete_folder(id).await?;
-    res.set_status(204);
-    Ok(())
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let id = path.into_inner();
+    state
+        .playlist_store
+        .delete_folder(&id)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::NoContent().finish())
 }

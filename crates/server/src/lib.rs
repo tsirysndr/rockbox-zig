@@ -1,8 +1,6 @@
 use anyhow::Error;
-use handlers::*;
 use tracing::{error, warn};
 
-use http::RockboxHttpServer;
 use lazy_static::lazy_static;
 use rockbox_graphql::{
     schema::objects::{self, audio_status::AudioStatus, track::Track},
@@ -79,121 +77,450 @@ pub extern "C" fn start_server() {
         }
     }
 
-    let mut app = RockboxHttpServer::new();
-
-    app.get("/albums", get_albums);
-    app.get("/albums/:id", get_album);
-    app.get("/albums/:id/tracks", get_album_tracks);
-
-    app.get("/artists", get_artists);
-    app.get("/artists/:id", get_artist);
-    app.get("/artists/:id/albums", get_artist_albums);
-    app.get("/artists/:id/tracks", get_artist_tracks);
-
-    app.get("/browse/tree-entries", get_tree_entries);
-
-    app.get("/player", get_current_player);
-    app.put("/player/load", load);
-    app.put("/player/play", play);
-    app.put("/player/pause", pause);
-    app.put("/player/resume", resume);
-    app.put("/player/ff-rewind", ff_rewind);
-    app.get("/player/status", status);
-    app.get("/player/current-track", current_track);
-    app.get("/player/next-track", next_track);
-    app.put("/player/flush-and-reload-tracks", flush_and_reload_tracks);
-    app.put("/player/next", next);
-    app.put("/player/previous", previous);
-    app.put("/player/stop", stop);
-    app.get("/player/file-position", get_file_position);
-    app.get("/player/volume", get_volume);
-    app.put("/player/volume", adjust_volume);
-
-    app.post("/playlists", create_playlist);
-    app.put("/playlists/start", start_playlist);
-    app.put("/playlists/shuffle", shuffle_playlist);
-    app.get("/playlists/amount", get_playlist_amount);
-    app.put("/playlists/resume", resume_playlist);
-    app.put("/playlists/resume-track", resume_track);
-    app.get("/playlists/:id/tracks", get_playlist_tracks);
-    app.post("/playlists/:id/tracks", insert_tracks);
-    app.delete("/playlists/:id/tracks", remove_tracks);
-    app.get("/playlists/:id", get_playlist);
-
-    app.get("/saved-playlists/folders", list_playlist_folders);
-    app.post("/saved-playlists/folders", create_playlist_folder);
-    app.delete("/saved-playlists/folders/:id", delete_playlist_folder);
-    app.get("/saved-playlists", list_saved_playlists);
-    app.post("/saved-playlists", create_saved_playlist);
-    app.get("/saved-playlists/:id/tracks", get_saved_playlist_tracks);
-    app.get(
-        "/saved-playlists/:id/track-ids",
-        get_saved_playlist_track_ids,
-    );
-    app.post("/saved-playlists/:id/tracks", add_tracks_to_saved_playlist);
-    app.delete(
-        "/saved-playlists/:id/tracks/:track_id",
-        remove_track_from_saved_playlist,
-    );
-    app.post("/saved-playlists/:id/play", play_saved_playlist);
-    app.get("/saved-playlists/:id", get_saved_playlist);
-    app.put("/saved-playlists/:id", update_saved_playlist);
-    app.delete("/saved-playlists/:id", delete_saved_playlist);
-
-    app.get("/smart-playlists", list_smart_playlists);
-    app.post("/smart-playlists", create_smart_playlist);
-    app.get("/smart-playlists/:id/tracks", get_smart_playlist_tracks);
-    app.post("/smart-playlists/:id/play", play_smart_playlist);
-    app.get("/smart-playlists/:id", get_smart_playlist);
-    app.put("/smart-playlists/:id", update_smart_playlist);
-    app.delete("/smart-playlists/:id", delete_smart_playlist);
-
-    app.post("/track-stats/:id/played", record_track_played);
-    app.post("/track-stats/:id/skipped", record_track_skipped);
-    app.get("/track-stats/:id", get_track_stats);
-
-    app.get("/tracks", get_tracks);
-    app.get("/tracks/:id", get_track);
-    app.put("/tracks/stream-metadata", save_stream_track_metadata);
-
-    app.get("/version", get_rockbox_version);
-    app.get("/status", get_status);
-    app.get("/settings", get_global_settings);
-    app.put("/settings", update_global_settings);
-    app.put("/scan-library", scan_library);
-    app.get("/search", search);
-
-    app.get("/devices", get_devices);
-    app.get("/devices/:id", get_device);
-    app.put("/devices/:id/connect", connect);
-    app.put("/devices/:id/disconnect", disconnect);
-
-    #[cfg(target_os = "linux")]
-    {
-        app.post("/bluetooth/scan", scan_bluetooth);
-        app.get("/bluetooth/devices", get_bluetooth_devices);
-        app.put("/bluetooth/devices/:addr/connect", connect_bluetooth_device);
-        app.put(
-            "/bluetooth/devices/:addr/disconnect",
-            disconnect_bluetooth_device,
-        );
-    }
-
-    app.get("/", index);
-    app.get("/operations/:id", index);
-    app.get("/schemas/:id", index);
-    app.get("/openapi.json", get_openapi);
-
-    // Pre-initialize the UPnP tokio runtime before any HTTP handler runs.
-    // If initialized lazily inside a handler's block_on context, tokio 1.27+
-    // panics with "Cannot start a runtime from within a runtime."
+    // Pre-initialize the UPnP tokio runtime before any other runtime starts.
     rockbox_upnp::init();
 
-    match app.listen() {
-        Ok(_) => {}
-        Err(e) => {
-            error!("Error starting server: {}", e);
-        }
+    // Run the HTTP server in its own Rust OS thread so actix gets a proper
+    // multi-worker runtime instead of collapsing onto the Rockbox C thread.
+    thread::spawn(
+        || match actix_rt::System::new().block_on(run_http_server()) {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Error starting HTTP server: {}", e);
+            }
+        },
+    );
+
+    // Yield to the Rockbox cooperative scheduler periodically. Without this
+    // the server_thread holds the Rockbox CPU token indefinitely and starves
+    // every other kernel thread (broker, gRPC, etc.). The old accept loop
+    // called rb::system::sleep(rb::HZ) on every idle iteration; we replicate
+    // that contract here.
+    loop {
+        thread::sleep(std::time::Duration::from_millis(100));
+        rb::system::sleep(rb::HZ);
+    }
+}
+
+async fn run_http_server() -> Result<(), Error> {
+    use crate::http::AppState;
+    use actix_cors::Cors;
+    use actix_web::{web, App, HttpServer};
+    use rockbox_types::device::Device;
+
+    let port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".to_string());
+    let addr = format!("0.0.0.0:{}", port);
+
+    let pool = rockbox_library::create_connection_pool().await?;
+    let fs_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
+    let metadata_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
+    let devices = Arc::new(Mutex::new(scan::virtual_devices()));
+
+    let current_device = {
+        let active = rockbox_settings::read_settings().ok().and_then(|s| {
+            let output = s.audio_output.as_deref().unwrap_or("builtin");
+            let mut device = match output {
+                "builtin" | "fifo" => scan::virtual_devices()
+                    .into_iter()
+                    .find(|d| d.service == output),
+                "airplay" => {
+                    let host = s.airplay_host.clone().unwrap_or_default();
+                    Some(Device {
+                        id: format!("airplay-{}", host),
+                        name: if host.is_empty() {
+                            "AirPlay".to_string()
+                        } else {
+                            format!("AirPlay ({})", host)
+                        },
+                        host: host.clone(),
+                        ip: host,
+                        port: s.airplay_port.unwrap_or(5000),
+                        service: "airplay".to_string(),
+                        app: "AirPlay".to_string(),
+                        ..Default::default()
+                    })
+                }
+                "squeezelite" => Some(Device {
+                    id: "squeezelite".to_string(),
+                    name: "Squeezelite".to_string(),
+                    host: "localhost".to_string(),
+                    ip: "127.0.0.1".to_string(),
+                    port: s.squeezelite_port.unwrap_or(3483),
+                    service: "squeezelite".to_string(),
+                    app: "squeezelite".to_string(),
+                    ..Default::default()
+                }),
+                "upnp" => {
+                    let url = s.upnp_renderer_url.clone().unwrap_or_default();
+                    Some(Device {
+                        id: format!("upnp-{:.8}", format!("{:x}", md5::compute(url.as_bytes()))),
+                        name: "UPnP/DLNA".to_string(),
+                        host: "localhost".to_string(),
+                        ip: "127.0.0.1".to_string(),
+                        port: 0,
+                        service: "upnp".to_string(),
+                        app: "upnp".to_string(),
+                        base_url: Some(url),
+                        ..Default::default()
+                    })
+                }
+                "chromecast" => {
+                    let host = s.chromecast_host.clone().unwrap_or_default();
+                    Some(Device {
+                        id: format!("chromecast-{}", host),
+                        name: if host.is_empty() {
+                            "Chromecast".to_string()
+                        } else {
+                            format!("Chromecast ({})", host)
+                        },
+                        host: host.clone(),
+                        ip: host,
+                        port: s.chromecast_port.unwrap_or(8009),
+                        service: "chromecast".to_string(),
+                        app: "Chromecast".to_string(),
+                        is_cast_device: true,
+                        ..Default::default()
+                    })
+                }
+                "snapcast_tcp" => {
+                    let host = s.snapcast_tcp_host.clone().unwrap_or_default();
+                    Some(Device {
+                        id: format!("snapcast-{}", host),
+                        name: if host.is_empty() {
+                            "Snapcast".to_string()
+                        } else {
+                            format!("Snapcast ({})", host)
+                        },
+                        host: host.clone(),
+                        ip: host,
+                        port: s.snapcast_tcp_port.unwrap_or(4953),
+                        service: "snapcast".to_string(),
+                        app: "Snapcast".to_string(),
+                        is_cast_device: true,
+                        ..Default::default()
+                    })
+                }
+                _ => scan::virtual_devices()
+                    .into_iter()
+                    .find(|d| d.service == "builtin"),
+            };
+            if let Some(ref mut d) = device {
+                d.is_current_device = true;
+            }
+            device
+        });
+        Arc::new(Mutex::new(active))
+    };
+
+    let player = Arc::new(Mutex::new(None));
+    let kv = Arc::new(Mutex::new(kv::build_tracks_kv(pool.clone()).await?));
+
+    let playlist_store = rockbox_playlists::PlaylistStore::new(pool.clone());
+    playlist_store.seed().await?;
+
+    scan::scan_chromecast_devices(devices.clone());
+    scan::scan_upnp_devices(devices.clone());
+    scan::scan_airplay_devices(devices.clone());
+    scan::scan_snapcast_servers(devices.clone());
+    scan::scan_squeezelite_clients(devices.clone());
+    player_events::listen_for_playback_changes(player.clone(), pool.clone());
+
+    let state = web::Data::new(AppState {
+        pool,
+        fs_cache,
+        metadata_cache,
+        devices,
+        current_device,
+        player,
+        kv,
+        playlist_store,
+    });
+
+    HttpServer::new(move || {
+        let cors = Cors::permissive();
+        App::new()
+            .app_data(state.clone())
+            .wrap(cors)
+            // Albums
+            .route("/albums", web::get().to(handlers::albums::get_albums))
+            .route("/albums/{id}", web::get().to(handlers::albums::get_album))
+            .route(
+                "/albums/{id}/tracks",
+                web::get().to(handlers::albums::get_album_tracks),
+            )
+            // Artists
+            .route("/artists", web::get().to(handlers::artists::get_artists))
+            .route(
+                "/artists/{id}",
+                web::get().to(handlers::artists::get_artist),
+            )
+            .route(
+                "/artists/{id}/albums",
+                web::get().to(handlers::artists::get_artist_albums),
+            )
+            .route(
+                "/artists/{id}/tracks",
+                web::get().to(handlers::artists::get_artist_tracks),
+            )
+            // Browse
+            .route(
+                "/browse/tree-entries",
+                web::get().to(handlers::browse::get_tree_entries),
+            )
+            // Player
+            .route(
+                "/player",
+                web::get().to(handlers::player::get_current_player),
+            )
+            .route("/player/load", web::put().to(handlers::player::load))
+            .route("/player/play", web::put().to(handlers::player::play))
+            .route("/player/pause", web::put().to(handlers::player::pause))
+            .route("/player/resume", web::put().to(handlers::player::resume))
+            .route(
+                "/player/ff-rewind",
+                web::put().to(handlers::player::ff_rewind),
+            )
+            .route("/player/status", web::get().to(handlers::player::status))
+            .route(
+                "/player/current-track",
+                web::get().to(handlers::player::current_track),
+            )
+            .route(
+                "/player/next-track",
+                web::get().to(handlers::player::next_track),
+            )
+            .route(
+                "/player/flush-and-reload-tracks",
+                web::put().to(handlers::player::flush_and_reload_tracks),
+            )
+            .route("/player/next", web::put().to(handlers::player::next))
+            .route(
+                "/player/previous",
+                web::put().to(handlers::player::previous),
+            )
+            .route("/player/stop", web::put().to(handlers::player::stop))
+            .route(
+                "/player/file-position",
+                web::get().to(handlers::player::get_file_position),
+            )
+            .route(
+                "/player/volume",
+                web::get().to(handlers::player::get_volume),
+            )
+            .route(
+                "/player/volume",
+                web::put().to(handlers::player::adjust_volume),
+            )
+            // Playlists — fixed routes before parametric ones
+            .route(
+                "/playlists/start",
+                web::put().to(handlers::playlists::start_playlist),
+            )
+            .route(
+                "/playlists/shuffle",
+                web::put().to(handlers::playlists::shuffle_playlist),
+            )
+            .route(
+                "/playlists/amount",
+                web::get().to(handlers::playlists::get_playlist_amount),
+            )
+            .route(
+                "/playlists/resume",
+                web::put().to(handlers::playlists::resume_playlist),
+            )
+            .route(
+                "/playlists/resume-track",
+                web::put().to(handlers::playlists::resume_track),
+            )
+            .route(
+                "/playlists",
+                web::post().to(handlers::playlists::create_playlist),
+            )
+            .route(
+                "/playlists/{id}/tracks",
+                web::get().to(handlers::playlists::get_playlist_tracks),
+            )
+            .route(
+                "/playlists/{id}/tracks",
+                web::post().to(handlers::playlists::insert_tracks),
+            )
+            .route(
+                "/playlists/{id}/tracks",
+                web::delete().to(handlers::playlists::remove_tracks),
+            )
+            .route(
+                "/playlists/{id}",
+                web::get().to(handlers::playlists::get_playlist),
+            )
+            // Saved playlists — fixed routes before parametric ones
+            .route(
+                "/saved-playlists/folders",
+                web::get().to(handlers::saved_playlists::list_playlist_folders),
+            )
+            .route(
+                "/saved-playlists/folders",
+                web::post().to(handlers::saved_playlists::create_playlist_folder),
+            )
+            .route(
+                "/saved-playlists/folders/{id}",
+                web::delete().to(handlers::saved_playlists::delete_playlist_folder),
+            )
+            .route(
+                "/saved-playlists",
+                web::get().to(handlers::saved_playlists::list_saved_playlists),
+            )
+            .route(
+                "/saved-playlists",
+                web::post().to(handlers::saved_playlists::create_saved_playlist),
+            )
+            .route(
+                "/saved-playlists/{id}/tracks",
+                web::get().to(handlers::saved_playlists::get_saved_playlist_tracks),
+            )
+            .route(
+                "/saved-playlists/{id}/track-ids",
+                web::get().to(handlers::saved_playlists::get_saved_playlist_track_ids),
+            )
+            .route(
+                "/saved-playlists/{id}/tracks",
+                web::post().to(handlers::saved_playlists::add_tracks_to_saved_playlist),
+            )
+            .route(
+                "/saved-playlists/{id}/tracks/{track_id}",
+                web::delete().to(handlers::saved_playlists::remove_track_from_saved_playlist),
+            )
+            .route(
+                "/saved-playlists/{id}/play",
+                web::post().to(handlers::saved_playlists::play_saved_playlist),
+            )
+            .route(
+                "/saved-playlists/{id}",
+                web::get().to(handlers::saved_playlists::get_saved_playlist),
+            )
+            .route(
+                "/saved-playlists/{id}",
+                web::put().to(handlers::saved_playlists::update_saved_playlist),
+            )
+            .route(
+                "/saved-playlists/{id}",
+                web::delete().to(handlers::saved_playlists::delete_saved_playlist),
+            )
+            // Smart playlists
+            .route(
+                "/smart-playlists",
+                web::get().to(handlers::smart_playlists::list_smart_playlists),
+            )
+            .route(
+                "/smart-playlists",
+                web::post().to(handlers::smart_playlists::create_smart_playlist),
+            )
+            .route(
+                "/smart-playlists/{id}/tracks",
+                web::get().to(handlers::smart_playlists::get_smart_playlist_tracks),
+            )
+            .route(
+                "/smart-playlists/{id}/play",
+                web::post().to(handlers::smart_playlists::play_smart_playlist),
+            )
+            .route(
+                "/smart-playlists/{id}",
+                web::get().to(handlers::smart_playlists::get_smart_playlist),
+            )
+            .route(
+                "/smart-playlists/{id}",
+                web::put().to(handlers::smart_playlists::update_smart_playlist),
+            )
+            .route(
+                "/smart-playlists/{id}",
+                web::delete().to(handlers::smart_playlists::delete_smart_playlist),
+            )
+            // Track stats
+            .route(
+                "/track-stats/{id}/played",
+                web::post().to(handlers::smart_playlists::record_track_played),
+            )
+            .route(
+                "/track-stats/{id}/skipped",
+                web::post().to(handlers::smart_playlists::record_track_skipped),
+            )
+            .route(
+                "/track-stats/{id}",
+                web::get().to(handlers::smart_playlists::get_track_stats),
+            )
+            // Tracks — fixed route before parametric
+            .route(
+                "/tracks/stream-metadata",
+                web::put().to(handlers::tracks::save_stream_track_metadata),
+            )
+            .route("/tracks", web::get().to(handlers::tracks::get_tracks))
+            .route("/tracks/{id}", web::get().to(handlers::tracks::get_track))
+            // System
+            .route(
+                "/version",
+                web::get().to(handlers::system::get_rockbox_version),
+            )
+            .route("/status", web::get().to(handlers::system::get_status))
+            .route(
+                "/settings",
+                web::get().to(handlers::settings::get_global_settings),
+            )
+            .route(
+                "/settings",
+                web::put().to(handlers::settings::update_global_settings),
+            )
+            .route(
+                "/scan-library",
+                web::put().to(handlers::system::scan_library),
+            )
+            .route("/search", web::get().to(handlers::search::search))
+            // Devices
+            .route("/devices", web::get().to(handlers::devices::get_devices))
+            .route(
+                "/devices/{id}",
+                web::get().to(handlers::devices::get_device),
+            )
+            .route(
+                "/devices/{id}/connect",
+                web::put().to(handlers::devices::connect),
+            )
+            .route(
+                "/devices/{id}/disconnect",
+                web::put().to(handlers::devices::disconnect),
+            )
+            // Docs
+            .route("/", web::get().to(handlers::docs::index))
+            .route("/operations/{id}", web::get().to(handlers::docs::index))
+            .route("/schemas/{id}", web::get().to(handlers::docs::index))
+            .route("/openapi.json", web::get().to(handlers::docs::get_openapi))
+            .configure(bluetooth_routes)
+    })
+    .bind(addr)?
+    .run()
+    .await?;
+
+    Ok(())
+}
+
+fn bluetooth_routes(_cfg: &mut actix_web::web::ServiceConfig) {
+    #[cfg(target_os = "linux")]
+    {
+        let cfg = _cfg;
+        cfg.route(
+            "/bluetooth/scan",
+            actix_web::web::post().to(handlers::bluetooth::scan_bluetooth),
+        )
+        .route(
+            "/bluetooth/devices",
+            actix_web::web::get().to(handlers::bluetooth::get_bluetooth_devices),
+        )
+        .route(
+            "/bluetooth/devices/{addr}/connect",
+            actix_web::web::put().to(handlers::bluetooth::connect_bluetooth_device),
+        )
+        .route(
+            "/bluetooth/devices/{addr}/disconnect",
+            actix_web::web::put().to(handlers::bluetooth::disconnect_bluetooth_device),
+        );
     }
 }
 

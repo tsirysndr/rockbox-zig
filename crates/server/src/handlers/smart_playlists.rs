@@ -1,14 +1,16 @@
-use crate::http::{Context, Request, Response};
-use crate::PLAYER_MUTEX;
-use anyhow::Error;
+use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use rockbox_library::repo;
 use rockbox_playlists::rules::{Candidate, RuleCriteria};
 use rockbox_sys::{self as rb};
 use serde::Deserialize;
 use std::collections::HashMap;
 
+use crate::{http::AppState, PLAYER_MUTEX};
+
+type HandlerResult = actix_web::Result<HttpResponse>;
+
 #[derive(Deserialize)]
-struct CreateSmartPlaylistBody {
+pub struct CreateSmartPlaylistBody {
     name: String,
     description: Option<String>,
     image: Option<String>,
@@ -17,7 +19,7 @@ struct CreateSmartPlaylistBody {
 }
 
 #[derive(Deserialize)]
-struct UpdateSmartPlaylistBody {
+pub struct UpdateSmartPlaylistBody {
     name: String,
     description: Option<String>,
     image: Option<String>,
@@ -25,47 +27,40 @@ struct UpdateSmartPlaylistBody {
     rules: RuleCriteria,
 }
 
-pub async fn list_smart_playlists(
-    ctx: &Context,
-    _req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let playlists = ctx.playlist_store.list_smart_playlists().await?;
-    res.json(&playlists);
-    Ok(())
+pub async fn list_smart_playlists(state: web::Data<AppState>) -> HandlerResult {
+    let playlists = state
+        .playlist_store
+        .list_smart_playlists()
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(playlists))
 }
 
 pub async fn get_smart_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    match ctx.playlist_store.get_smart_playlist(id).await? {
-        Some(p) => res.json(&p),
-        None => res.set_status(404),
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let id = path.into_inner();
+    match state
+        .playlist_store
+        .get_smart_playlist(&id)
+        .await
+        .map_err(ErrorInternalServerError)?
+    {
+        Some(p) => Ok(HttpResponse::Ok().json(p)),
+        None => Ok(HttpResponse::NotFound().finish()),
     }
-    Ok(())
 }
 
 pub async fn create_smart_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let body = match req.body.as_ref() {
-        Some(b) => b,
-        None => {
-            res.set_status(400);
-            return Ok(());
-        }
-    };
-    let payload: CreateSmartPlaylistBody = serde_json::from_str(body)?;
+    state: web::Data<AppState>,
+    body: web::Json<CreateSmartPlaylistBody>,
+) -> HandlerResult {
+    let payload = body.into_inner();
     if payload.name.is_empty() {
-        res.set_status(400);
-        return Ok(());
+        return Ok(HttpResponse::BadRequest().finish());
     }
-    let playlist = ctx
+    let playlist = state
         .playlist_store
         .create_smart_playlist(
             &payload.name,
@@ -74,30 +69,22 @@ pub async fn create_smart_playlist(
             payload.folder_id.as_deref(),
             &payload.rules,
         )
-        .await?;
-    res.set_status(201);
-    res.json(&playlist);
-    Ok(())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Created().json(playlist))
 }
 
 pub async fn update_smart_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    let body = match req.body.as_ref() {
-        Some(b) => b,
-        None => {
-            res.set_status(400);
-            return Ok(());
-        }
-    };
-    let payload: UpdateSmartPlaylistBody = serde_json::from_str(body)?;
-    match ctx
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+    body: web::Json<UpdateSmartPlaylistBody>,
+) -> HandlerResult {
+    let id = path.into_inner();
+    let payload = body.into_inner();
+    match state
         .playlist_store
         .update_smart_playlist(
-            id,
+            &id,
             &payload.name,
             payload.description.as_deref(),
             payload.image.as_deref(),
@@ -106,39 +93,40 @@ pub async fn update_smart_playlist(
         )
         .await
     {
-        Ok(()) => res.set_status(204),
-        Err(_) => res.set_status(404),
+        Ok(()) => Ok(HttpResponse::NoContent().finish()),
+        Err(_) => Ok(HttpResponse::NotFound().finish()),
     }
-    Ok(())
 }
 
 pub async fn delete_smart_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    let deleted = ctx.playlist_store.delete_smart_playlist(id).await?;
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let id = path.into_inner();
+    let deleted = state
+        .playlist_store
+        .delete_smart_playlist(&id)
+        .await
+        .map_err(ErrorInternalServerError)?;
     if deleted {
-        res.set_status(204);
+        Ok(HttpResponse::NoContent().finish())
     } else {
-        res.set_status(404);
+        Ok(HttpResponse::NotFound().finish())
     }
-    Ok(())
 }
 
 async fn resolve_smart_playlist_tracks(
-    ctx: &Context,
+    state: &AppState,
     id: &str,
-) -> Result<Option<(RuleCriteria, Vec<rockbox_library::entity::track::Track>)>, Error> {
-    let criteria = match ctx.playlist_store.get_smart_playlist(id).await? {
+) -> Result<Option<(RuleCriteria, Vec<rockbox_library::entity::track::Track>)>, anyhow::Error> {
+    let criteria = match state.playlist_store.get_smart_playlist(id).await? {
         Some(p) => p.rules,
         None => return Ok(None),
     };
 
-    let all_tracks = repo::track::all(ctx.pool.clone()).await?;
+    let all_tracks = repo::track::all(state.pool.clone()).await?;
 
-    let stats_map: HashMap<String, rockbox_playlists::TrackStats> = ctx
+    let stats_map: HashMap<String, rockbox_playlists::TrackStats> = state
         .playlist_store
         .get_all_track_stats()
         .await?
@@ -147,7 +135,7 @@ async fn resolve_smart_playlist_tracks(
         .collect();
 
     let liked_ids: std::collections::HashSet<String> =
-        repo::favourites::all_tracks(ctx.pool.clone())
+        repo::favourites::all_tracks(state.pool.clone())
             .await?
             .into_iter()
             .map(|t| t.id)
@@ -177,7 +165,6 @@ async fn resolve_smart_playlist_tracks(
         .collect();
 
     let resolved = rockbox_playlists::rules::resolve(&criteria, candidates);
-
     let resolved_ids: Vec<&str> = resolved.iter().map(|c| c.id.as_str()).collect();
     let track_map: HashMap<&str, &rockbox_library::entity::track::Track> =
         all_tracks.iter().map(|t| (t.id.as_str(), t)).collect();
@@ -191,39 +178,38 @@ async fn resolve_smart_playlist_tracks(
 }
 
 pub async fn get_smart_playlist_tracks(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    match resolve_smart_playlist_tracks(ctx, id).await? {
-        Some((_, tracks)) => res.json(&tracks),
-        None => res.set_status(404),
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let id = path.into_inner();
+    match resolve_smart_playlist_tracks(&state, &id)
+        .await
+        .map_err(ErrorInternalServerError)?
+    {
+        Some((_, tracks)) => Ok(HttpResponse::Ok().json(tracks)),
+        None => Ok(HttpResponse::NotFound().finish()),
     }
-    Ok(())
 }
 
 pub async fn play_smart_playlist(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    let tracks = match resolve_smart_playlist_tracks(ctx, id).await? {
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let id = path.into_inner();
+    let tracks = match resolve_smart_playlist_tracks(&state, &id)
+        .await
+        .map_err(ErrorInternalServerError)?
+    {
         Some((_, t)) => t,
-        None => {
-            res.set_status(404);
-            return Ok(());
-        }
+        None => return Ok(HttpResponse::NotFound().finish()),
     };
 
     if tracks.is_empty() {
-        res.set_status(422);
-        return Ok(());
+        return Ok(HttpResponse::UnprocessableEntity().finish());
     }
 
     let paths: Vec<String> = tracks.iter().map(|t| t.path.clone()).collect();
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
+    let _player_mutex = PLAYER_MUTEX.lock().unwrap();
     let first = &paths[0];
     let dir = {
         let parts: Vec<_> = first.split('/').collect();
@@ -236,43 +222,45 @@ pub async fn play_smart_playlist(
         paths.len() as i32,
     );
     rb::playlist::start(0, 0, 0);
-    drop(player_mutex);
 
-    res.set_status(204);
-    Ok(())
+    Ok(HttpResponse::NoContent().finish())
 }
 
 pub async fn record_track_played(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let track_id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    ctx.playlist_store.record_play(track_id).await?;
-    res.set_status(204);
-    Ok(())
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let track_id = path.into_inner();
+    state
+        .playlist_store
+        .record_play(&track_id)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::NoContent().finish())
 }
 
 pub async fn record_track_skipped(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let track_id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    ctx.playlist_store.record_skip(track_id).await?;
-    res.set_status(204);
-    Ok(())
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let track_id = path.into_inner();
+    state
+        .playlist_store
+        .record_skip(&track_id)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::NoContent().finish())
 }
 
-pub async fn get_track_stats(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let track_id = req.params.first().map(|s| s.as_str()).unwrap_or("");
-    match ctx.playlist_store.get_track_stats(track_id).await? {
-        Some(s) => res.json(&s),
-        None => res.set_status(404),
+pub async fn get_track_stats(state: web::Data<AppState>, path: web::Path<String>) -> HandlerResult {
+    let track_id = path.into_inner();
+    match state
+        .playlist_store
+        .get_track_stats(&track_id)
+        .await
+        .map_err(ErrorInternalServerError)?
+    {
+        Some(s) => Ok(HttpResponse::Ok().json(s)),
+        None => Ok(HttpResponse::NotFound().finish()),
     }
-    Ok(())
 }

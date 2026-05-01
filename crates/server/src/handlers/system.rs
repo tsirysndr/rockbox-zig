@@ -1,75 +1,95 @@
 use std::env;
 
-use crate::http::{Context, Request, Response};
-use anyhow::Error;
+use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use rockbox_graphql::{simplebroker::SimpleBroker, types::ScanCompleted};
 use rockbox_library::{artists::update_metadata, audio_scan::scan_audio_files, repo};
 use rockbox_sys as rb;
-use rockbox_typesense::client::*;
-use rockbox_typesense::types::*;
+use rockbox_typesense::{client::*, types::*};
+use serde::Deserialize;
 
-pub async fn get_status(_ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+use crate::http::AppState;
+
+type HandlerResult = actix_web::Result<HttpResponse>;
+
+pub async fn get_status() -> HandlerResult {
     let status = rb::system::get_global_status();
-    res.json(&status);
-    Ok(())
+    Ok(HttpResponse::Ok().json(status))
 }
 
-pub async fn get_rockbox_version(
-    _ctx: &Context,
-    _req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
+pub async fn get_rockbox_version() -> HandlerResult {
     let version = rb::system::get_rockbox_version();
-    res.json(&version);
-    Ok(())
+    Ok(HttpResponse::Ok().json(version))
 }
 
-pub async fn scan_library(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let home = env::var("HOME")?;
+#[derive(Deserialize)]
+pub struct ScanQuery {
+    path: Option<String>,
+    rebuild_index: Option<String>,
+}
+
+pub async fn scan_library(
+    state: web::Data<AppState>,
+    query: web::Query<ScanQuery>,
+) -> HandlerResult {
+    let home = env::var("HOME").map_err(ErrorInternalServerError)?;
     let music_library = format!("{}/Music", home);
 
-    let path = match req.query_params.get("path") {
-        Some(path) => path.as_str().unwrap_or(&music_library),
-        None => &music_library,
-    };
+    let path = query.path.clone().unwrap_or_else(|| music_library.clone());
 
-    scan_audio_files(ctx.pool.clone(), path.into()).await?;
+    scan_audio_files(state.pool.clone(), path.clone().into())
+        .await
+        .map_err(ErrorInternalServerError)?;
 
-    let rebuild_index = match req.query_params.get("rebuild_index") {
-        Some(rebuild_index) => {
-            let rebuild_index = rebuild_index.as_str().unwrap_or("false");
-            rebuild_index == "true" || rebuild_index == "1"
-        }
-        None => false,
-    };
+    let rebuild_index = query
+        .rebuild_index
+        .as_deref()
+        .map(|s| s == "true" || s == "1")
+        .unwrap_or(false);
 
     if path != music_library {
         SimpleBroker::publish(ScanCompleted);
-        res.text("0");
-        return Ok(());
+        return Ok(HttpResponse::Ok().body("0"));
     }
 
-    update_metadata(ctx.pool.clone()).await?;
+    update_metadata(state.pool.clone())
+        .await
+        .map_err(ErrorInternalServerError)?;
 
     if !rebuild_index {
         SimpleBroker::publish(ScanCompleted);
-        res.text("0");
-        return Ok(());
+        return Ok(HttpResponse::Ok().body("0"));
     }
 
-    let tracks = repo::track::all(ctx.pool.clone()).await?;
-    let albums = repo::album::all(ctx.pool.clone()).await?;
-    let artists = repo::artist::all(ctx.pool.clone()).await?;
+    let tracks = repo::track::all(state.pool.clone())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    let albums = repo::album::all(state.pool.clone())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    let artists = repo::artist::all(state.pool.clone())
+        .await
+        .map_err(ErrorInternalServerError)?;
 
-    create_tracks_collection().await?;
-    create_albums_collection().await?;
-    create_artists_collection().await?;
+    create_tracks_collection()
+        .await
+        .map_err(ErrorInternalServerError)?;
+    create_albums_collection()
+        .await
+        .map_err(ErrorInternalServerError)?;
+    create_artists_collection()
+        .await
+        .map_err(ErrorInternalServerError)?;
 
-    insert_tracks(tracks.into_iter().map(Track::from).collect()).await?;
-    insert_artists(artists.into_iter().map(Artist::from).collect()).await?;
-    insert_albums(albums.into_iter().map(Album::from).collect()).await?;
+    insert_tracks(tracks.into_iter().map(Track::from).collect())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    insert_artists(artists.into_iter().map(Artist::from).collect())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    insert_albums(albums.into_iter().map(Album::from).collect())
+        .await
+        .map_err(ErrorInternalServerError)?;
 
     SimpleBroker::publish(ScanCompleted);
-    res.text("0");
-    Ok(())
+    Ok(HttpResponse::Ok().body("0"))
 }

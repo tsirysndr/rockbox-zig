@@ -1,23 +1,27 @@
-use anyhow::Error;
+use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use rockbox_library::{audio_scan, repo};
 use serde::Deserialize;
 
-use crate::http::{Context, Request, Response};
+use crate::http::AppState;
 
-pub async fn get_tracks(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
-    let tracks = repo::track::all(ctx.pool.clone()).await?;
-    res.json(&tracks);
-    Ok(())
+type HandlerResult = actix_web::Result<HttpResponse>;
+
+pub async fn get_tracks(state: web::Data<AppState>) -> HandlerResult {
+    let tracks = repo::track::all(state.pool.clone())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(tracks))
 }
 
-pub async fn get_track(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let track = repo::track::find(ctx.pool.clone(), &req.params[0]).await?;
-    res.json(&track);
-    Ok(())
+pub async fn get_track(state: web::Data<AppState>, path: web::Path<String>) -> HandlerResult {
+    let track = repo::track::find(state.pool.clone(), &path.into_inner())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(track))
 }
 
 #[derive(Deserialize)]
-struct StreamMetadataBody {
+pub struct StreamMetadataBody {
     url: String,
     title: String,
     artist: String,
@@ -26,27 +30,18 @@ struct StreamMetadataBody {
 }
 
 pub async fn save_stream_track_metadata(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let body = match req.body.as_ref() {
-        Some(b) => b,
-        None => {
-            res.set_status(400);
-            return Ok(());
-        }
-    };
-    let params: StreamMetadataBody = serde_json::from_str(body)?;
+    state: web::Data<AppState>,
+    body: web::Json<StreamMetadataBody>,
+) -> HandlerResult {
     audio_scan::save_stream_metadata(
-        ctx.pool.clone(),
-        &params.url,
-        &params.title,
-        &params.artist,
-        &params.album,
-        params.duration_ms,
+        state.pool.clone(),
+        &body.url,
+        &body.title,
+        &body.artist,
+        &body.album,
+        body.duration_ms,
     )
-    .await?;
-    res.set_status(204);
-    Ok(())
+    .await
+    .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::NoContent().finish())
 }

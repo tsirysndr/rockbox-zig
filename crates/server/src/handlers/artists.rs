@@ -1,36 +1,40 @@
-use anyhow::Error;
+use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use rockbox_library::repo;
 
-use crate::http::{Context, Request, Response};
+use crate::http::AppState;
 
-pub async fn get_artists(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
-    let artists = repo::artist::all(ctx.pool.clone()).await?;
-    res.json(&artists);
-    Ok(())
+type HandlerResult = actix_web::Result<HttpResponse>;
+
+pub async fn get_artists(state: web::Data<AppState>) -> HandlerResult {
+    let artists = repo::artist::all(state.pool.clone())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(artists))
 }
 
-pub async fn get_artist(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let artist = repo::artist::find(ctx.pool.clone(), &req.params[0]).await?;
-    res.json(&artist);
-    Ok(())
+pub async fn get_artist(state: web::Data<AppState>, path: web::Path<String>) -> HandlerResult {
+    let artist = repo::artist::find(state.pool.clone(), &path.into_inner())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(artist))
 }
 
 pub async fn get_artist_albums(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let albums = repo::album::find_by_artist(ctx.pool.clone(), &req.params[0]).await?;
-    res.json(&albums);
-    Ok(())
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let albums = repo::album::find_by_artist(state.pool.clone(), &path.into_inner())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(albums))
 }
 
 pub async fn get_artist_tracks(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let tracks = repo::artist_tracks::find_by_artist(ctx.pool.clone(), &req.params[0]).await?;
-    res.json(&tracks);
-    Ok(())
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let tracks = repo::artist_tracks::find_by_artist(state.pool.clone(), &path.into_inner())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(tracks))
 }
