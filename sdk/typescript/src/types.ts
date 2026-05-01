@@ -5,7 +5,7 @@
 export enum PlaybackStatus {
   Stopped = 0,
   Playing = 1,
-  Paused = 2,
+  Paused = 3,
 }
 
 export enum RepeatMode {
@@ -285,7 +285,12 @@ export interface UserSettings {
   [key: string]: unknown;
 }
 
-export type PartialUserSettings = Partial<Omit<UserSettings, 'eqBandSettings' | 'replaygainSettings' | 'compressorSettings'>> & {
+export type PartialUserSettings = Partial<
+  Omit<
+    UserSettings,
+    "eqBandSettings" | "replaygainSettings" | "compressorSettings"
+  >
+> & {
   eqBandSettings?: EqBandSetting[];
   replaygainSettings?: ReplaygainSettings;
   compressorSettings?: CompressorSettings;
@@ -305,4 +310,5 @@ export const InsertPosition = {
   /** Replace the entire playlist */
   First: 3,
 } as const;
-export type InsertPosition = (typeof InsertPosition)[keyof typeof InsertPosition];
+export type InsertPosition =
+  (typeof InsertPosition)[keyof typeof InsertPosition];

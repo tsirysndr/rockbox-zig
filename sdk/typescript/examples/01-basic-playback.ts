@@ -5,8 +5,8 @@
 //
 //   bun run examples/01-basic-playback.ts
 
-import { PlaybackStatus } from '../src/index.js';
-import { createClient, fmtTime } from './_client.js';
+import { PlaybackStatus } from "../src/index.js";
+import { createClient, fmtTime } from "./_client.js";
 
 const client = createClient();
 
@@ -15,18 +15,20 @@ console.log(`Status: ${PlaybackStatus[status]}`);
 
 const track = await client.playback.currentTrack();
 if (track) {
-  const pct = track.length > 0 ? Math.round((track.elapsed / track.length) * 100) : 0;
+  const pct =
+    track.length > 0 ? Math.round((track.elapsed / track.length) * 100) : 0;
   console.log(`Now: ${track.title} — ${track.artist}`);
-  console.log(`     ${fmtTime(track.elapsed)} / ${fmtTime(track.length)} (${pct}%)`);
+  console.log(
+    `     ${fmtTime(track.elapsed)} / ${fmtTime(track.length)} (${pct}%)`,
+  );
 } else {
-  console.log('Nothing is playing.');
+  console.log("Nothing is playing.");
 }
-
 // Toggle playback
 if (status === PlaybackStatus.Playing) {
   await client.playback.pause();
-  console.log('→ paused');
+  console.log("→ paused");
 } else if (status === PlaybackStatus.Paused) {
   await client.playback.resume();
-  console.log('→ resumed');
+  console.log("→ resumed");
 }

@@ -13,7 +13,9 @@ use rockbox_traits::types::track::Track;
 use rockbox_types::{device::Device, LoadTracks, NewVolume};
 use serde::Deserialize;
 
-use crate::{http::AppState, GLOBAL_MUTEX, PLAYER_MUTEX};
+use crate::{
+    handlers::playlists::hydrate_entry_from_track, http::AppState, GLOBAL_MUTEX, PLAYER_MUTEX,
+};
 
 type HandlerResult = actix_web::Result<HttpResponse>;
 
@@ -230,10 +232,7 @@ pub async fn current_track(state: web::Data<AppState>) -> HandlerResult {
                     .map_err(ErrorInternalServerError)?;
                 if let Some(metadata) = metadata {
                     let t = track.as_mut().unwrap();
-                    t.id = Some(metadata.id);
-                    t.album_art = metadata.album_art.or(t.album_art.clone());
-                    t.album_id = Some(metadata.album_id);
-                    t.artist_id = Some(metadata.artist_id);
+                    hydrate_entry_from_track(t, &metadata);
                 }
             }
 
@@ -274,10 +273,7 @@ pub async fn current_track(state: web::Data<AppState>) -> HandlerResult {
             .map_err(ErrorInternalServerError)?
         {
             if let Some(t) = track.as_mut() {
-                t.id = Some(metadata.id);
-                t.album_art = metadata.album_art;
-                t.album_id = Some(metadata.album_id);
-                t.artist_id = Some(metadata.artist_id);
+                hydrate_entry_from_track(t, &metadata);
             }
         }
     }
@@ -319,10 +315,7 @@ pub async fn next_track(state: web::Data<AppState>) -> HandlerResult {
             .map_err(ErrorInternalServerError)?
         {
             if let Some(t) = track.as_mut() {
-                t.id = Some(metadata.id);
-                t.album_art = metadata.album_art;
-                t.album_id = Some(metadata.album_id);
-                t.artist_id = Some(metadata.artist_id);
+                hydrate_entry_from_track(t, &metadata);
             }
         }
     }

@@ -26,6 +26,64 @@ fn trim_path(s: String) -> String {
     s.split('#').next().unwrap_or(s).to_string()
 }
 
+/// Populate an Mp3Entry's user-visible metadata from a DB Track record.
+/// Used to hydrate HTTP/remote tracks whose tags Rockbox cannot read locally.
+pub(crate) fn hydrate_entry_from_track(
+    entry: &mut rockbox_sys::types::mp3_entry::Mp3Entry,
+    track: &rockbox_library::entity::track::Track,
+) {
+    if entry.title.is_empty() {
+        entry.title = track.title.clone();
+    }
+    if entry.artist.is_empty() {
+        entry.artist = track.artist.clone();
+    }
+    if entry.album.is_empty() {
+        entry.album = track.album.clone();
+    }
+    if entry.albumartist.is_empty() {
+        entry.albumartist = track.album_artist.clone();
+    }
+    if entry.composer.is_empty() {
+        entry.composer = track.composer.clone();
+    }
+    if entry.length == 0 {
+        entry.length = track.length as u64;
+    }
+    if entry.filesize == 0 {
+        entry.filesize = track.filesize as u64;
+    }
+    if entry.bitrate == 0 {
+        entry.bitrate = track.bitrate;
+    }
+    if entry.frequency == 0 {
+        entry.frequency = track.frequency as u64;
+    }
+    if entry.tracknum == 0 {
+        if let Some(n) = track.track_number {
+            entry.tracknum = n as i32;
+        }
+    }
+    if entry.discnum == 0 {
+        entry.discnum = track.disc_number as i32;
+    }
+    if entry.year == 0 {
+        if let Some(y) = track.year {
+            entry.year = y as i32;
+        }
+    }
+    if entry.year_string.is_empty() {
+        if let Some(ref ys) = track.year_string {
+            entry.year_string = ys.clone();
+        }
+    }
+    entry.album_art = track.album_art.clone().or_else(|| entry.album_art.clone());
+    entry.album_id = Some(track.album_id.clone());
+    entry.artist_id = Some(track.artist_id.clone());
+    entry.genre_id = Some(track.genre_id.clone());
+    entry.id = Some(track.id.clone());
+}
+
 pub async fn create_playlist(
     state: web::Data<AppState>,
     body: web::Json<NewPlaylist>,
@@ -171,28 +229,44 @@ pub async fn resume_track() -> HandlerResult {
     Ok(HttpResponse::Ok().finish())
 }
 
-pub async fn get_playlist_tracks(_path: web::Path<String>) -> HandlerResult {
-    let entries = web::block(|| {
+pub async fn get_playlist_tracks(
+    state: web::Data<AppState>,
+    _path: web::Path<String>,
+) -> HandlerResult {
+    let raw_entries = web::block(|| {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
         let amount = rb::playlist::amount();
-        let mut entries = Vec::with_capacity(amount as usize);
+        let mut entries: Vec<(rb::types::mp3_entry::Mp3Entry, String)> =
+            Vec::with_capacity(amount as usize);
         for i in 0..amount {
             let info = rb::playlist::get_track_info(i);
             // Skip get_metadata for HTTP files — it opens a live connection.
             let entry =
                 if info.filename.starts_with("http://") || info.filename.starts_with("https://") {
                     let mut e = rb::types::mp3_entry::Mp3Entry::default();
-                    e.path = info.filename;
+                    e.path = info.filename.clone();
                     e
                 } else {
                     rb::metadata::get_metadata(-1, &info.filename)
                 };
-            entries.push(entry);
+            entries.push((entry, info.filename));
         }
         entries
     })
     .await
     .map_err(ErrorInternalServerError)?;
+
+    // Hydrate remote/HTTP entries with metadata from the DB so the UI sees
+    // title/artist/album/etc. instead of an empty Mp3Entry.
+    let mut entries = Vec::with_capacity(raw_entries.len());
+    for (mut entry, filename) in raw_entries {
+        if filename.starts_with("http://") || filename.starts_with("https://") {
+            if let Ok(Some(track)) = find_track_metadata(&state, &filename).await {
+                hydrate_entry_from_track(&mut entry, &track);
+            }
+        }
+        entries.push(entry);
+    }
     Ok(HttpResponse::Ok().json(entries))
 }
 
@@ -471,11 +545,9 @@ pub async fn get_playlist(state: web::Data<AppState>, _path: web::Path<String>) 
             continue;
         }
 
-        entry.album_art = track.as_ref().and_then(|t| t.album_art.clone());
-        entry.album_id = track.as_ref().map(|t| t.album_id.clone());
-        entry.artist_id = track.as_ref().map(|t| t.artist_id.clone());
-        entry.genre_id = track.as_ref().map(|t| t.genre_id.clone());
-        entry.id = track.as_ref().map(|t| t.id.clone());
+        if let Some(ref t) = track {
+            hydrate_entry_from_track(&mut entry, t);
+        }
 
         metadata_cache.insert(hash, entry.clone());
         entries.push(entry);
@@ -550,7 +622,29 @@ async fn find_track_metadata(
         }
     }
 
+    // Auto-fetch missing metadata for non-internal HTTP tracks.  Without this,
+    // tracks queued in a previous run that never had their metadata persisted
+    // (or a `save_audio_metadata` failure) would render as empty rows in the
+    // UI forever.  Skip /stream.wav (Rockbox's own playback stream).
+    if metadata.is_none()
+        && internal_track.is_none()
+        && (path.starts_with("http://") || path.starts_with("https://"))
+        && !is_stream_wav(path)
+    {
+        if let Err(e) = save_audio_metadata(state.pool.clone(), path, None).await {
+            tracing::warn!("on-demand save_audio_metadata failed for {}: {}", path, e);
+        } else {
+            metadata = repo::track::find_by_md5(state.pool.clone(), &hash).await?;
+        }
+    }
+
     Ok(metadata)
+}
+
+fn is_stream_wav(path: &str) -> bool {
+    reqwest::Url::parse(path)
+        .map(|u| u.path() == "/stream.wav")
+        .unwrap_or(false)
 }
 
 async fn find_internal_track_by_url(
