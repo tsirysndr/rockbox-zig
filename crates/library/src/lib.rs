@@ -95,6 +95,11 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         Err(_) => println!("is_remote column already exists"),
     }
 
+    pool.execute(include_str!(
+        "../migrations/20260501000000_fix_datetime_formats.sql"
+    ))
+    .await?;
+
     sqlx::query("PRAGMA journal_mode=WAL")
         .execute(&pool)
         .await?;

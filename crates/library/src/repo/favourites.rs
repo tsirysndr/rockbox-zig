@@ -43,7 +43,9 @@ pub async fn save(pool: Pool<Sqlite>, favourite: Favourites) -> Result<(), sqlx:
 pub async fn all_tracks(pool: Pool<Sqlite>) -> Result<Vec<Track>, sqlx::Error> {
     match sqlx::query_as::<_, Track>(
         r#"
-    SELECT track.* FROM favourites LEFT JOIN track ON favourites.track_id = track.id WHERE favourites.track_id IS NOT NULL
+    SELECT track.* FROM favourites
+    INNER JOIN track ON favourites.track_id = track.id
+    WHERE favourites.track_id IS NOT NULL AND favourites.track_id != ''
     ORDER BY favourites.created_at DESC
     "#,
     )
@@ -61,7 +63,10 @@ pub async fn all_tracks(pool: Pool<Sqlite>) -> Result<Vec<Track>, sqlx::Error> {
 pub async fn all_albums(pool: Pool<Sqlite>) -> Result<Vec<Album>, sqlx::Error> {
     match sqlx::query_as::<_, Album>(
         r#"
-    SELECT album.* FROM favourites LEFT JOIN album ON favourites.album_id = album.id WHERE favourites.album_id IS NOT NULL ORDER BY favourites.created_at DESC
+    SELECT album.* FROM favourites
+    INNER JOIN album ON favourites.album_id = album.id
+    WHERE favourites.album_id IS NOT NULL AND favourites.album_id != ''
+    ORDER BY favourites.created_at DESC
     "#,
     )
     .fetch_all(&pool)
