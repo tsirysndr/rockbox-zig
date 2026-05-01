@@ -1,49 +1,50 @@
 use std::{env, fs};
 
-use crate::{
-    cache::update_cache,
-    http::{Context, Request, Response},
-    AUDIO_EXTENSIONS,
-};
-use anyhow::Error;
+use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use rockbox_sys::types::tree::Entry;
+use serde::Deserialize;
+
+use crate::{cache::update_cache, http::AppState, AUDIO_EXTENSIONS};
+
+type HandlerResult = actix_web::Result<HttpResponse>;
+
+#[derive(Deserialize)]
+pub struct TreeQuery {
+    q: Option<String>,
+    show_hidden: Option<String>,
+}
 
 pub async fn get_tree_entries(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let home = env::var("HOME").unwrap();
-    let music_library = env::var("ROCKBOX_LIBRARY").unwrap_or(format!("{}/Music", home));
+    state: web::Data<AppState>,
+    query: web::Query<TreeQuery>,
+) -> HandlerResult {
+    let home = env::var("HOME").map_err(ErrorInternalServerError)?;
+    let music_library = env::var("ROCKBOX_LIBRARY").unwrap_or_else(|_| format!("{}/Music", home));
 
-    let path = match req.query_params.get("q") {
-        Some(path) => path.as_str().unwrap_or(&music_library),
-        None => &music_library,
-    };
-    let show_hidden = match req.query_params.get("show_hidden") {
-        Some(show_hidden) => show_hidden.as_str().unwrap_or("false") == "true",
-        None => false,
-    };
+    let path = query.q.as_deref().unwrap_or(&music_library).to_string();
+    let show_hidden = query.show_hidden.as_deref() == Some("true");
 
-    if !fs::metadata(path)?.is_dir() {
-        res.set_status(500);
-        res.text("Path is not a directory");
-        return Ok(());
+    if !fs::metadata(&path)
+        .map_err(ErrorInternalServerError)?
+        .is_dir()
+    {
+        return Ok(HttpResponse::InternalServerError().body("Path is not a directory"));
     }
 
-    let mut fs_cache = ctx.fs_cache.lock().await;
-    if let Some(entries) = fs_cache.get(&path.to_string()) {
-        update_cache(ctx, path, show_hidden);
-        res.json(entries);
-        return Ok(());
+    let mut fs_cache = state.fs_cache.lock().await;
+    if let Some(entries) = fs_cache.get(&path) {
+        let entries = entries.clone();
+        drop(fs_cache);
+        update_cache(state.fs_cache.clone(), &path, show_hidden);
+        return Ok(HttpResponse::Ok().json(entries));
     }
 
-    let mut entries = vec![];
+    let mut entries: Vec<Entry> = vec![];
 
-    for file in fs::read_dir(path)? {
-        let file = file?;
+    for file in fs::read_dir(&path).map_err(ErrorInternalServerError)? {
+        let file = file.map_err(ErrorInternalServerError)?;
 
-        if file.metadata()?.is_file()
+        if file.metadata().map_err(ErrorInternalServerError)?.is_file()
             && !AUDIO_EXTENSIONS.iter().any(|ext| {
                 file.path()
                     .to_string_lossy()
@@ -53,18 +54,21 @@ pub async fn get_tree_entries(
             continue;
         }
 
-        if file.file_name().to_string_lossy().starts_with(".") && !show_hidden {
+        if file.file_name().to_string_lossy().starts_with('.') && !show_hidden {
             continue;
         }
 
         entries.push(Entry {
             name: file.path().to_string_lossy().to_string(),
             time_write: file
-                .metadata()?
-                .modified()?
-                .duration_since(std::time::SystemTime::UNIX_EPOCH)?
+                .metadata()
+                .map_err(ErrorInternalServerError)?
+                .modified()
+                .map_err(ErrorInternalServerError)?
+                .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                .map_err(ErrorInternalServerError)?
                 .as_secs() as u32,
-            attr: match file.metadata()?.is_dir() {
+            attr: match file.metadata().map_err(ErrorInternalServerError)?.is_dir() {
                 true => 0x10,
                 false => 0,
             },
@@ -72,8 +76,7 @@ pub async fn get_tree_entries(
         });
     }
 
-    fs_cache.insert(path.to_string(), entries.clone());
+    fs_cache.insert(path, entries.clone());
 
-    res.json(&entries);
-    Ok(())
+    Ok(HttpResponse::Ok().json(entries))
 }

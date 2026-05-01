@@ -1,26 +1,30 @@
-use anyhow::Error;
+use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use rockbox_library::repo;
 
-use crate::http::{Context, Request, Response};
+use crate::http::AppState;
 
-pub async fn get_albums(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
-    let albums = repo::album::all(ctx.pool.clone()).await?;
-    res.json(&albums);
-    Ok(())
+type HandlerResult = actix_web::Result<HttpResponse>;
+
+pub async fn get_albums(state: web::Data<AppState>) -> HandlerResult {
+    let albums = repo::album::all(state.pool.clone())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(albums))
 }
 
-pub async fn get_album(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let album = repo::album::find(ctx.pool.clone(), &req.params[0]).await?;
-    res.json(&album);
-    Ok(())
+pub async fn get_album(state: web::Data<AppState>, path: web::Path<String>) -> HandlerResult {
+    let album = repo::album::find(state.pool.clone(), &path.into_inner())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(album))
 }
 
 pub async fn get_album_tracks(
-    ctx: &Context,
-    req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let tracks = repo::album_tracks::find_by_album(ctx.pool.clone(), &req.params[0]).await?;
-    res.json(&tracks);
-    Ok(())
+    state: web::Data<AppState>,
+    path: web::Path<String>,
+) -> HandlerResult {
+    let tracks = repo::album_tracks::find_by_album(state.pool.clone(), &path.into_inner())
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(tracks))
 }

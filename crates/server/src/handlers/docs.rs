@@ -1,17 +1,15 @@
-use anyhow::Error;
+use actix_web::HttpResponse;
 
-use crate::http::{Context, Request, Response};
+type HandlerResult = actix_web::Result<HttpResponse>;
 
-pub async fn get_openapi(_ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
+pub async fn get_openapi() -> HandlerResult {
     let spec = include_str!("../../openapi.json");
-    res.add_header("Content-Type", "application/json");
-    res.set_body(spec);
-    Ok(())
+    Ok(HttpResponse::Ok()
+        .content_type("application/json")
+        .body(spec))
 }
 
-pub async fn index(_ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
-    let index = include_str!("../../docs/index.html");
-    res.add_header("Content-Type", "text/html");
-    res.set_body(index);
-    Ok(())
+pub async fn index() -> HandlerResult {
+    let html = include_str!("../../docs/index.html");
+    Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }

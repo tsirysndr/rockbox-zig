@@ -1,38 +1,33 @@
-use anyhow::Error;
+use actix_web::{web, HttpResponse};
 use rockbox_settings::{read_settings, save_settings_to_file};
 use rockbox_sys::sound::pcm;
 
-use crate::{
-    http::{Context, Request, Response},
-    GLOBAL_MUTEX,
-};
+use crate::{http::AppState, GLOBAL_MUTEX};
 
-pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let id = &req.params[0];
-    let mut player = ctx.player.lock().unwrap();
-    let mut current_device = ctx.current_device.lock().unwrap();
-    let mut devices = ctx.devices.lock().unwrap();
+type HandlerResult = actix_web::Result<HttpResponse>;
 
-    let device = match devices.iter().find(|d| d.id == *id).cloned().or_else(|| {
-        // Synthetic device from settings (mDNS not yet found it).
-        current_device.as_ref().filter(|d| d.id == *id).cloned()
-    }) {
+pub async fn connect(state: web::Data<AppState>, path: web::Path<String>) -> HandlerResult {
+    let id = path.into_inner();
+    let mut player = state.player.lock().unwrap();
+    let mut current_device = state.current_device.lock().unwrap();
+    let mut devices = state.devices.lock().unwrap();
+
+    let device = match devices
+        .iter()
+        .find(|d| d.id == id)
+        .cloned()
+        .or_else(|| current_device.as_ref().filter(|d| d.id == id).cloned())
+    {
         Some(d) => d,
-        None => {
-            res.set_status(404);
-            return Ok(());
-        }
+        None => return Ok(HttpResponse::NotFound().finish()),
     };
 
-    // Stop any existing player session.
     if let Some(p) = player.as_mut() {
         let _ = p.stop().await;
         let _ = p.disconnect().await;
     }
     *player = None;
 
-    // If switching away from or to Chromecast, tear down the cast session so
-    // the next pcm_chromecast_start() always gets a clean slate.
     let old_service = current_device
         .as_ref()
         .map(|d| d.service.as_str())
@@ -41,7 +36,6 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
         pcm::chromecast_teardown();
     }
 
-    // Read current settings so we preserve all other fields.
     let mut settings = read_settings().unwrap_or_default();
 
     match device.service.as_str() {
@@ -89,10 +83,6 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
                 pcm::upnp_set_renderer_url(url);
             }
             pcm::upnp_set_http_port(http_port);
-            // Reset renderer state so the very next sink_dma_start always fires
-            // SetAVTransportURI + Play — without this, switching back to UPnP after
-            // using another output would leave RENDERER_PLAYING=true and send no
-            // play command, silently producing no audio until daemon restart.
             pcm::upnp_reset_renderer();
             pcm::switch_sink(pcm::PCM_SINK_UPNP);
             *GLOBAL_MUTEX.lock().unwrap() = 0;
@@ -119,35 +109,26 @@ pub async fn connect(ctx: &Context, req: &Request, res: &mut Response) -> Result
         }
         other => {
             tracing::warn!("connect: unknown device service {:?}", other);
-            res.set_status(400);
-            return Ok(());
+            return Ok(HttpResponse::BadRequest().finish());
         }
     }
 
-    // Persist and update state before any potentially-failing connection attempt
-    // so that the selection survives even if e.g. the Chromecast is temporarily unreachable.
     if let Err(e) = save_settings_to_file(&settings) {
         tracing::warn!("connect: failed to save settings: {e}");
     }
 
-    // Mark new current device; clear is_current_device on all others.
     for d in devices.iter_mut() {
         d.is_current_device = d.id == device.id;
     }
-    *current_device = Some(device.clone());
+    *current_device = Some(device);
 
-    // The Cast protocol session is managed entirely by the pcm.rs cast_loop;
-    // no separate lib.rs Chromecast::connect() needed here.
-
-    res.set_status(200);
-    Ok(())
+    Ok(HttpResponse::Ok().finish())
 }
 
-pub async fn disconnect(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let _id = &req.params[0];
-    let mut player = ctx.player.lock().unwrap();
-    let mut current_device = ctx.current_device.lock().unwrap();
-    let mut devices = ctx.devices.lock().unwrap();
+pub async fn disconnect(state: web::Data<AppState>, _path: web::Path<String>) -> HandlerResult {
+    let mut player = state.player.lock().unwrap();
+    let mut current_device = state.current_device.lock().unwrap();
+    let mut devices = state.devices.lock().unwrap();
 
     if let Some(p) = player.as_mut() {
         let _ = p.stop().await;
@@ -156,7 +137,6 @@ pub async fn disconnect(ctx: &Context, req: &Request, res: &mut Response) -> Res
     *GLOBAL_MUTEX.lock().unwrap() = 0;
     *player = None;
 
-    // If disconnecting from Chromecast, stop the cast loop before switching sink.
     if current_device
         .as_ref()
         .map_or(false, |d| d.service == "chromecast")
@@ -164,7 +144,6 @@ pub async fn disconnect(ctx: &Context, req: &Request, res: &mut Response) -> Res
         pcm::chromecast_teardown();
     }
 
-    // Fall back to built-in sink.
     pcm::switch_sink(pcm::PCM_SINK_BUILTIN);
 
     let mut settings = read_settings().unwrap_or_default();
@@ -173,19 +152,17 @@ pub async fn disconnect(ctx: &Context, req: &Request, res: &mut Response) -> Res
         tracing::warn!("disconnect: failed to save settings: {e}");
     }
 
-    // Mark built-in as current.
     for d in devices.iter_mut() {
         d.is_current_device = d.id == "builtin";
     }
     *current_device = devices.iter().find(|d| d.id == "builtin").cloned();
 
-    res.set_status(200);
-    Ok(())
+    Ok(HttpResponse::Ok().finish())
 }
 
-pub async fn get_devices(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
-    let current = ctx.current_device.lock().unwrap().clone();
-    let devices = ctx.devices.lock().unwrap();
+pub async fn get_devices(state: web::Data<AppState>) -> HandlerResult {
+    let current = state.current_device.lock().unwrap().clone();
+    let devices = state.devices.lock().unwrap();
 
     let mut result: Vec<_> = devices
         .iter()
@@ -199,21 +176,15 @@ pub async fn get_devices(ctx: &Context, _req: &Request, res: &mut Response) -> R
         })
         .collect();
 
-    // If the current device isn't in the discovered list yet (e.g. Chromecast
-    // from settings but mDNS hasn't found it), include it so UIs can show it.
     if let Some(ref cd) = current {
         if !result.iter().any(|d| devices_match(cd, d)) {
             result.push(cd.clone());
         }
     }
 
-    res.json(&result);
-    Ok(())
+    Ok(HttpResponse::Ok().json(result))
 }
 
-/// Two devices represent the same physical output if their IDs match OR if
-/// their service + IP match (handles ID format differences between settings-
-/// based synthetic devices and mDNS-discovered ones).
 fn devices_match(a: &rockbox_types::device::Device, b: &rockbox_types::device::Device) -> bool {
     if a.id == b.id {
         return true;
@@ -227,27 +198,19 @@ fn devices_match(a: &rockbox_types::device::Device, b: &rockbox_types::device::D
     }
 }
 
-pub async fn get_device(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let id = &req.params[0];
+pub async fn get_device(state: web::Data<AppState>, path: web::Path<String>) -> HandlerResult {
+    let id = path.into_inner();
     if id == "current" {
-        let current_device = ctx.current_device.lock().unwrap();
-        if let Some(device) = current_device.as_ref() {
-            res.json(&device.clone());
-            return Ok(());
-        }
-        res.set_status(404);
-        return Ok(());
+        let current_device = state.current_device.lock().unwrap();
+        return match current_device.as_ref() {
+            Some(device) => Ok(HttpResponse::Ok().json(device)),
+            None => Ok(HttpResponse::NotFound().finish()),
+        };
     }
 
-    let devices = ctx.devices.lock().unwrap();
-    let device = devices.iter().find(|d| d.id == *id);
-
-    if let Some(device) = device {
-        res.json(&device.clone());
-        return Ok(());
+    let devices = state.devices.lock().unwrap();
+    match devices.iter().find(|d| d.id == id) {
+        Some(device) => Ok(HttpResponse::Ok().json(device)),
+        None => Ok(HttpResponse::NotFound().finish()),
     }
-
-    res.json(&device);
-    res.set_status(404);
-    Ok(())
 }

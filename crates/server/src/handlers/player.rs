@@ -1,11 +1,6 @@
 use std::{env, ffi::CString};
 
-use crate::PLAYER_MUTEX;
-use crate::{
-    http::{Context, Request, Response},
-    GLOBAL_MUTEX,
-};
-use anyhow::{anyhow, Error};
+use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use local_ip_addr::get_local_ip_address;
 use rand::seq::SliceRandom;
 use rockbox_chromecast::Chromecast;
@@ -16,39 +11,45 @@ use rockbox_sys::{
 };
 use rockbox_traits::types::track::Track;
 use rockbox_types::{device::Device, LoadTracks, NewVolume};
+use serde::Deserialize;
+
+use crate::{http::AppState, GLOBAL_MUTEX, PLAYER_MUTEX};
+
+type HandlerResult = actix_web::Result<HttpResponse>;
 
 unsafe extern "C" {
     fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i32;
 }
 
-pub async fn load(ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let mut player = ctx.player.lock().unwrap();
+pub async fn load(state: web::Data<AppState>, body: web::Json<LoadTracks>) -> HandlerResult {
+    let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+    let mut player = state.player.lock().unwrap();
     if player.is_none() {
-        res.set_status(404);
-        return Ok(());
+        return Ok(HttpResponse::NotFound().finish());
     }
 
-    let mut current_device = ctx.current_device.lock().unwrap();
-    let devices = ctx.devices.lock().unwrap();
+    let mut current_device = state.current_device.lock().unwrap();
+    let devices = state.devices.lock().unwrap();
     let device = devices
         .iter()
-        .find(|d| d.id == *current_device.as_ref().unwrap().id);
+        .find(|d| d.id == *current_device.as_ref().unwrap().id)
+        .cloned();
     if let Some(device) = device {
         let mut mutex = GLOBAL_MUTEX.lock().unwrap();
         *mutex = 1;
-        *player = Chromecast::connect(device.clone())?;
-        *current_device = Some(device.clone());
+        *player = Chromecast::connect(device.clone()).map_err(ErrorInternalServerError)?;
+        *current_device = Some(device);
     }
 
     let player = player.as_deref_mut().unwrap();
 
-    let req_body = req.body.as_ref().unwrap();
-    let request: LoadTracks = serde_json::from_str(&req_body)?;
+    let request = body.into_inner();
 
     for path in &request.tracks {
         if path.starts_with("http://") || path.starts_with("https://") {
-            ensure_remote_track_metadata(path.clone()).await?;
+            ensure_remote_track_metadata(path.clone())
+                .await
+                .map_err(ErrorInternalServerError)?;
         }
     }
 
@@ -58,19 +59,21 @@ pub async fn load(ctx: &Context, req: &Request, res: &mut Response) -> Result<()
 
     for requested_path in &request.tracks {
         let track = {
-            let kv = ctx.kv.lock().unwrap();
+            let kv = state.kv.lock().unwrap();
             kv.get(requested_path).cloned()
         };
 
         let track = match track {
-            Some(track) => Some(track),
+            Some(t) => Some(t),
             None => {
-                let track = repo::track::find_by_path(ctx.pool.clone(), requested_path).await?;
-                if let Some(ref track) = track {
-                    let mut kv = ctx.kv.lock().unwrap();
-                    kv.set(requested_path, track.clone());
+                let t = repo::track::find_by_path(state.pool.clone(), requested_path)
+                    .await
+                    .map_err(ErrorInternalServerError)?;
+                if let Some(ref t) = t {
+                    let mut kv = state.kv.lock().unwrap();
+                    kv.set(requested_path, t.clone());
                 }
-                track
+                t
             }
         };
 
@@ -100,177 +103,347 @@ pub async fn load(ctx: &Context, req: &Request, res: &mut Response) -> Result<()
     }
 
     if tracks.is_empty() {
-        res.set_status(404);
-        res.text("No playable tracks found");
-        return Ok(());
+        return Ok(HttpResponse::NotFound().body("No playable tracks found"));
     }
 
+    let mut tracks = tracks;
     if Some(true) == request.shuffle {
         tracks.shuffle(&mut rand::thread_rng());
     }
 
-    player.load_tracks(tracks, None).await?;
+    player
+        .load_tracks(tracks, None)
+        .await
+        .map_err(ErrorInternalServerError)?;
 
-    res.set_status(200);
-
-    drop(player_mutex);
-
-    Ok(())
+    Ok(HttpResponse::Ok().finish())
 }
 
-pub async fn play(ctx: &Context, req: &Request, _res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let elapsed = match req.query_params.get("elapsed") {
-        Some(elapsed) => elapsed.as_str().unwrap_or("0").parse().unwrap_or(0),
-        None => 0,
-    };
-    let offset = match req.query_params.get("offset") {
-        Some(offset) => offset.as_str().unwrap_or("0").parse().unwrap_or(0),
-        None => 0,
-    };
-    let player = ctx.player.lock().unwrap();
-
-    if player.is_none() {
-        rb::playback::play(elapsed, offset);
-    }
-
-    drop(player_mutex);
-
-    Ok(())
+#[derive(Deserialize)]
+pub struct PlayQuery {
+    pub elapsed: Option<i64>,
+    pub offset: Option<i64>,
 }
 
-pub async fn pause(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let player = ctx.player.lock().unwrap();
+pub async fn play(state: web::Data<AppState>, query: web::Query<PlayQuery>) -> HandlerResult {
+    let elapsed = query.elapsed.unwrap_or(0);
+    let offset = query.offset.unwrap_or(0);
 
-    match player.as_deref() {
-        Some(player) => {
-            player.pause().await?;
+    web::block(move || {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        if state.player.lock().unwrap().is_none() {
+            rb::playback::play(elapsed, offset);
         }
-        None => {
-            rb::playback::pause();
-        }
-    }
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
 
-    drop(player_mutex);
-
-    Ok(())
+    Ok(HttpResponse::Ok().finish())
 }
 
-pub async fn ff_rewind(_ctx: &Context, req: &Request, _res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let newtime = match req.query_params.get("newtime") {
-        Some(newtime) => newtime.as_str().unwrap_or("0").parse().unwrap_or(0),
-        None => 0,
-    };
-    rb::playback::ff_rewind(newtime);
+pub async fn pause(state: web::Data<AppState>) -> HandlerResult {
+    let has_external = state.player.lock().unwrap().is_some();
 
-    drop(player_mutex);
-
-    Ok(())
-}
-
-pub async fn status(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let mut player = ctx.player.lock().unwrap();
-
-    if let Some(player) = player.as_deref_mut() {
-        let current_playback = player.get_current_playback().await?;
-        res.json(&AudioStatus {
-            status: match current_playback.is_playing {
-                true => 1,
-                false => 0,
-            },
-        });
-        return Ok(());
-    }
-
-    let status = rb::playback::status();
-    res.json(&status);
-
-    drop(player_mutex);
-
-    Ok(())
-}
-
-pub async fn current_track(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let mut player = ctx.player.lock().unwrap();
-
-    if let Some(player) = player.as_deref_mut() {
-        let current_playback = player.get_current_playback().await?;
-        let mut track: Option<Mp3Entry> = current_playback.current_track.map(|mut t| {
-            if t.path.is_empty() {
-                t.path = t.uri.clone();
-            }
-            t.into()
-        });
-
-        if let Some(lookup_path) = track
-            .as_ref()
-            .map(|t| t.path.clone())
-            .filter(|path| !path.is_empty())
-        {
-            let metadata = find_track_metadata(ctx, &lookup_path).await?;
-            if let Some(metadata) = metadata {
-                let current_track = track.as_mut().unwrap();
-                current_track.id = Some(metadata.id);
-                current_track.album_art = metadata.album_art.or(current_track.album_art.clone());
-                current_track.album_id = Some(metadata.album_id);
-                current_track.artist_id = Some(metadata.artist_id);
-            }
-        }
-
-        let track = track.map(|mut t| {
-            t.elapsed = current_playback.position_ms as u64;
-            t
-        });
-        res.json(&track);
-        return Ok(());
-    }
-
-    let mut track = rb::playback::current_track();
-    let audio_path: Option<String> = track.as_ref().map(|t| t.path.clone());
-
-    // Use the playlist filename for DB lookup — it matches the key under which
-    // metadata was saved (e.g. the HTTP URL) and is what the broker uses to
-    // display album art correctly. audio_current_track()->path can diverge for
-    // HTTP stream tracks so we treat it only as a fallback.
-    let playlist_index = rb::playlist::index();
-    let playlist_path = if playlist_index >= 0 {
-        let info = rb::playlist::get_track_info(playlist_index);
-        if !info.filename.is_empty() {
-            Some(info.filename)
-        } else {
-            None
+    if has_external {
+        let mut player = state.player.lock().unwrap();
+        if let Some(p) = player.as_deref_mut() {
+            p.pause().await.map_err(ErrorInternalServerError)?;
         }
     } else {
-        None
-    };
+        web::block(move || {
+            let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+            rb::playback::pause();
+        })
+        .await
+        .map_err(ErrorInternalServerError)?;
+    }
 
-    let lookup_path = playlist_path.or(audio_path);
-    if let Some(path) = lookup_path {
-        if let Some(metadata) = find_track_metadata(ctx, &path).await? {
-            track.as_mut().unwrap().id = Some(metadata.id);
-            track.as_mut().unwrap().album_art = metadata.album_art;
-            track.as_mut().unwrap().album_id = Some(metadata.album_id);
-            track.as_mut().unwrap().artist_id = Some(metadata.artist_id);
+    Ok(HttpResponse::Ok().finish())
+}
+
+#[derive(Deserialize)]
+pub struct FfRewindQuery {
+    pub newtime: Option<i32>,
+}
+
+pub async fn ff_rewind(query: web::Query<FfRewindQuery>) -> HandlerResult {
+    let newtime = query.newtime.unwrap_or(0);
+    web::block(move || {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        rb::playback::ff_rewind(newtime);
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().finish())
+}
+
+pub async fn status(state: web::Data<AppState>) -> HandlerResult {
+    let has_external = state.player.lock().unwrap().is_some();
+
+    if has_external {
+        let mut player = state.player.lock().unwrap();
+        if let Some(p) = player.as_deref_mut() {
+            let current_playback = p
+                .get_current_playback()
+                .await
+                .map_err(ErrorInternalServerError)?;
+            return Ok(HttpResponse::Ok().json(AudioStatus {
+                status: if current_playback.is_playing { 1 } else { 0 },
+            }));
         }
     }
-    res.json(&track);
 
-    drop(player_mutex);
+    let status = web::block(|| {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        rb::playback::status()
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
 
-    Ok(())
+    Ok(HttpResponse::Ok().json(status))
+}
+
+pub async fn current_track(state: web::Data<AppState>) -> HandlerResult {
+    let has_external = state.player.lock().unwrap().is_some();
+
+    if has_external {
+        let mut player = state.player.lock().unwrap();
+        if let Some(p) = player.as_deref_mut() {
+            let current_playback = p
+                .get_current_playback()
+                .await
+                .map_err(ErrorInternalServerError)?;
+            let mut track: Option<Mp3Entry> = current_playback.current_track.map(|mut t| {
+                if t.path.is_empty() {
+                    t.path = t.uri.clone();
+                }
+                t.into()
+            });
+
+            if let Some(lookup_path) = track
+                .as_ref()
+                .map(|t| t.path.clone())
+                .filter(|path| !path.is_empty())
+            {
+                let metadata = find_track_metadata(&state, &lookup_path)
+                    .await
+                    .map_err(ErrorInternalServerError)?;
+                if let Some(metadata) = metadata {
+                    let t = track.as_mut().unwrap();
+                    t.id = Some(metadata.id);
+                    t.album_art = metadata.album_art.or(t.album_art.clone());
+                    t.album_id = Some(metadata.album_id);
+                    t.artist_id = Some(metadata.artist_id);
+                }
+            }
+
+            let track = track.map(|mut t| {
+                t.elapsed = current_playback.position_ms as u64;
+                t
+            });
+            return Ok(HttpResponse::Ok().json(track));
+        }
+    }
+
+    // Builtin player: FFI calls on a blocking thread, then DB lookup async
+    let (track, audio_path, playlist_path) = web::block(|| {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        let track = rb::playback::current_track();
+        let audio_path: Option<String> = track.as_ref().map(|t| t.path.clone());
+        let playlist_index = rb::playlist::index();
+        let playlist_path = if playlist_index >= 0 {
+            let info = rb::playlist::get_track_info(playlist_index);
+            if !info.filename.is_empty() {
+                Some(info.filename)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+        (track, audio_path, playlist_path)
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+
+    let mut track = track;
+    let lookup_path = playlist_path.or(audio_path);
+    if let Some(path) = lookup_path {
+        if let Some(metadata) = find_track_metadata(&state, &path)
+            .await
+            .map_err(ErrorInternalServerError)?
+        {
+            if let Some(t) = track.as_mut() {
+                t.id = Some(metadata.id);
+                t.album_art = metadata.album_art;
+                t.album_id = Some(metadata.album_id);
+                t.artist_id = Some(metadata.artist_id);
+            }
+        }
+    }
+    Ok(HttpResponse::Ok().json(track))
+}
+
+pub async fn next_track(state: web::Data<AppState>) -> HandlerResult {
+    if state.player.lock().unwrap().is_some() {
+        return Ok(HttpResponse::Ok().json(Option::<Mp3Entry>::None));
+    }
+
+    let (track, audio_path, playlist_path) = web::block(|| {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        let track = rb::playback::next_track();
+        let audio_path: Option<String> = track.as_ref().map(|t| t.path.clone());
+        let current_index = rb::playlist::index();
+        let next_index = current_index + 1;
+        let playlist_path = if next_index >= 0 && next_index < rb::playlist::amount() {
+            let info = rb::playlist::get_track_info(next_index);
+            if !info.filename.is_empty() {
+                Some(info.filename)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+        (track, audio_path, playlist_path)
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+
+    let mut track = track;
+    let lookup_path = playlist_path.or(audio_path);
+    if let Some(path) = lookup_path {
+        let hash = format!("{:x}", md5::compute(path.as_bytes()));
+        if let Some(metadata) = repo::track::find_by_md5(state.pool.clone(), &hash)
+            .await
+            .map_err(ErrorInternalServerError)?
+        {
+            if let Some(t) = track.as_mut() {
+                t.id = Some(metadata.id);
+                t.album_art = metadata.album_art;
+                t.album_id = Some(metadata.album_id);
+                t.artist_id = Some(metadata.artist_id);
+            }
+        }
+    }
+    Ok(HttpResponse::Ok().json(track))
+}
+
+pub async fn flush_and_reload_tracks() -> HandlerResult {
+    web::block(|| {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        rb::playback::flush_and_reload_tracks();
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().finish())
+}
+
+pub async fn resume(state: web::Data<AppState>) -> HandlerResult {
+    let has_external = state.player.lock().unwrap().is_some();
+
+    if has_external {
+        let mut player = state.player.lock().unwrap();
+        if let Some(p) = player.as_deref_mut() {
+            p.play().await.map_err(ErrorInternalServerError)?;
+        }
+    } else {
+        web::block(|| {
+            let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+            rb::playback::resume();
+        })
+        .await
+        .map_err(ErrorInternalServerError)?;
+    }
+
+    Ok(HttpResponse::Ok().finish())
+}
+
+pub async fn next() -> HandlerResult {
+    web::block(|| {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        rb::playback::next();
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().finish())
+}
+
+pub async fn previous() -> HandlerResult {
+    web::block(|| {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        rb::playback::prev();
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().finish())
+}
+
+pub async fn stop() -> HandlerResult {
+    web::block(|| {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        rb::playback::hard_stop();
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().finish())
+}
+
+pub async fn get_file_position() -> HandlerResult {
+    let position = web::block(|| {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        rb::playback::get_file_pos()
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(position))
+}
+
+pub async fn get_volume() -> HandlerResult {
+    let (volume, min, max) = web::block(|| {
+        const SOUND_VOLUME: i32 = 0;
+        (
+            rb::sound::current(SOUND_VOLUME),
+            rb::sound::min(SOUND_VOLUME),
+            rb::sound::max(SOUND_VOLUME),
+        )
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(serde_json::json!({ "volume": volume, "min": min, "max": max })))
+}
+
+pub async fn adjust_volume(body: web::Json<NewVolume>) -> HandlerResult {
+    let new_volume = body.into_inner();
+    let steps = new_volume.steps;
+    web::block(move || rb::sound::adjust_volume(steps))
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(new_volume))
+}
+
+pub async fn get_current_player(state: web::Data<AppState>) -> HandlerResult {
+    let device = state.current_device.lock().unwrap();
+
+    if let Some(device) = device.as_ref() {
+        return Ok(HttpResponse::Ok().json(device));
+    }
+
+    Ok(HttpResponse::Ok().json(Device {
+        name: "Rockbox (Default Player)".to_string(),
+        app: "default".to_string(),
+        service: "rockbox".to_string(),
+        ..Default::default()
+    }))
 }
 
 async fn find_track_metadata(
-    ctx: &Context,
+    state: &AppState,
     path: &str,
-) -> Result<Option<rockbox_library::entity::track::Track>, Error> {
+) -> Result<Option<rockbox_library::entity::track::Track>, anyhow::Error> {
     let hash = format!("{:x}", md5::compute(path.as_bytes()));
-    let mut metadata = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
-    let internal_track = find_internal_track_by_url(ctx, path).await?;
+    let mut metadata = repo::track::find_by_md5(state.pool.clone(), &hash).await?;
+    let internal_track = find_internal_track_by_url(state, path).await?;
 
     if metadata
         .as_ref()
@@ -290,31 +463,31 @@ async fn find_track_metadata(
             && internal_track.is_none()
         {
             ensure_remote_track_metadata(path.to_string()).await?;
-            metadata = repo::track::find_by_md5(ctx.pool.clone(), &hash).await?;
+            metadata = repo::track::find_by_md5(state.pool.clone(), &hash).await?;
         }
     }
 
     Ok(metadata)
 }
 
-async fn ensure_remote_track_metadata(path: String) -> Result<(), Error> {
-    let status = tokio::task::spawn_blocking(move || -> Result<i32, Error> {
+async fn ensure_remote_track_metadata(path: String) -> Result<(), anyhow::Error> {
+    let status = tokio::task::spawn_blocking(move || -> Result<i32, anyhow::Error> {
         let path_cstr = CString::new(path.as_str())?;
         Ok(unsafe { save_remote_track_metadata(path_cstr.as_ptr()) })
     })
     .await??;
 
     if status != 0 {
-        return Err(anyhow!("failed to save remote metadata"));
+        return Err(anyhow::anyhow!("failed to save remote metadata"));
     }
 
     Ok(())
 }
 
 async fn find_internal_track_by_url(
-    ctx: &Context,
+    state: &AppState,
     path: &str,
-) -> Result<Option<rockbox_library::entity::track::Track>, Error> {
+) -> Result<Option<rockbox_library::entity::track::Track>, anyhow::Error> {
     let url = match reqwest::Url::parse(path) {
         Ok(url) => url,
         Err(_) => return Ok(None),
@@ -336,160 +509,7 @@ async fn find_internal_track_by_url(
         return Ok(None);
     }
 
-    repo::track::find(ctx.pool.clone(), track_id)
+    repo::track::find(state.pool.clone(), track_id)
         .await
         .map_err(Into::into)
-}
-
-pub async fn next_track(ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let player = ctx.player.lock().unwrap();
-
-    if let Some(_player) = player.as_deref() {
-        return Ok(());
-    }
-
-    let mut track = rb::playback::next_track();
-    let audio_path: Option<String> = track.as_ref().map(|t| t.path.clone());
-
-    // Use the next playlist entry's filename for DB lookup for the same reason
-    // as in current_track: playlist filename matches the saved metadata key.
-    let current_index = rb::playlist::index();
-    let next_index = current_index + 1;
-    let playlist_path = if next_index >= 0 && next_index < rb::playlist::amount() {
-        let info = rb::playlist::get_track_info(next_index);
-        if !info.filename.is_empty() {
-            Some(info.filename)
-        } else {
-            None
-        }
-    } else {
-        None
-    };
-
-    let lookup_path = playlist_path.or(audio_path);
-    if let Some(path) = lookup_path {
-        let hash = format!("{:x}", md5::compute(path.as_bytes()));
-        if let Some(metadata) = repo::track::find_by_md5(ctx.pool.clone(), &hash).await? {
-            track.as_mut().unwrap().id = Some(metadata.id);
-            track.as_mut().unwrap().album_art = metadata.album_art;
-            track.as_mut().unwrap().album_id = Some(metadata.album_id);
-            track.as_mut().unwrap().artist_id = Some(metadata.artist_id);
-        }
-    }
-    res.json(&track);
-
-    drop(player_mutex);
-
-    Ok(())
-}
-
-pub async fn flush_and_reload_tracks(
-    _ctx: &Context,
-    _req: &Request,
-    _res: &mut Response,
-) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    rb::playback::flush_and_reload_tracks();
-    drop(player_mutex);
-    Ok(())
-}
-
-pub async fn resume(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let player = ctx.player.lock().unwrap();
-
-    match player.as_deref() {
-        Some(player) => {
-            player.play().await?;
-        }
-        None => {
-            rb::playback::resume();
-        }
-    }
-
-    drop(player_mutex);
-
-    Ok(())
-}
-
-pub async fn next(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    // Always advance the Rockbox playlist regardless of active player (e.g.
-    // Chromecast). The Cast monitor loop detects the track change and reloads.
-    rb::playback::next();
-    drop(player_mutex);
-    let _ = ctx;
-    Ok(())
-}
-
-pub async fn previous(ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    rb::playback::prev();
-    drop(player_mutex);
-    let _ = ctx;
-    Ok(())
-}
-
-pub async fn stop(_ctx: &Context, _req: &Request, _res: &mut Response) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-
-    rb::playback::hard_stop();
-
-    drop(player_mutex);
-
-    Ok(())
-}
-
-pub async fn get_file_position(
-    _ctx: &Context,
-    _req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let position = rb::playback::get_file_pos();
-    res.json(&position);
-
-    drop(player_mutex);
-
-    Ok(())
-}
-
-pub async fn get_volume(_ctx: &Context, _req: &Request, res: &mut Response) -> Result<(), Error> {
-    const SOUND_VOLUME: i32 = 0;
-    let volume = rb::sound::current(SOUND_VOLUME);
-    let min = rb::sound::min(SOUND_VOLUME);
-    let max = rb::sound::max(SOUND_VOLUME);
-    res.json(&serde_json::json!({ "volume": volume, "min": min, "max": max }));
-    Ok(())
-}
-
-pub async fn adjust_volume(_ctx: &Context, req: &Request, res: &mut Response) -> Result<(), Error> {
-    let req_body = req.body.as_ref().unwrap();
-    let new_volume: NewVolume = serde_json::from_str(&req_body).unwrap();
-
-    rb::sound::adjust_volume(new_volume.steps);
-    res.json(&new_volume);
-    Ok(())
-}
-
-pub async fn get_current_player(
-    ctx: &Context,
-    _req: &Request,
-    res: &mut Response,
-) -> Result<(), Error> {
-    let device = ctx.current_device.lock().unwrap();
-
-    if let Some(device) = device.as_ref() {
-        res.json(device);
-        return Ok(());
-    }
-
-    res.json(&Device {
-        name: "Rockbox (Default Player)".to_string(),
-        app: "default".to_string(),
-        service: "rockbox".to_string(),
-        ..Default::default()
-    });
-    Ok(())
 }
