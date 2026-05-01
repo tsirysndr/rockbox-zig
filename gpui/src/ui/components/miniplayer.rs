@@ -13,7 +13,7 @@ use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, img, px, App, Context, Div, FontWeight, InteractiveElement, IntoElement,
+    div, img, px, App, Context, FontWeight, InteractiveElement, IntoElement,
     ObjectFit, ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled,
     StyledImage, Window,
 };
@@ -389,7 +389,7 @@ impl Render for MiniPlayer {
                             .items_center()
                             .justify_end()
                             .gap_x_2()
-                            .when(bluetooth_available, |this: Div| {
+                            .when(bluetooth_available, |this| {
                                 this.child(
                                     div()
                                         .id("mini_bluetooth")

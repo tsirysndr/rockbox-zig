@@ -265,7 +265,7 @@ impl LibraryPage {
             detail_scroll_handle: UniformListScrollHandle::new(),
             miniplayer: {
                 cx.new(|cx| {
-                    let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
+                    cx.observe_global::<DevicesState>(|_, cx| cx.notify()).detach();
                     MiniPlayer
                 })
             },

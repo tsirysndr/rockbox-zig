@@ -7,7 +7,7 @@ use crate::ui::components::seek_bar::SeekBar;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, px, App, Context, Div, InteractiveElement, IntoElement, ParentElement, Render,
+    div, px, App, Context, InteractiveElement, IntoElement, ParentElement, Render,
     StatefulInteractiveElement, Styled, Window,
 };
 
@@ -33,7 +33,6 @@ impl Render for ControlBar {
             .map(|d| device_icon(d))
             .unwrap_or(Icons::Speaker);
         let bluetooth_available = cx.global::<BluetoothState>().available;
-
         div()
             .w_full()
             .flex_shrink_0()
@@ -87,7 +86,7 @@ impl Render for ControlBar {
                     .items_center()
                     .justify_end()
                     .gap_x_1()
-                    .when(bluetooth_available, |this: Div| {
+                    .when(bluetooth_available, |this| {
                         this.child(
                             div()
                                 .id("controlbar-bluetooth-btn")

@@ -1,5 +1,5 @@
 use crate::controller::Controller;
-use crate::state::{BluetoothDevice, BluetoothState};
+use crate::state::BluetoothState;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
@@ -156,9 +156,55 @@ impl Render for BluetoothPicker {
     }
 }
 
+/// Checks whether the connected server supports Bluetooth (by calling get_devices).
+/// Re-checks automatically whenever the active server changes.
+/// Updates BluetoothState::available so the UI can show/hide the bluetooth button.
+pub fn check_and_set_bluetooth_available(cx: &mut App) {
+    let rt = cx.global::<Controller>().rt();
+    // std::sync::mpsc avoids cross-runtime waker issues — tokio side sends without await,
+    // GPUI side polls with try_recv.
+    let (tx, rx) = std::sync::mpsc::channel::<bool>();
+
+    rt.spawn(async move {
+        let available = crate::client::check_bluetooth_available().await;
+        let _ = tx.send(available);
+
+        let notify = crate::server::server_notify();
+        loop {
+            notify.notified().await;
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+            let available = crate::client::check_bluetooth_available().await;
+            if tx.send(available).is_err() {
+                break;
+            }
+        }
+    });
+
+    cx.spawn(async move |cx| {
+        loop {
+            while let Ok(available) = rx.try_recv() {
+                if cx
+                    .update(|cx| {
+                        let mut state = cx.global::<BluetoothState>().clone();
+                        state.available = available;
+                        cx.set_global(state);
+                    })
+                    .is_err()
+                {
+                    return;
+                }
+            }
+            cx.background_executor()
+                .timer(std::time::Duration::from_millis(200))
+                .await;
+        }
+    })
+    .detach();
+}
+
 pub fn fetch_and_update_bluetooth_devices(cx: &mut App) {
     let rt = cx.global::<Controller>().rt();
-    let (tx, mut rx) = tokio::sync::mpsc::channel::<Vec<BluetoothDevice>>(1);
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<Vec<crate::state::BluetoothDevice>>(1);
     rt.spawn(async move {
         if let Ok(devices) = crate::client::fetch_bluetooth_devices().await {
             let _ = tx.send(devices).await;
@@ -176,21 +222,3 @@ pub fn fetch_and_update_bluetooth_devices(cx: &mut App) {
     .detach();
 }
 
-pub fn check_and_set_bluetooth_available(cx: &mut App) {
-    let rt = cx.global::<Controller>().rt();
-    let (tx, mut rx) = tokio::sync::mpsc::channel::<bool>(1);
-    rt.spawn(async move {
-        let available = crate::client::check_bluetooth_available().await;
-        let _ = tx.send(available).await;
-    });
-    cx.spawn(async move |cx| {
-        if let Some(available) = rx.recv().await {
-            let _ = cx.update(|cx| {
-                let mut state = cx.global::<BluetoothState>().clone();
-                state.available = available;
-                cx.set_global(state);
-            });
-        }
-    })
-    .detach();
-}

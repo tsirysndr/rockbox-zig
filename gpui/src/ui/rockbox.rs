@@ -1,8 +1,6 @@
 use crate::state::{BluetoothState, DevicesState};
 use crate::ui::animations::ease_in_out_expo;
-use crate::ui::components::bluetooth_picker::{
-    check_and_set_bluetooth_available, BluetoothPicker,
-};
+use crate::ui::components::bluetooth_picker::{check_and_set_bluetooth_available, BluetoothPicker};
 use crate::ui::components::controlbar::ControlBar;
 use crate::ui::components::device_picker::{fetch_and_update_devices, DevicePicker};
 use crate::ui::components::pages::{library::LibraryPage, player::PlayerPage, queue::QueuePage};
@@ -36,19 +34,19 @@ impl Rockbox {
         global_keybinds::register_keybinds(cx);
         let titlebar = cx.new(|cx| Titlebar::new(cx));
         let controlbar = cx.new(|cx| {
-            let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
-            let _ = cx.observe_global::<BluetoothState>(|_, cx| cx.notify());
+            cx.observe_global::<DevicesState>(|_, cx| cx.notify()).detach();
+            cx.observe_global::<BluetoothState>(|_, cx| cx.notify()).detach();
             ControlBar
         });
         let player_page = cx.new(|cx| PlayerPage::new(cx, controlbar));
         let library_page = cx.new(|cx| LibraryPage::new(cx));
         let queue_page = cx.new(|cx| QueuePage::new(cx));
         let device_picker = cx.new(|cx| {
-            let _ = cx.observe_global::<DevicesState>(|_, cx| cx.notify());
+            cx.observe_global::<DevicesState>(|_, cx| cx.notify()).detach();
             DevicePicker
         });
         let bluetooth_picker = cx.new(|cx| {
-            let _ = cx.observe_global::<BluetoothState>(|_, cx| cx.notify());
+            cx.observe_global::<BluetoothState>(|_, cx| cx.notify()).detach();
             BluetoothPicker
         });
         fetch_and_update_devices(cx);
