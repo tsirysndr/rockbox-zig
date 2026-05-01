@@ -34,6 +34,7 @@ type Handler = fn(&Context, &Request, &mut Response) -> Result<(), Error>;
 
 pub struct Context {
     pub pool: sqlx::Pool<Sqlite>,
+    pub rt: Arc<tokio::runtime::Runtime>,
     pub fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
     pub metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
     pub devices: Arc<Mutex<Vec<Device>>>,
@@ -247,7 +248,7 @@ impl RockboxHttpServer {
 
         let pool = ThreadPool::new(4);
         let active_connections = Arc::new(Mutex::new(0));
-        let rt = tokio::runtime::Runtime::new()?;
+        let rt = Arc::new(tokio::runtime::Runtime::new()?);
         let db_pool = rt.block_on(rockbox_library::create_connection_pool())?;
         let fs_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
         let metadata_cache = Arc::new(tokio::sync::Mutex::new(HashMap::new()));
@@ -386,6 +387,7 @@ impl RockboxHttpServer {
                         *active_connections += 1;
                     }
                     let mut cloned_self = self.clone();
+                    let cloned_rt = rt.clone();
                     let cloned_fs_cache = fs_cache.clone();
                     let cloned_metadata_cache = metadata_cache.clone();
                     let cloned_devices = devices.clone();
@@ -459,6 +461,7 @@ impl RockboxHttpServer {
                                 stream,
                                 db_pool,
                                 req_body,
+                                cloned_rt,
                                 cloned_fs_cache,
                                 cloned_metadata_cache,
                                 cloned_devices,
@@ -507,6 +510,7 @@ impl RockboxHttpServer {
         mut stream: TcpStream,
         pool: sqlx::Pool<Sqlite>,
         body: Option<String>,
+        rt: Arc<tokio::runtime::Runtime>,
         fs_cache: Arc<tokio::sync::Mutex<HashMap<String, Vec<Entry>>>>,
         metadata_cache: Arc<tokio::sync::Mutex<HashMap<String, Mp3Entry>>>,
         devices: Arc<Mutex<Vec<Device>>>,
@@ -521,6 +525,7 @@ impl RockboxHttpServer {
                 let mut response = Response::new();
                 let context = Context {
                     pool,
+                    rt,
                     fs_cache,
                     metadata_cache,
                     devices,

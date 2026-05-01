@@ -24,8 +24,9 @@ macro_rules! async_handler {
             request: &Request,
             response: &mut Response,
         ) -> Result<(), Error> {
-            let rt = tokio::runtime::Runtime::new().unwrap();
-            rt.block_on($module::$handler(context, request, response))?;
+            context
+                .rt
+                .block_on($module::$handler(context, request, response))?;
             Ok(())
         }
     };
