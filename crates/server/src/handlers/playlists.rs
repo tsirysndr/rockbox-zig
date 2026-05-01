@@ -179,15 +179,14 @@ pub async fn get_playlist_tracks(_path: web::Path<String>) -> HandlerResult {
         for i in 0..amount {
             let info = rb::playlist::get_track_info(i);
             // Skip get_metadata for HTTP files — it opens a live connection.
-            let entry = if info.filename.starts_with("http://")
-                || info.filename.starts_with("https://")
-            {
-                let mut e = rb::types::mp3_entry::Mp3Entry::default();
-                e.path = info.filename;
-                e
-            } else {
-                rb::metadata::get_metadata(-1, &info.filename)
-            };
+            let entry =
+                if info.filename.starts_with("http://") || info.filename.starts_with("https://") {
+                    let mut e = rb::types::mp3_entry::Mp3Entry::default();
+                    e.path = info.filename;
+                    e
+                } else {
+                    rb::metadata::get_metadata(-1, &info.filename)
+                };
             entries.push(entry);
         }
         entries
@@ -416,14 +415,13 @@ pub async fn get_playlist(state: web::Data<AppState>, _path: web::Path<String>) 
             .map(|i| {
                 let info = rb::playlist::get_track_info(i);
                 let filename = info.filename.clone();
-                let entry =
-                    if filename.starts_with("http://") || filename.starts_with("https://") {
-                        let mut e = rockbox_sys::types::mp3_entry::Mp3Entry::default();
-                        e.path = filename.clone();
-                        e
-                    } else {
-                        rb::metadata::get_metadata(-1, &filename)
-                    };
+                let entry = if filename.starts_with("http://") || filename.starts_with("https://") {
+                    let mut e = rockbox_sys::types::mp3_entry::Mp3Entry::default();
+                    e.path = filename.clone();
+                    e
+                } else {
+                    rb::metadata::get_metadata(-1, &filename)
+                };
                 (entry, filename)
             })
             .collect();
@@ -442,7 +440,15 @@ pub async fn get_playlist(state: web::Data<AppState>, _path: web::Path<String>) 
     .await
     .map_err(ErrorInternalServerError)?;
 
-    let (result_base, max_playlist_size, index, first_index, last_insert_pos, seed, last_shuffled_start) = playlist_meta;
+    let (
+        result_base,
+        max_playlist_size,
+        index,
+        first_index,
+        last_insert_pos,
+        seed,
+        last_shuffled_start,
+    ) = playlist_meta;
     let amount = raw_entries.len() as i32;
 
     let mut entries = Vec::with_capacity(raw_entries.len());

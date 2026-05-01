@@ -3629,6 +3629,10 @@ void audio_playback_handler(struct queue_event *ev)
             audio_stop_playback();
             if (ev->data != 0)
                 queue_clear(&audio_queue);
+            /* data=2: audio_hard_stop() posted asynchronously; free the
+             * audio buffer here instead of in the (non-Rockbox) caller. */
+            if (ev->data >= 2 && audiobuf_handle > 0)
+                audiobuf_handle = core_free(audiobuf_handle);
             return; /* no more playback */
 
         case Q_AUDIO_PAUSE:
@@ -4014,28 +4018,35 @@ void audio_play(unsigned long elapsed, unsigned long offset)
 /* Stop playback if playing */
 void audio_stop(void)
 {
-    LOGFQUEUE("audio >| audio Q_AUDIO_STOP");
-    audio_queue_send(Q_AUDIO_STOP, 0);
+    LOGFQUEUE("audio > audio Q_AUDIO_STOP");
+    /* Non-blocking post: safe to call from any OS thread. */
+    audio_queue_post(Q_AUDIO_STOP, 0);
 }
 
 /* Pause playback if playing */
 void audio_pause(void)
 {
-    LOGFQUEUE("audio >| audio Q_AUDIO_PAUSE");
-    audio_queue_send(Q_AUDIO_PAUSE, true);
+    LOGFQUEUE("audio > audio Q_AUDIO_PAUSE");
+    /* Non-blocking post: safe to call from any OS thread. */
+    audio_queue_post(Q_AUDIO_PAUSE, true);
 }
 
 /* This sends a stop message and the audio thread will dump all its
-   subsequent messages */
+   subsequent messages.  data=2 tells the audio thread to free
+   audiobuf_handle itself so the caller need not synchronise. */
 void audio_hard_stop(void)
 {
-    /* Stop playback */
-    LOGFQUEUE("audio >| audio Q_AUDIO_STOP: 1");
-    audio_queue_send(Q_AUDIO_STOP, 1);
+    LOGFQUEUE("audio > audio Q_AUDIO_STOP: 2 (hard)");
+    /* Non-blocking post: safe to call from any OS thread.
+     * Use data=2 so the audio thread knows to clear the queue AND free
+     * the audio buffer (see Q_AUDIO_STOP handler).  The legacy
+     * buflib-callback path uses data=1 and does NOT want the handler to
+     * free the buffer, so we use a distinct value here. */
+    audio_queue_post(Q_AUDIO_STOP, 2);
 #ifdef PLAYBACK_VOICE
     voice_stop();
 #endif
-    audiobuf_handle = core_free(audiobuf_handle);
+    /* audiobuf_handle freed by the audio thread (data=2 path). */
 }
 
 /* Resume playback if paused */
