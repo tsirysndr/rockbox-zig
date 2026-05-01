@@ -241,15 +241,18 @@ struct PlayerControlsView: View {
                 // Bluetooth picker button — only shown when bluetooth is available
                 if bluetoothState.available {
                     Button(action: { showBluetoothPicker.toggle() }) {
-                        Image(systemName: "bluetooth")
-                            .font(.system(size: 14))
-                            .foregroundStyle(showBluetoothPicker ? Color(hex: "1a91ff") : (isHoveringBluetooth ? .primary : .secondary))
-                            .frame(width: 32, height: 32)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(isHoveringBluetooth || showBluetoothPicker ? Color.secondary.opacity(0.15) : Color.clear)
-                            )
-                            .contentShape(Rectangle())
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(isHoveringBluetooth || showBluetoothPicker ? Color.secondary.opacity(0.15) : Color.clear)
+                            Image("bluetooth")
+                                .renderingMode(.template)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
+                                .foregroundStyle(showBluetoothPicker ? Color(hex: "1a91ff") : (isHoveringBluetooth ? Color.primary : Color.secondary))
+                        }
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .onHover { hovering in
@@ -261,6 +264,7 @@ struct PlayerControlsView: View {
                         BluetoothListView()
                             .environmentObject(bluetoothState)
                     }
+                    .transition(.identity)
                 }
 
                 // Device picker button
@@ -320,7 +324,7 @@ struct PlayerControlsView: View {
                     }
                 }
             }
-            .frame(width: 80)
+            .frame(minWidth: 80)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)

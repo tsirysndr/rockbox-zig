@@ -76,8 +76,11 @@ private struct BluetoothDeviceRow: View {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(Color(hex: "1a91ff").opacity(0.12))
                         .frame(width: 30, height: 30)
-                    Image(systemName: "bluetooth")
-                        .font(.system(size: 14))
+                    Image("bluetooth")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
                         .foregroundStyle(Color(hex: "1a91ff"))
                 }
 
