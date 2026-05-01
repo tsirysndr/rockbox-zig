@@ -80,21 +80,26 @@ pub extern "C" fn start_server() {
     // Pre-initialize the UPnP tokio runtime before any other runtime starts.
     rockbox_upnp::init();
 
-    // Run the HTTP server in a dedicated Rust OS thread — exactly like gRPC
-    // and GraphQL are run from start_servers(). This avoids actix detecting an
-    // "existing Tokio runtime" on the Rockbox C server_thread, which would
-    // collapse all actix workers onto a single thread.
-    let handle = thread::spawn(
-        || match actix_rt::System::new().block_on(run_http_server()) {
+    // Run the HTTP server in its own Rust OS thread so actix gets a proper
+    // multi-worker runtime instead of collapsing onto the Rockbox C thread.
+    thread::spawn(|| {
+        match actix_rt::System::new().block_on(run_http_server()) {
             Ok(_) => {}
             Err(e) => {
                 error!("Error starting HTTP server: {}", e);
             }
-        },
-    );
+        }
+    });
 
-    // Keep the Rockbox C server_thread alive while the HTTP server runs.
-    let _ = handle.join();
+    // Yield to the Rockbox cooperative scheduler periodically. Without this
+    // the server_thread holds the Rockbox CPU token indefinitely and starves
+    // every other kernel thread (broker, gRPC, etc.). The old accept loop
+    // called rb::system::sleep(rb::HZ) on every idle iteration; we replicate
+    // that contract here.
+    loop {
+        thread::sleep(std::time::Duration::from_millis(100));
+        rb::system::sleep(rb::HZ);
+    }
 }
 
 async fn run_http_server() -> Result<(), Error> {
