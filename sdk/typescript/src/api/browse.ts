@@ -8,7 +8,7 @@ export class BrowseApi {
   async entries(path?: string): Promise<Entry[]> {
     const data = await this.http.execute<{ treeGetEntries: Entry[] }>(/* GraphQL */ `
       query Browse($path: String) {
-        treeGetEntries(path: $path) { name attr timeWrite customaction }
+        treeGetEntries(path: $path) { name attr timeWrite customaction displayName }
       }
     `, { path });
     return data.treeGetEntries;

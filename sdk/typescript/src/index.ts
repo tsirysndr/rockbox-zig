@@ -27,6 +27,8 @@ export type {
   SavedPlaylistFolder,
   SmartPlaylist,
   TrackStats,
+  BluetoothDevice,
+  VolumeInfo,
   Device,
   Entry,
   SystemStatus,

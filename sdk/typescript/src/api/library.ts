@@ -13,7 +13,7 @@ const TRACK_FIELDS = /* GraphQL */ `
 
 const ALBUM_FIELDS = /* GraphQL */ `
   fragment AlbumFields on Album {
-    id title artist year yearString albumArt md5 artistId
+    id title artist year yearString albumArt md5 artistId copyrightMessage
   }
 `;
 

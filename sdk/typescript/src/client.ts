@@ -12,6 +12,7 @@ import { SettingsApi } from './api/settings.js';
 import { SystemApi } from './api/system.js';
 import { BrowseApi } from './api/browse.js';
 import { DevicesApi } from './api/devices.js';
+import { BluetoothApi } from './api/bluetooth.js';
 
 import type { Track, Playlist } from './types.js';
 
@@ -47,6 +48,7 @@ export class RockboxClient extends TypedEventEmitter<RockboxEventMap> {
   readonly system: SystemApi;
   readonly browse: BrowseApi;
   readonly devices: DevicesApi;
+  readonly bluetooth: BluetoothApi;
 
   private readonly http: HttpTransport;
   private readonly ws: WsTransport;
@@ -75,6 +77,7 @@ export class RockboxClient extends TypedEventEmitter<RockboxEventMap> {
     this.system = new SystemApi(this.http);
     this.browse = new BrowseApi(this.http);
     this.devices = new DevicesApi(this.http);
+    this.bluetooth = new BluetoothApi(this.http);
   }
 
   // ---------------------------------------------------------------------------

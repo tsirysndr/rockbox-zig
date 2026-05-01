@@ -75,6 +75,7 @@ export interface Album {
   albumArt?: string;
   md5: string;
   artistId: string;
+  copyrightMessage?: string;
   tracks: Track[];
 }
 
@@ -151,6 +152,29 @@ export interface TrackStats {
 }
 
 // ---------------------------------------------------------------------------
+// Bluetooth types
+// ---------------------------------------------------------------------------
+
+export interface BluetoothDevice {
+  address: string;
+  name: string;
+  paired: boolean;
+  trusted: boolean;
+  connected: boolean;
+  rssi?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Sound types
+// ---------------------------------------------------------------------------
+
+export interface VolumeInfo {
+  volume: number;
+  min: number;
+  max: number;
+}
+
+// ---------------------------------------------------------------------------
 // Device types
 // ---------------------------------------------------------------------------
 
@@ -179,6 +203,8 @@ export interface Entry {
   attr: number;
   timeWrite: number;
   customaction: number;
+  /** Human-readable display name (used for UPnP entries) */
+  displayName?: string;
 }
 
 export function isDirectory(entry: Entry): boolean {
