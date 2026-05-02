@@ -1,6 +1,7 @@
 import gleam/option
 import gleeunit
 import rockbox
+import rockbox/smart_playlists/rules
 import rockbox/types
 
 pub fn main() -> Nil {
@@ -74,4 +75,44 @@ pub fn is_directory_test() {
 
   assert types.is_directory(dir)
   assert !types.is_directory(file)
+}
+
+pub fn rules_basic_test() {
+  let r =
+    rules.all_of()
+    |> rules.where("play_count", rules.Gte, rules.int(10))
+    |> rules.sort("play_count", rules.Desc)
+    |> rules.limit(50)
+
+  assert rules.to_string(r)
+    == "{\"operator\":\"AND\",\"rules\":[{\"field\":\"play_count\",\"op\":\"gte\",\"value\":10}],\"sort\":{\"field\":\"play_count\",\"dir\":\"desc\"},\"limit\":50}"
+}
+
+pub fn rules_any_of_test() {
+  let r =
+    rules.any_of()
+    |> rules.where("genre", rules.Eq, rules.string("Rock"))
+    |> rules.where("genre", rules.Eq, rules.string("Jazz"))
+
+  assert rules.to_string(r)
+    == "{\"operator\":\"OR\",\"rules\":[{\"field\":\"genre\",\"op\":\"eq\",\"value\":\"Rock\"},{\"field\":\"genre\",\"op\":\"eq\",\"value\":\"Jazz\"}]}"
+}
+
+pub fn rules_nested_group_test() {
+  let r =
+    rules.all_of()
+    |> rules.where("genre", rules.Eq, rules.string("Rock"))
+    |> rules.where_group(
+      rules.any_of()
+      |> rules.where("year", rules.Gte, rules.int(2000))
+      |> rules.where("year", rules.Lte, rules.int(2010)),
+    )
+
+  assert rules.to_string(r)
+    == "{\"operator\":\"AND\",\"rules\":[{\"field\":\"genre\",\"op\":\"eq\",\"value\":\"Rock\"},{\"operator\":\"OR\",\"rules\":[{\"field\":\"year\",\"op\":\"gte\",\"value\":2000},{\"field\":\"year\",\"op\":\"lte\",\"value\":2010}]}]}"
+}
+
+pub fn rules_omits_unset_fields_test() {
+  let r = rules.all_of()
+  assert rules.to_string(r) == "{\"operator\":\"AND\",\"rules\":[]}"
 }

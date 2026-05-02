@@ -1,0 +1,13 @@
+name = "rockbox_examples"
+version = "0.0.0"
+description = "Runnable examples for the Rockbox Gleam SDK"
+licences = ["Apache-2.0"]
+gleam = ">= 1.11.0"
+
+[dependencies]
+gleam_stdlib = ">= 0.46.0 and < 2.0.0"
+gleam_erlang = ">= 0.34.0 and < 2.0.0"
+gleam_json = ">= 2.0.0 and < 4.0.0"
+rockbox = { path = ".." }
+
+[dev_dependencies]
