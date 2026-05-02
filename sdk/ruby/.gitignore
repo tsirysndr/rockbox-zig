@@ -1,0 +1,10 @@
+*.gem
+.bundle
+Gemfile.lock
+/pkg
+/tmp
+/coverage
+/vendor/bundle
+.ruby-version
+.idea
+.vscode

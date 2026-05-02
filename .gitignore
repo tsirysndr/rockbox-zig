@@ -340,3 +340,6 @@ zig-out
 .vscode
 # /utils/time-sync/
 /utils/time-sync/time-sync
+
+*.dump
+.claude/*.lock
