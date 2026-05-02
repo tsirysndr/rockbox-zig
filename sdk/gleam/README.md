@@ -107,7 +107,7 @@ let client = rockbox.at(host: "192.168.1.42", port: 6062)
 // Fully custom URL (e.g. behind a reverse proxy with TLS)
 let client =
   rockbox.new()
-  |> rockbox.url("https://music.home/graphql")
+  |> rockbox.url("http://192.168.1.42:6062/graphql")
   |> rockbox.connect
 ```
 
