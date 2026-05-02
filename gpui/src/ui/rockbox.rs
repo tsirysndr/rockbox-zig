@@ -11,8 +11,7 @@ use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
     div, px, Animation, AnimationExt as _, AppContext, Context, ElementId, Entity, FocusHandle,
-    InteractiveElement, IntoElement, ParentElement, Render, Styled,
-    Window,
+    InteractiveElement, IntoElement, ParentElement, Render, Styled, Window,
 };
 
 pub struct Rockbox {
@@ -34,19 +33,23 @@ impl Rockbox {
         global_keybinds::register_keybinds(cx);
         let titlebar = cx.new(|cx| Titlebar::new(cx));
         let controlbar = cx.new(|cx| {
-            cx.observe_global::<DevicesState>(|_, cx| cx.notify()).detach();
-            cx.observe_global::<BluetoothState>(|_, cx| cx.notify()).detach();
+            cx.observe_global::<DevicesState>(|_, cx| cx.notify())
+                .detach();
+            cx.observe_global::<BluetoothState>(|_, cx| cx.notify())
+                .detach();
             ControlBar
         });
         let player_page = cx.new(|cx| PlayerPage::new(cx, controlbar));
         let library_page = cx.new(|cx| LibraryPage::new(cx));
         let queue_page = cx.new(|cx| QueuePage::new(cx));
         let device_picker = cx.new(|cx| {
-            cx.observe_global::<DevicesState>(|_, cx| cx.notify()).detach();
+            cx.observe_global::<DevicesState>(|_, cx| cx.notify())
+                .detach();
             DevicePicker
         });
         let bluetooth_picker = cx.new(|cx| {
-            cx.observe_global::<BluetoothState>(|_, cx| cx.notify()).detach();
+            cx.observe_global::<BluetoothState>(|_, cx| cx.notify())
+                .detach();
             BluetoothPicker
         });
         fetch_and_update_devices(cx);

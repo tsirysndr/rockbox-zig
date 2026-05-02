@@ -32,8 +32,18 @@ fn covers_base() -> String {
 /// Parse "yyyy-MM-dd" into "9 December 2014". Falls back to the raw string on any parse failure.
 fn format_release_date(s: &str) -> String {
     const MONTHS: [&str; 12] = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
     ];
     let parts: Vec<&str> = s.splitn(3, '-').collect();
     if parts.len() == 3 {
@@ -202,9 +212,7 @@ impl LibraryPage {
                 let result = cx
                     .background_executor()
                     .spawn(async move {
-                        tokio.block_on(async {
-                            crate::client::get_album(&album_id).await
-                        })
+                        tokio.block_on(async { crate::client::get_album(&album_id).await })
                     })
                     .await;
                 let _ = cx.update(|app: &mut gpui::App| {
@@ -248,9 +256,7 @@ impl LibraryPage {
         cx.spawn(async move |_, cx| {
             let found = cx
                 .background_executor()
-                .spawn(async move {
-                    crate::server::scan_mdns(std::time::Duration::from_secs(3))
-                })
+                .spawn(async move { crate::server::scan_mdns(std::time::Duration::from_secs(3)) })
                 .await;
             let _ = cx.update(|app: &mut gpui::App| {
                 let state = app.global_mut::<DiscoveredServers>();
@@ -265,7 +271,8 @@ impl LibraryPage {
             detail_scroll_handle: UniformListScrollHandle::new(),
             miniplayer: {
                 cx.new(|cx| {
-                    cx.observe_global::<DevicesState>(|_, cx| cx.notify()).detach();
+                    cx.observe_global::<DevicesState>(|_, cx| cx.notify())
+                        .detach();
                     MiniPlayer
                 })
             },
@@ -334,17 +341,17 @@ impl Render for LibraryPage {
                         })
                     })
                     .await;
-                let id_set: std::collections::HashSet<String> =
-                    track_ids.iter().cloned().collect();
+                let id_set: std::collections::HashSet<String> = track_ids.iter().cloned().collect();
                 let mut resolved: Vec<crate::state::Track> = all_tracks
                     .into_iter()
                     .filter(|t| id_set.contains(&t.id))
                     .collect();
-                let order_map: std::collections::HashMap<String, usize> =
-                    track_ids.into_iter().enumerate().map(|(i, id)| (id, i)).collect();
-                resolved.sort_by_key(|t| {
-                    order_map.get(&t.id).copied().unwrap_or(usize::MAX)
-                });
+                let order_map: std::collections::HashMap<String, usize> = track_ids
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, id)| (id, i))
+                    .collect();
+                resolved.sort_by_key(|t| order_map.get(&t.id).copied().unwrap_or(usize::MAX));
                 let _ = cx.update(|app: &mut gpui::App| {
                     app.global_mut::<PlaylistsState>().playlist_tracks = resolved;
                 });
@@ -3278,8 +3285,14 @@ impl Render for LibraryPage {
                                             .background_executor()
                                             .spawn(async move {
                                                 tokio.block_on(async {
-                                                    let saved = crate::client::fetch_saved_playlists().await.unwrap_or_default();
-                                                    let smart = crate::client::fetch_smart_playlists().await.unwrap_or_default();
+                                                    let saved =
+                                                        crate::client::fetch_saved_playlists()
+                                                            .await
+                                                            .unwrap_or_default();
+                                                    let smart =
+                                                        crate::client::fetch_smart_playlists()
+                                                            .await
+                                                            .unwrap_or_default();
                                                     (saved, smart)
                                                 })
                                             })
@@ -3293,17 +3306,13 @@ impl Render for LibraryPage {
                                     .detach();
                                     cx.notify();
                                 }))
-                                .child(
-                                    div()
-                                        .w(px(6.0))
-                                        .h(px(6.0))
-                                        .rounded_full()
-                                        .bg(if cur_is_local {
-                                            gpui::rgb(0x39FF14)
-                                        } else {
-                                            theme.library_header_text
-                                        }),
-                                )
+                                .child(div().w(px(6.0)).h(px(6.0)).rounded_full().bg(
+                                    if cur_is_local {
+                                        gpui::rgb(0x39FF14)
+                                    } else {
+                                        theme.library_header_text
+                                    },
+                                ))
                                 .child(
                                     div()
                                         .flex_1()
@@ -3346,8 +3355,14 @@ impl Render for LibraryPage {
                                             .background_executor()
                                             .spawn(async move {
                                                 tokio.block_on(async {
-                                                    let saved = crate::client::fetch_saved_playlists().await.unwrap_or_default();
-                                                    let smart = crate::client::fetch_smart_playlists().await.unwrap_or_default();
+                                                    let saved =
+                                                        crate::client::fetch_saved_playlists()
+                                                            .await
+                                                            .unwrap_or_default();
+                                                    let smart =
+                                                        crate::client::fetch_smart_playlists()
+                                                            .await
+                                                            .unwrap_or_default();
                                                     (saved, smart)
                                                 })
                                             })
@@ -3361,17 +3376,13 @@ impl Render for LibraryPage {
                                     .detach();
                                     cx.notify();
                                 }))
-                                .child(
-                                    div()
-                                        .w(px(6.0))
-                                        .h(px(6.0))
-                                        .rounded_full()
-                                        .bg(if is_active {
-                                            gpui::rgb(0x39FF14)
-                                        } else {
-                                            theme.library_header_text
-                                        }),
-                                )
+                                .child(div().w(px(6.0)).h(px(6.0)).rounded_full().bg(
+                                    if is_active {
+                                        gpui::rgb(0x39FF14)
+                                    } else {
+                                        theme.library_header_text
+                                    },
+                                ))
                                 .child(
                                     div()
                                         .flex_1()

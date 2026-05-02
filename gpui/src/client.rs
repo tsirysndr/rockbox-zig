@@ -1,17 +1,16 @@
 use crate::api::v1alpha1::{
     bluetooth_service_client::BluetoothServiceClient, browse_service_client::BrowseServiceClient,
-    library_service_client::LibraryServiceClient,
-    playback_service_client::PlaybackServiceClient, playlist_service_client::PlaylistServiceClient,
-    settings_service_client::SettingsServiceClient, sound_service_client::SoundServiceClient,
-    system_service_client::SystemServiceClient, AdjustVolumeRequest, FastForwardRewindRequest,
-    GetArtistsRequest, GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest,
-    GetAlbumRequest, GetLikedTracksRequest, GetTracksRequest, InsertDirectoryRequest,
-    ConnectBluetoothDeviceRequest, DisconnectBluetoothDeviceRequest,
-    GetBluetoothDevicesRequest, InsertTracksRequest,
-    LikeTrackRequest, NextRequest, PauseRequest, PlayAlbumRequest, PlayAllTracksRequest,
-    PlayArtistTracksRequest, PlayDirectoryRequest, PlayTrackRequest, PlaylistResumeRequest,
-    PreviousRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest,
-    SearchRequest, ShufflePlaylistRequest, SoundCurrentRequest, StartRequest, StatusRequest,
+    library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
+    playlist_service_client::PlaylistServiceClient, settings_service_client::SettingsServiceClient,
+    sound_service_client::SoundServiceClient, system_service_client::SystemServiceClient,
+    AdjustVolumeRequest, ConnectBluetoothDeviceRequest, DisconnectBluetoothDeviceRequest,
+    FastForwardRewindRequest, GetAlbumRequest, GetArtistsRequest, GetBluetoothDevicesRequest,
+    GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest, GetLikedTracksRequest,
+    GetTracksRequest, InsertDirectoryRequest, InsertTracksRequest, LikeTrackRequest, NextRequest,
+    PauseRequest, PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest,
+    PlayDirectoryRequest, PlayTrackRequest, PlaylistResumeRequest, PreviousRequest,
+    RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest, SearchRequest,
+    ShufflePlaylistRequest, SoundCurrentRequest, StartRequest, StatusRequest,
     StreamCurrentTrackRequest, StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest,
     TreeGetEntriesRequest, UnlikeTrackRequest,
 };
@@ -46,9 +45,7 @@ pub async fn fetch_tracks() -> Result<Vec<Track>> {
         .collect())
 }
 
-pub async fn get_album(
-    id: &str,
-) -> Result<(String, Option<String>)> {
+pub async fn get_album(id: &str) -> Result<(String, Option<String>)> {
     let mut c = LibraryServiceClient::connect(url()).await?;
     let resp = c.get_album(GetAlbumRequest { id: id.to_string() }).await?;
     let album = resp.into_inner().album;
@@ -792,9 +789,7 @@ pub async fn fetch_smart_playlists() -> Result<Vec<crate::ui::components::SmartP
         smart_playlist_service_client::SmartPlaylistServiceClient, GetSmartPlaylistsRequest,
     };
     let mut c = SmartPlaylistServiceClient::connect(url()).await?;
-    let resp = c
-        .get_smart_playlists(GetSmartPlaylistsRequest {})
-        .await?;
+    let resp = c.get_smart_playlists(GetSmartPlaylistsRequest {}).await?;
     Ok(resp
         .into_inner()
         .playlists
@@ -836,8 +831,7 @@ pub async fn create_saved_playlist(
 
 pub async fn add_track_to_playlist(playlist_id: String, track_id: String) -> Result<()> {
     use crate::api::v1alpha1::{
-        saved_playlist_service_client::SavedPlaylistServiceClient,
-        AddTracksToSavedPlaylistRequest,
+        saved_playlist_service_client::SavedPlaylistServiceClient, AddTracksToSavedPlaylistRequest,
     };
     let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     c.add_tracks_to_saved_playlist(AddTracksToSavedPlaylistRequest {
@@ -851,8 +845,7 @@ pub async fn add_track_to_playlist(playlist_id: String, track_id: String) -> Res
 /// Fetch track IDs for a saved playlist and resolve them from the provided tracks map.
 pub async fn fetch_saved_playlist_track_ids(playlist_id: String) -> Result<Vec<String>> {
     use crate::api::v1alpha1::{
-        saved_playlist_service_client::SavedPlaylistServiceClient,
-        GetSavedPlaylistTracksRequest,
+        saved_playlist_service_client::SavedPlaylistServiceClient, GetSavedPlaylistTracksRequest,
     };
     let mut c = SavedPlaylistServiceClient::connect(url()).await?;
     let resp = c
@@ -864,8 +857,7 @@ pub async fn fetch_saved_playlist_track_ids(playlist_id: String) -> Result<Vec<S
 /// Fetch track IDs for a smart playlist.
 pub async fn fetch_smart_playlist_track_ids(playlist_id: String) -> Result<Vec<String>> {
     use crate::api::v1alpha1::{
-        smart_playlist_service_client::SmartPlaylistServiceClient,
-        GetSmartPlaylistTracksRequest,
+        smart_playlist_service_client::SmartPlaylistServiceClient, GetSmartPlaylistTracksRequest,
     };
     let mut c = SmartPlaylistServiceClient::connect(url()).await?;
     let resp = c
@@ -924,10 +916,7 @@ pub async fn update_saved_playlist(
     Ok(())
 }
 
-pub async fn remove_track_from_saved_playlist(
-    playlist_id: String,
-    track_id: String,
-) -> Result<()> {
+pub async fn remove_track_from_saved_playlist(playlist_id: String, track_id: String) -> Result<()> {
     use crate::api::v1alpha1::{
         saved_playlist_service_client::SavedPlaylistServiceClient,
         RemoveTrackFromSavedPlaylistRequest,
@@ -1016,12 +1005,14 @@ pub async fn fetch_bluetooth_devices() -> Result<Vec<crate::state::BluetoothDevi
 
 pub async fn connect_bluetooth_device(address: String) -> Result<()> {
     let mut c = BluetoothServiceClient::connect(url()).await?;
-    c.connect_device(ConnectBluetoothDeviceRequest { address }).await?;
+    c.connect_device(ConnectBluetoothDeviceRequest { address })
+        .await?;
     Ok(())
 }
 
 pub async fn disconnect_bluetooth_device(address: String) -> Result<()> {
     let mut c = BluetoothServiceClient::connect(url()).await?;
-    c.disconnect(DisconnectBluetoothDeviceRequest { address }).await?;
+    c.disconnect(DisconnectBluetoothDeviceRequest { address })
+        .await?;
     Ok(())
 }

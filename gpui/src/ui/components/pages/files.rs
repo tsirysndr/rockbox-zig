@@ -1,15 +1,12 @@
 use crate::client::{play_directory, play_directory_at, FileEntry};
 use crate::controller::Controller;
 use crate::ui::components::icons::{Icon, Icons};
-use crate::ui::components::{
-    FileContextMenu, FileContextMenuState, FilesBrowseState, FilesMode,
-};
+use crate::ui::components::{FileContextMenu, FileContextMenuState, FilesBrowseState, FilesMode};
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, px, uniform_list, AnyElement, App, ClickEvent, Context, FontWeight,
-    InteractiveElement, IntoElement, ParentElement, Render, StatefulInteractiveElement, Styled,
-    WeakEntity, Window,
+    div, px, uniform_list, AnyElement, App, ClickEvent, Context, FontWeight, InteractiveElement,
+    IntoElement, ParentElement, Render, StatefulInteractiveElement, Styled, WeakEntity, Window,
 };
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
@@ -49,7 +46,10 @@ impl FilesView {
                 let _ = this.update(cx, |this, _cx| {
                     this.upnp_cache.insert(
                         "upnp://".to_string(),
-                        CacheEntry { entries: devices, fetched_at: Instant::now() },
+                        CacheEntry {
+                            entries: devices,
+                            fetched_at: Instant::now(),
+                        },
                     );
                 });
             }
@@ -135,7 +135,9 @@ impl FilesView {
     ) {
         let (tx, rx) = tokio::sync::oneshot::channel::<Vec<FileEntry>>();
         cx.global::<Controller>().rt().spawn(async move {
-            let entries = crate::client::tree_get_entries(path).await.unwrap_or_default();
+            let entries = crate::client::tree_get_entries(path)
+                .await
+                .unwrap_or_default();
             let _ = tx.send(entries);
         });
         cx.spawn(async move |this: WeakEntity<FilesView>, cx| {
@@ -145,7 +147,10 @@ impl FilesView {
                     if let Some(ref ck) = cache_key {
                         this.upnp_cache.insert(
                             ck.clone(),
-                            CacheEntry { entries: entries.clone(), fetched_at: Instant::now() },
+                            CacheEntry {
+                                entries: entries.clone(),
+                                fetched_at: Instant::now(),
+                            },
                         );
                     }
                     // Only update the displayed entries if the user is still
@@ -280,7 +285,8 @@ fn render_root(theme: Theme) -> AnyElement {
                 .cursor_pointer()
                 .hover(|t| t.bg(theme.library_track_bg_hover))
                 .on_click(|_, _, cx: &mut App| {
-                    cx.global_mut::<FilesBrowseState>().navigate(FilesMode::Local, None);
+                    cx.global_mut::<FilesBrowseState>()
+                        .navigate(FilesMode::Local, None);
                 })
                 .child(
                     div()

@@ -4,7 +4,7 @@ use crate::ui::startup_gate::StartupGate;
 use crate::ui::{assets::Assets, theme::Theme};
 use gpui::{
     px, size, AppContext, Application, Bounds, Menu, MenuItem, SystemMenuType, TitlebarOptions,
-    WindowBounds, WindowOptions,
+    WindowBounds, WindowDecorations, WindowOptions,
 };
 
 pub fn run() {
@@ -45,6 +45,8 @@ pub fn run() {
                         width: px(800.0),
                         height: px(600.0),
                     }),
+                    #[cfg(target_os = "linux")]
+                    window_decorations: Some(WindowDecorations::Client),
                     ..Default::default()
                 },
                 |_window, cx| cx.new(StartupGate::new),

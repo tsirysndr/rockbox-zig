@@ -22,7 +22,8 @@ impl QueuePage {
         QueuePage {
             scroll_handle: UniformListScrollHandle::new(),
             miniplayer: cx.new(|cx| {
-                cx.observe_global::<DevicesState>(|_, cx| cx.notify()).detach();
+                cx.observe_global::<DevicesState>(|_, cx| cx.notify())
+                    .detach();
                 MiniPlayer
             }),
             last_scrolled_idx: None,

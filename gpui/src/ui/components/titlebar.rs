@@ -2,8 +2,8 @@ use super::navbar::NavBar;
 use crate::ui::components::icons::{Icon, Icons};
 use crate::ui::theme::Theme;
 use gpui::{
-    div, white, App, AppContext, Context, Entity, InteractiveElement, IntoElement, ParentElement,
-    Render, Styled, Window, WindowControlArea,
+    div, prelude::FluentBuilder, white, App, AppContext, Context, Entity, InteractiveElement,
+    IntoElement, MouseButton, ParentElement, Render, Styled, Window,
 };
 
 #[derive(Clone)]
@@ -39,7 +39,9 @@ impl Render for Titlebar {
                             .id("drag_area_left")
                             .w_full()
                             .h_full()
-                            .window_control_area(WindowControlArea::Drag),
+                            .on_mouse_down(MouseButton::Left, |_, window, _| {
+                                window.start_window_move();
+                            }),
                     ),
             )
             .child(
@@ -56,7 +58,9 @@ impl Render for Titlebar {
                             .id("drag_area_center_left")
                             .w_full()
                             .h_full()
-                            .window_control_area(WindowControlArea::Drag),
+                            .on_mouse_down(MouseButton::Left, |_, window, _| {
+                                window.start_window_move();
+                            }),
                     )
                     .child(self.navbar.clone())
                     .child(
@@ -64,7 +68,9 @@ impl Render for Titlebar {
                             .id("drag_area_center_right")
                             .w_full()
                             .h_full()
-                            .window_control_area(WindowControlArea::Drag),
+                            .on_mouse_down(MouseButton::Left, |_, window, _| {
+                                window.start_window_move();
+                            }),
                     ),
             )
             .child(
@@ -80,23 +86,64 @@ impl Render for Titlebar {
                             .id("drag_area_right")
                             .w_full()
                             .h_full()
-                            .window_control_area(WindowControlArea::Drag),
+                            .on_mouse_down(MouseButton::Left, |_, window, _| {
+                                window.start_window_move();
+                            }),
                     )
-                    .child(
-                        div()
-                            .id("win_close_btn")
-                            .h_8()
-                            .w_8()
-                            .rounded_full()
-                            .flex()
-                            .items_center()
-                            .justify_center()
-                            .hover(|this| this.bg(theme.titlebar_window_icons_bg_hover))
-                            .text_color(theme.titlebar_window_icons_text)
-                            .cursor_pointer()
-                            .child(Icon::new(Icons::WinClose))
-                            .window_control_area(WindowControlArea::Close),
-                    ),
+                    .when(cfg!(target_os = "linux"), |parent| {
+                        parent
+                            .child(
+                                div()
+                                    .id("win_minimize_btn")
+                                    .h_8()
+                                    .w_8()
+                                    .rounded_full()
+                                    .flex()
+                                    .items_center()
+                                    .justify_center()
+                                    .hover(|this| this.bg(theme.titlebar_window_icons_bg_hover))
+                                    .text_color(theme.titlebar_window_icons_text)
+                                    .cursor_pointer()
+                                    .child(Icon::new(Icons::WinMinimize))
+                                    .on_mouse_down(MouseButton::Left, |_, window, _| {
+                                        window.minimize_window();
+                                    }),
+                            )
+                            .child(
+                                div()
+                                    .id("win_maximize_btn")
+                                    .h_8()
+                                    .w_8()
+                                    .rounded_full()
+                                    .flex()
+                                    .items_center()
+                                    .justify_center()
+                                    .hover(|this| this.bg(theme.titlebar_window_icons_bg_hover))
+                                    .text_color(theme.titlebar_window_icons_text)
+                                    .cursor_pointer()
+                                    .child(Icon::new(Icons::WinMaximize))
+                                    .on_mouse_down(MouseButton::Left, |_, window, _| {
+                                        window.zoom_window();
+                                    }),
+                            )
+                            .child(
+                                div()
+                                    .id("win_close_btn")
+                                    .h_8()
+                                    .w_8()
+                                    .rounded_full()
+                                    .flex()
+                                    .items_center()
+                                    .justify_center()
+                                    .hover(|this| this.bg(theme.titlebar_window_icons_bg_hover))
+                                    .text_color(theme.titlebar_window_icons_text)
+                                    .cursor_pointer()
+                                    .child(Icon::new(Icons::WinClose))
+                                    .on_mouse_down(MouseButton::Left, |_, window, _| {
+                                        window.remove_window();
+                                    }),
+                            )
+                    }),
             )
     }
 }

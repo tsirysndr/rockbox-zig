@@ -13,9 +13,9 @@ use crate::ui::global_keybinds::play_pause;
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
-    div, img, px, App, Context, FontWeight, InteractiveElement, IntoElement,
-    ObjectFit, ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled,
-    StyledImage, Window,
+    div, img, px, App, Context, FontWeight, InteractiveElement, IntoElement, ObjectFit,
+    ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled, StyledImage,
+    Window,
 };
 
 pub struct MiniPlayer;
@@ -474,23 +474,26 @@ impl Render for MiniPlayer {
                                             theme.volume_slider_fill,
                                             px(4.0),
                                         )
-                                        .on_seek(move |fraction, _window, cx| {
-                                            let range = (VOLUME_MAX_DB - VOLUME_MIN_DB) as f32;
-                                            let new_vol = (VOLUME_MIN_DB as f32
-                                                + fraction * range)
-                                                .round() as i32;
-                                            let steps = {
-                                                let current = state_ref.read(cx).volume;
-                                                new_vol - current
-                                            };
-                                            if steps != 0 {
-                                                state_ref.update(cx, |s, cx| {
-                                                    s.volume = new_vol;
-                                                    cx.notify();
-                                                });
-                                                rt.spawn(adjust_volume(steps));
-                                            }
-                                        })
+                                        .on_seek(
+                                            move |fraction, _window, cx| {
+                                                let range = (VOLUME_MAX_DB - VOLUME_MIN_DB) as f32;
+                                                let new_vol = (VOLUME_MIN_DB as f32
+                                                    + fraction * range)
+                                                    .round()
+                                                    as i32;
+                                                let steps = {
+                                                    let current = state_ref.read(cx).volume;
+                                                    new_vol - current
+                                                };
+                                                if steps != 0 {
+                                                    state_ref.update(cx, |s, cx| {
+                                                        s.volume = new_vol;
+                                                        cx.notify();
+                                                    });
+                                                    rt.spawn(adjust_volume(steps));
+                                                }
+                                            },
+                                        )
                                     }),
                             )
                             .child(

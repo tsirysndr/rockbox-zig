@@ -111,11 +111,16 @@ impl Render for BluetoothPicker {
                                         let addr = address.clone();
                                         if is_connected {
                                             rt.spawn(async move {
-                                                let _ = crate::client::disconnect_bluetooth_device(addr).await;
+                                                let _ = crate::client::disconnect_bluetooth_device(
+                                                    addr,
+                                                )
+                                                .await;
                                             });
                                         } else {
                                             rt.spawn(async move {
-                                                let _ = crate::client::connect_bluetooth_device(addr).await;
+                                                let _ =
+                                                    crate::client::connect_bluetooth_device(addr)
+                                                        .await;
                                             });
                                         }
                                         let mut state = cx.global::<BluetoothState>().clone();
@@ -132,13 +137,7 @@ impl Render for BluetoothPicker {
                                             .flex_shrink_0()
                                             .child(Icon::new(Icons::Bluetooth).size_4()),
                                     )
-                                    .child(
-                                        div()
-                                            .flex_1()
-                                            .text_sm()
-                                            .truncate()
-                                            .child(name),
-                                    )
+                                    .child(div().flex_1().text_sm().truncate().child(name))
                                     .when(is_connected, |this: gpui::Stateful<gpui::Div>| {
                                         this.child(
                                             div()
@@ -180,24 +179,22 @@ pub fn check_and_set_bluetooth_available(cx: &mut App) {
         }
     });
 
-    cx.spawn(async move |cx| {
-        loop {
-            while let Ok(available) = rx.try_recv() {
-                if cx
-                    .update(|cx| {
-                        let mut state = cx.global::<BluetoothState>().clone();
-                        state.available = available;
-                        cx.set_global(state);
-                    })
-                    .is_err()
-                {
-                    return;
-                }
+    cx.spawn(async move |cx| loop {
+        while let Ok(available) = rx.try_recv() {
+            if cx
+                .update(|cx| {
+                    let mut state = cx.global::<BluetoothState>().clone();
+                    state.available = available;
+                    cx.set_global(state);
+                })
+                .is_err()
+            {
+                return;
             }
-            cx.background_executor()
-                .timer(std::time::Duration::from_millis(200))
-                .await;
         }
+        cx.background_executor()
+            .timer(std::time::Duration::from_millis(200))
+            .await;
     })
     .detach();
 }
@@ -221,4 +218,3 @@ pub fn fetch_and_update_bluetooth_devices(cx: &mut App) {
     })
     .detach();
 }
-

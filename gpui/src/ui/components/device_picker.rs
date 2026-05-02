@@ -5,7 +5,7 @@ use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
     div, px, App, Context, FontWeight, InteractiveElement, IntoElement, MouseButton,
-    ParentElement, Render, StatefulInteractiveElement, Styled, Window, MouseMoveEvent,
+    MouseMoveEvent, ParentElement, Render, StatefulInteractiveElement, Styled, Window,
 };
 
 pub fn device_icon(device: &DeviceItem) -> Icons {
@@ -122,8 +122,7 @@ impl Render for DevicePicker {
                                         let rt = cx.global::<Controller>().rt();
                                         let id_clone = id.clone();
                                         rt.spawn(async move {
-                                            let _ =
-                                                crate::client::connect_device(id_clone).await;
+                                            let _ = crate::client::connect_device(id_clone).await;
                                         });
                                         let mut state = cx.global::<DevicesState>().clone();
                                         for d in state.devices.iter_mut() {
@@ -132,18 +131,8 @@ impl Render for DevicePicker {
                                         state.picker_open = false;
                                         cx.set_global(state);
                                     })
-                                    .child(
-                                        div()
-                                            .flex_shrink_0()
-                                            .child(Icon::new(icon).size_4()),
-                                    )
-                                    .child(
-                                        div()
-                                            .flex_1()
-                                            .text_sm()
-                                            .truncate()
-                                            .child(name),
-                                    )
+                                    .child(div().flex_shrink_0().child(Icon::new(icon).size_4()))
+                                    .child(div().flex_1().text_sm().truncate().child(name))
                                     .when(is_current, |this: gpui::Stateful<gpui::Div>| {
                                         this.child(
                                             div()
