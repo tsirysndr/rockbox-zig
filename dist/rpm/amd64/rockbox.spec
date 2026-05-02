@@ -1,5 +1,5 @@
 Name:           rockbox
-Version:        2026.05.02
+Version:        2026.05.02-1
 Release:        1%{?dist}
 Summary:        High quality audio player
 
@@ -7,7 +7,7 @@ License:        GPL-2.0
 
 BuildArch:      x86_64
 
-Requires: SDL2, freetype, libunwind, alsa-utils, alsa-lib-devel, dbus-devel, bluez, pulseaudio-module-bluetooth
+Requires: SDL2, freetype, libunwind, alsa-utils, alsa-lib-devel, dbus-devel, bluez, pulseaudio-module-bluetooth, libxkbcommon-devel, libxkbcommon-x11-devel, libxcb-devel
 
 %description
 Rockbox open source high quality audio player
