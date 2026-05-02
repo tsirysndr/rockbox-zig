@@ -1,6 +1,6 @@
 # rockbox
 
-Ruby SDK for [Rockbox](https://www.rockbox.org) — a builder-friendly, block-friendly GraphQL client with real-time event subscriptions and a plugin system.
+Ruby SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a builder-friendly, block-friendly GraphQL client with real-time event subscriptions and a plugin system.
 
 ```ruby
 require "rockbox"

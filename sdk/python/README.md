@@ -1,6 +1,6 @@
 # rockbox-sdk
 
-Async Python SDK for [Rockbox](https://www.rockbox.org) — a typed, batteries-included
+Async Python SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a typed, batteries-included
 client for the GraphQL API exposed by `rockboxd`.
 
 ```python
@@ -41,48 +41,53 @@ Requires Python 3.10+ and a running `rockboxd` (default port 6062).
 
 ## Try it in the REPL
 
-The SDK is async-first, so the easiest way to poke at a live `rockboxd` is
-Python's built-in async REPL — `await` works at the top level:
+The SDK is async-first. The recommended REPL is **IPython** — `await` works at
+the top level, and you get tab-completion on models, inline docs with `?`, and
+`%timeit` for benchmarking:
+
+```sh
+uv run ipython
+```
+
+```python
+In [1]: from rockbox_sdk import RockboxClient, PlaybackStatus
+In [2]: client = RockboxClient(host="localhost", port=6062)
+In [3]: await client.playback.status()
+Out[3]: <PlaybackStatus.PLAYING: 1>
+In [4]: track = await client.playback.current_track()
+In [5]: track.title, track.artist
+Out[5]: ('Money', 'Pink Floyd')
+In [6]: await client.sound.get_volume()
+Out[6]: VolumeInfo(volume=-12, min=-74, max=6)
+In [7]: await client.library.search("daft punk")
+In [8]: await client.aclose()
+```
+
+You can also test offline — models, enums, and the builder don't need a server:
+
+```python
+In [1]: from rockbox_sdk import RockboxClient, Track, InsertPosition
+In [2]: Track.model_validate({"title": "Money", "albumArt": "x.jpg"}).album_art
+Out[2]: 'x.jpg'
+In [3]: RockboxClient.builder().host("nas.local").build()._config.resolve_http_url()
+Out[3]: 'http://nas.local:6062/graphql'
+```
+
+If you prefer the stdlib REPL, `python -m asyncio` also supports top-level
+`await`, or wrap each call in `asyncio.run(...)` in a plain `python` session:
 
 ```sh
 uv run python -m asyncio
 ```
 
 ```python
->>> from rockbox_sdk import RockboxClient, PlaybackStatus
->>> client = RockboxClient(host="localhost", port=6062)
->>> await client.playback.status()
-<PlaybackStatus.PLAYING: 1>
->>> track = await client.playback.current_track()
->>> track.title, track.artist
-('Money', 'Pink Floyd')
->>> await client.sound.get_volume()
-VolumeInfo(volume=-12, min=-74, max=6)
->>> await client.library.search("daft punk")
->>> await client.aclose()
-```
-
-You can also test offline — models, enums, and the builder don't need a server:
-
-```python
->>> from rockbox_sdk import RockboxClient, Track, InsertPosition
->>> Track.model_validate({"title": "Money", "albumArt": "x.jpg"}).album_art
-'x.jpg'
->>> RockboxClient.builder().host("nas.local").build()._config.resolve_http_url()
-'http://nas.local:6062/graphql'
-```
-
-If you'd rather use the plain `python` REPL, wrap each call in `asyncio.run(...)`:
-
-```python
->>> import asyncio
 >>> from rockbox_sdk import RockboxClient
 >>> client = RockboxClient()
->>> asyncio.run(client.playback.status())
+>>> await client.playback.status()
 ```
 
-The async REPL is much nicer — subscriptions (`await client.connect()`) also keep
-firing in the background between prompts.
+Subscriptions (`await client.connect()`) keep firing in the background between
+prompts in both REPLs.
 
 ## Configure
 
