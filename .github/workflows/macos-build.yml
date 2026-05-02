@@ -1,8 +1,8 @@
 name: macos-build
 on:
   push:
-    tags:
-      - "*"
+    tags-ignore:
+      - "clojure-v*"
   workflow_dispatch:
     inputs:
       tag:
