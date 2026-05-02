@@ -1,6 +1,6 @@
 # rockbox-clj
 
-Idiomatic Clojure SDK for [Rockbox](https://www.rockbox.org) — a thin,
+Idiomatic Clojure SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a thin,
 zero-dependency-heavy wrapper around rockboxd's GraphQL API with real-time
 WebSocket subscriptions and a tiny plugin system.
 
