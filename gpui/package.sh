@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# package.sh — build a release binary, create Rockbox.app, and wrap it in a DMG
+# package.sh — build a release binary and package for macOS or Linux
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,9 +15,56 @@ APP_BUNDLE="${OUT_DIR}/${APP_NAME}.app"
 DMG_STAGING="${OUT_DIR}/dmg_staging"
 DMG_OUT="${OUT_DIR}/${APP_NAME}.dmg"
 
+# ── Detect OS ─────────────────────────────────────────────────────────────────
+OS="$(uname -s)"
+case "$OS" in
+    Linux*)  OS_TYPE="Linux";;
+    Darwin*) OS_TYPE="macOS";;
+    *)       echo "Unsupported OS: $OS" && exit 1;;
+esac
+
+echo "▸ Detected OS: $OS_TYPE"
+
 # ── 1. Build ──────────────────────────────────────────────────────────────────
 echo "▸ Building release binary…"
 cargo build --release
+
+if [ "$OS_TYPE" = "Linux" ]; then
+    # ── Linux Package ─────────────────────────────────────────────────────────
+    echo "▸ Creating Linux package structure…"
+    rm -rf "$OUT_DIR"
+    mkdir -p "${OUT_DIR}/usr/bin"
+    mkdir -p "${OUT_DIR}/usr/share/applications"
+    mkdir -p "${OUT_DIR}/usr/share/pixmaps"
+
+    echo "▸ Copying binary to ${OUT_DIR}/usr/bin/…"
+    cp "$BINARY" "${OUT_DIR}/usr/bin/rockbox-gpui"
+    chmod +x "${OUT_DIR}/usr/bin/rockbox-gpui"
+
+    echo "▸ Copying app icon…"
+    cp "${APPICONSET}/256.png" "${OUT_DIR}/usr/share/pixmaps/rockbox-gpui.png"
+
+    echo "▸ Creating desktop entry…"
+    cat > "${OUT_DIR}/usr/share/applications/rockbox-gpui.desktop" <<DESKTOP
+[Desktop Entry]
+Name=Rockbox GPUI
+Comment=Modern audio player with multi-room support
+Exec=rockbox-gpui
+Icon=rockbox-gpui
+Terminal=false
+Type=Application
+Categories=AudioVideo;Audio;Player;
+DESKTOP
+
+    echo ""
+    echo "✓  Linux package created in ${OUT_DIR}/"
+    echo "   Binary: ${OUT_DIR}/usr/bin/rockbox-gpui"
+    echo "   Desktop: ${OUT_DIR}/usr/share/applications/rockbox-gpui.desktop"
+    echo "   Icon:   ${OUT_DIR}/usr/share/pixmaps/rockbox-gpui.png"
+    exit 0
+fi
+
+# ── macOS Package ─────────────────────────────────────────────────────────────
 
 # ── 2. Build .icns from the Xcode project's appiconset PNGs ──────────────────
 echo "▸ Building app icon from Xcode appiconset…"

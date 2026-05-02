@@ -1,7 +1,9 @@
 use crate::state::{PlaybackStatus, Track};
+#[cfg(not(target_os = "linux"))]
 use souvlaki::{
     MediaControlEvent, MediaControls, MediaMetadata, MediaPlayback, MediaPosition, PlatformConfig,
 };
+#[cfg(not(target_os = "linux"))]
 use std::sync::mpsc;
 use std::time::Duration;
 
@@ -20,6 +22,7 @@ pub enum MediaCommand {
 /// Must be created on the main thread (macOS requires MPRemoteCommandCenter
 /// registration on the main thread). The GPUI foreground poll loop — also on
 /// the main thread — calls `drain_commands` and `update` each tick.
+#[cfg(not(target_os = "linux"))]
 pub struct NowPlayingManager {
     controls: MediaControls,
     cmd_rx: mpsc::Receiver<MediaCommand>,
@@ -29,6 +32,11 @@ pub struct NowPlayingManager {
     last_cover_url: Option<String>,
 }
 
+/// Stub implementation for Linux (souvlaki disabled).
+#[cfg(target_os = "linux")]
+pub struct NowPlayingManager;
+
+#[cfg(not(target_os = "linux"))]
 impl NowPlayingManager {
     /// Returns `None` if the OS media-control API is unavailable.
     pub fn new() -> Option<Self> {
@@ -151,5 +159,23 @@ impl NowPlayingManager {
             PlaybackStatus::Stopped => MediaPlayback::Stopped,
         };
         let _ = self.controls.set_playback(playback);
+    }
+}
+
+#[cfg(target_os = "linux")]
+impl NowPlayingManager {
+    /// Returns `None` — media controls disabled on Linux.
+    pub fn new() -> Option<Self> {
+        None
+    }
+
+    /// Drain all pending OS media-key commands (non-blocking).
+    pub fn drain_commands(&mut self) -> Vec<MediaCommand> {
+        Vec::new()
+    }
+
+    /// Push the current playback state and track metadata to the OS.
+    pub fn update(&mut self, _track: Option<&Track>, _status: PlaybackStatus, _position: u64) {
+        // No-op on Linux
     }
 }
