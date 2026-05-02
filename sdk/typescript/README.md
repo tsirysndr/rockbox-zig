@@ -37,7 +37,7 @@ npm install @rockbox-zig/sdk
 `rockboxd` must be running and reachable. By default the SDK connects to `http://localhost:6062/graphql`. Start rockboxd with:
 
 ```sh
-./zig/zig-out/bin/rockboxd
+rockbox start
 ```
 
 ---

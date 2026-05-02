@@ -1,5 +1,14 @@
 # rockbox
 
+[![Gem Version](https://img.shields.io/gem/v/rockbox?style=flat-square&logo=rubygems&logoColor=white&color=E9573F)](https://rubygems.org/gems/rockbox)
+[![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.0-CC342D?style=flat-square&logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
+[![Downloads](https://img.shields.io/gem/dt/rockbox?style=flat-square&logo=rubygems&logoColor=white&color=blue)](https://rubygems.org/gems/rockbox)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](./LICENSE)
+[![GraphQL](https://img.shields.io/badge/GraphQL-client-E10098?style=flat-square&logo=graphql&logoColor=white)](https://graphql.org/)
+[![WebSocket](https://img.shields.io/badge/WebSocket-realtime-4353FF?style=flat-square&logo=socketdotio&logoColor=white)](https://github.com/enhancv/websocket-client-simple)
+[![Plugins](https://img.shields.io/badge/plugins-extensible-8A2BE2?style=flat-square&logo=rubygems&logoColor=white)](#plugin-system)
+[![GitHub](https://img.shields.io/badge/github-rockbox--zig-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/tsirysndr/rockbox-zig)
+
 Ruby SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a builder-friendly, block-friendly GraphQL client with real-time event subscriptions and a plugin system.
 
 ```ruby
