@@ -51,7 +51,7 @@ WebSocket subscriptions and a tiny plugin system.
 `deps.edn`:
 
 ```clojure
-{:deps org.clojars.tsiry/rockbox-clj {:mvn/version "0.1.1-SNAPSHOT"}}
+{:deps org.clojars.tsiry/rockbox-clj {:mvn/version "0.1.2-SNAPSHOT"}}
 ```
 
 ### Publishing to Clojars (maintainers)
