@@ -46,15 +46,7 @@ WebSocket subscriptions and a tiny plugin system.
 `deps.edn`:
 
 ```clojure
-{:deps {org.clojars.tsiry/rockbox-clj {:git/url "https://github.com/tsirysndr/rockbox-zig"
-                                       :git/sha "..."
-                                       :deps/root "sdk/clojure"}}}
-```
-
-Or pin via local path while developing:
-
-```clojure
-{:deps {org.clojars.tsiry/rockbox-clj {:local/root "/path/to/rockbox-zig/sdk/clojure"}}}
+{:deps org.clojars.tsiry/rockbox-clj {:mvn/version "0.1.0-SNAPSHOT"}}
 ```
 
 ### Publishing to Clojars (maintainers)
@@ -63,15 +55,15 @@ Or pin via local path while developing:
 cd sdk/clojure
 
 # Bump version, then build the JAR
-VERSION=0.1.0 clojure -T:build jar
+VERSION=0.1.0-SNAPSHOT clojure -T:build jar
 
 # Install to local ~/.m2 for testing
-VERSION=0.1.0 clojure -T:build install
+VERSION=0.1.0-SNAPSHOT clojure -T:build install
 
 # Deploy to Clojars (set creds first)
 export CLOJARS_USERNAME=tsiry
 export CLOJARS_PASSWORD=<deploy-token>
-VERSION=0.1.0 clojure -T:build deploy
+VERSION=0.1.0-SNAPSHOT clojure -T:build deploy
 ```
 
 `rockboxd` must be running and reachable. By default the SDK connects to
