@@ -957,3 +957,9 @@ const entries = await client.browse.entries('/Music');
 const dirs  = entries.filter(isDirectory);
 const files = entries.filter((e) => !isDirectory(e));
 ```
+
+---
+
+## License
+
+MIT License. See [LICENSE](./LICENSE) for details.

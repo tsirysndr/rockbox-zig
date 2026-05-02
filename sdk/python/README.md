@@ -1,0 +1,224 @@
+# rockbox-sdk
+
+Async Python SDK for [Rockbox](https://www.rockbox.org) — a typed, batteries-included
+client for the GraphQL API exposed by `rockboxd`.
+
+```python
+import asyncio
+from rockbox_sdk import RockboxClient, PlaybackStatus
+
+async def main():
+    async with RockboxClient(host="localhost") as client:
+        track = await client.playback.current_track()
+        if track:
+            print(f"Now: {track.title} — {track.artist}")
+        if await client.playback.status() == PlaybackStatus.PAUSED:
+            await client.playback.resume()
+
+asyncio.run(main())
+```
+
+## Highlights
+
+- **Async-first** — built on `httpx` + `websockets`. Use `await` everywhere.
+- **Domain-namespaced API** — `client.playback.*`, `client.library.*`, `client.sound.*`, …
+- **Typed responses** — every reply is a Pydantic model with snake_case fields.
+- **Real-time events** — `connect()` opens a WebSocket and forwards
+  `track:changed` / `status:changed` / `playlist:changed` to listeners.
+- **Builder API** — `RockboxClient.builder().host(...).port(...).build()`.
+- **Plugin system** — Jellyfin-style install/uninstall lifecycle.
+- **Python-friendly** — context manager, decorator listeners, dataclass inputs.
+
+## Install
+
+```sh
+uv add rockbox-sdk
+# or
+pip install rockbox-sdk
+```
+
+Requires Python 3.10+ and a running `rockboxd` (default port 6062).
+
+## Try it in the REPL
+
+The SDK is async-first, so the easiest way to poke at a live `rockboxd` is
+Python's built-in async REPL — `await` works at the top level:
+
+```sh
+uv run python -m asyncio
+```
+
+```python
+>>> from rockbox_sdk import RockboxClient, PlaybackStatus
+>>> client = RockboxClient(host="localhost", port=6062)
+>>> await client.playback.status()
+<PlaybackStatus.PLAYING: 1>
+>>> track = await client.playback.current_track()
+>>> track.title, track.artist
+('Money', 'Pink Floyd')
+>>> await client.sound.get_volume()
+VolumeInfo(volume=-12, min=-74, max=6)
+>>> await client.library.search("daft punk")
+>>> await client.aclose()
+```
+
+You can also test offline — models, enums, and the builder don't need a server:
+
+```python
+>>> from rockbox_sdk import RockboxClient, Track, InsertPosition
+>>> Track.model_validate({"title": "Money", "albumArt": "x.jpg"}).album_art
+'x.jpg'
+>>> RockboxClient.builder().host("nas.local").build()._config.resolve_http_url()
+'http://nas.local:6062/graphql'
+```
+
+If you'd rather use the plain `python` REPL, wrap each call in `asyncio.run(...)`:
+
+```python
+>>> import asyncio
+>>> from rockbox_sdk import RockboxClient
+>>> client = RockboxClient()
+>>> asyncio.run(client.playback.status())
+```
+
+The async REPL is much nicer — subscriptions (`await client.connect()`) also keep
+firing in the background between prompts.
+
+## Configure
+
+```python
+from rockbox_sdk import RockboxClient
+
+# Direct kwargs
+client = RockboxClient(host="192.168.1.42", port=6062)
+
+# Or fluent builder
+client = (
+    RockboxClient.builder()
+    .host("nas.local")
+    .port(6062)
+    .timeout(15)
+    .build()
+)
+
+# Or full URL override
+client = RockboxClient(
+    http_url="http://nas.local:6062/graphql",
+    ws_url="ws://nas.local:6062/graphql",
+)
+```
+
+Always call `await client.aclose()` when you're done — or use it as an
+async context manager:
+
+```python
+async with RockboxClient() as client:
+    ...
+```
+
+## Domains
+
+| Namespace                  | What it does                                           |
+| -------------------------- | ------------------------------------------------------ |
+| `client.playback`          | Transport (`play`/`pause`/`seek`), play helpers        |
+| `client.library`           | Albums, artists, tracks, search, likes, scan           |
+| `client.playlist`          | The active queue (insert/remove/shuffle/start)         |
+| `client.saved_playlists`   | Persistent playlists & folders                         |
+| `client.smart_playlists`   | Rule-based playlists & listening stats                 |
+| `client.sound`             | Volume control                                         |
+| `client.settings`          | Global EQ / replaygain / crossfade / shuffle / …       |
+| `client.system`            | Version, runtime info                                  |
+| `client.browse`            | Filesystem & UPnP browser                              |
+| `client.devices`           | Cast / source device discovery                         |
+| `client.bluetooth`         | Bluetooth pairing & scanning (Linux only)              |
+
+## Real-time events
+
+```python
+from rockbox_sdk import RockboxClient, TRACK_CHANGED, STATUS_CHANGED
+
+async with RockboxClient() as client:
+    await client.connect()  # opens the WebSocket
+
+    @client.on(TRACK_CHANGED)
+    async def on_track(track):
+        print(f"▶ {track.title} — {track.artist}")
+
+    @client.on(STATUS_CHANGED)
+    def on_status(raw_status):
+        print(f"◐ status = {raw_status}")
+
+    await asyncio.Event().wait()  # run forever
+```
+
+Convenience wrappers exist (`client.on_track_changed(...)`,
+`client.on_status_changed(...)`, `client.on_playlist_changed(...)`).
+
+## Plugins
+
+A plugin is anything matching the `RockboxPlugin` protocol — a name, version,
+`install(context)`, and optionally `uninstall()`:
+
+```python
+from rockbox_sdk import RockboxClient, PlaybackStatus, RockboxPlugin
+
+class SleepTimer:
+    name = "sleep-timer"
+    version = "1.0.0"
+    description = "Stop playback after N minutes"
+
+    def __init__(self, minutes: int) -> None:
+        self.minutes = minutes
+        self._task: asyncio.Task | None = None
+
+    def install(self, ctx):
+        async def fire():
+            await asyncio.sleep(self.minutes * 60)
+            await ctx.query("mutation { hardStop }")
+
+        self._task = asyncio.create_task(fire())
+
+        @ctx.events.on("status:changed")
+        def cancel_on_stop(status: int):
+            if status == PlaybackStatus.STOPPED and self._task:
+                self._task.cancel()
+
+    def uninstall(self):
+        if self._task:
+            self._task.cancel()
+
+async with RockboxClient() as client:
+    await client.connect()
+    await client.use(SleepTimer(30))
+```
+
+## Raw GraphQL escape hatch
+
+```python
+data = await client.query(
+    "query Volume { volume { volume min max } }"
+)
+```
+
+## Examples
+
+See `examples/` for runnable scripts mirroring the TypeScript SDK examples:
+
+- `01-basic-playback.py`
+- `02-now-playing.py`
+- `03-library-search.py`
+- `04-queue-management.py`
+- `05-volume-control.py`
+- `06-plugin-sleep-timer.py`
+
+Run with:
+
+```sh
+uv run python examples/01_basic_playback.py
+```
+
+---
+
+## License
+
+MIT License. See [LICENSE](./LICENSE) for details.

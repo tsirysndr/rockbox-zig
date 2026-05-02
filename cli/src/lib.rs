@@ -35,9 +35,9 @@ pub fn wait_for_rockboxd(port: u32, timeout: Option<u32>) -> Result<(), Error> {
     let mut child = Command::new("sh")
         .arg("-c")
         .arg(cmd)
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .spawn()?;
     let status = child.wait()?;
 

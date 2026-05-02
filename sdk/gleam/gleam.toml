@@ -1,0 +1,16 @@
+name = "rockbox"
+version = "1.0.0"
+description = "Gleam SDK for Rockbox — pipe-friendly client for the rockboxd GraphQL API"
+licences = ["Apache-2.0"]
+gleam = ">= 1.11.0"
+
+# repository = { type = "github", user = "tsirysndr", repo = "rockbox-zig" }
+
+[dependencies]
+gleam_stdlib = ">= 0.46.0 and < 2.0.0"
+gleam_http = ">= 4.0.0 and < 5.0.0"
+gleam_httpc = ">= 5.0.0 and < 6.0.0"
+gleam_json = ">= 2.0.0 and < 4.0.0"
+
+[dev_dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"

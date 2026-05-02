@@ -1,0 +1,19 @@
+{:paths ["src"]
+ :deps  {org.clojure/clojure   {:mvn/version "1.12.0"}
+         org.clojure/data.json {:mvn/version "2.5.0"}
+         org.clojure/core.async {:mvn/version "1.6.681"}}
+
+ :aliases
+ {:test
+  {:extra-paths ["test"]
+   :extra-deps  {io.github.cognitect-labs/test-runner
+                 {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+   :main-opts   ["-m" "cognitect.test-runner"]
+   :exec-fn     cognitect.test-runner.api/test}
+
+  :examples
+  {:extra-paths ["examples"]}
+
+  :check
+  {:main-opts ["-e"
+               "(require '[rockbox.core] '[rockbox.playback] '[rockbox.library] '[rockbox.playlist] '[rockbox.saved-playlists] '[rockbox.smart-playlists] '[rockbox.sound] '[rockbox.settings] '[rockbox.system] '[rockbox.browse] '[rockbox.devices] '[rockbox.bluetooth] '[rockbox.events] '[rockbox.plugin] '[rockbox.transport] '[rockbox.ws] '[rockbox.types]) (println :ok)"]}}}

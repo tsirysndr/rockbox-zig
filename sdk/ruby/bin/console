@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+#
+# Drop into an IRB session with the SDK pre-loaded.
+#
+#   ./bin/console
+#
+# Environment variables:
+#   ROCKBOX_HOST  hostname or IP of rockboxd  (default: localhost)
+#   ROCKBOX_PORT  GraphQL port                (default: 6062)
+#   ROCKBOX_AUTOCONNECT=1  open the WebSocket immediately
+
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+require "rockbox"
+require "irb"
+
+host = ENV.fetch("ROCKBOX_HOST", "localhost")
+port = ENV.fetch("ROCKBOX_PORT", "6062").to_i
+
+# `client` is auto-available in IRB.
+client = Rockbox::Client.new(host: host, port: port)
+
+if ENV["ROCKBOX_AUTOCONNECT"] == "1"
+  client.on(:track_changed) { |t| puts "▶ #{t.title} — #{t.artist}" }
+  client.connect
+end
+
+puts "Rockbox SDK v#{Rockbox::VERSION} — connected to #{client.configuration.resolved_http_url}"
+puts "  client.playback.status_name"
+puts "  client.library.search(\"…\")"
+puts "  client.connect   # start WebSocket subscriptions"
+puts
+
+IRB.start(__FILE__)
