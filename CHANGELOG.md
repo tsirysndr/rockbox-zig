@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.02-1]
+
+### Added
+- Mintlify documentation site under `mintlify/` with the Linden theme; OpenAPI spec regenerated and ASCII architecture diagrams replaced with `CardGroup` components
+- Linux-specific window controls (minimize / maximize / close) in the GPUI titlebar — macOS/Windows continue to use native traffic-light controls
+
+### Changed
+- GPUI titlebar drag areas now call `window.start_window_move()` from an `on_mouse_down` handler instead of relying on `WindowControlArea::Drag`, fixing window dragging on Linux/X11
+- Debian and RPM packages now declare XKB/XCB build dependencies (`libxkbcommon-dev`, `libxkbcommon-x11-dev`, `libxcb1-dev`, `libxcb-render0-dev`, `libxcb-shape0-dev`, `libxcb-xfixes0-dev`); README updated with the matching install instructions
+- Debian package version bumped to `2026.05.02-1`
+
+### Fixed
+- GPUI app no longer fails to build on Linux: `souvlaki` is now a non-Linux-only dependency and `NowPlayingManager` ships a no-op Linux stub, since the OS media-control APIs souvlaki targets are not available there
+
 ## [2026.05.02]
 
 ### Added
