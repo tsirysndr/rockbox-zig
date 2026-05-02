@@ -1,0 +1,54 @@
+---
+title: "Crossfade"
+description: "Overlap the end of one track with the beginning of the next."
+icon: 'shuffle'
+---
+
+Crossfade rolls the outgoing track into the incoming one over a configurable
+window. Off by default; enable it via `crossfade` in `settings.toml`.
+
+```toml
+crossfade           = 5    # see Mode table below
+fade_on_stop        = false
+fade_in_delay       = 2
+fade_in_duration    = 7
+fade_out_delay      = 4
+fade_out_duration   = 0
+fade_out_mixmode    = 2
+```
+
+## Mode
+
+| Value | Mode                                | When the crossfade fires           |
+|-------|-------------------------------------|------------------------------------|
+| 0     | Off                                 | Never                              |
+| 1     | Auto track change                   | At end-of-track only               |
+| 2     | Manual skip                         | When you press next/previous       |
+| 3     | Shuffle                             | While shuffle is on                |
+| 4     | Shuffle + manual skip               | Both                               |
+| 5     | Always                              | Every transition                   |
+
+## Timings
+
+| Setting              | Storage                            | Range     | Default  | Description                                  |
+|----------------------|------------------------------------|-----------|----------|----------------------------------------------|
+| Fade-in delay        | `crossfade_fade_in_delay`          | 0..7 s    | 0 s      | Silence before the fade-in begins            |
+| Fade-out delay       | `crossfade_fade_out_delay`         | 0..7 s    | 0 s      | Silence before the fade-out begins           |
+| Fade-in duration     | `crossfade_fade_in_duration`       | 0..15 s   | 2 s      | Length of the fade-in ramp                   |
+| Fade-out duration    | `crossfade_fade_out_duration`      | 0..15 s   | 2 s      | Length of the fade-out ramp                  |
+| Fade-out mode        | `crossfade_fade_out_mixmode`       | crossfade / mix | crossfade | Whether the outgoing track fades or mixes flat |
+
+## Fade-on-stop
+
+```toml
+fade_on_stop = true
+```
+
+When set, pressing **stop** ramps audio out instead of cutting it.
+
+## Notes
+
+- Crossfade is part of the rbcodec DSP pipeline and is applied before the
+  sink, so it works equally well with AirPlay, Snapcast and the rest.
+- Gapless playback overrides crossfade for tracks that share an album
+  identity — gapless seams are more important than smooth fades.

@@ -1,0 +1,116 @@
+---
+title: "Build system"
+description: "Make → Cargo → Zig. The three-step pipeline that produces rockboxd."
+icon: 'hammer'
+---
+
+Rockbox Zig is built by three tools in series:
+
+1. **Make** — compiles the Rockbox C firmware into static libraries.
+2. **Cargo** — compiles the Rust crates into static libraries (`crate-type = ["staticlib"]`).
+3. **Zig** — links everything (plus SDL2) into a single executable.
+
+## Dependencies
+
+<Tabs>
+  <Tab title="Ubuntu / Debian">
+    ```sh
+    sudo apt-get install \
+      libsdl2-dev libfreetype6-dev libdbus-1-dev libunwind-dev \
+      zip protobuf-compiler cmake
+    ```
+  </Tab>
+  <Tab title="Fedora">
+    ```sh
+    sudo dnf install \
+      SDL2-devel freetype-devel libunwind-devel \
+      zip protobuf-compiler cmake
+    ```
+  </Tab>
+  <Tab title="macOS">
+    ```sh
+    brew install sdl2 freetype cmake protobuf
+    ```
+  </Tab>
+</Tabs>
+
+You'll also need:
+
+- **Zig** ≥ 0.16 — [ziglang.org/download](https://ziglang.org/download/)
+- **Rust stable** — `rustup update stable`
+- **Deno** — for the web UI build
+
+## Full build
+
+```sh
+# 1. Clone with submodules
+git clone https://github.com/tsirysndr/rockbox-zig.git
+cd rockbox-zig
+git submodule update --init --recursive
+
+# 2. Build the web UI (embedded into the binary)
+cd webui/rockbox
+deno install
+deno run build
+cd ../..
+
+# 3. Configure and build the C firmware (one-time setup)
+mkdir -p build-lib && cd build-lib
+../tools/configure --target=sdlapp --type=N \
+  --lcdwidth=320 --lcdheight=240 --prefix=/usr/local
+cp ../autoconf/autoconf.h .
+make lib
+cd ..
+
+# 4. Build Rust crates
+cargo build --release -p rockbox-cli -p rockbox-server
+
+# 5. Link everything with Zig
+cd zig && zig build
+```
+
+The binary lands at `zig/zig-out/bin/rockboxd`.
+
+## Iterating on changes
+
+Zig only re-links when the static libraries are newer than the binary.
+After editing C, run `make lib` first. After editing Rust, run
+`cargo build --release` first.
+
+```sh
+# C change
+cd build-lib && make lib && cd .. && cd zig && zig build
+
+# Rust change
+cargo build --release -p rockbox-cli -p rockbox-server && cd zig && zig build
+```
+
+<Warning>
+**Stale binary pitfall.** If behaviour doesn't match the source, check
+mtimes:
+
+```sh
+ls -la zig/zig-out/bin/rockboxd \
+       build-lib/libfirmware.a \
+       target/release/librockbox_cli.a
+```
+
+If `rockboxd` is newer than every `.a` file, Zig considered the link
+up-to-date and your change wasn't picked up.
+</Warning>
+
+## Verifying symbols
+
+```sh
+nm zig/zig-out/bin/rockboxd | grep pcm_airplay
+nm zig/zig-out/bin/rockboxd | grep pcm_squeezelite
+ar t target/release/librockbox_cli.a | grep airplay
+ar t target/release/librockbox_cli.a | grep slim
+```
+
+## Don't re-run `tools/configure`
+
+`build-lib/` was pre-configured for the `sdlapp` target. Re-running
+`tools/configure` regenerates the Makefile and overwrites local edits. If
+you really need to reconfigure (different LCD dimensions, different target),
+do it knowingly and review the resulting diff.

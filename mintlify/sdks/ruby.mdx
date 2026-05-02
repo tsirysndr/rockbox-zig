@@ -1,0 +1,111 @@
+---
+title: "Ruby"
+description: "Builder-friendly, block-friendly Ruby SDK with WebSocket subscriptions and plugins."
+icon: 'gem'
+---
+
+```sh
+gem install rockbox
+```
+
+Or with Bundler:
+
+```ruby
+# Gemfile
+gem "rockbox"
+```
+
+Requires **Ruby 3.0+**.
+
+## Quick start
+
+```ruby
+require "rockbox"
+
+client = Rockbox::Client.new
+
+client.connect    # opens the WebSocket — subscriptions start firing
+
+if (track = client.playback.current_track)
+  puts "Now playing: #{track.title} — #{track.artist}"
+end
+
+results = client.library.search("dark side")
+client.playback.play_album(results.albums.first.id, shuffle: true)
+
+client.on(:track_changed) { |t| puts "▶ #{t.title} by #{t.artist}" }
+
+client.disconnect
+```
+
+## Configure
+
+```ruby
+client = Rockbox::Client.new(host: "192.168.1.42", port: 6062)
+
+client = Rockbox::Client.build do |c|
+  c.host = "192.168.1.42"
+  c.port = 6062
+end
+
+client = Rockbox::Client.new(
+  http_url: "https://music.home/graphql",
+  ws_url:   "wss://music.home/graphql",
+)
+```
+
+## Playback
+
+```ruby
+client.playback.status         # => Integer
+client.playback.status_name    # => :playing | :paused | :stopped | :unknown
+client.playback.current_track
+client.playback.next_track
+
+client.playback.play(elapsed: 0, offset: 0)
+client.playback.pause
+client.playback.resume
+client.playback.next!
+client.playback.previous!
+client.playback.seek(60_000)
+client.playback.stop
+
+client.playback.play_track("/Music/song.mp3")
+client.playback.play_album(album_id, shuffle: true)
+client.playback.play_artist(artist_id)
+client.playback.play_playlist(playlist_id, shuffle: true)
+client.playback.play_directory("/Music/Pink Floyd", recurse: true)
+client.playback.play_liked_tracks(shuffle: true)
+client.playback.play_all_tracks
+```
+
+## Real-time events
+
+```ruby
+client.on(:track_changed)    { |track|  puts track.title }
+client.on(:status_changed)   { |status| puts status }
+client.on(:playlist_changed) { |queue|  puts queue.amount }
+```
+
+## Plugin system
+
+```ruby
+class Scrobbler
+  def name;        "scrobbler"; end
+  def version;     "1.0.0";     end
+  def description; "Scrobble played tracks"; end
+
+  def install(ctx)
+    ctx.events.on(:track_changed) do |track|
+      MyScrobbler.submit(track.title, track.artist)
+    end
+  end
+end
+
+client.use Scrobbler.new
+```
+
+## More
+
+Full reference, type catalogue and plugin examples: see the
+[Ruby SDK README on GitHub ↗](https://github.com/tsirysndr/rockbox-zig/blob/master/sdk/ruby/README.md).

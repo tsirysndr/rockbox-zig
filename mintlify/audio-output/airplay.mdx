@@ -1,0 +1,93 @@
+---
+title: "AirPlay"
+description: "RAOP streaming to one or many AirPlay receivers — Apple TV, HomePod, Airport Express, shairport-sync."
+icon: 'apple'
+---
+
+Rockbox includes a pure-Rust RAOP (AirPlay 1) implementation. ALAC frames go
+out over RTP/UDP; RTSP handles session setup. RTCP NTP sync packets are sent
+roughly every 44 frames so receivers stay in lockstep.
+
+## Single receiver
+
+```toml
+music_dir    = "/path/to/Music"
+audio_output = "airplay"
+airplay_host = "192.168.1.50"   # IP of the AirPlay receiver
+airplay_port = 5000             # optional, default 5000
+```
+
+## Multi-room
+
+Fan-out to N receivers simultaneously:
+
+```toml
+music_dir    = "/path/to/Music"
+audio_output = "airplay"
+
+[[airplay_receivers]]
+host = "192.168.1.50"   # living room
+port = 5000             # optional, default 5000
+
+[[airplay_receivers]]
+host = "192.168.1.51"   # bedroom
+# port defaults to 5000
+
+[[airplay_receivers]]
+host = "192.168.1.52"   # kitchen
+```
+
+All receivers share the same `initial_rtptime`, so RTP-level synchronisation
+is within one frame (~8 ms) across the LAN.
+
+## Compatible receivers
+
+- Apple TV (any generation supporting AirPlay 1)
+- HomePod / HomePod mini
+- AirPort Express
+- [shairport-sync](https://github.com/mikebrady/shairport-sync) — software
+  AirPlay receiver for Linux, macOS, FreeBSD, OpenWrt
+- Most third-party AirPlay-1 speakers
+
+AirPlay 2 is not implemented.
+
+## Auto-discovery
+
+Discovered receivers appear in the web UI device picker — click to connect
+without editing the config. The mDNS service type is `_raop._tcp.local.`.
+
+## Debugging
+
+```sh
+RUST_LOG=rockbox_airplay=debug rockboxd
+```
+
+Common log lines:
+
+```
+DEBUG  rockbox_airplay::rtsp  ANNOUNCE → 192.168.1.50:5000
+DEBUG  rockbox_airplay::rtsp  SETUP  → control=53000 timing=53001 server=53002
+DEBUG  rockbox_airplay::rtsp  RECORD → 200 OK
+DEBUG  rockbox_airplay::rtp   sent 352 frames seq=12345
+```
+
+## Limitations
+
+- **No password / pairing.** AirPlay 1 receivers that require a PIN are not
+  supported.
+- **No volume sync.** Volume changes apply only at the rockboxd side; the
+  receiver's hardware volume is not adjusted.
+- **No AirPlay 2.** The pairing/encryption stack required for AirPlay 2 is
+  not implemented.
+
+## Architecture
+
+The RAOP stack lives in `crates/airplay/`:
+
+| File         | Responsibility                                                |
+|--------------|---------------------------------------------------------------|
+| `alac.rs`    | ALAC escape/verbatim encoder — 352 stereo S16LE → 1411 bytes  |
+| `rtp.rs`     | RTP/UDP packet sender + RTCP NTP sync                         |
+| `rtsp.rs`    | Synchronous RTSP client: ANNOUNCE → SETUP → RECORD            |
+
+The C-side sink is `firmware/target/hosted/pcm-airplay.c`.

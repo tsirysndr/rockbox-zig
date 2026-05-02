@@ -1,0 +1,180 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Rockbox Zig",
+  "appearance": {
+    "default": "dark",
+    "strict": true
+  },
+  "colors": {
+    "primary": "#F4FF00",
+    "light": "#FAFF66",
+    "dark": "#C2CC00"
+  },
+  "background": {
+    "color": {
+      "dark": "#07080C"
+    },
+    "decoration": "grid"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": [
+              "index",
+              "quickstart",
+              "installation",
+              "configuration"
+            ]
+          },
+          {
+            "group": "Audio output",
+            "pages": [
+              "audio-output/overview",
+              "audio-output/built-in",
+              "audio-output/snapcast",
+              "audio-output/airplay",
+              "audio-output/squeezelite",
+              "audio-output/chromecast",
+              "audio-output/upnp"
+            ]
+          },
+          {
+            "group": "Audio settings",
+            "pages": [
+              "audio-settings/overview",
+              "audio-settings/equalizer",
+              "audio-settings/dsp",
+              "audio-settings/replaygain",
+              "audio-settings/crossfade"
+            ]
+          },
+          {
+            "group": "Clients",
+            "pages": [
+              "clients/web",
+              "clients/desktop",
+              "clients/mpd",
+              "clients/mpris"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/build",
+              "architecture/pcm-sinks"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/cli",
+              "reference/ports",
+              "reference/settings-toml",
+              "reference/troubleshooting",
+              "reference/faq"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/rest/overview",
+              "api-reference/graphql/overview",
+              "api-reference/grpc/overview",
+              "api-reference/mpd/overview"
+            ]
+          },
+          {
+            "group": "HTTP REST",
+            "openapi": {
+              "source": "api-reference/openapi.json",
+              "directory": "api-reference/rest"
+            }
+          }
+        ]
+      },
+      {
+        "tab": "SDKs",
+        "groups": [
+          {
+            "group": "Client libraries",
+            "pages": [
+              "sdks/overview",
+              "sdks/typescript",
+              "sdks/python",
+              "sdks/ruby",
+              "sdks/elixir",
+              "sdks/clojure",
+              "sdks/gleam"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/tsirysndr/rockbox-zig",
+          "icon": "github"
+        },
+        {
+          "anchor": "Discord",
+          "href": "https://discord.gg/tXPrgcPKSt",
+          "icon": "discord"
+        },
+        {
+          "anchor": "Releases",
+          "href": "https://github.com/tsirysndr/rockbox-zig/releases",
+          "icon": "rocket"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Issues",
+        "href": "https://github.com/tsirysndr/rockbox-zig/issues"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/tsirysndr/rockbox-zig"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/tsirysndr/rockbox-zig",
+      "discord": "https://discord.gg/tXPrgcPKSt"
+    }
+  }
+}

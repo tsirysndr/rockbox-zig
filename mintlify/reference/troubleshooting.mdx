@@ -1,0 +1,144 @@
+---
+title: "Troubleshooting"
+description: "Common errors, the symptoms they produce, and how to fix them."
+icon: 'wrench'
+---
+
+## No audio when using built-in SDL on macOS
+
+**Symptom:** `rockboxd` starts cleanly, the UI shows playback progressing,
+but no audio is heard.
+
+**Cause:** the SDL audio subsystem wasn't initialised. On macOS the SDL
+event thread doesn't init audio (it's `#ifndef __APPLE__`).
+
+**Fix:** this is handled in
+`firmware/target/hosted/sdl/system-sdl.c` — but only in recent builds.
+Update to the latest release. If you build from source, make sure
+`SDL_InitSubSystem(SDL_INIT_AUDIO)` is called from the `#else` branch of
+the platform guard.
+
+## Snapcast: silence, then snapserver disconnects
+
+**Symptom:** snapserver logs `Stream: 'default' eof` shortly after rockboxd starts.
+
+**Cause:** snapserver was started **before** rockboxd, so it opened the
+FIFO first and saw EOF.
+
+**Fix:** start rockboxd first, then snapserver. Rockbox holds a permanent
+write-side handle on the FIFO so snapserver never sees EOF mid-track.
+
+For TCP mode, the order is reversed — start snapserver first.
+
+## Squeezelite disconnects every 36 seconds
+
+**Cause:** the `STMt` heartbeat is not being answered. squeezelite has a
+36-second watchdog.
+
+**Fix:** every `STMt` heartbeat must be answered with `audg`. This is
+already the case in current builds; if you're hacking on
+`crates/slim/`, don't strip that response.
+
+## Stale binary after editing C or Rust
+
+**Symptom:** behaviour doesn't match the source code; logs reference
+old strings.
+
+**Cause:** Zig only re-links when the static libraries are newer than
+the binary.
+
+**Fix:**
+
+```sh
+ls -la zig/zig-out/bin/rockboxd \
+       build-lib/libfirmware.a \
+       target/release/librockbox_cli.a
+```
+
+If `rockboxd` is newer than every `.a`, force a rebuild:
+
+```sh
+# After C changes
+cd build-lib && make lib && cd .. && cd zig && zig build
+
+# After Rust changes
+cargo build --release -p rockbox-cli -p rockbox-server && cd zig && zig build
+```
+
+## "library_directory is not set" after fresh install
+
+**Cause:** `~/.config/rockbox.org/settings.toml` is missing or has no
+`music_dir` key.
+
+**Fix:**
+
+```toml
+music_dir = "/path/to/your/Music"
+```
+
+## AirPlay receiver refuses to connect
+
+**Symptom:** logs show `RTSP ANNOUNCE → 401` or `Receiver requires
+password`.
+
+**Cause:** the receiver requires a PIN/password (most "AirPlay 2" gear).
+
+**Status:** AirPlay 2 pairing/encryption isn't implemented. Use a
+shairport-sync receiver, an Apple TV, an Airport Express, or another
+AirPlay 1 device. See [AirPlay](/audio-output/airplay).
+
+## Chromecast plays once then stops
+
+**Symptom:** first track plays through, queue advances, second track
+gets stuck buffering.
+
+**Cause:** the Chromecast cannot reach back to port 7881 on rockboxd's
+host. Common when rockboxd is in a VM/container.
+
+**Fix:** forward port 7881 to the host, or run the container with
+`--network host`. See the [Chromecast](/audio-output/chromecast) page.
+
+## mDNS discovery returns nothing
+
+**Symptom:** the device picker is empty, even though receivers are on
+the LAN.
+
+**Causes & fixes:**
+
+- **Multicast doesn't cross Docker bridges.** Use `--network host`.
+- **Some Wi-Fi APs filter multicast.** Enable "multicast forwarding" or
+  "IGMP snooping" — vendor-specific naming.
+- **Avahi/mDNS not running.** On Linux, ensure `avahi-daemon` is
+  running for SSDP/Bonjour to work.
+
+## "address already in use" on startup
+
+**Cause:** a previous rockboxd process didn't shut down cleanly, or
+another service is on one of the API ports.
+
+**Fix:**
+
+```sh
+lsof -i :6061 -i :6062 -i :6063 -i :6600
+kill -9 <pid>
+```
+
+…or change the bind ports via the env vars in
+[Reference › Ports](/reference/ports).
+
+## Logs are too quiet
+
+```sh
+RUST_LOG=debug rockboxd
+```
+
+Or scoped:
+
+```sh
+RUST_LOG=rockbox_airplay=debug,info rockboxd
+RUST_LOG=rockbox_slim=debug,info   rockboxd
+```
+
+Never use `eprintln!` / `println!` in the codebase — they bypass the
+filter and pollute stdout (which breaks FIFO mode). All Rust logging
+goes through `tracing`.

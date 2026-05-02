@@ -1,0 +1,81 @@
+---
+title: "Audio settings"
+description: "Volume, EQ, DSP, ReplayGain, crossfade and the rest of the rbcodec pipeline."
+icon: 'sliders'
+---
+
+The Rockbox DSP pipeline runs between the codec output and the active PCM
+sink. Settings live in `global_settings` (in the C firmware) and are
+mirrored in `settings.toml`. Most can also be changed at runtime via
+GraphQL or gRPC and they persist on the next save cycle.
+
+<CardGroup cols={2}>
+  <Card title="Equalizer" icon="chart-column" href="/audio-settings/equalizer">
+    10-band parametric EQ — gain, centre frequency, Q per band.
+  </Card>
+  <Card title="DSP" icon="waveform-lines" href="/audio-settings/dsp">
+    Crossfeed, surround, PBE, AFR, compressor, dithering.
+  </Card>
+  <Card title="ReplayGain" icon="volume" href="/audio-settings/replaygain">
+    Track / album normalisation with optional clipping protection.
+  </Card>
+  <Card title="Crossfade" icon="shuffle" href="/audio-settings/crossfade">
+    Overlap track ends with the next track's start.
+  </Card>
+</CardGroup>
+
+## Where settings live
+
+| Layer                      | Lives in                                | Lifetime                |
+|----------------------------|-----------------------------------------|-------------------------|
+| Compiled-in defaults       | `apps/settings_list.c`                  | Build-time              |
+| `settings.toml`            | `~/.config/rockbox.org/settings.toml`   | Read once at startup    |
+| Runtime (API)              | In-memory `global_settings`             | Persisted on save       |
+
+Hardware settings flow through `firmware/sound.c → sound_set_*()`. DSP
+settings flow through `lib/rbcodec/dsp/*` and are applied in the PCM pipeline
+before samples reach the sink.
+
+## Volume
+
+`global_status.volume` — decibels relative to the device's clipping point.
+**0 dB** is the maximum undistorted level. Negative values reduce output;
+positive values may distort. On the SDL target, volume is implemented as a
+software mixer.
+
+```toml
+volume_limit = 0   # ceiling in dB (default = device max)
+```
+
+## Channels & stereo
+
+| Setting                            | Storage                       | Range / values                              |
+|------------------------------------|-------------------------------|---------------------------------------------|
+| Balance                            | `balance`                     | −100..+100                                  |
+| Channel config                     | `channel_config`              | Stereo / Mono / Custom / Mono L / R / Karaoke / Swap |
+| Stereo width (when Custom)         | `stereo_width`                | 0..255 %                                    |
+
+## Pitch & time-stretch
+
+Persisted in `global_status` so they survive across restarts. Time-stretch
+uses a TDHS algorithm — best for speech, may sound rough on dense music.
+
+| Setting              | Storage                              | Range          |
+|----------------------|--------------------------------------|----------------|
+| Pitch                | `global_status.resume_pitch`         | ~50..200 %     |
+| Speed                | `global_status.resume_speed`         | ~35..250 %     |
+| Time-stretch enable  | `global_settings.timestretch_enabled` | bool          |
+
+## Output sample rate
+
+```toml
+play_frequency = 0   # 0=auto, 44100, 48000, 88200, 96000
+```
+
+## UI feedback
+
+```toml
+beep              = 0   # off / weak / moderate / strong
+keyclick          = 0
+keyclick_repeats  = false
+```

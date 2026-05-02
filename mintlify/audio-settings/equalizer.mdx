@@ -1,0 +1,112 @@
+---
+title: "Equalizer"
+description: "10-band parametric EQ — independent gain, frequency and Q per band."
+icon: 'chart-column'
+---
+
+Rockbox uses a **parametric** EQ rather than the more common graphic EQ.
+Each band has independent control of gain, centre frequency and bandwidth
+(Q), which buys you the same shaping power with fewer bands than a graphic
+EQ would need.
+
+<Tip>
+Using more bands than necessary wastes CPU and adds rounding noise. Disable
+or zero out bands you aren't using.
+</Tip>
+
+## Bands
+
+| Band   | Filter type        | Default centre / cutoff | Q recommendation                                   |
+|--------|--------------------|-------------------------|----------------------------------------------------|
+| 0      | Low-shelf          | 32 Hz                   | 0.7 (higher Q adds an unwanted boost near cutoff)  |
+| 1–8    | Peaking (bell)     | 64 / 125 / 250 / 500 / 1k / 2k / 4k / 8k Hz | Higher Q = narrower band   |
+| 9      | High-shelf         | 16 000 Hz               | 0.7                                                |
+
+Per band:
+
+- **Cutoff / centre frequency** — Hz
+- **Gain** — dB; positive boosts, negative cuts
+- **Q** — bandwidth (peak filters); 0.7 for shelves
+
+## Top-level settings
+
+| Setting       | Storage              | Type / range        | Description                                                       |
+|---------------|----------------------|---------------------|-------------------------------------------------------------------|
+| Enable EQ     | `eq_enabled`         | bool                | Master on/off                                                     |
+| Precut        | `eq_precut`          | 0..24 dB            | Negative gain applied before EQ to prevent clipping when boosting |
+
+Applied via `dsp_set_eq_precut()` and `dsp_set_eq_coefs()` in
+`lib/rbcodec/dsp/eq.h`.
+
+## TOML
+
+```toml
+eq_enabled = true
+eq_precut  = 3      # 3 dB headroom before EQ
+
+[[eq_band_settings]]   # band 0 (low shelf)
+cutoff = 32
+q      = 7         # Q × 10 — Rockbox stores fixed-point
+gain   = 30        # dB × 10
+
+[[eq_band_settings]]   # band 1
+cutoff = 64
+q      = 7
+gain   = 0
+
+# ... bands 2-9
+```
+
+<Note>
+`q` and `gain` are stored as fixed-point (×10) in `global_settings`. The
+GraphQL API accepts plain decimals — see
+[Settings TOML reference](/reference/settings-toml).
+</Note>
+
+## Configuring via the API
+
+<CodeGroup>
+```graphql GraphQL
+mutation EnableEqAndShapeBass {
+  saveSettings(input: {
+    eqEnabled: true
+    eqPrecut: -3
+    eqBandSettings: [
+      { cutoff: 60,    q: 7, gain:  3 }
+      { cutoff: 200,   q: 7, gain:  0 }
+      { cutoff: 800,   q: 7, gain:  0 }
+      { cutoff: 4000,  q: 7, gain: -2 }
+      { cutoff: 12000, q: 7, gain:  1 }
+    ]
+  }) { eqEnabled }
+}
+```
+
+```ts TypeScript
+await client.settings.save({
+  eqEnabled: true,
+  eqPrecut: -3,
+  eqBandSettings: [
+    { cutoff: 60,    q: 7, gain:  3 },
+    { cutoff: 200,   q: 7, gain:  0 },
+    { cutoff: 800,   q: 7, gain:  0 },
+    { cutoff: 4000,  q: 7, gain: -2 },
+    { cutoff: 12000, q: 7, gain:  1 },
+  ],
+});
+```
+
+```python Python
+await client.settings.save(
+    eq_enabled=True,
+    eq_precut=-3,
+    eq_band_settings=[
+        {"cutoff": 60,    "q": 7, "gain":  3},
+        {"cutoff": 200,   "q": 7, "gain":  0},
+        {"cutoff": 800,   "q": 7, "gain":  0},
+        {"cutoff": 4000,  "q": 7, "gain": -2},
+        {"cutoff": 12000, "q": 7, "gain":  1},
+    ],
+)
+```
+</CodeGroup>

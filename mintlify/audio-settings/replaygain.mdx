@@ -1,0 +1,84 @@
+---
+title: "ReplayGain"
+description: "Loudness normalisation using ReplayGain tags embedded in your files."
+icon: 'volume'
+---
+
+ReplayGain reads the `REPLAYGAIN_*` tags written by tools like
+`loudgain` / `mp3gain` / `metaflac` and applies the recommended gain at
+playback time. Albums are kept at consistent loudness without re-encoding
+the files.
+
+```toml
+[replaygain_settings]
+type   = 0      # 0=Track 1=Album 2=Track shuffle 3=Off
+noclip = true
+preamp = 0
+```
+
+## Settings
+
+| Setting   | Storage  | Values / range                           | Default  | Description                                                                 |
+|-----------|----------|------------------------------------------|----------|-----------------------------------------------------------------------------|
+| Type      | `.type`  | track / album / track shuffle / off      | shuffle  | Which RG tag to apply for normalisation                                     |
+| No-Clip   | `.noclip`| bool                                     | false    | If the RG adjustment would cause clipping, scale down to avoid it           |
+| Preamp    | `.preamp`| −120..+120 dB (step 5)                   | 0 dB     | Extra gain on top of the RG value (use with No-Clip to avoid surprises)     |
+
+Applied via `dsp_replaygain_set_settings()` in `lib/rbcodec/dsp/dsp_misc.h`.
+
+## Modes explained
+
+- **Track** — every track plays at its own RG-normalised level.
+- **Album** — all tracks within an album share the same gain; preserves
+  intended quiet/loud relationships within the album.
+- **Track shuffle** — Track gain when shuffling, Album gain otherwise. The
+  default; behaves naturally regardless of how you're listening.
+- **Off** — RG tags ignored.
+
+## Tagging your files
+
+Rockbox does not write ReplayGain tags. Use one of:
+
+- **`loudgain`** — modern multi-format CLI (FLAC, MP3, Opus, OGG, M4A).
+- **`mp3gain`** — MP3 only, but lossless.
+- **`metaflac --add-replay-gain`** — FLAC, ships with `flac`.
+
+Example:
+
+```sh
+loudgain -a -k -s e *.flac    # tag album-mode, prevent clipping
+```
+
+After re-tagging, trigger a library rescan:
+
+```graphql
+mutation { scanLibrary }
+```
+
+## Configuring at runtime
+
+<CodeGroup>
+```graphql GraphQL
+mutation {
+  saveSettings(input: {
+    replaygainSettings: {
+      type: 1
+      noclip: true
+      preamp: 0
+    }
+  }) { replaygainSettings { type } }
+}
+```
+
+```ts TypeScript
+import { ReplaygainType } from '@rockbox-zig/sdk';
+
+await client.settings.save({
+  replaygainSettings: {
+    type: ReplaygainType.Album,
+    noclip: true,
+    preamp: 0,
+  },
+});
+```
+</CodeGroup>

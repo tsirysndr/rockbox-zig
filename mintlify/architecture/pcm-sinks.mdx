@@ -1,0 +1,92 @@
+---
+title: "PCM sinks"
+description: "How Rockbox's audio output abstraction works, and how to add a new sink."
+icon: 'plug'
+---
+
+The audio output abstraction lives in `firmware/export/pcm_sink.h`. Each
+sink implements a `pcm_sink_ops` vtable:
+
+```c
+struct pcm_sink_ops {
+    void (*init)(void);
+    void (*postinit)(void);
+    void (*set_freq)(int hz);
+    void (*lock)(void);
+    void (*unlock)(void);
+    void (*play)(const void *data, size_t bytes);
+    void (*stop)(void);
+};
+```
+
+## Built-in sinks
+
+| Enum constant            | Value | Implementation                                |
+|--------------------------|-------|-----------------------------------------------|
+| `PCM_SINK_BUILTIN`       | 0     | `firmware/target/hosted/sdl/pcm-sdl.c`        |
+| `PCM_SINK_FIFO`          | 1     | `firmware/target/hosted/pcm-fifo.c`           |
+| `PCM_SINK_AIRPLAY`       | 2     | `firmware/target/hosted/pcm-airplay.c`        |
+| `PCM_SINK_SQUEEZELITE`   | 3     | `firmware/target/hosted/pcm-squeezelite.c`    |
+| `PCM_SINK_CHROMECAST`    | 4     | `firmware/target/hosted/pcm-chromecast.c`     |
+| `PCM_SINK_SNAPCAST_TCP`  | 5     | `firmware/target/hosted/pcm-snapcast-tcp.c`   |
+| `PCM_SINK_UPNP`          | 6     | `firmware/target/hosted/pcm-upnp.c`           |
+
+Selection at startup happens in `crates/settings/src/lib.rs:load_settings()`,
+which reads `audio_output` and calls `pcm::switch_sink()`. Rust-side
+constants and helpers live in `crates/sys/src/sound/pcm.rs`.
+
+## FIFO sink details (Snapcast)
+
+- Pre-creates the named FIFO with `O_RDWR|O_NONBLOCK` in
+  `pcm_fifo_set_path()` then clears `O_NONBLOCK`. Holding a write reference
+  prevents readers from seeing premature EOF between tracks.
+- `sink_dma_stop()` does **not** close the fd; it stays open across track
+  transitions.
+- Startup order matters: rockboxd must start before snapserver.
+
+## AirPlay sink details
+
+- `pcm_airplay_connect()` is called once per `sink_dma_start()` and is
+  idempotent if already connected.
+- The `rockbox-airplay` rlib is force-included via
+  `use rockbox_airplay::_link_airplay as _` in `crates/cli/src/lib.rs`.
+  Without that shim the linker would garbage-collect the symbols.
+
+## Squeezelite sink details
+
+- The DMA loop in `pcm-squeezelite.c` paces output to real time using
+  `CLOCK_MONOTONIC`.
+- **Use `int64_t` for the nanosecond diff** — unsigned subtraction wraps
+  catastrophically when `tv_nsec` rolls over. This is a real bug we hit; if
+  you touch this code, keep it signed.
+- The `rockbox-slim` rlib is force-included via
+  `use rockbox_slim::_link_slim as _`.
+
+## Adding a new sink
+
+1. Create `firmware/target/hosted/pcm-<name>.c` — model on `pcm-fifo.c`.
+2. Add `PCM_SINK_<NAME>` to the enum in `firmware/export/pcm_sink.h`.
+3. Register `&<name>_pcm_sink` in the `sinks[]` array in `firmware/pcm.c`.
+4. Add `target/hosted/pcm-<name>.c` inside the `#if PLATFORM_HOSTED` block
+   in `firmware/SOURCES`.
+5. Add a Rust constant `PCM_SINK_<NAME>: i32` in
+   `crates/sys/src/sound/pcm.rs`.
+6. Add a `set_<name>_*` wrapper if configuration is needed.
+7. Handle the new sink in `crates/settings/src/lib.rs:load_settings()`.
+8. If it has a Rust implementation in a new crate: add a
+   `_link_<name>()` dummy fn and reference it from `crates/cli/src/lib.rs`
+   to force inclusion in the staticlib.
+
+## Logging from a sink
+
+Always use `tracing` from Rust. Never `eprintln!`/`println!` — they bypass
+the structured log filter and pollute stdout (which breaks FIFO mode).
+
+```rust
+tracing::info!("airplay: session established to {}", host);
+tracing::warn!("airplay: dropped frame, network slow");
+tracing::error!("airplay: handshake failed: {err}");
+```
+
+Control verbosity with `RUST_LOG`, e.g.
+`RUST_LOG=rockbox_airplay=debug,info rockboxd`.

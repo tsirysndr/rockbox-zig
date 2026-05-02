@@ -1,0 +1,113 @@
+---
+title: "FAQ"
+description: "Common questions about Rockbox Zig."
+icon: 'circle-question'
+---
+
+<AccordionGroup>
+
+<Accordion title="What's the difference between Rockbox and Rockbox Zig?">
+[Rockbox](https://www.rockbox.org) is firmware for portable audio
+players. Rockbox Zig wraps that same C audio engine in Rust and Zig
+services, exposing it on a desktop/server as a single `rockboxd` binary
+with gRPC, GraphQL, HTTP and MPD APIs and multi-room output sinks.
+The DSP, codecs and tag database come straight from upstream Rockbox.
+</Accordion>
+
+<Accordion title="Does it really run on a Raspberry Pi?">
+Yes. Linux ARM64 builds are on the
+[Releases page](https://github.com/tsirysndr/rockbox-zig/releases). It
+runs comfortably on a Pi 4; on a Pi 3 expect Typesense indexing to be
+slower on first scan but playback is fine.
+</Accordion>
+
+<Accordion title="Which audio formats are supported?">
+MP3, OGG Vorbis, FLAC, WAV, AAC, ALAC, Opus, Musepack, WMA, APE,
+Wavpack, Speex, AIFF, AC3, SID and several more — 20+ codecs total. The
+codec list comes from upstream Rockbox; see
+[`AUDIO_EXTENSIONS`](https://github.com/tsirysndr/rockbox-zig/blob/master/crates/server/src/lib.rs)
+for what is auto-scanned into the library.
+</Accordion>
+
+<Accordion title="Can I stream from YouTube / Spotify / Tidal?">
+Not yet. Generic HTTP(S) stream URLs work — you can queue them and
+playback works through the netstream layer in `crates/netstream/`. Rich
+provider integrations (YouTube, Spotify, Tidal) are on the roadmap.
+</Accordion>
+
+<Accordion title="Why not just use mpd / Mopidy / Volumio / Snapcast directly?">
+You can — they're great projects. Rockbox Zig differs in that the
+audio engine, DSP, parametric EQ and crossfade are the upstream Rockbox
+implementation rather than ALSA's defaults. If you specifically want
+Rockbox's sound (dithering, PBE, Haas surround, ReplayGain pipeline, the
+EQ presets) on a desktop or server, this is one way to get it.
+</Accordion>
+
+<Accordion title="Multi-room: AirPlay vs Snapcast vs Squeezelite — which one?">
+- **AirPlay** — pick this if you have Apple TVs / HomePods / shairport-sync
+  receivers. Built-in fan-out, ~8 ms tight sync.
+- **Snapcast** — best when you have or are willing to deploy snapserver and
+  multiple snapclients. Works on every platform, very tight sync.
+- **Squeezelite** — pick this if you already run squeezelite or
+  Logitech-style hardware. One rockboxd serves any number of squeezelite
+  clients with per-client cursors into a 4 MB shared buffer.
+</Accordion>
+
+<Accordion title="Does it work with my MPD client?">
+Probably. Rockbox runs an MPD-compatible server on port 6600. `mpc`,
+`ncmpcpp`, MALP, M.A.L.P. and Cantata are all tested. If your client
+breaks on something Rockbox-specific, please open an issue.
+</Accordion>
+
+<Accordion title="Can I run rockboxd headless / as a service?">
+Yes — `rockbox service install` registers a user-level systemd unit. See
+[Installation](/installation#run-as-a-systemd-service).
+</Accordion>
+
+<Accordion title="Where are the listening stats stored?">
+SQLite, in `~/.config/rockbox.org/library.db`. The
+[smart playlist rules](/sdks/typescript) read from this database.
+You can record `played` / `skipped` events manually from any SDK or via
+the REST endpoints `POST /track-stats/{id}/played` and
+`POST /track-stats/{id}/skipped`.
+</Accordion>
+
+<Accordion title="Why a single binary?">
+Simpler to deploy, simpler to debug, and the firmware/Rust boundary is
+already complex enough that adding IPC on top would be a step backward.
+The C audio engine and the Rust services share memory through static
+libraries linked by Zig — see [Architecture](/architecture/overview).
+</Accordion>
+
+<Accordion title="Does it support Bluetooth?">
+On Linux, yes — pairing/connecting is exposed through the REST and
+GraphQL APIs (and SDKs). On macOS and Windows, no first-party
+integration; use the OS-level Bluetooth stack and route the built-in
+SDL output to the BT device.
+</Accordion>
+
+<Accordion title="Can I write a plugin?">
+Yes. Every SDK ships a Jellyfin-style plugin lifecycle:
+
+```ts
+const SleepTimer = (minutes: number): RockboxPlugin => ({
+  name: 'sleep-timer',
+  version: '1.0.0',
+  install({ events, query }) {
+    setTimeout(() => query('mutation { hardStop }'), minutes * 60_000);
+  },
+});
+
+await client.use(SleepTimer(30));
+```
+
+Wasm extensions inside `rockboxd` itself are on the roadmap.
+</Accordion>
+
+<Accordion title="How do I contribute?">
+Read the [Contributing guide](https://github.com/tsirysndr/rockbox-zig/blob/master/CONTRIBUTING.md),
+hop into [Discord](https://discord.gg/tXPrgcPKSt), and open a PR. Build
+from source with the [build instructions](/architecture/build).
+</Accordion>
+
+</AccordionGroup>

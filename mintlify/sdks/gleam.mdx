@@ -1,0 +1,83 @@
+---
+title: "Gleam"
+description: "Type-safe Gleam SDK with a tagged Result on every call."
+icon: 'star'
+---
+
+```sh
+gleam add rockbox
+```
+
+## Quick start
+
+```gleam
+import gleam/io
+import gleam/list
+import gleam/option.{None, Some}
+import rockbox
+import rockbox/library
+import rockbox/playback
+
+pub fn main() {
+  let client = rockbox.default_client()
+
+  case playback.current_track(client) {
+    Ok(Some(track)) -> io.println("▶ " <> track.title <> " — " <> track.artist)
+    Ok(None) -> io.println("Nothing is playing.")
+    Error(_) -> io.println("Could not reach rockboxd.")
+  }
+
+  let assert Ok(results) = library.search(client, "dark side")
+  case list.first(results.albums) {
+    Ok(album) -> {
+      let _ = playback.play_album(
+        client, album.id,
+        playback.play_options() |> playback.with_shuffle(True),
+      )
+      Nil
+    }
+    Error(_) -> Nil
+  }
+}
+```
+
+## Configure
+
+```gleam
+let client = rockbox.default_client()                       // localhost:6062
+let client = rockbox.at(host: "192.168.1.42", port: 6062)
+
+let client =
+  rockbox.new()
+  |> rockbox.url("http://192.168.1.42:6062/graphql")
+  |> rockbox.connect
+```
+
+## Highlights
+
+- **Pipe-friendly** — every API function takes the client as its first arg.
+- **Tagged results** — every call returns
+  `Result(value, rockbox/error.Error)`, so `case` and `use` flows stay flat.
+- **Type-safe rules DSL** — compose smart-playlist rules with
+  `rockbox/smart_playlists/rules` instead of hand-written JSON.
+
+## API surface
+
+```gleam
+rockbox/playback
+rockbox/library
+rockbox/queue
+rockbox/saved_playlists
+rockbox/smart_playlists
+rockbox/sound
+rockbox/settings
+rockbox/system
+rockbox/browse
+rockbox/devices
+rockbox/bluetooth         // Linux only
+```
+
+## More
+
+Full reference and rule DSL: see the
+[Gleam SDK README on GitHub ↗](https://github.com/tsirysndr/rockbox-zig/blob/master/sdk/gleam/README.md).

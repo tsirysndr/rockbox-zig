@@ -1,0 +1,151 @@
+---
+title: "Installation"
+description: "Install pre-built binaries or build Rockbox Zig from source."
+icon: 'download'
+---
+
+The recommended path is to install a pre-built binary for your platform.
+Building from source is documented in [Architecture › Build](/architecture/build).
+
+## Pre-built binaries
+
+Pre-built packages for the latest release are on the
+[Releases page](https://github.com/tsirysndr/rockbox-zig/releases/latest).
+
+| Platform | Architecture            | Package   |
+|----------|-------------------------|-----------|
+| Linux    | x86_64                  | `.tar.gz` |
+| Linux    | aarch64                 | `.tar.gz` |
+| macOS    | x86_64                  | `.pkg`    |
+| macOS    | aarch64 (Apple Silicon) | `.pkg`    |
+
+## Package managers
+
+### Ubuntu / Debian
+
+```sh
+echo "deb [trusted=yes] https://apt.fury.io/tsiry/ /" | sudo tee /etc/apt/sources.list.d/fury.list
+sudo apt-get update
+sudo apt-get install rockbox
+```
+
+### Fedora
+
+Add the following to `/etc/yum.repos.d/fury.repo`:
+
+```ini
+[fury]
+name=Gemfury Private Repo
+baseurl=https://yum.fury.io/tsiry/
+enabled=1
+gpgcheck=0
+```
+
+Then:
+
+```sh
+sudo dnf install rockbox
+```
+
+### Arch Linux
+
+```sh
+paru -S rockbox-zig-bin
+```
+
+### Universal installer
+
+The installer detects your OS and architecture and drops the right binary
+under `/usr/local/bin`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
+```
+
+### Docker
+
+```sh
+docker pull tsiry/rockbox
+```
+
+```sh
+docker run --rm -it \
+  -p 6060-6063:6060-6063 \
+  -p 6600:6600 \
+  -p 7878-7881:7878-7881 \
+  -p 3483:3483 \
+  -p 9999:9999 \
+  -v $HOME/Music:/music \
+  -v $HOME/.config/rockbox.org:/root/.config/rockbox.org \
+  tsiry/rockbox
+```
+
+<Note>
+For AirPlay, Squeezelite and UPnP discovery (mDNS / SSDP) you'll usually want
+`--network host` instead of port mapping — multicast does not cross Docker's
+default bridge network.
+</Note>
+
+## Run as a systemd service
+
+Once `rockbox` is on your `PATH`:
+
+```sh
+rockbox service install    # enable and start
+rockbox service status     # check status
+rockbox service uninstall  # stop and disable
+```
+
+This installs a user-level systemd unit at `~/.config/systemd/user/rockboxd.service`.
+
+## Verifying the install
+
+```sh
+rockbox --version
+rockbox start
+```
+
+The daemon binds these ports by default:
+
+| Service                      | Port | Protocol        |
+|------------------------------|------|-----------------|
+| gRPC                         | 6061 | gRPC / gRPC-Web |
+| GraphQL + Web UI             | 6062 | HTTP / WS       |
+| HTTP REST                    | 6063 | HTTP            |
+| MPD                          | 6600 | MPD             |
+
+See the full [port reference](/reference/ports).
+
+## Building from source
+
+If you want to hack on Rockbox Zig itself, see
+[Architecture › Build](/architecture/build) for the Make + Cargo + Zig
+toolchain.
+
+## Uninstall
+
+<AccordionGroup>
+  <Accordion title="Debian / Ubuntu">
+    ```sh
+    sudo apt-get remove rockbox
+    rockbox service uninstall   # if you installed the systemd unit
+    ```
+  </Accordion>
+  <Accordion title="Fedora">
+    ```sh
+    sudo dnf remove rockbox
+    rockbox service uninstall
+    ```
+  </Accordion>
+  <Accordion title="Arch">
+    ```sh
+    sudo pacman -Rns rockbox-zig-bin
+    ```
+  </Accordion>
+  <Accordion title="macOS .pkg">
+    ```sh
+    sudo rm /usr/local/bin/rockbox /usr/local/bin/rockboxd
+    sudo pkgutil --forget io.github.tsirysndr.rockbox
+    ```
+  </Accordion>
+</AccordionGroup>

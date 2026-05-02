@@ -1,0 +1,76 @@
+---
+title: "Chromecast"
+description: "Google Cast support over WAV-over-HTTP plus the Cast control channel."
+icon: 'cast'
+---
+
+Rockbox streams audio to any Google Cast-compatible device — Google Home,
+Chromecast Audio, Chromecast with Google TV, Nest Hub, or third-party
+receivers — using two channels at once:
+
+| Channel        | Port         | Purpose                                                        |
+|----------------|--------------|----------------------------------------------------------------|
+| Cast protocol  | TCP 8009     | TLS + Protobuf — playback control, queue, metadata             |
+| WAV over HTTP  | TCP 7881     | Live `audio/wav` stream with finite `Content-Length`           |
+
+The finite content length is what lets the Chromecast show a progress bar
+and auto-advance at track boundaries.
+
+## Configuration
+
+```toml
+music_dir            = "/path/to/Music"
+audio_output         = "chromecast"
+chromecast_host      = "192.168.1.60"  # LAN IP of the target device
+chromecast_port      = 8009            # optional, default 8009 (Cast protocol)
+chromecast_http_port = 7881            # optional, default 7881 (WAV stream)
+```
+
+## Auto-discovery
+
+Devices on the LAN are discovered via mDNS (`_googlecast._tcp.local.`) and
+appear in the web UI and desktop app device picker — clicking starts a Cast
+session on demand without `audio_output = "chromecast"` in the config.
+
+## Track metadata
+
+Title, artist, album, duration, and album art are pushed to the device on
+every track change so the "Now playing" card stays accurate.
+
+<Note>
+**Network requirement**: the Chromecast must be able to reach port 7881 on
+the host running rockboxd. If rockboxd is in a VM or container, forward
+that port to the host (or run with `--network host`).
+</Note>
+
+## Picking a device from the API
+
+```graphql
+query DiscoveredCastDevices {
+  devices {
+    id
+    name
+    ip
+    port
+    isCastDevice
+  }
+}
+
+mutation Cast {
+  connectDevice(id: "chromecast-living-room")
+}
+```
+
+…or with the [TypeScript SDK](/sdks/typescript):
+
+```ts
+const devices = await client.devices.list();
+const cast = devices.find((d) => d.isCastDevice);
+if (cast) await client.devices.connect(cast.id);
+```
+
+## Architecture
+
+Implementation lives in `crates/chromecast/`. See
+[`crates/chromecast/README.md`](https://github.com/tsirysndr/rockbox-zig/blob/master/crates/chromecast/README.md)
+for the protocol-level details.

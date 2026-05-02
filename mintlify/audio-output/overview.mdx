@@ -1,0 +1,60 @@
+---
+title: "Audio output overview"
+description: "Pick a PCM sink. Switch any time over the API."
+icon: 'speaker'
+---
+
+Rockbox writes decoded PCM into a single active **sink** at a time. The sink
+is selected by the `audio_output` key in `settings.toml`, but it can also be
+changed at runtime — e.g. by clicking a discovered Chromecast in the device
+picker.
+
+| Sink              | `audio_output` | Use it for                                            |
+|-------------------|----------------|-------------------------------------------------------|
+| Built-in SDL      | `builtin`      | Local speakers / headphones                           |
+| FIFO / pipe       | `fifo`         | Snapcast (`pipe://`), `ffplay`, any pipe consumer     |
+| Snapcast TCP      | `snapcast_tcp` | Snapserver `tcp://` source with auto-discovery        |
+| AirPlay (RAOP)    | `airplay`      | Apple TV, HomePod, Airport Express, shairport-sync    |
+| Squeezelite       | `squeezelite`  | Logitech-style multi-room with squeezelite clients    |
+| Chromecast        | `chromecast`   | Google Home, Chromecast Audio, Nest Hub               |
+| UPnP / DLNA       | `upnp`         | Kodi, VLC, BubbleUPnP, any UPnP MediaRenderer         |
+
+## Stream format
+
+Every sink receives the same byte stream: **S16LE stereo PCM at 44 100 Hz**.
+The Rockbox DSP pipeline dithers and downmixes higher-bit-depth decoder
+output before it reaches the sink.
+
+## Fan-out
+
+A few sinks support sending the same stream to multiple receivers
+simultaneously:
+
+- **AirPlay** — list multiple `[[airplay_receivers]]` and they all share the
+  same `initial_rtptime`, keeping playback within ~8 ms across the LAN.
+- **Squeezelite** — any number of squeezelite clients can attach to one
+  rockboxd; a `sync` packet aligns their clocks once per second.
+- **Snapcast** — fan-out is handled by snapserver, not Rockbox.
+
+For Chromecast, AirPlay and UPnP the LAN is also scanned with mDNS / SSDP at
+startup; discovered devices show up in the web UI and desktop picker without
+any config-file edits.
+
+## Switching sinks at runtime
+
+Through the GraphQL API:
+
+```graphql
+mutation Connect {
+  connectDevice(id: "chromecast-living-room")
+}
+```
+
+…or through the desktop / web device picker. The active sink is stopped, the
+new sink's `init` and `start` hooks run, and audio resumes within a frame.
+
+## Architecture
+
+Each sink implements the `pcm_sink_ops` vtable in
+`firmware/export/pcm_sink.h`. The full list of sinks with file paths and
+implementation notes lives in [Architecture › PCM sinks](/architecture/pcm-sinks).

@@ -1,0 +1,82 @@
+---
+title: "Squeezelite"
+description: "Slim Protocol multi-room — Rockbox impersonates Logitech Media Server."
+icon: 'boxes-stacked'
+---
+
+Rockbox runs a minimal **Logitech Media Server** that any number of
+[squeezelite](https://github.com/ralph-irving/squeezelite) clients can attach
+to. A Slim Protocol TCP server accepts connections; an HTTP PCM broadcast
+server serves the actual audio stream.
+
+```toml
+music_dir             = "/path/to/Music"
+audio_output          = "squeezelite"
+squeezelite_port      = 3483   # Slim Protocol TCP port  (default 3483)
+squeezelite_http_port = 9999   # HTTP PCM broadcast port (default 9999)
+```
+
+## Connecting clients
+
+```sh
+squeezelite -s localhost -n "Living Room"
+squeezelite -s localhost -n "Kitchen"
+squeezelite -s localhost -n "Bedroom"
+```
+
+Each client gets an independent `BroadcastReceiver` cursor into the shared
+buffer, so adding or removing clients never blocks the writer or interrupts
+playback in other rooms.
+
+### Selecting a specific output device
+
+```sh
+squeezelite -s localhost -l                       # list available devices
+squeezelite -s localhost -o ""                    # system default
+squeezelite -s localhost -o "Built-in Output"     # specific device
+```
+
+## How it stays in sync
+
+Rockbox sends a `sync` packet to every client once per second so they all
+align to the same playback clock. The DMA loop in
+`firmware/target/hosted/pcm-squeezelite.c` paces output to real time using
+`CLOCK_MONOTONIC`, which keeps the broadcast buffer from drifting against
+the wall clock.
+
+## Buffer behaviour
+
+| Property              | Value                                        |
+|-----------------------|----------------------------------------------|
+| Capacity              | 4 MB                                         |
+| Eviction              | Oldest-first when full                       |
+| Per-client cursor     | Yes — each receiver tracks its own position  |
+| Lagging client policy | Skip forward (does not block the writer)     |
+
+A slow client never stalls the others.
+
+## Slim Protocol details
+
+Internal — useful if you're debugging or building your own client.
+
+- **Framing**:
+  - client → server: `opcode[4] + u32_t length BE + payload`
+  - server → client: `u16_t length BE + opcode[4] + payload`
+    (length excludes the 2-byte length field itself)
+- **STRM `'s'`** points clients at the HTTP port (defaults to 9999).
+- **STMt heartbeat** from the client must be answered with `audg`, otherwise
+  squeezelite's 36-second watchdog will tear down the session.
+- **ASCII-encoded PCM fields** in the STRM packet — squeezelite subtracts
+  `'0'` from `pcm_sample_size`, `pcm_sample_rate`, `pcm_channels` and
+  `pcm_endianness`. Correct values: `'1'` (16-bit), `'3'` (44 100 Hz),
+  `'2'` (stereo), `'1'` (little-endian).
+
+## Debugging
+
+```sh
+RUST_LOG=rockbox_slim=debug rockboxd
+```
+
+```sh
+squeezelite -s localhost -d slimproto=debug -d output=info
+```

@@ -1,0 +1,60 @@
+---
+title: "gRPC"
+description: "Strongly-typed gRPC and gRPC-Web on port 6061."
+icon: 'cube'
+---
+
+The gRPC server runs on **port 6061** and serves both native gRPC and
+gRPC-Web (so browser clients work without a proxy).
+
+- **Endpoint** — `localhost:6061`
+- **Schema** — published on Buf:
+  [buf.build/tsiry/rockboxapis ↗](https://buf.build/tsiry/rockboxapis/docs/main:rockbox.v1alpha1)
+- **Buf Studio playground** —
+  [open ↗](https://buf.build/studio/tsiry/rockboxapis/rockbox.v1alpha1.LibraryService/GetAlbums?target=http%3A%2F%2Flocalhost%3A6061&selectedProtocol=grpc-web)
+
+## Services
+
+The proto definitions live under `proto/` (in
+[buf.build/tsiry/rockboxapis](https://buf.build/tsiry/rockboxapis)) and
+generate Rust bindings at `crates/rpc/`:
+
+| Service             | Purpose                                            |
+|---------------------|----------------------------------------------------|
+| `PlaybackService`   | Transport, current/next track, seek, volume        |
+| `LibraryService`    | Albums, artists, tracks, search                    |
+| `PlaylistService`   | Live queue + saved playlists                       |
+| `SettingsService`   | Read / update `global_settings`                    |
+| `SoundService`      | Volume + sound parameters                          |
+| `BrowseService`     | Filesystem browsing                                |
+| `SystemService`     | Version, scan, status                              |
+
+## Generating clients
+
+Use Buf to generate clients in any supported language:
+
+```sh
+buf generate buf.build/tsiry/rockboxapis
+```
+
+Or pull the proto files directly:
+
+```sh
+buf export buf.build/tsiry/rockboxapis -o proto/
+```
+
+## Quick test with grpcurl
+
+```sh
+grpcurl -plaintext localhost:6061 list
+grpcurl -plaintext localhost:6061 rockbox.v1alpha1.LibraryService/GetAlbums
+grpcurl -plaintext -d '{"id": "<album-id>"}' \
+  localhost:6061 rockbox.v1alpha1.LibraryService/GetAlbum
+```
+
+## gRPC-Web from the browser
+
+The same port speaks gRPC-Web — useful for browser apps that want a
+strongly-typed binding without a translating reverse proxy. Use
+[`@bufbuild/connect-web`](https://www.npmjs.com/package/@bufbuild/connect-web)
+or the language equivalent.

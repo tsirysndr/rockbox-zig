@@ -1,0 +1,141 @@
+---
+title: "CLI reference"
+description: "rockbox and rockboxd — the two binaries you'll interact with."
+icon: 'terminal'
+---
+
+There are two binaries:
+
+- **`rockbox`** — user-facing wrapper. Starts the server, scans the
+  library, opens the web UI, manages the systemd service, runs JS/TS
+  scripts, and acts as a Bluetooth client on Linux.
+- **`rockboxd`** — the daemon itself. Linked by Zig from the C firmware
+  + Rust crates + SDL2. Lives at `zig/zig-out/bin/rockboxd` after a build,
+  or `/usr/local/bin/rockboxd` after install.
+
+Most users only ever invoke `rockbox`; `rockboxd` is the underlying
+process it spawns.
+
+## `rockbox`
+
+```text
+rockbox [--rebuild] [SUBCOMMAND]
+```
+
+Running `rockbox` with no subcommand starts the server. The subcommands
+below are dispatched in `cli/src/main.rs`.
+
+### Global flags
+
+| Flag                  | Description                                           |
+|-----------------------|-------------------------------------------------------|
+| `--rebuild`, `-r`     | Rebuild the Typesense search index after scan         |
+| `-h`, `--help`        | Print help                                            |
+| `-V`, `--version`     | Print the version                                     |
+
+### Subcommands
+
+| Subcommand                        | Aliases  | Description                                             |
+|-----------------------------------|----------|---------------------------------------------------------|
+| _(none)_                          |          | Start the server                                        |
+| `start [-r]`                      |          | Start the server                                        |
+| `scan [-d PATH] [-r]`             |          | Scan a library directory; `-r` rebuilds the search index |
+| `webui`                           | `web`    | Open the web UI in your browser                         |
+| `tui`                             |          | Start the terminal UI                                   |
+| `repl`                            | `shell`  | Start the Rockbox REPL                                  |
+| `run <FILE>`                      | `x`      | Run a JS/TS script via Deno against the local rockboxd  |
+| `open <PATH_OR_URL>`              |          | Play a local file or HTTP URL directly                  |
+| `clear`                           |          | Clear the current playlist                              |
+| `service install`                 |          | Install + enable the systemd unit                       |
+| `service uninstall`               |          | Disable + remove the systemd unit                       |
+| `service status`                  |          | Show the unit status                                    |
+| `login <handle>`                  | `auth`   | Log in to Rocksky (BlueSky handle)                      |
+| `whoami`                          | `me`     | Show the currently logged-in user                       |
+| `community`                       |          | Open the Discord invite                                 |
+| `setup`                           |          | Install host dependencies (SDL2, etc.)                  |
+| `bluetooth scan [--timeout S]`    |          | Linux only — scan for Bluetooth devices                 |
+| `bluetooth devices`               |          | Linux only — list known devices                         |
+| `bluetooth connect <ADDR>`        |          | Linux only — connect to a device                        |
+| `bluetooth disconnect <ADDR>`     |          | Linux only — disconnect a device                        |
+
+### Examples
+
+```sh
+# Start the daemon
+rockbox start
+
+# Scan the default music_dir, rebuild the search index
+rockbox scan -r
+
+# Scan a specific path
+rockbox scan -d "/Volumes/Music/Recently Added"
+
+# Play a URL
+rockbox open "https://stream.example.com/jazz.mp3"
+
+# Install as a systemd user service
+rockbox service install
+rockbox service status
+
+# Run a small script against a local rockboxd
+rockbox run scripts/scrobble.ts
+
+# Bluetooth (Linux)
+rockbox bluetooth scan --timeout 15
+rockbox bluetooth connect AA:BB:CC:DD:EE:FF
+```
+
+## `rockboxd`
+
+The daemon. Usually you don't run it directly — `rockbox start` or the
+systemd unit handles it. When you do invoke it manually, it takes no
+subcommands; behaviour is driven by environment variables and
+`~/.config/rockbox.org/settings.toml`.
+
+```sh
+rockboxd
+```
+
+### Environment variables
+
+| Variable                  | Default                              | Description                             |
+|---------------------------|--------------------------------------|-----------------------------------------|
+| `RUST_LOG`                | `info`                               | Tracing filter (per-crate supported)    |
+| `ROCKBOX_TCP_PORT`        | `6063`                               | HTTP REST bind port                     |
+| `ROCKBOX_GRAPHQL_PORT`    | `6062`                               | GraphQL bind port                       |
+| `ROCKBOX_RPC_PORT`        | `6061`                               | gRPC bind port                          |
+| `ROCKBOX_MPD_PORT`        | `6600`                               | MPD bind port                           |
+| `ROCKBOX_LIBRARY`         | `$HOME/Music`                        | Default music library path              |
+| `ROCKBOX_ADDR`            | (auto-detected LAN IP)               | Address advertised to external players  |
+| `ROCKBOX_UPDATE_LIBRARY`  | unset                                | When `1`, rebuild Typesense on startup  |
+| `HOME`                    | (system)                             | Used to derive config and library paths |
+
+### Stdout / stderr
+
+- **Stderr** — `tracing` log output. Always safe to redirect or filter.
+- **Stdout** — normally empty, **except** when `audio_output = "fifo"`
+  with `fifo_path = "-"`, in which case stdout is raw S16LE 44.1 kHz PCM.
+
+```sh
+rockboxd | ffplay -f s16le -ar 44100 -ac 2 -
+```
+
+### Logging
+
+```sh
+RUST_LOG=debug rockboxd
+RUST_LOG=rockbox_airplay=debug,rockbox_slim=debug,info rockboxd
+```
+
+Never use `eprintln!` / `println!` from inside the codebase — they
+bypass the structured filter and pollute stdout (which breaks FIFO
+mode). Use `tracing::{debug,info,warn,error}!` in Rust code.
+
+### Files
+
+| Path                                              | Purpose                              |
+|---------------------------------------------------|--------------------------------------|
+| `~/.config/rockbox.org/settings.toml`             | Persistent configuration             |
+| `~/.config/rockbox.org/library.db`                | SQLite library + listening stats     |
+| `~/.config/rockbox.org/playlists/`                | Saved playlists                      |
+| `~/.config/systemd/user/rockboxd.service`         | systemd unit (after `service install`) |

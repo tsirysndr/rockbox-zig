@@ -1,0 +1,74 @@
+---
+title: "HTTP REST"
+description: "JSON over HTTP on port 6063. The endpoints used internally by the web UI and SDK clients."
+icon: 'bolt'
+---
+
+The REST server runs on **port 6063** by default (override with
+`ROCKBOX_TCP_PORT`). Every endpoint is JSON in / JSON out, except where
+noted (some commands return plain-text status codes).
+
+The full schema is published as
+[OpenAPI 3.1](/api-reference/openapi.json) and rendered as one page per
+endpoint in the sidebar — explore by tag or jump to a specific operation.
+
+## Quick smoke test
+
+```sh
+curl -s http://localhost:6063/version
+curl -s http://localhost:6063/player/status
+curl -s http://localhost:6063/playlists/amount
+```
+
+## Common operations
+
+<CodeGroup>
+```sh Now playing
+curl -s http://localhost:6063/player/current-track | jq .title,.artist
+```
+
+```sh Search
+curl -s 'http://localhost:6063/search?q=daft+punk' | jq '.tracks[].title'
+```
+
+```sh Play an album
+ALBUM_ID=$(curl -s http://localhost:6063/albums | jq -r '.[0].id')
+TRACKS=$(curl -s "http://localhost:6063/albums/$ALBUM_ID/tracks" | jq '[.[].path]')
+curl -X POST -H 'Content-Type: application/json' \
+  -d "{\"name\":\"album\",\"tracks\":$TRACKS}" \
+  http://localhost:6063/playlists
+curl -X PUT 'http://localhost:6063/playlists/start?start_index=0'
+```
+
+```sh Volume up
+curl -X PUT -H 'Content-Type: application/json' \
+  -d '{"steps":3}' \
+  http://localhost:6063/player/volume
+```
+
+```sh Switch to a discovered Chromecast
+ID=$(curl -s http://localhost:6063/devices | jq -r '.[] | select(.is_cast_device) | .id' | head -1)
+curl -X PUT "http://localhost:6063/devices/$ID/connect"
+```
+</CodeGroup>
+
+## Notable behaviours
+
+- **Responses sometimes return plain text.** A few mutations return a
+  status integer or insertion index in the body as text rather than JSON
+  (`/playlists`, `/playlists/{id}/tracks`, `/scan-library`). The OpenAPI
+  spec marks these explicitly.
+- **Saved playlist mutations return `204`** with no body.
+- **Bluetooth routes only exist on Linux.** They are conditionally
+  registered at compile time.
+- **The HTTP server runs on its own thread** so actix's worker pool is
+  not pinned to the Rockbox cooperative scheduler. See
+  [Architecture › Overview](/architecture/overview) for the lifecycle.
+
+## Server details
+
+- Bind address — `0.0.0.0:$ROCKBOX_TCP_PORT` (default `6063`).
+- CORS — permissive (`actix_cors::Cors::permissive()`) so browser-based
+  clients can hit it without preflight pain.
+- The OpenAPI document is also served live at
+  `http://localhost:6063/openapi.json`.

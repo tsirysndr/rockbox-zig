@@ -1,0 +1,48 @@
+---
+title: "Ports"
+description: "Every TCP and UDP port rockboxd binds, plus mDNS/SSDP service types."
+icon: 'plug'
+---
+
+| Service                                | Port  | Protocol           | Override                    |
+|----------------------------------------|-------|--------------------|-----------------------------|
+| gRPC                                   | 6061  | gRPC / gRPC-Web    | `ROCKBOX_RPC_PORT`          |
+| GraphQL + Web UI                       | 6062  | HTTP / WS          | `ROCKBOX_GRAPHQL_PORT`      |
+| HTTP REST                              | 6063  | HTTP               | `ROCKBOX_TCP_PORT`          |
+| MPD server                             | 6600  | MPD protocol       | `ROCKBOX_MPD_PORT`          |
+| Slim Protocol (squeezelite)            | 3483  | TCP                | `squeezelite_port`          |
+| HTTP PCM stream (squeezelite)          | 9999  | HTTP               | `squeezelite_http_port`     |
+| Chromecast WAV stream                  | 7881  | HTTP               | `chromecast_http_port`      |
+| UPnP MediaServer (ContentDirectory)    | 7878  | HTTP / SSDP        | `upnp_server_port`          |
+| UPnP WAV broadcast (PCM sink)          | 7879  | HTTP               | `upnp_http_port`            |
+| UPnP MediaRenderer (AVTransport)       | 7880  | HTTP / SSDP        | `upnp_renderer_port`        |
+| Snapcast TCP source (outbound only)    | 4953  | TCP (client)       | `snapcast_tcp_port`         |
+
+## mDNS / SSDP service types
+
+Rockbox both **advertises** and **scans for** the following on the LAN:
+
+| Service                       | Service type                    | Direction          |
+|-------------------------------|---------------------------------|--------------------|
+| Rockbox itself                | `_rockbox._tcp.local.`          | advertise          |
+| Chromecast                    | `_googlecast._tcp.local.`       | scan               |
+| AirPlay (RAOP)                | `_raop._tcp.local.`             | scan               |
+| Squeezelite players           | `_slim._tcp.local.`             | scan               |
+| Snapcast servers              | `_snapcast._tcp.local.`         | scan               |
+| UPnP renderers                | `urn:schemas-upnp-org:device:MediaRenderer:1` | SSDP scan |
+| UPnP media server (this one)  | `urn:schemas-upnp-org:device:MediaServer:1`   | SSDP advertise |
+
+## Firewall checklist
+
+If rockboxd is in a VM, container, or behind a firewall, **at minimum**
+inbound on these is needed:
+
+- `6062/tcp` — for the web UI and GraphQL
+- `6063/tcp` — for the REST API
+- `6600/tcp` — for MPD clients
+- `5353/udp` — mDNS (multicast)
+- `1900/udp` — SSDP (multicast)
+
+If you use Chromecast or AirPlay, the receiver must also be able to
+**reach back** to rockboxd on `7881/tcp` (Chromecast WAV) or
+`7879/tcp` (UPnP WAV).

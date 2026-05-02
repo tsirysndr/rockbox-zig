@@ -1,0 +1,148 @@
+---
+title: "Python"
+description: "Async-first Python SDK on httpx + websockets, with Pydantic models."
+icon: 'python'
+---
+
+```sh
+uv add rockbox-sdk
+# or
+pip install rockbox-sdk
+```
+
+Requires **Python 3.10+**.
+
+## Quick start
+
+```python
+import asyncio
+from rockbox_sdk import RockboxClient, PlaybackStatus
+
+async def main():
+    async with RockboxClient(host="localhost") as client:
+        track = await client.playback.current_track()
+        if track:
+            print(f"Now: {track.title} — {track.artist}")
+        if await client.playback.status() == PlaybackStatus.PAUSED:
+            await client.playback.resume()
+
+asyncio.run(main())
+```
+
+## Highlights
+
+- **Async-first** — built on `httpx` + `websockets`. Use `await` everywhere.
+- **Domain-namespaced API** — `client.playback.*`, `client.library.*`, `client.sound.*`, …
+- **Typed responses** — every reply is a Pydantic model with snake_case fields.
+- **Real-time events** — `connect()` opens a WebSocket and forwards
+  `track:changed` / `status:changed` / `playlist:changed` to listeners.
+- **Builder API** — `RockboxClient.builder().host(...).port(...).build()`.
+- **Plugin system** — Jellyfin-style install/uninstall lifecycle.
+- **Python-friendly** — context manager, decorator listeners, dataclass inputs.
+
+## Configure
+
+```python
+client = RockboxClient(host="192.168.1.42", port=6062)
+
+# Builder
+client = (
+    RockboxClient.builder()
+    .host("nas.local")
+    .port(6062)
+    .timeout(15)
+    .build()
+)
+
+# Full URL override
+client = RockboxClient(
+    http_url="http://nas.local:6062/graphql",
+    ws_url="ws://nas.local:6062/graphql",
+)
+```
+
+Always close: `await client.aclose()`, or use it as an async context
+manager (`async with RockboxClient() as client:`).
+
+## Domains
+
+| Namespace                | What it does                                  |
+|--------------------------|-----------------------------------------------|
+| `client.playback`        | Transport, current/next, play helpers         |
+| `client.library`         | Albums, artists, tracks, search, likes, scan  |
+| `client.playlist`        | The active queue                              |
+| `client.saved_playlists` | Persistent playlists & folders                |
+| `client.smart_playlists` | Rule-based playlists & stats                  |
+| `client.sound`           | Volume                                        |
+| `client.settings`        | EQ / ReplayGain / crossfade / shuffle / …     |
+| `client.system`          | Version, runtime info                         |
+| `client.browse`          | Filesystem & UPnP browser                     |
+| `client.devices`         | Cast / source devices                         |
+| `client.bluetooth`       | Bluetooth (Linux only)                        |
+
+## Real-time events
+
+```python
+from rockbox_sdk import RockboxClient, TRACK_CHANGED, STATUS_CHANGED
+
+async with RockboxClient() as client:
+    await client.connect()
+
+    @client.on(TRACK_CHANGED)
+    async def on_track(track):
+        print(f"▶ {track.title} — {track.artist}")
+
+    @client.on(STATUS_CHANGED)
+    def on_status(raw_status):
+        print(f"◐ status = {raw_status}")
+
+    await asyncio.Event().wait()
+```
+
+Convenience wrappers: `client.on_track_changed(...)`,
+`client.on_status_changed(...)`, `client.on_playlist_changed(...)`.
+
+## Plugins
+
+```python
+class SleepTimer:
+    name = "sleep-timer"
+    version = "1.0.0"
+
+    def __init__(self, minutes: int):
+        self.minutes = minutes
+        self._task = None
+
+    def install(self, ctx):
+        async def fire():
+            await asyncio.sleep(self.minutes * 60)
+            await ctx.query("mutation { hardStop }")
+        self._task = asyncio.create_task(fire())
+
+    def uninstall(self):
+        if self._task:
+            self._task.cancel()
+
+await client.use(SleepTimer(30))
+```
+
+## REPL-friendly
+
+The SDK is async-first. The recommended REPL is **IPython** — `await`
+works at the top level, and you get tab-completion on Pydantic models.
+
+```sh
+uv run ipython
+```
+
+```python
+In [1]: from rockbox_sdk import RockboxClient
+In [2]: client = RockboxClient()
+In [3]: await client.playback.status()
+In [4]: track = await client.playback.current_track()
+```
+
+## More
+
+Full reference, type catalogue and plugin examples: see the
+[Python SDK README on GitHub ↗](https://github.com/tsirysndr/rockbox-zig/blob/master/sdk/python/README.md).

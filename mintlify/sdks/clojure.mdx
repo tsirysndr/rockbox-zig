@@ -1,0 +1,83 @@
+---
+title: "Clojure"
+description: "Pipe-friendly Clojure wrapper over rockboxd's GraphQL API."
+icon: 'lambda'
+---
+
+`deps.edn`:
+
+```clojure
+{:deps {org.clojars.tsiry/rockbox-clj {:mvn/version "0.1.2-SNAPSHOT"}}}
+```
+
+## Quick start
+
+```clojure
+(require '[rockbox.core    :as rb]
+         '[rockbox.playback :as pb]
+         '[rockbox.library  :as lib])
+
+(def client (rb/client))
+
+(rb/connect client)
+
+(when-let [t (pb/current-track client)]
+  (println "Now playing:" (:title t) "—" (:artist t)))
+
+(let [{:keys [albums tracks]} (lib/search client "dark side")]
+  (println (count albums) "albums," (count tracks) "tracks"))
+
+(-> client
+    (pb/play-album "album-id" {:shuffle true}))
+
+(rb/on client :track-changed
+  (fn [t] (println "▶" (:title t) "by" (:artist t))))
+
+(rb/disconnect client)
+```
+
+## Configure
+
+```clojure
+(def c (rb/client))                                                 ;; localhost:6062
+(def c (rb/client {:host "192.168.1.42" :port 6062}))
+(def c (rb/client {:http-url "https://music.home/graphql"
+                   :ws-url   "wss://music.home/graphql"}))
+
+;; Builder style — every with-* fn returns a new client value
+(def c (-> (rb/client)
+           (rb/with-host    "music.home")
+           (rb/with-port    6062)
+           (rb/with-timeout 30000)
+           (rb/with-headers {:x-trace-id "req-123"})))
+```
+
+## Conventions
+
+- **Action functions return the client**, so chains compose with `->`:
+  `(-> client (pb/play-album "id") (pb/seek 30000))`
+- **Read functions return data** as plain Clojure maps with kebab-case keys.
+- **Enums are keywords**: `:playing`, `:paused`, `:stopped`.
+- **Events surface as callbacks _or_ `core.async` channels.**
+
+## API surface
+
+```clojure
+rockbox.core            ;; client, connect, disconnect, on, query
+rockbox.playback        ;; transport, play helpers
+rockbox.library         ;; albums, artists, tracks, search, likes
+rockbox.playlist        ;; live queue
+rockbox.saved-playlists ;; persistent playlists
+rockbox.smart-playlists ;; rule-based playlists
+rockbox.sound           ;; volume
+rockbox.settings        ;; EQ / ReplayGain / crossfade / …
+rockbox.system          ;; version, status
+rockbox.browse          ;; filesystem
+rockbox.devices         ;; output devices
+rockbox.bluetooth       ;; Linux only
+```
+
+## More
+
+Full reference and `core.async` event channels: see the
+[Clojure SDK README on GitHub ↗](https://github.com/tsirysndr/rockbox-zig/blob/master/sdk/clojure/README.md).

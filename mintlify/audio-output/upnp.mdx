@@ -1,0 +1,95 @@
+---
+title: "UPnP / DLNA"
+description: "Three independent UPnP/DLNA modes — sink, media server and renderer."
+icon: 'tower-broadcast'
+---
+
+Rockbox has three UPnP/DLNA modes that can be enabled independently. They
+combine freely: e.g. expose your library to BubbleUPnP **and** stream live
+to Kodi at the same time.
+
+## Mode 1 — PCM sink (push to a renderer)
+
+Rockbox encodes live PCM as a continuous WAV-over-HTTP stream and tells a
+UPnP MediaRenderer to play it via AVTransport SOAP.
+
+```toml
+music_dir         = "/path/to/Music"
+audio_output      = "upnp"
+upnp_renderer_url = "http://192.168.1.x:7777/AVTransport/control"
+upnp_http_port    = 7879   # WAV broadcast HTTP port (default 7879)
+```
+
+Track metadata (title, artist, album, album art, duration) is sent as
+DIDL-Lite XML in `SetAVTransportURI` and refreshed on every track change.
+
+<Tip>
+**Finding `upnp_renderer_url`**: start `rockboxd` with `RUST_LOG=info` —
+it scans the LAN at startup and logs
+`upnp scan: found renderer "<name>" av=http://...` for every renderer
+found.
+</Tip>
+
+## Mode 2 — Media Server (let others browse your library)
+
+Exposes your music library as a UPnP ContentDirectory. BubbleUPnP, Kodi,
+VLC, foobar2000 and the like can browse artists / albums / tracks and pull
+audio directly from Rockbox.
+
+```toml
+upnp_server_enabled = true
+upnp_server_port    = 7878         # default
+upnp_friendly_name  = "Rockbox"    # name shown in apps
+```
+
+## Mode 3 — MediaRenderer (let others push to you)
+
+Rockbox registers as a `MediaRenderer:1`. Any control point can push a URI
+and control playback remotely. Incoming DIDL-Lite metadata is parsed and
+displayed in the UI.
+
+```toml
+upnp_renderer_enabled = true
+upnp_renderer_port    = 7880        # default
+upnp_friendly_name    = "Rockbox"
+```
+
+## All UPnP keys
+
+| Key                        | Default      | Description                                    |
+|----------------------------|--------------|------------------------------------------------|
+| `audio_output = "upnp"`    | —            | Enable the PCM → WAV streaming sink            |
+| `upnp_renderer_url`        | —            | AVTransport controlURL of the target renderer  |
+| `upnp_http_port`           | `7879`       | WAV broadcast HTTP port                        |
+| `upnp_server_enabled`      | `false`      | Start the ContentDirectory media server        |
+| `upnp_server_port`         | `7878`       | Media server HTTP port                         |
+| `upnp_renderer_enabled`    | `false`      | Start the MediaRenderer endpoint               |
+| `upnp_renderer_port`       | `7880`       | MediaRenderer HTTP port                        |
+| `upnp_friendly_name`       | `"Rockbox"`  | Display name shown to control points           |
+
+## Typical setups
+
+<AccordionGroup>
+  <Accordion title="Stream to Kodi (sink mode)">
+    Find Kodi's AVTransport URL with `RUST_LOG=info rockboxd`, then:
+    ```toml
+    audio_output      = "upnp"
+    upnp_renderer_url = "http://192.168.1.42:7777/AVTransport/control"
+    ```
+  </Accordion>
+  <Accordion title="Library on the LAN (server mode)">
+    ```toml
+    audio_output         = "builtin"
+    upnp_server_enabled  = true
+    upnp_friendly_name   = "Living-room music"
+    ```
+  </Accordion>
+  <Accordion title="Phone control (renderer mode)">
+    ```toml
+    audio_output           = "builtin"
+    upnp_renderer_enabled  = true
+    upnp_friendly_name     = "Rockbox"
+    ```
+    Now BubbleUPnP can pick "Rockbox" as the playback target.
+  </Accordion>
+</AccordionGroup>

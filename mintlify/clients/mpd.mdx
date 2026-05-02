@@ -1,0 +1,65 @@
+---
+title: "MPD clients"
+description: "Rockbox speaks the Music Player Daemon protocol on port 6600."
+icon: 'terminal'
+---
+
+`rockboxd` runs a built-in MPD server on port **6600**, so any of the dozens
+of MPD clients work out of the box — `mpc`, `ncmpcpp`, MALP, M.A.L.P.,
+Cantata, Mopidy, Volumio's UI, etc.
+
+```sh
+mpc -h localhost -p 6600 status
+mpc -h localhost -p 6600 update
+mpc -h localhost -p 6600 search title "money"
+mpc -h localhost -p 6600 add /Music/Pink\ Floyd/Money.mp3
+mpc -h localhost -p 6600 play
+```
+
+## Compatibility
+
+The implementation lives in `crates/mpd/`. It targets the standard MPD
+protocol version. Coverage:
+
+- ✅ Status, current/next song, elapsed time
+- ✅ Playback control: play/pause/next/previous/seek/stop
+- ✅ Queue (`add`, `addid`, `delete`, `clear`, `shuffle`, `move`)
+- ✅ Library (`list`, `find`, `search`, `lsinfo`)
+- ✅ Saved playlists (`load`, `save`, `rm`, `playlistadd`)
+- ✅ Volume, repeat, random, single, consume
+- ✅ `idle` notifications (player, playlist, mixer, etc.)
+- ⚠️ Sticker database — partial
+- ⚠️ Outputs — single output exposed (the active sink)
+
+## Configuring the bind address
+
+```toml
+mpd_host = "0.0.0.0"
+mpd_port = 6600
+```
+
+## Recommended clients
+
+| Client       | Platform              | Notes                                     |
+|--------------|-----------------------|-------------------------------------------|
+| `mpc`        | CLI                   | Scripting, smoke-testing                  |
+| `ncmpcpp`    | TUI                   | The classic terminal client               |
+| MALP         | Android               | Material Design, modern feel              |
+| M.A.L.P.     | Android (F-Droid)     | F-Droid build of MALP                     |
+| Cantata      | Linux / Windows / macOS | Full GUI client                          |
+| Mopidy       | Linux                 | Acts as an MPD-compatible aggregator      |
+
+## Idle subscriptions
+
+```sh
+mpc -h localhost -p 6600 idle player playlist mixer
+```
+
+Returns one event per change. The `subscribe`/`channels` channel commands
+are also implemented for client-to-client messaging.
+
+## Library updates
+
+`update` triggers a full rescan of `music_dir` exactly like the
+[GraphQL `scanLibrary` mutation](/api-reference/graphql/library). New files
+appear in MPD listings as soon as the scan finishes.

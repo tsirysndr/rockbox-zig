@@ -1,0 +1,61 @@
+---
+title: "API overview"
+description: "Four protocols, one source of truth — pick whichever fits your client."
+icon: 'plug'
+---
+
+`rockboxd` exposes the same in-process state through four independent
+servers. They are all started by `start_servers()` in
+`crates/server/src/lib.rs` and all share one set of mutexes around the
+firmware, so a change made via gRPC is immediately visible over GraphQL,
+HTTP and MPD.
+
+| Protocol     | Default port | Use it for                                            |
+|--------------|--------------|-------------------------------------------------------|
+| **HTTP REST**  | 6063         | `curl`-able. Simple integrations, scripts, webhooks. |
+| **GraphQL**    | 6062         | Best fit for UIs. Subscriptions for real-time events.|
+| **gRPC**       | 6061         | Strongly-typed, multi-language. gRPC-Web supported.  |
+| **MPD**        | 6600         | Existing MPD clients (`mpc`, `ncmpcpp`, MALP, …).    |
+
+<CardGroup cols={2}>
+  <Card title="HTTP REST" icon="bolt" href="/api-reference/rest/overview">
+    Open `http://localhost:6063` and explore.
+  </Card>
+  <Card title="GraphQL" icon="code" href="/api-reference/graphql/overview">
+    GraphiQL at `http://localhost:6062/graphiql`.
+  </Card>
+  <Card title="gRPC" icon="cube" href="/api-reference/grpc/overview">
+    Schema published on Buf.
+  </Card>
+  <Card title="MPD" icon="terminal" href="/api-reference/mpd/overview">
+    Anything that speaks MPD on `localhost:6600`.
+  </Card>
+</CardGroup>
+
+## Auto-generated REST pages
+
+Every endpoint in the [HTTP REST API](/api-reference/rest/overview) has its
+own page generated from the canonical OpenAPI spec
+([`openapi.json`](https://github.com/tsirysndr/rockbox-zig/blob/master/crates/server/openapi.json)).
+The spec is also served live at `http://localhost:6063/openapi.json` while
+rockboxd is running.
+
+## Authentication
+
+All four servers are unauthenticated. They are intended for use on a
+trusted LAN. If you expose Rockbox publicly, put it behind a reverse
+proxy with TLS and HTTP basic auth.
+
+## Pick a client SDK
+
+We maintain six first-party SDKs. They wrap the GraphQL transport with
+typed methods, real-time subscriptions and a plugin system.
+
+<CardGroup cols={3}>
+  <Card title="TypeScript" icon="js" href="/sdks/typescript" />
+  <Card title="Python" icon="python" href="/sdks/python" />
+  <Card title="Ruby" icon="gem" href="/sdks/ruby" />
+  <Card title="Elixir" icon="droplet" href="/sdks/elixir" />
+  <Card title="Clojure" icon="lambda" href="/sdks/clojure" />
+  <Card title="Gleam" icon="star" href="/sdks/gleam" />
+</CardGroup>

@@ -1,0 +1,158 @@
+---
+title: "settings.toml reference"
+description: "Every key Rockbox reads from ~/.config/rockbox.org/settings.toml."
+icon: 'file-code'
+---
+
+This is the canonical list of keys recognised by `rockbox_settings::load_settings()`.
+Keys not listed here are ignored.
+
+## Core
+
+| Key            | Type    | Default     | Description                                      |
+|----------------|---------|-------------|--------------------------------------------------|
+| `music_dir`    | string  | —           | Absolute path to your music library              |
+| `audio_output` | string  | `"builtin"` | `builtin` / `fifo` / `airplay` / `squeezelite` / `chromecast` / `snapcast_tcp` / `upnp` |
+| `player_name`  | string  | `""`        | Name advertised to MPD clients and the UI        |
+
+## FIFO / pipe sink
+
+| Key         | Type   | Default        | Description                                |
+|-------------|--------|----------------|--------------------------------------------|
+| `fifo_path` | string | `/tmp/rockbox.fifo` | Named FIFO path, or `"-"` for stdout  |
+
+## Snapcast TCP sink
+
+| Key                  | Type   | Default        | Description                              |
+|----------------------|--------|----------------|------------------------------------------|
+| `snapcast_tcp_host`  | string | —              | snapserver host                          |
+| `snapcast_tcp_port`  | int    | `4953`         | snapserver TCP source port               |
+
+## AirPlay sink
+
+| Key                   | Type            | Default | Description                                 |
+|-----------------------|-----------------|---------|---------------------------------------------|
+| `airplay_host`        | string          | —       | Single receiver IP                          |
+| `airplay_port`        | int             | `5000`  | Single receiver port                        |
+| `airplay_receivers`   | array of tables | —       | Multi-room. Each entry: `host`, optional `port` |
+
+```toml
+[[airplay_receivers]]
+host = "192.168.1.50"
+
+[[airplay_receivers]]
+host = "192.168.1.51"
+port = 5000
+```
+
+## Squeezelite sink
+
+| Key                       | Type | Default | Description                          |
+|---------------------------|------|---------|--------------------------------------|
+| `squeezelite_port`        | int  | `3483`  | Slim Protocol TCP port               |
+| `squeezelite_http_port`   | int  | `9999`  | HTTP PCM broadcast port              |
+
+## Chromecast sink
+
+| Key                      | Type    | Default | Description                         |
+|--------------------------|---------|---------|-------------------------------------|
+| `chromecast_host`        | string  | —       | Target Chromecast IP                |
+| `chromecast_port`        | int     | `8009`  | Cast control port                   |
+| `chromecast_http_port`   | int     | `7881`  | WAV HTTP stream port                |
+
+## UPnP
+
+| Key                      | Type    | Default     | Description                                |
+|--------------------------|---------|-------------|--------------------------------------------|
+| `upnp_renderer_url`      | string  | —           | AVTransport controlURL of the target renderer |
+| `upnp_http_port`         | int     | `7879`      | WAV broadcast HTTP port (sink mode)        |
+| `upnp_server_enabled`    | bool    | `false`     | Start the ContentDirectory media server    |
+| `upnp_server_port`       | int     | `7878`      | Media server HTTP port                     |
+| `upnp_renderer_enabled`  | bool    | `false`     | Start the MediaRenderer endpoint           |
+| `upnp_renderer_port`     | int     | `7880`      | MediaRenderer HTTP port                    |
+| `upnp_friendly_name`     | string  | `"Rockbox"` | Display name shown to control points       |
+
+## Playback defaults
+
+| Key                | Type    | Default | Description                                    |
+|--------------------|---------|---------|------------------------------------------------|
+| `playlist_shuffle` | bool    | `false` |                                                |
+| `repeat_mode`      | int     | `1`     | 0=Off 1=All 2=One 3=Shuffle 4=A-B              |
+| `party_mode`       | bool    | `true`  |                                                |
+
+## Tone, stereo & channels
+
+| Key                | Type   | Default | Description                                      |
+|--------------------|--------|---------|--------------------------------------------------|
+| `bass`             | int    | `0`     | dB                                               |
+| `treble`           | int    | `0`     | dB                                               |
+| `bass_cutoff`      | int    | `0`     | Hz                                               |
+| `treble_cutoff`    | int    | `0`     | Hz                                               |
+| `balance`          | int    | `0`     | −100..+100                                       |
+| `stereo_width`     | int    | `100`   | 0..255 % (when `channel_config = Custom`)        |
+| `stereosw_mode`    | int    | `0`     |                                                  |
+| `channel_config`   | int    | `0`     | 0=Stereo 1=Mono 2=Custom 3=ML 4=MR 5=Karaoke 6=Swap |
+
+## Surround
+
+| Key                  | Type | Default | Description                       |
+|----------------------|------|---------|-----------------------------------|
+| `surround_enabled`   | int  | `0`     | 0/5/8/10/15/30 ms (0=off)         |
+| `surround_balance`   | int  | `0`     | 0..99 %                           |
+| `surround_fx1`       | int  | `0`     | HF cutoff, Hz                     |
+| `surround_fx2`       | int  | `0`     | LF cutoff, Hz                     |
+| `surround_method2`   | bool | `false` | Side-only processing              |
+| `surround_mix`       | int  | `0`     | 0..100 %                          |
+
+## Crossfade
+
+```toml
+crossfade           = 5
+fade_on_stop        = false
+fade_in_delay       = 2
+fade_in_duration    = 7
+fade_out_delay      = 4
+fade_out_duration   = 0
+fade_out_mixmode    = 2
+```
+
+## Equalizer
+
+```toml
+eq_enabled = true
+eq_precut  = 3            # dB headroom
+
+[[eq_band_settings]]
+cutoff = 0   # Hz (per-band)
+q      = 64  # × 10 fixed-point
+gain   = 10  # × 10 dB fixed-point
+
+# repeat for each of the 10 bands
+```
+
+## ReplayGain
+
+```toml
+[replaygain_settings]
+type   = 0    # 0=Track 1=Album 2=Track shuffle 3=Off
+noclip = true
+preamp = 0    # × 10 dB fixed-point
+```
+
+## Compressor
+
+```toml
+[compressor_settings]
+threshold    = -24   # dB
+makeup_gain  = 0
+ratio        = 4
+knee         = 1
+release_time = 300   # ms
+attack_time  = 5     # ms
+```
+
+## Where it's parsed
+
+The file is read by `rockbox_settings::load_settings()` in
+`crates/settings/src/lib.rs`. Unknown keys are silently ignored, so
+typos won't crash startup — but they also won't take effect.

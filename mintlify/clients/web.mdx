@@ -1,0 +1,47 @@
+---
+title: "Web UI"
+description: "Browser-based controller served by rockboxd on port 6062."
+icon: 'globe'
+---
+
+The web UI is a React app served from the GraphQL HTTP listener. Open
+[http://localhost:6062](http://localhost:6062) once `rockboxd` is running.
+
+## Features
+
+- Browse artists, albums and tracks from the tag database
+- Browse the filesystem under `music_dir`
+- Search powered by Typesense (instant results as you type)
+- Manage the live playback queue and saved playlists
+- Reorder, shuffle, repeat
+- Like / unlike tracks and albums
+- Pick the active output device (Chromecast, AirPlay, Snapcast TCP, …)
+- Real-time "now playing" updates over a GraphQL subscription
+
+## Building from source
+
+The web UI ships pre-built with the `rockboxd` binary, but you can rebuild
+it locally:
+
+```sh
+cd webui/rockbox
+deno install
+deno run build
+```
+
+The result lands in `webui/rockbox/build/` and is embedded into rockboxd at
+link time.
+
+## Customising the bind address
+
+```toml
+graphql_host = "0.0.0.0"   # default 0.0.0.0
+graphql_port = 6062        # default 6062
+```
+
+Restart rockboxd, then reach the UI at `http://<host>:<port>`.
+
+## Storybook
+
+Component-level documentation is on Chromatic:
+[storybook ↗](https://master--670ceec25af685dcdc87c0df.chromatic.com/?path=/story/components-albums--default).

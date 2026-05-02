@@ -1,0 +1,29 @@
+---
+title: "MPD protocol"
+description: "Drop-in MPD server on port 6600 — works with every MPD client."
+icon: 'terminal'
+---
+
+`rockboxd` runs a Music Player Daemon-compatible server on **port 6600**.
+Any MPD client works out of the box.
+
+```sh
+mpc -h localhost -p 6600 status
+mpc -h localhost -p 6600 update
+mpc -h localhost -p 6600 search title "Money"
+mpc -h localhost -p 6600 play
+```
+
+For the full client list and known limitations, see
+[Clients › MPD](/clients/mpd). For the wire protocol reference itself,
+see the [official MPD documentation ↗](https://mpd.readthedocs.io/en/stable/protocol.html).
+
+## When to choose MPD over the others
+
+- You already have an MPD client you like.
+- You want a stable wire protocol with decades of community libraries.
+- You want to drive Rockbox from a TUI like `ncmpcpp`.
+
+For everything else — programmatic control, real-time UIs, custom apps —
+you'll have a better time with [GraphQL](/api-reference/graphql/overview)
+or one of the [SDKs](/sdks/overview).

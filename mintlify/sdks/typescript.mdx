@@ -1,0 +1,168 @@
+---
+title: "TypeScript"
+description: "Fully typed GraphQL client with real-time subscriptions and a plugin system."
+icon: 'js'
+---
+
+```sh
+bun add @rockbox-zig/sdk
+# or
+npm install @rockbox-zig/sdk
+```
+
+`rockboxd` must be running and reachable. By default the SDK connects to
+`http://localhost:6062/graphql`.
+
+## Quick start
+
+```ts
+import { RockboxClient, PlaybackStatus } from '@rockbox-zig/sdk';
+
+const client = new RockboxClient();
+
+client.connect();   // optional — opens the WebSocket
+
+const track = await client.playback.currentTrack();
+if (track) console.log(`Now playing: ${track.title} — ${track.artist}`);
+
+const { albums } = await client.library.search('dark side');
+await client.playback.playAlbum(albums[0].id, { shuffle: true });
+
+client.on('track:changed', (t) => console.log(`▶ ${t.title} by ${t.artist}`));
+
+client.disconnect();
+```
+
+## Configuration
+
+```ts
+new RockboxClient();                                       // localhost:6062
+new RockboxClient({ host: '192.168.1.42', port: 6062 });
+new RockboxClient({                                        // behind a reverse proxy
+  httpUrl: 'https://music.home/graphql',
+  wsUrl:   'wss://music.home/graphql',
+});
+```
+
+| Option    | Default                        | Description                          |
+|-----------|--------------------------------|--------------------------------------|
+| `host`    | `localhost`                    | Hostname or IP of rockboxd           |
+| `port`    | `6062`                         | GraphQL port                         |
+| `httpUrl` | `http://{host}:{port}/graphql` | Override the full HTTP URL           |
+| `wsUrl`   | `ws://{host}:{port}/graphql`   | Override the full WebSocket URL      |
+
+## Domains
+
+| Namespace                | What it does                                     |
+|--------------------------|--------------------------------------------------|
+| `client.playback`        | Transport, current/next track, play helpers      |
+| `client.library`         | Albums, artists, tracks, search, likes, scan     |
+| `client.playlist`        | The active queue                                 |
+| `client.savedPlaylists`  | Persistent playlists & folders                   |
+| `client.smartPlaylists`  | Rule-based playlists & listening stats           |
+| `client.sound`           | Volume control                                   |
+| `client.settings`        | Global EQ / ReplayGain / crossfade / shuffle / … |
+| `client.system`          | Version, runtime info                            |
+| `client.browse`          | Filesystem browser                               |
+| `client.devices`         | Cast / source device discovery                   |
+
+## Playback shortcuts
+
+```ts
+await client.playback.playTrack('/Music/Pink Floyd/Wish You Were Here.mp3');
+await client.playback.playAlbum('album-id', { shuffle: true });
+await client.playback.playAlbum('album-id', { position: 3 });
+await client.playback.playArtist('artist-id', { shuffle: true });
+await client.playback.playPlaylist('playlist-id', { shuffle: true });
+await client.playback.playDirectory('/Music/Jazz', { recurse: true, shuffle: true });
+await client.playback.playLikedTracks({ shuffle: true });
+await client.playback.playAllTracks({ shuffle: true });
+```
+
+## Queue management
+
+```ts
+import { InsertPosition } from '@rockbox-zig/sdk';
+
+await client.playlist.insertTracks(
+  ['/Music/track1.mp3', '/Music/track2.mp3'],
+  InsertPosition.Next,
+);
+await client.playlist.insertTracks(paths, InsertPosition.Last);
+await client.playlist.insertTracks(paths, InsertPosition.First);   // replace
+await client.playlist.insertDirectory('/Music/Ambient', InsertPosition.Last);
+await client.playlist.insertAlbum('album-id', InsertPosition.Next);
+await client.playlist.removeTrack(2);
+await client.playlist.clear();
+await client.playlist.shuffle();
+```
+
+| `InsertPosition` | Effect                                 |
+|------------------|----------------------------------------|
+| `Next`           | After the currently playing track      |
+| `AfterCurrent`   | After the last manually inserted track |
+| `Last`           | At the end of the queue                |
+| `First`          | Replace the entire queue               |
+
+## Real-time events
+
+```ts
+client.connect();
+
+client.on('track:changed',    (t) => updateNowPlaying(t));
+client.on('status:changed',   (s) => setStatusBadge(s));
+client.on('playlist:changed', (q) => renderQueue(q.tracks));
+
+client.on('ws:error', (err) => console.error(err.message));
+client.once('track:changed', (t) => console.log('first event:', t.title));
+
+client.off('track:changed', handler);
+```
+
+## Plugins
+
+Drop-in cross-cutting features. Inspired by Jellyfin's `IPlugin`.
+
+```ts
+import type { RockboxPlugin } from '@rockbox-zig/sdk';
+
+export const Notifications: RockboxPlugin = {
+  name: 'desktop-notifications',
+  version: '1.0.0',
+
+  install({ events }) {
+    if (typeof Notification === 'undefined') return;
+    Notification.requestPermission();
+    events.on('track:changed', (t) => {
+      new Notification(t.title, { body: `${t.artist} · ${t.album}`, icon: t.albumArt ?? undefined });
+    });
+  },
+};
+
+await client.use(Notifications);
+client.installedPlugins().forEach((p) => console.log(`${p.name} v${p.version}`));
+await client.unuse('desktop-notifications');
+```
+
+## Error handling
+
+```ts
+import { RockboxNetworkError, RockboxGraphQLError, RockboxError } from '@rockbox-zig/sdk';
+
+try {
+  await client.playback.play();
+} catch (err) {
+  if (err instanceof RockboxNetworkError)  showOfflineBanner(err.message);
+  else if (err instanceof RockboxGraphQLError) console.error(err.errors);
+  else if (err instanceof RockboxError)    console.error('Rockbox error:', err.message);
+}
+```
+
+## Raw queries
+
+```ts
+const data = await client.query<{ rockboxVersion: string }>(`query { rockboxVersion }`);
+```
+
+Full reference, more examples and the plugin system deep-dive: see the
+[SDK README on GitHub ↗](https://github.com/tsirysndr/rockbox-zig/blob/master/sdk/typescript/README.md).

@@ -1,0 +1,99 @@
+---
+title: "GraphQL"
+description: "Single endpoint with queries, mutations and real-time subscriptions on port 6062."
+icon: 'code'
+---
+
+The GraphQL server is the **best fit for UIs**: typed schema, batched
+queries, and a `track:changed` / `status:changed` / `playlist:changed`
+subscription stream over WebSocket.
+
+- **Endpoint** — `http://localhost:6062/graphql`
+- **WebSocket** — `ws://localhost:6062/graphql` (`graphql-ws` protocol)
+- **GraphiQL** — `http://localhost:6062/graphiql`
+
+The schema is generated from `crates/graphql/` and served by Juniper. All
+client SDKs in [SDKs](/sdks/overview) wrap this transport.
+
+## Quick examples
+
+<CodeGroup>
+```graphql Now playing
+query NowPlaying {
+  currentTrack {
+    title
+    artist
+    album
+    elapsed
+    length
+  }
+  playbackStatus { status }
+}
+```
+
+```graphql Search
+query Search($q: String!) {
+  search(term: $q) {
+    artists { name id }
+    albums  { title artist year id }
+    tracks  { title artist album id }
+  }
+}
+```
+
+```graphql Play an album
+mutation PlayAlbum($id: String!) {
+  playAlbum(albumId: $id, shuffle: false)
+}
+```
+
+```graphql Subscribe to track changes
+subscription OnTrack {
+  track {
+    title
+    artist
+    elapsed
+    length
+  }
+}
+```
+</CodeGroup>
+
+## Subscriptions
+
+Three subscriptions are exposed:
+
+| Subscription            | Payload                       | Fires when                               |
+|-------------------------|-------------------------------|------------------------------------------|
+| `track`                 | `Track`                       | The currently playing track changes      |
+| `playbackStatus`        | `AudioStatus { status: Int }` | Stopped/playing/paused changes           |
+| `playlist`              | `Playlist`                    | The live queue is mutated                |
+
+All three are pushed by the broker loop in `crates/server/src/lib.rs:start_broker()`.
+
+## Connecting from a browser
+
+```ts
+import { RockboxClient } from '@rockbox-zig/sdk';
+
+const client = new RockboxClient();
+client.connect();
+
+client.on('track:changed', (t) => {
+  document.title = `${t.title} — ${t.artist}`;
+});
+```
+
+For language-specific guides, see [SDKs](/sdks/overview).
+
+## Schema introspection
+
+GraphiQL ships pre-installed at
+[http://localhost:6062/graphiql](http://localhost:6062/graphiql) — every
+type, every field, every argument.
+
+You can also dump the schema directly:
+
+```sh
+npx graphql-cli get-schema -e http://localhost:6062/graphql > schema.graphql
+```

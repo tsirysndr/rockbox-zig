@@ -1,0 +1,82 @@
+---
+title: "Elixir"
+description: "Idiomatic Elixir SDK — pipe-friendly, builder-friendly, with messages-as-events."
+icon: 'droplet'
+---
+
+```elixir
+def deps do
+  [{:rockbox_ex, "~> 0.1"}]
+end
+```
+
+## Quick start
+
+```elixir
+client = Rockbox.new()
+
+# Optional: opens the WebSocket so subscribers receive events
+{:ok, _pid} = Rockbox.connect(client)
+
+case Rockbox.Playback.current_track(client) do
+  {:ok, %Rockbox.Track{} = t} -> IO.puts("▶ #{t.title} — #{t.artist}")
+  {:ok, nil}                  -> IO.puts("Nothing is playing.")
+end
+
+{:ok, results} = Rockbox.Library.search(client, "dark side")
+album = List.first(results.albums)
+:ok = Rockbox.Playback.play_album(client, album.id, shuffle: true)
+
+# Events arrive as messages
+:ok = Rockbox.subscribe(:track_changed)
+
+receive do
+  {:rockbox, :track_changed, track} ->
+    IO.puts("Now: #{track.title}")
+end
+
+Rockbox.disconnect(client)
+```
+
+## Configure
+
+```elixir
+client = Rockbox.new()                                       # localhost:6062
+client = Rockbox.new(host: "192.168.1.42", port: 6062)
+client = Rockbox.new(
+  http_url: "https://music.home/graphql",
+  ws_url:   "wss://music.home/graphql"
+)
+```
+
+## Highlights
+
+- **Pipe-friendly** — every API function takes the client as its first arg.
+- **Builder-friendly** — smart-playlist rules and partial settings updates compose with `|>`.
+- **Tagged tuples or bangs** — `name/N → {:ok, value} | {:error, exception}`,
+  with a matching `name!/N` that raises.
+- **Real-time events as messages** — `Rockbox.subscribe(:track_changed)` and
+  receive `{:rockbox, :track_changed, %Rockbox.Track{}}`.
+- **Plugins** — implement `Rockbox.Plugin` and install with
+  `Rockbox.use_plugin/2`.
+
+## API surface
+
+```elixir
+Rockbox.Playback.*       # transport, current/next track, play helpers
+Rockbox.Library.*        # albums, artists, tracks, search, likes
+Rockbox.Queue.*          # live queue
+Rockbox.SavedPlaylists.* # persistent playlists
+Rockbox.SmartPlaylists.* # rule-based playlists
+Rockbox.Sound.*          # volume
+Rockbox.Settings.*       # EQ / ReplayGain / crossfade / …
+Rockbox.System.*         # version, status
+Rockbox.Browse.*         # filesystem
+Rockbox.Devices.*        # output devices
+Rockbox.Bluetooth.*      # Linux only
+```
+
+## More
+
+Full reference and rule-builder DSL: see the
+[Elixir SDK README on GitHub ↗](https://github.com/tsirysndr/rockbox-zig/blob/master/sdk/elixir/README.md).

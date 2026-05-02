@@ -1,0 +1,98 @@
+---
+title: "Architecture"
+description: "How Rockbox C, Rust and Zig fit together inside one rockboxd binary."
+icon: 'sitemap'
+---
+
+```text
+┌──────────────────────────────────────────────────────────────────────┐
+│  Clients         Web UI · GTK · GPUI · TUI · REPL · MPD · MPRIS       │
+├──────────────────────────────────────────────────────────────────────┤
+│  Protocols       gRPC :6061  GraphQL :6062  REST :6063  MPD :6600    │
+├──────────────────────────────────────────────────────────────────────┤
+│  Rust services   playback · library · settings · search · playlists  │
+│                  airplay · slim · chromecast · upnp · netstream      │
+├──────────────────────────────────────────────────────────────────────┤
+│  Rockbox C       audio engine · DSP · codecs · tag database          │
+├──────────────────────────────────────────────────────────────────────┤
+│  PCM sinks       builtin · fifo · airplay · squeezelite · chromecast │
+│                  snapcast_tcp · upnp                                  │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+The entire system ships as **one binary**, `rockboxd`, produced by Zig's
+linker. There's no separate "rockbox-server" service, no per-feature
+sidecar, no IPC.
+
+## What links into the binary
+
+| Artifact                                | Built by | Notes                                       |
+|-----------------------------------------|----------|---------------------------------------------|
+| `build-lib/libfirmware.a`               | Make     | Rockbox C audio engine + DSP                |
+| `build-lib/librockbox.a`                | Make     | App layer (playlist, database, plugins)     |
+| Codec libraries (`librbcodec.a`, …)     | Make     | rbcodec + fixedpoint + skin parser          |
+| `target/release/librockbox_cli.a`       | Cargo    | CLI entry point + Rust output sinks         |
+| `target/release/librockbox_server.a`    | Cargo    | gRPC, GraphQL, HTTP, MPD servers            |
+| SDL2                                    | system   | Audio/event handling on hosted targets      |
+
+The Zig build script (`zig/build.zig`) glues them together, ensuring force-included symbols stay in the staticlib through the link.
+
+## Repository layout
+
+```text
+firmware/          Rockbox C firmware (audio engine, codecs, DSP)
+apps/              Rockbox application layer (playlist, database, plugins)
+lib/               Codec libraries (rbcodec, fixedpoint, skin_parser, tlsf)
+build-lib/         Out-of-tree Make build directory (generated; do not edit)
+crates/            Rust workspace
+  airplay/         ALAC encoder + RAOP/RTP sender
+  slim/            Slim Protocol + HTTP broadcast (squeezelite multi-room)
+  cli/             Compiled to librockbox_cli.a (staticlib)
+  server/          gRPC / HTTP server
+  settings/        load_settings() — reads settings.toml, applies sinks
+  sys/             FFI bindings to the C firmware
+  library/         SQLite library management
+  typesense/       Typesense client for search
+  netstream/       HTTP streaming (Range-request fd multiplexing)
+  chromecast/      Chromecast output
+  rpc/             gRPC definitions / generated code
+  graphql/         GraphQL schema and resolvers
+  mpd/             MPD protocol server
+  mpris/           MPRIS D-Bus integration
+  tracklist/       Playlist / tracklist management
+  upnp/            UPnP/DLNA support
+  types/           Shared Rust types
+  traits/          Shared Rust traits
+zig/               Zig build script and thin main.zig entry point
+sdk/               Client SDKs (TypeScript, Python, Ruby, Elixir, Clojure, Gleam)
+webui/rockbox/     React-based web UI (built into the binary)
+gpui/, gtk/        Native desktop apps
+```
+
+## Cross-cutting concerns
+
+### macOS SDL audio
+
+`SDL_InitSubSystem(SDL_INIT_AUDIO)` is called explicitly on macOS because
+Apple's SDL event thread doesn't do it automatically. Lives in
+`firmware/target/hosted/sdl/system-sdl.c`.
+
+### SIGTERM handling
+
+`crates/cli/src/lib.rs` overrides SIGTERM/SIGINT to kill the typesense
+child process and `_exit(0)`. The default Rockbox handler in
+`system-hosted.c` would otherwise loop forever waiting for an SDL quit
+event.
+
+### Typesense subprocess
+
+Typesense is spawned with `Stdio::piped()` and its stdout/stderr lines are
+forwarded to `tracing` in background threads — this keeps the PCM stdout
+stream clean when running in `fifo_path = "-"` mode.
+
+### HTTP streaming for cloud sources
+
+HTTP file descriptors are encoded as values `≤ -1000` (the
+`STREAM_HTTP_FD_BASE` constant). `stream_open/read/lseek/close` in
+`crates/netstream/` dispatch between HTTP and POSIX based on fd value, so
+the rest of the firmware doesn't know it's reading from the network.

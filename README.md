@@ -610,3 +610,23 @@ Try it live with
 <p style="margin-top: 20px; margin-bottom: 20px;">
  <img src="./docs/grpc.png" width="100%" />
 </p>
+
+---
+
+## 📖 Documentation
+
+Full guides, configuration reference, audio-output setup, API reference, and
+SDK docs are published at:
+
+**[👉 View full documentation](https://rockboxzig.mintlify.app)**
+
+The Mintlify source lives in [`mintlify/`](./mintlify/). Topics covered:
+
+- **Getting started** — install, quickstart, configuration
+- **Audio output** — built-in SDL, Snapcast, AirPlay, Squeezelite, Chromecast, UPnP
+- **Audio settings** — parametric EQ, DSP, ReplayGain, crossfade
+- **Clients** — web UI, desktop apps, MPD, MPRIS
+- **API reference** — HTTP REST (auto-generated from OpenAPI), GraphQL, gRPC, MPD
+- **SDKs** — TypeScript, Python, Ruby, Elixir, Clojure, Gleam
+- **Architecture** — build system, PCM sinks, cross-cutting concerns
+- **Reference** — `rockbox` and `rockboxd` CLI, ports, `settings.toml`, troubleshooting, FAQ

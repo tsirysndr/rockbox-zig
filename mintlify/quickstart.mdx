@@ -1,0 +1,150 @@
+---
+title: "Quickstart"
+description: "Install Rockbox, point it at your music, and play your first track."
+icon: 'rocket'
+---
+
+This guide gets you from zero to a running `rockboxd` with a usable web UI in
+about five minutes.
+
+## 1. Install
+
+<Tabs>
+  <Tab title="macOS">
+    Download the latest `.pkg` for your architecture from the
+    [Releases page](https://github.com/tsirysndr/rockbox-zig/releases/latest)
+    and double-click to install.
+
+    Or via the universal installer:
+
+    ```sh
+    curl -fsSL https://raw.githubusercontent.com/tsirysndr/rockbox-zig/HEAD/install.sh | bash
+    ```
+  </Tab>
+  <Tab title="Ubuntu / Debian">
+    ```sh
+    echo "deb [trusted=yes] https://apt.fury.io/tsiry/ /" | sudo tee /etc/apt/sources.list.d/fury.list
+    sudo apt-get update
+    sudo apt-get install rockbox
+    ```
+  </Tab>
+  <Tab title="Fedora">
+    Add `/etc/yum.repos.d/fury.repo`:
+
+    ```ini
+    [fury]
+    name=Gemfury Private Repo
+    baseurl=https://yum.fury.io/tsiry/
+    enabled=1
+    gpgcheck=0
+    ```
+
+    Then:
+
+    ```sh
+    sudo dnf install rockbox
+    ```
+  </Tab>
+  <Tab title="Arch Linux">
+    ```sh
+    paru -S rockbox-zig-bin
+    ```
+  </Tab>
+  <Tab title="Docker">
+    ```sh
+    docker run --rm -it \
+      -p 6060-6063:6060-6063 \
+      -p 6600:6600 \
+      -v $HOME/Music:/music \
+      -v $HOME/.config/rockbox.org:/root/.config/rockbox.org \
+      tsiry/rockbox
+    ```
+  </Tab>
+</Tabs>
+
+For full distribution coverage, build instructions and Docker images, see
+[Installation](/installation).
+
+## 2. Point it at your music
+
+Create `~/.config/rockbox.org/settings.toml`:
+
+```toml
+music_dir    = "/path/to/your/Music"
+audio_output = "builtin"
+```
+
+That's the minimum. `music_dir` is the only required field; everything else
+has sensible defaults. See [Configuration](/configuration) for the full list.
+
+## 3. Start `rockboxd`
+
+```sh
+rockbox start
+```
+
+You should see logs like:
+
+```
+INFO  rockbox-cli  rockboxd starting...
+INFO  rockbox-cli  graphql server listening on :6062
+INFO  rockbox-cli  http server listening on :6063
+INFO  rockbox-cli  mpd server listening on :6600
+INFO  rockbox-cli  grpc server listening on :6061
+```
+
+## 4. Open a client
+
+<CardGroup cols={2}>
+  <Card title="Web UI" icon="globe" href="http://localhost:6062">
+    Browse your library and control playback at
+    [http://localhost:6062](http://localhost:6062).
+  </Card>
+  <Card title="GraphiQL" icon="code" href="http://localhost:6062/graphiql">
+    Explore the API live at
+    [http://localhost:6062/graphiql](http://localhost:6062/graphiql).
+  </Card>
+  <Card title="MPD client" icon="terminal">
+    Point any MPD client (`ncmpcpp`, `mpc`, MALP, etc.) at `localhost:6600`.
+  </Card>
+  <Card title="HTTP REST" icon="bolt" href="http://localhost:6063">
+    Quick `curl` testing — see the REST overview.
+  </Card>
+</CardGroup>
+
+## 5. Play something
+
+From the web UI, search for a track and hit play. From the terminal:
+
+```sh
+mpc -h localhost -p 6600 update
+mpc -h localhost -p 6600 search title "money"
+mpc -h localhost -p 6600 play
+```
+
+Or with the [TypeScript SDK](/sdks/typescript):
+
+```ts
+import { RockboxClient } from '@rockbox-zig/sdk';
+
+const client = new RockboxClient();
+const { albums } = await client.library.search('dark side');
+await client.playback.playAlbum(albums[0].id, { shuffle: true });
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Configure" icon="sliders" href="/configuration">
+    `settings.toml` reference — every key, every default.
+  </Card>
+  <Card title="Audio output" icon="speaker" href="/audio-output/overview">
+    Send audio to AirPlay, Snapcast, Squeezelite, Chromecast or UPnP.
+  </Card>
+  <Card title="Pick an SDK" icon="code" href="/sdks/overview">
+    Build clients in TypeScript, Python, Ruby, Elixir, Clojure or Gleam.
+  </Card>
+  <Card title="FAQ" icon="circle-question" href="/reference/faq">
+    Common gotchas and how to fix them.
+  </Card>
+</CardGroup>

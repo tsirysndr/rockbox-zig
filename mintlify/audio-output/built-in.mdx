@@ -1,0 +1,52 @@
+---
+title: "Built-in (SDL)"
+description: "The default. SDL2 audio to your OS default device."
+icon: 'volume-high'
+---
+
+The built-in sink uses **SDL2** to play audio through your operating system's
+default audio device. This is the default and needs no setup beyond installing
+Rockbox.
+
+```toml
+music_dir    = "/path/to/Music"
+audio_output = "builtin"
+```
+
+## Selecting the output device
+
+SDL plays through whichever device the OS reports as default. To change it,
+use your platform's audio settings:
+
+- **macOS** — System Settings › Sound › Output
+- **Linux (PipeWire / PulseAudio)** — `pavucontrol` or your DE's sound applet
+- **Windows** — Sound settings › Output
+
+There is no per-application device picker built into Rockbox for the SDL sink.
+If you need multi-device routing on Linux, point Rockbox at a PulseAudio
+*null sink* and route from there.
+
+## macOS-specific notes
+
+`SDL_InitSubSystem(SDL_INIT_AUDIO)` is called explicitly on macOS. On other
+platforms the SDL event thread initialises audio; Apple's event thread
+doesn't, so Rockbox compensates. You shouldn't have to do anything — but if
+you ever see "no audio output" on macOS only, this is the code path to look at.
+
+## Format
+
+Output is **S16LE stereo at 44 100 Hz**. Higher-resolution sources are
+dithered down by the rbcodec DSP pipeline before they reach SDL. To change
+the output sample rate, set `play_frequency` in `settings.toml` (`auto`,
+`44100`, `48000`, `88200`, `96000`).
+
+## Switching to another sink
+
+Edit `audio_output` in `settings.toml` and `rockbox restart`, or call:
+
+```graphql
+mutation { connectDevice(id: "<device-id>") }
+```
+
+…with a device discovered via mDNS — see
+[Audio output › Overview](/audio-output/overview).

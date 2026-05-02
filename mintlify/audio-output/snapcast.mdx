@@ -1,0 +1,112 @@
+---
+title: "Snapcast"
+description: "Synchronised multi-room playback through Snapserver — TCP or FIFO."
+icon: 'network-wired'
+---
+
+Rockbox can feed [Snapcast](https://github.com/badaix/snapcast) two ways.
+Both write raw **S16LE stereo PCM at 44 100 Hz** to snapserver; pick the
+transport that fits your setup.
+
+|                                | TCP sink                           | FIFO sink                  |
+|--------------------------------|------------------------------------|----------------------------|
+| Filesystem entry required      | No                                 | Yes (`/tmp/snapfifo`)      |
+| Snapserver source type         | `tcp://`                           | `pipe://`                  |
+| Startup order                  | Snapserver first                   | Rockbox first              |
+| Auto-reconnect                 | Yes (next play call)               | n/a — FIFO stays open      |
+| Auto-discovery in UI           | Yes (`_snapcast._tcp.local.`)      | No — static virtual device |
+| stdout pipe support            | No                                 | Yes (`fifo_path = "-"`)    |
+
+**Use TCP** for auto-discovery, multiple snapservers, or no filesystem
+dependency. **Use FIFO** for stdout piping or the traditional pipe model.
+
+## TCP (recommended)
+
+```toml
+music_dir         = "/path/to/Music"
+audio_output      = "snapcast_tcp"
+snapcast_tcp_host = "192.168.1.x"   # IP of the snapserver host
+snapcast_tcp_port = 4953            # default snapserver TCP source port
+```
+
+Snapserver:
+
+```ini
+# /etc/snapserver.conf  (or /usr/local/etc/snapserver.conf on macOS)
+[stream]
+source = tcp://0.0.0.0:4953?name=default&sampleformat=44100:16:2
+```
+
+<Tip>
+**Auto-discovery**: rockboxd scans `_snapcast._tcp.local.` at startup;
+discovered servers appear in the web UI device picker. Click to connect —
+no config file editing required.
+</Tip>
+
+<Note>
+**Startup order**: start `snapserver` first so it is already listening when
+rockboxd begins playback. If the connection drops (e.g. snapserver
+restarts), it is re-established automatically on the next play call.
+</Note>
+
+## FIFO / pipe
+
+```toml
+music_dir    = "/path/to/Music"
+audio_output = "fifo"
+fifo_path    = "/tmp/snapfifo"   # named FIFO for snapserver; "-" = stdout
+```
+
+Snapserver:
+
+```ini
+[stream]
+source = pipe:///tmp/snapfifo?name=default&sampleformat=44100:16:2
+```
+
+<Warning>
+**Startup order matters**: start `rockboxd` before `snapserver`. Rockbox
+holds a permanent write reference on the FIFO so snapserver never sees a
+premature EOF between tracks. If snapserver opens the FIFO first it may get
+EOF and stop reading.
+</Warning>
+
+### stdout mode
+
+`fifo_path = "-"` writes raw PCM to stdout — useful for piping into any
+consumer:
+
+```sh
+rockboxd | ffplay -f s16le -ar 44100 -ac 2 -
+```
+
+```sh
+rockboxd | sox -t raw -r 44100 -e signed -b 16 -c 2 - -d
+```
+
+## macOS quirk
+
+Snapserver v0.35.0 on macOS ignores the `-s` sample-format CLI flag. Use the
+config file at `/usr/local/etc/snapserver.conf` instead:
+
+```ini
+[stream]
+source = pipe:///tmp/snapfifo?name=default&sampleformat=44100:16:2
+```
+
+## Verifying it works
+
+```sh
+# In one terminal
+snapserver --logging.filter "*:debug"
+
+# In another
+rockboxd
+```
+
+You should see `Stream: 'default' connected` in the snapserver logs within
+a second of starting playback. From a snapclient host:
+
+```sh
+snapclient -h <snapserver-ip>
+```

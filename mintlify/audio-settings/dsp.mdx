@@ -1,0 +1,97 @@
+---
+title: "DSP effects"
+description: "Crossfeed, Haas surround, PBE, AFR, compressor and dithering."
+icon: 'waveform-lines'
+---
+
+The rbcodec DSP pipeline runs between the codec output and the active sink.
+All of these are bypassable; turn anything off by zeroing its enable flag.
+
+## Crossfeed
+
+Mixes a delayed and filtered portion of one channel into the other to
+simulate the spatial cues you'd get from loudspeakers. Particularly useful
+on headphones with hard-panned mixes (older rock/jazz).
+
+| Setting        | Storage                       | Range              | Default  |
+|----------------|-------------------------------|--------------------|----------|
+| Type           | `crossfeed`                   | off / meier / custom | off    |
+| Direct gain    | `crossfeed_direct_gain`       | −60..0 dB (step 5) | −15 dB   |
+| Cross gain     | `crossfeed_cross_gain`        | −120..−30 dB       | −60 dB   |
+| HF attenuation | `crossfeed_hf_attenuation`    | −240..−60 dB       | −160 dB  |
+| HF cutoff      | `crossfeed_hf_cutoff`         | 500..2000 Hz       | 700 Hz   |
+
+<Warning>
+Crossfeed can cause output distortion if its settings result in a combined
+level that is too high.
+</Warning>
+
+## Haas surround
+
+Adds an adjustable delay between channels to widen the stereo image. Four
+auxiliary controls move the perceived stage back toward the centre.
+
+| Setting       | Storage              | Range                              | Default  |
+|---------------|----------------------|------------------------------------|----------|
+| Enable        | `surround_enabled`   | 0 / 5 / 8 / 10 / 15 / 30 ms        | 0 (off)  |
+| Balance       | `surround_balance`   | 0..99 %                            | 35 %     |
+| f(x1) HF cut  | `surround_fx1`       | 600..8000 Hz (step 200)            | 3400 Hz  |
+| f(x2) LF cut  | `surround_fx2`       | 40..400 Hz (step 40)               | 320 Hz   |
+| Side only     | `surround_method2`   | bool                               | false    |
+| Dry/wet mix   | `surround_mix`       | 0..100 %                           | 50 %     |
+
+## Perceptual Bass Enhancement (PBE)
+
+Group-delay correction plus a biophonic EQ to boost low-end perception.
+
+| Setting    | Storage       | Range               | Default  |
+|------------|---------------|---------------------|----------|
+| Strength   | `pbe`         | 0..100 % (step 25)  | 0 % (off) |
+| Precut     | `pbe_precut`  | −4.5..0 dB (step 0.1) | −2.5 dB |
+
+## Auditory Fatigue Reduction (AFR)
+
+Reduces energy in frequency bands the human ear is most sensitive to —
+helpful for long listening sessions.
+
+| Setting    | Values                         | Default |
+|------------|--------------------------------|---------|
+| AFR enable | off / weak / moderate / strong | off     |
+
+## Compressor
+
+Reduces dynamic range so quiet passages stay audible without loud passages
+clipping.
+
+| Setting       | Storage         | Values / range                                         | Default |
+|---------------|-----------------|--------------------------------------------------------|---------|
+| Threshold     | `.threshold`    | off / −3 / −6 / −9 / −12 / −15 / −18 / −21 / −24 dB    | off     |
+| Makeup gain   | `.makeup_gain`  | off / auto                                             | auto    |
+| Ratio         | `.ratio`        | 2:1 / 4:1 / 6:1 / 10:1 / limit                         | 2:1     |
+| Knee          | `.knee`         | hard / soft                                            | soft    |
+| Attack time   | `.attack_time`  | 0..30 ms (step 5)                                      | 5 ms    |
+| Release time  | `.release_time` | 100..1000 ms (step 100)                                | 500 ms  |
+
+```toml
+[compressor_settings]
+threshold    = -24
+makeup_gain  = 0
+ratio        = 4
+knee         = 1
+release_time = 300
+attack_time  = 5
+```
+
+## Dithering
+
+Most decoders work at higher than 16-bit precision; dithering adds a small
+shaped noise signal before truncation so the residual is uniform rather
+than signal-correlated. Most useful with classical music and other
+high-dynamic-range material.
+
+```toml
+dithering_enabled = true
+```
+
+- Algorithm: high-pass triangular distribution (HPTPDF)
+- Noise shaper: third order, biased above ~10 kHz

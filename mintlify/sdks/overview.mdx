@@ -1,0 +1,150 @@
+---
+title: "Client SDKs"
+description: "Six first-party SDKs. All wrap the GraphQL transport, surface real-time events, and ship a tiny plugin system."
+icon: 'cubes'
+---
+
+Every SDK targets the GraphQL endpoint on **port 6062** and exposes the
+same domain-namespaced API:
+
+```
+client.playback     # transport, current/next track, play helpers
+client.library      # albums, artists, tracks, search, likes, scan
+client.playlist     # the active queue
+client.savedPlaylists
+client.smartPlaylists
+client.sound        # volume
+client.settings     # global EQ / replaygain / crossfade / shuffle
+client.system       # version, runtime info
+client.browse       # filesystem browser
+client.devices      # output devices (Cast, AirPlay, Snapcast)
+client.bluetooth    # Linux only
+```
+
+## Pick a language
+
+<CardGroup cols={3}>
+  <Card title="TypeScript" icon="js" href="/sdks/typescript">
+    `bun add @rockbox-zig/sdk`
+  </Card>
+  <Card title="Python" icon="python" href="/sdks/python">
+    `uv add rockbox-sdk` — async-first
+  </Card>
+  <Card title="Ruby" icon="gem" href="/sdks/ruby">
+    `gem install rockbox`
+  </Card>
+  <Card title="Elixir" icon="droplet" href="/sdks/elixir">
+    `{:rockbox_ex, "~> 0.1"}`
+  </Card>
+  <Card title="Clojure" icon="lambda" href="/sdks/clojure">
+    `org.clojars.tsiry/rockbox-clj`
+  </Card>
+  <Card title="Gleam" icon="star" href="/sdks/gleam">
+    `gleam add rockbox`
+  </Card>
+</CardGroup>
+
+## Why not just use the GraphQL transport directly?
+
+You can — `client.query()` on every SDK is an escape hatch, and the
+GraphiQL explorer at
+[http://localhost:6062/graphiql](http://localhost:6062/graphiql) lets you
+test queries without writing any client code. The SDKs add value when you
+want:
+
+- **Typed responses** — Pydantic models in Python, `Struct`s in Ruby,
+  TypeScript types, Gleam tagged unions.
+- **Real-time events** — `track:changed` / `status:changed` /
+  `playlist:changed` over WebSocket with auto-reconnect and exponential
+  backoff.
+- **A plugin system** — Jellyfin-style install/uninstall lifecycle for
+  cross-cutting features (scrobbling, notifications, sleep timer).
+- **Smart-playlist rule builders** — type-safe rule DSLs (Gleam, Elixir,
+  Clojure).
+- **Idiomatic ergonomics** — pipe-friendly in functional languages,
+  builder DSLs in OOP languages.
+
+## Common patterns
+
+<CodeGroup>
+```ts TypeScript
+import { RockboxClient } from '@rockbox-zig/sdk';
+
+const client = new RockboxClient();
+client.connect();
+
+client.on('track:changed', (t) => console.log(`▶ ${t.title} — ${t.artist}`));
+
+const { albums } = await client.library.search('dark side');
+await client.playback.playAlbum(albums[0].id, { shuffle: true });
+```
+
+```python Python
+import asyncio
+from rockbox_sdk import RockboxClient
+
+async def main():
+    async with RockboxClient(host="localhost") as client:
+        await client.connect()
+        results = await client.library.search("dark side")
+        await client.playback.play_album(results.albums[0].id, shuffle=True)
+
+asyncio.run(main())
+```
+
+```ruby Ruby
+require "rockbox"
+
+client = Rockbox::Client.new
+client.on(:track_changed) { |t| puts "▶ #{t.title} — #{t.artist}" }
+client.connect
+
+results = client.library.search("dark side")
+client.playback.play_album(results.albums.first.id, shuffle: true)
+```
+
+```elixir Elixir
+client = Rockbox.new()
+{:ok, _pid} = Rockbox.connect(client)
+Rockbox.subscribe(:track_changed)
+
+{:ok, results} = Rockbox.Library.search(client, "dark side")
+album = List.first(results.albums)
+:ok = Rockbox.Playback.play_album(client, album.id, shuffle: true)
+```
+
+```clojure Clojure
+(require '[rockbox.core    :as rb]
+         '[rockbox.playback :as pb]
+         '[rockbox.library  :as lib])
+
+(def client (rb/client))
+(rb/connect client)
+(rb/on client :track-changed
+  (fn [t] (println "▶" (:title t) "—" (:artist t))))
+
+(let [{:keys [albums]} (lib/search client "dark side")]
+  (pb/play-album client (:id (first albums)) {:shuffle true}))
+```
+
+```gleam Gleam
+import rockbox
+import rockbox/library
+import rockbox/playback
+
+pub fn main() {
+  let client = rockbox.default_client()
+  let assert Ok(results) = library.search(client, "dark side")
+  case list.first(results.albums) {
+    Ok(album) -> {
+      let _ = playback.play_album(
+        client, album.id,
+        playback.play_options() |> playback.with_shuffle(True),
+      )
+      Nil
+    }
+    Error(_) -> Nil
+  }
+}
+```
+</CodeGroup>
