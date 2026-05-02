@@ -1,7 +1,7 @@
 name = "rockbox"
 version = "1.0.0"
-description = "Gleam SDK for Rockbox — pipe-friendly client for the rockboxd GraphQL API"
-licences = ["Apache-2.0"]
+description = "Gleam SDK for Rockbox Zig — pipe-friendly client for the rockboxd GraphQL API"
+licences = ["MIT"]
 gleam = ">= 1.11.0"
 
 # repository = { type = "github", user = "tsirysndr", repo = "rockbox-zig" }
