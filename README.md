@@ -500,13 +500,13 @@ rockbox service status     # check status
 **Ubuntu / Debian**
 
 ```sh
-sudo apt-get install libsdl2-dev libfreetype6-dev libdbus-1-dev libunwind-dev zip protobuf-compiler cmake
+sudo apt-get install libsdl2-dev libfreetype6-dev libdbus-1-dev libunwind-dev zip protobuf-compiler cmake libxkbcommon-dev libxkbcommon-x11-dev libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 ```
 
 **Fedora**
 
 ```sh
-sudo dnf install SDL2-devel freetype-devel libunwind-devel zip protobuf-compiler cmake
+sudo dnf install SDL2-devel freetype-devel libunwind-devel zip protobuf-compiler cmake libxkbcommon-devel libxkbcommon-x11-devel libxcb-devel
 ```
 
 **macOS**
