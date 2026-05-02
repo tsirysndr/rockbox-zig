@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.02]
+
+### Added
+- New SDKs for controlling rockboxd from Python, Ruby, Elixir, Gleam, and Clojure (`sdk/python/`, `sdk/ruby/`, `sdk/elixir/`, `sdk/gleam/`, `sdk/clojure/`) — each ships with examples covering playback, queue, library search, saved/smart playlists, volume/EQ, browse, devices, Bluetooth, and plugins
+- TypeScript SDK gains 15 runnable examples (`sdk/typescript/examples/`) plus a Bluetooth API (`api/bluetooth.ts`) and a `getVolume` / `VolumeInfo` endpoint on `api/sound.ts`
+- TS SDK types extended with `browse.displayName` and `album.copyrightMessage`
+
+### Fixed
+- HTTP/remote tracks now hydrate `Mp3Entry` metadata (title, artist, album, duration, etc.) from the DB `Track` record in the playlist handlers when Rockbox cannot read tags locally
+- GPUI Library page: text truncation and unexpected overflow on likes and track rows resolved by adding `min_w_0` / `flex_shrink_0` to the flex containers
+- Regenerated tonic/prost UPnP bindings under `crates/upnp/src/api/`
+
 ## [2026.05.01]
 
 ### Added
