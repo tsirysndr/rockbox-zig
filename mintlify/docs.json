@@ -7,15 +7,23 @@
     "strict": true
   },
   "colors": {
-    "primary": "#F4FF00",
-    "light": "#FAFF66",
-    "dark": "#C2CC00"
+    "primary": "#FF6B00",
+    "light": "#FF9347",
+    "dark": "#CC5500"
   },
   "background": {
     "color": {
       "dark": "#07080C"
     },
     "decoration": "grid"
+  },
+  "styling": {
+    "codeblocks": {
+      "theme": {
+        "light": "catppuccin-latte",
+        "dark": "min-dark"
+      }
+    }
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -25,12 +33,7 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "installation",
-              "configuration"
-            ]
+            "pages": ["index", "quickstart", "installation", "configuration"]
           },
           {
             "group": "Audio output",

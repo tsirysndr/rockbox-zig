@@ -4,21 +4,25 @@ description: "How Rockbox C, Rust and Zig fit together inside one rockboxd binar
 icon: 'sitemap'
 ---
 
-```text
-┌──────────────────────────────────────────────────────────────────────┐
-│  Clients         Web UI · GTK · GPUI · TUI · REPL · MPD · MPRIS       │
-├──────────────────────────────────────────────────────────────────────┤
-│  Protocols       gRPC :6061  GraphQL :6062  REST :6063  MPD :6600    │
-├──────────────────────────────────────────────────────────────────────┤
-│  Rust services   playback · library · settings · search · playlists  │
-│                  airplay · slim · chromecast · upnp · netstream      │
-├──────────────────────────────────────────────────────────────────────┤
-│  Rockbox C       audio engine · DSP · codecs · tag database          │
-├──────────────────────────────────────────────────────────────────────┤
-│  PCM sinks       builtin · fifo · airplay · squeezelite · chromecast │
-│                  snapcast_tcp · upnp                                  │
-└──────────────────────────────────────────────────────────────────────┘
-```
+
+<CardGroup cols={1}>
+  <Card title="Clients">
+    Web UI · GTK · GPUI · TUI · REPL · MPD · MPRIS
+  </Card>
+  <Card title="Protocols">
+    gRPC :6061 · GraphQL :6062 · REST :6063 · MPD :6600
+  </Card>
+  <Card title="Rust services">
+    playback · library · settings · search · playlists · airplay · slim · chromecast · upnp · netstream
+  </Card>
+  <Card title="Rockbox C">
+    audio engine · DSP · codecs · tag database
+  </Card>
+  <Card title="PCM sinks">
+    builtin · fifo · airplay · squeezelite · chromecast · snapcast_tcp · upnp
+  </Card>
+</CardGroup>
+
 
 The entire system ships as **one binary**, `rockboxd`, produced by Zig's
 linker. There's no separate "rockbox-server" service, no per-feature
