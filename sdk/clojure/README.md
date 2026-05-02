@@ -51,7 +51,7 @@ WebSocket subscriptions and a tiny plugin system.
 `deps.edn`:
 
 ```clojure
-{:deps org.clojars.tsiry/rockbox-clj {:mvn/version "0.1.0-SNAPSHOT"}}
+{:deps org.clojars.tsiry/rockbox-clj {:mvn/version "0.1.1-SNAPSHOT"}}
 ```
 
 ### Publishing to Clojars (maintainers)
@@ -60,15 +60,10 @@ WebSocket subscriptions and a tiny plugin system.
 cd sdk/clojure
 
 # Bump version, then build the JAR
-VERSION=0.1.0-SNAPSHOT clojure -T:build jar
+VERSION=0.1.1-SNAPSHOT clojure -T:build jar
 
 # Install to local ~/.m2 for testing
-VERSION=0.1.0-SNAPSHOT clojure -T:build install
-
-# Deploy to Clojars (set creds first)
-export CLOJARS_USERNAME=tsiry
-export CLOJARS_PASSWORD=<deploy-token>
-VERSION=0.1.0-SNAPSHOT clojure -T:build deploy
+VERSION=0.1.1-SNAPSHOT clojure -T:build install
 ```
 
 `rockboxd` must be running and reachable. By default the SDK connects to
