@@ -46,22 +46,39 @@ WebSocket subscriptions and a tiny plugin system.
 `deps.edn`:
 
 ```clojure
-{:deps {com.rockbox/rockbox-clj {:git/url "https://github.com/tsirysndr/rockbox-zig"
-                                 :git/sha "..."
-                                 :deps/root "sdk/clojure"}}}
+{:deps {org.clojars.tsiry/rockbox-clj {:git/url "https://github.com/tsirysndr/rockbox-zig"
+                                       :git/sha "..."
+                                       :deps/root "sdk/clojure"}}}
 ```
 
 Or pin via local path while developing:
 
 ```clojure
-{:deps {com.rockbox/rockbox-clj {:local/root "/path/to/rockbox-zig/sdk/clojure"}}}
+{:deps {org.clojars.tsiry/rockbox-clj {:local/root "/path/to/rockbox-zig/sdk/clojure"}}}
+```
+
+### Publishing to Clojars (maintainers)
+
+```sh
+cd sdk/clojure
+
+# Bump version, then build the JAR
+VERSION=0.1.0 clojure -T:build jar
+
+# Install to local ~/.m2 for testing
+VERSION=0.1.0 clojure -T:build install
+
+# Deploy to Clojars (set creds first)
+export CLOJARS_USERNAME=tsiry
+export CLOJARS_PASSWORD=<deploy-token>
+VERSION=0.1.0 clojure -T:build deploy
 ```
 
 `rockboxd` must be running and reachable. By default the SDK connects to
 `http://localhost:6062/graphql`. Start it with:
 
 ```sh
-./zig/zig-out/bin/rockboxd
+rockbox start
 ```
 
 ---

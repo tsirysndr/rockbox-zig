@@ -16,4 +16,9 @@
 
   :check
   {:main-opts ["-e"
-               "(require '[rockbox.core] '[rockbox.playback] '[rockbox.library] '[rockbox.playlist] '[rockbox.saved-playlists] '[rockbox.smart-playlists] '[rockbox.sound] '[rockbox.settings] '[rockbox.system] '[rockbox.browse] '[rockbox.devices] '[rockbox.bluetooth] '[rockbox.events] '[rockbox.plugin] '[rockbox.transport] '[rockbox.ws] '[rockbox.types]) (println :ok)"]}}}
+               "(require '[rockbox.core] '[rockbox.playback] '[rockbox.library] '[rockbox.playlist] '[rockbox.saved-playlists] '[rockbox.smart-playlists] '[rockbox.sound] '[rockbox.settings] '[rockbox.system] '[rockbox.browse] '[rockbox.devices] '[rockbox.bluetooth] '[rockbox.events] '[rockbox.plugin] '[rockbox.transport] '[rockbox.ws] '[rockbox.types]) (println :ok)"]}
+
+  :build
+  {:deps      {io.github.clojure/tools.build {:mvn/version "0.10.5"}
+               slipset/deps-deploy           {:mvn/version "0.2.2"}}
+   :ns-default build}}}
