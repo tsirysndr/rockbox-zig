@@ -1,5 +1,15 @@
 # rockbox-sdk
 
+[![PyPI](https://img.shields.io/pypi/v/rockbox-sdk?style=flat-square&logo=pypi&logoColor=white&color=3775A9)](https://pypi.org/project/rockbox-sdk/)
+[![Python](https://img.shields.io/pypi/pyversions/rockbox-sdk?style=flat-square&logo=python&logoColor=white&color=3776AB)](https://pypi.org/project/rockbox-sdk/)
+[![Downloads](https://img.shields.io/pypi/dm/rockbox-sdk?style=flat-square&logo=pypi&logoColor=white&color=blue)](https://pypi.org/project/rockbox-sdk/)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](./LICENSE)
+[![AsyncIO](https://img.shields.io/badge/asyncio-ready-brightgreen?style=flat-square&logo=python&logoColor=white)](https://docs.python.org/3/library/asyncio.html)
+[![Typed](https://img.shields.io/badge/typed-pydantic-e92063?style=flat-square&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+[![Ruff](https://img.shields.io/badge/lint-ruff-261230?style=flat-square&logo=ruff&logoColor=white)](https://github.com/astral-sh/ruff)
+[![mypy](https://img.shields.io/badge/mypy-strict-1F5082?style=flat-square)](http://mypy-lang.org/)
+[![GitHub](https://img.shields.io/badge/github-rockbox--zig-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/tsirysndr/rockbox-zig)
+
 Async Python SDK for [Rockbox Zig](https://github.com/tsirysndr/rockbox-zig) — a typed, batteries-included
 client for the GraphQL API exposed by `rockboxd`.
 
