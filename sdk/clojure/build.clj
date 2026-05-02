@@ -20,7 +20,7 @@
                 :scm       {:url                 "https://github.com/tsirysndr/rockbox-zig"
                             :connection          "scm:git:git://github.com/tsirysndr/rockbox-zig.git"
                             :developerConnection "scm:git:ssh://git@github.com/tsirysndr/rockbox-zig.git"
-                            :tag                 (str "v" version)}
+                            :tag                 (str "clojure-v" version)}
                 :pom-data  [[:description "Idiomatic Clojure SDK for Rockbox — GraphQL client with WebSocket subscriptions and a tiny plugin system."]
                             [:url "https://github.com/tsirysndr/rockbox-zig"]
                             [:licenses
