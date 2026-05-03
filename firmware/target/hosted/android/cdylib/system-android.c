@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <android/log.h>
 
+#include "config.h"
 #include "system.h"
 #include "kernel.h"
 #include "panic.h"
@@ -52,12 +53,6 @@ void system_init(void)
 
 /* ── Power off / reboot / exception wait ──────────────────────────────── */
 
-void sdl_sys_quit(void)   /* kept for symbol compatibility with apps/ callers */
-{
-    quitting = true;
-    sys_poweroff();
-}
-
 void power_off(void)
 {
     LOGI("power_off requested");
@@ -65,21 +60,21 @@ void power_off(void)
     quitting = true;
     pthread_cond_broadcast(&shutdown_cv);
     pthread_mutex_unlock(&shutdown_lock);
-    sim_do_exit();
-}
-
-void sim_do_exit(void)
-{
-    sim_kernel_shutdown();
+    /* Just exit the process — JNI's rb_daemon_stop pthread_joins the engine
+     * thread and observes the exit. No SDL/sim cleanup needed. */
+    exit(0);
 }
 
 void system_reboot(void)
 {
-    sim_thread_exception_wait();
+    /* "Reboot" on Android = exit; JS layer calls rb_daemon_start to come back. */
+    power_off();
 }
 
 void system_exception_wait(void)
 {
+    /* Block the calling thread until quitting is set. Used by the engine
+     * after a fatal panicf() so we don't spin on the dead path. */
     pthread_mutex_lock(&shutdown_lock);
     while (!quitting)
         pthread_cond_wait(&shutdown_cv, &shutdown_lock);

@@ -5,7 +5,7 @@
  * everything's discarded since there's no display.
  *
  * This file is grown iteratively as the linker reveals more unresolved
- * lcd_*/backlight_* symbols. Start tight, add as needed.
+ * lcd_ / backlight_ symbols. Start tight, add as needed.
  */
 
 #include <stdbool.h>

@@ -84,7 +84,12 @@ include $(RBCODECLIB_DIR)/codecs/libgme/libkss.make
 include $(RBCODECLIB_DIR)/codecs/libgme/libemu2413.make
 include $(RBCODECLIB_DIR)/codecs/libopus/libopus.make
 ifneq ($(MEMORYSIZE),2)
+# cRSID (Commodore 64 SID format) uses GCC nested-function syntax that
+# NDK clang rejects strictly. Skip on the Android cdylib build; the .sid
+# format is niche and can be re-enabled later if demand surfaces.
+ifndef CODECS_STATIC
 include $(RBCODECLIB_DIR)/codecs/cRSID/cRSID.make
+endif
 endif
 
 ifeq ($(shell expr $(GCCNUM) \> 600),1)

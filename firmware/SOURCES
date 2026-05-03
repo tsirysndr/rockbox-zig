@@ -14,7 +14,9 @@ general.c
 powermgmt.c
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
 
-#ifdef __linux__
+#if defined(__linux__) && !defined(__ANDROID__)
+/* bionic doesn't ship cpu-features.h in its default include paths, and our
+ * cdylib doesn't need cpu-info introspection from the engine. */
 target/hosted/cpuinfo-linux.c
 target/hosted/cpufreq-linux.c
 #endif
@@ -1979,9 +1981,13 @@ target/hosted/kernel-unix.c
 target/hosted/filesystem-unix.c
 
 #if defined(CODECS_STATIC)
-/* cdylib build — files come from target/hosted/android/cdylib/SOURCES via
- * cdylib.make's OTHER_SRC append. The legacy Java-shell files reference
- * jni.h and Java callbacks that we don't have. */
+/* cdylib build — headless, AAudio, BINFMT_STATIC. */
+target/hosted/android/cdylib/system-android.c
+target/hosted/android/cdylib/pcm-aaudio.c
+target/hosted/android/cdylib/lc-android.c
+target/hosted/android/cdylib/rb_zig_compat.c
+target/hosted/android/cdylib/lcd-noop.c
+target/hosted/android/cdylib/button-noop.c
 #else
 /* Existing Java-shell Android app */
 target/hosted/lc-unix.c

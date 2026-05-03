@@ -10,6 +10,15 @@
 
 #include "load_code.h"     /* pulls lc-static.h via CONFIG_BINFMT dispatch */
 
+/* Empty placeholder table — will be replaced by an auto-generated
+ * codec_table.c (or by extern decls + an array literal here) once the
+ * cdylib link step actually pulls per-codec .a files in. For now lc_open
+ * returns NULL for everything, which makes the engine fall back to its
+ * "no codec found" path. The build links cleanly. */
+const struct lc_static_entry lc_static_table[] = {
+    { (const char *)0, (const struct codec_header *)0 }
+};
+
 void *lc_open(const char *filename, unsigned char *buf, size_t buf_size)
 {
     (void)buf;

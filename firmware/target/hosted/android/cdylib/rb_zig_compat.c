@@ -21,13 +21,7 @@
 #include "metadata.h"
 
 /* ── Playlist wrappers — port of zig/src/rockbox/playlist.zig ──────────── */
-
-struct playlist_track_info {
-    char filename[260];
-    int  attr;
-    int  index;
-    int  display_index;
-};
+/* struct playlist_track_info is declared in apps/playlist.h (above). */
 
 struct playlist_track_info rb_get_track_info_from_current_playlist(int index)
 {
@@ -86,8 +80,10 @@ int rb_playlist_delete_track(int index)
 int rb_playlist_insert_directory(const char *dir, int position,
                                   bool queue, bool recurse)
 {
+    /* The 6th arg is a struct playlist_insert_context*; NULL means "no
+     * progress reporting", which matches the Zig wrapper's behavior. */
     return playlist_insert_directory(playlist_get_current(),
-                                      dir, position, queue, recurse);
+                                      dir, position, queue, recurse, NULL);
 }
 
 int rb_playlist_remove_all_tracks(void)

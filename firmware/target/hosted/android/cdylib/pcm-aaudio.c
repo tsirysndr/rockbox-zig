@@ -77,8 +77,8 @@ static aaudio_result_t open_stream(int32_t freq)
     AAudioStreamBuilder_setFormat         (b, AAUDIO_FORMAT_PCM_I16);
     AAudioStreamBuilder_setChannelCount   (b, 2);
     AAudioStreamBuilder_setSampleRate     (b, freq);
-    AAudioStreamBuilder_setUsage          (b, AAUDIO_USAGE_MEDIA);
-    AAudioStreamBuilder_setContentType    (b, AAUDIO_CONTENT_TYPE_MUSIC);
+    /* setUsage / setContentType are API 28+ — metadata only, skip on API 26
+     * to keep the minSdk floor low. AAudio defaults to MEDIA / MUSIC anyway. */
     AAudioStreamBuilder_setErrorCallback  (b, on_error, NULL);
 
     rc = AAudioStreamBuilder_openStream(b, &aa_stream);
@@ -145,16 +145,11 @@ static void *aa_thread(void *arg)
             continue;
         }
 
-        if (size > aa_vol_buf_cap) {
-            free(aa_vol_buf);
-            aa_vol_buf     = malloc(size);
-            aa_vol_buf_cap = aa_vol_buf ? size : 0;
-        }
-        const void *data = (aa_vol_buf && size > 0)
-            ? (pcm_copy_buffer(aa_vol_buf, raw, size), aa_vol_buf)
-            : raw;
-        if (data == aa_vol_buf)
-            pcm_normalizer_apply(aa_vol_buf, size);
+        /* SW volume scaling skipped on Android — AAudio + Java MediaSession
+         * handle volume system-side. Just write the raw PCM through. */
+        const void *data = raw;
+        (void)aa_vol_buf;
+        (void)aa_vol_buf_cap;
 
         const uint8_t *p = (const uint8_t *)data;
         size_t bytes_left = size;

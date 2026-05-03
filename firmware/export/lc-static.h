@@ -10,7 +10,16 @@
 #ifndef __LC_STATIC_H__
 #define __LC_STATIC_H__
 
+#include "system.h"
 #include <stddef.h>
+
+/* Same surface as lc-dlopen.h — same callers (apps/codecs.c, plugin loader)
+ * and same return-value semantics (NULL on failure). Implemented in
+ * firmware/target/hosted/android/cdylib/lc-android.c against a compile-time
+ * codec table. */
+void *lc_open(const char *filename, unsigned char *buf, size_t buf_size);
+void *lc_get_header(void *handle);
+void  lc_close(void *handle);
 
 struct codec_header;   /* forward; full def in lib/rbcodec/codecs/codecs.h */
 
@@ -19,8 +28,7 @@ struct lc_static_entry {
     const struct codec_header   *hdr;
 };
 
-/* Generated table; defined in firmware/target/hosted/android/cdylib/
- * codec_table.c by the codecs.make CODECS_STATIC mode. NULL-terminated. */
+/* Generated table; for now defined in lc-android.c. NULL-terminated. */
 extern const struct lc_static_entry lc_static_table[];
 
 #endif /* __LC_STATIC_H__ */

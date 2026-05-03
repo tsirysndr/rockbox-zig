@@ -741,6 +741,9 @@ androidcdylibcc () {
     gcctarget="${cc_triple}-"
 
     extradefines="$extradefines -DCODECS_STATIC -DZIG_APP -D__ANDROID__"
+    # NDK r27 bionic's siginfo.h declares sigevent_t natively, so no shim
+    # needed. (Earlier NDKs without it would need a typedef shim — added
+    # only if a real build flags it as missing.)
     export CODECS_STATIC=1
 
     PATH="$ndk_toolchain/bin:$PATH"

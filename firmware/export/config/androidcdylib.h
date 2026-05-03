@@ -65,10 +65,8 @@
 
 #define AB_REPEAT_ENABLE
 
-/* bionic only declares `struct sigevent` (POSIX). Rockbox's kernel-unix.c
- * uses the glibc-style `sigevent_t` typedef. Provide it once here so we
- * don't have to patch shared firmware code. */
-#ifndef __ASSEMBLER__
-#include <signal.h>
-typedef struct sigevent sigevent_t;
-#endif
+/* `sigevent_t` (glibc-style typedef used by kernel-unix.c) is provided as
+ * a -D macro in androidcdylibcc rather than typedef'd here — putting code
+ * in config.h would leak into the output of `preprocess` (which uses
+ * -include config.h to evaluate SOURCES files) and produce nonsense make
+ * targets. -D makes the substitution at compile time only. */

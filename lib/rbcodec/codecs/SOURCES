@@ -42,7 +42,11 @@ nsf.c
 sgc.c
 vgm.c
 #if MEMORYSIZE > 2
+/* SID needs cRSID, which uses GCC nested-functions and won't compile under
+ * NDK clang. Skip on the Android cdylib build. */
+#ifndef CODECS_STATIC
 sid.c
+#endif
 kss.c
 #endif
 aac_bsf.c
