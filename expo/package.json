@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "run:android": "expo run:android",
-    "postinstall": "node ./scripts/link-rockbox-rpc.js",
+    "postinstall": "node ./scripts/link-local-modules.js",
     "adb:reverse": "adb reverse tcp:8081 tcp:8081"
   },
   "dependencies": {
@@ -47,6 +47,7 @@
     "react-native-svg": "15.12.1",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
+    "rockbox-now-playing": "file:./modules/rockbox-now-playing",
     "rockbox-rpc": "file:./modules/rockbox-rpc"
   },
   "devDependencies": {

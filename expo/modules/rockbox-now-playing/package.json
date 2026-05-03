@@ -1,0 +1,14 @@
+{
+  "name": "rockbox-now-playing",
+  "version": "0.1.0",
+  "description": "Native media-session bridge: shows lock-screen / notification controls for the rockboxd remote and forwards button taps back to JS",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "private": true,
+  "keywords": ["rockbox", "expo", "media-session"],
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}

@@ -1,0 +1,44 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:2:1-18:12
+INJECTED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:2:1-18:12
+	package
+		INJECTED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:4:3-75
+	android:name
+		ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:4:20-72
+uses-permission#android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK
+ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:5:3-90
+	android:name
+		ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:5:20-87
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:7:3-75
+	android:name
+		ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:7:20-72
+uses-permission#android.permission.INTERNET
+ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:9:3-65
+	android:name
+		ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:9:20-62
+application
+ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:11:3-17:17
+service#expo.modules.rockboxnowplaying.NowPlayingService
+ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:12:5-16:55
+	android:enabled
+		ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:14:7-29
+	android:exported
+		ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:15:7-31
+	android:foregroundServiceType
+		ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:16:7-52
+	android:name
+		ADDED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml:13:7-70
+uses-sdk
+INJECTED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml
+INJECTED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/tsirysandratraina/Documents/github/rockbox-zig/expo/modules/rockbox-now-playing/android/src/main/AndroidManifest.xml

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Foreground service hosting the MediaSession + MediaStyle notification. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+  <!-- Required from Android 13 (API 33) so the notification actually renders. -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <!-- Internet for fetching artwork URLs delivered by the daemon. -->
+  <uses-permission android:name="android.permission.INTERNET" />
+
+  <application>
+    <service
+      android:name="expo.modules.rockboxnowplaying.NowPlayingService"
+      android:enabled="true"
+      android:exported="false"
+      android:foregroundServiceType="mediaPlayback" />
+  </application>
+</manifest>
