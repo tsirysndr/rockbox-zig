@@ -49,6 +49,7 @@ if [ "$1" -eq 1 ]; then
         if [ -n "$USER_UID" ]; then
             sudo -u "$SUDO_USER" XDG_RUNTIME_DIR=/run/user/$USER_UID systemctl --user daemon-reload &> /dev/null || :
             sudo -u "$SUDO_USER" XDG_RUNTIME_DIR=/run/user/$USER_UID systemctl --user enable rockbox.service &> /dev/null || :
+            sudo -u "$SUDO_USER" XDG_RUNTIME_DIR=/run/user/$USER_UID systemctl --user start rockbox.service &> /dev/null || :
             echo "Rockbox systemd service has been enabled for user $SUDO_USER"
             echo "To start the service now, run: systemctl --user start rockbox.service"
         fi
