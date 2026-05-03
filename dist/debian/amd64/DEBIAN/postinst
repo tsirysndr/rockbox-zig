@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+# Update desktop database
+if [ -x /usr/bin/update-desktop-database ]; then
+    update-desktop-database /usr/share/applications || true
+fi
+
+# Enable systemd user service for the user who invoked the installation
+if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+    # Get the user's home directory
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    USER_UID=$(id -u "$SUDO_USER")
+
+    # Enable the service for the user
+    sudo -u "$SUDO_USER" XDG_RUNTIME_DIR=/run/user/$USER_UID systemctl --user daemon-reload || true
+    sudo -u "$SUDO_USER" XDG_RUNTIME_DIR=/run/user/$USER_UID systemctl --user enable rockbox.service || true
+
+    echo "Rockbox systemd service has been enabled for user $SUDO_USER"
+    echo "To start the service now, run: systemctl --user start rockbox.service"
+else
+    # If installed without sudo or by root, enable globally for all users
+    systemctl --global enable rockbox.service || true
+    echo "Rockbox systemd service has been enabled globally"
+    echo "Users can start the service with: systemctl --user start rockbox.service"
+fi
+
+exit 0
