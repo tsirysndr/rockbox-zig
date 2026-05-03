@@ -13,6 +13,10 @@ export type NowPlayingMetadata = {
   album?: string;
   /** HTTP(S) URL to album art. Loaded on a background thread. */
   artworkUrl?: string | null;
+  /** Base URL the service uses to resolve native-stream `album_art` ids
+   *  while JS is suspended (e.g. screen locked). Optional — pushed from JS
+   *  via either this field or the standalone `setCoverBaseUrl` call. */
+  coverBaseUrl?: string | null;
   durationMs: number;
 };
 
@@ -44,6 +48,8 @@ type NowPlayingNative = {
   /** Tear down the notification + service. Call when there's no current track
    *  or the user signs out. */
   clear(): void;
+  /** Tell the service where to fetch artwork while JS is asleep. */
+  setCoverBaseUrl(url: string): void;
   addListener<K extends keyof NowPlayingEvents>(
     name: K,
     cb: NowPlayingEvents[K],
@@ -78,6 +84,9 @@ export const RockboxNowPlaying = {
   },
   clear() {
     getNative()?.clear();
+  },
+  setCoverBaseUrl(url: string) {
+    getNative()?.setCoverBaseUrl(url);
   },
   /** Returns an unsubscribe function. */
   onAction(cb: (e: NowPlayingActionEvent) => void): () => void {

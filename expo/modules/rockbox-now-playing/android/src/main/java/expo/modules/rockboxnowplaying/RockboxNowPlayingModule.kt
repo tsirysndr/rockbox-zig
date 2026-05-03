@@ -63,6 +63,7 @@ class RockboxNowPlayingModule : Module() {
           putExtra(NowPlayingService.EXTRA_ARTIST, (metadata["artist"] as? String).orEmpty())
           putExtra(NowPlayingService.EXTRA_ALBUM, (metadata["album"] as? String).orEmpty())
           putExtra(NowPlayingService.EXTRA_ARTWORK_URL, metadata["artworkUrl"] as? String)
+          putExtra(NowPlayingService.EXTRA_COVER_BASE_URL, metadata["coverBaseUrl"] as? String)
           putExtra(NowPlayingService.EXTRA_DURATION_MS, (metadata["durationMs"] as? Number)?.toLong() ?: 0L)
           putExtra(NowPlayingService.EXTRA_IS_PLAYING, (playback["isPlaying"] as? Boolean) ?: false)
           putExtra(NowPlayingService.EXTRA_POSITION_MS, (playback["positionMs"] as? Number)?.toLong() ?: 0L)
@@ -98,6 +99,18 @@ class RockboxNowPlayingModule : Module() {
         } catch (_: Throwable) {
           // Service not running — nothing to clear.
         }
+      }
+      Unit
+    }
+
+    Function("setCoverBaseUrl") { url: String ->
+      val ctx = appContext.reactContext?.applicationContext
+      if (ctx != null) {
+        val intent = Intent(ctx, NowPlayingService::class.java).apply {
+          action = NowPlayingService.ACTION_SET_COVER_BASE
+          putExtra(NowPlayingService.EXTRA_COVER_BASE_URL, url)
+        }
+        startServiceCompat(ctx, intent)
       }
       Unit
     }

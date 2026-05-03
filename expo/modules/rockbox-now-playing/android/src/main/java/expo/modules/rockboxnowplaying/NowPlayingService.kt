@@ -23,10 +23,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import expo.modules.rockboxrpc.RockboxRpcModule
+import org.json.JSONObject
 import java.net.URL
 
 /**
@@ -42,11 +45,20 @@ class NowPlayingService : Service() {
   companion object {
     private const val TAG = "RockboxNowPlaying"
 
+    /**
+     * The JNI bridge symbols are mangled per-class (`Java_<pkg>_<class>_<method>`),
+     * so we can't redeclare `external fun rb_*` here — the dynamic linker
+     * would fail to resolve them. Instead we delegate to the static
+     * declarations already present on [RockboxRpcModule], which point at the
+     * real symbols emitted by `crates/expo/src/jni_bridge.rs`.
+     */
+
     const val NOTIFICATION_CHANNEL_ID = "rockbox.nowplaying"
     const val NOTIFICATION_ID = 4711
 
     const val ACTION_UPDATE = "expo.modules.rockboxnowplaying.UPDATE"
     const val ACTION_SET_PLAYBACK = "expo.modules.rockboxnowplaying.SET_PLAYBACK"
+    const val ACTION_SET_COVER_BASE = "expo.modules.rockboxnowplaying.SET_COVER_BASE"
     const val ACTION_CLEAR = "expo.modules.rockboxnowplaying.CLEAR"
     const val ACTION_BUTTON_PLAY = "expo.modules.rockboxnowplaying.PLAY"
     const val ACTION_BUTTON_PAUSE = "expo.modules.rockboxnowplaying.PAUSE"
@@ -59,6 +71,7 @@ class NowPlayingService : Service() {
     const val EXTRA_ARTIST = "artist"
     const val EXTRA_ALBUM = "album"
     const val EXTRA_ARTWORK_URL = "artworkUrl"
+    const val EXTRA_COVER_BASE_URL = "coverBaseUrl"
     const val EXTRA_DURATION_MS = "durationMs"
     const val EXTRA_POSITION_MS = "positionMs"
     const val EXTRA_IS_PLAYING = "isPlaying"
@@ -82,6 +95,14 @@ class NowPlayingService : Service() {
   private var currentIsPlaying: Boolean = false
   private var currentSpeed: Float = 1f
   private var artLoadJob: Job? = null
+  private var coverBaseUrl: String? = null
+
+  /** Native subscription state — independent of JS so track / play-pause
+   *  changes still update the lock-screen card while JS is suspended. */
+  private var statusSubId: Int = -1
+  private var trackSubId: Int = -1
+  private var statusJob: Job? = null
+  private var trackJob: Job? = null
 
   override fun onBind(intent: Intent?): IBinder? = null
 
@@ -91,12 +112,12 @@ class NowPlayingService : Service() {
 
     mediaSession = MediaSessionCompat(this, "RockboxNowPlaying").apply {
       setCallback(object : MediaSessionCompat.Callback() {
-        override fun onPlay() = emit("play")
-        override fun onPause() = emit("pause")
-        override fun onSkipToNext() = emit("next")
-        override fun onSkipToPrevious() = emit("prev")
-        override fun onStop() = emit("stop")
-        override fun onSeekTo(pos: Long) = emit("seek", pos)
+        override fun onPlay() = handleAction("play")
+        override fun onPause() = handleAction("pause")
+        override fun onSkipToNext() = handleAction("next")
+        override fun onSkipToPrevious() = handleAction("prev")
+        override fun onStop() = handleAction("stop")
+        override fun onSeekTo(pos: Long) = handleAction("seek", pos)
       })
       isActive = true
     }
@@ -105,21 +126,27 @@ class NowPlayingService : Service() {
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     val action = intent?.action
     when (action) {
-      ACTION_UPDATE -> handleUpdate(intent)
+      ACTION_UPDATE -> {
+        handleUpdate(intent)
+        startNativeSubscriptions()
+      }
       ACTION_SET_PLAYBACK -> {
         applyPlaybackFromIntent(intent)
         refreshNotification()
+      }
+      ACTION_SET_COVER_BASE -> {
+        coverBaseUrl = intent.getStringExtra(EXTRA_COVER_BASE_URL)
       }
       ACTION_CLEAR -> {
         stopSelf()
         return START_NOT_STICKY
       }
-      ACTION_BUTTON_PLAY -> emit("play")
-      ACTION_BUTTON_PAUSE -> emit("pause")
-      ACTION_BUTTON_NEXT -> emit("next")
-      ACTION_BUTTON_PREV -> emit("prev")
+      ACTION_BUTTON_PLAY -> handleAction("play")
+      ACTION_BUTTON_PAUSE -> handleAction("pause")
+      ACTION_BUTTON_NEXT -> handleAction("next")
+      ACTION_BUTTON_PREV -> handleAction("prev")
       ACTION_BUTTON_STOP -> {
-        emit("stop")
+        handleAction("stop")
         stopSelf()
         return START_NOT_STICKY
       }
@@ -133,6 +160,7 @@ class NowPlayingService : Service() {
   }
 
   override fun onDestroy() {
+    stopNativeSubscriptions()
     artLoadJob?.cancel()
     scope.cancel()
     mediaSession.isActive = false
@@ -147,6 +175,8 @@ class NowPlayingService : Service() {
   }
 
   private fun handleUpdate(intent: Intent) {
+    intent.getStringExtra(EXTRA_COVER_BASE_URL)?.let { coverBaseUrl = it }
+
     val newTrackId = intent.getStringExtra(EXTRA_TRACK_ID) ?: ""
     val newArtworkUrl = intent.getStringExtra(EXTRA_ARTWORK_URL)
     val artworkChanged = newTrackId != currentTrackId || newArtworkUrl != currentArtworkUrl
@@ -190,6 +220,112 @@ class NowPlayingService : Service() {
     if (intent.hasExtra(EXTRA_SPEED)) {
       currentSpeed = intent.getFloatExtra(EXTRA_SPEED, 1f)
     }
+  }
+
+  /**
+   * Subscribe to the rockboxd current-track + status streams directly from
+   * the service. JS does the same subscribe via [RockboxRpcModule], but its
+   * delivery path passes through the JS thread which Android can suspend
+   * once the screen is locked. Subscribing here keeps the lock-screen card
+   * fresh independent of the JS event loop.
+   */
+  private fun startNativeSubscriptions() {
+    if (trackSubId == -1) {
+      val id = try { RockboxRpcModule.rb_subscribe_current_track() } catch (e: Throwable) {
+        Log.e(TAG, "rb_subscribe_current_track failed", e); -1
+      }
+      if (id >= 0) {
+        trackSubId = id
+        trackJob = scope.launch { pollLoop(id, ::onTrackEvent) }
+      }
+    }
+    if (statusSubId == -1) {
+      val id = try { RockboxRpcModule.rb_subscribe_status() } catch (e: Throwable) {
+        Log.e(TAG, "rb_subscribe_status failed", e); -1
+      }
+      if (id >= 0) {
+        statusSubId = id
+        statusJob = scope.launch { pollLoop(id, ::onStatusEvent) }
+      }
+    }
+  }
+
+  private fun stopNativeSubscriptions() {
+    val sId = statusSubId
+    val tId = trackSubId
+    statusSubId = -1
+    trackSubId = -1
+    statusJob?.cancel()
+    trackJob?.cancel()
+    statusJob = null
+    trackJob = null
+    if (sId >= 0) try { RockboxRpcModule.rb_unsubscribe(sId) } catch (_: Throwable) {}
+    if (tId >= 0) try { RockboxRpcModule.rb_unsubscribe(tId) } catch (_: Throwable) {}
+  }
+
+  private suspend fun pollLoop(subId: Int, handler: (JSONObject) -> Unit) {
+    while (scope.isActive && (subId == statusSubId || subId == trackSubId)) {
+      val payload = try {
+        RockboxRpcModule.rb_poll_event(subId, 5000)
+      } catch (e: Throwable) {
+        Log.e(TAG, "rb_poll_event($subId) failed", e); null
+      } ?: continue
+      try {
+        val json = JSONObject(payload)
+        // Ignore the "rockbox.error" envelopes the Rust side emits when the
+        // stream resets — the next reconnect will deliver fresh events.
+        if (json.has("error")) continue
+        withContext(Dispatchers.Main) { handler(json) }
+      } catch (e: Throwable) {
+        Log.e(TAG, "poll handler failed", e)
+      }
+    }
+  }
+
+  private fun onTrackEvent(json: JSONObject) {
+    val newTrackId = json.optString("id", "")
+    val newAlbumArt = json.optString("album_art").takeIf { it.isNotEmpty() }
+    val newArtworkUrl = newAlbumArt?.let { resolveArtworkUrl(it) }
+    val artworkChanged = newTrackId != currentTrackId || newArtworkUrl != currentArtworkUrl
+
+    currentTrackId = newTrackId
+    currentTitle = json.optString("title", "")
+    currentArtist = json.optString("artist", "")
+    currentAlbum = json.optString("album", "")
+    currentDurationMs = json.optLong("duration_ms", 0L)
+    currentPositionMs = json.optLong("elapsed_ms", currentPositionMs)
+    currentArtworkUrl = newArtworkUrl
+
+    if (artworkChanged) {
+      currentArtwork = null
+      artLoadJob?.cancel()
+      val url = newArtworkUrl
+      val trackId = newTrackId
+      if (!url.isNullOrEmpty()) {
+        artLoadJob = scope.launch {
+          val bitmap = loadArtwork(url)
+          if (bitmap != null && trackId == currentTrackId) {
+            currentArtwork = bitmap
+            withContext(Dispatchers.Main) { refreshNotification() }
+          }
+        }
+      }
+    }
+    refreshNotification()
+  }
+
+  private fun onStatusEvent(json: JSONObject) {
+    val s = json.optInt("status", -1)
+    if (s == 1) currentIsPlaying = true
+    else if (s == 2) currentIsPlaying = false
+    refreshNotification()
+  }
+
+  private fun resolveArtworkUrl(albumArt: String): String? {
+    if (albumArt.startsWith("http://") || albumArt.startsWith("https://")) return albumArt
+    val base = coverBaseUrl ?: return null
+    val joined = if (base.endsWith("/")) "$base$albumArt" else "$base/$albumArt"
+    return joined
   }
 
   private fun refreshNotification() {
@@ -306,7 +442,41 @@ class NowPlayingService : Service() {
     }
   }
 
-  private fun emit(action: String, positionMs: Long? = null) {
+  /**
+   * Run the transport command directly against the daemon via JNI, then
+   * notify JS so any in-app UI (mini-player, full player) stays in sync.
+   * Going through JS for the actual RPC call would queue up while the
+   * screen is locked — see issue: pause worked, resume didn't.
+   */
+  private fun handleAction(action: String, positionMs: Long? = null) {
+    scope.launch(Dispatchers.IO) {
+      try {
+        when (action) {
+          "play" -> RockboxRpcModule.rb_play()
+          "pause" -> RockboxRpcModule.rb_pause()
+          "playPause" -> RockboxRpcModule.rb_play_pause()
+          "next" -> RockboxRpcModule.rb_next()
+          "prev" -> RockboxRpcModule.rb_prev()
+          "stop" -> RockboxRpcModule.rb_pause()
+          "seek" -> if (positionMs != null) RockboxRpcModule.rb_seek(positionMs.toInt())
+        }
+      } catch (e: Throwable) {
+        Log.e(TAG, "rb_$action failed", e)
+      }
+    }
+    // Optimistic local update so the notification flips state instantly,
+    // even before the daemon's status stream confirms it.
+    when (action) {
+      "play" -> {
+        currentIsPlaying = true
+        refreshNotification()
+      }
+      "pause", "stop" -> {
+        currentIsPlaying = false
+        refreshNotification()
+      }
+    }
+    // Forward to JS so the in-app UI updates promptly when foregrounded.
     RockboxNowPlayingModule.dispatchAction(action, positionMs)
   }
 }
