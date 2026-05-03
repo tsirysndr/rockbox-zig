@@ -47,7 +47,7 @@ if [ "$OS_TYPE" = "Linux" ]; then
     echo "▸ Creating desktop entry…"
     cat > "${OUT_DIR}/usr/share/applications/rockbox-gpui.desktop" <<DESKTOP
 [Desktop Entry]
-Name=Rockbox GPUI
+Name=Rockbox
 Comment=Modern audio player with multi-room support
 Exec=rockbox-gpui
 Icon=rockbox-gpui
