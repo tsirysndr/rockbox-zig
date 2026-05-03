@@ -29,3 +29,6 @@ cp -r %{_sourcedir}/amd64/usr %{buildroot}/
 /usr/local/bin/rockboxd
 /usr/local/lib/rockbox/*
 /usr/local/share/rockbox/*
+/usr/bin/rockbox-gpui
+/usr/share/applications/rockbox-gpui.desktop
+/usr/share/pixmaps/rockbox-gpui.png
