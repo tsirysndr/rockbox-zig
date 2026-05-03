@@ -9269,6 +9269,7 @@ dependencies = [
  "reqwest",
  "rockbox-airplay",
  "rockbox-chromecast",
+ "rockbox-fts5",
  "rockbox-library",
  "rockbox-playlists",
  "rockbox-rocksky",
@@ -9314,6 +9315,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-fts5"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "rockbox-library",
+ "rockbox-typesense",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "rockbox-graphql"
 version = "0.1.0"
 dependencies = [
@@ -9333,6 +9346,7 @@ dependencies = [
  "owo-colors 4.1.0",
  "reqwest",
  "rockbox-bluetooth",
+ "rockbox-fts5",
  "rockbox-library",
  "rockbox-playlists",
  "rockbox-rocksky",
@@ -9491,6 +9505,7 @@ dependencies = [
  "prost",
  "reqwest",
  "rockbox-bluetooth",
+ "rockbox-fts5",
  "rockbox-graphql",
  "rockbox-library",
  "rockbox-playlists",
@@ -9530,6 +9545,7 @@ dependencies = [
  "rockbox-bluetooth",
  "rockbox-chromecast",
  "rockbox-discovery",
+ "rockbox-fts5",
  "rockbox-graphql",
  "rockbox-library",
  "rockbox-mpd",

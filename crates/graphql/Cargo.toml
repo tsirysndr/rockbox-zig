@@ -24,6 +24,7 @@ rockbox-upnp = {path = "../upnp"}
 rockbox-playlists = {path = "../playlists"}
 rockbox-rocksky = {path = "../rocksky"}
 rockbox-typesense = {path = "../typesense"}
+rockbox-fts5 = {path = "../fts5", optional = true}
 rockbox-sys = {path = "../sys"}
 rockbox-types = {path = "../types"}
 rockbox-webui = {path = "../../webui"}
@@ -32,6 +33,10 @@ serde_json = "1.0.128"
 slab = "0.4.9"
 sqlx = {version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "sqlite", "chrono", "derive", "macros"]}
 tokio = {version = "1.36.0", features = ["full"]}
+
+[features]
+default = []
+fts5 = ["dep:rockbox-fts5"]
 
 [target.'cfg(target_os = "linux")'.dependencies]
 rockbox-bluetooth = {path = "../bluetooth"}

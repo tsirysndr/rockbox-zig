@@ -9,27 +9,37 @@ use rockbox_airplay::_link_airplay as _;
 use rockbox_chromecast::_link_chromecast as _;
 use rockbox_library::audio_scan::{save_audio_metadata, scan_audio_files};
 use rockbox_library::{create_connection_pool, repo};
+#[cfg(not(feature = "fts5"))]
 use rockbox_playlists::PlaylistStore;
 #[allow(unused_imports)]
 use rockbox_slim::_link_slim as _;
+#[cfg(not(feature = "fts5"))]
 use rockbox_typesense::client::*;
+#[cfg(not(feature = "fts5"))]
 use rockbox_typesense::types::*;
 #[allow(unused_imports)]
 use rockbox_upnp::_link_upnp as _;
+#[cfg(not(feature = "fts5"))]
 use std::io::{BufRead, BufReader};
+#[cfg(not(feature = "fts5"))]
 use std::process::Stdio;
+#[cfg(not(feature = "fts5"))]
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, ffi::CStr};
 use std::{fs, thread};
-use tracing::{error, info, warn};
+#[cfg(not(feature = "fts5"))]
+use tracing::error;
+use tracing::{info, warn};
 
 /// PID of the spawned typesense-server child, or -1 if not yet started.
+#[cfg(not(feature = "fts5"))]
 static TYPESENSE_PID: AtomicI32 = AtomicI32::new(-1);
 
 /// Poll the Typesense health endpoint until it responds, giving the server
 /// time to start before any collection or indexing calls are made.
+#[cfg(not(feature = "fts5"))]
 async fn wait_for_typesense() {
     let port = std::env::var("RB_TYPESENSE_PORT").unwrap_or_else(|_| "8109".to_string());
     let url = format!("http://localhost:{}/health", port);
@@ -69,9 +79,12 @@ async fn wait_for_typesense() {
 /// _exit is used because it is async-signal-safe (exit() is not).
 #[cfg(unix)]
 extern "C" fn handle_shutdown(_sig: libc::c_int) {
-    let pid = TYPESENSE_PID.load(Ordering::SeqCst);
-    if pid > 0 {
-        unsafe { libc::kill(pid, libc::SIGTERM) };
+    #[cfg(not(feature = "fts5"))]
+    {
+        let pid = TYPESENSE_PID.load(Ordering::SeqCst);
+        if pid > 0 {
+            unsafe { libc::kill(pid, libc::SIGTERM) };
+        }
     }
     unsafe { libc::_exit(0) };
 }
@@ -163,7 +176,7 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         match fs::create_dir_all(format!("{}/Music", home)) {
             Ok(_) => {}
             Err(e) => {
-                error!("Failed to create Music directory: {}", e);
+                tracing::error!("Failed to create Music directory: {}", e);
             }
         }
 
@@ -178,105 +191,8 @@ pub extern "C" fn parse_args(argc: usize, argv: *const *const u8) -> i32 {
         };
         let path = rockbox_settings::get_music_dir().unwrap_or(format!("{}/Music", home));
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
-            info!("Setting up Typesense search engine...");
-            rockbox_typesense::setup()?;
-
-            // Wait for Typesense to accept connections before any HTTP calls.
-            // The subprocess thread starts typesense-server concurrently, so it
-            // may not be listening yet when we reach the first collection call.
-            wait_for_typesense().await;
-
-            info!("Connecting to library database...");
-            let pool = create_connection_pool().await?;
-            let tracks = repo::track::all(pool.clone()).await?;
-            if tracks.is_empty() || update_library {
-                if tracks.is_empty() {
-                    info!(
-                        "Library is empty — starting first-time audio scan of: {}",
-                        path
-                    );
-                } else {
-                    info!(
-                        "ROCKBOX_UPDATE_LIBRARY set — rescanning audio library at: {}",
-                        path
-                    );
-                }
-                match scan_audio_files(pool.clone(), path.into()).await {
-                    Ok(_) => info!("Audio scan complete"),
-                    Err(e) => error!("Failed to scan audio files: {}", e),
-                }
-                let tracks = repo::track::all(pool.clone()).await?;
-                let albums = repo::album::all(pool.clone()).await?;
-                let artists = repo::artist::all(pool.clone()).await?;
-
-                info!(
-                    "Indexing {} tracks, {} albums, {} artists into Typesense...",
-                    tracks.len(),
-                    albums.len(),
-                    artists.len()
-                );
-
-                info!("Creating Typesense collections...");
-                create_tracks_collection().await?;
-                create_albums_collection().await?;
-                create_artists_collection().await?;
-
-                info!("Inserting {} tracks...", tracks.len());
-                insert_tracks(tracks.into_iter().map(Track::from).collect()).await?;
-                info!("Inserting {} artists...", artists.len());
-                insert_artists(artists.into_iter().map(Artist::from).collect()).await?;
-                info!("Inserting {} albums...", albums.len());
-                insert_albums(albums.into_iter().map(Album::from).collect()).await?;
-
-                info!("Search index build complete.");
-            } else {
-                info!(
-                    "Library already indexed ({} tracks); skipping scan.",
-                    tracks.len()
-                );
-            }
-
-            info!("Setting up playlists collection...");
-            create_playlists_collection().await?;
-            let playlist_store = PlaylistStore::new(pool.clone());
-            let saved = playlist_store.list().await.unwrap_or_default();
-            let smart = playlist_store
-                .list_smart_playlists()
-                .await
-                .unwrap_or_default();
-            let ts_playlists: Vec<Playlist> = saved
-                .into_iter()
-                .map(|p| Playlist {
-                    id: p.id,
-                    name: p.name,
-                    description: p.description,
-                    image: p.image,
-                    is_smart: false,
-                    track_count: p.track_count,
-                })
-                .chain(smart.into_iter().map(|p| Playlist {
-                    id: p.id,
-                    name: p.name,
-                    description: p.description,
-                    image: p.image,
-                    is_smart: true,
-                    track_count: 0,
-                }))
-                .collect();
-            if !ts_playlists.is_empty() {
-                info!(
-                    "Indexing {} playlist(s) into Typesense...",
-                    ts_playlists.len()
-                );
-                insert_playlists(ts_playlists).await?;
-                info!("Playlist index complete.");
-            } else {
-                info!("No playlists to index.");
-            }
-            Ok::<(), Error>(())
-        })
-        .unwrap_or_else(|e| warn!("Library indexing failed: {}", e));
+        rt.block_on(async { run_indexing(path, update_library).await })
+            .unwrap_or_else(|e| warn!("Library indexing failed: {}", e));
 
         thread::spawn(move || {
             sleep(Duration::from_secs(5));
@@ -319,6 +235,142 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
         info!("Rockbox Web UI is running on http://localhost:6062");
     });
 
+    spawn_typesense_subprocess();
+    return 0;
+}
+
+#[cfg(not(feature = "fts5"))]
+async fn run_indexing(path: String, update_library: bool) -> Result<(), Error> {
+    info!("Setting up Typesense search engine...");
+    rockbox_typesense::setup()?;
+
+    // Wait for Typesense to accept connections before any HTTP calls.
+    // The subprocess thread starts typesense-server concurrently, so it
+    // may not be listening yet when we reach the first collection call.
+    wait_for_typesense().await;
+
+    info!("Connecting to library database...");
+    let pool = create_connection_pool().await?;
+    let tracks = repo::track::all(pool.clone()).await?;
+    if tracks.is_empty() || update_library {
+        if tracks.is_empty() {
+            info!(
+                "Library is empty — starting first-time audio scan of: {}",
+                path
+            );
+        } else {
+            info!(
+                "ROCKBOX_UPDATE_LIBRARY set — rescanning audio library at: {}",
+                path
+            );
+        }
+        match scan_audio_files(pool.clone(), path.into()).await {
+            Ok(_) => info!("Audio scan complete"),
+            Err(e) => error!("Failed to scan audio files: {}", e),
+        }
+        let tracks = repo::track::all(pool.clone()).await?;
+        let albums = repo::album::all(pool.clone()).await?;
+        let artists = repo::artist::all(pool.clone()).await?;
+
+        info!(
+            "Indexing {} tracks, {} albums, {} artists into Typesense...",
+            tracks.len(),
+            albums.len(),
+            artists.len()
+        );
+
+        info!("Creating Typesense collections...");
+        create_tracks_collection().await?;
+        create_albums_collection().await?;
+        create_artists_collection().await?;
+
+        info!("Inserting {} tracks...", tracks.len());
+        insert_tracks(tracks.into_iter().map(Track::from).collect()).await?;
+        info!("Inserting {} artists...", artists.len());
+        insert_artists(artists.into_iter().map(Artist::from).collect()).await?;
+        info!("Inserting {} albums...", albums.len());
+        insert_albums(albums.into_iter().map(Album::from).collect()).await?;
+
+        info!("Search index build complete.");
+    } else {
+        info!(
+            "Library already indexed ({} tracks); skipping scan.",
+            tracks.len()
+        );
+    }
+
+    info!("Setting up playlists collection...");
+    create_playlists_collection().await?;
+    let playlist_store = PlaylistStore::new(pool.clone());
+    let saved = playlist_store.list().await.unwrap_or_default();
+    let smart = playlist_store
+        .list_smart_playlists()
+        .await
+        .unwrap_or_default();
+    let ts_playlists: Vec<Playlist> = saved
+        .into_iter()
+        .map(|p| Playlist {
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            image: p.image,
+            is_smart: false,
+            track_count: p.track_count,
+        })
+        .chain(smart.into_iter().map(|p| Playlist {
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            image: p.image,
+            is_smart: true,
+            track_count: 0,
+        }))
+        .collect();
+    if !ts_playlists.is_empty() {
+        info!(
+            "Indexing {} playlist(s) into Typesense...",
+            ts_playlists.len()
+        );
+        insert_playlists(ts_playlists).await?;
+        info!("Playlist index complete.");
+    } else {
+        info!("No playlists to index.");
+    }
+    Ok(())
+}
+
+#[cfg(feature = "fts5")]
+async fn run_indexing(path: String, update_library: bool) -> Result<(), Error> {
+    info!("Connecting to library database (FTS5 search backend)...");
+    let pool = create_connection_pool().await?;
+    let tracks = repo::track::all(pool.clone()).await?;
+    if tracks.is_empty() || update_library {
+        if tracks.is_empty() {
+            info!(
+                "Library is empty — starting first-time audio scan of: {}",
+                path
+            );
+        } else {
+            info!(
+                "ROCKBOX_UPDATE_LIBRARY set — rescanning audio library at: {}",
+                path
+            );
+        }
+        match scan_audio_files(pool.clone(), path.into()).await {
+            Ok(_) => info!("Audio scan complete (FTS5 indexed via triggers)"),
+            Err(e) => tracing::error!("Failed to scan audio files: {}", e),
+        }
+    } else {
+        info!(
+            "Library already indexed ({} tracks); FTS5 ready.",
+            tracks.len()
+        );
+    }
+    Ok(())
+}
+
+#[cfg(not(feature = "fts5"))]
+fn spawn_typesense_subprocess() {
     thread::spawn(move || {
         let api_key = uuid::Uuid::new_v4().to_string();
         let api_key = std::env::var("RB_TYPESENSE_API_KEY").unwrap_or(api_key);
@@ -407,7 +459,11 @@ Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
 
         Ok::<(), Error>(())
     });
-    return 0;
+}
+
+#[cfg(feature = "fts5")]
+fn spawn_typesense_subprocess() {
+    info!("FTS5 search backend enabled — skipping typesense-server spawn.");
 }
 
 #[no_mangle]
@@ -429,7 +485,7 @@ pub extern "C" fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i3
     let rt = match tokio::runtime::Runtime::new() {
         Ok(rt) => rt,
         Err(e) => {
-            error!(
+            tracing::error!(
                 "save_remote_track_metadata: failed to create runtime: {}",
                 e
             );
@@ -443,7 +499,7 @@ pub extern "C" fn save_remote_track_metadata(url: *const std::ffi::c_char) -> i3
     }) {
         Ok(()) => 0,
         Err(e) => {
-            error!("save_remote_track_metadata: {}", e);
+            tracing::error!("save_remote_track_metadata: {}", e);
             -1
         }
     }

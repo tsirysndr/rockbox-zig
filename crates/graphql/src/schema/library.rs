@@ -1,6 +1,5 @@
 use async_graphql::*;
 use rockbox_library::{entity::favourites::Favourites, repo};
-use rockbox_typesense::client::{search_albums, search_artists, search_tracks};
 use sqlx::{Pool, Sqlite};
 
 use crate::{rockbox_url, schema::objects::track::Track};
@@ -74,19 +73,44 @@ impl LibraryQuery {
         Ok(results.into_iter().map(Into::into).collect())
     }
 
-    async fn search(&self, _ctx: &Context<'_>, term: String) -> Result<SearchResults, Error> {
-        let tracks = search_tracks(&term)
-            .await?
-            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
-            .unwrap_or_default();
-        let albums = search_albums(&term)
-            .await?
-            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
-            .unwrap_or_default();
-        let artists = search_artists(&term)
-            .await?
-            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
-            .unwrap_or_default();
+    async fn search(&self, ctx: &Context<'_>, term: String) -> Result<SearchResults, Error> {
+        #[cfg(not(feature = "fts5"))]
+        let (tracks, albums, artists) = {
+            use rockbox_typesense::client::{search_albums, search_artists, search_tracks};
+            let _ = ctx;
+            let tracks = search_tracks(&term)
+                .await?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let albums = search_albums(&term)
+                .await?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let artists = search_artists(&term)
+                .await?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            (tracks, albums, artists)
+        };
+
+        #[cfg(feature = "fts5")]
+        let (tracks, albums, artists) = {
+            use rockbox_fts5::{search_albums, search_artists, search_tracks};
+            let pool = ctx.data::<Pool<Sqlite>>()?;
+            let tracks = search_tracks(pool.clone(), &term)
+                .await?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let albums = search_albums(pool.clone(), &term)
+                .await?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let artists = search_artists(pool.clone(), &term)
+                .await?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            (tracks, albums, artists)
+        };
 
         Ok(SearchResults {
             tracks,

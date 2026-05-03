@@ -2,7 +2,6 @@ use std::pin::Pin;
 
 use rockbox_graphql::{simplebroker::SimpleBroker, types::ScanCompleted};
 use rockbox_library::{entity::favourites::Favourites, repo};
-use rockbox_typesense::client::{search_albums, search_artists, search_playlists, search_tracks};
 use sqlx::Sqlite;
 use tokio_stream::{Stream, StreamExt};
 
@@ -273,38 +272,83 @@ impl LibraryService for Library {
         let request = request.into_inner();
         let term = request.term;
 
-        let tracks = search_tracks(&term)
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?
-            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
-            .unwrap_or_default();
-        let albums = search_albums(&term)
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?
-            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
-            .unwrap_or_default();
-        let artists = search_artists(&term)
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?
-            .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
-            .unwrap_or_default();
-        let playlists = search_playlists(&term)
-            .await
-            .unwrap_or_default()
-            .map(|r| {
-                r.hits
-                    .into_iter()
-                    .map(|h| SearchPlaylist {
-                        id: h.document.id,
-                        name: h.document.name,
-                        description: h.document.description,
-                        image: h.document.image,
-                        is_smart: h.document.is_smart,
-                        track_count: h.document.track_count,
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
+        #[cfg(not(feature = "fts5"))]
+        let (tracks, albums, artists, playlists) = {
+            use rockbox_typesense::client::{
+                search_albums, search_artists, search_playlists, search_tracks,
+            };
+            let tracks = search_tracks(&term)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let albums = search_albums(&term)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let artists = search_artists(&term)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let playlists = search_playlists(&term)
+                .await
+                .unwrap_or_default()
+                .map(|r| {
+                    r.hits
+                        .into_iter()
+                        .map(|h| SearchPlaylist {
+                            id: h.document.id,
+                            name: h.document.name,
+                            description: h.document.description,
+                            image: h.document.image,
+                            is_smart: h.document.is_smart,
+                            track_count: h.document.track_count,
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
+            (tracks, albums, artists, playlists)
+        };
+
+        #[cfg(feature = "fts5")]
+        let (tracks, albums, artists, playlists) = {
+            use rockbox_fts5::{search_albums, search_artists, search_playlists, search_tracks};
+            let tracks = search_tracks(self.pool.clone(), &term)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let albums = search_albums(self.pool.clone(), &term)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let artists = search_artists(self.pool.clone(), &term)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?
+                .map(|r| r.hits.into_iter().map(|h| h.document.into()).collect())
+                .unwrap_or_default();
+            let playlists = search_playlists(self.pool.clone(), &term)
+                .await
+                .unwrap_or_default()
+                .map(|r| {
+                    r.hits
+                        .into_iter()
+                        .map(|h| SearchPlaylist {
+                            id: h.document.id,
+                            name: h.document.name,
+                            description: h.document.description,
+                            image: h.document.image,
+                            is_smart: h.document.is_smart,
+                            track_count: h.document.track_count,
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
+            (tracks, albums, artists, playlists)
+        };
 
         Ok(tonic::Response::new(SearchResponse {
             tracks,

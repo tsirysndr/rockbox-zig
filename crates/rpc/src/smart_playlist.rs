@@ -1,5 +1,7 @@
 use rockbox_playlists::{SmartPlaylist, TrackStats};
+#[cfg(not(feature = "fts5"))]
 use rockbox_typesense::client::{delete_playlist as ts_delete_playlist, insert_playlists};
+#[cfg(not(feature = "fts5"))]
 use rockbox_typesense::types::Playlist as TsPlaylist;
 
 use crate::api::rockbox::v1alpha1::{
@@ -314,15 +316,18 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             )
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        let ts_p = TsPlaylist {
-            id: playlist.id.clone(),
-            name: playlist.name.clone(),
-            description: playlist.description.clone(),
-            image: playlist.image.clone(),
-            is_smart: true,
-            track_count: 0,
-        };
-        let _ = insert_playlists(vec![ts_p]).await;
+        #[cfg(not(feature = "fts5"))]
+        {
+            let ts_p = TsPlaylist {
+                id: playlist.id.clone(),
+                name: playlist.name.clone(),
+                description: playlist.description.clone(),
+                image: playlist.image.clone(),
+                is_smart: true,
+                track_count: 0,
+            };
+            let _ = insert_playlists(vec![ts_p]).await;
+        }
         Ok(tonic::Response::new(CreateSmartPlaylistResponse {
             playlist: Some(to_proto_smart_playlist(playlist)),
         }))
@@ -349,6 +354,7 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             )
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        #[cfg(not(feature = "fts5"))]
         if let Ok(Some(updated)) = self.store.get_smart_playlist(&req.id).await {
             let ts_p = TsPlaylist {
                 id: updated.id.clone(),
@@ -372,6 +378,7 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             .delete_smart_playlist(&id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        #[cfg(not(feature = "fts5"))]
         let _ = ts_delete_playlist(&id).await;
         Ok(tonic::Response::new(DeleteSmartPlaylistResponse {}))
     }
