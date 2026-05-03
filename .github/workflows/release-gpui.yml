@@ -49,6 +49,9 @@ jobs:
       - name: Install protobuf
         run: brew install protobuf
 
+      - name: Skip Rust Warnings
+        run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
+
       - name: Build and package
         run: bash package.sh
         working-directory: gpui
