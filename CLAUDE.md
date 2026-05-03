@@ -35,6 +35,8 @@ crates/            Rust workspace
   types/           Shared Rust types
   traits/          Shared Rust traits
 zig/               Zig build script and thin main.zig entry point
+gpui/              Desktop client (GPUI / Rust) — reference UI for the mobile app
+expo/              React Native / Expo mobile app (see `expo/CLAUDE.md` rules below)
 ```
 
 ## Build system
@@ -178,6 +180,84 @@ HTTP fds are encoded as values `<= STREAM_HTTP_FD_BASE (-1000)`. `stream_open/re
 6. Add a `set_<name>_*` wrapper if configuration is needed.
 7. Handle in `crates/settings/src/lib.rs:load_settings()`.
 8. If the sink has a Rust implementation in a new crate: add a `_link_<name>()` dummy fn and reference it from `crates/cli/src/lib.rs` to force inclusion in the staticlib.
+
+## Mobile app (`expo/`)
+
+A React Native client (Expo Router + NativeWind) lives in `expo/`. It mirrors
+the GPUI desktop layout (`gpui/src/ui/`) — same dark palette, same
+Spotify/Tidal-inspired information architecture: bottom-tab shell with a
+persistent miniplayer, full-screen player modal, queue modal, and detail
+screens for album / artist / playlist / genre. Most state is mock-only today;
+real data should plug into the rockboxd gRPC / GraphQL client (`crates/server/`).
+
+### Stack
+- **Expo SDK 54** + **expo-router** for file-based routing (`app/`).
+- **NativeWind 4** with Tailwind 3 — class-based styling against a custom palette
+  declared in both `expo/tailwind.config.js` and `expo/constants/theme.ts`
+  (keep the two in sync).
+- `expo-image`, `expo-blur`, `expo-linear-gradient`, `@expo/vector-icons`
+  (Ionicons + MaterialCommunityIcons), `react-native-safe-area-context`.
+
+### Layout
+```
+expo/
+├── app/
+│   ├── _layout.tsx                 root stack, fonts, PlayerProvider, modals
+│   ├── (tabs)/_layout.tsx          custom tab bar with merged miniplayer dock
+│   ├── (tabs)/{index,search,library}.tsx
+│   ├── player.tsx, queue.tsx, settings.tsx
+│   ├── album/[id].tsx, artist/[id].tsx, playlist/[id].tsx, genre/[id].tsx
+│   └── playlist/new.tsx            create regular OR smart (?mode=smart)
+├── components/                     mini-player, action-sheet, track-context-menu, …
+├── lib/
+│   ├── player-context.tsx          single source of truth for playback state
+│   ├── mock-data.ts                ALBUMS / ARTISTS / PLAYLISTS / GENRES + helpers
+│   └── nativewind-setup.ts         cssInterop registrations (must be imported)
+├── constants/theme.ts              `Colors` palette consumed by inline styles
+├── tailwind.config.js              `Colors` palette mirrored as Tailwind tokens
+├── babel.config.js                 babel-preset-expo + nativewind/babel
+└── metro.config.js                 withNativeWind({ input: './global.css' })
+```
+
+### Styling rules — NativeWind only
+
+- **Always use `className` for styling.** Inline `style={{...}}` is reserved for
+  values className genuinely cannot express: `Animated.Value` bindings,
+  runtime-computed widths (`` `${pct * 100}%` ``), per-instance shadow tokens,
+  or colors derived from data (e.g. `genre.color`).
+- **Never combine a function `style={(state) => ({...})}` with `className` on
+  the same element.** The function `style` overrides NativeWind's class output
+  and silently drops every utility on that element. Use arbitrary-value classes
+  (`w-[48.5%]`, `h-[100px]`, `aspect-square`) and the `active:` variant for
+  press feedback instead.
+- Static `style={{...}}` objects (no callbacks) merge fine with `className`.
+- Color tokens live in `tailwind.config.js` under `bg.*`, `accent.*`, `text.*`,
+  `border`, `divider`, `slider.*`, `danger`. Reach for these (`bg-bg-card`,
+  `text-text-secondary`, `bg-accent`) instead of hard-coded hex values.
+- `expo-image`, `expo-blur`, `expo-linear-gradient`, and the safe-area
+  `SafeAreaView` are wired up via `cssInterop` in `lib/nativewind-setup.ts` —
+  any other third-party component needs to be registered there before it can
+  accept `className`.
+- Fonts: `font-sans` → SpaceGrotesk (UI), `font-mono` → JetBrainsMono
+  (durations / numerics). The TTFs are bundled via the `expo-font` plugin in
+  `app.json` and copied from `gpui/assets/fonts/`.
+
+### Player state
+`lib/player-context.tsx` holds queue, currentIdx, position (1 Hz tick),
+isPlaying, shuffle, repeat, liked, userPlaylists, and the global track / entity
+context-menu state. The mock advances `position` and auto-advances tracks; the
+real implementation should replace the action handlers with rockboxd RPC calls
+while keeping the same shape so the UI doesn't need to change.
+
+### Useful commands
+```sh
+cd expo
+bun install                        # or npm/yarn
+bun run start                      # iOS / Android / web via expo-router
+bunx tsc --noEmit                  # type check
+bunx expo lint                     # lint
+bunx expo export --platform web    # smoke-test the bundle (catches NativeWind transform issues)
+```
 
 ## Useful commands
 
