@@ -14,7 +14,7 @@ rockbox-upnp = {path = "../upnp", features = ["ffi"]}
 rockbox-chromecast = {path = "../chromecast", features = ["ffi"]}
 clap = "4.5.16"
 owo-colors = "4.1.0"
-reqwest = { workspace = true, features = ["rustls-tls", "json"] }
+reqwest = { workspace = true, features = ["rustls-tls-native-roots", "json"] }
 rockbox-library = {path = "../library"}
 rockbox-playlists = {path = "../playlists"}
 rockbox-typesense = {path = "../typesense"}

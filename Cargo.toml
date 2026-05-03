@@ -104,7 +104,12 @@ prost-build = "0.13"
 rand = "=0.8.5"
 regex = "^1.7.0"
 reqwest = { version = "=0.12.5", default-features = false, features = [
-  "rustls-tls",
+  # `rustls-tls-native-roots` enables ONLY `hyper-rustls/native-tokio`,
+  # not hyper-rustls's full default-features (which pulls aws-lc-rs and
+  # cmake-based aws-lc-sys that doesn't cross-compile to Android).
+  # Combined with the workspace-level `rustls = features = ["ring"]`
+  # config below, this gives us a ring-based TLS stack everywhere.
+  "rustls-tls-native-roots",
   "stream",
   "gzip",
   "brotli",

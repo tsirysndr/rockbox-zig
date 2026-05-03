@@ -3109,7 +3109,7 @@ dependencies = [
  "dlopen2 0.7.0",
  "dlopen2_derive",
  "once_cell",
- "rustls-native-certs",
+ "rustls-native-certs 0.7.3",
  "rustls-pemfile",
 ]
 
@@ -5868,6 +5868,7 @@ dependencies = [
  "hyper 1.4.1",
  "hyper-util",
  "rustls 0.23.13",
+ "rustls-native-certs 0.8.0",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls",
@@ -9071,6 +9072,7 @@ dependencies = [
  "pin-project-lite",
  "quinn",
  "rustls 0.23.13",
+ "rustls-native-certs 0.7.3",
  "rustls-pemfile",
  "rustls-pki-types",
  "serde",
@@ -9307,6 +9309,10 @@ dependencies = [
  "prost",
  "reqwest",
  "rockbox-discovery",
+ "rockbox-library",
+ "rockbox-server",
+ "rockbox-settings",
+ "rockbox-sys",
  "serde",
  "serde_json",
  "tokio",
@@ -9906,6 +9912,19 @@ name = "rustls-native-certs"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5bfb394eeed242e909609f56089eecfe5fda225042e8b171791b9c95f5931e5"
+dependencies = [
+ "openssl-probe",
+ "rustls-pemfile",
+ "rustls-pki-types",
+ "schannel",
+ "security-framework",
+]
+
+[[package]]
+name = "rustls-native-certs"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fcaf18a4f2be7326cd874a5fa579fae794320a0f388d365dca7e480e55f83f8a"
 dependencies = [
  "openssl-probe",
  "rustls-pemfile",
