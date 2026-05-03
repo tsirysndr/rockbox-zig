@@ -2,13 +2,31 @@
 name = "rockbox-expo"
 version = "0.1.0"
 edition = "2021"
-description = "C-ABI gRPC client wrapper for embedding in the rockbox-zig Expo (React Native) mobile app"
+description = "C-ABI gRPC client + optional embedded rockbox daemon for the Expo (React Native) app"
 license = "LGPL-2.1"
 
 [lib]
 name = "rockbox_expo"
 crate-type = ["staticlib", "cdylib"]
 
+# ── Features ────────────────────────────────────────────────────────────────
+#
+# `embedded-daemon`: link the full rockbox firmware + crates/server into the
+# cdylib so the phone can play audio in-process. Enabled by the Android build
+# script (and later iOS). Cascades to FTS5 search to avoid typesense.
+#
+# Build: `cargo ndk -t arm64-v8a -- build --features embedded-daemon`
+[features]
+default = []
+embedded-daemon = [
+    "dep:rockbox-server",
+    "dep:rockbox-settings",
+    "dep:rockbox-library",
+    "dep:rockbox-sys",
+    "rockbox-server/fts5",       # cascades to rockbox-graphql/fts5 + rockbox-rpc/fts5
+]
+
+# ── Always-on dependencies (gRPC client + JNI/Swift glue) ──────────────────
 [dependencies]
 prost = "0.13"
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "sync", "time", "macros"] }
@@ -18,10 +36,18 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 futures-util = "0.3"
 rockbox-discovery = { path = "../discovery" }
-# Minimal HTTP client for the cast / AirPlay device endpoints (rockboxd
-# exposes them over plain HTTP at the http_port — no TLS needed).
 reqwest = { version = "0.12", default-features = false, features = ["json"] }
 
+# ── Optional in-process daemon (Android cdylib build) ──────────────────────
+# `default-features = false` keeps unrelated transitive features (sdl, mpris,
+# typesense, …) from sneaking in. The `embedded-daemon` feature explicitly
+# selects only what we need.
+rockbox-server   = { path = "../server",   optional = true, default-features = false }
+rockbox-settings = { path = "../settings", optional = true, default-features = false }
+rockbox-library  = { path = "../library",  optional = true, default-features = false }
+rockbox-sys      = { path = "../sys",      optional = true, default-features = false }
+
+# ── Android-only ───────────────────────────────────────────────────────────
 [target.'cfg(target_os = "android")'.dependencies]
 jni = "0.21"
 
