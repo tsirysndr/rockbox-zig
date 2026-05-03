@@ -9,7 +9,9 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "run:android": "expo run:android"
+    "run:android": "expo run:android",
+    "postinstall": "node ./scripts/link-rockbox-rpc.js",
+    "adb:reverse": "adb reverse tcp:8081 tcp:8081"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -39,7 +41,8 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.5.1"
+    "react-native-worklets": "0.5.1",
+    "rockbox-rpc": "file:./modules/rockbox-rpc"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",

@@ -9265,6 +9265,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-expo"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "once_cell",
+ "prost",
+ "rockbox-discovery",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tonic",
+ "tonic-build",
+]
+
+[[package]]
 name = "rockbox-graphql"
 version = "0.1.0"
 dependencies = [

@@ -259,6 +259,115 @@ bunx expo lint                     # lint
 bunx expo export --platform web    # smoke-test the bundle (catches NativeWind transform issues)
 ```
 
+### Native gRPC client — `crates/expo/` + `expo/modules/rockbox-rpc/`
+
+The mobile app talks to rockboxd through a native module that wraps a real
+tonic gRPC client written in Rust. It is split in two halves:
+
+**`crates/expo/`** — `rockbox-expo` Rust crate, `staticlib + cdylib`.
+- Generates client-only proto bindings in `build.rs` from the shared
+  `crates/rpc/proto` tree (linked in via the `proto -> ../rpc/proto` symlink
+  inside the crate so we don't duplicate `.proto` files).
+- Owns a single multi-thread Tokio runtime via `once_cell`.
+- Exposes a flat C ABI (`rb_set_server_url`, `rb_ping`, `rb_play`, `rb_pause`,
+  `rb_play_pause`, `rb_next`, `rb_prev`, `rb_seek`, `rb_status_json`,
+  `rb_current_track_json`, `rb_like_track`, `rb_unlike_track`,
+  `rb_free_string`). Complex responses are returned as heap-allocated JSON
+  C strings — caller MUST free via `rb_free_string`. Simple ops return `i32`
+  status codes (0 = ok, <0 = error).
+- Deliberately does NOT depend on `rockbox-rpc` to avoid pulling sqlx /
+  typesense / library transitive deps that fight cross-compilation.
+
+**`expo/modules/rockbox-rpc/`** — Expo SDK 54 native module.
+- `expo-module.config.json` declares iOS + Android module classes; the module
+  is autolinked into the app via `expo/package.json` (`"rockbox-rpc": "file:./modules/rockbox-rpc"`).
+- iOS: `ios/RockboxRpcModule.swift` declares each `rb_*` symbol with
+  `@_silgen_name(...)` and exposes them through `Function` / `AsyncFunction`.
+  The static library is delivered as `ios/RockboxExpo.xcframework` (built by
+  `scripts/build-ios.sh`); the `.podspec` `vendored_frameworks` it.
+- Android: `android/src/main/java/expo/modules/rockboxrpc/RockboxRpcModule.kt`
+  uses `System.loadLibrary("rockbox_expo")` + JNI `external fun` declarations.
+  The `.so` per ABI is dropped into `android/src/main/jniLibs/<abi>/` by
+  `scripts/build-android.sh` (uses `cargo-ndk`).
+- TS facade: `expo/modules/rockbox-rpc/src/index.ts` declares the JS surface;
+  `expo/lib/rockbox-client.ts` is the in-app helper with an `isAvailable`
+  flag so callers can fall back to the mock `PlayerProvider` on web or when
+  the libs haven't been built yet.
+
+#### Building the native libs
+
+```sh
+# iOS — produces expo/modules/rockbox-rpc/ios/RockboxExpo.xcframework
+rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+cd expo/modules/rockbox-rpc
+bun run build:ios
+
+# Android — produces expo/modules/rockbox-rpc/android/src/main/jniLibs/<abi>/librockbox_expo.so
+cargo install cargo-ndk
+rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+export ANDROID_NDK_HOME=...   # NDK r25+
+bun run build:android
+```
+
+After the native libs are in place, run `bunx expo prebuild` and then
+`bunx expo run:ios` / `run:android` to bundle them into the app.
+
+#### Adding new RPCs
+
+1. Add a thin wrapper in `crates/expo/src/lib.rs` (`rb_<name>` returning
+   `c_int` for unit ops or `*mut c_char` for JSON-bearing reads).
+2. Add the matching extern declaration in both
+   `expo/modules/rockbox-rpc/ios/RockboxRpcModule.swift` and
+   `expo/modules/rockbox-rpc/android/src/main/java/.../RockboxRpcModule.kt`,
+   plus an `AsyncFunction` binding.
+3. Add the typed method to `expo/modules/rockbox-rpc/src/index.ts` and the
+   forwarding helper in `expo/lib/rockbox-client.ts`.
+4. Rebuild the native libs (`build:ios` / `build:android`) — `metro` doesn't
+   pick up native changes automatically.
+
+#### Streaming subscriptions
+
+Server-streaming RPCs (`StreamStatus`, `StreamCurrentTrack`, `StreamPlaylist`)
+are exposed as JS events — not async iterators — to play nicely with React's
+render loop. The pipeline is:
+
+```
+tonic stream
+  → tokio mpsc<String>     (one queue per subscription, in crates/expo)
+    → rb_poll_event(id, timeout_ms) -> *mut c_char
+       → Swift dispatch_async / Kotlin Dispatchers.IO loop
+          → sendEvent("rockbox.<topic>", payload)  (Expo Modules EventEmitter)
+             → RockboxRpc.addListener("rockbox.<topic>", cb)
+```
+
+Each `subscribe*` returns an opaque numeric subscription id; the JS facade in
+`expo/lib/rockbox-client.ts` wraps that with an `() => void` unsubscribe
+helper that removes both the event listener and the native subscription:
+
+```ts
+const unsubscribe = RockboxClient.subscribeStatus(
+  (s) => console.log("status", s.status),
+  (e) => console.warn("stream error", e.error),
+);
+// later: unsubscribe();
+```
+
+Topics today: `rockbox.status`, `rockbox.currentTrack`, `rockbox.playlist`,
+`rockbox.library`, `rockbox.discovery` (LAN mDNS / Bonjour scan via the
+`rockbox-discovery` crate — emits one `DiscoveredService` per resolved peer),
+plus `rockbox.error` for stream failures (carries `subId`, `stream`, `error`).
+
+The `subscribeDiscovery` helper defaults to the `_rockbox._tcp.local.`
+service; pass any other Bonjour service name (e.g. `_googlecast._tcp.local.`)
+to scan for Chromecast / etc. Constants are also surfaced on the JS side via
+`RockboxClient.rockboxServiceName()` and `RockboxClient.chromecastServiceName()`.
+
+To add a new streamed RPC: add a `rb_subscribe_<name>` in `crates/expo/src/lib.rs`
+that follows the `spawn_stream(...)` pattern, declare the matching event topic
+in the iOS / Android `Events(...)` lists, register a `Function("subscribe<Name>")`
+in both modules, and add the typed `subscribe<Name>(cb, onError?)` helper to
+`expo/lib/rockbox-client.ts`.
+
 ## Useful commands
 
 ```sh

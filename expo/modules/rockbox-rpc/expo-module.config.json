@@ -1,0 +1,9 @@
+{
+  "platforms": ["ios", "android"],
+  "ios": {
+    "modules": ["RockboxRpcModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.rockboxrpc.RockboxRpcModule"]
+  }
+}

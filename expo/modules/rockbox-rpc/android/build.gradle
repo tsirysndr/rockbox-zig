@@ -1,0 +1,27 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.rockboxrpc'
+version = '0.1.0'
+
+android {
+  namespace 'expo.modules.rockboxrpc'
+  defaultConfig {
+    minSdkVersion 24
+    versionCode 1
+    versionName '0.1.0'
+  }
+  // The .so artifacts produced by scripts/build-android.sh are dropped into
+  // src/main/jniLibs/<abi>/ — link them directly into the AAR.
+  sourceSets {
+    main {
+      jniLibs.srcDirs = ['src/main/jniLibs']
+    }
+  }
+}
+
+dependencies {
+  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+}
