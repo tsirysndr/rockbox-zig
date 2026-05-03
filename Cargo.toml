@@ -298,4 +298,12 @@ opentelemetry-semantic-conventions = { version = "0.27.0", features = [
 ] }
 opentelemetry_sdk = "0.27.0"
 
+# Vendored hyper-rustls 0.27.3 with one feature change: default uses `ring`
+# instead of `aws-lc-rs`. aws-lc-rs requires cmake-cross-compile of a C
+# library (aws-lc-sys) which doesn't survive cargo-ndk's flag injection on
+# Android NDK. ring has well-tested Android pre-builts. Desktop builds
+# behave identically (ring is also fine on macOS/Linux).
+[patch.crates-io]
+hyper-rustls = { path = "vendor/hyper-rustls" }
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
