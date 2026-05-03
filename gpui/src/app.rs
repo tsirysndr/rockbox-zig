@@ -2,6 +2,7 @@ use crate::ui::global_keybinds::{Hide, HideOthers, Next, PlayPause, Prev, Quit, 
 use crate::ui::global_keybinds::{Library, Player, Queue};
 use crate::ui::startup_gate::StartupGate;
 use crate::ui::{assets::Assets, theme::Theme};
+#[allow(unused_imports)]
 use gpui::{
     px, size, AppContext, Application, Bounds, Menu, MenuItem, SystemMenuType, TitlebarOptions,
     WindowBounds, WindowDecorations, WindowOptions,
