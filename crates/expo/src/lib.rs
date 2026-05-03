@@ -47,20 +47,19 @@ use api::v1alpha1::{
     sound_service_client::SoundServiceClient, system_service_client::SystemServiceClient,
     AddTracksToSavedPlaylistRequest, AdjustVolumeRequest, ConnectBluetoothDeviceRequest,
     CreateSavedPlaylistRequest, CurrentTrackRequest, DeleteSavedPlaylistRequest,
-    DisconnectBluetoothDeviceRequest, FastForwardRewindRequest, GetAlbumRequest,
-    GetAlbumsRequest, GetArtistRequest, GetArtistsRequest, GetBluetoothDevicesRequest,
-    GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest,
-    GetLikedAlbumsRequest, GetLikedTracksRequest, GetSavedPlaylistTracksRequest,
-    GetSavedPlaylistsRequest, GetSmartPlaylistTracksRequest, GetSmartPlaylistsRequest,
-    GetTracksRequest, InsertDirectoryRequest, InsertTracksRequest, LikeTrackRequest, NextRequest,
-    PauseRequest, PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest,
-    PlayDirectoryRequest, PlayOrPauseRequest, PlaySavedPlaylistRequest, PlaySmartPlaylistRequest,
-    PlayTrackRequest, PlaylistResumeRequest, PreviousRequest, RemoveTrackFromSavedPlaylistRequest,
-    RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest,
-    ScanBluetoothRequest, SearchRequest,
-    ShufflePlaylistRequest, SoundCurrentRequest, StartRequest, StatusRequest,
-    StreamCurrentTrackRequest, StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest,
-    TreeGetEntriesRequest, UnlikeTrackRequest, UpdateSavedPlaylistRequest,
+    DisconnectBluetoothDeviceRequest, FastForwardRewindRequest, GetAlbumRequest, GetAlbumsRequest,
+    GetArtistRequest, GetArtistsRequest, GetBluetoothDevicesRequest, GetCurrentRequest,
+    GetGlobalSettingsRequest, GetGlobalStatusRequest, GetLikedAlbumsRequest, GetLikedTracksRequest,
+    GetSavedPlaylistTracksRequest, GetSavedPlaylistsRequest, GetSmartPlaylistTracksRequest,
+    GetSmartPlaylistsRequest, GetTracksRequest, InsertDirectoryRequest, InsertTracksRequest,
+    LikeTrackRequest, NextRequest, PauseRequest, PlayAlbumRequest, PlayAllTracksRequest,
+    PlayArtistTracksRequest, PlayDirectoryRequest, PlayOrPauseRequest, PlaySavedPlaylistRequest,
+    PlaySmartPlaylistRequest, PlayTrackRequest, PlaylistResumeRequest, PreviousRequest,
+    RemoveTrackFromSavedPlaylistRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest,
+    SaveSettingsRequest, ScanBluetoothRequest, SearchRequest, ShufflePlaylistRequest,
+    SoundCurrentRequest, StartRequest, StatusRequest, StreamCurrentTrackRequest,
+    StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest,
+    UnlikeTrackRequest, UpdateSavedPlaylistRequest,
 };
 
 // ── Globals ──────────────────────────────────────────────────────────────────
@@ -736,7 +735,9 @@ pub extern "C" fn rb_get_liked_albums_json() -> *mut c_char {
 /// `id_ptr` must be a valid NUL-terminated UTF-8 string.
 #[no_mangle]
 pub unsafe extern "C" fn rb_get_artist_json(id_ptr: *const c_char) -> *mut c_char {
-    let Some(id) = cstr_to_str(id_ptr) else { return err_string("missing id"); };
+    let Some(id) = cstr_to_str(id_ptr) else {
+        return err_string("missing id");
+    };
     let id = id.to_string();
     let res = RT.block_on(async {
         let mut c = LibraryServiceClient::connect(url())
@@ -1181,7 +1182,9 @@ pub extern "C" fn rb_get_devices_json() -> *mut c_char {
 /// `id_ptr` must be a valid NUL-terminated UTF-8 string.
 #[no_mangle]
 pub unsafe extern "C" fn rb_connect_device(id_ptr: *const c_char) -> c_int {
-    let Some(id) = cstr_to_str(id_ptr) else { return -1; };
+    let Some(id) = cstr_to_str(id_ptr) else {
+        return -1;
+    };
     let id = id.to_string();
     let res: Result<(), String> = RT.block_on(async {
         let url = format!("{}/devices/{id}/connect", http_url());
@@ -1203,7 +1206,9 @@ pub unsafe extern "C" fn rb_connect_device(id_ptr: *const c_char) -> c_int {
 /// `id_ptr` must be a valid NUL-terminated UTF-8 string.
 #[no_mangle]
 pub unsafe extern "C" fn rb_disconnect_device(id_ptr: *const c_char) -> c_int {
-    let Some(id) = cstr_to_str(id_ptr) else { return -1; };
+    let Some(id) = cstr_to_str(id_ptr) else {
+        return -1;
+    };
     let id = id.to_string();
     let res: Result<(), String> = RT.block_on(async {
         let url = format!("{}/devices/{id}/disconnect", http_url());

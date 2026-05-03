@@ -79,7 +79,9 @@ macro_rules! bridge_unit_str {
             _cls: JClass,
             arg: JString,
         ) -> jint {
-            let Some(c) = to_cstring(&mut env, &arg) else { return -1 };
+            let Some(c) = to_cstring(&mut env, &arg) else {
+                return -1;
+            };
             crate::$rust_fn(c.as_ptr()) as jint
         }
     };
@@ -108,11 +110,7 @@ macro_rules! bridge_json_str {
 macro_rules! bridge_unit_int {
     ($jni_name:ident, $rust_fn:ident) => {
         #[no_mangle]
-        pub unsafe extern "system" fn $jni_name(
-            _env: JNIEnv,
-            _cls: JClass,
-            arg: jint,
-        ) -> jint {
+        pub unsafe extern "system" fn $jni_name(_env: JNIEnv, _cls: JClass, arg: jint) -> jint {
             crate::$rust_fn(arg as c_int) as jint
         }
     };
@@ -143,7 +141,10 @@ bridge_unit_str!(
     Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1set_1http_1url,
     rb_set_http_url
 );
-bridge_unit!(Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1ping, rb_ping);
+bridge_unit!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1ping,
+    rb_ping
+);
 
 bridge_json!(
     Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1get_1devices_1json,
@@ -160,14 +161,26 @@ bridge_unit_str!(
 
 // ── Playback (no args) ──────────────────────────────────────────────────────
 
-bridge_unit!(Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1play, rb_play);
-bridge_unit!(Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1pause, rb_pause);
+bridge_unit!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1play,
+    rb_play
+);
+bridge_unit!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1pause,
+    rb_pause
+);
 bridge_unit!(
     Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1play_1pause,
     rb_play_pause
 );
-bridge_unit!(Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1next, rb_next);
-bridge_unit!(Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1prev, rb_prev);
+bridge_unit!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1next,
+    rb_next
+);
+bridge_unit!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1prev,
+    rb_prev
+);
 bridge_unit!(
     Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1resume_1track,
     rb_resume_track
@@ -190,7 +203,10 @@ bridge_unit_str!(
 
 // ── Seek ────────────────────────────────────────────────────────────────────
 
-bridge_unit_int!(Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1seek, rb_seek);
+bridge_unit_int!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1seek,
+    rb_seek
+);
 
 // ── Playback (string + int / int / int) ─────────────────────────────────────
 
@@ -201,7 +217,9 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     id: JString,
     shuffle: jint,
 ) -> jint {
-    let Some(c) = to_cstring(&mut env, &id) else { return -1 };
+    let Some(c) = to_cstring(&mut env, &id) else {
+        return -1;
+    };
     crate::rb_play_album(c.as_ptr(), shuffle as c_int) as jint
 }
 
@@ -212,7 +230,9 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     id: JString,
     shuffle: jint,
 ) -> jint {
-    let Some(c) = to_cstring(&mut env, &id) else { return -1 };
+    let Some(c) = to_cstring(&mut env, &id) else {
+        return -1;
+    };
     crate::rb_play_artist_tracks(c.as_ptr(), shuffle as c_int) as jint
 }
 
@@ -224,7 +244,9 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     shuffle: jint,
     position: jint,
 ) -> jint {
-    let Some(c) = to_cstring(&mut env, &path) else { return -1 };
+    let Some(c) = to_cstring(&mut env, &path) else {
+        return -1;
+    };
     crate::rb_play_directory(c.as_ptr(), shuffle as c_int, position as c_int) as jint
 }
 
@@ -259,7 +281,9 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     position: jint,
     shuffle: jint,
 ) -> jint {
-    let Some(c) = to_cstring(&mut env, &paths_json) else { return -1 };
+    let Some(c) = to_cstring(&mut env, &paths_json) else {
+        return -1;
+    };
     crate::rb_insert_tracks(c.as_ptr(), position as c_int, shuffle as c_int) as jint
 }
 
@@ -270,7 +294,9 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     path: JString,
     position: jint,
 ) -> jint {
-    let Some(c) = to_cstring(&mut env, &path) else { return -1 };
+    let Some(c) = to_cstring(&mut env, &path) else {
+        return -1;
+    };
     crate::rb_insert_directory(c.as_ptr(), position as c_int) as jint
 }
 
@@ -389,7 +415,9 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     description: JString,
     ids_json: JString,
 ) -> jint {
-    let Some(name_c) = to_cstring(&mut env, &name) else { return -1 };
+    let Some(name_c) = to_cstring(&mut env, &name) else {
+        return -1;
+    };
     let desc_c = to_cstring(&mut env, &description);
     let ids_c = to_cstring(&mut env, &ids_json);
     let desc_ptr = desc_c.as_ref().map(|c| c.as_ptr()).unwrap_or(ptr::null());
@@ -405,8 +433,12 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     name: JString,
     description: JString,
 ) -> jint {
-    let Some(id_c) = to_cstring(&mut env, &id) else { return -1 };
-    let Some(name_c) = to_cstring(&mut env, &name) else { return -1 };
+    let Some(id_c) = to_cstring(&mut env, &id) else {
+        return -1;
+    };
+    let Some(name_c) = to_cstring(&mut env, &name) else {
+        return -1;
+    };
     let desc_c = to_cstring(&mut env, &description);
     let desc_ptr = desc_c.as_ref().map(|c| c.as_ptr()).unwrap_or(ptr::null());
     crate::rb_update_saved_playlist(id_c.as_ptr(), name_c.as_ptr(), desc_ptr) as jint
@@ -424,8 +456,12 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     pid: JString,
     tid: JString,
 ) -> jint {
-    let Some(p) = to_cstring(&mut env, &pid) else { return -1 };
-    let Some(t) = to_cstring(&mut env, &tid) else { return -1 };
+    let Some(p) = to_cstring(&mut env, &pid) else {
+        return -1;
+    };
+    let Some(t) = to_cstring(&mut env, &tid) else {
+        return -1;
+    };
     crate::rb_add_track_to_playlist(p.as_ptr(), t.as_ptr()) as jint
 }
 
@@ -436,8 +472,12 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     pid: JString,
     tid: JString,
 ) -> jint {
-    let Some(p) = to_cstring(&mut env, &pid) else { return -1 };
-    let Some(t) = to_cstring(&mut env, &tid) else { return -1 };
+    let Some(p) = to_cstring(&mut env, &pid) else {
+        return -1;
+    };
+    let Some(t) = to_cstring(&mut env, &tid) else {
+        return -1;
+    };
     crate::rb_remove_track_from_playlist(p.as_ptr(), t.as_ptr()) as jint
 }
 
