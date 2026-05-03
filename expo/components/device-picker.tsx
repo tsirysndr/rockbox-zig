@@ -5,7 +5,7 @@ import {
   IconDeviceMobile,
   IconHeadphones,
   IconMusic,
-  IconRadio,
+  IconVolume,
   type Icon,
 } from "@tabler/icons-react-native";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
@@ -38,7 +38,7 @@ const DEVICE_ICON: Record<string, DeviceIconSpec> = {
   googlecast: { kind: "tabler", component: IconCast },
   chromecast: { kind: "tabler", component: IconCast },
   airplay: { kind: "airplay" },
-  snapcast: { kind: "tabler", component: IconRadio },
+  snapcast: { kind: "tabler", component: IconVolume },
   upnp: { kind: "tabler", component: IconMusic },
   bluetooth: { kind: "tabler", component: IconBluetooth },
   builtin: { kind: "tabler", component: IconDeviceMobile },

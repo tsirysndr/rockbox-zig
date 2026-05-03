@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { IconCast, type Icon as TablerIcon } from "@tabler/icons-react-native";
 import { router, Stack } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
@@ -17,18 +18,22 @@ type Section = {
   rows: Row[];
 };
 
+type IconName = React.ComponentProps<typeof Ionicons>["name"];
+
 type Row =
   | {
       kind: "switch";
       label: string;
-      icon: React.ComponentProps<typeof Ionicons>["name"];
+      icon: IconName;
+      tablerIcon?: TablerIcon;
       value: boolean;
       onChange: (v: boolean) => void;
     }
   | {
       kind: "link";
       label: string;
-      icon: React.ComponentProps<typeof Ionicons>["name"];
+      icon: IconName;
+      tablerIcon?: TablerIcon;
       value?: string;
       onPress?: () => void;
     };
@@ -78,6 +83,7 @@ export default function SettingsScreen() {
           kind: "link",
           label: "AirPlay & Cast",
           icon: "tv-outline",
+          tablerIcon: IconCast,
           value: currentDevice.name,
           onPress: () => setDevicePickerOpen(true),
         },
@@ -152,9 +158,18 @@ export default function SettingsScreen() {
 }
 
 function SettingsRow({ row }: { row: Row }) {
+  const TablerIconComp = row.tablerIcon;
   const content = (
     <View className="flex-row items-center px-3.5 h-[52px] gap-3.5">
-      <Ionicons name={row.icon} size={20} color={Colors.textSecondary} />
+      {TablerIconComp ? (
+        <TablerIconComp
+          size={20}
+          color={Colors.textSecondary}
+          strokeWidth={1.75}
+        />
+      ) : (
+        <Ionicons name={row.icon} size={20} color={Colors.textSecondary} />
+      )}
       <Text
         numberOfLines={1}
         className="text-text-primary text-[15px] font-sans flex-shrink-0"
