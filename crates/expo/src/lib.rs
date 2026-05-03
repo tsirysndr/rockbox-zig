@@ -37,6 +37,12 @@ pub mod api {
 #[cfg(target_os = "android")]
 mod jni_bridge;
 
+// Embedded rockbox daemon. The `extern fn main_c()` reference inside this
+// module is what keeps the C firmware code from being --gc-sections'd out
+// of the cdylib link.
+#[cfg(all(target_os = "android", feature = "embedded-daemon"))]
+mod daemon;
+
 use api::v1alpha1::{
     bluetooth_service_client::BluetoothServiceClient, browse_service_client::BrowseServiceClient,
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,

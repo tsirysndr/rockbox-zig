@@ -50,6 +50,11 @@ rockbox-sys      = { path = "../sys",      optional = true, default-features = f
 # ── Android-only ───────────────────────────────────────────────────────────
 [target.'cfg(target_os = "android")'.dependencies]
 jni = "0.21"
+# Bridges `tracing` events to logcat. Used by the daemon module to send
+# init/teardown logs to `adb logcat -s rockbox`.
+tracing            = "0.1"
+tracing-android    = "0.2"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "registry", "fmt"] }
 
 [build-dependencies]
 tonic-build = { version = "0.12", default-features = false, features = ["prost", "transport"] }
