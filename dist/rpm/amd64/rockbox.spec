@@ -27,6 +27,7 @@ cp -r %{_sourcedir}/amd64/usr %{buildroot}/
 %files
 /usr/local/bin/rockbox
 /usr/local/bin/rockboxd
+/usr/local/bin/typesense-server
 /usr/local/lib/rockbox/*
 /usr/local/share/rockbox/*
 /usr/bin/rockbox-gpui
