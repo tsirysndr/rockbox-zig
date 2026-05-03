@@ -16,17 +16,13 @@
 void lcd_init_device(void)              { }
 void lcd_shutdown(void)                 { }
 
-/* Frame ops — apps/gui calls these unconditionally */
-void lcd_update(void)                   { }
-void lcd_update_rect(int x, int y, int w, int h)
-{ (void)x;(void)y;(void)w;(void)h; }
-void lcd_clear_display(void)            { }
+/* lcd_update / lcd_update_rect / lcd_clear_display are provided by
+ * firmware/drivers/lcd-bitmap-common.c (or 16-bit variant) — no need
+ * to redefine. */
 
-/* Color setters — used by the WPS/menu code paths */
-void lcd_set_foreground(unsigned col)   { (void)col; }
-void lcd_set_background(unsigned col)   { (void)col; }
-unsigned lcd_get_foreground(void)       { return 0; }
-unsigned lcd_get_background(void)       { return 0; }
+/* lcd_set_foreground / lcd_set_background / lcd_get_foreground /
+ * lcd_get_background are already provided by firmware/drivers/lcd-bitmap-common.c
+ * (or similar). No need to redefine. */
 
 /* Backlight — usually short symbol surface */
 void backlight_hw_on(void)              { }
