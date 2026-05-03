@@ -20,4 +20,8 @@ dependencies {
   implementation 'androidx.core:core-ktx:1.13.1'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+  // Reuse RockboxRpcModule's @JvmStatic external fun declarations — those
+  // are the only things bound to the actual JNI symbols emitted by
+  // crates/expo (`Java_expo_modules_rockboxrpc_RockboxRpcModule_*`).
+  implementation project(':rockbox-rpc')
 }

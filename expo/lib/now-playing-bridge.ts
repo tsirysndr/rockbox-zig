@@ -2,7 +2,10 @@ import { Platform } from "react-native";
 
 import { coverUrl } from "@/lib/cover-url";
 import { RockboxClient } from "@/lib/rockbox-client";
-import { useSelectedServer } from "@/lib/server-store";
+import {
+  coversBaseUrl,
+  useSelectedServer,
+} from "@/lib/server-store";
 import {
   RockboxNowPlaying,
   type NowPlayingMetadata,
@@ -19,7 +22,7 @@ import type { TrackSnapshot } from "rockbox-rpc";
  */
 export function metadataFor(
   track: TrackSnapshot,
-  _server: ReturnType<typeof useSelectedServer>,
+  server: ReturnType<typeof useSelectedServer>,
 ): NowPlayingMetadata {
   let artworkUrl: string | null = null;
   if (track.album_art) {
@@ -35,6 +38,7 @@ export function metadataFor(
     artist: track.artist,
     album: track.album,
     artworkUrl,
+    coverBaseUrl: coversBaseUrl(server),
     durationMs: track.duration_ms,
   };
 }

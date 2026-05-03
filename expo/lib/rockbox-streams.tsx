@@ -15,6 +15,7 @@ import {
 } from "@/lib/rockbox-client";
 import {
   autoSelectFromDiscovery,
+  coversBaseUrl,
   hydrateSelectedServer,
   useSelectedServer,
 } from "@/lib/server-store";
@@ -42,6 +43,14 @@ export function RockboxStreams() {
   serverRef.current = server;
   const lastTrackRef = useRef<TrackSnapshot | null>(null);
   const lastStatusRef = useRef<StatusSnapshot | null>(null);
+
+  // Push the cover base URL into the now-playing service on every server
+  // change so it can resolve `album_art` ids while JS is suspended.
+  useEffect(() => {
+    if (!nowPlayingEnabled()) return;
+    const base = coversBaseUrl(server);
+    if (base) RockboxNowPlaying.setCoverBaseUrl(base);
+  }, [server]);
 
   const startDiscovery = useCallback(() => {
     // Tear down the previous browse, if any, so we get a fresh
