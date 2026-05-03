@@ -22,5 +22,9 @@
 
 #ifndef __STRLCPY_H__
 #define __STRLCPY_H__
+/* bionic <string.h> already declares strlcpy with FORTIFY_SOURCE wrappers
+ * (__builtin___strlcpy_chk). Skipping our redeclaration avoids a conflict. */
+#ifndef __ANDROID__
 size_t  strlcpy(char *dst, const char *src, size_t siz);
+#endif
 #endif

@@ -377,6 +377,7 @@ Lyre prototype 1 */
 /* CONFIG_BINFMT */
 #define BINFMT_ROCK                 0 /* Rockbox ".rock" format */
 #define BINFMT_DLOPEN               1 /* dlopen-based */
+#define BINFMT_STATIC               2 /* compile-time codec table (Android cdylib) */
 
 /* now go and pick yours */
 #if defined(IRIVER_H100)
@@ -581,6 +582,8 @@ Lyre prototype 1 */
 #include "config/hibyr3proii.h"
 #elif defined(HIBY_R1)
 #include "config/hibyr1.h"
+#elif defined(ANDROIDCDYLIB)
+#include "config/androidcdylib.h"
 #else
 #error "unknown hardware platform!"
 #endif

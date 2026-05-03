@@ -163,6 +163,8 @@ else # core
 
   ifneq (,$(findstring android_ndk, $(APP_TYPE)))
     include $(ROOTDIR)/firmware/target/hosted/ibasso/android_ndk.make
+  else ifneq (,$(findstring android_cdylib, $(APP_TYPE)))
+    include $(ROOTDIR)/firmware/target/hosted/android/cdylib/cdylib.make
   else
     ifneq (,$(findstring android, $(APP_TYPE)))
 	  include $(ROOTDIR)/android/android.make

@@ -79,7 +79,11 @@
  */
 
 static struct pcm_sink* sinks[PCM_SINK_NUM] = {
+#if defined(__ANDROID__) && defined(CODECS_STATIC)
+    [PCM_SINK_BUILTIN]      = &aaudio_pcm_sink,    /* AAudio = default on Android cdylib */
+#else
     [PCM_SINK_BUILTIN]      = &builtin_pcm_sink,
+#endif
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
     [PCM_SINK_FIFO]         = &fifo_pcm_sink,
     [PCM_SINK_AIRPLAY]      = &airplay_pcm_sink,
@@ -87,6 +91,9 @@ static struct pcm_sink* sinks[PCM_SINK_NUM] = {
     [PCM_SINK_UPNP]         = &upnp_pcm_sink,
     [PCM_SINK_CHROMECAST]   = &chromecast_pcm_sink,
     [PCM_SINK_SNAPCAST_TCP] = &tcp_pcm_sink,
+#if defined(__ANDROID__) && defined(CODECS_STATIC)
+    [PCM_SINK_AAUDIO]       = &aaudio_pcm_sink,    /* also addressable by name */
+#endif
 #endif
 };
 static enum pcm_sink_ids cur_sink = PCM_SINK_BUILTIN;

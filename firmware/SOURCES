@@ -321,8 +321,12 @@ common/rectangle.c
 common/strcasecmp.c
 common/strcasestr.c
 common/strnatcmp.c
+#if !defined(__ANDROID__)
+/* bionic already provides strlcpy/strlcat with FORTIFY_SOURCE wrappers,
+ * which conflict with Rockbox's redefinitions. Use bionic's versions. */
 common/strlcat.c
 common/strlcpy.c
+#endif
 common/strmemccpy.c
 common/timefuncs.c
 common/unicode.c
@@ -536,12 +540,17 @@ pcm_sampr.c
 pcm.c
 pcm_mixer.c
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
+#if !defined(CODECS_STATIC)
+/* Multi-room / casting sinks are desktop-only for now. The Android cdylib
+ * uses AAudio (defined in target/hosted/android/cdylib/pcm-aaudio.c, pulled
+ * in via cdylib/SOURCES). */
 target/hosted/pcm-fifo.c
 target/hosted/pcm-airplay.c
 target/hosted/pcm-squeezelite.c
 target/hosted/pcm-upnp.c
 target/hosted/pcm-chromecast.c
 target/hosted/pcm-tcp.c
+#endif
 pcm_normalizer.c
 #endif
 #ifdef HAVE_SW_VOLUME_CONTROL
@@ -1968,6 +1977,13 @@ target/arm/stm32/echoplayer/usb-echoplayer.c
 #if (CONFIG_PLATFORM & PLATFORM_ANDROID)
 target/hosted/kernel-unix.c
 target/hosted/filesystem-unix.c
+
+#if defined(CODECS_STATIC)
+/* cdylib build — files come from target/hosted/android/cdylib/SOURCES via
+ * cdylib.make's OTHER_SRC append. The legacy Java-shell files reference
+ * jni.h and Java callbacks that we don't have. */
+#else
+/* Existing Java-shell Android app */
 target/hosted/lc-unix.c
 target/hosted/android/lcd-android.c
 target/hosted/android/button-android.c
@@ -1982,7 +1998,8 @@ target/hosted/android/android-codec.c
 #ifdef APPLICATION
 target/hosted/android/app/button-application.c
 #endif
-#endif
+#endif /* !CODECS_STATIC */
+#endif /* PLATFORM_ANDROID */
 
 #if defined(DX50) || defined(DX90)
 drivers/lcd-memframe.c

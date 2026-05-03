@@ -661,6 +661,96 @@ sonynwzcc () {
  app_type="sonynwz"
 }
 
+androidcdylibcc () {
+    # Args: $1 = API level (>=26 for AAudio)
+    #       $2 = ABI (arm64-v8a / armeabi-v7a / x86_64)
+    if [ -z "$ANDROID_NDK_HOME" ]; then
+        echo "ERROR: Set ANDROID_NDK_HOME to your NDK r25+ install root."
+        exit 1
+    fi
+    if [ ! -d "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt" ]; then
+        echo "ERROR: $ANDROID_NDK_HOME does not look like an NDK r19+ install"
+        echo "       (no toolchains/llvm/prebuilt directory)."
+        exit 1
+    fi
+
+    ANDROID_API_LEVEL=$1
+    ANDROID_ABI=$2
+
+    case `uname -s` in
+        Darwin) ndk_host="darwin-x86_64" ;;
+        Linux)  ndk_host="linux-x86_64"  ;;
+        *)      echo "ERROR: unsupported build host"; exit 1 ;;
+    esac
+    ndk_toolchain="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$ndk_host"
+
+    case $ANDROID_ABI in
+        arm64-v8a)
+            endian="little"
+            cc_triple="aarch64-linux-android"
+            arch_flags="-march=armv8-a"
+            ;;
+        armeabi-v7a)
+            endian="little"
+            cc_triple="armv7a-linux-androideabi"
+            arch_flags="-march=armv7-a -mfpu=neon -mfloat-abi=softfp"
+            ;;
+        x86_64)
+            endian="little"
+            cc_triple="x86_64-linux-android"
+            arch_flags="-march=x86-64 -msse4.2"
+            ;;
+        *)
+            echo "ERROR: androidcdylibcc(): unsupported ABI '$ANDROID_ABI'"
+            echo "       (expected: arm64-v8a, armeabi-v7a, x86_64)"
+            exit 1
+            ;;
+    esac
+
+    CC="$ndk_toolchain/bin/${cc_triple}${ANDROID_API_LEVEL}-clang"
+    CXX="$ndk_toolchain/bin/${cc_triple}${ANDROID_API_LEVEL}-clang++"
+    if [ ! -x "$CC" ]; then
+        echo "ERROR: cross compiler not found: $CC"
+        exit 1
+    fi
+    AR="$ndk_toolchain/bin/llvm-ar"
+    RANLIB="$ndk_toolchain/bin/llvm-ranlib"
+    OC="$ndk_toolchain/bin/llvm-objcopy"
+    LD="$CC"
+    # CPP must be a single executable that takes -dD etc. NDK has no
+    # standalone cpp wrapper, but `clang -E` works identically. Use a
+    # wrapper script to keep arg-passing clean.
+    CPP="$CC -E"
+
+    GCCOPTS="$GCCOPTS $arch_flags -fPIC -ffunction-sections -fdata-sections"
+    GCCOPTS="$GCCOPTS -fomit-frame-pointer -fvisibility=hidden"
+
+    # Stop at static archives — cargo (via crates/expo/build.rs) does the
+    # final cdylib link.
+    SHARED_LDFLAGS=""
+    SHARED_CFLAGS="-fPIC"
+    GLOBAL_LDOPTS=""
+    LDOPTS="-llog -landroid -laaudio"
+
+    # firmware/asm/thread.c handles HAVE_SIGALTSTACK_THREADS via thread-unix.c
+    # which works on bionic. HAVE_PTHREAD_THREADS is set by androidcc but not
+    # actually consumed by anything in firmware/ — would land us at the
+    # "Missing thread impl" error.
+    thread_support="HAVE_SIGALTSTACK_THREADS"
+    gccchoice=""
+    gcctarget="${cc_triple}-"
+
+    extradefines="$extradefines -DCODECS_STATIC -DZIG_APP -D__ANDROID__"
+    export CODECS_STATIC=1
+
+    PATH="$ndk_toolchain/bin:$PATH"
+    echo "Using NDK toolchain: $ndk_toolchain"
+    echo "Using cross compiler: $CC"
+    # NB: do NOT call prefixtools — it would reset CC to "gcc". NDK r25+
+    # uses per-API clang wrappers without the gcc suffix, so we set
+    # CC/CXX/AR/RANLIB/OC/LD explicitly above and that's the final word.
+}
+
 androidcc () {
     if [ -z "$ANDROID_SDK_PATH" ]; then
         echo "ERROR: You need the Android SDK installed and have the ANDROID_SDK_PATH"
@@ -3293,6 +3383,49 @@ fi
     t_model="app"
     ;;
 
+   205|androidcdylib)
+    application="yes"
+    target_id=125
+    modelname="androidcdylib"
+    target="ANDROIDCDYLIB"
+    app_type="android_cdylib"
+    app_set_lcd_size
+
+    # No on-device install paths — .a files are consumed by cargo at
+    # build time, not deployed. Set to harmless values so the rest of
+    # the build script doesn't trip on empties.
+    sharedir="/dev/null"
+    bindir="/dev/null"
+    libdir="/dev/null"
+
+    memory=256
+
+    uname=`uname`
+    : ${ANDROID_TARGET_ABI:=arm64-v8a}
+    : ${ANDROID_API_LEVEL:=26}
+    androidcdylibcc $ANDROID_API_LEVEL $ANDROID_TARGET_ABI
+
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+
+    # Sentinel — the real artifacts are the .a files. cdylib.make writes
+    # this stamp once everything has been archived.
+    output="static-libs.stamp"
+    bootoutput="static-libs.stamp"
+
+    # firmware/backlight.c and other firmware code reference apps/-layer
+    # headers (statusbar.h, quickscreen.h, viewport.h). Same set as the
+    # Java-shell android target uses.
+    appextra="recorder:gui:radio:hosted/android"
+    plugins="no"
+
+    t_cpu="hosted"
+    t_manufacturer="android"
+    t_model="cdylib"
+    ;;
+
    145|samsungypr1)
     application="yes"
     target_id=93
@@ -4618,9 +4751,11 @@ if [ -z "$arch" ]; then
         arch="arm64"
         # cpp defines like "#define __ARM_ARCH 8" (where we want to extract the 8)
         arch_version="$(echo "$cpp_defines" | grep 'define __ARM_ARCH ' | sed -e 's,.* \([0-9]\).*,\1,')"
-        arch_profile="$(echo "$cpp_defines" | grep 'define __ARM_ARCH_PROFILE ' | sed -e 's/.* \([0-9]\{1,\}\)$/\1/')"
+        # GCC emits the profile as integer ASCII (65 = 'A'); NDK clang
+        # emits it as a character literal ('A'). Match either form.
+        arch_profile="$(echo "$cpp_defines" | grep 'define __ARM_ARCH_PROFILE ' | sed -e "s/.* \([0-9]\{1,\}\)$/\1/" -e "s/.* '\(.\)'$/\1/")"
         case "$arch_profile" in
-            65) # Cortex-A
+            65|A) # Cortex-A — only profile that aarch64 ever emits
                 arch_profile=application
                 ;;
             *)
@@ -4910,6 +5045,7 @@ export PREFIX=${ARG_PREFIX}
 export PROFILE_OPTS=${PROFILE_OPTS}
 export APP_TYPE=${app_type}
 export APPLICATION=${application}
+export CODECS_STATIC=${CODECS_STATIC}
 export SIMDIR=\$(ROOTDIR)/uisimulator/sdl
 export GCCOPTS=${GCCOPTS}
 export TARGET_INC=${TARGET_INC}
