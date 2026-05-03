@@ -9,4 +9,15 @@
     a MulticastLock while a discovery subscription is active.
   -->
   <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+  <!-- Embedded daemon (when librockbox_expo.so is built with the
+       embedded-daemon cargo feature). The audio engine + bound TCP
+       listeners need to keep running in background. -->
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+  <!-- Library scan: Android 13+ uses READ_MEDIA_AUDIO; older falls back. -->
+  <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+  <uses-permission
+      android:name="android.permission.READ_EXTERNAL_STORAGE"
+      android:maxSdkVersion="32" />
 </manifest>

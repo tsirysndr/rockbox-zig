@@ -577,3 +577,76 @@ bridge_json!(
     Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1chromecast_1service_1name,
     rb_chromecast_service_name
 );
+
+// ── Embedded daemon (only built when --features embedded-daemon) ───────────
+
+#[cfg(feature = "embedded-daemon")]
+#[no_mangle]
+pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1daemon_1start(
+    mut env: JNIEnv,
+    _cls: JClass,
+    config_dir: JString,
+    music_dir: JString,
+    device_name: JString,
+) -> jint {
+    let Some(c1) = to_cstring(&mut env, &config_dir) else {
+        return -22;
+    };
+    let Some(c2) = to_cstring(&mut env, &music_dir) else {
+        return -22;
+    };
+    let Some(c3) = to_cstring(&mut env, &device_name) else {
+        return -22;
+    };
+    crate::daemon::rb_daemon_start(c1.as_ptr(), c2.as_ptr(), c3.as_ptr()) as jint
+}
+
+#[cfg(feature = "embedded-daemon")]
+#[no_mangle]
+pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1daemon_1port(
+    _env: JNIEnv,
+    _cls: JClass,
+) -> jint {
+    crate::daemon::rb_daemon_port() as jint
+}
+
+#[cfg(feature = "embedded-daemon")]
+#[no_mangle]
+pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1daemon_1state(
+    _env: JNIEnv,
+    _cls: JClass,
+) -> jint {
+    crate::daemon::rb_daemon_state() as jint
+}
+
+// Stubs for builds without embedded-daemon (e.g. iOS today, desktop dev).
+// They return -38 (ENOSYS-ish) so callers know the daemon isn't available.
+#[cfg(not(feature = "embedded-daemon"))]
+#[no_mangle]
+pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1daemon_1start(
+    _env: JNIEnv,
+    _cls: JClass,
+    _config_dir: JString,
+    _music_dir: JString,
+    _device_name: JString,
+) -> jint {
+    -38
+}
+
+#[cfg(not(feature = "embedded-daemon"))]
+#[no_mangle]
+pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1daemon_1port(
+    _env: JNIEnv,
+    _cls: JClass,
+) -> jint {
+    0
+}
+
+#[cfg(not(feature = "embedded-daemon"))]
+#[no_mangle]
+pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1daemon_1state(
+    _env: JNIEnv,
+    _cls: JClass,
+) -> jint {
+    0
+}

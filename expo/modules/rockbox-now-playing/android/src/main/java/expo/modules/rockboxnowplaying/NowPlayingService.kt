@@ -109,6 +109,7 @@ class NowPlayingService : Service() {
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
+    bootEmbeddedDaemon()
 
     mediaSession = MediaSessionCompat(this, "RockboxNowPlaying").apply {
       setCallback(object : MediaSessionCompat.Callback() {
@@ -172,6 +173,36 @@ class NowPlayingService : Service() {
       stopForeground(true)
     }
     super.onDestroy()
+  }
+
+  /**
+   * Boot the in-process rockbox firmware on the very first onCreate. The
+   * native fn is a no-op (-38) when librockbox_expo.so was built without
+   * the `embedded-daemon` cargo feature (e.g. on iOS or older builds), so
+   * the rest of the JS app still works against a remote daemon.
+   *
+   * On success, the daemon binds gRPC on 127.0.0.1:6061 and the existing
+   * RockboxRpcModule.rb_set_server_url call (made by JS at app start) is
+   * automatically retargeted to localhost by the daemon module itself.
+   */
+  private fun bootEmbeddedDaemon() {
+    val configDir = applicationContext.filesDir.absolutePath
+    val musicDir = android.os.Environment
+      .getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_MUSIC)
+      .absolutePath
+    val deviceName = android.os.Build.MODEL ?: "rockbox-android"
+
+    // Off the main thread — native init blocks until the gRPC server binds
+    // (up to 5s). Don't ANR the system_server on slow devices.
+    scope.launch {
+      val rc = RockboxRpcModule.rb_daemon_start(configDir, musicDir, deviceName)
+      when {
+        rc > 0 -> Log.i(TAG, "embedded daemon started, gRPC :$rc")
+        rc == -38 -> Log.i(TAG, "embedded daemon not built into this .so (remote-only)")
+        rc == -114 -> Log.i(TAG, "embedded daemon already running")
+        else -> Log.w(TAG, "embedded daemon start failed rc=$rc")
+      }
+    }
   }
 
   private fun handleUpdate(intent: Intent) {

@@ -111,6 +111,20 @@ class RockboxRpcModule : Module() {
     @JvmStatic external fun rb_get_bluetooth_devices_json(): String?
     @JvmStatic external fun rb_connect_bluetooth(address: String): Int
     @JvmStatic external fun rb_disconnect_bluetooth(address: String): Int
+
+    // ── Embedded daemon (only meaningful when the .so was built with the
+    // `embedded-daemon` cargo feature; otherwise these return -38 ENOSYS). ──
+    /** Boots the in-process rockbox firmware. Returns the gRPC port (>0)
+     *  on success, or a negative errno-style code (-22 invalid arg,
+     *  -110 timeout, -114 already running, -38 not built). After return,
+     *  every existing rb_* call hits the local daemon. */
+    @JvmStatic external fun rb_daemon_start(
+      configDir: String, musicDir: String, deviceName: String,
+    ): Int
+    /** Returns the daemon's gRPC port, or 0 if not running. */
+    @JvmStatic external fun rb_daemon_port(): Int
+    /** 0=stopped, 1=starting, 2=running. */
+    @JvmStatic external fun rb_daemon_state(): Int
   }
 
   private val scope = CoroutineScope(Dispatchers.IO)
