@@ -61,7 +61,26 @@
         "summary": "Get an album by id",
         "parameters": [{ "$ref": "#/components/parameters/IdPath" }],
         "responses": {
-          "200": { "description": "Album", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Album" } } } },
+          "200": {
+            "description": "Album",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Album" },
+                "example": {
+                  "album_art": "fd2f91b0204eb7d7bb57573c86d9511d.jpg",
+                  "artist": "Charli xcx",
+                  "artist_id": "cmfcfqx3w002dwg08lrasptzo",
+                  "copyright_message": null,
+                  "id": "cmffj228r0009wgc76zjd7rtr",
+                  "label": null,
+                  "md5": "2896ca6b64216f891514d2d746754ea1",
+                  "title": "how i'm feeling now",
+                  "year": 2020,
+                  "year_string": "2020-05-15"
+                }
+              }
+            }
+          },
           "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
@@ -97,7 +116,20 @@
         "summary": "Get an artist by id",
         "parameters": [{ "$ref": "#/components/parameters/IdPath" }],
         "responses": {
-          "200": { "description": "Artist", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Artist" } } } },
+          "200": {
+            "description": "Artist",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Artist" },
+                "example": {
+                  "genres": "",
+                  "id": "cm5zvhb1h000owg6dqxnn66bp",
+                  "image": "https://i.scdn.co/image/ab6761610000e5eb9e528993a2820267b97f6aae",
+                  "name": "The Weeknd"
+                }
+              }
+            }
+          },
           "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
@@ -141,7 +173,39 @@
         "summary": "Get a track by id",
         "parameters": [{ "$ref": "#/components/parameters/IdPath" }],
         "responses": {
-          "200": { "description": "Track", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Track" } } } },
+          "200": {
+            "description": "Track",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Track" },
+                "example": {
+                  "album": "Birds In The Trap Sing McKnight",
+                  "album_art": "89cb92505e4bbe0560bbcda6280a202a.jpg",
+                  "album_artist": "Travis Scott",
+                  "album_id": "cm5zvhb22009lwg6dnvablpbc",
+                  "artist": "Travis Scott",
+                  "artist_id": "cm5zvhb21008ewg6dvgqsa9rx",
+                  "bitrate": 320,
+                  "composer": "Mike Dean, Matthew Samuels, Tyler Williams, Jacques Webster, Abel \"The Weeknd\" Tesfaye",
+                  "created_at": 1737064715,
+                  "disc_number": 1,
+                  "filesize": 8680548,
+                  "frequency": 44100,
+                  "genre_id": "",
+                  "id": "cm5zvhcnd02olwg6dxlapwu92",
+                  "is_remote": false,
+                  "length": 216991,
+                  "md5": "961b2782d0910101aa5d6c90b49f077e",
+                  "path": "/home/tsiry/Music/Travis Scott/[E]  Birds In The Trap Sing McKnight [64819399] [2016]/14 - Travis Scott - wonderful(Explicit).m4a",
+                  "title": "wonderful",
+                  "track_number": 14,
+                  "updated_at": 1737064715,
+                  "year": 2016,
+                  "year_string": "2016-09-03"
+                }
+              }
+            }
+          },
           "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
@@ -193,6 +257,34 @@
                     "albums":  { "type": "array", "items": { "$ref": "#/components/schemas/Album" } },
                     "artists": { "type": "array", "items": { "$ref": "#/components/schemas/Artist" } }
                   }
+                },
+                "example": {
+                  "albums": [
+                    {
+                      "album_art": "5e35f1a2c80de5a6cb3f27132f3f81ea.jpg",
+                      "artist": "Charli xcx",
+                      "artist_id": "cmfcfqx3w002dwg08lrasptzo",
+                      "id": "cmffj228r0007wgc70wuvimfc",
+                      "label": null,
+                      "md5": "d15421a438be924a9d24969e3b3b3fbc",
+                      "title": "Charli",
+                      "year": 2019,
+                      "year_string": "2019-09-13"
+                    },
+                    {
+                      "album_art": "0cba3a84d1c43731303a54dc03e3e852.jpg",
+                      "artist": "Charli xcx",
+                      "artist_id": "cmfcfqx3w002dwg08lrasptzo",
+                      "id": "cmfpe1csg0008wguw7f4v18j2",
+                      "label": null,
+                      "md5": "e46ac9be6763f80e7bcf4328db202e50",
+                      "title": "SUCKER",
+                      "year": 2014,
+                      "year_string": "2014-12-16"
+                    }
+                  ],
+                  "artists": [],
+                  "tracks": []
                 }
               }
             }
@@ -221,7 +313,28 @@
         "tags": ["Player"],
         "summary": "Get the current output device",
         "responses": {
-          "200": { "description": "Current device", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Device" } } } }
+          "200": {
+            "description": "Current device",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Device" },
+                "example": {
+                  "app": "Snapcast",
+                  "base_url": null,
+                  "host": "192.168.1.220",
+                  "id": "snapcast-192.168.1.220",
+                  "ip": "192.168.1.220",
+                  "is_cast_device": true,
+                  "is_connected": false,
+                  "is_current_device": true,
+                  "is_source_device": false,
+                  "name": "Snapcast (192.168.1.220)",
+                  "port": 4953,
+                  "service": "snapcast"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -639,7 +752,48 @@
         "tags": ["Smart playlists"],
         "summary": "List smart playlists",
         "responses": {
-          "200": { "description": "Smart playlists", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/SmartPlaylist" } } } } }
+          "200": {
+            "description": "Smart playlists",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/SmartPlaylist" } },
+                "example": [
+                  {
+                    "created_at": 1777348193,
+                    "description": "A shuffle of your 90s music.",
+                    "folder_id": null,
+                    "id": "sys_90s_mix",
+                    "image": null,
+                    "is_system": true,
+                    "name": "90s Mix",
+                    "rules": {
+                      "conditions": [
+                        {
+                          "field": "year",
+                          "operator": "greater_than_or_equal",
+                          "unit": null,
+                          "value": 1990,
+                          "value2": null
+                        },
+                        {
+                          "field": "year",
+                          "operator": "less_than_or_equal",
+                          "unit": null,
+                          "value": 1999,
+                          "value2": null
+                        }
+                      ],
+                      "limit": 50,
+                      "match_type": "all",
+                      "sort_by": "random",
+                      "sort_order": "DESC"
+                    },
+                    "updated_at": 1777348193
+                  }
+                ]
+              }
+            }
+          }
         }
       },
       "post": {
@@ -892,7 +1046,32 @@
         "tags": ["Bluetooth"],
         "summary": "List paired Bluetooth devices (Linux only)",
         "responses": {
-          "200": { "description": "Devices", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/BluetoothDevice" } } } } }
+          "200": {
+            "description": "Devices",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/BluetoothDevice" } },
+                "example": [
+                  {
+                    "address": "56:64:C4:EE:EE:7B",
+                    "connected": false,
+                    "name": "Beats Studio Pro",
+                    "paired": true,
+                    "rssi": null,
+                    "trusted": true
+                  },
+                  {
+                    "address": "D8:E0:E1:13:96:DD",
+                    "connected": false,
+                    "name": "[AV] Samsung Soundbar K450 K-Series",
+                    "paired": true,
+                    "rssi": null,
+                    "trusted": true
+                  }
+                ]
+              }
+            }
+          }
         }
       }
     },
@@ -1242,11 +1421,12 @@
       "BluetoothDevice": {
         "type": "object",
         "properties": {
-          "address":      { "type": "string" },
-          "name":         { "type": "string" },
-          "rssi":         { "type": "integer", "format": "int32", "nullable": true },
-          "is_paired":    { "type": "boolean" },
-          "is_connected": { "type": "boolean" }
+          "address":   { "type": "string" },
+          "name":      { "type": "string" },
+          "rssi":      { "type": "integer", "format": "int32", "nullable": true },
+          "paired":    { "type": "boolean" },
+          "connected": { "type": "boolean" },
+          "trusted":   { "type": "boolean" }
         }
       }
     }
