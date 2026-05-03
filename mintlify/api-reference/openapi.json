@@ -47,7 +47,33 @@
             "description": "Array of albums",
             "content": {
               "application/json": {
-                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Album" } }
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Album" } },
+                "example": [
+                  {
+                    "id": "cmodxew8w0053pdmdmro8vx0w",
+                    "title": "2014 Forest Hills Drive",
+                    "artist": "J. Cole",
+                    "year": 2014,
+                    "year_string": "2014-12-09",
+                    "album_art": "216ccc791352fbbffc11268b984db19a.jpg",
+                    "md5": "7efed3c16a2ea54a2c090e40f03107d4",
+                    "artist_id": "cmodw19po0005pdmd6k9mwauv",
+                    "label": null,
+                    "copyright_message": "℗ 2014 Cole World/Interscope Records"
+                  },
+                  {
+                    "id": "cmjodpk0r00j8pdoc5r5eko46",
+                    "title": "21 Reasons (feat. Ella Henderson)",
+                    "artist": "Nathan Dawe",
+                    "year": 2019,
+                    "year_string": "2019-05-31",
+                    "album_art": "53682046896b8c9c6118c169cfd03ff8.jpg",
+                    "md5": "3997d22d81a895c867827ef6f4f83477",
+                    "artist_id": "cmjodpk0r00j7pdocuh1vu2vx",
+                    "label": null,
+                    "copyright_message": "under exclusive licence to Warner Music UK Limited, ℗ 2020 Nathan Dawe"
+                  }
+                ]
               }
             }
           }
@@ -94,7 +120,63 @@
         "responses": {
           "200": {
             "description": "Tracks belonging to the album",
-            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } } } }
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } },
+                "example": [
+                  {
+                    "id": "cmodxew97005epdmdvt8ar73r",
+                    "path": "/Users/tsirysandratraina/Music/J. Cole - 2014 Forest Hills Drive (Explicit)/01. J. Cole - Intro (Explicit).m4a",
+                    "title": "Intro",
+                    "artist": "J. Cole",
+                    "album": "2014 Forest Hills Drive",
+                    "album_artist": "J. Cole",
+                    "bitrate": 320,
+                    "composer": "",
+                    "disc_number": 1,
+                    "filesize": 5168762,
+                    "frequency": 44100,
+                    "length": 129199,
+                    "track_number": 1,
+                    "year": 2014,
+                    "year_string": "2014-12-09",
+                    "md5": "07576ce8ea7906aa36bf05ae93cb1643",
+                    "album_art": "216ccc791352fbbffc11268b984db19a.jpg",
+                    "artist_id": "cmodw19po0005pdmd6k9mwauv",
+                    "album_id": "cmodxew8w0053pdmdmro8vx0w",
+                    "genre_id": "",
+                    "is_remote": false,
+                    "created_at": 1777096568,
+                    "updated_at": 1777096568
+                  },
+                  {
+                    "id": "cmodxew9a005opdmddc5l9y63",
+                    "path": "/Users/tsirysandratraina/Music/J. Cole - 2014 Forest Hills Drive (Explicit)/02. J. Cole - January 28th (Explicit).m4a",
+                    "title": "January 28th",
+                    "artist": "J. Cole",
+                    "album": "2014 Forest Hills Drive",
+                    "album_artist": "J. Cole",
+                    "bitrate": 320,
+                    "composer": "",
+                    "disc_number": 1,
+                    "filesize": 9710586,
+                    "frequency": 44100,
+                    "length": 242744,
+                    "track_number": 2,
+                    "year": 2014,
+                    "year_string": "2014-12-09",
+                    "md5": "e6914133fcbcf8771fbf156c485b8459",
+                    "album_art": "216ccc791352fbbffc11268b984db19a.jpg",
+                    "artist_id": "cmodw19po0005pdmd6k9mwauv",
+                    "album_id": "cmodxew8w0053pdmdmro8vx0w",
+                    "genre_id": "",
+                    "is_remote": false,
+                    "created_at": 1777096568,
+                    "updated_at": 1777096568
+                  }
+                ]
+              }
+            }
           }
         }
       }
@@ -105,7 +187,26 @@
         "tags": ["Artists"],
         "summary": "List all artists",
         "responses": {
-          "200": { "description": "Array of artists", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Artist" } } } } }
+          "200": {
+            "description": "Array of artists",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Artist" } },
+                "example": [
+                  {
+                    "id": "cmjftbrug03ipsl3jo6fggigk",
+                    "name": "A Perfect Circle",
+                    "image": "https://i.scdn.co/image/ab6761610000e5eb41472573351dfea479a4ffba",
+                    "genres": "alternative metal"
+                  },
+                  {
+                    "id": "cmo7132f7006epdouye8onwe7",
+                    "name": "Ab-Soul, Anderson .Paak, James Blake"
+                  }
+                ]
+              }
+            }
+          }
         }
       }
     },
@@ -141,7 +242,40 @@
         "summary": "List albums by an artist",
         "parameters": [{ "$ref": "#/components/parameters/IdPath" }],
         "responses": {
-          "200": { "description": "Albums by the artist", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Album" } } } } }
+          "200": {
+            "description": "Albums by the artist",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Album" } },
+                "example": [
+                  {
+                    "id": "cmodxew8w0053pdmdmro8vx0w",
+                    "title": "2014 Forest Hills Drive",
+                    "artist": "J. Cole",
+                    "year": 2014,
+                    "year_string": "2014-12-09",
+                    "album_art": "216ccc791352fbbffc11268b984db19a.jpg",
+                    "md5": "7efed3c16a2ea54a2c090e40f03107d4",
+                    "artist_id": "cmodw19po0005pdmd6k9mwauv",
+                    "label": null,
+                    "copyright_message": "℗ 2014 Cole World/Interscope Records"
+                  },
+                  {
+                    "id": "cmodw1a5l003dpdmd39obvgay",
+                    "title": "Might Delete Later",
+                    "artist": "J. Cole",
+                    "year": 2024,
+                    "year_string": "2024-04-05",
+                    "album_art": "85b108fff8d0cabd396a2e79885f2752.jpg",
+                    "md5": "ddbdd86c1fc7e7f1b5b901d83c83aaf2",
+                    "artist_id": "cmodw19po0005pdmd6k9mwauv",
+                    "label": null,
+                    "copyright_message": "℗ 2024 Cole World, Inc., under exclusive license to Interscope Records"
+                  }
+                ]
+              }
+            }
+          }
         }
       }
     },
@@ -152,7 +286,66 @@
         "summary": "List tracks by an artist",
         "parameters": [{ "$ref": "#/components/parameters/IdPath" }],
         "responses": {
-          "200": { "description": "Tracks by the artist", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } } } } }
+          "200": {
+            "description": "Tracks by the artist",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } },
+                "example": [
+                  {
+                    "id": "cmodxew9o006spdmdnhqjh8ab",
+                    "path": "/Users/tsirysandratraina/Music/J. Cole - 2014 Forest Hills Drive (Explicit)/04. J. Cole - 03’ Adolescence (Explicit).m4a",
+                    "title": "03’ Adolescence",
+                    "artist": "J. Cole",
+                    "album": "2014 Forest Hills Drive",
+                    "album_artist": "J. Cole",
+                    "bitrate": 320,
+                    "composer": "",
+                    "disc_number": 1,
+                    "filesize": 10570653,
+                    "frequency": 44100,
+                    "length": 264259,
+                    "track_number": 4,
+                    "year": 2014,
+                    "year_string": "2014-12-09",
+                    "md5": "0edf984c5a9cb95e6d9003b47f10e991",
+                    "album_art": "216ccc791352fbbffc11268b984db19a.jpg",
+                    "artist_id": "cmodw19po0005pdmd6k9mwauv",
+                    "album_id": "cmodxew8w0053pdmdmro8vx0w",
+                    "genre_id": "",
+                    "is_remote": false,
+                    "created_at": 1777096568,
+                    "updated_at": 1777096568
+                  },
+                  {
+                    "id": "cmodw19qb002apdmd476zdpfv",
+                    "path": "/Users/tsirysandratraina/Music/J. Cole - The Fall-Off (Explicit)/101. J. Cole - 29 Intro (Explicit).m4a",
+                    "title": "29 Intro",
+                    "artist": "J. Cole",
+                    "album": "The Fall-Off",
+                    "album_artist": "J. Cole",
+                    "bitrate": 320,
+                    "composer": "",
+                    "disc_number": 1,
+                    "filesize": 2311779,
+                    "frequency": 44100,
+                    "length": 57779,
+                    "track_number": 1,
+                    "year": 2026,
+                    "year_string": "2026-02-06",
+                    "md5": "72ee494cab9aba116e2fe724e347dc59",
+                    "album_art": "20a95234ea29a20884f5c6a1ef5ad592.jpg",
+                    "artist_id": "cmodw19po0005pdmd6k9mwauv",
+                    "album_id": "cmodw19pi0001pdmdv76spfpp",
+                    "genre_id": "",
+                    "is_remote": false,
+                    "created_at": 1777094253,
+                    "updated_at": 1777094253
+                  }
+                ]
+              }
+            }
+          }
         }
       }
     },
@@ -162,7 +355,41 @@
         "tags": ["Tracks"],
         "summary": "List all tracks in the library",
         "responses": {
-          "200": { "description": "All tracks", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } } } } }
+          "200": {
+            "description": "All tracks",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } },
+                "example": [
+                  {
+                    "id": "cmnvrqv4k002zpdwax7lrsbhh",
+                    "path": "/Users/tsirysandratraina/Music/Juicy J - The Trippy Tapes Vol. 1 (Explicit)/26. Juicy J, DJ Scream, Babyfxce E - Scotty (feat. Babyfxce E ) (Explicit).m4a",
+                    "title": " Scotty (feat. Babyfxce E )",
+                    "artist": "Juicy J, DJ Scream, Babyfxce E",
+                    "album": "The Trippy Tapes Vol. 1",
+                    "album_artist": "Juicy J, DJ Scream",
+                    "bitrate": 320,
+                    "composer": "",
+                    "disc_number": 1,
+                    "filesize": 6746791,
+                    "frequency": 44100,
+                    "length": 168664,
+                    "track_number": 26,
+                    "year": 2026,
+                    "year_string": "2026-04-03",
+                    "md5": "b418a0d44e61ef179005ff9a13d5c8bd",
+                    "album_art": "8c8b3a145776af32d29ea293691ecaa8.jpg",
+                    "artist_id": "cmnvrqv3b0000pdwaux8uj1d2",
+                    "album_id": "cmnvrqv3b0001pdwatmcq1aqt",
+                    "genre_id": "",
+                    "is_remote": false,
+                    "created_at": 1775998658,
+                    "updated_at": 1775998658
+                  }
+                ]
+              }
+            }
+          }
         }
       }
     },
@@ -302,7 +529,34 @@
           { "name": "show_hidden",  "in": "query", "schema": { "type": "string", "enum": ["true", "false"] }, "description": "Show dotfiles (default false)" }
         ],
         "responses": {
-          "200": { "description": "Directory entries", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/TreeEntry" } } } } },
+          "200": {
+            "description": "Directory entries",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/TreeEntry" } },
+                "example": [
+                  {
+                    "name": "/Users/tsirysandratraina/Music/Union Of Sound - Acoustic - A Quiet Night In (Explicit)",
+                    "attr": 16,
+                    "time_write": 1768805953,
+                    "customaction": 0
+                  },
+                  {
+                    "name": "/Users/tsirysandratraina/Music/Media.localized",
+                    "attr": 16,
+                    "time_write": 1766757435,
+                    "customaction": 0
+                  },
+                  {
+                    "name": "/Users/tsirysandratraina/Music/Cannons - Up All Night EP",
+                    "attr": 16,
+                    "time_write": 1766430051,
+                    "customaction": 0
+                  }
+                ]
+              }
+            }
+          },
           "500": { "description": "Path is not a directory or other I/O error" }
         }
       }
@@ -541,7 +795,39 @@
         "tags": ["Playlist (queue)"],
         "summary": "List tracks currently in the queue",
         "responses": {
-          "200": { "description": "Mp3Entry list", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Mp3Entry" } } } } }
+          "200": {
+            "description": "Mp3Entry list",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Mp3Entry" } },
+                "example": [
+                  {
+                    "path": "/Users/tsirysandratraina/Music/Cannons - All I Need/1. Cannons - All I Need.m4a",
+                    "title": "All I Need",
+                    "artist": "Cannons",
+                    "album": "All I Need",
+                    "albumartist": "Cannons",
+                    "composer": "",
+                    "genre_string": "",
+                    "tracknum": 1,
+                    "discnum": 1,
+                    "year": 2025,
+                    "year_string": "2025-10-17",
+                    "length": 227073,
+                    "elapsed": 0,
+                    "filesize": 9083647,
+                    "bitrate": 320,
+                    "frequency": 44100,
+                    "id": null,
+                    "album_id": null,
+                    "artist_id": null,
+                    "genre_id": null,
+                    "album_art": null
+                  }
+                ]
+              }
+            }
+          }
         }
       },
       "post": {
@@ -576,7 +862,48 @@
         "summary": "Get the live queue and its metadata",
         "parameters": [{ "$ref": "#/components/parameters/IdPath" }],
         "responses": {
-          "200": { "description": "PlaylistInfo", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PlaylistInfo" } } } }
+          "200": {
+            "description": "PlaylistInfo",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PlaylistInfo" },
+                "example": {
+                  "amount": 1,
+                  "index": 0,
+                  "first_index": 0,
+                  "last_insert_pos": 0,
+                  "max_playlist_size": 10000,
+                  "seed": 0,
+                  "last_shuffled_start": 0,
+                  "entries": [
+                    {
+                      "path": "/Users/tsirysandratraina/Music/Cannons - All I Need/1. Cannons - All I Need.m4a",
+                      "title": "All I Need",
+                      "artist": "Cannons",
+                      "album": "All I Need",
+                      "albumartist": "Cannons",
+                      "composer": "",
+                      "genre_string": "",
+                      "tracknum": 1,
+                      "discnum": 1,
+                      "year": 2025,
+                      "year_string": "2025-10-17",
+                      "length": 227073,
+                      "elapsed": 0,
+                      "filesize": 9083647,
+                      "bitrate": 320,
+                      "frequency": 44100,
+                      "id": "cmjhiwtrq002vslny83sh3cpc",
+                      "album_id": "cmjhiwtr6002fslnyzl17c1rn",
+                      "artist_id": "cmjhiwtqz0003slnyk5x8akqo",
+                      "genre_id": "",
+                      "album_art": "b0cf2a54ef92afc1796c506f641f8b68.jpg"
+                    }
+                  ]
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -589,7 +916,26 @@
           { "name": "folder_id", "in": "query", "schema": { "type": "string" } }
         ],
         "responses": {
-          "200": { "description": "Saved playlists", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/SavedPlaylist" } } } } }
+          "200": {
+            "description": "Saved playlists",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/SavedPlaylist" } },
+                "example": [
+                  {
+                    "id": "68920507-2d77-4a89-afae-79626f570ad0",
+                    "name": "rap",
+                    "description": null,
+                    "image": null,
+                    "folder_id": null,
+                    "track_count": 1,
+                    "created_at": 1777133688,
+                    "updated_at": 1777135103
+                  }
+                ]
+              }
+            }
+          }
         }
       },
       "post": {
@@ -660,7 +1006,41 @@
         "tags": ["Saved playlists"],
         "summary": "List tracks in a saved playlist",
         "responses": {
-          "200": { "description": "Tracks", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } } } } }
+          "200": {
+            "description": "Tracks",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Track" } },
+                "example": [
+                  {
+                    "id": "cmodxew9c005tpdmde8b4v7jn",
+                    "path": "/Users/tsirysandratraina/Music/J. Cole - 2014 Forest Hills Drive (Explicit)/06. J. Cole - Fire Squad (Explicit).m4a",
+                    "title": "Fire Squad",
+                    "artist": "J. Cole",
+                    "album": "2014 Forest Hills Drive",
+                    "album_artist": "J. Cole",
+                    "bitrate": 320,
+                    "composer": "",
+                    "disc_number": 1,
+                    "filesize": 11527315,
+                    "frequency": 44100,
+                    "length": 288169,
+                    "track_number": 6,
+                    "year": 2014,
+                    "year_string": "2014-12-09",
+                    "md5": "cffdfee6f1cccb4f25581f9f4f4820d3",
+                    "album_art": "216ccc791352fbbffc11268b984db19a.jpg",
+                    "artist_id": "cmodw19po0005pdmd6k9mwauv",
+                    "album_id": "cmodxew8w0053pdmdmro8vx0w",
+                    "genre_id": "",
+                    "is_remote": false,
+                    "created_at": 1777096568,
+                    "updated_at": 1777096568
+                  }
+                ]
+              }
+            }
+          }
         }
       },
       "post": {
@@ -925,7 +1305,100 @@
         "tags": ["Devices"],
         "summary": "List all known output devices (discovered + virtual)",
         "responses": {
-          "200": { "description": "Devices", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Device" } } } } }
+          "200": {
+            "description": "Devices",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Device" } },
+                "example": [
+                  {
+                    "id": "builtin",
+                    "name": "Rockbox (Built-in)",
+                    "host": "localhost",
+                    "ip": "127.0.0.1",
+                    "port": 0,
+                    "service": "builtin",
+                    "app": "builtin",
+                    "is_connected": false,
+                    "base_url": null,
+                    "is_cast_device": false,
+                    "is_source_device": false,
+                    "is_current_device": true
+                  },
+                  {
+                    "id": "fifo",
+                    "name": "Snapcast (FIFO)",
+                    "host": "localhost",
+                    "ip": "127.0.0.1",
+                    "port": 0,
+                    "service": "fifo",
+                    "app": "fifo",
+                    "is_connected": false,
+                    "base_url": null,
+                    "is_cast_device": false,
+                    "is_source_device": false,
+                    "is_current_device": false
+                  },
+                  {
+                    "id": "squeezelite",
+                    "name": "Squeezelite",
+                    "host": "localhost",
+                    "ip": "127.0.0.1",
+                    "port": 3483,
+                    "service": "squeezelite",
+                    "app": "squeezelite",
+                    "is_connected": false,
+                    "base_url": null,
+                    "is_cast_device": false,
+                    "is_source_device": false,
+                    "is_current_device": false
+                  },
+                  {
+                    "id": "158759fe25f1a23ac2e12721b038e860",
+                    "name": "Salon TV",
+                    "host": "158759fe-25f1-a23a-c2e1-2721b038e860.local",
+                    "ip": "192.168.1.60",
+                    "port": 8009,
+                    "service": "chromecast",
+                    "app": "chromecast",
+                    "is_connected": false,
+                    "base_url": null,
+                    "is_cast_device": true,
+                    "is_source_device": false,
+                    "is_current_device": false
+                  },
+                  {
+                    "id": "snapcast-192.168.1.220",
+                    "name": "Snapcast",
+                    "host": "pi4-2.local",
+                    "ip": "192.168.1.220",
+                    "port": 4953,
+                    "service": "snapcast",
+                    "app": "Snapcast",
+                    "is_connected": false,
+                    "base_url": null,
+                    "is_cast_device": true,
+                    "is_source_device": false,
+                    "is_current_device": false
+                  },
+                  {
+                    "id": "92736CF1CD65@Pi4._raop._tcp.local.",
+                    "name": "Pi4",
+                    "host": "pi4-2.local",
+                    "ip": "192.168.1.220",
+                    "port": 5000,
+                    "service": "airplay",
+                    "app": "AirPlay",
+                    "is_connected": false,
+                    "base_url": null,
+                    "is_cast_device": true,
+                    "is_source_device": false,
+                    "is_current_device": false
+                  }
+                ]
+              }
+            }
+          }
         }
       }
     },
@@ -936,7 +1409,28 @@
         "summary": "Get a device by id (use 'current' for the active sink)",
         "parameters": [{ "$ref": "#/components/parameters/IdPath" }],
         "responses": {
-          "200": { "description": "Device", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Device" } } } },
+          "200": {
+            "description": "Device",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Device" },
+                "example": {
+                  "id": "builtin",
+                  "name": "Rockbox (Built-in)",
+                  "host": "localhost",
+                  "ip": "127.0.0.1",
+                  "port": 0,
+                  "service": "builtin",
+                  "app": "builtin",
+                  "is_connected": false,
+                  "base_url": null,
+                  "is_cast_device": false,
+                  "is_source_device": false,
+                  "is_current_device": true
+                }
+              }
+            }
+          },
           "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
@@ -969,7 +1463,62 @@
         "tags": ["Settings"],
         "summary": "Get the global settings (in-memory snapshot)",
         "responses": {
-          "200": { "description": "Settings", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GlobalSettings" } } } }
+          "200": {
+            "description": "Settings",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GlobalSettings" },
+                "example": {
+                  "music_dir": "/Users/tsirysandratraina/Music",
+                  "volume_limit": 320,
+                  "balance": 0,
+                  "bass": 1,
+                  "treble": 0,
+                  "channel_config": 0,
+                  "stereo_width": 100,
+                  "crossfade": 5,
+                  "crossfade_fade_in_delay": 7,
+                  "crossfade_fade_out_delay": 7,
+                  "crossfade_fade_in_duration": 1,
+                  "crossfade_fade_out_duration": 1,
+                  "playlist_shuffle": false,
+                  "repeat_mode": 846620009,
+                  "eq_enabled": true,
+                  "eq_precut": 7,
+                  "eq_band_settings": [
+                    { "cutoff": -16, "q": 64,    "gain": 10 },
+                    { "cutoff":   9, "q": 125,   "gain": 10 },
+                    { "cutoff":  21, "q": 250,   "gain": 10 },
+                    { "cutoff":   9, "q": 500,   "gain": 10 },
+                    { "cutoff": -35, "q": 1000,  "gain": 10 },
+                    { "cutoff": -81, "q": 2000,  "gain": 10 },
+                    { "cutoff": -41, "q": 4000,  "gain": 10 },
+                    { "cutoff":   1, "q": 8000,  "gain": 10 },
+                    { "cutoff":  15, "q": 16000, "gain": 7  },
+                    { "cutoff":  24, "q": 0,     "gain": 0  }
+                  ],
+                  "replaygain_settings": {
+                    "noclip": true,
+                    "type": 0,
+                    "preamp": 0
+                  },
+                  "compressor_settings": {
+                    "threshold": -24,
+                    "makeup_gain": 0,
+                    "ratio": 4,
+                    "knee": 1,
+                    "release_time": 300,
+                    "attack_time": 5
+                  },
+                  "dithering_enabled": true,
+                  "timestretch_enabled": false,
+                  "play_frequency": 3400,
+                  "surround_enabled": 0,
+                  "surround_balance": -25
+                }
+              }
+            }
+          }
         }
       },
       "put": {
@@ -999,7 +1548,27 @@
         "tags": ["System"],
         "summary": "Get global runtime status",
         "responses": {
-          "200": { "description": "Global status", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GlobalStatus" } } } }
+          "200": {
+            "description": "Global status",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GlobalStatus" },
+                "example": {
+                  "volume": 0,
+                  "resume_index": 0,
+                  "resume_crc32": 3654789000,
+                  "resume_elapsed": 0,
+                  "resume_offset": 0,
+                  "runtime": 10000,
+                  "topruntime": 10000,
+                  "dircache_size": 1016,
+                  "last_screen": -8,
+                  "viewer_icon_count": -1,
+                  "last_volume_change": 0
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1168,9 +1737,10 @@
       "TreeEntry": {
         "type": "object",
         "properties": {
-          "name":       { "type": "string", "description": "Absolute path" },
-          "time_write": { "type": "integer", "format": "int64", "description": "Unix timestamp of last modification" },
-          "attr":       { "type": "integer", "format": "int32", "description": "0x10 = directory" }
+          "name":         { "type": "string", "description": "Absolute path" },
+          "time_write":   { "type": "integer", "format": "int64", "description": "Unix timestamp of last modification" },
+          "attr":         { "type": "integer", "format": "int32", "description": "0x10 = directory" },
+          "customaction": { "type": "integer", "format": "int32" }
         }
       },
       "Mp3Entry": {
