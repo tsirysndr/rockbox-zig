@@ -14,14 +14,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActionSheet, type ActionItem } from "@/components/action-sheet";
+import { EqualizerBars } from "@/components/equalizer-bars";
 import { TrackMenuButton } from "@/components/track-menu-button";
+import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
-import {
-  formatDuration,
-  getArtistAlbums,
-  getArtistById,
-  getArtistTracks,
-} from "@/lib/mock-data";
+import { useArtistDetail } from "@/lib/library-source";
+import { formatDuration } from "@/lib/mock-data";
 import { usePlayer } from "@/lib/player-context";
 
 const { width } = Dimensions.get("window");
@@ -31,13 +29,14 @@ const TOP_TRACK_LIMIT = 5;
 
 export default function ArtistScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const artist = id ? getArtistById(id) : undefined;
-  const tracks = useMemo(() => (id ? getArtistTracks(id) : []), [id]);
-  const albums = useMemo(() => (id ? getArtistAlbums(id) : []), [id]);
+  const detail = useArtistDetail(id ?? "");
+  const artist = detail.artist;
+  const tracks = detail.tracks;
+  const albums = detail.albums;
   const { playQueue, currentTrack, isPlaying, playLast } = usePlayer();
   const topTracks = tracks.slice(0, TOP_TRACK_LIMIT);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [following, setFollowing] = useState(false);
+  const bottomPad = useBottomSpacing(24);
 
   const scrollY = useMemo(() => new Animated.Value(0), []);
   const headerBgOpacity = scrollY.interpolate({
@@ -108,7 +107,7 @@ export default function ArtistScreen() {
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },
         )}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingBottom: bottomPad }}
       >
         <View
           className="justify-end"
@@ -116,7 +115,7 @@ export default function ArtistScreen() {
         >
           <View className="px-5 pb-4">
             <Text
-              className="text-text-primary text-3xl font-extrabold font-sans"
+              className="text-text-primary text-3xl font-display-extra"
               style={{
                 textShadowColor: "rgba(0,0,0,0.6)",
                 textShadowRadius: 8,
@@ -128,24 +127,7 @@ export default function ArtistScreen() {
         </View>
 
         <View className="bg-bg pt-4">
-          <View className="px-5 flex-row items-center gap-3">
-            <Text className="text-text-secondary text-[13px] flex-1 font-sans">
-              {artist.followers ? `${artist.followers} followers` : ""}
-            </Text>
-            <Pressable
-              hitSlop={6}
-              onPress={() => setFollowing((v) => !v)}
-              className={`px-3.5 h-8 rounded-full border border-text-primary items-center justify-center ${following ? "bg-text-primary" : ""}`}
-            >
-              <Text
-                className={`text-xs font-bold font-sans ${following ? "text-black" : "text-text-primary"}`}
-              >
-                {following ? "Following" : "Follow"}
-              </Text>
-            </Pressable>
-          </View>
-
-          <View className="flex-row items-center px-5 mt-4 gap-4">
+          <View className="flex-row items-center px-5 gap-4">
             <Pressable hitSlop={6} onPress={onShuffle}>
               <Ionicons name="shuffle" size={26} color={Colors.textPrimary} />
             </Pressable>
@@ -189,9 +171,15 @@ export default function ArtistScreen() {
                     onPress={() => playQueue(tracks, { startIdx: idx })}
                     className="flex-row items-center px-5 py-2 gap-3 active:bg-bg-hover"
                   >
-                    <Text className="w-[18px] text-center text-text-muted text-sm font-mono">
-                      {idx + 1}
-                    </Text>
+                    <View className="w-[18px] items-center justify-center">
+                      {isCurrent ? (
+                        <EqualizerBars size={14} playing={isPlaying} />
+                      ) : (
+                        <Text className="text-text-muted text-sm font-mono">
+                          {idx + 1}
+                        </Text>
+                      )}
+                    </View>
                     {t.artwork ? (
                       <Image
                         source={t.artwork}
@@ -216,13 +204,6 @@ export default function ArtistScreen() {
                     <Text className="text-text-muted text-xs font-mono">
                       {formatDuration(t.duration)}
                     </Text>
-                    {isCurrent && isPlaying ? (
-                      <Ionicons
-                        name="musical-notes"
-                        size={14}
-                        color={Colors.accent}
-                      />
-                    ) : null}
                     <TrackMenuButton track={t} />
                   </Pressable>
                 );
@@ -305,19 +286,6 @@ export default function ArtistScreen() {
                 topTracks.forEach((t) => playLast(t));
               },
               disabled: topTracks.length === 0,
-            },
-            {
-              icon: following ? "person-remove-outline" : "person-add-outline",
-              label: following ? "Unfollow" : "Follow",
-              onPress: () => {
-                setFollowing((v) => !v);
-                setMenuOpen(false);
-              },
-            },
-            {
-              icon: "share-outline",
-              label: "Share",
-              onPress: () => setMenuOpen(false),
             },
           ] as ActionItem[]
         }

@@ -4,7 +4,12 @@ import Foundation
 // C symbols exported by the rockbox_expo Rust crate (built from
 // `crates/expo/`). The static library is linked via the .podspec.
 @_silgen_name("rb_set_server_url")  private func rb_set_server_url(_ url: UnsafePointer<CChar>) -> Int32
+@_silgen_name("rb_set_http_url")    private func rb_set_http_url(_ url: UnsafePointer<CChar>) -> Int32
 @_silgen_name("rb_ping")            private func rb_ping() -> Int32
+
+@_silgen_name("rb_get_devices_json")    private func rb_get_devices_json() -> UnsafeMutablePointer<CChar>?
+@_silgen_name("rb_connect_device")      private func rb_connect_device(_ id: UnsafePointer<CChar>) -> Int32
+@_silgen_name("rb_disconnect_device")   private func rb_disconnect_device(_ id: UnsafePointer<CChar>) -> Int32
 @_silgen_name("rb_play")            private func rb_play() -> Int32
 @_silgen_name("rb_pause")           private func rb_pause() -> Int32
 @_silgen_name("rb_play_pause")      private func rb_play_pause() -> Int32
@@ -46,6 +51,9 @@ import Foundation
 
 @_silgen_name("rb_get_tracks_json")         private func rb_get_tracks_json() -> UnsafeMutablePointer<CChar>?
 @_silgen_name("rb_get_artists_json")        private func rb_get_artists_json() -> UnsafeMutablePointer<CChar>?
+@_silgen_name("rb_get_albums_json")         private func rb_get_albums_json() -> UnsafeMutablePointer<CChar>?
+@_silgen_name("rb_get_liked_albums_json")   private func rb_get_liked_albums_json() -> UnsafeMutablePointer<CChar>?
+@_silgen_name("rb_get_artist_json")         private func rb_get_artist_json(_ id: UnsafePointer<CChar>) -> UnsafeMutablePointer<CChar>?
 @_silgen_name("rb_get_album_json")          private func rb_get_album_json(_ id: UnsafePointer<CChar>) -> UnsafeMutablePointer<CChar>?
 @_silgen_name("rb_get_liked_tracks_json")   private func rb_get_liked_tracks_json() -> UnsafeMutablePointer<CChar>?
 @_silgen_name("rb_search_json")             private func rb_search_json(_ term: UnsafePointer<CChar>) -> UnsafeMutablePointer<CChar>?
@@ -74,6 +82,7 @@ import Foundation
 @_silgen_name("rb_play_smart_playlist")             private func rb_play_smart_playlist(_ id: UnsafePointer<CChar>) -> Int32
 
 @_silgen_name("rb_bluetooth_available")             private func rb_bluetooth_available() -> Int32
+@_silgen_name("rb_scan_bluetooth")                  private func rb_scan_bluetooth() -> Int32
 @_silgen_name("rb_get_bluetooth_devices_json")      private func rb_get_bluetooth_devices_json() -> UnsafeMutablePointer<CChar>?
 @_silgen_name("rb_connect_bluetooth")               private func rb_connect_bluetooth(_ a: UnsafePointer<CChar>) -> Int32
 @_silgen_name("rb_disconnect_bluetooth")            private func rb_disconnect_bluetooth(_ a: UnsafePointer<CChar>) -> Int32
@@ -122,6 +131,20 @@ public class RockboxRpcModule: Module {
 
         Function("setServerUrl") { (url: String) in
             url.withCString { _ = rb_set_server_url($0) }
+        }
+        Function("setHttpUrl") { (url: String) in
+            url.withCString { _ = rb_set_http_url($0) }
+        }
+        AsyncFunction("getDevices") { () -> Any in
+            try self.parseJsonOrThrow(takeString(rb_get_devices_json()), op: "getDevices")
+        }
+        AsyncFunction("connectDevice") { (id: String) -> Void in
+            let rc = id.withCString { rb_connect_device($0) }
+            if rc != 0 { throw self.playbackError("connectDevice") }
+        }
+        AsyncFunction("disconnectDevice") { (id: String) -> Void in
+            let rc = id.withCString { rb_disconnect_device($0) }
+            if rc != 0 { throw self.playbackError("disconnectDevice") }
         }
 
         AsyncFunction("ping") { () -> Bool in
@@ -221,6 +244,16 @@ public class RockboxRpcModule: Module {
         }
         AsyncFunction("getArtists") { () -> Any in
             try self.parseJsonOrThrow(takeString(rb_get_artists_json()), op: "getArtists")
+        }
+        AsyncFunction("getAlbums") { () -> Any in
+            try self.parseJsonOrThrow(takeString(rb_get_albums_json()), op: "getAlbums")
+        }
+        AsyncFunction("getLikedAlbums") { () -> Any in
+            try self.parseJsonOrThrow(takeString(rb_get_liked_albums_json()), op: "getLikedAlbums")
+        }
+        AsyncFunction("getArtist") { (id: String) -> Any in
+            let raw = id.withCString { rb_get_artist_json($0) }
+            return try self.parseJsonOrThrow(takeString(raw), op: "getArtist")
         }
         AsyncFunction("getAlbum") { (id: String) -> Any in
             let raw = id.withCString { rb_get_album_json($0) }
@@ -332,6 +365,9 @@ public class RockboxRpcModule: Module {
 
         AsyncFunction("bluetoothAvailable") { () -> Bool in
             return rb_bluetooth_available() == 1
+        }
+        AsyncFunction("scanBluetooth") { () -> Void in
+            if rb_scan_bluetooth() != 0 { throw self.playbackError("scanBluetooth") }
         }
         AsyncFunction("getBluetoothDevices") { () -> Any in
             try self.parseJsonOrThrow(takeString(rb_get_bluetooth_devices_json()), op: "getBluetoothDevices")

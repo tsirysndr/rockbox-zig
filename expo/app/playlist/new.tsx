@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
@@ -12,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { gradientColors } from "@/components/playlist-cover";
 import { Colors } from "@/constants/theme";
 import { usePlayer } from "@/lib/player-context";
 
@@ -60,12 +62,12 @@ export default function NewPlaylistScreen() {
           <Pressable hitSlop={10} onPress={() => router.back()}>
             <Text className="text-text-primary text-sm font-sans">Cancel</Text>
           </Pressable>
-          <Text className="text-text-primary text-base font-bold font-sans">
+          <Text className="text-text-primary text-base font-display">
             {isSmart ? "New Smart Playlist" : "New Playlist"}
           </Text>
           <Pressable hitSlop={10} disabled={!canCreate} onPress={onCreate}>
             <Text
-              className={`text-sm font-bold font-sans ${canCreate ? "text-accent" : "text-text-muted"}`}
+              className={`text-sm font-display ${canCreate ? "text-accent" : "text-text-muted"}`}
             >
               Create
             </Text>
@@ -78,7 +80,7 @@ export default function NewPlaylistScreen() {
         >
           <View className="items-center py-6">
             <View
-              className="w-[140px] h-[140px] rounded-lg bg-bg-card items-center justify-center"
+              className="w-[140px] h-[140px] rounded-lg overflow-hidden"
               style={{
                 shadowColor: "#000",
                 shadowOpacity: 0.5,
@@ -86,11 +88,22 @@ export default function NewPlaylistScreen() {
                 shadowOffset: { width: 0, height: 8 },
               }}
             >
-              <Ionicons
-                name={isSmart ? "flash" : "musical-notes"}
-                size={56}
-                color={Colors.textMuted}
-              />
+              <LinearGradient
+                colors={gradientColors(name || (isSmart ? "smart" : "new"))}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons
+                  name={isSmart ? "flash" : "musical-notes"}
+                  size={56}
+                  color="#FFFFFF"
+                />
+              </LinearGradient>
             </View>
           </View>
 

@@ -73,6 +73,8 @@ export type Json = unknown;
 type RockboxRpcNative = {
   /** Configure the gRPC server URL. Call once at app startup. */
   setServerUrl(url: string): void;
+  /** Configure the rockboxd HTTP base URL (used by `getDevices` etc.). */
+  setHttpUrl(url: string): void;
   /** Round-trip Status RPC; resolves with `true` if the server replied. */
   ping(): Promise<boolean>;
 
@@ -119,6 +121,9 @@ type RockboxRpcNative = {
   // Library
   getTracks(): Promise<Json>;
   getArtists(): Promise<Json>;
+  getAlbums(): Promise<Json>;
+  getLikedAlbums(): Promise<Json>;
+  getArtist(id: string): Promise<Json>;
   getAlbum(id: string): Promise<Json>;
   getLikedTracks(): Promise<Json>;
   search(term: string): Promise<Json>;
@@ -161,9 +166,15 @@ type RockboxRpcNative = {
 
   // Bluetooth
   bluetoothAvailable(): Promise<boolean>;
+  scanBluetooth(): Promise<void>;
   getBluetoothDevices(): Promise<Json>;
   connectBluetooth(address: string): Promise<void>;
   disconnectBluetooth(address: string): Promise<void>;
+
+  // Cast / AirPlay output devices (HTTP REST under the hood).
+  getDevices(): Promise<Json>;
+  connectDevice(id: string): Promise<void>;
+  disconnectDevice(id: string): Promise<void>;
 
   // Streaming subscriptions — return an opaque numeric subscription id.
   // Pair with `unsubscribe(id)` to tear down. Events fire on the registered

@@ -1,8 +1,14 @@
 export type Track = {
   id: string;
+  /** Filesystem path on the daemon — required by `playTrack` / `insertTrack`. */
+  path?: string;
   title: string;
   artist: string;
+  /** Empty when the proto doesn't tell us the linked artist row. */
+  artistId?: string;
   album: string;
+  /** Empty when the proto doesn't tell us the linked album row. */
+  albumId?: string;
   duration: number;
   artwork?: string;
   liked?: boolean;

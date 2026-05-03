@@ -1,5 +1,8 @@
 package expo.modules.rockboxrpc
 
+import android.content.Context
+import android.net.wifi.WifiManager
+import android.util.Log
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.CoroutineScope
@@ -10,6 +13,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Native module wrapping the rockbox-expo Rust crate (built into a .so per ABI
@@ -26,7 +30,12 @@ class RockboxRpcModule : Module() {
     }
 
     @JvmStatic external fun rb_set_server_url(url: String): Int
+    @JvmStatic external fun rb_set_http_url(url: String): Int
     @JvmStatic external fun rb_ping(): Int
+
+    @JvmStatic external fun rb_get_devices_json(): String?
+    @JvmStatic external fun rb_connect_device(id: String): Int
+    @JvmStatic external fun rb_disconnect_device(id: String): Int
     @JvmStatic external fun rb_play(): Int
     @JvmStatic external fun rb_pause(): Int
     @JvmStatic external fun rb_play_pause(): Int
@@ -67,6 +76,9 @@ class RockboxRpcModule : Module() {
 
     @JvmStatic external fun rb_get_tracks_json(): String?
     @JvmStatic external fun rb_get_artists_json(): String?
+    @JvmStatic external fun rb_get_albums_json(): String?
+    @JvmStatic external fun rb_get_liked_albums_json(): String?
+    @JvmStatic external fun rb_get_artist_json(id: String): String?
     @JvmStatic external fun rb_get_album_json(id: String): String?
     @JvmStatic external fun rb_get_liked_tracks_json(): String?
     @JvmStatic external fun rb_search_json(term: String): String?
@@ -95,6 +107,7 @@ class RockboxRpcModule : Module() {
     @JvmStatic external fun rb_play_smart_playlist(id: String): Int
 
     @JvmStatic external fun rb_bluetooth_available(): Int
+    @JvmStatic external fun rb_scan_bluetooth(): Int
     @JvmStatic external fun rb_get_bluetooth_devices_json(): String?
     @JvmStatic external fun rb_connect_bluetooth(address: String): Int
     @JvmStatic external fun rb_disconnect_bluetooth(address: String): Int
@@ -102,6 +115,44 @@ class RockboxRpcModule : Module() {
 
   private val scope = CoroutineScope(Dispatchers.IO)
   private val pollJobs = ConcurrentHashMap<Int, Job>()
+  private val discoveryJobs = java.util.concurrent.ConcurrentHashMap.newKeySet<Int>()
+
+  /**
+   * MulticastLock kept alive while at least one discovery subscription is
+   * active. Without it, Android's Wi-Fi stack drops incoming multicast UDP
+   * packets — meaning mDNS / Bonjour responses never reach the app and the
+   * picker stays empty forever even though the daemon is broadcasting.
+   */
+  @Volatile private var multicastLock: WifiManager.MulticastLock? = null
+  private val discoverySubs = AtomicInteger(0)
+
+  private fun acquireMulticastLock() {
+    if (discoverySubs.getAndIncrement() != 0) return
+    try {
+      val ctx = appContext.reactContext?.applicationContext ?: return
+      val wifi = ctx.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+        ?: return
+      val lock = wifi.createMulticastLock("rockbox-rpc-mdns").apply {
+        setReferenceCounted(false)
+        acquire()
+      }
+      multicastLock = lock
+    } catch (e: Exception) {
+      Log.w("RockboxRpc", "MulticastLock acquire failed", e)
+    }
+  }
+
+  private fun releaseMulticastLock() {
+    val remaining = discoverySubs.updateAndGet { (it - 1).coerceAtLeast(0) }
+    if (remaining > 0) return
+    try {
+      multicastLock?.takeIf { it.isHeld }?.release()
+    } catch (e: Exception) {
+      Log.w("RockboxRpc", "MulticastLock release failed", e)
+    } finally {
+      multicastLock = null
+    }
+  }
 
   override fun definition() = ModuleDefinition {
     Name("RockboxRpc")
@@ -124,6 +175,18 @@ class RockboxRpcModule : Module() {
 
     Function("setServerUrl") { url: String ->
       rb_set_server_url(url)
+    }
+    Function("setHttpUrl") { url: String ->
+      rb_set_http_url(url)
+    }
+    AsyncFunction("getDevices") {
+      parseJsonOrThrow(rb_get_devices_json(), "getDevices")
+    }
+    AsyncFunction("connectDevice") { id: String ->
+      if (rb_connect_device(id) != 0) throw RpcError("connectDevice")
+    }
+    AsyncFunction("disconnectDevice") { id: String ->
+      if (rb_disconnect_device(id) != 0) throw RpcError("disconnectDevice")
     }
 
     AsyncFunction("ping") {
@@ -208,6 +271,15 @@ class RockboxRpcModule : Module() {
     AsyncFunction("getArtists") {
       parseJsonOrThrow(rb_get_artists_json(), "getArtists")
     }
+    AsyncFunction("getAlbums") {
+      parseJsonOrThrow(rb_get_albums_json(), "getAlbums")
+    }
+    AsyncFunction("getLikedAlbums") {
+      parseJsonOrThrow(rb_get_liked_albums_json(), "getLikedAlbums")
+    }
+    AsyncFunction("getArtist") { id: String ->
+      parseJsonOrThrow(rb_get_artist_json(id), "getArtist")
+    }
     AsyncFunction("getAlbum") { id: String ->
       parseJsonOrThrow(rb_get_album_json(id), "getAlbum")
     }
@@ -281,6 +353,9 @@ class RockboxRpcModule : Module() {
     }
 
     AsyncFunction("bluetoothAvailable") { rb_bluetooth_available() == 1 }
+    AsyncFunction("scanBluetooth") {
+      if (rb_scan_bluetooth() != 0) throw RpcError("scanBluetooth")
+    }
     AsyncFunction("getBluetoothDevices") {
       parseJsonOrThrow(rb_get_bluetooth_devices_json(), "getBluetoothDevices")
     }
@@ -313,23 +388,38 @@ class RockboxRpcModule : Module() {
       id
     }
     Function("subscribeDiscovery") { serviceName: String ->
+      acquireMulticastLock()
       val id = rb_subscribe_discovery(serviceName)
-      startPollLoop(id, "rockbox.discovery")
+      startPollLoop(id, "rockbox.discovery", isDiscovery = true)
       id
     }
     Function("unsubscribe") { subId: Int ->
-      pollJobs.remove(subId)?.cancel()
+      val tag = pollJobs.remove(subId)
+      tag?.cancel()
+      // If this was a discovery subscription, drop our multicast hold.
+      if (discoveryJobs.remove(subId)) releaseMulticastLock()
       rb_unsubscribe(subId)
     }
 
     OnDestroy {
       pollJobs.values.forEach { it.cancel() }
       pollJobs.clear()
+      // Drop every outstanding discovery hold so we don't leak the lock
+      // beyond the module's lifetime.
+      while (discoveryJobs.isNotEmpty()) {
+        discoveryJobs.iterator().next().let { discoveryJobs.remove(it) }
+        releaseMulticastLock()
+      }
       scope.cancel()
     }
   }
 
-  private fun startPollLoop(subId: Int, eventName: String) {
+  private fun startPollLoop(
+    subId: Int,
+    eventName: String,
+    isDiscovery: Boolean = false,
+  ) {
+    if (isDiscovery) discoveryJobs.add(subId)
     val job = scope.launch {
       while (isActive) {
         val raw = rb_poll_event(subId, 1_000) ?: continue
@@ -343,13 +433,10 @@ class RockboxRpcModule : Module() {
             ))
             return@launch
           }
-          val map = mutableMapOf<String, Any?>()
-          val it = obj.keys()
-          while (it.hasNext()) {
-            val k = it.next()
-            map[k] = if (obj.isNull(k)) null else obj.get(k)
-          }
-          sendEvent(eventName, map)
+          // Recurse so nested JSONArray / JSONObject instances bridge as
+          // proper JS arrays / objects (otherwise `addresses.find(...)` etc.
+          // blows up on the JS side).
+          sendEvent(eventName, jsonObjectToMap(obj))
         } catch (e: Exception) {
           // Bad JSON — skip and keep polling.
         }

@@ -13,14 +13,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActionSheet, type ActionItem } from "@/components/action-sheet";
+import { EqualizerBars } from "@/components/equalizer-bars";
 import { TrackMenuButton } from "@/components/track-menu-button";
+import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
-import {
-  ARTISTS,
-  formatDuration,
-  getAlbumById,
-  getAlbumTracks,
-} from "@/lib/mock-data";
+import { useAlbumDetail } from "@/lib/library-source";
+import { ARTISTS, formatDuration } from "@/lib/mock-data";
 import { usePlayer } from "@/lib/player-context";
 
 const { width } = Dimensions.get("window");
@@ -29,13 +27,15 @@ const HEADER_HEIGHT = 56;
 
 export default function AlbumScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const album = id ? getAlbumById(id) : undefined;
-  const tracks = useMemo(() => (id ? getAlbumTracks(id) : []), [id]);
+  const detail = useAlbumDetail(id ?? "");
+  const album = detail.album;
+  const tracks = detail.tracks;
   const { playQueue, currentTrack, isPlaying, playLast } = usePlayer();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const totalDuration = tracks.reduce((s, t) => s + t.duration, 0);
   const totalMinutes = Math.round(totalDuration / 60);
+  const bottomPad = useBottomSpacing(24);
 
   const scrollY = useMemo(() => new Animated.Value(0), []);
   const headerBgOpacity = scrollY.interpolate({
@@ -81,7 +81,7 @@ export default function AlbumScreen() {
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },
         )}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingBottom: bottomPad }}
       >
         {/* Hero band: blurred album art behind, sharp art front-and-center */}
         <View
@@ -124,7 +124,7 @@ export default function AlbumScreen() {
 
         {/* Title block */}
         <View className="px-5 mt-3.5">
-          <Text className="text-text-primary text-[26px] font-extrabold font-sans">
+          <Text className="text-text-primary text-[26px] font-display-extra">
             {album.title}
           </Text>
           <Pressable
@@ -200,11 +200,7 @@ export default function AlbumScreen() {
               >
                 <View className="w-[22px] items-center">
                   {isCurrent ? (
-                    <Ionicons
-                      name={isPlaying ? "musical-notes" : "pause"}
-                      size={14}
-                      color={Colors.accent}
-                    />
+                    <EqualizerBars size={14} playing={isPlaying} />
                   ) : (
                     <Text className="text-text-muted text-[13px] font-mono">
                       {idx + 1}
@@ -268,11 +264,6 @@ export default function AlbumScreen() {
                 setMenuOpen(false);
                 tracks.forEach((t) => playLast(t));
               },
-            },
-            {
-              icon: "heart-outline",
-              label: "Save to Library",
-              onPress: () => setMenuOpen(false),
             },
             {
               icon: "add-circle-outline",

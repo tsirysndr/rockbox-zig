@@ -37,6 +37,15 @@ module.exports = {
       fontFamily: {
         sans: ["SpaceGrotesk"],
         mono: ["JetBrainsMono"],
+        // RockfordSans — used for titles, headings, and bottom-bar labels.
+        // Each weight is a distinct family because RN doesn't auto-pick
+        // weights from a single family on Android. The weights here lean
+        // slightly lighter than the typographic name suggests so headings
+        // don't feel chunky.
+        "display-light": ["RockfordSans-Regular"],
+        display: ["RockfordSans-Medium"],
+        "display-medium": ["RockfordSans-Regular"],
+        "display-extra": ["RockfordSans-Bold"],
       },
     },
   },

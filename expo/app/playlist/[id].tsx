@@ -13,29 +13,34 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ActionSheet, type ActionItem } from "@/components/action-sheet";
+import { EqualizerBars } from "@/components/equalizer-bars";
+import { PlaylistCover, gradientColors } from "@/components/playlist-cover";
 import { TrackMenuButton } from "@/components/track-menu-button";
+import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
-import {
-  formatDuration,
-  getPlaylistById,
-  getPlaylistTracks,
-} from "@/lib/mock-data";
+import { usePlaylistDetail } from "@/lib/library-source";
+import { formatDuration } from "@/lib/mock-data";
 import { usePlayer } from "@/lib/player-context";
 
 const { width } = Dimensions.get("window");
-const ART_SIZE = Math.min(width * 0.6, 260);
+// Compact hero — playlist screens get visited from rows where the user
+// already saw the cover, so the title / actions / track list should sit
+// higher than on album / artist screens.
+const ART_SIZE = Math.min(width * 0.45, 190);
 const HEADER_HEIGHT = 56;
 
 export default function PlaylistScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { playQueue, currentTrack, isPlaying, userPlaylists, playLast } =
     usePlayer();
+  const detail = usePlaylistDetail(id ?? "");
   const playlist = id
-    ? userPlaylists.find((p) => p.id === id) ?? getPlaylistById(id)
+    ? userPlaylists.find((p) => p.id === id) ?? detail.playlist
     : undefined;
-  const tracks = useMemo(() => (id ? getPlaylistTracks(id) : []), [id]);
+  const tracks = detail.tracks;
   const [menuOpen, setMenuOpen] = useState(false);
   const isUserPlaylist = !!userPlaylists.find((p) => p.id === id);
+  const bottomPad = useBottomSpacing(24);
 
   const totalDuration = tracks.reduce((s, t) => s + t.duration, 0);
   const totalMinutes = Math.round(totalDuration / 60);
@@ -84,19 +89,28 @@ export default function PlaylistScreen() {
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },
         )}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingBottom: bottomPad }}
       >
         {/* Hero band: blurred art behind, sharp art front-and-center */}
         <View
-          className="items-center overflow-hidden pb-4"
-          style={{ paddingTop: HEADER_HEIGHT + 16 }}
+          className="items-center overflow-hidden pb-2"
+          style={{ paddingTop: HEADER_HEIGHT + 8 }}
         >
-          <Image
-            source={playlist.artwork}
-            className="absolute inset-0"
-            contentFit="cover"
-            blurRadius={40}
-          />
+          {playlist.artwork ? (
+            <Image
+              source={playlist.artwork}
+              className="absolute inset-0"
+              contentFit="cover"
+              blurRadius={40}
+            />
+          ) : (
+            <LinearGradient
+              colors={gradientColors(playlist.id || playlist.name)}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="absolute inset-0"
+            />
+          )}
           <LinearGradient
             colors={[
               "rgba(0,0,0,0.35)",
@@ -116,18 +130,18 @@ export default function PlaylistScreen() {
               shadowOffset: { width: 0, height: 12 },
             }}
           >
-            <Image
-              source={playlist.artwork}
-              className="rounded-lg"
-              style={{ width: ART_SIZE, height: ART_SIZE }}
-              contentFit="cover"
+            <PlaylistCover
+              artwork={playlist.artwork}
+              seed={playlist.id || playlist.name}
+              size={ART_SIZE}
+              rounded="lg"
             />
           </Animated.View>
         </View>
 
         {/* Title block */}
-        <View className="px-5 mt-3.5">
-          <Text className="text-text-primary text-[26px] font-extrabold font-sans">
+        <View className="px-5 mt-2">
+          <Text className="text-text-primary text-[26px] font-display-extra">
             {playlist.name}
           </Text>
           {playlist.description ? (
@@ -136,27 +150,43 @@ export default function PlaylistScreen() {
             </Text>
           ) : null}
           <Text className="text-text-muted text-xs mt-2 font-sans">
-            Playlist • {tracks.length} tracks • {totalMinutes} min
+            {[
+              playlist.isSmart ? "Smart playlist" : "Playlist",
+              tracks.length > 0 ? `${tracks.length} tracks` : null,
+              tracks.length > 0 ? `${totalMinutes} min` : null,
+            ]
+              .filter(Boolean)
+              .join(" • ")}
           </Text>
         </View>
 
         {/* Action row */}
-        <View className="flex-row items-center px-5 mt-5 gap-4">
+        <View className="flex-row items-center px-5 mt-3 gap-4">
           <Pressable
             hitSlop={6}
             onPress={onShuffle}
-            className="w-11 h-11 rounded-full items-center justify-center"
+            disabled={tracks.length === 0}
+            className={`w-11 h-11 rounded-full items-center justify-center ${tracks.length === 0 ? "opacity-40" : ""}`}
           >
             <Ionicons name="shuffle" size={26} color={Colors.textPrimary} />
           </Pressable>
-          <Pressable hitSlop={6}>
+          <Pressable
+            hitSlop={6}
+            disabled={tracks.length === 0}
+            className={tracks.length === 0 ? "opacity-40" : ""}
+          >
             <Ionicons
               name="heart-outline"
               size={26}
               color={Colors.textPrimary}
             />
           </Pressable>
-          <Pressable hitSlop={6} onPress={() => setMenuOpen(true)}>
+          <Pressable
+            hitSlop={6}
+            onPress={() => setMenuOpen(true)}
+            disabled={tracks.length === 0}
+            className={tracks.length === 0 ? "opacity-40" : ""}
+          >
             <Ionicons
               name="ellipsis-horizontal"
               size={26}
@@ -166,7 +196,8 @@ export default function PlaylistScreen() {
           <View className="flex-1" />
           <Pressable
             onPress={onPlay}
-            className="w-14 h-14 rounded-full items-center justify-center bg-accent active:opacity-85"
+            disabled={tracks.length === 0}
+            className={`w-14 h-14 rounded-full items-center justify-center bg-accent active:opacity-85 ${tracks.length === 0 ? "opacity-40" : ""}`}
             style={{
               shadowColor: Colors.accent,
               shadowOpacity: 0.5,
@@ -184,7 +215,7 @@ export default function PlaylistScreen() {
         </View>
 
         {/* Track list */}
-        <View className="mt-5">
+        <View className="mt-3">
           {tracks.map((t, idx) => {
             const isCurrent = currentTrack?.id === t.id;
             return (
@@ -225,13 +256,7 @@ export default function PlaylistScreen() {
                 <Text className="text-text-muted text-xs font-mono">
                   {formatDuration(t.duration)}
                 </Text>
-                {isCurrent && isPlaying ? (
-                  <Ionicons
-                    name="musical-notes"
-                    size={14}
-                    color={Colors.accent}
-                  />
-                ) : null}
+                {isCurrent ? <EqualizerBars size={14} playing={isPlaying} /> : null}
                 <TrackMenuButton track={t} />
               </Pressable>
             );
@@ -290,13 +315,7 @@ export default function PlaylistScreen() {
                     onPress: () => setMenuOpen(false),
                   },
                 ]
-              : [
-                  {
-                    icon: "heart-outline",
-                    label: "Save to Library",
-                    onPress: () => setMenuOpen(false),
-                  },
-                ]),
+              : []),
             {
               icon: "share-outline",
               label: "Share",

@@ -1,28 +1,27 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { NotConnectedState } from "@/components/empty-state";
+import { EqualizerBars } from "@/components/equalizer-bars";
 import { TrackMenuButton } from "@/components/track-menu-button";
+import { useIsConnected } from "@/lib/connection";
+import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
-import { ALL_SONGS, GENRES, formatDuration } from "@/lib/mock-data";
+import { useLibrarySearch } from "@/lib/library-source";
+import { GENRES, formatDuration } from "@/lib/mock-data";
 import { usePlayer } from "@/lib/player-context";
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
-  const { jumpTo, queue } = usePlayer();
-
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return ALL_SONGS.filter(
-      (t) =>
-        t.title.toLowerCase().includes(q) ||
-        t.artist.toLowerCase().includes(q) ||
-        t.album.toLowerCase().includes(q),
-    );
-  }, [query]);
+  const { playTrack, currentTrack, isPlaying } = usePlayer();
+  const isConnected = useIsConnected();
+  const bottomPad = useBottomSpacing(24);
+  const { data: results } = useLibrarySearch(query);
+  const tracks = results.tracks;
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
@@ -53,54 +52,157 @@ export default function SearchScreen() {
         </View>
       </View>
 
-      {query.trim().length > 0 ? (
-        <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-          {results.length === 0 ? (
+      {!isConnected ? (
+        <NotConnectedState message="Connect to a server to search your library." />
+      ) : query.trim().length > 0 ? (
+        <ScrollView contentContainerStyle={{ paddingBottom: bottomPad }}>
+          {tracks.length === 0 &&
+          results.albums.length === 0 &&
+          results.artists.length === 0 ? (
             <Text className="text-text-secondary px-4 mt-6 font-sans">
               No results for &ldquo;{query}&rdquo;
             </Text>
           ) : (
-            results.map((track) => {
-              const idx = queue.findIndex((t) => t.id === track.id);
-              return (
+            <>
+              {results.artists.length > 0 ? (
+                <View className="px-4 pt-2 pb-1">
+                  <Text className="text-text-primary text-base font-display mb-1.5">
+                    Artists
+                  </Text>
+                </View>
+              ) : null}
+              {results.artists.map((a) => (
                 <Pressable
-                  key={track.id}
-                  onPress={() => idx >= 0 && jumpTo(idx)}
-                  className="flex-row items-center px-4 py-2.5 gap-3 active:bg-bg-hover"
+                  key={`artist-${a.id}`}
+                  onPress={() => router.push(`/artist/${a.id}`)}
+                  className="flex-row items-center px-4 py-2 gap-3 active:bg-bg-hover"
                 >
-                  <View className="w-11 h-11 bg-bg-card rounded-md items-center justify-center">
-                    <Ionicons
-                      name="musical-note"
-                      size={18}
-                      color={Colors.textMuted}
+                  {a.image ? (
+                    <Image
+                      source={a.image}
+                      className="w-11 h-11 rounded-full"
+                      contentFit="cover"
                     />
-                  </View>
+                  ) : (
+                    <View className="w-11 h-11 bg-bg-card rounded-full items-center justify-center">
+                      <Ionicons
+                        name="person"
+                        size={18}
+                        color={Colors.textMuted}
+                      />
+                    </View>
+                  )}
+                  <Text
+                    numberOfLines={1}
+                    className="text-text-primary text-sm font-semibold font-sans flex-1"
+                  >
+                    {a.name}
+                  </Text>
+                </Pressable>
+              ))}
+
+              {results.albums.length > 0 ? (
+                <View className="px-4 pt-3 pb-1">
+                  <Text className="text-text-primary text-base font-display mb-1.5">
+                    Albums
+                  </Text>
+                </View>
+              ) : null}
+              {results.albums.map((al) => (
+                <Pressable
+                  key={`album-${al.id}`}
+                  onPress={() => router.push(`/album/${al.id}`)}
+                  className="flex-row items-center px-4 py-2 gap-3 active:bg-bg-hover"
+                >
+                  {al.artwork ? (
+                    <Image
+                      source={al.artwork}
+                      className="w-11 h-11 rounded"
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <View className="w-11 h-11 bg-bg-card rounded items-center justify-center">
+                      <Ionicons name="disc" size={18} color={Colors.textMuted} />
+                    </View>
+                  )}
                   <View className="flex-1">
                     <Text
                       numberOfLines={1}
                       className="text-text-primary text-sm font-semibold font-sans"
                     >
-                      {track.title}
+                      {al.title}
                     </Text>
                     <Text
                       numberOfLines={1}
                       className="text-text-secondary text-xs font-sans"
                     >
-                      {track.artist} • {track.album}
+                      {al.artist}
                     </Text>
                   </View>
-                  <Text className="text-text-muted text-xs font-mono">
-                    {formatDuration(track.duration)}
-                  </Text>
-                  <TrackMenuButton track={track} />
                 </Pressable>
-              );
-            })
+              ))}
+
+              {tracks.length > 0 ? (
+                <View className="px-4 pt-3 pb-1">
+                  <Text className="text-text-primary text-base font-display mb-1.5">
+                    Songs
+                  </Text>
+                </View>
+              ) : null}
+              {tracks.map((track) => {
+                const isCurrent =
+                  currentTrack?.id === track.id && !!track.id;
+                return (
+                  <Pressable
+                    key={`track-${track.id}`}
+                    onPress={() => playTrack(track)}
+                    className="flex-row items-center px-4 py-2.5 gap-3 active:bg-bg-hover"
+                  >
+                    {track.artwork ? (
+                      <Image
+                        source={track.artwork}
+                        className="w-11 h-11 rounded-md"
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <View className="w-11 h-11 bg-bg-card rounded-md items-center justify-center">
+                        <Ionicons
+                          name="musical-note"
+                          size={18}
+                          color={Colors.textMuted}
+                        />
+                      </View>
+                    )}
+                    <View className="flex-1">
+                      <Text
+                        numberOfLines={1}
+                        className={`text-sm font-semibold font-sans ${isCurrent ? "text-accent" : "text-text-primary"}`}
+                      >
+                        {track.title}
+                      </Text>
+                      <Text
+                        numberOfLines={1}
+                        className="text-text-secondary text-xs font-sans"
+                      >
+                        {track.artist} • {track.album}
+                      </Text>
+                    </View>
+                    <Text className="text-text-muted text-xs font-mono">
+                      {formatDuration(track.duration)}
+                    </Text>
+                    {isCurrent ? (
+                      <EqualizerBars size={14} playing={isPlaying} />
+                    ) : null}
+                    <TrackMenuButton track={track} />
+                  </Pressable>
+                );
+              })}
+            </>
           )}
         </ScrollView>
       ) : (
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: bottomPad }}
           showsVerticalScrollIndicator={false}
         >
           <Text className="text-text-primary text-lg font-bold mb-3 font-sans">
@@ -114,7 +216,7 @@ export default function SearchScreen() {
                 style={{ backgroundColor: g.color }}
                 className="w-[48.5%] h-[100px] rounded-md p-3 overflow-hidden active:opacity-80"
               >
-                <Text className="text-white text-lg font-bold font-sans">
+                <Text className="text-white text-lg font-display">
                   {g.name}
                 </Text>
               </Pressable>

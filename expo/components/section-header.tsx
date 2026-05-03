@@ -9,7 +9,7 @@ export function SectionHeader({
 }) {
   return (
     <View className="px-4 mb-3">
-      <Text className="text-text-primary text-[22px] font-bold font-sans">
+      <Text className="text-text-primary text-[22px] font-display">
         {title}
       </Text>
       {subtitle ? (

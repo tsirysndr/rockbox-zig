@@ -89,7 +89,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                   color={isFocused ? Colors.textPrimary : Colors.textMuted}
                 />
                 <Text
-                  className={`text-[11px] font-medium ${isFocused ? "text-text-primary" : "text-text-muted"}`}
+                  className={`text-[11px] font-display-medium ${isFocused ? "text-text-primary" : "text-text-muted"}`}
                 >
                   {label}
                 </Text>

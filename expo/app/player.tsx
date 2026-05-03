@@ -2,9 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import {
+  DeviceIcon,
+  DevicePickerSheet,
+  useCurrentDeviceLabel,
+} from "@/components/device-picker";
 import { SeekBar } from "@/components/seek-bar";
 import { Colors } from "@/constants/theme";
 import { formatDuration } from "@/lib/mock-data";
@@ -28,6 +34,9 @@ export default function PlayerScreen() {
     cycleRepeat,
     toggleLike,
   } = usePlayer();
+
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const device = useCurrentDeviceLabel();
 
   if (!currentTrack) {
     return (
@@ -121,7 +130,7 @@ export default function PlayerScreen() {
             <View className="flex-1 pr-3">
               <Text
                 numberOfLines={1}
-                className="text-text-primary text-[22px] font-extrabold font-sans"
+                className="text-text-primary text-[22px] font-display-extra"
               >
                 {currentTrack.title}
               </Text>
@@ -211,20 +220,25 @@ export default function PlayerScreen() {
             </Text>
             <Pressable
               hitSlop={8}
+              onPress={() => setPickerOpen(true)}
               className="flex-row items-center gap-1.5"
             >
-              <Ionicons
-                name="volume-medium-outline"
+              <DeviceIcon
+                spec={device.icon}
                 size={16}
                 color={Colors.textMuted}
               />
               <Text className="text-text-muted text-[11px] font-sans">
-                This Phone
+                {device.name}
               </Text>
             </Pressable>
           </View>
         </View>
       </SafeAreaView>
+      <DevicePickerSheet
+        visible={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+      />
     </View>
   );
 }

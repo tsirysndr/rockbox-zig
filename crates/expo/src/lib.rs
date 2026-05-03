@@ -34,6 +34,9 @@ pub mod api {
     }
 }
 
+#[cfg(target_os = "android")]
+mod jni_bridge;
+
 use api::v1alpha1::{
     bluetooth_service_client::BluetoothServiceClient, browse_service_client::BrowseServiceClient,
     library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
@@ -44,15 +47,17 @@ use api::v1alpha1::{
     sound_service_client::SoundServiceClient, system_service_client::SystemServiceClient,
     AddTracksToSavedPlaylistRequest, AdjustVolumeRequest, ConnectBluetoothDeviceRequest,
     CreateSavedPlaylistRequest, CurrentTrackRequest, DeleteSavedPlaylistRequest,
-    DisconnectBluetoothDeviceRequest, FastForwardRewindRequest, GetAlbumRequest, GetArtistsRequest,
-    GetBluetoothDevicesRequest, GetCurrentRequest, GetGlobalSettingsRequest,
-    GetGlobalStatusRequest, GetLikedTracksRequest, GetSavedPlaylistTracksRequest,
+    DisconnectBluetoothDeviceRequest, FastForwardRewindRequest, GetAlbumRequest,
+    GetAlbumsRequest, GetArtistRequest, GetArtistsRequest, GetBluetoothDevicesRequest,
+    GetCurrentRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest,
+    GetLikedAlbumsRequest, GetLikedTracksRequest, GetSavedPlaylistTracksRequest,
     GetSavedPlaylistsRequest, GetSmartPlaylistTracksRequest, GetSmartPlaylistsRequest,
     GetTracksRequest, InsertDirectoryRequest, InsertTracksRequest, LikeTrackRequest, NextRequest,
     PauseRequest, PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest,
     PlayDirectoryRequest, PlayOrPauseRequest, PlaySavedPlaylistRequest, PlaySmartPlaylistRequest,
     PlayTrackRequest, PlaylistResumeRequest, PreviousRequest, RemoveTrackFromSavedPlaylistRequest,
-    RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest, SearchRequest,
+    RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest,
+    ScanBluetoothRequest, SearchRequest,
     ShufflePlaylistRequest, SoundCurrentRequest, StartRequest, StatusRequest,
     StreamCurrentTrackRequest, StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest,
     TreeGetEntriesRequest, UnlikeTrackRequest, UpdateSavedPlaylistRequest,
@@ -74,8 +79,15 @@ static RT: Lazy<Runtime> = Lazy::new(|| {
 static SERVER_URL: Lazy<RwLock<String>> =
     Lazy::new(|| RwLock::new("http://127.0.0.1:6061".to_string()));
 
+static HTTP_URL: Lazy<RwLock<String>> =
+    Lazy::new(|| RwLock::new("http://127.0.0.1:6063".to_string()));
+
 fn url() -> String {
     SERVER_URL.read().expect("server url poisoned").clone()
+}
+
+fn http_url() -> String {
+    HTTP_URL.read().expect("http url poisoned").clone()
 }
 
 // ── String helpers ───────────────────────────────────────────────────────────
@@ -131,6 +143,25 @@ pub unsafe extern "C" fn rb_set_server_url(url_ptr: *const c_char) -> c_int {
         return -1;
     };
     match SERVER_URL.write() {
+        Ok(mut g) => {
+            *g = s.to_string();
+            0
+        }
+        Err(_) => -2,
+    }
+}
+
+/// Configure the rockboxd HTTP base URL (the port exposing `/devices` etc.).
+/// Defaults to `http://127.0.0.1:6063` if never called.
+///
+/// # Safety
+/// `url_ptr` must point to a valid NUL-terminated UTF-8 string.
+#[no_mangle]
+pub unsafe extern "C" fn rb_set_http_url(url_ptr: *const c_char) -> c_int {
+    let Some(s) = cstr_to_str(url_ptr) else {
+        return -1;
+    };
+    match HTTP_URL.write() {
         Ok(mut g) => {
             *g = s.to_string();
             0
@@ -679,6 +710,43 @@ pub extern "C" fn rb_get_artists_json() -> *mut c_char {
     unwrap_or_err_string(res.map(|r| r.into_inner()))
 }
 
+#[no_mangle]
+pub extern "C" fn rb_get_albums_json() -> *mut c_char {
+    let res = RT.block_on(async {
+        let mut c = LibraryServiceClient::connect(url())
+            .await
+            .map_err(|e| e.to_string())?;
+        connect_err(c.get_albums(GetAlbumsRequest {})).await
+    });
+    unwrap_or_err_string(res.map(|r| r.into_inner()))
+}
+
+#[no_mangle]
+pub extern "C" fn rb_get_liked_albums_json() -> *mut c_char {
+    let res = RT.block_on(async {
+        let mut c = LibraryServiceClient::connect(url())
+            .await
+            .map_err(|e| e.to_string())?;
+        connect_err(c.get_liked_albums(GetLikedAlbumsRequest {})).await
+    });
+    unwrap_or_err_string(res.map(|r| r.into_inner()))
+}
+
+/// # Safety
+/// `id_ptr` must be a valid NUL-terminated UTF-8 string.
+#[no_mangle]
+pub unsafe extern "C" fn rb_get_artist_json(id_ptr: *const c_char) -> *mut c_char {
+    let Some(id) = cstr_to_str(id_ptr) else { return err_string("missing id"); };
+    let id = id.to_string();
+    let res = RT.block_on(async {
+        let mut c = LibraryServiceClient::connect(url())
+            .await
+            .map_err(|e| e.to_string())?;
+        connect_err(c.get_artist(GetArtistRequest { id })).await
+    });
+    unwrap_or_err_string(res.map(|r| r.into_inner()))
+}
+
 /// # Safety
 /// `id_ptr` must be a valid NUL-terminated UTF-8 string.
 #[no_mangle]
@@ -1083,7 +1151,96 @@ pub unsafe extern "C" fn rb_play_smart_playlist(id_ptr: *const c_char) -> c_int 
     })
 }
 
+// ── Cast / AirPlay devices (HTTP REST, mirrors gpui/src/client.rs) ──────────
+//
+// rockboxd exposes a small REST surface on its `http_port` (default 6063) for
+// device picking — Chromecast / AirPlay / Snapcast / UPnP. The gRPC layer
+// doesn't cover this, so we use a tiny `reqwest` client to talk plain HTTP.
+
+#[no_mangle]
+pub extern "C" fn rb_get_devices_json() -> *mut c_char {
+    let res: Result<String, String> = RT.block_on(async {
+        let url = format!("{}/devices", http_url());
+        let body = reqwest::get(&url)
+            .await
+            .map_err(|e| format!("get_devices: {e}"))?
+            .text()
+            .await
+            .map_err(|e| format!("get_devices body: {e}"))?;
+        Ok(body)
+    });
+    match res {
+        Ok(json) => CString::new(json)
+            .map(|c| c.into_raw())
+            .unwrap_or(std::ptr::null_mut()),
+        Err(e) => err_string(e),
+    }
+}
+
+/// # Safety
+/// `id_ptr` must be a valid NUL-terminated UTF-8 string.
+#[no_mangle]
+pub unsafe extern "C" fn rb_connect_device(id_ptr: *const c_char) -> c_int {
+    let Some(id) = cstr_to_str(id_ptr) else { return -1; };
+    let id = id.to_string();
+    let res: Result<(), String> = RT.block_on(async {
+        let url = format!("{}/devices/{id}/connect", http_url());
+        reqwest::Client::new()
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| format!("connect_device: {e}"))?;
+        Ok(())
+    });
+    if res.is_ok() {
+        0
+    } else {
+        -1
+    }
+}
+
+/// # Safety
+/// `id_ptr` must be a valid NUL-terminated UTF-8 string.
+#[no_mangle]
+pub unsafe extern "C" fn rb_disconnect_device(id_ptr: *const c_char) -> c_int {
+    let Some(id) = cstr_to_str(id_ptr) else { return -1; };
+    let id = id.to_string();
+    let res: Result<(), String> = RT.block_on(async {
+        let url = format!("{}/devices/{id}/disconnect", http_url());
+        reqwest::Client::new()
+            .put(&url)
+            .send()
+            .await
+            .map_err(|e| format!("disconnect_device: {e}"))?;
+        Ok(())
+    });
+    if res.is_ok() {
+        0
+    } else {
+        -1
+    }
+}
+
 // ── Bluetooth ───────────────────────────────────────────────────────────────
+
+/// Trigger a Bluetooth scan on the daemon. Required before `get_devices`
+/// returns anything — rockboxd doesn't continuously scan, the picker has to
+/// kick it. Returns 0 on success.
+#[no_mangle]
+pub extern "C" fn rb_scan_bluetooth() -> c_int {
+    let res: Result<(), tonic::Status> = RT.block_on(async {
+        let mut c = BluetoothServiceClient::connect(url())
+            .await
+            .map_err(|e| tonic::Status::unavailable(e.to_string()))?;
+        c.scan(ScanBluetoothRequest { timeout_secs: 8 }).await?;
+        Ok(())
+    });
+    if res.is_ok() {
+        0
+    } else {
+        -1
+    }
+}
 
 /// 1 if the Bluetooth service is reachable and answers GetDevices, 0 otherwise.
 #[no_mangle]
@@ -1205,39 +1362,30 @@ where
 pub extern "C" fn rb_subscribe_status() -> c_int {
     let server_url = url();
     spawn_stream(move |tx| async move {
-        match PlaybackServiceClient::connect(server_url).await {
-            Ok(mut c) => match c.stream_status(StreamStatusRequest {}).await {
-                Ok(resp) => {
-                    let mut s = resp.into_inner();
-                    while let Ok(Some(msg)) = s.message().await {
-                        let payload = serde_json::to_string(&StatusJson { status: msg.status })
-                            .unwrap_or_else(|_| "{}".into());
-                        if tx.send(payload).await.is_err() {
-                            break;
-                        }
-                    }
+        loop {
+            let mut c = match PlaybackServiceClient::connect(server_url.clone()).await {
+                Ok(c) => c,
+                Err(_) => {
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    continue;
                 }
-                Err(e) => {
-                    let _ = tx
-                        .send(
-                            serde_json::to_string(&StreamErrorJson {
-                                error: format!("stream_status: {e}"),
-                            })
-                            .unwrap_or_default(),
-                        )
-                        .await;
+            };
+            let mut s = match c.stream_status(StreamStatusRequest {}).await {
+                Ok(r) => r.into_inner(),
+                Err(_) => {
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    continue;
                 }
-            },
-            Err(e) => {
-                let _ = tx
-                    .send(
-                        serde_json::to_string(&StreamErrorJson {
-                            error: format!("connect: {e}"),
-                        })
-                        .unwrap_or_default(),
-                    )
-                    .await;
+            };
+            while let Ok(Some(msg)) = s.message().await {
+                let payload = serde_json::to_string(&StatusJson { status: msg.status })
+                    .unwrap_or_else(|_| "{}".into());
+                if tx.send(payload).await.is_err() {
+                    return;
+                }
             }
+            // Stream closed; reconnect after a short backoff.
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
     })
 }
@@ -1248,48 +1396,38 @@ pub extern "C" fn rb_subscribe_status() -> c_int {
 pub extern "C" fn rb_subscribe_current_track() -> c_int {
     let server_url = url();
     spawn_stream(move |tx| async move {
-        match PlaybackServiceClient::connect(server_url).await {
-            Ok(mut c) => match c.stream_current_track(StreamCurrentTrackRequest {}).await {
-                Ok(resp) => {
-                    let mut s = resp.into_inner();
-                    while let Ok(Some(msg)) = s.message().await {
-                        let payload = serde_json::to_string(&TrackJson {
-                            id: msg.id,
-                            path: msg.path,
-                            title: msg.title,
-                            artist: msg.artist,
-                            album: msg.album,
-                            album_art: msg.album_art.filter(|a| !a.is_empty()),
-                            duration_ms: msg.length as i64,
-                            elapsed_ms: msg.elapsed as i64,
-                        })
-                        .unwrap_or_else(|_| "{}".into());
-                        if tx.send(payload).await.is_err() {
-                            break;
-                        }
-                    }
+        loop {
+            let mut c = match PlaybackServiceClient::connect(server_url.clone()).await {
+                Ok(c) => c,
+                Err(_) => {
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    continue;
                 }
-                Err(e) => {
-                    let _ = tx
-                        .send(
-                            serde_json::to_string(&StreamErrorJson {
-                                error: format!("stream_current_track: {e}"),
-                            })
-                            .unwrap_or_default(),
-                        )
-                        .await;
+            };
+            let mut s = match c.stream_current_track(StreamCurrentTrackRequest {}).await {
+                Ok(r) => r.into_inner(),
+                Err(_) => {
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    continue;
                 }
-            },
-            Err(e) => {
-                let _ = tx
-                    .send(
-                        serde_json::to_string(&StreamErrorJson {
-                            error: format!("connect: {e}"),
-                        })
-                        .unwrap_or_default(),
-                    )
-                    .await;
+            };
+            while let Ok(Some(msg)) = s.message().await {
+                let payload = serde_json::to_string(&TrackJson {
+                    id: msg.id,
+                    path: msg.path,
+                    title: msg.title,
+                    artist: msg.artist,
+                    album: msg.album,
+                    album_art: msg.album_art.filter(|a| !a.is_empty()),
+                    duration_ms: msg.length as i64,
+                    elapsed_ms: msg.elapsed as i64,
+                })
+                .unwrap_or_else(|_| "{}".into());
+                if tx.send(payload).await.is_err() {
+                    return;
+                }
             }
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
     })
 }
@@ -1307,57 +1445,47 @@ struct PlaylistEventJson {
 pub extern "C" fn rb_subscribe_playlist() -> c_int {
     let server_url = url();
     spawn_stream(move |tx| async move {
-        match PlaybackServiceClient::connect(server_url).await {
-            Ok(mut c) => match c.stream_playlist(StreamPlaylistRequest {}).await {
-                Ok(resp) => {
-                    let mut s = resp.into_inner();
-                    while let Ok(Some(msg)) = s.message().await {
-                        let tracks: Vec<TrackJson> = msg
-                            .tracks
-                            .into_iter()
-                            .map(|t| TrackJson {
-                                id: t.id,
-                                path: t.path,
-                                title: t.title,
-                                artist: t.artist,
-                                album: t.album,
-                                album_art: t.album_art.filter(|a| !a.is_empty()),
-                                duration_ms: t.length as i64,
-                                elapsed_ms: t.elapsed as i64,
-                            })
-                            .collect();
-                        let payload = serde_json::to_string(&PlaylistEventJson {
-                            index: msg.index,
-                            amount: msg.amount,
-                            tracks,
-                        })
-                        .unwrap_or_else(|_| "{}".into());
-                        if tx.send(payload).await.is_err() {
-                            break;
-                        }
-                    }
+        loop {
+            let mut c = match PlaybackServiceClient::connect(server_url.clone()).await {
+                Ok(c) => c,
+                Err(_) => {
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    continue;
                 }
-                Err(e) => {
-                    let _ = tx
-                        .send(
-                            serde_json::to_string(&StreamErrorJson {
-                                error: format!("stream_playlist: {e}"),
-                            })
-                            .unwrap_or_default(),
-                        )
-                        .await;
+            };
+            let mut s = match c.stream_playlist(StreamPlaylistRequest {}).await {
+                Ok(r) => r.into_inner(),
+                Err(_) => {
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    continue;
                 }
-            },
-            Err(e) => {
-                let _ = tx
-                    .send(
-                        serde_json::to_string(&StreamErrorJson {
-                            error: format!("connect: {e}"),
-                        })
-                        .unwrap_or_default(),
-                    )
-                    .await;
+            };
+            while let Ok(Some(msg)) = s.message().await {
+                let tracks: Vec<TrackJson> = msg
+                    .tracks
+                    .into_iter()
+                    .map(|t| TrackJson {
+                        id: t.id,
+                        path: t.path,
+                        title: t.title,
+                        artist: t.artist,
+                        album: t.album,
+                        album_art: t.album_art.filter(|a| !a.is_empty()),
+                        duration_ms: t.length as i64,
+                        elapsed_ms: t.elapsed as i64,
+                    })
+                    .collect();
+                let payload = serde_json::to_string(&PlaylistEventJson {
+                    index: msg.index,
+                    amount: msg.amount,
+                    tracks,
+                })
+                .unwrap_or_else(|_| "{}".into());
+                if tx.send(payload).await.is_err() {
+                    return;
+                }
             }
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
     })
 }

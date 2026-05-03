@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TrackMenuButton } from "@/components/track-menu-button";
+import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
 import {
   formatDuration,
@@ -35,6 +36,7 @@ export default function GenreScreen() {
   const artists = useMemo(() => (id ? getGenreArtists(id) : []), [id]);
   const { playQueue, currentTrack, isPlaying } = usePlayer();
   const topTracks = tracks.slice(0, TOP_TRACK_LIMIT);
+  const bottomPad = useBottomSpacing(24);
 
   const scrollY = useMemo(() => new Animated.Value(0), []);
   const headerBgOpacity = scrollY.interpolate({
@@ -78,7 +80,7 @@ export default function GenreScreen() {
         }}
       >
         <Text
-          className="absolute right-4 bottom-4 text-white/30 text-[80px] font-extrabold font-sans"
+          className="absolute right-4 bottom-4 text-white/30 text-[80px] font-display-extra"
           style={{ transform: [{ rotate: "-12deg" }] }}
           numberOfLines={1}
         >
@@ -102,7 +104,7 @@ export default function GenreScreen() {
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true },
         )}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingBottom: bottomPad }}
       >
         <View
           className="justify-end"

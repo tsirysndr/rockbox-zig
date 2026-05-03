@@ -1,11 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Modal, Pressable, Text, View } from "react-native";
+import { useState } from "react";
+import { Alert, Modal, Pressable, ScrollView, Text, View } from "react-native";
 
+import { PlaylistCover } from "@/components/playlist-cover";
 import { Colors } from "@/constants/theme";
-import { ALBUMS, ARTISTS } from "@/lib/mock-data";
+import { useLibraryPlaylists } from "@/lib/library-source";
 import { usePlayer } from "@/lib/player-context";
+import { RockboxClient } from "@/lib/rockbox-client";
 
 export function TrackContextMenu() {
   const {
@@ -19,6 +22,8 @@ export function TrackContextMenu() {
 
   const open = contextTrack !== null;
   const track = contextTrack;
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const { data: playlists } = useLibraryPlaylists();
 
   if (!track) {
     return (
@@ -32,8 +37,8 @@ export function TrackContextMenu() {
   }
 
   const isLiked = liked.has(track.id);
-  const album = ALBUMS.find((a) => a.title === track.album);
-  const artist = ARTISTS.find((a) => a.name === track.artist);
+  const artistId = track.artistId;
+  const albumId = track.albumId;
 
   const items: {
     icon: React.ComponentProps<typeof Ionicons>["name"];
@@ -70,33 +75,28 @@ export function TrackContextMenu() {
       icon: "add-circle-outline",
       label: "Add to Playlist",
       onPress: () => {
-        closeContextMenu();
+        setPickerOpen(true);
       },
     },
     {
       icon: "person-outline",
       label: "Go to Artist",
-      disabled: !artist,
+      disabled: !artistId,
       onPress: () => {
-        if (!artist) return;
+        if (!artistId) return;
         closeContextMenu();
-        router.push(`/artist/${artist.id}`);
+        router.push(`/artist/${artistId}`);
       },
     },
     {
       icon: "disc-outline",
       label: "Go to Album",
-      disabled: !album,
+      disabled: !albumId,
       onPress: () => {
-        if (!album) return;
+        if (!albumId) return;
         closeContextMenu();
-        router.push(`/album/${album.id}`);
+        router.push(`/album/${albumId}`);
       },
-    },
-    {
-      icon: "share-outline",
-      label: "Share",
-      onPress: closeContextMenu,
     },
   ];
 
@@ -135,7 +135,7 @@ export function TrackContextMenu() {
             <View className="flex-1">
               <Text
                 numberOfLines={1}
-                className="text-text-primary text-[15px] font-bold font-sans"
+                className="text-text-primary text-[15px] font-display"
               >
                 {track.title}
               </Text>
@@ -169,6 +169,82 @@ export function TrackContextMenu() {
           ))}
         </Pressable>
       </Pressable>
+
+      {/* Add-to-Playlist picker — overlays on top of the main sheet. */}
+      <Modal
+        visible={pickerOpen && open}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPickerOpen(false)}
+      >
+        <Pressable
+          onPress={() => setPickerOpen(false)}
+          className="flex-1 bg-black/55"
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            className="mt-auto bg-bg-elevated rounded-t-2xl pt-2 pb-7"
+            style={{ maxHeight: "70%" }}
+          >
+            <View className="self-center w-10 h-1 rounded-sm bg-border my-2" />
+            <Text className="text-text-primary text-base font-bold text-center py-2 font-sans">
+              Add to playlist
+            </Text>
+            <ScrollView className="max-h-[60vh]">
+              {playlists.length === 0 ? (
+                <Text className="text-text-secondary text-sm text-center py-6 font-sans">
+                  No playlists yet — create one first.
+                </Text>
+              ) : (
+                playlists.map((p) => (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => {
+                      const tid = track.id;
+                      RockboxClient.addTrackToPlaylist(p.id, tid)
+                        .then(() => {
+                          if (process.env.EXPO_OS !== "web") {
+                            Alert.alert("Added", `Added to “${p.name}”.`);
+                          }
+                        })
+                        .catch((e: Error) => {
+                          if (process.env.EXPO_OS !== "web") {
+                            Alert.alert("Add failed", e.message);
+                          }
+                        });
+                      setPickerOpen(false);
+                      closeContextMenu();
+                    }}
+                    android_ripple={{ color: Colors.bgHover }}
+                    className="flex-row items-center gap-3 px-5 py-3 active:bg-bg-hover"
+                  >
+                    <PlaylistCover
+                      artwork={p.artwork}
+                      seed={p.id || p.name}
+                      size={40}
+                      rounded="sm"
+                      iconSize={18}
+                    />
+                    <View className="flex-1">
+                      <Text
+                        numberOfLines={1}
+                        className="text-text-primary text-sm font-semibold font-sans"
+                      >
+                        {p.name}
+                      </Text>
+                      {p.isSmart ? (
+                        <Text className="text-text-muted text-xs font-sans">
+                          Smart playlist
+                        </Text>
+                      ) : null}
+                    </View>
+                  </Pressable>
+                ))
+              )}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </Modal>
   );
 }

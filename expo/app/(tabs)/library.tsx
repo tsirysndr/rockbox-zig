@@ -13,15 +13,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { NotConnectedState } from "@/components/empty-state";
+import { EqualizerBars } from "@/components/equalizer-bars";
+import { PlaylistCover } from "@/components/playlist-cover";
 import { TrackMenuButton } from "@/components/track-menu-button";
+import { useIsConnected } from "@/lib/connection";
+import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
+import { formatDuration } from "@/lib/mock-data";
 import {
-  ALBUMS,
-  ALL_SONGS,
-  ARTISTS,
-  PLAYLISTS,
-  formatDuration,
-} from "@/lib/mock-data";
+  useLibraryAlbums,
+  useLibraryArtists,
+  useLibraryPlaylists,
+  useLibraryTracks,
+} from "@/lib/library-source";
 import { usePlayer } from "@/lib/player-context";
 import type { LibrarySection } from "@/lib/types";
 
@@ -38,12 +43,18 @@ export default function LibraryScreen() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
-  const { liked, jumpTo, queue, userPlaylists } = usePlayer();
+  const { liked, userPlaylists, playTrack, currentTrack, isPlaying } = usePlayer();
+  const isConnected = useIsConnected();
+  const bottomPad = useBottomSpacing(24);
+  const { data: tracks } = useLibraryTracks();
+  const { data: albums } = useLibraryAlbums();
+  const { data: artists } = useLibraryArtists();
+  const { data: playlists } = useLibraryPlaylists();
 
   const q = searchQuery.trim().toLowerCase();
   const allPlaylists = useMemo(
-    () => [...userPlaylists, ...PLAYLISTS],
-    [userPlaylists],
+    () => [...userPlaylists, ...playlists],
+    [userPlaylists, playlists],
   );
   const filteredPlaylists = useMemo(
     () =>
@@ -55,34 +66,34 @@ export default function LibraryScreen() {
   const filteredSongs = useMemo(
     () =>
       q
-        ? ALL_SONGS.filter(
+        ? tracks.filter(
             (t) =>
               t.title.toLowerCase().includes(q) ||
               t.artist.toLowerCase().includes(q),
           )
-        : ALL_SONGS,
-    [q],
+        : tracks,
+    [q, tracks],
   );
   const filteredAlbums = useMemo(
     () =>
       q
-        ? ALBUMS.filter(
+        ? albums.filter(
             (a) =>
               a.title.toLowerCase().includes(q) ||
               a.artist.toLowerCase().includes(q),
           )
-        : ALBUMS,
-    [q],
+        : albums,
+    [q, albums],
   );
   const filteredArtists = useMemo(
-    () => (q ? ARTISTS.filter((a) => a.name.toLowerCase().includes(q)) : ARTISTS),
-    [q],
+    () => (q ? artists.filter((a) => a.name.toLowerCase().includes(q)) : artists),
+    [q, artists],
   );
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       <View className="px-4 pt-2 pb-3 flex-row items-center justify-between">
-        <Text className="text-text-primary text-[26px] font-extrabold font-sans">
+        <Text className="text-text-primary text-[26px] font-display-extra">
           Your Library
         </Text>
         <View className="flex-row gap-3">
@@ -161,14 +172,16 @@ export default function LibraryScreen() {
         </ScrollView>
       </View>
 
-      {section === "playlists" ? (
+      {!isConnected ? (
+        <NotConnectedState />
+      ) : section === "playlists" ? (
         <FlatList
           key="list-playlists"
           data={filteredPlaylists}
           keyExtractor={(p) => p.id}
           contentContainerStyle={{
             paddingHorizontal: 16,
-            paddingBottom: 24,
+            paddingBottom: bottomPad,
             gap: 8,
           }}
           renderItem={({ item }) => (
@@ -176,10 +189,12 @@ export default function LibraryScreen() {
               onPress={() => router.push(`/playlist/${item.id}`)}
               className="flex-row items-center gap-3 py-1.5 active:opacity-80"
             >
-              <Image
-                source={item.artwork}
-                className="w-[60px] h-[60px] rounded-md"
-                contentFit="cover"
+              <PlaylistCover
+                artwork={item.artwork}
+                seed={item.id || item.name}
+                size={60}
+                rounded="md"
+                iconSize={24}
               />
               <View className="flex-1">
                 <Text
@@ -192,8 +207,8 @@ export default function LibraryScreen() {
                   numberOfLines={1}
                   className="text-text-secondary text-[13px] mt-0.5 font-sans"
                 >
-                  {item.isSmart ? "Smart playlist" : "Playlist"} •{" "}
-                  {item.trackCount} tracks
+                  {item.isSmart ? "Smart playlist" : "Playlist"}
+                  {item.trackCount > 0 ? ` • ${item.trackCount} tracks` : ""}
                 </Text>
               </View>
             </Pressable>
@@ -204,47 +219,53 @@ export default function LibraryScreen() {
           key="list-songs"
           data={filteredSongs}
           keyExtractor={(t) => t.id}
-          contentContainerStyle={{ paddingBottom: 24 }}
-          renderItem={({ item, index }) => (
-            <Pressable
-              onPress={() => jumpTo(index)}
-              className="flex-row items-center gap-3 px-4 py-2.5 active:bg-bg-hover"
-            >
-              {item.artwork ? (
-                <Image
-                  source={item.artwork}
-                  className="w-12 h-12 rounded"
-                  contentFit="cover"
-                />
-              ) : (
-                <View className="w-12 h-12 bg-bg-card rounded items-center justify-center">
-                  <Ionicons
-                    name="musical-note"
-                    size={18}
-                    color={Colors.textMuted}
+          contentContainerStyle={{ paddingBottom: bottomPad }}
+          renderItem={({ item }) => {
+            const isCurrent = currentTrack?.id === item.id && !!item.id;
+            return (
+              <Pressable
+                onPress={() => playTrack(item)}
+                className="flex-row items-center gap-3 px-4 py-2.5 active:bg-bg-hover"
+              >
+                {item.artwork ? (
+                  <Image
+                    source={item.artwork}
+                    className="w-12 h-12 rounded"
+                    contentFit="cover"
                   />
+                ) : (
+                  <View className="w-12 h-12 bg-bg-card rounded items-center justify-center">
+                    <Ionicons
+                      name="musical-note"
+                      size={18}
+                      color={Colors.textMuted}
+                    />
+                  </View>
+                )}
+                <View className="flex-1">
+                  <Text
+                    numberOfLines={1}
+                    className={`text-sm font-medium font-sans ${isCurrent ? "text-accent" : "text-text-primary"}`}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text
+                    numberOfLines={1}
+                    className="text-text-secondary text-xs font-sans"
+                  >
+                    {item.artist}
+                  </Text>
                 </View>
-              )}
-              <View className="flex-1">
-                <Text
-                  numberOfLines={1}
-                  className="text-text-primary text-sm font-medium font-sans"
-                >
-                  {item.title}
+                <Text className="text-text-muted text-xs font-mono">
+                  {formatDuration(item.duration)}
                 </Text>
-                <Text
-                  numberOfLines={1}
-                  className="text-text-secondary text-xs font-sans"
-                >
-                  {item.artist}
-                </Text>
-              </View>
-              <Text className="text-text-muted text-xs font-mono">
-                {formatDuration(item.duration)}
-              </Text>
-              <TrackMenuButton track={item} />
-            </Pressable>
-          )}
+                {isCurrent ? (
+                  <EqualizerBars size={14} playing={isPlaying} />
+                ) : null}
+                <TrackMenuButton track={item} />
+              </Pressable>
+            );
+          }}
         />
       ) : section === "albums" ? (
         <FlatList
@@ -253,7 +274,7 @@ export default function LibraryScreen() {
           keyExtractor={(a) => a.id}
           numColumns={2}
           columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
-          contentContainerStyle={{ paddingBottom: 24, gap: 16 }}
+          contentContainerStyle={{ paddingBottom: bottomPad, gap: 16 }}
           renderItem={({ item }) => (
             <Pressable
               onPress={() => router.push(`/album/${item.id}`)}
@@ -286,7 +307,7 @@ export default function LibraryScreen() {
           keyExtractor={(a) => a.id}
           contentContainerStyle={{
             paddingHorizontal: 16,
-            paddingBottom: 24,
+            paddingBottom: bottomPad,
             gap: 8,
           }}
           renderItem={({ item }) => (
@@ -294,11 +315,17 @@ export default function LibraryScreen() {
               onPress={() => router.push(`/artist/${item.id}`)}
               className="flex-row items-center gap-3.5 py-1.5 active:opacity-80"
             >
-              <Image
-                source={item.image}
-                className="w-14 h-14 rounded-full"
-                contentFit="cover"
-              />
+              {item.image ? (
+                <Image
+                  source={item.image}
+                  className="w-14 h-14 rounded-full"
+                  contentFit="cover"
+                />
+              ) : (
+                <View className="w-14 h-14 rounded-full bg-bg-card items-center justify-center">
+                  <Ionicons name="person" size={20} color={Colors.textMuted} />
+                </View>
+              )}
               <View className="flex-1">
                 <Text className="text-text-primary text-[15px] font-semibold font-sans">
                   {item.name}
@@ -322,7 +349,7 @@ export default function LibraryScreen() {
                   <Ionicons name="heart" size={36} color="#FFFFFF" />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-text-primary text-[22px] font-extrabold font-sans">
+                  <Text className="text-text-primary text-[22px] font-display-extra">
                     Liked Songs
                   </Text>
                   <Text className="text-text-secondary text-[13px] mt-1 font-sans">
@@ -338,10 +365,10 @@ export default function LibraryScreen() {
             </Text>
           }
           renderItem={({ item }) => {
-            const idx = queue.findIndex((t) => t.id === item.id);
+            const isCurrent = currentTrack?.id === item.id && !!item.id;
             return (
               <Pressable
-                onPress={() => idx >= 0 && jumpTo(idx)}
+                onPress={() => playTrack(item)}
                 className="flex-row items-center gap-3 px-4 py-2.5 active:bg-bg-hover"
               >
                 {item.artwork ? (
@@ -350,11 +377,19 @@ export default function LibraryScreen() {
                     className="w-11 h-11 rounded"
                     contentFit="cover"
                   />
-                ) : null}
+                ) : (
+                  <View className="w-11 h-11 rounded bg-bg-card items-center justify-center">
+                    <Ionicons
+                      name="musical-note"
+                      size={16}
+                      color={Colors.textMuted}
+                    />
+                  </View>
+                )}
                 <View className="flex-1">
                   <Text
                     numberOfLines={1}
-                    className="text-text-primary text-sm font-medium font-sans"
+                    className={`text-sm font-medium font-sans ${isCurrent ? "text-accent" : "text-text-primary"}`}
                   >
                     {item.title}
                   </Text>
@@ -365,6 +400,9 @@ export default function LibraryScreen() {
                     {item.artist}
                   </Text>
                 </View>
+                {isCurrent ? (
+                  <EqualizerBars size={14} playing={isPlaying} />
+                ) : null}
                 <TrackMenuButton track={item} />
               </Pressable>
             );

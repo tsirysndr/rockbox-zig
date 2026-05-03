@@ -1,16 +1,19 @@
 import "../global.css";
 import "@/lib/nativewind-setup";
 import { ThemeProvider } from "@react-navigation/native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
 
+import { PersistentMiniPlayer } from "@/components/persistent-mini-player";
 import { TrackContextMenu } from "@/components/track-context-menu";
 import { Colors } from "@/constants/theme";
 import { PlayerProvider } from "@/lib/player-context";
+import { RockboxStreams } from "@/lib/rockbox-streams";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -40,7 +43,25 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     SpaceGrotesk: require("@/assets/fonts/SpaceGrotesk.ttf"),
     JetBrainsMono: require("@/assets/fonts/JetBrainsMono.ttf"),
+    "RockfordSans-Light": require("@/assets/fonts/RockfordSans-Light.otf"),
+    "RockfordSans-Regular": require("@/assets/fonts/RockfordSans-Regular.otf"),
+    "RockfordSans-RegularItalic": require("@/assets/fonts/RockfordSans-RegularItalic.otf"),
+    "RockfordSans-Medium": require("@/assets/fonts/RockfordSans-Medium.otf"),
+    "RockfordSans-Bold": require("@/assets/fonts/RockfordSans-Bold.otf"),
+    "RockfordSans-BoldItalic": require("@/assets/fonts/RockfordSans-BoldItalic.otf"),
+    "RockfordSans-ExtraBold": require("@/assets/fonts/RockfordSans-ExtraBold.otf"),
   });
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 5 * 60 * 1000,
+            retry: 1,
+          },
+        },
+      }),
+  );
 
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync().catch(() => {});
@@ -50,6 +71,8 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={navTheme}>
+      <QueryClientProvider client={queryClient}>
+      <RockboxStreams />
       <PlayerProvider>
         <Stack
           screenOptions={{
@@ -77,6 +100,14 @@ export default function RootLayout() {
             options={{ animation: "slide_from_right" }}
           />
           <Stack.Screen
+            name="settings/server"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="settings/bluetooth"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
             name="album/[id]"
             options={{ animation: "slide_from_right" }}
           />
@@ -100,9 +131,11 @@ export default function RootLayout() {
             options={{ animation: "slide_from_right" }}
           />
         </Stack>
+        <PersistentMiniPlayer />
         <TrackContextMenu />
         <StatusBar style="light" />
       </PlayerProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

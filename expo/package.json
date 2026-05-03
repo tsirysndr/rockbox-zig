@@ -15,9 +15,12 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "@tabler/icons-react-native": "^3.41.1",
+    "@tanstack/react-query": "^5.100.8",
     "expo": "~54.0.33",
     "expo-blur": "^55.0.14",
     "expo-constants": "~18.0.13",
@@ -32,6 +35,7 @@
     "expo-symbols": "~1.0.8",
     "expo-system-ui": "~6.0.9",
     "expo-web-browser": "~15.0.10",
+    "jotai": "^2.19.1",
     "nativewind": "^4.2.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -40,6 +44,7 @@
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
     "rockbox-rpc": "file:./modules/rockbox-rpc"

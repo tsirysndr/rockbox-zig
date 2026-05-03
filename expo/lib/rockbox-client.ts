@@ -46,6 +46,20 @@ export const RockboxClient = {
   setServerUrl(url: string) {
     require_().setServerUrl(url);
   },
+  setHttpUrl(url: string) {
+    require_().setHttpUrl(url);
+  },
+
+  // Cast / AirPlay output devices
+  getDevices() {
+    return require_().getDevices();
+  },
+  connectDevice(id: string) {
+    return require_().connectDevice(id);
+  },
+  disconnectDevice(id: string) {
+    return require_().disconnectDevice(id);
+  },
 
   ping(): Promise<boolean> {
     return require_().ping();
@@ -141,6 +155,15 @@ export const RockboxClient = {
   getArtists() {
     return require_().getArtists();
   },
+  getAlbums() {
+    return require_().getAlbums();
+  },
+  getLikedAlbums() {
+    return require_().getLikedAlbums();
+  },
+  getArtist(id: string) {
+    return require_().getArtist(id);
+  },
   getAlbum(id: string) {
     return require_().getAlbum(id);
   },
@@ -222,6 +245,9 @@ export const RockboxClient = {
   // Bluetooth
   bluetoothAvailable() {
     return require_().bluetoothAvailable();
+  },
+  scanBluetooth() {
+    return require_().scanBluetooth();
   },
   getBluetoothDevices() {
     return require_().getBluetoothDevices();

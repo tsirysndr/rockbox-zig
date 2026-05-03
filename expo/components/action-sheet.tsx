@@ -69,7 +69,7 @@ export function ActionSheet({
               <View className="flex-1">
                 <Text
                   numberOfLines={1}
-                  className="text-text-primary text-[15px] font-bold font-sans"
+                  className="text-text-primary text-[15px] font-display"
                 >
                   {header.title}
                 </Text>

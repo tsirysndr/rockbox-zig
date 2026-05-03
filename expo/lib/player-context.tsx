@@ -1,3 +1,22 @@
+/**
+ * Unified player context — feeds the mini-player / player / queue UI from
+ * either the real gRPC streams (when a server is selected) or the bundled
+ * mock state. The `usePlayer()` consumer surface is identical across modes.
+ *
+ * Real-mode wiring:
+ * - `currentTrack` ← `useCurrentTrack` query (kept fresh by the
+ *   `rockbox.currentTrack` event in `RockboxStreams`).
+ * - `queue` ← `usePlaylistCurrent` (refreshed by `rockbox.playlist`).
+ * - `isPlaying` ← `useStatus` (`status === 1`).
+ * - `position` ← snapped to `currentTrack.elapsed_ms` whenever a new server
+ *   event arrives, then interpolated locally at 1 Hz while playing so the
+ *   seek bar moves smoothly between updates.
+ * - `shuffle` / `repeat` ← `useGlobalSettings`.
+ * - `liked` ← `useLikedTracks`.
+ * - All actions (`play`, `pause`, `next`, `seek`, `toggleLike`, `playAlbum`
+ *   et al.) call `RockboxClient.*` mutations.
+ */
+import { useQueryClient } from "@tanstack/react-query";
 import React, {
   createContext,
   useCallback,
@@ -7,7 +26,18 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { LIKED_TRACK_IDS, QUEUE } from "./mock-data";
+
+import { useIsConnected } from "@/lib/connection";
+import {
+  qk,
+  useCurrentTrack,
+  useGlobalSettings,
+  useLikedTracks,
+  usePlaylistCurrent,
+  useStatus,
+} from "./queries";
+import { trackFromProto } from "./proto-mappers";
+import { RockboxClient } from "./rockbox-client";
 import type { Playlist, RepeatMode, Track } from "./types";
 
 type PlayerState = {
@@ -63,161 +93,17 @@ type PlayerContextValue = PlayerState & ContextState & PlayerActions;
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
+// ── Provider ────────────────────────────────────────────────────────────────
+
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
-  const [queue, setQueue] = useState<Track[]>(QUEUE);
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [position, setPosition] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [shuffle, setShuffle] = useState(false);
-  const [repeat, setRepeat] = useState<RepeatMode>("off");
-  const [volume, setVolume] = useState(0.75);
-  const [liked, setLiked] = useState<Set<string>>(new Set(LIKED_TRACK_IDS));
+  const isReal = useIsConnected();
+
+  // Shared cross-mode state (lives outside the gRPC layer).
   const [contextTrack, setContextTrack] = useState<Track | null>(null);
   const [userPlaylists, setUserPlaylists] = useState<Playlist[]>([]);
 
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const currentTrack = queue[currentIdx];
-
-  // Tick position once per second while playing.
-  useEffect(() => {
-    if (tickRef.current) {
-      clearInterval(tickRef.current);
-      tickRef.current = null;
-    }
-    if (isPlaying && currentTrack) {
-      tickRef.current = setInterval(() => {
-        setPosition((p) => {
-          if (p + 1 >= currentTrack.duration) {
-            // auto-advance
-            setTimeout(() => {
-              setCurrentIdx((idx) => {
-                if (repeat === "one") return idx;
-                if (idx + 1 < queue.length) return idx + 1;
-                if (repeat === "all") return 0;
-                return idx;
-              });
-              setPosition(0);
-              if (repeat === "off" && currentIdx + 1 >= queue.length) {
-                setIsPlaying(false);
-              }
-            }, 0);
-            return 0;
-          }
-          return p + 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (tickRef.current) {
-        clearInterval(tickRef.current);
-        tickRef.current = null;
-      }
-    };
-  }, [isPlaying, currentTrack, queue.length, repeat, currentIdx]);
-
-  const play = useCallback(() => setIsPlaying(true), []);
-  const pause = useCallback(() => setIsPlaying(false), []);
-  const toggle = useCallback(() => setIsPlaying((p) => !p), []);
-
-  const next = useCallback(() => {
-    setCurrentIdx((idx) => (idx + 1 < queue.length ? idx + 1 : repeat === "all" ? 0 : idx));
-    setPosition(0);
-  }, [queue.length, repeat]);
-
-  const prev = useCallback(() => {
-    setPosition((p) => {
-      if (p > 3) return 0;
-      setCurrentIdx((idx) => Math.max(0, idx - 1));
-      return 0;
-    });
-  }, []);
-
-  const seek = useCallback((secs: number) => setPosition(Math.max(0, secs)), []);
-
-  const toggleShuffle = useCallback(() => setShuffle((s) => !s), []);
-
-  const cycleRepeat = useCallback(
-    () =>
-      setRepeat((r) => (r === "off" ? "all" : r === "all" ? "one" : "off")),
-    [],
-  );
-
-  const toggleLike = useCallback(
-    (trackId: string) =>
-      setLiked((s) => {
-        const next = new Set(s);
-        if (next.has(trackId)) next.delete(trackId);
-        else next.add(trackId);
-        return next;
-      }),
-    [],
-  );
-
-  const jumpTo = useCallback((idx: number) => {
-    setCurrentIdx(idx);
-    setPosition(0);
-    setIsPlaying(true);
-  }, []);
-
-  const removeFromQueue = useCallback(
-    (idx: number) =>
-      setQueue((q) => {
-        const next = q.filter((_, i) => i !== idx);
-        if (idx < currentIdx) setCurrentIdx((c) => c - 1);
-        else if (idx === currentIdx) {
-          setPosition(0);
-          if (idx >= next.length) setCurrentIdx(Math.max(0, next.length - 1));
-        }
-        return next;
-      }),
-    [currentIdx],
-  );
-
-  const playTrack = useCallback(
-    (track: Track) =>
-      setQueue((q) => {
-        const existing = q.findIndex((t) => t.id === track.id);
-        if (existing >= 0) {
-          setCurrentIdx(existing);
-          setPosition(0);
-          setIsPlaying(true);
-          return q;
-        }
-        const next = [...q, track];
-        setCurrentIdx(next.length - 1);
-        setPosition(0);
-        setIsPlaying(true);
-        return next;
-      }),
-    [],
-  );
-
-  const playNext = useCallback(
-    (track: Track) =>
-      setQueue((q) => {
-        const stripped = q.filter((t) => t.id !== track.id);
-        const insertIdx = currentIdx + 1;
-        const next = [
-          ...stripped.slice(0, insertIdx),
-          track,
-          ...stripped.slice(insertIdx),
-        ];
-        return next;
-      }),
-    [currentIdx],
-  );
-
-  const playLast = useCallback(
-    (track: Track) =>
-      setQueue((q) => {
-        if (q.find((t) => t.id === track.id)) return q;
-        return [...q, track];
-      }),
-    [],
-  );
-
   const openContextMenu = useCallback(
-    (track: Track) => setContextTrack(track),
+    (t: Track) => setContextTrack(t),
     [],
   );
   const closeContextMenu = useCallback(() => setContextTrack(null), []);
@@ -234,100 +120,40 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       trackCount: 0,
       artwork: `https://picsum.photos/seed/${seed}/600/600`,
     };
+    if (isReal && !input.isSmart) {
+      // Best-effort: also create on the server for non-smart playlists.
+      RockboxClient.createSavedPlaylist(playlist.name, playlist.description ?? null, []).catch(
+        () => {},
+      );
+    }
     setUserPlaylists((list) => [playlist, ...list]);
     return playlist;
-  }, []);
+  }, [isReal]);
 
-  const playQueue = useCallback(
-    (tracks: Track[], opts?: { startIdx?: number; shuffle?: boolean }) => {
-      if (tracks.length === 0) return;
-      let nextQueue = tracks;
-      let startIdx = opts?.startIdx ?? 0;
-      if (opts?.shuffle) {
-        const shuffled = [...tracks];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        nextQueue = shuffled;
-        startIdx = 0;
-        setShuffle(true);
-      }
-      setQueue(nextQueue);
-      setCurrentIdx(Math.max(0, Math.min(startIdx, nextQueue.length - 1)));
-      setPosition(0);
-      setIsPlaying(true);
-    },
-    [],
+  // Real-mode value drives the player when a server is selected; we still
+  // call the hook every render with `enabled: false` when disconnected so
+  // React's hook ordering stays stable.
+  const realValue = useRealPlayer({
+    enabled: isReal,
+    contextTrack,
+    userPlaylists,
+    openContextMenu,
+    closeContextMenu,
+    createPlaylist,
+  });
+  const idleValue = useIdlePlayer({
+    contextTrack,
+    userPlaylists,
+    openContextMenu,
+    closeContextMenu,
+    createPlaylist,
+  });
+
+  const value = isReal ? realValue : idleValue;
+
+  return (
+    <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>
   );
-
-  const value = useMemo<PlayerContextValue>(
-    () => ({
-      queue,
-      currentIdx,
-      position,
-      isPlaying,
-      shuffle,
-      repeat,
-      volume,
-      liked,
-      currentTrack,
-      play,
-      pause,
-      toggle,
-      next,
-      prev,
-      seek,
-      setVolume,
-      toggleShuffle,
-      cycleRepeat,
-      toggleLike,
-      jumpTo,
-      removeFromQueue,
-      playTrack,
-      playQueue,
-      playNext,
-      playLast,
-      contextTrack,
-      openContextMenu,
-      closeContextMenu,
-      userPlaylists,
-      createPlaylist,
-    }),
-    [
-      queue,
-      currentIdx,
-      position,
-      isPlaying,
-      shuffle,
-      repeat,
-      volume,
-      liked,
-      currentTrack,
-      play,
-      pause,
-      toggle,
-      next,
-      prev,
-      seek,
-      toggleShuffle,
-      cycleRepeat,
-      toggleLike,
-      jumpTo,
-      removeFromQueue,
-      playTrack,
-      playQueue,
-      playNext,
-      playLast,
-      contextTrack,
-      openContextMenu,
-      closeContextMenu,
-      userPlaylists,
-      createPlaylist,
-    ],
-  );
-
-  return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
 }
 
 export function usePlayer(): PlayerContextValue {
@@ -335,3 +161,317 @@ export function usePlayer(): PlayerContextValue {
   if (!ctx) throw new Error("usePlayer must be used within PlayerProvider");
   return ctx;
 }
+
+// ── Real-mode driver ────────────────────────────────────────────────────────
+
+type SharedSlice = {
+  enabled: boolean;
+  contextTrack: Track | null;
+  userPlaylists: Playlist[];
+  openContextMenu: (t: Track) => void;
+  closeContextMenu: () => void;
+  createPlaylist: (input: UserPlaylistInput) => Playlist;
+};
+
+type ProtoCurrentTrack = {
+  id?: string;
+  path?: string;
+  title?: string;
+  artist?: string;
+  artist_id?: string;
+  album?: string;
+  album_id?: string;
+  album_art?: string | null;
+  length?: number;
+  // Streaming subscription pushes `duration_ms` / `elapsed_ms` (TrackSnapshot
+  // shape from `lib/rockbox-client.ts`); the unary `currentTrack()` may use
+  // either depending on what populated the cache. Tolerate both.
+  duration_ms?: number;
+  elapsed_ms?: number;
+  elapsed?: number;
+};
+
+type ProtoStatus = { status?: number };
+
+type ProtoQueue = {
+  index?: number;
+  tracks?: Array<{ id?: string; path?: string; title?: string; artist?: string; album?: string; album_art?: string | null; length?: number }>;
+};
+
+type ProtoSettings = {
+  playlist_shuffle?: boolean;
+  repeat_mode?: number;
+};
+
+function useRealPlayer(slice: SharedSlice): PlayerContextValue {
+  const { enabled } = slice;
+  const qc = useQueryClient();
+
+  const trackQ = useCurrentTrack<ProtoCurrentTrack>({ enabled });
+  const statusQ = useStatus<ProtoStatus>({ enabled });
+  const queueQ = usePlaylistCurrent<ProtoQueue>({ enabled });
+  const settingsQ = useGlobalSettings<ProtoSettings>({ enabled });
+  const likedQ = useLikedTracks<{ tracks?: Array<{ id?: string }>; ids?: string[] }>({ enabled });
+
+  // Position interpolation: snap to server's elapsed_ms whenever a new track
+  // event lands, tick locally between events while playing.
+  const elapsedSecsFromServer =
+    Math.floor(((trackQ.data?.elapsed_ms ?? trackQ.data?.elapsed ?? 0)) / 1000);
+  const durationSecs = Math.max(
+    0,
+    Math.floor(
+      (trackQ.data?.duration_ms ??
+        trackQ.data?.length ??
+        0) / 1000,
+    ),
+  );
+  const trackId = trackQ.data?.id ?? "";
+  const isPlaying = statusQ.data?.status === 1;
+
+  const [position, setPosition] = useState(0);
+  const lastSyncRef = useRef<{ trackId: string; elapsed: number }>({
+    trackId: "",
+    elapsed: 0,
+  });
+
+  // Snap to server elapsed when track id OR elapsed_ms changes.
+  useEffect(() => {
+    if (!enabled) return;
+    const last = lastSyncRef.current;
+    if (
+      last.trackId !== trackId ||
+      Math.abs(last.elapsed - elapsedSecsFromServer) >= 1
+    ) {
+      lastSyncRef.current = { trackId, elapsed: elapsedSecsFromServer };
+      setPosition(elapsedSecsFromServer);
+    }
+  }, [enabled, trackId, elapsedSecsFromServer]);
+
+  // 1 Hz tick while playing.
+  useEffect(() => {
+    if (!enabled || !isPlaying) return;
+    const id = setInterval(() => {
+      setPosition((p) => {
+        if (durationSecs > 0 && p + 1 > durationSecs) return durationSecs;
+        return p + 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [enabled, isPlaying, durationSecs]);
+
+  // Map proto data → app Track / Track[]
+  const currentTrack: Track | undefined = useMemo(() => {
+    if (!trackQ.data) return undefined;
+    const t = trackFromProto({
+      id: trackQ.data.id,
+      path: trackQ.data.path,
+      title: trackQ.data.title,
+      artist: trackQ.data.artist,
+      artist_id: trackQ.data.artist_id,
+      album: trackQ.data.album,
+      album_id: trackQ.data.album_id,
+      album_art: trackQ.data.album_art ?? undefined,
+      length: trackQ.data.length ?? trackQ.data.duration_ms ?? 0,
+    });
+    return t.id || t.title ? t : undefined;
+  }, [trackQ.data]);
+
+  const queue: Track[] = useMemo(() => {
+    return (queueQ.data?.tracks ?? []).map((p) => trackFromProto(p));
+  }, [queueQ.data]);
+  const currentIdx = Math.max(0, queueQ.data?.index ?? 0);
+
+  // Settings (shuffle / repeat)
+  const shuffle = settingsQ.data?.playlist_shuffle === true;
+  const repeat: RepeatMode = (() => {
+    switch (settingsQ.data?.repeat_mode ?? 0) {
+      case 1:
+        return "all";
+      case 2:
+      case 3:
+        return "one";
+      default:
+        return "off";
+    }
+  })();
+
+  // Liked set
+  const liked: Set<string> = useMemo(() => {
+    const ids =
+      likedQ.data?.ids ??
+      (likedQ.data?.tracks ?? []).map((t) => t.id ?? "").filter(Boolean);
+    return new Set(ids);
+  }, [likedQ.data]);
+
+  // ── Actions ──────────────────────────────────────────────────────────────
+
+  const play = useCallback(() => {
+    RockboxClient.play().catch(() => {});
+  }, []);
+  const pause = useCallback(() => {
+    RockboxClient.pause().catch(() => {});
+  }, []);
+  const toggle = useCallback(() => {
+    RockboxClient.playPause().catch(() => {});
+  }, []);
+  const next = useCallback(() => {
+    RockboxClient.next().catch(() => {});
+  }, []);
+  const prev = useCallback(() => {
+    RockboxClient.prev().catch(() => {});
+  }, []);
+  const seek = useCallback((secs: number) => {
+    setPosition(secs); // optimistic UI
+    RockboxClient.seek(Math.max(0, Math.floor(secs * 1000))).catch(() => {});
+  }, []);
+  const setVolumeAction = useCallback((_vol: number) => {
+    // Volume is server-side adjusted in steps; the slider in the player
+    // currently isn't wired, so just no-op here.
+  }, []);
+  const toggleShuffle = useCallback(() => {
+    RockboxClient.saveShuffle(!shuffle).catch(() => {});
+  }, [shuffle]);
+  const cycleRepeat = useCallback(() => {
+    // 0 off → 1 all → 0 (gpui only toggles between these two, mirror that).
+    RockboxClient.saveRepeat(repeat === "off" ? 1 : 0).catch(() => {});
+  }, [repeat]);
+  const toggleLike = useCallback(
+    (trackId: string) => {
+      // Optimistic update — flip the cache immediately so the heart re-renders
+      // before the server round-trips. We then refetch on success/error to
+      // stay in sync with the daemon's authoritative state.
+      const wasLiked = liked.has(trackId);
+      qc.setQueryData<{ ids?: string[]; tracks?: { id?: string }[] }>(
+        qk.liked(),
+        (prev) => {
+          const ids = prev?.ids
+            ? [...prev.ids]
+            : (prev?.tracks ?? []).map((t) => t.id ?? "").filter(Boolean);
+          const next = wasLiked
+            ? ids.filter((id) => id !== trackId)
+            : [...ids, trackId];
+          return { ids: next };
+        },
+      );
+      const op = wasLiked
+        ? RockboxClient.unlikeTrack(trackId)
+        : RockboxClient.likeTrack(trackId);
+      op.catch(() => {}).finally(() => {
+        qc.invalidateQueries({ queryKey: qk.liked() });
+      });
+    },
+    [liked, qc],
+  );
+  const jumpTo = useCallback((idx: number) => {
+    RockboxClient.jumpToQueuePosition(idx).catch(() => {});
+  }, []);
+  const removeFromQueue = useCallback((idx: number) => {
+    RockboxClient.removeFromQueue(idx).catch(() => {});
+  }, []);
+
+  const playTrack = useCallback((track: Track) => {
+    if (track.path) RockboxClient.playTrack(track.path).catch(() => {});
+  }, []);
+
+  const playQueue = useCallback(
+    (
+      tracks: Track[],
+      opts?: { startIdx?: number; shuffle?: boolean },
+    ) => {
+      const paths = tracks.map((t) => t.path).filter((p): p is string => !!p);
+      if (paths.length === 0) return;
+      const startIdx = opts?.startIdx ?? 0;
+      const shouldShuffle = opts?.shuffle === true;
+      // Insert + start. Position 0 replaces queue head; rockbox's playlist
+      // service handles the rest. After insert, jump to `startIdx`.
+      RockboxClient.insertTracks(paths, 0, shouldShuffle)
+        .then(() => RockboxClient.jumpToQueuePosition(startIdx))
+        .catch(() => {});
+    },
+    [],
+  );
+
+  const playNext = useCallback((track: Track) => {
+    if (track.path) RockboxClient.insertTrackNext(track.path).catch(() => {});
+  }, []);
+  const playLast = useCallback((track: Track) => {
+    if (track.path) RockboxClient.insertTrackLast(track.path).catch(() => {});
+  }, []);
+
+  return {
+    queue,
+    currentIdx,
+    position,
+    isPlaying,
+    shuffle,
+    repeat,
+    volume: 0.75,
+    liked,
+    currentTrack,
+
+    contextTrack: slice.contextTrack,
+    userPlaylists: slice.userPlaylists,
+
+    play,
+    pause,
+    toggle,
+    next,
+    prev,
+    seek,
+    setVolume: setVolumeAction,
+    toggleShuffle,
+    cycleRepeat,
+    toggleLike,
+    jumpTo,
+    removeFromQueue,
+    playTrack,
+    playQueue,
+    playNext,
+    playLast,
+    openContextMenu: slice.openContextMenu,
+    closeContextMenu: slice.closeContextMenu,
+    createPlaylist: slice.createPlaylist,
+  };
+}
+
+// ── Idle driver — used when no server is selected. Everything is a no-op
+// and the UI is expected to render an "connect to a server" empty state.
+
+type IdleSlice = Omit<SharedSlice, "enabled">;
+
+function useIdlePlayer(slice: IdleSlice): PlayerContextValue {
+  const noop = useCallback(() => {}, []);
+  return {
+    queue: [],
+    currentIdx: 0,
+    position: 0,
+    isPlaying: false,
+    shuffle: false,
+    repeat: "off",
+    volume: 0.75,
+    liked: new Set<string>(),
+    currentTrack: undefined,
+    contextTrack: slice.contextTrack,
+    userPlaylists: slice.userPlaylists,
+    play: noop,
+    pause: noop,
+    toggle: noop,
+    next: noop,
+    prev: noop,
+    seek: noop,
+    setVolume: noop,
+    toggleShuffle: noop,
+    cycleRepeat: noop,
+    toggleLike: noop,
+    jumpTo: noop,
+    removeFromQueue: noop,
+    playTrack: noop,
+    playQueue: noop,
+    playNext: noop,
+    playLast: noop,
+    openContextMenu: slice.openContextMenu,
+    closeContextMenu: slice.closeContextMenu,
+    createPlaylist: slice.createPlaylist,
+  };
+}
+
