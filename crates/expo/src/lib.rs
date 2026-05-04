@@ -46,8 +46,7 @@ mod daemon;
 use api::v1alpha1::{
     bluetooth_service_client::BluetoothServiceClient, browse_service_client::BrowseServiceClient,
     genre_service_client::GenreServiceClient, library_service_client::LibraryServiceClient,
-    playback_service_client::PlaybackServiceClient,
-    playlist_service_client::PlaylistServiceClient,
+    playback_service_client::PlaybackServiceClient, playlist_service_client::PlaylistServiceClient,
     saved_playlist_service_client::SavedPlaylistServiceClient,
     settings_service_client::SettingsServiceClient,
     smart_playlist_service_client::SmartPlaylistServiceClient,

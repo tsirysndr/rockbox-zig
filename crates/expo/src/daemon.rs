@@ -416,8 +416,7 @@ fn spawn_library_scan(force_arg: bool) {
                 }
 
                 tracing::info!("scan: scanning {} ...", path);
-                match rockbox_library::audio_scan::scan_audio_files(pool.clone(), path.into())
-                    .await
+                match rockbox_library::audio_scan::scan_audio_files(pool.clone(), path.into()).await
                 {
                     Ok(files) => tracing::info!("scan: done, {} files", files.len()),
                     Err(e) => tracing::error!("scan: failed: {e}"),
@@ -431,9 +430,7 @@ fn spawn_library_scan(force_arg: bool) {
                 // bypasses that handler so we have to call it directly.
                 // Best-effort: a network failure (offline / Rocksky down)
                 // shouldn't fail the boot path.
-                if let Err(e) =
-                    rockbox_library::artists::update_metadata(pool.clone()).await
-                {
+                if let Err(e) = rockbox_library::artists::update_metadata(pool.clone()).await {
                     tracing::warn!("scan: rocksky enrichment skipped: {e}");
                 } else {
                     tracing::info!("scan: rocksky enrichment done");
