@@ -16,6 +16,12 @@ pub fn build(b: *std.Build) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
+
+    // -Dheadless=true: link against build-headless/ (no SDL, cpal PCM sink,
+    // statically-linked codecs). Requires:
+    //   cd build-headless && make lib
+    //   cargo build --release --features cpal-sink -p rockbox-cli
+    const headless = b.option(bool, "headless", "Build headless target (no SDL, cpal PCM)") orelse false;
     // It's also possible to define more custom flags to toggle optional features
     // of this build script using `b.option()`. All defined flags (including
     // target and optimize options) will be listed when running `zig build --help`
@@ -96,22 +102,35 @@ pub fn build(b: *std.Build) void {
         }
         exe.root_module.linkFramework("CoreFoundation", .{});
         exe.root_module.linkFramework("Security", .{});
+        if (headless) {
+            // Required by cpal's CoreAudio backend.
+            exe.root_module.linkFramework("CoreAudio", .{});
+            exe.root_module.linkFramework("AudioUnit", .{});
+            exe.root_module.linkFramework("AudioToolbox", .{});
+        }
     }
 
     if (target.result.os.tag == .linux) {
         exe.root_module.linkSystemLibrary("unwind", .{});
         exe.root_module.linkSystemLibrary("dbus-1", .{});
+        if (headless) {
+            // cpal uses ALSA on Linux by default.
+            exe.root_module.linkSystemLibrary("asound", .{});
+        }
     }
 
-    const librockbox = b.path("../build-lib/librockbox.a");
-    const libfirmware = b.path("../build-lib/firmware/libfirmware.a");
-    const libfixedpoint = b.path("../build-lib/lib/libfixedpoint.a");
-    const librbcodec = b.path("../build-lib/lib/librbcodec.a");
-    const libskin_parser = b.path("../build-lib/lib/libskin_parser.a");
-    const libtlsf = b.path("../build-lib/lib/libtlsf.a");
-    const libspeex_voice = b.path("../build-lib/lib/rbcodec/codecs/libspeex-voice.a");
-    const librockbox_cli = b.path("../target/release/librockbox_cli.a");
+    const fw_dir = if (headless) "../build-headless" else "../build-lib";
+
+    const librockbox    = b.path(b.pathJoin(&.{ fw_dir, "librockbox.a" }));
+    const libfirmware   = b.path(b.pathJoin(&.{ fw_dir, "firmware/libfirmware.a" }));
+    const libfixedpoint = b.path(b.pathJoin(&.{ fw_dir, "lib/libfixedpoint.a" }));
+    const librbcodec    = b.path(b.pathJoin(&.{ fw_dir, "lib/librbcodec.a" }));
+    const libskin_parser = b.path(b.pathJoin(&.{ fw_dir, "lib/libskin_parser.a" }));
+    const libtlsf       = b.path(b.pathJoin(&.{ fw_dir, "lib/libtlsf.a" }));
+    const libspeex_voice = b.path(b.pathJoin(&.{ fw_dir, "lib/rbcodec/codecs/libspeex-voice.a" }));
+    const librockbox_cli    = b.path("../target/release/librockbox_cli.a");
     const librockbox_server = b.path("../target/release/librockbox_server.a");
+
     exe.root_module.addObjectFile(librockbox);
     exe.root_module.addObjectFile(libfirmware);
     exe.root_module.addObjectFile(libfixedpoint);
@@ -121,7 +140,62 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addObjectFile(libspeex_voice);
     exe.root_module.addObjectFile(librockbox_cli);
     exe.root_module.addObjectFile(librockbox_server);
-    exe.root_module.linkSystemLibrary("SDL2", .{});
+
+    if (headless) {
+        // Statically-linked codecs.  Each codec's per-codec .a contains only
+        // <name>.o and <name>-crt0.o (renamed by objcopy --redefine-sym so
+        // __header, codec_start, codec_run, codec_main are distinct).
+        //
+        // We link the extracted .o files directly (not via archive) because
+        // Zig's MachO linker does not drive archive scanning from data-section
+        // relocations; lc_static_table's pointer entries (-> __header_NAME)
+        // would not pull in the codec archive members.
+        //
+        // scripts/build-headless.sh Step 2.5 extracts these files into
+        //   <fw_dir>/lib/rbcodec/codecs/codec-objects/<name>/
+        const codec_names = [_][]const u8{
+            "a52",        "a52_rm",      "aac",       "aac_bsf",
+            "adx",        "aiff",        "alac",      "ape",
+            "atrac3_oma", "atrac3_rm",   "au",        "cook",
+            "flac",       "mod",         "mpa",       "mpc",
+            "opus",       "raac",        "shorten",   "smaf",
+            "speex",      "tta",         "vorbis",    "vox",
+            "wav",        "wav64",       "wavpack",   "wma",
+            "wmapro",
+        };
+        const codec_dir = b.pathJoin(&.{ fw_dir, "lib/rbcodec/codecs" });
+        const obj_base  = b.pathJoin(&.{ codec_dir, "codec-objects" });
+        for (codec_names) |name| {
+            const dir = b.pathJoin(&.{ obj_base, name });
+            exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ dir, b.fmt("{s}.o",      .{name}) })));
+            exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ dir, b.fmt("{s}-crt0.o", .{name}) })));
+        }
+
+        // libcodec.a provides codec_init, codec_malloc, bs_clz_tab, ff_copy_bits, etc.
+        // In CODECS_STATIC mode Make intentionally omits it from the per-codec archives,
+        // so we must link it explicitly here.
+        exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ codec_dir, "libcodec.a" })));
+
+        // Support libraries referenced by the codec objects above.
+        // Passed as archives (lazy scanning) because code references from the
+        // directly-linked codec .o files drive archive member inclusion correctly.
+        const lib_names = [_][]const u8{
+            "liba52",     "libalac",     "libasap",   "libasf",
+            "libatrac",   "libcook",     "libdemac",  "libfaad",
+            "libffmpegFLAC", "libm4a",  "libmad",    "libmusepack",
+            "libopus",    "libpcm",      "librm",     "libspc",
+            "libspeex",   "libtremor",   "libtta",    "libwavpack",
+            "libwma",     "libwmapro",
+        };
+        for (lib_names) |lib| {
+            exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ codec_dir, b.fmt("{s}.a", .{lib}) })));
+        }
+        // libogg symbols are compiled with -fvisibility=hidden; they become
+        // private-external in Mach-O and do not conflict across archives.
+    } else {
+        exe.root_module.linkSystemLibrary("SDL2", .{});
+    }
+
     exe.root_module.link_libc = true;
 
     // This declares intent for the executable to be installed into the

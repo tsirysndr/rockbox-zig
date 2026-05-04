@@ -1,0 +1,8 @@
+[package]
+name = "rockbox-cpal-sink"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cpal = "0.15"
+tracing = { workspace = true }

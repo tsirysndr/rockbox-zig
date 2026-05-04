@@ -661,6 +661,82 @@ sonynwzcc () {
  app_type="sonynwz"
 }
 
+headlesshostcc () {
+    # Native build for the current host (macOS or Linux).
+    # No cross-compiler required — uses the system clang/gcc.
+    uname=`uname`
+    case $uname in
+        Darwin)
+            CC="${CC:-clang}"
+            CXX="${CXX:-clang++}"
+            AR="${AR:-ar}"
+            RANLIB="${RANLIB:-ranlib}"
+            # GNU binutils objcopy corrupts Mach-O 64-bit headers (changes
+            # MH_MAGIC_64 0xFEEDFACF to 0xFEEDFACE).  Prefer llvm-objcopy.
+            if [ -z "$OC" ]; then
+                # Prefer llvm@21 — llvm@22 crashes in setSymbolInRelocationInfo.
+                for _oc in /opt/homebrew/opt/llvm@21/bin/llvm-objcopy \
+                           /usr/local/opt/llvm@21/bin/llvm-objcopy \
+                           /opt/homebrew/opt/llvm/bin/llvm-objcopy \
+                           /usr/local/opt/llvm/bin/llvm-objcopy; do
+                    if [ -x "$_oc" ]; then OC="$_oc"; break; fi
+                done
+                : "${OC:=objcopy}"
+            fi
+            LD="${LD:-$CC}"
+            CPP="$CC -E"
+            endian="little"
+            # Expose POSIX real-time extensions (timer_create, sigevent_t, …)
+            # and suppress FORTIFY_SOURCE wrapping of strlcat/strlcpy.
+            # GCC 15 does both implicitly; Apple clang requires explicit flags.
+            host_extra_defines="-D_DARWIN_C_SOURCE -D_FORTIFY_SOURCE=0"
+            ;;
+        Linux)
+            CC="${CC:-gcc}"
+            CXX="${CXX:-g++}"
+            AR="${AR:-ar}"
+            RANLIB="${RANLIB:-ranlib}"
+            OC="${OC:-objcopy}"
+            LD="${LD:-$CC}"
+            CPP="$CC -E"
+            endian="little"
+            # Expose POSIX timer extensions and suppress FORTIFY wrapping.
+            host_extra_defines="-D_GNU_SOURCE -D_FORTIFY_SOURCE=0"
+            ;;
+        *)
+            echo "ERROR: headlesshostcc(): unsupported build host '$uname'"
+            echo "       (expected Darwin or Linux)"
+            exit 1
+            ;;
+    esac
+
+    # Initialize from the common CCOPTS (strips -nostdlib / -ffreestanding since
+    # this is a hosted application build), then add -fno-builtin.
+    GCCOPTS=`echo $CCOPTS | sed -e s/\ -ffreestanding// -e s/\ -nostdlib//`
+    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result $host_extra_defines"
+
+    # -fPIC required for CODECS_STATIC objcopy renaming; -ffunction-sections
+    # / -fdata-sections + --gc-sections in the Zig linker trims dead codec
+    # code. -fvisibility=hidden keeps internal symbols out of the final binary.
+    GCCOPTS="$GCCOPTS -fPIC -ffunction-sections -fdata-sections"
+    GCCOPTS="$GCCOPTS -fomit-frame-pointer -fvisibility=hidden"
+
+    # Stop at .a files — Zig (`zig build -Dheadless=true`) does the final link.
+    SHARED_LDFLAGS=""
+    SHARED_CFLAGS="-fPIC"
+    GLOBAL_LDOPTS=""
+    LDOPTS="-lpthread"
+
+    thread_support="HAVE_SIGALTSTACK_THREADS"
+    gccchoice=""
+    gcctarget=""
+
+    extradefines="$extradefines -DCODECS_STATIC -DZIG_APP"
+    export CODECS_STATIC=1
+
+    echo "Using host compiler: $CC"
+}
+
 androidcdylibcc () {
     # Args: $1 = API level (>=26 for AAudio)
     #       $2 = ABI (arm64-v8a / armeabi-v7a / x86_64)
@@ -1809,7 +1885,7 @@ cat <<EOF
  222) NWZ-E450 series      202) Android (MIPS)   231) 770
  223) NWZ-E460 series      203) Android (x86)    232) 770C
  224) NWZ-E470 series      209) Anbernic RG Nano 233) 800
- 225) NWZ-E580 series      205) Android cdylib   234) 960
+ 225) NWZ-E580 series      205) Android cdylib   206) Headless host
  226) NWZ-A10 series       ==AgpTek==
  227) NW-A20 series        240) Rocker           ==AIGO==
  228) NWZ-A860 series                            245) Eros Q / K (hosted)
@@ -3427,6 +3503,39 @@ fi
     t_cpu="hosted"
     t_manufacturer="android"
     t_model="cdylib"
+    ;;
+
+   206|headlesshost)
+    application="yes"
+    target_id=126
+    modelname="headlesshost"
+    target="HEADLESSHOST"
+    app_type="headless_host"
+    app_set_lcd_size 320 480
+
+    sharedir="/dev/null"
+    bindir="/dev/null"
+    libdir="/dev/null"
+
+    memory=256
+
+    headlesshostcc
+
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+
+    # Sentinel — headless.make writes this stamp. Zig does the final link.
+    output="static-libs.stamp"
+    bootoutput="static-libs.stamp"
+
+    appextra="recorder:gui:radio"
+    plugins="no"
+
+    t_cpu="hosted"
+    t_manufacturer="headless"
+    t_model="host"
     ;;
 
    145|samsungypr1)

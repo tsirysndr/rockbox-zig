@@ -126,8 +126,12 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
                 );
             }
         }
+        Some("cpal") => {
+            pcm::switch_sink(pcm::PCM_SINK_CPAL);
+            tracing::info!("audio output: cpal (system default device)");
+        }
         Some("builtin") | None => {
-            tracing::info!("audio output: builtin (SDL)");
+            tracing::info!("audio output: builtin");
         }
         Some(other) => {
             tracing::warn!(

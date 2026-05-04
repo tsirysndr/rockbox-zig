@@ -584,6 +584,8 @@ Lyre prototype 1 */
 #include "config/hibyr1.h"
 #elif defined(ANDROIDCDYLIB)
 #include "config/androidcdylib.h"
+#elif defined(HEADLESSHOST)
+#include "config/headlesshost.h"
 #else
 #error "unknown hardware platform!"
 #endif

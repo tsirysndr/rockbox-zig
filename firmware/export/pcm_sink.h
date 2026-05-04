@@ -62,6 +62,9 @@ enum pcm_sink_ids {
 #if defined(__ANDROID__) && defined(CODECS_STATIC)
     PCM_SINK_AAUDIO,    /* AAudio output (also wired as BUILTIN on Android) */
 #endif
+#if defined(CODECS_STATIC) && !defined(__ANDROID__)
+    PCM_SINK_CPAL,      /* cpal output (also wired as BUILTIN on headless host) */
+#endif
 #endif
     PCM_SINK_NUM
 };
@@ -100,5 +103,11 @@ void pcm_tcp_set_port(uint16_t port);
 /* AAudio sink — also wired as the BUILTIN sink on the Android cdylib build,
  * so applications get sound out of the box without calling pcm_switch_sink. */
 extern struct pcm_sink aaudio_pcm_sink;
+#endif
+
+#if defined(CODECS_STATIC) && !defined(__ANDROID__)
+/* cpal sink — also wired as the BUILTIN sink on headless macOS/Linux builds,
+ * so rockboxd produces sound out of the box without any settings.toml entry. */
+extern struct pcm_sink cpal_pcm_sink;
 #endif
 #endif

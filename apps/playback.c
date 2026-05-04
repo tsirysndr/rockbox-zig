@@ -63,7 +63,7 @@
 #include "pcm_mixer.h"
 #endif
 
-#if defined(SIMULATOR) || defined(SDLAPP)
+#if defined(SIMULATOR) || defined(SDLAPP) || defined(HEADLESSHOST)
 #include <strings.h>  /* For strncasecmp() */
 #endif
 

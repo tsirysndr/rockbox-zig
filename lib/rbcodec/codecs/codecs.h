@@ -258,16 +258,18 @@ extern unsigned char plugin_end_addr[];
         { enc_callback } };
 
 #elif defined(CODECS_STATIC)
-/* Static-link mode: emit __header as a plain external symbol so codecs.make's
- * objcopy --redefine-sym __header=__header_<name> can rename it per codec.
- * No section attribute, no visibility — codecs.make sets -fvisibility=hidden
- * globally and the renamed symbol is referenced from lc-android.c's table. */
+/* Static-link mode: emit __header as a default-visibility external symbol so
+ * codecs.make's objcopy --redefine-sym __header=__header_<name> can rename it
+ * per codec. visibility("default") overrides -fvisibility=hidden so the
+ * renamed symbol is visible to the static linker on both Mach-O and ELF. */
 #define CODEC_HEADER \
-        const struct codec_header __header = { \
+        const struct codec_header __header \
+        __attribute__((visibility("default"))) = { \
         { CODEC_MAGIC, TARGET_ID, CODEC_API_VERSION, NULL, NULL }, \
         codec_start, codec_run, &ci, sizeof(struct codec_api) };
 #define CODEC_ENC_HEADER \
-        const struct codec_header __header = { \
+        const struct codec_header __header \
+        __attribute__((visibility("default"))) = { \
         { CODEC_ENC_MAGIC, TARGET_ID, CODEC_API_VERSION, NULL, NULL }, \
         codec_start, codec_run, &ci, sizeof(struct codec_api), \
         { enc_callback } };

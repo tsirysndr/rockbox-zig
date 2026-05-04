@@ -19,6 +19,7 @@ rockbox-library = {path = "../library"}
 rockbox-playlists = {path = "../playlists"}
 rockbox-typesense = {path = "../typesense"}
 rockbox-fts5 = {path = "../fts5", optional = true}
+rockbox-cpal-sink = {path = "../cpal-sink", optional = true}
 rockbox-settings = {path = "../settings"}
 rockbox-rocksky = {path = "../rocksky"}
 tokio = {version = "1.36.0", features = ["full"]}
@@ -41,3 +42,6 @@ default = []
 #   cargo build --release -p rockbox-cli    --features fts5
 #   cargo build --release -p rockbox-server --features fts5
 fts5 = ["dep:rockbox-fts5"]
+# Enable the cpal PCM sink for headless macOS/Linux builds (no SDL).
+# Must be passed alongside `zig build -Dheadless=true`.
+cpal-sink = ["dep:rockbox-cpal-sink"]

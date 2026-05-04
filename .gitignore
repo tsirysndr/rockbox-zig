@@ -343,3 +343,4 @@ zig-out
 
 *.dump
 .claude/*.lock
+.claude
