@@ -44,12 +44,21 @@ extern "C" {
     fn start_servers();
 }
 
-/// `#[used]` keepalive: takes the address of start_server / start_servers
-/// so rustc treats them as live and pulls in their containing rlib.
+/// `#[used]` keepalives: take the address of start_server / start_servers
+/// so the symbols themselves don't get GC'd at link time.
 #[used]
 static _KEEPALIVE_START_SERVER: unsafe extern "C" fn() = start_server;
 #[used]
 static _KEEPALIVE_START_SERVERS: unsafe extern "C" fn() = start_servers;
+
+/// Force-pull rockbox-server's rlib into the link. `extern "C"` decls alone
+/// don't do this — rustc treats them as external and waits for the linker
+/// to satisfy them, which fails because rockbox-server's code was already
+/// dead-code-stripped. Referencing any pub Rust item (a const here) makes
+/// rustc include rockbox-server's compilation unit, which in turn provides
+/// the start_server / start_servers symbols.
+#[used]
+static _KEEPALIVE_ROCKBOX_SERVER: &[&str] = &rockbox_server::AUDIO_EXTENSIONS;
 
 /// Same keepalive trick for the netstream Rust crate's C-ABI exports —
 /// the C firmware's streamfd.c calls rb_net_open / rb_net_read / etc., but

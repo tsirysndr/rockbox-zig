@@ -4,7 +4,10 @@ name = "rockbox-server"
 version = "0.1.0"
 
 [lib]
-crate-type = ["staticlib"]
+# rlib is needed so other Rust crates (like rockbox-expo's embedded-daemon
+# build) can reference rockbox-server items directly. The desktop build
+# also produces librockbox_server.a (staticlib) for the Zig linker.
+crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 anyhow = "1.0.89"
