@@ -14,12 +14,17 @@
 #include <stddef.h>
 
 #include "load_code.h"     /* pulls lc-static.h via CONFIG_BINFMT dispatch */
-#include "lib/rbcodec/codecs/codecs.h"   /* full struct codec_header def */
+#include "codecs.h"        /* full struct codec_header def — picked up via
+                              codecs.make's INCLUDES that point at lib/rbcodec/codecs */
 
 /* ── extern decls for every codec's renamed __header_<name> symbol ────── */
 /* These match the names emitted by codecs.make's CODECS_STATIC objcopy
  * --redefine-sym rule. If a codec is added to or removed from
  * lib/rbcodec/codecs/SOURCES, mirror the change here. */
+/* libgme-based chiptune codecs (ay, gbs, hes, kss, nsf, sgc, vgm, vtx, sid)
+ * + spc + asap are gated out of SOURCES on Android for v1 — see
+ * lib/rbcodec/codecs/SOURCES for why. The mainstream codecs below cover
+ * 99% of music formats. */
 extern const struct codec_header __header_a52;
 extern const struct codec_header __header_a52_rm;
 extern const struct codec_header __header_aac;
@@ -28,32 +33,22 @@ extern const struct codec_header __header_adx;
 extern const struct codec_header __header_aiff;
 extern const struct codec_header __header_alac;
 extern const struct codec_header __header_ape;
-extern const struct codec_header __header_asap;
 extern const struct codec_header __header_atrac3_oma;
 extern const struct codec_header __header_atrac3_rm;
 extern const struct codec_header __header_au;
-extern const struct codec_header __header_ay;
 extern const struct codec_header __header_cook;
 extern const struct codec_header __header_flac;
-extern const struct codec_header __header_gbs;
-extern const struct codec_header __header_hes;
-extern const struct codec_header __header_kss;
 extern const struct codec_header __header_mod;
 extern const struct codec_header __header_mpa;
 extern const struct codec_header __header_mpc;
-extern const struct codec_header __header_nsf;
 extern const struct codec_header __header_opus;
 extern const struct codec_header __header_raac;
-extern const struct codec_header __header_sgc;
 extern const struct codec_header __header_shorten;
 extern const struct codec_header __header_smaf;
-extern const struct codec_header __header_spc;
 extern const struct codec_header __header_speex;
 extern const struct codec_header __header_tta;
-extern const struct codec_header __header_vgm;
 extern const struct codec_header __header_vorbis;
 extern const struct codec_header __header_vox;
-extern const struct codec_header __header_vtx;
 extern const struct codec_header __header_wav;
 extern const struct codec_header __header_wav64;
 extern const struct codec_header __header_wavpack;
@@ -72,32 +67,22 @@ const struct lc_static_entry lc_static_table[] = {
     { "aiff.codec",         &__header_aiff        },
     { "alac.codec",         &__header_alac        },
     { "ape.codec",          &__header_ape         },
-    { "asap.codec",         &__header_asap        },
     { "atrac3_oma.codec",   &__header_atrac3_oma  },
     { "atrac3_rm.codec",    &__header_atrac3_rm   },
     { "au.codec",           &__header_au          },
-    { "ay.codec",           &__header_ay          },
     { "cook.codec",         &__header_cook        },
     { "flac.codec",         &__header_flac        },
-    { "gbs.codec",          &__header_gbs         },
-    { "hes.codec",          &__header_hes         },
-    { "kss.codec",          &__header_kss         },
     { "mod.codec",          &__header_mod         },
     { "mpa.codec",          &__header_mpa         },
     { "mpc.codec",          &__header_mpc         },
-    { "nsf.codec",          &__header_nsf         },
     { "opus.codec",         &__header_opus        },
     { "raac.codec",         &__header_raac        },
-    { "sgc.codec",          &__header_sgc         },
     { "shorten.codec",      &__header_shorten     },
     { "smaf.codec",         &__header_smaf        },
-    { "spc.codec",          &__header_spc         },
     { "speex.codec",        &__header_speex       },
     { "tta.codec",          &__header_tta         },
-    { "vgm.codec",          &__header_vgm         },
     { "vorbis.codec",       &__header_vorbis      },
     { "vox.codec",          &__header_vox         },
-    { "vtx.codec",          &__header_vtx         },
     { "wav.codec",          &__header_wav         },
     { "wav64.codec",        &__header_wav64       },
     { "wavpack.codec",      &__header_wavpack     },

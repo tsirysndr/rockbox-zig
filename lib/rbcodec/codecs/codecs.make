@@ -273,12 +273,20 @@ $(CODECDIR)/%.codec: $(CODECDIR)/%.o
 ifdef CODECS_STATIC
 # objcopy --redefine-sym is given both the ELF (Linux/Android NDK) and the
 # Mach-O (macOS smoke-test) symbol manglings — Mach-O prepends an extra
-# leading underscore to C symbols, so __header becomes ___header. Whichever
-# mangling matches the actual symbol fires; the other is a no-op.
+# leading underscore to C symbols. Three symbols per codec collide when
+# all are linked into one binary:
+#   __header     — defined by CODEC_HEADER macro
+#   codec_main   — codec entry point (referenced from __header indirectly)
+#   codec_run    — codec decode loop  (referenced from __header)
+# All three get renamed per-codec so they coexist in the cdylib.
 $(CODECDIR)/%.a: $(CODECDIR)/%.o
 	$(call PRINTS,STATIC $(@F))
 	$(SILENT) $(OC) --redefine-sym __header=__header_$* \
-	                --redefine-sym ___header=___header_$* $<
+	                --redefine-sym ___header=___header_$* \
+	                --redefine-sym codec_main=codec_main_$* \
+	                --redefine-sym _codec_main=_codec_main_$* \
+	                --redefine-sym codec_run=codec_run_$* \
+	                --redefine-sym _codec_run=_codec_run_$* $<
 	$(SILENT) $(AR) rcs $@ $<
 
 # Per-codec helper-lib dependencies (mirror of lines 190-229 with .a output).

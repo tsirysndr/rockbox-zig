@@ -142,5 +142,15 @@ fn link_firmware() -> Result<(), Box<dyn std::error::Error>> {
         println!("cargo:rustc-link-lib=dylib=aaudio");
     }
 
+    // Codecs each ship their own copy of libogg (vorbis/opus/speex/tremor
+    // all bundle it) and other helper code that's normally separated by
+    // the desktop dlopen-one-codec-per-shared-lib model. -z muldefs tells
+    // the linker to pick the first definition for any collision and warn.
+    // Ogg has standardized function signatures so this is safe; if a
+    // codec turns out to depend on a non-standard local variant later
+    // we'd need to either statically rename more symbols (objcopy in
+    // codecs.make) or drop the offending codec.
+    println!("cargo:rustc-link-arg=-Wl,-z,muldefs");
+
     Ok(())
 }

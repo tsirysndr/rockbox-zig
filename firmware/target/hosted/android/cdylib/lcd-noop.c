@@ -16,13 +16,15 @@
 void lcd_init_device(void)              { }
 void lcd_shutdown(void)                 { }
 
-/* lcd_update / lcd_update_rect / lcd_clear_display are provided by
- * firmware/drivers/lcd-bitmap-common.c (or 16-bit variant) — no need
- * to redefine. */
-
-/* lcd_set_foreground / lcd_set_background / lcd_get_foreground /
- * lcd_get_background are already provided by firmware/drivers/lcd-bitmap-common.c
- * (or similar). No need to redefine. */
+/* Platform-driver LCD frame-out functions. Without these the .so links
+ * with undefined refs and dlopen fails at runtime. lcd_clear_display /
+ * lcd_set_foreground / lcd_set_background / lcd_get_foreground /
+ * lcd_get_background are NOT here — they're provided by
+ * firmware/drivers/lcd-color-common.c which IS linked. */
+void lcd_update(void)                          { }
+void lcd_update_rect(int x, int y, int w, int h)
+{ (void)x; (void)y; (void)w; (void)h; }
+int lcd_get_dpi(void)                          { return 160; }
 
 /* Backlight — usually short symbol surface */
 void backlight_hw_on(void)              { }

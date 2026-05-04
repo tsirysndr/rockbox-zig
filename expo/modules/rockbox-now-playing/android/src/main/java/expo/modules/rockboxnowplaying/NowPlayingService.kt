@@ -194,13 +194,22 @@ class NowPlayingService : Service() {
 
     // Off the main thread — native init blocks until the gRPC server binds
     // (up to 5s). Don't ANR the system_server on slow devices.
+    //
+    // Wrap in try/catch so a crash in native code (segfault → SIGABRT,
+    // missing JNI symbol → UnsatisfiedLinkError) doesn't take down the
+    // foreground service / whole app. The remote-only fallback path
+    // (RockboxRpcModule's tonic client to LAN peers) keeps working.
     scope.launch {
-      val rc = RockboxRpcModule.rb_daemon_start(configDir, musicDir, deviceName)
-      when {
-        rc > 0 -> Log.i(TAG, "embedded daemon started, gRPC :$rc")
-        rc == -38 -> Log.i(TAG, "embedded daemon not built into this .so (remote-only)")
-        rc == -114 -> Log.i(TAG, "embedded daemon already running")
-        else -> Log.w(TAG, "embedded daemon start failed rc=$rc")
+      try {
+        val rc = RockboxRpcModule.rb_daemon_start(configDir, musicDir, deviceName)
+        when {
+          rc > 0 -> Log.i(TAG, "embedded daemon started, gRPC :$rc")
+          rc == -38 -> Log.i(TAG, "embedded daemon not built into this .so (remote-only)")
+          rc == -114 -> Log.i(TAG, "embedded daemon already running")
+          else -> Log.w(TAG, "embedded daemon start failed rc=$rc")
+        }
+      } catch (t: Throwable) {
+        Log.e(TAG, "embedded daemon threw: ${t.javaClass.simpleName}: ${t.message}", t)
       }
     }
   }
