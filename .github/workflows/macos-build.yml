@@ -15,137 +15,105 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, macos-15-intel]
+        include:
+          - os: macos-latest
+            arch: aarch64
+          - os: macos-15-intel
+            arch: x86_64
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Setup Cache
-        uses: actions/cache@v3
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             zig/.zig-cache
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-      - uses: mlugg/setup-zig@v2
-        with:
-          version: 0.16.0
-      - name: Setup LLVM
+          key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ matrix.os }}-cargo-
+
+      - name: Install LLVM@21
         run: |
-          brew install llvm gcc@15 sdl2 cmake protobuf
-          cp /opt/homebrew/opt/llvm/bin/llvm-objcopy /opt/homebrew/opt/llvm/bin/objcopy || cp /usr/local/opt/llvm/bin/llvm-objcopy /usr/local/opt/llvm/bin/objcopy
+          # llvm@22 crashes in setSymbolInRelocationInfo on Mach-O — use llvm@21
+          brew install llvm@21 cmake protobuf
+          echo "/opt/homebrew/opt/llvm@21/bin:/usr/local/opt/llvm@21/bin" >> $GITHUB_PATH
+
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+
       - uses: denoland/setup-deno@v2
+
       - name: Build Web UI
         run: |
           cd webui/rockbox
           deno install
           deno run build
-      - name: Build Rockbox Lib
-        run: |
-          export PATH="/opt/homebrew/opt/llvm/bin:/usr/local/opt/llvm/bin:$PATH"
-          mkdir -p build-lib
-          cd build-lib
-          ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
-          make lib -j8
-      - name: Skip Rust Warnings
+
+      - name: Rust flags
         run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
-      - name: Build Rust Libs
-        run: |
-          cargo build -p rockbox-cli --release
-          cargo build -p rockbox-server --release
-          cargo build -p rockbox --release
-        env:
-          TAG: ${{ inputs.tag || github.ref_name }}
-      - name: Build Rockbox Binary
-        run: zig build ${{ matrix.os == 'macos-15-intel' && '-Dcpu=x86_64' || '' }}
-        working-directory: zig
-        env:
-          TAG: ${{ inputs.tag || github.ref_name }}
-      - name: Install Rockbox Libraries
-        run: sudo make install
-        working-directory: build-lib
-      - name: Install Rockbox Binaries
-        run: |
-          sudo cp target/release/rockbox /usr/local/bin/
-          sudo cp zig/zig-out/bin/rockboxd /usr/local/bin/
-      - name: Generate Package Installer
-        run: ./packaging/macos/build-pkg.sh
-      - name: Determine architecture
+
+      - name: Build rockboxd (headless)
+        run: bash scripts/build-headless.sh
+
+      - name: Build rockbox CLI
+        run: cargo build -p rockbox --release
+
+      - name: Determine version
         id: vars
         run: |
-          if [ "${{ matrix.os }}" == "macos-latest" ]; then
-            echo "arch=aarch64" >> $GITHUB_OUTPUT
-          else
-            echo "arch=x86_64" >> $GITHUB_OUTPUT
-          fi
-          echo "version=${{ github.event.inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
-      - name: Build DMG
-        run: |
-          xcodebuild -scheme Rockbox -configuration Release archive -archivePath ./build/Rockbox.xcarchive
-          xcodebuild -exportArchive -archivePath ./build/Rockbox.xcarchive -exportPath ./build -exportOptionsPlist ExportOptions.plist
-          mkdir dmg_temp
-          cp -r build/Rockbox.app dmg_temp
-          hdiutil create -volname "Rockbox" -srcfolder dmg_temp -ov -format UDZO Rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.dmg
-          mv Rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.dmg ..
-        working-directory: macos
+          echo "version=${{ inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
+
       - name: Show artifacts
         run: |
-          ls rockbox-*.pkg
-          echo build-lib
-          ls -l build-lib
-          echo zig-out
-          ls -l zig/zig-out/bin
-          echo target
-          ls -l target/release
-          echo lib
-          ls -l /usr/local/lib/rockbox/*
-          echo share
-          ls -l /usr/local/share/rockbox
-      - name: Show Rockbox version
-        run: |
-          ./target/release/rockbox --version
-          ./zig/zig-out/bin/rockboxd --version
-      - name: Archive artifacts
+          ls -lh target/release/rockbox zig/zig-out/bin/rockboxd
+
+      - name: Package binaries
         run: |
           VERSION="${{ steps.vars.outputs.version }}"
-          ARCH="${{ steps.vars.outputs.arch }}"
-          sudo bash -c """
+          ARCH="${{ matrix.arch }}"
           cp target/release/rockbox .
           cp zig/zig-out/bin/rockboxd .
-          tar czvf rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockbox
-          sha256 rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-          tar czvf rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz rockboxd
-          sha256 rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-          cd /usr/local/lib/rockbox && tar czvf rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
-          cd /usr/local/lib/rockbox && shasum -a 256 rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-          cd /usr/local/share/rockbox && tar czvf rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz *
-          cd /usr/local/share/rockbox && shasum -a 256 rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz > rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-          """
-      - name: Copy Archives
+          tar czvf rockbox_${VERSION}_${ARCH}-darwin.tar.gz rockbox rockboxd
+          shasum -a 256 rockbox_${VERSION}_${ARCH}-darwin.tar.gz \
+            > rockbox_${VERSION}_${ARCH}-darwin.tar.gz.sha256
+
+      - name: Generate Package Installer
+        run: ./packaging/macos/build-pkg.sh
+
+      - name: Build DMG
         run: |
-          cp /usr/local/lib/rockbox/rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz .
-          cp /usr/local/lib/rockbox/rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256 .
-          cp /usr/local/share/rockbox/rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz .
-          cp /usr/local/share/rockbox/rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256 .
+          VERSION="${{ steps.vars.outputs.version }}"
+          ARCH="${{ matrix.arch }}"
+          xcodebuild -scheme Rockbox -configuration Release archive \
+            -archivePath ./build/Rockbox.xcarchive
+          xcodebuild -exportArchive \
+            -archivePath ./build/Rockbox.xcarchive \
+            -exportPath ./build \
+            -exportOptionsPlist ExportOptions.plist
+          mkdir dmg_temp
+          cp -r build/Rockbox.app dmg_temp
+          hdiutil create -volname "Rockbox" -srcfolder dmg_temp -ov -format UDZO \
+            Rockbox-${VERSION}-${ARCH}.dmg
+          mv Rockbox-${VERSION}-${ARCH}.dmg ..
+        working-directory: macos
+
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz
-            rockbox_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-            rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz
-            rockboxd_${{ steps.vars.outputs.version }}_${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-            rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz
-            rockbox-codecs-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-            rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz
-            rockbox-assets-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}-darwin.tar.gz.sha256
-            rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.pkg
-            Rockbox-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.arch }}.dmg
+            rockbox_${{ steps.vars.outputs.version }}_${{ matrix.arch }}-darwin.tar.gz
+            rockbox_${{ steps.vars.outputs.version }}_${{ matrix.arch }}-darwin.tar.gz.sha256
+            rockbox-${{ steps.vars.outputs.version }}-${{ matrix.arch }}.pkg
+            Rockbox-${{ steps.vars.outputs.version }}-${{ matrix.arch }}.dmg
           tag_name: ${{ steps.vars.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

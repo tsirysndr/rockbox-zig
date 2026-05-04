@@ -12,10 +12,7 @@ on:
 
 jobs:
   publish:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       packages: write
@@ -23,64 +20,73 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+
       - uses: mlugg/setup-zig@v2
         with:
           version: 0.16.0
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential  libsdl2-dev \
-            libfreetype6-dev \
+          sudo apt-get install -y \
+            build-essential \
             libunwind-dev \
+            libasound2-dev \
+            libdbus-1-dev \
+            protobuf-compiler \
             curl \
             wget \
             zip \
             unzip \
-            protobuf-compiler \
-            libdbus-1-dev \
             cmake
-          curl -Ssf https://pkgx.sh | sh
-          pkgm install buf
+
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.94.1
+          toolchain: stable
           override: true
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
         with:
-          deno-version: v2.x
-      - name: Setup Fluent CI
-        uses: fluentci-io/setup-fluentci@v5
-        env:
-          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zig/.zig-cache
+            target
+          key: linux-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: linux-x86_64-cargo-
+
       - name: Rust flags
         run: echo "RUSTFLAGS=-C target-cpu=x86-64 -A warnings" >> $GITHUB_ENV
-      - name: Build Rockbox
+
+      - name: Build rockboxd (headless)
+        run: bash scripts/build-headless.sh
+
+      - name: Build rockbox CLI
+        run: cargo build -p rockbox --release
+
+      - name: Determine version
+        id: vars
         run: |
-          export PATH=$HOME/.local/bin:$PATH
-          cd webui/rockbox
-          deno install
-          deno run build
-          cd ../.. && mkdir build-lib && cd build-lib
-          ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
-          make lib -j$(nproc)
-          cd ..
-          cargo build -p rockbox-cli --release
-          cargo build -p rockbox-server --release
-          cargo build -p rockbox --release
-          cd zig && zig build -Dcpu=x86_64
-          cd ../build-lib
-          sudo make install
-          cd ..
-          sudo mkdir -p /usr/local/bin /usr/local/share/rockbox
-          sudo cp zig/zig-out/bin/rockboxd /usr/local/bin
-          sudo cp target/release/rockbox /usr/local/bin
-          sudo cp -r assets/* /usr/local/share/rockbox
-          sudo chown -R $(whoami):$(whoami) /usr/local
-          fluentci run --wasm . release
+          echo "version=${{ inputs.tag || github.ref_name }}" >> $GITHUB_OUTPUT
+
+      - name: Package binaries
+        run: |
+          VERSION="${{ steps.vars.outputs.version }}"
+          cp target/release/rockbox .
+          cp zig/zig-out/bin/rockboxd .
+          tar czvf rockbox_${VERSION}_x86_64-linux.tar.gz rockbox rockboxd
+          sha256sum rockbox_${VERSION}_x86_64-linux.tar.gz \
+            > rockbox_${VERSION}_x86_64-linux.tar.gz.sha256
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            rockbox_${{ steps.vars.outputs.version }}_x86_64-linux.tar.gz
+            rockbox_${{ steps.vars.outputs.version }}_x86_64-linux.tar.gz.sha256
+          tag_name: ${{ steps.vars.outputs.version }}
         env:
-          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ inputs.tag || github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

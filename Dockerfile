@@ -1,29 +1,24 @@
-FROM rust:1.94-bookworm AS builder
+FROM rust:1.86-bookworm AS builder
 
 ARG TARGETARCH
-
-ARG GITHUB_TOKEN
-
 ARG TAG
-
-ENV GITHUB_ACCESS_TOKEN=${GITHUB_TOKEN}
-
-ENV GH_TOKEN=${GITHUB_TOKEN}
 
 ENV TAG=${TAG}
 
-RUN apt-get update && apt-get install -y build-essential \
-  libsdl2-dev \
-  libfreetype6-dev \
+# Runtime deps for cpal (ALSA) and other libs
+RUN apt-get update && apt-get install -y \
+  build-essential \
   libunwind-dev \
+  libasound2-dev \
+  libdbus-1-dev \
+  protobuf-compiler \
   curl \
   wget \
   zip \
   unzip \
-  protobuf-compiler \
-  libdbus-1-dev \
   cmake
 
+# Install Zig 0.16.0
 RUN case "${TARGETARCH}" in \
       amd64) ZIG_ARCH="x86_64" ;; \
       arm64) ZIG_ARCH="aarch64" ;; \
@@ -35,60 +30,29 @@ RUN case "${TARGETARCH}" in \
     mv "zig-${ZIG_ARCH}-linux-${VERSION}" /usr/local/zig && \
     ln -s /usr/local/zig/zig /usr/local/bin/zig
 
-RUN curl -Ssf https://pkgx.sh | sh
-
-RUN pkgm install buf deno
-
 COPY . /app
-
 WORKDIR /app
 
-RUN mkdir -p build
+# Build rockboxd via the headless script (configure + make + cargo + zig)
+RUN bash scripts/build-headless.sh
 
-WORKDIR /app/webui/rockbox
+# Build the rockbox CLI binary
+RUN cargo build -p rockbox --release
 
-RUN deno install
-
-RUN deno run build
-
-WORKDIR /app/build-lib
-
-RUN ../tools/configure --target=sdlapp --type=N --lcdwidth=320 --lcdheight=240 --prefix=/usr/local && cp ../autoconf/autoconf.h .
-
-RUN make ziginstall -j$(nproc)
-
-RUN ls lib/rbcodec/codecs/*.codec && cp lib/rbcodec/codecs/*.codec /usr/local/lib/rockbox/codecs/
-
-RUN deno install -A -r -g https://cli.fluentci.io -n fluentci
-
-ENV PATH=/root/.local/bin:${PATH}
-
-WORKDIR /app
-
-RUN [ -n "$TAG" ] && fluentci run --wasm . release  ; exit 0
-
+# ── Runtime image ──────────────────────────────────────────────────────────────
 FROM typesense/typesense:30.1 AS typesense
 
-FROM debian:bookworm
+FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y \
-  libsdl2-dev \
-  libfreetype6-dev \
-  libunwind-dev \
-  alsa-utils \
+  libunwind8 \
   libasound2 \
-  libdbus-1-dev \
-pulseaudio
+  libdbus-1-3 \
+  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/local/lib/rockbox /usr/local/lib/rockbox
-
-COPY --from=builder /usr/local/share/rockbox /usr/local/share/rockbox
-
-COPY --from=builder /usr/local/bin/rockboxd /usr/local/bin/rockboxd
-
-COPY --from=typesense /opt/typesense-server /usr/local/bin/typesense-server
-
-ENV SDL_VIDEODRIVER=dummy
+COPY --from=builder /app/zig/zig-out/bin/rockboxd /usr/local/bin/rockboxd
+COPY --from=builder /app/target/release/rockbox   /usr/local/bin/rockbox
+COPY --from=typesense /opt/typesense-server        /usr/local/bin/typesense-server
 
 EXPOSE 6061
 EXPOSE 6062

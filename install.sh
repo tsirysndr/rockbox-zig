@@ -18,230 +18,97 @@ if ! command -v tar >/dev/null 2>&1; then
     exit 1
 fi
 
-export PATH="$HOME/.local/bin:$PATH"
-
-# Define the release information
 RELEASE_URL="https://api.github.com/repos/tsirysndr/rockbox-zig/releases/latest"
-
-ASSET_NAME=""
-
-function detect_os() {
-  # Determine the operating system
-  OS=$(uname -s)
-  if [ "$OS" = "Linux" ]; then
-      # Determine the CPU architecture
-      ARCH=$(uname -m)
-      if [ "$ARCH" = "aarch64" ]; then
-          ASSET_NAME="_aarch64-linux.tar.gz"
-      elif [ "$ARCH" = "x86_64" ]; then
-          ASSET_NAME="_x86_64-linux.tar.gz"
-      else
-          echo "Unsupported architecture: $ARCH"
-          exit 1
-      fi
-  elif [ "$OS" = "Darwin" ]; then
-      # Determine the CPU architecture
-      ARCH=$(uname -m)
-      if [ "$ARCH" = "arm64" ]; then
-          ASSET_NAME="_aarch64-darwin.tar.gz"
-      elif [ "$ARCH" = "x86_64" ]; then
-          ASSET_NAME="_x86_64-darwin.tar.gz"
-      else
-          echo "Unsupported architecture: $ARCH"
-          exit 1
-      fi
-  else
-      echo "Unsupported operating system: $OS"
-      exit 1
-  fi;
-}
-
-# Install Rockbox CLI
-
-detect_os
-
-# Retrieve the download URL for the desired asset
-DOWNLOAD_URL=$(curl -sSL "$RELEASE_URL" | grep -o "browser_download_url.*rockbox_.*$ASSET_NAME\"" | cut -d ' ' -f 2)
-
-ASSET_NAME=$(basename $DOWNLOAD_URL)
-
 INSTALL_DIR="/usr/local/bin"
 
-DOWNLOAD_URL=`echo $DOWNLOAD_URL | tr -d '\"'`
+# ── Detect OS / architecture ──────────────────────────────────────────────────
 
-# Download the asset
-curl -SL $DOWNLOAD_URL -o /tmp/$ASSET_NAME
+detect_platform() {
+    OS=$(uname -s)
+    ARCH=$(uname -m)
 
-# Extract the asset
-tar -xzf /tmp/$ASSET_NAME -C /tmp
+    case "$OS" in
+        Linux)
+            case "$ARCH" in
+                aarch64) PLATFORM="aarch64-linux" ;;
+                x86_64)  PLATFORM="x86_64-linux"  ;;
+                *) echo "Unsupported architecture: $ARCH" && exit 1 ;;
+            esac
+            ;;
+        Darwin)
+            case "$ARCH" in
+                arm64)  PLATFORM="aarch64-darwin" ;;
+                x86_64) PLATFORM="x86_64-darwin"  ;;
+                *) echo "Unsupported architecture: $ARCH" && exit 1 ;;
+            esac
+            ;;
+        *)
+            echo "Unsupported operating system: $OS"
+            exit 1
+            ;;
+    esac
+}
 
-# Set the correct permissions for the binary
-chmod +x /tmp/rockbox
+detect_platform
 
-if command -v sudo >/dev/null 2>&1; then
-    sudo mv /tmp/rockbox $INSTALL_DIR
-else
-    mv /tmp/rockbox $INSTALL_DIR
+# ── Install runtime dependencies ──────────────────────────────────────────────
+
+install_deps() {
+    if command -v apt-get >/dev/null 2>&1; then
+        _sudo apt-get install -y libunwind-dev libasound2 libdbus-1-3
+    elif command -v brew >/dev/null 2>&1; then
+        : # no extra runtime deps on macOS
+    elif command -v pacman >/dev/null 2>&1; then
+        _sudo pacman -S --noconfirm libunwind alsa-lib
+    elif command -v dnf >/dev/null 2>&1; then
+        _sudo dnf install -y libunwind alsa-lib
+    elif command -v zypper >/dev/null 2>&1; then
+        _sudo zypper install -y libunwind alsa
+    elif command -v apk >/dev/null 2>&1; then
+        _sudo apk add libunwind alsa-lib
+    fi
+}
+
+_sudo() {
+    if command -v sudo >/dev/null 2>&1; then
+        sudo "$@"
+    else
+        "$@"
+    fi
+}
+
+install_deps
+
+# ── Download & install ────────────────────────────────────────────────────────
+
+# The release tarball contains both `rockbox` (CLI) and `rockboxd` (daemon).
+DOWNLOAD_URL=$(curl -sSL "$RELEASE_URL" \
+    | grep -o "browser_download_url.*rockbox_.*_${PLATFORM}\\.tar\\.gz\"" \
+    | head -1 \
+    | cut -d ' ' -f 2 \
+    | tr -d '"')
+
+if [ -z "$DOWNLOAD_URL" ]; then
+    echo "Error: could not find a release asset for platform '${PLATFORM}'."
+    echo "Check https://github.com/tsirysndr/rockbox-zig/releases for available builds."
+    exit 1
 fi
 
-if command -v apt-get >/dev/null 2>&1; then
-    if command -v sudo >/dev/null 2>&1; then
-        sudo apt-get install -y libusb-dev \
-            libsdl2-dev \
-            libfreetype6 \
-            libunwind-dev \
-            alsa-utils \
-            libasound2-dev
-    else
-        apt-get install -y libusb-dev \
-            libsdl2-dev \
-            libfreetype6 \
-            libunwind-dev \
-            alsa-utils \
-            libasound2-dev
-    fi
-elif command -v brew >/dev/null 2>&1; then
-        brew install sdl2
-elif command -v pacman >/dev/null 2>&1; then
-    if command -v sudo >/dev/null 2>&1; then
-        sudo pacman -S --noconfirm libusb \
-            sdl \
-            freetype2 \
-            libunwind \
-            alsa-lib
-    else
-        pacman -S --noconfirm libusb \
-            sdl \
-            freetype2 \
-            libunwind \
-            alsa-lib
-    fi
-elif command -v dnf >/dev/null 2>&1; then
-    if command -v sudo >/dev/null 2>&1; then
-        sudo dnf install -y libusb \
-            SDL \
-            freetype \
-            libunwind \
-            alsa-lib
-    else
-        dnf install -y libusb \
-            SDL \
-            freetype \
-            libunwind \
-            alsa-lib
-    fi
-elif command -v zypper >/dev/null 2>&1; then
-    if command -v sudo >/dev/null 2>&1; then
-        sudo zypper install -y libusb-1_0-0 \
-            libSDL-1_2-0 \
-            freetype2 \
-            libunwind \
-            alsa
-    else
-        zypper install -y libusb-1_0-0 \
-            libSDL-1_2-0 \
-            freetype2 \
-            libunwind \
-            alsa
-    fi
-elif command -v apk >/dev/null 2>&1; then
-    if command -v sudo >/dev/null 2>&1; then
-        sudo apk add libusb \
-            sdl \
-            freetype \
-            libunwind \
-            alsa-lib
-    else
-        apk add libusb \
-            sdl \
-            freetype \
-            libunwind \
-            alsa-lib
-    fi
-fi
+ASSET_NAME=$(basename "$DOWNLOAD_URL")
 
-# Install Rockbox daemon
+echo "Downloading ${ASSET_NAME} ..."
+curl -SL "$DOWNLOAD_URL" -o "/tmp/${ASSET_NAME}"
 
-detect_os
+echo "Extracting ..."
+tar -xzf "/tmp/${ASSET_NAME}" -C /tmp
 
-DOWNLOAD_URL=$(curl -sSL $RELEASE_URL | grep -o "browser_download_url.*rockboxd_.*$ASSET_NAME\"" | cut -d ' ' -f 2)
+chmod +x /tmp/rockbox /tmp/rockboxd
 
-ASSET_NAME=$(basename $DOWNLOAD_URL)
+echo "Installing to ${INSTALL_DIR} ..."
+_sudo mv /tmp/rockbox   "${INSTALL_DIR}/rockbox"
+_sudo mv /tmp/rockboxd  "${INSTALL_DIR}/rockboxd"
 
-DOWNLOAD_URL=`echo $DOWNLOAD_URL | tr -d '\"'`
-
-# Download the asset
-curl -SL $DOWNLOAD_URL -o /tmp/$ASSET_NAME
-
-# Extract the asset
-tar -xzf /tmp/$ASSET_NAME -C /tmp
-
-# Set the correct permissions for the binary
-chmod +x /tmp/rockboxd
-
-if command -v sudo >/dev/null 2>&1; then
-    sudo mv /tmp/rockboxd $INSTALL_DIR
-else
-    mv /tmp/rockboxd $INSTALL_DIR
-fi
-
-# Install Rockbox assets
-
-detect_os
-
-ASSET_NAME=$(echo $ASSET_NAME | sed 's/_x86_64/-x86_64/')
-ASSET_NAME=$(echo $ASSET_NAME | sed 's/_aarch64/-aarch64/')
-
-DOWNLOAD_URL=$(curl -sSL $RELEASE_URL | grep -o "browser_download_url.*rockbox-assets.*$ASSET_NAME\"" | cut -d ' ' -f 2)
-
-ASSET_NAME=$(basename $DOWNLOAD_URL)
-
-DOWNLOAD_URL=`echo $DOWNLOAD_URL | tr -d '\"'`
-
-# Download the asset
-curl -SL $DOWNLOAD_URL -o /tmp/$ASSET_NAME
-
-
-# Extract the asset
-mkdir -p /tmp/rockbox-assets
-tar -xzf /tmp/$ASSET_NAME -C /tmp/rockbox-assets
-
-if command -v sudo >/dev/null 2>&1; then
-    sudo mkdir -p $INSTALL_DIR/../share/rockbox
-    sudo cp -r /tmp/rockbox-assets/* $INSTALL_DIR/../share/rockbox
-else
-    mkdir -p $INSTALL_DIR/../share/rockbox
-    cp -r /tmp/rockbox-assets/* $INSTALL_DIR/../share/rockbox
-fi
-
-# Install Rockbox Codecs
-
-detect_os
-
-ASSET_NAME=$(echo $ASSET_NAME | sed 's/_x86_64/-x86_64/')
-ASSET_NAME=$(echo $ASSET_NAME | sed 's/_aarch64/-aarch64/')
-
-DOWNLOAD_URL=$(curl -sSL $RELEASE_URL | grep -o "browser_download_url.*rockbox-codecs.*$ASSET_NAME\"" | cut -d ' ' -f 2)
-
-ASSET_NAME=$(basename $DOWNLOAD_URL)
-
-DOWNLOAD_URL=`echo $DOWNLOAD_URL | tr -d '\"'`
-
-# Download the asset
-curl -SL $DOWNLOAD_URL -o /tmp/$ASSET_NAME
-
-# Extract the asset
-tar -xzf /tmp/$ASSET_NAME -C /tmp
-
-if command -v sudo >/dev/null 2>&1; then
-    sudo mkdir -p $INSTALL_DIR/../lib/rockbox
-    sudo cp -r /tmp/codecs $INSTALL_DIR/../lib/rockbox
-    sudo cp -r /tmp/rocks $INSTALL_DIR/../lib/rockbox
-else
-    mkdir -p $INSTALL_DIR/../lib/rockbox
-    cp -r /tmp/codecs $INSTALL_DIR/../lib/rockbox
-    cp -r /tmp/rocks $INSTALL_DIR/../lib/rockbox
-fi
+rm -f "/tmp/${ASSET_NAME}"
 
 cat <<EOF
 ${ORANGE}
@@ -263,9 +130,14 @@ Please file an issue if you encounter any problems!
 
 Installation completed! 🎉
 
+Installed:
+  ${CYAN}${INSTALL_DIR}/rockbox${NO_COLOR}   — CLI client
+  ${CYAN}${INSTALL_DIR}/rockboxd${NO_COLOR}  — daemon (headless audio server)
+
 To get started, run:
 
-${CYAN}rockbox start${NO_COLOR}
+  ${CYAN}rockboxd${NO_COLOR}          (start the daemon)
+  ${CYAN}rockbox start${NO_COLOR}     (or use the CLI to launch it)
 
 Stuck? Join our Discord ${MAGENTA}https://discord.gg/tXPrgcPKSt${NO_COLOR}
 
