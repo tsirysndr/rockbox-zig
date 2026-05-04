@@ -5,3 +5,4 @@ rb_zig_compat.c
 lcd-noop.c
 button-noop.c
 cpuinfo-noop.c
+audiohw-noop.c

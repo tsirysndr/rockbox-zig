@@ -1989,6 +1989,7 @@ target/hosted/android/cdylib/rb_zig_compat.c
 target/hosted/android/cdylib/lcd-noop.c
 target/hosted/android/cdylib/button-noop.c
 target/hosted/android/cdylib/cpuinfo-noop.c
+target/hosted/android/cdylib/audiohw-noop.c
 #else
 /* Existing Java-shell Android app */
 target/hosted/lc-unix.c
