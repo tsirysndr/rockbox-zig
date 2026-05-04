@@ -542,17 +542,17 @@ pcm_sampr.c
 pcm.c
 pcm_mixer.c
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
-#if !defined(CODECS_STATIC)
-/* Multi-room / casting sinks are desktop-only for now. The Android cdylib
- * uses AAudio (defined in target/hosted/android/cdylib/pcm-aaudio.c, pulled
- * in via cdylib/SOURCES). */
+/* All hosted-platform PCM sinks ship on every hosted target including the
+ * Android cdylib — multi-room (Snapcast / Squeezelite), AirPlay, UPnP,
+ * Chromecast all available so the phone-as-server can stream out to any
+ * sink JS picks. SDL is the only sink we exclude on Android (no SDL on
+ * the cdylib build). */
 target/hosted/pcm-fifo.c
 target/hosted/pcm-airplay.c
 target/hosted/pcm-squeezelite.c
 target/hosted/pcm-upnp.c
 target/hosted/pcm-chromecast.c
 target/hosted/pcm-tcp.c
-#endif
 pcm_normalizer.c
 #endif
 #ifdef HAVE_SW_VOLUME_CONTROL

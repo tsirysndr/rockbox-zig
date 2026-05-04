@@ -70,3 +70,10 @@
  * in config.h would leak into the output of `preprocess` (which uses
  * -include config.h to evaluate SOURCES files) and produce nonsense make
  * targets. -D makes the substitution at compile time only. */
+
+/* pcm_copy_buffer is defined as memcpy when HAVE_SDL_AUDIO is set (see
+ * firmware/export/pcm-internal.h). The hosted PCM sinks (pcm-fifo.c etc.)
+ * call it; without the alias they fail to compile. We don't have SDL on
+ * this build, so map it to memcpy directly here. The line starts with #
+ * so `preprocess` filters it out of SOURCES expansion. */
+#define pcm_copy_buffer memcpy
