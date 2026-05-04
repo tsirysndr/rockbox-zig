@@ -182,11 +182,11 @@ ifndef APP_TYPE
   CODECLINK_LDS := $(CODECDIR)/codec.link
 endif
 
-ifndef CODECS_STATIC
-# Static-link mode skips the codec linker script + crt0 entirely — there
-# is no per-codec final link step, just objcopy + ar.
 CODEC_CRT0 := $(CODECDIR)/codec_crt0.o
 
+ifndef CODECS_STATIC
+# Static-link mode skips the codec linker script entirely — there is no
+# per-codec final link step, just objcopy + ar.
 $(CODECS): $(CODEC_CRT0) $(CODECLINK_LDS)
 
 $(CODECLINK_LDS): $(CODEC_LDS) $(CONFIGFILE)
@@ -273,21 +273,35 @@ $(CODECDIR)/%.codec: $(CODECDIR)/%.o
 ifdef CODECS_STATIC
 # objcopy --redefine-sym is given both the ELF (Linux/Android NDK) and the
 # Mach-O (macOS smoke-test) symbol manglings — Mach-O prepends an extra
-# leading underscore to C symbols. Three symbols per codec collide when
+# leading underscore to C symbols. Four symbols per codec collide when
 # all are linked into one binary:
-#   __header     — defined by CODEC_HEADER macro
-#   codec_main   — codec entry point (referenced from __header indirectly)
-#   codec_run    — codec decode loop  (referenced from __header)
-# All three get renamed per-codec so they coexist in the cdylib.
-$(CODECDIR)/%.a: $(CODECDIR)/%.o
+#   __header      — defined by CODEC_HEADER macro
+#   codec_main    — codec entry point (referenced from __header indirectly
+#                   via codec_start)
+#   codec_run     — codec decode loop  (referenced from __header directly)
+#   codec_start   — wrapper from codec_crt0.c that calls codec_main
+#                   (referenced from __header directly)
+# All four get renamed per-codec so they coexist in the cdylib. codec_start
+# lives in codec_crt0.o, so we also archive a per-codec renamed copy of
+# codec_crt0 into each codec's .a — that gives us a codec_start_<name>
+# that calls codec_main_<name> for that codec.
+$(CODECDIR)/%.a: $(CODECDIR)/%.o $(CODEC_CRT0)
 	$(call PRINTS,STATIC $(@F))
 	$(SILENT) $(OC) --redefine-sym __header=__header_$* \
 	                --redefine-sym ___header=___header_$* \
 	                --redefine-sym codec_main=codec_main_$* \
 	                --redefine-sym _codec_main=_codec_main_$* \
 	                --redefine-sym codec_run=codec_run_$* \
-	                --redefine-sym _codec_run=_codec_run_$* $<
-	$(SILENT) $(AR) rcs $@ $<
+	                --redefine-sym _codec_run=_codec_run_$* \
+	                --redefine-sym codec_start=codec_start_$* \
+	                --redefine-sym _codec_start=_codec_start_$* $<
+	$(SILENT) cp $(CODEC_CRT0) $(CODECDIR)/$*-crt0.o
+	$(SILENT) $(OC) --redefine-sym codec_start=codec_start_$* \
+	                --redefine-sym _codec_start=_codec_start_$* \
+	                --redefine-sym codec_main=codec_main_$* \
+	                --redefine-sym _codec_main=_codec_main_$* \
+	                $(CODECDIR)/$*-crt0.o
+	$(SILENT) $(AR) rcs $@ $< $(CODECDIR)/$*-crt0.o
 
 # Per-codec helper-lib dependencies (mirror of lines 190-229 with .a output).
 # When a codec is added/removed in SOURCES, mirror its existing .codec dep
