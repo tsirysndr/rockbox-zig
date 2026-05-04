@@ -280,6 +280,15 @@ export function serviceFlavor(
   return "unknown";
 }
 
+/**
+ * Re-push the current selection into the native layer (SERVER_URL / HTTP_URL).
+ * Call this whenever the native module may have been re-created without a
+ * corresponding selection change (e.g. after app foreground on iOS).
+ */
+export function reapplyServerUrl() {
+  applyToNative(current);
+}
+
 /** Subscribe to selection changes; returns an unsubscribe function. */
 export function subscribeSelectedServer(
   listener: (s: ServerSelection | null) => void,

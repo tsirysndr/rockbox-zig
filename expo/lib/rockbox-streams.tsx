@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState } from "react-native";
 
 import {
   dispatchAction,
@@ -17,6 +18,7 @@ import {
   autoSelectFromDiscovery,
   coversBaseUrl,
   hydrateSelectedServer,
+  reapplyServerUrl,
   useSelectedServer,
 } from "@/lib/server-store";
 import { RockboxNowPlaying } from "rockbox-now-playing";
@@ -43,6 +45,26 @@ export function RockboxStreams() {
   serverRef.current = server;
   const lastTrackRef = useRef<TrackSnapshot | null>(null);
   const lastStatusRef = useRef<StatusSnapshot | null>(null);
+
+  // Bumped on every app foreground so subscriptions restart after the native
+  // module is re-created in background (iOS) or the process is resumed (Android).
+  const [reconnectEpoch, setReconnectEpoch] = useState(0);
+
+  // Re-apply the server URL to native and restart subscriptions whenever the
+  // app comes to the foreground. On iOS the RockboxRpcModule instance may be
+  // deallocated in background (weak-self poll loops exit); on Android the
+  // Kotlin coroutine scope may be cancelled. Either way, re-subscribing on
+  // active ensures fresh poll loops with the current server URL.
+  useEffect(() => {
+    if (!RockboxClient.isAvailable) return;
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        reapplyServerUrl();
+        setReconnectEpoch((e) => e + 1);
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   // Identity of the active gRPC endpoint. Used as the dep that re-runs the
   // playback-stream subscriptions and clears the React Query cache when the
@@ -206,10 +228,10 @@ export function RockboxStreams() {
       for (const u of unsubs) u();
       if (nowPlayingEnabled()) RockboxNowPlaying.clear();
     };
-    // serverUrlKey rebinds the effect to the active server: when the user
-    // switches in Settings, the cleanup tears down the streams pointed at
-    // the old endpoint and a fresh set is established for the new one.
-  }, [qc, serverUrlKey]);
+    // serverUrlKey rebinds the effect to the active server.
+    // reconnectEpoch forces a restart on every app foreground so poll loops
+    // that exited (module re-created in background) are replaced with fresh ones.
+  }, [qc, serverUrlKey, reconnectEpoch]);
 
   return null;
 }

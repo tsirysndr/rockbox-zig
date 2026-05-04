@@ -19,6 +19,8 @@ export type ProtoTrack = {
   album_art?: string | null;
   // length is in milliseconds (the proto field name is `length`).
   length?: number;
+  track_number?: number;
+  disc_number?: number;
 };
 
 export type ProtoAlbum = {
@@ -73,6 +75,8 @@ export function trackFromProto(p: ProtoTrack | undefined | null): Track {
     albumId: fallback(p.album_id) || undefined,
     duration: durationSecs,
     artwork: coverUrl(p.album_art) ?? undefined,
+    trackNumber: p.track_number ?? undefined,
+    discNumber: p.disc_number ?? undefined,
   };
 }
 

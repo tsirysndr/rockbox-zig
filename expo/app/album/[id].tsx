@@ -20,6 +20,7 @@ import { Colors } from "@/constants/theme";
 import { useAlbumDetail } from "@/lib/library-source";
 import { ARTISTS, formatDuration } from "@/lib/mock-data";
 import { usePlayer } from "@/lib/player-context";
+import type { Track } from "@/lib/types";
 
 const { width } = Dimensions.get("window");
 const ART_SIZE = Math.min(width * 0.62, 280);
@@ -71,6 +72,21 @@ export default function AlbumScreen() {
 
   const onPlay = () => playQueue(tracks);
   const onShuffle = () => playQueue(tracks, { shuffle: true });
+
+  // Sort tracks by (disc, track_number) and detect multi-disc albums.
+  const sortedTracks = useMemo(() => {
+    return [...tracks].sort((a, b) => {
+      const da = a.discNumber ?? 1;
+      const db = b.discNumber ?? 1;
+      if (da !== db) return da - db;
+      return (a.trackNumber ?? 0) - (b.trackNumber ?? 0);
+    });
+  }, [tracks]);
+
+  const hasMultipleDiscs = useMemo(
+    () => tracks.some((t) => (t.discNumber ?? 1) > 1),
+    [tracks],
+  );
 
   return (
     <View className="flex-1 bg-bg">
@@ -189,46 +205,13 @@ export default function AlbumScreen() {
         </View>
 
         {/* Track list */}
-        <View className="mt-5">
-          {tracks.map((t, idx) => {
-            const isCurrent = currentTrack?.id === t.id;
-            return (
-              <Pressable
-                key={t.id}
-                onPress={() => playQueue(tracks, { startIdx: idx })}
-                className="flex-row items-center px-5 py-2.5 gap-3.5 active:bg-bg-hover"
-              >
-                <View className="w-[22px] items-center">
-                  {isCurrent ? (
-                    <EqualizerBars size={14} playing={isPlaying} />
-                  ) : (
-                    <Text className="text-text-muted text-[13px] font-mono">
-                      {idx + 1}
-                    </Text>
-                  )}
-                </View>
-                <View className="flex-1">
-                  <Text
-                    numberOfLines={1}
-                    className={`text-[15px] font-medium font-sans ${isCurrent ? "text-accent" : "text-text-primary"}`}
-                  >
-                    {t.title}
-                  </Text>
-                  <Text
-                    numberOfLines={1}
-                    className="text-text-secondary text-xs mt-0.5 font-sans"
-                  >
-                    {t.artist}
-                  </Text>
-                </View>
-                <Text className="text-text-muted text-xs font-mono">
-                  {formatDuration(t.duration)}
-                </Text>
-                <TrackMenuButton track={t} />
-              </Pressable>
-            );
-          })}
-        </View>
+        <TrackList
+          tracks={sortedTracks}
+          hasMultipleDiscs={hasMultipleDiscs}
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          onPlayFrom={(idx) => playQueue(sortedTracks, { startIdx: idx })}
+        />
 
         {/* Footer: release date + copyright (omitted entirely when neither is
             set, mirroring the gpui album-detail layout). */}
@@ -362,6 +345,85 @@ const MONTHS = [
   "November",
   "December",
 ];
+
+// ── TrackList ─────────────────────────────────────────────────────────────
+
+type TrackListProps = {
+  tracks: Track[];
+  hasMultipleDiscs: boolean;
+  currentTrack: Track | null | undefined;
+  isPlaying: boolean;
+  onPlayFrom: (idx: number) => void;
+};
+
+function TrackList({
+  tracks,
+  hasMultipleDiscs,
+  currentTrack,
+  isPlaying,
+  onPlayFrom,
+}: TrackListProps) {
+  let lastDisc = 0;
+  return (
+    <View className="mt-5">
+      {tracks.map((t, idx) => {
+        const disc = t.discNumber ?? 1;
+        const showDiscHeader = hasMultipleDiscs && disc !== lastDisc;
+        if (showDiscHeader) lastDisc = disc;
+        const isCurrent = currentTrack?.id === t.id;
+        const trackNum = t.trackNumber ?? idx + 1;
+        return (
+          <View key={t.id}>
+            {showDiscHeader && (
+              <View className="flex-row items-center px-5 pt-5 pb-2 gap-2">
+                <Ionicons
+                  name="disc-outline"
+                  size={13}
+                  color={Colors.textMuted}
+                />
+                <Text className="text-text-muted text-[11px] font-bold tracking-widest uppercase font-sans">
+                  Disc {disc}
+                </Text>
+              </View>
+            )}
+            <Pressable
+              onPress={() => onPlayFrom(idx)}
+              className="flex-row items-center px-5 py-2.5 gap-3.5 active:bg-bg-hover"
+            >
+              <View className="w-[22px] items-center">
+                {isCurrent ? (
+                  <EqualizerBars size={14} playing={isPlaying} />
+                ) : (
+                  <Text className="text-text-muted text-[13px] font-mono">
+                    {trackNum}
+                  </Text>
+                )}
+              </View>
+              <View className="flex-1">
+                <Text
+                  numberOfLines={1}
+                  className={`text-[15px] font-medium font-sans ${isCurrent ? "text-accent" : "text-text-primary"}`}
+                >
+                  {t.title}
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  className="text-text-secondary text-xs mt-0.5 font-sans"
+                >
+                  {t.artist}
+                </Text>
+              </View>
+              <Text className="text-text-muted text-xs font-mono">
+                {formatDuration(t.duration)}
+              </Text>
+              <TrackMenuButton track={t} />
+            </Pressable>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
 
 // "2014-12-09" → "9 December 2014". Falls back to the raw string on any
 // parse failure. Mirrors gpui's `format_release_date`.

@@ -12,6 +12,8 @@ export type Track = {
   duration: number;
   artwork?: string;
   liked?: boolean;
+  trackNumber?: number;
+  discNumber?: number;
 };
 
 export type Album = {
