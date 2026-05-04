@@ -77,6 +77,12 @@ import Foundation
 @_silgen_name("rb_get_saved_playlist_tracks_json")  private func rb_get_saved_playlist_tracks_json(_ pid: UnsafePointer<CChar>) -> UnsafeMutablePointer<CChar>?
 @_silgen_name("rb_play_saved_playlist")             private func rb_play_saved_playlist(_ pid: UnsafePointer<CChar>) -> Int32
 
+@_silgen_name("rb_get_genres_json")          private func rb_get_genres_json() -> UnsafeMutablePointer<CChar>?
+@_silgen_name("rb_get_genre_json")           private func rb_get_genre_json(_ id: UnsafePointer<CChar>) -> UnsafeMutablePointer<CChar>?
+@_silgen_name("rb_get_genre_tracks_json")    private func rb_get_genre_tracks_json(_ id: UnsafePointer<CChar>) -> UnsafeMutablePointer<CChar>?
+@_silgen_name("rb_get_genre_albums_json")    private func rb_get_genre_albums_json(_ id: UnsafePointer<CChar>) -> UnsafeMutablePointer<CChar>?
+@_silgen_name("rb_get_genre_artists_json")   private func rb_get_genre_artists_json(_ id: UnsafePointer<CChar>) -> UnsafeMutablePointer<CChar>?
+
 @_silgen_name("rb_get_smart_playlists_json")        private func rb_get_smart_playlists_json() -> UnsafeMutablePointer<CChar>?
 @_silgen_name("rb_get_smart_playlist_tracks_json")  private func rb_get_smart_playlist_tracks_json(_ id: UnsafePointer<CChar>) -> UnsafeMutablePointer<CChar>?
 @_silgen_name("rb_play_smart_playlist")             private func rb_play_smart_playlist(_ id: UnsafePointer<CChar>) -> Int32
@@ -359,6 +365,26 @@ public class RockboxRpcModule: Module {
         AsyncFunction("playSavedPlaylist") { (playlistId: String) -> Void in
             let rc = playlistId.withCString { rb_play_saved_playlist($0) }
             if rc != 0 { throw self.playbackError("playSavedPlaylist") }
+        }
+
+        AsyncFunction("getGenres") { () -> Any in
+            try self.parseJsonOrThrow(takeString(rb_get_genres_json()), op: "getGenres")
+        }
+        AsyncFunction("getGenre") { (id: String) -> Any in
+            let raw = id.withCString { rb_get_genre_json($0) }
+            return try self.parseJsonOrThrow(takeString(raw), op: "getGenre")
+        }
+        AsyncFunction("getGenreTracks") { (id: String) -> Any in
+            let raw = id.withCString { rb_get_genre_tracks_json($0) }
+            return try self.parseJsonOrThrow(takeString(raw), op: "getGenreTracks")
+        }
+        AsyncFunction("getGenreAlbums") { (id: String) -> Any in
+            let raw = id.withCString { rb_get_genre_albums_json($0) }
+            return try self.parseJsonOrThrow(takeString(raw), op: "getGenreAlbums")
+        }
+        AsyncFunction("getGenreArtists") { (id: String) -> Any in
+            let raw = id.withCString { rb_get_genre_artists_json($0) }
+            return try self.parseJsonOrThrow(takeString(raw), op: "getGenreArtists")
         }
 
         AsyncFunction("getSmartPlaylists") { () -> Any in

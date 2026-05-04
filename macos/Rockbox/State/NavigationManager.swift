@@ -13,12 +13,22 @@ class NavigationManager: ObservableObject {
     @Published var selectedArtist: Artist? = nil
     @Published var selectedPlaylist: SavedPlaylist? = nil
     @Published var selectedSmartPlaylist: SmartPlaylist? = nil
-    
+    @Published var selectedGenre: Genre? = nil
+
     func goToAlbum(_ album: Album) {
         selectedArtist = nil
         selectedPlaylist = nil
         selectedSmartPlaylist = nil
+        selectedGenre = nil
         selectedAlbum = album
+    }
+
+    func goToGenre(_ genre: Genre) {
+        selectedAlbum = nil
+        selectedArtist = nil
+        selectedPlaylist = nil
+        selectedSmartPlaylist = nil
+        selectedGenre = genre
     }
     
     func goToAlbum(byId albumId: String) async {
@@ -90,6 +100,8 @@ class NavigationManager: ObservableObject {
             selectedPlaylist = nil
         } else if selectedSmartPlaylist != nil {
             selectedSmartPlaylist = nil
+        } else if selectedGenre != nil {
+            selectedGenre = nil
         }
     }
 
@@ -98,6 +110,7 @@ class NavigationManager: ObservableObject {
         selectedArtist = nil
         selectedPlaylist = nil
         selectedSmartPlaylist = nil
+        selectedGenre = nil
     }
 }
 

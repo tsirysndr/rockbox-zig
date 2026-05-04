@@ -566,6 +566,29 @@ pub struct SearchResponse {
     #[prost(message, repeated, tag = "4")]
     pub playlists: ::prost::alloc::vec::Vec<SearchPlaylist>,
 }
+/// Advanced filters reuse the same JSON-encoded RuleCriteria shape used by
+/// smart playlists. The filter is applied to the underlying tracks; matching
+/// albums / artists are the ones whose tracks pass the filter.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FilterAlbumsRequest {
+    #[prost(string, tag = "1")]
+    pub rules_json: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FilterAlbumsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub albums: ::prost::alloc::vec::Vec<Album>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FilterArtistsRequest {
+    #[prost(string, tag = "1")]
+    pub rules_json: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FilterArtistsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub artists: ::prost::alloc::vec::Vec<Artist>,
+}
 /// Generated client implementations.
 pub mod library_service_client {
     #![allow(
@@ -1028,6 +1051,58 @@ pub mod library_service_client {
                 .insert(GrpcMethod::new("rockbox.v1alpha1.LibraryService", "Search"));
             self.inner.unary(req, path, codec).await
         }
+        pub async fn filter_albums(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FilterAlbumsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FilterAlbumsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/FilterAlbums",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "FilterAlbums"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn filter_artists(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FilterArtistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FilterArtistsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.LibraryService/FilterArtists",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.LibraryService", "FilterArtists"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -1151,6 +1226,20 @@ pub mod library_service_server {
             &self,
             request: tonic::Request<super::SearchRequest>,
         ) -> std::result::Result<tonic::Response<super::SearchResponse>, tonic::Status>;
+        async fn filter_albums(
+            &self,
+            request: tonic::Request<super::FilterAlbumsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FilterAlbumsResponse>,
+            tonic::Status,
+        >;
+        async fn filter_artists(
+            &self,
+            request: tonic::Request<super::FilterArtistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FilterArtistsResponse>,
+            tonic::Status,
+        >;
     }
     #[derive(Debug)]
     pub struct LibraryServiceServer<T> {
@@ -1906,6 +1995,96 @@ pub mod library_service_server {
                     };
                     Box::pin(fut)
                 }
+                "/rockbox.v1alpha1.LibraryService/FilterAlbums" => {
+                    #[allow(non_camel_case_types)]
+                    struct FilterAlbumsSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::FilterAlbumsRequest>
+                    for FilterAlbumsSvc<T> {
+                        type Response = super::FilterAlbumsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FilterAlbumsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::filter_albums(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = FilterAlbumsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.LibraryService/FilterArtists" => {
+                    #[allow(non_camel_case_types)]
+                    struct FilterArtistsSvc<T: LibraryService>(pub Arc<T>);
+                    impl<
+                        T: LibraryService,
+                    > tonic::server::UnaryService<super::FilterArtistsRequest>
+                    for FilterArtistsSvc<T> {
+                        type Response = super::FilterArtistsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FilterArtistsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as LibraryService>::filter_artists(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = FilterArtistsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 _ => {
                     Box::pin(async move {
                         let mut response = http::Response::new(empty_body());
@@ -1941,6 +2120,680 @@ pub mod library_service_server {
     /// Generated gRPC service name
     pub const SERVICE_NAME: &str = "rockbox.v1alpha1.LibraryService";
     impl<T> tonic::server::NamedService for LibraryServiceServer<T> {
+        const NAME: &'static str = SERVICE_NAME;
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Genre {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "3")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(string, optional, tag = "4")]
+    pub image: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(message, repeated, tag = "5")]
+    pub tracks: ::prost::alloc::vec::Vec<Track>,
+    #[prost(message, repeated, tag = "6")]
+    pub albums: ::prost::alloc::vec::Vec<Album>,
+    #[prost(message, repeated, tag = "7")]
+    pub artists: ::prost::alloc::vec::Vec<Artist>,
+    #[prost(int64, tag = "8")]
+    pub track_count: i64,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetGenresRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGenresResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub genres: ::prost::alloc::vec::Vec<Genre>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGenreRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGenreResponse {
+    #[prost(message, optional, tag = "1")]
+    pub genre: ::core::option::Option<Genre>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGenreTracksRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGenreTracksResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub tracks: ::prost::alloc::vec::Vec<Track>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGenreAlbumsRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGenreAlbumsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub albums: ::prost::alloc::vec::Vec<Album>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGenreArtistsRequest {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetGenreArtistsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub artists: ::prost::alloc::vec::Vec<Artist>,
+}
+/// Generated client implementations.
+pub mod genre_service_client {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    #[derive(Debug, Clone)]
+    pub struct GenreServiceClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl GenreServiceClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> GenreServiceClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + std::marker::Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + std::marker::Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> GenreServiceClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
+        {
+            GenreServiceClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        pub async fn get_genres(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetGenresRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenresResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.GenreService/GetGenres",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.GenreService", "GetGenres"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_genre(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetGenreRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenreResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.GenreService/GetGenre",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("rockbox.v1alpha1.GenreService", "GetGenre"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_genre_tracks(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetGenreTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenreTracksResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.GenreService/GetGenreTracks",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.GenreService", "GetGenreTracks"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_genre_albums(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetGenreAlbumsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenreAlbumsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.GenreService/GetGenreAlbums",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.GenreService", "GetGenreAlbums"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_genre_artists(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetGenreArtistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenreArtistsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rockbox.v1alpha1.GenreService/GetGenreArtists",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("rockbox.v1alpha1.GenreService", "GetGenreArtists"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Generated server implementations.
+pub mod genre_service_server {
+    #![allow(
+        unused_variables,
+        dead_code,
+        missing_docs,
+        clippy::wildcard_imports,
+        clippy::let_unit_value,
+    )]
+    use tonic::codegen::*;
+    /// Generated trait containing gRPC methods that should be implemented for use with GenreServiceServer.
+    #[async_trait]
+    pub trait GenreService: std::marker::Send + std::marker::Sync + 'static {
+        async fn get_genres(
+            &self,
+            request: tonic::Request<super::GetGenresRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenresResponse>,
+            tonic::Status,
+        >;
+        async fn get_genre(
+            &self,
+            request: tonic::Request<super::GetGenreRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenreResponse>,
+            tonic::Status,
+        >;
+        async fn get_genre_tracks(
+            &self,
+            request: tonic::Request<super::GetGenreTracksRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenreTracksResponse>,
+            tonic::Status,
+        >;
+        async fn get_genre_albums(
+            &self,
+            request: tonic::Request<super::GetGenreAlbumsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenreAlbumsResponse>,
+            tonic::Status,
+        >;
+        async fn get_genre_artists(
+            &self,
+            request: tonic::Request<super::GetGenreArtistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetGenreArtistsResponse>,
+            tonic::Status,
+        >;
+    }
+    #[derive(Debug)]
+    pub struct GenreServiceServer<T> {
+        inner: Arc<T>,
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
+    }
+    impl<T> GenreServiceServer<T> {
+        pub fn new(inner: T) -> Self {
+            Self::from_arc(Arc::new(inner))
+        }
+        pub fn from_arc(inner: Arc<T>) -> Self {
+            Self {
+                inner,
+                accept_compression_encodings: Default::default(),
+                send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
+            }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> InterceptedService<Self, F>
+        where
+            F: tonic::service::Interceptor,
+        {
+            InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
+    }
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for GenreServiceServer<T>
+    where
+        T: GenreService,
+        B: Body + std::marker::Send + 'static,
+        B::Error: Into<StdError> + std::marker::Send + 'static,
+    {
+        type Response = http::Response<tonic::body::BoxBody>;
+        type Error = std::convert::Infallible;
+        type Future = BoxFuture<Self::Response, Self::Error>;
+        fn poll_ready(
+            &mut self,
+            _cx: &mut Context<'_>,
+        ) -> Poll<std::result::Result<(), Self::Error>> {
+            Poll::Ready(Ok(()))
+        }
+        fn call(&mut self, req: http::Request<B>) -> Self::Future {
+            match req.uri().path() {
+                "/rockbox.v1alpha1.GenreService/GetGenres" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetGenresSvc<T: GenreService>(pub Arc<T>);
+                    impl<
+                        T: GenreService,
+                    > tonic::server::UnaryService<super::GetGenresRequest>
+                    for GetGenresSvc<T> {
+                        type Response = super::GetGenresResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetGenresRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as GenreService>::get_genres(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetGenresSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.GenreService/GetGenre" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetGenreSvc<T: GenreService>(pub Arc<T>);
+                    impl<
+                        T: GenreService,
+                    > tonic::server::UnaryService<super::GetGenreRequest>
+                    for GetGenreSvc<T> {
+                        type Response = super::GetGenreResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetGenreRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as GenreService>::get_genre(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetGenreSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.GenreService/GetGenreTracks" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetGenreTracksSvc<T: GenreService>(pub Arc<T>);
+                    impl<
+                        T: GenreService,
+                    > tonic::server::UnaryService<super::GetGenreTracksRequest>
+                    for GetGenreTracksSvc<T> {
+                        type Response = super::GetGenreTracksResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetGenreTracksRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as GenreService>::get_genre_tracks(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetGenreTracksSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.GenreService/GetGenreAlbums" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetGenreAlbumsSvc<T: GenreService>(pub Arc<T>);
+                    impl<
+                        T: GenreService,
+                    > tonic::server::UnaryService<super::GetGenreAlbumsRequest>
+                    for GetGenreAlbumsSvc<T> {
+                        type Response = super::GetGenreAlbumsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetGenreAlbumsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as GenreService>::get_genre_albums(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetGenreAlbumsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rockbox.v1alpha1.GenreService/GetGenreArtists" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetGenreArtistsSvc<T: GenreService>(pub Arc<T>);
+                    impl<
+                        T: GenreService,
+                    > tonic::server::UnaryService<super::GetGenreArtistsRequest>
+                    for GetGenreArtistsSvc<T> {
+                        type Response = super::GetGenreArtistsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetGenreArtistsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as GenreService>::get_genre_artists(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetGenreArtistsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                _ => {
+                    Box::pin(async move {
+                        let mut response = http::Response::new(empty_body());
+                        let headers = response.headers_mut();
+                        headers
+                            .insert(
+                                tonic::Status::GRPC_STATUS,
+                                (tonic::Code::Unimplemented as i32).into(),
+                            );
+                        headers
+                            .insert(
+                                http::header::CONTENT_TYPE,
+                                tonic::metadata::GRPC_CONTENT_TYPE,
+                            );
+                        Ok(response)
+                    })
+                }
+            }
+        }
+    }
+    impl<T> Clone for GenreServiceServer<T> {
+        fn clone(&self) -> Self {
+            let inner = self.inner.clone();
+            Self {
+                inner,
+                accept_compression_encodings: self.accept_compression_encodings,
+                send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
+            }
+        }
+    }
+    /// Generated gRPC service name
+    pub const SERVICE_NAME: &str = "rockbox.v1alpha1.GenreService";
+    impl<T> tonic::server::NamedService for GenreServiceServer<T> {
         const NAME: &'static str = SERVICE_NAME;
     }
 }
@@ -10804,6 +11657,8 @@ pub struct SmartPlaylist {
     pub created_at: i64,
     #[prost(int64, tag = "9")]
     pub updated_at: i64,
+    #[prost(int64, tag = "10")]
+    pub track_count: i64,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GetSmartPlaylistsRequest {}

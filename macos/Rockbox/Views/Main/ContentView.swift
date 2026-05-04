@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var selection: SidebarItem? = .albums
+    @State private var selection: SidebarItem? = .home
     @StateObject private var player = PlayerState()
     @StateObject private var library = MusicLibrary()
     @State private var showQueue = false

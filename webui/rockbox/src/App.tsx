@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import HomePage from "./Containers/Home";
 import AlbumsPage from "./Containers/Albums";
 import ArtistsPage from "./Containers/Artists/ArtistsPage";
 import TracksPage from "./Containers/Tracks";
@@ -10,16 +11,20 @@ import SettingsPage from "./Containers/Settings";
 import PlaylistsPage from "./Containers/Playlists";
 import PlaylistDetailsPage from "./Containers/PlaylistDetails";
 import SmartPlaylistDetailsPage from "./Containers/PlaylistDetails/SmartPlaylistDetailsPage";
+import GenresPage from "./Containers/Genres";
+import GenreDetailsPage from "./Containers/GenreDetails";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AlbumsPage />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/albums" element={<AlbumsPage />} />
         <Route path="/albums/:id" element={<AlbumDetails />} />
         <Route path="/artists" element={<ArtistsPage />} />
         <Route path="/artists/:id" element={<ArtistDetails />} />
+        <Route path="/genres" element={<GenresPage />} />
+        <Route path="/genres/:id" element={<GenreDetailsPage />} />
         <Route path="/tracks" element={<TracksPage />} />
         <Route path="/files" element={<FilesPage />} />
         <Route path="/likes" element={<LikesPage />} />

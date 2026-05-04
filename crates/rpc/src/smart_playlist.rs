@@ -1,4 +1,4 @@
-use rockbox_playlists::{SmartPlaylist, TrackStats};
+use rockbox_playlists::{resolver, SmartPlaylist, TrackStats};
 #[cfg(not(feature = "fts5"))]
 use rockbox_typesense::client::{delete_playlist as ts_delete_playlist, insert_playlists};
 #[cfg(not(feature = "fts5"))]
@@ -15,10 +15,8 @@ use crate::api::rockbox::v1alpha1::{
     RuleCriteria as ProtoRuleCriteria, SmartPlaylist as ProtoSmartPlaylist,
     TrackStats as ProtoTrackStats, UpdateSmartPlaylistRequest, UpdateSmartPlaylistResponse,
 };
-use rockbox_library::repo;
-use rockbox_playlists::rules::{Candidate, RuleCriteria};
+use rockbox_playlists::rules::RuleCriteria;
 use sqlx::{Pool, Sqlite};
-use std::collections::HashMap;
 
 use crate::rockbox_url;
 
@@ -239,7 +237,7 @@ fn to_proto_criteria(p: &rockbox_playlists::rules::RuleCriteria) -> ProtoRuleCri
     }
 }
 
-fn to_proto_smart_playlist(p: SmartPlaylist) -> ProtoSmartPlaylist {
+fn to_proto_smart_playlist(p: SmartPlaylist, track_count: i64) -> ProtoSmartPlaylist {
     ProtoSmartPlaylist {
         id: p.id,
         name: p.name,
@@ -250,6 +248,7 @@ fn to_proto_smart_playlist(p: SmartPlaylist) -> ProtoSmartPlaylist {
         rules: Some(to_proto_criteria(&p.rules)),
         created_at: p.created_at,
         updated_at: p.updated_at,
+        track_count,
     }
 }
 
@@ -275,8 +274,19 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             .list_smart_playlists()
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let (candidates, _) = resolver::build_candidates(&self.store, &self.pool)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let mut out = Vec::with_capacity(playlists.len());
+        for p in playlists {
+            let track_count =
+                rockbox_playlists::rules::resolve(&p.rules, candidates.clone()).len() as i64;
+            out.push(to_proto_smart_playlist(p, track_count));
+        }
         Ok(tonic::Response::new(GetSmartPlaylistsResponse {
-            playlists: playlists.into_iter().map(to_proto_smart_playlist).collect(),
+            playlists: out,
         }))
     }
 
@@ -290,8 +300,18 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             .get_smart_playlist(&id)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let proto = match playlist {
+            Some(p) => {
+                let track_count = resolver::count_tracks(&self.store, &self.pool, &p.rules)
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+                Some(to_proto_smart_playlist(p, track_count))
+            }
+            None => None,
+        };
         Ok(tonic::Response::new(GetSmartPlaylistResponse {
-            playlist: playlist.map(to_proto_smart_playlist),
+            playlist: proto,
         }))
     }
 
@@ -316,6 +336,9 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             )
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let track_count = resolver::count_tracks(&self.store, &self.pool, &playlist.rules)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
         #[cfg(not(feature = "fts5"))]
         {
             let ts_p = TsPlaylist {
@@ -324,12 +347,12 @@ impl SmartPlaylistService for SmartPlaylistRpc {
                 description: playlist.description.clone(),
                 image: playlist.image.clone(),
                 is_smart: true,
-                track_count: 0,
+                track_count,
             };
             let _ = insert_playlists(vec![ts_p]).await;
         }
         Ok(tonic::Response::new(CreateSmartPlaylistResponse {
-            playlist: Some(to_proto_smart_playlist(playlist)),
+            playlist: Some(to_proto_smart_playlist(playlist, track_count)),
         }))
     }
 
@@ -356,13 +379,16 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
         #[cfg(not(feature = "fts5"))]
         if let Ok(Some(updated)) = self.store.get_smart_playlist(&req.id).await {
+            let track_count = resolver::count_tracks(&self.store, &self.pool, &updated.rules)
+                .await
+                .unwrap_or(0);
             let ts_p = TsPlaylist {
                 id: updated.id.clone(),
                 name: updated.name.clone(),
                 description: updated.description.clone(),
                 image: updated.image.clone(),
                 is_smart: true,
-                track_count: 0,
+                track_count,
             };
             let _ = insert_playlists(vec![ts_p]).await;
         }
@@ -403,52 +429,10 @@ impl SmartPlaylistService for SmartPlaylistRpc {
             }
         };
 
-        let all_tracks = repo::track::all(self.pool.clone())
+        let tracks = resolver::resolve_tracks(&self.store, &self.pool, &criteria)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
-
-        let stats_map: HashMap<String, rockbox_playlists::TrackStats> = self
-            .store
-            .get_all_track_stats()
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?
-            .into_iter()
-            .map(|s| (s.track_id.clone(), s))
-            .collect();
-
-        let liked_ids: std::collections::HashSet<String> =
-            repo::favourites::all_tracks(self.pool.clone())
-                .await
-                .map_err(|e| tonic::Status::internal(e.to_string()))?
-                .into_iter()
-                .map(|t| t.id)
-                .collect();
-
-        let candidates: Vec<Candidate> = all_tracks
-            .iter()
-            .map(|t| {
-                let stats = stats_map.get(&t.id);
-                Candidate {
-                    id: t.id.clone(),
-                    title: t.title.clone(),
-                    artist: t.artist.clone(),
-                    album: t.album.clone(),
-                    year: t.year.map(|y| y as i64),
-                    genre: t.genre.clone(),
-                    duration_ms: t.length as i64 * 1000,
-                    bitrate: t.bitrate as i64,
-                    date_added_ts: t.created_at.timestamp(),
-                    play_count: stats.map(|s| s.play_count).unwrap_or(0),
-                    skip_count: stats.map(|s| s.skip_count).unwrap_or(0),
-                    last_played: stats.and_then(|s| s.last_played),
-                    last_skipped: stats.and_then(|s| s.last_skipped),
-                    is_liked: liked_ids.contains(&t.id),
-                }
-            })
-            .collect();
-
-        let resolved = rockbox_playlists::rules::resolve(&criteria, candidates);
-        let track_ids = resolved.into_iter().map(|c| c.id).collect();
+        let track_ids = tracks.into_iter().map(|t| t.id).collect();
 
         Ok(tonic::Response::new(GetSmartPlaylistTracksResponse {
             track_ids,

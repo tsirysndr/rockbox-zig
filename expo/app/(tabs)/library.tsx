@@ -24,6 +24,7 @@ import { formatDuration } from "@/lib/mock-data";
 import {
   useLibraryAlbums,
   useLibraryArtists,
+  useLibraryLikedTracks,
   useLibraryPlaylists,
   useLibraryTracks,
 } from "@/lib/library-source";
@@ -43,13 +44,15 @@ export default function LibraryScreen() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
-  const { liked, userPlaylists, playTrack, currentTrack, isPlaying } = usePlayer();
+  const { liked, userPlaylists, playTrack, playQueue, currentTrack, isPlaying } =
+    usePlayer();
   const isConnected = useIsConnected();
   const bottomPad = useBottomSpacing(24);
   const { data: tracks } = useLibraryTracks();
   const { data: albums } = useLibraryAlbums();
   const { data: artists } = useLibraryArtists();
   const { data: playlists } = useLibraryPlaylists();
+  const { data: likedTracks } = useLibraryLikedTracks();
 
   const q = searchQuery.trim().toLowerCase();
   const allPlaylists = useMemo(
@@ -88,6 +91,20 @@ export default function LibraryScreen() {
   const filteredArtists = useMemo(
     () => (q ? artists.filter((a) => a.name.toLowerCase().includes(q)) : artists),
     [q, artists],
+  );
+  // likedTracks comes back from the server already ordered by liked-at desc
+  // (`favourites.created_at DESC` in repo::favourites::all_tracks). Filter
+  // for the search box but never re-sort.
+  const filteredLiked = useMemo(
+    () =>
+      q
+        ? likedTracks.filter(
+            (t) =>
+              t.title.toLowerCase().includes(q) ||
+              t.artist.toLowerCase().includes(q),
+          )
+        : likedTracks,
+    [q, likedTracks],
   );
 
   return (
@@ -340,7 +357,7 @@ export default function LibraryScreen() {
       ) : (
         <FlatList
           key="list-liked"
-          data={filteredSongs.filter((t) => liked.has(t.id))}
+          data={filteredLiked}
           keyExtractor={(t) => t.id}
           ListHeaderComponent={
             <View className="px-4 pt-1 pb-4">
@@ -353,9 +370,46 @@ export default function LibraryScreen() {
                     Liked Songs
                   </Text>
                   <Text className="text-text-secondary text-[13px] mt-1 font-sans">
-                    {liked.size} liked tracks
+                    {likedTracks.length} liked tracks
                   </Text>
                 </View>
+              </View>
+              <View className="flex-row items-center gap-4 mt-4">
+                <Pressable
+                  hitSlop={6}
+                  onPress={() => playQueue(likedTracks, { shuffle: true })}
+                  disabled={likedTracks.length === 0}
+                  className="active:opacity-70 disabled:opacity-40"
+                >
+                  <Ionicons
+                    name="shuffle"
+                    size={26}
+                    color={
+                      likedTracks.length === 0
+                        ? Colors.textMuted
+                        : Colors.textPrimary
+                    }
+                  />
+                </Pressable>
+                <View className="flex-1" />
+                <Pressable
+                  onPress={() => playQueue(likedTracks)}
+                  disabled={likedTracks.length === 0}
+                  className="w-14 h-14 rounded-full items-center justify-center bg-accent active:opacity-85 disabled:opacity-40"
+                  style={{
+                    shadowColor: Colors.accent,
+                    shadowOpacity: 0.5,
+                    shadowRadius: 14,
+                    shadowOffset: { width: 0, height: 6 },
+                  }}
+                >
+                  <Ionicons
+                    name="play"
+                    size={26}
+                    color="#FFFFFF"
+                    style={{ marginLeft: 3 }}
+                  />
+                </Pressable>
               </View>
             </View>
           }

@@ -231,6 +231,23 @@ export const RockboxClient = {
     return require_().playSavedPlaylist(playlistId);
   },
 
+  // Genres
+  getGenres() {
+    return require_().getGenres();
+  },
+  getGenre(id: string) {
+    return require_().getGenre(id);
+  },
+  getGenreTracks(id: string) {
+    return require_().getGenreTracks(id);
+  },
+  getGenreAlbums(id: string) {
+    return require_().getGenreAlbums(id);
+  },
+  getGenreArtists(id: string) {
+    return require_().getGenreArtists(id);
+  },
+
   // Smart playlists
   getSmartPlaylists() {
     return require_().getSmartPlaylists();

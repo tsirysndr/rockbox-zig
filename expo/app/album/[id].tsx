@@ -229,6 +229,23 @@ export default function AlbumScreen() {
             );
           })}
         </View>
+
+        {/* Footer: release date + copyright (omitted entirely when neither is
+            set, mirroring the gpui album-detail layout). */}
+        {album.yearString || album.copyrightMessage ? (
+          <View className="px-6 pt-6 pb-2 gap-1">
+            {album.yearString ? (
+              <Text className="text-text-secondary text-sm font-sans">
+                {formatReleaseDate(album.yearString)}
+              </Text>
+            ) : null}
+            {album.copyrightMessage ? (
+              <Text className="text-text-secondary text-sm font-sans">
+                {album.copyrightMessage}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
       </Animated.ScrollView>
 
       <ActionSheet
@@ -329,4 +346,40 @@ export default function AlbumScreen() {
       </SafeAreaView>
     </View>
   );
+}
+
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+// "2014-12-09" → "9 December 2014". Falls back to the raw string on any
+// parse failure. Mirrors gpui's `format_release_date`.
+function formatReleaseDate(s: string): string {
+  const parts = s.split("-", 3);
+  if (parts.length === 3) {
+    const y = Number(parts[0]);
+    const m = Number(parts[1]);
+    const d = Number(parts[2]);
+    if (
+      Number.isFinite(y) &&
+      Number.isFinite(m) &&
+      Number.isFinite(d) &&
+      m >= 1 &&
+      m <= 12
+    ) {
+      return `${d} ${MONTHS[m - 1]} ${y}`;
+    }
+  }
+  return s;
 }

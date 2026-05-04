@@ -85,6 +85,14 @@ struct DetailView: View {
         library: library,
         onBack: { navigation.selectedSmartPlaylist = nil }
       )
+    } else if let genre = navigation.selectedGenre {
+      GenreDetailView(
+        genre: genre,
+        library: library,
+        onBack: { navigation.selectedGenre = nil },
+        onAlbumSelected: { album in navigation.goToAlbum(album) },
+        onArtistSelected: { artist in navigation.goToArtist(artist) }
+      )
     } else if let selection {
       selectionView(for: selection)
     } else {
@@ -97,10 +105,14 @@ struct DetailView: View {
   @ViewBuilder
   private func selectionView(for selection: SidebarItem) -> some View {
     switch selection {
+    case .home:
+      HomeView()
     case .albums:
       AlbumsGridView(selectedAlbum: $navigation.selectedAlbum)
     case .artists:
       ArtistsGridView(selectedArtist: $navigation.selectedArtist)
+    case .genres:
+      GenresGridView(selectedGenre: $navigation.selectedGenre)
     case .songs:
       SongsListView(library: library)
     case .likes:

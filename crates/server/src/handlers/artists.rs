@@ -1,5 +1,6 @@
 use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use rockbox_library::repo;
+use rockbox_playlists::{resolver, rules::RuleCriteria};
 
 use crate::http::AppState;
 
@@ -37,4 +38,19 @@ pub async fn get_artist_tracks(
         .await
         .map_err(ErrorInternalServerError)?;
     Ok(HttpResponse::Ok().json(tracks))
+}
+
+/// Apply smart-playlist-style rules to the track library and return the
+/// matching artists (deduplicated, in resolver order).
+///
+/// Body: a JSON RuleCriteria — same shape used by smart playlists.
+pub async fn filter_artists(
+    state: web::Data<AppState>,
+    body: web::Json<RuleCriteria>,
+) -> HandlerResult {
+    let criteria = body.into_inner();
+    let artists = resolver::filter_artists(&state.playlist_store, &state.pool, &criteria)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Ok().json(artists))
 }

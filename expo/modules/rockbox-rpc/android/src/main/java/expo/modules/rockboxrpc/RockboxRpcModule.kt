@@ -102,6 +102,12 @@ class RockboxRpcModule : Module() {
     @JvmStatic external fun rb_get_saved_playlist_tracks_json(playlistId: String): String?
     @JvmStatic external fun rb_play_saved_playlist(playlistId: String): Int
 
+    @JvmStatic external fun rb_get_genres_json(): String?
+    @JvmStatic external fun rb_get_genre_json(id: String): String?
+    @JvmStatic external fun rb_get_genre_tracks_json(id: String): String?
+    @JvmStatic external fun rb_get_genre_albums_json(id: String): String?
+    @JvmStatic external fun rb_get_genre_artists_json(id: String): String?
+
     @JvmStatic external fun rb_get_smart_playlists_json(): String?
     @JvmStatic external fun rb_get_smart_playlist_tracks_json(id: String): String?
     @JvmStatic external fun rb_play_smart_playlist(id: String): Int
@@ -438,6 +444,22 @@ class RockboxRpcModule : Module() {
     }
     AsyncFunction("playSavedPlaylist") { playlistId: String ->
       if (rb_play_saved_playlist(playlistId) != 0) throw RpcError("playSavedPlaylist")
+    }
+
+    AsyncFunction("getGenres") {
+      parseJsonOrThrow(rb_get_genres_json(), "getGenres")
+    }
+    AsyncFunction("getGenre") { id: String ->
+      parseJsonOrThrow(rb_get_genre_json(id), "getGenre")
+    }
+    AsyncFunction("getGenreTracks") { id: String ->
+      parseJsonOrThrow(rb_get_genre_tracks_json(id), "getGenreTracks")
+    }
+    AsyncFunction("getGenreAlbums") { id: String ->
+      parseJsonOrThrow(rb_get_genre_albums_json(id), "getGenreAlbums")
+    }
+    AsyncFunction("getGenreArtists") { id: String ->
+      parseJsonOrThrow(rb_get_genre_artists_json(id), "getGenreArtists")
     }
 
     AsyncFunction("getSmartPlaylists") {

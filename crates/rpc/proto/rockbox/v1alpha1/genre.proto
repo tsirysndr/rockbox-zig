@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package rockbox.v1alpha1;
+
+import "rockbox/v1alpha1/library.proto";
+
+message Genre {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional string image = 4;
+  repeated Track tracks = 5;
+  repeated Album albums = 6;
+  repeated Artist artists = 7;
+  int64 track_count = 8;
+}
+
+message GetGenresRequest {}
+message GetGenresResponse { repeated Genre genres = 1; }
+
+message GetGenreRequest { string id = 1; }
+message GetGenreResponse { optional Genre genre = 1; }
+
+message GetGenreTracksRequest { string id = 1; }
+message GetGenreTracksResponse { repeated Track tracks = 1; }
+
+message GetGenreAlbumsRequest { string id = 1; }
+message GetGenreAlbumsResponse { repeated Album albums = 1; }
+
+message GetGenreArtistsRequest { string id = 1; }
+message GetGenreArtistsResponse { repeated Artist artists = 1; }
+
+service GenreService {
+  rpc GetGenres(GetGenresRequest) returns (GetGenresResponse);
+  rpc GetGenre(GetGenreRequest) returns (GetGenreResponse);
+  rpc GetGenreTracks(GetGenreTracksRequest) returns (GetGenreTracksResponse);
+  rpc GetGenreAlbums(GetGenreAlbumsRequest) returns (GetGenreAlbumsResponse);
+  rpc GetGenreArtists(GetGenreArtistsRequest) returns (GetGenreArtistsResponse);
+}

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { IconDeviceLaptop } from "@tabler/icons-react-native";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -188,12 +189,12 @@ export default function ServerPickerScreen() {
                         className="flex-row items-center px-4 py-3.5 gap-3 active:bg-bg-hover"
                       >
                         <View className="w-9 h-9 rounded-full bg-bg-elevated items-center justify-center">
-                          <Ionicons
-                            name="server-outline"
-                            size={18}
+                          <IconDeviceLaptop
+                            size={20}
                             color={
                               isCurrent ? Colors.accent : Colors.textPrimary
                             }
+                            strokeWidth={1.75}
                           />
                         </View>
                         <View className="flex-1">

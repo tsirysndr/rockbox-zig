@@ -1,5 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import { IconCast, type Icon as TablerIcon } from "@tabler/icons-react-native";
+import {
+  IconCast,
+  IconDevices,
+  type Icon as TablerIcon,
+} from "@tabler/icons-react-native";
 import { router, Stack } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Switch, Text, View } from "react-native";
@@ -91,6 +95,7 @@ export default function SettingsScreen() {
           kind: "link",
           label: "Rockbox server",
           icon: "server-outline",
+          tablerIcon: IconDevices,
           value: serverLabel,
           onPress: () => router.push("/settings/server"),
         },

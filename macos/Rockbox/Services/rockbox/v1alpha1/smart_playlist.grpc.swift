@@ -162,6 +162,824 @@ extension GRPCCore.ServiceDescriptor {
     internal static let rockbox_v1Alpha1_SmartPlaylistService = GRPCCore.ServiceDescriptor(fullyQualifiedService: "rockbox.v1alpha1.SmartPlaylistService")
 }
 
+// MARK: rockbox.v1alpha1.SmartPlaylistService (server)
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension Rockbox_V1alpha1_SmartPlaylistService {
+    /// Streaming variant of the service protocol for the "rockbox.v1alpha1.SmartPlaylistService" service.
+    ///
+    /// This protocol is the lowest-level of the service protocols generated for this service
+    /// giving you the most flexibility over the implementation of your service. This comes at
+    /// the cost of more verbose and less strict APIs. Each RPC requires you to implement it in
+    /// terms of a request stream and response stream. Where only a single request or response
+    /// message is expected, you are responsible for enforcing this invariant is maintained.
+    ///
+    /// Where possible, prefer using the stricter, less-verbose ``ServiceProtocol``
+    /// or ``SimpleServiceProtocol`` instead.
+    internal protocol StreamingServiceProtocol: GRPCCore.RegistrableRPCService {
+        /// Handle the "GetSmartPlaylists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_GetSmartPlaylistsRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_GetSmartPlaylistsResponse` messages.
+        func getSmartPlaylists(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_GetSmartPlaylistsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_GetSmartPlaylistsResponse>
+
+        /// Handle the "GetSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_GetSmartPlaylistRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_GetSmartPlaylistResponse` messages.
+        func getSmartPlaylist(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_GetSmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_GetSmartPlaylistResponse>
+
+        /// Handle the "CreateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_CreateSmartPlaylistRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_CreateSmartPlaylistResponse` messages.
+        func createSmartPlaylist(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_CreateSmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_CreateSmartPlaylistResponse>
+
+        /// Handle the "UpdateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_UpdateSmartPlaylistRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_UpdateSmartPlaylistResponse` messages.
+        func updateSmartPlaylist(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_UpdateSmartPlaylistResponse>
+
+        /// Handle the "DeleteSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_DeleteSmartPlaylistRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_DeleteSmartPlaylistResponse` messages.
+        func deleteSmartPlaylist(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_DeleteSmartPlaylistResponse>
+
+        /// Handle the "GetSmartPlaylistTracks" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_GetSmartPlaylistTracksRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_GetSmartPlaylistTracksResponse` messages.
+        func getSmartPlaylistTracks(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_GetSmartPlaylistTracksResponse>
+
+        /// Handle the "PlaySmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_PlaySmartPlaylistRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_PlaySmartPlaylistResponse` messages.
+        func playSmartPlaylist(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_PlaySmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_PlaySmartPlaylistResponse>
+
+        /// Handle the "RecordTrackPlayed" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_RecordTrackPlayedRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_RecordTrackPlayedResponse` messages.
+        func recordTrackPlayed(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_RecordTrackPlayedRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_RecordTrackPlayedResponse>
+
+        /// Handle the "RecordTrackSkipped" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_RecordTrackSkippedRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_RecordTrackSkippedResponse` messages.
+        func recordTrackSkipped(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_RecordTrackSkippedRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_RecordTrackSkippedResponse>
+
+        /// Handle the "GetTrackStats" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_GetTrackStatsRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_GetTrackStatsResponse` messages.
+        func getTrackStats(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_GetTrackStatsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_GetTrackStatsResponse>
+    }
+
+    /// Service protocol for the "rockbox.v1alpha1.SmartPlaylistService" service.
+    ///
+    /// This protocol is higher level than ``StreamingServiceProtocol`` but lower level than
+    /// the ``SimpleServiceProtocol``, it provides access to request and response metadata and
+    /// trailing response metadata. If you don't need these then consider using
+    /// the ``SimpleServiceProtocol``. If you need fine grained control over your RPCs then
+    /// use ``StreamingServiceProtocol``.
+    internal protocol ServiceProtocol: Rockbox_V1alpha1_SmartPlaylistService.StreamingServiceProtocol {
+        /// Handle the "GetSmartPlaylists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_GetSmartPlaylistsResponse` message.
+        func getSmartPlaylists(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_GetSmartPlaylistsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_GetSmartPlaylistsResponse>
+
+        /// Handle the "GetSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_GetSmartPlaylistResponse` message.
+        func getSmartPlaylist(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_GetSmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_GetSmartPlaylistResponse>
+
+        /// Handle the "CreateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_CreateSmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_CreateSmartPlaylistResponse` message.
+        func createSmartPlaylist(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_CreateSmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_CreateSmartPlaylistResponse>
+
+        /// Handle the "UpdateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_UpdateSmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_UpdateSmartPlaylistResponse` message.
+        func updateSmartPlaylist(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_UpdateSmartPlaylistResponse>
+
+        /// Handle the "DeleteSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_DeleteSmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_DeleteSmartPlaylistResponse` message.
+        func deleteSmartPlaylist(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_DeleteSmartPlaylistResponse>
+
+        /// Handle the "GetSmartPlaylistTracks" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistTracksRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_GetSmartPlaylistTracksResponse` message.
+        func getSmartPlaylistTracks(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_GetSmartPlaylistTracksResponse>
+
+        /// Handle the "PlaySmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_PlaySmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_PlaySmartPlaylistResponse` message.
+        func playSmartPlaylist(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_PlaySmartPlaylistRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_PlaySmartPlaylistResponse>
+
+        /// Handle the "RecordTrackPlayed" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_RecordTrackPlayedRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_RecordTrackPlayedResponse` message.
+        func recordTrackPlayed(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_RecordTrackPlayedRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_RecordTrackPlayedResponse>
+
+        /// Handle the "RecordTrackSkipped" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_RecordTrackSkippedRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_RecordTrackSkippedResponse` message.
+        func recordTrackSkipped(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_RecordTrackSkippedRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_RecordTrackSkippedResponse>
+
+        /// Handle the "GetTrackStats" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetTrackStatsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_GetTrackStatsResponse` message.
+        func getTrackStats(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_GetTrackStatsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_GetTrackStatsResponse>
+    }
+
+    /// Simple service protocol for the "rockbox.v1alpha1.SmartPlaylistService" service.
+    ///
+    /// This is the highest level protocol for the service. The API is the easiest to use but
+    /// doesn't provide access to request or response metadata. If you need access to these
+    /// then use ``ServiceProtocol`` instead.
+    internal protocol SimpleServiceProtocol: Rockbox_V1alpha1_SmartPlaylistService.ServiceProtocol {
+        /// Handle the "GetSmartPlaylists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_GetSmartPlaylistsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_GetSmartPlaylistsResponse` to respond with.
+        func getSmartPlaylists(
+            request: Rockbox_V1alpha1_GetSmartPlaylistsRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_GetSmartPlaylistsResponse
+
+        /// Handle the "GetSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_GetSmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_GetSmartPlaylistResponse` to respond with.
+        func getSmartPlaylist(
+            request: Rockbox_V1alpha1_GetSmartPlaylistRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_GetSmartPlaylistResponse
+
+        /// Handle the "CreateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_CreateSmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_CreateSmartPlaylistResponse` to respond with.
+        func createSmartPlaylist(
+            request: Rockbox_V1alpha1_CreateSmartPlaylistRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_CreateSmartPlaylistResponse
+
+        /// Handle the "UpdateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_UpdateSmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_UpdateSmartPlaylistResponse` to respond with.
+        func updateSmartPlaylist(
+            request: Rockbox_V1alpha1_UpdateSmartPlaylistRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_UpdateSmartPlaylistResponse
+
+        /// Handle the "DeleteSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_DeleteSmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_DeleteSmartPlaylistResponse` to respond with.
+        func deleteSmartPlaylist(
+            request: Rockbox_V1alpha1_DeleteSmartPlaylistRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_DeleteSmartPlaylistResponse
+
+        /// Handle the "GetSmartPlaylistTracks" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_GetSmartPlaylistTracksRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_GetSmartPlaylistTracksResponse` to respond with.
+        func getSmartPlaylistTracks(
+            request: Rockbox_V1alpha1_GetSmartPlaylistTracksRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_GetSmartPlaylistTracksResponse
+
+        /// Handle the "PlaySmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_PlaySmartPlaylistRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_PlaySmartPlaylistResponse` to respond with.
+        func playSmartPlaylist(
+            request: Rockbox_V1alpha1_PlaySmartPlaylistRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_PlaySmartPlaylistResponse
+
+        /// Handle the "RecordTrackPlayed" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_RecordTrackPlayedRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_RecordTrackPlayedResponse` to respond with.
+        func recordTrackPlayed(
+            request: Rockbox_V1alpha1_RecordTrackPlayedRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_RecordTrackPlayedResponse
+
+        /// Handle the "RecordTrackSkipped" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_RecordTrackSkippedRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_RecordTrackSkippedResponse` to respond with.
+        func recordTrackSkipped(
+            request: Rockbox_V1alpha1_RecordTrackSkippedRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_RecordTrackSkippedResponse
+
+        /// Handle the "GetTrackStats" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_GetTrackStatsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_GetTrackStatsResponse` to respond with.
+        func getTrackStats(
+            request: Rockbox_V1alpha1_GetTrackStatsRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_GetTrackStatsResponse
+    }
+}
+
+// Default implementation of 'registerMethods(with:)'.
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension Rockbox_V1alpha1_SmartPlaylistService.StreamingServiceProtocol {
+    internal func registerMethods<Transport>(with router: inout GRPCCore.RPCRouter<Transport>) where Transport: GRPCCore.ServerTransport {
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.GetSmartPlaylists.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_GetSmartPlaylistsRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_GetSmartPlaylistsResponse>(),
+            handler: { request, context in
+                try await self.getSmartPlaylists(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.GetSmartPlaylist.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_GetSmartPlaylistRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_GetSmartPlaylistResponse>(),
+            handler: { request, context in
+                try await self.getSmartPlaylist(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.CreateSmartPlaylist.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_CreateSmartPlaylistRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_CreateSmartPlaylistResponse>(),
+            handler: { request, context in
+                try await self.createSmartPlaylist(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.UpdateSmartPlaylist.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_UpdateSmartPlaylistResponse>(),
+            handler: { request, context in
+                try await self.updateSmartPlaylist(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.DeleteSmartPlaylist.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_DeleteSmartPlaylistResponse>(),
+            handler: { request, context in
+                try await self.deleteSmartPlaylist(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.GetSmartPlaylistTracks.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_GetSmartPlaylistTracksResponse>(),
+            handler: { request, context in
+                try await self.getSmartPlaylistTracks(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.PlaySmartPlaylist.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_PlaySmartPlaylistRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_PlaySmartPlaylistResponse>(),
+            handler: { request, context in
+                try await self.playSmartPlaylist(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.RecordTrackPlayed.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_RecordTrackPlayedRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_RecordTrackPlayedResponse>(),
+            handler: { request, context in
+                try await self.recordTrackPlayed(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.RecordTrackSkipped.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_RecordTrackSkippedRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_RecordTrackSkippedResponse>(),
+            handler: { request, context in
+                try await self.recordTrackSkipped(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_SmartPlaylistService.Method.GetTrackStats.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_GetTrackStatsRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_GetTrackStatsResponse>(),
+            handler: { request, context in
+                try await self.getTrackStats(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+    }
+}
+
+// Default implementation of streaming methods from 'StreamingServiceProtocol'.
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension Rockbox_V1alpha1_SmartPlaylistService.ServiceProtocol {
+    internal func getSmartPlaylists(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_GetSmartPlaylistsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_GetSmartPlaylistsResponse> {
+        let response = try await self.getSmartPlaylists(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func getSmartPlaylist(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_GetSmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_GetSmartPlaylistResponse> {
+        let response = try await self.getSmartPlaylist(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func createSmartPlaylist(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_CreateSmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_CreateSmartPlaylistResponse> {
+        let response = try await self.createSmartPlaylist(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func updateSmartPlaylist(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_UpdateSmartPlaylistResponse> {
+        let response = try await self.updateSmartPlaylist(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func deleteSmartPlaylist(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_DeleteSmartPlaylistResponse> {
+        let response = try await self.deleteSmartPlaylist(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func getSmartPlaylistTracks(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_GetSmartPlaylistTracksResponse> {
+        let response = try await self.getSmartPlaylistTracks(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func playSmartPlaylist(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_PlaySmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_PlaySmartPlaylistResponse> {
+        let response = try await self.playSmartPlaylist(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func recordTrackPlayed(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_RecordTrackPlayedRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_RecordTrackPlayedResponse> {
+        let response = try await self.recordTrackPlayed(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func recordTrackSkipped(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_RecordTrackSkippedRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_RecordTrackSkippedResponse> {
+        let response = try await self.recordTrackSkipped(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func getTrackStats(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_GetTrackStatsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_GetTrackStatsResponse> {
+        let response = try await self.getTrackStats(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+}
+
+// Default implementation of methods from 'ServiceProtocol'.
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension Rockbox_V1alpha1_SmartPlaylistService.SimpleServiceProtocol {
+    internal func getSmartPlaylists(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_GetSmartPlaylistsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_GetSmartPlaylistsResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_GetSmartPlaylistsResponse>(
+            message: try await self.getSmartPlaylists(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func getSmartPlaylist(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_GetSmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_GetSmartPlaylistResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_GetSmartPlaylistResponse>(
+            message: try await self.getSmartPlaylist(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func createSmartPlaylist(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_CreateSmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_CreateSmartPlaylistResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_CreateSmartPlaylistResponse>(
+            message: try await self.createSmartPlaylist(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func updateSmartPlaylist(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_UpdateSmartPlaylistResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_UpdateSmartPlaylistResponse>(
+            message: try await self.updateSmartPlaylist(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func deleteSmartPlaylist(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_DeleteSmartPlaylistResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_DeleteSmartPlaylistResponse>(
+            message: try await self.deleteSmartPlaylist(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func getSmartPlaylistTracks(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_GetSmartPlaylistTracksResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_GetSmartPlaylistTracksResponse>(
+            message: try await self.getSmartPlaylistTracks(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func playSmartPlaylist(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_PlaySmartPlaylistRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_PlaySmartPlaylistResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_PlaySmartPlaylistResponse>(
+            message: try await self.playSmartPlaylist(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func recordTrackPlayed(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_RecordTrackPlayedRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_RecordTrackPlayedResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_RecordTrackPlayedResponse>(
+            message: try await self.recordTrackPlayed(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func recordTrackSkipped(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_RecordTrackSkippedRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_RecordTrackSkippedResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_RecordTrackSkippedResponse>(
+            message: try await self.recordTrackSkipped(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func getTrackStats(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_GetTrackStatsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_GetTrackStatsResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_GetTrackStatsResponse>(
+            message: try await self.getTrackStats(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+}
+
 // MARK: rockbox.v1alpha1.SmartPlaylistService (client)
 
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
@@ -172,6 +990,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
     /// implementation, ``Client``.
     internal protocol ClientProtocol: Sendable {
         /// Call the "GetSmartPlaylists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistsRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_GetSmartPlaylistsRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_GetSmartPlaylistsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func getSmartPlaylists<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetSmartPlaylistsRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_GetSmartPlaylistsRequest>,
@@ -181,6 +1009,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "GetSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_GetSmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_GetSmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func getSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetSmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_GetSmartPlaylistRequest>,
@@ -190,6 +1028,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "CreateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_CreateSmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_CreateSmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_CreateSmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func createSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_CreateSmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_CreateSmartPlaylistRequest>,
@@ -199,6 +1047,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "UpdateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_UpdateSmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_UpdateSmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_UpdateSmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func updateSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>,
@@ -208,6 +1066,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "DeleteSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_DeleteSmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_DeleteSmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_DeleteSmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func deleteSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>,
@@ -217,6 +1085,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "GetSmartPlaylistTracks" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistTracksRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_GetSmartPlaylistTracksRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_GetSmartPlaylistTracksResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func getSmartPlaylistTracks<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>,
@@ -226,6 +1104,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "PlaySmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_PlaySmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_PlaySmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_PlaySmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func playSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_PlaySmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_PlaySmartPlaylistRequest>,
@@ -235,6 +1123,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "RecordTrackPlayed" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_RecordTrackPlayedRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_RecordTrackPlayedRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_RecordTrackPlayedResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func recordTrackPlayed<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_RecordTrackPlayedRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_RecordTrackPlayedRequest>,
@@ -244,6 +1142,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "RecordTrackSkipped" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_RecordTrackSkippedRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_RecordTrackSkippedRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_RecordTrackSkippedResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func recordTrackSkipped<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_RecordTrackSkippedRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_RecordTrackSkippedRequest>,
@@ -253,6 +1161,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "GetTrackStats" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetTrackStatsRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_GetTrackStatsRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_GetTrackStatsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         func getTrackStats<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetTrackStatsRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_GetTrackStatsRequest>,
@@ -263,14 +1181,32 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
     }
 
     /// Generated client for the "rockbox.v1alpha1.SmartPlaylistService" service.
+    ///
+    /// The ``Client`` provides an implementation of ``ClientProtocol`` which wraps
+    /// a `GRPCCore.GRPCCClient`. The underlying `GRPCClient` provides the long-lived
+    /// means of communication with the remote peer.
     internal struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
         private let client: GRPCCore.GRPCClient<Transport>
 
         /// Creates a new client wrapping the provided `GRPCCore.GRPCClient`.
+        ///
+        /// - Parameters:
+        ///   - client: A `GRPCCore.GRPCClient` providing a communication channel to the service.
         internal init(wrapping client: GRPCCore.GRPCClient<Transport>) {
             self.client = client
         }
 
+        /// Call the "GetSmartPlaylists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistsRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_GetSmartPlaylistsRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_GetSmartPlaylistsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func getSmartPlaylists<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetSmartPlaylistsRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_GetSmartPlaylistsRequest>,
@@ -290,6 +1226,17 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
             )
         }
 
+        /// Call the "GetSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_GetSmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_GetSmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func getSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetSmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_GetSmartPlaylistRequest>,
@@ -309,6 +1256,17 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
             )
         }
 
+        /// Call the "CreateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_CreateSmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_CreateSmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_CreateSmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func createSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_CreateSmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_CreateSmartPlaylistRequest>,
@@ -328,6 +1286,17 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
             )
         }
 
+        /// Call the "UpdateSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_UpdateSmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_UpdateSmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_UpdateSmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func updateSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>,
@@ -347,6 +1316,17 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
             )
         }
 
+        /// Call the "DeleteSmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_DeleteSmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_DeleteSmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_DeleteSmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func deleteSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>,
@@ -366,6 +1346,17 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
             )
         }
 
+        /// Call the "GetSmartPlaylistTracks" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistTracksRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_GetSmartPlaylistTracksRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_GetSmartPlaylistTracksResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func getSmartPlaylistTracks<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>,
@@ -385,6 +1376,17 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
             )
         }
 
+        /// Call the "PlaySmartPlaylist" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_PlaySmartPlaylistRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_PlaySmartPlaylistRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_PlaySmartPlaylistResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func playSmartPlaylist<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_PlaySmartPlaylistRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_PlaySmartPlaylistRequest>,
@@ -404,6 +1406,17 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
             )
         }
 
+        /// Call the "RecordTrackPlayed" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_RecordTrackPlayedRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_RecordTrackPlayedRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_RecordTrackPlayedResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func recordTrackPlayed<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_RecordTrackPlayedRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_RecordTrackPlayedRequest>,
@@ -423,6 +1436,17 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
             )
         }
 
+        /// Call the "RecordTrackSkipped" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_RecordTrackSkippedRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_RecordTrackSkippedRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_RecordTrackSkippedResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func recordTrackSkipped<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_RecordTrackSkippedRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_RecordTrackSkippedRequest>,
@@ -442,6 +1466,17 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
             )
         }
 
+        /// Call the "GetTrackStats" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_GetTrackStatsRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_GetTrackStatsRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_GetTrackStatsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
         internal func getTrackStats<Result>(
             request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetTrackStatsRequest>,
             serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_GetTrackStatsRequest>,
@@ -466,6 +1501,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService {
 // Helpers providing default arguments to 'ClientProtocol' methods.
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
+    /// Call the "GetSmartPlaylists" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistsRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func getSmartPlaylists<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetSmartPlaylistsRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -482,6 +1526,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "GetSmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func getSmartPlaylist<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetSmartPlaylistRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -498,6 +1551,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "CreateSmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_CreateSmartPlaylistRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func createSmartPlaylist<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_CreateSmartPlaylistRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -514,6 +1576,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "UpdateSmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_UpdateSmartPlaylistRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func updateSmartPlaylist<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_UpdateSmartPlaylistRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -530,6 +1601,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "DeleteSmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_DeleteSmartPlaylistRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func deleteSmartPlaylist<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_DeleteSmartPlaylistRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -546,6 +1626,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "GetSmartPlaylistTracks" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_GetSmartPlaylistTracksRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func getSmartPlaylistTracks<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetSmartPlaylistTracksRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -562,6 +1651,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "PlaySmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_PlaySmartPlaylistRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func playSmartPlaylist<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_PlaySmartPlaylistRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -578,6 +1676,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "RecordTrackPlayed" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_RecordTrackPlayedRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func recordTrackPlayed<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_RecordTrackPlayedRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -594,6 +1701,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "RecordTrackSkipped" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_RecordTrackSkippedRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func recordTrackSkipped<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_RecordTrackSkippedRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -610,6 +1726,15 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "GetTrackStats" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_GetTrackStatsRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func getTrackStats<Result>(
         request: GRPCCore.ClientRequest<Rockbox_V1alpha1_GetTrackStatsRequest>,
         options: GRPCCore.CallOptions = .defaults,
@@ -630,6 +1755,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
 // Helpers providing sugared APIs for 'ClientProtocol' methods.
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
+    /// Call the "GetSmartPlaylists" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func getSmartPlaylists<Result>(
         _ message: Rockbox_V1alpha1_GetSmartPlaylistsRequest,
         metadata: GRPCCore.Metadata = [:],
@@ -649,6 +1784,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "GetSmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func getSmartPlaylist<Result>(
         _ message: Rockbox_V1alpha1_GetSmartPlaylistRequest,
         metadata: GRPCCore.Metadata = [:],
@@ -668,6 +1813,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "CreateSmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func createSmartPlaylist<Result>(
         _ message: Rockbox_V1alpha1_CreateSmartPlaylistRequest,
         metadata: GRPCCore.Metadata = [:],
@@ -687,6 +1842,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "UpdateSmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func updateSmartPlaylist<Result>(
         _ message: Rockbox_V1alpha1_UpdateSmartPlaylistRequest,
         metadata: GRPCCore.Metadata = [:],
@@ -706,6 +1871,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "DeleteSmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func deleteSmartPlaylist<Result>(
         _ message: Rockbox_V1alpha1_DeleteSmartPlaylistRequest,
         metadata: GRPCCore.Metadata = [:],
@@ -725,6 +1900,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "GetSmartPlaylistTracks" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func getSmartPlaylistTracks<Result>(
         _ message: Rockbox_V1alpha1_GetSmartPlaylistTracksRequest,
         metadata: GRPCCore.Metadata = [:],
@@ -744,6 +1929,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "PlaySmartPlaylist" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func playSmartPlaylist<Result>(
         _ message: Rockbox_V1alpha1_PlaySmartPlaylistRequest,
         metadata: GRPCCore.Metadata = [:],
@@ -763,6 +1958,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "RecordTrackPlayed" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func recordTrackPlayed<Result>(
         _ message: Rockbox_V1alpha1_RecordTrackPlayedRequest,
         metadata: GRPCCore.Metadata = [:],
@@ -782,6 +1987,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "RecordTrackSkipped" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func recordTrackSkipped<Result>(
         _ message: Rockbox_V1alpha1_RecordTrackSkippedRequest,
         metadata: GRPCCore.Metadata = [:],
@@ -801,6 +2016,16 @@ extension Rockbox_V1alpha1_SmartPlaylistService.ClientProtocol {
         )
     }
 
+    /// Call the "GetTrackStats" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
     internal func getTrackStats<Result>(
         _ message: Rockbox_V1alpha1_GetTrackStatsRequest,
         metadata: GRPCCore.Metadata = [:],

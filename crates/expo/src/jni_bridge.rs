@@ -505,6 +505,29 @@ bridge_unit_str!(
     rb_play_smart_playlist
 );
 
+// ── Genres ──────────────────────────────────────────────────────────────────
+
+bridge_json!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1get_1genres_1json,
+    rb_get_genres_json
+);
+bridge_json_str!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1get_1genre_1json,
+    rb_get_genre_json
+);
+bridge_json_str!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1get_1genre_1tracks_1json,
+    rb_get_genre_tracks_json
+);
+bridge_json_str!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1get_1genre_1albums_1json,
+    rb_get_genre_albums_json
+);
+bridge_json_str!(
+    Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1get_1genre_1artists_1json,
+    rb_get_genre_artists_json
+);
+
 // ── Bluetooth ───────────────────────────────────────────────────────────────
 
 bridge_unit!(

@@ -20,6 +20,9 @@ export type Album = {
   artist: string;
   artwork: string;
   year?: number;
+  /** Raw release date string from the daemon, e.g. "2014-12-09". */
+  yearString?: string;
+  copyrightMessage?: string;
   genre?: string;
 };
 

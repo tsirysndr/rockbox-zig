@@ -78,9 +78,9 @@ pub async fn update_metadata(pool: Pool<Sqlite>) -> Result<(), Error> {
             }
             for genre in &artist.genres {
                 println!("Saving genre: {}", genre.bright_green());
-                let id = cuid1()?;
-                repo::genre::save(&pool, &id, genre).await?;
-                repo::artist::save_artist_genre(&pool, &cuid1()?, &artist_id, &id).await?;
+                let new_id = cuid1()?;
+                let genre_id = repo::genre::save(&pool, &new_id, genre).await?;
+                repo::artist::save_artist_genre(&pool, &cuid1()?, &artist_id, &genre_id).await?;
             }
         }
     }

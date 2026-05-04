@@ -13,15 +13,16 @@ use crate::ui::components::text_input::TextInput;
 use crate::ui::components::{
     AddToPlaylistMenuState, AlbumContextMenu, AlbumContextMenuState, BackSection,
     CreatePlaylistModal, DeletePlaylistModal, DiscoveredServers, EditPlaylistModal,
-    FileContextMenuState, HoveredAlbumIdx, LibraryContextMenu, LibraryContextMenuState,
-    LibrarySection, LikedOrder, LikedSongs, PlaylistsSidebarCollapsed, PlaylistsState,
-    SelectedAlbum, SelectedAlbumMeta, SelectedArtist, SelectedPlaylist, ServerPickerOpen,
+    FileContextMenuState, GenresState, HoveredAlbumIdx, LibraryContextMenu,
+    LibraryContextMenuState, LibrarySection, LikedOrder, LikedSongs, PlaylistsSidebarCollapsed,
+    PlaylistsState, SelectedAlbum, SelectedAlbumMeta, SelectedArtist, SelectedGenre,
+    SelectedPlaylist, ServerPickerOpen,
 };
 use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
     div, img, px, uniform_list, AnyElement, App, AppContext, Entity, FontWeight,
-    InteractiveElement, IntoElement, MouseButton, ObjectFit, ParentElement, Render,
+    InteractiveElement, IntoElement, MouseButton, ObjectFit, ParentElement, Render, ScrollHandle,
     StatefulInteractiveElement, Styled, StyledImage, Subscription, UniformListScrollHandle, Window,
 };
 
@@ -123,6 +124,34 @@ fn art_fixed(
     }
 }
 
+/// Deterministic neon-ish palette for the Genres grid. Same `seed` always
+/// returns the same colour so a genre keeps its identity across renders.
+fn neon_color_for(seed: &str) -> gpui::Rgba {
+    const PALETTE: &[u32] = &[
+        0xFF1F6E, // hot pink
+        0x00E5FF, // electric cyan
+        0xB1FF34, // lime
+        0xFFC400, // amber
+        0x9D4EFF, // violet
+        0x00C853, // fluorescent green
+        0xFF6E40, // tangerine
+        0x536DFE, // cobalt
+        0xFF4081, // magenta
+        0x18FFFF, // aqua
+        0xFFD600, // yellow
+        0x7C4DFF, // deep violet
+        0xFF1744, // crimson
+        0x00BFA5, // teal
+        0xF50057, // pink
+        0x1DE9B6, // mint
+    ];
+    let mut h: u32 = 0;
+    for b in seed.bytes() {
+        h = h.wrapping_mul(31).wrapping_add(b as u32);
+    }
+    gpui::rgb(PALETTE[(h as usize) % PALETTE.len()])
+}
+
 fn icon_sized(icon: Icons, size: u8) -> Icon {
     use crate::ui::components::icons::Icon;
     let i = Icon::new(icon);
@@ -147,6 +176,18 @@ pub struct LibraryPage {
     modal_desc_input: Entity<TextInput>,
     edit_name_input: Entity<TextInput>,
     edit_desc_input: Entity<TextInput>,
+    // Persisted scroll state for horizontal rows on Home / GenreDetail. We
+    // wire these via `track_scroll(...)` and an explicit `on_scroll_wheel`
+    // handler that converts vertical mouse-wheel deltas into horizontal
+    // scroll — gpui's auto-conversion is preempted by the parent's
+    // `overflow_y_scroll`, so without this nothing scrolls on a normal
+    // (non-trackpad) mouse.
+    home_recent_scroll: ScrollHandle,
+    home_popular_scroll: ScrollHandle,
+    home_artists_scroll: ScrollHandle,
+    home_saved_scroll: ScrollHandle,
+    genre_albums_scroll: ScrollHandle,
+    genre_artists_scroll: ScrollHandle,
     _search_sub: Option<Subscription>,
     _playlists_sub: Subscription,
     _edit_modal_sub: Subscription,
@@ -156,9 +197,11 @@ pub struct LibraryPage {
 
 impl LibraryPage {
     pub fn new(cx: &mut gpui::Context<Self>) -> Self {
-        cx.set_global(LibrarySection::Songs);
+        cx.set_global(LibrarySection::Home);
         cx.set_global(SelectedAlbum(String::new()));
         cx.set_global(SelectedArtist(String::new()));
+        cx.set_global(SelectedGenre::default());
+        cx.set_global(GenresState::default());
         cx.set_global(BackSection(LibrarySection::Albums));
         cx.set_global(LibraryContextMenuState::default());
         cx.set_global(AlbumContextMenuState::default());
@@ -251,6 +294,59 @@ impl LibraryPage {
         })
         .detach();
 
+        // Initial genres load.
+        let tokio_g = cx.global::<crate::state::TokioHandle>().0.clone();
+        cx.spawn(async move |_this, cx| {
+            let genres = cx
+                .background_executor()
+                .spawn(async move {
+                    tokio_g.block_on(async {
+                        crate::client::fetch_genres().await.unwrap_or_default()
+                    })
+                })
+                .await;
+            let _ = cx.update(|app: &mut gpui::App| {
+                app.global_mut::<GenresState>().0 = genres;
+            });
+        })
+        .detach();
+
+        // Whenever a genre id is selected, fetch its detail (tracks/albums/artists).
+        let _genre_sub = cx.observe_global::<SelectedGenre>(|_, cx| {
+            let id = cx.global::<SelectedGenre>().id.clone();
+            if id.is_empty() {
+                return;
+            }
+            // Avoid re-fetching if we already loaded this id.
+            if !cx.global::<SelectedGenre>().tracks.is_empty()
+                || !cx.global::<SelectedGenre>().albums.is_empty()
+            {
+                return;
+            }
+            let tokio = cx.global::<crate::state::TokioHandle>().0.clone();
+            cx.spawn(async move |_, cx| {
+                let result = cx
+                    .background_executor()
+                    .spawn(async move {
+                        tokio.block_on(async { crate::client::fetch_genre(id).await })
+                    })
+                    .await;
+                if let Ok((name, tracks, albums, artists)) = result {
+                    let _ = cx.update(|app: &mut gpui::App| {
+                        let g = app.global_mut::<SelectedGenre>();
+                        g.name = name;
+                        g.tracks = tracks;
+                        g.albums = albums;
+                        g.artists = artists;
+                    });
+                }
+            })
+            .detach();
+        });
+        // We don't actually need to keep the subscription alive in `self` —
+        // the closure references the global by id and re-fires on each change.
+        std::mem::forget(_genre_sub);
+
         // Background mDNS scan on startup so the server list is pre-populated.
         cx.global_mut::<DiscoveredServers>().scanning = true;
         cx.spawn(async move |_, cx| {
@@ -269,6 +365,12 @@ impl LibraryPage {
         LibraryPage {
             scroll_handle: UniformListScrollHandle::new(),
             detail_scroll_handle: UniformListScrollHandle::new(),
+            home_recent_scroll: ScrollHandle::new(),
+            home_popular_scroll: ScrollHandle::new(),
+            home_artists_scroll: ScrollHandle::new(),
+            home_saved_scroll: ScrollHandle::new(),
+            genre_albums_scroll: ScrollHandle::new(),
+            genre_artists_scroll: ScrollHandle::new(),
             miniplayer: {
                 cx.new(|cx| {
                     cx.observe_global::<DevicesState>(|_, cx| cx.notify())
@@ -309,6 +411,14 @@ impl Render for LibraryPage {
         let delete_modal = cx.global::<DeletePlaylistModal>().clone();
         let add_to_playlist_menu = cx.global::<AddToPlaylistMenuState>().0.clone();
         let album_meta = cx.global::<SelectedAlbumMeta>().clone();
+        let genres_state = cx.global::<GenresState>().0.clone();
+        let selected_genre = cx.global::<SelectedGenre>().clone();
+        let home_recent_scroll = self.home_recent_scroll.clone();
+        let home_popular_scroll = self.home_popular_scroll.clone();
+        let home_artists_scroll = self.home_artists_scroll.clone();
+        let home_saved_scroll = self.home_saved_scroll.clone();
+        let genre_albums_scroll = self.genre_albums_scroll.clone();
+        let genre_artists_scroll = self.genre_artists_scroll.clone();
         let cur_server = crate::server::current_server();
         let picker_open = cx.global::<ServerPickerOpen>().0;
         let server_scanning = cx.global::<DiscoveredServers>().scanning;
@@ -645,7 +755,15 @@ impl Render for LibraryPage {
                         && target == LibrarySection::Artists)
                     || (section == LibrarySection::AlbumDetail
                         && back_section == LibrarySection::ArtistDetail
-                        && target == LibrarySection::Artists);
+                        && target == LibrarySection::Artists)
+                    || (section == LibrarySection::GenreDetail
+                        && target == LibrarySection::Genres)
+                    || (section == LibrarySection::AlbumDetail
+                        && back_section == LibrarySection::GenreDetail
+                        && target == LibrarySection::Genres)
+                    || (section == LibrarySection::ArtistDetail
+                        && back_section == LibrarySection::GenreDetail
+                        && target == LibrarySection::Genres);
                 div()
                     .id(label)
                     .w_full()
@@ -3172,6 +3290,921 @@ impl Render for LibraryPage {
                         )
                         .into_any_element()
                 }
+
+                // ── Home ───────────────────────────────────────────────────────────────
+                LibrarySection::Home => {
+                    // Build per-album aggregates from the local track list.
+                    // We don't yet have play_count / last_played wired into the
+                    // GPUI client (track_stats lives in the backend smart-playlist
+                    // store) — TODO: expose via gRPC. For now we proxy:
+                    //   • "Recently played" → newest track added (cuid is
+                    //     time-ordered, so MAX(id) approximates date_added DESC)
+                    //   • "Popular albums"  → most tracks in the album (weak
+                    //     stand-in for play count until stats land)
+                    //
+                    // Album NAME is the key (matches what `SelectedAlbum`
+                    // stores in the regular Albums grid). Album art is taken
+                    // from the first track that actually has it, since the
+                    // first track in iteration order doesn't always carry it.
+                    struct Agg {
+                        artist: String,
+                        art: Option<String>,
+                        track_count: usize,
+                        max_id: String,
+                    }
+                    let agg_map: std::collections::HashMap<String, Agg> = {
+                        let state = cx.global::<Controller>().state.read(cx);
+                        let mut map: std::collections::HashMap<String, Agg> =
+                            Default::default();
+                        for t in &state.tracks {
+                            if t.album.is_empty() {
+                                continue;
+                            }
+                            let display_artist = if t.album_artist.is_empty() {
+                                t.artist.clone()
+                            } else {
+                                t.album_artist.clone()
+                            };
+                            let entry = map.entry(t.album.clone()).or_insert(Agg {
+                                artist: display_artist.clone(),
+                                art: None,
+                                track_count: 0,
+                                max_id: String::new(),
+                            });
+                            entry.track_count += 1;
+                            if entry.art.as_deref().filter(|s| !s.is_empty()).is_none() {
+                                if let Some(a) =
+                                    t.album_art.clone().filter(|s| !s.is_empty())
+                                {
+                                    entry.art = Some(a);
+                                }
+                            }
+                            if t.id > entry.max_id {
+                                entry.max_id = t.id.clone();
+                            }
+                        }
+                        map
+                    };
+
+                    // (album_name, album_artist, album_art)
+                    let mut by_recent: Vec<(String, String, Option<String>, String)> =
+                        agg_map
+                            .iter()
+                            .map(|(name, a)| {
+                                (
+                                    name.clone(),
+                                    a.artist.clone(),
+                                    a.art.clone(),
+                                    a.max_id.clone(),
+                                )
+                            })
+                            .collect();
+                    by_recent.sort_by(|a, b| b.3.cmp(&a.3));
+                    let recent: Vec<(String, String, Option<String>)> = by_recent
+                        .into_iter()
+                        .take(20)
+                        .map(|(n, a, art, _)| (n, a, art))
+                        .collect();
+
+                    let mut by_popular: Vec<(String, String, Option<String>, usize)> =
+                        agg_map
+                            .iter()
+                            .map(|(name, a)| {
+                                (
+                                    name.clone(),
+                                    a.artist.clone(),
+                                    a.art.clone(),
+                                    a.track_count,
+                                )
+                            })
+                            .collect();
+                    by_popular.sort_by(|a, b| b.3.cmp(&a.3).then(a.0.cmp(&b.0)));
+                    let popular: Vec<(String, String, Option<String>)> = by_popular
+                        .into_iter()
+                        .take(20)
+                        .map(|(n, a, art, _)| (n, a, art))
+                        .collect();
+
+                    // Top artists: aggregate track counts per artist (proxy for
+                    // popularity until track stats are wired up); pull image
+                    // from `state.artist_images`.
+                    let top_artists: Vec<(String, Option<String>)> = {
+                        let state = cx.global::<Controller>().state.read(cx);
+                        let mut counts: std::collections::HashMap<String, usize> =
+                            Default::default();
+                        for t in &state.tracks {
+                            if t.artist.is_empty() {
+                                continue;
+                            }
+                            *counts.entry(t.artist.clone()).or_default() += 1;
+                        }
+                        let mut sorted: Vec<(String, usize)> = counts.into_iter().collect();
+                        sorted.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+                        sorted
+                            .into_iter()
+                            .take(20)
+                            .map(|(name, _)| {
+                                let img = state.artist_images.get(&name).cloned();
+                                (name, img)
+                            })
+                            .collect()
+                    };
+
+                    let smart_playlists_home = smart_playlists.clone();
+                    let saved_playlists_home = saved_playlists.clone();
+
+                    div()
+                        .id("home_scroll")
+                        .flex_1()
+                        .min_h_0()
+                        .overflow_y_scroll()
+                        .child(
+                            div()
+                                .w_full()
+                                .p_6()
+                                .flex()
+                                .flex_col()
+                                .gap_y_8()
+                                .child(
+                                    div()
+                                        .text_3xl()
+                                        .font_weight(FontWeight(800.0))
+                                        .text_color(theme.library_text)
+                                        .child("Home"),
+                                )
+                                // Quick picks (top of home)
+                                .when(!smart_playlists_home.is_empty(), |this| {
+                                    let picks: Vec<_> =
+                                        smart_playlists_home.iter().take(6).cloned().collect();
+                                    {
+                                        // Build a card for one pick — used by both columns below.
+                                        let make_card = move |idx: usize,
+                                                              p: crate::ui::components::SmartPlaylistItem,
+                                                              theme: Theme| {
+                                            let pid = p.id.clone();
+                                            let pname = p.name.clone();
+                                            div()
+                                                .id(("quick_pick", idx))
+                                                .w_full()
+                                                .min_w_0()
+                                                .flex()
+                                                .items_center()
+                                                .gap_x_3()
+                                                .p_2()
+                                                .rounded_md()
+                                                .bg(theme.library_art_bg)
+                                                .overflow_hidden()
+                                                .cursor_pointer()
+                                                .hover(|t| t.bg(theme.library_track_bg_hover))
+                                                .on_click(move |_, _, cx: &mut App| {
+                                                    *cx.global_mut::<SelectedPlaylist>() =
+                                                        SelectedPlaylist {
+                                                            id: pid.clone(),
+                                                            name: pname.clone(),
+                                                            is_smart: true,
+                                                        };
+                                                    cx.global_mut::<PlaylistsState>()
+                                                        .playlist_tracks
+                                                        .clear();
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::SmartPlaylistDetail;
+                                                })
+                                                .child(
+                                                    div()
+                                                        .w(px(48.0))
+                                                        .h(px(48.0))
+                                                        .rounded_sm()
+                                                        .flex_shrink_0()
+                                                        .flex()
+                                                        .items_center()
+                                                        .justify_center()
+                                                        .text_color(theme.player_icons_text)
+                                                        .child(Icon::new(Icons::Playlist).size_5()),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .flex_1()
+                                                        .min_w_0()
+                                                        .text_sm()
+                                                        .font_weight(FontWeight(600.0))
+                                                        .text_color(theme.library_text)
+                                                        .truncate()
+                                                        .child(p.name.clone()),
+                                                )
+                                        };
+
+                                        // Partition picks into left (even idx) and right (odd idx)
+                                        // columns. flex_1 + min_w_0 on each column guarantees a
+                                        // 50/50 split that doesn't fight content width.
+                                        let (left, right): (Vec<_>, Vec<_>) = picks
+                                            .into_iter()
+                                            .enumerate()
+                                            .partition(|(idx, _)| idx % 2 == 0);
+
+                                        this.child(
+                                            div()
+                                                .w_full()
+                                                .min_w_0()
+                                                .flex()
+                                                .gap_x_2()
+                                                .child(
+                                                    div()
+                                                        .flex_1()
+                                                        .min_w_0()
+                                                        .flex()
+                                                        .flex_col()
+                                                        .gap_y_2()
+                                                        .children(left.into_iter().map(
+                                                            |(idx, p)| make_card(idx, p, theme),
+                                                        )),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .flex_1()
+                                                        .min_w_0()
+                                                        .flex()
+                                                        .flex_col()
+                                                        .gap_y_2()
+                                                        .children(right.into_iter().map(
+                                                            |(idx, p)| make_card(idx, p, theme),
+                                                        )),
+                                                ),
+                                        )
+                                    }
+                                })
+                                // Recently played (album row)
+                                .when(!recent.is_empty(), |this| {
+                                    this.child(
+                                        div()
+                                            .flex()
+                                            .flex_col()
+                                            .gap_y_3()
+                                            .child(
+                                                div()
+                                                    .text_lg()
+                                                    .font_weight(FontWeight(700.0))
+                                                    .text_color(theme.library_text)
+                                                    .child("Recently played"),
+                                            )
+                                            .child(
+                                                div()
+                                                    .id("home_recent")
+                                                    .w_full()
+                                                    .min_w_0()
+                                                    .flex()
+                                                    .gap_x_4()
+                                                    .overflow_x_scroll()
+                                                    .track_scroll(&home_recent_scroll)
+                                                    .children(recent.into_iter().enumerate().map(
+                                                        |(idx, (title, artist, art))| {
+                                                            let name_for_click = title.clone();
+                                                            div()
+                                                                .id(("home_recent_card", idx))
+                                                                .w(px(160.0))
+                                                                .flex_shrink_0()
+                                                                .flex()
+                                                                .flex_col()
+                                                                .gap_y_2()
+                                                                .cursor_pointer()
+                                                                .on_click(move |_, _, cx: &mut App| {
+                                                                    *cx.global_mut::<SelectedAlbum>() =
+                                                                        SelectedAlbum(name_for_click.clone());
+                                                                    *cx.global_mut::<BackSection>() =
+                                                                        BackSection(LibrarySection::Home);
+                                                                    *cx.global_mut::<LibrarySection>() =
+                                                                        LibrarySection::AlbumDetail;
+                                                                })
+                                                                .child(
+                                                                    div()
+                                                                        .w(px(160.0))
+                                                                        .h(px(160.0))
+                                                                        .child(art_tile(art, theme, Icons::Disc, 10)),
+                                                                )
+                                                                .child(
+                                                                    div()
+                                                                        .text_sm()
+                                                                        .font_weight(FontWeight(600.0))
+                                                                        .text_color(theme.library_text)
+                                                                        .truncate()
+                                                                        .child(title),
+                                                                )
+                                                                .child(
+                                                                    div()
+                                                                        .text_xs()
+                                                                        .text_color(theme.library_header_text)
+                                                                        .truncate()
+                                                                        .child(artist),
+                                                                )
+                                                        },
+                                                    )),
+                                            ),
+                                    )
+                                })
+                                .when(!popular.is_empty(), |this| {
+                                    this.child(
+                                        div()
+                                            .flex()
+                                            .flex_col()
+                                            .gap_y_3()
+                                            .child(
+                                                div()
+                                                    .text_lg()
+                                                    .font_weight(FontWeight(700.0))
+                                                    .text_color(theme.library_text)
+                                                    .child("Popular albums"),
+                                            )
+                                            .child(
+                                                div()
+                                                    .id("home_popular")
+                                                    .w_full()
+                                                    .min_w_0()
+                                                    .flex()
+                                                    .gap_x_4()
+                                                    .overflow_x_scroll()
+                                                    .track_scroll(&home_popular_scroll)
+                                                    .children(popular.into_iter().enumerate().map(
+                                                        |(idx, (title, artist, art))| {
+                                                            let name_for_click = title.clone();
+                                                            div()
+                                                                .id(("home_popular_card", idx))
+                                                                .w(px(160.0))
+                                                                .flex_shrink_0()
+                                                                .flex()
+                                                                .flex_col()
+                                                                .gap_y_2()
+                                                                .cursor_pointer()
+                                                                .on_click(move |_, _, cx: &mut App| {
+                                                                    *cx.global_mut::<SelectedAlbum>() =
+                                                                        SelectedAlbum(name_for_click.clone());
+                                                                    *cx.global_mut::<BackSection>() =
+                                                                        BackSection(LibrarySection::Home);
+                                                                    *cx.global_mut::<LibrarySection>() =
+                                                                        LibrarySection::AlbumDetail;
+                                                                })
+                                                                .child(
+                                                                    div()
+                                                                        .w(px(160.0))
+                                                                        .h(px(160.0))
+                                                                        .child(art_tile(art, theme, Icons::Disc, 10)),
+                                                                )
+                                                                .child(
+                                                                    div()
+                                                                        .text_sm()
+                                                                        .font_weight(FontWeight(600.0))
+                                                                        .text_color(theme.library_text)
+                                                                        .truncate()
+                                                                        .child(title),
+                                                                )
+                                                                .child(
+                                                                    div()
+                                                                        .text_xs()
+                                                                        .text_color(theme.library_header_text)
+                                                                        .truncate()
+                                                                        .child(artist),
+                                                                )
+                                                        },
+                                                    )),
+                                            ),
+                                    )
+                                })
+                                .when(!top_artists.is_empty(), |this| {
+                                    this.child(
+                                        div()
+                                            .flex()
+                                            .flex_col()
+                                            .gap_y_3()
+                                            .child(
+                                                div()
+                                                    .text_lg()
+                                                    .font_weight(FontWeight(700.0))
+                                                    .text_color(theme.library_text)
+                                                    .child("Your top artists"),
+                                            )
+                                            .child(
+                                                div()
+                                                    .id("home_top_artists")
+                                                    .w_full()
+                                                    .min_w_0()
+                                                    .flex()
+                                                    .gap_x_4()
+                                                    .overflow_x_scroll()
+                                                    .track_scroll(&home_artists_scroll)
+                                                    .children(
+                                                        top_artists.into_iter().enumerate().map(
+                                                            |(idx, (name, image))| {
+                                                                let name_for_click = name.clone();
+                                                                // Artist images may already be absolute (http(s)://…),
+                                                                // upstream providers return full URLs. `covers_base()`
+                                                                // is only correct for relative paths.
+                                                                let img_url = image
+                                                                    .filter(|s| !s.is_empty())
+                                                                    .map(|s| {
+                                                                        if s.starts_with("http") {
+                                                                            s
+                                                                        } else {
+                                                                            format!("{}{s}", covers_base())
+                                                                        }
+                                                                    });
+                                                                div()
+                                                                    .id(("home_top_artist", idx))
+                                                                    .w(px(130.0))
+                                                                    .flex_shrink_0()
+                                                                    .flex()
+                                                                    .flex_col()
+                                                                    .items_center()
+                                                                    .gap_y_2()
+                                                                    .cursor_pointer()
+                                                                    .on_click(move |_, _, cx: &mut App| {
+                                                                        *cx.global_mut::<SelectedArtist>() =
+                                                                            SelectedArtist(name_for_click.clone());
+                                                                        *cx.global_mut::<BackSection>() =
+                                                                            BackSection(LibrarySection::Home);
+                                                                        *cx.global_mut::<LibrarySection>() =
+                                                                            LibrarySection::ArtistDetail;
+                                                                    })
+                                                                    .child(if let Some(url) = img_url {
+                                                                        div()
+                                                                            .w(px(130.0))
+                                                                            .h(px(130.0))
+                                                                            .rounded_full()
+                                                                            .overflow_hidden()
+                                                                            .flex_shrink_0()
+                                                                            .child(
+                                                                                img(url)
+                                                                                    .w_full()
+                                                                                    .h_full()
+                                                                                    .rounded_full()
+                                                                                    .object_fit(ObjectFit::Cover),
+                                                                            )
+                                                                            .into_any_element()
+                                                                    } else {
+                                                                        div()
+                                                                            .w(px(130.0))
+                                                                            .h(px(130.0))
+                                                                            .rounded_full()
+                                                                            .flex_shrink_0()
+                                                                            .bg(theme.library_art_bg)
+                                                                            .flex()
+                                                                            .items_center()
+                                                                            .justify_center()
+                                                                            .text_color(theme.player_icons_text)
+                                                                            .child(Icon::new(Icons::Artist).size_10())
+                                                                            .into_any_element()
+                                                                    })
+                                                                    .child(
+                                                                        div()
+                                                                            .text_sm()
+                                                                            .font_weight(FontWeight(600.0))
+                                                                            .text_color(theme.library_text)
+                                                                            .truncate()
+                                                                            .child(name.clone()),
+                                                                    )
+                                                                    .child(
+                                                                        div()
+                                                                            .text_xs()
+                                                                            .text_color(theme.library_header_text)
+                                                                            .child("Artist"),
+                                                                    )
+                                                            },
+                                                        ),
+                                                    ),
+                                            ),
+                                    )
+                                })
+                                .when(!saved_playlists_home.is_empty(), |this| {
+                                    this.child(
+                                        div()
+                                            .flex()
+                                            .flex_col()
+                                            .gap_y_3()
+                                            .child(
+                                                div()
+                                                    .text_lg()
+                                                    .font_weight(FontWeight(700.0))
+                                                    .text_color(theme.library_text)
+                                                    .child("Your playlists"),
+                                            )
+                                            .child(
+                                                div()
+                                                    .id("home_saved_pl")
+                                                    .w_full()
+                                                    .min_w_0()
+                                                    .flex()
+                                                    .gap_x_4()
+                                                    .overflow_x_scroll()
+                                                    .track_scroll(&home_saved_scroll)
+                                                    .children(
+                                                        saved_playlists_home.iter().take(20).cloned().enumerate().map(
+                                                            |(idx, p)| {
+                                                                let pid = p.id.clone();
+                                                                let pname = p.name.clone();
+                                                                div()
+                                                                    .id(("home_saved_card", idx))
+                                                                    .w(px(160.0))
+                                                                    .flex_shrink_0()
+                                                                    .flex()
+                                                                    .flex_col()
+                                                                    .gap_y_2()
+                                                                    .cursor_pointer()
+                                                                    .on_click(move |_, _, cx: &mut App| {
+                                                                        *cx.global_mut::<SelectedPlaylist>() =
+                                                                            SelectedPlaylist {
+                                                                                id: pid.clone(),
+                                                                                name: pname.clone(),
+                                                                                is_smart: false,
+                                                                            };
+                                                                        cx.global_mut::<PlaylistsState>()
+                                                                            .playlist_tracks
+                                                                            .clear();
+                                                                        *cx.global_mut::<LibrarySection>() =
+                                                                            LibrarySection::PlaylistDetail;
+                                                                    })
+                                                                    .child(
+                                                                        div()
+                                                                            .w(px(160.0))
+                                                                            .h(px(160.0))
+                                                                            .child(art_tile(p.image.clone(), theme, Icons::Playlist, 10)),
+                                                                    )
+                                                                    .child(
+                                                                        div()
+                                                                            .text_sm()
+                                                                            .font_weight(FontWeight(600.0))
+                                                                            .text_color(theme.library_text)
+                                                                            .truncate()
+                                                                            .child(p.name.clone()),
+                                                                    )
+                                                            },
+                                                        ),
+                                                    ),
+                                            ),
+                                    )
+                                }),
+                        )
+                        .into_any_element()
+                }
+
+                // ── Genres ─────────────────────────────────────────────────────────────
+                LibrarySection::Genres => {
+                    div()
+                        .id("genres_scroll")
+                        .flex_1()
+                        .min_h_0()
+                        .overflow_y_scroll()
+                        .child(
+                            div()
+                                .w_full()
+                                .p_6()
+                                .flex()
+                                .flex_col()
+                                .gap_y_5()
+                                .child(
+                                    div()
+                                        .text_3xl()
+                                        .font_weight(FontWeight(800.0))
+                                        .text_color(theme.library_text)
+                                        .child("Genres"),
+                                )
+                                .child(
+                                    div()
+                                        .grid()
+                                        .grid_cols(4)
+                                        .gap_3()
+                                        .children(genres_state.iter().cloned().enumerate().map(|(idx, g)| {
+                                            let gid_click = g.id.clone();
+                                            let gname_click = g.name.clone();
+                                            let tile_color = neon_color_for(if g.id.is_empty() { &g.name } else { &g.id });
+                                            div()
+                                                .id(("genre_tile", idx))
+                                                .relative()
+                                                .h(px(120.0))
+                                                .rounded_md()
+                                                .overflow_hidden()
+                                                .bg(tile_color)
+                                                .cursor_pointer()
+                                                .hover(|this| this.opacity(0.92))
+                                                .on_click(move |_, _, cx: &mut App| {
+                                                    *cx.global_mut::<SelectedGenre>() =
+                                                        SelectedGenre {
+                                                            id: gid_click.clone(),
+                                                            name: gname_click.clone(),
+                                                            tracks: vec![],
+                                                            albums: vec![],
+                                                            artists: vec![],
+                                                        };
+                                                    *cx.global_mut::<BackSection>() =
+                                                        BackSection(LibrarySection::Genres);
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::GenreDetail;
+                                                })
+                                                .child(
+                                                    div()
+                                                        .absolute()
+                                                        .top_3()
+                                                        .left_3()
+                                                        .text_lg()
+                                                        .font_weight(FontWeight(700.0))
+                                                        .text_color(gpui::rgb(0xFFFFFF))
+                                                        .child(g.name.clone()),
+                                                )
+                                                .child(
+                                                    div()
+                                                        .absolute()
+                                                        .bottom_2()
+                                                        .left_3()
+                                                        .text_xs()
+                                                        .text_color(gpui::rgb(0xFFFFFFB0))
+                                                        .child(format!("{} tracks", g.track_count)),
+                                                )
+                                        })),
+                                ),
+                        )
+                        .into_any_element()
+                }
+
+                // ── GenreDetail ────────────────────────────────────────────────────────
+                LibrarySection::GenreDetail => {
+                    let g = selected_genre.clone();
+                    let gid_for_play = g.id.clone();
+                    let gid_for_shuffle = g.id.clone();
+                    div()
+                        .id("genre_detail_scroll")
+                        .flex_1()
+                        .min_h_0()
+                        .overflow_y_scroll()
+                        .child(
+                            div()
+                                .w_full()
+                                .p_6()
+                                .flex()
+                                .flex_col()
+                                .gap_y_5()
+                                // Back + title
+                                .child(
+                                    div()
+                                        .flex()
+                                        .items_center()
+                                        .gap_x_3()
+                                        .child(
+                                            div()
+                                                .id("genre_back")
+                                                .w(px(28.0))
+                                                .h(px(28.0))
+                                                .flex()
+                                                .items_center()
+                                                .justify_center()
+                                                .rounded_full()
+                                                .bg(theme.library_art_bg)
+                                                .cursor_pointer()
+                                                .text_color(theme.library_text)
+                                                .on_click(|_, _, cx: &mut App| {
+                                                    *cx.global_mut::<LibrarySection>() =
+                                                        LibrarySection::Genres;
+                                                    *cx.global_mut::<SelectedGenre>() =
+                                                        SelectedGenre::default();
+                                                })
+                                                .child(Icon::new(Icons::ChevronLeft).size_5()),
+                                        )
+                                        .child(
+                                            div()
+                                                .text_3xl()
+                                                .font_weight(FontWeight(800.0))
+                                                .text_color(theme.library_text)
+                                                .child(g.name.clone()),
+                                        ),
+                                )
+                                .child(
+                                    div()
+                                        .text_sm()
+                                        .text_color(theme.library_header_text)
+                                        .child(format!(
+                                            "{} tracks · {} albums · {} artists",
+                                            g.tracks.len(),
+                                            g.albums.len(),
+                                            g.artists.len()
+                                        )),
+                                )
+                                // Play / Shuffle buttons
+                                .child(
+                                    div()
+                                        .flex()
+                                        .gap_x_3()
+                                        .child(
+                                            div()
+                                                .id("genre_play_btn")
+                                                .px_4()
+                                                .py_2()
+                                                .rounded_full()
+                                                .bg(theme.switcher_active)
+                                                .text_color(gpui::rgb(0xFFFFFF))
+                                                .text_sm()
+                                                .font_weight(FontWeight(600.0))
+                                                .cursor_pointer()
+                                                .on_click(move |_, _, cx: &mut App| {
+                                                    let id = gid_for_play.clone();
+                                                    let rt = cx.global::<Controller>().rt();
+                                                    rt.spawn(async move {
+                                                        let _ = crate::client::play_genre_tracks(
+                                                            id, false,
+                                                        )
+                                                        .await;
+                                                    });
+                                                })
+                                                .child("Play"),
+                                        )
+                                        .child(
+                                            div()
+                                                .id("genre_shuffle_btn")
+                                                .px_4()
+                                                .py_2()
+                                                .rounded_full()
+                                                .bg(theme.library_art_bg)
+                                                .text_color(theme.library_text)
+                                                .text_sm()
+                                                .font_weight(FontWeight(600.0))
+                                                .cursor_pointer()
+                                                .on_click(move |_, _, cx: &mut App| {
+                                                    let id = gid_for_shuffle.clone();
+                                                    let rt = cx.global::<Controller>().rt();
+                                                    rt.spawn(async move {
+                                                        let _ = crate::client::play_genre_tracks(
+                                                            id, true,
+                                                        )
+                                                        .await;
+                                                    });
+                                                })
+                                                .child("Shuffle"),
+                                        ),
+                                )
+                                // Albums row
+                                .when(!g.albums.is_empty(), |this| {
+                                    this.child(
+                                        div()
+                                            .flex()
+                                            .flex_col()
+                                            .gap_y_3()
+                                            .child(
+                                                div()
+                                                    .text_lg()
+                                                    .font_weight(FontWeight(700.0))
+                                                    .text_color(theme.library_text)
+                                                    .child("Albums"),
+                                            )
+                                            .child(
+                                                div()
+                                                    .id("genre_albums_row")
+                                                    .w_full()
+                                                    .min_w_0()
+                                                    .flex()
+                                                    .gap_x_4()
+                                                    .overflow_x_scroll()
+                                                    .track_scroll(&genre_albums_scroll)
+                                                    .children(g.albums.iter().cloned().enumerate().map(|(idx, a)| {
+                                                        let aname = a.title.clone();
+                                                        div()
+                                                            .id(("genre_album_card", idx))
+                                                            .w(px(150.0))
+                                                            .flex_shrink_0()
+                                                            .flex()
+                                                            .flex_col()
+                                                            .gap_y_2()
+                                                            .cursor_pointer()
+                                                            .on_click(move |_, _, cx: &mut App| {
+                                                                *cx.global_mut::<SelectedAlbum>() =
+                                                                    SelectedAlbum(aname.clone());
+                                                                *cx.global_mut::<BackSection>() =
+                                                                    BackSection(LibrarySection::GenreDetail);
+                                                                *cx.global_mut::<LibrarySection>() =
+                                                                    LibrarySection::AlbumDetail;
+                                                            })
+                                                            .child(
+                                                                div()
+                                                                    .w(px(150.0))
+                                                                    .h(px(150.0))
+                                                                    .child(art_tile(
+                                                                        a.album_art.clone(),
+                                                                        theme,
+                                                                        Icons::Disc,
+                                                                        10,
+                                                                    )),
+                                                            )
+                                                            .child(
+                                                                div()
+                                                                    .text_sm()
+                                                                    .font_weight(FontWeight(600.0))
+                                                                    .text_color(theme.library_text)
+                                                                    .truncate()
+                                                                    .child(a.title.clone()),
+                                                            )
+                                                            .child(
+                                                                div()
+                                                                    .text_xs()
+                                                                    .text_color(theme.library_header_text)
+                                                                    .truncate()
+                                                                    .child(a.artist.clone()),
+                                                            )
+                                                    })),
+                                            ),
+                                    )
+                                })
+                                // Artists row
+                                .when(!g.artists.is_empty(), |this| {
+                                    this.child(
+                                        div()
+                                            .flex()
+                                            .flex_col()
+                                            .gap_y_3()
+                                            .child(
+                                                div()
+                                                    .text_lg()
+                                                    .font_weight(FontWeight(700.0))
+                                                    .text_color(theme.library_text)
+                                                    .child("Artists"),
+                                            )
+                                            .child(
+                                                div()
+                                                    .id("genre_artists_row")
+                                                    .w_full()
+                                                    .min_w_0()
+                                                    .flex()
+                                                    .gap_x_4()
+                                                    .overflow_x_scroll()
+                                                    .track_scroll(&genre_artists_scroll)
+                                                    .children(g.artists.iter().cloned().enumerate().map(|(idx, ar)| {
+                                                        let arname = ar.name.clone();
+                                                        // Same URL handling as the Artists grid: leave http(s) URLs
+                                                        // untouched, only prepend covers_base() for relative paths.
+                                                        let img_url = ar
+                                                            .image
+                                                            .clone()
+                                                            .filter(|s| !s.is_empty())
+                                                            .map(|s| {
+                                                                if s.starts_with("http") {
+                                                                    s
+                                                                } else {
+                                                                    format!("{}{s}", covers_base())
+                                                                }
+                                                            });
+                                                        div()
+                                                            .id(("genre_artist_card", idx))
+                                                            .w(px(120.0))
+                                                            .flex_shrink_0()
+                                                            .flex()
+                                                            .flex_col()
+                                                            .items_center()
+                                                            .gap_y_2()
+                                                            .cursor_pointer()
+                                                            .on_click(move |_, _, cx: &mut App| {
+                                                                *cx.global_mut::<SelectedArtist>() =
+                                                                    SelectedArtist(arname.clone());
+                                                                *cx.global_mut::<BackSection>() =
+                                                                    BackSection(LibrarySection::GenreDetail);
+                                                                *cx.global_mut::<LibrarySection>() =
+                                                                    LibrarySection::ArtistDetail;
+                                                            })
+                                                            .child(if let Some(url) = img_url {
+                                                                div()
+                                                                    .w(px(120.0))
+                                                                    .h(px(120.0))
+                                                                    .rounded_full()
+                                                                    .overflow_hidden()
+                                                                    .flex_shrink_0()
+                                                                    .child(
+                                                                        img(url)
+                                                                            .w_full()
+                                                                            .h_full()
+                                                                            .rounded_full()
+                                                                            .object_fit(ObjectFit::Cover),
+                                                                    )
+                                                                    .into_any_element()
+                                                            } else {
+                                                                div()
+                                                                    .w(px(120.0))
+                                                                    .h(px(120.0))
+                                                                    .rounded_full()
+                                                                    .flex_shrink_0()
+                                                                    .bg(theme.library_art_bg)
+                                                                    .flex()
+                                                                    .items_center()
+                                                                    .justify_center()
+                                                                    .text_color(theme.player_icons_text)
+                                                                    .child(Icon::new(Icons::Artist).size_10())
+                                                                    .into_any_element()
+                                                            })
+                                                            .child(
+                                                                div()
+                                                                    .text_sm()
+                                                                    .font_weight(FontWeight(600.0))
+                                                                    .text_color(theme.library_text)
+                                                                    .truncate()
+                                                                    .child(ar.name.clone()),
+                                                            )
+                                                    })),
+                                            ),
+                                    )
+                                }),
+                        )
+                        .into_any_element()
+                }
             };
             content_inner
         }; // end if/else search
@@ -3491,6 +4524,12 @@ impl Render for LibraryPage {
                                 .child(self.search_input.clone())
                                 .gap_y_1()
                             .child(make_nav_item(
+                                Icons::Home,
+                                5,
+                                "Home",
+                                LibrarySection::Home,
+                            ))
+                            .child(make_nav_item(
                                 Icons::Music,
                                 5,
                                 "Songs",
@@ -3507,6 +4546,12 @@ impl Render for LibraryPage {
                                 5,
                                 "Artists",
                                 LibrarySection::Artists,
+                            ))
+                            .child(make_nav_item(
+                                Icons::Genre,
+                                5,
+                                "Genres",
+                                LibrarySection::Genres,
                             ))
                             .child(make_nav_item(
                                 Icons::HeartOutline,

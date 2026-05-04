@@ -216,6 +216,41 @@ impl PlaybackMutation {
         Ok(0)
     }
 
+    async fn play_genre_tracks(
+        &self,
+        ctx: &Context<'_>,
+        genre_id: String,
+        shuffle: Option<bool>,
+        position: Option<i32>,
+    ) -> Result<i32, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let client = ctx.data::<reqwest::Client>().unwrap();
+        let tracks = repo::genre::find_tracks(pool.clone(), &genre_id).await?;
+        let tracks = tracks.into_iter().map(|t| t.path).collect::<Vec<String>>();
+        let body = serde_json::json!({
+            "tracks": tracks,
+        });
+
+        check_and_load_player!(client, tracks, shuffle.unwrap_or_default());
+
+        let url = format!("{}/playlists", rockbox_url());
+        client.post(&url).json(&body).send().await?;
+
+        if let Some(true) = shuffle {
+            let url = format!("{}/playlists/shuffle", rockbox_url());
+            client.put(&url).send().await?;
+        }
+
+        let url = match position {
+            Some(p) => format!("{}/playlists/start?start_index={}", rockbox_url(), p),
+            None => format!("{}/playlists/start", rockbox_url()),
+        };
+
+        client.put(&url).send().await?;
+
+        Ok(0)
+    }
+
     async fn play_playlist(
         &self,
         _ctx: &Context<'_>,

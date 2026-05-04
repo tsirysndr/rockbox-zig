@@ -1,3 +1,4 @@
+pub mod resolver;
 pub mod rules;
 
 use anyhow::{anyhow, Result};

@@ -1,10 +1,11 @@
 use async_graphql::*;
 use rockbox_library::{entity::favourites::Favourites, repo};
+use rockbox_playlists::{resolver, rules::RuleCriteria, PlaylistStore};
 use sqlx::{Pool, Sqlite};
 
 use crate::{rockbox_url, schema::objects::track::Track};
 
-use super::objects::{album::Album, artist::Artist, search::SearchResults};
+use super::objects::{album::Album, artist::Artist, genre::Genre, search::SearchResults};
 
 #[derive(Default)]
 pub struct LibraryQuery;
@@ -59,6 +60,77 @@ impl LibraryQuery {
         let pool = ctx.data::<Pool<Sqlite>>()?;
         let results = repo::track::find(pool.clone(), &id).await?;
         Ok(results.map(Into::into))
+    }
+
+    async fn genres(&self, ctx: &Context<'_>) -> Result<Vec<Genre>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let genres = repo::genre::all(pool.clone()).await?;
+
+        let mut out: Vec<Genre> = Vec::with_capacity(genres.len());
+        for g in genres {
+            let track_count = repo::genre::find_tracks(pool.clone(), &g.id)
+                .await
+                .map(|t| t.len() as i64)
+                .unwrap_or(0);
+            let mut genre: Genre = g.into();
+            genre.track_count = track_count;
+            out.push(genre);
+        }
+        Ok(out)
+    }
+
+    async fn genre(&self, ctx: &Context<'_>, id: String) -> Result<Option<Genre>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let result = repo::genre::find(pool.clone(), &id).await?;
+        let mut genre: Option<Genre> = result.map(Into::into);
+        if let Some(g) = genre.as_mut() {
+            let tracks = repo::genre::find_tracks(pool.clone(), &id).await?;
+            let albums = repo::genre::find_albums(pool.clone(), &id).await?;
+            let artists = repo::genre::find_artists(pool.clone(), &id).await?;
+            g.track_count = tracks.len() as i64;
+            g.tracks = tracks.into_iter().map(Into::into).collect();
+            g.albums = albums.into_iter().map(Into::into).collect();
+            g.artists = artists.into_iter().map(Into::into).collect();
+        }
+        Ok(genre)
+    }
+
+    async fn genre_tracks(&self, ctx: &Context<'_>, id: String) -> Result<Vec<Track>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let tracks = repo::genre::find_tracks(pool.clone(), &id).await?;
+        Ok(tracks.into_iter().map(Into::into).collect())
+    }
+
+    async fn genre_albums(&self, ctx: &Context<'_>, id: String) -> Result<Vec<Album>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let albums = repo::genre::find_albums(pool.clone(), &id).await?;
+        Ok(albums.into_iter().map(Into::into).collect())
+    }
+
+    async fn genre_artists(&self, ctx: &Context<'_>, id: String) -> Result<Vec<Artist>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let artists = repo::genre::find_artists(pool.clone(), &id).await?;
+        Ok(artists.into_iter().map(Into::into).collect())
+    }
+
+    /// Apply smart-playlist-style rules to the track library and return the
+    /// matching albums (unique album of each matching track, in resolver order).
+    /// `rules` is a JSON-encoded RuleCriteria (same shape used by smart playlists).
+    async fn filter_albums(&self, ctx: &Context<'_>, rules: String) -> Result<Vec<Album>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let store = ctx.data::<PlaylistStore>()?;
+        let criteria: RuleCriteria = serde_json::from_str(&rules)?;
+        let albums = resolver::filter_albums(store, pool, &criteria).await?;
+        Ok(albums.into_iter().map(Into::into).collect())
+    }
+
+    /// Same as `filter_albums` but returns matching artists.
+    async fn filter_artists(&self, ctx: &Context<'_>, rules: String) -> Result<Vec<Artist>, Error> {
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let store = ctx.data::<PlaylistStore>()?;
+        let criteria: RuleCriteria = serde_json::from_str(&rules)?;
+        let artists = resolver::filter_artists(store, pool, &criteria).await?;
+        Ok(artists.into_iter().map(Into::into).collect())
     }
 
     async fn liked_tracks(&self, ctx: &Context<'_>) -> Result<Vec<Track>, Error> {

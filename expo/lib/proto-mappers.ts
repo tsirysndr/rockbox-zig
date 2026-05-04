@@ -4,7 +4,7 @@
  * to empty strings / 0 / null so the UI renders a sensible placeholder.
  */
 import { coverUrl } from "@/lib/cover-url";
-import type { Album, Artist, Playlist, Track } from "@/lib/types";
+import type { Album, Artist, Genre, Playlist, Track } from "@/lib/types";
 
 export type ProtoTrack = {
   id?: string;
@@ -29,6 +29,7 @@ export type ProtoAlbum = {
   album_art?: string | null;
   year?: number;
   year_string?: string;
+  copyright_message?: string | null;
   genre?: string;
 };
 
@@ -47,6 +48,14 @@ export type ProtoPlaylist = {
   track_count?: number;
   is_smart?: boolean;
   rules?: string | null;
+};
+
+export type ProtoGenre = {
+  id?: string;
+  name?: string;
+  description?: string | null;
+  image?: string | null;
+  track_count?: number;
 };
 
 const fallback = (s: string | null | undefined, alt = ""): string => s ?? alt;
@@ -75,6 +84,11 @@ export function albumFromProto(p: ProtoAlbum | undefined | null): Album {
     artist: fallback(p.artist),
     artwork: coverUrl(p.album_art) ?? "",
     year: p.year ?? (parseInt(p.year_string ?? "", 10) || undefined),
+    yearString: p.year_string && p.year_string.length > 0 ? p.year_string : undefined,
+    copyrightMessage:
+      p.copyright_message && p.copyright_message.length > 0
+        ? p.copyright_message
+        : undefined,
     genre: p.genre ?? undefined,
   };
 }
@@ -103,6 +117,40 @@ export function playlistFromProto(
     isSmart: p.is_smart === true,
     rules: p.rules ?? undefined,
   };
+}
+
+export function genreFromProto(p: ProtoGenre | undefined | null): Genre {
+  if (!p) return { id: "", name: "", color: "#374151" };
+  const id = fallback(p.id);
+  const name = fallback(p.name, "(unknown)");
+  return { id, name, color: colorForSeed(id || name) };
+}
+
+// Deterministic HSL → hex for genre tiles. Mirrors the GPUI/macOS hash:
+// FNV-ish * 31 over the seed, then map into the 0–359 hue band.
+function colorForSeed(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (Math.imul(hash, 31) + seed.charCodeAt(i)) | 0;
+  }
+  const hue = ((hash % 360) + 360) % 360;
+  return hslToHex(hue, 0.65, 0.45);
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  const to = (v: number) =>
+    Math.round((v + m) * 255).toString(16).padStart(2, "0");
+  return `#${to(r)}${to(g)}${to(b)}`;
 }
 
 function blankTrack(): Track {

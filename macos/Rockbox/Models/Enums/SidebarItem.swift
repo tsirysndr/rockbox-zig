@@ -8,8 +8,10 @@
 import SwiftUI
 
 enum SidebarItem: String, CaseIterable, Identifiable {
+    case home = "Home"
     case albums = "Albums"
     case artists = "Artists"
+    case genres = "Genres"
     case songs = "Songs"
     case likes = "Likes"
     case playlists = "Playlists"
@@ -19,8 +21,10 @@ enum SidebarItem: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
+        case .home: return "house"
         case .albums: return "square.stack"
         case .artists: return "music.mic"
+        case .genres: return "guitars"
         case .songs: return "music.note"
         case .likes: return "heart"
         case .playlists: return "music.note.list"
@@ -28,4 +32,3 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         }
     }
 }
-

@@ -44,6 +44,12 @@ export function RockboxStreams() {
   const lastTrackRef = useRef<TrackSnapshot | null>(null);
   const lastStatusRef = useRef<StatusSnapshot | null>(null);
 
+  // Identity of the active gRPC endpoint. Used as the dep that re-runs the
+  // playback-stream subscriptions and clears the React Query cache when the
+  // user switches servers in Settings.
+  const serverUrlKey = server ? `${server.host}:${server.grpcPort}` : "";
+  const previousServerUrlRef = useRef<string>(serverUrlKey);
+
   // Push the cover base URL into the now-playing service on every server
   // change so it can resolve `album_art` ids while JS is suspended.
   useEffect(() => {
@@ -51,6 +57,31 @@ export function RockboxStreams() {
     const base = coversBaseUrl(server);
     if (base) RockboxNowPlaying.setCoverBaseUrl(base);
   }, [server]);
+
+  // On every change of the active server, drop per-server cache entries so
+  // the screens refetch from the new endpoint instead of showing the previous
+  // server's data until staleTime expires. Skip caches that are populated by
+  // LAN/HTTP discovery (not the selected server): mdns-sd only fires
+  // `ServiceResolved` once per service, so dropping `discoveredServers`
+  // would empty the server picker until the user pull-to-refreshes.
+  useEffect(() => {
+    if (previousServerUrlRef.current === serverUrlKey) return;
+    previousServerUrlRef.current = serverUrlKey;
+    qc.removeQueries({
+      queryKey: qk.all,
+      predicate: (q) => {
+        const k = q.queryKey;
+        if (Array.isArray(k) && k.length >= 2) {
+          // discoveredServers   → mDNS browse (independent of selected server)
+          // outputDevices       → cast/AirPlay HTTP picker (refetch on its own)
+          if (k[1] === "discoveredServers" || k[1] === "outputDevices") {
+            return false;
+          }
+        }
+        return true;
+      },
+    });
+  }, [qc, serverUrlKey]);
 
   const startDiscovery = useCallback(() => {
     // Tear down the previous browse, if any, so we get a fresh
@@ -66,6 +97,30 @@ export function RockboxStreams() {
     });
   }, [qc]);
 
+  // ── Discovery + initial hydration (mount-only) ──────────────────────────
+  useEffect(() => {
+    if (!RockboxClient.isAvailable) return;
+    void hydrateSelectedServer();
+    startDiscovery();
+    // Expose the restart handle for callers outside React.
+    // Note: we deliberately DO NOT clear the cache here — mdns-sd takes a
+    // few seconds to re-resolve previously-seen services, so clearing first
+    // would leave the picker empty even when servers are still online. The
+    // dedup-by-fullname guard on each event keeps the list clean.
+    restartDiscoveryImpl = () => {
+      startDiscovery();
+    };
+    return () => {
+      restartDiscoveryImpl = null;
+      discoveryUnsubRef.current?.();
+      discoveryUnsubRef.current = null;
+    };
+  }, [startDiscovery]);
+
+  // ── Playback streams (re-runs whenever the active server changes) ───────
+  // The Rust-side `rb_subscribe_*` fns capture the server URL at spawn time
+  // and never re-read it, so a server switch requires unsubscribing and
+  // re-subscribing to point the new tonic stream at the new endpoint.
   useEffect(() => {
     if (!RockboxClient.isAvailable) return;
 
@@ -147,26 +202,14 @@ export function RockboxStreams() {
       }),
     );
 
-    void hydrateSelectedServer();
-    startDiscovery();
-
-    // Expose the restart handle for callers outside React.
-    // Note: we deliberately DO NOT clear the cache here — mdns-sd takes a
-    // few seconds to re-resolve previously-seen services, so clearing first
-    // would leave the picker empty even when servers are still online. The
-    // dedup-by-fullname guard on each event keeps the list clean.
-    restartDiscoveryImpl = () => {
-      startDiscovery();
-    };
-
     return () => {
-      restartDiscoveryImpl = null;
-      discoveryUnsubRef.current?.();
-      discoveryUnsubRef.current = null;
       for (const u of unsubs) u();
       if (nowPlayingEnabled()) RockboxNowPlaying.clear();
     };
-  }, [qc, startDiscovery]);
+    // serverUrlKey rebinds the effect to the active server: when the user
+    // switches in Settings, the cleanup tears down the streams pointed at
+    // the old endpoint and a fresh set is established for the new one.
+  }, [qc, serverUrlKey]);
 
   return null;
 }

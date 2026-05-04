@@ -13,6 +13,7 @@ pub struct SmartPlaylist {
     pub rules: String,
     pub created_at: i64,
     pub updated_at: i64,
+    pub track_count: i64,
 }
 
 #[derive(Default, Clone, Serialize, SimpleObject)]
@@ -37,6 +38,7 @@ impl From<RsSmartPlaylist> for SmartPlaylist {
             rules: serde_json::to_string(&p.rules).unwrap_or_default(),
             created_at: p.created_at,
             updated_at: p.updated_at,
+            track_count: 0,
         }
     }
 }

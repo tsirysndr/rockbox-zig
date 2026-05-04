@@ -15,13 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { TrackMenuButton } from "@/components/track-menu-button";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
-import {
-  formatDuration,
-  getGenreAlbums,
-  getGenreArtists,
-  getGenreById,
-  getGenreTracks,
-} from "@/lib/mock-data";
+import { useGenreDetail } from "@/lib/library-source";
+import { formatDuration } from "@/lib/mock-data";
 import { usePlayer } from "@/lib/player-context";
 
 const HEADER_HEIGHT = 56;
@@ -30,10 +25,8 @@ const TOP_TRACK_LIMIT = 5;
 
 export default function GenreScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const genre = id ? getGenreById(id) : undefined;
-  const tracks = useMemo(() => (id ? getGenreTracks(id) : []), [id]);
-  const albums = useMemo(() => (id ? getGenreAlbums(id) : []), [id]);
-  const artists = useMemo(() => (id ? getGenreArtists(id) : []), [id]);
+  const genreId = id ?? "";
+  const { genre, tracks, albums, artists, isLoading } = useGenreDetail(genreId);
   const { playQueue, currentTrack, isPlaying } = usePlayer();
   const topTracks = tracks.slice(0, TOP_TRACK_LIMIT);
   const bottomPad = useBottomSpacing(24);
@@ -59,7 +52,9 @@ export default function GenreScreen() {
     return (
       <SafeAreaView className="flex-1 bg-bg">
         <View className="flex-1 items-center justify-center">
-          <Text className="text-text-secondary">Genre not found</Text>
+          <Text className="text-text-secondary">
+            {isLoading ? "Loading…" : "Genre not found"}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -111,11 +106,11 @@ export default function GenreScreen() {
           style={{ height: HERO_HEIGHT - 60 }}
         >
           <View className="px-5 pb-3">
-            <Text className="text-white/80 text-xs font-bold tracking-widest uppercase font-sans">
+            <Text className="text-white/80 text-xs tracking-widest uppercase font-display">
               Genre
             </Text>
             <Text
-              className="text-text-primary text-[34px] font-extrabold mt-1 font-sans"
+              className="text-text-primary text-[34px] mt-1 font-display-extra"
               style={{
                 textShadowColor: "rgba(0,0,0,0.6)",
                 textShadowRadius: 8,
@@ -167,7 +162,7 @@ export default function GenreScreen() {
 
           {topTracks.length > 0 ? (
             <View className="mt-7">
-              <Text className="text-text-primary text-lg font-bold px-5 mb-2 font-sans">
+              <Text className="text-text-primary text-lg px-5 mb-2 font-display">
                 Popular tracks
               </Text>
               {topTracks.map((t, idx) => {
@@ -227,7 +222,7 @@ export default function GenreScreen() {
 
           {albums.length > 0 ? (
             <View className="mt-8">
-              <Text className="text-text-primary text-lg font-bold px-5 mb-3 font-sans">
+              <Text className="text-text-primary text-lg px-5 mb-3 font-display">
                 Albums
               </Text>
               <FlatList
@@ -266,7 +261,7 @@ export default function GenreScreen() {
 
           {artists.length > 0 ? (
             <View className="mt-8">
-              <Text className="text-text-primary text-lg font-bold px-5 mb-3 font-sans">
+              <Text className="text-text-primary text-lg px-5 mb-3 font-display">
                 Artists
               </Text>
               <FlatList
@@ -336,7 +331,7 @@ export default function GenreScreen() {
           </Pressable>
           <Animated.Text
             numberOfLines={1}
-            className="flex-1 text-center text-text-primary text-[15px] font-bold px-3 font-sans"
+            className="flex-1 text-center text-text-primary text-[15px] px-3 font-display"
             style={{ opacity: titleOpacity }}
           >
             {genre.name}

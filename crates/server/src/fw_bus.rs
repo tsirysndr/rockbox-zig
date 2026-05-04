@@ -94,15 +94,23 @@ pub fn send(cmd: FwCmd) {
     }
 }
 
+/// How long to wait for the broker to drain a queued command. Generous
+/// because building a large playlist (1000+ tracks via `playlist_create` +
+/// `build_playlist`) can take several seconds when the kernel is also
+/// busy decoding audio. Under rapid user-driven play actions, multiple
+/// commands queue up and each subsequent caller waits for the broker to
+/// finish the ones ahead of it.
+const BROKER_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
 /// Send a command and block until the broker confirms execution. Use
 /// from actix `web::block(...)` callbacks — the wait is bounded by the
 /// broker tick (~10 ms idle, immediate when busy).
 pub fn send_and_wait(make: impl FnOnce(mpsc::SyncSender<()>) -> FwCmd) {
     let (reply_tx, reply_rx) = mpsc::sync_channel::<()>(1);
     send(make(reply_tx));
-    // 5-second cap — if the broker is wedged we'd rather return than block
-    // a request thread forever.
-    let _ = reply_rx.recv_timeout(std::time::Duration::from_secs(5));
+    if reply_rx.recv_timeout(BROKER_TIMEOUT).is_err() {
+        tracing::warn!("fw_bus::send_and_wait: broker timed out (no reply within 30 s)");
+    }
 }
 
 /// Run an arbitrary closure on the broker thread and block until it
@@ -112,8 +120,28 @@ pub fn send_and_wait(make: impl FnOnce(mpsc::SyncSender<()>) -> FwCmd) {
 ///
 /// The closure runs on a real Rockbox kernel thread, so any firmware
 /// FFI it makes resolves `__cores[0].running` correctly. Blocks the
-/// caller for up to 5 s; intended to be called from `web::block(...)`.
+/// caller for up to 30 s; intended to be called from `web::block(...)`.
+///
+/// On timeout (e.g. the broker is wedged or the queue is backed up under
+/// rapid-fire user actions) we **do not** panic — that would unwind the
+/// actix worker and surface as a scary 500. Instead we log a warning and
+/// return `T::default()`. Callers that care about distinguishing success
+/// from a timed-out broker call should use [`try_run_on_broker`] instead.
 pub fn run_on_broker<T, F>(f: F) -> T
+where
+    T: Default + Send + 'static,
+    F: FnOnce() -> T + Send + 'static,
+{
+    try_run_on_broker(f).unwrap_or_else(|| {
+        tracing::warn!("fw_bus::run_on_broker: broker tick timed out (30 s), returning default");
+        T::default()
+    })
+}
+
+/// Same as [`run_on_broker`] but returns `None` on timeout instead of a
+/// default value. Use when the caller needs to surface the timeout as a
+/// proper error (e.g. an HTTP 503).
+pub fn try_run_on_broker<T, F>(f: F) -> Option<T>
 where
     T: Send + 'static,
     F: FnOnce() -> T + Send + 'static,
@@ -122,14 +150,7 @@ where
     send(FwCmd::Custom(Box::new(move || {
         let _ = tx.send(f());
     })));
-    rx.recv_timeout(std::time::Duration::from_secs(5))
-        .unwrap_or_else(|_| {
-            tracing::error!("fw_bus::run_on_broker: timed out waiting for broker");
-            // Last resort — return a default. The caller's signature
-            // requires us to produce a T, but T might not be Default.
-            // Panic instead so the actix worker bubbles 500 to the client.
-            panic!("fw_bus::run_on_broker: broker tick timed out (5 s)");
-        })
+    rx.recv_timeout(BROKER_TIMEOUT).ok()
 }
 
 /// Drain the channel and execute everything pending. Called once per

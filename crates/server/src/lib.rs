@@ -242,14 +242,22 @@ async fn run_http_server() -> Result<(), Error> {
         App::new()
             .app_data(state.clone())
             .wrap(cors)
-            // Albums
+            // Albums — fixed routes before parametric
+            .route(
+                "/albums/filter",
+                web::post().to(handlers::albums::filter_albums),
+            )
             .route("/albums", web::get().to(handlers::albums::get_albums))
             .route("/albums/{id}", web::get().to(handlers::albums::get_album))
             .route(
                 "/albums/{id}/tracks",
                 web::get().to(handlers::albums::get_album_tracks),
             )
-            // Artists
+            // Artists — fixed routes before parametric
+            .route(
+                "/artists/filter",
+                web::post().to(handlers::artists::filter_artists),
+            )
             .route("/artists", web::get().to(handlers::artists::get_artists))
             .route(
                 "/artists/{id}",
@@ -267,6 +275,21 @@ async fn run_http_server() -> Result<(), Error> {
             .route(
                 "/browse/tree-entries",
                 web::get().to(handlers::browse::get_tree_entries),
+            )
+            // Genres
+            .route("/genres", web::get().to(handlers::genres::get_genres))
+            .route("/genres/{id}", web::get().to(handlers::genres::get_genre))
+            .route(
+                "/genres/{id}/tracks",
+                web::get().to(handlers::genres::get_genre_tracks),
+            )
+            .route(
+                "/genres/{id}/albums",
+                web::get().to(handlers::genres::get_genre_albums),
+            )
+            .route(
+                "/genres/{id}/artists",
+                web::get().to(handlers::genres::get_genre_artists),
             )
             // Player
             .route(

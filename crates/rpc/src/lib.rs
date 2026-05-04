@@ -5,6 +5,7 @@ use tokio::fs;
 pub mod bluetooth;
 pub mod browse;
 pub mod device;
+pub mod genre;
 pub mod library;
 pub mod metadata;
 pub mod playback;
@@ -35,7 +36,7 @@ pub mod api {
             },
         };
         use v1alpha1::{
-            Album, Artist, CurrentTrackResponse, Device, Entry, GetGlobalSettingsResponse,
+            Album, Artist, CurrentTrackResponse, Device, Entry, Genre, GetGlobalSettingsResponse,
             GetGlobalStatusResponse, NextTrackResponse, SaveSettingsRequest, StatusResponse, Track,
         };
 
@@ -749,6 +750,21 @@ pub mod api {
                     time_write,
                     customaction,
                     display_name: None,
+                }
+            }
+        }
+
+        impl From<rockbox_library::entity::genre::Genre> for Genre {
+            fn from(genre: rockbox_library::entity::genre::Genre) -> Self {
+                Self {
+                    id: genre.id,
+                    name: genre.name,
+                    description: genre.description,
+                    image: genre.image,
+                    tracks: vec![],
+                    albums: vec![],
+                    artists: vec![],
+                    track_count: 0,
                 }
             }
         }

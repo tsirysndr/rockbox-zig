@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use crate::api::rockbox::v1alpha1::bluetooth_service_server::BluetoothServiceServer;
 use crate::api::rockbox::v1alpha1::browse_service_server::BrowseServiceServer;
 use crate::api::rockbox::v1alpha1::device_service_server::DeviceServiceServer;
+use crate::api::rockbox::v1alpha1::genre_service_server::GenreServiceServer;
 use crate::api::rockbox::v1alpha1::library_service_server::LibraryServiceServer;
 use crate::api::rockbox::v1alpha1::playback_service_server::PlaybackServiceServer;
 use crate::api::rockbox::v1alpha1::playlist_service_server::PlaylistServiceServer;
@@ -16,6 +17,7 @@ use crate::api::rockbox::FILE_DESCRIPTOR_SET;
 use crate::bluetooth::Bluetooth;
 use crate::browse::Browse;
 use crate::device::Device;
+use crate::genre::Genre;
 use crate::library::Library;
 use crate::playback::Playback;
 use crate::playlist::Playlist;
@@ -56,6 +58,9 @@ pub async fn start(
         .add_service(tonic_web::enable(LibraryServiceServer::new(Library::new(
             pool.clone(),
             client.clone(),
+        ))))
+        .add_service(tonic_web::enable(GenreServiceServer::new(Genre::new(
+            pool.clone(),
         ))))
         .add_service(tonic_web::enable(PlaylistServiceServer::new(
             Playlist::new(cmd_tx.clone(), client.clone(), pool.clone()),

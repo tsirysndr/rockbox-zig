@@ -2,13 +2,15 @@ use std::pin::Pin;
 
 use rockbox_graphql::{simplebroker::SimpleBroker, types::ScanCompleted};
 use rockbox_library::{entity::favourites::Favourites, repo};
+use rockbox_playlists::{resolver, rules::RuleCriteria, PlaylistStore};
 use sqlx::Sqlite;
 use tokio_stream::{Stream, StreamExt};
 
 use crate::{
     api::rockbox::v1alpha1::{
-        library_service_server::LibraryService, Album, Artist, GetAlbumRequest, GetAlbumResponse,
-        GetAlbumsRequest, GetAlbumsResponse, GetArtistRequest, GetArtistResponse,
+        library_service_server::LibraryService, Album, Artist, FilterAlbumsRequest,
+        FilterAlbumsResponse, FilterArtistsRequest, FilterArtistsResponse, GetAlbumRequest,
+        GetAlbumResponse, GetAlbumsRequest, GetAlbumsResponse, GetArtistRequest, GetArtistResponse,
         GetArtistsRequest, GetArtistsResponse, GetLikedAlbumsRequest, GetLikedAlbumsResponse,
         GetLikedTracksRequest, GetLikedTracksResponse, GetTrackRequest, GetTrackResponse,
         GetTracksRequest, GetTracksResponse, LikeAlbumRequest, LikeAlbumResponse, LikeTrackRequest,
@@ -22,11 +24,17 @@ use crate::{
 pub struct Library {
     pool: sqlx::Pool<Sqlite>,
     client: reqwest::Client,
+    store: PlaylistStore,
 }
 
 impl Library {
     pub fn new(pool: sqlx::Pool<Sqlite>, client: reqwest::Client) -> Self {
-        Self { pool, client }
+        let store = PlaylistStore::new(pool.clone());
+        Self {
+            pool,
+            client,
+            store,
+        }
     }
 }
 
@@ -355,6 +363,36 @@ impl LibraryService for Library {
             albums,
             artists,
             playlists,
+        }))
+    }
+
+    async fn filter_albums(
+        &self,
+        request: tonic::Request<FilterAlbumsRequest>,
+    ) -> Result<tonic::Response<FilterAlbumsResponse>, tonic::Status> {
+        let rules_json = request.into_inner().rules_json;
+        let criteria: RuleCriteria = serde_json::from_str(&rules_json)
+            .map_err(|e| tonic::Status::invalid_argument(e.to_string()))?;
+        let albums = resolver::filter_albums(&self.store, &self.pool, &criteria)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(FilterAlbumsResponse {
+            albums: albums.into_iter().map(Into::into).collect(),
+        }))
+    }
+
+    async fn filter_artists(
+        &self,
+        request: tonic::Request<FilterArtistsRequest>,
+    ) -> Result<tonic::Response<FilterArtistsResponse>, tonic::Status> {
+        let rules_json = request.into_inner().rules_json;
+        let criteria: RuleCriteria = serde_json::from_str(&rules_json)
+            .map_err(|e| tonic::Status::invalid_argument(e.to_string()))?;
+        let artists = resolver::filter_artists(&self.store, &self.pool, &criteria)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        Ok(tonic::Response::new(FilterArtistsResponse {
+            artists: artists.into_iter().map(Into::into).collect(),
         }))
     }
 

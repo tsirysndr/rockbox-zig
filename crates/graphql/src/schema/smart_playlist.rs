@@ -1,8 +1,6 @@
 use async_graphql::*;
-use rockbox_library::repo;
-use rockbox_playlists::{rules::Candidate, PlaylistStore};
+use rockbox_playlists::{resolver, PlaylistStore};
 use sqlx::{Pool, Sqlite};
-use std::collections::HashMap;
 
 use crate::{
     rockbox_url,
@@ -23,58 +21,8 @@ async fn resolve_smart_playlist_tracks(
         Some(p) => p.rules,
         None => return Ok(vec![]),
     };
-
-    let all_tracks = repo::track::all(pool.clone()).await?;
-
-    let stats_map: HashMap<String, rockbox_playlists::TrackStats> = store
-        .get_all_track_stats()
-        .await?
-        .into_iter()
-        .map(|s| (s.track_id.clone(), s))
-        .collect();
-
-    let liked_ids: std::collections::HashSet<String> = repo::favourites::all_tracks(pool.clone())
-        .await?
-        .into_iter()
-        .map(|t| t.id)
-        .collect();
-
-    let candidates: Vec<Candidate> = all_tracks
-        .iter()
-        .map(|t| {
-            let stats = stats_map.get(&t.id);
-            Candidate {
-                id: t.id.clone(),
-                title: t.title.clone(),
-                artist: t.artist.clone(),
-                album: t.album.clone(),
-                year: t.year.map(|y| y as i64),
-                genre: t.genre.clone(),
-                duration_ms: t.length as i64 * 1000,
-                bitrate: t.bitrate as i64,
-                date_added_ts: t.created_at.timestamp(),
-                play_count: stats.map(|s| s.play_count).unwrap_or(0),
-                skip_count: stats.map(|s| s.skip_count).unwrap_or(0),
-                last_played: stats.and_then(|s| s.last_played),
-                last_skipped: stats.and_then(|s| s.last_skipped),
-                is_liked: liked_ids.contains(&t.id),
-            }
-        })
-        .collect();
-
-    let resolved = rockbox_playlists::rules::resolve(&criteria, candidates);
-
-    let track_map: HashMap<&str, &rockbox_library::entity::track::Track> =
-        all_tracks.iter().map(|t| (t.id.as_str(), t)).collect();
-
-    Ok(resolved
-        .iter()
-        .filter_map(|c| {
-            track_map
-                .get(c.id.as_str())
-                .map(|t| Track::from((*t).clone()))
-        })
-        .collect())
+    let tracks = resolver::resolve_tracks(store, pool, &criteria).await?;
+    Ok(tracks.into_iter().map(Track::from).collect())
 }
 
 #[derive(Default)]
@@ -84,8 +32,21 @@ pub struct SmartPlaylistQuery;
 impl SmartPlaylistQuery {
     async fn smart_playlists(&self, ctx: &Context<'_>) -> Result<Vec<SmartPlaylist>, Error> {
         let store = ctx.data::<PlaylistStore>()?;
+        let pool = ctx.data::<Pool<Sqlite>>()?;
         let playlists = store.list_smart_playlists().await?;
-        Ok(playlists.into_iter().map(SmartPlaylist::from).collect())
+
+        let (candidates, _) = resolver::build_candidates(store, pool).await?;
+
+        Ok(playlists
+            .into_iter()
+            .map(|p| {
+                let track_count =
+                    rockbox_playlists::rules::resolve(&p.rules, candidates.clone()).len() as i64;
+                let mut sp: SmartPlaylist = p.into();
+                sp.track_count = track_count;
+                sp
+            })
+            .collect())
     }
 
     async fn smart_playlist(
@@ -94,10 +55,18 @@ impl SmartPlaylistQuery {
         id: String,
     ) -> Result<Option<SmartPlaylist>, Error> {
         let store = ctx.data::<PlaylistStore>()?;
-        Ok(store
-            .get_smart_playlist(&id)
-            .await?
-            .map(SmartPlaylist::from))
+        let pool = ctx.data::<Pool<Sqlite>>()?;
+        let playlist = store.get_smart_playlist(&id).await?;
+        let result = match playlist {
+            Some(p) => {
+                let track_count = resolver::count_tracks(store, pool, &p.rules).await?;
+                let mut sp: SmartPlaylist = p.into();
+                sp.track_count = track_count;
+                Some(sp)
+            }
+            None => None,
+        };
+        Ok(result)
     }
 
     async fn smart_playlist_tracks(
@@ -149,6 +118,7 @@ impl SmartPlaylistMutation {
         rules: String,
     ) -> Result<SmartPlaylist, Error> {
         let store = ctx.data::<PlaylistStore>()?;
+        let pool = ctx.data::<Pool<Sqlite>>()?;
         let criteria: rockbox_playlists::rules::RuleCriteria = serde_json::from_str(&rules)?;
         let playlist = store
             .create_smart_playlist(
@@ -159,7 +129,10 @@ impl SmartPlaylistMutation {
                 &criteria,
             )
             .await?;
-        Ok(SmartPlaylist::from(playlist))
+        let track_count = resolver::count_tracks(store, pool, &playlist.rules).await?;
+        let mut sp: SmartPlaylist = playlist.into();
+        sp.track_count = track_count;
+        Ok(sp)
     }
 
     async fn update_smart_playlist(

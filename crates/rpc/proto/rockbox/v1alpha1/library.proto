@@ -161,6 +161,25 @@ message SearchResponse {
   repeated SearchPlaylist playlists = 4;
 }
 
+// Advanced filters reuse the same JSON-encoded RuleCriteria shape used by
+// smart playlists. The filter is applied to the underlying tracks; matching
+// albums / artists are the ones whose tracks pass the filter.
+message FilterAlbumsRequest {
+  string rules_json = 1;
+}
+
+message FilterAlbumsResponse {
+  repeated Album albums = 1;
+}
+
+message FilterArtistsRequest {
+  string rules_json = 1;
+}
+
+message FilterArtistsResponse {
+  repeated Artist artists = 1;
+}
+
 service LibraryService {
   rpc GetAlbums(GetAlbumsRequest) returns (GetAlbumsResponse);
   rpc GetArtists(GetArtistsRequest) returns (GetArtistsResponse);
@@ -177,4 +196,6 @@ service LibraryService {
   rpc ScanLibrary(ScanLibraryRequest) returns (ScanLibraryResponse);
   rpc StreamLibrary(StreamLibraryRequest) returns (stream StreamLibraryResponse);
   rpc Search(SearchRequest) returns (SearchResponse);
+  rpc FilterAlbums(FilterAlbumsRequest) returns (FilterAlbumsResponse);
+  rpc FilterArtists(FilterArtistsRequest) returns (FilterArtistsResponse);
 }

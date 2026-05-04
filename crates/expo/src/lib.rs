@@ -45,7 +45,8 @@ mod daemon;
 
 use api::v1alpha1::{
     bluetooth_service_client::BluetoothServiceClient, browse_service_client::BrowseServiceClient,
-    library_service_client::LibraryServiceClient, playback_service_client::PlaybackServiceClient,
+    genre_service_client::GenreServiceClient, library_service_client::LibraryServiceClient,
+    playback_service_client::PlaybackServiceClient,
     playlist_service_client::PlaylistServiceClient,
     saved_playlist_service_client::SavedPlaylistServiceClient,
     settings_service_client::SettingsServiceClient,
@@ -55,17 +56,18 @@ use api::v1alpha1::{
     CreateSavedPlaylistRequest, CurrentTrackRequest, DeleteSavedPlaylistRequest,
     DisconnectBluetoothDeviceRequest, FastForwardRewindRequest, GetAlbumRequest, GetAlbumsRequest,
     GetArtistRequest, GetArtistsRequest, GetBluetoothDevicesRequest, GetCurrentRequest,
-    GetGlobalSettingsRequest, GetGlobalStatusRequest, GetLikedAlbumsRequest, GetLikedTracksRequest,
-    GetSavedPlaylistTracksRequest, GetSavedPlaylistsRequest, GetSmartPlaylistTracksRequest,
-    GetSmartPlaylistsRequest, GetTracksRequest, InsertDirectoryRequest, InsertTracksRequest,
-    LikeTrackRequest, NextRequest, PauseRequest, PlayAlbumRequest, PlayAllTracksRequest,
-    PlayArtistTracksRequest, PlayDirectoryRequest, PlayOrPauseRequest, PlaySavedPlaylistRequest,
-    PlaySmartPlaylistRequest, PlayTrackRequest, PlaylistResumeRequest, PreviousRequest,
-    RemoveTrackFromSavedPlaylistRequest, RemoveTracksRequest, ResumeRequest, ResumeTrackRequest,
-    SaveSettingsRequest, ScanBluetoothRequest, SearchRequest, ShufflePlaylistRequest,
-    SoundCurrentRequest, StartRequest, StatusRequest, StreamCurrentTrackRequest,
-    StreamLibraryRequest, StreamPlaylistRequest, StreamStatusRequest, TreeGetEntriesRequest,
-    UnlikeTrackRequest, UpdateSavedPlaylistRequest,
+    GetGenreAlbumsRequest, GetGenreArtistsRequest, GetGenreRequest, GetGenreTracksRequest,
+    GetGenresRequest, GetGlobalSettingsRequest, GetGlobalStatusRequest, GetLikedAlbumsRequest,
+    GetLikedTracksRequest, GetSavedPlaylistTracksRequest, GetSavedPlaylistsRequest,
+    GetSmartPlaylistTracksRequest, GetSmartPlaylistsRequest, GetTracksRequest,
+    InsertDirectoryRequest, InsertTracksRequest, LikeTrackRequest, NextRequest, PauseRequest,
+    PlayAlbumRequest, PlayAllTracksRequest, PlayArtistTracksRequest, PlayDirectoryRequest,
+    PlayOrPauseRequest, PlaySavedPlaylistRequest, PlaySmartPlaylistRequest, PlayTrackRequest,
+    PlaylistResumeRequest, PreviousRequest, RemoveTrackFromSavedPlaylistRequest,
+    RemoveTracksRequest, ResumeRequest, ResumeTrackRequest, SaveSettingsRequest,
+    ScanBluetoothRequest, SearchRequest, ShufflePlaylistRequest, SoundCurrentRequest, StartRequest,
+    StatusRequest, StreamCurrentTrackRequest, StreamLibraryRequest, StreamPlaylistRequest,
+    StreamStatusRequest, TreeGetEntriesRequest, UnlikeTrackRequest, UpdateSavedPlaylistRequest,
 };
 
 // ── Globals ──────────────────────────────────────────────────────────────────
@@ -81,10 +83,10 @@ static RT: Lazy<Runtime> = Lazy::new(|| {
         .expect("failed to build tokio runtime")
 });
 
-static SERVER_URL: Lazy<RwLock<String>> =
+pub(crate) static SERVER_URL: Lazy<RwLock<String>> =
     Lazy::new(|| RwLock::new("http://127.0.0.1:6061".to_string()));
 
-static HTTP_URL: Lazy<RwLock<String>> =
+pub(crate) static HTTP_URL: Lazy<RwLock<String>> =
     Lazy::new(|| RwLock::new("http://127.0.0.1:6063".to_string()));
 
 fn url() -> String {
@@ -795,6 +797,87 @@ pub unsafe extern "C" fn rb_search_json(term_ptr: *const c_char) -> *mut c_char 
             .await
             .map_err(|e| e.to_string())?;
         connect_err(c.search(SearchRequest { term })).await
+    });
+    unwrap_or_err_string(res.map(|r| r.into_inner()))
+}
+
+// ── Genres ──────────────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub extern "C" fn rb_get_genres_json() -> *mut c_char {
+    let res = RT.block_on(async {
+        let mut c = GenreServiceClient::connect(url())
+            .await
+            .map_err(|e| e.to_string())?;
+        connect_err(c.get_genres(GetGenresRequest {})).await
+    });
+    unwrap_or_err_string(res.map(|r| r.into_inner()))
+}
+
+/// # Safety
+/// `id_ptr` must be a valid NUL-terminated UTF-8 string.
+#[no_mangle]
+pub unsafe extern "C" fn rb_get_genre_json(id_ptr: *const c_char) -> *mut c_char {
+    let Some(id) = cstr_to_str(id_ptr) else {
+        return err_string("missing id");
+    };
+    let id = id.to_string();
+    let res = RT.block_on(async {
+        let mut c = GenreServiceClient::connect(url())
+            .await
+            .map_err(|e| e.to_string())?;
+        connect_err(c.get_genre(GetGenreRequest { id })).await
+    });
+    unwrap_or_err_string(res.map(|r| r.into_inner()))
+}
+
+/// # Safety
+/// `id_ptr` must be a valid NUL-terminated UTF-8 string.
+#[no_mangle]
+pub unsafe extern "C" fn rb_get_genre_tracks_json(id_ptr: *const c_char) -> *mut c_char {
+    let Some(id) = cstr_to_str(id_ptr) else {
+        return err_string("missing id");
+    };
+    let id = id.to_string();
+    let res = RT.block_on(async {
+        let mut c = GenreServiceClient::connect(url())
+            .await
+            .map_err(|e| e.to_string())?;
+        connect_err(c.get_genre_tracks(GetGenreTracksRequest { id })).await
+    });
+    unwrap_or_err_string(res.map(|r| r.into_inner()))
+}
+
+/// # Safety
+/// `id_ptr` must be a valid NUL-terminated UTF-8 string.
+#[no_mangle]
+pub unsafe extern "C" fn rb_get_genre_albums_json(id_ptr: *const c_char) -> *mut c_char {
+    let Some(id) = cstr_to_str(id_ptr) else {
+        return err_string("missing id");
+    };
+    let id = id.to_string();
+    let res = RT.block_on(async {
+        let mut c = GenreServiceClient::connect(url())
+            .await
+            .map_err(|e| e.to_string())?;
+        connect_err(c.get_genre_albums(GetGenreAlbumsRequest { id })).await
+    });
+    unwrap_or_err_string(res.map(|r| r.into_inner()))
+}
+
+/// # Safety
+/// `id_ptr` must be a valid NUL-terminated UTF-8 string.
+#[no_mangle]
+pub unsafe extern "C" fn rb_get_genre_artists_json(id_ptr: *const c_char) -> *mut c_char {
+    let Some(id) = cstr_to_str(id_ptr) else {
+        return err_string("missing id");
+    };
+    let id = id.to_string();
+    let res = RT.block_on(async {
+        let mut c = GenreServiceClient::connect(url())
+            .await
+            .map_err(|e| e.to_string())?;
+        connect_err(c.get_genre_artists(GetGenreArtistsRequest { id })).await
     });
     unwrap_or_err_string(res.map(|r| r.into_inner()))
 }

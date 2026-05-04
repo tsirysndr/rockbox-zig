@@ -434,9 +434,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSBonjourServices = (
-					"_rockbox._tcp",
-				);
+				INFOPLIST_KEY_NSBonjourServices = _rockbox._tcp;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Used to discover Rockbox servers on your local network.";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -463,9 +461,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSBonjourServices = (
-					"_rockbox._tcp",
-				);
+				INFOPLIST_KEY_NSBonjourServices = _rockbox._tcp;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Used to discover Rockbox servers on your local network.";
 				LD_RUNPATH_SEARCH_PATHS = (

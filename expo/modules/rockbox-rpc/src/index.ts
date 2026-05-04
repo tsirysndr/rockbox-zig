@@ -159,6 +159,13 @@ type RockboxRpcNative = {
   getSavedPlaylistTracks(playlistId: string): Promise<Json>;
   playSavedPlaylist(playlistId: string): Promise<void>;
 
+  // Genres
+  getGenres(): Promise<Json>;
+  getGenre(id: string): Promise<Json>;
+  getGenreTracks(id: string): Promise<Json>;
+  getGenreAlbums(id: string): Promise<Json>;
+  getGenreArtists(id: string): Promise<Json>;
+
   // Smart playlists
   getSmartPlaylists(): Promise<Json>;
   getSmartPlaylistTracks(id: string): Promise<Json>;

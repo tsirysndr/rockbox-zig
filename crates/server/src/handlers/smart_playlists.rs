@@ -1,9 +1,7 @@
 use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
-use rockbox_library::repo;
-use rockbox_playlists::rules::{Candidate, RuleCriteria};
+use rockbox_playlists::{resolver, rules::RuleCriteria, SmartPlaylist as RsSmartPlaylist};
 use rockbox_sys::{self as rb};
-use serde::Deserialize;
-use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
 
 use crate::{http::AppState, PLAYER_MUTEX};
 
@@ -27,13 +25,57 @@ pub struct UpdateSmartPlaylistBody {
     rules: RuleCriteria,
 }
 
+#[derive(Serialize)]
+struct SmartPlaylistResponse {
+    id: String,
+    name: String,
+    description: Option<String>,
+    image: Option<String>,
+    folder_id: Option<String>,
+    is_system: bool,
+    rules: RuleCriteria,
+    created_at: i64,
+    updated_at: i64,
+    track_count: i64,
+}
+
+impl SmartPlaylistResponse {
+    fn new(p: RsSmartPlaylist, track_count: i64) -> Self {
+        Self {
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            image: p.image,
+            folder_id: p.folder_id,
+            is_system: p.is_system,
+            rules: p.rules,
+            created_at: p.created_at,
+            updated_at: p.updated_at,
+            track_count,
+        }
+    }
+}
+
 pub async fn list_smart_playlists(state: web::Data<AppState>) -> HandlerResult {
     let playlists = state
         .playlist_store
         .list_smart_playlists()
         .await
         .map_err(ErrorInternalServerError)?;
-    Ok(HttpResponse::Ok().json(playlists))
+
+    let (candidates, _) = resolver::build_candidates(&state.playlist_store, &state.pool)
+        .await
+        .map_err(ErrorInternalServerError)?;
+
+    let response: Vec<SmartPlaylistResponse> = playlists
+        .into_iter()
+        .map(|p| {
+            let track_count =
+                rockbox_playlists::rules::resolve(&p.rules, candidates.clone()).len() as i64;
+            SmartPlaylistResponse::new(p, track_count)
+        })
+        .collect();
+    Ok(HttpResponse::Ok().json(response))
 }
 
 pub async fn get_smart_playlist(
@@ -47,7 +89,12 @@ pub async fn get_smart_playlist(
         .await
         .map_err(ErrorInternalServerError)?
     {
-        Some(p) => Ok(HttpResponse::Ok().json(p)),
+        Some(p) => {
+            let track_count = resolver::count_tracks(&state.playlist_store, &state.pool, &p.rules)
+                .await
+                .map_err(ErrorInternalServerError)?;
+            Ok(HttpResponse::Ok().json(SmartPlaylistResponse::new(p, track_count)))
+        }
         None => Ok(HttpResponse::NotFound().finish()),
     }
 }
@@ -71,7 +118,10 @@ pub async fn create_smart_playlist(
         )
         .await
         .map_err(ErrorInternalServerError)?;
-    Ok(HttpResponse::Created().json(playlist))
+    let track_count = resolver::count_tracks(&state.playlist_store, &state.pool, &playlist.rules)
+        .await
+        .map_err(ErrorInternalServerError)?;
+    Ok(HttpResponse::Created().json(SmartPlaylistResponse::new(playlist, track_count)))
 }
 
 pub async fn update_smart_playlist(
@@ -123,57 +173,7 @@ async fn resolve_smart_playlist_tracks(
         Some(p) => p.rules,
         None => return Ok(None),
     };
-
-    let all_tracks = repo::track::all(state.pool.clone()).await?;
-
-    let stats_map: HashMap<String, rockbox_playlists::TrackStats> = state
-        .playlist_store
-        .get_all_track_stats()
-        .await?
-        .into_iter()
-        .map(|s| (s.track_id.clone(), s))
-        .collect();
-
-    let liked_ids: std::collections::HashSet<String> =
-        repo::favourites::all_tracks(state.pool.clone())
-            .await?
-            .into_iter()
-            .map(|t| t.id)
-            .collect();
-
-    let candidates: Vec<Candidate> = all_tracks
-        .iter()
-        .map(|t| {
-            let stats = stats_map.get(&t.id);
-            Candidate {
-                id: t.id.clone(),
-                title: t.title.clone(),
-                artist: t.artist.clone(),
-                album: t.album.clone(),
-                year: t.year.map(|y| y as i64),
-                genre: t.genre.clone(),
-                duration_ms: t.length as i64 * 1000,
-                bitrate: t.bitrate as i64,
-                date_added_ts: t.created_at.timestamp(),
-                play_count: stats.map(|s| s.play_count).unwrap_or(0),
-                skip_count: stats.map(|s| s.skip_count).unwrap_or(0),
-                last_played: stats.and_then(|s| s.last_played),
-                last_skipped: stats.and_then(|s| s.last_skipped),
-                is_liked: liked_ids.contains(&t.id),
-            }
-        })
-        .collect();
-
-    let resolved = rockbox_playlists::rules::resolve(&criteria, candidates);
-    let resolved_ids: Vec<&str> = resolved.iter().map(|c| c.id.as_str()).collect();
-    let track_map: HashMap<&str, &rockbox_library::entity::track::Track> =
-        all_tracks.iter().map(|t| (t.id.as_str(), t)).collect();
-
-    let tracks: Vec<rockbox_library::entity::track::Track> = resolved_ids
-        .iter()
-        .filter_map(|id| track_map.get(id).map(|t| (*t).clone()))
-        .collect();
-
+    let tracks = resolver::resolve_tracks(&state.playlist_store, &state.pool, &criteria).await?;
     Ok(Some((criteria, tracks)))
 }
 

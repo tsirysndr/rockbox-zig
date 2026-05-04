@@ -20,11 +20,14 @@ impl gpui::Global for Page {}
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum LibrarySection {
+    Home,
     Songs,
     Albums,
     Artists,
+    Genres,
     AlbumDetail,
     ArtistDetail,
+    GenreDetail,
     Likes,
     Files,
     Playlists,
@@ -117,6 +120,29 @@ impl gpui::Global for SelectedAlbumMeta {}
 #[derive(Clone, PartialEq)]
 pub struct SelectedArtist(pub String);
 impl gpui::Global for SelectedArtist {}
+
+#[derive(Clone, Default)]
+pub struct GenreItem {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub image: Option<String>,
+    pub track_count: i64,
+}
+
+#[derive(Clone, Default)]
+pub struct GenresState(pub Vec<GenreItem>);
+impl gpui::Global for GenresState {}
+
+#[derive(Clone, Default)]
+pub struct SelectedGenre {
+    pub id: String,
+    pub name: String,
+    pub tracks: Vec<crate::state::Track>,
+    pub albums: Vec<crate::state::SearchAlbum>,
+    pub artists: Vec<crate::state::SearchArtist>,
+}
+impl gpui::Global for SelectedGenre {}
 
 /// Where the back button in a detail view should navigate to.
 #[derive(Clone, Copy, PartialEq)]

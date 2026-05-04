@@ -176,6 +176,18 @@ internal enum Rockbox_V1alpha1_LibraryService: Sendable {
                 method: "ScanLibrary"
             )
         }
+        /// Namespace for "StreamLibrary" metadata.
+        internal enum StreamLibrary: Sendable {
+            /// Request type for "StreamLibrary".
+            internal typealias Input = Rockbox_V1alpha1_StreamLibraryRequest
+            /// Response type for "StreamLibrary".
+            internal typealias Output = Rockbox_V1alpha1_StreamLibraryResponse
+            /// Descriptor for "StreamLibrary".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "rockbox.v1alpha1.LibraryService"),
+                method: "StreamLibrary"
+            )
+        }
         /// Namespace for "Search" metadata.
         internal enum Search: Sendable {
             /// Request type for "Search".
@@ -186,6 +198,30 @@ internal enum Rockbox_V1alpha1_LibraryService: Sendable {
             internal static let descriptor = GRPCCore.MethodDescriptor(
                 service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "rockbox.v1alpha1.LibraryService"),
                 method: "Search"
+            )
+        }
+        /// Namespace for "FilterAlbums" metadata.
+        internal enum FilterAlbums: Sendable {
+            /// Request type for "FilterAlbums".
+            internal typealias Input = Rockbox_V1alpha1_FilterAlbumsRequest
+            /// Response type for "FilterAlbums".
+            internal typealias Output = Rockbox_V1alpha1_FilterAlbumsResponse
+            /// Descriptor for "FilterAlbums".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "rockbox.v1alpha1.LibraryService"),
+                method: "FilterAlbums"
+            )
+        }
+        /// Namespace for "FilterArtists" metadata.
+        internal enum FilterArtists: Sendable {
+            /// Request type for "FilterArtists".
+            internal typealias Input = Rockbox_V1alpha1_FilterArtistsRequest
+            /// Response type for "FilterArtists".
+            internal typealias Output = Rockbox_V1alpha1_FilterArtistsResponse
+            /// Descriptor for "FilterArtists".
+            internal static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "rockbox.v1alpha1.LibraryService"),
+                method: "FilterArtists"
             )
         }
         /// Descriptors for all methods in the "rockbox.v1alpha1.LibraryService" service.
@@ -203,7 +239,10 @@ internal enum Rockbox_V1alpha1_LibraryService: Sendable {
             GetLikedTracks.descriptor,
             GetLikedAlbums.descriptor,
             ScanLibrary.descriptor,
-            Search.descriptor
+            StreamLibrary.descriptor,
+            Search.descriptor,
+            FilterAlbums.descriptor,
+            FilterArtists.descriptor
         ]
     }
 }
@@ -411,6 +450,20 @@ extension Rockbox_V1alpha1_LibraryService {
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_ScanLibraryResponse>
 
+        /// Handle the "StreamLibrary" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_StreamLibraryRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_StreamLibraryResponse` messages.
+        func streamLibrary(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_StreamLibraryRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_StreamLibraryResponse>
+
         /// Handle the "Search" method.
         ///
         /// - Parameters:
@@ -424,6 +477,34 @@ extension Rockbox_V1alpha1_LibraryService {
             request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_SearchRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_SearchResponse>
+
+        /// Handle the "FilterAlbums" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_FilterAlbumsRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_FilterAlbumsResponse` messages.
+        func filterAlbums(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_FilterAlbumsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_FilterAlbumsResponse>
+
+        /// Handle the "FilterArtists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Rockbox_V1alpha1_FilterArtistsRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_FilterArtistsResponse` messages.
+        func filterArtists(
+            request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_FilterArtistsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_FilterArtistsResponse>
     }
 
     /// Service protocol for the "rockbox.v1alpha1.LibraryService" service.
@@ -616,6 +697,20 @@ extension Rockbox_V1alpha1_LibraryService {
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_ScanLibraryResponse>
 
+        /// Handle the "StreamLibrary" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_StreamLibraryRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Rockbox_V1alpha1_StreamLibraryResponse` messages.
+        func streamLibrary(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_StreamLibraryRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_StreamLibraryResponse>
+
         /// Handle the "Search" method.
         ///
         /// - Parameters:
@@ -629,6 +724,34 @@ extension Rockbox_V1alpha1_LibraryService {
             request: GRPCCore.ServerRequest<Rockbox_V1alpha1_SearchRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_SearchResponse>
+
+        /// Handle the "FilterAlbums" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_FilterAlbumsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_FilterAlbumsResponse` message.
+        func filterAlbums(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_FilterAlbumsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_FilterAlbumsResponse>
+
+        /// Handle the "FilterArtists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_FilterArtistsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Rockbox_V1alpha1_FilterArtistsResponse` message.
+        func filterArtists(
+            request: GRPCCore.ServerRequest<Rockbox_V1alpha1_FilterArtistsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_FilterArtistsResponse>
     }
 
     /// Simple service protocol for the "rockbox.v1alpha1.LibraryService" service.
@@ -819,6 +942,21 @@ extension Rockbox_V1alpha1_LibraryService {
             context: GRPCCore.ServerContext
         ) async throws -> Rockbox_V1alpha1_ScanLibraryResponse
 
+        /// Handle the "StreamLibrary" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_StreamLibraryRequest` message.
+        ///   - response: A response stream of `Rockbox_V1alpha1_StreamLibraryResponse` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        func streamLibrary(
+            request: Rockbox_V1alpha1_StreamLibraryRequest,
+            response: GRPCCore.RPCWriter<Rockbox_V1alpha1_StreamLibraryResponse>,
+            context: GRPCCore.ServerContext
+        ) async throws
+
         /// Handle the "Search" method.
         ///
         /// - Parameters:
@@ -832,6 +970,34 @@ extension Rockbox_V1alpha1_LibraryService {
             request: Rockbox_V1alpha1_SearchRequest,
             context: GRPCCore.ServerContext
         ) async throws -> Rockbox_V1alpha1_SearchResponse
+
+        /// Handle the "FilterAlbums" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_FilterAlbumsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_FilterAlbumsResponse` to respond with.
+        func filterAlbums(
+            request: Rockbox_V1alpha1_FilterAlbumsRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_FilterAlbumsResponse
+
+        /// Handle the "FilterArtists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Rockbox_V1alpha1_FilterArtistsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Rockbox_V1alpha1_FilterArtistsResponse` to respond with.
+        func filterArtists(
+            request: Rockbox_V1alpha1_FilterArtistsRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Rockbox_V1alpha1_FilterArtistsResponse
     }
 }
 
@@ -983,11 +1149,44 @@ extension Rockbox_V1alpha1_LibraryService.StreamingServiceProtocol {
             }
         )
         router.registerHandler(
+            forMethod: Rockbox_V1alpha1_LibraryService.Method.StreamLibrary.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_StreamLibraryRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_StreamLibraryResponse>(),
+            handler: { request, context in
+                try await self.streamLibrary(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
             forMethod: Rockbox_V1alpha1_LibraryService.Method.Search.descriptor,
             deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_SearchRequest>(),
             serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_SearchResponse>(),
             handler: { request, context in
                 try await self.search(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_LibraryService.Method.FilterAlbums.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_FilterAlbumsRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_FilterAlbumsResponse>(),
+            handler: { request, context in
+                try await self.filterAlbums(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Rockbox_V1alpha1_LibraryService.Method.FilterArtists.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_FilterArtistsRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_FilterArtistsResponse>(),
+            handler: { request, context in
+                try await self.filterArtists(
                     request: request,
                     context: context
                 )
@@ -1142,11 +1341,44 @@ extension Rockbox_V1alpha1_LibraryService.ServiceProtocol {
         return GRPCCore.StreamingServerResponse(single: response)
     }
 
+    internal func streamLibrary(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_StreamLibraryRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_StreamLibraryResponse> {
+        let response = try await self.streamLibrary(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return response
+    }
+
     internal func search(
         request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_SearchRequest>,
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_SearchResponse> {
         let response = try await self.search(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func filterAlbums(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_FilterAlbumsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_FilterAlbumsResponse> {
+        let response = try await self.filterAlbums(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    internal func filterArtists(
+        request: GRPCCore.StreamingServerRequest<Rockbox_V1alpha1_FilterArtistsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_FilterArtistsResponse> {
+        let response = try await self.filterArtists(
             request: GRPCCore.ServerRequest(stream: request),
             context: context
         )
@@ -1326,12 +1558,55 @@ extension Rockbox_V1alpha1_LibraryService.SimpleServiceProtocol {
         )
     }
 
+    internal func streamLibrary(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_StreamLibraryRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_StreamLibraryResponse> {
+        return GRPCCore.StreamingServerResponse<Rockbox_V1alpha1_StreamLibraryResponse>(
+            metadata: [:],
+            producer: { writer in
+                try await self.streamLibrary(
+                    request: request.message,
+                    response: writer,
+                    context: context
+                )
+                return [:]
+            }
+        )
+    }
+
     internal func search(
         request: GRPCCore.ServerRequest<Rockbox_V1alpha1_SearchRequest>,
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_SearchResponse> {
         return GRPCCore.ServerResponse<Rockbox_V1alpha1_SearchResponse>(
             message: try await self.search(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func filterAlbums(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_FilterAlbumsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_FilterAlbumsResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_FilterAlbumsResponse>(
+            message: try await self.filterAlbums(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    internal func filterArtists(
+        request: GRPCCore.ServerRequest<Rockbox_V1alpha1_FilterArtistsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Rockbox_V1alpha1_FilterArtistsResponse> {
+        return GRPCCore.ServerResponse<Rockbox_V1alpha1_FilterArtistsResponse>(
+            message: try await self.filterArtists(
                 request: request.message,
                 context: context
             ),
@@ -1596,6 +1871,25 @@ extension Rockbox_V1alpha1_LibraryService {
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_ScanLibraryResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
 
+        /// Call the "StreamLibrary" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_StreamLibraryRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_StreamLibraryRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_StreamLibraryResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func streamLibrary<Result>(
+            request: GRPCCore.ClientRequest<Rockbox_V1alpha1_StreamLibraryRequest>,
+            serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_StreamLibraryRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_StreamLibraryResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<Rockbox_V1alpha1_StreamLibraryResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
         /// Call the "Search" method.
         ///
         /// - Parameters:
@@ -1613,6 +1907,44 @@ extension Rockbox_V1alpha1_LibraryService {
             deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_SearchResponse>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_SearchResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "FilterAlbums" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_FilterAlbumsRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_FilterAlbumsRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_FilterAlbumsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func filterAlbums<Result>(
+            request: GRPCCore.ClientRequest<Rockbox_V1alpha1_FilterAlbumsRequest>,
+            serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_FilterAlbumsRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_FilterAlbumsResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_FilterAlbumsResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "FilterArtists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_FilterArtistsRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_FilterArtistsRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_FilterArtistsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func filterArtists<Result>(
+            request: GRPCCore.ClientRequest<Rockbox_V1alpha1_FilterArtistsRequest>,
+            serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_FilterArtistsRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_FilterArtistsResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_FilterArtistsResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
     }
 
@@ -2022,6 +2354,34 @@ extension Rockbox_V1alpha1_LibraryService {
             )
         }
 
+        /// Call the "StreamLibrary" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_StreamLibraryRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_StreamLibraryRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_StreamLibraryResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func streamLibrary<Result>(
+            request: GRPCCore.ClientRequest<Rockbox_V1alpha1_StreamLibraryRequest>,
+            serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_StreamLibraryRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_StreamLibraryResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<Rockbox_V1alpha1_StreamLibraryResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.serverStreaming(
+                request: request,
+                descriptor: Rockbox_V1alpha1_LibraryService.Method.StreamLibrary.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
         /// Call the "Search" method.
         ///
         /// - Parameters:
@@ -2045,6 +2405,66 @@ extension Rockbox_V1alpha1_LibraryService {
             try await self.client.unary(
                 request: request,
                 descriptor: Rockbox_V1alpha1_LibraryService.Method.Search.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "FilterAlbums" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_FilterAlbumsRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_FilterAlbumsRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_FilterAlbumsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func filterAlbums<Result>(
+            request: GRPCCore.ClientRequest<Rockbox_V1alpha1_FilterAlbumsRequest>,
+            serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_FilterAlbumsRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_FilterAlbumsResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_FilterAlbumsResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Rockbox_V1alpha1_LibraryService.Method.FilterAlbums.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "FilterArtists" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Rockbox_V1alpha1_FilterArtistsRequest` message.
+        ///   - serializer: A serializer for `Rockbox_V1alpha1_FilterArtistsRequest` messages.
+        ///   - deserializer: A deserializer for `Rockbox_V1alpha1_FilterArtistsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        internal func filterArtists<Result>(
+            request: GRPCCore.ClientRequest<Rockbox_V1alpha1_FilterArtistsRequest>,
+            serializer: some GRPCCore.MessageSerializer<Rockbox_V1alpha1_FilterArtistsRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Rockbox_V1alpha1_FilterArtistsResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_FilterArtistsResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Rockbox_V1alpha1_LibraryService.Method.FilterArtists.descriptor,
                 serializer: serializer,
                 deserializer: deserializer,
                 options: options,
@@ -2382,6 +2802,29 @@ extension Rockbox_V1alpha1_LibraryService.ClientProtocol {
         )
     }
 
+    /// Call the "StreamLibrary" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_StreamLibraryRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func streamLibrary<Result>(
+        request: GRPCCore.ClientRequest<Rockbox_V1alpha1_StreamLibraryRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<Rockbox_V1alpha1_StreamLibraryResponse>) async throws -> Result
+    ) async throws -> Result where Result: Sendable {
+        try await self.streamLibrary(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_StreamLibraryRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_StreamLibraryResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
     /// Call the "Search" method.
     ///
     /// - Parameters:
@@ -2402,6 +2845,56 @@ extension Rockbox_V1alpha1_LibraryService.ClientProtocol {
             request: request,
             serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_SearchRequest>(),
             deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_SearchResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "FilterAlbums" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_FilterAlbumsRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func filterAlbums<Result>(
+        request: GRPCCore.ClientRequest<Rockbox_V1alpha1_FilterAlbumsRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_FilterAlbumsResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.filterAlbums(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_FilterAlbumsRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_FilterAlbumsResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "FilterArtists" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Rockbox_V1alpha1_FilterArtistsRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func filterArtists<Result>(
+        request: GRPCCore.ClientRequest<Rockbox_V1alpha1_FilterArtistsRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_FilterArtistsResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.filterArtists(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Rockbox_V1alpha1_FilterArtistsRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Rockbox_V1alpha1_FilterArtistsResponse>(),
             options: options,
             onResponse: handleResponse
         )
@@ -2788,6 +3281,33 @@ extension Rockbox_V1alpha1_LibraryService.ClientProtocol {
         )
     }
 
+    /// Call the "StreamLibrary" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func streamLibrary<Result>(
+        _ message: Rockbox_V1alpha1_StreamLibraryRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.StreamingClientResponse<Rockbox_V1alpha1_StreamLibraryResponse>) async throws -> Result
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Rockbox_V1alpha1_StreamLibraryRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.streamLibrary(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
     /// Call the "Search" method.
     ///
     /// - Parameters:
@@ -2811,6 +3331,64 @@ extension Rockbox_V1alpha1_LibraryService.ClientProtocol {
             metadata: metadata
         )
         return try await self.search(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "FilterAlbums" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func filterAlbums<Result>(
+        _ message: Rockbox_V1alpha1_FilterAlbumsRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_FilterAlbumsResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Rockbox_V1alpha1_FilterAlbumsRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.filterAlbums(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "FilterArtists" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    internal func filterArtists<Result>(
+        _ message: Rockbox_V1alpha1_FilterArtistsRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Rockbox_V1alpha1_FilterArtistsResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Rockbox_V1alpha1_FilterArtistsRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.filterArtists(
             request: request,
             options: options,
             onResponse: handleResponse

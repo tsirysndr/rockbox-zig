@@ -784,6 +784,95 @@ pub async fn fetch_saved_playlists() -> Result<Vec<crate::ui::components::SavedP
         .collect())
 }
 
+// ── Genres ───────────────────────────────────────────────────────────────────
+
+pub async fn fetch_genres() -> Result<Vec<crate::ui::components::GenreItem>> {
+    use crate::api::v1alpha1::{
+        genre_service_client::GenreServiceClient, GetGenresRequest,
+    };
+    let mut c = GenreServiceClient::connect(url()).await?;
+    let resp = c.get_genres(GetGenresRequest {}).await?;
+    Ok(resp
+        .into_inner()
+        .genres
+        .into_iter()
+        .map(|g| crate::ui::components::GenreItem {
+            id: g.id,
+            name: g.name,
+            description: g.description,
+            image: g.image,
+            track_count: g.track_count,
+        })
+        .collect())
+}
+
+pub async fn fetch_genre(
+    id: String,
+) -> Result<(
+    String,
+    Vec<Track>,
+    Vec<SearchAlbum>,
+    Vec<SearchArtist>,
+)> {
+    use crate::api::v1alpha1::{
+        genre_service_client::GenreServiceClient, GetGenreRequest,
+    };
+    let mut c = GenreServiceClient::connect(url()).await?;
+    let resp = c.get_genre(GetGenreRequest { id }).await?;
+    let genre = resp.into_inner().genre.unwrap_or_default();
+    let name = genre.name.clone();
+    let tracks: Vec<Track> = genre.tracks.into_iter().map(track_from_proto).collect();
+    let albums: Vec<SearchAlbum> = genre
+        .albums
+        .into_iter()
+        .map(|a| SearchAlbum {
+            id: a.id,
+            title: a.title,
+            artist: a.artist,
+            year: a.year,
+            album_art: a.album_art.filter(|s| !s.is_empty()),
+            artist_id: a.artist_id,
+        })
+        .collect();
+    let artists: Vec<SearchArtist> = genre
+        .artists
+        .into_iter()
+        .map(|ar| SearchArtist {
+            id: ar.id,
+            name: ar.name,
+            image: ar.image.filter(|s| !s.is_empty()),
+        })
+        .collect();
+    Ok((name, tracks, albums, artists))
+}
+
+pub async fn play_genre_tracks(genre_id: String, shuffle: bool) -> Result<()> {
+    let (_, tracks, _, _) = fetch_genre(genre_id).await?;
+    if tracks.is_empty() {
+        return Ok(());
+    }
+    let paths: Vec<String> = tracks.iter().map(|t| t.path.clone()).collect();
+    let mut c = PlaylistServiceClient::connect(url()).await?;
+    c.insert_tracks(InsertTracksRequest {
+        position: -2, // PLAYLIST_REPLACE
+        tracks: paths,
+        playlist_id: None,
+        shuffle: Some(shuffle),
+    })
+    .await?;
+    if shuffle {
+        c.shuffle_playlist(ShufflePlaylistRequest { start_index: 0 })
+            .await?;
+    }
+    c.start(StartRequest {
+        start_index: Some(0),
+        elapsed: Some(0),
+        offset: Some(0),
+    })
+    .await?;
+    Ok(())
+}
+
 pub async fn fetch_smart_playlists() -> Result<Vec<crate::ui::components::SmartPlaylistItem>> {
     use crate::api::v1alpha1::{
         smart_playlist_service_client::SmartPlaylistServiceClient, GetSmartPlaylistsRequest,

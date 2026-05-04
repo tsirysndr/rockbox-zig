@@ -167,6 +167,46 @@ export function useLikedTracks<T = unknown>(opts?: ROpts<T>) {
   return rq(qk.liked(), () => RockboxClient.getLikedTracks() as Promise<T>, opts);
 }
 
+export function useGenres<T = unknown>(opts?: ROpts<T>) {
+  return rq(
+    [...qk.all, "genres"],
+    () => RockboxClient.getGenres() as Promise<T>,
+    opts,
+  );
+}
+
+export function useGenre<T = unknown>(id: string, opts?: ROpts<T>) {
+  return rq(
+    [...qk.all, "genre", id],
+    () => RockboxClient.getGenre(id) as Promise<T>,
+    { enabled: enabledByDefault() && id.length > 0, ...opts },
+  );
+}
+
+export function useGenreTracks<T = unknown>(id: string, opts?: ROpts<T>) {
+  return rq(
+    [...qk.all, "genre", id, "tracks"],
+    () => RockboxClient.getGenreTracks(id) as Promise<T>,
+    { enabled: enabledByDefault() && id.length > 0, ...opts },
+  );
+}
+
+export function useGenreAlbums<T = unknown>(id: string, opts?: ROpts<T>) {
+  return rq(
+    [...qk.all, "genre", id, "albums"],
+    () => RockboxClient.getGenreAlbums(id) as Promise<T>,
+    { enabled: enabledByDefault() && id.length > 0, ...opts },
+  );
+}
+
+export function useGenreArtists<T = unknown>(id: string, opts?: ROpts<T>) {
+  return rq(
+    [...qk.all, "genre", id, "artists"],
+    () => RockboxClient.getGenreArtists(id) as Promise<T>,
+    { enabled: enabledByDefault() && id.length > 0, ...opts },
+  );
+}
+
 export function useSearch<T = unknown>(term: string, opts?: ROpts<T>) {
   const t = term.trim();
   return rq(qk.search(t), () => RockboxClient.search(t) as Promise<T>, {

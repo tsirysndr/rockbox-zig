@@ -11,8 +11,8 @@ import { TrackMenuButton } from "@/components/track-menu-button";
 import { useIsConnected } from "@/lib/connection";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
-import { useLibrarySearch } from "@/lib/library-source";
-import { GENRES, formatDuration } from "@/lib/mock-data";
+import { useLibraryGenres, useLibrarySearch } from "@/lib/library-source";
+import { formatDuration } from "@/lib/mock-data";
 import { usePlayer } from "@/lib/player-context";
 
 export default function SearchScreen() {
@@ -21,12 +21,17 @@ export default function SearchScreen() {
   const isConnected = useIsConnected();
   const bottomPad = useBottomSpacing(24);
   const { data: results } = useLibrarySearch(query);
+  const {
+    data: genres,
+    isLoading: genresLoading,
+    error: genresError,
+  } = useLibraryGenres();
   const tracks = results.tracks;
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       <View className="px-4 pt-2 pb-4">
-        <Text className="text-text-primary text-[26px] font-extrabold mb-4 font-sans">
+        <Text className="text-text-primary text-[26px] mb-4 font-display-extra">
           Search
         </Text>
         <View className="flex-row items-center bg-bg-card rounded-md px-3 h-11 gap-2">
@@ -205,23 +210,35 @@ export default function SearchScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: bottomPad }}
           showsVerticalScrollIndicator={false}
         >
-          <Text className="text-text-primary text-lg font-bold mb-3 font-sans">
+          <Text className="text-text-primary text-lg mb-3 font-display">
             Browse all
           </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {GENRES.map((g) => (
-              <Pressable
-                key={g.id}
-                onPress={() => router.push(`/genre/${g.id}`)}
-                style={{ backgroundColor: g.color }}
-                className="w-[48.5%] h-[100px] rounded-md p-3 overflow-hidden active:opacity-80"
-              >
-                <Text className="text-white text-lg font-display">
-                  {g.name}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+          {genresError ? (
+            <Text className="text-danger text-sm font-sans">
+              Genres failed: {String((genresError as Error)?.message ?? genresError)}
+            </Text>
+          ) : genres.length === 0 ? (
+            <Text className="text-text-secondary text-sm font-sans">
+              {genresLoading
+                ? "Loading genres…"
+                : "No genres yet — wait for the daemon to finish scanning."}
+            </Text>
+          ) : (
+            <View className="flex-row flex-wrap gap-2">
+              {genres.map((g) => (
+                <Pressable
+                  key={g.id}
+                  onPress={() => router.push(`/genre/${encodeURIComponent(g.id)}`)}
+                  style={{ backgroundColor: g.color }}
+                  className="w-[48.5%] h-[100px] rounded-md p-3 overflow-hidden active:opacity-80"
+                >
+                  <Text className="text-white text-lg font-display">
+                    {g.name}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
         </ScrollView>
       )}
     </SafeAreaView>

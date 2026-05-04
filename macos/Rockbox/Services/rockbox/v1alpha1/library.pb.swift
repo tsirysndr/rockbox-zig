@@ -26,133 +26,133 @@ struct Rockbox_V1alpha1_Track: @unchecked Sendable {
   // methods supported on all messages.
 
   var id: String {
-    get {return _storage._id}
+    get {_storage._id}
     set {_uniqueStorage()._id = newValue}
   }
 
   var path: String {
-    get {return _storage._path}
+    get {_storage._path}
     set {_uniqueStorage()._path = newValue}
   }
 
   var title: String {
-    get {return _storage._title}
+    get {_storage._title}
     set {_uniqueStorage()._title = newValue}
   }
 
   var artist: String {
-    get {return _storage._artist}
+    get {_storage._artist}
     set {_uniqueStorage()._artist = newValue}
   }
 
   var album: String {
-    get {return _storage._album}
+    get {_storage._album}
     set {_uniqueStorage()._album = newValue}
   }
 
   var albumArtist: String {
-    get {return _storage._albumArtist}
+    get {_storage._albumArtist}
     set {_uniqueStorage()._albumArtist = newValue}
   }
 
   var bitrate: UInt32 {
-    get {return _storage._bitrate}
+    get {_storage._bitrate}
     set {_uniqueStorage()._bitrate = newValue}
   }
 
   var composer: String {
-    get {return _storage._composer}
+    get {_storage._composer}
     set {_uniqueStorage()._composer = newValue}
   }
 
   var discNumber: UInt32 {
-    get {return _storage._discNumber}
+    get {_storage._discNumber}
     set {_uniqueStorage()._discNumber = newValue}
   }
 
   var filesize: UInt32 {
-    get {return _storage._filesize}
+    get {_storage._filesize}
     set {_uniqueStorage()._filesize = newValue}
   }
 
   var frequency: UInt32 {
-    get {return _storage._frequency}
+    get {_storage._frequency}
     set {_uniqueStorage()._frequency = newValue}
   }
 
   var length: UInt32 {
-    get {return _storage._length}
+    get {_storage._length}
     set {_uniqueStorage()._length = newValue}
   }
 
   var trackNumber: UInt32 {
-    get {return _storage._trackNumber}
+    get {_storage._trackNumber}
     set {_uniqueStorage()._trackNumber = newValue}
   }
 
   var year: UInt32 {
-    get {return _storage._year}
+    get {_storage._year}
     set {_uniqueStorage()._year = newValue}
   }
 
   var yearString: String {
-    get {return _storage._yearString}
+    get {_storage._yearString}
     set {_uniqueStorage()._yearString = newValue}
   }
 
   var genre: String {
-    get {return _storage._genre}
+    get {_storage._genre}
     set {_uniqueStorage()._genre = newValue}
   }
 
   var md5: String {
-    get {return _storage._md5}
+    get {_storage._md5}
     set {_uniqueStorage()._md5 = newValue}
   }
 
   var albumArt: String {
-    get {return _storage._albumArt ?? String()}
+    get {_storage._albumArt ?? String()}
     set {_uniqueStorage()._albumArt = newValue}
   }
   /// Returns true if `albumArt` has been explicitly set.
-  var hasAlbumArt: Bool {return _storage._albumArt != nil}
+  var hasAlbumArt: Bool {_storage._albumArt != nil}
   /// Clears the value of `albumArt`. Subsequent reads from it will return its default value.
   mutating func clearAlbumArt() {_uniqueStorage()._albumArt = nil}
 
   var artistID: String {
-    get {return _storage._artistID ?? String()}
+    get {_storage._artistID ?? String()}
     set {_uniqueStorage()._artistID = newValue}
   }
   /// Returns true if `artistID` has been explicitly set.
-  var hasArtistID: Bool {return _storage._artistID != nil}
+  var hasArtistID: Bool {_storage._artistID != nil}
   /// Clears the value of `artistID`. Subsequent reads from it will return its default value.
   mutating func clearArtistID() {_uniqueStorage()._artistID = nil}
 
   var albumID: String {
-    get {return _storage._albumID ?? String()}
+    get {_storage._albumID ?? String()}
     set {_uniqueStorage()._albumID = newValue}
   }
   /// Returns true if `albumID` has been explicitly set.
-  var hasAlbumID: Bool {return _storage._albumID != nil}
+  var hasAlbumID: Bool {_storage._albumID != nil}
   /// Clears the value of `albumID`. Subsequent reads from it will return its default value.
   mutating func clearAlbumID() {_uniqueStorage()._albumID = nil}
 
   var genreID: String {
-    get {return _storage._genreID ?? String()}
+    get {_storage._genreID ?? String()}
     set {_uniqueStorage()._genreID = newValue}
   }
   /// Returns true if `genreID` has been explicitly set.
-  var hasGenreID: Bool {return _storage._genreID != nil}
+  var hasGenreID: Bool {_storage._genreID != nil}
   /// Clears the value of `genreID`. Subsequent reads from it will return its default value.
   mutating func clearGenreID() {_uniqueStorage()._genreID = nil}
 
   var createdAt: String {
-    get {return _storage._createdAt}
+    get {_storage._createdAt}
     set {_uniqueStorage()._createdAt = newValue}
   }
 
   var updatedAt: String {
-    get {return _storage._updatedAt}
+    get {_storage._updatedAt}
     set {_uniqueStorage()._updatedAt = newValue}
   }
 
@@ -173,20 +173,20 @@ struct Rockbox_V1alpha1_Artist: Sendable {
   var name: String = String()
 
   var bio: String {
-    get {return _bio ?? String()}
+    get {_bio ?? String()}
     set {_bio = newValue}
   }
   /// Returns true if `bio` has been explicitly set.
-  var hasBio: Bool {return self._bio != nil}
+  var hasBio: Bool {self._bio != nil}
   /// Clears the value of `bio`. Subsequent reads from it will return its default value.
   mutating func clearBio() {self._bio = nil}
 
   var image: String {
-    get {return _image ?? String()}
+    get {_image ?? String()}
     set {_image = newValue}
   }
   /// Returns true if `image` has been explicitly set.
-  var hasImage: Bool {return self._image != nil}
+  var hasImage: Bool {self._image != nil}
   /// Clears the value of `image`. Subsequent reads from it will return its default value.
   mutating func clearImage() {self._image = nil}
 
@@ -195,11 +195,11 @@ struct Rockbox_V1alpha1_Artist: Sendable {
   var tracks: [Rockbox_V1alpha1_Track] = []
 
   var genres: String {
-    get {return _genres ?? String()}
+    get {_genres ?? String()}
     set {_genres = newValue}
   }
   /// Returns true if `genres` has been explicitly set.
-  var hasGenres: Bool {return self._genres != nil}
+  var hasGenres: Bool {self._genres != nil}
   /// Clears the value of `genres`. Subsequent reads from it will return its default value.
   mutating func clearGenres() {self._genres = nil}
 
@@ -228,11 +228,11 @@ struct Rockbox_V1alpha1_Album: Sendable {
   var yearString: String = String()
 
   var albumArt: String {
-    get {return _albumArt ?? String()}
+    get {_albumArt ?? String()}
     set {_albumArt = newValue}
   }
   /// Returns true if `albumArt` has been explicitly set.
-  var hasAlbumArt: Bool {return self._albumArt != nil}
+  var hasAlbumArt: Bool {self._albumArt != nil}
   /// Clears the value of `albumArt`. Subsequent reads from it will return its default value.
   mutating func clearAlbumArt() {self._albumArt = nil}
 
@@ -241,20 +241,20 @@ struct Rockbox_V1alpha1_Album: Sendable {
   var artistID: String = String()
 
   var label: String {
-    get {return _label ?? String()}
+    get {_label ?? String()}
     set {_label = newValue}
   }
   /// Returns true if `label` has been explicitly set.
-  var hasLabel: Bool {return self._label != nil}
+  var hasLabel: Bool {self._label != nil}
   /// Clears the value of `label`. Subsequent reads from it will return its default value.
   mutating func clearLabel() {self._label = nil}
 
   var copyrightMessage: String {
-    get {return _copyrightMessage ?? String()}
+    get {_copyrightMessage ?? String()}
     set {_copyrightMessage = newValue}
   }
   /// Returns true if `copyrightMessage` has been explicitly set.
-  var hasCopyrightMessage: Bool {return self._copyrightMessage != nil}
+  var hasCopyrightMessage: Bool {self._copyrightMessage != nil}
   /// Clears the value of `copyrightMessage`. Subsequent reads from it will return its default value.
   mutating func clearCopyrightMessage() {self._copyrightMessage = nil}
 
@@ -287,11 +287,11 @@ struct Rockbox_V1alpha1_GetAlbumResponse: Sendable {
   // methods supported on all messages.
 
   var album: Rockbox_V1alpha1_Album {
-    get {return _album ?? Rockbox_V1alpha1_Album()}
+    get {_album ?? Rockbox_V1alpha1_Album()}
     set {_album = newValue}
   }
   /// Returns true if `album` has been explicitly set.
-  var hasAlbum: Bool {return self._album != nil}
+  var hasAlbum: Bool {self._album != nil}
   /// Clears the value of `album`. Subsequent reads from it will return its default value.
   mutating func clearAlbum() {self._album = nil}
 
@@ -320,11 +320,11 @@ struct Rockbox_V1alpha1_GetArtistResponse: Sendable {
   // methods supported on all messages.
 
   var artist: Rockbox_V1alpha1_Artist {
-    get {return _artist ?? Rockbox_V1alpha1_Artist()}
+    get {_artist ?? Rockbox_V1alpha1_Artist()}
     set {_artist = newValue}
   }
   /// Returns true if `artist` has been explicitly set.
-  var hasArtist: Bool {return self._artist != nil}
+  var hasArtist: Bool {self._artist != nil}
   /// Clears the value of `artist`. Subsequent reads from it will return its default value.
   mutating func clearArtist() {self._artist = nil}
 
@@ -353,11 +353,11 @@ struct Rockbox_V1alpha1_GetTrackResponse: Sendable {
   // methods supported on all messages.
 
   var track: Rockbox_V1alpha1_Track {
-    get {return _track ?? Rockbox_V1alpha1_Track()}
+    get {_track ?? Rockbox_V1alpha1_Track()}
     set {_track = newValue}
   }
   /// Returns true if `track` has been explicitly set.
-  var hasTrack: Bool {return self._track != nil}
+  var hasTrack: Bool {self._track != nil}
   /// Clears the value of `track`. Subsequent reads from it will return its default value.
   mutating func clearTrack() {self._track = nil}
 
@@ -572,20 +572,20 @@ struct Rockbox_V1alpha1_ScanLibraryRequest: Sendable {
   // methods supported on all messages.
 
   var path: String {
-    get {return _path ?? String()}
+    get {_path ?? String()}
     set {_path = newValue}
   }
   /// Returns true if `path` has been explicitly set.
-  var hasPath: Bool {return self._path != nil}
+  var hasPath: Bool {self._path != nil}
   /// Clears the value of `path`. Subsequent reads from it will return its default value.
   mutating func clearPath() {self._path = nil}
 
   var rebuildIndex: Bool {
-    get {return _rebuildIndex ?? false}
+    get {_rebuildIndex ?? false}
     set {_rebuildIndex = newValue}
   }
   /// Returns true if `rebuildIndex` has been explicitly set.
-  var hasRebuildIndex: Bool {return self._rebuildIndex != nil}
+  var hasRebuildIndex: Bool {self._rebuildIndex != nil}
   /// Clears the value of `rebuildIndex`. Subsequent reads from it will return its default value.
   mutating func clearRebuildIndex() {self._rebuildIndex = nil}
 
@@ -598,6 +598,26 @@ struct Rockbox_V1alpha1_ScanLibraryRequest: Sendable {
 }
 
 struct Rockbox_V1alpha1_ScanLibraryResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Rockbox_V1alpha1_StreamLibraryRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Rockbox_V1alpha1_StreamLibraryResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -620,31 +640,42 @@ struct Rockbox_V1alpha1_SearchRequest: Sendable {
 }
 
 struct Rockbox_V1alpha1_SearchPlaylist: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
   var id: String = String()
+
   var name: String = String()
 
   var description_p: String {
-    get { return _description_p ?? String() }
-    set { _description_p = newValue }
+    get {_description_p ?? String()}
+    set {_description_p = newValue}
   }
-  var _description_p: String? = nil
-  var hasDescription_p: Bool { return _description_p != nil }
-  mutating func clearDescription_p() { _description_p = nil }
+  /// Returns true if `description_p` has been explicitly set.
+  var hasDescription_p: Bool {self._description_p != nil}
+  /// Clears the value of `description_p`. Subsequent reads from it will return its default value.
+  mutating func clearDescription_p() {self._description_p = nil}
 
   var image: String {
-    get { return _image ?? String() }
-    set { _image = newValue }
+    get {_image ?? String()}
+    set {_image = newValue}
   }
-  var _image: String? = nil
-  var hasImage: Bool { return _image != nil }
-  mutating func clearImage() { _image = nil }
+  /// Returns true if `image` has been explicitly set.
+  var hasImage: Bool {self._image != nil}
+  /// Clears the value of `image`. Subsequent reads from it will return its default value.
+  mutating func clearImage() {self._image = nil}
 
   var isSmart: Bool = false
+
   var trackCount: Int64 = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
+
+  fileprivate var _description_p: String? = nil
+  fileprivate var _image: String? = nil
 }
 
 struct Rockbox_V1alpha1_SearchResponse: Sendable {
@@ -659,6 +690,57 @@ struct Rockbox_V1alpha1_SearchResponse: Sendable {
   var artists: [Rockbox_V1alpha1_Artist] = []
 
   var playlists: [Rockbox_V1alpha1_SearchPlaylist] = []
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+/// Advanced filters reuse the same JSON-encoded RuleCriteria shape used by
+/// smart playlists. The filter is applied to the underlying tracks; matching
+/// albums / artists are the ones whose tracks pass the filter.
+struct Rockbox_V1alpha1_FilterAlbumsRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var rulesJson: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Rockbox_V1alpha1_FilterAlbumsResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var albums: [Rockbox_V1alpha1_Album] = []
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Rockbox_V1alpha1_FilterArtistsRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var rulesJson: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Rockbox_V1alpha1_FilterArtistsResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var artists: [Rockbox_V1alpha1_Artist] = []
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1732,6 +1814,44 @@ extension Rockbox_V1alpha1_ScanLibraryResponse: SwiftProtobuf.Message, SwiftProt
   }
 }
 
+extension Rockbox_V1alpha1_StreamLibraryRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".StreamLibraryRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_StreamLibraryRequest, rhs: Rockbox_V1alpha1_StreamLibraryRequest) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Rockbox_V1alpha1_StreamLibraryResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".StreamLibraryResponse"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_StreamLibraryResponse, rhs: Rockbox_V1alpha1_StreamLibraryResponse) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Rockbox_V1alpha1_SearchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".SearchRequest"
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}term\0")
@@ -1764,10 +1884,13 @@ extension Rockbox_V1alpha1_SearchRequest: SwiftProtobuf.Message, SwiftProtobuf._
 
 extension Rockbox_V1alpha1_SearchPlaylist: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".SearchPlaylist"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}name\0\u{1}description\0\u{1}image\0\u{2}is_smart\0\u{3}track_count\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}name\0\u{1}description\0\u{1}image\0\u{3}is_smart\0\u{3}track_count\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
@@ -1781,12 +1904,28 @@ extension Rockbox_V1alpha1_SearchPlaylist: SwiftProtobuf.Message, SwiftProtobuf.
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.id.isEmpty { try visitor.visitSingularStringField(value: self.id, fieldNumber: 1) }
-    if !self.name.isEmpty { try visitor.visitSingularStringField(value: self.name, fieldNumber: 2) }
-    if let v = self._description_p { try visitor.visitSingularStringField(value: v, fieldNumber: 3) }
-    if let v = self._image { try visitor.visitSingularStringField(value: v, fieldNumber: 4) }
-    if self.isSmart { try visitor.visitSingularBoolField(value: self.isSmart, fieldNumber: 5) }
-    if self.trackCount != 0 { try visitor.visitSingularInt64Field(value: self.trackCount, fieldNumber: 6) }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    try { if let v = self._description_p {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._image {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    } }()
+    if self.isSmart != false {
+      try visitor.visitSingularBoolField(value: self.isSmart, fieldNumber: 5)
+    }
+    if self.trackCount != 0 {
+      try visitor.visitSingularInt64Field(value: self.trackCount, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1808,6 +1947,9 @@ extension Rockbox_V1alpha1_SearchResponse: SwiftProtobuf.Message, SwiftProtobuf.
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedMessageField(value: &self.tracks) }()
       case 2: try { try decoder.decodeRepeatedMessageField(value: &self.albums) }()
@@ -1839,6 +1981,126 @@ extension Rockbox_V1alpha1_SearchResponse: SwiftProtobuf.Message, SwiftProtobuf.
     if lhs.albums != rhs.albums {return false}
     if lhs.artists != rhs.artists {return false}
     if lhs.playlists != rhs.playlists {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Rockbox_V1alpha1_FilterAlbumsRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".FilterAlbumsRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}rules_json\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.rulesJson) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.rulesJson.isEmpty {
+      try visitor.visitSingularStringField(value: self.rulesJson, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_FilterAlbumsRequest, rhs: Rockbox_V1alpha1_FilterAlbumsRequest) -> Bool {
+    if lhs.rulesJson != rhs.rulesJson {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Rockbox_V1alpha1_FilterAlbumsResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".FilterAlbumsResponse"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}albums\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.albums) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.albums.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.albums, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_FilterAlbumsResponse, rhs: Rockbox_V1alpha1_FilterAlbumsResponse) -> Bool {
+    if lhs.albums != rhs.albums {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Rockbox_V1alpha1_FilterArtistsRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".FilterArtistsRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}rules_json\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.rulesJson) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.rulesJson.isEmpty {
+      try visitor.visitSingularStringField(value: self.rulesJson, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_FilterArtistsRequest, rhs: Rockbox_V1alpha1_FilterArtistsRequest) -> Bool {
+    if lhs.rulesJson != rhs.rulesJson {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Rockbox_V1alpha1_FilterArtistsResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".FilterArtistsResponse"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}artists\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.artists) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.artists.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.artists, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Rockbox_V1alpha1_FilterArtistsResponse, rhs: Rockbox_V1alpha1_FilterArtistsResponse) -> Bool {
+    if lhs.artists != rhs.artists {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

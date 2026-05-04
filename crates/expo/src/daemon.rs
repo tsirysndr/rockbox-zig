@@ -313,15 +313,38 @@ pub unsafe extern "C" fn rb_daemon_start(
     STATE.store(STATE_RUNNING, Ordering::Release);
     tracing::info!("daemon: started, gRPC bound :{port}");
 
-    // Tell the in-process gRPC client to target our own daemon.
-    let url = format!("http://127.0.0.1:{port}\0");
-    let url_c = url.as_ptr() as *const c_char;
-    let _ = crate::rb_set_server_url(url_c);
+    // Tell the in-process gRPC client to target our own daemon — but ONLY if
+    // the JS layer hasn't already picked a server. The daemon takes ~30s to
+    // bind; in that window `hydrateSelectedServer` typically runs and applies
+    // the persisted remote URL (e.g. a LAN macOS daemon). Clobbering it here
+    // silently flips the app back to localhost, which is the right default
+    // only on a fresh install.
+    let default_url = "http://127.0.0.1:6061";
+    let already_overridden = crate::SERVER_URL
+        .read()
+        .map(|g| g.as_str() != default_url)
+        .unwrap_or(false);
+    if already_overridden {
+        tracing::info!(
+            "daemon: SERVER_URL already set by JS — leaving it (in-process daemon still bound :{port})"
+        );
+    } else {
+        let url = format!("http://127.0.0.1:{port}\0");
+        let url_c = url.as_ptr() as *const c_char;
+        let _ = crate::rb_set_server_url(url_c);
+    }
 
-    let http_port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".into());
-    let http_url = format!("http://127.0.0.1:{http_port}\0");
-    let http_url_c = http_url.as_ptr() as *const c_char;
-    let _ = crate::rb_set_http_url(http_url_c);
+    let default_http = "http://127.0.0.1:6063";
+    let http_overridden = crate::HTTP_URL
+        .read()
+        .map(|g| g.as_str() != default_http)
+        .unwrap_or(false);
+    if !http_overridden {
+        let http_port = std::env::var("ROCKBOX_TCP_PORT").unwrap_or_else(|_| "6063".into());
+        let http_url = format!("http://127.0.0.1:{http_port}\0");
+        let http_url_c = http_url.as_ptr() as *const c_char;
+        let _ = crate::rb_set_http_url(http_url_c);
+    }
 
     spawn_library_scan(/* force */ false);
 
@@ -393,9 +416,27 @@ fn spawn_library_scan(force_arg: bool) {
                 }
 
                 tracing::info!("scan: scanning {} ...", path);
-                match rockbox_library::audio_scan::scan_audio_files(pool, path.into()).await {
+                match rockbox_library::audio_scan::scan_audio_files(pool.clone(), path.into())
+                    .await
+                {
                     Ok(files) => tracing::info!("scan: done, {} files", files.len()),
                     Err(e) => tracing::error!("scan: failed: {e}"),
+                }
+
+                // Rocksky enrichment populates `artist_genres` (and per-artist
+                // pictures). Without this step the genre service returns an
+                // empty list because `repo::genre::all` joins through that
+                // table — the macOS / Linux desktop builds get this for free
+                // via the HTTP `scan_audio` handler, but the embedded daemon
+                // bypasses that handler so we have to call it directly.
+                // Best-effort: a network failure (offline / Rocksky down)
+                // shouldn't fail the boot path.
+                if let Err(e) =
+                    rockbox_library::artists::update_metadata(pool.clone()).await
+                {
+                    tracing::warn!("scan: rocksky enrichment skipped: {e}");
+                } else {
+                    tracing::info!("scan: rocksky enrichment done");
                 }
             });
         })

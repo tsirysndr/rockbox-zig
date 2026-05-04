@@ -367,7 +367,7 @@ pub async fn insert_tracks(
     // thread (real Rockbox kernel thread) — see crates/server/src/fw_bus.rs.
     let response_body = web::block(move || -> Result<String, String> {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::run_on_broker(move || {
+        crate::fw_bus::try_run_on_broker(move || {
             let amount = rb::playlist::amount();
 
             if amount == 0 {
@@ -403,6 +403,7 @@ pub async fn insert_tracks(
             PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
             Ok(tracklist.position.to_string())
         })
+        .unwrap_or_else(|| Err("broker timed out".to_string()))
     })
     .await
     .map_err(ErrorInternalServerError)?

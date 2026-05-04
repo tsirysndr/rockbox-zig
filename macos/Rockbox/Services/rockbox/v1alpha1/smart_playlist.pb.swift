@@ -27,33 +27,32 @@ struct Rockbox_V1alpha1_RuleCondition: Sendable {
 
   var field: String = String()
 
-  /// `operator` is a Swift keyword; use `operator_p` as the property name.
-  var operator_p: String = String()
+  var `operator`: String = String()
 
   var value: String {
-    get {return _value ?? String()}
+    get {_value ?? String()}
     set {_value = newValue}
   }
   /// Returns true if `value` has been explicitly set.
-  var hasValue: Bool {return self._value != nil}
+  var hasValue: Bool {self._value != nil}
   /// Clears the value of `value`. Subsequent reads from it will return its default value.
   mutating func clearValue() {self._value = nil}
 
   var value2: String {
-    get {return _value2 ?? String()}
+    get {_value2 ?? String()}
     set {_value2 = newValue}
   }
   /// Returns true if `value2` has been explicitly set.
-  var hasValue2: Bool {return self._value2 != nil}
+  var hasValue2: Bool {self._value2 != nil}
   /// Clears the value of `value2`. Subsequent reads from it will return its default value.
   mutating func clearValue2() {self._value2 = nil}
 
   var unit: String {
-    get {return _unit ?? String()}
+    get {_unit ?? String()}
     set {_unit = newValue}
   }
   /// Returns true if `unit` has been explicitly set.
-  var hasUnit: Bool {return self._unit != nil}
+  var hasUnit: Bool {self._unit != nil}
   /// Clears the value of `unit`. Subsequent reads from it will return its default value.
   mutating func clearUnit() {self._unit = nil}
 
@@ -76,29 +75,29 @@ struct Rockbox_V1alpha1_RuleCriteria: Sendable {
   var conditions: [Rockbox_V1alpha1_RuleCondition] = []
 
   var limit: Int32 {
-    get {return _limit ?? 0}
+    get {_limit ?? 0}
     set {_limit = newValue}
   }
   /// Returns true if `limit` has been explicitly set.
-  var hasLimit: Bool {return self._limit != nil}
+  var hasLimit: Bool {self._limit != nil}
   /// Clears the value of `limit`. Subsequent reads from it will return its default value.
   mutating func clearLimit() {self._limit = nil}
 
   var sortBy: String {
-    get {return _sortBy ?? String()}
+    get {_sortBy ?? String()}
     set {_sortBy = newValue}
   }
   /// Returns true if `sortBy` has been explicitly set.
-  var hasSortBy: Bool {return self._sortBy != nil}
+  var hasSortBy: Bool {self._sortBy != nil}
   /// Clears the value of `sortBy`. Subsequent reads from it will return its default value.
   mutating func clearSortBy() {self._sortBy = nil}
 
   var sortOrder: String {
-    get {return _sortOrder ?? String()}
+    get {_sortOrder ?? String()}
     set {_sortOrder = newValue}
   }
   /// Returns true if `sortOrder` has been explicitly set.
-  var hasSortOrder: Bool {return self._sortOrder != nil}
+  var hasSortOrder: Bool {self._sortOrder != nil}
   /// Clears the value of `sortOrder`. Subsequent reads from it will return its default value.
   mutating func clearSortOrder() {self._sortOrder = nil}
 
@@ -121,77 +120,57 @@ struct Rockbox_V1alpha1_SmartPlaylist: Sendable {
   var name: String = String()
 
   var description_p: String {
-    get {return _storage._description_p ?? String()}
-    set {_uniqueStorage()._description_p = newValue}
+    get {_description_p ?? String()}
+    set {_description_p = newValue}
   }
   /// Returns true if `description_p` has been explicitly set.
-  var hasDescription_p: Bool {return _storage._description_p != nil}
+  var hasDescription_p: Bool {self._description_p != nil}
   /// Clears the value of `description_p`. Subsequent reads from it will return its default value.
-  mutating func clearDescription_p() {_uniqueStorage()._description_p = nil}
+  mutating func clearDescription_p() {self._description_p = nil}
 
   var image: String {
-    get {return _storage._image ?? String()}
-    set {_uniqueStorage()._image = newValue}
+    get {_image ?? String()}
+    set {_image = newValue}
   }
   /// Returns true if `image` has been explicitly set.
-  var hasImage: Bool {return _storage._image != nil}
+  var hasImage: Bool {self._image != nil}
   /// Clears the value of `image`. Subsequent reads from it will return its default value.
-  mutating func clearImage() {_uniqueStorage()._image = nil}
+  mutating func clearImage() {self._image = nil}
 
   var folderID: String {
-    get {return _storage._folderID ?? String()}
-    set {_uniqueStorage()._folderID = newValue}
+    get {_folderID ?? String()}
+    set {_folderID = newValue}
   }
   /// Returns true if `folderID` has been explicitly set.
-  var hasFolderID: Bool {return _storage._folderID != nil}
+  var hasFolderID: Bool {self._folderID != nil}
   /// Clears the value of `folderID`. Subsequent reads from it will return its default value.
-  mutating func clearFolderID() {_uniqueStorage()._folderID = nil}
+  mutating func clearFolderID() {self._folderID = nil}
 
   var isSystem: Bool = false
 
   var rules: Rockbox_V1alpha1_RuleCriteria {
-    get {return _storage._rules ?? Rockbox_V1alpha1_RuleCriteria()}
-    set {_uniqueStorage()._rules = newValue}
+    get {_rules ?? Rockbox_V1alpha1_RuleCriteria()}
+    set {_rules = newValue}
   }
   /// Returns true if `rules` has been explicitly set.
-  var hasRules: Bool {return _storage._rules != nil}
+  var hasRules: Bool {self._rules != nil}
   /// Clears the value of `rules`. Subsequent reads from it will return its default value.
-  mutating func clearRules() {_uniqueStorage()._rules = nil}
+  mutating func clearRules() {self._rules = nil}
 
   var createdAt: Int64 = 0
 
   var updatedAt: Int64 = 0
 
+  var trackCount: Int64 = 0
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _storage = _StorageClass.defaultInstance
-
-  fileprivate final class _StorageClass {
-    var _description_p: String? = nil
-    var _image: String? = nil
-    var _folderID: String? = nil
-    var _rules: Rockbox_V1alpha1_RuleCriteria? = nil
-
-    static let defaultInstance = _StorageClass()
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _description_p = source._description_p
-      _image = source._image
-      _folderID = source._folderID
-      _rules = source._rules
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
+  fileprivate var _description_p: String? = nil
+  fileprivate var _image: String? = nil
+  fileprivate var _folderID: String? = nil
+  fileprivate var _rules: Rockbox_V1alpha1_RuleCriteria? = nil
 }
 
 struct Rockbox_V1alpha1_GetSmartPlaylistsRequest: Sendable {
@@ -234,11 +213,11 @@ struct Rockbox_V1alpha1_GetSmartPlaylistResponse: Sendable {
   // methods supported on all messages.
 
   var playlist: Rockbox_V1alpha1_SmartPlaylist {
-    get {return _playlist ?? Rockbox_V1alpha1_SmartPlaylist()}
+    get {_playlist ?? Rockbox_V1alpha1_SmartPlaylist()}
     set {_playlist = newValue}
   }
   /// Returns true if `playlist` has been explicitly set.
-  var hasPlaylist: Bool {return self._playlist != nil}
+  var hasPlaylist: Bool {self._playlist != nil}
   /// Clears the value of `playlist`. Subsequent reads from it will return its default value.
   mutating func clearPlaylist() {self._playlist = nil}
 
@@ -257,71 +236,49 @@ struct Rockbox_V1alpha1_CreateSmartPlaylistRequest: Sendable {
   var name: String = String()
 
   var description_p: String {
-    get {return _storage._description_p ?? String()}
-    set {_uniqueStorage()._description_p = newValue}
+    get {_description_p ?? String()}
+    set {_description_p = newValue}
   }
   /// Returns true if `description_p` has been explicitly set.
-  var hasDescription_p: Bool {return _storage._description_p != nil}
+  var hasDescription_p: Bool {self._description_p != nil}
   /// Clears the value of `description_p`. Subsequent reads from it will return its default value.
-  mutating func clearDescription_p() {_uniqueStorage()._description_p = nil}
+  mutating func clearDescription_p() {self._description_p = nil}
 
   var image: String {
-    get {return _storage._image ?? String()}
-    set {_uniqueStorage()._image = newValue}
+    get {_image ?? String()}
+    set {_image = newValue}
   }
   /// Returns true if `image` has been explicitly set.
-  var hasImage: Bool {return _storage._image != nil}
+  var hasImage: Bool {self._image != nil}
   /// Clears the value of `image`. Subsequent reads from it will return its default value.
-  mutating func clearImage() {_uniqueStorage()._image = nil}
+  mutating func clearImage() {self._image = nil}
 
   var folderID: String {
-    get {return _storage._folderID ?? String()}
-    set {_uniqueStorage()._folderID = newValue}
+    get {_folderID ?? String()}
+    set {_folderID = newValue}
   }
   /// Returns true if `folderID` has been explicitly set.
-  var hasFolderID: Bool {return _storage._folderID != nil}
+  var hasFolderID: Bool {self._folderID != nil}
   /// Clears the value of `folderID`. Subsequent reads from it will return its default value.
-  mutating func clearFolderID() {_uniqueStorage()._folderID = nil}
+  mutating func clearFolderID() {self._folderID = nil}
 
   var rules: Rockbox_V1alpha1_RuleCriteria {
-    get {return _storage._rules ?? Rockbox_V1alpha1_RuleCriteria()}
-    set {_uniqueStorage()._rules = newValue}
+    get {_rules ?? Rockbox_V1alpha1_RuleCriteria()}
+    set {_rules = newValue}
   }
   /// Returns true if `rules` has been explicitly set.
-  var hasRules: Bool {return _storage._rules != nil}
+  var hasRules: Bool {self._rules != nil}
   /// Clears the value of `rules`. Subsequent reads from it will return its default value.
-  mutating func clearRules() {_uniqueStorage()._rules = nil}
+  mutating func clearRules() {self._rules = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _storage = _StorageClass.defaultInstance
-
-  fileprivate final class _StorageClass {
-    var _description_p: String? = nil
-    var _image: String? = nil
-    var _folderID: String? = nil
-    var _rules: Rockbox_V1alpha1_RuleCriteria? = nil
-
-    static let defaultInstance = _StorageClass()
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _description_p = source._description_p
-      _image = source._image
-      _folderID = source._folderID
-      _rules = source._rules
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
+  fileprivate var _description_p: String? = nil
+  fileprivate var _image: String? = nil
+  fileprivate var _folderID: String? = nil
+  fileprivate var _rules: Rockbox_V1alpha1_RuleCriteria? = nil
 }
 
 struct Rockbox_V1alpha1_CreateSmartPlaylistResponse: Sendable {
@@ -330,11 +287,11 @@ struct Rockbox_V1alpha1_CreateSmartPlaylistResponse: Sendable {
   // methods supported on all messages.
 
   var playlist: Rockbox_V1alpha1_SmartPlaylist {
-    get {return _playlist ?? Rockbox_V1alpha1_SmartPlaylist()}
+    get {_playlist ?? Rockbox_V1alpha1_SmartPlaylist()}
     set {_playlist = newValue}
   }
   /// Returns true if `playlist` has been explicitly set.
-  var hasPlaylist: Bool {return self._playlist != nil}
+  var hasPlaylist: Bool {self._playlist != nil}
   /// Clears the value of `playlist`. Subsequent reads from it will return its default value.
   mutating func clearPlaylist() {self._playlist = nil}
 
@@ -355,71 +312,49 @@ struct Rockbox_V1alpha1_UpdateSmartPlaylistRequest: Sendable {
   var name: String = String()
 
   var description_p: String {
-    get {return _storage._description_p ?? String()}
-    set {_uniqueStorage()._description_p = newValue}
+    get {_description_p ?? String()}
+    set {_description_p = newValue}
   }
   /// Returns true if `description_p` has been explicitly set.
-  var hasDescription_p: Bool {return _storage._description_p != nil}
+  var hasDescription_p: Bool {self._description_p != nil}
   /// Clears the value of `description_p`. Subsequent reads from it will return its default value.
-  mutating func clearDescription_p() {_uniqueStorage()._description_p = nil}
+  mutating func clearDescription_p() {self._description_p = nil}
 
   var image: String {
-    get {return _storage._image ?? String()}
-    set {_uniqueStorage()._image = newValue}
+    get {_image ?? String()}
+    set {_image = newValue}
   }
   /// Returns true if `image` has been explicitly set.
-  var hasImage: Bool {return _storage._image != nil}
+  var hasImage: Bool {self._image != nil}
   /// Clears the value of `image`. Subsequent reads from it will return its default value.
-  mutating func clearImage() {_uniqueStorage()._image = nil}
+  mutating func clearImage() {self._image = nil}
 
   var folderID: String {
-    get {return _storage._folderID ?? String()}
-    set {_uniqueStorage()._folderID = newValue}
+    get {_folderID ?? String()}
+    set {_folderID = newValue}
   }
   /// Returns true if `folderID` has been explicitly set.
-  var hasFolderID: Bool {return _storage._folderID != nil}
+  var hasFolderID: Bool {self._folderID != nil}
   /// Clears the value of `folderID`. Subsequent reads from it will return its default value.
-  mutating func clearFolderID() {_uniqueStorage()._folderID = nil}
+  mutating func clearFolderID() {self._folderID = nil}
 
   var rules: Rockbox_V1alpha1_RuleCriteria {
-    get {return _storage._rules ?? Rockbox_V1alpha1_RuleCriteria()}
-    set {_uniqueStorage()._rules = newValue}
+    get {_rules ?? Rockbox_V1alpha1_RuleCriteria()}
+    set {_rules = newValue}
   }
   /// Returns true if `rules` has been explicitly set.
-  var hasRules: Bool {return _storage._rules != nil}
+  var hasRules: Bool {self._rules != nil}
   /// Clears the value of `rules`. Subsequent reads from it will return its default value.
-  mutating func clearRules() {_uniqueStorage()._rules = nil}
+  mutating func clearRules() {self._rules = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _storage = _StorageClass.defaultInstance
-
-  fileprivate final class _StorageClass {
-    var _description_p: String? = nil
-    var _image: String? = nil
-    var _folderID: String? = nil
-    var _rules: Rockbox_V1alpha1_RuleCriteria? = nil
-
-    static let defaultInstance = _StorageClass()
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _description_p = source._description_p
-      _image = source._image
-      _folderID = source._folderID
-      _rules = source._rules
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
+  fileprivate var _description_p: String? = nil
+  fileprivate var _image: String? = nil
+  fileprivate var _folderID: String? = nil
+  fileprivate var _rules: Rockbox_V1alpha1_RuleCriteria? = nil
 }
 
 struct Rockbox_V1alpha1_UpdateSmartPlaylistResponse: Sendable {
@@ -512,20 +447,20 @@ struct Rockbox_V1alpha1_TrackStats: Sendable {
   var skipCount: Int64 = 0
 
   var lastPlayed: Int64 {
-    get {return _lastPlayed ?? 0}
+    get {_lastPlayed ?? 0}
     set {_lastPlayed = newValue}
   }
   /// Returns true if `lastPlayed` has been explicitly set.
-  var hasLastPlayed: Bool {return self._lastPlayed != nil}
+  var hasLastPlayed: Bool {self._lastPlayed != nil}
   /// Clears the value of `lastPlayed`. Subsequent reads from it will return its default value.
   mutating func clearLastPlayed() {self._lastPlayed = nil}
 
   var lastSkipped: Int64 {
-    get {return _lastSkipped ?? 0}
+    get {_lastSkipped ?? 0}
     set {_lastSkipped = newValue}
   }
   /// Returns true if `lastSkipped` has been explicitly set.
-  var hasLastSkipped: Bool {return self._lastSkipped != nil}
+  var hasLastSkipped: Bool {self._lastSkipped != nil}
   /// Clears the value of `lastSkipped`. Subsequent reads from it will return its default value.
   mutating func clearLastSkipped() {self._lastSkipped = nil}
 
@@ -601,11 +536,11 @@ struct Rockbox_V1alpha1_GetTrackStatsResponse: Sendable {
   // methods supported on all messages.
 
   var stats: Rockbox_V1alpha1_TrackStats {
-    get {return _stats ?? Rockbox_V1alpha1_TrackStats()}
+    get {_stats ?? Rockbox_V1alpha1_TrackStats()}
     set {_stats = newValue}
   }
   /// Returns true if `stats` has been explicitly set.
-  var hasStats: Bool {return self._stats != nil}
+  var hasStats: Bool {self._stats != nil}
   /// Clears the value of `stats`. Subsequent reads from it will return its default value.
   mutating func clearStats() {self._stats = nil}
 
@@ -622,7 +557,7 @@ fileprivate let _protobuf_package = "rockbox.v1alpha1"
 
 extension Rockbox_V1alpha1_RuleCondition: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".RuleCondition"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}field\0\u{1}operator\0\u{1}value\0\u{2}value2\0\u{1}unit\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}field\0\u{1}operator\0\u{1}value\0\u{1}value2\0\u{1}unit\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -631,7 +566,7 @@ extension Rockbox_V1alpha1_RuleCondition: SwiftProtobuf.Message, SwiftProtobuf._
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.field) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.operator_p) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.`operator`) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self._value) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self._value2) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self._unit) }()
@@ -648,8 +583,8 @@ extension Rockbox_V1alpha1_RuleCondition: SwiftProtobuf.Message, SwiftProtobuf._
     if !self.field.isEmpty {
       try visitor.visitSingularStringField(value: self.field, fieldNumber: 1)
     }
-    if !self.operator_p.isEmpty {
-      try visitor.visitSingularStringField(value: self.operator_p, fieldNumber: 2)
+    if !self.`operator`.isEmpty {
+      try visitor.visitSingularStringField(value: self.`operator`, fieldNumber: 2)
     }
     try { if let v = self._value {
       try visitor.visitSingularStringField(value: v, fieldNumber: 3)
@@ -665,7 +600,7 @@ extension Rockbox_V1alpha1_RuleCondition: SwiftProtobuf.Message, SwiftProtobuf._
 
   static func ==(lhs: Rockbox_V1alpha1_RuleCondition, rhs: Rockbox_V1alpha1_RuleCondition) -> Bool {
     if lhs.field != rhs.field {return false}
-    if lhs.operator_p != rhs.operator_p {return false}
+    if lhs.`operator` != rhs.`operator` {return false}
     if lhs._value != rhs._value {return false}
     if lhs._value2 != rhs._value2 {return false}
     if lhs._unit != rhs._unit {return false}
@@ -730,86 +665,78 @@ extension Rockbox_V1alpha1_RuleCriteria: SwiftProtobuf.Message, SwiftProtobuf._M
 
 extension Rockbox_V1alpha1_SmartPlaylist: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".SmartPlaylist"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}name\0\u{1}description\0\u{1}image\0\u{3}folder_id\0\u{3}is_system\0\u{1}rules\0\u{3}created_at\0\u{3}updated_at\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}name\0\u{1}description\0\u{1}image\0\u{3}folder_id\0\u{3}is_system\0\u{1}rules\0\u{3}created_at\0\u{3}updated_at\0\u{3}track_count\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-        case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
-        case 3: try { try decoder.decodeSingularStringField(value: &_storage._description_p) }()
-        case 4: try { try decoder.decodeSingularStringField(value: &_storage._image) }()
-        case 5: try { try decoder.decodeSingularStringField(value: &_storage._folderID) }()
-        case 6: try { try decoder.decodeSingularBoolField(value: &self.isSystem) }()
-        case 7: try { try decoder.decodeSingularMessageField(value: &_storage._rules) }()
-        case 8: try { try decoder.decodeSingularInt64Field(value: &self.createdAt) }()
-        case 9: try { try decoder.decodeSingularInt64Field(value: &self.updatedAt) }()
-        default: break
-        }
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._description_p) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._image) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self._folderID) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.isSystem) }()
+      case 7: try { try decoder.decodeSingularMessageField(value: &self._rules) }()
+      case 8: try { try decoder.decodeSingularInt64Field(value: &self.createdAt) }()
+      case 9: try { try decoder.decodeSingularInt64Field(value: &self.updatedAt) }()
+      case 10: try { try decoder.decodeSingularInt64Field(value: &self.trackCount) }()
+      default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      if !self.id.isEmpty {
-        try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-      }
-      if !self.name.isEmpty {
-        try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
-      }
-      try { if let v = _storage._description_p {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 3)
-      } }()
-      try { if let v = _storage._image {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-      } }()
-      try { if let v = _storage._folderID {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 5)
-      } }()
-      if self.isSystem != false {
-        try visitor.visitSingularBoolField(value: self.isSystem, fieldNumber: 6)
-      }
-      try { if let v = _storage._rules {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-      } }()
-      if self.createdAt != 0 {
-        try visitor.visitSingularInt64Field(value: self.createdAt, fieldNumber: 8)
-      }
-      if self.updatedAt != 0 {
-        try visitor.visitSingularInt64Field(value: self.updatedAt, fieldNumber: 9)
-      }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    try { if let v = self._description_p {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._image {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    } }()
+    try { if let v = self._folderID {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+    } }()
+    if self.isSystem != false {
+      try visitor.visitSingularBoolField(value: self.isSystem, fieldNumber: 6)
+    }
+    try { if let v = self._rules {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+    } }()
+    if self.createdAt != 0 {
+      try visitor.visitSingularInt64Field(value: self.createdAt, fieldNumber: 8)
+    }
+    if self.updatedAt != 0 {
+      try visitor.visitSingularInt64Field(value: self.updatedAt, fieldNumber: 9)
+    }
+    if self.trackCount != 0 {
+      try visitor.visitSingularInt64Field(value: self.trackCount, fieldNumber: 10)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Rockbox_V1alpha1_SmartPlaylist, rhs: Rockbox_V1alpha1_SmartPlaylist) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._description_p != rhs_storage._description_p {return false}
-        if _storage._image != rhs_storage._image {return false}
-        if _storage._folderID != rhs_storage._folderID {return false}
-        if _storage._rules != rhs_storage._rules {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
     if lhs.id != rhs.id {return false}
     if lhs.name != rhs.name {return false}
+    if lhs._description_p != rhs._description_p {return false}
+    if lhs._image != rhs._image {return false}
+    if lhs._folderID != rhs._folderID {return false}
     if lhs.isSystem != rhs.isSystem {return false}
+    if lhs._rules != rhs._rules {return false}
     if lhs.createdAt != rhs.createdAt {return false}
     if lhs.updatedAt != rhs.updatedAt {return false}
+    if lhs.trackCount != rhs.trackCount {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -933,63 +860,50 @@ extension Rockbox_V1alpha1_CreateSmartPlaylistRequest: SwiftProtobuf.Message, Sw
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}description\0\u{1}image\0\u{3}folder_id\0\u{1}rules\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
-        case 2: try { try decoder.decodeSingularStringField(value: &_storage._description_p) }()
-        case 3: try { try decoder.decodeSingularStringField(value: &_storage._image) }()
-        case 4: try { try decoder.decodeSingularStringField(value: &_storage._folderID) }()
-        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._rules) }()
-        default: break
-        }
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._description_p) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._image) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._folderID) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._rules) }()
+      default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      if !self.name.isEmpty {
-        try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
-      }
-      try { if let v = _storage._description_p {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 2)
-      } }()
-      try { if let v = _storage._image {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 3)
-      } }()
-      try { if let v = _storage._folderID {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-      } }()
-      try { if let v = _storage._rules {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-      } }()
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
     }
+    try { if let v = self._description_p {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._image {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._folderID {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    } }()
+    try { if let v = self._rules {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Rockbox_V1alpha1_CreateSmartPlaylistRequest, rhs: Rockbox_V1alpha1_CreateSmartPlaylistRequest) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._description_p != rhs_storage._description_p {return false}
-        if _storage._image != rhs_storage._image {return false}
-        if _storage._folderID != rhs_storage._folderID {return false}
-        if _storage._rules != rhs_storage._rules {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
     if lhs.name != rhs.name {return false}
+    if lhs._description_p != rhs._description_p {return false}
+    if lhs._image != rhs._image {return false}
+    if lhs._folderID != rhs._folderID {return false}
+    if lhs._rules != rhs._rules {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1034,68 +948,55 @@ extension Rockbox_V1alpha1_UpdateSmartPlaylistRequest: SwiftProtobuf.Message, Sw
   static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}name\0\u{1}description\0\u{1}image\0\u{3}folder_id\0\u{1}rules\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-        case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
-        case 3: try { try decoder.decodeSingularStringField(value: &_storage._description_p) }()
-        case 4: try { try decoder.decodeSingularStringField(value: &_storage._image) }()
-        case 5: try { try decoder.decodeSingularStringField(value: &_storage._folderID) }()
-        case 6: try { try decoder.decodeSingularMessageField(value: &_storage._rules) }()
-        default: break
-        }
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._description_p) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._image) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self._folderID) }()
+      case 6: try { try decoder.decodeSingularMessageField(value: &self._rules) }()
+      default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      if !self.id.isEmpty {
-        try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
-      }
-      if !self.name.isEmpty {
-        try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
-      }
-      try { if let v = _storage._description_p {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 3)
-      } }()
-      try { if let v = _storage._image {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-      } }()
-      try { if let v = _storage._folderID {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 5)
-      } }()
-      try { if let v = _storage._rules {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-      } }()
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.id.isEmpty {
+      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
     }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    try { if let v = self._description_p {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._image {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    } }()
+    try { if let v = self._folderID {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+    } }()
+    try { if let v = self._rules {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Rockbox_V1alpha1_UpdateSmartPlaylistRequest, rhs: Rockbox_V1alpha1_UpdateSmartPlaylistRequest) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._description_p != rhs_storage._description_p {return false}
-        if _storage._image != rhs_storage._image {return false}
-        if _storage._folderID != rhs_storage._folderID {return false}
-        if _storage._rules != rhs_storage._rules {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
     if lhs.id != rhs.id {return false}
     if lhs.name != rhs.name {return false}
+    if lhs._description_p != rhs._description_p {return false}
+    if lhs._image != rhs._image {return false}
+    if lhs._folderID != rhs._folderID {return false}
+    if lhs._rules != rhs._rules {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

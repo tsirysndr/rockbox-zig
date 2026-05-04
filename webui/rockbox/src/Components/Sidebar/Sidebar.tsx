@@ -1,6 +1,11 @@
 import { FC } from "react";
 import { SidebarContainer, MenuItem, Header, SettingsButton } from "./styles";
-import { Disc, Music } from "@styled-icons/boxicons-regular";
+import {
+  Disc,
+  Music,
+  Home as HomeIcon,
+  Category,
+} from "@styled-icons/boxicons-regular";
 import { HardDrive } from "@styled-icons/feather";
 import Artist from "../Icons/Artist";
 import Track from "../Icons/Track";
@@ -41,6 +46,14 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
           </SettingsButton>
         </Link>
       </Header>
+      <MenuItem active={active === "home"} to="/">
+        <HomeIcon
+          size={20}
+          style={{ marginRight: 6 }}
+          color={active === "home" ? activeColor : icon}
+        />
+        <div>Home</div>
+      </MenuItem>
       <MenuItem active={active === "albums"} to="/albums">
         <Disc
           size={20}
@@ -56,6 +69,14 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
           color={active === "artists" ? activeColor : icon}
         />
         <div style={{ marginLeft: 6 }}>Artists</div>
+      </MenuItem>
+      <MenuItem active={active === "genres"} to="/genres">
+        <Category
+          size={20}
+          style={{ marginRight: 6 }}
+          color={active === "genres" ? activeColor : icon}
+        />
+        <div>Genres</div>
       </MenuItem>
       <MenuItem active={active === "songs"} to="/tracks">
         <Track height={20} color={active === "songs" ? activeColor : icon} />

@@ -11,12 +11,14 @@ import { useIsConnected } from "@/lib/connection";
 import type {
   ProtoAlbum,
   ProtoArtist,
+  ProtoGenre,
   ProtoPlaylist,
   ProtoTrack,
 } from "@/lib/proto-mappers";
 import {
   albumFromProto,
   artistFromProto,
+  genreFromProto,
   playlistFromProto,
   trackFromProto,
 } from "@/lib/proto-mappers";
@@ -25,6 +27,12 @@ import {
   useAlbums,
   useArtist,
   useArtists,
+  useGenre,
+  useGenreAlbums,
+  useGenreArtists,
+  useGenreTracks,
+  useGenres,
+  useLikedTracks,
   usePlaylistCurrent,
   useSavedPlaylists,
   useSavedPlaylistTracks,
@@ -33,13 +41,28 @@ import {
   useSmartPlaylistTracks,
   useTracks,
 } from "@/lib/queries";
-import type { Album, Artist, Playlist, Track } from "@/lib/types";
+import type { Album, Artist, Genre, Playlist, Track } from "@/lib/types";
 
 // ── Top-level lists ─────────────────────────────────────────────────────────
 
 export function useLibraryTracks() {
   const isConnected = useIsConnected();
   const q = useTracks<{ tracks?: ProtoTrack[] }>({ enabled: isConnected });
+  const data: Track[] = useMemo(
+    () => (isConnected ? (q.data?.tracks ?? []).map(trackFromProto) : []),
+    [isConnected, q.data],
+  );
+  return { data, isLoading: isConnected && q.isLoading, isConnected };
+}
+
+/**
+ * Liked tracks, in the order returned by the server — `repo::favourites::all_tracks`
+ * sorts by `favourites.created_at DESC`, so the most recently liked track is at
+ * the top. Don't re-sort client-side.
+ */
+export function useLibraryLikedTracks() {
+  const isConnected = useIsConnected();
+  const q = useLikedTracks<{ tracks?: ProtoTrack[] }>({ enabled: isConnected });
   const data: Track[] = useMemo(
     () => (isConnected ? (q.data?.tracks ?? []).map(trackFromProto) : []),
     [isConnected, q.data],
@@ -196,6 +219,77 @@ export function usePlaylistDetail(id: string) {
       isConnected: true,
     };
   }, [isConnected, playlist, tracksQ.data, tracksQ.isLoading, tracksLib]);
+}
+
+// ── Genres ─────────────────────────────────────────────────────────────────
+
+export function useLibraryGenres() {
+  const isConnected = useIsConnected();
+  const q = useGenres<{ genres?: ProtoGenre[] }>({ enabled: isConnected });
+  const data: Genre[] = useMemo(
+    () => (isConnected ? (q.data?.genres ?? []).map(genreFromProto) : []),
+    [isConnected, q.data],
+  );
+  return {
+    data,
+    isLoading: isConnected && q.isLoading,
+    isConnected,
+    error: q.error,
+  };
+}
+
+type ProtoGenreDetail = { genre?: ProtoGenre };
+type ProtoGenreTracks = { tracks?: ProtoTrack[] };
+type ProtoGenreAlbums = { albums?: ProtoAlbum[] };
+type ProtoGenreArtists = { artists?: ProtoArtist[] };
+
+export function useGenreDetail(id: string) {
+  const isConnected = useIsConnected();
+  const enabled = isConnected && id.length > 0;
+  const meta = useGenre<ProtoGenreDetail>(id, { enabled });
+  const tracksQ = useGenreTracks<ProtoGenreTracks>(id, { enabled });
+  const albumsQ = useGenreAlbums<ProtoGenreAlbums>(id, { enabled });
+  const artistsQ = useGenreArtists<ProtoGenreArtists>(id, { enabled });
+
+  return useMemo(() => {
+    if (!isConnected) {
+      return {
+        genre: undefined as Genre | undefined,
+        tracks: [] as Track[],
+        albums: [] as Album[],
+        artists: [] as Artist[],
+        isLoading: false,
+        isConnected: false,
+      };
+    }
+    const inner = meta.data?.genre;
+    const genre = inner ? genreFromProto(inner) : undefined;
+    const tracks = (tracksQ.data?.tracks ?? []).map(trackFromProto);
+    const albums = (albumsQ.data?.albums ?? []).map(albumFromProto);
+    const artists = (artistsQ.data?.artists ?? []).map(artistFromProto);
+    return {
+      genre,
+      tracks,
+      albums,
+      artists,
+      isLoading:
+        meta.isLoading ||
+        tracksQ.isLoading ||
+        albumsQ.isLoading ||
+        artistsQ.isLoading,
+      isConnected: true,
+    };
+  }, [
+    isConnected,
+    meta.data,
+    meta.isLoading,
+    tracksQ.data,
+    tracksQ.isLoading,
+    albumsQ.data,
+    albumsQ.isLoading,
+    artistsQ.data,
+    artistsQ.isLoading,
+  ]);
 }
 
 // ── Search ─────────────────────────────────────────────────────────────────

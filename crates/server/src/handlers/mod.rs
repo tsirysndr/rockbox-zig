@@ -5,6 +5,7 @@ pub mod bluetooth;
 pub mod browse;
 pub mod devices;
 pub mod docs;
+pub mod genres;
 pub mod player;
 pub mod playlists;
 pub mod saved_playlists;
