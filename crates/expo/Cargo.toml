@@ -23,6 +23,7 @@ embedded-daemon = [
     "dep:rockbox-settings",
     "dep:rockbox-library",
     "dep:rockbox-sys",
+    "dep:rbnetstream",           # for the #[used] keepalives in daemon.rs
     "rockbox-server/fts5",       # cascades to rockbox-graphql/fts5 + rockbox-rpc/fts5
 ]
 
@@ -46,6 +47,9 @@ rockbox-server   = { path = "../server",   optional = true, default-features = f
 rockbox-settings = { path = "../settings", optional = true, default-features = false }
 rockbox-library  = { path = "../library",  optional = true, default-features = false }
 rockbox-sys      = { path = "../sys",      optional = true, default-features = false }
+# netstream's lib is named "rbnetstream"; we depend on it directly so the
+# #[used] keepalives in daemon.rs can take addresses of its C ABI exports.
+rbnetstream     = { path = "../netstream", package = "netstream", optional = true }
 
 # ── Android-only ───────────────────────────────────────────────────────────
 [target.'cfg(target_os = "android")'.dependencies]

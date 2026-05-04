@@ -32,7 +32,43 @@ static LOCAL_PORT: AtomicI32 = AtomicI32::new(0);
 // the desktop Zig wrapper at zig/src/main.zig uses.
 extern "C" {
     fn main_c() -> c_int;
+    // start_server / start_servers are extern "C" fns in crates/server.
+    // We don't call them from Rust (the C firmware does, from
+    // apps/server_thread.c::server_init), but the references below force
+    // rustc to keep the rockbox-server rlib in the cdylib link — without
+    // them rustc dead-code-strips the entire crate, taking with it the
+    // _netstream keepalive trick that exports rb_net_open / rb_net_read /
+    // etc. from rbnetstream. The C side then can't find those symbols
+    // and dlopen fails at runtime.
+    fn start_server();
+    fn start_servers();
 }
+
+/// `#[used]` keepalive: takes the address of start_server / start_servers
+/// so rustc treats them as live and pulls in their containing rlib.
+#[used]
+static _KEEPALIVE_START_SERVER: unsafe extern "C" fn() = start_server;
+#[used]
+static _KEEPALIVE_START_SERVERS: unsafe extern "C" fn() = start_servers;
+
+/// Same keepalive trick for the netstream Rust crate's C-ABI exports —
+/// the C firmware's streamfd.c calls rb_net_open / rb_net_read / etc., but
+/// rustc dead-code-strips them from the cdylib link unless we reference
+/// them from our own (the cdylib's) Rust code. rockbox-server already
+/// has its own keepalive mod, but it's in an rlib and `#[used]` doesn't
+/// propagate across rlib boundaries.
+#[used]
+static _KEEPALIVE_RB_NET_OPEN: unsafe extern "C" fn(*const c_char) -> i32 =
+    rbnetstream::rb_net_open;
+#[used]
+static _KEEPALIVE_RB_NET_READ: unsafe extern "C" fn(i32, *mut std::ffi::c_void, usize) -> i64 =
+    rbnetstream::rb_net_read;
+#[used]
+static _KEEPALIVE_RB_NET_LEN: extern "C" fn(i32) -> i64 = rbnetstream::rb_net_len;
+#[used]
+static _KEEPALIVE_RB_NET_LSEEK: extern "C" fn(i32, i64, i32) -> i64 = rbnetstream::rb_net_lseek;
+#[used]
+static _KEEPALIVE_RB_NET_CLOSE: extern "C" fn(i32) = rbnetstream::rb_net_close;
 
 unsafe fn cstr_to_str<'a>(p: *const c_char) -> Option<&'a str> {
     if p.is_null() {
