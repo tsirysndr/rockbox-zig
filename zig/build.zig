@@ -95,6 +95,7 @@ pub fn build(b: *std.Build) void {
             exe.root_module.addLibraryPath(.{ .cwd_relative = "/usr/local/lib" });
         }
         exe.root_module.linkFramework("CoreFoundation", .{});
+        exe.root_module.linkFramework("Security", .{});
     }
 
     if (target.result.os.tag == .linux) {
