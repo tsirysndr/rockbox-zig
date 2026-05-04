@@ -431,7 +431,11 @@ static void init(void)
 #ifdef SIMULATOR
     sim_tasks_init();
 #endif
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) && !defined(CODECS_STATIC)
+    /* notification_init is in apps/hosted/android/notification.c which uses
+     * the Java-shell JNI bridge to post Android notifications. The cdylib
+     * build skips it — notifications are posted by NowPlayingService.kt
+     * on the JS/Kotlin side. */
     notification_init();
 #endif
     lang_init(core_language_builtin, language_strings,
