@@ -180,6 +180,36 @@ class RockboxRpcModule : Module() {
       "rockbox.error",
     )
 
+    // Boot the in-process rockbox daemon when the module loads (app start).
+    // Calls rb_daemon_start (firmware boot + gRPC/HTTP/GraphQL/MPD servers
+    // on 6061/6063/6062/6600) on a background thread so the Expo runtime
+    // isn't blocked. The native call returns -38 (ENOSYS) on builds without
+    // the embedded-daemon cargo feature — those keep the remote-only path.
+    OnCreate {
+      val ctx = appContext.reactContext ?: return@OnCreate
+      scope.launch {
+        try {
+          val configDir = ctx.applicationContext.filesDir.absolutePath
+          val musicDir = android.os.Environment
+            .getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_MUSIC)
+            .absolutePath
+          val deviceName = android.os.Build.MODEL ?: "rockbox-android"
+          android.util.Log.i("RockboxRpc",
+            "OnCreate: starting embedded daemon (config=$configDir music=$musicDir)")
+          val rc = rb_daemon_start(configDir, musicDir, deviceName)
+          when {
+            rc > 0 -> android.util.Log.i("RockboxRpc", "embedded daemon started, gRPC :$rc")
+            rc == -38 -> android.util.Log.i("RockboxRpc", "embedded daemon not built into this .so (remote-only mode)")
+            rc == -114 -> android.util.Log.i("RockboxRpc", "embedded daemon already running")
+            else -> android.util.Log.w("RockboxRpc", "embedded daemon start failed rc=$rc")
+          }
+        } catch (t: Throwable) {
+          android.util.Log.e("RockboxRpc",
+            "embedded daemon threw: ${t.javaClass.simpleName}: ${t.message}", t)
+        }
+      }
+    }
+
     Function("rockboxServiceName") {
       rb_rockbox_service_name() ?: "_rockbox._tcp.local."
     }

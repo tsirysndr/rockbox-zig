@@ -109,6 +109,9 @@ class NowPlayingService : Service() {
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
+    /* Daemon now boots from RockboxRpcModule.OnCreate (app start) instead
+     * of here (first-playback). Keep bootEmbeddedDaemon() as a no-op-ish
+     * fallback that just logs the daemon state — useful for debugging. */
     bootEmbeddedDaemon()
 
     mediaSession = MediaSessionCompat(this, "RockboxNowPlaying").apply {
