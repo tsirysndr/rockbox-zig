@@ -60,6 +60,24 @@ static _KEEPALIVE_START_SERVERS: unsafe extern "C" fn() = start_servers;
 #[used]
 static _KEEPALIVE_ROCKBOX_SERVER: &[&str] = &rockbox_server::AUDIO_EXTENSIONS;
 
+/// Same trick for the PCM sink crates. Take the address of one actual
+/// C-ABI export from each crate — `#[used]` on the empty `_link_<name>()`
+/// helper isn't enough because rustc keeps just that one fn and GCs the
+/// unrelated `pcm_<sink>_*` exports. Referencing a real C-ABI fn pulls
+/// the entire crate's #[no_mangle] export set into the cdylib.
+#[used]
+static _KEEPALIVE_AIRPLAY:    unsafe extern "C" fn(*const c_char, u16) =
+    rockbox_airplay::pcm_airplay_set_host;
+#[used]
+static _KEEPALIVE_SLIM:       extern "C" fn(u16) =
+    rockbox_slim::pcm_squeezelite_set_slim_port;
+#[used]
+static _KEEPALIVE_CHROMECAST: unsafe extern "C" fn(*const c_char) =
+    rockbox_chromecast::pcm::pcm_chromecast_set_device_host;
+#[used]
+static _KEEPALIVE_UPNP:       extern "C" fn(u16) =
+    rockbox_upnp::pcm_upnp_set_http_port;
+
 /// Same keepalive trick for the netstream Rust crate's C-ABI exports —
 /// the C firmware's streamfd.c calls rb_net_open / rb_net_read / etc., but
 /// rustc dead-code-strips them from the cdylib link unless we reference

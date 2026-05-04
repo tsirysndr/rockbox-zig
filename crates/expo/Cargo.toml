@@ -23,8 +23,17 @@ embedded-daemon = [
     "dep:rockbox-settings",
     "dep:rockbox-library",
     "dep:rockbox-sys",
-    "dep:rbnetstream",           # for the #[used] keepalives in daemon.rs
-    "rockbox-server/fts5",       # cascades to rockbox-graphql/fts5 + rockbox-rpc/fts5
+    "dep:rbnetstream",            # for the #[used] keepalives in daemon.rs
+    # PCM sink crates — each provides a `_link_<name>()` fn that we call
+    # from the keepalive so rustc keeps the rlib in the cdylib link.
+    # Enabling `ffi` on each makes their #[no_mangle] pcm_*_* C-ABI
+    # exports actually compile (gated otherwise so desktop dev builds
+    # without the firmware don't pay for them).
+    "dep:rockbox-airplay",
+    "dep:rockbox-slim",       "rockbox-slim/ffi",
+    "dep:rockbox-chromecast", "rockbox-chromecast/ffi",
+    "dep:rockbox-upnp",       "rockbox-upnp/ffi",
+    "rockbox-server/fts5",        # cascades to rockbox-graphql/fts5 + rockbox-rpc/fts5
 ]
 
 # ── Always-on dependencies (gRPC client + JNI/Swift glue) ──────────────────
@@ -49,7 +58,14 @@ rockbox-library  = { path = "../library",  optional = true, default-features = f
 rockbox-sys      = { path = "../sys",      optional = true, default-features = false }
 # netstream's lib is named "rbnetstream"; we depend on it directly so the
 # #[used] keepalives in daemon.rs can take addresses of its C ABI exports.
-rbnetstream     = { path = "../netstream", package = "netstream", optional = true }
+rbnetstream        = { path = "../netstream",   package = "netstream", optional = true }
+# PCM sink crates with C ABI exports the firmware calls (pcm_airplay_*,
+# pcm_squeezelite_*, pcm_chromecast_*, pcm_upnp_*). Each has a tiny
+# _link_<name>() helper specifically for cdylib keepalive.
+rockbox-airplay    = { path = "../airplay",    optional = true }
+rockbox-slim       = { path = "../slim",       optional = true }
+rockbox-chromecast = { path = "../chromecast", optional = true }
+rockbox-upnp       = { path = "../upnp",       optional = true }
 
 # ── Android-only ───────────────────────────────────────────────────────────
 [target.'cfg(target_os = "android")'.dependencies]
