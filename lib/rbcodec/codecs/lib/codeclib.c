@@ -106,6 +106,15 @@ size_t codec_strlen(const char *s)
     return(ci->strlen(s));
 }
 
+/* These wrappers exist because Rockbox codecs are normally dlopen'd as
+ * separate shared libs without their own libc — they get function
+ * pointers to libc primitives via the codec_api `ci` struct. For the
+ * Android cdylib build (CODECS_STATIC), all codecs are statically linked
+ * into one binary that already has libc — these wrappers would shadow
+ * libc's memcpy/memset/etc. and the Rust allocator, kernel, etc. would
+ * end up calling them with `ci == NULL`, causing immediate segfaults.
+ * Skip them in static-link mode and let the codecs use libc directly. */
+#ifndef CODECS_STATIC
 char *strcpy(char *dest, const char *src)
 {
     return(ci->strcpy(dest,src));
@@ -151,6 +160,7 @@ void qsort(void *base, size_t nmemb, size_t size,
 {
     ci->qsort(base,nmemb,size,compar);
 }
+#endif /* !CODECS_STATIC */
 
 /* From ffmpeg - libavutil/common.h */
 const uint8_t bs_log2_tab[256] ICONST_ATTR = {
