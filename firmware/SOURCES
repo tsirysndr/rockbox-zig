@@ -1988,6 +1988,7 @@ target/hosted/android/cdylib/lc-android.c
 target/hosted/android/cdylib/rb_zig_compat.c
 target/hosted/android/cdylib/lcd-noop.c
 target/hosted/android/cdylib/button-noop.c
+target/hosted/android/cdylib/cpuinfo-noop.c
 #else
 /* Existing Java-shell Android app */
 target/hosted/lc-unix.c
