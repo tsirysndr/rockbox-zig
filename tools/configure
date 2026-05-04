@@ -1809,7 +1809,7 @@ cat <<EOF
  222) NWZ-E450 series      202) Android (MIPS)   231) 770
  223) NWZ-E460 series      203) Android (x86)    232) 770C
  224) NWZ-E470 series      209) Anbernic RG Nano 233) 800
- 225) NWZ-E580 series                            234) 960
+ 225) NWZ-E580 series      205) Android cdylib   234) 960
  226) NWZ-A10 series       ==AgpTek==
  227) NW-A20 series        240) Rocker           ==AIGO==
  228) NWZ-A860 series                            245) Eros Q / K (hosted)
