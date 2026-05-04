@@ -161,6 +161,18 @@ fn configure_environment(config_dir: &str, music_dir: &str, device_name: &str) {
     // resolves to /data/.../files/Music (doesn't exist) → ENOENT.
     std::env::set_var("ROCKBOX_LIBRARY", music_dir);
 
+    // Redirect anyone calling `std::env::temp_dir()` (e.g. the HTTP-stream
+    // metadata probe in crates/library that writes
+    // `rockbox-remote-probe-<md5>.<ext>` files) into the app sandbox.
+    // Stdlib's temp_dir() honours $TMPDIR before falling back to /tmp,
+    // and /tmp doesn't exist (or isn't writable) for non-root Android
+    // app processes. The dir lives under HOME so it's persistent app
+    // storage — fine for our short-lived probes that are removed via
+    // RemoteProbeFile's Drop impl.
+    let tmp = format!("{}/tmp", config_dir);
+    let _ = std::fs::create_dir_all(&tmp);
+    std::env::set_var("TMPDIR", &tmp);
+
     // mDNS-advertised LAN ports (match crates/discovery defaults).
     if std::env::var_os("ROCKBOX_PORT").is_none() {
         std::env::set_var("ROCKBOX_PORT", "6061");

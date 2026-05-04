@@ -104,32 +104,36 @@ pub async fn create_playlist(
 
     let start_index = web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        // hard_stop / playlist_create / build_playlist all touch
+        // firmware kernel state — route through the broker so they run
+        // with the right __cores[0].running entry.
+        crate::fw_bus::run_on_broker(move || {
+            let current_is_http = rb::playback::current_track()
+                .map(|t| t.path.starts_with("http://") || t.path.starts_with("https://"))
+                .unwrap_or(false);
+            let new_is_http = new_playlist.tracks[0].starts_with("http://")
+                || new_playlist.tracks[0].starts_with("https://");
+            if current_is_http || new_is_http {
+                rb::playback::hard_stop();
+            }
 
-        let current_is_http = rb::playback::current_track()
-            .map(|t| t.path.starts_with("http://") || t.path.starts_with("https://"))
-            .unwrap_or(false);
-        let new_is_http = new_playlist.tracks[0].starts_with("http://")
-            || new_playlist.tracks[0].starts_with("https://");
-        if current_is_http || new_is_http {
-            rb::playback::hard_stop();
-        }
+            let first = &new_playlist.tracks[0];
+            let dir = if first.starts_with("http://") || first.starts_with("https://") {
+                std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string())
+            } else {
+                let parts: Vec<_> = first.split('/').collect();
+                parts[..parts.len().saturating_sub(1)].join("/")
+            };
+            rb::playlist::create(&dir, None);
 
-        let first = &new_playlist.tracks[0];
-        let dir = if first.starts_with("http://") || first.starts_with("https://") {
-            std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string())
-        } else {
-            let parts: Vec<_> = first.split('/').collect();
-            parts[..parts.len().saturating_sub(1)].join("/")
-        };
-        rb::playlist::create(&dir, None);
-
-        let start_index = rb::playlist::build_playlist(
-            new_playlist.tracks.iter().map(|t| t.as_str()).collect(),
-            0,
-            new_playlist.tracks.len() as i32,
-        );
-        PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
-        start_index
+            let start_index = rb::playlist::build_playlist(
+                new_playlist.tracks.iter().map(|t| t.as_str()).collect(),
+                0,
+                new_playlist.tracks.len() as i32,
+            );
+            PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+            start_index
+        })
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -149,7 +153,12 @@ pub async fn start_playlist(query: web::Query<StartPlaylistQuery>) -> HandlerRes
     let offset = query.offset.unwrap_or(0);
     web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        rb::playlist::start(start_index, elapsed, offset);
+        // playlist_start() inside firmware sends Q_AUDIO_PLAY to audio_thread
+        // → halt_decoding_track → codec_stop → kernel scheduler. Must run on
+        // the broker (real kernel thread) — see crates/server/src/fw_bus.rs.
+        crate::fw_bus::run_on_broker(move || {
+            rb::playlist::start(start_index, elapsed, offset);
+        });
         PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
     })
     .await
@@ -166,10 +175,12 @@ pub async fn shuffle_playlist(query: web::Query<ShuffleQuery>) -> HandlerResult 
     let start_index = query.start_index.unwrap_or(0);
     let ret = web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        let seed = rb::system::current_tick();
-        let ret = rb::playlist::shuffle(seed as i32, start_index);
-        PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
-        ret
+        crate::fw_bus::run_on_broker(move || {
+            let seed = rb::system::current_tick();
+            let ret = rb::playlist::shuffle(seed as i32, start_index);
+            PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+            ret
+        })
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -189,14 +200,16 @@ pub async fn get_playlist_amount() -> HandlerResult {
 pub async fn resume_playlist() -> HandlerResult {
     let code = web::block(|| {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        let status = rb::system::get_global_status();
-        let playback_status = rb::playback::status();
-        if status.resume_index == -1 || playback_status.status == 1 {
-            return -1;
-        }
-        let code = rb::playlist::resume();
-        PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
-        code
+        crate::fw_bus::run_on_broker(|| {
+            let status = rb::system::get_global_status();
+            let playback_status = rb::playback::status();
+            if status.resume_index == -1 || playback_status.status == 1 {
+                return -1;
+            }
+            let code = rb::playlist::resume();
+            PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+            code
+        })
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -206,23 +219,25 @@ pub async fn resume_playlist() -> HandlerResult {
 pub async fn resume_track() -> HandlerResult {
     web::block(|| {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        let status = rb::system::get_global_status();
-        if status.resume_index == -1 {
-            return;
-        }
-        if rb::playlist::amount() == 0 {
-            let ret = rb::playlist::resume();
-            if ret == -1 {
+        crate::fw_bus::run_on_broker(|| {
+            let status = rb::system::get_global_status();
+            if status.resume_index == -1 {
                 return;
             }
-        }
-        rb::playlist::resume_track(
-            status.resume_index,
-            status.resume_crc32,
-            status.resume_elapsed.into(),
-            status.resume_offset.into(),
-        );
-        PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+            if rb::playlist::amount() == 0 {
+                let ret = rb::playlist::resume();
+                if ret == -1 {
+                    return;
+                }
+            }
+            rb::playlist::resume_track(
+                status.resume_index,
+                status.resume_crc32,
+                status.resume_elapsed.into(),
+                status.resume_offset.into(),
+            );
+            PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+        });
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -348,45 +363,46 @@ pub async fn insert_tracks(
         }
     }
 
-    // Built-in player: all C FFI calls must run on a blocking thread so that
-    // reqwest::blocking (used by rb_net_open for HTTP tracks) does not create a
-    // nested tokio context on the actix worker thread.
+    // Built-in player: all firmware kernel calls must run on the broker
+    // thread (real Rockbox kernel thread) — see crates/server/src/fw_bus.rs.
     let response_body = web::block(move || -> Result<String, String> {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        let amount = rb::playlist::amount();
+        crate::fw_bus::run_on_broker(move || {
+            let amount = rb::playlist::amount();
 
-        if amount == 0 {
-            let first = &tracklist.tracks[0];
-            let dir = if first.starts_with("http://") || first.starts_with("https://") {
-                "/".to_string()
-            } else {
-                let dir_parts: Vec<_> = first.split('/').collect();
-                dir_parts[0..dir_parts.len() - 1].join("/")
+            if amount == 0 {
+                let first = &tracklist.tracks[0];
+                let dir = if first.starts_with("http://") || first.starts_with("https://") {
+                    "/".to_string()
+                } else {
+                    let dir_parts: Vec<_> = first.split('/').collect();
+                    dir_parts[0..dir_parts.len() - 1].join("/")
+                };
+                let status = rb::playlist::create(&dir, None);
+                if status == -1 {
+                    return Err("Failed to create playlist".to_string());
+                }
+                let start_index = rb::playlist::build_playlist(
+                    tracklist.tracks.iter().map(|t| t.as_str()).collect(),
+                    0,
+                    tracklist.tracks.len() as i32,
+                );
+                PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+                return Ok(start_index.to_string());
+            }
+
+            let mut tracks: Vec<&str> = tracklist.tracks.iter().map(|t| t.as_str()).collect();
+            let position = match tracklist.position {
+                PLAYLIST_INSERT_LAST_SHUFFLED => {
+                    tracks.shuffle(&mut rand::thread_rng());
+                    PLAYLIST_INSERT_LAST
+                }
+                _ => tracklist.position,
             };
-            let status = rb::playlist::create(&dir, None);
-            if status == -1 {
-                return Err("Failed to create playlist".to_string());
-            }
-            let start_index = rb::playlist::build_playlist(
-                tracklist.tracks.iter().map(|t| t.as_str()).collect(),
-                0,
-                tracklist.tracks.len() as i32,
-            );
+            rb::playlist::insert_tracks(tracks, position, tracklist.tracks.len() as i32);
             PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
-            return Ok(start_index.to_string());
-        }
-
-        let mut tracks: Vec<&str> = tracklist.tracks.iter().map(|t| t.as_str()).collect();
-        let position = match tracklist.position {
-            PLAYLIST_INSERT_LAST_SHUFFLED => {
-                tracks.shuffle(&mut rand::thread_rng());
-                PLAYLIST_INSERT_LAST
-            }
-            _ => tracklist.position,
-        };
-        rb::playlist::insert_tracks(tracks, position, tracklist.tracks.len() as i32);
-        PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
-        Ok(tracklist.position.to_string())
+            Ok(tracklist.position.to_string())
+        })
     })
     .await
     .map_err(ErrorInternalServerError)?
@@ -410,18 +426,20 @@ pub async fn remove_tracks(
         }
         drop(player);
 
-        let mut ret = 0;
+        crate::fw_bus::run_on_broker(move || {
+            let mut ret = 0;
 
-        for position in &params.positions {
-            ret = rb::playlist::delete_track(*position);
-        }
+            for position in &params.positions {
+                ret = rb::playlist::delete_track(*position);
+            }
 
-        if params.positions.is_empty() {
-            ret = rb::playlist::remove_all_tracks();
-        }
+            if params.positions.is_empty() {
+                ret = rb::playlist::remove_all_tracks();
+            }
 
-        PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
-        ret
+            PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
+            ret
+        })
     })
     .await
     .map_err(ErrorInternalServerError)?;

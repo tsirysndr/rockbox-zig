@@ -164,6 +164,8 @@ rockboxd:
 3. `daemon.rs::rb_daemon_start`:
    - Installs `tracing-android` subscriber → tag `rockbox`
    - Sets env vars: `HOME`, `ROCKBOX_LIBRARY` (canonical, NOT `ROCKBOX_MUSIC_DIR`),
+     `TMPDIR` (= `$HOME/tmp`, created on demand, so `std::env::temp_dir()`
+     resolves into the app sandbox instead of `/tmp` which doesn't exist),
      `ROCKBOX_DEVICE_NAME`, `ROCKBOX_PORT/GRAPHQL_PORT/TCP_PORT/MPD_PORT`
    - Spawns `rockbox-engine` pthread (2 MB stack) which calls `main_c()`
 4. `main_c()` — the firmware boot in `apps/main.c`. Initializes kernel,
@@ -198,6 +200,78 @@ There's also a similar shim for the rockbox-server crate and for
 `start_server` / `start_servers` / `start_broker`.
 
 If a sink stops working after a refactor, check for missing keepalives.
+
+### Firmware-command bus (`crates/server/src/fw_bus.rs`)
+
+The Rockbox kernel scheduler identifies the "current thread" via a
+single global slot — `__cores[0].running` (see
+`firmware/kernel/thread-internal.h::__running_self_entry`). There is no
+thread-local storage. The whole machinery assumes only one OS thread
+(the rockbox-engine pthread) ever touches kernel-thread state, and
+that thread updates the slot on every coroutine context switch.
+
+This breaks immediately when our HTTP/gRPC handlers run on actix
+worker pthreads and call firmware FFI: `audio_play()`, `audio_pause()`,
+`playlist_start()`, `audio_set_crossfade()`, etc. all eventually reach
+`queue_send` → `wakeup_thread`, which read/write `__cores[0].running`
+treating themselves as that thread (whichever Rockbox kernel thread
+was last switched in). Result: kernel-thread struct corruption →
+SIGSEGV at `PC=0` in `wakeup_thread_` on track switches, settings
+updates, anything that crosses `audio_thread` ↔ `codec_thread`.
+
+The bus serialises every kernel-mutating call through an `mpsc`
+channel that the **broker thread** drains. Broker is created by
+`apps/broker_thread.c::broker_init` via `create_thread`, so it IS a
+real Rockbox kernel thread — its FFI calls resolve `__running_self_entry()`
+to its own `thread_entry` and the scheduler stays consistent.
+
+```text
+actix worker (gRPC/HTTP handler)               broker (Rockbox kernel thread)
+   │                                                │
+   ├── fw_bus::run_on_broker(|| rb::*) ─┐           │
+   │                                    │           │
+   │                                    └── mpsc ──▶│
+   │  ↑                                             │ drain() loop:
+   │  └── reply oneshot (5s timeout) ◀──────────────┤   - try_recv()
+   │                                                │   - execute_on_broker()
+   │  (handler returns)                             │   - sleep(0) yield
+                                                    │   - repeat
+```
+
+**API:**
+- `fw_bus::init()` — call once from `start_servers()` before any handler
+  can run. Idempotent.
+- `fw_bus::send(FwCmd::…)` — fire-and-forget enqueue.
+- `fw_bus::send_and_wait(|reply| FwCmd::…)` — enqueue + block on the
+  reply oneshot. 5-second cap before bailing.
+- `fw_bus::run_on_broker(|| -> T { rb::* })` — generic helper that
+  wraps any closure in `FwCmd::Custom` and returns the closure's
+  value. Use this for ad-hoc cases instead of adding a new `FwCmd`
+  variant.
+- `fw_bus::drain(&rx)` — called once per broker iteration. Yields
+  (`sleep(0)`) between commands so the recipient kernel thread (e.g.
+  `audio_thread`) gets a chance to dequeue our message before the next
+  one is sent.
+
+**What goes through the bus** (everything in
+`crates/server/src/handlers/`):
+
+- `player.rs` — `play`, `pause`, `resume`, `next`, `previous`, `stop`,
+  `ff_rewind`, `flush_and_reload_tracks`
+- `playlists.rs` — `create_playlist`, `start_playlist`,
+  `shuffle_playlist`, `resume_playlist`, `resume_track`,
+  `insert_tracks`, `remove_tracks`
+- `saved_playlists.rs` / `smart_playlists.rs` — `play_*` (build + start)
+- `settings.rs` — `update_global_settings` (whole `load_settings` body)
+
+**What stays direct FFI** — read-only calls that don't touch the
+scheduler: `current_track`, `status`, `next_track`, `get_track_info`,
+`amount`, `index`, `sound::current`, etc. Performance matters for
+these (60+ Hz polling) and the race doesn't apply.
+
+When you add a new handler that mutates audio engine state, wrap the
+firmware-touching block in `crate::fw_bus::run_on_broker(move || …)`.
+Read-only handlers can stay direct.
 
 ### C firmware artefacts
 
@@ -484,7 +558,7 @@ starts (e.g. `setprop log.tag.rockbox D` is consulted on next boot).
 
 ---
 
-## Known pitfalls (also in `MEMORY.md`)
+## Known pitfalls
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -498,6 +572,10 @@ starts (e.g. `setprop log.tag.rockbox D` is consulted on next boot).
 | Library DB stays empty even after browsing works | Embedded daemon doesn't run the desktop CLI's startup scan | `daemon.rs::spawn_library_scan` runs after gRPC binds; force re-scan via `RockboxClient.rescanLibrary()` |
 | `Permission denied` reading `/storage/emulated/0/Music` on API 33+ | `READ_EXTERNAL_STORAGE` is ignored on `targetSdk=33+`; `READ_MEDIA_AUDIO` only grants MediaStore queries | `MANAGE_EXTERNAL_STORAGE` in manifest + `useAllFilesAccessPrompt()` opens system Settings |
 | Daemon dies after the app backgrounds for a few minutes | App process killed for memory; daemon dies with it | NowPlayingService is a foreground service — keep it running via `RockboxNowPlaying.start()` at app launch (called from `_layout.tsx`) |
+| SIGSEGV at PC=0 in `wakeup_thread_` / `queue_send` on track switches, settings updates, anything that crosses `audio_thread` ↔ `codec_thread` | Rockbox kernel uses `__cores[0].running` as global "current thread" — no TLS. Calling firmware FFI from a non-Rockbox pthread (actix worker handling a gRPC request) corrupts kernel-thread state. Same root cause as the older "stale blocker" / "pcmbuf race" symptoms — they were all surfaces of this | **Firmware-command bus** in `crates/server/src/fw_bus.rs`. Every kernel-mutating handler in `crates/server/src/handlers/{player,playlists,saved_playlists,smart_playlists,settings}.rs` wraps its FFI block in `crate::fw_bus::run_on_broker(move \|\| …)` so the calls run on the broker (a real Rockbox kernel thread) and `__running_self_entry()` resolves correctly. Read-only handlers stay direct |
+| pcmbuf rebuild race (separate, narrower window) | `pcmbuf_init` rewrites the chunk descriptor ring while the AAudio writer pthread may be mid-`pcmbuf_pcm_callback` | `apps/pcmbuf.c::pcmbuf_init` wrapped in `pcm_play_lock()` / `pcm_play_unlock()` — routes to our `aa_mtx` and blocks `aa_thread` for the few ms of rebuild. Kept as defence-in-depth on top of the bus fix |
+| Track-switch hiccup race (separate) | `codec_stop` from `halt_decoding_track` could race the codec_thread before it parked | `apps/playback.c::halt_decoding_track` does `sleep(HZ/10)` (CODECS_STATIC only) before `codec_stop()` to let the runqueue drain. Kept as defence-in-depth |
+| Probe / cache writes fail with `ENOENT /tmp/...` on Android | App sandbox has no writable `/tmp` | `daemon.rs::configure_environment` sets `TMPDIR=$HOME/tmp` (and `mkdir -p`s it) so `std::env::temp_dir()` resolves into the sandbox |
 
 ---
 

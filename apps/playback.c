@@ -1500,6 +1500,14 @@ static bool halt_decoding_track(bool stop)
 
     buf_signal_handle(ci.audio_hid, true);
 
+#if defined(CODECS_STATIC)
+    /* Hosted/Android cdylib: codec_stop() crashes the kernel scheduler
+     * (PC=0 inside wakeup_thread_) when the codec thread or aa_thread
+     * is mid-callback. Yield for a tick first to let the runqueue
+     * drain any pending wake/release before we hammer codec_queue. */
+    sleep(HZ / 10);
+#endif
+
     if (stop)
         codec_stop();
     else
