@@ -32,3 +32,12 @@ void cpufreq_available_governors(char *g, int gsize, int cpu)
 { (void)g; (void)gsize; (void)cpu; if (g && gsize > 0) g[0] = 0; }
 
 void cpufreq_set_governor(const char *g, int cpu) { (void)g; (void)cpu; }
+
+/* Battery info: our config sets CONFIG_BATTERY_MEASURE PERCENTAGE_MEASURE,
+ * so firmware/powermgmt.c expects _battery_level to be supplied per-target.
+ * Java-shell Android provides one (powermgmt-android.c, gated out for the
+ * cdylib). Return 100% — JS can fetch real battery info from Android's
+ * BatteryManager API if it ever needs to expose it. */
+int _battery_level(void)            { return 100; }
+unsigned _battery_voltage(void)     { return 0; }
+int _battery_time(void)             { return 0; }
