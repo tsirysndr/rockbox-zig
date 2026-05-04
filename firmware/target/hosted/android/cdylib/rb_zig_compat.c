@@ -131,3 +131,13 @@ struct mp3entry rb_get_metadata(int fd, const char *trackname)
     get_metadata(&id3, fd, trackname);
     return id3;
 }
+
+/* ── Settings wrapper — port of zig/src/rockbox/settings.zig ──────────── */
+
+#include "settings.h"
+extern struct user_settings global_settings;
+
+int rb_get_crossfade_mode(void)
+{
+    return global_settings.crossfade;
+}
