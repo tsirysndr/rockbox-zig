@@ -14,6 +14,14 @@ OTHER_SRC += $(CODECS_SRC)
 CODECS := $(CODECS_SRC:.c=.codec)
 CODECS := $(subst $(RBCODECLIB_DIR),$(RBCODEC_BLD),$(CODECS))
 
+# Static-link mode: produce one .a per codec instead of one .codec dlopen lib.
+# Triggered by the Android cdylib build (CODECS_STATIC=1 + -DCODECS_STATIC).
+ifdef CODECS_STATIC
+ CODECS := $(CODECS_SRC:.c=.a)
+ CODECS := $(subst $(RBCODECLIB_DIR),$(RBCODEC_BLD),$(CODECS))
+ CODECFLAGS += -DCODECS_STATIC
+endif
+
 # the codec helper library
 include $(RBCODECLIB_DIR)/codecs/lib/libcodec.make
 OTHER_INC += -I$(RBCODECLIB_DIR)/codecs/lib
@@ -76,7 +84,12 @@ include $(RBCODECLIB_DIR)/codecs/libgme/libkss.make
 include $(RBCODECLIB_DIR)/codecs/libgme/libemu2413.make
 include $(RBCODECLIB_DIR)/codecs/libopus/libopus.make
 ifneq ($(MEMORYSIZE),2)
+# cRSID (Commodore 64 SID format) uses GCC nested-function syntax that
+# NDK clang rejects strictly. Skip on the Android cdylib build; the .sid
+# format is niche and can be re-enabled later if demand surfaces.
+ifndef CODECS_STATIC
 include $(RBCODECLIB_DIR)/codecs/cRSID/cRSID.make
+endif
 endif
 
 ifeq ($(shell expr $(GCCNUM) \> 600),1)
@@ -171,12 +184,16 @@ endif
 
 CODEC_CRT0 := $(CODECDIR)/codec_crt0.o
 
+ifndef CODECS_STATIC
+# Static-link mode skips the codec linker script entirely — there is no
+# per-codec final link step, just objcopy + ar.
 $(CODECS): $(CODEC_CRT0) $(CODECLINK_LDS)
 
 $(CODECLINK_LDS): $(CODEC_LDS) $(CONFIGFILE)
 	$(call PRINTS,PP $(@F))
 	$(shell mkdir -p $(dir $@))
 	$(call preprocess2file, $<, $@, -DCODEC)
+endif
 
 # codec/library dependencies
 $(CODECDIR)/spc.codec : $(CODECDIR)/libspc.a
@@ -220,7 +237,9 @@ $(CODECDIR)/opus.codec : $(CODECDIR)/libopus.a $(TLSFLIB)
 $(CODECDIR)/sid.codec : $(CODECDIR)/cRSID.a
 $(CODECDIR)/aac_bsf.codec : $(CODECDIR)/libfaad.a
 
+ifndef CODECS_STATIC
 $(CODECS): $(CODEC_LIBS) # this must be last in codec dependency list
+endif
 
 # pattern rule for compiling codecs
 $(CODECDIR)/%.o: $(RBCODECLIB_DIR)/codecs/%.c
@@ -246,3 +265,84 @@ $(CODECDIR)/%.codec: $(CODECDIR)/%.o
 		$(filter %.a, $+) \
 		-lgcc $(CODECLDFLAGS)
 	$(SILENT)$(call objcopy_plugin,$(CODECDIR)/$*.elf,$@)
+
+# CODECS_STATIC mode: produce a per-codec static archive with __header
+# renamed to __header_<name> so all 44 codecs can co-link in one binary.
+# objcopy modifies the .o in place; idempotent on re-run (the unrenamed
+# __header isn't present anymore so the second pass is a no-op).
+ifdef CODECS_STATIC
+# objcopy --redefine-sym is given both the ELF (Linux/Android NDK) and the
+# Mach-O (macOS smoke-test) symbol manglings — Mach-O prepends an extra
+# leading underscore to C symbols. Four symbols per codec collide when
+# all are linked into one binary:
+#   __header      — defined by CODEC_HEADER macro
+#   codec_main    — codec entry point (referenced from __header indirectly
+#                   via codec_start)
+#   codec_run     — codec decode loop  (referenced from __header directly)
+#   codec_start   — wrapper from codec_crt0.c that calls codec_main
+#                   (referenced from __header directly)
+# All four get renamed per-codec so they coexist in the cdylib. codec_start
+# lives in codec_crt0.o, so we also archive a per-codec renamed copy of
+# codec_crt0 into each codec's .a — that gives us a codec_start_<name>
+# that calls codec_main_<name> for that codec.
+$(CODECDIR)/%.a: $(CODECDIR)/%.o $(CODEC_CRT0)
+	$(call PRINTS,STATIC $(@F))
+	$(SILENT) $(OC) --redefine-sym __header=__header_$* \
+	                --redefine-sym ___header=___header_$* \
+	                --redefine-sym codec_main=codec_main_$* \
+	                --redefine-sym _codec_main=_codec_main_$* \
+	                --redefine-sym codec_run=codec_run_$* \
+	                --redefine-sym _codec_run=_codec_run_$* \
+	                --redefine-sym codec_start=codec_start_$* \
+	                --redefine-sym _codec_start=_codec_start_$* $<
+	$(SILENT) cp $(CODEC_CRT0) $(CODECDIR)/$*-crt0.o
+	$(SILENT) $(OC) --redefine-sym codec_start=codec_start_$* \
+	                --redefine-sym _codec_start=_codec_start_$* \
+	                --redefine-sym codec_main=codec_main_$* \
+	                --redefine-sym _codec_main=_codec_main_$* \
+	                $(CODECDIR)/$*-crt0.o
+	$(SILENT) $(AR) rcs $@ $< $(CODECDIR)/$*-crt0.o
+
+# Per-codec helper-lib dependencies (mirror of lines 190-229 with .a output).
+# When a codec is added/removed in SOURCES, mirror its existing .codec dep
+# line below with .a on the LHS.
+$(CODECDIR)/spc.a          : $(CODECDIR)/libspc.a
+$(CODECDIR)/mpa.a          : $(CODECDIR)/libmad.a $(CODECDIR)/libasf.a
+$(CODECDIR)/a52.a          : $(CODECDIR)/liba52.a
+$(CODECDIR)/flac.a         : $(CODECDIR)/libffmpegFLAC.a
+$(CODECDIR)/vorbis.a       : $(CODECDIR)/libtremor.a $(TLSFLIB) $(SETJMPLIB)
+$(CODECDIR)/speex.a        : $(CODECDIR)/libspeex.a
+$(CODECDIR)/mpc.a          : $(CODECDIR)/libmusepack.a
+$(CODECDIR)/wavpack.a      : $(CODECDIR)/libwavpack.a
+$(CODECDIR)/alac.a         : $(CODECDIR)/libalac.a $(CODECDIR)/libm4a.a
+$(CODECDIR)/aac.a          : $(CODECDIR)/libfaad.a $(CODECDIR)/libm4a.a
+$(CODECDIR)/shorten.a      : $(CODECDIR)/libffmpegFLAC.a
+$(CODECDIR)/ape.a          : $(CODECDIR)/libdemac.a
+$(CODECDIR)/wma.a          : $(CODECDIR)/libwma.a $(CODECDIR)/libasf.a
+$(CODECDIR)/wmapro.a       : $(CODECDIR)/libwmapro.a $(CODECDIR)/libasf.a
+$(CODECDIR)/wavpack_enc.a  : $(CODECDIR)/libwavpack.a
+$(CODECDIR)/asap.a         : $(CODECDIR)/libasap.a
+$(CODECDIR)/cook.a         : $(CODECDIR)/libcook.a $(CODECDIR)/librm.a
+$(CODECDIR)/raac.a         : $(CODECDIR)/libfaad.a $(CODECDIR)/librm.a
+$(CODECDIR)/a52_rm.a       : $(CODECDIR)/liba52.a $(CODECDIR)/librm.a
+$(CODECDIR)/atrac3_rm.a    : $(CODECDIR)/libatrac.a $(CODECDIR)/librm.a
+$(CODECDIR)/atrac3_oma.a   : $(CODECDIR)/libatrac.a
+$(CODECDIR)/aiff.a         : $(CODECDIR)/libpcm.a
+$(CODECDIR)/wav.a          : $(CODECDIR)/libpcm.a
+$(CODECDIR)/smaf.a         : $(CODECDIR)/libpcm.a
+$(CODECDIR)/au.a           : $(CODECDIR)/libpcm.a
+$(CODECDIR)/vox.a          : $(CODECDIR)/libpcm.a
+$(CODECDIR)/wav64.a        : $(CODECDIR)/libpcm.a
+$(CODECDIR)/tta.a          : $(CODECDIR)/libtta.a
+$(CODECDIR)/ay.a           : $(CODECDIR)/libay.a
+$(CODECDIR)/vtx.a          : $(CODECDIR)/libayumi.a
+$(CODECDIR)/gbs.a          : $(CODECDIR)/libgbs.a
+$(CODECDIR)/hes.a          : $(CODECDIR)/libhes.a
+$(CODECDIR)/nsf.a          : $(CODECDIR)/libnsf.a $(CODECDIR)/libemu2413.a
+$(CODECDIR)/sgc.a          : $(CODECDIR)/libsgc.a $(CODECDIR)/libemu2413.a
+$(CODECDIR)/vgm.a          : $(CODECDIR)/libvgm.a $(CODECDIR)/libemu2413.a
+$(CODECDIR)/kss.a          : $(CODECDIR)/libkss.a $(CODECDIR)/libemu2413.a
+$(CODECDIR)/opus.a         : $(CODECDIR)/libopus.a $(TLSFLIB)
+$(CODECDIR)/sid.a          : $(CODECDIR)/cRSID.a
+$(CODECDIR)/aac_bsf.a      : $(CODECDIR)/libfaad.a
+endif

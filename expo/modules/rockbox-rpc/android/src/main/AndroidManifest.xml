@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+  <!--
+    Required so mDNS / Bonjour responses are delivered to the app.
+    Android filters multicast UDP by default to save battery — we hold
+    a MulticastLock while a discovery subscription is active.
+  -->
+  <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+  <!-- Embedded daemon (when librockbox_expo.so is built with the
+       embedded-daemon cargo feature). The audio engine + bound TCP
+       listeners need to keep running in background. -->
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+  <!-- Library scan: Android 13+ uses READ_MEDIA_AUDIO; older falls back. -->
+  <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+  <uses-permission
+      android:name="android.permission.READ_EXTERNAL_STORAGE"
+      android:maxSdkVersion="32" />
+</manifest>

@@ -22,7 +22,11 @@
 
 
 #include "config.h"
-#ifdef DEBUG
+
+/* Always-on Android debugf shim. The cdylib build pre-defines DEBUGF in
+ * androidcdylib.h to call debugf so firmware diagnostics surface in
+ * logcat — `#ifdef DEBUG` gating is unnecessary and would force every
+ * caller to also define DEBUG (which collides with libmad's NDEBUG check). */
 #include <android/log.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -49,5 +53,3 @@ void ldebugf(const char* file, int line, const char *fmt, ...)
     __android_log_vprint(ANDROID_LOG_DEBUG, LOG_TAG, buf, ap);
     va_end(ap);
 }
-
-#endif

@@ -113,7 +113,12 @@ enum
 #endif /* defined(HAVE_RECORDING) */
 };
 
-#if (CONFIG_PLATFORM & PLATFORM_ANDROID)
+/* Java-shell Android dlopen'd per-codec libNAME.so files; the cdylib build
+ * statically links every codec into one binary and looks them up by their
+ * canonical "<name>.codec" filenames in lc-android.c's lc_static_table.
+ * CODECS_STATIC distinguishes the two: keep the libNAME.so convention only
+ * for the Java-shell path. */
+#if (CONFIG_PLATFORM & PLATFORM_ANDROID) && !defined(CODECS_STATIC)
 #define CODEC_EXTENSION "so"
 #define CODEC_PREFIX "lib"
 #else

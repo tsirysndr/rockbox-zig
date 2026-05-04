@@ -237,19 +237,28 @@ pub async fn play_saved_playlist(
         return Ok(HttpResponse::UnprocessableEntity().finish());
     }
 
-    let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-    let first = &paths[0];
-    let dir = {
-        let parts: Vec<_> = first.split('/').collect();
-        parts[..parts.len().saturating_sub(1)].join("/")
-    };
-    rb::playlist::create(&dir, None);
-    rb::playlist::build_playlist(
-        paths.iter().map(|p| p.as_str()).collect(),
-        0,
-        paths.len() as i32,
-    );
-    rb::playlist::start(0, 0, 0);
+    web::block(move || {
+        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
+        // Build + start a saved playlist — `playlist_start` triggers
+        // halt_decoding_track / codec_stop in the kernel scheduler.
+        // Must run on the broker (real Rockbox kernel thread).
+        crate::fw_bus::run_on_broker(move || {
+            let first = &paths[0];
+            let dir = {
+                let parts: Vec<_> = first.split('/').collect();
+                parts[..parts.len().saturating_sub(1)].join("/")
+            };
+            rb::playlist::create(&dir, None);
+            rb::playlist::build_playlist(
+                paths.iter().map(|p| p.as_str()).collect(),
+                0,
+                paths.len() as i32,
+            );
+            rb::playlist::start(0, 0, 0);
+        });
+    })
+    .await
+    .map_err(ErrorInternalServerError)?;
 
     Ok(HttpResponse::NoContent().finish())
 }

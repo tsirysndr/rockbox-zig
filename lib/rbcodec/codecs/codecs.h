@@ -257,6 +257,20 @@ extern unsigned char plugin_end_addr[];
         codec_start, codec_run, &ci, sizeof(struct codec_api), \
         { enc_callback } };
 
+#elif defined(CODECS_STATIC)
+/* Static-link mode: emit __header as a plain external symbol so codecs.make's
+ * objcopy --redefine-sym __header=__header_<name> can rename it per codec.
+ * No section attribute, no visibility — codecs.make sets -fvisibility=hidden
+ * globally and the renamed symbol is referenced from lc-android.c's table. */
+#define CODEC_HEADER \
+        const struct codec_header __header = { \
+        { CODEC_MAGIC, TARGET_ID, CODEC_API_VERSION, NULL, NULL }, \
+        codec_start, codec_run, &ci, sizeof(struct codec_api) };
+#define CODEC_ENC_HEADER \
+        const struct codec_header __header = { \
+        { CODEC_ENC_MAGIC, TARGET_ID, CODEC_API_VERSION, NULL, NULL }, \
+        codec_start, codec_run, &ci, sizeof(struct codec_api), \
+        { enc_callback } };
 #else /* def SIMULATOR */
 /* decoders */
 #define CODEC_HEADER \

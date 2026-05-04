@@ -102,6 +102,16 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
     ))
     .await?;
 
+    match pool
+        .execute(include_str!(
+            "../migrations/20260503000000_add_fts5_search.sql"
+        ))
+        .await
+    {
+        Ok(_) => {}
+        Err(e) => warn!("fts5 migration: {}", e),
+    }
+
     sqlx::query("PRAGMA journal_mode=WAL")
         .execute(&pool)
         .await?;

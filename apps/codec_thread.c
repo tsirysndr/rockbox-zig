@@ -85,7 +85,16 @@ extern void audio_codec_update_elapsed(unsigned long elapsed);
 extern void audio_codec_update_offset(size_t offset);
 extern void audio_codec_complete(int status);
 extern void audio_codec_seek_complete(void);
+/* CODECS_STATIC builds (Android cdylib) rename the firmware-owned struct to
+ * `firmware_ci` so it doesn't clash with each codec's `struct codec_api *ci`
+ * pointer (see comment in codecs.c). The `#define ci firmware_ci` lets us
+ * keep using `ci.X` member-access syntax in the firmware code unchanged. */
+#ifdef CODECS_STATIC
+extern struct codec_api firmware_ci;
+#define ci firmware_ci
+#else
 extern struct codec_api ci; /* from codecs.c */
+#endif
 
 /* Codec thread */
 static unsigned int codec_thread_id; /* For modifying thread priority later */

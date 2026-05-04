@@ -121,7 +121,14 @@
 extern unsigned int audio_thread_id;   /* from audio_thread.c */
 extern struct event_queue audio_queue; /* from audio_thread.c */
 extern bool audio_is_initialized;      /* from audio_thread.c */
+/* See codecs.c — CODECS_STATIC renames the firmware struct to firmware_ci
+ * to avoid colliding with each codec's `struct codec_api *ci` pointer. */
+#ifdef CODECS_STATIC
+extern struct codec_api firmware_ci;
+#define ci firmware_ci
+#else
 extern struct codec_api ci;            /* from codecs.c */
+#endif
 
 /** Possible arrangements of the main buffer **/
 static enum audio_buffer_state
@@ -1492,6 +1499,14 @@ static bool halt_decoding_track(bool stop)
     bool retval = false;
 
     buf_signal_handle(ci.audio_hid, true);
+
+#if defined(CODECS_STATIC)
+    /* Hosted/Android cdylib: codec_stop() crashes the kernel scheduler
+     * (PC=0 inside wakeup_thread_) when the codec thread or aa_thread
+     * is mid-callback. Yield for a tick first to let the runqueue
+     * drain any pending wake/release before we hammer codec_queue. */
+    sleep(HZ / 10);
+#endif
 
     if (stop)
         codec_stop();

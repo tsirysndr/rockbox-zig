@@ -32,6 +32,13 @@ vox.c
 wav64.c
 tta.c
 wmapro.c
+#ifndef CODECS_STATIC
+/* libgme-based chiptune codecs (ay/gbs/hes/nsf/sgc/vgm/kss/vtx) share helper
+ * symbols (Apu_*, read_mem, write_mem, Osc_clock_length, stream_read) across
+ * the emulator family — they're designed for the dlopen-one-codec-per-shared-
+ * lib model and collide when statically linked into one binary. Skip them on
+ * the Android cdylib for v1; the mainstream music formats above cover 99% of
+ * users. SID also goes here because cRSID uses GCC nested-functions. */
 ay.c
 #ifdef HAVE_FPU
 vtx.c
@@ -45,6 +52,7 @@ vgm.c
 sid.c
 kss.c
 #endif
+#endif /* !CODECS_STATIC */
 aac_bsf.c
 
 #ifdef HAVE_RECORDING

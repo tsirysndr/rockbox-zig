@@ -14,10 +14,11 @@ rockbox-upnp = {path = "../upnp", features = ["ffi"]}
 rockbox-chromecast = {path = "../chromecast", features = ["ffi"]}
 clap = "4.5.16"
 owo-colors = "4.1.0"
-reqwest = { workspace = true, features = ["rustls-tls", "json"] }
+reqwest = { workspace = true, features = ["rustls-tls-native-roots", "json"] }
 rockbox-library = {path = "../library"}
 rockbox-playlists = {path = "../playlists"}
 rockbox-typesense = {path = "../typesense"}
+rockbox-fts5 = {path = "../fts5", optional = true}
 rockbox-settings = {path = "../settings"}
 rockbox-rocksky = {path = "../rocksky"}
 tokio = {version = "1.36.0", features = ["full"]}
@@ -26,3 +27,17 @@ uuid.workspace = true
 libc.workspace = true
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+
+[features]
+default = []
+# Use SQLite FTS5 for search instead of spawning a Typesense subprocess.
+# When enabled, the typesense binary is never downloaded or started and
+# the Typesense REST API is never called — search runs in-process against
+# FTS5 virtual tables maintained by triggers in `crates/library`.
+#
+# `rockbox-cli` and `rockbox-server` are linked into the same Zig binary
+# but built as separate staticlibs, so the feature must be passed to both
+# cargo invocations:
+#   cargo build --release -p rockbox-cli    --features fts5
+#   cargo build --release -p rockbox-server --features fts5
+fts5 = ["dep:rockbox-fts5"]

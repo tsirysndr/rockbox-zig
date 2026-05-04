@@ -59,6 +59,9 @@ enum pcm_sink_ids {
     PCM_SINK_UPNP,
     PCM_SINK_CHROMECAST,
     PCM_SINK_SNAPCAST_TCP,
+#if defined(__ANDROID__) && defined(CODECS_STATIC)
+    PCM_SINK_AAUDIO,    /* AAudio output (also wired as BUILTIN on Android) */
+#endif
 #endif
     PCM_SINK_NUM
 };
@@ -92,4 +95,10 @@ void pcm_chromecast_set_device_port(uint16_t port);
 extern struct pcm_sink tcp_pcm_sink;
 void pcm_tcp_set_host(const char *host);
 void pcm_tcp_set_port(uint16_t port);
+
+#if defined(__ANDROID__) && defined(CODECS_STATIC)
+/* AAudio sink — also wired as the BUILTIN sink on the Android cdylib build,
+ * so applications get sound out of the box without calling pcm_switch_sink. */
+extern struct pcm_sink aaudio_pcm_sink;
+#endif
 #endif

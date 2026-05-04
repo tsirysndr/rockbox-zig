@@ -42,8 +42,10 @@ pub mod api {
 }
 
 pub async fn run_ws_session(token: String) -> Result<(), Error> {
-    // Install the default crypto provider for rustls 0.23+
-    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    // Install the default crypto provider for rustls 0.23+. ring instead
+    // of aws_lc_rs because aws-lc-sys's cmake cross-compile doesn't survive
+    // cargo-ndk's flag injection on Android.
+    let _ = rustls::crypto::ring::default_provider().install_default();
 
     let rocksky_ws =
         env::var("ROCKSKY_WS").unwrap_or_else(|_| "wss://api.rocksky.app/ws".to_string());

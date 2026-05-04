@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "Rockbox",
+    "slug": "Rockbox",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "rockbox",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tsirysndr.Rockbox"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffc001",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.tsirysndr.Rockbox"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#000000",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/SpaceGrotesk.ttf",
+            "./assets/fonts/JetBrainsMono.ttf",
+            "./assets/fonts/RockfordSans-Light.otf",
+            "./assets/fonts/RockfordSans-Regular.otf",
+            "./assets/fonts/RockfordSans-RegularItalic.otf",
+            "./assets/fonts/RockfordSans-Medium.otf",
+            "./assets/fonts/RockfordSans-Bold.otf",
+            "./assets/fonts/RockfordSans-BoldItalic.otf",
+            "./assets/fonts/RockfordSans-ExtraBold.otf"
+          ]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

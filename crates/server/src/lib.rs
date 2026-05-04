@@ -26,6 +26,7 @@ use std::{
 pub(crate) static PLAYLIST_DIRTY: AtomicBool = AtomicBool::new(false);
 
 pub mod cache;
+pub mod fw_bus;
 pub mod handlers;
 pub mod http;
 pub mod kv;
@@ -526,6 +527,12 @@ fn bluetooth_routes(_cfg: &mut actix_web::web::ServiceConfig) {
 
 #[no_mangle]
 pub extern "C" fn start_servers() {
+    // Set up the firmware-command bus before any HTTP/gRPC handler can
+    // accept a request — handlers will enqueue here and the broker thread
+    // (a real Rockbox kernel thread) will execute synchronously on its
+    // own pthread context. See crates/server/src/fw_bus.rs.
+    fw_bus::init();
+
     let (cmd_tx, cmd_rx) = std::sync::mpsc::channel::<RockboxCommand>();
     let cmd_tx = Arc::new(Mutex::new(cmd_tx));
 
@@ -679,7 +686,19 @@ pub extern "C" fn start_broker() {
     let mut last_stats_elapsed: u64 = 0;
     let mut last_stats_length: u64 = 0;
 
+    // Take ownership of the firmware-command bus receiver. We're a real
+    // Rockbox kernel thread (created via apps/broker_thread.c::create_thread),
+    // so any FFI we run from drain() resolves __running_self_entry() to
+    // OUR thread_entry — safe to mutate kernel state.
+    let fw_rx = fw_bus::take_receiver();
+
     loop {
+        // Drain the bus first so handler-issued commands run with minimal
+        // latency (~ broker tick period, ~10 ms idle).
+        if let Some(rx) = fw_rx.as_ref() {
+            fw_bus::drain(rx);
+        }
+
         let mutex = GLOBAL_MUTEX.lock().unwrap();
         if *mutex == 1 {
             drop(mutex);

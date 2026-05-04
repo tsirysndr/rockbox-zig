@@ -595,6 +595,18 @@ size_t pcmbuf_init(void *bufend)
 {
     void *bufstart;
 
+    /* Hold the PCM lock across the descriptor-ring rebuild. On native
+     * targets PCM playback is interrupt-driven and the codec thread
+     * can disable_interrupts() to keep the rebuild atomic. On hosted
+     * pthread targets (the Android cdylib's pcm-aaudio.c) the writer
+     * is a free-running pthread that calls pcm_play_dma_complete_callback
+     * → pcmbuf_pcm_callback whenever AAudio drains; without this lock
+     * it can read half-zeroed chunk descriptors / NULL'd callback
+     * pointers mid-rebuild and crash with PC=0 (call through NULL).
+     * The lock translates to the sink's sink_lock op (e.g. aa_mtx for
+     * AAudio); it's a no-op on bare-metal targets. */
+    pcm_play_lock();
+
     /* Set up the buffers */
     pcmbuf_desc_count = get_next_required_pcmbuf_chunks();
     pcmbuf_size = pcmbuf_desc_count * PCMBUF_CHUNK_SIZE;
@@ -611,13 +623,15 @@ size_t pcmbuf_init(void *bufend)
 
 #ifdef HAVE_CROSSFADE
     pcmbuf_finish_crossfade_enable();
-#else 
+#else
     pcmbuf_watermark = PCMBUF_WATERMARK;
 #endif /* HAVE_CROSSFADE */
 
     init_buffer_state();
 
     pcmbuf_soft_mode(false);
+
+    pcm_play_unlock();
 
     return bufend - bufstart;
 }

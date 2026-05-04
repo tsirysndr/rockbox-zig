@@ -14,7 +14,7 @@ md5 = "0.7.0"
 owo-colors = "5.0.0"
 prost = "0.13.2"
 reqwest = { version = "0.12.5", features = [
-  "rustls-tls",
+  "rustls-tls-native-roots",
   "json",
 ], default-features = false }
 rockbox-graphql = { path = "../graphql" }
@@ -23,6 +23,7 @@ rockbox-library = { path = "../library" }
 rockbox-playlists = { path = "../playlists" }  # needed for Playlist/PlaylistFolder type deserialization
 rockbox-rocksky = {path = "../rocksky"}
 rockbox-typesense = { path = "../typesense" }
+rockbox-fts5 = { path = "../fts5", optional = true }
 rockbox-sys = { path = "../sys" }
 rockbox-types = { path = "../types" }
 serde = { version = "1.0.210", features = ["derive"] }
@@ -40,6 +41,10 @@ tokio-stream = "0.1.16"
 tonic = "0.12.3"
 tonic-reflection = "0.12.2"
 tonic-web = "0.12.3"
+
+[features]
+default = []
+fts5 = ["dep:rockbox-fts5"]
 
 [build-dependencies]
 tonic-build = "0.12.3"

@@ -70,6 +70,25 @@ extern unsigned char codecbuf[];
 
 static size_t codec_size;
 
+/* In CODECS_STATIC builds (Android cdylib), every codec is statically linked
+ * into the same binary. Each codec's `codec_crt0.c` declares
+ *     struct codec_api *ci DATA_ATTR;  (8 bytes — pointer)
+ * but the firmware's `ci` here is a 264-byte struct. The linker silently
+ * merges them into the firmware struct's storage; codec-side reads of
+ * `ci` (typed as `struct codec_api *`) load the first 8 bytes (filesize)
+ * and treat them as a pointer — undefined behaviour, eventually a SIGSEGV
+ * inside e.g. `init_mad`'s `ci->memset(...)` call.
+ *
+ * Fix: keep the firmware-owned struct alive under a different name, and
+ * give `ci` the same TYPE the codecs expect (a `struct codec_api *`
+ * pointing at the firmware struct). Now both sides agree — 8 bytes,
+ * pointer, points at the master function-pointer table.
+ *
+ * Firmware-side code accesses fields through `firmware_ci.X` (see
+ * codec_thread.c, playback.c). Codec-side code keeps using `ci->X`. */
+#ifdef CODECS_STATIC
+#define ci firmware_ci
+#endif
 struct codec_api ci = {
 
     0,    /* filesize */
@@ -152,6 +171,15 @@ struct codec_api ci = {
        the API gets incompatible */
 
 };
+
+#ifdef CODECS_STATIC
+/* Codec-side `ci` (matches `extern struct codec_api *ci` in codec_crt0.c
+ * and codeclib.h). Both definitions have the same TYPE and SIZE now, so
+ * the linker safely merges them — pointer storage everywhere. The init
+ * value points at the firmware's master function-pointer table above. */
+#undef ci
+struct codec_api *ci = &firmware_ci;
+#endif
 
 void codec_get_full_path(char *path, const char *codec_root_fn)
 {

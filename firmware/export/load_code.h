@@ -39,6 +39,8 @@ struct lc_header {
 # include "lc-rock.h"
 #elif CONFIG_BINFMT == BINFMT_DLOPEN
 # include "lc-dlopen.h"
+#elif CONFIG_BINFMT == BINFMT_STATIC
+# include "lc-static.h"
 #else
 # error "Unsupported CONFIG_BINFMT!"
 #endif

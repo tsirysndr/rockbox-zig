@@ -99,7 +99,7 @@ gui/scrollbar.c
 gui/splash.c
 gui/statusbar.c
 gui/statusbar-skinned.c
-#if (CONFIG_PLATFORM&PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM&PLATFORM_ANDROID) && !defined(CODECS_STATIC)
 hosted/android/yesno.c
 hosted/android/notification.c
 #else
@@ -123,7 +123,7 @@ gui/backdrop.c
 
 recorder/bmp.c
 recorder/icons.c
-#if (CONFIG_PLATFORM&PLATFORM_ANDROID)
+#if (CONFIG_PLATFORM&PLATFORM_ANDROID) && !defined(CODECS_STATIC)
 hosted/android/keyboard.c
 #else
 recorder/keyboard.c
@@ -244,7 +244,11 @@ keymaps/keymap-mpio-hd200.c
 #elif CONFIG_KEYPAD == MPIO_HD300_PAD
 keymaps/keymap-mpio-hd300.c
 #elif CONFIG_KEYPAD == ANDROID_PAD
+#if !defined(CODECS_STATIC)
+/* keymap-android.c references BUTTON_DPAD_* constants from the Java-shell
+ * Android target's button-target.h. Our cdylib has no buttons. */
 keymaps/keymap-android.c
+#endif
 #elif CONFIG_KEYPAD == SDL_PAD
 keymaps/keymap-sdl.c
 #elif CONFIG_KEYPAD == SANSA_FUZEPLUS_PAD

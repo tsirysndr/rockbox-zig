@@ -2,8 +2,11 @@ use std::env;
 
 use actix_web::{error::ErrorInternalServerError, web, HttpResponse};
 use rockbox_graphql::{simplebroker::SimpleBroker, types::ScanCompleted};
-use rockbox_library::{artists::update_metadata, audio_scan::scan_audio_files, repo};
+#[cfg(not(feature = "fts5"))]
+use rockbox_library::repo;
+use rockbox_library::{artists::update_metadata, audio_scan::scan_audio_files};
 use rockbox_sys as rb;
+#[cfg(not(feature = "fts5"))]
 use rockbox_typesense::{client::*, types::*};
 use serde::Deserialize;
 
@@ -31,8 +34,13 @@ pub async fn scan_library(
     state: web::Data<AppState>,
     query: web::Query<ScanQuery>,
 ) -> HandlerResult {
+    // Mirror the resolution rule used by browse / settings: prefer
+    // $ROCKBOX_LIBRARY (set by the embedded-daemon module on Android to
+    // /storage/emulated/0/Music), fall back to $HOME/Music for desktop.
+    // Without this the scan defaults to the app sandbox dir on Android
+    // and quietly indexes 0 tracks.
     let home = env::var("HOME").map_err(ErrorInternalServerError)?;
-    let music_library = format!("{}/Music", home);
+    let music_library = env::var("ROCKBOX_LIBRARY").unwrap_or_else(|_| format!("{}/Music", home));
 
     let path = query.path.clone().unwrap_or_else(|| music_library.clone());
 
@@ -60,35 +68,41 @@ pub async fn scan_library(
         return Ok(HttpResponse::Ok().body("0"));
     }
 
-    let tracks = repo::track::all(state.pool.clone())
-        .await
-        .map_err(ErrorInternalServerError)?;
-    let albums = repo::album::all(state.pool.clone())
-        .await
-        .map_err(ErrorInternalServerError)?;
-    let artists = repo::artist::all(state.pool.clone())
-        .await
-        .map_err(ErrorInternalServerError)?;
+    // FTS5 indexes are kept current by triggers on the track/album/artist
+    // tables, so a rebuild after a scan is a no-op for that backend. Only
+    // Typesense needs the explicit re-import.
+    #[cfg(not(feature = "fts5"))]
+    {
+        let tracks = repo::track::all(state.pool.clone())
+            .await
+            .map_err(ErrorInternalServerError)?;
+        let albums = repo::album::all(state.pool.clone())
+            .await
+            .map_err(ErrorInternalServerError)?;
+        let artists = repo::artist::all(state.pool.clone())
+            .await
+            .map_err(ErrorInternalServerError)?;
 
-    create_tracks_collection()
-        .await
-        .map_err(ErrorInternalServerError)?;
-    create_albums_collection()
-        .await
-        .map_err(ErrorInternalServerError)?;
-    create_artists_collection()
-        .await
-        .map_err(ErrorInternalServerError)?;
+        create_tracks_collection()
+            .await
+            .map_err(ErrorInternalServerError)?;
+        create_albums_collection()
+            .await
+            .map_err(ErrorInternalServerError)?;
+        create_artists_collection()
+            .await
+            .map_err(ErrorInternalServerError)?;
 
-    insert_tracks(tracks.into_iter().map(Track::from).collect())
-        .await
-        .map_err(ErrorInternalServerError)?;
-    insert_artists(artists.into_iter().map(Artist::from).collect())
-        .await
-        .map_err(ErrorInternalServerError)?;
-    insert_albums(albums.into_iter().map(Album::from).collect())
-        .await
-        .map_err(ErrorInternalServerError)?;
+        insert_tracks(tracks.into_iter().map(Track::from).collect())
+            .await
+            .map_err(ErrorInternalServerError)?;
+        insert_artists(artists.into_iter().map(Artist::from).collect())
+            .await
+            .map_err(ErrorInternalServerError)?;
+        insert_albums(albums.into_iter().map(Album::from).collect())
+            .await
+            .map_err(ErrorInternalServerError)?;
+    }
 
     SimpleBroker::publish(ScanCompleted);
     Ok(HttpResponse::Ok().body("0"))

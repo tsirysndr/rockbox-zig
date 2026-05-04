@@ -1,0 +1,19 @@
+[package]
+edition = "2021"
+name = "rockbox-fts5"
+version = "0.1.0"
+
+[dependencies]
+anyhow = "1.0.89"
+rockbox-library = { path = "../library" }
+rockbox-typesense = { path = "../typesense" }
+sqlx = { version = "0.8.2", features = [
+  "runtime-tokio",
+  "tls-rustls",
+  "sqlite",
+  "chrono",
+  "derive",
+  "macros",
+] }
+tokio = { version = "1.36.0", features = ["full"] }
+tracing = { workspace = true }
