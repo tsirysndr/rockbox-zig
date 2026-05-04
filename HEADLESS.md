@@ -6,7 +6,7 @@ This document describes the headless macOS/Linux build of `rockboxd`: what it is
 
 ## Overview
 
-The standard `rockboxd` binary links against SDL2 for audio output and windowing. The **headless build** removes that dependency so the daemon can run on servers, CI machines, or any host without a display:
+The standard `rockboxd` binary links against SDL2 for audio output and windowing. The **headless build** removes that dependency so the daemon can run on servers, Raspberry Pi, CI machines, or any host without a display:
 
 - Audio is output through [cpal](https://github.com/RustAudio/cpal) (CoreAudio on macOS, ALSA on Linux) via the `cpal-sink` Rust crate.
 - The Rockbox C codecs are **statically linked** (no `dlopen`) so the binary self-contains all format support.
