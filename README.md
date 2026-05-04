@@ -46,16 +46,16 @@ and Squeezelite.
 - [x] Fast search powered by [Typesense](https://typesense.org)
 - [x] Navigate by folders or tag database
 - [x] UPnP/DLNA
+- [x] Android library
 
 ### Clients
 - [x] Web client (React)
 - [x] Desktop client (Native MacOS / GPUI / GTK4)
+- [x] Mobile app (React Native)
 - [x] Terminal client (TUI)
 - [x] Rockbox REPL
 
 ### Planned
-- [ ] Android library
-- [ ] Mobile app (React Native)
 - [ ] Stream from YouTube / Spotify / Tidal
 - [ ] TuneIn Radio
 - [ ] Kodi output
