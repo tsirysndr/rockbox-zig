@@ -125,6 +125,11 @@ class RockboxRpcModule : Module() {
     @JvmStatic external fun rb_daemon_port(): Int
     /** 0=stopped, 1=starting, 2=running. */
     @JvmStatic external fun rb_daemon_state(): Int
+    /** Force a full library rescan of $ROCKBOX_LIBRARY. Returns 0 if the
+     *  scan was queued, -1 if the daemon isn't running, -38 in remote-only
+     *  builds. The scan runs on a background thread; tail logcat for
+     *  "scan: ..." progress lines. */
+    @JvmStatic external fun rb_rescan_library(): Int
   }
 
   private val scope = CoroutineScope(Dispatchers.IO)
@@ -215,6 +220,55 @@ class RockboxRpcModule : Module() {
     }
     Function("chromecastServiceName") {
       rb_chromecast_service_name() ?: "_googlecast._tcp.local."
+    }
+
+    // "All files access" — required for the in-process scanner to read
+    // /storage/emulated/0/Music on API 33+. READ_MEDIA_AUDIO doesn't help
+    // because Rockbox walks the filesystem; only MANAGE_EXTERNAL_STORAGE
+    // grants raw read() on user paths. JS calls hasAllFilesAccess() at
+    // startup; if false, requestAllFilesAccess() opens system Settings.
+    Function("hasAllFilesAccess") {
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+        android.os.Environment.isExternalStorageManager()
+      } else {
+        // Pre-R: legacy READ_EXTERNAL_STORAGE is sufficient and granted at
+        // install time on the manifest. Treat as always-allowed.
+        true
+      }
+    }
+    Function("requestAllFilesAccess") {
+      val ctx = appContext.reactContext ?: return@Function false
+      if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
+        return@Function false
+      }
+      val intent = android.content.Intent(
+        android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+        android.net.Uri.parse("package:${ctx.packageName}"),
+      ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+      try {
+        ctx.startActivity(intent)
+        true
+      } catch (t: Throwable) {
+        // OEMs without the per-app screen — fall back to the global list.
+        try {
+          ctx.startActivity(
+            android.content.Intent(
+              android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION,
+            ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+          )
+          true
+        } catch (_: Throwable) {
+          Log.e("RockboxRpc", "could not open All-files-access settings", t)
+          false
+        }
+      }
+    }
+
+    // Force a full audio-library rescan against $ROCKBOX_LIBRARY (set to
+    // /storage/emulated/0/Music by the daemon at boot). Returns the
+    // native rc — 0 ok, -1 daemon not running, -38 remote-only build.
+    Function("rescanLibrary") {
+      rb_rescan_library()
     }
 
     Function("setServerUrl") { url: String ->

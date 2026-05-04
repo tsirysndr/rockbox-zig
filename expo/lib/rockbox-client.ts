@@ -267,6 +267,24 @@ export const RockboxClient = {
     return require_().chromecastServiceName();
   },
 
+  // Android "All files access" gate. Always true on iOS / web.
+  hasAllFilesAccess(): boolean {
+    if (!isAvailable) return true;
+    return require_().hasAllFilesAccess();
+  },
+  requestAllFilesAccess(): boolean {
+    if (!isAvailable) return false;
+    return require_().requestAllFilesAccess();
+  },
+
+  /** Force a full library rescan of the music dir. Returns the native rc:
+   *  0 = queued, -1 = daemon not running, -38 = remote-only build. The scan
+   *  runs in the background — watch logcat for "scan: ..." progress lines. */
+  rescanLibrary(): number {
+    if (!isAvailable) return -38;
+    return require_().rescanLibrary();
+  },
+
   // ── Streaming subscriptions ─────────────────────────────────────────────
   // Each helper returns an unsubscribe function that tears down both the
   // event listener and the native subscription.

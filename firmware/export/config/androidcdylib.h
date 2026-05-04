@@ -73,6 +73,14 @@
  * embedded-daemon needs the same. */
 #define ROCKBOX_SERVER
 
+/* Sister flag to ROCKBOX_SERVER. apps/SOURCES:314 gates server_thread.c
+ * and broker_thread.c (which DEFINE server_init() and start_broker()) on
+ * #ifdef CONFIG_SERVER — a separate macro from ROCKBOX_SERVER, both come
+ * from configure on desktop (see build-lib/autoconf.h). Without this the
+ * server_thread.o object never gets built into librockbox.a and the
+ * cdylib link fails with "cannot locate symbol server_init". */
+#define CONFIG_SERVER
+
 /* `sigevent_t` (glibc-style typedef used by kernel-unix.c) is provided as
  * a -D macro in androidcdylibcc rather than typedef'd here — putting code
  * in config.h would leak into the output of `preprocess` (which uses
@@ -85,3 +93,18 @@
  * this build, so map it to memcpy directly here. The line starts with #
  * so `preprocess` filters it out of SOURCES expansion. */
 #define pcm_copy_buffer memcpy
+
+/* Enable firmware DEBUGF()/LDEBUGF() so the buffering, codec-loader, and
+ * metadata paths actually log. Together with debug-android.c (added in
+ * firmware/SOURCES under the CODECS_STATIC block) this routes debugf to
+ * logcat under tag "Rockbox" via __android_log_print. Without this, every
+ * DEBUGF call site expands to `do {} while(0)` and we get no firmware
+ * diagnostics at all on play attempts.
+ *
+ * We CAN'T just `#define DEBUG` — libmad treats that as user-asserted
+ * "build with assertions on" and errors out because we also have NDEBUG
+ * (libmad enforces XOR). Instead we override DEBUGF directly. The macro
+ * names are the ones debug.h would have set under DEBUG; pre-defining
+ * them here makes debug.h's own gating skip its `do{}while(0)` fallback. */
+#define DEBUGF  debugf
+#define LDEBUGF debugf

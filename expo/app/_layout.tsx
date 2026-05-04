@@ -6,13 +6,15 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Alert, AppState, Platform } from "react-native";
 import "react-native-reanimated";
 
 import { PersistentMiniPlayer } from "@/components/persistent-mini-player";
 import { TrackContextMenu } from "@/components/track-context-menu";
 import { Colors } from "@/constants/theme";
 import { PlayerProvider } from "@/lib/player-context";
+import { RockboxClient } from "@/lib/rockbox-client";
 import { RockboxStreams } from "@/lib/rockbox-streams";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -66,6 +68,12 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync().catch(() => {});
   }, [fontsLoaded]);
+
+  // Android API 33+: ask the user once for "All files access" so the
+  // embedded daemon's filesystem-based scanner can read /storage/emulated/0/Music.
+  // No-op on iOS / web (hasAllFilesAccess() always returns true there).
+  // Re-checks when the app foregrounds so the prompt clears once granted.
+  useAllFilesAccessPrompt();
 
   if (!fontsLoaded) return null;
 
@@ -138,4 +146,58 @@ export default function RootLayout() {
       </QueryClientProvider>
     </ThemeProvider>
   );
+}
+
+function useAllFilesAccessPrompt() {
+  const askedThisSession = useRef(false);
+
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+
+    const check = () => {
+      if (askedThisSession.current) return;
+      // The native check returns true on iOS/web and on pre-API-30 Android,
+      // so we'll only ever prompt on Android 11+ where it's actually needed.
+      let granted = true;
+      try {
+        granted = RockboxClient.hasAllFilesAccess();
+      } catch {
+        return;
+      }
+      if (granted) return;
+
+      askedThisSession.current = true;
+      Alert.alert(
+        "Allow access to your music",
+        "Rockbox needs \"All files access\" to scan your Music folder. " +
+          "Tap Open Settings, toggle the switch on, then come back.",
+        [
+          { text: "Not now", style: "cancel" },
+          {
+            text: "Open Settings",
+            onPress: () => {
+              try {
+                RockboxClient.requestAllFilesAccess();
+              } catch {
+                // Settings intent failure — silently ignore; the user can
+                // still grant from Apps → Rockbox manually.
+              }
+            },
+          },
+        ],
+        { cancelable: true },
+      );
+    };
+
+    check();
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        // Reset the once-per-session lock when the user comes back from
+        // Settings so a "no" then "yes" round-trip clears the alert.
+        askedThisSession.current = false;
+        check();
+      }
+    });
+    return () => sub.remove();
+  }, []);
 }

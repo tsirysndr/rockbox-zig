@@ -129,6 +129,16 @@ public class RockboxRpcModule: Module {
             takeString(rb_chromecast_service_name()) ?? "_googlecast._tcp.local."
         }
 
+        // Android-only "All files access" gate. iOS uses NSDocuments / the
+        // Files app sandbox so there's nothing to grant — always-allowed.
+        Function("hasAllFilesAccess") { () -> Bool in true }
+        Function("requestAllFilesAccess") { () -> Bool in false }
+
+        // iOS today builds without the embedded-daemon feature, so there's
+        // no in-process scanner to retrigger. Return -38 (ENOSYS) so JS can
+        // surface "remote-only" if needed.
+        Function("rescanLibrary") { () -> Int32 in -38 }
+
         Function("setServerUrl") { (url: String) in
             url.withCString { _ = rb_set_server_url($0) }
         }

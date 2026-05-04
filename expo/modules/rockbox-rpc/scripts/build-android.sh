@@ -17,12 +17,19 @@ JNILIBS="$MODULE_DIR/android/src/main/jniLibs"
 mkdir -p "$JNILIBS"
 
 cd "$WORKSPACE_ROOT"
+
+# embedded-daemon links the full C firmware + Rust server into the cdylib
+# so the phone can play audio in-process and bind gRPC/HTTP/GraphQL/MPD
+# locally. Without it the .so is a thin tonic gRPC client only.
+FEATURES=${FEATURES:-embedded-daemon}
+
 cargo ndk \
   -t arm64-v8a \
-  -t armeabi-v7a \
-  -t x86_64 \
+  --platform 26 \
   -o "$JNILIBS" \
-  build -p rockbox-expo $( [[ "$PROFILE" == "release" ]] && echo "--release" )
+  build -p rockbox-expo \
+        --features "$FEATURES" \
+        $( [[ "$PROFILE" == "release" ]] && echo "--release" )
 
 echo
 echo "Built $JNILIBS/<abi>/librockbox_expo.so"

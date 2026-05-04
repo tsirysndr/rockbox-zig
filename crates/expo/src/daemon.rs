@@ -42,14 +42,20 @@ extern "C" {
     // and dlopen fails at runtime.
     fn start_server();
     fn start_servers();
+    // start_broker is the third entry point — apps/broker_thread.c::broker_init
+    // spawns a kernel thread that calls into it. Same dead-code-strip risk
+    // as start_server, so it gets the same keepalive treatment.
+    fn start_broker();
 }
 
-/// `#[used]` keepalives: take the address of start_server / start_servers
-/// so the symbols themselves don't get GC'd at link time.
+/// `#[used]` keepalives: take the address of start_server / start_servers /
+/// start_broker so the symbols themselves don't get GC'd at link time.
 #[used]
 static _KEEPALIVE_START_SERVER: unsafe extern "C" fn() = start_server;
 #[used]
 static _KEEPALIVE_START_SERVERS: unsafe extern "C" fn() = start_servers;
+#[used]
+static _KEEPALIVE_START_BROKER: unsafe extern "C" fn() = start_broker;
 
 /// Force-pull rockbox-server's rlib into the link. `extern "C"` decls alone
 /// don't do this — rustc treats them as external and waits for the linker
@@ -149,7 +155,11 @@ fn configure_environment(config_dir: &str, music_dir: &str, device_name: &str) {
     // env exists. We're called from JNI before the engine pthread spawns.
     std::env::set_var("HOME", config_dir);
     std::env::set_var("ROCKBOX_DEVICE_NAME", device_name);
-    std::env::set_var("ROCKBOX_MUSIC_DIR", music_dir);
+    // Canonical music-dir env var read by crates/{settings,server,graphql,sys}.
+    // ROCKBOX_MUSIC_DIR was a misnomer — nothing reads it. The browse
+    // resolvers fall back to $HOME/Music when this is unset, which on Android
+    // resolves to /data/.../files/Music (doesn't exist) → ENOENT.
+    std::env::set_var("ROCKBOX_LIBRARY", music_dir);
 
     // mDNS-advertised LAN ports (match crates/discovery defaults).
     if std::env::var_os("ROCKBOX_PORT").is_none() {
@@ -185,10 +195,17 @@ fn install_logcat_subscriber() {
     std::panic::set_hook(Box::new(|info| {
         tracing::error!(target: "rockbox", "Rust panic: {}", info);
     }));
+    // Default to debug for our crates + info for the noisy 3rd-party ones.
+    // Override at any time with `setprop log.tag.rockbox D` from adb shell,
+    // or by setting RUST_LOG before the app launches (e.g. via the build).
+    let default_filter = "info,rockbox_expo=debug,rockbox_server=debug,rockbox_rpc=debug,\
+         rockbox_graphql=debug,rockbox_library=debug,rockbox_sys=debug,\
+         rockbox_airplay=debug,rockbox_chromecast=debug,rockbox_slim=debug,\
+         rockbox_upnp=debug";
     let _ = tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
+                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(default_filter)),
         )
         .with(tracing_android::layer("rockbox").expect("init logcat layer"))
         .try_init();
@@ -233,8 +250,12 @@ pub unsafe extern "C" fn rb_daemon_start(
     install_logcat_subscriber();
     tracing::info!("daemon: install_logcat_subscriber done");
     configure_environment(config_dir, music_dir, device_name);
-    tracing::info!("daemon: env configured (HOME={} MUSIC={} NAME={})",
-                   config_dir, music_dir, device_name);
+    tracing::info!(
+        "daemon: env configured (HOME={} MUSIC={} NAME={})",
+        config_dir,
+        music_dir,
+        device_name
+    );
 
     let port: u16 = std::env::var("ROCKBOX_PORT")
         .ok()
@@ -251,16 +272,16 @@ pub unsafe extern "C" fn rb_daemon_start(
         .stack_size(2 * 1024 * 1024)
         .spawn(move || {
             tracing::info!("rockbox-engine: thread started, calling main_c()");
-            let rc = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                unsafe { main_c() }
-            }));
+            let rc = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| unsafe { main_c() }));
             match rc {
                 Ok(code) => tracing::warn!("rockbox-engine: main_c returned rc={}", code),
-                Err(p)   => tracing::error!("rockbox-engine: PANICKED — {:?}",
-                                            p.downcast_ref::<&str>()
-                                                .map(|s| *s)
-                                                .or_else(|| p.downcast_ref::<String>().map(|s| s.as_str()))
-                                                .unwrap_or("<non-string panic>")),
+                Err(p) => tracing::error!(
+                    "rockbox-engine: PANICKED — {:?}",
+                    p.downcast_ref::<&str>()
+                        .map(|s| *s)
+                        .or_else(|| p.downcast_ref::<String>().map(|s| s.as_str()))
+                        .unwrap_or("<non-string panic>")
+                ),
             }
             STATE.store(STATE_STOPPED, Ordering::Release);
             LOCAL_PORT.store(0, Ordering::Release);
@@ -269,7 +290,9 @@ pub unsafe extern "C" fn rb_daemon_start(
 
     tracing::info!("daemon: waiting up to 30s for gRPC :{} to bind", port);
     if !wait_for_grpc(port, Instant::now() + Duration::from_secs(30)) {
-        tracing::error!("daemon: gRPC server did not bind within 30s — engine stuck or crashed silently");
+        tracing::error!(
+            "daemon: gRPC server did not bind within 30s — engine stuck or crashed silently"
+        );
         STATE.store(STATE_STOPPED, Ordering::Release);
         return -110;
     }
@@ -288,7 +311,83 @@ pub unsafe extern "C" fn rb_daemon_start(
     let http_url_c = http_url.as_ptr() as *const c_char;
     let _ = crate::rb_set_http_url(http_url_c);
 
+    spawn_library_scan(/* force */ false);
+
     port as i32
+}
+
+/// Re-scan trigger callable from JS. Forces a full rescan of `$ROCKBOX_LIBRARY`
+/// regardless of how many tracks are already indexed. Returns 0 immediately
+/// (the scan runs in the background — watch logcat for "scan: ..." lines).
+/// Returns -1 if the daemon isn't running.
+#[no_mangle]
+pub extern "C" fn rb_rescan_library() -> c_int {
+    if STATE.load(Ordering::Acquire) != STATE_RUNNING {
+        return -1;
+    }
+    spawn_library_scan(/* force */ true);
+    0
+}
+
+/// Mirror what the desktop `crates/cli` does at boot: open the library DB
+/// and run `scan_audio_files($ROCKBOX_LIBRARY)`. With `force=false` we skip
+/// the scan when the DB already has tracks (startup path); `force=true`
+/// always scans (manual re-scan / `ROCKBOX_UPDATE_LIBRARY=1`).
+///
+/// Spawned on its own OS thread + tokio current-thread runtime so we don't
+/// block the daemon boot path or the JNI caller.
+fn spawn_library_scan(force_arg: bool) {
+    thread::Builder::new()
+        .name("rockbox-library-scan".into())
+        .stack_size(2 * 1024 * 1024)
+        .spawn(move || {
+            let path = std::env::var("ROCKBOX_LIBRARY").unwrap_or_else(|_| {
+                let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+                format!("{}/Music", home)
+            });
+            let force = force_arg
+                || matches!(
+                    std::env::var("ROCKBOX_UPDATE_LIBRARY").as_deref(),
+                    Ok("1") | Ok("true")
+                );
+            tracing::info!("scan: target={} force={}", path, force);
+
+            let rt = match tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+            {
+                Ok(rt) => rt,
+                Err(e) => {
+                    tracing::error!("scan: tokio runtime build failed: {e}");
+                    return;
+                }
+            };
+
+            rt.block_on(async move {
+                let pool = match rockbox_library::create_connection_pool().await {
+                    Ok(p) => p,
+                    Err(e) => {
+                        tracing::error!("scan: open library DB failed: {e}");
+                        return;
+                    }
+                };
+                let count = rockbox_library::repo::track::all(pool.clone())
+                    .await
+                    .map(|t| t.len())
+                    .unwrap_or(0);
+                if count > 0 && !force {
+                    tracing::info!("scan: library has {} tracks, skipping (force=false)", count);
+                    return;
+                }
+
+                tracing::info!("scan: scanning {} ...", path);
+                match rockbox_library::audio_scan::scan_audio_files(pool, path.into()).await {
+                    Ok(files) => tracing::info!("scan: done, {} files", files.len()),
+                    Err(e) => tracing::error!("scan: failed: {e}"),
+                }
+            });
+        })
+        .expect("spawn rockbox-library-scan thread");
 }
 
 /// Returns the gRPC port of the running daemon, or 0 if not running.

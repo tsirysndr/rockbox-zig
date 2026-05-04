@@ -190,6 +190,28 @@ type RockboxRpcNative = {
   rockboxServiceName(): string;
   chromecastServiceName(): string;
 
+  /**
+   * Android-only: returns true if the app holds MANAGE_EXTERNAL_STORAGE
+   * ("All files access"), required to scan /storage/emulated/0/Music on
+   * API 33+. Always true on iOS / pre-Android-11.
+   */
+  hasAllFilesAccess(): boolean;
+  /**
+   * Android-only: opens system Settings → "All files access" for this
+   * package. Returns true if the intent launched. iOS no-ops to false.
+   * The grant is one-time; check hasAllFilesAccess() after the user returns.
+   */
+  requestAllFilesAccess(): boolean;
+
+  /**
+   * Force a full library rescan of $ROCKBOX_LIBRARY (the music dir passed
+   * at daemon boot). Returns 0 if queued, -1 if the daemon isn't running,
+   * -38 in remote-only builds (no embedded daemon). The scan runs on a
+   * background thread — listen on the gRPC `ScanCompleted` event or just
+   * tail logcat ("scan: done, N files") to know when it finishes.
+   */
+  rescanLibrary(): number;
+
   // Event API (provided by Expo Modules' EventEmitter base).
   addListener<K extends keyof RockboxRpcEvents>(
     event: K,

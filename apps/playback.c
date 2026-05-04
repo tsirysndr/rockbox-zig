@@ -121,7 +121,14 @@
 extern unsigned int audio_thread_id;   /* from audio_thread.c */
 extern struct event_queue audio_queue; /* from audio_thread.c */
 extern bool audio_is_initialized;      /* from audio_thread.c */
+/* See codecs.c — CODECS_STATIC renames the firmware struct to firmware_ci
+ * to avoid colliding with each codec's `struct codec_api *ci` pointer. */
+#ifdef CODECS_STATIC
+extern struct codec_api firmware_ci;
+#define ci firmware_ci
+#else
 extern struct codec_api ci;            /* from codecs.c */
+#endif
 
 /** Possible arrangements of the main buffer **/
 static enum audio_buffer_state

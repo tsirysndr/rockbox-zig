@@ -103,6 +103,27 @@ class RockboxNowPlayingModule : Module() {
       Unit
     }
 
+    /**
+     * Bring NowPlayingService into foreground state at app launch so the
+     * host process (which also owns the embedded rockbox daemon) survives
+     * Android's background-app reaper. The service stays alive until ACTION_CLEAR
+     * is sent — the placeholder notification is replaced as soon as a real
+     * track update arrives.
+     *
+     * No-op on iOS / web.
+     */
+    Function("start") {
+      val ctx = appContext.reactContext?.applicationContext
+      if (ctx != null) {
+        ensureNotificationPermission()
+        val intent = Intent(ctx, NowPlayingService::class.java).apply {
+          action = NowPlayingService.ACTION_BOOT
+        }
+        startServiceCompat(ctx, intent)
+      }
+      Unit
+    }
+
     Function("setCoverBaseUrl") { url: String ->
       val ctx = appContext.reactContext?.applicationContext
       if (ctx != null) {
@@ -116,16 +137,59 @@ class RockboxNowPlayingModule : Module() {
     }
   }
 
+  /**
+   * Start NowPlayingService in the right mode for the app's current state.
+   *
+   * Android 14+ (API 34) blocks `startForegroundService` when the app's
+   * uidState is SVC / cached / RECEIVER, even with `mediaPlayback` type and
+   * the FOREGROUND_SERVICE_MEDIA_PLAYBACK permission. The service's later
+   * `startForeground()` call throws `ForegroundServiceStartNotAllowedException`,
+   * which the WatchDog escalates to a fatal RemoteServiceException — the
+   * try/catch in onStartCommand can't save us because the system still
+   * tracks the unfulfilled FGS-promotion deadline.
+   *
+   * Strategy: use `startForegroundService` only when we're actually allowed
+   * (process is in TOP / FGS / FGS_LOCATION / BFGS importance). Otherwise
+   * fall back to plain `startService` — the service still receives the
+   * intent and updates its in-process state, just without the foreground
+   * promotion that would trigger the violation. The notification will pop
+   * up the next time the user opens the app and the FGS start succeeds.
+   */
   private fun startServiceCompat(ctx: Context, intent: Intent) {
+    val canStartFgs = canStartForegroundService(ctx)
     try {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && canStartFgs) {
         ctx.startForegroundService(intent)
       } else {
         ctx.startService(intent)
       }
+    } catch (e: IllegalStateException) {
+      // Race: importance changed between our check and the call. Fall back.
+      Log.w(TAG, "startForegroundService denied — falling back to startService: ${e.message}")
+      try {
+        ctx.startService(intent)
+      } catch (e2: Throwable) {
+        Log.e(TAG, "startService also failed", e2)
+      }
     } catch (e: Throwable) {
       Log.e(TAG, "startService failed", e)
     }
+  }
+
+  /** True if the app's process state lets us start a foreground service.
+   *  Android 14+ requires importance ≥ FOREGROUND_SERVICE; below that we
+   *  must use plain startService. */
+  private fun canStartForegroundService(ctx: Context): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      // Pre-API-34 the BG-start restriction was much weaker — call FGS
+      // unconditionally and rely on Service.startForeground's try/catch.
+      return true
+    }
+    val info = android.app.ActivityManager.RunningAppProcessInfo()
+    android.app.ActivityManager.getMyMemoryState(info)
+    // VISIBLE/FOREGROUND/PERCEPTIBLE/FOREGROUND_SERVICE all let us promote.
+    return info.importance <=
+      android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE
   }
 
   /** On Android 13+, the OS silently drops notifications until the user grants

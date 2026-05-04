@@ -1990,6 +1990,11 @@ target/hosted/android/cdylib/lcd-noop.c
 target/hosted/android/cdylib/button-noop.c
 target/hosted/android/cdylib/cpuinfo-noop.c
 target/hosted/android/cdylib/audiohw-noop.c
+/* Route firmware DEBUGF()/logf()/panicf() to logcat instead of stderr.
+ * Stock debug-hosted.c writes to stderr which Android pipes to /dev/null;
+ * debug-android.c calls __android_log_print so the buffering / metadata /
+ * codec-loader prints we need for diagnosis show up under tag "Rockbox". */
+target/hosted/android/debug-android.c
 #else
 /* Existing Java-shell Android app */
 target/hosted/lc-unix.c

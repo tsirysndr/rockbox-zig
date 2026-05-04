@@ -368,6 +368,84 @@ in the iOS / Android `Events(...)` lists, register a `Function("subscribe<Name>"
 in both modules, and add the typed `subscribe<Name>(cb, onError?)` helper to
 `expo/lib/rockbox-client.ts`.
 
+#### Embedded daemon — Android cdylib (`embedded-daemon` feature)
+
+The Android build of `librockbox_expo.so` can host a **full in-process
+rockboxd**: C firmware + codecs + Rust gRPC/HTTP/GraphQL/MPD servers + AAudio
+sink + mDNS advertising. The phone becomes a symmetric peer of any LAN
+rockboxd, while keeping the existing tonic gRPC client to control other peers.
+
+Enable with `--features embedded-daemon` (the `expo/modules/rockbox-rpc/scripts/build-android.sh`
+script does this by default). Without the feature the .so is the thin
+~6 MB remote-only client; with it, ~48 MB.
+
+```sh
+PROFILE=release bash expo/modules/rockbox-rpc/scripts/build-android.sh
+```
+
+**Architecture (cdylib):**
+- Static-linked codecs (BINFMT_STATIC) — `lib/rbcodec/codecs/codecs.make` runs
+  `objcopy --redefine-sym` per codec to make `__header`, `codec_main`, `codec_run`,
+  `codec_start` distinct symbols. Codec lookup goes through `lc_static_table[]`
+  in `firmware/target/hosted/android/cdylib/lc-android.c` instead of `dlopen`.
+- Per-target headless config: `firmware/export/config/androidcdylib.h` defines
+  `CONFIG_BINFMT BINFMT_STATIC`, `CONFIG_PLATFORM (PLATFORM_HOSTED|PLATFORM_ANDROID)`,
+  `ROCKBOX_SERVER`, `CONFIG_SERVER`, plus a `DEBUGF debugf` override so firmware
+  diagnostics surface in logcat (debug-android.c routes `debugf` →
+  `__android_log_print`).
+- New cdylib-only sources under `firmware/target/hosted/android/cdylib/`:
+  `system-android.c` (boot + stdout/stderr→logcat shim), `pcm-aaudio.c`
+  (AAudio sink), `lc-android.c` (codec table loader), `rb_zig_compat.c`
+  (C compat layer for the 18 `rb_*` symbols `crates/sys` expects from
+  the Zig wrapper), plus stubs `lcd-noop.c`, `button-noop.c`, etc.
+- `crates/expo/src/daemon.rs` wraps the firmware boot:
+  `rb_daemon_start(configDir, musicDir, deviceName)` spawns a pthread that
+  calls `main_c()`, then waits up to 30s for `crates/server::start_servers()`
+  to bind gRPC :6061. Auto-runs an audio scan after gRPC binds (skipped if
+  the library DB already has tracks; force with `RockboxClient.rescanLibrary()`
+  or `ROCKBOX_UPDATE_LIBRARY=1`).
+- The daemon module is referenced from the Expo module's `OnCreate` lifecycle
+  hook in `RockboxRpcModule.kt`, so the daemon boots at app launch and the
+  process stays alive via the foreground `NowPlayingService`.
+
+**Permissions / paths:**
+- `MANAGE_EXTERNAL_STORAGE` declared in `expo/android/app/src/main/AndroidManifest.xml`
+  — required so the filesystem-based scanner can read `/storage/emulated/0/Music`
+  on API 33+. `READ_MEDIA_AUDIO` doesn't help (it only grants MediaStore queries).
+  The `useAllFilesAccessPrompt()` hook in `expo/app/_layout.tsx` opens system
+  Settings → "All files access" the first time the user runs the app.
+- The daemon sets `ROCKBOX_LIBRARY=<musicDir>` env var (canonical, read by
+  `crates/{settings,server,graphql}`); previous builds set the misnomer
+  `ROCKBOX_MUSIC_DIR` which nothing read.
+- `firmware/target/hosted/android/debug-android.c` routes firmware
+  `printf`/`fprintf` and DEBUGF to logcat under tag `Rockbox`.
+  `system-android.c::redirect_stdio_to_logcat` adds a pthread that pipes
+  stdout/stderr fds to `__android_log_write` so even raw `printf` calls
+  (the `[metadata]`/`[streamfd]` chatter Rockbox emits) are visible.
+
+**JS-callable controls (in addition to the remote-only surface):**
+- `RockboxClient.rescanLibrary()` — force a full audio scan
+- `RockboxClient.hasAllFilesAccess()` / `requestAllFilesAccess()` — Android
+  permission gating
+- `RockboxNowPlaying.start()` — early foreground-service promotion (so the
+  process survives backgrounding while the daemon is running)
+
+**Common pitfalls (see auto-memory):**
+- `pcm_sink::set_freq` receives an INDEX into `hw_freq_sampr[]`, not Hz —
+  AAudio gets opened at "4 Hz", silently falls back to 48 kHz, 44.1 kHz
+  audio plays ~9 % fast (chipmunk effect). Look up the rate first.
+- `apps/codecs.c::ci` (struct) collides with each codec's
+  `codec_crt0.c::ci` (pointer) at link time. Firmware-side rename to
+  `firmware_ci` keeps the type/size invariants distinct.
+- `apps/main.c` gates `server_init()` on `ROCKBOX_SERVER` but `apps/SOURCES`
+  gates the .c COMPILATION on `CONFIG_SERVER` — define BOTH.
+- Android 14+ blocks `startForegroundService` from background process state
+  even with `mediaPlayback` type. `startServiceCompat` checks importance
+  before promoting; `refreshNotification` does the same before
+  `startForeground`.
+
+See `crates/expo/README.md` for the full architecture writeup.
+
 ## Useful commands
 
 ```sh

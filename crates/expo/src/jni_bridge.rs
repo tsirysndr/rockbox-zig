@@ -619,6 +619,15 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     crate::daemon::rb_daemon_state() as jint
 }
 
+#[cfg(feature = "embedded-daemon")]
+#[no_mangle]
+pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1rescan_1library(
+    _env: JNIEnv,
+    _cls: JClass,
+) -> jint {
+    crate::daemon::rb_rescan_library() as jint
+}
+
 // Stubs for builds without embedded-daemon (e.g. iOS today, desktop dev).
 // They return -38 (ENOSYS-ish) so callers know the daemon isn't available.
 #[cfg(not(feature = "embedded-daemon"))]
@@ -649,4 +658,13 @@ pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1
     _cls: JClass,
 ) -> jint {
     0
+}
+
+#[cfg(not(feature = "embedded-daemon"))]
+#[no_mangle]
+pub unsafe extern "system" fn Java_expo_modules_rockboxrpc_RockboxRpcModule_rb_1rescan_1library(
+    _env: JNIEnv,
+    _cls: JClass,
+) -> jint {
+    -38
 }

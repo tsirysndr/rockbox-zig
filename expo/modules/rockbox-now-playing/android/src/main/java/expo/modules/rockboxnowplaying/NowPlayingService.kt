@@ -60,6 +60,11 @@ class NowPlayingService : Service() {
     const val ACTION_SET_PLAYBACK = "expo.modules.rockboxnowplaying.SET_PLAYBACK"
     const val ACTION_SET_COVER_BASE = "expo.modules.rockboxnowplaying.SET_COVER_BASE"
     const val ACTION_CLEAR = "expo.modules.rockboxnowplaying.CLEAR"
+    /** No-op action used to bring the service into foreground state at app
+     *  launch — keeps the host process alive (and the daemon with it) after
+     *  the user backgrounds the app. The placeholder notification is replaced
+     *  the moment ACTION_UPDATE arrives with real track info. */
+    const val ACTION_BOOT = "expo.modules.rockboxnowplaying.BOOT"
     const val ACTION_BUTTON_PLAY = "expo.modules.rockboxnowplaying.PLAY"
     const val ACTION_BUTTON_PAUSE = "expo.modules.rockboxnowplaying.PAUSE"
     const val ACTION_BUTTON_NEXT = "expo.modules.rockboxnowplaying.NEXT"
@@ -128,6 +133,14 @@ class NowPlayingService : Service() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    // Android 12+: every startForegroundService() must be followed by
+    // startForeground() within ~5s or the system raises
+    // ForegroundServiceDidNotStartInTimeException and kills the process.
+    // CLEAR / SET_COVER_BASE / NEXT / PREV / unknown-action paths used to
+    // skip refreshNotification() and crash the app — emit a (placeholder)
+    // notification first thing so the promise is always satisfied.
+    refreshNotification()
+
     val action = intent?.action
     when (action) {
       ACTION_UPDATE -> {
@@ -153,11 +166,6 @@ class NowPlayingService : Service() {
         handleAction("stop")
         stopSelf()
         return START_NOT_STICKY
-      }
-      else -> {
-        // Started without an action (e.g. after process death) — make sure
-        // we still get into the foreground so Android doesn't kill us.
-        if (currentTrackId != null) refreshNotification()
       }
     }
     return START_STICKY
@@ -428,19 +436,41 @@ class NowPlayingService : Service() {
       .setDeleteIntent(buildPendingIntent(ACTION_BUTTON_STOP))
       .build()
 
-    try {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-        startForeground(
-          NOTIFICATION_ID,
-          notification,
-          ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
-        )
-      } else {
-        startForeground(NOTIFICATION_ID, notification)
+    // Android 14+: only promote to foreground when the app's process state
+    // permits it. Calling startForeground from a backgrounded process throws
+    // ForegroundServiceStartNotAllowedException, which the WatchDog escalates
+    // to a fatal RemoteServiceException — the local try/catch can't save us.
+    // When we can't promote, just leave the MediaSession active (system Media
+    // Controls still pick it up); we'll re-attempt the promotion on the next
+    // intent that arrives while the app is in foreground.
+    if (canPromoteToForeground()) {
+      try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+          startForeground(
+            NOTIFICATION_ID,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
+          )
+        } else {
+          startForeground(NOTIFICATION_ID, notification)
+        }
+      } catch (e: Throwable) {
+        // Race: importance changed between check and call. Just log.
+        Log.w(TAG, "startForeground denied (race): ${e.javaClass.simpleName}: ${e.message}")
       }
-    } catch (e: Throwable) {
-      Log.e(TAG, "startForeground failed", e)
+    } else {
+      Log.i(TAG, "startForeground skipped — app not in foregroundable state")
     }
+  }
+
+  /** True if the app's process state allows entering the foreground.
+   *  Mirrors the gate in RockboxNowPlayingModule.canStartForegroundService. */
+  private fun canPromoteToForeground(): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return true
+    val info = android.app.ActivityManager.RunningAppProcessInfo()
+    android.app.ActivityManager.getMyMemoryState(info)
+    return info.importance <=
+      android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE
   }
 
   private fun action(intentAction: String, title: String, icon: Int): NotificationCompat.Action =

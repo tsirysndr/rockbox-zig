@@ -29,7 +29,12 @@ extern void debugf(const char* fmt,...) ATTRIBUTE_PRINTF(1, 2);
 extern void ldebugf(const char* file, int line, const char *fmt, ...)
                     ATTRIBUTE_PRINTF(3, 4);
 
-#ifndef CODEC  
+#ifndef CODEC
+
+/* If a target's config.h has already pre-defined DEBUGF (e.g. androidcdylib.h
+ * routes it to a debugf that prints to logcat) keep that definition instead
+ * of stomping on it with the platform-default block below. */
+#ifndef DEBUGF
 
 #if defined(SIMULATOR) && !defined(__PCTOOL__) \
     || (defined(APPLICATION) && defined(DEBUG))
@@ -54,6 +59,8 @@ void breakpoint(void);
 #define LDEBUGF(...) do { } while(0)
 
 #endif /* SIMULATOR && !__PCTOOL__ || APPLICATION && DEBUG */
+
+#endif /* !DEBUGF */
 
 #endif /* CODEC */
 #endif

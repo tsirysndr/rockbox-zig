@@ -34,8 +34,13 @@ pub async fn scan_library(
     state: web::Data<AppState>,
     query: web::Query<ScanQuery>,
 ) -> HandlerResult {
+    // Mirror the resolution rule used by browse / settings: prefer
+    // $ROCKBOX_LIBRARY (set by the embedded-daemon module on Android to
+    // /storage/emulated/0/Music), fall back to $HOME/Music for desktop.
+    // Without this the scan defaults to the app sandbox dir on Android
+    // and quietly indexes 0 tracks.
     let home = env::var("HOME").map_err(ErrorInternalServerError)?;
-    let music_library = format!("{}/Music", home);
+    let music_library = env::var("ROCKBOX_LIBRARY").unwrap_or_else(|_| format!("{}/Music", home));
 
     let path = query.path.clone().unwrap_or_else(|| music_library.clone());
 

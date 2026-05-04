@@ -41,7 +41,12 @@
 #define BYTES_PER_FRAME 4   /* S16_LE stereo */
 
 static AAudioStream *aa_stream      = NULL;
-static int32_t       aa_sample_rate = HW_FREQ_DEFAULT;
+/* HW_FREQ_DEFAULT is an INDEX into hw_freq_sampr (not Hz). Until the first
+ * codec calls set_freq, aa_sample_rate=0 means "let AAudio pick the device
+ * default rate" — better than opening at "index Hz" (4, 6, …) which AAudio
+ * silently rejects and falls back to the device rate anyway. set_freq will
+ * resolve the index to a real rate (44100, 48000, …) on the first call. */
+static int32_t       aa_sample_rate = 0;
 
 static const void *pcm_data = NULL;
 static size_t      pcm_size = 0;
@@ -208,15 +213,25 @@ static void sink_dma_postinit(void)
     pthread_mutex_unlock(&aa_mtx);
 }
 
-static void sink_set_freq(uint16_t freq)
+static void sink_set_freq(uint16_t freq_index)
 {
+    /* `freq_index` is an INDEX into sink->caps.samprs (== hw_freq_sampr),
+     * NOT a sample rate in Hz. firmware/pcm.c::pcm_set_frequency stores
+     * the index into pending_freq, then pcm_apply_settings forwards that
+     * raw index to set_freq. We must look up the actual Hz rate via
+     * hw_freq_sampr[idx] before passing it to AAudio — otherwise we open
+     * the stream at "4 Hz" (or whatever the index is), AAudio falls back
+     * to the device-default rate (48000), and 44100-Hz audio plays at
+     * 48000 Hz → ~9% faster → chipmunks. Same gotcha as pcm-sdl.c:107. */
+    int32_t hz = (int32_t)hw_freq_sampr[freq_index];
+
     pthread_mutex_lock(&aa_mtx);
-    if ((int32_t)freq == aa_sample_rate && aa_stream) {
+    if (hz == aa_sample_rate && aa_stream) {
         pthread_mutex_unlock(&aa_mtx);
         return;
     }
-    LOGI("set_freq %d -> %d", aa_sample_rate, freq);
-    aa_sample_rate = freq;
+    LOGI("set_freq idx=%u -> %d Hz (was %d Hz)", freq_index, hz, aa_sample_rate);
+    aa_sample_rate = hz;
     close_stream();
     open_stream(aa_sample_rate);
     pthread_mutex_unlock(&aa_mtx);
