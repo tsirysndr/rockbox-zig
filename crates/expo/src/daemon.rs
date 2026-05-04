@@ -78,6 +78,45 @@ static _KEEPALIVE_CHROMECAST: unsafe extern "C" fn(*const c_char) =
 static _KEEPALIVE_UPNP:       extern "C" fn(u16) =
     rockbox_upnp::pcm_upnp_set_http_port;
 
+/// `save_remote_track_metadata` — port of crates/cli's identical function
+/// (we don't depend on rockbox-cli because of its host-only assumptions:
+/// SIGTERM dance, getenv("HOME") panic, prctl). crates/server calls this
+/// for HTTP-streamed tracks to index their metadata into the library DB.
+#[no_mangle]
+pub extern "C" fn save_remote_track_metadata(url: *const c_char) -> i32 {
+    if url.is_null() {
+        tracing::warn!("save_remote_track_metadata: null url");
+        return -1;
+    }
+    let url = unsafe { std::ffi::CStr::from_ptr(url) };
+    let url = match url.to_str() {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::warn!("save_remote_track_metadata: invalid utf-8: {}", e);
+            return -1;
+        }
+    };
+
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            tracing::error!("save_remote_track_metadata: failed to create runtime: {}", e);
+            return -1;
+        }
+    };
+
+    match rt.block_on(async {
+        let pool = rockbox_library::create_connection_pool().await?;
+        rockbox_library::audio_scan::save_audio_metadata(pool, url, None).await
+    }) {
+        Ok(()) => 0,
+        Err(e) => {
+            tracing::error!("save_remote_track_metadata: {}", e);
+            -1
+        }
+    }
+}
+
 /// Same keepalive trick for the netstream Rust crate's C-ABI exports —
 /// the C firmware's streamfd.c calls rb_net_open / rb_net_read / etc., but
 /// rustc dead-code-strips them from the cdylib link unless we reference
