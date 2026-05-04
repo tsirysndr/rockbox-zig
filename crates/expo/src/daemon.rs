@@ -66,17 +66,15 @@ static _KEEPALIVE_ROCKBOX_SERVER: &[&str] = &rockbox_server::AUDIO_EXTENSIONS;
 /// unrelated `pcm_<sink>_*` exports. Referencing a real C-ABI fn pulls
 /// the entire crate's #[no_mangle] export set into the cdylib.
 #[used]
-static _KEEPALIVE_AIRPLAY:    unsafe extern "C" fn(*const c_char, u16) =
+static _KEEPALIVE_AIRPLAY: unsafe extern "C" fn(*const c_char, u16) =
     rockbox_airplay::pcm_airplay_set_host;
 #[used]
-static _KEEPALIVE_SLIM:       extern "C" fn(u16) =
-    rockbox_slim::pcm_squeezelite_set_slim_port;
+static _KEEPALIVE_SLIM: extern "C" fn(u16) = rockbox_slim::pcm_squeezelite_set_slim_port;
 #[used]
 static _KEEPALIVE_CHROMECAST: unsafe extern "C" fn(*const c_char) =
     rockbox_chromecast::pcm::pcm_chromecast_set_device_host;
 #[used]
-static _KEEPALIVE_UPNP:       extern "C" fn(u16) =
-    rockbox_upnp::pcm_upnp_set_http_port;
+static _KEEPALIVE_UPNP: extern "C" fn(u16) = rockbox_upnp::pcm_upnp_set_http_port;
 
 /// `save_remote_track_metadata` — port of crates/cli's identical function
 /// (we don't depend on rockbox-cli because of its host-only assumptions:
@@ -100,7 +98,10 @@ pub extern "C" fn save_remote_track_metadata(url: *const c_char) -> i32 {
     let rt = match tokio::runtime::Runtime::new() {
         Ok(rt) => rt,
         Err(e) => {
-            tracing::error!("save_remote_track_metadata: failed to create runtime: {}", e);
+            tracing::error!(
+                "save_remote_track_metadata: failed to create runtime: {}",
+                e
+            );
             return -1;
         }
     };
@@ -178,6 +179,12 @@ fn wait_for_grpc(port: u16, deadline: Instant) -> bool {
 
 fn install_logcat_subscriber() {
     // Idempotent: try_init returns Err on second call, which we ignore.
+    // Also install a panic hook that routes Rust panics to logcat — by
+    // default a panic in a spawned thread produces no output anywhere
+    // we can see.
+    std::panic::set_hook(Box::new(|info| {
+        tracing::error!(target: "rockbox", "Rust panic: {}", info);
+    }));
     let _ = tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -224,29 +231,45 @@ pub unsafe extern "C" fn rb_daemon_start(
     }
 
     install_logcat_subscriber();
+    tracing::info!("daemon: install_logcat_subscriber done");
     configure_environment(config_dir, music_dir, device_name);
+    tracing::info!("daemon: env configured (HOME={} MUSIC={} NAME={})",
+                   config_dir, music_dir, device_name);
 
     let port: u16 = std::env::var("ROCKBOX_PORT")
         .ok()
         .and_then(|s| s.parse().ok())
         .unwrap_or(6061);
 
-    // Boot the firmware on a dedicated pthread. apps/main.c::main_c never
-    // returns under normal operation; if it does (panic, exit), we transition
-    // back to STOPPED so the next start works.
+    // Catch panics in the engine thread — they're otherwise silent and
+    // we'd see "did not bind within 5s" with no idea why. Plus log a
+    // checkpoint right before main_c() so we know if the C side was
+    // even reached.
+    tracing::info!("daemon: spawning rockbox-engine thread");
     thread::Builder::new()
         .name("rockbox-engine".into())
         .stack_size(2 * 1024 * 1024)
         .spawn(move || {
-            let rc = unsafe { main_c() };
-            tracing::warn!("rockbox engine exited rc={}", rc);
+            tracing::info!("rockbox-engine: thread started, calling main_c()");
+            let rc = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                unsafe { main_c() }
+            }));
+            match rc {
+                Ok(code) => tracing::warn!("rockbox-engine: main_c returned rc={}", code),
+                Err(p)   => tracing::error!("rockbox-engine: PANICKED — {:?}",
+                                            p.downcast_ref::<&str>()
+                                                .map(|s| *s)
+                                                .or_else(|| p.downcast_ref::<String>().map(|s| s.as_str()))
+                                                .unwrap_or("<non-string panic>")),
+            }
             STATE.store(STATE_STOPPED, Ordering::Release);
             LOCAL_PORT.store(0, Ordering::Release);
         })
         .expect("spawn rockbox-engine thread");
 
-    if !wait_for_grpc(port, Instant::now() + Duration::from_secs(5)) {
-        tracing::error!("daemon: gRPC server did not bind within 5s");
+    tracing::info!("daemon: waiting up to 30s for gRPC :{} to bind", port);
+    if !wait_for_grpc(port, Instant::now() + Duration::from_secs(30)) {
+        tracing::error!("daemon: gRPC server did not bind within 30s — engine stuck or crashed silently");
         STATE.store(STATE_STOPPED, Ordering::Release);
         return -110;
     }

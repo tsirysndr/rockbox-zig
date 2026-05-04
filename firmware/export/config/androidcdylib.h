@@ -65,6 +65,14 @@
 
 #define AB_REPEAT_ENABLE
 
+/* THIS IS THE MAGIC FLAG. apps/main.c:486 gates server_init() (which spawns
+ * the kernel thread that runs crates/server::start_server + start_servers,
+ * binding gRPC/HTTP/GraphQL/MPD on 6061/6063/6062/6600) behind
+ * #ifdef ROCKBOX_SERVER. Without it the firmware boots fine but nothing
+ * ever binds. The desktop sdlapp build defines this via configure;
+ * embedded-daemon needs the same. */
+#define ROCKBOX_SERVER
+
 /* `sigevent_t` (glibc-style typedef used by kernel-unix.c) is provided as
  * a -D macro in androidcdylibcc rather than typedef'd here — putting code
  * in config.h would leak into the output of `preprocess` (which uses
