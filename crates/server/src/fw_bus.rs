@@ -157,7 +157,6 @@ where
 /// broker iteration. Non-blocking — returns when the queue is empty.
 /// Must be called from the broker thread (a real Rockbox kernel thread).
 pub fn drain(rx: &Receiver<FwCmd>) {
-    use rockbox_sys as rb;
     loop {
         match rx.try_recv() {
             Ok(cmd) => {
@@ -171,6 +170,25 @@ pub fn drain(rx: &Receiver<FwCmd>) {
                 return;
             }
         }
+    }
+}
+
+/// Like drain() but blocks up to `timeout` waiting for the first command.
+/// When a command arrives before the timeout the broker wakes up immediately
+/// instead of waiting for the next poll cycle (≤100 ms). Use this in place
+/// of `thread::sleep(timeout)` at the bottom of the broker loop.
+pub fn drain_blocking(rx: &Receiver<FwCmd>, timeout: std::time::Duration) {
+    match rx.recv_timeout(timeout) {
+        Ok(cmd) => {
+            execute_on_broker(cmd, &|| true).unwrap_or_else(|e| {
+                tracing::warn!("fw_bus: broker exec failed: {e}");
+            });
+            drain(rx);
+        }
+        Err(mpsc::RecvTimeoutError::Disconnected) => {
+            tracing::error!("fw_bus: sender disconnected — bus shutdown");
+        }
+        Err(mpsc::RecvTimeoutError::Timeout) => {}
     }
 }
 

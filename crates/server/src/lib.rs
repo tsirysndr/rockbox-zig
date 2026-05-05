@@ -725,7 +725,11 @@ pub extern "C" fn start_broker() {
         let mutex = GLOBAL_MUTEX.lock().unwrap();
         if *mutex == 1 {
             drop(mutex);
-            thread::sleep(std::time::Duration::from_millis(100));
+            if let Some(rx) = fw_rx.as_ref() {
+                fw_bus::drain_blocking(rx, std::time::Duration::from_millis(100));
+            } else {
+                thread::sleep(std::time::Duration::from_millis(100));
+            }
             rb::system::sleep(rb::HZ);
             continue;
         }
@@ -897,7 +901,11 @@ pub extern "C" fn start_broker() {
 
         if !index_changed && !content_changed {
             drop(player_mutex);
-            thread::sleep(std::time::Duration::from_millis(100));
+            if let Some(rx) = fw_rx.as_ref() {
+                fw_bus::drain_blocking(rx, std::time::Duration::from_millis(100));
+            } else {
+                thread::sleep(std::time::Duration::from_millis(100));
+            }
             rb::system::sleep(rb::HZ);
             continue;
         }
@@ -1000,7 +1008,11 @@ pub extern "C" fn start_broker() {
             tracks: entries.into_iter().map(|t| t.into()).collect(),
         });
 
-        thread::sleep(std::time::Duration::from_millis(100));
+        if let Some(rx) = fw_rx.as_ref() {
+            fw_bus::drain_blocking(rx, std::time::Duration::from_millis(100));
+        } else {
+            thread::sleep(std::time::Duration::from_millis(100));
+        }
         rb::system::sleep(rb::HZ);
     }
 }
