@@ -270,7 +270,11 @@ pub async fn search_tracks(query: &str) -> Result<Option<TrackResult>, Error> {
         .await?;
 
     if !res.status().is_success() {
-        warn!("Typesense tracks search returned {}: {}", res.status(), res.text().await.unwrap_or_default());
+        warn!(
+            "Typesense tracks search returned {}: {}",
+            res.status(),
+            res.text().await.unwrap_or_default()
+        );
         return Ok(None);
     }
 
@@ -317,7 +321,11 @@ pub async fn search_albums(query: &str) -> Result<Option<AlbumResult>, Error> {
         .await?;
 
     if !res.status().is_success() {
-        warn!("Typesense albums search returned {}: {}", res.status(), res.text().await.unwrap_or_default());
+        warn!(
+            "Typesense albums search returned {}: {}",
+            res.status(),
+            res.text().await.unwrap_or_default()
+        );
         return Ok(None);
     }
 
@@ -457,7 +465,11 @@ pub async fn search_playlists(query: &str) -> Result<Option<PlaylistResult>, Err
         .await?;
 
     if !res.status().is_success() {
-        warn!("Typesense playlists search returned {}: {}", res.status(), res.text().await.unwrap_or_default());
+        warn!(
+            "Typesense playlists search returned {}: {}",
+            res.status(),
+            res.text().await.unwrap_or_default()
+        );
         return Ok(None);
     }
 
@@ -501,7 +513,11 @@ pub async fn search_artists(query: &str) -> Result<Option<ArtistResult>, Error> 
         .await?;
 
     if !res.status().is_success() {
-        warn!("Typesense artists search returned {}: {}", res.status(), res.text().await.unwrap_or_default());
+        warn!(
+            "Typesense artists search returned {}: {}",
+            res.status(),
+            res.text().await.unwrap_or_default()
+        );
         return Ok(None);
     }
 
