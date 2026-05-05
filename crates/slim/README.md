@@ -209,7 +209,7 @@ The C symbols exported by `pcm-squeezelite.c` are declared as `extern "C"` in
 `crates/sys/src/sound/pcm.rs`:
 
 | C symbol                             | Rust wrapper                             |
-|--------------------------------------|------------------------------------------|
+| ------------------------------------ | ---------------------------------------- |
 | `pcm_squeezelite_set_slim_port(u16)` | `pcm::squeezelite_set_slim_port(u16)`    |
 | `pcm_squeezelite_set_http_port(u16)` | `pcm::squeezelite_set_http_port(u16)`    |
 | `pcm_switch_sink(i32)`               | `pcm::switch_sink(PCM_SINK_SQUEEZELITE)` |
@@ -358,7 +358,7 @@ squeezelite client gets its own thread.
 The Slim Protocol uses **asymmetric framing**:
 
 | Direction       | Wire format                                         |
-|-----------------|-----------------------------------------------------|
+| --------------- | --------------------------------------------------- |
 | Client → Server | `opcode[4]` + `u32 length BE` + `payload[length]`   |
 | Server → Client | `u16 length BE` + `opcode[4]` + `payload[length-4]` |
 
@@ -550,7 +550,7 @@ The read loop uses the same `write_stream` mutex to send `audg` replies, so
 squeezelite handles the audio pipeline in three internal threads:
 
 | Thread                               | Role                                                          |
-|--------------------------------------|---------------------------------------------------------------|
+| ------------------------------------ | ------------------------------------------------------------- |
 | `stream_thread`                      | Reads HTTP stream into `streambuf` (2 MB ring buffer)         |
 | `decode_thread`                      | PCM "decoder": memcpy from `streambuf` → `outputbuf` (3.5 MB) |
 | `output_thread` / PortAudio callback | Reads `outputbuf`, sends to audio device                      |

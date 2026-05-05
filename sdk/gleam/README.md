@@ -111,10 +111,10 @@ let client =
   |> rockbox.connect
 ```
 
-| Setter           | Default               | Description                            |
-|------------------|-----------------------|----------------------------------------|
-| `host(_, value)` | `"localhost"`         | Hostname or IP of rockboxd             |
-| `port(_, value)` | `6062`                | GraphQL HTTP port                      |
+| Setter           | Default                | Description                                            |
+| ---------------- | ---------------------- | ------------------------------------------------------ |
+| `host(_, value)` | `"localhost"`          | Hostname or IP of rockboxd                             |
+| `port(_, value)` | `6062`                 | GraphQL HTTP port                                      |
 | `url(_, value)`  | derived from host/port | Override the full HTTP URL (wins over `host` / `port`) |
 
 Use `rockbox.http_url(client)` to read back the resolved URL — handy for
@@ -321,16 +321,16 @@ let _ = smart_playlists.delete(client, sp.id)
 
 #### Operators
 
-| Variant     | Meaning                                |
-|-------------|----------------------------------------|
-| `Eq`        | equals                                 |
-| `Neq`       | not equals                             |
-| `Gt`        | greater than                           |
-| `Gte`       | greater than or equal                  |
-| `Lt`        | less than                              |
-| `Lte`       | less than or equal                     |
-| `Contains`  | substring match                        |
-| `Within`    | duration window (e.g. `"30d"`, `"7d"`) |
+| Variant    | Meaning                                |
+| ---------- | -------------------------------------- |
+| `Eq`       | equals                                 |
+| `Neq`      | not equals                             |
+| `Gt`       | greater than                           |
+| `Gte`      | greater than or equal                  |
+| `Lt`       | less than                              |
+| `Lte`      | less than or equal                     |
+| `Contains` | substring match                        |
+| `Within`   | duration window (e.g. `"30d"`, `"7d"`) |
 
 #### OR groups and nesting
 
@@ -509,12 +509,12 @@ case playback.current_track(client) {
 }
 ```
 
-| Variant         | When raised                                              |
-|-----------------|----------------------------------------------------------|
-| `NetworkError`  | DNS, refused connection, TLS, etc.                       |
-| `HttpError`     | Server returned a non-2xx HTTP response.                 |
-| `GraphQLError`  | Server returned a populated `errors` array.              |
-| `DecodeError`   | Response body could not be decoded into the expected shape. |
+| Variant        | When raised                                                 |
+| -------------- | ----------------------------------------------------------- |
+| `NetworkError` | DNS, refused connection, TLS, etc.                          |
+| `HttpError`    | Server returned a non-2xx HTTP response.                    |
+| `GraphQLError` | Server returned a populated `errors` array.                 |
+| `DecodeError`  | Response body could not be decoded into the expected shape. |
 
 ---
 
@@ -557,23 +557,23 @@ while rockboxd is running.
 
 ## Module map
 
-| Domain                | Module                                  |
-|-----------------------|-----------------------------------------|
-| Client constructor    | `rockbox`                               |
-| Transport controls    | `rockbox/playback`                      |
-| Library / search      | `rockbox/library`                       |
-| Live queue            | `rockbox/playlist`                      |
-| Saved playlists       | `rockbox/saved_playlists`               |
-| Smart playlists       | `rockbox/smart_playlists`               |
-| Smart-playlist rules  | `rockbox/smart_playlists/rules`         |
-| Volume                | `rockbox/sound`                         |
-| Settings              | `rockbox/settings`                      |
-| System info           | `rockbox/system`                        |
-| Filesystem browser    | `rockbox/browse`                        |
-| Output devices        | `rockbox/devices`                       |
-| Bluetooth             | `rockbox/bluetooth`                     |
-| Domain types          | `rockbox/types`                         |
-| Errors                | `rockbox/error`                         |
+| Domain               | Module                          |
+| -------------------- | ------------------------------- |
+| Client constructor   | `rockbox`                       |
+| Transport controls   | `rockbox/playback`              |
+| Library / search     | `rockbox/library`               |
+| Live queue           | `rockbox/playlist`              |
+| Saved playlists      | `rockbox/saved_playlists`       |
+| Smart playlists      | `rockbox/smart_playlists`       |
+| Smart-playlist rules | `rockbox/smart_playlists/rules` |
+| Volume               | `rockbox/sound`                 |
+| Settings             | `rockbox/settings`              |
+| System info          | `rockbox/system`                |
+| Filesystem browser   | `rockbox/browse`                |
+| Output devices       | `rockbox/devices`               |
+| Bluetooth            | `rockbox/bluetooth`             |
+| Domain types         | `rockbox/types`                 |
+| Errors               | `rockbox/error`                 |
 
 ---
 

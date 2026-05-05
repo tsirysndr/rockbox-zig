@@ -174,18 +174,18 @@ rockbox
 
 ## 🔌 Ports
 
-| Service                               | Default port | Protocol        |
-|---------------------------------------|--------------|-----------------|
-| gRPC                                  | 6061         | gRPC / gRPC-Web |
-| GraphQL + Web UI                      | 6062         | HTTP            |
-| HTTP REST API                         | 6063         | HTTP            |
-| MPD server                            | 6600         | MPD protocol    |
-| Slim Protocol (squeezelite)           | 3483         | TCP             |
-| HTTP PCM stream (squeezelite)         | 9999         | HTTP            |
-| Chromecast WAV stream                 | 7881         | HTTP            |
-| UPnP Media Server (ContentDirectory)  | 7878         | HTTP / SSDP     |
-| UPnP WAV broadcast (PCM sink)         | 7879         | HTTP            |
-| UPnP MediaRenderer (AVTransport)      | 7880         | HTTP / SSDP     |
+| Service                              | Default port | Protocol        |
+| ------------------------------------ | ------------ | --------------- |
+| gRPC                                 | 6061         | gRPC / gRPC-Web |
+| GraphQL + Web UI                     | 6062         | HTTP            |
+| HTTP REST API                        | 6063         | HTTP            |
+| MPD server                           | 6600         | MPD protocol    |
+| Slim Protocol (squeezelite)          | 3483         | TCP             |
+| HTTP PCM stream (squeezelite)        | 9999         | HTTP            |
+| Chromecast WAV stream                | 7881         | HTTP            |
+| UPnP Media Server (ContentDirectory) | 7878         | HTTP / SSDP     |
+| UPnP WAV broadcast (PCM sink)        | 7879         | HTTP            |
+| UPnP MediaRenderer (AVTransport)     | 7880         | HTTP / SSDP     |
 
 ---
 
@@ -412,16 +412,16 @@ parsed and displayed.
 
 #### All UPnP settings
 
-| Key                        | Default      | Description                                    |
-|----------------------------|--------------|------------------------------------------------|
-| `audio_output = "upnp"`    | —            | Enable the PCM → WAV streaming sink            |
-| `upnp_renderer_url`        | —            | AVTransport controlURL of the target renderer  |
-| `upnp_http_port`           | `7879`       | WAV broadcast HTTP port                        |
-| `upnp_server_enabled`      | `false`      | Start the ContentDirectory media server        |
-| `upnp_server_port`         | `7878`       | Media server HTTP port                         |
-| `upnp_renderer_enabled`    | `false`      | Start the MediaRenderer endpoint               |
-| `upnp_renderer_port`       | `7880`       | MediaRenderer HTTP port                        |
-| `upnp_friendly_name`       | `"Rockbox"`  | Display name shown to control points           |
+| Key                     | Default     | Description                                   |
+| ----------------------- | ----------- | --------------------------------------------- |
+| `audio_output = "upnp"` | —           | Enable the PCM → WAV streaming sink           |
+| `upnp_renderer_url`     | —           | AVTransport controlURL of the target renderer |
+| `upnp_http_port`        | `7879`      | WAV broadcast HTTP port                       |
+| `upnp_server_enabled`   | `false`     | Start the ContentDirectory media server       |
+| `upnp_server_port`      | `7878`      | Media server HTTP port                        |
+| `upnp_renderer_enabled` | `false`     | Start the MediaRenderer endpoint              |
+| `upnp_renderer_port`    | `7880`      | MediaRenderer HTTP port                       |
+| `upnp_friendly_name`    | `"Rockbox"` | Display name shown to control points          |
 
 ---
 
@@ -473,7 +473,7 @@ Pre-built binaries for the latest release are available on the
 [Releases page](https://github.com/tsirysndr/rockbox-zig/releases/latest).
 
 | Platform | Architecture            | Package   |
-|----------|-------------------------|-----------|
+| -------- | ----------------------- | --------- |
 | Linux    | x86_64                  | `.tar.gz` |
 | Linux    | aarch64                 | `.tar.gz` |
 | macOS    | x86_64                  | `.pkg`    |

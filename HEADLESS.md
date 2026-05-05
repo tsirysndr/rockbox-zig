@@ -45,13 +45,13 @@ mkdir -p build-headless
 
 Target 206 is `headlesshost`. `tools/configure` sets:
 
-| Variable | Value | Why |
-|---|---|---|
-| `TARGET` | `-DHEADLESSHOST` | Selects headless firmware path |
-| `APP_TYPE` | `headless_host` | Headless Make rules |
-| `CODECS_STATIC` | `1` | Static codec linking (see below) |
-| `EXTRA_DEFINES` | `-DCODECS_STATIC -DZIG_APP -DAPPLICATION` | Propagated into C flags |
-| `OC` | `llvm-objcopy` (from llvm@21) | Safe Mach-O symbol renaming (see below) |
+| Variable        | Value                                     | Why                                     |
+| --------------- | ----------------------------------------- | --------------------------------------- |
+| `TARGET`        | `-DHEADLESSHOST`                          | Selects headless firmware path          |
+| `APP_TYPE`      | `headless_host`                           | Headless Make rules                     |
+| `CODECS_STATIC` | `1`                                       | Static codec linking (see below)        |
+| `EXTRA_DEFINES` | `-DCODECS_STATIC -DZIG_APP -DAPPLICATION` | Propagated into C flags                 |
+| `OC`            | `llvm-objcopy` (from llvm@21)             | Safe Mach-O symbol renaming (see below) |
 
 The configure script searches for `llvm@21` first, then falls back to the generic `llvm` formula. **It explicitly avoids `llvm@22`** due to a crash described below.
 
@@ -258,11 +258,11 @@ The same issue would manifest on the Android cdylib build (also `CODECS_STATIC`,
 
 **Fix** (`lib/rbcodec/codecs/libm4a/demux.c`):
 
-| Old pattern | Replacement | Why it works |
-|---|---|---|
-| `stream_read(stream, 4, char filetype[4])` — result unused | `stream_read_uint32(stream)` — result stored in a `uint32_t` variable | Return value is a live read; optimizer cannot eliminate it |
-| 4 discarded `stream_read_uint8/int32` calls in `read_chunk_esds` (13 bytes) | `stream_skip(stream, 1/4/4/4)` | `stream_skip` calls `ci->advance_buffer` directly — no destination buffer, no dead-write to eliminate |
-| `stream_read(stream, codecdata_len, codecdata)` bulk read | Byte-by-byte loop: `codecdata[i] = stream_read_uint8(stream)` | Each `stream_read_uint8` return value is stored into the array element that IS used by the decoder |
+| Old pattern                                                                 | Replacement                                                           | Why it works                                                                                          |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `stream_read(stream, 4, char filetype[4])` — result unused                  | `stream_read_uint32(stream)` — result stored in a `uint32_t` variable | Return value is a live read; optimizer cannot eliminate it                                            |
+| 4 discarded `stream_read_uint8/int32` calls in `read_chunk_esds` (13 bytes) | `stream_skip(stream, 1/4/4/4)`                                        | `stream_skip` calls `ci->advance_buffer` directly — no destination buffer, no dead-write to eliminate |
+| `stream_read(stream, codecdata_len, codecdata)` bulk read                   | Byte-by-byte loop: `codecdata[i] = stream_read_uint8(stream)`         | Each `stream_read_uint8` return value is stored into the array element that IS used by the decoder    |
 
 **Rule going forward**: in CODECS_STATIC (or any no-`-fPIC`) build, never call `stream_read(stream, N, buf)` where `buf` is a local variable not subsequently read by the caller. Use `stream_read_uint8/uint16/uint32` (live return values) or `stream_skip` (no buffer at all) for all bytes you intend to discard.
 
@@ -294,30 +294,30 @@ device: 48000 Hz F32  ←  resampler (step=0.9188)  ←  firmware ring: 44100 Hz
 
 ## File Map
 
-| File | Purpose |
-|---|---|
-| `scripts/build-headless.sh` | Full build script — configure, make, cargo, zig |
-| `tools/configure` | Rockbox configure script; `headlesshostcc()` sets up the headless target and finds `llvm@21` |
-| `firmware/export/config/headlesshost.h` | C config header for the headless target |
-| `firmware/target/hosted/headless/` | Headless-specific C sources (PCM sink, codec loader, etc.) |
-| `firmware/target/hosted/headless/lc-headless.c` | `lc_static_table[]` — maps codec names to `__header_*` pointers |
-| `firmware/target/hosted/headless/pcm-cpal.c` | C side of the cpal PCM sink; calls `pcm_cpal_push()` / `pcm_cpal_set_sample_rate()` |
-| `lib/rbcodec/codecs/codecs.make` | Per-codec build rules; `CODECS_STATIC` block (line 273+) handles symbol renaming |
-| `lib/rbcodec/codecs/lib/codeclib.c` | `codec_init`, `codec_malloc`, `bs_clz_tab`, etc. → compiled into `libcodec.a` |
-| `crates/cpal-sink/src/lib.rs` | Rust cpal backend — ring buffer, resampler, stream negotiation |
-| `zig/build.zig` | Zig linker script — `headless` block lists all `.o` files and `.a` archives |
+| File                                            | Purpose                                                                                      |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `scripts/build-headless.sh`                     | Full build script — configure, make, cargo, zig                                              |
+| `tools/configure`                               | Rockbox configure script; `headlesshostcc()` sets up the headless target and finds `llvm@21` |
+| `firmware/export/config/headlesshost.h`         | C config header for the headless target                                                      |
+| `firmware/target/hosted/headless/`              | Headless-specific C sources (PCM sink, codec loader, etc.)                                   |
+| `firmware/target/hosted/headless/lc-headless.c` | `lc_static_table[]` — maps codec names to `__header_*` pointers                              |
+| `firmware/target/hosted/headless/pcm-cpal.c`    | C side of the cpal PCM sink; calls `pcm_cpal_push()` / `pcm_cpal_set_sample_rate()`          |
+| `lib/rbcodec/codecs/codecs.make`                | Per-codec build rules; `CODECS_STATIC` block (line 273+) handles symbol renaming             |
+| `lib/rbcodec/codecs/lib/codeclib.c`             | `codec_init`, `codec_malloc`, `bs_clz_tab`, etc. → compiled into `libcodec.a`                |
+| `crates/cpal-sink/src/lib.rs`                   | Rust cpal backend — ring buffer, resampler, stream negotiation                               |
+| `zig/build.zig`                                 | Zig linker script — `headless` block lists all `.o` files and `.a` archives                  |
 
 ---
 
 ## Rebuild After Changes
 
-| Changed | Command |
-|---|---|
-| Any C firmware file | `cd build-headless && make lib OC=...` then `cd zig && zig build -Dheadless=true` |
-| `lc-headless.c` or codec C files | Same as above |
-| `crates/cpal-sink/` | `cargo build --release --features cpal-sink -p rockbox-cli` then `zig build` |
-| Any other Rust crate | `cargo build --release -p rockbox-cli -p rockbox-server` then `zig build` |
-| `zig/build.zig` | `cd zig && zig build -Dheadless=true` |
-| Everything | `bash scripts/build-headless.sh` |
+| Changed                          | Command                                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| Any C firmware file              | `cd build-headless && make lib OC=...` then `cd zig && zig build -Dheadless=true` |
+| `lc-headless.c` or codec C files | Same as above                                                                     |
+| `crates/cpal-sink/`              | `cargo build --release --features cpal-sink -p rockbox-cli` then `zig build`      |
+| Any other Rust crate             | `cargo build --release -p rockbox-cli -p rockbox-server` then `zig build`         |
+| `zig/build.zig`                  | `cd zig && zig build -Dheadless=true`                                             |
+| Everything                       | `bash scripts/build-headless.sh`                                                  |
 
 > **Stale binary pitfall**: `zig build` only re-links if the `.a` files are newer than the binary. Always rebuild Make/Cargo before running `zig build` after changing C or Rust code.

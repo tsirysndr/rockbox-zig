@@ -129,14 +129,14 @@ client = Rockbox::Client.new(
 client = Rockbox.new(host: "localhost")
 ```
 
-| Option         | Type     | Default                         | Description                          |
-|----------------|----------|---------------------------------|--------------------------------------|
-| `host`         | String   | `"localhost"`                   | Hostname or IP of rockboxd           |
-| `port`         | Integer  | `6062`                          | GraphQL port                         |
-| `http_url`     | String   | `http://{host}:{port}/graphql`  | Override the full HTTP URL           |
-| `ws_url`       | String   | `ws://{host}:{port}/graphql`    | Override the full WebSocket URL      |
-| `open_timeout` | Integer  | `5`                             | HTTP connect timeout (seconds)       |
-| `read_timeout` | Integer  | `30`                            | HTTP read timeout (seconds)          |
+| Option         | Type    | Default                        | Description                     |
+| -------------- | ------- | ------------------------------ | ------------------------------- |
+| `host`         | String  | `"localhost"`                  | Hostname or IP of rockboxd      |
+| `port`         | Integer | `6062`                         | GraphQL port                    |
+| `http_url`     | String  | `http://{host}:{port}/graphql` | Override the full HTTP URL      |
+| `ws_url`       | String  | `ws://{host}:{port}/graphql`   | Override the full WebSocket URL |
+| `open_timeout` | Integer | `5`                            | HTTP connect timeout (seconds)  |
+| `read_timeout` | Integer | `30`                           | HTTP read timeout (seconds)     |
 
 ---
 
@@ -385,14 +385,14 @@ client.remove_all_listeners
 client.disconnect
 ```
 
-| Event              | Payload                              |
-|--------------------|--------------------------------------|
-| `:track_changed`   | `Rockbox::Track`                     |
-| `:status_changed`  | `Integer` (`Rockbox::PlaybackStatus`)|
-| `:playlist_changed`| `Rockbox::Playlist`                  |
-| `:ws_open`         | `nil`                                |
-| `:ws_close`        | `nil`                                |
-| `:ws_error`        | `Exception`                          |
+| Event               | Payload                               |
+| ------------------- | ------------------------------------- |
+| `:track_changed`    | `Rockbox::Track`                      |
+| `:status_changed`   | `Integer` (`Rockbox::PlaybackStatus`) |
+| `:playlist_changed` | `Rockbox::Playlist`                   |
+| `:ws_open`          | `nil`                                 |
+| `:ws_close`         | `nil`                                 |
+| `:ws_error`         | `Exception`                           |
 
 ---
 
@@ -441,11 +441,11 @@ rescue Rockbox::NetworkError => e
 end
 ```
 
-| Class                     | Raised when…                                 |
-|---------------------------|----------------------------------------------|
-| `Rockbox::Error`          | Base class for every SDK error.              |
-| `Rockbox::NetworkError`   | rockboxd is unreachable / non-2xx response.  |
-| `Rockbox::GraphQLError`   | rockboxd returns a GraphQL `errors` payload. |
+| Class                   | Raised when…                                 |
+| ----------------------- | -------------------------------------------- |
+| `Rockbox::Error`        | Base class for every SDK error.              |
+| `Rockbox::NetworkError` | rockboxd is unreachable / non-2xx response.  |
+| `Rockbox::GraphQLError` | rockboxd returns a GraphQL `errors` payload. |
 
 ---
 

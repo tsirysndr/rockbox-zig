@@ -53,11 +53,11 @@ contains a `Player` trait implementation that is retained for internal use but i
 
 ## Module map
 
-| File          | Responsibility                                                                          |
-|---------------|-----------------------------------------------------------------------------------------|
+| File          | Responsibility                                                                         |
+| ------------- | -------------------------------------------------------------------------------------- |
 | `src/pcm.rs`  | Primary: HTTP WAV server; `BroadcastBuffer`; `cast_loop`; full C FFI surface           |
 | `src/lib.rs`  | Secondary: `Player` trait impl; Cast command dispatch (retained, not called by server) |
-| `src/main.rs` | Example binary (connects to a hardcoded IP for manual testing)                          |
+| `src/main.rs` | Example binary (connects to a hardcoded IP for manual testing)                         |
 
 ---
 
@@ -198,13 +198,13 @@ The `cast_loop` in `pcm.rs` owns the Cast session exclusively.
 If you need to drive the Cast protocol directly (e.g. from a test binary or a
 future multi-session feature), `lib.rs` provides:
 
-| Player method  | Cast action                          |
-|----------------|--------------------------------------|
-| `play()`       | `media.play()`                       |
-| `pause()`      | `media.pause()`                      |
-| `resume()`     | `media.play()`                       |
-| `stop()`       | no-op                                |
-| `disconnect()` | `receiver.stop_app(session_id)`      |
+| Player method  | Cast action                     |
+| -------------- | ------------------------------- |
+| `play()`       | `media.play()`                  |
+| `pause()`      | `media.pause()`                 |
+| `resume()`     | `media.play()`                  |
+| `stop()`       | no-op                           |
+| `disconnect()` | `receiver.stop_app(session_id)` |
 
 Next / previous are **not** routed through `lib.rs` — the server always calls
 `rb::playback::next()` / `rb::playback::prev()` directly, and the `cast_loop`
@@ -286,7 +286,7 @@ The WAV stream and Cast session are started on demand when audio plays.
 ### Port summary
 
 | Port | Protocol  | Purpose                                             |
-|------|-----------|-----------------------------------------------------|
+| ---- | --------- | --------------------------------------------------- |
 | 8009 | TCP / TLS | Cast control channel (Protobuf)                     |
 | 7881 | HTTP      | WAV audio stream + album art served **by rockboxd** |
 
@@ -297,22 +297,22 @@ The WAV stream and Cast session are started on demand when audio plays.
 
 ## Known limitations
 
-| Feature                               | Status                                      |
-|---------------------------------------|---------------------------------------------|
-| Play / pause / resume                 | ✅ Implemented                               |
-| Next / previous track                 | ✅ Via `rb::playback::next/prev` + cast_loop |
-| Track metadata + album art display    | ✅ Implemented                               |
-| Reconnect after output switch         | ✅ Via teardown + fresh cast_loop            |
-| Volume control                        | ⏳ Not yet implemented                       |
-| Seek within track                     | ⏳ Not yet implemented                       |
-| Multi-device fan-out                  | ⏳ Not yet implemented (single device only)  |
+| Feature                            | Status                                      |
+| ---------------------------------- | ------------------------------------------- |
+| Play / pause / resume              | ✅ Implemented                               |
+| Next / previous track              | ✅ Via `rb::playback::next/prev` + cast_loop |
+| Track metadata + album art display | ✅ Implemented                               |
+| Reconnect after output switch      | ✅ Via teardown + fresh cast_loop            |
+| Volume control                     | ⏳ Not yet implemented                       |
+| Seek within track                  | ⏳ Not yet implemented                       |
+| Multi-device fan-out               | ⏳ Not yet implemented (single device only)  |
 
 ---
 
 ## Dependencies
 
 | Crate             | Version   | Purpose                                                   |
-|-------------------|-----------|-----------------------------------------------------------|
+| ----------------- | --------- | --------------------------------------------------------- |
 | `chromecast`      | 0.18.2    | Cast protocol client (Protobuf/TLS)                       |
 | `tokio`           | workspace | Async runtime for Cast background task                    |
 | `async-trait`     | workspace | `Player` trait with async methods                         |

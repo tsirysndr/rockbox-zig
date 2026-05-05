@@ -111,12 +111,12 @@ UDP       ──  shared NTP timing response service (one port, all receivers)
 following vtable:
 
 | Op                | Implementation                                                      |
-|-------------------|---------------------------------------------------------------------|
+| ----------------- | ------------------------------------------------------------------- |
 | `init`            | `pthread_mutex_init` (recursive)                                    |
 | `postinit`        | no-op                                                               |
 | `set_freq`        | no-op (sample rate is fixed at 44100 Hz)                            |
 | `lock` / `unlock` | `pthread_mutex_lock/unlock`                                         |
-| `play`            | `sink_dma_start` — connects all receivers, spawns `airplay_thread` |
+| `play`            | `sink_dma_start` — connects all receivers, spawns `airplay_thread`  |
 | `stop`            | `sink_dma_stop` — signals thread, joins, calls `pcm_airplay_stop()` |
 
 `airplay_pcm_sink` is registered at index `PCM_SINK_AIRPLAY = 2` in the
@@ -148,15 +148,15 @@ clock sleeps once per frame after fanning out to all receivers.
 
 `crates/airplay/src/lib.rs` exports these `#[no_mangle] extern "C"` functions:
 
-| C symbol                    | Purpose                                                  |
-|-----------------------------|----------------------------------------------------------|
-| `pcm_airplay_set_host`      | Set a single receiver (clears any previous list)         |
-| `pcm_airplay_add_receiver`  | Append one receiver to the multi-room list               |
-| `pcm_airplay_clear_receivers` | Clear the receiver list before re-configuring          |
-| `pcm_airplay_connect`       | Open RTSP + RTP sessions for all configured receivers    |
-| `pcm_airplay_write`         | Buffer PCM, encode ALAC once, fan out to every receiver  |
-| `pcm_airplay_stop`          | Send TEARDOWN to all, clear session                      |
-| `pcm_airplay_close`         | Same as stop (called on sink switch)                     |
+| C symbol                      | Purpose                                                 |
+| ----------------------------- | ------------------------------------------------------- |
+| `pcm_airplay_set_host`        | Set a single receiver (clears any previous list)        |
+| `pcm_airplay_add_receiver`    | Append one receiver to the multi-room list              |
+| `pcm_airplay_clear_receivers` | Clear the receiver list before re-configuring           |
+| `pcm_airplay_connect`         | Open RTSP + RTP sessions for all configured receivers   |
+| `pcm_airplay_write`           | Buffer PCM, encode ALAC once, fan out to every receiver |
+| `pcm_airplay_stop`            | Send TEARDOWN to all, clear session                     |
+| `pcm_airplay_close`           | Same as stop (called on sink switch)                    |
 
 `SESSION` is a `Mutex<Option<AirPlaySession>>`. `CONFIG` is a
 `Mutex<AirPlayConfig>` holding `receivers: Vec<(String, u16)>`.
@@ -327,10 +327,10 @@ Three types in `rtp.rs` handle the per-receiver and shared concerns:
 
 Owns the two UDP sockets for one AirPlay endpoint:
 
-| Socket       | Direction               | Purpose             |
-|--------------|-------------------------|---------------------|
-| `audio_sock` | → receiver audio port   | RTP audio frames    |
-| `ctrl_sock`  | ↔ receiver control port | RTCP sync packets   |
+| Socket       | Direction               | Purpose           |
+| ------------ | ----------------------- | ----------------- |
+| `audio_sock` | → receiver audio port   | RTP audio frames  |
+| `ctrl_sock`  | ↔ receiver control port | RTCP sync packets |
 
 Also holds `ssrc` (random per receiver) and `seqnum` (wrapping u16).
 

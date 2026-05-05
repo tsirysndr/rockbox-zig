@@ -5,10 +5,10 @@ through the Snapcast PCM sinks to a Snapcast server.
 
 Two complementary sinks are available:
 
-| Sink | Setting value | Transport | Snapserver source type |
-|------|--------------|-----------|------------------------|
-| FIFO / pipe | `audio_output = "fifo"` | Named FIFO or stdout | `pipe://` |
-| TCP (direct) | `audio_output = "snapcast_tcp"` | TCP socket | `tcp://` |
+| Sink         | Setting value                   | Transport            | Snapserver source type |
+| ------------ | ------------------------------- | -------------------- | ---------------------- |
+| FIFO / pipe  | `audio_output = "fifo"`         | Named FIFO or stdout | `pipe://`              |
+| TCP (direct) | `audio_output = "snapcast_tcp"` | TCP socket           | `tcp://`               |
 
 The **FIFO sink** is the traditional approach: rockboxd writes to a named pipe
 that snapserver reads. The **TCP sink** connects directly to snapserver's TCP
@@ -54,15 +54,15 @@ both are pure-C PCM sinks with a thin Rust FFI wrapper for configuration.
 
 ## Choosing FIFO vs TCP
 
-| | FIFO sink | TCP sink |
-|---|---|---|
-| Filesystem entry required | Yes (`/tmp/snapfifo`) | No |
-| Snapserver source type | `pipe://` | `tcp://` |
-| Startup order sensitive | Yes — rockboxd first | Yes — snapserver first |
-| Reconnect on snapserver restart | No (FIFO stays open) | Yes (auto on next play) |
-| Auto-discovered in UI | No (static virtual device) | Yes (mDNS `_snapcast._tcp.local.`) |
-| stdout pipe support | Yes (`fifo_path = "-"`) | No |
-| Config | `fifo_path` | `snapcast_tcp_host` + `snapcast_tcp_port` |
+|                                 | FIFO sink                  | TCP sink                                  |
+| ------------------------------- | -------------------------- | ----------------------------------------- |
+| Filesystem entry required       | Yes (`/tmp/snapfifo`)      | No                                        |
+| Snapserver source type          | `pipe://`                  | `tcp://`                                  |
+| Startup order sensitive         | Yes — rockboxd first       | Yes — snapserver first                    |
+| Reconnect on snapserver restart | No (FIFO stays open)       | Yes (auto on next play)                   |
+| Auto-discovered in UI           | No (static virtual device) | Yes (mDNS `_snapcast._tcp.local.`)        |
+| stdout pipe support             | Yes (`fifo_path = "-"`)    | No                                        |
+| Config                          | `fifo_path`                | `snapcast_tcp_host` + `snapcast_tcp_port` |
 
 **Use FIFO** when you want stdout piping or prefer the traditional pipe model.
 
@@ -106,7 +106,7 @@ don't want a filesystem dependency.
 `firmware/target/hosted/pcm-fifo.c` implements `struct pcm_sink`:
 
 | Op                | Implementation                                              |
-|-------------------|-------------------------------------------------------------|
+| ----------------- | ----------------------------------------------------------- |
 | `init`            | `pthread_mutex_init` (recursive)                            |
 | `postinit`        | no-op                                                       |
 | `set_freq`        | no-op (output is always 44100 Hz; snapserver must match)    |
@@ -239,14 +239,14 @@ source = pipe:///tmp/snapfifo?name=default&sampleformat=44100:16:2
 
 `firmware/target/hosted/pcm-tcp.c` implements `struct pcm_sink`:
 
-| Op                | Implementation                                              |
-|-------------------|-------------------------------------------------------------|
-| `init`            | `pthread_mutex_init` (recursive)                            |
-| `postinit`        | no-op                                                       |
-| `set_freq`        | no-op (output is always 44100 Hz; snapserver must match)    |
-| `lock` / `unlock` | `pthread_mutex_lock/unlock`                                 |
-| `play`            | `sink_dma_start` — connects if needed, spawns `tcp_thread`  |
-| `stop`            | `sink_dma_stop` — signals thread, joins; keeps socket open  |
+| Op                | Implementation                                             |
+| ----------------- | ---------------------------------------------------------- |
+| `init`            | `pthread_mutex_init` (recursive)                           |
+| `postinit`        | no-op                                                      |
+| `set_freq`        | no-op (output is always 44100 Hz; snapserver must match)   |
+| `lock` / `unlock` | `pthread_mutex_lock/unlock`                                |
+| `play`            | `sink_dma_start` — connects if needed, spawns `tcp_thread` |
+| `stop`            | `sink_dma_stop` — signals thread, joins; keeps socket open |
 
 `tcp_pcm_sink` is registered at index `PCM_SINK_SNAPCAST_TCP = 6` in
 `firmware/pcm.c`.
@@ -395,12 +395,12 @@ Some("snapcast_tcp") => {
 
 ### All Snapcast settings keys
 
-| Key                  | Type   | Default               | Sink  | Description                              |
-|----------------------|--------|-----------------------|-------|------------------------------------------|
-| `audio_output`       | string | `"builtin"`           | both  | `"fifo"` or `"snapcast_tcp"`             |
-| `fifo_path`          | string | `"/tmp/rockbox.fifo"` | FIFO  | FIFO path, or `"-"` for stdout           |
-| `snapcast_tcp_host`  | string | —                     | TCP   | IP / hostname of the snapserver machine  |
-| `snapcast_tcp_port`  | u16    | `4953`                | TCP   | snapserver TCP source port               |
+| Key                 | Type   | Default               | Sink | Description                             |
+| ------------------- | ------ | --------------------- | ---- | --------------------------------------- |
+| `audio_output`      | string | `"builtin"`           | both | `"fifo"` or `"snapcast_tcp"`            |
+| `fifo_path`         | string | `"/tmp/rockbox.fifo"` | FIFO | FIFO path, or `"-"` for stdout          |
+| `snapcast_tcp_host` | string | —                     | TCP  | IP / hostname of the snapserver machine |
+| `snapcast_tcp_port` | u16    | `4953`                | TCP  | snapserver TCP source port              |
 
 ---
 

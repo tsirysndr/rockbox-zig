@@ -133,19 +133,19 @@ async with RockboxClient() as client:
 
 ## Domains
 
-| Namespace                  | What it does                                           |
-| -------------------------- | ------------------------------------------------------ |
-| `client.playback`          | Transport (`play`/`pause`/`seek`), play helpers        |
-| `client.library`           | Albums, artists, tracks, search, likes, scan           |
-| `client.playlist`          | The active queue (insert/remove/shuffle/start)         |
-| `client.saved_playlists`   | Persistent playlists & folders                         |
-| `client.smart_playlists`   | Rule-based playlists & listening stats                 |
-| `client.sound`             | Volume control                                         |
-| `client.settings`          | Global EQ / replaygain / crossfade / shuffle / …       |
-| `client.system`            | Version, runtime info                                  |
-| `client.browse`            | Filesystem & UPnP browser                              |
-| `client.devices`           | Cast / source device discovery                         |
-| `client.bluetooth`         | Bluetooth pairing & scanning (Linux only)              |
+| Namespace                | What it does                                     |
+| ------------------------ | ------------------------------------------------ |
+| `client.playback`        | Transport (`play`/`pause`/`seek`), play helpers  |
+| `client.library`         | Albums, artists, tracks, search, likes, scan     |
+| `client.playlist`        | The active queue (insert/remove/shuffle/start)   |
+| `client.saved_playlists` | Persistent playlists & folders                   |
+| `client.smart_playlists` | Rule-based playlists & listening stats           |
+| `client.sound`           | Volume control                                   |
+| `client.settings`        | Global EQ / replaygain / crossfade / shuffle / … |
+| `client.system`          | Version, runtime info                            |
+| `client.browse`          | Filesystem & UPnP browser                        |
+| `client.devices`         | Cast / source device discovery                   |
+| `client.bluetooth`       | Bluetooth pairing & scanning (Linux only)        |
 
 ## Real-time events
 

@@ -3,11 +3,11 @@
 UPnP/DLNA support for Rockbox Zig. This crate provides three independent but
 complementary features:
 
-| Feature                              | What it does                                                                                        |
-|--------------------------------------|-----------------------------------------------------------------------------------------------------|
-| **Media Server** (ContentDirectory)  | Exposes the music library so UPnP control points (BubbleUPnP, Kodi, etc.) can browse and pull tracks |
-| **MediaRenderer**                    | Lets control points push media to Rockbox (Rockbox becomes the speaker)                             |
-| **PCM sink / WAV output**            | Streams live PCM audio as WAV-over-HTTP to an external UPnP renderer (Kodi, etc.)                  |
+| Feature                             | What it does                                                                                         |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Media Server** (ContentDirectory) | Exposes the music library so UPnP control points (BubbleUPnP, Kodi, etc.) can browse and pull tracks |
+| **MediaRenderer**                   | Lets control points push media to Rockbox (Rockbox becomes the speaker)                              |
+| **PCM sink / WAV output**           | Streams live PCM audio as WAV-over-HTTP to an external UPnP renderer (Kodi, etc.)                    |
 
 ---
 
@@ -40,11 +40,11 @@ start playback — is a `POST` with an XML envelope to the service's `controlURL
 
 ### UPnP service roles
 
-| UPnP term                       | Rockbox role   | Description                            |
-|---------------------------------|----------------|----------------------------------------|
-| MediaServer / ContentDirectory  | **server**     | Hosts the music library for browsing   |
-| MediaRenderer / AVTransport     | **renderer**   | Receives push-play commands            |
-| Control Point                   | *external app* | BubbleUPnP, Kodi, Foobar2000, …       |
+| UPnP term                      | Rockbox role   | Description                          |
+| ------------------------------ | -------------- | ------------------------------------ |
+| MediaServer / ContentDirectory | **server**     | Hosts the music library for browsing |
+| MediaRenderer / AVTransport    | **renderer**   | Receives push-play commands          |
+| Control Point                  | *external app* | BubbleUPnP, Kodi, Foobar2000, …      |
 
 ---
 
@@ -123,16 +123,16 @@ responses so control points can display a progress bar.
 
 ### Supported AVTransport actions
 
-| Action                | Behaviour                                                                          |
-|-----------------------|------------------------------------------------------------------------------------|
-| `SetAVTransportURI`   | Store URI + parse DIDL-Lite metadata; open the stream in the Rockbox audio engine  |
-| `Play`                | Start or resume playback                                                           |
-| `Pause`               | Pause/resume toggle                                                                |
-| `Stop`                | Stop playback; clear stored metadata                                               |
-| `Seek`                | Seek to absolute time (REL_TIME target unit)                                       |
-| `GetTransportInfo`    | Return current transport state (PLAYING / PAUSED_PLAYBACK / STOPPED)              |
-| `GetPositionInfo`     | Return track URI, DIDL-Lite metadata, duration, elapsed time                      |
-| `GetMediaInfo`        | Return current URI and DIDL-Lite metadata                                          |
+| Action              | Behaviour                                                                         |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `SetAVTransportURI` | Store URI + parse DIDL-Lite metadata; open the stream in the Rockbox audio engine |
+| `Play`              | Start or resume playback                                                          |
+| `Pause`             | Pause/resume toggle                                                               |
+| `Stop`              | Stop playback; clear stored metadata                                              |
+| `Seek`              | Seek to absolute time (REL_TIME target unit)                                      |
+| `GetTransportInfo`  | Return current transport state (PLAYING / PAUSED_PLAYBACK / STOPPED)              |
+| `GetPositionInfo`   | Return track URI, DIDL-Lite metadata, duration, elapsed time                      |
+| `GetMediaInfo`      | Return current URI and DIDL-Lite metadata                                         |
 
 ---
 
@@ -225,16 +225,16 @@ upnp_friendly_name    = "Rockbox"
 
 ### All UPnP settings at a glance
 
-| Key                      | Type      | Default      | Description                                    |
-|--------------------------|-----------|--------------|------------------------------------------------|
-| `audio_output`           | string    | `"builtin"`  | Set to `"upnp"` to use the PCM sink            |
-| `upnp_renderer_url`      | string    | —            | AVTransport controlURL of the target renderer  |
-| `upnp_http_port`         | integer   | `7879`       | Port for the WAV broadcast HTTP server         |
-| `upnp_server_enabled`    | bool      | `false`      | Start the ContentDirectory media server        |
-| `upnp_server_port`       | integer   | `7878`       | HTTP port for the media server                 |
-| `upnp_renderer_enabled`  | bool      | `false`      | Start the MediaRenderer                        |
-| `upnp_renderer_port`     | integer   | `7880`       | HTTP port for the renderer                     |
-| `upnp_friendly_name`     | string    | `"Rockbox"`  | Display name shown to control points           |
+| Key                     | Type    | Default     | Description                                   |
+| ----------------------- | ------- | ----------- | --------------------------------------------- |
+| `audio_output`          | string  | `"builtin"` | Set to `"upnp"` to use the PCM sink           |
+| `upnp_renderer_url`     | string  | —           | AVTransport controlURL of the target renderer |
+| `upnp_http_port`        | integer | `7879`      | Port for the WAV broadcast HTTP server        |
+| `upnp_server_enabled`   | bool    | `false`     | Start the ContentDirectory media server       |
+| `upnp_server_port`      | integer | `7878`      | HTTP port for the media server                |
+| `upnp_renderer_enabled` | bool    | `false`     | Start the MediaRenderer                       |
+| `upnp_renderer_port`    | integer | `7880`      | HTTP port for the renderer                    |
+| `upnp_friendly_name`    | string  | `"Rockbox"` | Display name shown to control points          |
 
 ---
 

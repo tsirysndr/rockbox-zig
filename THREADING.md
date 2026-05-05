@@ -9,11 +9,13 @@ Rockboxd has two distinct classes of threads that must coexist:
 
 Understanding the boundary between these two classes is critical. Crossing it incorrectly (e.g. doing a plain OS-level block inside a Rockbox kernel thread) will silently starve every other Rockbox kernel thread.
 
+The scheduler implementation differs between the **SDL hosted target** (desktop, macOS/Linux) and the **headless Android cdylib** target. Both share the same C-level `create_thread` / kernel-thread API, but the underlying concurrency primitive is different.
+
 ---
 
-## The SDL Cooperative Scheduler
+## The SDL Cooperative Scheduler (desktop — macOS / Linux)
 
-On the `sdlapp` hosted target (macOS / Linux desktop), each Rockbox kernel thread is backed by a real SDL OS thread (`SDL_CreateThread`). However, Rockbox layers a **cooperative scheduler** on top of those OS threads using a single global SDL mutex:
+On the `sdlapp` hosted target, each Rockbox kernel thread is backed by a real SDL OS thread (`SDL_CreateThread`). However, Rockbox layers a **cooperative scheduler** on top of those OS threads using a single global SDL mutex:
 
 ```c
 // firmware/target/hosted/sdl/thread-sdl.c
@@ -55,16 +57,103 @@ The `stack` and `stack_size` arguments to `create_thread()` are **ignored** on t
 
 ---
 
+## The Headless Scheduler (Android cdylib)
+
+The Android cdylib target (`firmware/target/hosted/android/cdylib/`) replaces SDL entirely with plain pthreads and POSIX clock. There is **no SDL mutex**, no event loop, no LCD, no button polling.
+
+### `system-android.c` vs `system-sdl.c`
+
+| Concern           | SDL hosted                          | Android cdylib                                          |
+| ----------------- | ----------------------------------- | ------------------------------------------------------- |
+| Cooperative token | `SDL_mutex *m` (single global)      | `__cores[0].running` (global current-thread pointer)    |
+| Thread creation   | `SDL_CreateThread`                  | `pthread_create`                                        |
+| Scheduler yield   | `SDL_UnlockMutex` / `SDL_LockMutex` | Rockbox kernel pthread mutex round-trip                 |
+| Boot path         | SDL event thread initialises audio  | `rb_daemon_start` (JNI) spawns `rockbox-engine` pthread |
+| Power-off         | SDL_QUIT event loop                 | `exit(0)` via `power_off()`                             |
+| stdio             | terminal / controlled               | piped to logcat via `redirect_stdio_to_logcat`          |
+
+### `__cores[0].running` — the critical invariant
+
+On the headless pthread target, the Rockbox kernel tracks the currently-executing kernel thread via the global `__cores[0].running` pointer. **Any firmware function that calls `queue_send`, `wakeup_thread`, `pcmbuf_*`, or any kernel primitive reads this pointer to find its own thread entry.**
+
+If such a function is called from a non-Rockbox pthread (e.g. an actix worker or a tonic gRPC handler) the pointer resolves to the wrong thread entry. Consequences:
+- `wakeup_thread_` dereferences a stale or null function pointer → **SIGSEGV at PC=0**
+- Kernel scheduler state is silently corrupted
+- Symptoms may appear seconds later, during a track switch or settings change
+
+This is why **all firmware-mutating calls from Rust handlers must go through the firmware-command bus** (see below).
+
+### Daemon boot sequence (Android)
+
+`rb_daemon_start(configDir, musicDir, deviceName)` in `crates/expo/src/daemon.rs`:
+
+1. Atomically transitions `STATE`: `STOPPED → STARTING` (returns `-114` if already running).
+2. Installs the tracing-android logcat subscriber (idempotent).
+3. Sets env vars: `HOME`, `ROCKBOX_LIBRARY`, `TMPDIR`, `ROCKBOX_PORT`, `ROCKBOX_GRAPHQL_PORT`, `ROCKBOX_TCP_PORT`, `ROCKBOX_MPD_PORT`.
+4. Spawns `rockbox-engine` pthread (2 MB stack) that calls `main_c()` wrapped in `catch_unwind`.
+5. Polls TCP `127.0.0.1:<port>` every 50 ms, up to 30 s, waiting for gRPC to bind.
+6. On success: stores port in `LOCAL_PORT`, transitions to `RUNNING`, sets `SERVER_URL` if not already overridden by JS, spawns `rockbox-library-scan` thread.
+7. Returns the bound gRPC port (positive) or a negative error code (`-110` = timeout, `-114` = already running).
+
+---
+
+## The Firmware-Command Bus (`crates/server/src/fw_bus.rs`)
+
+### Problem
+
+gRPC / HTTP handlers run on actix workers or tonic tasks — plain Rust OS threads. Calling firmware FFI directly from these threads violates the `__cores[0].running` invariant and causes the SIGSEGV / scheduler corruption described above. This affects both the Android cdylib and any future hosted-pthread build.
+
+### Solution
+
+All kernel-mutating calls are serialised through a single `std::sync::mpsc` channel. **Only the broker thread drains this channel.** The broker IS a real Rockbox kernel thread (spawned by `apps/broker_thread.c::create_thread`), so its firmware calls always run with a valid `__running_self_entry()`.
+
+```
+actix worker / tonic task
+  → fw_bus::send(FwCmd::Play { elapsed, offset, reply })
+      → mpsc channel
+          → broker thread (real Rockbox kernel thread)
+              → rb::playback::play(elapsed, offset)
+              → reply_tx.send(())
+  ← fw_bus::send_and_wait blocks until reply arrives (≤ 30 s)
+```
+
+### API
+
+| Function                       | Use case                                                             |
+| ------------------------------ | -------------------------------------------------------------------- |
+| `fw_bus::init()`               | Call once at startup, before broker thread spawns                    |
+| `fw_bus::send(cmd)`            | Fire-and-forget (no reply needed)                                    |
+| `fw_bus::send_and_wait(make)`  | Send + block until broker confirms (for actix `web::block` handlers) |
+| `fw_bus::run_on_broker(f)`     | Run arbitrary closure on broker; returns `T::default()` on timeout   |
+| `fw_bus::try_run_on_broker(f)` | Same but returns `Option<T>` — `None` on timeout                     |
+| `fw_bus::drain(rx)`            | Called once per broker iteration to execute pending commands         |
+
+### `FwCmd` variants
+
+`Play`, `Pause`, `Resume`, `Next`, `Prev`, `Stop`, `FfRewind`, `FlushAndReloadTracks`, `SetCrossfade`, and `Custom(Box<dyn FnOnce() + Send>)` (escape hatch for anything not enumerated).
+
+### Timeout behaviour
+
+The broker tick period is ~10 ms at idle (the `rb::system::sleep(HZ/10)` in the broker loop). `BROKER_TIMEOUT` is 30 s — generous because building a large playlist can take several seconds. On timeout `run_on_broker` logs a warning and returns `T::default()` rather than panicking; `try_run_on_broker` returns `None`.
+
+### Where fw_bus is NOT needed
+
+- Read-only status queries (`rb::playback::status()`, `rb::playback::current_track()`) — these only read atomics or copy structs; no kernel primitive is called.
+- Anything running inside the broker thread itself (it already owns `__running_self_entry()`).
+- Desktop SDL builds — the SDL mutex serialises everything anyway. The bus is still compiled in and works correctly; it just adds one channel hop of latency.
+
+---
+
 ## Thread Map
 
 ### Rockbox kernel threads (must yield)
 
-| Thread | C entry point | What it does |
-|--------|---------------|--------------|
-| `server_thread` | `server_thread.c` → `start_server()` | Spawns the actix HTTP server in a Rust OS thread, then loops yielding to the Rockbox scheduler |
-| `broker_thread` | `broker_thread.c` → `start_broker()` | Event loop: publishes playback state to GraphQL subscriptions, scrobbles tracks, restores playlist |
+| Thread          | C entry point                        | What it does                                                                                                        |
+| --------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `server_thread` | `server_thread.c` → `start_server()` | Spawns the actix HTTP server in a Rust OS thread, then loops yielding to the Rockbox scheduler                      |
+| `broker_thread` | `broker_thread.c` → `start_broker()` | Event loop: drains `fw_bus`, publishes playback state to GraphQL subscriptions, scrobbles tracks, restores playlist |
 
-Both threads must call `rb::system::sleep(rb::HZ)` on every loop iteration.
+Both threads must call `rb::system::sleep(rb::HZ)` (desktop) or equivalent on every loop iteration.
 
 **`server_thread` pattern** (`crates/server/src/lib.rs`):
 ```rust
@@ -89,34 +178,49 @@ pub extern "C" fn start_server() {
 **`broker_thread` pattern** (`crates/server/src/lib.rs`):
 ```rust
 pub extern "C" fn start_broker() {
-    // ... setup ...
+    let fw_rx = fw_bus::take_receiver();
     loop {
-        // ... do work (check playback, publish events) ...
+        // Drain firmware commands from actix/gRPC handlers first.
+        if let Some(rx) = &fw_rx {
+            fw_bus::drain(rx);
+        }
+        // ... publish events, scrobble, restore playlist ...
         thread::sleep(std::time::Duration::from_millis(100));
-        rb::system::sleep(rb::HZ);  // yield the Rockbox mutex
+        rb::system::sleep(rb::HZ);
     }
 }
 ```
 
 ### Rust OS threads (no Rockbox scheduler involvement)
 
-These are spawned with `std::thread::spawn` — they are pure OS threads and never interact with the Rockbox mutex. They are free to block indefinitely.
+These are spawned with `std::thread::spawn` — they are pure OS threads and never interact with the Rockbox scheduler token or `__cores[0].running`.
 
-| Thread / component | Spawned from | Runtime |
-|--------------------|--------------|---------|
-| **HTTP server** (actix-web, port 6063) | `start_server()` via `thread::spawn` | `actix_rt::System` (single-thread + LocalSet per arbiter) |
-| **gRPC server** (tonic, port 6061) | `start_servers()` via `thread::spawn` | `tokio::Builder::new_current_thread` |
-| **GraphQL server** (async-graphql, port 6062) | `start_servers()` via `thread::spawn` | `tokio::Builder::new_current_thread` |
-| **MPD server** (port 6600) | `start_servers()` via `thread::spawn` | `tokio::Builder::new_current_thread` |
-| **MPRIS server** (Linux, D-Bus) | `start_servers()` via `thread::spawn` | `async_std` task |
-| **UPnP runtime** | `rockbox_upnp::init()` (static `OnceLock`) | `tokio::runtime::Runtime::new()` (multi-thread) |
-| **Device scanners** (Chromecast, AirPlay, Snapcast, UPnP, Squeezelite) | `run_http_server()` via `thread::spawn` | each creates its own `tokio::runtime::Runtime::new()` |
-| **Player event listener** | `run_http_server()` via `thread::spawn` | `tokio::runtime::Runtime::new()` (multi-thread) |
-| **Command relay** | `start_servers()` via `thread::spawn` | `reqwest::blocking` (creates its own tokio internally) |
+| Thread / component                                                     | Spawned from                               | Runtime                                                   |
+| ---------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------- |
+| **HTTP server** (actix-web, port 6063)                                 | `start_server()` via `thread::spawn`       | `actix_rt::System` (single-thread + LocalSet per arbiter) |
+| **gRPC server** (tonic, port 6061)                                     | `start_servers()` via `thread::spawn`      | `tokio::Builder::new_current_thread`                      |
+| **GraphQL server** (async-graphql, port 6062)                          | `start_servers()` via `thread::spawn`      | `tokio::Builder::new_current_thread`                      |
+| **MPD server** (port 6600)                                             | `start_servers()` via `thread::spawn`      | `tokio::Builder::new_current_thread`                      |
+| **MPRIS server** (Linux, D-Bus)                                        | `start_servers()` via `thread::spawn`      | `async_std` task                                          |
+| **UPnP runtime**                                                       | `rockbox_upnp::init()` (static `OnceLock`) | `tokio::runtime::Runtime::new()` (multi-thread)           |
+| **Device scanners** (Chromecast, AirPlay, Snapcast, UPnP, Squeezelite) | `run_http_server()` via `thread::spawn`    | each creates its own `tokio::runtime::Runtime::new()`     |
+| **Player event listener**                                              | `run_http_server()` via `thread::spawn`    | `tokio::runtime::Runtime::new()` (multi-thread)           |
+| **Command relay**                                                      | `start_servers()` via `thread::spawn`      | `reqwest::blocking` (creates its own tokio internally)    |
+
+### Android-only Rust OS threads
+
+| Thread                               | Spawned from                                  | Purpose                                                                         |
+| ------------------------------------ | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| **`rockbox-engine`** (2 MB stack)    | `rb_daemon_start`                             | Calls `main_c()`; owns all Rockbox kernel threads and the cooperative scheduler |
+| **`rockbox-library-scan`**           | `spawn_library_scan()` after gRPC binds       | SQLite audio scan + Rocksky enrichment                                          |
+| **`stdio-logcat-reader`** (detached) | `redirect_stdio_to_logcat()` at `system_init` | Reads the stdout/stderr pipe and writes lines to logcat tag `Rockbox`           |
+| **`rockbox-rpc`** (× 2 workers)      | `RT` (`Lazy<Runtime>`) in `crates/expo`       | Tokio multi-thread runtime for all tonic gRPC client calls                      |
 
 ---
 
-## Startup Sequence
+## Startup Sequences
+
+### Desktop (SDL hosted)
 
 ```
 main.c: server_init()
@@ -131,6 +235,7 @@ main.c: server_init()
 ├── sleep(HZ)                           ← Rockbox scheduler sleep on main thread (~1 s)
 │
 └── start_servers()                     ← called on main C thread after 1 s
+    ├── fw_bus::init()                  ← create mpsc channel before broker spawns
     ├── thread::spawn(gRPC server)      ← Rust OS thread, new_current_thread runtime
     ├── thread::spawn(GraphQL server)   ← Rust OS thread, new_current_thread runtime
     ├── thread::spawn(MPD server)       ← Rust OS thread, new_current_thread runtime
@@ -141,7 +246,44 @@ main.c: broker_init()
 │
 └── create_thread(broker_thread)        ← Rockbox kernel thread
     └── start_broker()
-        └── loop { work + sleep + rb::system::sleep(HZ) }
+        ├── fw_bus::take_receiver()     ← claim the mpsc Receiver
+        └── loop { fw_bus::drain + work + sleep + rb::system::sleep(HZ) }
+```
+
+### Android cdylib
+
+```
+JNI: RockboxRpcModule.OnCreate
+│
+└── rb_daemon_start(configDir, musicDir, deviceName)   ← crates/expo/src/daemon.rs
+    ├── STATE: STOPPED → STARTING
+    ├── install_logcat_subscriber()
+    ├── configure_environment()         ← sets HOME, ROCKBOX_LIBRARY, TMPDIR, ports
+    │
+    ├── thread::spawn("rockbox-engine", stack=2MB)
+    │   └── main_c()                    ← apps/main.c
+    │       ├── system_init()           ← redirect_stdio_to_logcat + stackbegin
+    │       ├── server_init()           ← create_thread(server_thread)
+    │       │   └── start_server()
+    │       │       ├── load_settings()
+    │       │       ├── fw_bus::init()
+    │       │       ├── thread::spawn(actix HTTP server)
+    │       │       └── loop { sleep + rb::system::sleep(HZ) }
+    │       ├── sleep(HZ)
+    │       ├── start_servers()
+    │       │   ├── thread::spawn(gRPC server)
+    │       │   ├── thread::spawn(GraphQL server)
+    │       │   ├── thread::spawn(MPD server)
+    │       │   └── thread::spawn(command relay)
+    │       └── broker_init()           ← create_thread(broker_thread)
+    │           └── start_broker()
+    │               ├── fw_bus::take_receiver()
+    │               └── loop { fw_bus::drain + work + sleep + rb::system::sleep(HZ) }
+    │
+    ├── wait_for_grpc(:6061, 30s)       ← polls TCP connect every 50 ms
+    ├── STATE: STARTING → RUNNING
+    ├── rb_set_server_url("http://127.0.0.1:6061")  ← if JS hasn't overridden
+    └── spawn_library_scan(force=false) ← own OS thread + current_thread tokio runtime
 ```
 
 ---
@@ -149,6 +291,8 @@ main.c: broker_init()
 ## Tokio Runtime Layout
 
 Multiple independent tokio runtimes coexist; they do not share thread pools or event loops.
+
+### Desktop
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -180,6 +324,31 @@ Multiple independent tokio runtimes coexist; they do not share thread pools or e
 ┌─────────────────────────────────────────────────────┐
 │  Scanner / player-event runtimes (multi-thread each)│
 │  Short-lived, one per background scanning thread    │
+└─────────────────────────────────────────────────────┘
+```
+
+### Android (additional runtimes)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  rockbox-rpc Runtime (multi-thread, 2 workers)      │
+│  Lazy<Runtime> in crates/expo/src/lib.rs            │
+│  Owns: all outbound tonic gRPC client calls         │
+│  (rb_play, rb_pause, rb_status_json, streams, …)    │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  library-scan Runtime (current-thread, ephemeral)   │
+│  Created per spawn_library_scan() call              │
+│  Owns: SQLite connection pool, audio_scan,          │
+│        save_audio_metadata, Rocksky enrichment      │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  save_remote_track_metadata Runtime (current-thread)│
+│  Created per call from C firmware (streamfd.c)      │
+│  Safe: called from a Rockbox kernel thread, which   │
+│  is never inside an existing async context          │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -240,3 +409,13 @@ The command-relay thread in `start_servers()` uses `reqwest::blocking::Client`. 
 ### Rule 5: `SimpleBroker` is runtime-agnostic
 
 `rockbox_graphql::simplebroker::SimpleBroker` uses `futures_channel::mpsc::UnboundedSender` for pub/sub. `publish()` is a synchronous call — it does not require or interact with any tokio runtime. It is safe to call from any thread, including Rockbox kernel threads and scanner threads with their own runtimes.
+
+### Rule 6: All firmware-mutating FFI from Rust handlers must go through `fw_bus`
+
+On the headless pthread target (Android cdylib) calling `rb::playback::play`, `rb::sound::set_volume`, or any function that reaches `queue_send` / `wakeup_thread` from a non-Rockbox pthread corrupts `__cores[0].running` and causes a SIGSEGV. Route every such call through `fw_bus::run_on_broker(|| ...)` from inside a `web::block(...)` closure.
+
+Read-only queries (status, current track) that only touch atomics or copy structs are safe to call directly.
+
+### Rule 7: `fw_bus::init()` must be called before any handler sends a command
+
+`fw_bus::send()` silently drops commands if the bus hasn't been initialised. `init()` is called inside `start_servers()`, which runs before the HTTP/gRPC servers start accepting requests. On Android, the boot sequence guarantees `start_servers()` (inside `main_c()`) completes before `rb_daemon_start` returns.

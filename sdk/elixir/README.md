@@ -112,14 +112,14 @@ client = Rockbox.new(
 )
 ```
 
-| Option      | Type                   | Default                          | Description                                         |
-|-------------|------------------------|----------------------------------|-----------------------------------------------------|
-| `:host`     | `String.t()`           | `"localhost"`                    | Hostname or IP of rockboxd                          |
-| `:port`     | `non_neg_integer()`    | `6062`                           | GraphQL HTTP/WS port                                |
-| `:http_url` | `String.t()`           | `http://{host}:{port}/graphql`   | Override the full HTTP URL                          |
-| `:ws_url`   | `String.t()`           | `ws://{host}:{port}/graphql`     | Override the full WebSocket URL                     |
-| `:headers`  | `[{String.t(), String.t()}]` | `[]`                       | Extra HTTP request headers                          |
-| `:timeout`  | `non_neg_integer()`    | `15_000`                         | HTTP request timeout (ms)                           |
+| Option      | Type                         | Default                        | Description                     |
+| ----------- | ---------------------------- | ------------------------------ | ------------------------------- |
+| `:host`     | `String.t()`                 | `"localhost"`                  | Hostname or IP of rockboxd      |
+| `:port`     | `non_neg_integer()`          | `6062`                         | GraphQL HTTP/WS port            |
+| `:http_url` | `String.t()`                 | `http://{host}:{port}/graphql` | Override the full HTTP URL      |
+| `:ws_url`   | `String.t()`                 | `ws://{host}:{port}/graphql`   | Override the full WebSocket URL |
+| `:headers`  | `[{String.t(), String.t()}]` | `[]`                           | Extra HTTP request headers      |
+| `:timeout`  | `non_neg_integer()`          | `15_000`                       | HTTP request timeout (ms)       |
 
 ---
 
@@ -454,14 +454,14 @@ Rockbox.disconnect(client)
 
 ### Event map
 
-| Event                | Payload                                       |
-|----------------------|-----------------------------------------------|
-| `:track_changed`     | `%Rockbox.Track{}`                            |
-| `:status_changed`    | `:stopped | :playing | :paused`               |
-| `:playlist_changed`  | `%Rockbox.Playlist{}`                         |
-| `:ws_open`           | `nil`                                         |
-| `:ws_close`          | `nil`                                         |
-| `:ws_error`          | `Exception.t()`                               |
+| Event               | Payload               |          |          |
+| ------------------- | --------------------- | -------- | -------- |
+| `:track_changed`    | `%Rockbox.Track{}`    |          |          |
+| `:status_changed`   | `:stopped             | :playing | :paused` |
+| `:playlist_changed` | `%Rockbox.Playlist{}` |          |          |
+| `:ws_open`          | `nil`                 |          |          |
+| `:ws_close`         | `nil`                 |          |          |
+| `:ws_error`         | `Exception.t()`       |          |          |
 
 Subscribers are auto-removed when their process exits — no manual cleanup
 needed.
@@ -598,11 +598,11 @@ rescue
 end
 ```
 
-| Exception                 | When raised                                              |
-|---------------------------|----------------------------------------------------------|
-| `Rockbox.NetworkError`    | HTTP request fails or returns a non-2xx status           |
-| `Rockbox.GraphQLError`    | Server returns `{ "errors": [...] }` in the response body |
-| `Rockbox.Error`           | Base exception — rescue this to catch any SDK failure    |
+| Exception              | When raised                                               |
+| ---------------------- | --------------------------------------------------------- |
+| `Rockbox.NetworkError` | HTTP request fails or returns a non-2xx status            |
+| `Rockbox.GraphQLError` | Server returns `{ "errors": [...] }` in the response body |
+| `Rockbox.Error`        | Base exception — rescue this to catch any SDK failure     |
 
 ---
 
@@ -634,24 +634,24 @@ rockboxd is running.
 
 ## Module map
 
-| Domain                | Module                          |
-|-----------------------|---------------------------------|
-| Client constructor    | `Rockbox`, `Rockbox.Client`     |
-| Transport controls    | `Rockbox.Playback`              |
-| Library / search      | `Rockbox.Library`               |
-| Live queue            | `Rockbox.Queue`                 |
-| Saved playlists       | `Rockbox.SavedPlaylists`        |
-| Smart playlists       | `Rockbox.SmartPlaylists`        |
-| Smart-playlist rules  | `Rockbox.SmartPlaylist.Rules`   |
-| Volume                | `Rockbox.Sound`                 |
-| Settings              | `Rockbox.Settings`              |
-| System info           | `Rockbox.System`                |
-| Filesystem browser    | `Rockbox.Browse`                |
-| Output devices        | `Rockbox.Devices`               |
-| Bluetooth             | `Rockbox.Bluetooth`             |
-| Real-time events      | `Rockbox.Events`                |
-| Plugin behaviour      | `Rockbox.Plugin`, `Rockbox.Plugins` |
-| Errors                | `Rockbox.Error`, `Rockbox.NetworkError`, `Rockbox.GraphQLError` |
+| Domain               | Module                                                          |
+| -------------------- | --------------------------------------------------------------- |
+| Client constructor   | `Rockbox`, `Rockbox.Client`                                     |
+| Transport controls   | `Rockbox.Playback`                                              |
+| Library / search     | `Rockbox.Library`                                               |
+| Live queue           | `Rockbox.Queue`                                                 |
+| Saved playlists      | `Rockbox.SavedPlaylists`                                        |
+| Smart playlists      | `Rockbox.SmartPlaylists`                                        |
+| Smart-playlist rules | `Rockbox.SmartPlaylist.Rules`                                   |
+| Volume               | `Rockbox.Sound`                                                 |
+| Settings             | `Rockbox.Settings`                                              |
+| System info          | `Rockbox.System`                                                |
+| Filesystem browser   | `Rockbox.Browse`                                                |
+| Output devices       | `Rockbox.Devices`                                               |
+| Bluetooth            | `Rockbox.Bluetooth`                                             |
+| Real-time events     | `Rockbox.Events`                                                |
+| Plugin behaviour     | `Rockbox.Plugin`, `Rockbox.Plugins`                             |
+| Errors               | `Rockbox.Error`, `Rockbox.NetworkError`, `Rockbox.GraphQLError` |
 
 ---
 

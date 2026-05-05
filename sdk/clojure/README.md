@@ -132,15 +132,15 @@ rockbox start
            (rb/with-headers {:x-trace-id "req-123"})))
 ```
 
-| Option        | Default                           | Description                         |
-|---------------|-----------------------------------|-------------------------------------|
-| `:host`       | `"localhost"`                     | rockboxd hostname / IP              |
-| `:port`       | `6062`                            | GraphQL HTTP/WS port                |
-| `:http-url`   | `http://{host}:{port}/graphql`    | Override the full HTTP URL          |
-| `:ws-url`     | `ws://{host}:{port}/graphql`      | Override the full WS URL            |
-| `:timeout-ms` | `15000`                           | Per-request timeout                 |
-| `:headers`    | `{}`                              | Extra HTTP headers map              |
-| `:http-client`| (auto)                            | Reuse a `java.net.http.HttpClient`  |
+| Option         | Default                        | Description                        |
+| -------------- | ------------------------------ | ---------------------------------- |
+| `:host`        | `"localhost"`                  | rockboxd hostname / IP             |
+| `:port`        | `6062`                         | GraphQL HTTP/WS port               |
+| `:http-url`    | `http://{host}:{port}/graphql` | Override the full HTTP URL         |
+| `:ws-url`      | `ws://{host}:{port}/graphql`   | Override the full WS URL           |
+| `:timeout-ms`  | `15000`                        | Per-request timeout                |
+| `:headers`     | `{}`                           | Extra HTTP headers map             |
+| `:http-client` | (auto)                         | Reuse a `java.net.http.HttpClient` |
 
 ---
 
@@ -252,7 +252,7 @@ named collections use [Saved playlists](#saved-playlists).
 ```
 
 | `insert-position` keyword | Effect                                 |
-|---------------------------|----------------------------------------|
+| ------------------------- | -------------------------------------- |
 | `:next`                   | After the currently playing track      |
 | `:after-current`          | After the last manually inserted track |
 | `:last`                   | At the end of the queue                |
@@ -491,14 +491,14 @@ to 30 s, and re-subscribes after every reconnect.
 
 ### Event map
 
-| Event               | Payload     | Description                          |
-|---------------------|-------------|--------------------------------------|
-| `:track-changed`    | track map   | Currently playing track changed      |
-| `:status-changed`   | int         | Playback status (0=stopped, 1=playing, 3=paused) |
-| `:playlist-changed` | playlist    | Active queue was modified            |
-| `:ws-open`          | `nil`       | WebSocket connection established     |
-| `:ws-close`         | `nil`       | WebSocket connection closed          |
-| `:ws-error`         | Throwable   | WebSocket / subscription error       |
+| Event               | Payload   | Description                                      |
+| ------------------- | --------- | ------------------------------------------------ |
+| `:track-changed`    | track map | Currently playing track changed                  |
+| `:status-changed`   | int       | Playback status (0=stopped, 1=playing, 3=paused) |
+| `:playlist-changed` | playlist  | Active queue was modified                        |
+| `:ws-open`          | `nil`     | WebSocket connection established                 |
+| `:ws-close`         | `nil`     | WebSocket connection closed                      |
+| `:ws-error`         | Throwable | WebSocket / subscription error                   |
 
 ---
 
@@ -603,11 +603,11 @@ in their ex-data. One `catch ExceptionInfo` covers everything:
 (err/graphql-error? e)
 ```
 
-| `:type`            | When thrown                                                     |
-|--------------------|-----------------------------------------------------------------|
-| `:rockbox/network` | Cannot reach rockboxd, or HTTP returned a non-2xx status        |
-| `:rockbox/graphql` | Server returned `{errors: [...]}` in the response body          |
-| `:rockbox/config`  | Client constructed with bad config or required input missing    |
+| `:type`            | When thrown                                                  |
+| ------------------ | ------------------------------------------------------------ |
+| `:rockbox/network` | Cannot reach rockboxd, or HTTP returned a non-2xx status     |
+| `:rockbox/graphql` | Server returned `{errors: [...]}` in the response body       |
+| `:rockbox/config`  | Client constructed with bad config or required input missing |
 
 ---
 

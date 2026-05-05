@@ -1,5 +1,23 @@
 # CLAUDE.md — Rockbox Zig
 
+## Markdown formatting
+
+### Tables
+
+Always align markdown tables so that column pipes line up in raw text. Every cell in a column must be padded with trailing spaces to the width of the widest cell in that column. The separator row must use the same number of dashes as the column width. Example:
+
+```markdown
+| Name    | Role      | Notes                        |
+| ------- | --------- | ---------------------------- |
+| Alice   | Engineer  | Owns the firmware layer      |
+| Bob     | Designer  | Works on the mobile UI       |
+| Charlie | QA        | Runs integration test suites |
+```
+
+When editing an existing table, re-align the whole table (not just the changed row). When adding a new table, align it before committing.
+
+---
+
 ## Project overview
 
 Rockbox Zig is a modern wrapper around the [Rockbox](https://www.rockbox.org) open-source audio player firmware. It adds Rust/Zig services on top of the C firmware to expose gRPC, GraphQL, HTTP, and MPD APIs, a Typesense-backed search engine, Chromecast/AirPlay/Snapcast/Squeezelite output sinks, and a desktop/web UI.
@@ -114,12 +132,12 @@ squeezelite -s localhost -n "Kitchen"
 
 The audio output abstraction lives in `firmware/export/pcm_sink.h`. Each sink implements `struct pcm_sink_ops` (init / postinit / set_freq / lock / unlock / play / stop).
 
-| Enum constant      | Value | Implementation file                         |
-|--------------------|-------|---------------------------------------------|
-| `PCM_SINK_BUILTIN`     | 0 | `firmware/target/hosted/sdl/pcm-sdl.c`        |
-| `PCM_SINK_FIFO`        | 1 | `firmware/target/hosted/pcm-fifo.c`           |
-| `PCM_SINK_AIRPLAY`     | 2 | `firmware/target/hosted/pcm-airplay.c`        |
-| `PCM_SINK_SQUEEZELITE` | 3 | `firmware/target/hosted/pcm-squeezelite.c`    |
+| Enum constant          | Value | Implementation file                        |
+| ---------------------- | ----- | ------------------------------------------ |
+| `PCM_SINK_BUILTIN`     | 0     | `firmware/target/hosted/sdl/pcm-sdl.c`     |
+| `PCM_SINK_FIFO`        | 1     | `firmware/target/hosted/pcm-fifo.c`        |
+| `PCM_SINK_AIRPLAY`     | 2     | `firmware/target/hosted/pcm-airplay.c`     |
+| `PCM_SINK_SQUEEZELITE` | 3     | `firmware/target/hosted/pcm-squeezelite.c` |
 
 `crates/settings/src/lib.rs:load_settings()` reads `audio_output` and calls `pcm::switch_sink()`.
 

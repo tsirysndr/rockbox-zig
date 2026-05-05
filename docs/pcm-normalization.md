@@ -58,10 +58,10 @@ rms_estimate = α × rms_estimate + (1 − α) × chunk_rms
 
 The coefficient `α` controls how quickly the estimate tracks changes. Crucially, **two different coefficients** are used depending on the direction of change:
 
-| Signal direction | Coefficient | Behaviour |
-|---|---|---|
-| `chunk_rms > rms_estimate` (getting louder) | `RMS_ATTACK = 0.3` | Tracks loud transients in 2–3 chunks (< 150 ms) |
-| `chunk_rms < rms_estimate` (getting quieter) | `RMS_RELEASE = 0.99` | Takes ~7 s to settle on a quieter signal |
+| Signal direction                             | Coefficient          | Behaviour                                       |
+| -------------------------------------------- | -------------------- | ----------------------------------------------- |
+| `chunk_rms > rms_estimate` (getting louder)  | `RMS_ATTACK = 0.3`   | Tracks loud transients in 2–3 chunks (< 150 ms) |
+| `chunk_rms < rms_estimate` (getting quieter) | `RMS_RELEASE = 0.99` | Takes ~7 s to settle on a quieter signal        |
 
 This asymmetry is essential. A fast attack means the estimate rises quickly when a loud section begins — preventing the normalizer from over-boosting and causing clipping. A slow release means the estimate falls slowly after a loud section ends — preventing the gain from shooting up during a brief quiet passage (the "pumping" or "breathing" artefact).
 
@@ -88,10 +88,10 @@ The gain is not applied instantaneously — that would produce audible clicks at
 gain = β × gain + (1 − β) × desired_gain
 ```
 
-| Direction | Coefficient | Convergence |
-|---|---|---|
-| Gain decreasing (signal too loud) | `GAIN_ATTACK = 0.3` | Reaches target in ~3 chunks (< 150 ms) |
-| Gain increasing (signal too quiet) | `GAIN_RELEASE = 0.98` | Reaches target in ~3 seconds |
+| Direction                          | Coefficient           | Convergence                            |
+| ---------------------------------- | --------------------- | -------------------------------------- |
+| Gain decreasing (signal too loud)  | `GAIN_ATTACK = 0.3`   | Reaches target in ~3 chunks (< 150 ms) |
+| Gain increasing (signal too quiet) | `GAIN_RELEASE = 0.98` | Reaches target in ~3 seconds           |
 
 The fast gain attack prevents over-shoot and clipping when a loud track suddenly follows a quiet one. The slow gain release prevents the loudness from rising abruptly during a quiet moment.
 
@@ -165,39 +165,39 @@ The `rms_estimate` warm-start at 0.1 (rather than at `TARGET_RMS`) means `desire
 
 All parameters are compile-time constants in `firmware/pcm_normalizer.c`.
 
-| Constant | Value | dB equivalent | Description |
-|---|---|---|---|
-| `TARGET_RMS` | `0.35` | −9 dBFS | Target RMS loudness. Higher = louder output. |
-| `RMS_ATTACK` | `0.3` | — | IIR coefficient for RMS rising (loud signal). Lower = faster. |
-| `RMS_RELEASE` | `0.99` | — | IIR coefficient for RMS falling (quiet signal). Higher = slower. |
-| `GAIN_ATTACK` | `0.3` | — | IIR coefficient for gain decreasing. Lower = faster. |
-| `GAIN_RELEASE` | `0.98` | — | IIR coefficient for gain increasing. Higher = slower. |
-| `MAX_GAIN` | `10.0` | +20 dB | Maximum boost applied to quiet tracks. |
-| `MIN_GAIN` | `0.1` | −20 dB | Maximum cut applied to loud tracks. |
-| `GATE_THRESH` | `0.001` | −60 dBFS | RMS below this → treat chunk as silence. |
+| Constant       | Value   | dB equivalent | Description                                                      |
+| -------------- | ------- | ------------- | ---------------------------------------------------------------- |
+| `TARGET_RMS`   | `0.35`  | −9 dBFS       | Target RMS loudness. Higher = louder output.                     |
+| `RMS_ATTACK`   | `0.3`   | —             | IIR coefficient for RMS rising (loud signal). Lower = faster.    |
+| `RMS_RELEASE`  | `0.99`  | —             | IIR coefficient for RMS falling (quiet signal). Higher = slower. |
+| `GAIN_ATTACK`  | `0.3`   | —             | IIR coefficient for gain decreasing. Lower = faster.             |
+| `GAIN_RELEASE` | `0.98`  | —             | IIR coefficient for gain increasing. Higher = slower.            |
+| `MAX_GAIN`     | `10.0`  | +20 dB        | Maximum boost applied to quiet tracks.                           |
+| `MIN_GAIN`     | `0.1`   | −20 dB        | Maximum cut applied to loud tracks.                              |
+| `GATE_THRESH`  | `0.001` | −60 dBFS      | RMS below this → treat chunk as silence.                         |
 
 ### Choosing TARGET_RMS
 
 `TARGET_RMS` is the most impactful parameter. A few reference points:
 
-| Value | dBFS | Character |
-|---|---|---|
-| `0.071` | −23 dBFS | EBU R128 broadcast standard (very conservative) |
-| `0.178` | −15 dBFS | Apple Music / AES streaming recommendation |
-| `0.200` | −14 dBFS | Spotify / YouTube streaming target |
-| `0.350` | −9 dBFS | **Current default** — loud and punchy |
-| `0.500` | −6 dBFS | Very loud; risk of clipping on loud source material |
+| Value   | dBFS     | Character                                           |
+| ------- | -------- | --------------------------------------------------- |
+| `0.071` | −23 dBFS | EBU R128 broadcast standard (very conservative)     |
+| `0.178` | −15 dBFS | Apple Music / AES streaming recommendation          |
+| `0.200` | −14 dBFS | Spotify / YouTube streaming target                  |
+| `0.350` | −9 dBFS  | **Current default** — loud and punchy               |
+| `0.500` | −6 dBFS  | Very loud; risk of clipping on loud source material |
 
 ### Convergence Time Reference
 
 IIR convergence depends on the chunk size. For a typical 4 096-byte chunk at 44 100 Hz stereo (46 ms per chunk):
 
-| Parameter | Coefficient | ~Time to move 63% of the way to target |
-|---|---|---|
-| `RMS_ATTACK` | 0.3 | 1 chunk ≈ 46 ms |
-| `RMS_RELEASE` | 0.99 | 100 chunks ≈ 4.6 s |
-| `GAIN_ATTACK` | 0.3 | 1 chunk ≈ 46 ms |
-| `GAIN_RELEASE` | 0.98 | 50 chunks ≈ 2.3 s |
+| Parameter      | Coefficient | ~Time to move 63% of the way to target |
+| -------------- | ----------- | -------------------------------------- |
+| `RMS_ATTACK`   | 0.3         | 1 chunk ≈ 46 ms                        |
+| `RMS_RELEASE`  | 0.99        | 100 chunks ≈ 4.6 s                     |
+| `GAIN_ATTACK`  | 0.3         | 1 chunk ≈ 46 ms                        |
+| `GAIN_RELEASE` | 0.98        | 50 chunks ≈ 2.3 s                      |
 
 Time constant τ = `−chunk_duration / ln(α)`. For `α = 0.98` and chunk = 46 ms: τ = −46 ms / ln(0.98) ≈ 2.3 s.
 
@@ -257,14 +257,14 @@ let on = rockbox_sys::sound::normalizer::is_enabled();
 
 Rockbox also supports ReplayGain, which is a pre-computed per-track gain stored in file tags. The two approaches are complementary:
 
-| | ReplayGain | PCM Normalizer |
-|---|---|---|
-| **Requires track analysis** | Yes (offline scan) | No |
-| **Works on streams / radio** | No | Yes |
-| **Accuracy** | Very high (full-track analysis) | Moderate (real-time estimate) |
-| **Artefacts** | None | Slight pumping on highly dynamic content |
-| **Target** | Configurable per standard | `TARGET_RMS` compile constant |
-| **Processing cost** | Zero at runtime | ~1–2% CPU (RMS + gain loop) |
+|                              | ReplayGain                      | PCM Normalizer                           |
+| ---------------------------- | ------------------------------- | ---------------------------------------- |
+| **Requires track analysis**  | Yes (offline scan)              | No                                       |
+| **Works on streams / radio** | No                              | Yes                                      |
+| **Accuracy**                 | Very high (full-track analysis) | Moderate (real-time estimate)            |
+| **Artefacts**                | None                            | Slight pumping on highly dynamic content |
+| **Target**                   | Configurable per standard       | `TARGET_RMS` compile constant            |
+| **Processing cost**          | Zero at runtime                 | ~1–2% CPU (RMS + gain loop)              |
 
 For local music libraries, ReplayGain is generally preferred when tags are available. The PCM normalizer is the practical choice for streaming sources or when ReplayGain tags are missing.
 

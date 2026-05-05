@@ -44,15 +44,15 @@ tailwind.config.js      Same palette exposed as Tailwind colors
 
 Mirrors [`gpui/src/ui/theme.rs`](../gpui/src/ui/theme.rs):
 
-| Token        | Hex                  |
-| ------------ | -------------------- |
-| `appBg`      | `#0F1117`            |
-| `bgCard`     | `#1A1D26`            |
-| `accent`     | `#6F00FF`            |
-| `accentSoft` | `#1A0E3D`            |
-| `text/primary` | `#FFFFFF`          |
-| `text/secondary` | `#9898A8`        |
-| `border`     | `rgba(255,255,255,0.16)` |
+| Token            | Hex                      |
+| ---------------- | ------------------------ |
+| `appBg`          | `#0F1117`                |
+| `bgCard`         | `#1A1D26`                |
+| `accent`         | `#6F00FF`                |
+| `accentSoft`     | `#1A0E3D`                |
+| `text/primary`   | `#FFFFFF`                |
+| `text/secondary` | `#9898A8`                |
+| `border`         | `rgba(255,255,255,0.16)` |
 
 The app icon (`assets/images/icon.png`, splash, favicon, Android adaptive
 foreground) is rendered from [`gpui/assets/rockbox.svg`](../gpui/assets/rockbox.svg).

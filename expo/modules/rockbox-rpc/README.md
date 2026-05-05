@@ -181,14 +181,14 @@ unsubStatus(); unsubTrack(); unsubQueue(); unsubLib(); unsubScan();
 
 Topics surfaced through the EventEmitter base class:
 
-| Topic | Payload |
-|-------|---------|
-| `rockbox.status`       | `{ status: 0|1|2 }` |
-| `rockbox.currentTrack` | `TrackSnapshot` |
-| `rockbox.playlist`     | `PlaylistSnapshot` (`index`, `amount`, `tracks`) |
-| `rockbox.library`      | full library snapshot (`unknown` — cast as needed) |
-| `rockbox.discovery`    | `DiscoveredService` (`name`, `hostname`, `port`, `addresses[]`, `properties{}`) |
-| `rockbox.error`        | `{ subId, stream, error }` |
+| Topic                  | Payload                                                                         |   |      |
+| ---------------------- | ------------------------------------------------------------------------------- | - | ---- |
+| `rockbox.status`       | `{ status: 0                                                                    | 1 | 2 }` |
+| `rockbox.currentTrack` | `TrackSnapshot`                                                                 |   |      |
+| `rockbox.playlist`     | `PlaylistSnapshot` (`index`, `amount`, `tracks`)                                |   |      |
+| `rockbox.library`      | full library snapshot (`unknown` — cast as needed)                              |   |      |
+| `rockbox.discovery`    | `DiscoveredService` (`name`, `hostname`, `port`, `addresses[]`, `properties{}`) |   |      |
+| `rockbox.error`        | `{ subId, stream, error }`                                                      |   |      |
 
 ## Adding a new method
 

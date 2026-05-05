@@ -94,12 +94,12 @@ const client = new RockboxClient({
 });
 ```
 
-| Option    | Type     | Default                        | Description                                         |
-|-----------|----------|--------------------------------|-----------------------------------------------------|
-| `host`    | `string` | `"localhost"`                  | Hostname or IP of rockboxd                          |
-| `port`    | `number` | `6062`                         | GraphQL port (env: `ROCKBOX_GRAPHQL_PORT`)          |
-| `httpUrl` | `string` | `http://{host}:{port}/graphql` | Override the full HTTP URL                          |
-| `wsUrl`   | `string` | `ws://{host}:{port}/graphql`   | Override the full WebSocket URL                     |
+| Option    | Type     | Default                        | Description                                |
+| --------- | -------- | ------------------------------ | ------------------------------------------ |
+| `host`    | `string` | `"localhost"`                  | Hostname or IP of rockboxd                 |
+| `port`    | `number` | `6062`                         | GraphQL port (env: `ROCKBOX_GRAPHQL_PORT`) |
+| `httpUrl` | `string` | `http://{host}:{port}/graphql` | Override the full HTTP URL                 |
+| `wsUrl`   | `string` | `ws://{host}:{port}/graphql`   | Override the full WebSocket URL            |
 
 ---
 
@@ -321,12 +321,12 @@ await client.playlist.create('Evening Mix', [
 await client.playlist.resume();
 ```
 
-| `InsertPosition` | Value | Effect                                   |
-|------------------|-------|------------------------------------------|
-| `Next`           | `0`   | After the currently playing track        |
-| `AfterCurrent`   | `1`   | After the last manually inserted track   |
-| `Last`           | `2`   | At the end of the queue                  |
-| `First`          | `3`   | Replace the entire queue                 |
+| `InsertPosition` | Value | Effect                                 |
+| ---------------- | ----- | -------------------------------------- |
+| `Next`           | `0`   | After the currently playing track      |
+| `AfterCurrent`   | `1`   | After the last manually inserted track |
+| `Last`           | `2`   | At the end of the queue                |
+| `First`          | `3`   | Replace the entire queue               |
 
 ---
 
@@ -669,14 +669,14 @@ client.disconnect();
 
 ### Event map
 
-| Event              | Payload    | Description                           |
-|--------------------|------------|---------------------------------------|
-| `track:changed`    | `Track`    | Currently playing track changed       |
-| `status:changed`   | `number`   | Playback status changed (0 / 1 / 2)   |
-| `playlist:changed` | `Playlist` | Active queue was modified             |
-| `ws:error`         | `Error`    | WebSocket or subscription error       |
-| `ws:open`          | —          | WebSocket connection established      |
-| `ws:close`         | —          | WebSocket connection closed           |
+| Event              | Payload    | Description                         |
+| ------------------ | ---------- | ----------------------------------- |
+| `track:changed`    | `Track`    | Currently playing track changed     |
+| `status:changed`   | `number`   | Playback status changed (0 / 1 / 2) |
+| `playlist:changed` | `Playlist` | Active queue was modified           |
+| `ws:error`         | `Error`    | WebSocket or subscription error     |
+| `ws:open`          | —          | WebSocket connection established    |
+| `ws:close`         | —          | WebSocket connection closed         |
 
 ---
 
@@ -846,11 +846,11 @@ try {
 }
 ```
 
-| Class                  | When thrown                                              |
-|------------------------|----------------------------------------------------------|
-| `RockboxNetworkError`  | `fetch` rejects or HTTP status is not 2xx               |
-| `RockboxGraphQLError`  | Server returns `{ errors: [...] }` in the response body |
-| `RockboxError`         | Base class — catch to handle all SDK errors              |
+| Class                 | When thrown                                             |
+| --------------------- | ------------------------------------------------------- |
+| `RockboxNetworkError` | `fetch` rejects or HTTP status is not 2xx               |
+| `RockboxGraphQLError` | Server returns `{ errors: [...] }` in the response body |
+| `RockboxError`        | Base class — catch to handle all SDK errors             |
 
 ---
 
