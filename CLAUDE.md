@@ -74,6 +74,13 @@ cd zig && zig build
 ls -la zig/zig-out/bin/rockboxd build-lib/libfirmware.a target/release/librockbox_cli.a
 ```
 
+### Zig 0.16.0 build.zig API notes
+- **Linker args**: use `exe.root_module.addLinkerArg("...")` — `exe.addLinkerArg` does **not** exist on `Build.Step.Compile` in 0.16.0; the method lives on `Build.Module`.
+- **Library/include paths**: `exe.root_module.addLibraryPath(...)`, `exe.root_module.addIncludePath(...)`.
+- **System libraries**: `exe.root_module.linkSystemLibrary("name", .{})`.
+- **Frameworks (macOS)**: `exe.root_module.linkFramework("Name", .{})`.
+- **Object/archive files**: `exe.root_module.addObjectFile(b.path("..."))` — used for both `.o` and `.a`.
+
 ## Runtime configuration
 
 Settings file: `~/.config/rockbox.org/settings.toml`

@@ -119,7 +119,7 @@ pub fn build(b: *std.Build) void {
             // libopus and libtremor both bundle identical Ogg framing symbols;
             // libspeex and libspeex-voice share bits.c symbols.  lld errors on
             // duplicates while macOS ld64 silently picks first.
-            exe.addLinkerArg("--allow-multiple-definition");
+            exe.root_module.addLinkerArg("--allow-multiple-definition");
         }
     }
 
