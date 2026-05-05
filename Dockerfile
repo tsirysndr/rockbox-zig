@@ -1,5 +1,5 @@
 # ── WebUI ──────────────────────────────────────────────────────────────────────
-FROM debian:bookworm-slim AS webui-builder
+FROM node:24 AS webui-builder
 
 RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/*
 
