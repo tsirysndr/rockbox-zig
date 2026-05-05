@@ -69,9 +69,13 @@ jobs:
 
       - name: Build rockboxd (headless)
         run: bash scripts/build-headless.sh
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
 
       - name: Build rockbox CLI
         run: cargo build -p rockbox --release
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
 
       - name: Determine version
         id: vars
