@@ -459,6 +459,12 @@ dnf install rockbox
 paru -S rockbox-zig-bin
 ```
 
+### macOS (Homebrew)
+
+```sh
+brew install tsirysndr/tap/rockbox
+```
+
 ### Universal (curl installer)
 
 ```sh
