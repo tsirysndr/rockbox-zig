@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the headless macOS / Linux rockboxd binary.
+# Build the headless macOS / Linux / *BSD rockboxd binary.
 #
 # What this does:
 #   1. Creates and configures build-headless/ (headless host target, target 206).
@@ -87,7 +87,7 @@ CODEC_LIB_DIR="$ROOTDIR/build-headless/lib/rbcodec/codecs/lib"
 if [ -f "$CODEC_LIB_DIR" ] && [ ! -d "$CODEC_LIB_DIR" ]; then
     rm -f "$CODEC_LIB_DIR"
 fi
-NCPU="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"
+NCPU="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || sysctl -n hw.ncpuonline 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"
 # Use -k (keep going) because spc and asap crash llvm-objcopy@21 on macOS
 # with a segfault in setSymbolInRelocationInfo.  Neither codec is linked into
 # rockboxd (they are absent from the codec-objects extraction loop), so their

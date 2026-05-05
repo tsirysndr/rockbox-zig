@@ -1,7 +1,7 @@
 use std::{
     fs,
-    process::{Command, Stdio},
     path::PathBuf,
+    process::{Command, Stdio},
 };
 use tracing::info;
 

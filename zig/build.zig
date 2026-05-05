@@ -119,6 +119,22 @@ pub fn build(b: *std.Build) void {
         }
     }
 
+    if (target.result.os.tag == .freebsd) {
+        if (headless) {
+            // cpal uses the ALSA backend on FreeBSD via the audio/alsa-lib port.
+            exe.root_module.linkSystemLibrary("asound", .{});
+        }
+    }
+
+    if (target.result.os.tag == .openbsd) {
+        if (headless) {
+            // cpal uses sndio on OpenBSD.
+            exe.root_module.linkSystemLibrary("sndio", .{});
+        }
+    }
+
+    // NetBSD: cpal uses OSS which is built into the kernel — no extra link flags needed.
+
     const fw_dir = if (headless) "../build-headless" else "../build-lib";
 
     const librockbox = b.path(b.pathJoin(&.{ fw_dir, "librockbox.a" }));
