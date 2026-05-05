@@ -459,7 +459,7 @@ dnf install rockbox
 paru -S rockbox-zig-bin
 ```
 
-### macOS (Homebrew)
+### macOS/Linux (Homebrew)
 
 ```sh
 brew install tsirysndr/tap/rockbox
