@@ -49,7 +49,7 @@ void m4a_stream_read(stream_t *stream, size_t size, void *buf)
     if (stream->ci->curpos >= stream->ci->filesize) { stream->eof=1; }
 }
 
-int32_t m4a_stream_read_int32(stream_t *stream)
+int32_t stream_read_int32(stream_t *stream)
 {
     int32_t v;
     m4a_stream_read(stream, 4, &v);
@@ -64,7 +64,7 @@ int32_t stream_tell(stream_t *stream)
     return stream->ci->curpos;
 }
 
-uint32_t m4a_stream_read_uint32(stream_t *stream)
+uint32_t stream_read_uint32(stream_t *stream)
 {
     uint32_t v;
     m4a_stream_read(stream, 4, &v);
@@ -74,7 +74,7 @@ uint32_t m4a_stream_read_uint32(stream_t *stream)
     return v;
 }
 
-uint16_t m4a_stream_read_uint16(stream_t *stream)
+uint16_t stream_read_uint16(stream_t *stream)
 {
     uint16_t v;
     m4a_stream_read(stream, 2, &v);
@@ -84,7 +84,7 @@ uint16_t m4a_stream_read_uint16(stream_t *stream)
     return v;
 }
 
-uint8_t m4a_stream_read_uint8(stream_t *stream)
+uint8_t stream_read_uint8(stream_t *stream)
 {
     uint8_t v;
     m4a_stream_read(stream, 1, &v);
@@ -229,7 +229,7 @@ unsigned int m4a_seek(demux_res_t* demux_res, stream_t* stream,
                 time_dur = tts_tab[time].sample_duration;
             }
 
-            offset += tsz_tab ? tsz_tab[i] : m4a_stream_read_uint32(stream);
+            offset += tsz_tab ? tsz_tab[i] : stream_read_uint32(stream);
             sound_sample_i += time_dur;
             time_cnt--;
         }

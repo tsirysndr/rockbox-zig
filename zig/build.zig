@@ -116,23 +116,18 @@ pub fn build(b: *std.Build) void {
         if (headless) {
             // cpal uses ALSA on Linux by default.
             exe.root_module.linkSystemLibrary("asound", .{});
-            // libopus and libtremor both bundle identical Ogg framing symbols;
-            // libspeex and libspeex-voice share bits.c symbols.  lld errors on
-            // duplicates while macOS ld64 silently picks first.
-            exe.root_module.addLinkerArg("--allow-multiple-definition");
         }
     }
 
     const fw_dir = if (headless) "../build-headless" else "../build-lib";
 
-    const librockbox    = b.path(b.pathJoin(&.{ fw_dir, "librockbox.a" }));
-    const libfirmware   = b.path(b.pathJoin(&.{ fw_dir, "firmware/libfirmware.a" }));
+    const librockbox = b.path(b.pathJoin(&.{ fw_dir, "librockbox.a" }));
+    const libfirmware = b.path(b.pathJoin(&.{ fw_dir, "firmware/libfirmware.a" }));
     const libfixedpoint = b.path(b.pathJoin(&.{ fw_dir, "lib/libfixedpoint.a" }));
-    const librbcodec    = b.path(b.pathJoin(&.{ fw_dir, "lib/librbcodec.a" }));
+    const librbcodec = b.path(b.pathJoin(&.{ fw_dir, "lib/librbcodec.a" }));
     const libskin_parser = b.path(b.pathJoin(&.{ fw_dir, "lib/libskin_parser.a" }));
-    const libtlsf       = b.path(b.pathJoin(&.{ fw_dir, "lib/libtlsf.a" }));
-    const libspeex_voice = b.path(b.pathJoin(&.{ fw_dir, "lib/rbcodec/codecs/libspeex-voice.a" }));
-    const librockbox_cli    = b.path("../target/release/librockbox_cli.a");
+    const libtlsf = b.path(b.pathJoin(&.{ fw_dir, "lib/libtlsf.a" }));
+    const librockbox_cli = b.path("../target/release/librockbox_cli.a");
     const librockbox_server = b.path("../target/release/librockbox_server.a");
 
     exe.root_module.addObjectFile(librockbox);
@@ -141,7 +136,12 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addObjectFile(libskin_parser);
     exe.root_module.addObjectFile(librbcodec);
     exe.root_module.addObjectFile(libtlsf);
-    exe.root_module.addObjectFile(libspeex_voice);
+    // libspeex-voice is only needed for SDL (voice/TTS UI); the headless build
+    // uses libspeex.a via lib_names instead — linking both causes duplicate symbols.
+    if (!headless) {
+        const libspeex_voice = b.path(b.pathJoin(&.{ fw_dir, "lib/rbcodec/codecs/libspeex-voice.a" }));
+        exe.root_module.addObjectFile(libspeex_voice);
+    }
     exe.root_module.addObjectFile(librockbox_cli);
     exe.root_module.addObjectFile(librockbox_server);
 
@@ -158,20 +158,20 @@ pub fn build(b: *std.Build) void {
         // scripts/build-headless.sh Step 2.5 extracts these files into
         //   <fw_dir>/lib/rbcodec/codecs/codec-objects/<name>/
         const codec_names = [_][]const u8{
-            "a52",        "a52_rm",      "aac",       "aac_bsf",
-            "adx",        "aiff",        "alac",      "ape",
-            "atrac3_oma", "atrac3_rm",   "au",        "cook",
-            "flac",       "mod",         "mpa",       "mpc",
-            "opus",       "raac",        "shorten",   "smaf",
-            "speex",      "tta",         "vorbis",    "vox",
-            "wav",        "wav64",       "wavpack",   "wma",
+            "a52",        "a52_rm",    "aac",     "aac_bsf",
+            "adx",        "aiff",      "alac",    "ape",
+            "atrac3_oma", "atrac3_rm", "au",      "cook",
+            "flac",       "mod",       "mpa",     "mpc",
+            "opus",       "raac",      "shorten", "smaf",
+            "speex",      "tta",       "vorbis",  "vox",
+            "wav",        "wav64",     "wavpack", "wma",
             "wmapro",
         };
         const codec_dir = b.pathJoin(&.{ fw_dir, "lib/rbcodec/codecs" });
-        const obj_base  = b.pathJoin(&.{ codec_dir, "codec-objects" });
+        const obj_base = b.pathJoin(&.{ codec_dir, "codec-objects" });
         for (codec_names) |name| {
             const dir = b.pathJoin(&.{ obj_base, name });
-            exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ dir, b.fmt("{s}.o",      .{name}) })));
+            exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ dir, b.fmt("{s}.o", .{name}) })));
             exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ dir, b.fmt("{s}-crt0.o", .{name}) })));
         }
 
@@ -184,18 +184,20 @@ pub fn build(b: *std.Build) void {
         // Passed as archives (lazy scanning) because code references from the
         // directly-linked codec .o files drive archive member inclusion correctly.
         const lib_names = [_][]const u8{
-            "liba52",     "libalac",     "libasap",   "libasf",
-            "libatrac",   "libcook",     "libdemac",  "libfaad",
-            "libffmpegFLAC", "libm4a",  "libmad",    "libmusepack",
-            "libopus",    "libpcm",      "librm",     "libspc",
-            "libspeex",   "libtremor",   "libtta",    "libwavpack",
-            "libwma",     "libwmapro",
+            "liba52",        "libalac",   "libasap",  "libasf",
+            "libatrac",      "libcook",   "libdemac", "libfaad",
+            "libffmpegFLAC", "libm4a",    "libmad",   "libmusepack",
+            "libopus",       "libpcm",    "librm",    "libspc",
+            "libspeex",      "libtremor", "libtta",   "libwavpack",
+            "libwma",        "libwmapro",
         };
         for (lib_names) |lib| {
             exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ codec_dir, b.fmt("{s}.a", .{lib}) })));
         }
-        // libogg symbols are compiled with -fvisibility=hidden; they become
-        // private-external in Mach-O and do not conflict across archives.
+        // libopus and libtremor both bundle Ogg framing but with incompatible ABIs
+        // (different ogg_stream_state layout, different ogg_stream_pagein signature).
+        // build-headless.sh Step 2.6 renames all ogg_* symbols in libopus.a and
+        // opus.o to libopus_ogg_* so each codec gets its own implementation.
     } else {
         exe.root_module.linkSystemLibrary("SDL2", .{});
     }

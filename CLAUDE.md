@@ -75,11 +75,12 @@ ls -la zig/zig-out/bin/rockboxd build-lib/libfirmware.a target/release/librockbo
 ```
 
 ### Zig 0.16.0 build.zig API notes
-- **Linker args**: use `exe.root_module.addLinkerArg("...")` — `exe.addLinkerArg` does **not** exist on `Build.Step.Compile` in 0.16.0; the method lives on `Build.Module`.
+- **Linker args (raw flags)**: **There is no `addLinkerArg` method** anywhere in Zig 0.16.0 — not on `Build.Step.Compile` and not on `Build.Module`. Passing raw flags like `--allow-multiple-definition` through `build.zig` is not possible. Solve linker conflicts at the source level instead (e.g. `objcopy --redefine-sym` in the build script).
 - **Library/include paths**: `exe.root_module.addLibraryPath(...)`, `exe.root_module.addIncludePath(...)`.
 - **System libraries**: `exe.root_module.linkSystemLibrary("name", .{})`.
 - **Frameworks (macOS)**: `exe.root_module.linkFramework("Name", .{})`.
 - **Object/archive files**: `exe.root_module.addObjectFile(b.path("..."))` — used for both `.o` and `.a`.
+- **Conditional linking**: use `if (condition) { ... }` around the `addObjectFile` / `linkSystemLibrary` calls directly in `build()` — there is no per-target feature-flag mechanism.
 
 ## Runtime configuration
 

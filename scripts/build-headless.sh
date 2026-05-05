@@ -126,6 +126,53 @@ for name in a52 a52_rm aac aac_bsf adx aiff alac ape \
 done
 echo "    Done — codec objects in $OBJECTS_DIR"
 
+echo "==> Step 2.6: Namespace ogg_* symbols in libopus.a to avoid ABI conflict with libtremor"
+# libopus bundles Ogg framing with a different ABI than libtremor (different
+# ogg_stream_state layout, extra copy_body arg on ogg_stream_pagein).
+# Rename every ogg_* symbol in libopus.a and in opus.o to libopus_ogg_* so
+# the Opus codec gets its own Ogg implementation and the Vorbis codec keeps
+# libtremor's — both correct, no lld duplicate-symbol errors on Linux.
+OBJCOPY="${LLVM_OBJCOPY:-objcopy}"
+LIBOPUS_A="$CODEC_DIR/libopus.a"
+OPUS_O="$OBJECTS_DIR/opus/opus.o"
+
+OGG_SYMS=(
+    ogg_packet_clear
+    ogg_page_bos ogg_page_checksum_set ogg_page_continued ogg_page_eos
+    ogg_page_granulepos ogg_page_packets ogg_page_pageno ogg_page_serialno
+    ogg_page_version
+    ogg_stream_check ogg_stream_clear ogg_stream_destroy ogg_stream_eos
+    ogg_stream_flush ogg_stream_flush_fill ogg_stream_init ogg_stream_iovecin
+    ogg_stream_packetin ogg_stream_packetout ogg_stream_packetpeek
+    ogg_stream_pagein ogg_stream_pageout ogg_stream_pageout_fill
+    ogg_stream_reset ogg_stream_reset_serialno
+    ogg_sync_buffer ogg_sync_check ogg_sync_clear ogg_sync_destroy
+    ogg_sync_init ogg_sync_pageout ogg_sync_pageseek ogg_sync_reset
+    ogg_sync_wrote
+)
+
+REDEFINE_ARGS=()
+for sym in "${OGG_SYMS[@]}"; do
+    REDEFINE_ARGS+=(--redefine-sym "${sym}=libopus_${sym}")
+    # Mach-O symbols have a leading underscore; pass both forms.
+    REDEFINE_ARGS+=(--redefine-sym "_${sym}=_libopus_${sym}")
+done
+
+# Extract all objects from libopus.a, rename, re-archive.
+TMP_LIBOPUS="$(mktemp -d)"
+(cd "$TMP_LIBOPUS" && ar x "$LIBOPUS_A")
+for obj in "$TMP_LIBOPUS"/*.o; do
+    [ -f "$obj" ] && "$OBJCOPY" "${REDEFINE_ARGS[@]}" "$obj" 2>/dev/null || true
+done
+rm -f "$LIBOPUS_A"
+ar rcs "$LIBOPUS_A" "$TMP_LIBOPUS"/*.o
+rm -rf "$TMP_LIBOPUS"
+
+# Apply the same renames to the opus codec object so it calls libopus_ogg_*.
+[ -f "$OPUS_O" ] && "$OBJCOPY" "${REDEFINE_ARGS[@]}" "$OPUS_O" 2>/dev/null || true
+
+echo "    Done — ${#OGG_SYMS[@]} ogg_* symbols namespaced in libopus.a + opus.o"
+
 echo "==> Step 3: Build Rust crates (features: cpal-sink)"
 cargo build $CARGO_FLAG --features cpal-sink -p rockbox-cli
 cargo build $CARGO_FLAG -p rockbox-server
