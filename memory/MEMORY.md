@@ -1,0 +1,27 @@
+# Memory Index
+
+- [Project: HTTP stream playback](project_http_streaming.md) — rockbox-zig branch `copilot/add-http-stream-playback-support`; fixes to metadata parsers and netstream crate for HTTP(S) playback
+- [Feedback: stale binary caused silent failures](feedback_stale_binary.md) — always rebuild `target/release/rockbox` after changing C/Rust code; `librockbox.a` relink does not happen automatically
+- [Project: Snapcast FIFO audio output](project_snapcast_fifo.md) — pcm-fifo sink setup, startup order, snapserver config workaround for macOS
+- [Feedback: use tracing for logging](feedback_tracing_logging.md) — never use eprintln!/println! in Rust; always use tracing::debug/info/warn/error
+- [Project: Squeezelite PCM sink](project_squeezelite_sink.md) — squeezelite output via Slim Protocol TCP + HTTP PCM stream; crates/slim/, PCM_SINK_SQUEEZELITE=3, key bugs: tv_nsec overflow, HTTP kick loop, 36s watchdog
+- [Feedback: Slim Protocol keepalive required](feedback_slim_keepalive.md) — send audg on every STMt heartbeat or squeezelite disconnects after 36s; full-volume audg is 9 bytes
+- [Project: GPUI context menu positioning pattern](project_gpui_context_menu_pattern.md) — context menus must be rendered at LibraryPage root div level, not inside nested entities like FilesView
+- [Project: Expo mobile app](project_expo_app.md) — rockbox-zig/expo React Native + NativeWind client mirroring the GPUI desktop UI, mock data today
+- [Feedback: Expo app — always use NativeWind, no inline styles](feedback_expo_nativewind.md) — className-only styling rule; never combine function `style` with `className`
+- [Project: Expo module — symmetric peer](project_expo_dual_mode.md) — phone runs full embedded rockboxd (firmware + codecs + gRPC/GraphQL/HTTP/MPD servers + AAudio sink + mDNS advertise) AND keeps the tonic LAN client to control other peers
+- [Feedback: Android embedded daemon — always FTS5, never typesense](feedback_android_fts5.md) — search backend on Android cdylib must use the `fts5` Cargo feature; no typesense subprocess
+- [Project: Codec loading — desktop dlopen vs Android static-link](project_codec_loading.md) — `.codec` files are dlopen'd `.so`/`.dylib` on desktop; Android blocks dlopen from app dirs so codecs must be statically linked into the cdylib (the model Rockbox hardware targets already use)
+- [Project: Android codecs use BINFMT_STATIC](project_codecs_static_binfmt.md) — concrete plan: add 3rd CONFIG_BINFMT value + CODECS_STATIC make flag + per-codec __header rename + lc-android.c table loader
+- [Project: rockbox-sys depends on Zig-exported rb_* symbols](project_zig_ffi_dependency.md) — 18 extern symbols in crates/sys/src/lib.rs come from zig/src/main.zig wrappers; need a C compat layer (rb_zig_compat.c) for the Android cdylib
+- [Feedback: macOS Mach-O underscore prefix in objcopy --redefine-sym](feedback_macos_objcopy_mangling.md) — pass both `name=new` and `_name=_new` to handle both Mach-O and ELF; verified during CODECS_STATIC smoke test
+- [Feedback: Android cdylib needs --features embedded-daemon + --platform 26](feedback_android_embedded_daemon_features.md) — without `embedded-daemon` Cargo feature the .so is a 6 MB remote-only client; AAudio needs API 26 sysroot
+- [Project: Android cdylib needs both ROCKBOX_SERVER and CONFIG_SERVER](project_android_server_macros.md) — `apps/main.c:486` gates server_init() call on ROCKBOX_SERVER; `apps/SOURCES:314` gates the .c COMPILATION on CONFIG_SERVER — define both
+- [Feedback: Android FGS — startForeground within 5s of every startForegroundService](feedback_android_fgs_deadline.md) — every onStartCommand action branch must reach refreshNotification() or Android kills the process
+- [Project: Android codec filename split — CODECS_STATIC vs Java-shell](project_android_codec_filename.md) — metadata.h's CODEC_PREFIX/EXTENSION must use `<name>.codec` (not `libNAME.so`) when CODECS_STATIC, or every play call dies with "Codec: cannot read file"
+- [Project: CODECS_STATIC ci-symbol type collision](project_codecs_static_ci_collision.md) — `apps/codecs.c::ci` (264-byte struct) silently merges with each codec's `codec_crt0.c::ci` (8-byte pointer); fix is firmware-side rename to `firmware_ci`
+- [Feedback: pcm_sink set_freq receives an INDEX, not Hz](feedback_pcm_sink_set_freq_index.md) — translate via `hw_freq_sampr[idx]` before handing to the OS API or you get chipmunk audio
+- [Project: Firmware-command bus (fw_bus) — Rust FFI must run on broker](project_fw_command_bus.md) — Rockbox kernel uses `__cores[0].running` as global "current thread" (no TLS); calling FFI from actix workers corrupts state. Every mutating handler wraps in `crate::fw_bus::run_on_broker(...)`. **THIS IS THE LOAD-BEARING FIX** — pcm_play_lock and sleep(HZ/10) below are defence-in-depth
+- [Project: pcm-aaudio pthread races kernel mid-stream pcmbuf reconfig](project_pthread_pcm_race.md) — narrower race window in `pcmbuf_init`; wrapped in pcm_play_lock/unlock as defence-in-depth. Real fix is the fw_bus
+- [Project: stale thread->blocker → wakeup_thread NULL-fn-ptr crash](project_stale_blocker_kernel_crash.md) — same root cause as fw_bus; my kernel-side fixes were all wrong guesses (reverted). Real fix is the fw_bus
+- [Project: Embeddable desktop library (librockboxd.a)](project_embedded_desktop_lib.md) — crates/embed + zig build lib → fat static archive; gpui embeds daemon directly, no external rockboxd process

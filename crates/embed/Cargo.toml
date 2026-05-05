@@ -1,0 +1,59 @@
+[package]
+name = "rockbox-embed"
+version = "0.1.0"
+edition = "2021"
+description = "Embeddable static library — boot rockboxd in-process from any desktop GUI (GPUI, Swift/AppKit, Qt, etc.)"
+license = "LGPL-2.1"
+
+[lib]
+name = "rockbox_embed"
+crate-type = ["staticlib"]
+
+# `daemon` pulls in the full headless firmware stack (cpal PCM sink, servers,
+# library, …). Always on by default — the whole point of this crate is to
+# embed the daemon. Disable only for compile-time type-checking without the
+# firmware build artefacts present.
+[features]
+default = ["daemon"]
+daemon = [
+    "dep:rockbox-server",
+    "dep:rockbox-settings",
+    "dep:rockbox-library",
+    "dep:rockbox-sys",
+    "dep:rbnetstream",
+    "dep:rockbox-airplay",
+    "dep:rockbox-slim",       "rockbox-slim/ffi",
+    "dep:rockbox-chromecast", "rockbox-chromecast/ffi",
+    "dep:rockbox-upnp",       "rockbox-upnp/ffi",
+    "dep:rockbox-cpal-sink",
+    "rockbox-server/fts5",
+]
+
+# ── Always-on: gRPC client surface ──────────────────────────────────────────
+[dependencies]
+prost      = "0.13"
+tokio      = { version = "1", features = ["rt", "rt-multi-thread", "sync", "time", "macros"] }
+tonic      = { version = "0.12", default-features = false, features = ["transport", "codegen", "prost"] }
+once_cell  = "1"
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+futures-util       = "0.3"
+rockbox-discovery  = { path = "../discovery" }
+reqwest            = { version = "0.12", default-features = false, features = ["json"] }
+tracing            = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# ── Optional in-process daemon (headless/cpal build) ─────────────────────────
+rockbox-server   = { path = "../server",   optional = true, default-features = false }
+rockbox-settings = { path = "../settings", optional = true, default-features = false }
+rockbox-library  = { path = "../library",  optional = true, default-features = false }
+rockbox-sys      = { path = "../sys",      optional = true, default-features = false }
+rbnetstream      = { path = "../netstream", package = "netstream", optional = true }
+rockbox-airplay    = { path = "../airplay",    optional = true }
+rockbox-slim       = { path = "../slim",       optional = true }
+rockbox-chromecast = { path = "../chromecast", optional = true }
+rockbox-upnp       = { path = "../upnp",       optional = true }
+rockbox-cpal-sink  = { path = "../cpal-sink",  optional = true }
+
+[build-dependencies]
+tonic-build = { version = "0.12", default-features = false, features = ["prost", "transport"] }

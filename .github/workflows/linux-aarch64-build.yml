@@ -77,6 +77,12 @@ jobs:
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
 
+      - name: Build rockbox-embed
+        run: cargo build --release -p rockbox-embed
+
+      - name: Build librockboxd.a
+        run: cd zig && zig build lib -Doptimize=ReleaseFast
+
       - name: Determine version
         id: vars
         run: |
@@ -91,12 +97,24 @@ jobs:
           sha256sum rockbox_${VERSION}_aarch64-linux.tar.gz \
             > rockbox_${VERSION}_aarch64-linux.tar.gz.sha256
 
+      - name: Package librockboxd.a
+        run: |
+          VERSION="${{ steps.vars.outputs.version }}"
+          mkdir -p dist/lib dist/include
+          cp zig/zig-out/lib/librockboxd.a dist/lib/
+          cp include/rockboxd.h             dist/include/
+          ARCHIVE="librockboxd_${VERSION}_aarch64-linux.tar.gz"
+          tar -C dist -czf "$ARCHIVE" lib include
+          sha256sum "$ARCHIVE" > "${ARCHIVE}.sha256"
+
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             rockbox_${{ steps.vars.outputs.version }}_aarch64-linux.tar.gz
             rockbox_${{ steps.vars.outputs.version }}_aarch64-linux.tar.gz.sha256
+            librockboxd_${{ steps.vars.outputs.version }}_aarch64-linux.tar.gz
+            librockboxd_${{ steps.vars.outputs.version }}_aarch64-linux.tar.gz.sha256
           tag_name: ${{ steps.vars.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

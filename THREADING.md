@@ -9,11 +9,19 @@ Rockboxd has two distinct classes of threads that must coexist:
 
 Understanding the boundary between these two classes is critical. Crossing it incorrectly (e.g. doing a plain OS-level block inside a Rockbox kernel thread) will silently starve every other Rockbox kernel thread.
 
-The scheduler implementation differs between the **SDL hosted target** (desktop, macOS/Linux) and the **headless Android cdylib** target. Both share the same C-level `create_thread` / kernel-thread API, but the underlying concurrency primitive is different.
+There are three scheduler backends, each selected at compile time by an autoconf define:
+
+| Build target            | Autoconf define            | Backend file                                              |
+| ----------------------- | -------------------------- | --------------------------------------------------------- |
+| SDL hosted (simulator)  | `HAVE_SDL_THREADS`         | `firmware/target/hosted/sdl/thread-sdl.c`                |
+| Headless macOS / Linux  | `HAVE_POSIX_THREADS`       | `firmware/target/hosted/headless/thread-posix.c`         |
+| Android cdylib          | `HAVE_SIGALTSTACK_THREADS` | `firmware/asm/thread-unix.c` (signal-stack trick)         |
+
+All three share the same C-level `create_thread` / kernel-thread API and the same `struct regs` layout (`void *t, *told, *s; void (*start)(void)`). Only the mechanism for context-switching and blocking differs.
 
 ---
 
-## The SDL Cooperative Scheduler (desktop — macOS / Linux)
+## The SDL Cooperative Scheduler (SDL hosted target — simulator)
 
 On the `sdlapp` hosted target, each Rockbox kernel thread is backed by a real SDL OS thread (`SDL_CreateThread`). However, Rockbox layers a **cooperative scheduler** on top of those OS threads using a single global SDL mutex:
 
@@ -57,24 +65,78 @@ The `stack` and `stack_size` arguments to `create_thread()` are **ignored** on t
 
 ---
 
+## The POSIX Cooperative Scheduler (headless macOS / Linux)
+
+The headless host target (`build-headless/`, used by `zig build lib` to produce `librockboxd.a`) uses `HAVE_POSIX_THREADS`, implemented in `firmware/target/hosted/headless/thread-posix.c`.
+
+### Why not `HAVE_SIGALTSTACK_THREADS`?
+
+The previous backend (`firmware/asm/thread-unix.c`) used the "signal-stack trick": it called `sigaltstack()` + `SIGUSR1` to bootstrap cooperative thread contexts without ever calling `makecontext()`. On **macOS 12 Monterey x86_64** this fails — `sigaltstack()` returns `EPERM` — causing an infinite retry loop with the message:
+
+```
+thread creation failed.Retrying
+make_context(): Operation not permitted
+```
+
+The root cause is that macOS 12 Monterey returns `EPERM` from `sigaltstack()` when a thread already has an alternate signal stack installed (indicated by `SS_ONSTACK`). `HAVE_POSIX_THREADS` avoids `sigaltstack()` entirely.
+
+### How `HAVE_POSIX_THREADS` works
+
+The design is the same as `HAVE_SDL_THREADS` — one OS thread per Rockbox thread, global mutex for cooperative exclusion — but uses only POSIX primitives:
+
+```c
+// firmware/target/hosted/headless/thread-posix.c
+static pthread_mutex_t g_mutex;   // THE global Rockbox scheduler mutex
+```
+
+Per-thread blocking uses a custom counting semaphore built from `pthread_mutex_t + pthread_cond_t + int count` (because `sem_init()` is deprecated on macOS and `sem_timedwait()` is not available on all Darwin versions):
+
+```c
+typedef struct { pthread_mutex_t mtx; pthread_cond_t cond; int count; } posix_sem_t;
+```
+
+`switch_thread()` is structurally identical to the SDL version:
+
+```c
+void switch_thread(void) {
+    pthread_mutex_unlock(&g_mutex);   // release the token
+    pthread_mutex_lock(&g_mutex);     // re-acquire when it's our turn
+}
+```
+
+Blocked/sleeping threads wait on their per-thread `posix_sem_t` with a `pthread_cond_timedwait`-based timeout; wakeup posts to the same semaphore. `thread_exit()` uses `longjmp` (via the same `thread_jmpbufs` pattern as SDL) to cleanly terminate, then releases `g_mutex` from `runthread`'s `else` branch.
+
+### Stack sizes
+
+Like SDL threads, the `stack` / `stack_size` arguments are ignored (`(void)stack; (void)stack_size;`). The host OS assigns a default stack to each `pthread_create`'d thread.
+
+---
+
 ## The Headless Scheduler (Android cdylib)
 
 The Android cdylib target (`firmware/target/hosted/android/cdylib/`) replaces SDL entirely with plain pthreads and POSIX clock. There is **no SDL mutex**, no event loop, no LCD, no button polling.
 
-### `system-android.c` vs `system-sdl.c`
+### Three-way comparison
 
-| Concern           | SDL hosted                          | Android cdylib                                          |
-| ----------------- | ----------------------------------- | ------------------------------------------------------- |
-| Cooperative token | `SDL_mutex *m` (single global)      | `__cores[0].running` (global current-thread pointer)    |
-| Thread creation   | `SDL_CreateThread`                  | `pthread_create`                                        |
-| Scheduler yield   | `SDL_UnlockMutex` / `SDL_LockMutex` | Rockbox kernel pthread mutex round-trip                 |
-| Boot path         | SDL event thread initialises audio  | `rb_daemon_start` (JNI) spawns `rockbox-engine` pthread |
-| Power-off         | SDL_QUIT event loop                 | `exit(0)` via `power_off()`                             |
-| stdio             | terminal / controlled               | piped to logcat via `redirect_stdio_to_logcat`          |
+| Concern              | SDL hosted                           | Headless macOS/Linux                           | Android cdylib                                          |
+| -------------------- | ------------------------------------ | ---------------------------------------------- | ------------------------------------------------------- |
+| Autoconf define      | `HAVE_SDL_THREADS`                   | `HAVE_POSIX_THREADS`                           | `HAVE_SIGALTSTACK_THREADS`                              |
+| Backend file         | `thread-sdl.c`                       | `thread-posix.c`                               | `thread-unix.c`                                         |
+| Cooperative token    | `SDL_mutex *m` (single global)       | `pthread_mutex_t g_mutex` (single global)      | `__cores[0].running` (global current-thread pointer)    |
+| Per-thread blocking  | `SDL_sem *` (SDL semaphore)          | `posix_sem_t *` (cond+mutex+count)             | `setjmp`/`longjmp` + signal alt-stack                   |
+| Thread creation      | `SDL_CreateThread`                   | `pthread_create` + `pthread_detach`            | Bootstrapped via `sigaltstack()` + `SIGUSR1`            |
+| Scheduler yield      | `SDL_UnlockMutex` / `SDL_LockMutex`  | `pthread_mutex_unlock` / `pthread_mutex_lock`  | `longjmp` to next thread's `jmp_buf`                    |
+| Boot path            | SDL event thread initialises audio   | Zig linker entry → `main_c()`                  | `rb_daemon_start` (JNI) spawns `rockbox-engine` pthread |
+| Power-off            | `SDL_QUIT` event loop                | `exit(0)` via `power_off()`                    | `exit(0)` via `power_off()`                             |
+| Stack size respected | No (SDL default, typically 8 MB)     | No (pthread default)                           | Yes — passed to signal alt-stack                        |
+| macOS 12 x86_64      | Works                                | Works                                          | **Broken** — `sigaltstack()` returns `EPERM`            |
+| stdio                | terminal / controlled                | stderr via `debug-headless.c`                  | piped to logcat via `redirect_stdio_to_logcat`          |
 
 ### `__cores[0].running` — the critical invariant
 
-On the headless pthread target, the Rockbox kernel tracks the currently-executing kernel thread via the global `__cores[0].running` pointer. **Any firmware function that calls `queue_send`, `wakeup_thread`, `pcmbuf_*`, or any kernel primitive reads this pointer to find its own thread entry.**
+On the Android cdylib (and every non-SDL Rockbox target), the kernel tracks the currently-executing kernel thread via the global `__cores[0].running` pointer. **Any firmware function that calls `queue_send`, `wakeup_thread`, `pcmbuf_*`, or any kernel primitive reads this pointer to find its own thread entry.**
+
+On the headless POSIX target (`HAVE_POSIX_THREADS`) the same invariant holds: `__running_self_entry()` expands to `__cores[0].running` and is updated by every thread at the top of `runthread()` and inside `switch_thread()`. The global `g_mutex` guarantees only one Rockbox kernel thread writes this pointer at a time — but OS threads that bypass `g_mutex` (actix workers, gRPC handlers) will still see a stale value.
 
 If such a function is called from a non-Rockbox pthread (e.g. an actix worker or a tonic gRPC handler) the pointer resolves to the wrong thread entry. Consequences:
 - `wakeup_thread_` dereferences a stale or null function pointer → **SIGSEGV at PC=0**
@@ -419,3 +481,20 @@ Read-only queries (status, current track) that only touch atomics or copy struct
 ### Rule 7: `fw_bus::init()` must be called before any handler sends a command
 
 `fw_bus::send()` silently drops commands if the bus hasn't been initialised. `init()` is called inside `start_servers()`, which runs before the HTTP/gRPC servers start accepting requests. On Android, the boot sequence guarantees `start_servers()` (inside `main_c()`) completes before `rb_daemon_start` returns.
+
+### Rule 8: Never re-enable `HAVE_SIGALTSTACK_THREADS` for the headless host
+
+The headless macOS/Linux build uses `HAVE_POSIX_THREADS` (defined in `build-headless/autoconf.h`). Do not replace it with `HAVE_SIGALTSTACK_THREADS` — `sigaltstack()` returns `EPERM` on macOS 12 Monterey x86_64, causing an infinite retry loop at startup:
+
+```
+thread creation failed.Retrying
+make_context(): Operation not permitted
+```
+
+If you re-run `tools/configure` to regenerate `build-headless/autoconf.h`, check that the threading line reads:
+
+```c
+#define HAVE_POSIX_THREADS
+```
+
+and restore it if configure has reverted it to `HAVE_SIGALTSTACK_THREADS`.

@@ -30,6 +30,7 @@ sharedir=
 sdl_config=sdl2-config
 arm_thumb_boot=
 thread_support="ASSEMBLER_THREADS"
+thread_support_comment="/* the threading backend we use */"
 sysfont="08-Schumacher-Clean"
 app_lcd_width=
 app_lcd_height=
@@ -727,7 +728,16 @@ headlesshostcc () {
     GLOBAL_LDOPTS=""
     LDOPTS="-lpthread"
 
-    thread_support="HAVE_SIGALTSTACK_THREADS"
+    # HAVE_SIGALTSTACK_THREADS is broken on macOS 12 Monterey x86_64:
+    # sigaltstack() returns EPERM, causing an infinite retry loop at boot.
+    # HAVE_POSIX_THREADS uses one pthread per Rockbox thread with a global
+    # cooperative mutex instead, avoiding sigaltstack() entirely.
+    thread_support="HAVE_POSIX_THREADS"
+    thread_support_comment="/* the threading backend we use */
+/* HAVE_SIGALTSTACK_THREADS is broken on macOS 12 Monterey x86_64:
+ * sigaltstack() returns EPERM, causing an infinite retry loop.
+ * HAVE_POSIX_THREADS uses one pthread per Rockbox thread with a global
+ * cooperative mutex instead, avoiding sigaltstack() entirely. */"
     gccchoice=""
     gcctarget=""
 
@@ -5006,7 +5016,7 @@ ${use_usb_serial}
 ${config_rtc}
 ${have_rtc_alarm}
 
-/* the threading backend we use */
+${thread_support_comment}
 #define ${thread_support}
 
 /* lcd dimensions for application builds from configure */

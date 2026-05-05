@@ -1,6 +1,9 @@
   /* First some generic implementations */
 #if defined(HAVE_WIN32_FIBER_THREADS)
   #include "thread-win32.c"
+#elif defined(HAVE_POSIX_THREADS)
+  /* thread-posix.c is compiled as a separate TU (listed in SOURCES);
+   * nothing extra to include here. */
 #elif defined(HAVE_SIGALTSTACK_THREADS)
   #include "thread-unix.c"
 

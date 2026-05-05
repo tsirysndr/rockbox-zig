@@ -34,10 +34,12 @@ firmware/          Rockbox C firmware (audio engine, codecs, DSP)
 apps/              Rockbox application layer (playlist, database, plugins)
 lib/               Codec libraries (rbcodec, fixedpoint, skin_parser, tlsf)
 build-lib/         Out-of-tree Make build directory (generated; do not edit)
+build-headless/    Headless (no SDL) Make build directory for the embedded lib
 crates/            Rust workspace
   airplay/         ALAC encoder + RAOP/RTP sender (AirPlay 1 output)
   slim/            Slim Protocol + HTTP broadcast server (Squeezelite multi-room output)
   cli/             Entry point compiled to librockbox_cli.a (staticlib)
+  embed/           Embeddable desktop library (daemon boot + gRPC client C ABI)
   server/          gRPC / HTTP server
   settings/        load_settings() — reads settings.toml, applies sinks
   sys/             FFI bindings to the C firmware (unsafe extern "C")
@@ -52,8 +54,9 @@ crates/            Rust workspace
   tracklist/       Playlist / tracklist management
   types/           Shared Rust types
   traits/          Shared Rust traits
-zig/               Zig build script and thin main.zig entry point
-gpui/              Desktop client (GPUI / Rust) — reference UI for the mobile app
+zig/               Zig build script, main.zig (executable), lib.zig (embedded library)
+include/           Public C header (rockboxd.h) for the embeddable library
+gpui/              Desktop client (GPUI / Rust) — embeds daemon directly via librockboxd.a
 expo/              React Native / Expo mobile app (see `expo/CLAUDE.md` rules below)
 ```
 
@@ -85,6 +88,47 @@ cd build-lib && make lib && cd ..
 cargo build --release -p rockbox-cli -p rockbox-server
 cd zig && zig build
 ```
+
+### Embeddable static library (`librockboxd.a`)
+
+`zig build lib` produces `zig/zig-out/lib/librockboxd.a` — a fat archive that
+any desktop GUI (GPUI, Swift/AppKit, Qt, …) can link against to embed the full
+Rockbox daemon in-process. Uses the **headless/cpal** firmware (no SDL).
+
+Public C header: `include/rockboxd.h`
+
+Build order:
+```sh
+# 1. Headless firmware (no SDL)
+cd build-headless && make lib && cd ..
+
+# 2. Rust embed crate (daemon boot + gRPC client) + server
+cargo build --release -p rockbox-embed -p rockbox-server
+
+# 3. Fat static library
+cd zig && zig build lib
+# → zig-out/lib/librockboxd.a
+```
+
+Consumers must also link these system libraries at final link time:
+
+| Platform | Required flags                                                               |
+| -------- | ---------------------------------------------------------------------------- |
+| macOS    | `-framework CoreAudio -framework AudioUnit -framework AudioToolbox`          |
+|          | `-framework CoreFoundation -framework Security`                              |
+| Linux    | `-lasound -lunwind -ldbus-1`                                                 |
+
+The GPUI desktop client links `librockboxd.a` automatically via `gpui/build.rs`
+and boots the daemon at startup — no external `rockboxd` process is needed.
+
+### GPUI desktop client build
+```sh
+# After building librockboxd.a (see above):
+cd gpui && cargo build --release
+```
+
+The app boots the embedded daemon on launch (shows "Starting Rockbox…" while
+the gRPC server binds, then transitions to the full UI).
 
 ### Critical: stale binary pitfall
 `zig build` only re-links if the `.a` files are newer than the binary. After changing C code, always run `make lib` first. After changing Rust code, run `cargo build --release`. If behavior doesn't match the code, check timestamps:

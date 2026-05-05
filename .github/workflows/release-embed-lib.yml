@@ -1,0 +1,154 @@
+name: release embed lib
+
+# Builds librockboxd.a (headless/cpal fat static archive) for macOS and Linux
+# and uploads each platform archive to the GitHub release.
+#
+# Contents of each archive:
+#   lib/librockboxd.a   — fat static archive (firmware + codecs + Rust servers)
+#   include/rockboxd.h  — public C/Swift/Rust FFI header
+#
+# Consumers link with:
+#   macOS: -framework CoreAudio -framework AudioUnit -framework AudioToolbox
+#          -framework CoreFoundation -framework Security
+#   Linux: -lasound -lunwind -ldbus-1
+
+on:
+  push:
+    tags-ignore:
+      - "clojure-v*"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to attach the library to"
+        type: string
+        required: true
+
+jobs:
+  build:
+    name: build (${{ matrix.arch }}-${{ matrix.os_label }})
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            arch: aarch64
+            os_label: darwin
+          - runner: macos-15-intel
+            arch: x86_64
+            os_label: darwin
+            zig_cpu: "-Dcpu=x86_64"
+            rust_flags: "-C target-cpu=x86-64 -A warnings"
+          - runner: ubuntu-latest
+            arch: x86_64
+            os_label: linux
+            zig_cpu: "-Dcpu=x86_64"
+            rust_flags: "-C target-cpu=x86-64 -A warnings"
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+            os_label: linux
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            zig/.zig-cache
+            target
+          key: embed-lib-${{ matrix.runner }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: embed-lib-${{ matrix.runner }}-
+
+      # ── macOS dependencies ────────────────────────────────────────────────
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          # llvm@22 crashes in setSymbolInRelocationInfo on Mach-O — use llvm@21
+          brew install llvm@21 cmake protobuf
+          echo "/opt/homebrew/opt/llvm@21/bin:/usr/local/opt/llvm@21/bin" >> $GITHUB_PATH
+
+      # ── Linux dependencies ────────────────────────────────────────────────
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libunwind-dev \
+            libasound2-dev \
+            libdbus-1-dev \
+            protobuf-compiler \
+            cmake
+
+      # ── Rust flags ────────────────────────────────────────────────────────
+      - name: Set Rust flags
+        run: |
+          FLAGS="${{ matrix.rust_flags || '-A warnings' }}"
+          echo "RUSTFLAGS=$FLAGS" >> $GITHUB_ENV
+
+      # ── Step 1-2: Headless firmware + rockbox-server ──────────────────────
+      # build-headless.sh configures build-headless/, builds firmware .a files,
+      # extracts codec objects, and builds librockbox_cli.a + librockbox_server.a
+      - name: Build headless firmware
+        run: bash scripts/build-headless.sh
+
+      # ── Step 3: rockbox-embed Rust crate ──────────────────────────────────
+      - name: Build rockbox-embed
+        run: cargo build --release -p rockbox-embed
+
+      # ── Step 4: Zig lib step ──────────────────────────────────────────────
+      - name: Build librockboxd.a
+        run: |
+          cd zig
+          zig build lib -Doptimize=ReleaseFast ${{ matrix.zig_cpu }}
+
+      # ── Package ───────────────────────────────────────────────────────────
+      - name: Resolve version
+        id: vars
+        run: |
+          VERSION="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
+          ARCH="${{ matrix.arch }}"
+          OS="${{ matrix.os_label }}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "archive=librockboxd_${VERSION}_${ARCH}-${OS}.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - name: Package archive
+        run: |
+          mkdir -p dist/lib dist/include
+          cp zig/zig-out/lib/librockboxd.a dist/lib/
+          cp include/rockboxd.h             dist/include/
+          ARCHIVE="${{ steps.vars.outputs.archive }}"
+          tar -C dist -czf "$ARCHIVE" lib include
+          if command -v sha256sum &>/dev/null; then
+            sha256sum "$ARCHIVE" > "${ARCHIVE}.sha256"
+          else
+            shasum -a 256 "$ARCHIVE" > "${ARCHIVE}.sha256"
+          fi
+          echo "Archive contents:"
+          tar -tzf "$ARCHIVE"
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ steps.vars.outputs.archive }}
+            ${{ steps.vars.outputs.archive }}.sha256
+          tag_name: ${{ steps.vars.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

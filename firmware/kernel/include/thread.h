@@ -89,11 +89,12 @@ struct thread_entry;
  *
  * simulator (possibly) doesn't simulate stack usage anyway but well ... */
 
-#if defined(HAVE_SDL_THREADS) || defined(__PCTOOL__) || defined(CTRU)
+#if defined(HAVE_SDL_THREADS) || defined(HAVE_POSIX_THREADS) || \
+    defined(__PCTOOL__) || defined(CTRU)
 #define DEFAULT_STACK_SIZE 0x100 /* tiny, ignored anyway */
 #else
 #include "asm/thread.h"
-#endif /* HAVE_SDL_THREADS */
+#endif /* HAVE_SDL_THREADS || HAVE_POSIX_THREADS */
 
 extern void yield(void);
 extern unsigned sleep(unsigned ticks);
