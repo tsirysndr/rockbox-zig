@@ -28,7 +28,18 @@ void cpufreq_available_governors(char *g, int gsize, int cpu)
 
 void cpufreq_set_governor(const char *g, int cpu) { (void)g; (void)cpu; }
 
-/* Battery stubs — real desktop battery info not needed by the engine. */
+/* Battery stubs — real desktop battery info not needed by the engine.
+ * powermgmt.c provides stubs for measures it does not track (returning -1).
+ * We only need to supply the stub when powermgmt.c expects a HW implementation,
+ * i.e. when CONFIG_BATTERY_MEASURE says the capability IS present. */
+#include "config.h"
+
+#if (CONFIG_BATTERY_MEASURE & PERCENTAGE_MEASURE)
 int      _battery_level(void)   { return 100; }
+#endif
+#if (CONFIG_BATTERY_MEASURE & VOLTAGE_MEASURE)
 unsigned _battery_voltage(void) { return 0; }
+#endif
+#if (CONFIG_BATTERY_MEASURE & TIME_MEASURE)
 int      _battery_time(void)    { return 0; }
+#endif

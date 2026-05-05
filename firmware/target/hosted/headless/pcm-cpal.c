@@ -34,6 +34,7 @@
 extern void pcm_cpal_init(void);
 extern void pcm_cpal_postinit(void);
 extern void pcm_cpal_set_sample_rate(uint32_t rate_hz);
+extern void pcm_cpal_set_volume(int vol_l, int vol_r);
 extern void pcm_cpal_start(void);
 extern void pcm_cpal_push(const void *data, size_t size);
 extern void pcm_cpal_stop(void);

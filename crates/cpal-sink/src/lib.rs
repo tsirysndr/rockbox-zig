@@ -26,7 +26,22 @@
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::collections::VecDeque;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Condvar, Mutex, OnceLock};
+
+// Per-channel linear volume multiplier stored as f32 bits in an atomic so the
+// cpal callback can read without a mutex.  Initialised to 1.0 (0 dB).
+static VOLUME_L: AtomicU32 = AtomicU32::new(0x3F80_0000); // 1.0f32
+static VOLUME_R: AtomicU32 = AtomicU32::new(0x3F80_0000); // 1.0f32
+
+fn tenth_db_to_linear(tenth_db: i32) -> f32 {
+    if tenth_db == i32::MIN {
+        return 0.0; // PCM_MUTE_LEVEL
+    }
+    // tenth_db is in 1/10 dB units; amplitude = 10^(tenth_db / 200)
+    let linear = 10.0_f32.powf(tenth_db as f32 / 200.0);
+    linear.min(1.0) // clamp: we don't boost above unity
+}
 
 const RING_CAPACITY: usize = 512 * 1024;
 
@@ -123,6 +138,9 @@ fn fill_output_f32(output: &mut [f32], ring: &mut Ring, rs: &mut ResamplerState,
     let frames = output.len() / 2; // output.len() is always even (stereo)
     let mut wrote = 0usize;
 
+    let vol_l = f32::from_bits(VOLUME_L.load(Ordering::Relaxed));
+    let vol_r = f32::from_bits(VOLUME_R.load(Ordering::Relaxed));
+
     // Ensure we have a "current" frame loaded.
     if !rs.cur_valid {
         if let Some((l, r)) = pop_frame(ring) {
@@ -156,10 +174,10 @@ fn fill_output_f32(output: &mut [f32], ring: &mut Ring, rs: &mut ResamplerState,
             }
         }
 
-        // Linear interpolate between prev and cur using fractional phase.
+        // Linear interpolate between prev and cur using fractional phase, then scale.
         let t = rs.phase as f32;
-        output[i * 2] = rs.prev_l + t * (rs.cur_l - rs.prev_l);
-        output[i * 2 + 1] = rs.prev_r + t * (rs.cur_r - rs.prev_r);
+        output[i * 2] = (rs.prev_l + t * (rs.cur_l - rs.prev_l)) * vol_l;
+        output[i * 2 + 1] = (rs.prev_r + t * (rs.cur_r - rs.prev_r)) * vol_r;
         wrote += 1;
     }
 
@@ -264,6 +282,8 @@ fn open_stream(rate: u32) {
         device.build_output_stream(
             &config,
             move |output: &mut [i16], _| {
+                let vol_l = f32::from_bits(VOLUME_L.load(Ordering::Relaxed));
+                let vol_r = f32::from_bits(VOLUME_R.load(Ordering::Relaxed));
                 let (lock, cvar) = ring_ref;
                 let mut r = lock.lock().unwrap();
                 let need_bytes = output.len() * 2;
@@ -276,7 +296,9 @@ fn open_stream(rate: u32) {
                     .enumerate()
                 {
                     if chunk.len() == 2 {
-                        output[i] = i16::from_le_bytes([chunk[0], chunk[1]]);
+                        let sample = i16::from_le_bytes([chunk[0], chunk[1]]) as f32;
+                        let vol = if i % 2 == 0 { vol_l } else { vol_r };
+                        output[i] = (sample * vol).clamp(-32768.0, 32767.0) as i16;
                     }
                 }
                 let filled = have / 2;
@@ -377,6 +399,15 @@ pub unsafe extern "C" fn pcm_cpal_push(addr: *const u8, size: usize) {
         return;
     }
     r.buf.extend(data.iter().copied());
+}
+
+/// Set per-channel volume. `vol_l` and `vol_r` are in tenth-decibel units
+/// (the Rockbox "centibel" convention: 0 = 0 dB, -740 = -74 dB, INT_MIN = mute).
+/// Called from audiohw_set_volume in audiohw-noop.c.
+#[no_mangle]
+pub extern "C" fn pcm_cpal_set_volume(vol_l: i32, vol_r: i32) {
+    VOLUME_L.store(tenth_db_to_linear(vol_l).to_bits(), Ordering::Relaxed);
+    VOLUME_R.store(tenth_db_to_linear(vol_r).to_bits(), Ordering::Relaxed);
 }
 
 #[no_mangle]
