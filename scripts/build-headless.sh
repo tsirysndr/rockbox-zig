@@ -131,7 +131,11 @@ cargo build $CARGO_FLAG --features cpal-sink -p rockbox-cli
 cargo build $CARGO_FLAG -p rockbox-server
 
 echo "==> Step 4: Link rockboxd with Zig (headless)"
-(cd zig && zig build -Dheadless=true "-Doptimize=$ZIG_OPT")
+ZIG_EXTRA_ARGS=""
+if [ "$(uname -m)" = "x86_64" ]; then
+    ZIG_EXTRA_ARGS="-Dcpu=x86_64"
+fi
+(cd zig && zig build -Dheadless=true "-Doptimize=$ZIG_OPT" $ZIG_EXTRA_ARGS)
 
 echo ""
 echo "✔ Build complete: zig/zig-out/bin/rockboxd"
