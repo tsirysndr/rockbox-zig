@@ -238,7 +238,7 @@ static bool read_chunk_stsd(qtmovie_t *qtmovie, size_t chunk_len)
           ((unsigned int*)qtmovie->res->codecdata)[2] = MAKEFOURCC('c','a','l','a');
 #endif
 
-          stream_read(qtmovie->stream,
+          m4a_stream_read(qtmovie->stream,
                   entry_remaining,
                   ((char*)qtmovie->res->codecdata) + 12);
           entry_remaining -= entry_remaining;

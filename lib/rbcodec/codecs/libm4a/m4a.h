@@ -113,7 +113,7 @@ int qtmovie_read(stream_t *stream, demux_res_t *demux_res);
     (char)code
 #endif
 
-void stream_read(stream_t *stream, size_t len, void *buf);
+void m4a_stream_read(stream_t *stream, size_t len, void *buf);
 
 int32_t stream_tell(stream_t *stream);
 int32_t stream_read_int32(stream_t *stream);

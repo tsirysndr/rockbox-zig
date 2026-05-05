@@ -380,6 +380,13 @@ pub unsafe extern "C" fn pcm_cpal_push(addr: *const u8, size: usize) {
 }
 
 #[no_mangle]
+pub extern "C" fn pcm_cpal_start() {
+    let (lock, _cvar) = ring();
+    let mut r = lock.lock().unwrap();
+    r.running = true;
+}
+
+#[no_mangle]
 pub extern "C" fn pcm_cpal_stop() {
     let (lock, cvar) = ring();
     let mut r = lock.lock().unwrap();

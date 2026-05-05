@@ -116,6 +116,10 @@ pub fn build(b: *std.Build) void {
         if (headless) {
             // cpal uses ALSA on Linux by default.
             exe.root_module.linkSystemLibrary("asound", .{});
+            // libopus and libtremor both bundle identical Ogg framing symbols;
+            // libspeex and libspeex-voice share bits.c symbols.  lld errors on
+            // duplicates while macOS ld64 silently picks first.
+            exe.addLinkerArg("--allow-multiple-definition");
         }
     }
 

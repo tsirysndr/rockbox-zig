@@ -34,6 +34,7 @@
 extern void pcm_cpal_init(void);
 extern void pcm_cpal_postinit(void);
 extern void pcm_cpal_set_sample_rate(uint32_t rate_hz);
+extern void pcm_cpal_start(void);
 extern void pcm_cpal_push(const void *data, size_t size);
 extern void pcm_cpal_stop(void);
 
@@ -121,6 +122,10 @@ static void sink_unlock(void)
 static void sink_dma_start(const void *addr, size_t size)
 {
     logf("pcm-cpal: start (%p, %zu)", addr, size);
+
+    /* Re-arm the ring so pcm_cpal_push() doesn't silently discard data after
+     * a previous pcm_cpal_stop() set running=false. */
+    pcm_cpal_start();
 
     pthread_mutex_lock(&cpal_mtx);
     pcm_data    = addr;

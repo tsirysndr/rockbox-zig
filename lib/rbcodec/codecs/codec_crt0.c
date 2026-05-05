@@ -22,14 +22,18 @@
 #include "config.h"
 #include "codecs.h"
 
+#ifndef CODECS_STATIC
 struct codec_api *ci DATA_ATTR;
+#endif
 
 extern unsigned char plugin_bss_start[];
 extern unsigned char plugin_end_addr[];
 
 /* stub, the entry point is called via its reference in __header to
  * avoid warning with certain compilers */
+#ifndef CODECS_STATIC
 int _start(void) {return 0;}
+#endif
 
 #ifdef CTRU
 /* dummy undefined symbols */
