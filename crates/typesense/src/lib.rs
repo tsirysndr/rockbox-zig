@@ -1,8 +1,9 @@
 use std::{
     fs,
     process::{Command, Stdio},
+    path::PathBuf,
 };
-use tracing::{info, warn};
+use tracing::info;
 
 pub mod client;
 pub mod types;
@@ -74,7 +75,11 @@ pub fn setup() -> Result<(), anyhow::Error> {
     let url = format!(
         "https://dl.typesense.org/releases/{version}/typesense-server-{version}-{os}-{arch}.tar.gz"
     );
-    let filename = format!("typesense-server-{version}-{os}-{arch}.tar.gz");
+    let archive_name = format!("typesense-server-{version}-{os}-{arch}.tar.gz");
+
+    // Use an absolute temp path — launchd starts with CWD=/  which is read-only on macOS.
+    let tmp_dir = std::env::temp_dir();
+    let archive_path: PathBuf = tmp_dir.join(&archive_name);
 
     info!(
         "typesense-server not found. Downloading v{} for {}/{}...",
@@ -87,7 +92,7 @@ pub fn setup() -> Result<(), anyhow::Error> {
         .arg("--progress-bar")
         .arg(&url)
         .arg("-o")
-        .arg(&filename)
+        .arg(&archive_path)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .status()?;
@@ -95,12 +100,14 @@ pub fn setup() -> Result<(), anyhow::Error> {
     if !status.success() {
         return Err(anyhow::anyhow!("curl exited with {}", status));
     }
-    info!("Download complete: {}", filename);
+    info!("Download complete: {}", archive_path.display());
 
-    info!("Extracting {}...", filename);
+    info!("Extracting {}...", archive_path.display());
     let status = Command::new("tar")
         .arg("xzf")
-        .arg(&filename)
+        .arg(&archive_path)
+        .arg("-C")
+        .arg(&tmp_dir)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .status()?;
@@ -110,22 +117,23 @@ pub fn setup() -> Result<(), anyhow::Error> {
     }
     info!("Extraction complete.");
 
-    info!("Installing typesense-server to ~/.rockbox/bin/...");
-    let status = Command::new("sh")
-        .arg("-c")
-        .arg("mkdir -p ~/.rockbox/bin && cp typesense-server ~/.rockbox/bin && chmod +x ~/.rockbox/bin/typesense-server && rm -f typesense-server typesense-server-*.tar.gz typesense-server.md5.txt")
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .status()?;
+    let bin_dir = homedir.join(".rockbox/bin");
+    fs::create_dir_all(&bin_dir)?;
+    let src = tmp_dir.join("typesense-server");
+    let dst = bin_dir.join("typesense-server");
+    fs::copy(&src, &dst)?;
+    let _ = fs::remove_file(&src);
+    let _ = fs::remove_file(&archive_path);
 
-    if !status.success() {
-        warn!(
-            "Install script exited with {}; binary may not be in place",
-            status
-        );
-    } else {
-        info!("typesense-server installed to ~/.rockbox/bin/typesense-server");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = fs::metadata(&dst)?.permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&dst, perms)?;
     }
+
+    info!("typesense-server installed to {}", dst.display());
 
     Ok(())
 }

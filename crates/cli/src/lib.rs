@@ -425,7 +425,17 @@ fn spawn_typesense_subprocess() {
             port,
             data_dir.display()
         );
-        let mut child = cmd.spawn()?;
+        let mut child = match cmd.spawn() {
+            Ok(c) => c,
+            Err(e) => {
+                error!(
+                    "Failed to spawn typesense-server ({}): {}",
+                    ts_bin.display(),
+                    e
+                );
+                return Err(e.into());
+            }
+        };
         let pid = child.id();
         TYPESENSE_PID.store(pid as i32, Ordering::SeqCst);
         info!("typesense-server started with PID {}", pid);
