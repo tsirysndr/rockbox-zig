@@ -32,7 +32,8 @@
  *
  * simulator (possibly) doesn't simulate stack usage anyway but well ... */
 
-#if defined(HAVE_SDL_THREADS) || defined(__PCTOOL__) || defined(CTRU)
+#if defined(HAVE_SDL_THREADS) || defined(HAVE_POSIX_THREADS) || \
+    defined(__PCTOOL__) || defined(CTRU)
 struct regs
 {
     void *t;             /* OS thread */
@@ -44,7 +45,7 @@ struct regs
 #define DEFAULT_STACK_SIZE 0x100 /* tiny, ignored anyway */
 #else
 #include "asm/thread.h"
-#endif /* HAVE_SDL_THREADS */
+#endif /* HAVE_SDL_THREADS || HAVE_POSIX_THREADS */
 
 /* NOTE: The use of the word "queue" may also refer to a linked list of
    threads being maintained that are normally dealt with in FIFO order

@@ -2143,6 +2143,8 @@ kernel/semaphore.c
 #endif
 #ifdef HAVE_SDL_THREADS
 target/hosted/sdl/thread-sdl.c
+#elif defined(HAVE_POSIX_THREADS)
+target/hosted/headless/thread-posix.c
 #elif !defined(CTRU)
 kernel/thread.c
 #endif
