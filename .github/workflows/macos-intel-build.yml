@@ -55,3 +55,11 @@ jobs:
 
       - name: Verify binaries
         run: ls -lh target/release/rockbox zig/zig-out/bin/rockboxd
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rockbox-macos-intel
+          path: |
+            target/release/rockbox
+            zig/zig-out/bin/rockboxd

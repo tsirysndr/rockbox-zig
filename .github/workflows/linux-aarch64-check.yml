@@ -62,3 +62,11 @@ jobs:
 
       - name: Show artifacts
         run: ls -lh target/release/rockbox zig/zig-out/bin/rockboxd
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rockbox-linux-aarch64
+          path: |
+            target/release/rockbox
+            zig/zig-out/bin/rockboxd
