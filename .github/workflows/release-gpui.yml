@@ -1,6 +1,9 @@
 name: release gpui app
 
 on:
+  push:
+    tags-ignore:
+      - "clojure-v*"
   release:
     types: [published]
   workflow_dispatch:
@@ -23,9 +26,13 @@ jobs:
             arch: aarch64
           - os: macos-15-intel
             arch: x86_64
+            zig_cpu: "-Dcpu=x86_64"
+            rust_flags: "-C target-cpu=x86-64 -A warnings"
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Resolve version
         id: vars
@@ -33,6 +40,10 @@ jobs:
           VERSION="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "dmg=Rockbox-${VERSION}-gpui-${{ matrix.arch }}.dmg" >> "$GITHUB_OUTPUT"
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
 
@@ -42,16 +53,38 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            zig/.zig-cache
+            target
             gpui/target
-          key: ${{ runner.os }}-gpui-${{ hashFiles('gpui/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-gpui-
+          key: gpui-${{ matrix.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: gpui-${{ matrix.os }}-
 
-      - name: Install protobuf
-        run: brew install protobuf
+      # llvm@22 crashes in setSymbolInRelocationInfo on Mach-O — use llvm@21
+      - name: Install macOS dependencies
+        run: |
+          brew install llvm@21 cmake protobuf
+          echo "/opt/homebrew/opt/llvm@21/bin:/usr/local/opt/llvm@21/bin" >> $GITHUB_PATH
 
-      - name: Skip Rust Warnings
-        run: echo "RUSTFLAGS=-A warnings" >> $GITHUB_ENV
+      - name: Set Rust flags
+        run: |
+          FLAGS="${{ matrix.rust_flags || '-A warnings' }}"
+          echo "RUSTFLAGS=$FLAGS" >> $GITHUB_ENV
 
+      # ── Step 1-2: Headless firmware + rockbox-server ──────────────────────
+      - name: Build headless firmware
+        run: bash scripts/build-headless.sh
+
+      # ── Step 3: rockbox-embed Rust crate ──────────────────────────────────
+      - name: Build rockbox-embed
+        run: cargo build --release -p rockbox-embed
+
+      # ── Step 4: Fat static library ────────────────────────────────────────
+      - name: Build librockboxd.a
+        run: |
+          cd zig
+          zig build lib -Doptimize=ReleaseFast ${{ matrix.zig_cpu }}
+
+      # ── Step 5: GPUI app + DMG ────────────────────────────────────────────
       - name: Build and package
         run: bash package.sh
         working-directory: gpui

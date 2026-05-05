@@ -9394,6 +9394,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "rockbox-embed"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "netstream",
+ "once_cell",
+ "prost",
+ "reqwest",
+ "rockbox-airplay",
+ "rockbox-chromecast",
+ "rockbox-cpal-sink",
+ "rockbox-discovery",
+ "rockbox-library",
+ "rockbox-server",
+ "rockbox-settings",
+ "rockbox-slim",
+ "rockbox-sys",
+ "rockbox-upnp",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "rockbox-expo"
 version = "0.1.0"
 dependencies = [

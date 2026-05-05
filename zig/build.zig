@@ -6,6 +6,26 @@ const std = @import("std");
 // for defining build steps and express dependencies between them, allowing the
 // build runner to parallelize the build automatically (and the cache system to
 // know when a step doesn't need to be re-run).
+// Codec names used by both the headless executable and the embeddable lib.
+const codec_names = [_][]const u8{
+    "a52",        "a52_rm",    "aac",     "aac_bsf",
+    "adx",        "aiff",      "alac",    "ape",
+    "atrac3_oma", "atrac3_rm", "au",      "cook",
+    "flac",       "mod",       "mpa",     "mpc",
+    "opus",       "raac",      "shorten", "smaf",
+    "speex",      "tta",       "vorbis",  "vox",
+    "wav",        "wav64",     "wavpack", "wma",
+    "wmapro",
+};
+const lib_names = [_][]const u8{
+    "liba52",        "libalac",   "libasap",  "libasf",
+    "libatrac",      "libcook",   "libdemac", "libfaad",
+    "libffmpegFLAC", "libm4a",    "libmad",   "libmusepack",
+    "libopus",       "libpcm",    "librm",    "libspc",
+    "libspeex",      "libtremor", "libtta",   "libwavpack",
+    "libwma",        "libwmapro",
+};
+
 pub fn build(b: *std.Build) void {
     // Standard target options allow the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
@@ -173,16 +193,6 @@ pub fn build(b: *std.Build) void {
         //
         // scripts/build-headless.sh Step 2.5 extracts these files into
         //   <fw_dir>/lib/rbcodec/codecs/codec-objects/<name>/
-        const codec_names = [_][]const u8{
-            "a52",        "a52_rm",    "aac",     "aac_bsf",
-            "adx",        "aiff",      "alac",    "ape",
-            "atrac3_oma", "atrac3_rm", "au",      "cook",
-            "flac",       "mod",       "mpa",     "mpc",
-            "opus",       "raac",      "shorten", "smaf",
-            "speex",      "tta",       "vorbis",  "vox",
-            "wav",        "wav64",     "wavpack", "wma",
-            "wmapro",
-        };
         const codec_dir = b.pathJoin(&.{ fw_dir, "lib/rbcodec/codecs" });
         const obj_base = b.pathJoin(&.{ codec_dir, "codec-objects" });
         for (codec_names) |name| {
@@ -199,14 +209,6 @@ pub fn build(b: *std.Build) void {
         // Support libraries referenced by the codec objects above.
         // Passed as archives (lazy scanning) because code references from the
         // directly-linked codec .o files drive archive member inclusion correctly.
-        const lib_names = [_][]const u8{
-            "liba52",        "libalac",   "libasap",  "libasf",
-            "libatrac",      "libcook",   "libdemac", "libfaad",
-            "libffmpegFLAC", "libm4a",    "libmad",   "libmusepack",
-            "libopus",       "libpcm",    "librm",    "libspc",
-            "libspeex",      "libtremor", "libtta",   "libwavpack",
-            "libwma",        "libwmapro",
-        };
         for (lib_names) |lib| {
             exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ codec_dir, b.fmt("{s}.a", .{lib}) })));
         }
@@ -290,4 +292,88 @@ pub fn build(b: *std.Build) void {
     //
     // Lastly, the Zig build system is relatively simple and self-contained,
     // and reading its source code will allow you to master it.
+
+    // ── Embeddable static library (always headless/cpal) ──────────────────────
+    // Build with:  zig build lib
+    // Output:      zig-out/lib/librockboxd.a
+    //
+    // Prerequisites (same as the headless binary):
+    //   cd build-headless && make lib
+    //   cargo build --release -p rockbox-embed -p rockbox-server
+    //
+    // Consumers link: librockboxd.a + system audio libs
+    //   macOS: -framework CoreAudio -framework AudioUnit -framework AudioToolbox
+    //          -framework CoreFoundation -framework Security
+    //   Linux: -lasound -lunwind -ldbus-1
+    {
+        const hw = "../build-headless";
+
+        const embed_lib = b.addStaticLibrary(.{
+            .name = "rockboxd",
+            .root_module = b.createModule(.{
+                .root_source_file = b.path("src/lib.zig"),
+                .target = target,
+                .optimize = optimize,
+                .imports = &.{
+                    .{ .name = "rockboxd", .module = mod },
+                },
+            }),
+        });
+
+        embed_lib.root_module.addLibraryPath(.{ .cwd_relative = "../target/release" });
+
+        if (target.result.os.tag == .macos) {
+            if (target.result.cpu.arch == .aarch64) {
+                embed_lib.root_module.addLibraryPath(.{ .cwd_relative = "/opt/homebrew/lib" });
+            } else {
+                embed_lib.root_module.addLibraryPath(.{ .cwd_relative = "/usr/local/lib" });
+            }
+            embed_lib.root_module.linkFramework("CoreFoundation", .{});
+            embed_lib.root_module.linkFramework("Security", .{});
+            embed_lib.root_module.linkFramework("CoreAudio", .{});
+            embed_lib.root_module.linkFramework("AudioUnit", .{});
+            embed_lib.root_module.linkFramework("AudioToolbox", .{});
+        }
+
+        if (target.result.os.tag == .linux) {
+            embed_lib.root_module.linkSystemLibrary("unwind", .{});
+            embed_lib.root_module.linkSystemLibrary("dbus-1", .{});
+            embed_lib.root_module.linkSystemLibrary("asound", .{});
+        }
+
+        if (target.result.os.tag == .freebsd or target.result.os.tag == .openbsd) {
+            embed_lib.root_module.linkSystemLibrary("asound", .{});
+        }
+
+        // Firmware archives (headless build)
+        embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "librockbox.a" })));
+        embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "firmware/libfirmware.a" })));
+        embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "lib/libfixedpoint.a" })));
+        embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "lib/libskin_parser.a" })));
+        embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "lib/librbcodec.a" })));
+        embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ hw, "lib/libtlsf.a" })));
+
+        // Rust libraries
+        embed_lib.root_module.addObjectFile(b.path("../target/release/librockbox_embed.a"));
+        embed_lib.root_module.addObjectFile(b.path("../target/release/librockbox_server.a"));
+
+        // Statically-linked codecs (same extraction as the headless executable)
+        const ecodec_dir = b.pathJoin(&.{ hw, "lib/rbcodec/codecs" });
+        const eobj_base = b.pathJoin(&.{ ecodec_dir, "codec-objects" });
+        for (codec_names) |name| {
+            const dir = b.pathJoin(&.{ eobj_base, name });
+            embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ dir, b.fmt("{s}.o", .{name}) })));
+            embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ dir, b.fmt("{s}-crt0.o", .{name}) })));
+        }
+        embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ ecodec_dir, "libcodec.a" })));
+        for (lib_names) |lib| {
+            embed_lib.root_module.addObjectFile(b.path(b.pathJoin(&.{ ecodec_dir, b.fmt("{s}.a", .{lib}) })));
+        }
+
+        embed_lib.root_module.link_libc = true;
+        b.installArtifact(embed_lib);
+
+        const lib_step = b.step("lib", "Build the embeddable static library (zig-out/lib/librockboxd.a)");
+        lib_step.dependOn(b.getInstallStep());
+    }
 }
