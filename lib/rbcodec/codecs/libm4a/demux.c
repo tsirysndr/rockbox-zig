@@ -6,7 +6,7 @@
  * This is the quicktime container demuxer.
  *
  * http://crazney.net/programs/itunes/alac.html
- * 
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -58,20 +58,20 @@ static void read_chunk_ftyp(qtmovie_t *qtmovie, size_t chunk_len)
 {
     size_t size_remaining = chunk_len - 8;
 
-    // filetype (supported ignore case values: m4a, m4b, mp42, 3gp6, qt, isom)  
-    char filetype[4];
-    stream_read(qtmovie->stream, 4, filetype);
-    size_remaining-=4;
+    /* major brand — must use stream_read_uint32 (not stream_read into a local
+     * buffer) so GCC -Os does not eliminate the call as a dead write */
+    /* major_brand = */ stream_read_uint32(qtmovie->stream);
+    size_remaining -= 4;
 
-    /* minor_ver = */ stream_read_uint32(qtmovie->stream);
-    size_remaining-=4;
+    /* minor_ver */
+    stream_read_uint32(qtmovie->stream);
+    size_remaining -= 4;
 
     /* compatible brands */
     while (size_remaining)
     {
-        /* unused */
-        /*fourcc_t cbrand =*/ stream_read_uint32(qtmovie->stream);
-        size_remaining-=4;
+        stream_read_uint32(qtmovie->stream);
+        size_remaining -= 4;
     }
 }
 
@@ -98,56 +98,60 @@ static bool read_chunk_esds(qtmovie_t *qtmovie, size_t chunk_len)
     uint32_t temp;
 
     (void)chunk_len;
+
     /* version and flags */
-    temp=stream_read_uint32(qtmovie->stream);
+    temp = stream_read_uint32(qtmovie->stream);
+    (void)temp;
 
     /* get and verify ES_DescrTag */
     tag = stream_read_uint8(qtmovie->stream);
     if (tag == 0x03)
     {
         /* read length */
-        if (mp4ff_read_mp4_descr_length(qtmovie->stream) < 5 + 15)
-        {
+        uint32_t eslen = mp4ff_read_mp4_descr_length(qtmovie->stream);
+        if (eslen < 5 + 15)
             return false;
-        }
         /* skip 3 bytes */
-        stream_skip(qtmovie->stream,3);
+        stream_skip(qtmovie->stream, 3);
     } else {
         /* skip 2 bytes */
-        stream_skip(qtmovie->stream,2);
+        stream_skip(qtmovie->stream, 2);
     }
 
     /* get and verify DecoderConfigDescrTab */
-    if (stream_read_uint8(qtmovie->stream) != 0x04)
-    {
+    uint8_t dcd_tag = stream_read_uint8(qtmovie->stream);
+    if (dcd_tag != 0x04)
         return false;
-    }
 
     /* read length */
     temp = mp4ff_read_mp4_descr_length(qtmovie->stream);
     if (temp < 13) return false;
 
-    /* audioType = */  stream_read_uint8(qtmovie->stream);
-    /* temp = */       stream_read_int32(qtmovie->stream);//0x15000414 ????
-    /* maxBitrate = */ stream_read_int32(qtmovie->stream);
-    /* avgBitrate = */ stream_read_int32(qtmovie->stream);
+    /* audioType + streamType+upStream+bufferSize + maxBitrate + avgBitrate
+     * Use stream_skip so GCC -Os cannot eliminate these as dead writes */
+    stream_skip(qtmovie->stream, 1);  /* audioType */
+    stream_skip(qtmovie->stream, 4);  /* streamType+upStream+bufferSize */
+    stream_skip(qtmovie->stream, 4);  /* maxBitrate */
+    stream_skip(qtmovie->stream, 4);  /* avgBitrate */
 
     /* get and verify DecSpecificInfoTag */
-    if (stream_read_uint8(qtmovie->stream) != 0x05)
-    {
+    uint8_t dsi_tag = stream_read_uint8(qtmovie->stream);
+    if (dsi_tag != 0x05)
         return false;
-    }
-    
+
     /* read length */
     qtmovie->res->codecdata_len = mp4ff_read_mp4_descr_length(qtmovie->stream);
     if (qtmovie->res->codecdata_len > MAX_CODECDATA_SIZE)
     {
-        DEBUGF("codecdata too large (%d) in esds\n", 
+        DEBUGF("codecdata too large (%d) in esds\n",
                (int)qtmovie->res->codecdata_len);
         return false;
     }
 
-    stream_read(qtmovie->stream, qtmovie->res->codecdata_len, qtmovie->res->codecdata);
+    /* Read codecdata byte-by-byte via stream_read_uint8 so GCC -Os cannot
+     * treat the bulk write into codecdata[] as a dead write and skip it */
+    for (unsigned _i = 0; _i < qtmovie->res->codecdata_len; _i++)
+        qtmovie->res->codecdata[_i] = stream_read_uint8(qtmovie->stream);
 
     /* will skip the remainder of the atom */
     return true;
@@ -219,7 +223,7 @@ static bool read_chunk_stsd(qtmovie_t *qtmovie, size_t chunk_len)
           qtmovie->res->codecdata_len = entry_remaining + 12 + 8;
           if (qtmovie->res->codecdata_len > MAX_CODECDATA_SIZE)
           {
-              DEBUGF("codecdata too large (%d) in stsd\n", 
+              DEBUGF("codecdata too large (%d) in stsd\n",
                       (int)qtmovie->res->codecdata_len);
               return false;
           }
@@ -335,7 +339,7 @@ static bool read_chunk_stts(qtmovie_t *qtmovie, size_t chunk_len)
         DEBUGF("ehm, size remianing?\n");
         stream_skip(qtmovie->stream, size_remaining);
     }
-    
+
     return true;
 }
 
@@ -399,7 +403,7 @@ static bool read_chunk_stsz(qtmovie_t *qtmovie, size_t chunk_len)
     {
         stream_skip(qtmovie->stream, size_remaining);
     }
-    
+
     return true;
 }
 
@@ -421,7 +425,7 @@ static bool read_chunk_stsc(qtmovie_t *qtmovie, size_t chunk_len)
     {
         stream_skip(qtmovie->stream, size_remaining);
     }
-    
+
     return true;
 }
 
@@ -483,14 +487,14 @@ static bool read_chunk_stco(qtmovie_t *qtmovie, size_t chunk_len)
 
     /* Build up lookup table. The lookup table contains the sample index and
      * byte position in the file for each chunk. This table is used to seek
-     * and resume (see m4a_seek() and m4a_seek_raw() in libm4a/m4a.c) and 
+     * and resume (see m4a_seek() and m4a_seek_raw() in libm4a/m4a.c) and
      * to skip empty chunks (see m4a_check_sample_offset() in codecs/aac.c and
      * libm4a/m4a.c).
-     * The seek/resume precision is lower than using sample_byte_size[] and 
+     * The seek/resume precision is lower than using sample_byte_size[] and
      * depends on numentries. Typically the resolution is ~1/10 of all frames
-     * which equals about 1/4-1/2 seconds. The loss of seek precision is 
-     * accepted to be able to avoid allocation of the large sample_byte_size[] 
-     * table. This reduces the memory consumption by a factor of 2 or even 
+     * which equals about 1/4-1/2 seconds. The loss of seek precision is
+     * accepted to be able to avoid allocation of the large sample_byte_size[]
+     * table. This reduces the memory consumption by a factor of 2 or even
      * more. */
     uint32_t idx = 0;
     for (i = 0; i < numentries; ++i)
@@ -527,10 +531,10 @@ static bool read_chunk_stco(qtmovie_t *qtmovie, size_t chunk_len)
                     stream_read_sample_to_chunk(qtmovie->stream, &new_first, &new_frame);
                 old_i = i;
             }
-            
+
             if (new_first > k)
                 break;
-            
+
             frame += (new_first - old_first) * old_frame;
         }
 
@@ -551,7 +555,7 @@ static bool read_chunk_stco(qtmovie_t *qtmovie, size_t chunk_len)
         DEBUGF("ehm, size remianing?\n");
         stream_skip(qtmovie->stream, size_remaining);
     }
-    
+
     return true;
 }
 
@@ -655,7 +659,7 @@ static bool read_chunk_minf(qtmovie_t *qtmovie, size_t chunk_len)
         }
 
         sub_chunk_id = stream_read_uint32(qtmovie->stream);
-        
+
         switch (sub_chunk_id)
         {
         case MAKEFOURCC('s','t','b','l'):
@@ -837,22 +841,18 @@ int qtmovie_read(stream_t *file, demux_res_t *demux_res)
         }
 
         if (chunk_len == 1)
-        {
-            //DEBUGF("need 64bit support\n");
             return 0;
-        }
+
         chunk_id = stream_read_uint32(qtmovie.stream);
 
-        //DEBUGF("Found a chunk %c%c%c%c, length=%d\n",SPLITFOURCC(chunk_id),chunk_len);
         switch (chunk_id)
         {
         case MAKEFOURCC('f','t','y','p'):
             read_chunk_ftyp(&qtmovie, chunk_len);
             break;
         case MAKEFOURCC('m','o','o','v'):
-            if (!read_chunk_moov(&qtmovie, chunk_len)) {
+            if (!read_chunk_moov(&qtmovie, chunk_len))
                return 0;
-            }
             break;
         case MAKEFOURCC('m','d','a','t'):
             /* There can be empty mdats before the real one. If so, skip them */
@@ -873,7 +873,6 @@ int qtmovie_read(stream_t *file, demux_res_t *demux_res)
             stream_skip(qtmovie.stream, chunk_len - 8);
             break;
         default:
-            //DEBUGF("(top) unknown chunk id: %c%c%c%c\n",SPLITFOURCC(chunk_id));
             stream_skip(qtmovie.stream, chunk_len - 8);
             break;
         }
@@ -881,4 +880,3 @@ int qtmovie_read(stream_t *file, demux_res_t *demux_res)
     }
     return 0;
 }
-

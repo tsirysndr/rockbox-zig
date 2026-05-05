@@ -140,7 +140,7 @@ struct codec_api ci = {
     memmove,
     memcmp,
     memchr,
-#if defined(DEBUG) || defined(SIMULATOR)
+#if defined(DEBUG) || defined(SIMULATOR) || defined(CODECS_STATIC)
     debugf,
 #endif
 #ifdef ROCKBOX_HAS_LOGF

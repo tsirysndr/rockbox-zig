@@ -88,7 +88,17 @@ if [ -f "$CODEC_LIB_DIR" ] && [ ! -d "$CODEC_LIB_DIR" ]; then
     rm -f "$CODEC_LIB_DIR"
 fi
 NCPU="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"
-(cd build-headless && make -j"$NCPU" lib $MAKE_EXTRA_ARGS)
+# Use -k (keep going) because spc and asap crash llvm-objcopy@21 on macOS
+# with a segfault in setSymbolInRelocationInfo.  Neither codec is linked into
+# rockboxd (they are absent from the codec-objects extraction loop), so their
+# build failures are harmless.
+(cd build-headless && make -j"$NCPU" -k lib $MAKE_EXTRA_ARGS) || {
+    if [[ "$(uname)" == "Darwin" ]]; then
+        echo "    Note: spc/asap build failures are expected on macOS (llvm-objcopy crash — codecs are unused)."
+    else
+        echo "ERROR: 'make lib' failed"; exit 1
+    fi
+}
 
 echo "==> Step 2.1: Build libcodec.a (codeclib.c — codec_init, bs_*, ff_*)"
 # libcodec.a is excluded from per-codec archives in CODECS_STATIC mode but

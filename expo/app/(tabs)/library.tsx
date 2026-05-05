@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -21,6 +23,8 @@ import { useIsConnected } from "@/lib/connection";
 import { useBottomSpacing } from "@/lib/use-bottom-spacing";
 import { Colors } from "@/constants/theme";
 import { formatDuration } from "@/lib/mock-data";
+import { qk } from "@/lib/queries";
+import { RockboxClient } from "@/lib/rockbox-client";
 import {
   useLibraryAlbums,
   useLibraryArtists,
@@ -44,9 +48,32 @@ export default function LibraryScreen() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { liked, userPlaylists, playTrack, playQueue, currentTrack, isPlaying } =
     usePlayer();
   const isConnected = useIsConnected();
+  const qc = useQueryClient();
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    RockboxClient.rescanLibrary();
+    await qc.invalidateQueries({
+      predicate: (q) => {
+        const k = q.queryKey;
+        if (!Array.isArray(k) || k.length < 2) return false;
+        const type = k[1];
+        // Leave playback and discovery caches alone — only refresh library data.
+        return (
+          type !== "status" &&
+          type !== "currentTrack" &&
+          type !== "playlist" &&
+          type !== "discoveredServers" &&
+          type !== "outputDevices"
+        );
+      },
+    });
+    setRefreshing(false);
+  }, [qc]);
   const bottomPad = useBottomSpacing(24);
   const { data: tracks } = useLibraryTracks();
   const { data: albums } = useLibraryAlbums();
@@ -196,6 +223,14 @@ export default function LibraryScreen() {
           key="list-playlists"
           data={filteredPlaylists}
           keyExtractor={(p) => p.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.accent}
+              colors={[Colors.accent]}
+            />
+          }
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingBottom: bottomPad,
@@ -236,6 +271,14 @@ export default function LibraryScreen() {
           key="list-songs"
           data={filteredSongs}
           keyExtractor={(t) => t.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.accent}
+              colors={[Colors.accent]}
+            />
+          }
           contentContainerStyle={{ paddingBottom: bottomPad }}
           renderItem={({ item }) => {
             const isCurrent = currentTrack?.id === item.id && !!item.id;
@@ -291,6 +334,14 @@ export default function LibraryScreen() {
           keyExtractor={(a) => a.id}
           numColumns={2}
           columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.accent}
+              colors={[Colors.accent]}
+            />
+          }
           contentContainerStyle={{ paddingBottom: bottomPad, gap: 16 }}
           renderItem={({ item }) => (
             <Pressable
@@ -322,6 +373,14 @@ export default function LibraryScreen() {
           key="list-artists"
           data={filteredArtists}
           keyExtractor={(a) => a.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.accent}
+              colors={[Colors.accent]}
+            />
+          }
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingBottom: bottomPad,
@@ -359,6 +418,14 @@ export default function LibraryScreen() {
           key="list-liked"
           data={filteredLiked}
           keyExtractor={(t) => t.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.accent}
+              colors={[Colors.accent]}
+            />
+          }
           ListHeaderComponent={
             <View className="px-4 pt-1 pb-4">
               <View className="flex-row items-center gap-3.5">

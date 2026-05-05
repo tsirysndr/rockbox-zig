@@ -227,7 +227,48 @@ So `libcodec.a` is never produced as a side-effect of `make lib` when `CODECS_ST
 exe.root_module.addObjectFile(b.path(b.pathJoin(&.{ codec_dir, "libcodec.a" })));
 ```
 
-### 5. cpal stream fails with "stream configuration not supported"
+### 5. M4A/AAC silent decode failure — GCC dead-write elimination in CODECS_STATIC builds
+
+**Symptom**: AAC (`.m4a`/`.mp4`) files fail immediately with `FAAD: File init error (qtmovie_read failed)` or, if the container parses, with `NeAACDecInit2` returning an error because the decoder receives `codecdata = [00 00]` instead of the actual AudioSpecificConfig bytes.
+
+**Root cause**: `libm4a/demux.c` contains two `stream_read(stream, N, buf)` calls where `buf` is either a dead local variable or a buffer whose initialisation the optimizer decides is pointless:
+
+1. **`read_chunk_ftyp`** — `stream_read(stream, 4, char filetype[4])` where `filetype` is never read afterward.
+2. **`read_chunk_esds`** — `stream_read(stream, 2, codecdata)` for the AudioSpecificConfig bytes, plus four earlier discarded reads (audioType + 3 × bitrate fields = 13 bytes).
+
+`stream_read` advances the logical file position (`ci->curpos`) as a *side effect* of calling `ci->read_filebuf(buf, size)`. When GCC/Clang eliminate the write to `buf` they silently drop the function call entirely — the debug `fprintf` inside `stream_read` was never printed for these two cases, confirming the call never happened. The stream position therefore doesn't advance:
+
+- In case 1: all subsequent M4A box size/id reads are off by 4 bytes. The parser reads the `'mp41'` brand as a box length (~1.8 billion bytes), `stream_skip` jumps to EOF, `qtmovie_read` returns 0.
+- In case 2: `codecdata[]` stays all-zeros from the `memset(&demux_res, 0, ...)` at the top of `codec_run`. `NeAACDecInit2` fails on the invalid ASC `00 00`.
+
+**Why only in CODECS_STATIC and not in dynamic `.dylib` builds**:
+
+The Makefile shows:
+```makefile
+export SHARED_CFLAGS=-fPIC -fvisibility=hidden
+# ...
+CODECFLAGS += $(SHARED_CFLAGS)   # only when APP_TYPE is set (dynamic codec build)
+```
+
+Dynamic codec builds are compiled with `-fPIC`. In PIC mode every access to a global struct through a pointer involves a GOT (Global Offset Table) indirection. The compiler treats function pointer calls through GOT-loaded values conservatively and will not eliminate them even when the destination buffer is dead.
+
+Static builds (`CODECS_STATIC`) never reach the `APP_TYPE` branch, so `-fPIC` is never added. The compiler (GCC with `-Os`; M4A lib compiled at `-O3` per `$(M4ALIB) : CODECFLAGS += -O3`) runs `-fipa-pure-const` and dead code elimination with full visibility. It inlines `stream_read`, observes that the only write is to a non-escaping stack allocation that is never loaded, and eliminates the entire inlined call — including the `read_filebuf` function pointer call inside it.
+
+The same issue would manifest on the Android cdylib build (also `CODECS_STATIC`, compiled by Clang/LLVM) because LLVM's Dead Store Elimination pass applies the same reasoning at `-O3`.
+
+**Fix** (`lib/rbcodec/codecs/libm4a/demux.c`):
+
+| Old pattern | Replacement | Why it works |
+|---|---|---|
+| `stream_read(stream, 4, char filetype[4])` — result unused | `stream_read_uint32(stream)` — result stored in a `uint32_t` variable | Return value is a live read; optimizer cannot eliminate it |
+| 4 discarded `stream_read_uint8/int32` calls in `read_chunk_esds` (13 bytes) | `stream_skip(stream, 1/4/4/4)` | `stream_skip` calls `ci->advance_buffer` directly — no destination buffer, no dead-write to eliminate |
+| `stream_read(stream, codecdata_len, codecdata)` bulk read | Byte-by-byte loop: `codecdata[i] = stream_read_uint8(stream)` | Each `stream_read_uint8` return value is stored into the array element that IS used by the decoder |
+
+**Rule going forward**: in CODECS_STATIC (or any no-`-fPIC`) build, never call `stream_read(stream, N, buf)` where `buf` is a local variable not subsequently read by the caller. Use `stream_read_uint8/uint16/uint32` (live return values) or `stream_skip` (no buffer at all) for all bytes you intend to discard.
+
+**Affected codecs**: Only AAC and ALAC — the only two formats that go through `libm4a/demux.c`. All other codecs (MP3, FLAC, Vorbis, Opus, WMA, …) read directly via `ci->request_buffer` / `ci->read_filebuf` and are unaffected.
+
+### 6. cpal stream fails with "stream configuration not supported"
 
 **Symptom**:
 ```

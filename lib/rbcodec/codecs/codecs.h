@@ -190,7 +190,7 @@ struct codec_api {
     int (*memcmp)(const void *s1, const void *s2, size_t n);
     void *(*memchr)(const void *s1, int c, size_t n);
 
-#if defined(DEBUG) || defined(SIMULATOR)
+#if defined(DEBUG) || defined(SIMULATOR) || defined(CODECS_STATIC)
     void (*debugf)(const char *fmt, ...) ATTRIBUTE_PRINTF(1, 2);
 #endif
 #ifdef ROCKBOX_HAS_LOGF
