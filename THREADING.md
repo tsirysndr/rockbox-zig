@@ -11,11 +11,11 @@ Understanding the boundary between these two classes is critical. Crossing it in
 
 There are three scheduler backends, each selected at compile time by an autoconf define:
 
-| Build target            | Autoconf define         | Backend file                                     |
-| ----------------------- | ----------------------- | ------------------------------------------------ |
-| SDL hosted (simulator)  | `HAVE_SDL_THREADS`      | `firmware/target/hosted/sdl/thread-sdl.c`        |
-| Headless macOS / Linux  | `HAVE_POSIX_THREADS`    | `firmware/target/hosted/headless/thread-posix.c` |
-| Android cdylib          | `HAVE_SIGALTSTACK_THREADS` | `firmware/asm/thread-unix.c` (signal-stack trick) |
+| Build target            | Autoconf define            | Backend file                                              |
+| ----------------------- | -------------------------- | --------------------------------------------------------- |
+| SDL hosted (simulator)  | `HAVE_SDL_THREADS`         | `firmware/target/hosted/sdl/thread-sdl.c`                |
+| Headless macOS / Linux  | `HAVE_POSIX_THREADS`       | `firmware/target/hosted/headless/thread-posix.c`         |
+| Android cdylib          | `HAVE_SIGALTSTACK_THREADS` | `firmware/asm/thread-unix.c` (signal-stack trick)         |
 
 All three share the same C-level `create_thread` / kernel-thread API and the same `struct regs` layout (`void *t, *told, *s; void (*start)(void)`). Only the mechanism for context-switching and blocking differs.
 
