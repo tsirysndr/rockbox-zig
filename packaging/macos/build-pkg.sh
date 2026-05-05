@@ -21,7 +21,8 @@ VERSION=$(git describe --tags --abbrev=0)
 mkdir -p "$TMP/usr/local"/{bin,lib,share}
 mkdir -p "/tmp/scripts"
 
-cp /usr/local/bin/rockbox* "$TMP/usr/local/bin"
+cp target/release/rockbox "$TMP/usr/local/bin"
+cp zig/zig-out/bin/rockboxd "$TMP/usr/local/bin"
 cp ./packaging/macos/postinstall "/tmp/scripts"
 
 pkgbuild \
