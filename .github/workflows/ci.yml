@@ -58,6 +58,17 @@ jobs:
           key: linux-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: linux-x86_64-cargo-
 
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Build Web UI
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+
       - name: Rust flags
         run: echo "RUSTFLAGS=-C target-cpu=x86-64 -A warnings" >> $GITHUB_ENV
 
