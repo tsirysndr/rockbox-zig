@@ -22,8 +22,6 @@ mkdir -p "$TMP/usr/local"/{bin,lib,share}
 mkdir -p "/tmp/scripts"
 
 cp /usr/local/bin/rockbox* "$TMP/usr/local/bin"
-cp -R /usr/local/lib/rockbox "$TMP/usr/local/lib"
-cp -R /usr/local/share/rockbox "$TMP/usr/local/share"
 cp ./packaging/macos/postinstall "/tmp/scripts"
 
 pkgbuild \
