@@ -269,6 +269,11 @@ pub async fn search_tracks(query: &str) -> Result<Option<TrackResult>, Error> {
         .send()
         .await?;
 
+    if !res.status().is_success() {
+        warn!("Typesense tracks search returned {}: {}", res.status(), res.text().await.unwrap_or_default());
+        return Ok(None);
+    }
+
     let text = res.text().await?;
     match serde_json::from_str::<TrackResult>(&text) {
         Ok(result) => Ok(Some(result)),
@@ -310,6 +315,11 @@ pub async fn search_albums(query: &str) -> Result<Option<AlbumResult>, Error> {
         .header("X-TYPESENSE-API-KEY", &api_key)
         .send()
         .await?;
+
+    if !res.status().is_success() {
+        warn!("Typesense albums search returned {}: {}", res.status(), res.text().await.unwrap_or_default());
+        return Ok(None);
+    }
 
     Ok(Some(res.json::<AlbumResult>().await?))
 }
@@ -446,6 +456,11 @@ pub async fn search_playlists(query: &str) -> Result<Option<PlaylistResult>, Err
         .send()
         .await?;
 
+    if !res.status().is_success() {
+        warn!("Typesense playlists search returned {}: {}", res.status(), res.text().await.unwrap_or_default());
+        return Ok(None);
+    }
+
     let text = res.text().await?;
     match serde_json::from_str::<PlaylistResult>(&text) {
         Ok(result) => Ok(Some(result)),
@@ -484,6 +499,11 @@ pub async fn search_artists(query: &str) -> Result<Option<ArtistResult>, Error> 
         .header("X-TYPESENSE-API-KEY", &api_key)
         .send()
         .await?;
+
+    if !res.status().is_success() {
+        warn!("Typesense artists search returned {}: {}", res.status(), res.text().await.unwrap_or_default());
+        return Ok(None);
+    }
 
     Ok(Some(res.json::<ArtistResult>().await?))
 }
