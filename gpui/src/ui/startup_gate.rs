@@ -3,9 +3,10 @@ use crate::state::AppState;
 use crate::ui::rockbox::Rockbox;
 use crate::ui::theme::Theme;
 use gpui::{
-    div, px, App, AppContext, Context, Entity, FontWeight, IntoElement, ParentElement, Render,
-    Styled, WeakEntity, Window,
+    div, px, App, AppContext, Context, Entity, FontWeight, InteractiveElement, IntoElement,
+    ParentElement, Render, StatefulInteractiveElement, Styled, WeakEntity, Window,
 };
+use gpui::prelude::FluentBuilder;
 
 pub struct StartupGate {
     /// Populated once the embedded daemon has started.
@@ -57,10 +58,15 @@ impl Render for StartupGate {
 
         let theme = *cx.global::<Theme>();
 
-        let (title, subtitle) = if let Some(err) = &self.error {
-            ("Failed to start daemon", err.as_str())
+        let title = if self.error.is_some() {
+            "Failed to start daemon"
         } else {
-            ("Starting Rockbox…", "Connecting to audio engine, please wait.")
+            "Starting Rockbox…"
+        };
+        let subtitle: String = if let Some(err) = &self.error {
+            err.clone()
+        } else {
+            "Connecting to audio engine, please wait.".to_string()
         };
 
         div()

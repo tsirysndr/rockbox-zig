@@ -372,9 +372,25 @@ pub fn build(b: *std.Build) void {
         }
 
         embed_lib.root_module.link_libc = true;
-        b.installArtifact(embed_lib);
+
+        // Use addInstallArtifact (not installArtifact) so the embed library is
+        // NOT added to the default install step. Plain `zig build` must only
+        // build the rockboxd executable; `zig build lib` is the explicit entry
+        // point. This prevents build-headless.sh from trying to link
+        // librockbox_embed.a which is only present when rockbox-embed is built.
+        const install_embed = b.addInstallArtifact(embed_lib, .{});
 
         const lib_step = b.step("lib", "Build the embeddable static library (zig-out/lib/librockboxd.a)");
-        lib_step.dependOn(b.getInstallStep());
+        if (target.result.os.tag == .macos) {
+            // Zig's llvm-ar emits a GNU-format archive; Apple's ld rejects it
+            // with "archive member invalid control bits". Repack in-place with
+            // libtool -static to produce a BSD-format archive macOS ld accepts.
+            const lib_out = b.getInstallPath(.lib, "librockboxd.a");
+            const repack = b.addSystemCommand(&.{ "libtool", "-static", "-o", lib_out, lib_out });
+            repack.step.dependOn(&install_embed.step);
+            lib_step.dependOn(&repack.step);
+        } else {
+            lib_step.dependOn(&install_embed.step);
+        }
     }
 }
