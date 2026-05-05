@@ -36,21 +36,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner:   macos-latest
-            arch:     aarch64
+          - runner: macos-latest
+            arch: aarch64
             os_label: darwin
-          - runner:   macos-15-intel
-            arch:     x86_64
+          - runner: macos-15-intel
+            arch: x86_64
             os_label: darwin
-            zig_cpu:  "-Dcpu=x86_64"
+            zig_cpu: "-Dcpu=x86_64"
             rust_flags: "-C target-cpu=x86-64 -A warnings"
-          - runner:   ubuntu-latest
-            arch:     x86_64
+          - runner: ubuntu-latest
+            arch: x86_64
             os_label: linux
-            zig_cpu:  "-Dcpu=x86_64"
+            zig_cpu: "-Dcpu=x86_64"
             rust_flags: "-C target-cpu=x86-64 -A warnings"
-          - runner:   ubuntu-24.04-arm
-            arch:     aarch64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
             os_label: linux
 
     steps:

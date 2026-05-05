@@ -308,8 +308,9 @@ pub fn build(b: *std.Build) void {
     {
         const hw = "../build-headless";
 
-        const embed_lib = b.addStaticLibrary(.{
+        const embed_lib = b.addLibrary(.{
             .name = "rockboxd",
+            .linkage = .static,
             .root_module = b.createModule(.{
                 .root_source_file = b.path("src/lib.zig"),
                 .target = target,

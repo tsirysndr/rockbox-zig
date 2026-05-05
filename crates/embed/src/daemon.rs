@@ -47,7 +47,7 @@ static _KEEPALIVE_CHROMECAST: unsafe extern "C" fn(*const c_char) =
 #[used]
 static _KEEPALIVE_UPNP: extern "C" fn(u16) = rockbox_upnp::pcm_upnp_set_http_port;
 #[used]
-static _KEEPALIVE_CPAL: extern "C" fn() = rockbox_cpal_sink::_link_cpal_sink;
+static _KEEPALIVE_CPAL: fn() = rockbox_cpal_sink::_link_cpal_sink;
 
 #[used]
 static _KEEPALIVE_RB_NET_OPEN: unsafe extern "C" fn(*const c_char) -> i32 =
