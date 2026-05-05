@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.05]
+
+### Added
+- Headless host target and `cpal` PCM sink (`audio_output = "cpal"`) — runs Rockbox without SDL on any OS audio backend (ALSA, CoreAudio, WASAPI, JACK) via CPAL; build with `scripts/build-headless.sh`; documented in `HEADLESS.md`
+- Genres API — gRPC, GraphQL, REST, and CLI endpoints to list genres, fetch tracks by genre, and add genre-based smart playlist rules; genre deduplication SQL migration bundled
+- Disc/track number support in the Expo mobile album view — `TrackList` component sorts by (disc, track) and renders disc-section headers for multi-disc releases; `proto track_number`/`disc_number` fields mapped through to the UI
+- Pull-to-refresh / rescan in the Expo library tab
+
+### Changed
+- CI workflows, macOS build scripts, Dockerfile, and `install.sh` streamlined — significant reduction in duplication and overall build time
+- Android `cdylib` option now available in the `tools/configure` interactive menu
+
+### Fixed
+- M4A/AAC files decode silently in `CODECS_STATIC` builds — dead-write elimination in `libm4a/demux.c` was optimizing away box-parsing reads; replaced with live-return readers (`stream_read_uint*` + `stream_skip`)
+- macOS linker: `Security.framework` explicitly linked in `zig/build.zig` to resolve missing symbol errors when using macOS Security APIs
+- Expo mobile app re-establishes gRPC subscriptions when the app returns to the foreground (`reconnectEpoch` bump + `reapplyServerUrl()`)
+
 ## [2026.05.03]
 
 ### Added
