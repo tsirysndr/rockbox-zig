@@ -10,13 +10,15 @@ pub const XBMC_SERVICE_NAME: &'static str = "_xbmc-jsonrpc-h._tcp.local.";
 pub const CHROMECAST_SERVICE_NAME: &'static str = "_googlecast._tcp.local.";
 
 pub struct MdnsResponder {
-    responder: libmdns::Responder,
+    responder: Option<libmdns::Responder>,
     svc: Vec<libmdns::Service>,
 }
 
 impl MdnsResponder {
     pub fn new() -> Self {
-        let responder = libmdns::Responder::new().unwrap();
+        let responder = libmdns::Responder::new()
+            .map_err(|e| tracing::warn!("mDNS responder unavailable (port 5353 blocked?): {e}"))
+            .ok();
         Self {
             responder,
             svc: vec![],
@@ -24,10 +26,13 @@ impl MdnsResponder {
     }
 
     pub fn register_service(&mut self, name: &str, port: u16) {
+        let Some(responder) = &self.responder else {
+            return;
+        };
         let device_name = "rockbox";
         let device_name = format!("device_name={}", device_name);
 
-        self.svc.push(self.responder.register(
+        self.svc.push(responder.register(
             "_rockbox._tcp".to_owned(),
             name.to_owned(),
             port,
@@ -84,24 +89,44 @@ pub fn register(name: &str, port: u16) {
     let device_name = env::var("ROCKBOX_DEVICE_NAME").unwrap_or("rockbox".to_string());
     let device_name = format!("device_name={}", device_name);
 
-    let responder = libmdns::Responder::new().unwrap();
-    let _svc = responder.register(
-        "_rockbox._tcp".to_owned(),
-        name.to_owned(),
-        port,
-        &["path=/", device_name.as_str()],
-    );
-
-    loop {
-        ::std::thread::sleep(::std::time::Duration::from_secs(10));
+    match libmdns::Responder::new() {
+        Ok(responder) => {
+            let _svc = responder.register(
+                "_rockbox._tcp".to_owned(),
+                name.to_owned(),
+                port,
+                &["path=/", device_name.as_str()],
+            );
+            loop {
+                ::std::thread::sleep(::std::time::Duration::from_secs(10));
+            }
+        }
+        Err(e) => {
+            tracing::warn!("mDNS register: responder unavailable (port 5353 blocked?): {e}");
+            loop {
+                ::std::thread::sleep(::std::time::Duration::from_secs(3600));
+            }
+        }
     }
 }
 
 pub fn discover(service_name: &str) -> impl Stream<Item = ServiceInfo> {
-    let mdns = ServiceDaemon::new().unwrap();
-    let receiver = mdns.browse(&service_name).expect("Failed to browse");
-
+    let service_name = service_name.to_owned();
     stream! {
+        let mdns = match ServiceDaemon::new() {
+            Ok(d) => d,
+            Err(e) => {
+                tracing::warn!("mDNS discover: daemon unavailable: {e}");
+                return;
+            }
+        };
+        let receiver = match mdns.browse(&service_name) {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::warn!("mDNS discover: browse failed: {e}");
+                return;
+            }
+        };
         while let Ok(event) = receiver.recv() {
             match event {
                 ServiceEvent::ServiceResolved(info) => {

@@ -387,3 +387,20 @@ void init_threads(void)
     pthread_mutex_unlock(&g_mutex);
     exit(0);
 }
+
+/* ── Priority scheduling stub ─────────────────────────────────────────────────
+ *
+ * HAVE_PRIORITY_SCHEDULING is not defined for the headless host, so thread.c
+ * does not compile thread_set_priority().  The rockbox-sys Rust crate
+ * unconditionally declares it as extern "C", which creates an undefined
+ * reference that the Xcode linker cannot satisfy.  Provide a no-op here so
+ * the symbol is always available; priority adjustment is a best-effort
+ * optimisation and is safe to ignore on hosted targets. */
+#ifndef HAVE_PRIORITY_SCHEDULING
+int thread_set_priority(unsigned int thread_id, int priority)
+{
+    (void)thread_id;
+    (void)priority;
+    return 0;
+}
+#endif

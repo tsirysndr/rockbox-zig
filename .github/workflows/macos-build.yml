@@ -66,6 +66,15 @@ jobs:
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
 
+      - name: Build librockboxd.a (embedded daemon for Swift app)
+        run: |
+          cargo build --release -p rockbox-embed
+          CPU_FLAG=""
+          [ "$(uname -m)" = "x86_64" ] && CPU_FLAG="-Dcpu=x86_64"
+          cd zig && zig build lib -Doptimize=ReleaseFast $CPU_FLAG
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+
       - name: Build rockbox CLI
         run: cargo build -p rockbox --release
         env:
@@ -78,7 +87,7 @@ jobs:
 
       - name: Show artifacts
         run: |
-          ls -lh target/release/rockbox zig/zig-out/bin/rockboxd
+          ls -lh target/release/rockbox zig/zig-out/bin/rockboxd zig/zig-out/lib/librockboxd.a
 
       - name: Package binaries
         run: |
