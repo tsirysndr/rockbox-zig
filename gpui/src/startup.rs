@@ -1,6 +1,6 @@
 use std::net::TcpStream;
 use std::os::raw::{c_char, c_int};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 const LOCALHOST_GRPC: &str = "127.0.0.1:6061";
 const CONNECT_TIMEOUT: Duration = Duration::from_millis(500);
@@ -35,5 +35,27 @@ pub fn ensure_running() -> i32 {
         return 6061;
     }
     let device_name = b"Rockbox Desktop\0".as_ptr() as *const c_char;
-    unsafe { rb_daemon_start(std::ptr::null(), device_name) }
+    let port = unsafe { rb_daemon_start(std::ptr::null(), device_name) };
+    if port > 0 {
+        wait_for_graphql();
+    }
+    port
+}
+
+/// Wait up to 10 s for the GraphQL server (album art, covers) to bind.
+/// Not fatal — if it doesn't come up in time the UI still shows but album
+/// art on the player screen may be missing until the next track change.
+fn wait_for_graphql() {
+    let graphql_port = std::env::var("ROCKBOX_GRAPHQL_PORT")
+        .ok()
+        .and_then(|s| s.parse::<u16>().ok())
+        .unwrap_or(6062);
+    let addr: std::net::SocketAddr = (std::net::Ipv4Addr::LOCALHOST, graphql_port).into();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while Instant::now() < deadline {
+        if TcpStream::connect_timeout(&addr, Duration::from_millis(50)).is_ok() {
+            return;
+        }
+        std::thread::sleep(Duration::from_millis(100));
+    }
 }
