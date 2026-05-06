@@ -1,8 +1,7 @@
-use crate::client::{adjust_volume, save_repeat, save_shuffle};
+use crate::client::{save_repeat, save_shuffle};
 use crate::controller::Controller;
 use crate::state::{
-    format_duration, volume_fraction, BluetoothState, DevicesState, PlaybackStatus, VOLUME_MAX_DB,
-    VOLUME_MIN_DB,
+    format_duration, BluetoothState, DevicesState, PlaybackStatus,
 };
 use crate::ui::components::bluetooth_picker::fetch_and_update_bluetooth_devices;
 use crate::ui::components::device_picker::device_icon;
@@ -14,7 +13,7 @@ use crate::ui::theme::Theme;
 use gpui::prelude::FluentBuilder;
 use gpui::{
     div, img, px, App, Context, FontWeight, InteractiveElement, IntoElement, ObjectFit,
-    ParentElement, Render, ScrollWheelEvent, StatefulInteractiveElement, Styled, StyledImage,
+    ParentElement, Render, StatefulInteractiveElement, Styled, StyledImage,
     Window,
 };
 
@@ -55,8 +54,6 @@ impl Render for MiniPlayer {
         } else {
             0.0
         };
-        let vol_fill = volume_fraction(state.volume);
-        let vol_pct = (vol_fill * 100.0) as u32;
         let is_shuffling = state.shuffling;
         let is_repeat = state.repeat;
         let current_path = state
@@ -434,74 +431,7 @@ impl Render for MiniPlayer {
                                     })
                                     .child(Icon::new(current_device_icon).size_4()),
                             )
-                            .child(
-                                div()
-                                    .text_color(theme.volume_icon)
-                                    .child(Icon::new(Icons::Volume1).size_4()),
-                            )
-                            .child(
-                                div()
-                                    .w_24()
-                                    .on_scroll_wheel(
-                                        |event: &ScrollWheelEvent, _window, cx: &mut App| {
-                                            let delta = event.delta.pixel_delta(px(12.0));
-                                            let steps = (-f32::from(delta.y) / 12.0).round() as i32;
-                                            if steps != 0 {
-                                                let (state, rt) = {
-                                                    let ctrl = cx.global::<Controller>();
-                                                    (ctrl.state.clone(), ctrl.rt())
-                                                };
-                                                let new_vol = {
-                                                    let current = state.read(cx).volume;
-                                                    (current + steps)
-                                                        .clamp(VOLUME_MIN_DB, VOLUME_MAX_DB)
-                                                };
-                                                state.update(cx, |s, cx| {
-                                                    s.volume = new_vol;
-                                                    cx.notify();
-                                                });
-                                                rt.spawn(adjust_volume(steps));
-                                            }
-                                        },
-                                    )
-                                    .child({
-                                        let state_ref = cx.global::<Controller>().state.clone();
-                                        let rt = cx.global::<Controller>().rt();
-                                        SeekBar::new(
-                                            "vol_bar",
-                                            vol_fill,
-                                            theme.volume_slider_track,
-                                            theme.volume_slider_fill,
-                                            px(4.0),
-                                        )
-                                        .on_seek(
-                                            move |fraction, _window, cx| {
-                                                let range = (VOLUME_MAX_DB - VOLUME_MIN_DB) as f32;
-                                                let new_vol = (VOLUME_MIN_DB as f32
-                                                    + fraction * range)
-                                                    .round()
-                                                    as i32;
-                                                let steps = {
-                                                    let current = state_ref.read(cx).volume;
-                                                    new_vol - current
-                                                };
-                                                if steps != 0 {
-                                                    state_ref.update(cx, |s, cx| {
-                                                        s.volume = new_vol;
-                                                        cx.notify();
-                                                    });
-                                                    rt.spawn(adjust_volume(steps));
-                                                }
-                                            },
-                                        )
-                                    }),
-                            )
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .text_color(theme.playback_position_text)
-                                    .child(format!("{vol_pct}%")),
-                            ),
+                            ,
                     ),
             )
     }
