@@ -131,19 +131,10 @@ pub async fn play(state: web::Data<AppState>, query: web::Query<PlayQuery>) -> H
     let elapsed = query.elapsed.unwrap_or(0);
     let offset = query.offset.unwrap_or(0);
 
-    // Route through fw_bus so audio_play() runs on the broker (a real
-    // Rockbox kernel thread), not on the actix worker. Calling firmware
-    // kernel functions from a non-Rockbox pthread corrupts the global
-    // `__cores[0].running` slot and crashes the scheduler — see
-    // crates/server/src/fw_bus.rs.
     web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
         if state.player.lock().unwrap().is_none() {
-            crate::fw_bus::send_and_wait(|reply| crate::fw_bus::FwCmd::Play {
-                elapsed,
-                offset,
-                reply: Some(reply),
-            });
+            rb::with_kernel_lock(|| rb::playback::play(elapsed, offset));
         }
     })
     .await
@@ -163,9 +154,7 @@ pub async fn pause(state: web::Data<AppState>) -> HandlerResult {
     } else {
         web::block(move || {
             let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-            crate::fw_bus::send_and_wait(|reply| crate::fw_bus::FwCmd::Pause {
-                reply: Some(reply),
-            });
+            rb::with_kernel_lock(|| rb::playback::pause());
         })
         .await
         .map_err(ErrorInternalServerError)?;
@@ -183,10 +172,7 @@ pub async fn ff_rewind(query: web::Query<FfRewindQuery>) -> HandlerResult {
     let newtime = query.newtime.unwrap_or(0);
     web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::send_and_wait(|reply| crate::fw_bus::FwCmd::FfRewind {
-            newtime,
-            reply: Some(reply),
-        });
+        rb::with_kernel_lock(|| rb::playback::ff_rewind(newtime));
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -339,9 +325,7 @@ pub async fn next_track(state: web::Data<AppState>) -> HandlerResult {
 pub async fn flush_and_reload_tracks() -> HandlerResult {
     web::block(|| {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::send_and_wait(|reply| crate::fw_bus::FwCmd::FlushAndReloadTracks {
-            reply: Some(reply),
-        });
+        rb::with_kernel_lock(|| rb::playback::flush_and_reload_tracks());
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -359,9 +343,7 @@ pub async fn resume(state: web::Data<AppState>) -> HandlerResult {
     } else {
         web::block(|| {
             let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-            crate::fw_bus::send_and_wait(|reply| crate::fw_bus::FwCmd::Resume {
-                reply: Some(reply),
-            });
+            rb::with_kernel_lock(|| rb::playback::resume());
         })
         .await
         .map_err(ErrorInternalServerError)?;
@@ -373,7 +355,7 @@ pub async fn resume(state: web::Data<AppState>) -> HandlerResult {
 pub async fn next() -> HandlerResult {
     web::block(|| {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::send_and_wait(|reply| crate::fw_bus::FwCmd::Next { reply: Some(reply) });
+        rb::with_kernel_lock(|| rb::playback::next());
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -383,7 +365,7 @@ pub async fn next() -> HandlerResult {
 pub async fn previous() -> HandlerResult {
     web::block(|| {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::send_and_wait(|reply| crate::fw_bus::FwCmd::Prev { reply: Some(reply) });
+        rb::with_kernel_lock(|| rb::playback::prev());
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -393,7 +375,7 @@ pub async fn previous() -> HandlerResult {
 pub async fn stop() -> HandlerResult {
     web::block(|| {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::send_and_wait(|reply| crate::fw_bus::FwCmd::Stop { reply: Some(reply) });
+        rb::with_kernel_lock(|| rb::playback::hard_stop());
     })
     .await
     .map_err(ErrorInternalServerError)?;

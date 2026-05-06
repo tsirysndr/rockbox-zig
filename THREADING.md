@@ -78,7 +78,7 @@ thread creation failed.Retrying
 make_context(): Operation not permitted
 ```
 
-The root cause is that macOS 12 Monterey returns `EPERM` from `sigaltstack()` when a thread already has an alternate signal stack installed (indicated by `SS_ONSTACK`). `HAVE_POSIX_THREADS` avoids `sigaltstack()` entirely.
+The root cause is that macOS 12 Monterey returns `EPERM` from `sigaltstack()` when a thread already has an alternate signal stack installed (indicated by `SS_ONSTACK`). `HAVE_POSIX_THREADS` avoids `sigaltstack()` entirely and works identically on Monterey x86_64, Sequoia arm64, and Linux.
 
 ### How `HAVE_POSIX_THREADS` works
 
@@ -110,6 +110,44 @@ Blocked/sleeping threads wait on their per-thread `posix_sem_t` with a `pthread_
 
 Like SDL threads, the `stack` / `stack_size` arguments are ignored (`(void)stack; (void)stack_size;`). The host OS assigns a default stack to each `pthread_create`'d thread.
 
+### Rust OS thread integration — `rb_kernel_lock` / `rb_kernel_unlock`
+
+`thread-posix.c` also exposes two functions that let **any OS thread** (Rust or C) safely call Rockbox firmware FFI without a broker intermediary:
+
+```c
+void rb_kernel_lock(void);    // acquire g_mutex + set __running_self_entry
+void rb_kernel_unlock(void);  // clear __running_self_entry + release g_mutex
+```
+
+`init_threads()` pre-allocates a `g_external_entry` — a `struct thread_entry` with `state = STATE_RUNNING` and name `"rb_external"`. `rb_kernel_lock()` installs this entry as `__running_self_entry()` while holding `g_mutex`, making the calling OS thread indistinguishable from a real Rockbox thread from the kernel's point of view:
+
+```c
+void rb_kernel_lock(void) {
+    pthread_mutex_lock(&g_mutex);
+    __running_self_entry() = g_external_entry;
+}
+
+void rb_kernel_unlock(void) {
+    __running_self_entry() = NULL;
+    pthread_mutex_unlock(&g_mutex);
+}
+```
+
+On the Rust side, `crates/server/src/fw_bus.rs` exposes a thin wrapper:
+
+```rust
+pub fn with_kernel_lock<T, F: FnOnce() -> T>(f: F) -> T {
+    unsafe { rockbox_sys::rb_kernel_lock() };
+    let result = f();
+    unsafe { rockbox_sys::rb_kernel_unlock() };
+    result
+}
+```
+
+All `fw_bus::run_on_broker` / `send_and_wait` / `send` calls are implemented via `with_kernel_lock` — O(1) overhead, no mpsc round-trip, no 30 s timeout path.
+
+**On SDL builds** `rb_kernel_lock` / `rb_kernel_unlock` are `__attribute__((weak))` no-ops defined in `apps/broker_thread.c`. The SDL build will be migrated to a matching `thread-sdl.c` implementation separately.
+
 ---
 
 ## The Headless Scheduler (Android cdylib)
@@ -118,32 +156,33 @@ The Android cdylib target (`firmware/target/hosted/android/cdylib/`) replaces SD
 
 ### Three-way comparison
 
-| Concern              | SDL hosted                           | Headless macOS/Linux                           | Android cdylib                                          |
-| -------------------- | ------------------------------------ | ---------------------------------------------- | ------------------------------------------------------- |
-| Autoconf define      | `HAVE_SDL_THREADS`                   | `HAVE_POSIX_THREADS`                           | `HAVE_SIGALTSTACK_THREADS`                              |
-| Backend file         | `thread-sdl.c`                       | `thread-posix.c`                               | `thread-unix.c`                                         |
-| Cooperative token    | `SDL_mutex *m` (single global)       | `pthread_mutex_t g_mutex` (single global)      | `__cores[0].running` (global current-thread pointer)    |
-| Per-thread blocking  | `SDL_sem *` (SDL semaphore)          | `posix_sem_t *` (cond+mutex+count)             | `setjmp`/`longjmp` + signal alt-stack                   |
-| Thread creation      | `SDL_CreateThread`                   | `pthread_create` + `pthread_detach`            | Bootstrapped via `sigaltstack()` + `SIGUSR1`            |
-| Scheduler yield      | `SDL_UnlockMutex` / `SDL_LockMutex`  | `pthread_mutex_unlock` / `pthread_mutex_lock`  | `longjmp` to next thread's `jmp_buf`                    |
-| Boot path            | SDL event thread initialises audio   | Zig linker entry → `main_c()`                  | `rb_daemon_start` (JNI) spawns `rockbox-engine` pthread |
-| Power-off            | `SDL_QUIT` event loop                | `exit(0)` via `power_off()`                    | `exit(0)` via `power_off()`                             |
-| Stack size respected | No (SDL default, typically 8 MB)     | No (pthread default)                           | Yes — passed to signal alt-stack                        |
-| macOS 12 x86_64      | Works                                | Works                                          | **Broken** — `sigaltstack()` returns `EPERM`            |
-| stdio                | terminal / controlled                | stderr via `debug-headless.c`                  | piped to logcat via `redirect_stdio_to_logcat`          |
+| Concern              | SDL hosted                           | Headless macOS/Linux                                   | Android cdylib                                          |
+| -------------------- | ------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------- |
+| Autoconf define      | `HAVE_SDL_THREADS`                   | `HAVE_POSIX_THREADS`                                   | `HAVE_SIGALTSTACK_THREADS`                              |
+| Backend file         | `thread-sdl.c`                       | `thread-posix.c`                                       | `thread-unix.c`                                         |
+| Cooperative token    | `SDL_mutex *m` (single global)       | `pthread_mutex_t g_mutex` (single global)              | `__cores[0].running` (global current-thread pointer)    |
+| Per-thread blocking  | `SDL_sem *` (SDL semaphore)          | `posix_sem_t *` (cond+mutex+count)                     | `setjmp`/`longjmp` + signal alt-stack                   |
+| Thread creation      | `SDL_CreateThread`                   | `pthread_create` + `pthread_detach`                    | Bootstrapped via `sigaltstack()` + `SIGUSR1`            |
+| Scheduler yield      | `SDL_UnlockMutex` / `SDL_LockMutex`  | `pthread_mutex_unlock` / `pthread_mutex_lock`          | `longjmp` to next thread's `jmp_buf`                    |
+| Rust OS thread FFI   | weak no-op stubs (broker still used) | `rb_kernel_lock` / `rb_kernel_unlock` (direct, O(1))   | fw_bus broker channel                                   |
+| Boot path            | SDL event thread initialises audio   | Zig linker entry → `main_c()`                          | `rb_daemon_start` (JNI) spawns `rockbox-engine` pthread |
+| Power-off            | `SDL_QUIT` event loop                | `exit(0)` via `power_off()`                            | `exit(0)` via `power_off()`                             |
+| Stack size respected | No (SDL default, typically 8 MB)     | No (pthread default)                                   | Yes — passed to signal alt-stack                        |
+| macOS 12 x86_64      | Works                                | Works                                                  | **Broken** — `sigaltstack()` returns `EPERM`            |
+| stdio                | terminal / controlled                | stderr via `debug-headless.c`                          | piped to logcat via `redirect_stdio_to_logcat`          |
 
 ### `__cores[0].running` — the critical invariant
 
-On the Android cdylib (and every non-SDL Rockbox target), the kernel tracks the currently-executing kernel thread via the global `__cores[0].running` pointer. **Any firmware function that calls `queue_send`, `wakeup_thread`, `pcmbuf_*`, or any kernel primitive reads this pointer to find its own thread entry.**
+On every Rockbox target the kernel tracks the currently-executing kernel thread via `__running_self_entry()`, which expands to `__cores[0].running` — a plain C global, **not TLS**. Any firmware function that calls `queue_send`, `wakeup_thread`, `pcmbuf_*`, or any kernel primitive reads this pointer to find its own thread entry.
 
-On the headless POSIX target (`HAVE_POSIX_THREADS`) the same invariant holds: `__running_self_entry()` expands to `__cores[0].running` and is updated by every thread at the top of `runthread()` and inside `switch_thread()`. The global `g_mutex` guarantees only one Rockbox kernel thread writes this pointer at a time — but OS threads that bypass `g_mutex` (actix workers, gRPC handlers) will still see a stale value.
+On the headless POSIX target `g_mutex` guarantees that only one thread writes this pointer at a time. `rb_kernel_lock()` extends this guarantee to arbitrary Rust OS threads: by acquiring `g_mutex` and installing `g_external_entry`, it ensures `__running_self_entry()` is always valid while any firmware FFI is in flight.
 
-If such a function is called from a non-Rockbox pthread (e.g. an actix worker or a tonic gRPC handler) the pointer resolves to the wrong thread entry. Consequences:
-- `wakeup_thread_` dereferences a stale or null function pointer → **SIGSEGV at PC=0**
-- Kernel scheduler state is silently corrupted
-- Symptoms may appear seconds later, during a track switch or settings change
+On other builds (SDL, Android cdylib) an external OS thread calling firmware FFI without the correct `__running_self_entry()` will cause:
+- `wakeup_thread_` to dereference a stale or null function pointer → **SIGSEGV at PC=0**
+- Silent kernel scheduler corruption
+- Symptoms appearing seconds later during a track switch or settings change
 
-This is why **all firmware-mutating calls from Rust handlers must go through the firmware-command bus** (see below).
+This is why those builds still route firmware-mutating calls through the fw_bus broker.
 
 ### Daemon boot sequence (Android)
 
@@ -161,13 +200,24 @@ This is why **all firmware-mutating calls from Rust handlers must go through the
 
 ## The Firmware-Command Bus (`crates/server/src/fw_bus.rs`)
 
-### Problem
+### Headless target (current)
 
-gRPC / HTTP handlers run on actix workers or tonic tasks — plain Rust OS threads. Calling firmware FFI directly from these threads violates the `__cores[0].running` invariant and causes the SIGSEGV / scheduler corruption described above. This affects both the Android cdylib and any future hosted-pthread build.
+On the headless POSIX target all `fw_bus` functions execute the firmware call **inline on the calling OS thread** under the Rockbox cooperative lock:
 
-### Solution
+```
+actix worker / tonic task
+  → fw_bus::run_on_broker(|| rb::playback::play(elapsed, offset))
+      → rb_kernel_lock()           ← acquire g_mutex, install g_external_entry
+          → rb::playback::play()   ← runs safely: __running_self_entry() is valid
+      → rb_kernel_unlock()         ← clear entry, release g_mutex
+  ← returns immediately
+```
 
-All kernel-mutating calls are serialised through a single `std::sync::mpsc` channel. **Only the broker thread drains this channel.** The broker IS a real Rockbox kernel thread (spawned by `apps/broker_thread.c::create_thread`), so its firmware calls always run with a valid `__running_self_entry()`.
+There is no channel, no broker round-trip, and no timeout. The cost is one `pthread_mutex_lock` + one `pthread_mutex_unlock`.
+
+### SDL / Android broker path (legacy)
+
+On SDL and Android cdylib builds `rb_kernel_lock` / `rb_kernel_unlock` are no-ops (weak stubs). Those builds serialise firmware calls through the old mpsc broker channel instead:
 
 ```
 actix worker / tonic task
@@ -176,33 +226,33 @@ actix worker / tonic task
           → broker thread (real Rockbox kernel thread)
               → rb::playback::play(elapsed, offset)
               → reply_tx.send(())
-  ← fw_bus::send_and_wait blocks until reply arrives (≤ 30 s)
+  ← send_and_wait blocks until reply arrives (≤ 30 s)
 ```
+
+The broker is a real Rockbox kernel thread (spawned by `apps/broker_thread.c::create_thread`), so its firmware calls always run with a valid `__running_self_entry()`.
 
 ### API
 
-| Function                       | Use case                                                             |
-| ------------------------------ | -------------------------------------------------------------------- |
-| `fw_bus::init()`               | Call once at startup, before broker thread spawns                    |
-| `fw_bus::send(cmd)`            | Fire-and-forget (no reply needed)                                    |
-| `fw_bus::send_and_wait(make)`  | Send + block until broker confirms (for actix `web::block` handlers) |
-| `fw_bus::run_on_broker(f)`     | Run arbitrary closure on broker; returns `T::default()` on timeout   |
-| `fw_bus::try_run_on_broker(f)` | Same but returns `Option<T>` — `None` on timeout                     |
-| `fw_bus::drain(rx)`            | Called once per broker iteration to execute pending commands         |
+| Function                        | Headless behaviour                              | SDL/Android behaviour                              |
+| ------------------------------- | ----------------------------------------------- | -------------------------------------------------- |
+| `fw_bus::init()`                | No-op (channel kept for compat, never drained)  | Creates mpsc channel before broker spawns          |
+| `fw_bus::with_kernel_lock(f)`   | Acquires `g_mutex`, runs `f`, releases          | Runs `f` without any lock (unsafe on those builds) |
+| `fw_bus::run_on_broker(f)`      | `with_kernel_lock(f)` — inline, no channel      | Sends `FwCmd::Custom` to broker, blocks ≤ 30 s     |
+| `fw_bus::try_run_on_broker(f)`  | `Some(with_kernel_lock(f))` — never None        | `None` on 30 s broker timeout                      |
+| `fw_bus::send_and_wait(make)`   | Inline under lock; reply channel is a no-op     | Sends to broker, waits for reply ≤ 30 s            |
+| `fw_bus::send(cmd)`             | Executes immediately under lock                 | Fire-and-forget enqueue to broker                  |
+| `fw_bus::drain(rx)`             | No-op                                           | Drains pending commands from broker queue          |
+| `fw_bus::drain_blocking(rx, t)` | No-op                                           | Blocks up to `t` for first command, then drains    |
+| `fw_bus::take_receiver()`       | Returns `None`                                  | Takes the `Receiver` for the broker to own         |
 
 ### `FwCmd` variants
 
 `Play`, `Pause`, `Resume`, `Next`, `Prev`, `Stop`, `FfRewind`, `FlushAndReloadTracks`, `SetCrossfade`, and `Custom(Box<dyn FnOnce() + Send>)` (escape hatch for anything not enumerated).
 
-### Timeout behaviour
-
-The broker tick period is ~10 ms at idle (the `rb::system::sleep(HZ/10)` in the broker loop). `BROKER_TIMEOUT` is 30 s — generous because building a large playlist can take several seconds. On timeout `run_on_broker` logs a warning and returns `T::default()` rather than panicking; `try_run_on_broker` returns `None`.
-
 ### Where fw_bus is NOT needed
 
 - Read-only status queries (`rb::playback::status()`, `rb::playback::current_track()`) — these only read atomics or copy structs; no kernel primitive is called.
-- Anything running inside the broker thread itself (it already owns `__running_self_entry()`).
-- Desktop SDL builds — the SDL mutex serialises everything anyway. The bus is still compiled in and works correctly; it just adds one channel hop of latency.
+- Anything running inside a real Rockbox kernel thread (it already owns `__running_self_entry()`).
 
 ---
 
@@ -213,9 +263,9 @@ The broker tick period is ~10 ms at idle (the `rb::system::sleep(HZ/10)` in the 
 | Thread          | C entry point                        | What it does                                                                                                        |
 | --------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | `server_thread` | `server_thread.c` → `start_server()` | Spawns the actix HTTP server in a Rust OS thread, then loops yielding to the Rockbox scheduler                      |
-| `broker_thread` | `broker_thread.c` → `start_broker()` | Event loop: drains `fw_bus`, publishes playback state to GraphQL subscriptions, scrobbles tracks, restores playlist |
+| `broker_thread` | `broker_thread.c` → `start_broker()` | Event loop: publishes playback state to GraphQL subscriptions, scrobbles tracks, restores playlist on first tick. On SDL/Android also drains fw_bus. |
 
-Both threads must call `rb::system::sleep(rb::HZ)` (desktop) or equivalent on every loop iteration.
+Both threads must call `rb::system::sleep(rb::HZ)` (or equivalent) on every loop iteration.
 
 **`server_thread` pattern** (`crates/server/src/lib.rs`):
 ```rust
@@ -240,11 +290,11 @@ pub extern "C" fn start_server() {
 **`broker_thread` pattern** (`crates/server/src/lib.rs`):
 ```rust
 pub extern "C" fn start_broker() {
+    // take_receiver() returns None on headless (no channel to drain).
     let fw_rx = fw_bus::take_receiver();
     loop {
-        // Drain firmware commands from actix/gRPC handlers first.
         if let Some(rx) = &fw_rx {
-            fw_bus::drain(rx);
+            fw_bus::drain(rx);  // SDL/Android only — no-op on headless
         }
         // ... publish events, scrobble, restore playlist ...
         thread::sleep(std::time::Duration::from_millis(100));
@@ -255,7 +305,7 @@ pub extern "C" fn start_broker() {
 
 ### Rust OS threads (no Rockbox scheduler involvement)
 
-These are spawned with `std::thread::spawn` — they are pure OS threads and never interact with the Rockbox scheduler token or `__cores[0].running`.
+These are spawned with `std::thread::spawn` — they are pure OS threads and never interact with the Rockbox scheduler token.
 
 | Thread / component                                                     | Spawned from                               | Runtime                                                   |
 | ---------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------- |
@@ -282,7 +332,36 @@ These are spawned with `std::thread::spawn` — they are pure OS threads and nev
 
 ## Startup Sequences
 
-### Desktop (SDL hosted)
+### Headless (`librockboxd.a` — GPUI desktop client, embedded daemon)
+
+```
+Zig entry → main_c()
+│
+├── server_init() → create_thread(server_thread)     ← Rockbox kernel thread
+│   └── start_server()
+│       ├── load_settings()
+│       ├── rockbox_upnp::init()
+│       ├── thread::spawn(actix HTTP server)          ← Rust OS thread (free to block)
+│       └── loop { sleep + rb::system::sleep(HZ) }   ← yields g_mutex
+│
+├── sleep(HZ)
+│
+└── start_servers()                                   ← called on main C thread
+    ├── fw_bus::init()                                ← no-op on headless
+    ├── thread::spawn(gRPC server)                    ← Rust OS thread
+    │   └── handlers call fw_bus::run_on_broker(f)
+    │         → rb_kernel_lock() + f() + rb_kernel_unlock()   ← inline, O(1)
+    ├── thread::spawn(GraphQL server)
+    ├── thread::spawn(MPD server)
+    └── thread::spawn(command relay)
+
+broker_init() → create_thread(broker_thread)         ← Rockbox kernel thread
+└── start_broker()
+    ├── fw_bus::take_receiver() → None               ← no channel on headless
+    └── loop { publish events + scrobble + sleep + rb::system::sleep(HZ) }
+```
+
+### Desktop SDL (`rockboxd` binary)
 
 ```
 main.c: server_init()
@@ -292,17 +371,17 @@ main.c: server_init()
 │       ├── load_settings()
 │       ├── rockbox_upnp::init()        ← creates static UPnP multi-thread runtime
 │       ├── thread::spawn(actix)        ← Rust OS thread (free to block)
-│       └── loop { sleep + rb::system::sleep(HZ) }   ← yields Rockbox mutex
+│       └── loop { sleep + rb::system::sleep(HZ) }   ← yields SDL mutex
 │
-├── sleep(HZ)                           ← Rockbox scheduler sleep on main thread (~1 s)
+├── sleep(HZ)
 │
 └── start_servers()                     ← called on main C thread after 1 s
     ├── fw_bus::init()                  ← create mpsc channel before broker spawns
     ├── thread::spawn(gRPC server)      ← Rust OS thread, new_current_thread runtime
-    ├── thread::spawn(GraphQL server)   ← Rust OS thread, new_current_thread runtime
-    ├── thread::spawn(MPD server)       ← Rust OS thread, new_current_thread runtime
-    ├── thread::spawn(MPRIS, Linux)     ← Rust OS thread, async_std
-    └── thread::spawn(command relay)    ← Rust OS thread, reqwest blocking
+    ├── thread::spawn(GraphQL server)
+    ├── thread::spawn(MPD server)
+    ├── thread::spawn(MPRIS, Linux)
+    └── thread::spawn(command relay)
 
 main.c: broker_init()
 │
@@ -472,15 +551,17 @@ The command-relay thread in `start_servers()` uses `reqwest::blocking::Client`. 
 
 `rockbox_graphql::simplebroker::SimpleBroker` uses `futures_channel::mpsc::UnboundedSender` for pub/sub. `publish()` is a synchronous call — it does not require or interact with any tokio runtime. It is safe to call from any thread, including Rockbox kernel threads and scanner threads with their own runtimes.
 
-### Rule 6: All firmware-mutating FFI from Rust handlers must go through `fw_bus`
+### Rule 6: On headless, use `fw_bus::run_on_broker` / `with_kernel_lock` for firmware-mutating FFI from Rust handlers
 
-On the headless pthread target (Android cdylib) calling `rb::playback::play`, `rb::sound::set_volume`, or any function that reaches `queue_send` / `wakeup_thread` from a non-Rockbox pthread corrupts `__cores[0].running` and causes a SIGSEGV. Route every such call through `fw_bus::run_on_broker(|| ...)` from inside a `web::block(...)` closure.
+On SDL and Android builds, calling `rb::playback::play`, `rb::sound::set_volume`, or any function that reaches `queue_send` / `wakeup_thread` from a non-Rockbox pthread corrupts `__cores[0].running` and causes a SIGSEGV. On those builds these calls must still go through `fw_bus::run_on_broker(|| ...)`.
 
-Read-only queries (status, current track) that only touch atomics or copy structs are safe to call directly.
+On the headless POSIX target `fw_bus::run_on_broker` uses `rb_kernel_lock` / `rb_kernel_unlock` directly and is safe from any OS thread — no broker intermediary needed.
 
-### Rule 7: `fw_bus::init()` must be called before any handler sends a command
+Read-only queries (status, current track) that only touch atomics or copy structs are safe to call directly on all builds.
 
-`fw_bus::send()` silently drops commands if the bus hasn't been initialised. `init()` is called inside `start_servers()`, which runs before the HTTP/gRPC servers start accepting requests. On Android, the boot sequence guarantees `start_servers()` (inside `main_c()`) completes before `rb_daemon_start` returns.
+### Rule 7: `fw_bus::init()` is a no-op on headless but must still be called on SDL/Android
+
+On headless builds `fw_bus::init()` initialises the static channel statics (so `take_receiver` doesn't panic) but the channel is never drained. On SDL/Android it must be called before any handler sends a command — `fw_bus::send()` silently drops commands if the channel hasn't been created.
 
 ### Rule 8: Never re-enable `HAVE_SIGALTSTACK_THREADS` for the headless host
 
@@ -498,3 +579,7 @@ If you re-run `tools/configure` to regenerate `build-headless/autoconf.h`, check
 ```
 
 and restore it if configure has reverted it to `HAVE_SIGALTSTACK_THREADS`.
+
+### Rule 9: Do not nest `rb_kernel_lock` calls
+
+`g_mutex` is a non-recursive `pthread_mutex_t`. Calling `rb_kernel_lock()` from a thread that already holds it (e.g. from inside a `with_kernel_lock` closure that calls another `fw_bus` function) will deadlock. Flatten the calls: acquire the lock once, do all the firmware work, release it.

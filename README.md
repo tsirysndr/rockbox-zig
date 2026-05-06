@@ -29,7 +29,7 @@ and Squeezelite.
 ## ✨ Features
 
 ### Audio output
-- [x] Built-in SDL audio
+- [x] Built-in CPAL audio
 - [x] AirPlay (RAOP) — single or multi-room fan-out to Apple TV, HomePod, Airport Express, shairport-sync
 - [x] Snapcast — synchronised multi-room via snapserver (FIFO/pipe **and** direct TCP with mDNS auto-discovery)
 - [x] Squeezelite (Slim Protocol + HTTP broadcast) — synchronised multi-room
@@ -72,7 +72,7 @@ and Squeezelite.
 
 ```toml
 music_dir    = "/path/to/your/Music"
-audio_output = "builtin"   # SDL audio — see Audio Output for other options
+audio_output = "builtin"   # CPAL audio — see Audio Output for other options
 playlist_shuffle = false
 repeat_mode = 1
 bass = 0
@@ -195,14 +195,14 @@ Rockbox reads `~/.config/rockbox.org/settings.toml` at startup.
 `music_dir` is always required. `audio_output` defaults to `"builtin"` if
 omitted.
 
-### Built-in SDL — default
+### Built-in CPAL — default
 
 ```toml
 music_dir    = "/path/to/Music"
 audio_output = "builtin"
 ```
 
-Uses SDL2 audio — plays through the OS default device. No extra setup needed.
+Uses CPAL — plays through the OS default device. No extra setup needed.
 
 ### Snapcast
 
@@ -581,7 +581,7 @@ flatpak run org.flatpak.Builder --run flatpak_app build-aux/io.github.tsirysndr.
 
 The Rockbox C firmware (audio engine, codecs, DSP) is compiled into
 `libfirmware.a` and linked with two Rust static libraries
-(`librockbox_cli.a`, `librockbox_server.a`) and SDL2 by the Zig build script.
+(`librockbox_cli.a`, `librockbox_server.a`) and CPAL by the Zig build script.
 The result is a single `rockboxd` binary. Rust crates expose the firmware over
 gRPC, GraphQL, HTTP, and MPD, and implement output sinks (AirPlay, Squeezelite,
 Snapcast) and the Typesense search integration.
@@ -629,7 +629,7 @@ SDK docs are published at:
 The Mintlify source lives in [`mintlify/`](./mintlify/). Topics covered:
 
 - **Getting started** — install, quickstart, configuration
-- **Audio output** — built-in SDL, Snapcast, AirPlay, Squeezelite, Chromecast, UPnP
+- **Audio output** — built-in CPAL, Snapcast, AirPlay, Squeezelite, Chromecast, UPnP
 - **Audio settings** — parametric EQ, DSP, ReplayGain, crossfade
 - **Clients** — web UI, desktop apps, MPD, MPRIS
 - **API reference** — HTTP REST (auto-generated from OpenAPI), GraphQL, gRPC, MPD

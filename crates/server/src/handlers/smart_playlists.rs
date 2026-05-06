@@ -211,9 +211,7 @@ pub async fn play_smart_playlist(
     let paths: Vec<String> = tracks.iter().map(|t| t.path.clone()).collect();
     web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        // Same broker routing as saved_playlists::play_smart_playlist —
-        // playlist_start hits the kernel scheduler.
-        crate::fw_bus::run_on_broker(move || {
+        rb::with_kernel_lock(move || {
             let first = &paths[0];
             let dir = {
                 let parts: Vec<_> = first.split('/').collect();

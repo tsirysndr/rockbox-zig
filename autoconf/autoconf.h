@@ -54,8 +54,12 @@
 
 /* optional defines for RTC mod for h1x0 */
 
-/* the threading backend we use */
-#define HAVE_SIGALTSTACK_THREADS
+/* the threading backend we use.
+ * HAVE_POSIX_THREADS: one pthread per Rockbox thread, g_mutex for cooperative
+ * exclusion, rb_kernel_lock/rb_kernel_unlock for safe FFI from Rust OS threads.
+ * Replaces HAVE_SIGALTSTACK_THREADS (green coroutines in a single OS thread,
+ * no global mutex, incompatible with rb_kernel_lock). */
+#define HAVE_POSIX_THREADS
 
 /* lcd dimensions for application builds from configure */
 #define LCD_WIDTH 320

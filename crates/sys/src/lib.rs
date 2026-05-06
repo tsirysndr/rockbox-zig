@@ -1388,4 +1388,22 @@ extern "C" {
     fn plugin_get_buffer();
     fn plugin_get_current_filename();
     fn plugin_reserve_buffer();
+
+    // Kernel lock for Rust OS threads (headless hosted only; no-op on SDL)
+    pub fn rb_kernel_lock();
+    pub fn rb_kernel_unlock();
+}
+
+/// Execute `f` under the Rockbox cooperative kernel lock and return its value.
+///
+/// Any OS thread (e.g. a tokio/actix worker) may call Rockbox firmware FFI
+/// safely by wrapping the call with this function.  On the headless target
+/// this acquires g_mutex so no Rockbox kernel thread runs concurrently, then
+/// installs g_external_entry as the current thread.  On SDL builds
+/// `rb_kernel_lock` is a no-op (weak-symbol stub in broker_thread.c).
+pub fn with_kernel_lock<T, F: FnOnce() -> T>(f: F) -> T {
+    unsafe { rb_kernel_lock() };
+    let result = f();
+    unsafe { rb_kernel_unlock() };
+    result
 }

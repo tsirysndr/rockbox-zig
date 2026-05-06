@@ -104,10 +104,7 @@ pub async fn create_playlist(
 
     let start_index = web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        // hard_stop / playlist_create / build_playlist all touch
-        // firmware kernel state — route through the broker so they run
-        // with the right __cores[0].running entry.
-        crate::fw_bus::run_on_broker(move || {
+        rb::with_kernel_lock(move || {
             let current_is_http = rb::playback::current_track()
                 .map(|t| t.path.starts_with("http://") || t.path.starts_with("https://"))
                 .unwrap_or(false);
@@ -153,10 +150,7 @@ pub async fn start_playlist(query: web::Query<StartPlaylistQuery>) -> HandlerRes
     let offset = query.offset.unwrap_or(0);
     web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        // playlist_start() inside firmware sends Q_AUDIO_PLAY to audio_thread
-        // → halt_decoding_track → codec_stop → kernel scheduler. Must run on
-        // the broker (real kernel thread) — see crates/server/src/fw_bus.rs.
-        crate::fw_bus::run_on_broker(move || {
+        rb::with_kernel_lock(move || {
             rb::playlist::start(start_index, elapsed, offset);
         });
         PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
@@ -175,7 +169,7 @@ pub async fn shuffle_playlist(query: web::Query<ShuffleQuery>) -> HandlerResult 
     let start_index = query.start_index.unwrap_or(0);
     let ret = web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::run_on_broker(move || {
+        rb::with_kernel_lock(move || {
             let seed = rb::system::current_tick();
             let ret = rb::playlist::shuffle(seed as i32, start_index);
             PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
@@ -200,7 +194,7 @@ pub async fn get_playlist_amount() -> HandlerResult {
 pub async fn resume_playlist() -> HandlerResult {
     let code = web::block(|| {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::run_on_broker(|| {
+        rb::with_kernel_lock(|| {
             let status = rb::system::get_global_status();
             let playback_status = rb::playback::status();
             if status.resume_index == -1 || playback_status.status == 1 {
@@ -219,7 +213,7 @@ pub async fn resume_playlist() -> HandlerResult {
 pub async fn resume_track() -> HandlerResult {
     web::block(|| {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::run_on_broker(|| {
+        rb::with_kernel_lock(|| {
             let status = rb::system::get_global_status();
             if status.resume_index == -1 {
                 return;
@@ -363,11 +357,9 @@ pub async fn insert_tracks(
         }
     }
 
-    // Built-in player: all firmware kernel calls must run on the broker
-    // thread (real Rockbox kernel thread) — see crates/server/src/fw_bus.rs.
     let response_body = web::block(move || -> Result<String, String> {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        crate::fw_bus::try_run_on_broker(move || {
+        rb::with_kernel_lock(move || {
             let amount = rb::playlist::amount();
 
             if amount == 0 {
@@ -403,7 +395,6 @@ pub async fn insert_tracks(
             PLAYLIST_DIRTY.store(true, Ordering::Relaxed);
             Ok(tracklist.position.to_string())
         })
-        .unwrap_or_else(|| Err("broker timed out".to_string()))
     })
     .await
     .map_err(ErrorInternalServerError)?
@@ -427,7 +418,7 @@ pub async fn remove_tracks(
         }
         drop(player);
 
-        crate::fw_bus::run_on_broker(move || {
+        rb::with_kernel_lock(move || {
             let mut ret = 0;
 
             for position in &params.positions {

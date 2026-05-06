@@ -1,7 +1,4 @@
-use std::{
-    path::PathBuf,
-    sync::{mpsc::Sender, Arc, Mutex},
-};
+use std::path::PathBuf;
 
 use actix_cors::Cors;
 use actix_files::{self as fs, NamedFile};
@@ -17,7 +14,6 @@ use async_graphql::{http::GraphiQLSource, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse, GraphQLSubscription};
 use rockbox_library::{create_connection_pool, repo};
 use rockbox_playlists::PlaylistStore;
-use rockbox_sys::events::RockboxCommand;
 use rockbox_webui::{dist, index, index_spa};
 use sqlx::{Pool, Sqlite};
 
@@ -88,7 +84,7 @@ async fn index_file(req: HttpRequest) -> Result<NamedFile, actix_web::Error> {
     }
 }
 
-pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Error> {
+pub async fn start() -> Result<(), Error> {
     let client = reqwest::Client::new();
     let pool = create_connection_pool().await?;
     let playlist_store = PlaylistStore::new(pool.clone());
@@ -98,7 +94,6 @@ pub async fn start(cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>) -> Result<(), Err
         Mutation::default(),
         Subscription::default(),
     )
-    .data(cmd_tx)
     .data(client)
     .data(pool.clone())
     .data(playlist_store)

@@ -1,12 +1,7 @@
-use std::sync::{mpsc::Sender, Arc, Mutex};
-
 use async_graphql::*;
 use futures_util::Stream;
 use rockbox_library::repo;
-use rockbox_sys::{
-    events::RockboxCommand,
-    types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
-};
+use rockbox_sys::types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo};
 
 use crate::{
     rockbox_url, schema::objects::playlist::Playlist, simplebroker::SimpleBroker, types::StatusCode,
@@ -77,12 +72,29 @@ impl PlaylistMutation {
         Ok(response.code)
     }
 
-    async fn resume_track(&self, ctx: &Context<'_>) -> Result<String, Error> {
-        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
-            .unwrap()
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::PlaylistResumeTrack)?;
+    async fn resume_track(&self, _ctx: &Context<'_>) -> Result<String, Error> {
+        tokio::task::spawn_blocking(|| {
+            rockbox_sys::with_kernel_lock(|| {
+                let status = rockbox_sys::system::get_global_status();
+                if status.resume_index == -1 {
+                    return;
+                }
+                if rockbox_sys::playlist::amount() == 0 {
+                    let ret = rockbox_sys::playlist::resume();
+                    if ret == -1 {
+                        return;
+                    }
+                }
+                rockbox_sys::playlist::resume_track(
+                    status.resume_index,
+                    status.resume_crc32,
+                    status.resume_elapsed.into(),
+                    status.resume_offset.into(),
+                );
+            });
+        })
+        .await
+        .map_err(|e| Error::new(e.to_string()))?;
         Ok("".to_string())
     }
 

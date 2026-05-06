@@ -123,6 +123,7 @@ static int psem_value(posix_sem_t *s)
 
 static jmp_buf         thread_jmpbufs[MAXTHREADS];
 static pthread_mutex_t g_mutex;
+static struct thread_entry *g_external_entry = NULL;
 
 #define THREADS_RUN  0
 #define THREADS_EXIT 1
@@ -379,6 +380,26 @@ void init_threads(void)
         return;
     }
 
+    /* Allocate a stub entry for external (Rust OS thread) callers.
+     * rb_kernel_lock() sets __running_self_entry() to this entry while the
+     * caller holds g_mutex, so the kernel always sees a valid STATE_RUNNING
+     * thread_entry without needing a dedicated broker thread. */
+    g_external_entry = thread_alloc();
+    if (!g_external_entry) {
+        fprintf(stderr, "posix: external entry alloc failed\n");
+        return;
+    }
+    g_external_entry->name         = "rb_external";
+    g_external_entry->state        = STATE_RUNNING;
+    g_external_entry->context.s    = psem_create(0);
+    g_external_entry->context.t    = NULL;
+    g_external_entry->context.told = NULL;
+
+    if (!g_external_entry->context.s) {
+        fprintf(stderr, "posix: external semaphore alloc failed\n");
+        return;
+    }
+
     /* setjmp here is the exit trampoline: if thread_exit() longjmps here
      * for the main thread we fall through and exit the process. */
     if (setjmp(thread_jmpbufs[THREAD_ID_SLOT(thread->id)]) == 0)
@@ -386,6 +407,39 @@ void init_threads(void)
 
     pthread_mutex_unlock(&g_mutex);
     exit(0);
+}
+
+/* ── Rust OS thread kernel-lock API ───────────────────────────────────────────
+ *
+ * Any OS thread (e.g. a tokio/actix worker) may call Rockbox firmware FFI
+ * safely by bracketing the call with rb_kernel_lock() / rb_kernel_unlock():
+ *
+ *   rb_kernel_lock();
+ *   audio_play(elapsed, offset);
+ *   rb_kernel_unlock();
+ *
+ * rb_kernel_lock() acquires the global cooperative mutex (g_mutex) so no
+ * Rockbox kernel thread can run concurrently, then installs g_external_entry
+ * as the current thread so __running_self_entry() always returns a valid
+ * STATE_RUNNING entry.  rb_kernel_unlock() reverses both steps.
+ *
+ * These replace the fw_bus broker channel: direct in-line calls with O(1)
+ * overhead instead of mpsc round-trips with a 30 s timeout safety net.
+ *
+ * macOS: pthread_mutex_lock/unlock work identically on Monterey x86_64 and
+ * Sequoia arm64 — same as the rest of this file.
+ */
+
+void rb_kernel_lock(void)
+{
+    pthread_mutex_lock(&g_mutex);
+    __running_self_entry() = g_external_entry;
+}
+
+void rb_kernel_unlock(void)
+{
+    __running_self_entry() = NULL;
+    pthread_mutex_unlock(&g_mutex);
 }
 
 /* ── Priority scheduling stub ─────────────────────────────────────────────────

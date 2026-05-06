@@ -1,15 +1,11 @@
-use std::{
-    fs,
-    sync::{mpsc::Sender, Arc, Mutex},
-};
+use std::fs;
 
 use crate::{check_and_load_player, read_files, schema::objects, AUDIO_EXTENSIONS};
 use async_graphql::*;
 use futures_util::Stream;
 use rockbox_library::repo;
-use rockbox_sys::{
-    events::RockboxCommand,
-    types::{audio_status::AudioStatus, file_position::FilePosition, mp3_entry::Mp3Entry},
+use rockbox_sys::types::{
+    audio_status::AudioStatus, file_position::FilePosition, mp3_entry::Mp3Entry,
 };
 use rockbox_types::device::Device;
 use sqlx::{Pool, Sqlite};
@@ -83,11 +79,12 @@ pub struct PlaybackMutation;
 
 #[Object]
 impl PlaybackMutation {
-    async fn play(&self, ctx: &Context<'_>, elapsed: i64, offset: i64) -> Result<i32, Error> {
-        let cmd = ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>().unwrap();
-        cmd.lock()
-            .unwrap()
-            .send(RockboxCommand::Play(elapsed, offset))?;
+    async fn play(&self, _ctx: &Context<'_>, elapsed: i64, offset: i64) -> Result<i32, Error> {
+        tokio::task::spawn_blocking(move || {
+            rockbox_sys::with_kernel_lock(|| rockbox_sys::playback::play(elapsed, offset))
+        })
+        .await
+        .map_err(|e| Error::new(e.to_string()))?;
         Ok(0)
     }
 
@@ -119,30 +116,30 @@ impl PlaybackMutation {
         Ok(0)
     }
 
-    async fn fast_forward_rewind(&self, ctx: &Context<'_>, new_time: i32) -> Result<i32, Error> {
-        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
-            .unwrap()
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::FfRewind(new_time))?;
+    async fn fast_forward_rewind(&self, _ctx: &Context<'_>, new_time: i32) -> Result<i32, Error> {
+        tokio::task::spawn_blocking(move || {
+            rockbox_sys::with_kernel_lock(|| rockbox_sys::playback::ff_rewind(new_time))
+        })
+        .await
+        .map_err(|e| Error::new(e.to_string()))?;
         Ok(0)
     }
 
-    async fn flush_and_reload_tracks(&self, ctx: &Context<'_>) -> Result<i32, Error> {
-        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
-            .unwrap()
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::FlushAndReloadTracks)?;
+    async fn flush_and_reload_tracks(&self, _ctx: &Context<'_>) -> Result<i32, Error> {
+        tokio::task::spawn_blocking(|| {
+            rockbox_sys::with_kernel_lock(|| rockbox_sys::playback::flush_and_reload_tracks())
+        })
+        .await
+        .map_err(|e| Error::new(e.to_string()))?;
         Ok(0)
     }
 
-    async fn hard_stop(&self, ctx: &Context<'_>) -> Result<i32, Error> {
-        ctx.data::<Arc<Mutex<Sender<RockboxCommand>>>>()
-            .unwrap()
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Stop)?;
+    async fn hard_stop(&self, _ctx: &Context<'_>) -> Result<i32, Error> {
+        tokio::task::spawn_blocking(|| {
+            rockbox_sys::with_kernel_lock(|| rockbox_sys::playback::hard_stop())
+        })
+        .await
+        .map_err(|e| Error::new(e.to_string()))?;
         Ok(0)
     }
 

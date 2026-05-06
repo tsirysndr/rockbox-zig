@@ -37,6 +37,13 @@ static void broker_thread(void) {
     start_broker();
 }
 
+/* Fallback stubs for builds that do not include thread-posix.c (e.g. the SDL
+ * hosted target).  thread-posix.c provides strong definitions that override
+ * these via the linker's weak-symbol resolution, so headless builds get the
+ * real cooperative-mutex implementation automatically. */
+__attribute__((weak)) void rb_kernel_lock(void)   {}
+__attribute__((weak)) void rb_kernel_unlock(void) {}
+
 /** -- Startup -- **/
 
 /* Initialize the broker - called from init() in main.c */

@@ -239,10 +239,7 @@ pub async fn play_saved_playlist(
 
     web::block(move || {
         let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        // Build + start a saved playlist — `playlist_start` triggers
-        // halt_decoding_track / codec_stop in the kernel scheduler.
-        // Must run on the broker (real Rockbox kernel thread).
-        crate::fw_bus::run_on_broker(move || {
+        rb::with_kernel_lock(move || {
             let first = &paths[0];
             let dir = {
                 let parts: Vec<_> = first.split('/').collect();

@@ -1,10 +1,5 @@
-use std::sync::{mpsc::Sender, Arc, Mutex};
-
 use rockbox_library::repo;
-use rockbox_sys::{
-    events::RockboxCommand,
-    types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo},
-};
+use rockbox_sys::types::{playlist_amount::PlaylistAmount, playlist_info::PlaylistInfo};
 use sqlx::Sqlite;
 
 use crate::{
@@ -14,22 +9,13 @@ use crate::{
 };
 
 pub struct Playlist {
-    cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
     client: reqwest::Client,
     pool: sqlx::Pool<Sqlite>,
 }
 
 impl Playlist {
-    pub fn new(
-        cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
-        client: reqwest::Client,
-        pool: sqlx::Pool<Sqlite>,
-    ) -> Self {
-        Self {
-            cmd_tx,
-            client,
-            pool,
-        }
+    pub fn new(client: reqwest::Client, pool: sqlx::Pool<Sqlite>) -> Self {
+        Self { client, pool }
     }
 }
 
@@ -139,11 +125,28 @@ impl PlaylistService for Playlist {
         &self,
         _request: tonic::Request<ResumeTrackRequest>,
     ) -> Result<tonic::Response<ResumeTrackResponse>, tonic::Status> {
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::PlaylistResumeTrack)
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+        tokio::task::spawn_blocking(|| {
+            rockbox_sys::with_kernel_lock(|| {
+                let status = rockbox_sys::system::get_global_status();
+                if status.resume_index == -1 {
+                    return;
+                }
+                if rockbox_sys::playlist::amount() == 0 {
+                    let ret = rockbox_sys::playlist::resume();
+                    if ret == -1 {
+                        return;
+                    }
+                }
+                rockbox_sys::playlist::resume_track(
+                    status.resume_index,
+                    status.resume_crc32,
+                    status.resume_elapsed.into(),
+                    status.resume_offset.into(),
+                );
+            });
+        })
+        .await
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(ResumeTrackResponse::default()))
     }
 

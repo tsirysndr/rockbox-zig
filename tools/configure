@@ -517,14 +517,32 @@ EOF
 
  thread_support=
  if [ -z "$ARG_THREAD_SUPPORT" ] || [ "$ARG_THREAD_SUPPORT" = "0" ]; then
-   if [ "$sigaltstack" = "0" ]; then
-     thread_support="HAVE_SIGALTSTACK_THREADS"
-     LDOPTS="$LDOPTS -lpthread" # pthread needed
-     echo "Selected sigaltstack threads"
-   elif [ "$fibers" = "0" ]; then
-     thread_support="HAVE_WIN32_FIBER_THREADS"
-     echo "Selected Win32 Fiber threads"
-   fi
+   # Prefer HAVE_POSIX_THREADS on POSIX platforms (Darwin/Linux): one pthread
+   # per Rockbox thread with a global cooperative mutex, enabling
+   # rb_kernel_lock/rb_kernel_unlock for safe FFI from Rust OS threads.
+   # Replaces HAVE_SIGALTSTACK_THREADS (green coroutines, no global mutex).
+   case `uname -s` in
+     Darwin|Linux)
+       thread_support="HAVE_POSIX_THREADS"
+       thread_support_comment="/* the threading backend we use.
+ * HAVE_POSIX_THREADS: one pthread per Rockbox thread, g_mutex for cooperative
+ * exclusion, rb_kernel_lock/rb_kernel_unlock for safe FFI from Rust OS threads.
+ * Replaces HAVE_SIGALTSTACK_THREADS (green coroutines in a single OS thread,
+ * no global mutex, incompatible with rb_kernel_lock). */"
+       LDOPTS="$LDOPTS -lpthread"
+       echo "Selected POSIX threads"
+       ;;
+     *)
+       if [ "$sigaltstack" = "0" ]; then
+         thread_support="HAVE_SIGALTSTACK_THREADS"
+         LDOPTS="$LDOPTS -lpthread" # pthread needed
+         echo "Selected sigaltstack threads"
+       elif [ "$fibers" = "0" ]; then
+         thread_support="HAVE_WIN32_FIBER_THREADS"
+         echo "Selected Win32 Fiber threads"
+       fi
+       ;;
+   esac
  fi
 
  if [ -n `echo $app_type | grep "sdl"` ] && [ -z "$thread_support" ] \
@@ -818,11 +836,17 @@ androidcdylibcc () {
     GLOBAL_LDOPTS=""
     LDOPTS="-llog -landroid -laaudio"
 
-    # firmware/asm/thread.c handles HAVE_SIGALTSTACK_THREADS via thread-unix.c
-    # which works on bionic. HAVE_PTHREAD_THREADS is set by androidcc but not
-    # actually consumed by anything in firmware/ — would land us at the
-    # "Missing thread impl" error.
-    thread_support="HAVE_SIGALTSTACK_THREADS"
+    # HAVE_POSIX_THREADS: one pthread per Rockbox thread + g_mutex for cooperative
+    # exclusion.  rb_kernel_lock/rb_kernel_unlock let any Rust OS thread call
+    # firmware FFI safely.  Android bionic has full pthread support (API 21+).
+    # Replaces HAVE_SIGALTSTACK_THREADS (green coroutines, no global mutex,
+    # incompatible with rb_kernel_lock).
+    thread_support="HAVE_POSIX_THREADS"
+    thread_support_comment="/* the threading backend we use.
+ * HAVE_POSIX_THREADS: one pthread per Rockbox thread, g_mutex for cooperative
+ * exclusion, rb_kernel_lock/rb_kernel_unlock for safe FFI from Rust OS threads.
+ * Replaces HAVE_SIGALTSTACK_THREADS (green coroutines in a single OS thread,
+ * no global mutex, incompatible with rb_kernel_lock). */"
     gccchoice=""
     gcctarget="${cc_triple}-"
 

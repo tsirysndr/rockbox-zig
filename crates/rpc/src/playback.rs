@@ -1,8 +1,4 @@
-use std::{
-    env, fs,
-    pin::Pin,
-    sync::{mpsc::Sender, Arc, Mutex},
-};
+use std::{env, fs, pin::Pin};
 
 use crate::{
     api::rockbox::v1alpha1::{playback_service_server::PlaybackService, *},
@@ -12,31 +8,18 @@ use rockbox_graphql::schema;
 use rockbox_graphql::schema::objects::track::Track;
 use rockbox_graphql::simplebroker::SimpleBroker;
 use rockbox_library::repo;
-use rockbox_sys::{
-    self as rb,
-    events::RockboxCommand,
-    types::{audio_status::AudioStatus, system_status::SystemStatus},
-};
+use rockbox_sys::{self as rb, types::audio_status::AudioStatus};
 use sqlx::Sqlite;
 use tokio_stream::{Stream, StreamExt};
 
 pub struct Playback {
-    cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
     client: reqwest::Client,
     pool: sqlx::Pool<Sqlite>,
 }
 
 impl Playback {
-    pub fn new(
-        cmd_tx: Arc<Mutex<Sender<RockboxCommand>>>,
-        client: reqwest::Client,
-        pool: sqlx::Pool<Sqlite>,
-    ) -> Self {
-        Self {
-            cmd_tx,
-            client,
-            pool,
-        }
+    pub fn new(client: reqwest::Client, pool: sqlx::Pool<Sqlite>) -> Self {
+        Self { client, pool }
     }
 }
 
@@ -47,11 +30,13 @@ impl PlaybackService for Playback {
         request: tonic::Request<PlayRequest>,
     ) -> Result<tonic::Response<PlayResponse>, tonic::Status> {
         let params = request.into_inner();
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Play(params.elapsed, params.offset))
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+        let elapsed = params.elapsed;
+        let offset = params.offset;
+        tokio::task::spawn_blocking(move || {
+            rb::with_kernel_lock(|| rb::playback::play(elapsed, offset));
+        })
+        .await
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(PlayResponse::default()))
     }
 
@@ -98,22 +83,26 @@ impl PlaybackService for Playback {
                     .map_err(|e| tonic::Status::internal(e.to_string()))?;
             }
             _ => {
-                let url = format!("{}/status", rockbox_url());
-                let response = client
-                    .get(url)
-                    .send()
-                    .await
-                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
-                let status = response
-                    .json::<SystemStatus>()
-                    .await
-                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+                let status = rb::system::get_global_status();
                 if status.resume_index > -1 {
-                    self.cmd_tx
-                        .lock()
-                        .unwrap()
-                        .send(RockboxCommand::PlaylistResumeTrack)
-                        .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+                    tokio::task::spawn_blocking(move || {
+                        rb::with_kernel_lock(|| {
+                            if rb::playlist::amount() == 0 {
+                                let ret = rb::playlist::resume();
+                                if ret == -1 {
+                                    return;
+                                }
+                            }
+                            rb::playlist::resume_track(
+                                status.resume_index,
+                                status.resume_crc32,
+                                status.resume_elapsed.into(),
+                                status.resume_offset.into(),
+                            );
+                        });
+                    })
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
                 }
             }
         };
@@ -161,11 +150,12 @@ impl PlaybackService for Playback {
         request: tonic::Request<FastForwardRewindRequest>,
     ) -> Result<tonic::Response<FastForwardRewindResponse>, tonic::Status> {
         let params = request.into_inner();
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::FfRewind(params.new_time))
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+        let newtime = params.new_time;
+        tokio::task::spawn_blocking(move || {
+            rb::with_kernel_lock(|| rb::playback::ff_rewind(newtime));
+        })
+        .await
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(FastForwardRewindResponse::default()))
     }
 
@@ -243,11 +233,11 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<FlushAndReloadTracksRequest>,
     ) -> Result<tonic::Response<FlushAndReloadTracksResponse>, tonic::Status> {
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::FlushAndReloadTracks)
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+        tokio::task::spawn_blocking(move || {
+            rb::with_kernel_lock(|| rb::playback::flush_and_reload_tracks());
+        })
+        .await
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(FlushAndReloadTracksResponse::default()))
     }
 
@@ -272,11 +262,11 @@ impl PlaybackService for Playback {
         &self,
         _request: tonic::Request<HardStopRequest>,
     ) -> Result<tonic::Response<HardStopResponse>, tonic::Status> {
-        self.cmd_tx
-            .lock()
-            .unwrap()
-            .send(RockboxCommand::Stop)
-            .map_err(|_| tonic::Status::internal("Failed to send command"))?;
+        tokio::task::spawn_blocking(move || {
+            rb::with_kernel_lock(|| rb::playback::hard_stop());
+        })
+        .await
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
         Ok(tonic::Response::new(HardStopResponse::default()))
     }
 
