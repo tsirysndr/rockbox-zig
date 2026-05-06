@@ -39,10 +39,6 @@ static void dsp_afr_flush(void)
 
 static void strength_update(unsigned int fout)
 {
-    /* DSP not yet initialized; coefs will be recalculated at DSP_SET_OUT_FREQUENCY */
-    if (fout == 0)
-        return;
-
     int hs=0, ls=0, drop3k=0;
 
     switch (afr_strength)

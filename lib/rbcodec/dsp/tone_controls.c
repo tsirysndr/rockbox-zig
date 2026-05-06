@@ -46,10 +46,6 @@ static struct dsp_filter tone_filters[DSP_COUNT] IBSS_ATTR;
 
 static void update_filter(int id, unsigned int fout)
 {
-    /* DSP not yet initialized; coefs will be recalculated at DSP_SET_OUT_FREQUENCY */
-    if (fout == 0)
-        return;
-
     filter_bishelf_coefs(fp_div(tone_bass_cutoff, fout, 32),
                          fp_div(tone_treble_cutoff, fout, 32),
                          tone_bass, tone_treble, -tone_prescale,

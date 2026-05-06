@@ -82,10 +82,6 @@ static void dsp_pbe_flush(void)
 
 static void pbe_update_filter(unsigned int fout)
 {
-    /* DSP not yet initialized; coefs will be recalculated at DSP_SET_OUT_FREQUENCY */
-    if (fout == 0)
-        return;
-
     tcoef1 = fp_div(160, fout, 31);
     tcoef2 = fp_div(500, fout, 31);
     tcoef3 = fp_div(1150, fout, 31);

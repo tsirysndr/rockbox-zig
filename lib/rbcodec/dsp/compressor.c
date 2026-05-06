@@ -137,10 +137,6 @@ static bool compressor_update(struct dsp_config *dsp,
     /* Compute Attack and Release Coefficients */
     int32_t fs =   dsp_get_output_frequency(dsp);
 
-    /* DSP not yet initialized; coefficients will be recalculated at DSP_SET_OUT_FREQUENCY */
-    if (fs == 0)
-        return false;
-
     /* Release */
     rlsca = get_att_rls_coeff(release, fs);
     rlscb = UNITY - rlsca ;
@@ -619,10 +615,7 @@ static intptr_t compressor_configure(struct dsp_proc_entry *this,
         }
 
         /* Delay Line Read/Write Pointers */
-        int32_t fs = dsp_get_output_frequency(dsp);
-        /* DSP not yet initialized; pointers will be recalculated at DSP_SET_OUT_FREQUENCY */
-        if (fs == 0)
-            break;
+        int32_t fs =   dsp_get_output_frequency(dsp);
         delay_read = 0;
         delay_write = (DLY_TIME*fs/1000);
         if(delay_write >= MAX_DLY) {
