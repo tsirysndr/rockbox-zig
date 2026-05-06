@@ -1,27 +1,33 @@
 import { FC, useRef } from "react";
 import { ProgressBar } from "baseui/progress-bar";
-import {
-  Actions,
-  Album,
-  AlbumCover,
-  ArtistAlbum,
-  Container,
-  Icon,
-  NoCover,
-  ProgressbarContainer,
-  Separator,
-  styles,
-  Time,
-  Title,
-  TrackInfo,
-} from "./styles";
+import { Link } from "react-router-dom";
 import Track from "../../Icons/Track";
 import { useTimeFormat } from "../../../Hooks/useFormat";
 import { CurrentTrack as NowPlaying } from "../../../Types/track";
 import _ from "lodash";
 import HeartOutline from "../../Icons/HeartOutline";
 import Heart from "../../Icons/Heart";
-import { useTheme } from "@emotion/react";
+
+const progressbarStyles = {
+  Progressbar: {
+    BarContainer: {
+      style: {
+        marginLeft: 0,
+        marginRight: 0,
+      },
+    },
+    BarProgress: {
+      style: () => ({
+        backgroundColor: "#6F00FF",
+      }),
+    },
+    Bar: {
+      style: () => ({
+        backgroundColor: "rgba(177, 178, 181, 0.218)",
+      }),
+    },
+  },
+};
 
 export type CurrentTrackProps = {
   nowPlaying?: NowPlaying;
@@ -40,7 +46,6 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
 }) => {
   const progressbarRef = useRef<HTMLDivElement>(null);
   const { formatTime } = useTimeFormat();
-  const theme = useTheme();
   const album = `${nowPlaying?.artist} - ${nowPlaying?.album}`;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,16 +61,20 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
   };
 
   return (
-    <Container>
+    <div className="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-track-border ml-5">
       {!nowPlaying?.cover && (
-        <NoCover>
+        <div className="w-[60px] h-[60px] bg-cover flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]">
           <Track color="#b1b2b5" height={28} width={28} />
-        </NoCover>
+        </div>
       )}
       {nowPlaying?.cover && (
-        <AlbumCover src={nowPlaying.cover} alt="Album cover" />
+        <img
+          src={nowPlaying.cover}
+          alt="Album cover"
+          className="h-[60px] w-[60px] rounded-tl-[4px] rounded-bl-[4px]"
+        />
       )}
-      <TrackInfo>
+      <div className="flex flex-col justify-center w-full relative text-sm">
         {(!nowPlaying || nowPlaying?.duration === 0) && (
           <div style={{ color: "#b1b2b5", textAlign: "center" }}>
             No track playing
@@ -74,24 +83,24 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
         {nowPlaying && nowPlaying?.duration > 0 && (
           <>
             <div style={{ display: "flex", flexDirection: "row" }}>
-              <Actions />
-              <Title>
+              <div className="w-[60px] flex items-center justify-center mr-[5px] opacity-0 hover:opacity-100" />
+              <div className="text-center text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-20px)] mx-[10px] text-text">
                 {_.get(nowPlaying, "title.length", 0) > 75
                   ? `${nowPlaying.title?.substring(0, 75)}...`
                   : nowPlaying.title}
-              </Title>
-              <Actions>
+              </div>
+              <div className="w-[60px] flex items-center justify-center mr-[5px] opacity-0 hover:opacity-100">
                 {!liked && (
-                  <Icon onClick={() => onLike(nowPlaying!.id!)}>
-                    <HeartOutline color={theme.colors.icon} />
-                  </Icon>
+                  <div className="cursor-pointer" onClick={() => onLike(nowPlaying!.id!)}>
+                    <HeartOutline color="var(--theme-icon)" />
+                  </div>
                 )}
                 {liked && (
-                  <Icon onClick={() => onUnlike(nowPlaying!.id!)}>
-                    <Heart color={theme.colors.primary} />
-                  </Icon>
+                  <div className="cursor-pointer" onClick={() => onUnlike(nowPlaying!.id!)}>
+                    <Heart color="var(--theme-primary)" />
+                  </div>
                 )}
-              </Actions>
+              </div>
             </div>
             <div
               style={{
@@ -101,24 +110,31 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
                 justifyContent: "space-between",
               }}
             >
-              <Time>{formatTime(nowPlaying.progress)}</Time>
-              <ArtistAlbum>
+              <div className="text-[10px] text-secondary-text font-[RockfordSansRegular] text-center w-[60px]">
+                {formatTime(nowPlaying.progress)}
+              </div>
+              <div className="text-center text-secondary-text font-[RockfordSansLight] text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-125px)]">
                 {_.get(nowPlaying, "artist.length", 0) > 40
                   ? `${nowPlaying.artist?.substring(0, 40)}...`
                   : nowPlaying.artist}
-                <Separator>-</Separator>
-                <Album to={`/albums/${nowPlaying.albumId}`}>
+                <span className="mx-2">-</span>
+                <Link
+                  to={`/albums/${nowPlaying.albumId}`}
+                  className="no-underline text-inherit hover:underline"
+                >
                   {album.length > 75
                     ? `${nowPlaying.album?.substring(0, 30)}...`
                     : nowPlaying.album}
-                </Album>
-              </ArtistAlbum>
-              <Time>{formatTime(nowPlaying.duration)}</Time>
+                </Link>
+              </div>
+              <div className="text-[10px] text-secondary-text font-[RockfordSansRegular] text-center w-[60px]">
+                {formatTime(nowPlaying.duration)}
+              </div>
             </div>
-            <ProgressbarContainer
+            <div
               ref={progressbarRef}
               onClick={handleClick}
-              active={nowPlaying!.duration > 0}
+              className={`w-full absolute bottom-[-12px]${nowPlaying!.duration > 0 ? " cursor-pointer" : ""}`}
             >
               <ProgressBar
                 value={
@@ -126,13 +142,13 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
                     ? (nowPlaying!.progress / nowPlaying!.duration) * 100
                     : 0
                 }
-                overrides={styles.Progressbar}
+                overrides={progressbarStyles.Progressbar}
               />
-            </ProgressbarContainer>
+            </div>
           </>
         )}
-      </TrackInfo>
-    </Container>
+      </div>
+    </div>
   );
 };
 

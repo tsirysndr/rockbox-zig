@@ -1,5 +1,4 @@
 import { FC, useEffect, useState } from "react";
-import { Item, Section, SettingsTitle } from "./styles";
 import { Input } from "baseui/input";
 
 export type LibraryProps = {
@@ -16,9 +15,9 @@ const Library: FC<LibraryProps> = (props) => {
 
   return (
     <>
-      <SettingsTitle>Library</SettingsTitle>
-      <Section>
-        <Item style={{ height: 80 }}>
+      <div className="text-base font-semibold mb-4">Library</div>
+      <div className="mb-[50px] text-[15px] border border-[#8a8a8a65] rounded-[10px] px-5 py-[5px]">
+        <div className="flex flex-row items-center justify-between min-h-[50px]" style={{ height: 80 }}>
           <div>Load music from folder</div>
           <div>
             <Input
@@ -30,8 +29,8 @@ const Library: FC<LibraryProps> = (props) => {
               placeholder="Music folder"
             />
           </div>
-        </Item>
-      </Section>
+        </div>
+      </div>
     </>
   );
 };

@@ -1,8 +1,66 @@
 import { FC, useEffect, useState } from "react";
-import styles, { Container, Item } from "./styles";
 import Switch from "../../../Switch";
 import { Slider } from "@mui/material";
 import BigNumber from "bignumber.js";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const iOSBoxShadow =
+  "0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.13),0 0 0 1px rgba(0,0,0,0.02)";
+
+const styles = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  slider: (_t: any) => ({
+    color: "#6F00FF",
+    "& .MuiSlider-track": {
+      border: "none",
+    },
+    "& .MuiSlider-thumb": {
+      width: 18,
+      height: 18,
+      backgroundColor: "#fff",
+      "&::before": {
+        boxShadow: "0 4px 8px rgba(0,0,0,0.18)",
+      },
+      "&:hover, &.Mui-focusVisible, &.Mui-active": {
+        boxShadow: "none",
+      },
+    },
+  }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sliderIOS: (theme: any) => ({
+    color: "#6F00FF",
+
+    "& .MuiSlider-thumb": {
+      height: 20,
+      width: 20,
+      backgroundColor: "#fff",
+      boxShadow: "0 0 2px 0px rgba(0, 0, 0, 0.1)",
+      "&:focus, &:hover, &.Mui-active": {
+        boxShadow: "0px 0px 3px 1px rgba(0, 0, 0, 0.1)",
+        // Reset on touch devices, it doesn't add specificity
+        "@media (hover: none)": {
+          boxShadow: iOSBoxShadow,
+        },
+      },
+      "&:before": {
+        boxShadow:
+          "0px 0px 1px 0px rgba(0,0,0,0.2), 0px 0px 0px 0px rgba(0,0,0,0.14), 0px 0px 1px 0px rgba(0,0,0,0.12)",
+      },
+    },
+    "& .MuiSlider-track": {
+      border: "none",
+      height: 5,
+    },
+    "& .MuiSlider-rail": {
+      opacity: 0.5,
+      boxShadow: "inset 0px 0px 4px -2px #000",
+      backgroundColor: "#d0d0d0",
+    },
+    ...theme.applyStyles("dark", {
+      color: "#6F00FF",
+    }),
+  }),
+};
 
 export type EqualizerProps = {
   eqEnabled: boolean;
@@ -77,7 +135,7 @@ const Equalizer: FC<EqualizerProps> = (props) => {
 
   return (
     <>
-      <Item>
+      <div className="flex flex-row items-center justify-between h-[50px]">
         <div>Equalizer</div>
         <div>
           <Switch
@@ -88,9 +146,9 @@ const Equalizer: FC<EqualizerProps> = (props) => {
             }}
           />
         </div>
-      </Item>
+      </div>
       <div>
-        <Container>
+        <div className="h-[250px] mx-auto mt-[50px] mb-[120px] flex flex-row justify-between w-[73%] text-[13px]">
           {eqBandSettings.map((band, index) => (
             <div key={index}>
               <Slider
@@ -118,7 +176,7 @@ const Equalizer: FC<EqualizerProps> = (props) => {
               <div>{formatLabel(band.q)}</div>
             </div>
           ))}
-        </Container>
+        </div>
       </div>
     </>
   );

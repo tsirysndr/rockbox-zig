@@ -3,21 +3,9 @@ import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
 import { StatefulPopover } from "baseui/popover";
 import { NestedMenus, StatefulMenu } from "baseui/menu";
 import TrackIcon from "../../Icons/Track";
-import { useTheme } from "@emotion/react";
 import ChildMenu from "./ChildMenu";
 import { FC, useState } from "react";
 import PlaylistModal from "../../Playlists/PlaylistModal";
-import {
-  AlbumCover,
-  AlbumCoverAlt,
-  Artist,
-  Container,
-  Hover,
-  Icon,
-  Title,
-  Track,
-  TrackInfos,
-} from "./styles";
 
 export type ContextMenuProps = {
   album: any;
@@ -42,11 +30,10 @@ const ContextMenu: FC<ContextMenuProps> = ({
   onPlayLastShuffled,
   recentPlaylists,
 }) => {
-  const theme = useTheme();
   const [isNewPlaylistModalOpen, setIsNewPlaylistModalOpen] = useState(false);
   return (
-    <Container>
-      <Hover>
+    <div className="flex flex-row h-[45px]">
+      <button className="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text">
         <StatefulPopover
           placement="left"
           autoFocus={false}
@@ -56,25 +43,31 @@ const ContextMenu: FC<ContextMenuProps> = ({
                 width: 205,
               }}
             >
-              <Track>
-                {album.cover && <AlbumCover src={album.cover} />}
-                {!album.cover && (
-                  <AlbumCoverAlt>
-                    <TrackIcon width={24} height={24} color="#a4a3a3" />
-                  </AlbumCoverAlt>
+              <div className="h-[54px] flex flex-row items-center px-[5px] border-b border-separator">
+                {album.cover && (
+                  <img src={album.cover} className="h-[43px] w-[43px]" />
                 )}
-                <TrackInfos>
-                  <Title>{album.title}</Title>
-                  <Artist>{album.artist}</Artist>
-                </TrackInfos>
-              </Track>
+                {!album.cover && (
+                  <div className="h-[43px] w-[43px] bg-cover flex justify-center items-center">
+                    <TrackIcon width={24} height={24} color="#a4a3a3" />
+                  </div>
+                )}
+                <div className="ml-[10px] overflow-hidden">
+                  <div className="text-sm text-ellipsis whitespace-nowrap overflow-hidden max-w-[125px] text-text">
+                    {album.title}
+                  </div>
+                  <div className="text-[rgb(170,170,180)] text-xs text-ellipsis whitespace-nowrap overflow-hidden max-w-[125px]">
+                    {album.artist}
+                  </div>
+                </div>
+              </div>
               <NestedMenus>
                 <StatefulMenu
                   overrides={{
                     List: {
                       style: {
                         boxShadow: "none",
-                        backgroundColor: theme.colors.popoverBackground,
+                        backgroundColor: "var(--theme-popover-background)",
                       },
                     },
                     Option: {
@@ -156,7 +149,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
           overrides={{
             Inner: {
               style: {
-                backgroundColor: theme.colors.popoverBackground,
+                backgroundColor: "var(--theme-popover-background)",
               },
             },
             Body: {
@@ -166,11 +159,11 @@ const ContextMenu: FC<ContextMenuProps> = ({
             },
           }}
         >
-          <Icon>
+          <div className="h-10 w-10 rounded-full flex justify-center items-center border-0 cursor-pointer bg-transparent hover:bg-[#434242b5]">
             <EllipsisHorizontal size={24} color="#fff" />
-          </Icon>
+          </div>
         </StatefulPopover>
-      </Hover>
+      </button>
       {isNewPlaylistModalOpen && (
         <PlaylistModal
           title="New Playlist"
@@ -181,7 +174,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
           }}
         />
       )}
-    </Container>
+    </div>
   );
 };
 

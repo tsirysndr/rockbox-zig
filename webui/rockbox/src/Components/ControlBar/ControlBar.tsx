@@ -1,11 +1,9 @@
 import { FC, useEffect, useState } from "react";
-import { useTheme } from "@emotion/react";
 import Play from "../Icons/Play";
 import Previous from "../Icons/Previous";
 import Next from "../Icons/Next";
 import Shuffle from "../Icons/Shuffle";
 import Repeat from "../Icons/Repeat";
-import { Button, Container, Controls, ControlsContainer } from "./styles";
 import CurrentTrack from "./CurrentTrack";
 import RightMenu from "./RightMenu";
 import Pause from "../Icons/Pause";
@@ -28,7 +26,6 @@ export type ControlBarProps = {
 };
 
 const ControlBar: FC<ControlBarProps> = (props) => {
-  const theme = useTheme();
   const [shuffle, setShuffle] = useState(props.shuffle);
   const [repeat, setRepeat] = useState(props.repeat);
 
@@ -48,33 +45,51 @@ const ControlBar: FC<ControlBarProps> = (props) => {
   };
 
   return (
-    <Container>
-      <Controls>
-        <ControlsContainer>
-          <Button onClick={onShuffle} active={shuffle}>
-            <Shuffle color={theme.colors.icon} />
-          </Button>
-          <Button onClick={props.onPrevious}>
-            <Previous color={theme.colors.icon} />
-          </Button>
+    <div className="flex flex-row h-[60px] mt-[5px] mb-5 pr-5">
+      <div className="flex items-center justify-center flex-[0.3]">
+        <div className="flex items-center justify-between flex-row w-[160px]">
+          <button
+            onClick={onShuffle}
+            className={`bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60${shuffle ? " bg-hover" : ""}`}
+          >
+            <Shuffle color="var(--theme-icon)" />
+          </button>
+          <button
+            onClick={props.onPrevious}
+            className="bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60"
+          >
+            <Previous color="var(--theme-icon)" />
+          </button>
           {!props.nowPlaying?.isPlaying && (
-            <Button onClick={props.onPlay}>
-              <Play color={theme.colors.icon} />
-            </Button>
+            <button
+              onClick={props.onPlay}
+              className="bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60"
+            >
+              <Play color="var(--theme-icon)" />
+            </button>
           )}
           {props.nowPlaying?.isPlaying && (
-            <Button onClick={props.onPause}>
-              <Pause color={theme.colors.icon} />
-            </Button>
+            <button
+              onClick={props.onPause}
+              className="bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60"
+            >
+              <Pause color="var(--theme-icon)" />
+            </button>
           )}
-          <Button onClick={props.onNext}>
-            <Next color={theme.colors.icon} />
-          </Button>
-          <Button onClick={onRepeat} active={repeat}>
-            <Repeat color={theme.colors.icon} />
-          </Button>
-        </ControlsContainer>
-      </Controls>
+          <button
+            onClick={props.onNext}
+            className="bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60"
+          >
+            <Next color="var(--theme-icon)" />
+          </button>
+          <button
+            onClick={onRepeat}
+            className={`bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60${repeat ? " bg-hover" : ""}`}
+          >
+            <Repeat color="var(--theme-icon)" />
+          </button>
+        </div>
+      </div>
       <CurrentTrack
         nowPlaying={props.nowPlaying}
         liked={props.liked}
@@ -83,7 +98,7 @@ const ControlBar: FC<ControlBarProps> = (props) => {
         onSeek={props.onSeek}
       />
       <RightMenu />
-    </Container>
+    </div>
   );
 };
 

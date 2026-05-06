@@ -1,3 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: RockfordSansRegular, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
+  --font-family-medium: RockfordSansMedium;
+  --font-family-bold: RockfordSansBold;
+  --font-family-light: RockfordSansLight;
+
+  --color-primary:              #6F00FF;
+  --color-primary-hover:        #6F00FFbe;
+  --color-text:                 var(--theme-text);
+  --color-background:           var(--theme-background);
+  --color-surface:              var(--theme-surface);
+  --color-icon:                 var(--theme-icon);
+  --color-secondary-text:       var(--theme-secondary-text);
+  --color-back-button:          var(--theme-back-button);
+  --color-hover:                var(--theme-hover);
+  --color-cover:                var(--theme-cover);
+  --color-popover:              var(--theme-popover-background);
+  --color-separator:            var(--theme-separator);
+  --color-tooltip:              var(--theme-tooltip);
+  --color-search-bg:            var(--theme-search-background);
+  --color-search-bg-alt:        var(--theme-search-background-alt);
+  --color-secondary-bg:         var(--theme-secondary-background);
+  --color-track-border:         var(--theme-current-track-border);
+}
+
+@layer base {
+  :root {
+    --theme-text:                    #000;
+    --theme-background:              #fff;
+    --theme-surface:                 #f6f9fc;
+    --theme-icon:                    #000;
+    --theme-secondary-text:          rgba(0, 0, 0, 0.542);
+    --theme-back-button:             #f0f0f1;
+    --theme-hover:                   #b1b2b51a;
+    --theme-cover:                   #f3f3f3b9;
+    --theme-popover-background:      #fff;
+    --theme-separator:               #e0e0e0cc;
+    --theme-tooltip:                 #6F00FF1a;
+    --theme-search-background:       rgba(247, 247, 247, 0.2);
+    --theme-search-background-alt:   rgba(255, 255, 255, 0.2);
+    --theme-secondary-background:    #f0e8ff;
+    --theme-current-track-border:    rgba(177, 178, 181, 0.25);
+    --row-hover-bg:                  #b1b2b51a;
+    --text-color:                    #000;
+    --secondary-text:                rgba(0, 0, 0, 0.542);
+    --separator-color:               #e0e0e0cc;
+  }
+
+  .dark {
+    --theme-text:                    #e8e8e8;
+    --theme-background:              #0a0a0a;
+    --theme-surface:                 #111116;
+    --theme-icon:                    #9090a0;
+    --theme-secondary-text:          #7878a0;
+    --theme-back-button:             #1e1e24;
+    --theme-hover:                   #1e1e24;
+    --theme-cover:                   #28282e;
+    --theme-popover-background:      #18181e;
+    --theme-separator:               rgba(255, 255, 255, 0.08);
+    --theme-tooltip:                 #6F00FF30;
+    --theme-search-background:       #141418;
+    --theme-search-background-alt:   #141418;
+    --theme-secondary-background:    #1a1228;
+    --theme-current-track-border:    rgba(255, 255, 255, 0.08);
+    --row-hover-bg:                  #1e1e24;
+    --text-color:                    #e8e8e8;
+    --secondary-text:                #7878a0;
+    --separator-color:               rgba(255, 255, 255, 0.08);
+  }
+}
+
 @font-face {
   font-family: 'RockfordSansLight';
   src: local('RockfordSansLight'), url(./Assets/fonts/RockfordSans-Light.otf) format('opentype');
@@ -44,24 +119,20 @@ tr td div .floating-play {
   display: none;
 }
 
-
 tr:hover td div .floating-play {
   cursor: pointer;
   margin-left: -5px;
   display: block;
 }
 
-
 tr:hover td div .tracknumber {
- display: none;
+  display: none;
 }
-
 
 tr td div .play {
   cursor: pointer;
   display: none;
 }
-
 
 tr:hover td div .play {
   cursor: pointer;
@@ -70,7 +141,6 @@ tr:hover td div .play {
   display: block;
 }
 
-
 tr:hover td div:not(.no-play) > .folder {
- display: none;
+  display: none;
 }

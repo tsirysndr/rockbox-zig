@@ -6,13 +6,13 @@ exports[`Volume > should render 1`] = `
     class=""
   >
     <div
-      class="css-1p6caij"
+      class="flex-1 flex justify-center items-center"
     >
       <div
         style="width: 100px; margin-top: 5px;"
       >
         <span
-          class="MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-1javce1-MuiSlider-root"
+          class="MuiSlider-root MuiSlider-colorPrimary MuiSlider-sizeMedium css-ceali8-MuiSlider-root"
         >
           <span
             class="MuiSlider-rail css-r64h58-MuiSlider-rail"

@@ -1,23 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useState } from "react";
-import { useTheme } from "@emotion/react";
 import MainView from "../MainView";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
-import {
-  Container,
-  Scrollable,
-  Title,
-  SectionTitle,
-  PlaylistGrid,
-  PlaylistCard,
-  PlaylistCover,
-  PlaylistName,
-  PlaylistMeta,
-  CardActions,
-  CardAction,
-  Link,
-} from "./styles";
+import { Link } from "react-router-dom";
 import Play from "../Icons/Play";
 import { Music } from "@styled-icons/boxicons-regular";
 import { Edit2, Trash2 } from "@styled-icons/feather";
@@ -44,17 +30,16 @@ const Playlists: FC<PlaylistsProps> = ({
   onCreate,
   onUpdate,
 }) => {
-  const theme = useTheme();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editPlaylist, setEditPlaylist] = useState<any>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="playlists" />
       <MainView>
         <ControlBar />
-        <Scrollable>
+        <div className="h-[calc(100vh-60px)] overflow-y-auto">
           <div
             style={{
               display: "flex",
@@ -63,7 +48,7 @@ const Playlists: FC<PlaylistsProps> = ({
               paddingRight: 20,
             }}
           >
-            <Title>Playlists</Title>
+            <div className="text-2xl font-[RockfordSansMedium] max-w-[96%] mx-auto mb-5 px-5">Playlists</div>
             <button
               onClick={() => setCreateModalOpen(true)}
               style={{
@@ -82,76 +67,95 @@ const Playlists: FC<PlaylistsProps> = ({
           </div>
 
           {loading && (
-            <PlaylistGrid>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5 px-5 mb-10">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i}>
                   <AlbumCardSkeleton />
                 </div>
               ))}
-            </PlaylistGrid>
+            </div>
           )}
 
           {!loading && savedPlaylists.length > 0 && (
             <>
-              <SectionTitle>MY PLAYLISTS</SectionTitle>
-              <PlaylistGrid>
+              <div className="text-base font-[RockfordSansMedium] px-5 mb-4 mt-6 text-secondary-text">MY PLAYLISTS</div>
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5 px-5 mb-10">
                 {savedPlaylists.map((playlist) => (
-                  <PlaylistCard key={playlist.id}>
-                    <Link to={`/playlists/${playlist.id}`}>
-                      <PlaylistCover image={playlist.image}>
+                  <div
+                    className="relative cursor-pointer [&:hover_.card-actions]:opacity-100"
+                    key={playlist.id}
+                  >
+                    <Link className="no-underline" to={`/playlists/${playlist.id}`}>
+                      <div
+                        className="w-full aspect-square rounded-[6px] bg-cover flex items-center justify-center overflow-hidden"
+                        style={playlist.image ? { backgroundImage: `url(${playlist.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                      >
                         {!playlist.image && <Music size={48} color="#bbb" />}
-                      </PlaylistCover>
+                      </div>
                     </Link>
-                    <CardActions className="card-actions">
-                      <CardAction onClick={() => onPlay(playlist.id, false)}>
-                        <Play small color={theme.colors.icon} />
-                      </CardAction>
+                    <div className="card-actions absolute bottom-12 left-2 right-2 flex flex-row items-center justify-between opacity-0 transition-opacity duration-150 pb-[6px]">
+                      <button
+                        className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-surface backdrop-blur-[4px] hover:bg-hover"
+                        onClick={() => onPlay(playlist.id, false)}
+                      >
+                        <Play small color="var(--theme-icon)" />
+                      </button>
                       <div style={{ display: "flex", gap: 4 }}>
-                        <CardAction onClick={() => setEditPlaylist(playlist)}>
-                          <Edit2 size={15} color={theme.colors.icon} />
-                        </CardAction>
-                        <CardAction
+                        <button
+                          className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-surface backdrop-blur-[4px] hover:bg-hover"
+                          onClick={() => setEditPlaylist(playlist)}
+                        >
+                          <Edit2 size={15} color="var(--theme-icon)" />
+                        </button>
+                        <button
+                          className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-surface backdrop-blur-[4px] hover:bg-hover"
                           onClick={() => setDeleteConfirmId(playlist.id)}
                         >
                           <Trash2 size={15} color="#e00" />
-                        </CardAction>
+                        </button>
                       </div>
-                    </CardActions>
-                    <Link to={`/playlists/${playlist.id}`}>
-                      <PlaylistName>{playlist.name}</PlaylistName>
+                    </div>
+                    <Link className="no-underline" to={`/playlists/${playlist.id}`}>
+                      <div className="text-sm font-[RockfordSansMedium] mt-2 whitespace-nowrap overflow-hidden text-ellipsis text-text">{playlist.name}</div>
                     </Link>
-                    <PlaylistMeta>{playlist.trackCount} tracks</PlaylistMeta>
-                  </PlaylistCard>
+                    <div className="text-xs text-secondary-text mt-[2px]">{playlist.trackCount} tracks</div>
+                  </div>
                 ))}
-              </PlaylistGrid>
+              </div>
             </>
           )}
 
           {!loading && smartPlaylists.length > 0 && (
             <>
-              <SectionTitle>SMART PLAYLISTS</SectionTitle>
-              <PlaylistGrid>
+              <div className="text-base font-[RockfordSansMedium] px-5 mb-4 mt-6 text-secondary-text">SMART PLAYLISTS</div>
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5 px-5 mb-10">
                 {smartPlaylists.map((playlist) => (
-                  <PlaylistCard key={playlist.id}>
-                    <Link to={`/playlists/smart/${playlist.id}`}>
-                      <PlaylistCover>
+                  <div
+                    className="relative cursor-pointer [&:hover_.card-actions]:opacity-100"
+                    key={playlist.id}
+                  >
+                    <Link className="no-underline" to={`/playlists/smart/${playlist.id}`}>
+                      <div className="w-full aspect-square rounded-[6px] bg-cover flex items-center justify-center overflow-hidden">
                         <Music size={48} color="#6F00FF" />
-                      </PlaylistCover>
+                      </div>
                     </Link>
-                    <CardActions className="card-actions">
-                      <CardAction onClick={() => onPlay(playlist.id, true)}>
-                        <Play small color={theme.colors.icon} />
-                      </CardAction>
-                    </CardActions>
-                    <Link to={`/playlists/smart/${playlist.id}`}>
-                      <PlaylistName>{playlist.name}</PlaylistName>
+                    <div className="card-actions absolute bottom-12 left-2 right-2 flex flex-row items-center justify-between opacity-0 transition-opacity duration-150 pb-[6px]">
+                      <button
+                        className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-surface backdrop-blur-[4px] hover:bg-hover"
+                        onClick={() => onPlay(playlist.id, true)}
+                      >
+                        <Play small color="var(--theme-icon)" />
+                      </button>
+                    </div>
+                    <Link className="no-underline" to={`/playlists/smart/${playlist.id}`}>
+                      <div className="text-sm font-[RockfordSansMedium] mt-2 whitespace-nowrap overflow-hidden text-ellipsis text-text">{playlist.name}</div>
                     </Link>
                     {playlist.description && (
-                      <PlaylistMeta>{playlist.description}</PlaylistMeta>
+                      <div className="text-xs text-secondary-text mt-[2px]">{playlist.description}</div>
                     )}
-                  </PlaylistCard>
+                  </div>
                 ))}
-              </PlaylistGrid>
+              </div>
             </>
           )}
 
@@ -160,7 +164,7 @@ const Playlists: FC<PlaylistsProps> = ({
               No playlists yet. Create one to get started.
             </div>
           )}
-        </Scrollable>
+        </div>
       </MainView>
 
       {createModalOpen && (
@@ -202,7 +206,7 @@ const Playlists: FC<PlaylistsProps> = ({
         >
           <div
             style={{
-              background: theme.colors.surface,
+              background: "var(--theme-surface)",
               borderRadius: 12,
               padding: 28,
               width: 320,
@@ -215,12 +219,12 @@ const Playlists: FC<PlaylistsProps> = ({
                 fontSize: 16,
                 fontFamily: "RockfordSansMedium",
                 marginBottom: 12,
-                color: theme.colors.text,
+                color: "var(--theme-text)",
               }}
             >
               Delete playlist?
             </div>
-            <div style={{ fontSize: 14, color: theme.colors.secondaryText, marginBottom: 24 }}>
+            <div style={{ fontSize: 14, color: "var(--theme-secondary-text)", marginBottom: 24 }}>
               This action cannot be undone.
             </div>
             <div
@@ -233,12 +237,12 @@ const Playlists: FC<PlaylistsProps> = ({
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 style={{
-                  border: `1px solid ${theme.colors.separator}`,
+                  border: `1px solid ${"var(--theme-separator)"}`,
                   borderRadius: 8,
                   padding: "8px 16px",
                   cursor: "pointer",
-                  background: theme.colors.hover,
-                  color: theme.colors.text,
+                  background: "var(--theme-hover)",
+                  color: "var(--theme-text)",
                   fontSize: 13,
                 }}
               >
@@ -265,7 +269,7 @@ const Playlists: FC<PlaylistsProps> = ({
           </div>
         </div>
       )}
-    </Container>
+    </div>
   );
 };
 

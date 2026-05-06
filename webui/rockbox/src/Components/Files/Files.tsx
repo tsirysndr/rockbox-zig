@@ -1,19 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
-import { useTheme } from "@emotion/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
 import { Folder2, HddNetwork, MusicNoteBeamed } from "@styled-icons/bootstrap";
-import {
-  AudioFile,
-  BackButton,
-  ButtonGroup,
-  Container,
-  ContentWrapper,
-  Directory,
-  Title,
-} from "./styles";
+import { Link } from "react-router-dom";
 import { File } from "../../Types/file";
 import Table from "../Table";
 import "./styles.css";
@@ -36,7 +27,6 @@ export type FilesProps = {
 };
 
 const Files: FC<FilesProps> = (props) => {
-  const theme = useTheme();
   const columns = [
     columnHelper.accessor("name", {
       header: "",
@@ -58,7 +48,7 @@ const Files: FC<FilesProps> = (props) => {
                 className="play"
                 onClick={() => props.onPlayDirectory(info.row.original.path)}
               >
-                <Play small color={theme.colors.icon} />
+                <Play small color="var(--theme-icon)" />
               </div>
               <div className="folder">
                 <Folder2 size={20} />
@@ -88,7 +78,7 @@ const Files: FC<FilesProps> = (props) => {
                   props.onPlayTrack(parent.join("/") || "/", info.row.index);
                 }}
               >
-                <Play small color={theme.colors.icon} />
+                <Play small color="var(--theme-icon)" />
               </div>
               <div className="folder">
                 <MusicNoteBeamed size={20} />
@@ -103,7 +93,8 @@ const Files: FC<FilesProps> = (props) => {
       cell: (info) => (
         <>
           {info.row.original.isDirectory && props.onNavigateDirectory && (
-            <Directory
+            <Link
+              className="text-text ml-[10px] no-underline font-[RockfordSansRegular] w-[calc(100vw-500px)] max-w-[calc(100vw-500px)] text-ellipsis overflow-hidden whitespace-nowrap block hover:underline"
               to="#"
               onClick={(e) => {
                 e.preventDefault();
@@ -111,22 +102,26 @@ const Files: FC<FilesProps> = (props) => {
               }}
             >
               {info.getValue()}
-            </Directory>
+            </Link>
           )}
           {info.row.original.isDirectory && !props.onNavigateDirectory && (
-            <Directory to={`/files?q=${info.row.original.path}`}>
+            <Link
+              className="text-text ml-[10px] no-underline font-[RockfordSansRegular] w-[calc(100vw-500px)] max-w-[calc(100vw-500px)] text-ellipsis overflow-hidden whitespace-nowrap block hover:underline"
+              to={`/files?q=${info.row.original.path}`}
+            >
               {info.getValue()}
-            </Directory>
+            </Link>
           )}
           {!info.row.original.isDirectory && (
-            <AudioFile
+            <div
+              className="text-text ml-[10px] no-underline font-[RockfordSansRegular] w-[calc(100vw-500px)] max-w-[calc(100vw-500px)] text-ellipsis overflow-hidden whitespace-nowrap block cursor-pointer hover:underline"
               onClick={() => {
                 const parent = info.row.original.path.split("/").slice(0, -1);
                 props.onPlayTrack(parent.join("/") || "/", info.row.index);
               }}
             >
               {info.getValue()}
-            </AudioFile>
+            </div>
           )}
         </>
       ),
@@ -138,9 +133,10 @@ const Files: FC<FilesProps> = (props) => {
         const isRootEntry =
           info.row.original.path === "__local__" ||
           info.row.original.path === "upnp://";
-        if (isRootEntry) return <ButtonGroup />;
+        if (isRootEntry) return <div className="flex flex-row items-center" />;
         return (
-          <ButtonGroup
+          <div
+            className="flex flex-row items-center"
             style={{ justifyContent: "flex-end", alignItems: "center" }}
           >
             <ContextMenu
@@ -150,33 +146,36 @@ const Files: FC<FilesProps> = (props) => {
                 path: info.row.original.path,
               }}
             />
-          </ButtonGroup>
+          </div>
         );
       },
     }),
   ];
 
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="files" />
       <MainView>
         <ControlBar />
-        <ContentWrapper>
+        <div className="overflow-y-auto h-[calc(100vh-100px)] px-5">
           {props.canGoBack && (
-            <BackButton onClick={() => props.onGoBack()}>
+            <button
+              className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] left-5 rounded-[15px] bg-back-button mt-[45px] mb-[46px] absolute z-[1]"
+              onClick={() => props.onGoBack()}
+            >
               <div style={{ marginTop: 2 }}>
-                <ArrowBack color={theme.colors.icon} />
+                <ArrowBack color="var(--theme-icon)" />
               </div>
-            </BackButton>
+            </button>
           )}
-          <Title>Files</Title>
+          <div className="text-2xl font-[RockfordSansMedium] mb-5">Files</div>
           {!props.refetching && (
             <Table columns={columns as any} tracks={props.files as any} />
           )}
           {props.refetching && <FileListSkeleton />}
-        </ContentWrapper>
+        </div>
       </MainView>
-    </Container>
+    </div>
   );
 };
 

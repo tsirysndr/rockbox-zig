@@ -4,20 +4,9 @@ import { Folder2 } from "@styled-icons/bootstrap";
 import { StatefulPopover } from "baseui/popover";
 import { NestedMenus, StatefulMenu } from "baseui/menu";
 import TrackIcon from "../../Icons/Track";
-import { useTheme } from "@emotion/react";
 import ChildMenu from "./ChildMenu";
 import { FC, useMemo, useState } from "react";
 import PlaylistModal from "../../Playlists/PlaylistModal";
-import {
-  AlbumCoverAlt,
-  Artist,
-  Container,
-  Hover,
-  Icon,
-  Title,
-  Track,
-  TrackInfos,
-} from "./styles";
 
 export type ContextMenuProps = {
   entry: any;
@@ -42,7 +31,6 @@ const ContextMenu: FC<ContextMenuProps> = ({
   onPlayLastShuffled,
   recentPlaylists,
 }) => {
-  const theme = useTheme();
   const [isNewPlaylistModalOpen, setIsNewPlaylistModalOpen] = useState(false);
   const items = useMemo(() => {
     const base = [
@@ -66,35 +54,35 @@ const ContextMenu: FC<ContextMenuProps> = ({
   }, [entry]);
 
   return (
-    <Container>
-      <Hover>
+    <div className="flex flex-row h-[45px]">
+      <button className="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text">
         <StatefulPopover
           placement="left"
           autoFocus={false}
           content={({ close }) => (
             <div style={{ width: 205 }}>
-              <Track>
+              <div className="h-[54px] flex flex-row items-center px-[5px] border-b border-separator">
                 {entry.isDirectory ? (
-                  <AlbumCoverAlt>
+                  <div className="h-[43px] w-[43px] bg-cover flex justify-center items-center">
                     <Folder2 size={18} />
-                  </AlbumCoverAlt>
+                  </div>
                 ) : (
-                  <AlbumCoverAlt>
+                  <div className="h-[43px] w-[43px] bg-cover flex justify-center items-center">
                     <TrackIcon width={24} height={24} color="#a4a3a3" />
-                  </AlbumCoverAlt>
+                  </div>
                 )}
-                <TrackInfos>
-                  <Title>{entry.title}</Title>
-                  <Artist>{entry.artist}</Artist>
-                </TrackInfos>
-              </Track>
+                <div className="ml-[10px] overflow-hidden">
+                  <div className="text-sm text-ellipsis whitespace-nowrap overflow-hidden max-w-[125px] text-text">{entry.title}</div>
+                  <div className="text-[rgb(170,170,180)] text-xs text-ellipsis whitespace-nowrap overflow-hidden max-w-[125px]">{entry.artist}</div>
+                </div>
+              </div>
               <NestedMenus>
                 <StatefulMenu
                   overrides={{
                     List: {
                       style: {
                         boxShadow: "none",
-                        backgroundColor: theme.colors.popoverBackground,
+                        backgroundColor: "var(--theme-popover-background)",
                       },
                     },
                     Option: {
@@ -151,16 +139,16 @@ const ContextMenu: FC<ContextMenuProps> = ({
           )}
           overrides={{
             Inner: {
-              style: { backgroundColor: theme.colors.popoverBackground },
+              style: { backgroundColor: "var(--theme-popover-background)" },
             },
             Body: { style: { zIndex: 1 } },
           }}
         >
-          <Icon>
+          <div className="cursor-pointer flex h-[45px] w-6 justify-center items-center">
             <EllipsisHorizontal size={24} />
-          </Icon>
+          </div>
         </StatefulPopover>
-      </Hover>
+      </button>
       {isNewPlaylistModalOpen && (
         <PlaylistModal
           title="New Playlist"
@@ -171,7 +159,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
           }}
         />
       )}
-    </Container>
+    </div>
   );
 };
 

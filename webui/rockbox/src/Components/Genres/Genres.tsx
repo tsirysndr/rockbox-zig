@@ -1,19 +1,19 @@
 import { FC } from "react";
+import { Link } from "react-router-dom";
 import { Cell, Grid } from "baseui/layout-grid";
 import MainView from "../MainView";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
-import {
-  Container,
-  GenreCard,
-  GenreCount,
-  GenreDecoration,
-  GenreLabel,
-  Scrollable,
-  Title,
-  colorForSeed,
-} from "./styles";
 import type { GenreSummary } from "../../Hooks/useGenres";
+
+export function colorForSeed(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  const hue = hash % 360;
+  return `hsl(${hue} 65% 38%)`;
+}
 
 export type GenresProps = {
   genres: GenreSummary[];
@@ -22,12 +22,14 @@ export type GenresProps = {
 
 const Genres: FC<GenresProps> = ({ genres, loading }) => {
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="genres" />
       <MainView>
         <ControlBar />
-        <Scrollable>
-          <Title>Genres</Title>
+        <div className="h-[calc(100vh-60px)] overflow-y-auto">
+          <div className="text-2xl font-[RockfordSansMedium] max-w-[96%] mx-auto mb-5 px-5">
+            Genres
+          </div>
           {!loading && genres.length === 0 ? (
             <div
               style={{
@@ -49,21 +51,29 @@ const Genres: FC<GenresProps> = ({ genres, loading }) => {
               >
                 {genres.map((g) => (
                   <Cell key={g.id}>
-                    <GenreCard to={`/genres/${g.id}`} bg={colorForSeed(g.id)}>
-                      <GenreLabel>{g.name}</GenreLabel>
-                      <GenreCount>
+                    <Link
+                      to={`/genres/${g.id}`}
+                      style={{ backgroundColor: colorForSeed(g.id) }}
+                      className="relative block rounded-[8px] overflow-hidden h-[110px] mb-6 no-underline text-white cursor-pointer hover:brightness-110"
+                    >
+                      <div className="absolute top-3 left-[14px] right-[14px] font-[RockfordSansMedium] text-[18px] font-semibold z-[1]">
+                        {g.name}
+                      </div>
+                      <div className="absolute bottom-[10px] left-[14px] text-[11px] opacity-85 z-[1]">
                         {g.trackCount} {g.trackCount === 1 ? "track" : "tracks"}
-                      </GenreCount>
-                      <GenreDecoration>{g.name}</GenreDecoration>
-                    </GenreCard>
+                      </div>
+                      <div className="absolute right-[-16px] bottom-[-16px] font-[RockfordSansMedium] text-[36px] font-bold opacity-[0.18] rotate-[-12deg] z-0">
+                        {g.name}
+                      </div>
+                    </Link>
                   </Cell>
                 ))}
               </Grid>
             </div>
           )}
-        </Scrollable>
+        </div>
       </MainView>
-    </Container>
+    </div>
   );
 };
 

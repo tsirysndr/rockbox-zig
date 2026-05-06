@@ -4,7 +4,6 @@ import { Cell, Grid } from "baseui/layout-grid";
 import MainView from "../MainView";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
-import { Container, FilterContainer, Scrollable, Title } from "./styles";
 import Filter from "../Filter";
 import Album from "../Album";
 import AlbumCardSkeleton from "../Skeletons/AlbumCardSkeleton";
@@ -21,12 +20,12 @@ export type AlbumsProps = {
 const Albums: FC<AlbumsProps> = (props) => {
   const { albums } = props;
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="albums" />
       <MainView>
         <ControlBar />
-        <Scrollable>
-          <Title>Albums</Title>
+        <div className="h-[calc(100vh-60px)] overflow-y-auto">
+          <div className="text-2xl font-[RockfordSansMedium] max-w-[96%] mx-auto mb-5 px-5">Albums</div>
           {props.loading && (
             <div style={{ marginBottom: 100 }}>
               <Grid
@@ -44,9 +43,9 @@ const Albums: FC<AlbumsProps> = (props) => {
           )}
           {(props.albums.length > 0 || props.keyword) && !props.loading && (
             <>
-              <FilterContainer>
+              <div className="mt-[30px] mb-10 px-5">
                 <Filter placeholder="Search albums" />
-              </FilterContainer>
+              </div>
               <div style={{ marginBottom: 100 }}>
                 <Grid
                   gridColumns={[2, 4, 5]}
@@ -62,9 +61,9 @@ const Albums: FC<AlbumsProps> = (props) => {
               </div>
             </>
           )}
-        </Scrollable>
+        </div>
       </MainView>
-    </Container>
+    </div>
   );
 };
 

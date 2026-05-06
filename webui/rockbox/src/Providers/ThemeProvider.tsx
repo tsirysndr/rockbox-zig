@@ -1,4 +1,4 @@
-import { createContext, useState, FC } from "react";
+import { createContext, useState, useEffect, FC } from "react";
 import { ThemeProvider as EmotionThemeProvider, Global, css } from "@emotion/react";
 import {
   BaseUIDarkTheme,
@@ -39,6 +39,14 @@ export type ThemeProviderProps = {
 const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>("dark");
   const emotionTheme = theme === "dark" ? DarkTheme : LightTheme;
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
   return (
     <MaterialThemeProvider theme={muitheme}>
       <ThemeContext.Provider value={{ theme, setTheme }}>

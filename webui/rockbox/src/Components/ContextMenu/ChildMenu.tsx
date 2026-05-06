@@ -1,4 +1,3 @@
-import { useTheme } from "@emotion/react";
 import { StatefulMenu } from "baseui/menu";
 import { FC } from "react";
 
@@ -7,7 +6,6 @@ const ChildMenu: FC<{
   recentPlaylists: any[];
   onSelect: (item: { id: string; label: string }) => void;
 }> = ({ onSelect, recentPlaylists }) => {
-  const theme = useTheme();
   const items =
     recentPlaylists.length > 0
       ? {
@@ -36,7 +34,7 @@ const ChildMenu: FC<{
         List: {
           style: {
             boxShadow: "none",
-            backgroundColor: theme.colors.popoverBackground,
+            backgroundColor: "var(--theme-popover-background)",
           },
         },
       }}

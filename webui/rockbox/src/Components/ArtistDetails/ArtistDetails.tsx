@@ -1,25 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
-import { useTheme } from "@emotion/react";
+import { Link } from "react-router-dom";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 import Sidebar from "../Sidebar/Sidebar";
 import ControlBar from "../ControlBar";
-import {
-  ArtistHeader,
-  ArtistPicture,
-  ArtistPicturePlaceholder,
-  BackButton,
-  ButtonGroup,
-  Container,
-  ContentWrapper,
-  Label,
-  MainView,
-  Name,
-  Separator,
-  Title,
-  Link,
-  SmallAlbumCover,
-  AlbumCoverAlt,
-} from "./styles";
 import ArrowBack from "../Icons/ArrowBack";
 import Shuffle from "../Icons/Shuffle";
 import Play from "../Icons/Play";
@@ -58,7 +42,6 @@ export type ArtistDetailsProps = {
 
 const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
   const { image, loading } = props;
-  const theme = useTheme();
   const columns = [
     columnHelper.accessor("albumArt", {
       header: "Title",
@@ -67,7 +50,8 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
         <>
           {info.getValue() && (
             <div className="album-cover-container">
-              <SmallAlbumCover
+              <LazyLoadImage
+                className="h-12 w-12"
                 src={info.getValue()!}
                 alt="album art"
                 effect="blur"
@@ -76,20 +60,20 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play small color={info.getValue() ? "#fff" : theme.colors.text} />
+                <Play small color={info.getValue() ? "#fff" : "var(--theme-text)"} />
               </div>
             </div>
           )}
           {!info.getValue() && (
             <div className="album-cover-container">
-              <AlbumCoverAlt>
+              <div className="h-12 w-12 rounded-[4px] cursor-pointer bg-cover flex justify-center items-center">
                 <TrackIcon width={28} height={28} color="#a4a3a3" />
-              </AlbumCoverAlt>
+              </div>
               <div
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play small color={info.getValue() ? "#fff" : theme.colors.text} />
+                <Play small color={info.getValue() ? "#fff" : "var(--theme-text)"} />
               </div>
             </div>
           )}
@@ -109,8 +93,8 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
           }}
+          className="text-text"
         >
           {info.getValue()}
         </div>
@@ -129,10 +113,13 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
           }}
+          className="text-text"
         >
-          <Link to={`/artists/${info.row.original.artistId}`}>
+          <Link
+            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            to={`/artists/${info.row.original.artistId}`}
+          >
             {info.getValue()}
           </Link>
         </div>
@@ -150,10 +137,13 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
           }}
+          className="text-text"
         >
-          <Link to={`/albums/${info.row.original.albumId}`}>
+          <Link
+            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            to={`/albums/${info.row.original.albumId}`}
+          >
             {info.getValue()}
           </Link>
         </div>
@@ -168,7 +158,8 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
       header: "",
       size: 100,
       cell: (info) => (
-        <ButtonGroup
+        <div
+          className="flex flex-row items-center"
           style={{ justifyContent: "flex-end", alignItems: "center" }}
         >
           <ContextMenu
@@ -181,22 +172,25 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
               path: info.row.original.path,
             }}
           />
-        </ButtonGroup>
+        </div>
       ),
     }),
   ];
 
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="artists" />
-      <MainView>
+      <div className="flex flex-1 flex-col w-[calc(100%-240px)]">
         <ControlBar />
-        <ContentWrapper>
-          <BackButton onClick={() => props.onGoBack()}>
+        <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
+          <button
+            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[46px] absolute z-[1]"
+            onClick={() => props.onGoBack()}
+          >
             <div style={{ marginTop: 2 }}>
-              <ArrowBack color={theme.colors.icon} />
+              <ArrowBack color="var(--theme-icon)" />
             </div>
-          </BackButton>
+          </button>
           {loading && (
             <div style={{ marginTop: 20, marginBottom: 100 }}>
               <ArtistHeaderSkeleton />
@@ -218,36 +212,42 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
               </div>
             </div>
           )}
-          {!loading && <><ArtistHeader>
+          {!loading && <><div className="flex flex-row items-end gap-6 mt-[30px] mb-8">
             {image ? (
-              <ArtistPicture src={image} alt={props.name} />
+              <img
+                className="w-[160px] h-[160px] rounded-full object-cover flex-shrink-0"
+                src={image}
+                alt={props.name}
+              />
             ) : (
-              <ArtistPicturePlaceholder>
+              <div className="w-[160px] h-[160px] rounded-full bg-cover flex items-center justify-center flex-shrink-0">
                 <ArtistIcon width={64} height={64} color="#bbb" />
-              </ArtistPicturePlaceholder>
+              </div>
             )}
             <div>
-              <Name>{props.name}</Name>
+              <div className="font-[RockfordSansMedium] text-[30px] mb-1">
+                {props.name}
+              </div>
             </div>
-          </ArtistHeader>
-          <ButtonGroup>
+          </div>
+          <div className="flex flex-row items-center">
             <Button onClick={props.onPlayAll} kind="primary">
-              <Label>
+              <div className="flex flex-row items-center">
                 <Play small color="#fff" />
                 <div style={{ marginLeft: 7 }}>Play</div>
-              </Label>
+              </div>
             </Button>
-            <Separator />
+            <div className="w-5" />
             <Button onClick={props.onShuffleAll} kind="secondary">
-              <Label>
+              <div className="flex flex-row items-center">
                 <Shuffle color="#6F00FF" />
                 <div style={{ marginLeft: 7 }}>Shuffle</div>
-              </Label>
+              </div>
             </Button>
-          </ButtonGroup>
-          <Title>Tracks</Title>
+          </div>
+          <div className="mt-[30px] text-[20px] font-semibold">Tracks</div>
           <Table columns={columns as any} tracks={props.tracks} />
-          <Title style={{ marginTop: 50 }}>Albums</Title>
+          <div className="mt-[30px] text-[20px] font-semibold" style={{ marginTop: 50 }}>Albums</div>
           <div style={{ marginBottom: 100 }}>
             <Grid
               gridColumns={[2, 4, 5]}
@@ -262,9 +262,9 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             </Grid>
           </div>
           </>}
-        </ContentWrapper>
-      </MainView>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 };
 

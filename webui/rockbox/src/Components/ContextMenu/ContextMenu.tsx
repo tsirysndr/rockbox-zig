@@ -6,22 +6,9 @@ import { EllipsisHorizontal } from "@styled-icons/ionicons-sharp";
 import { StatefulPopover } from "baseui/popover";
 import { NestedMenus, StatefulMenu } from "baseui/menu";
 import TrackIcon from "../Icons/Track";
-import { useTheme } from "@emotion/react";
 import ChildMenu from "./ChildMenu";
 import { FC, useState } from "react";
 import PlaylistModal from "../Playlists/PlaylistModal";
-import {
-  AlbumCover,
-  AlbumCoverAlt,
-  Artist,
-  Container,
-  Hover,
-  Icon,
-  Separator,
-  Title,
-  Track,
-  TrackInfos,
-} from "./styles";
 
 export type ContextMenuProps = {
   liked?: boolean;
@@ -48,11 +35,10 @@ const ContextMenu: FC<ContextMenuProps> = ({
   onUnlike,
   recentPlaylists,
 }) => {
-  const theme = useTheme();
   const [isNewPlaylistModalOpen, setIsNewPlaylistModalOpen] = useState(false);
   return (
-    <Container>
-      <Hover>
+    <div className="flex flex-row h-[45px]">
+      <button className="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text">
         <StatefulPopover
           placement="left"
           autoFocus={false}
@@ -62,25 +48,31 @@ const ContextMenu: FC<ContextMenuProps> = ({
                 width: 205,
               }}
             >
-              <Track>
-                {track.cover && <AlbumCover src={track.cover} />}
-                {!track.cover && (
-                  <AlbumCoverAlt>
-                    <TrackIcon width={24} height={24} color="#a4a3a3" />
-                  </AlbumCoverAlt>
+              <div className="h-[54px] flex flex-row items-center px-[5px] border-b border-separator">
+                {track.cover && (
+                  <img className="h-[43px] w-[43px]" src={track.cover} />
                 )}
-                <TrackInfos>
-                  <Title>{track.title}</Title>
-                  <Artist>{track.artist}</Artist>
-                </TrackInfos>
-              </Track>
+                {!track.cover && (
+                  <div className="h-[43px] w-[43px] bg-cover flex justify-center items-center">
+                    <TrackIcon width={24} height={24} color="#a4a3a3" />
+                  </div>
+                )}
+                <div className="ml-[10px] overflow-hidden">
+                  <div className="text-sm text-ellipsis whitespace-nowrap overflow-hidden max-w-[125px] text-text">
+                    {track.title}
+                  </div>
+                  <div className="text-[rgb(170,170,180)] text-xs text-ellipsis whitespace-nowrap overflow-hidden max-w-[125px]">
+                    {track.artist}
+                  </div>
+                </div>
+              </div>
               <NestedMenus>
                 <StatefulMenu
                   overrides={{
                     List: {
                       style: {
                         boxShadow: "none",
-                        backgroundColor: theme.colors.popoverBackground,
+                        backgroundColor: "var(--theme-popover-background)",
                       },
                     },
                     Option: {
@@ -149,17 +141,17 @@ const ContextMenu: FC<ContextMenuProps> = ({
           overrides={{
             Inner: {
               style: {
-                backgroundColor: theme.colors.popoverBackground,
+                backgroundColor: "var(--theme-popover-background)",
               },
             },
           }}
         >
-          <Icon>
+          <div className="cursor-pointer flex h-[45px] w-6 justify-center items-center">
             <EllipsisHorizontal />
-          </Icon>
+          </div>
         </StatefulPopover>
-      </Hover>
-      <Separator />
+      </button>
+      <div className="w-[10px]" />
       <StatefulPopover
         autoFocus={false}
         placement="left"
@@ -170,7 +162,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
                 List: {
                   style: {
                     boxShadow: "none",
-                    backgroundColor: theme.colors.popoverBackground,
+                    backgroundColor: "var(--theme-popover-background)",
                   },
                 },
               }}
@@ -190,29 +182,33 @@ const ContextMenu: FC<ContextMenuProps> = ({
         overrides={{
           Inner: {
             style: {
-              backgroundColor: theme.colors.popoverBackground,
+              backgroundColor: "var(--theme-popover-background)",
             },
           },
         }}
       >
-        <Icon>
-          <Add size={24} color={theme.colors.icon} />
-        </Icon>
+        <div className="cursor-pointer flex h-[45px] w-6 justify-center items-center">
+          <Add size={24} color="var(--theme-icon)" />
+        </div>
       </StatefulPopover>
-      <Separator />
+      <div className="w-[10px]" />
       {liked && (
-        <Icon onClick={() => onUnlike(track.id)}>
+        <div
+          className="cursor-pointer flex h-[45px] w-6 justify-center items-center"
+          onClick={() => onUnlike(track.id)}
+        >
           <Heart height={24} width={24} color={"#6F00FF"} />
-        </Icon>
+        </div>
       )}
       {!liked && (
-        <Icon
+        <div
+          className="cursor-pointer flex h-[45px] w-6 justify-center items-center"
           onClick={() => {
             onLike(track.id);
           }}
         >
-          <HeartOutline height={24} width={24} color={theme.colors.icon} />
-        </Icon>
+          <HeartOutline height={24} width={24} color="var(--theme-icon)" />
+        </div>
       )}
       {isNewPlaylistModalOpen && (
         <PlaylistModal
@@ -224,7 +220,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
           }}
         />
       )}
-    </Container>
+    </div>
   );
 };
 

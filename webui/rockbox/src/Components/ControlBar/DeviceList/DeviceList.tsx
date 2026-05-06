@@ -1,23 +1,9 @@
-import { useTheme } from "@emotion/react";
-import styled from "@emotion/styled";
 import { ListItem, ListItemLabel } from "baseui/list";
 import { FC } from "react";
 import { Laptop } from "@styled-icons/ionicons-outline";
 import { Kodi, Airplayaudio, Chromecast } from "@styled-icons/simple-icons";
 import { Speaker } from "@styled-icons/remix-fill";
 import { Radio, HardDrive, Cast } from "@styled-icons/feather";
-import {
-  Container,
-  CurrentDevice,
-  CurrentDeviceName,
-  CurrentDeviceWrapper,
-  Disconnect,
-  Icon,
-  IconWrapper,
-  List,
-  Placeholder,
-  Title,
-} from "./styles";
 
 export type Device = {
   id: string;
@@ -65,10 +51,12 @@ const bgColors: Record<string, string> = {
 };
 
 const Artwork: FC<ArtworkProps> = ({ icon, color }) => {
-  const theme = useTheme();
-  const c = iconColors[icon ?? ""] ?? theme.colors.text;
+  const c = iconColors[icon ?? ""] ?? "var(--theme-text)";
   return (
-    <Icon color={color}>
+    <div
+      className="h-10 w-10 rounded-full flex items-center justify-center bg-cover"
+      style={color ? { backgroundColor: color } : undefined}
+    >
       {icon === "builtin"     && <HardDrive size={18} color={c} />}
       {icon === "fifo"        && <Radio     size={18} color={c} />}
       {icon === "squeezelite" && <Cast      size={18} color={c} />}
@@ -85,22 +73,17 @@ const Artwork: FC<ArtworkProps> = ({ icon, color }) => {
       {(icon === "UPnP/DLNA" || icon === "dlna") && (
         <Speaker size={18} color={c} />
       )}
-    </Icon>
+    </div>
   );
 };
 
-const DeviceName = styled.div`
-  font-size: 14px;
-`;
+const DeviceName: FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="text-sm">{children}</div>
+);
 
-const ActiveDot = styled.div`
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #28fce3;
-  flex-shrink: 0;
-  margin-right: 8px;
-`;
+const ActiveDot: FC = () => (
+  <div className="w-[7px] h-[7px] rounded-full bg-[#28fce3] flex-shrink-0 mr-2" />
+);
 
 export type DeviceListProps = {
   currentCastDevice?: Device | null;
@@ -119,8 +102,6 @@ const DeviceList: FC<DeviceListProps> = ({
   currentCastDevice,
   loading,
 }) => {
-  const theme = useTheme();
-
   const _onConnectToCastDevice = (deviceId: string) => {
     connectToCastDevice(deviceId);
     close();
@@ -138,10 +119,10 @@ const DeviceList: FC<DeviceListProps> = ({
     null;
 
   return (
-    <Container>
+    <div className="max-h-[calc(100vh-153px)] pt-[15px] pb-[15px] overflow-y-auto w-[370px] min-h-[200px]">
       {/* Current device header */}
-      <CurrentDeviceWrapper>
-        <IconWrapper>
+      <div className="h-[60px] flex mx-[25px] items-center">
+        <div className="mt-[3px] mr-4">
           {activeDevice ? (
             <Artwork
               icon={activeDevice.type}
@@ -150,29 +131,32 @@ const DeviceList: FC<DeviceListProps> = ({
           ) : (
             <Laptop size={30} color="#6F00FF" />
           )}
-        </IconWrapper>
+        </div>
         <div style={{ flex: 1 }}>
-          <CurrentDevice>Current device</CurrentDevice>
-          <CurrentDeviceName>
+          <div className="text-[18px]">Current device</div>
+          <div className="text-primary text-sm">
             {activeDevice ? activeDevice.name : "Rockbox (Built-in)"}
-          </CurrentDeviceName>
+          </div>
         </div>
         {currentCastDevice && (
-          <Disconnect onClick={_onDisconnectFromCastDevice}>
+          <button
+            className="bg-black border-0 text-white h-[21px] rounded-[12px] font-[RockfordSansRegular] text-xs flex items-center justify-center w-20 pb-1 cursor-pointer"
+            onClick={_onDisconnectFromCastDevice}
+          >
             disconnect
-          </Disconnect>
+          </button>
         )}
-      </CurrentDeviceWrapper>
+      </div>
 
       {!loading && castDevices.length > 0 && (
-        <Title>Output device</Title>
+        <div className="m-[10px] mx-[25px] font-[RockfordSansBold]">Output device</div>
       )}
 
-      <List>
+      <div className="max-h-[calc(100vh-273px)] px-[15px] overflow-y-auto min-h-[200px]">
         {castDevices.length === 0 && !loading && (
-          <Placeholder>
+          <div className="flex items-center justify-center h-[300px] text-center px-5 text-sm">
             No devices found. Make sure your devices are on the same network.
-          </Placeholder>
+          </div>
         )}
         {castDevices.map((device) => (
           <div
@@ -198,7 +182,7 @@ const DeviceList: FC<DeviceListProps> = ({
                     ":hover": {
                       backgroundColor: device.isCurrentDevice
                         ? "transparent"
-                        : theme.colors.hover,
+                        : "var(--theme-hover)",
                     },
                     borderRadius: "5px",
                   },
@@ -214,8 +198,8 @@ const DeviceList: FC<DeviceListProps> = ({
             </ListItem>
           </div>
         ))}
-      </List>
-    </Container>
+      </div>
+    </div>
   );
 };
 

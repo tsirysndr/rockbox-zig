@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Theme, useTheme } from "@emotion/react";
 import { Input } from "baseui/input";
 import { FC, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -11,7 +10,6 @@ export type FilterProps = {
 };
 
 const Filter: FC<FilterProps> = ({ placeholder = "Filter", onChange }) => {
-  const theme = useTheme();
   const { control, watch } = useForm({
     defaultValues: {
       filter: "",
@@ -35,7 +33,7 @@ const Filter: FC<FilterProps> = ({ placeholder = "Filter", onChange }) => {
             {...(field as any)}
             startEnhancer={<Search />}
             placeholder={placeholder}
-            overrides={styles.filter(theme)}
+            overrides={filterStyles}
           />
         )}
         control={control}
@@ -46,49 +44,47 @@ const Filter: FC<FilterProps> = ({ placeholder = "Filter", onChange }) => {
   );
 };
 
-const styles = {
-  filter: (theme: Theme) => ({
-    Root: {
-      style: {
-        height: "40px",
-        width: "222px",
-        borderTopWidth: "1.5px !important",
-        borderBottomWidth: "1.5px !important",
-        borderLeftWidth: "1.5px !important",
-        borderRightWidth: "1.5px !important",
-        borderTopColor: "rgba(82, 82, 82, 0.0625) !important",
-        borderBottomColor: "rgba(82, 82, 82, 0.0625) !important",
-        borderLeftColor: "rgba(82, 82, 82, 0.0625) !important",
-        borderRightColor: "rgba(82, 82, 82, 0.0625) !important",
-        borderTopLeftRadius: "20px !important",
-        borderTopRightRadius: "20px !important",
-        borderBottomLeftRadius: "20px !important",
-        borderBottomRightRadius: "20px !important",
-        backgroundColor: theme.colors.searchBackgroundAlt,
-      },
+const filterStyles = {
+  Root: {
+    style: {
+      height: "40px",
+      width: "222px",
+      borderTopWidth: "1.5px !important",
+      borderBottomWidth: "1.5px !important",
+      borderLeftWidth: "1.5px !important",
+      borderRightWidth: "1.5px !important",
+      borderTopColor: "rgba(82, 82, 82, 0.0625) !important",
+      borderBottomColor: "rgba(82, 82, 82, 0.0625) !important",
+      borderLeftColor: "rgba(82, 82, 82, 0.0625) !important",
+      borderRightColor: "rgba(82, 82, 82, 0.0625) !important",
+      borderTopLeftRadius: "20px !important",
+      borderTopRightRadius: "20px !important",
+      borderBottomLeftRadius: "20px !important",
+      borderBottomRightRadius: "20px !important",
+      backgroundColor: "var(--theme-search-background-alt)",
     },
-    Input: {
-      style: {
-        backgroundColor: theme.colors.searchBackgroundAlt,
-        fontSize: "14px",
-        color: theme.colors.text,
-      },
+  },
+  Input: {
+    style: {
+      backgroundColor: "var(--theme-search-background-alt)",
+      fontSize: "14px",
+      color: "var(--theme-text)",
     },
-    InputContainer: {
-      style: {
-        backgroundColor: theme.colors.searchBackgroundAlt,
-      },
+  },
+  InputContainer: {
+    style: {
+      backgroundColor: "var(--theme-search-background-alt)",
     },
-    StartEnhancer: {
-      style: {
-        backgroundColor: theme.colors.searchBackgroundAlt,
-        paddingTop: "0px",
-        paddingBottom: "0px",
-        paddingLeft: "0px",
-        paddingRight: "0px",
-      },
+  },
+  StartEnhancer: {
+    style: {
+      backgroundColor: "var(--theme-search-background-alt)",
+      paddingTop: "0px",
+      paddingBottom: "0px",
+      paddingLeft: "0px",
+      paddingRight: "0px",
     },
-  }),
+  },
 };
 
 export default Filter;

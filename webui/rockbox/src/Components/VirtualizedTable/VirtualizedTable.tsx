@@ -6,7 +6,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { FC, RefObject, useState, useEffect } from "react";
-import { useTheme } from "@emotion/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Track } from "../../Types/track";
 import { File } from "../../Types/file";
@@ -23,7 +22,6 @@ const VirtualizedTable: FC<TableProps> = ({
   tracks,
   containerRef,
 }) => {
-  const theme = useTheme();
   const [data, setData] = useState([...tracks]);
 
   useEffect(() => {
@@ -70,7 +68,7 @@ const VirtualizedTable: FC<TableProps> = ({
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
               key={headerGroup.id}
-              style={{ height: 48, color: theme.colors.secondaryText }}
+              style={{ height: 48, color: "var(--theme-secondary-text)" }}
             >
               {headerGroup.headers.map((header) => (
                 <th

@@ -4,15 +4,6 @@ import { Cell, Grid } from "baseui/layout-grid";
 import Sidebar from "../Sidebar";
 import MainView from "../MainView";
 import ControlBar from "../ControlBar";
-import {
-  ArtistCover,
-  ArtistName,
-  Container,
-  FilterContainer,
-  NoArtistCover,
-  Scrollable,
-  Title,
-} from "./styles";
 import Artist from "../Icons/Artist";
 import { Link } from "react-router-dom";
 import Filter from "../Filter";
@@ -29,12 +20,14 @@ export type ArtistsProps = {
 const Artists: FC<ArtistsProps> = (props) => {
   const { onClickArtist, artists } = props;
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="artists" />
       <MainView>
         <ControlBar />
-        <Scrollable>
-          <Title>Artists</Title>
+        <div className="h-[calc(100vh-60px)] overflow-y-auto">
+          <div className="text-2xl font-[RockfordSansMedium] mx-auto mb-5 px-5">
+            Artists
+          </div>
           {props.loading && (
             <div style={{ marginBottom: 100 }}>
               <Grid
@@ -52,9 +45,9 @@ const Artists: FC<ArtistsProps> = (props) => {
           )}
           {(props.artists.length > 0 || props.keyword) && !props.loading && (
             <>
-              <FilterContainer>
+              <div className="mt-[30px] mb-10 ml-5">
                 <Filter placeholder="Search artists" />
-              </FilterContainer>
+              </div>
               <div style={{ marginBottom: 100 }}>
                 <Grid
                   gridColumns={[2, 3, 4]}
@@ -68,17 +61,23 @@ const Artists: FC<ArtistsProps> = (props) => {
                         style={{ textDecoration: "none" }}
                       >
                         {item.cover && (
-                          <ArtistCover
+                          <img
+                            className="w-[194px] h-[194px] rounded-[97px] cursor-pointer"
                             src={item.cover}
                             onClick={() => onClickArtist(item)}
                           />
                         )}
                         {!item.cover && (
-                          <NoArtistCover onClick={() => onClickArtist(item)}>
+                          <div
+                            className="w-[194px] h-[194px] rounded-[97px] cursor-pointer flex justify-center items-center bg-cover"
+                            onClick={() => onClickArtist(item)}
+                          >
                             <Artist width={75} height={75} color="#a4a3a3" />
-                          </NoArtistCover>
+                          </div>
                         )}
-                        <ArtistName>{item.name}</ArtistName>
+                        <div className="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-text">
+                          {item.name}
+                        </div>
                       </Link>
                     </Cell>
                   ))}
@@ -86,9 +85,9 @@ const Artists: FC<ArtistsProps> = (props) => {
               </div>
             </>
           )}
-        </Scrollable>
+        </div>
       </MainView>
-    </Container>
+    </div>
   );
 };
 

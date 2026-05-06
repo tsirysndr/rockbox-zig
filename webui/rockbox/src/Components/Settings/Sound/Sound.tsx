@@ -1,7 +1,79 @@
 import { FC, useEffect, useState } from "react";
-import styles, { Item, Section, SettingsTitle } from "./styles";
 import { Slider } from "@mui/material";
 import Equalizer from "./Equalizer";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const iOSBoxShadow =
+  "0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.13),0 0 0 1px rgba(0,0,0,0.02)";
+
+const styles = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  slider: (_t: any) => ({
+    color: "#6F00FF",
+    "& .MuiSlider-track": {
+      border: "none",
+    },
+    "& .MuiSlider-thumb": {
+      width: 18,
+      height: 18,
+      backgroundColor: "#fff",
+      "&::before": {
+        boxShadow: "0 4px 8px rgba(0,0,0,0.18)",
+      },
+      "&:hover, &.Mui-focusVisible, &.Mui-active": {
+        boxShadow: "none",
+      },
+    },
+  }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sliderIOS: (theme: any) => ({
+    color: "#6F00FF",
+
+    "& .MuiSlider-thumb": {
+      height: 20,
+      width: 20,
+      backgroundColor: "#fff",
+      boxShadow: "0 0 2px 0px rgba(0, 0, 0, 0.1)",
+      "&:focus, &:hover, &.Mui-active": {
+        boxShadow: "0px 0px 3px 1px rgba(0, 0, 0, 0.1)",
+        // Reset on touch devices, it doesn't add specificity
+        "@media (hover: none)": {
+          boxShadow: iOSBoxShadow,
+        },
+      },
+      "&:before": {
+        boxShadow:
+          "0px 0px 1px 0px rgba(0,0,0,0.2), 0px 0px 0px 0px rgba(0,0,0,0.14), 0px 0px 1px 0px rgba(0,0,0,0.12)",
+      },
+    },
+    "& .MuiSlider-valueLabel": {
+      fontSize: 12,
+      fontWeight: "normal",
+      top: -6,
+      backgroundColor: "unset",
+      color: theme.palette.text.primary,
+      "&::before": {
+        display: "none",
+      },
+      "& *": {
+        background: "transparent",
+        color: "inherit",
+      },
+    },
+    "& .MuiSlider-track": {
+      border: "none",
+      height: 5,
+    },
+    "& .MuiSlider-rail": {
+      opacity: 0.5,
+      boxShadow: "inset 0px 0px 4px -2px #000",
+      backgroundColor: "#d0d0d0",
+    },
+    ...theme.applyStyles("dark", {
+      color: "#6F00FF",
+    }),
+  }),
+};
 
 export type SoundProps = {
   bass: number;
@@ -54,9 +126,9 @@ const Sound: FC<SoundProps> = (props) => {
 
   return (
     <>
-      <SettingsTitle>Sound</SettingsTitle>
-      <Section>
-        <Item>
+      <div className="text-base font-semibold mb-4">Sound</div>
+      <div className="mb-[50px] text-[15px] border border-[#8a8a8a65] rounded-[10px] px-5 py-[5px]">
+        <div className="flex flex-row items-center justify-between h-[50px]">
           <div>Bass</div>
           <div style={{ width: 120 }}>
             <Slider
@@ -75,8 +147,8 @@ const Sound: FC<SoundProps> = (props) => {
               step={1}
             />
           </div>
-        </Item>
-        <Item>
+        </div>
+        <div className="flex flex-row items-center justify-between h-[50px]">
           <div>Treble</div>
           <div style={{ width: 120 }}>
             <Slider
@@ -95,8 +167,8 @@ const Sound: FC<SoundProps> = (props) => {
               step={1}
             />
           </div>
-        </Item>
-        <Item>
+        </div>
+        <div className="flex flex-row items-center justify-between h-[50px]">
           <div>Balance</div>
           <div style={{ width: 120 }}>
             <Slider
@@ -113,9 +185,9 @@ const Sound: FC<SoundProps> = (props) => {
               step={1}
             />
           </div>
-        </Item>
+        </div>
         <Equalizer />
-      </Section>
+      </div>
     </>
   );
 };

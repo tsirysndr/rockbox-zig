@@ -1,5 +1,4 @@
 import { FC } from "react";
-import { SidebarContainer, MenuItem, Header, SettingsButton } from "./styles";
 import {
   Disc,
   Music,
@@ -13,7 +12,6 @@ import RockboxLogo from "../../Assets/rockbox-icon.svg";
 import HeartOutline from "../Icons/HeartOutline";
 import { Options } from "@styled-icons/fluentui-system-regular";
 import { Link } from "react-router-dom";
-import { useTheme } from "@emotion/react";
 
 export type SidebarProps = {
   active: string;
@@ -21,13 +19,9 @@ export type SidebarProps = {
 };
 
 const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
-  const theme = useTheme();
-  const icon = theme.colors.icon;
-  const activeColor = theme.colors.text;
-
   return (
-    <SidebarContainer cover={cover}>
-      <Header>
+    <div className={`flex flex-col h-screen w-[222px] p-5 ${cover ? 'bg-background' : 'bg-surface'}`}>
+      <div className="flex flex-row items-center justify-between">
         <a href="/" style={{ textDecoration: "none" }}>
           <img
             src={RockboxLogo}
@@ -41,72 +35,72 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
           />
         </a>
         <Link to="/settings">
-          <SettingsButton>
-            <Options size={24} color={icon} />
-          </SettingsButton>
+          <button className="flex bg-transparent border-0 cursor-pointer mt-[3px] h-16">
+            <Options size={24} color="var(--theme-icon)" />
+          </button>
         </Link>
-      </Header>
-      <MenuItem active={active === "home"} to="/">
+      </div>
+      <Link to="/" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "home" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
         <HomeIcon
           size={20}
           style={{ marginRight: 6 }}
-          color={active === "home" ? activeColor : icon}
+          color={active === "home" ? "var(--theme-text)" : "var(--theme-icon)"}
         />
         <div>Home</div>
-      </MenuItem>
-      <MenuItem active={active === "albums"} to="/albums">
+      </Link>
+      <Link to="/albums" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "albums" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
         <Disc
           size={20}
           style={{ marginRight: 6 }}
-          color={active === "albums" ? activeColor : icon}
+          color={active === "albums" ? "var(--theme-text)" : "var(--theme-icon)"}
         />
         <div>Albums</div>
-      </MenuItem>
-      <MenuItem active={active === "artists"} to="/artists">
+      </Link>
+      <Link to="/artists" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "artists" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
         <Artist
           width={20}
           height={20}
-          color={active === "artists" ? activeColor : icon}
+          color={active === "artists" ? "var(--theme-text)" : "var(--theme-icon)"}
         />
         <div style={{ marginLeft: 6 }}>Artists</div>
-      </MenuItem>
-      <MenuItem active={active === "genres"} to="/genres">
+      </Link>
+      <Link to="/genres" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "genres" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
         <Category
           size={20}
           style={{ marginRight: 6 }}
-          color={active === "genres" ? activeColor : icon}
+          color={active === "genres" ? "var(--theme-text)" : "var(--theme-icon)"}
         />
         <div>Genres</div>
-      </MenuItem>
-      <MenuItem active={active === "songs"} to="/tracks">
-        <Track height={20} color={active === "songs" ? activeColor : icon} />
+      </Link>
+      <Link to="/tracks" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "songs" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
+        <Track height={20} color={active === "songs" ? "var(--theme-text)" : "var(--theme-icon)"} />
         <div style={{ marginLeft: 6 }}>Songs</div>
-      </MenuItem>
-      <MenuItem active={active === "likes"} to="/likes">
+      </Link>
+      <Link to="/likes" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "likes" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
         <HeartOutline
           height={20}
           width={20}
-          color={active === "likes" ? activeColor : icon}
+          color={active === "likes" ? "var(--theme-text)" : "var(--theme-icon)"}
         />
         <div style={{ marginLeft: 6 }}>Likes</div>
-      </MenuItem>
-      <MenuItem active={active === "files"} to="/files">
+      </Link>
+      <Link to="/files" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "files" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
         <HardDrive
           size={19}
           style={{ marginRight: 6 }}
-          color={active === "files" ? activeColor : icon}
+          color={active === "files" ? "var(--theme-text)" : "var(--theme-icon)"}
         />
         <div>Files</div>
-      </MenuItem>
-      <MenuItem active={active === "playlists"} to="/playlists">
+      </Link>
+      <Link to="/playlists" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "playlists" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
         <Music
           size={20}
           style={{ marginRight: 6 }}
-          color={active === "playlists" ? activeColor : icon}
+          color={active === "playlists" ? "var(--theme-text)" : "var(--theme-icon)"}
         />
         <div>Playlists</div>
-      </MenuItem>
-    </SidebarContainer>
+      </Link>
+    </div>
   );
 };
 

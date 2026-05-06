@@ -1,25 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
-import { useTheme } from "@emotion/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
 import MainView from "../MainView/MainView";
-import {
-  Container,
-  ContentWrapper,
-  Header,
-  CoverArt,
-  PlaylistInfos,
-  PlaylistTitle,
-  PlaylistDescription,
-  TrackCount,
-  ButtonGroup,
-  Separator,
-  BackButton,
-  Label,
-  Link,
-} from "./styles";
+import { Link as RouterLink } from "react-router-dom";
 import Button from "../Button";
 import ArrowBack from "../Icons/ArrowBack";
 import Play from "../Icons/Play";
@@ -56,7 +41,6 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
   onPlayTrack,
   onRemoveTrack,
 }) => {
-  const theme = useTheme();
   const columns = [
     columnHelper.accessor("trackNumber", {
       header: "#",
@@ -68,7 +52,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
             className="floating-play"
             onClick={() => onPlayTrack(info.row.index)}
           >
-            <Play color={theme.colors.icon} small />
+            <Play color="var(--theme-icon)" small />
           </div>
         </div>
       ),
@@ -86,7 +70,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
+            color: "var(--theme-text)",
           }}
         >
           {info.getValue()}
@@ -106,12 +90,15 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
+            color: "var(--theme-text)",
           }}
         >
-          <Link to={`/artists/${info.row.original.artistId}`}>
+          <RouterLink
+            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            to={`/artists/${info.row.original.artistId}`}
+          >
             {info.getValue()}
-          </Link>
+          </RouterLink>
         </div>
       ),
     }),
@@ -157,16 +144,19 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
   ];
 
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="playlists" />
       <MainView>
         <ControlBar />
-        <ContentWrapper>
-          <BackButton onClick={onGoBack}>
+        <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
+          <button
+            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[46px] absolute z-[1]"
+            onClick={onGoBack}
+          >
             <div style={{ marginTop: 2 }}>
-              <ArrowBack color={theme.colors.icon} />
+              <ArrowBack color="var(--theme-icon)" />
             </div>
-          </BackButton>
+          </button>
           {loading && (
             <div style={{ marginTop: 60, marginBottom: 100 }}>
               <DetailHeaderSkeleton />
@@ -174,11 +164,14 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
             </div>
           )}
           {!loading && <div style={{ marginBottom: 100 }}>
-            <Header>
-              <CoverArt image={playlist?.image}>
+            <div className="flex flex-row items-center mb-5 mt-[90px]">
+              <div
+                className="h-[240px] w-[240px] rounded-[6px] bg-cover flex items-center justify-center flex-shrink-0"
+                style={playlist?.image ? { backgroundImage: `url(${playlist.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+              >
                 {!playlist?.image && <Music size={64} color="#bbb" />}
-              </CoverArt>
-              <PlaylistInfos>
+              </div>
+              <div className="flex flex-col ml-[26px] h-[240px] justify-center">
                 <div
                   style={{
                     display: "flex",
@@ -187,38 +180,38 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
                     height: "calc(240px - 12px)",
                   }}
                 >
-                  <PlaylistTitle>{playlist?.name}</PlaylistTitle>
+                  <div className="text-[32px] font-[RockfordSansBold]">{playlist?.name}</div>
                   {playlist?.description && (
-                    <PlaylistDescription>
+                    <div className="text-sm text-[#555] mt-2">
                       {playlist.description}
-                    </PlaylistDescription>
+                    </div>
                   )}
-                  <TrackCount>{tracks.length} TRACKS</TrackCount>
+                  <div className="mt-[25px] font-normal text-sm">{tracks.length} TRACKS</div>
                 </div>
-                <ButtonGroup>
+                <div className="flex flex-row items-center mt-5">
                   <Button onClick={onPlayAll} kind="primary">
-                    <Label>
+                    <div className="flex flex-row items-center">
                       <Play small color="#fff" />
                       <div style={{ marginLeft: 7 }}>Play</div>
-                    </Label>
+                    </div>
                   </Button>
-                  <Separator />
+                  <div className="w-5" />
                   <Button onClick={onShuffleAll} kind="secondary">
-                    <Label>
+                    <div className="flex flex-row items-center">
                       <Shuffle color="#6F00FF" />
                       <div style={{ marginLeft: 7 }}>Shuffle</div>
-                    </Label>
+                    </div>
                   </Button>
-                </ButtonGroup>
-              </PlaylistInfos>
-            </Header>
+                </div>
+              </div>
+            </div>
             {tracks.length > 0 && (
               <Table columns={columns as any} tracks={tracks} />
             )}
           </div>}
-        </ContentWrapper>
+        </div>
       </MainView>
-    </Container>
+    </div>
   );
 };
 

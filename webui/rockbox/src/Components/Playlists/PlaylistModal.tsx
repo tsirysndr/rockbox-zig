@@ -1,6 +1,5 @@
 import { FC, useState } from "react";
 import { createPortal } from "react-dom";
-import { useTheme } from "@emotion/react";
 
 type PlaylistModalProps = {
   title: string;
@@ -17,7 +16,6 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const theme = useTheme();
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
   const [saving, setSaving] = useState(false);
@@ -44,12 +42,12 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
     >
       <div
         style={{
-          background: theme.colors.surface,
+          background: "var(--theme-surface)",
           borderRadius: 12,
           padding: 28,
           width: 380,
           boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-          color: theme.colors.text,
+          color: "var(--theme-text)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -66,7 +64,7 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
           <label
             style={{
               fontSize: 12,
-              color: theme.colors.secondaryText,
+              color: "var(--theme-secondary-text)",
               display: "block",
               marginBottom: 4,
             }}
@@ -80,14 +78,14 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
             onKeyDown={(e) => e.key === "Enter" && handleSave()}
             style={{
               width: "100%",
-              border: `1px solid ${theme.colors.separator}`,
+              border: `1px solid ${"var(--theme-separator)"}`,
               borderRadius: 8,
               padding: "8px 10px",
               fontSize: 14,
               outline: "none",
               boxSizing: "border-box",
-              background: theme.colors.background,
-              color: theme.colors.text,
+              background: "var(--theme-background)",
+              color: "var(--theme-text)",
             }}
           />
         </div>
@@ -95,7 +93,7 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
           <label
             style={{
               fontSize: 12,
-              color: theme.colors.secondaryText,
+              color: "var(--theme-secondary-text)",
               display: "block",
               marginBottom: 4,
             }}
@@ -107,14 +105,14 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
             onChange={(e) => setDescription(e.target.value)}
             style={{
               width: "100%",
-              border: `1px solid ${theme.colors.separator}`,
+              border: `1px solid ${"var(--theme-separator)"}`,
               borderRadius: 8,
               padding: "8px 10px",
               fontSize: 14,
               outline: "none",
               boxSizing: "border-box",
-              background: theme.colors.background,
-              color: theme.colors.text,
+              background: "var(--theme-background)",
+              color: "var(--theme-text)",
             }}
           />
         </div>
@@ -122,12 +120,12 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
           <button
             onClick={onClose}
             style={{
-              border: `1px solid ${theme.colors.separator}`,
+              border: `1px solid ${"var(--theme-separator)"}`,
               borderRadius: 8,
               padding: "8px 16px",
               cursor: "pointer",
-              background: theme.colors.hover,
-              color: theme.colors.text,
+              background: "var(--theme-hover)",
+              color: "var(--theme-text)",
               fontSize: 13,
             }}
           >
@@ -137,7 +135,7 @@ const PlaylistModal: FC<PlaylistModalProps> = ({
             onClick={handleSave}
             disabled={!name.trim() || saving}
             style={{
-              background: name.trim() ? theme.colors.primary : theme.colors.hover,
+              background: name.trim() ? "#6F00FF" : "var(--theme-hover)",
               color: "#fff",
               border: "none",
               borderRadius: 8,

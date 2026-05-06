@@ -1,20 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useRef } from "react";
-import { useTheme } from "@emotion/react";
 import { createColumnHelper } from "@tanstack/react-table";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
 import MainView from "../MainView";
-import {
-  AlbumCover,
-  AlbumCoverAlt,
-  ButtonGroup,
-  Container,
-  ContentWrapper,
-  FilterContainer,
-  Link,
-  Title,
-} from "./styles";
+import { Link as RouterLink } from "react-router-dom";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 import { Track } from "../../Types/track";
 import Table from "../VirtualizedTable";
 import Filter from "../Filter";
@@ -34,7 +25,6 @@ export type TracksProps = {
 };
 
 const Tracks: FC<TracksProps> = (props) => {
-  const theme = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const columns = [
     columnHelper.accessor("trackNumber", {
@@ -62,7 +52,8 @@ const Tracks: FC<TracksProps> = (props) => {
         <>
           {info.getValue() && (
             <div className="album-cover-container songs">
-              <AlbumCover
+              <LazyLoadImage
+                className="h-12 w-12"
                 src={info.getValue()!}
                 alt="album art"
                 effect="blur"
@@ -71,20 +62,20 @@ const Tracks: FC<TracksProps> = (props) => {
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play size={16} color={info.getValue() ? "#fff" : theme.colors.text} />
+                <Play size={16} color={info.getValue() ? "#fff" : "var(--theme-text)"} />
               </div>
             </div>
           )}
           {!info.getValue() && (
             <div className="album-cover-container songs">
-              <AlbumCoverAlt>
+              <div className="h-12 w-12 rounded-[4px] cursor-pointer bg-cover flex justify-center items-center">
                 <TrackIcon width={28} height={28} color="#a4a3a3" />
-              </AlbumCoverAlt>
+              </div>
               <div
                 onClick={() => props.onPlayTrack(info.row.index)}
                 className="floating-play"
               >
-                <Play size={16} color={info.getValue() ? "#fff" : theme.colors.text} />
+                <Play size={16} color={info.getValue() ? "#fff" : "var(--theme-text)"} />
               </div>
             </div>
           )}
@@ -103,7 +94,7 @@ const Tracks: FC<TracksProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
+            color: "var(--theme-text)",
           }}
         >
           {info.getValue()}
@@ -122,12 +113,15 @@ const Tracks: FC<TracksProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
+            color: "var(--theme-text)",
           }}
         >
-          <Link to={`/artists/${info.row.original.artistId}`}>
+          <RouterLink
+            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            to={`/artists/${info.row.original.artistId}`}
+          >
             {info.getValue()}
-          </Link>
+          </RouterLink>
         </div>
       ),
     }),
@@ -143,12 +137,15 @@ const Tracks: FC<TracksProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
+            color: "var(--theme-text)",
           }}
         >
-          <Link to={`/albums/${info.row.original.albumId}`}>
+          <RouterLink
+            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            to={`/albums/${info.row.original.albumId}`}
+          >
             {info.getValue()}
-          </Link>
+          </RouterLink>
         </div>
       ),
     }),
@@ -161,7 +158,8 @@ const Tracks: FC<TracksProps> = (props) => {
       header: "",
       size: 100,
       cell: (info) => (
-        <ButtonGroup
+        <div
+          className="flex flex-row items-center"
           style={{ justifyContent: "flex-end", alignItems: "center" }}
         >
           <ContextMenu
@@ -174,17 +172,17 @@ const Tracks: FC<TracksProps> = (props) => {
               path: info.row.original.path,
             }}
           />
-        </ButtonGroup>
+        </div>
       ),
     }),
   ];
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="songs" />
       <MainView>
         <ControlBar />
-        <ContentWrapper ref={containerRef}>
-          <Title>Songs</Title>
+        <div className="overflow-y-auto h-[calc(100vh-60px)] px-5 relative" ref={containerRef}>
+          <div className="text-2xl font-[RockfordSansMedium] mb-5">Songs</div>
           {props.loading && (
             <div style={{ marginBottom: 60 }}>
               <TrackListSkeleton />
@@ -192,9 +190,9 @@ const Tracks: FC<TracksProps> = (props) => {
           )}
           {(props.tracks.length > 0 || props.keyword) && !props.loading && (
             <>
-              <FilterContainer>
+              <div className="mt-[30px] mb-10">
                 <Filter placeholder="Search song" />
-              </FilterContainer>
+              </div>
               <div style={{ marginBottom: 60 }}>
                 {props.tracks.length > 0 && (
                   <Table
@@ -206,9 +204,9 @@ const Tracks: FC<TracksProps> = (props) => {
               </div>
             </>
           )}
-        </ContentWrapper>
+        </div>
       </MainView>
-    </Container>
+    </div>
   );
 };
 

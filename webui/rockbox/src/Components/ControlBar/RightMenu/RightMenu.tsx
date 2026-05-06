@@ -1,11 +1,7 @@
 import { FC } from "react";
-import { Container } from "./styles";
 import { List } from "@styled-icons/entypo";
 import { StatefulPopover } from "baseui/popover";
-import { Button } from "../styles";
 import PlayQueue from "../PlayQueue";
-import { useTheme } from "@emotion/react";
-import Volume from "./Volume";
 import _ from "lodash";
 import { Speaker } from "@styled-icons/bootstrap";
 import DeviceList from "../DeviceList";
@@ -19,15 +15,13 @@ const BluetoothIcon: FC<{ color: string }> = ({ color }) => (
 );
 
 const RightMenu: FC = () => {
-  const theme = useTheme();
   const { isError: bluetoothUnavailable } = useGetBluetoothDevicesQuery({
     retry: false,
   });
   const bluetoothAvailable = !bluetoothUnavailable;
 
   return (
-    <Container>
-      <Volume />
+    <div className="flex flex-row flex-[0.3] h-[60px] min-w-[160px] items-center justify-end">
       {bluetoothAvailable && (
         <StatefulPopover
           placement="bottom"
@@ -42,7 +36,7 @@ const RightMenu: FC = () => {
             },
             Inner: {
               style: {
-                backgroundColor: theme.colors.popoverBackground,
+                backgroundColor: "var(--theme-popover-background)",
               },
             },
           }}
@@ -54,7 +48,7 @@ const RightMenu: FC = () => {
               cursor: "pointer",
             }}
           >
-            <BluetoothIcon color={theme.colors.icon} />
+            <BluetoothIcon color="var(--theme-icon)" />
           </button>
         </StatefulPopover>
       )}
@@ -71,7 +65,7 @@ const RightMenu: FC = () => {
           },
           Inner: {
             style: {
-              backgroundColor: theme.colors.popoverBackground,
+              backgroundColor: "var(--theme-popover-background)",
             },
           },
         }}
@@ -83,7 +77,7 @@ const RightMenu: FC = () => {
             cursor: "pointer",
           }}
         >
-          <Speaker size={18} color={theme.colors.icon} />
+          <Speaker size={18} color="var(--theme-icon)" />
         </button>
       </StatefulPopover>
 
@@ -99,16 +93,16 @@ const RightMenu: FC = () => {
           },
           Inner: {
             style: {
-              backgroundColor: _.get(theme, "colors.popoverBackground", "#fff"),
+              backgroundColor: "var(--theme-popover-background)",
             },
           },
         }}
       >
-        <Button>
-          <List size={21} color={theme.colors.icon} />
-        </Button>
+        <button className="bg-transparent cursor-pointer border-0 flex items-center justify-center hover:opacity-60">
+          <List size={21} color="var(--theme-icon)" />
+        </button>
       </StatefulPopover>
-    </Container>
+    </div>
   );
 };
 

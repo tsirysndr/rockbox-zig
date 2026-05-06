@@ -1,17 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
-import { useTheme } from "@emotion/react";
-import {
-  AlbumCover,
-  AlbumFooterMenu,
-  AlbumTitle,
-  Artist,
-  CoverWrapper,
-  FloatingButton,
-  Link,
-  NoAlbumCover,
-  Year,
-} from "./styles";
+import { Link } from "react-router-dom";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 import Play from "../Icons/Play";
 import ContextMenu from "./ContextMenu";
 import HeartOutline from "../Icons/HeartOutline";
@@ -27,14 +17,13 @@ export type AlbumProps = {
 };
 
 const Album: FC<AlbumProps> = (props) => {
-  const theme = useTheme();
   return (
     <div style={{ width: "100%" }}>
-      <CoverWrapper>
-        <AlbumFooterMenu className="album-footer-menu">
+      <div className="relative [&:hover_.album-footer-menu]:opacity-100 [&:hover_.album-footer-menu]:pointer-events-auto">
+        <div className="album-footer-menu absolute bottom-0 left-[10px] h-[60px] flex flex-row items-center justify-between w-[calc(100%-20px)] opacity-0 pointer-events-none transition-opacity duration-150 z-[1]">
           <div
             style={{
-              backgroundColor: theme.colors.surface,
+              backgroundColor: "var(--theme-surface)",
               height: 40,
               width: 40,
               borderRadius: 20,
@@ -44,34 +33,53 @@ const Album: FC<AlbumProps> = (props) => {
             }}
             onClick={() => props.onPlay(props.album)}
           >
-            <Play small color={theme.colors.icon} />
+            <Play small color="var(--theme-icon)" />
           </div>
           <ContextMenu item={props.album} />
           {!props.liked && (
-            <FloatingButton onClick={() => props.onLike(props.album)}>
+            <button
+              className="h-10 w-10 rounded-full flex justify-center items-center border-0 cursor-pointer bg-transparent hover:bg-[#434242b5]"
+              onClick={() => props.onLike(props.album)}
+            >
               <HeartOutline color="#fff" size={20} />
-            </FloatingButton>
+            </button>
           )}
           {props.liked && (
-            <FloatingButton onClick={() => props.onUnLike(props.album)}>
+            <button
+              className="h-10 w-10 rounded-full flex justify-center items-center border-0 cursor-pointer bg-transparent hover:bg-[#434242b5]"
+              onClick={() => props.onUnLike(props.album)}
+            >
               <Heart color="#6F00FF" size={20} />
-            </FloatingButton>
+            </button>
           )}
-        </AlbumFooterMenu>
-        <Link to={`/albums/${props.album.id}`}>
+        </div>
+        <Link to={`/albums/${props.album.id}`} className="no-underline">
           {props.album.cover && (
-            <AlbumCover src={props.album.cover} effect="opacity" />
+            <LazyLoadImage
+              src={props.album.cover}
+              effect="opacity"
+              className="w-full rounded-[3px] cursor-pointer"
+            />
           )}
-          {!props.album.cover && <NoAlbumCover src={AlbumArt} />}
+          {!props.album.cover && (
+            <img src={AlbumArt} className="w-full rounded-[3px] cursor-pointer" />
+          )}
         </Link>
-      </CoverWrapper>
-      <Link to={`/albums/${props.album.id}`}>
-        <AlbumTitle>{props.album.title}</AlbumTitle>
+      </div>
+      <Link to={`/albums/${props.album.id}`} className="no-underline">
+        <div className="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text">
+          {props.album.title}
+        </div>
       </Link>
-      <Artist to={`/artists/${props.album.artistId}`}>
+      <Link
+        to={`/artists/${props.album.artistId}`}
+        className="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+      >
         {props.album.artist}
-      </Artist>
-      <Year>{props.album.year}</Year>
+      </Link>
+      <div className="text-secondary-text text-xs font-normal mb-14">
+        {props.album.year}
+      </div>
     </div>
   );
 };

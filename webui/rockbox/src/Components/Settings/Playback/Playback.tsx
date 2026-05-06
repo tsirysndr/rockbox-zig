@@ -1,5 +1,4 @@
 import { FC, useState, useEffect } from "react";
-import styles, { Item, Section, SettingsTitle } from "./styles";
 import Switch from "../../Switch";
 import { Slider } from "@mui/material";
 import { Select } from "baseui/select";
@@ -13,6 +12,80 @@ import {
   replaygainOptions,
   replaygainValues,
 } from "./consts";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const iOSBoxShadow =
+  "0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.13),0 0 0 1px rgba(0,0,0,0.02)";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const styles = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  slider: (_t: any) => ({
+    color: "#6F00FF",
+    "& .MuiSlider-track": {
+      border: "none",
+    },
+    "& .MuiSlider-thumb": {
+      width: 18,
+      height: 18,
+      backgroundColor: "#fff",
+      "&::before": {
+        boxShadow: "0 4px 8px rgba(0,0,0,0.18)",
+      },
+      "&:hover, &.Mui-focusVisible, &.Mui-active": {
+        boxShadow: "none",
+      },
+    },
+  }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sliderIOS: (theme: any) => ({
+    color: "#6F00FF",
+
+    "& .MuiSlider-thumb": {
+      height: 20,
+      width: 20,
+      backgroundColor: "#fff",
+      boxShadow: "0 0 2px 0px rgba(0, 0, 0, 0.1)",
+      "&:focus, &:hover, &.Mui-active": {
+        boxShadow: "0px 0px 3px 1px rgba(0, 0, 0, 0.1)",
+        // Reset on touch devices, it doesn't add specificity
+        "@media (hover: none)": {
+          boxShadow: iOSBoxShadow,
+        },
+      },
+      "&:before": {
+        boxShadow:
+          "0px 0px 1px 0px rgba(0,0,0,0.2), 0px 0px 0px 0px rgba(0,0,0,0.14), 0px 0px 1px 0px rgba(0,0,0,0.12)",
+      },
+    },
+    "& .MuiSlider-valueLabel": {
+      fontSize: 12,
+      fontWeight: "normal",
+      top: -6,
+      backgroundColor: "unset",
+      color: theme.palette.text.primary,
+      "&::before": {
+        display: "none",
+      },
+      "& *": {
+        background: "transparent",
+        color: "inherit",
+      },
+    },
+    "& .MuiSlider-track": {
+      border: "none",
+      height: 5,
+    },
+    "& .MuiSlider-rail": {
+      opacity: 0.5,
+      boxShadow: "inset 0px 0px 4px -2px #000",
+      backgroundColor: "#d0d0d0",
+    },
+    ...theme.applyStyles("dark", {
+      color: "#6F00FF",
+    }),
+  }),
+};
 
 export type PlaybackProps = {
   shuffle: boolean;
@@ -129,9 +202,9 @@ const Playback: FC<PlaybackProps> = (props) => {
 
   return (
     <>
-      <SettingsTitle>Playback</SettingsTitle>
-      <Section>
-        <Item>
+      <div className="text-base font-semibold mb-4">Playback</div>
+      <div className="mb-[50px] text-[15px] border border-[#8a8a8a65] rounded-[10px] px-5 py-[5px]">
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Shuffle</div>
           <div>
             <Switch
@@ -139,8 +212,8 @@ const Playback: FC<PlaybackProps> = (props) => {
               onChange={() => onShuffleChange(!shuffle)}
             />
           </div>
-        </Item>
-        <Item>
+        </div>
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Repeat</div>
           <div style={{ width: 280 }}>
             <Select
@@ -153,9 +226,9 @@ const Playback: FC<PlaybackProps> = (props) => {
               clearable={false}
             />
           </div>
-        </Item>
+        </div>
 
-        <Item>
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Fade on Stop/Pause</div>
           <div>
             <Switch
@@ -163,9 +236,9 @@ const Playback: FC<PlaybackProps> = (props) => {
               onChange={() => onFadeOnStopPauseChange(!fadeOnStopPause)}
             />
           </div>
-        </Item>
+        </div>
 
-        <Item>
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Crossfade</div>
           <div style={{ width: 280 }}>
             <Select
@@ -178,9 +251,9 @@ const Playback: FC<PlaybackProps> = (props) => {
               clearable={false}
             />
           </div>
-        </Item>
+        </div>
 
-        <Item>
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Fade-In Delay</div>
           <div style={{ width: 120 }}>
             <Slider
@@ -197,9 +270,9 @@ const Playback: FC<PlaybackProps> = (props) => {
               valueLabelFormat={(value) => `${value} s`}
             />
           </div>
-        </Item>
+        </div>
 
-        <Item>
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Fade-In Duration</div>
           <div style={{ width: 120 }}>
             <Slider
@@ -215,9 +288,9 @@ const Playback: FC<PlaybackProps> = (props) => {
               valueLabelFormat={(value) => `${value} s`}
             />
           </div>
-        </Item>
+        </div>
 
-        <Item>
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Fade-Out Delay</div>
           <div style={{ width: 120 }}>
             <Slider
@@ -234,8 +307,8 @@ const Playback: FC<PlaybackProps> = (props) => {
               valueLabelFormat={(value) => `${value} s`}
             />
           </div>
-        </Item>
-        <Item>
+        </div>
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Fade-Out Duration</div>
           <div style={{ width: 120 }}>
             <Slider
@@ -251,8 +324,8 @@ const Playback: FC<PlaybackProps> = (props) => {
               valueLabelFormat={(value) => `${value} s`}
             />
           </div>
-        </Item>
-        <Item>
+        </div>
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Fade-Out Mode</div>
           <div style={{ width: 280 }}>
             <Select
@@ -265,9 +338,9 @@ const Playback: FC<PlaybackProps> = (props) => {
               clearable={false}
             />
           </div>
-        </Item>
+        </div>
 
-        <Item>
+        <div className="flex flex-row items-center justify-between min-h-[80px]">
           <div>Replaygain</div>
           <div style={{ width: 280 }}>
             <Select
@@ -280,8 +353,8 @@ const Playback: FC<PlaybackProps> = (props) => {
               clearable={false}
             />
           </div>
-        </Item>
-      </Section>
+        </div>
+      </div>
     </>
   );
 };

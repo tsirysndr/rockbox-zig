@@ -3,27 +3,28 @@ import { FC } from "react";
 import Sidebar from "../Sidebar";
 import MainView from "../MainView";
 import ControlBar from "../ControlBar";
-import { Container, Scrollable, Title, Wrapper } from "./styles";
 import Sound from "./Sound";
 import Library from "./Library";
 import Playback from "./Playback";
 
 const Settings: FC = () => {
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="settings" />
       <MainView>
         <ControlBar />
-        <Scrollable>
-          <Wrapper>
-            <Title>Settings</Title>
+        <div className="h-[calc(100vh-60px)] overflow-y-auto">
+          <div className="w-[60vw] mx-auto mb-[100px] mt-[30px] min-w-[435px] max-w-[800px]">
+            <div className="text-2xl font-[RockfordSansMedium] mx-auto mb-10">
+              Settings
+            </div>
             <Library />
             <Sound />
             <Playback />
-          </Wrapper>
-        </Scrollable>
+          </div>
+        </div>
       </MainView>
-    </Container>
+    </div>
   );
 };
 

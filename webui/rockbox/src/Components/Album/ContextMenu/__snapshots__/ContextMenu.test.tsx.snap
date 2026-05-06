@@ -6,15 +6,15 @@ exports[`ContextMenu > should render 1`] = `
     class=""
   >
     <div
-      class="css-113iyi7"
+      class="flex flex-row h-[45px]"
     >
       <button
-        class="css-83mair"
+        class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
       >
         <div
           aria-expanded="false"
           aria-haspopup="true"
-          class="css-10n9a0h"
+          class="h-10 w-10 rounded-full flex justify-center items-center border-0 cursor-pointer bg-transparent hover:bg-[#434242b5]"
         >
           <svg
             aria-hidden="true"

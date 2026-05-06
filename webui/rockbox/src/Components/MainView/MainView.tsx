@@ -1,5 +1,4 @@
 import { FC, ReactNode } from "react";
-import { Container, Blur } from "./styles";
 
 export type MainViewProps = {
   cover?: string;
@@ -8,9 +7,9 @@ export type MainViewProps = {
 
 const MainView: FC<MainViewProps> = ({ cover, children }) => {
   return (
-    <Container cover={cover}>
-      <Blur enabled={!!cover}>{children}</Blur>
-    </Container>
+    <div className={`flex flex-1 flex-col relative w-[calc(100%-240px)] bg-background bg-center bg-no-repeat bg-cover${cover ? ` bg-[url(${cover})]` : ''}`}>
+      <div className={`h-screen${cover ? ' bg-[rgba(0,0,0,0.7)] backdrop-blur-[30px]' : ''}`}>{children}</div>
+    </div>
   );
 };
 

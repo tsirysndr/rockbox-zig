@@ -1,28 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
-import { useTheme } from "@emotion/react";
 import { createColumnHelper } from "@tanstack/react-table";
+import { Link } from "react-router-dom";
 import Sidebar from "../Sidebar";
 import ControlBar from "../ControlBar";
 import MainView from "../MainView/MainView";
-import {
-  Container,
-  AlbumCover,
-  ContentWrapper,
-  AlbumTitle,
-  Header,
-  AlbumInfos,
-  Artist,
-  Tracks,
-  Year,
-  ButtonGroup,
-  Separator,
-  BackButton,
-  Label,
-  Link,
-  Footer,
-  FooterText,
-} from "./styles";
 import Button from "../Button";
 import ArrowBack from "../Icons/ArrowBack";
 import Play from "../Icons/Play";
@@ -69,7 +51,6 @@ export type AlbumDetailsProps = {
 };
 
 const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
-  const theme = useTheme();
   const columns = [
     columnHelper.accessor("trackNumber", {
       header: "#",
@@ -86,7 +67,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
               )
             }
           >
-            <Play color={theme.colors.icon} small />
+            <Play color="var(--theme-icon)" small />
           </div>
         </div>
       ),
@@ -104,8 +85,8 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
             overflow: "hidden",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
           }}
+          className="text-text"
         >
           {info.getValue()}
         </div>
@@ -124,10 +105,13 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             cursor: "pointer",
-            color: theme.colors.text,
           }}
+          className="text-text"
         >
-          <Link to={`/artists/${info.row.original.artistId}`}>
+          <Link
+            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            to={`/artists/${info.row.original.artistId}`}
+          >
             {info.getValue()}
           </Link>
         </div>
@@ -142,9 +126,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
       header: "",
       size: 100,
       cell: (info) => (
-        <ButtonGroup
-          style={{ justifyContent: "flex-end", alignItems: "center" }}
-        >
+        <div className="flex flex-row items-center" style={{ justifyContent: "flex-end", alignItems: "center" }}>
           <ContextMenu
             track={{
               id: info.row.original.id,
@@ -155,24 +137,27 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
               path: info.row.original.path,
             }}
           />
-        </ButtonGroup>
+        </div>
       ),
     }),
   ];
 
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="albums" />
       <MainView
         cover={props.enableBlur ? (props.album?.albumArt as any) : undefined}
       >
         <ControlBar />
-        <ContentWrapper>
-          <BackButton onClick={() => props.onGoBack()}>
+        <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
+          <button
+            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[46px] absolute z-[1]"
+            onClick={() => props.onGoBack()}
+          >
             <div style={{ marginTop: 2 }}>
-              <ArrowBack color={theme.colors.icon} />
+              <ArrowBack color="var(--theme-icon)" />
             </div>
-          </BackButton>
+          </button>
           {props.loading && (
             <div style={{ marginTop: 60, marginBottom: 100 }}>
               <DetailHeaderSkeleton />
@@ -180,9 +165,12 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
             </div>
           )}
           {!props.loading && <div style={{ marginBottom: 100 }}>
-            <Header>
-              <AlbumCover src={props.album?.albumArt || AlbumArt} />
-              <AlbumInfos>
+            <div className="flex flex-row items-center mb-5 mt-[90px]">
+              <img
+                className="h-[240px] w-[240px] rounded-[3px]"
+                src={props.album?.albumArt || AlbumArt}
+              />
+              <div className="flex flex-col ml-[26px] h-[240px] justify-center">
                 <div
                   style={{
                     display: "flex",
@@ -191,32 +179,39 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
                     height: "calc(240px - 12px)",
                   }}
                 >
-                  <AlbumTitle>{props.album?.title}</AlbumTitle>
-                  <Artist to={`/artists/${props.album?.artistId}`}>
+                  <div className="text-[32px] font-[RockfordSansBold] text-text">
+                    {props.album?.title}
+                  </div>
+                  <Link
+                    className="text-text no-underline font-[RockfordSansMedium] text-sm mt-2 hover:underline"
+                    to={`/artists/${props.album?.artistId}`}
+                  >
                     {props.album?.artist}
-                  </Artist>
-                  <Tracks>
+                  </Link>
+                  <div className="mt-[25px] font-normal text-sm text-secondary-text">
                     {props.tracks.length || props.volumes.flat().length} TRACKS
-                  </Tracks>
-                  <Year>{props.album?.year}</Year>
+                  </div>
+                  <div className="mt-[15px] font-normal text-sm mb-[10px] text-secondary-text">
+                    {props.album?.year}
+                  </div>
                 </div>
-                <ButtonGroup>
+                <div className="flex flex-row items-center">
                   <Button onClick={() => props.onPlayAll()} kind="primary">
-                    <Label>
+                    <div className="flex flex-row items-center">
                       <Play small color="#fff" />
                       <div style={{ marginLeft: 7 }}>Play</div>
-                    </Label>
+                    </div>
                   </Button>
-                  <Separator />
+                  <div className="w-5" />
                   <Button onClick={() => props.onShuffleAll()} kind="secondary">
-                    <Label>
+                    <div className="flex flex-row items-center">
                       <Shuffle color="#6F00FF" />
                       <div style={{ marginLeft: 7 }}>Shuffle</div>
-                    </Label>
+                    </div>
                   </Button>
-                </ButtonGroup>
-              </AlbumInfos>
-            </Header>
+                </div>
+              </div>
+            </div>
             {props.volumes.length === 0 && props.tracks.length > 0 && (
               <Table columns={columns as any} tracks={props.tracks} />
             )}
@@ -235,21 +230,23 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
               </div>
             )}
             {(props.album?.yearString || props.album?.copyrightMessage) && (
-              <Footer>
+              <div className="flex flex-col gap-1 py-6 pb-8">
                 {props.album?.yearString && (
-                  <FooterText>
+                  <div className="text-xs text-secondary-text">
                     {formatReleaseDate(props.album.yearString)}
-                  </FooterText>
+                  </div>
                 )}
                 {props.album?.copyrightMessage && (
-                  <FooterText>{props.album.copyrightMessage}</FooterText>
+                  <div className="text-xs text-secondary-text">
+                    {props.album.copyrightMessage}
+                  </div>
                 )}
-              </Footer>
+              </div>
             )}
           </div>}
-        </ContentWrapper>
+        </div>
       </MainView>
-    </Container>
+    </div>
   );
 };
 

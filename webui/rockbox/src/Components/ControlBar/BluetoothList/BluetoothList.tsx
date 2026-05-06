@@ -1,21 +1,16 @@
-import { useTheme } from "@emotion/react";
-import styled from "@emotion/styled";
 import { ListItem, ListItemLabel } from "baseui/list";
 import { FC } from "react";
 import { BluetoothDeviceGql } from "../../../Hooks/GraphQL";
-import { Container, List, Placeholder, Title } from "./styles";
 
 const ACCENT = "#1a91ff";
 
-const DeviceNameText = styled.div`
-  font-size: 13px;
-`;
+const DeviceNameText: FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="text-[13px]">{children}</div>
+);
 
-const CheckMark = styled.span`
-  color: #28fce3;
-  font-size: 12px;
-  margin-left: 6px;
-`;
+const CheckMark: FC<{ children: React.ReactNode }> = ({ children }) => (
+  <span className="text-[#28fce3] text-xs ml-[6px]">{children}</span>
+);
 
 const BluetoothIcon: FC = () => (
   <div
@@ -50,8 +45,6 @@ const BluetoothList: FC<BluetoothListProps> = ({
   disconnect,
   close,
 }) => {
-  const theme = useTheme();
-
   const handleTap = (device: BluetoothDeviceGql) => {
     if (device.connected) {
       disconnect(device.address);
@@ -62,13 +55,15 @@ const BluetoothList: FC<BluetoothListProps> = ({
   };
 
   return (
-    <Container>
+    <div className="max-h-[calc(100vh-153px)] pt-[15px] pb-[15px] overflow-y-auto w-[280px] min-h-[120px]">
       {devices.length > 0 && !loading && (
-        <Title>Bluetooth speakers</Title>
+        <div className="m-[10px] mx-[25px] font-[RockfordSansBold]">Bluetooth speakers</div>
       )}
-      <List>
+      <div className="max-h-[calc(100vh-273px)] px-[15px] overflow-y-auto min-h-[80px]">
         {!loading && devices.length === 0 && (
-          <Placeholder>No bluetooth devices found.</Placeholder>
+          <div className="flex items-center justify-center h-[120px] text-center px-5 text-sm">
+            No bluetooth devices found.
+          </div>
         )}
         {devices.map((device) => (
           <div key={device.address} onClick={() => handleTap(device)}>
@@ -83,7 +78,7 @@ const BluetoothList: FC<BluetoothListProps> = ({
                     cursor: "pointer",
                     backgroundColor: "transparent",
                     ":hover": {
-                      backgroundColor: theme.colors.hover,
+                      backgroundColor: "var(--theme-hover)",
                     },
                     borderRadius: "5px",
                   },
@@ -99,8 +94,8 @@ const BluetoothList: FC<BluetoothListProps> = ({
             </ListItem>
           </div>
         ))}
-      </List>
-    </Container>
+      </div>
+    </div>
   );
 };
 

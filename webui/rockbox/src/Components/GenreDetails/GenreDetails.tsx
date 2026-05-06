@@ -1,28 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC } from "react";
-import { useTheme } from "@emotion/react";
+import { Link } from "react-router-dom";
 import { Cell, Grid } from "baseui/layout-grid";
 import Sidebar from "../Sidebar/Sidebar";
 import ControlBar from "../ControlBar";
-import {
-  ArtistImage,
-  ArtistImagePlaceholder,
-  ArtistName,
-  ArtistThumb,
-  BackButton,
-  ButtonGroup,
-  Container,
-  ContentWrapper,
-  GenreDecoration,
-  GenreHero,
-  GenreLabel,
-  GenreName,
-  GenreStats,
-  Label,
-  MainView,
-  SectionTitle,
-} from "./styles";
-import { colorForSeed } from "../Genres/styles";
+import { colorForSeed } from "../Genres/Genres";
 import ArrowBack from "../Icons/ArrowBack";
 import Shuffle from "../Icons/Shuffle";
 import Play from "../Icons/Play";
@@ -56,7 +38,6 @@ export type GenreDetailsProps = {
 };
 
 const GenreDetails: FC<GenreDetailsProps> = (props) => {
-  const theme = useTheme();
   const heroBg = colorForSeed(props.id || props.name);
 
   const columns = [
@@ -71,7 +52,7 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
             textOverflow: "ellipsis",
             overflow: "hidden",
             whiteSpace: "nowrap",
-            color: theme.colors.text,
+            color: "var(--theme-text)",
             cursor: "pointer",
           }}
           onClick={() => props.onPlayTrack(info.row.index)}
@@ -83,7 +64,7 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
     columnHelper.accessor("artist", {
       header: "Artist",
       cell: (info) => (
-        <div style={{ fontSize: 14, color: theme.colors.text }}>
+        <div style={{ fontSize: 14, color: "var(--theme-text)" }}>
           {info.getValue()}
         </div>
       ),
@@ -91,7 +72,7 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
     columnHelper.accessor("album", {
       header: "Album",
       cell: (info) => (
-        <div style={{ fontSize: 14, color: theme.colors.text }}>
+        <div style={{ fontSize: 14, color: "var(--theme-text)" }}>
           {info.getValue()}
         </div>
       ),
@@ -120,53 +101,69 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
   ];
 
   return (
-    <Container>
+    <div className="flex flex-row w-full h-full">
       <Sidebar active="genres" />
-      <MainView>
+      <div className="flex flex-1 flex-col w-[calc(100%-240px)]">
         <ControlBar />
-        <ContentWrapper>
-          <BackButton onClick={() => props.onGoBack()}>
-            <ArrowBack color={theme.colors.icon} />
-          </BackButton>
+        <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
+          <button
+            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[18px] absolute z-[1]"
+            onClick={() => props.onGoBack()}
+          >
+            <ArrowBack color="var(--theme-icon)" />
+          </button>
 
-          <GenreHero bg={heroBg}>
+          <div
+            style={{
+              background: `linear-gradient(135deg, ${heroBg}, rgba(0,0,0,0.4))`,
+            }}
+            className="relative h-[220px] rounded-[12px] overflow-hidden mt-[30px] mb-6 flex items-end p-[22px_28px] text-white"
+          >
             <div style={{ position: "relative", zIndex: 1 }}>
-              <GenreLabel>Genre</GenreLabel>
-              <GenreName>{props.name}</GenreName>
-              <GenreStats>
+              <div className="text-xs font-semibold uppercase tracking-[2px] opacity-85">
+                Genre
+              </div>
+              <div className="font-[RockfordSansMedium] text-[38px] font-bold mt-[6px]">
+                {props.name}
+              </div>
+              <div className="text-xs mt-2 opacity-85">
                 {props.trackCount} tracks · {props.albums.length} albums ·{" "}
                 {props.artists.length} artists
-              </GenreStats>
+              </div>
             </div>
-            <GenreDecoration>{props.name}</GenreDecoration>
-          </GenreHero>
+            <div className="absolute right-[-10px] bottom-[-22px] font-[RockfordSansMedium] text-[110px] font-bold opacity-[0.18] rotate-[-12deg] pointer-events-none">
+              {props.name}
+            </div>
+          </div>
 
-          <ButtonGroup>
+          <div className="flex flex-row items-center gap-[14px]">
             <Button
               onClick={props.onPlayAll}
               kind="primary"
               disabled={props.tracks.length === 0}
             >
-              <Label>
+              <div className="flex flex-row items-center">
                 <Play small color="#fff" />
                 <div style={{ marginLeft: 7 }}>Play</div>
-              </Label>
+              </div>
             </Button>
             <Button
               onClick={props.onShuffleAll}
               kind="secondary"
               disabled={props.tracks.length === 0}
             >
-              <Label>
+              <div className="flex flex-row items-center">
                 <Shuffle color="#6F00FF" />
                 <div style={{ marginLeft: 7 }}>Shuffle</div>
-              </Label>
+              </div>
             </Button>
-          </ButtonGroup>
+          </div>
 
           {props.tracks.length > 0 && (
             <>
-              <SectionTitle>Popular tracks</SectionTitle>
+              <div className="mt-[30px] mb-[14px] text-[20px] font-semibold">
+                Popular tracks
+              </div>
               <Table
                 columns={columns as any}
                 tracks={props.tracks.slice(0, 10) as any}
@@ -176,7 +173,9 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
 
           {props.albums.length > 0 && (
             <>
-              <SectionTitle>Albums</SectionTitle>
+              <div className="mt-[30px] mb-[14px] text-[20px] font-semibold">
+                Albums
+              </div>
               <div style={{ marginBottom: 30 }}>
                 <Grid
                   gridColumns={[2, 4, 5]}
@@ -195,7 +194,9 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
 
           {props.artists.length > 0 && (
             <>
-              <SectionTitle>Artists</SectionTitle>
+              <div className="mt-[30px] mb-[14px] text-[20px] font-semibold">
+                Artists
+              </div>
               <div
                 style={{
                   display: "grid",
@@ -205,23 +206,33 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
                 }}
               >
                 {props.artists.map((artist) => (
-                  <ArtistThumb key={artist.id} to={`/artists/${artist.id}`}>
+                  <Link
+                    key={artist.id}
+                    to={`/artists/${artist.id}`}
+                    className="flex flex-col items-center no-underline text-inherit cursor-pointer"
+                  >
                     {artist.image ? (
-                      <ArtistImage src={artist.image} alt={artist.name} />
+                      <img
+                        src={artist.image}
+                        alt={artist.name}
+                        className="w-[100px] h-[100px] rounded-full object-cover"
+                      />
                     ) : (
-                      <ArtistImagePlaceholder>
+                      <div className="w-[100px] h-[100px] rounded-full bg-cover flex items-center justify-center">
                         <ArtistIcon width={42} height={42} color="#bbb" />
-                      </ArtistImagePlaceholder>
+                      </div>
                     )}
-                    <ArtistName>{artist.name}</ArtistName>
-                  </ArtistThumb>
+                    <div className="mt-2 text-[13px] text-center max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap">
+                      {artist.name}
+                    </div>
+                  </Link>
                 ))}
               </div>
             </>
           )}
-        </ContentWrapper>
-      </MainView>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 };
 
