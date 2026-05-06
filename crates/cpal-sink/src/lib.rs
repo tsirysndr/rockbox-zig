@@ -29,6 +29,13 @@ use std::collections::VecDeque;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Condvar, Mutex, OnceLock};
 
+// Serialises concurrent open_stream() calls: the background pre-warm thread
+// and any foreground caller both take this lock before touching the ALSA/
+// PipeWire/CoreAudio stack.  Holding the lock during device enumeration means
+// a foreground caller that races with the background thread simply waits for
+// it to finish instead of doing the expensive work twice.
+static OPEN_STREAM_MTX: Mutex<()> = Mutex::new(());
+
 // Per-channel linear volume multiplier stored as f32 bits in an atomic so the
 // cpal callback can read without a mutex.  Initialised to 1.0 (0 dB).
 static VOLUME_L: AtomicU32 = AtomicU32::new(0x3F80_0000); // 1.0f32
@@ -366,10 +373,30 @@ pub extern "C" fn pcm_cpal_init() {
     let _ = resampler();
 }
 
+// Open the stream for `rate` if it is not already open.  Serialised by
+// OPEN_STREAM_MTX so concurrent callers (background pre-warm + foreground
+// pcm_cpal_start) never enumerate the audio device twice simultaneously.
+fn ensure_stream(rate: u32) {
+    let _guard = OPEN_STREAM_MTX.lock().unwrap();
+    if stream_cell().lock().unwrap().is_none() {
+        open_stream(rate);
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn pcm_cpal_postinit() {
-    open_stream(44100);
     ring().0.lock().unwrap().running = true;
+    // Pre-warm: open the ALSA/PipeWire stream in a background thread concurrently
+    // with firmware boot so the first play call costs nothing on Linux.
+    // macOS is excluded: CoreAudio requires audio device init to happen on a
+    // specific OS-managed thread context; calling open_stream() from an arbitrary
+    // pthread aborts the process.  CoreAudio is fast enough that lazy init on the
+    // first pcm_cpal_start() call is imperceptible on Apple hardware.
+    #[cfg(not(target_os = "macos"))]
+    {
+        let rate = *current_rate().lock().unwrap();
+        std::thread::spawn(move || ensure_stream(rate));
+    }
 }
 
 #[no_mangle]
@@ -412,6 +439,11 @@ pub extern "C" fn pcm_cpal_set_volume(vol_l: i32, vol_r: i32) {
 
 #[no_mangle]
 pub extern "C" fn pcm_cpal_start() {
+    // Fast path: background pre-warm finished → lock acquired instantly, is_none()
+    // = false, returns immediately.  Slow path: pre-warm still running → blocks on
+    // OPEN_STREAM_MTX until it finishes, then sees the stream is ready.
+    let rate = *current_rate().lock().unwrap();
+    ensure_stream(rate);
     let (lock, _cvar) = ring();
     let mut r = lock.lock().unwrap();
     r.running = true;
