@@ -3,7 +3,7 @@ use rockbox_playlists::{resolver, rules::RuleCriteria, SmartPlaylist as RsSmartP
 use rockbox_sys::{self as rb};
 use serde::{Deserialize, Serialize};
 
-use crate::{http::AppState, PLAYER_MUTEX};
+use crate::http::AppState;
 
 type HandlerResult = actix_web::Result<HttpResponse>;
 
@@ -210,7 +210,6 @@ pub async fn play_smart_playlist(
 
     let paths: Vec<String> = tracks.iter().map(|t| t.path.clone()).collect();
     web::block(move || {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
         rb::with_kernel_lock(move || {
             let first = &paths[0];
             let dir = {

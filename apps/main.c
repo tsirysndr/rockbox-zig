@@ -486,6 +486,7 @@ static void init(void)
 #ifdef ROCKBOX_SERVER
     server_init();
     broker_init();
+    start_servers(); /* Start gRPC/GraphQL/MPD after broker is ready. */
 #endif
 }
 

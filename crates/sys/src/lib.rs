@@ -1394,6 +1394,14 @@ extern "C" {
     pub fn rb_kernel_unlock();
 }
 
+/// RAII guard that calls `rb_kernel_unlock` on drop, even through a panic.
+struct KernelGuard;
+impl Drop for KernelGuard {
+    fn drop(&mut self) {
+        unsafe { rb_kernel_unlock() };
+    }
+}
+
 /// Execute `f` under the Rockbox cooperative kernel lock and return its value.
 ///
 /// Any OS thread (e.g. a tokio/actix worker) may call Rockbox firmware FFI
@@ -1401,9 +1409,11 @@ extern "C" {
 /// this acquires g_mutex so no Rockbox kernel thread runs concurrently, then
 /// installs g_external_entry as the current thread.  On SDL builds
 /// `rb_kernel_lock` is a no-op (weak-symbol stub in broker_thread.c).
+///
+/// The guard ensures `rb_kernel_unlock` is called even if `f` panics, so
+/// g_mutex is never permanently leaked.
 pub fn with_kernel_lock<T, F: FnOnce() -> T>(f: F) -> T {
     unsafe { rb_kernel_lock() };
-    let result = f();
-    unsafe { rb_kernel_unlock() };
-    result
+    let _guard = KernelGuard;
+    f()
 }

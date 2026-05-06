@@ -12,13 +12,13 @@ pub mod label;
 pub mod repo;
 
 pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
-    let home = env::var("HOME").unwrap();
+    let home = env::var("HOME").unwrap_or_else(|_| ".".into());
     let rockbox_dir = format!("{}/.config/rockbox.org", home);
-    std::fs::create_dir_all(&rockbox_dir).unwrap();
+    let _ = std::fs::create_dir_all(&rockbox_dir);
     let rockbox_db_path = format!("{}/rockbox-library.db", rockbox_dir);
     let db_url = env::var("DATABASE_URL").unwrap_or(rockbox_db_path);
     debug!("db url {}", db_url);
-    env::set_var("DATABASE_URL", &db_url);
+    // Do NOT call env::set_var here — it races with other threads on macOS.
     let options = SqliteConnectOptions::new()
         .filename(db_url)
         .create_if_missing(true)

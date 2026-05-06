@@ -13,9 +13,7 @@ use rockbox_traits::types::track::Track;
 use rockbox_types::{device::Device, LoadTracks, NewVolume};
 use serde::Deserialize;
 
-use crate::{
-    handlers::playlists::hydrate_entry_from_track, http::AppState, GLOBAL_MUTEX, PLAYER_MUTEX,
-};
+use crate::{handlers::playlists::hydrate_entry_from_track, http::AppState, GLOBAL_MUTEX};
 
 type HandlerResult = actix_web::Result<HttpResponse>;
 
@@ -24,7 +22,6 @@ unsafe extern "C" {
 }
 
 pub async fn load(state: web::Data<AppState>, body: web::Json<LoadTracks>) -> HandlerResult {
-    let _player_mutex = PLAYER_MUTEX.lock().unwrap();
     let mut player = state.player.lock().unwrap();
     if player.is_none() {
         return Ok(HttpResponse::NotFound().finish());
@@ -132,10 +129,11 @@ pub async fn play(state: web::Data<AppState>, query: web::Query<PlayQuery>) -> H
     let offset = query.offset.unwrap_or(0);
 
     web::block(move || {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        if state.player.lock().unwrap().is_none() {
-            rb::with_kernel_lock(|| rb::playback::play(elapsed, offset));
-        }
+        rb::with_kernel_lock(|| {
+            if state.player.lock().unwrap().is_none() {
+                rb::playback::play(elapsed, offset);
+            }
+        });
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -153,8 +151,9 @@ pub async fn pause(state: web::Data<AppState>) -> HandlerResult {
         }
     } else {
         web::block(move || {
-            let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-            rb::with_kernel_lock(|| rb::playback::pause());
+            rb::with_kernel_lock(|| {
+                rb::playback::pause();
+            });
         })
         .await
         .map_err(ErrorInternalServerError)?;
@@ -171,8 +170,9 @@ pub struct FfRewindQuery {
 pub async fn ff_rewind(query: web::Query<FfRewindQuery>) -> HandlerResult {
     let newtime = query.newtime.unwrap_or(0);
     web::block(move || {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        rb::with_kernel_lock(|| rb::playback::ff_rewind(newtime));
+        rb::with_kernel_lock(|| {
+            rb::playback::ff_rewind(newtime);
+        });
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -195,12 +195,9 @@ pub async fn status(state: web::Data<AppState>) -> HandlerResult {
         }
     }
 
-    let status = web::block(|| {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        rb::playback::status()
-    })
-    .await
-    .map_err(ErrorInternalServerError)?;
+    let status = web::block(|| rb::with_kernel_lock(|| rb::playback::status()))
+        .await
+        .map_err(ErrorInternalServerError)?;
 
     Ok(HttpResponse::Ok().json(status))
 }
@@ -246,21 +243,22 @@ pub async fn current_track(state: web::Data<AppState>) -> HandlerResult {
 
     // Builtin player: FFI calls on a blocking thread, then DB lookup async
     let (track, audio_path, playlist_path) = web::block(|| {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        let track = rb::playback::current_track();
-        let audio_path: Option<String> = track.as_ref().map(|t| t.path.clone());
-        let playlist_index = rb::playlist::index();
-        let playlist_path = if playlist_index >= 0 {
-            let info = rb::playlist::get_track_info(playlist_index);
-            if !info.filename.is_empty() {
-                Some(info.filename)
+        rb::with_kernel_lock(|| {
+            let track = rb::playback::current_track();
+            let audio_path: Option<String> = track.as_ref().map(|t| t.path.clone());
+            let playlist_index = rb::playlist::index();
+            let playlist_path = if playlist_index >= 0 {
+                let info = rb::playlist::get_track_info(playlist_index);
+                if !info.filename.is_empty() {
+                    Some(info.filename)
+                } else {
+                    None
+                }
             } else {
                 None
-            }
-        } else {
-            None
-        };
-        (track, audio_path, playlist_path)
+            };
+            (track, audio_path, playlist_path)
+        })
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -286,22 +284,23 @@ pub async fn next_track(state: web::Data<AppState>) -> HandlerResult {
     }
 
     let (track, audio_path, playlist_path) = web::block(|| {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        let track = rb::playback::next_track();
-        let audio_path: Option<String> = track.as_ref().map(|t| t.path.clone());
-        let current_index = rb::playlist::index();
-        let next_index = current_index + 1;
-        let playlist_path = if next_index >= 0 && next_index < rb::playlist::amount() {
-            let info = rb::playlist::get_track_info(next_index);
-            if !info.filename.is_empty() {
-                Some(info.filename)
+        rb::with_kernel_lock(|| {
+            let track = rb::playback::next_track();
+            let audio_path: Option<String> = track.as_ref().map(|t| t.path.clone());
+            let current_index = rb::playlist::index();
+            let next_index = current_index + 1;
+            let playlist_path = if next_index >= 0 && next_index < rb::playlist::amount() {
+                let info = rb::playlist::get_track_info(next_index);
+                if !info.filename.is_empty() {
+                    Some(info.filename)
+                } else {
+                    None
+                }
             } else {
                 None
-            }
-        } else {
-            None
-        };
-        (track, audio_path, playlist_path)
+            };
+            (track, audio_path, playlist_path)
+        })
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -324,8 +323,9 @@ pub async fn next_track(state: web::Data<AppState>) -> HandlerResult {
 
 pub async fn flush_and_reload_tracks() -> HandlerResult {
     web::block(|| {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        rb::with_kernel_lock(|| rb::playback::flush_and_reload_tracks());
+        rb::with_kernel_lock(|| {
+            rb::playback::flush_and_reload_tracks();
+        });
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -342,8 +342,9 @@ pub async fn resume(state: web::Data<AppState>) -> HandlerResult {
         }
     } else {
         web::block(|| {
-            let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-            rb::with_kernel_lock(|| rb::playback::resume());
+            rb::with_kernel_lock(|| {
+                rb::playback::resume();
+            });
         })
         .await
         .map_err(ErrorInternalServerError)?;
@@ -354,8 +355,9 @@ pub async fn resume(state: web::Data<AppState>) -> HandlerResult {
 
 pub async fn next() -> HandlerResult {
     web::block(|| {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        rb::with_kernel_lock(|| rb::playback::next());
+        rb::with_kernel_lock(|| {
+            rb::playback::next();
+        });
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -364,8 +366,9 @@ pub async fn next() -> HandlerResult {
 
 pub async fn previous() -> HandlerResult {
     web::block(|| {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        rb::with_kernel_lock(|| rb::playback::prev());
+        rb::with_kernel_lock(|| {
+            rb::playback::prev();
+        });
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -374,8 +377,9 @@ pub async fn previous() -> HandlerResult {
 
 pub async fn stop() -> HandlerResult {
     web::block(|| {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        rb::with_kernel_lock(|| rb::playback::hard_stop());
+        rb::with_kernel_lock(|| {
+            rb::playback::hard_stop();
+        });
     })
     .await
     .map_err(ErrorInternalServerError)?;
@@ -383,12 +387,9 @@ pub async fn stop() -> HandlerResult {
 }
 
 pub async fn get_file_position() -> HandlerResult {
-    let position = web::block(|| {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
-        rb::playback::get_file_pos()
-    })
-    .await
-    .map_err(ErrorInternalServerError)?;
+    let position = web::block(|| rb::with_kernel_lock(|| rb::playback::get_file_pos()))
+        .await
+        .map_err(ErrorInternalServerError)?;
     Ok(HttpResponse::Ok().json(position))
 }
 

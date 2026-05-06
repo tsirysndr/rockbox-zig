@@ -57,7 +57,6 @@ pub const AUDIO_EXTENSIONS: [&str; 17] = [
 
 lazy_static! {
     pub static ref GLOBAL_MUTEX: Mutex<i32> = Mutex::new(0);
-    pub static ref PLAYER_MUTEX: Mutex<i32> = Mutex::new(0);
 }
 
 #[no_mangle]
@@ -646,14 +645,11 @@ pub extern "C" fn start_broker() {
         // from the control file so the queue is visible before the user presses play.
         if !did_initial_restore {
             did_initial_restore = true;
-            let _guard = PLAYER_MUTEX.lock().unwrap();
             let status = rb::system::get_global_status();
             if status.resume_index != -1 && rb::playlist::amount() == 0 {
                 rb::playlist::resume();
             }
         }
-
-        let player_mutex = PLAYER_MUTEX.lock().unwrap();
 
         let playback_status: AudioStatus = rb::playback::status().into();
         SimpleBroker::publish(playback_status);
@@ -806,7 +802,6 @@ pub extern "C" fn start_broker() {
         let content_changed = amount != last_playlist_amount || dirty;
 
         if !index_changed && !content_changed {
-            drop(player_mutex);
             thread::sleep(std::time::Duration::from_millis(100));
             rb::system::sleep(rb::HZ);
             continue;
@@ -823,9 +818,6 @@ pub extern "C" fn start_broker() {
                 let hash = format!("{:x}", md5::compute(info.filename.as_bytes()));
                 track_infos.push((hash, info.filename));
             }
-
-            // Release the mutex before any slow I/O so player commands aren't blocked.
-            drop(player_mutex);
 
             // Build entries, reading from disk only for files not yet in cache.
             let mut built: Vec<Mp3Entry> = Vec::with_capacity(track_infos.len());
@@ -895,7 +887,6 @@ pub extern "C" fn start_broker() {
         } else {
             // Only the current index changed — reuse the cached entry list.
             // No get_track_info loop, no disk reads, no DB queries.
-            drop(player_mutex);
             last_entries.clone()
         };
 

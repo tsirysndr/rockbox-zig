@@ -63,8 +63,6 @@ void INIT_ATTR server_init(void)
 
     sleep(HZ); /* Give it a chance to start */
 
-    start_servers();
-
    /* Probably safe to say */
     server_is_initialized = true;
 }

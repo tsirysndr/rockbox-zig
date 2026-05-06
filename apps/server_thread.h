@@ -22,5 +22,6 @@
 #define SERVER_THREAD_H
 
 void server_init(void);
+void start_servers(void); /* Start gRPC/GraphQL/MPD — call after broker_init(). */
 
 #endif /* SERVER_THREAD_H */

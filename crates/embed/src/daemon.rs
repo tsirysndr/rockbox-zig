@@ -136,7 +136,7 @@ fn install_subscriber() {
         .try_init();
 }
 
-fn wait_for_grpc(port: u16, deadline: Instant) -> bool {
+fn wait_for_port(port: u16, deadline: Instant) -> bool {
     let addr: SocketAddr = (Ipv4Addr::LOCALHOST, port).into();
     while Instant::now() < deadline {
         if TcpStream::connect_timeout(&addr, Duration::from_millis(50)).is_ok() {
@@ -229,10 +229,21 @@ pub unsafe extern "C" fn rb_daemon_start(
         .expect("spawn rockbox-engine thread");
 
     tracing::info!("embed: waiting up to 30s for gRPC :{port} to bind");
-    if !wait_for_grpc(port, Instant::now() + Duration::from_secs(30)) {
+    let deadline = Instant::now() + Duration::from_secs(30);
+    if !wait_for_port(port, deadline) {
         tracing::error!("embed: gRPC did not bind within 30s");
         STATE.store(STATE_STOPPED, Ordering::Release);
         return -110;
+    }
+
+    let graphql_port: u16 = std::env::var("ROCKBOX_GRAPHQL_PORT")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(6062);
+    tracing::info!("embed: waiting for GraphQL :{graphql_port} to bind");
+    let graphql_deadline = Instant::now() + Duration::from_secs(10);
+    if !wait_for_port(graphql_port, graphql_deadline) {
+        tracing::warn!("embed: GraphQL did not bind within 10s — album art may not display");
     }
 
     LOCAL_PORT.store(port as i32, Ordering::Release);

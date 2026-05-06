@@ -3,7 +3,7 @@ use rockbox_library::repo;
 use rockbox_sys::{self as rb};
 use serde::Deserialize;
 
-use crate::{http::AppState, PLAYER_MUTEX};
+use crate::http::AppState;
 
 type HandlerResult = actix_web::Result<HttpResponse>;
 
@@ -238,7 +238,6 @@ pub async fn play_saved_playlist(
     }
 
     web::block(move || {
-        let _player_mutex = PLAYER_MUTEX.lock().unwrap();
         rb::with_kernel_lock(move || {
             let first = &paths[0];
             let dir = {
