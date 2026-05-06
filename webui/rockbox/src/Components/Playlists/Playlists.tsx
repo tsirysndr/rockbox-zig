@@ -78,7 +78,7 @@ const Playlists: FC<PlaylistsProps> = ({
 
           {!loading && savedPlaylists.length > 0 && (
             <>
-              <div className="text-base font-[RockfordSansMedium] px-5 mb-4 mt-6 text-secondary-text">MY PLAYLISTS</div>
+              <div className="text-base font-[RockfordSansMedium] px-5 mb-4 mt-6 text-[var(--theme-secondary-text)]">MY PLAYLISTS</div>
               <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5 px-5 mb-10">
                 {savedPlaylists.map((playlist) => (
                   <div
@@ -87,7 +87,7 @@ const Playlists: FC<PlaylistsProps> = ({
                   >
                     <Link className="no-underline" to={`/playlists/${playlist.id}`}>
                       <div
-                        className="w-full aspect-square rounded-[6px] bg-cover flex items-center justify-center overflow-hidden"
+                        className="w-full aspect-square rounded-[6px] bg-[var(--theme-cover)] flex items-center justify-center overflow-hidden"
                         style={playlist.image ? { backgroundImage: `url(${playlist.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
                       >
                         {!playlist.image && <Music size={48} color="#bbb" />}
@@ -95,20 +95,20 @@ const Playlists: FC<PlaylistsProps> = ({
                     </Link>
                     <div className="card-actions absolute bottom-12 left-2 right-2 flex flex-row items-center justify-between opacity-0 transition-opacity duration-150 pb-[6px]">
                       <button
-                        className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-surface backdrop-blur-[4px] hover:bg-hover"
+                        className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-[var(--theme-surface)] backdrop-blur-[4px] hover:bg-[var(--theme-hover)]"
                         onClick={() => onPlay(playlist.id, false)}
                       >
                         <Play small color="var(--theme-icon)" />
                       </button>
                       <div style={{ display: "flex", gap: 4 }}>
                         <button
-                          className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-surface backdrop-blur-[4px] hover:bg-hover"
+                          className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-[var(--theme-surface)] backdrop-blur-[4px] hover:bg-[var(--theme-hover)]"
                           onClick={() => setEditPlaylist(playlist)}
                         >
                           <Edit2 size={15} color="var(--theme-icon)" />
                         </button>
                         <button
-                          className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-surface backdrop-blur-[4px] hover:bg-hover"
+                          className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-[var(--theme-surface)] backdrop-blur-[4px] hover:bg-[var(--theme-hover)]"
                           onClick={() => setDeleteConfirmId(playlist.id)}
                         >
                           <Trash2 size={15} color="#e00" />
@@ -116,9 +116,9 @@ const Playlists: FC<PlaylistsProps> = ({
                       </div>
                     </div>
                     <Link className="no-underline" to={`/playlists/${playlist.id}`}>
-                      <div className="text-sm font-[RockfordSansMedium] mt-2 whitespace-nowrap overflow-hidden text-ellipsis text-text">{playlist.name}</div>
+                      <div className="text-sm font-[RockfordSansMedium] mt-2 whitespace-nowrap overflow-hidden text-ellipsis text-[var(--theme-text)]">{playlist.name}</div>
                     </Link>
-                    <div className="text-xs text-secondary-text mt-[2px]">{playlist.trackCount} tracks</div>
+                    <div className="text-xs text-[var(--theme-secondary-text)] mt-[2px]">{playlist.trackCount} tracks</div>
                   </div>
                 ))}
               </div>
@@ -127,7 +127,7 @@ const Playlists: FC<PlaylistsProps> = ({
 
           {!loading && smartPlaylists.length > 0 && (
             <>
-              <div className="text-base font-[RockfordSansMedium] px-5 mb-4 mt-6 text-secondary-text">SMART PLAYLISTS</div>
+              <div className="text-base font-[RockfordSansMedium] px-5 mb-4 mt-6 text-[var(--theme-secondary-text)]">SMART PLAYLISTS</div>
               <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5 px-5 mb-10">
                 {smartPlaylists.map((playlist) => (
                   <div
@@ -135,23 +135,23 @@ const Playlists: FC<PlaylistsProps> = ({
                     key={playlist.id}
                   >
                     <Link className="no-underline" to={`/playlists/smart/${playlist.id}`}>
-                      <div className="w-full aspect-square rounded-[6px] bg-cover flex items-center justify-center overflow-hidden">
+                      <div className="w-full aspect-square rounded-[6px] bg-[var(--theme-cover)] flex items-center justify-center overflow-hidden">
                         <Music size={48} color="#6F00FF" />
                       </div>
                     </Link>
                     <div className="card-actions absolute bottom-12 left-2 right-2 flex flex-row items-center justify-between opacity-0 transition-opacity duration-150 pb-[6px]">
                       <button
-                        className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-surface backdrop-blur-[4px] hover:bg-hover"
+                        className="h-9 w-9 rounded-[18px] border-0 cursor-pointer flex items-center justify-center bg-[var(--theme-surface)] backdrop-blur-[4px] hover:bg-[var(--theme-hover)]"
                         onClick={() => onPlay(playlist.id, true)}
                       >
                         <Play small color="var(--theme-icon)" />
                       </button>
                     </div>
                     <Link className="no-underline" to={`/playlists/smart/${playlist.id}`}>
-                      <div className="text-sm font-[RockfordSansMedium] mt-2 whitespace-nowrap overflow-hidden text-ellipsis text-text">{playlist.name}</div>
+                      <div className="text-sm font-[RockfordSansMedium] mt-2 whitespace-nowrap overflow-hidden text-ellipsis text-[var(--theme-text)]">{playlist.name}</div>
                     </Link>
                     {playlist.description && (
-                      <div className="text-xs text-secondary-text mt-[2px]">{playlist.description}</div>
+                      <div className="text-xs text-[var(--theme-secondary-text)] mt-[2px]">{playlist.description}</div>
                     )}
                   </div>
                 ))}

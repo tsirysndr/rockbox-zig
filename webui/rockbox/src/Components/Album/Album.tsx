@@ -67,17 +67,17 @@ const Album: FC<AlbumProps> = (props) => {
         </Link>
       </div>
       <Link to={`/albums/${props.album.id}`} className="no-underline">
-        <div className="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text">
+        <div className="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]">
           {props.album.title}
         </div>
       </Link>
       <Link
         to={`/artists/${props.album.artistId}`}
-        className="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+        className="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
       >
         {props.album.artist}
       </Link>
-      <div className="text-secondary-text text-xs font-normal mb-14">
+      <div className="text-[var(--theme-secondary-text)] text-xs font-normal mb-14">
         {props.album.year}
       </div>
     </div>

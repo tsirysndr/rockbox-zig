@@ -9,7 +9,7 @@ exports[`ArtistDetails > should render 1`] = `
       class="flex flex-row w-full h-full"
     >
       <div
-        class="flex flex-col h-screen w-[222px] p-5 bg-surface"
+        class="flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
       >
         <div
           class="flex flex-row items-center justify-between"
@@ -49,7 +49,7 @@ exports[`ArtistDetails > should render 1`] = `
           </a>
         </div>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/"
         >
           <svg
@@ -73,7 +73,7 @@ exports[`ArtistDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/albums"
         >
           <svg
@@ -100,7 +100,7 @@ exports[`ArtistDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-hover text-text hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-[var(--theme-hover)] text-[var(--theme-text)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/artists"
         >
           <svg
@@ -121,7 +121,7 @@ exports[`ArtistDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/genres"
         >
           <svg
@@ -145,7 +145,7 @@ exports[`ArtistDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/tracks"
         >
           <svg
@@ -165,7 +165,7 @@ exports[`ArtistDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/likes"
         >
           <svg
@@ -204,7 +204,7 @@ exports[`ArtistDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/files"
         >
           <svg
@@ -249,7 +249,7 @@ exports[`ArtistDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/playlists"
         >
           <svg
@@ -373,10 +373,10 @@ exports[`ArtistDetails > should render 1`] = `
             </div>
           </div>
           <div
-            class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-track-border ml-5"
+            class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-[var(--theme-current-track-border)] ml-5"
           >
             <div
-              class="w-[60px] h-[60px] bg-cover flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]"
+              class="w-[60px] h-[60px] bg-[var(--theme-cover)] flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]"
             >
               <svg
                 height="28"
@@ -470,7 +470,7 @@ exports[`ArtistDetails > should render 1`] = `
           class="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]"
         >
           <button
-            class="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[46px] absolute z-[1]"
+            class="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[46px] absolute z-[1]"
           >
             <div
               style="margin-top: 2px;"
@@ -501,7 +501,7 @@ exports[`ArtistDetails > should render 1`] = `
             class="flex flex-row items-end gap-6 mt-[30px] mb-8"
           >
             <div
-              class="w-[160px] h-[160px] rounded-full bg-cover flex items-center justify-center flex-shrink-0"
+              class="w-[160px] h-[160px] rounded-full bg-[var(--theme-cover)] flex items-center justify-center flex-shrink-0"
             >
               <svg
                 height="64"
@@ -667,7 +667,7 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-text"
+                    class="text-[var(--theme-text)]"
                     style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                   >
                     Get Lucky
@@ -677,11 +677,11 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-text"
+                    class="text-[var(--theme-text)]"
                     style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                   >
                     <a
-                      class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                      class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                       href="/artists/1"
                     >
                       Daft Punk
@@ -692,11 +692,11 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-text"
+                    class="text-[var(--theme-text)]"
                     style="width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                   >
                     <a
-                      class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                      class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                       href="/albums/1"
                     >
                       Random Access Memories
@@ -719,7 +719,7 @@ exports[`ArtistDetails > should render 1`] = `
                       class="flex flex-row h-[45px]"
                     >
                       <button
-                        class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                        class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                       >
                         <div
                           aria-expanded="false"
@@ -870,7 +870,7 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-text"
+                    class="text-[var(--theme-text)]"
                     style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                   >
                     Instant Crush
@@ -880,11 +880,11 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-text"
+                    class="text-[var(--theme-text)]"
                     style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                   >
                     <a
-                      class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                      class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                       href="/artists/1"
                     >
                       Daft Punk
@@ -895,11 +895,11 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-text"
+                    class="text-[var(--theme-text)]"
                     style="width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                   >
                     <a
-                      class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                      class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                       href="/albums/2"
                     >
                       Random Access Memories
@@ -922,7 +922,7 @@ exports[`ArtistDetails > should render 1`] = `
                       class="flex flex-row h-[45px]"
                     >
                       <button
-                        class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                        class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                       >
                         <div
                           aria-expanded="false"
@@ -1073,7 +1073,7 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-text"
+                    class="text-[var(--theme-text)]"
                     style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                   >
                     Arround the World
@@ -1083,11 +1083,11 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-text"
+                    class="text-[var(--theme-text)]"
                     style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                   >
                     <a
-                      class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                      class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                       href="/artists/1"
                     >
                       Daft Punk
@@ -1098,11 +1098,11 @@ exports[`ArtistDetails > should render 1`] = `
                   style="width: 150px; overflow: hidden;"
                 >
                   <div
-                    class="text-text"
+                    class="text-[var(--theme-text)]"
                     style="width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                   >
                     <a
-                      class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                      class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                       href="/albums/3"
                     >
                       Homework
@@ -1125,7 +1125,7 @@ exports[`ArtistDetails > should render 1`] = `
                       class="flex flex-row h-[45px]"
                     >
                       <button
-                        class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                        class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                       >
                         <div
                           aria-expanded="false"
@@ -1284,7 +1284,7 @@ exports[`ArtistDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -1370,19 +1370,19 @@ exports[`ArtistDetails > should render 1`] = `
                       href="/albums/1"
                     >
                       <div
-                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                       >
                         Random Access Memories
                       </div>
                     </a>
                     <a
-                      class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                      class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                       href="/artists/undefined"
                     >
                       Daft Punk
                     </a>
                     <div
-                      class="text-secondary-text text-xs font-normal mb-14"
+                      class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                     >
                       2013
                     </div>
@@ -1420,7 +1420,7 @@ exports[`ArtistDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -1506,19 +1506,19 @@ exports[`ArtistDetails > should render 1`] = `
                       href="/albums/2"
                     >
                       <div
-                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                       >
                         Tron: Legacy
                       </div>
                     </a>
                     <a
-                      class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                      class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                       href="/artists/undefined"
                     >
                       Daft Punk
                     </a>
                     <div
-                      class="text-secondary-text text-xs font-normal mb-14"
+                      class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                     >
                       2010
                     </div>
@@ -1556,7 +1556,7 @@ exports[`ArtistDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -1642,19 +1642,19 @@ exports[`ArtistDetails > should render 1`] = `
                       href="/albums/3"
                     >
                       <div
-                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                       >
                         Homework
                       </div>
                     </a>
                     <a
-                      class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                      class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                       href="/artists/undefined"
                     >
                       Daft Punk
                     </a>
                     <div
-                      class="text-secondary-text text-xs font-normal mb-14"
+                      class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                     >
                       2001
                     </div>

@@ -1,30 +1,12 @@
 @import "tailwindcss";
 
-@theme {
+@theme inline {
   --font-family-sans: RockfordSansRegular, -apple-system, BlinkMacSystemFont, "Segoe UI",
     "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
     "Helvetica Neue", sans-serif;
   --font-family-medium: RockfordSansMedium;
   --font-family-bold: RockfordSansBold;
   --font-family-light: RockfordSansLight;
-
-  --color-primary:              #6F00FF;
-  --color-primary-hover:        #6F00FFbe;
-  --color-text:                 var(--theme-text);
-  --color-background:           var(--theme-background);
-  --color-surface:              var(--theme-surface);
-  --color-icon:                 var(--theme-icon);
-  --color-secondary-text:       var(--theme-secondary-text);
-  --color-back-button:          var(--theme-back-button);
-  --color-hover:                var(--theme-hover);
-  --color-cover:                var(--theme-cover);
-  --color-popover:              var(--theme-popover-background);
-  --color-separator:            var(--theme-separator);
-  --color-tooltip:              var(--theme-tooltip);
-  --color-search-bg:            var(--theme-search-background);
-  --color-search-bg-alt:        var(--theme-search-background-alt);
-  --color-secondary-bg:         var(--theme-secondary-background);
-  --color-track-border:         var(--theme-current-track-border);
 }
 
 @layer base {
@@ -70,6 +52,11 @@
     --text-color:                    #e8e8e8;
     --secondary-text:                #7878a0;
     --separator-color:               rgba(255, 255, 255, 0.08);
+  }
+
+  body {
+    background-color: var(--theme-background);
+    color: var(--theme-text);
   }
 }
 

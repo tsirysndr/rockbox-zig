@@ -20,7 +20,7 @@ export type SidebarProps = {
 
 const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
   return (
-    <div className={`flex flex-col h-screen w-[222px] p-5 ${cover ? 'bg-background' : 'bg-surface'}`}>
+    <div className={`flex flex-col h-screen w-[222px] p-5 ${cover ? 'bg-[var(--theme-background)]' : 'bg-[var(--theme-surface)]'}`}>
       <div className="flex flex-row items-center justify-between">
         <a href="/" style={{ textDecoration: "none" }}>
           <img
@@ -40,7 +40,7 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
           </button>
         </Link>
       </div>
-      <Link to="/" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "home" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
+      <Link to="/" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "home" ? 'bg-[var(--theme-hover)] text-[var(--theme-text)]' : 'text-[var(--theme-icon)]'} hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]`}>
         <HomeIcon
           size={20}
           style={{ marginRight: 6 }}
@@ -48,7 +48,7 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
         />
         <div>Home</div>
       </Link>
-      <Link to="/albums" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "albums" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
+      <Link to="/albums" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "albums" ? 'bg-[var(--theme-hover)] text-[var(--theme-text)]' : 'text-[var(--theme-icon)]'} hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]`}>
         <Disc
           size={20}
           style={{ marginRight: 6 }}
@@ -56,7 +56,7 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
         />
         <div>Albums</div>
       </Link>
-      <Link to="/artists" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "artists" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
+      <Link to="/artists" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "artists" ? 'bg-[var(--theme-hover)] text-[var(--theme-text)]' : 'text-[var(--theme-icon)]'} hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]`}>
         <Artist
           width={20}
           height={20}
@@ -64,7 +64,7 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
         />
         <div style={{ marginLeft: 6 }}>Artists</div>
       </Link>
-      <Link to="/genres" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "genres" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
+      <Link to="/genres" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "genres" ? 'bg-[var(--theme-hover)] text-[var(--theme-text)]' : 'text-[var(--theme-icon)]'} hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]`}>
         <Category
           size={20}
           style={{ marginRight: 6 }}
@@ -72,11 +72,11 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
         />
         <div>Genres</div>
       </Link>
-      <Link to="/tracks" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "songs" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
+      <Link to="/tracks" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "songs" ? 'bg-[var(--theme-hover)] text-[var(--theme-text)]' : 'text-[var(--theme-icon)]'} hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]`}>
         <Track height={20} color={active === "songs" ? "var(--theme-text)" : "var(--theme-icon)"} />
         <div style={{ marginLeft: 6 }}>Songs</div>
       </Link>
-      <Link to="/likes" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "likes" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
+      <Link to="/likes" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "likes" ? 'bg-[var(--theme-hover)] text-[var(--theme-text)]' : 'text-[var(--theme-icon)]'} hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]`}>
         <HeartOutline
           height={20}
           width={20}
@@ -84,7 +84,7 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
         />
         <div style={{ marginLeft: 6 }}>Likes</div>
       </Link>
-      <Link to="/files" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "files" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
+      <Link to="/files" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "files" ? 'bg-[var(--theme-hover)] text-[var(--theme-text)]' : 'text-[var(--theme-icon)]'} hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]`}>
         <HardDrive
           size={19}
           style={{ marginRight: 6 }}
@@ -92,7 +92,7 @@ const Sidebar: FC<SidebarProps> = ({ active, cover }) => {
         />
         <div>Files</div>
       </Link>
-      <Link to="/playlists" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "playlists" ? 'bg-hover text-text' : 'text-icon'} hover:bg-hover hover:text-text`}>
+      <Link to="/playlists" className={`flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg ${active === "playlists" ? 'bg-[var(--theme-hover)] text-[var(--theme-text)]' : 'text-[var(--theme-icon)]'} hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]`}>
         <Music
           size={20}
           style={{ marginRight: 6 }}

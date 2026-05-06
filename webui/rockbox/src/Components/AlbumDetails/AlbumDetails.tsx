@@ -86,7 +86,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
             whiteSpace: "nowrap",
             cursor: "pointer",
           }}
-          className="text-text"
+          className="text-[var(--theme-text)]"
         >
           {info.getValue()}
         </div>
@@ -106,10 +106,10 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
             whiteSpace: "nowrap",
             cursor: "pointer",
           }}
-          className="text-text"
+          className="text-[var(--theme-text)]"
         >
           <Link
-            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            className="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
             to={`/artists/${info.row.original.artistId}`}
           >
             {info.getValue()}
@@ -151,7 +151,7 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
         <ControlBar />
         <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
           <button
-            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[46px] absolute z-[1]"
+            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[46px] absolute z-[1]"
             onClick={() => props.onGoBack()}
           >
             <div style={{ marginTop: 2 }}>
@@ -179,19 +179,19 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
                     height: "calc(240px - 12px)",
                   }}
                 >
-                  <div className="text-[32px] font-[RockfordSansBold] text-text">
+                  <div className="text-[32px] font-[RockfordSansBold] text-[var(--theme-text)]">
                     {props.album?.title}
                   </div>
                   <Link
-                    className="text-text no-underline font-[RockfordSansMedium] text-sm mt-2 hover:underline"
+                    className="text-[var(--theme-text)] no-underline font-[RockfordSansMedium] text-sm mt-2 hover:underline"
                     to={`/artists/${props.album?.artistId}`}
                   >
                     {props.album?.artist}
                   </Link>
-                  <div className="mt-[25px] font-normal text-sm text-secondary-text">
+                  <div className="mt-[25px] font-normal text-sm text-[var(--theme-secondary-text)]">
                     {props.tracks.length || props.volumes.flat().length} TRACKS
                   </div>
-                  <div className="mt-[15px] font-normal text-sm mb-[10px] text-secondary-text">
+                  <div className="mt-[15px] font-normal text-sm mb-[10px] text-[var(--theme-secondary-text)]">
                     {props.album?.year}
                   </div>
                 </div>
@@ -232,12 +232,12 @@ const AlbumDetails: FC<AlbumDetailsProps> = (props) => {
             {(props.album?.yearString || props.album?.copyrightMessage) && (
               <div className="flex flex-col gap-1 py-6 pb-8">
                 {props.album?.yearString && (
-                  <div className="text-xs text-secondary-text">
+                  <div className="text-xs text-[var(--theme-secondary-text)]">
                     {formatReleaseDate(props.album.yearString)}
                   </div>
                 )}
                 {props.album?.copyrightMessage && (
-                  <div className="text-xs text-secondary-text">
+                  <div className="text-xs text-[var(--theme-secondary-text)]">
                     {props.album.copyrightMessage}
                   </div>
                 )}

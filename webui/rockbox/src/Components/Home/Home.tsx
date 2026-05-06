@@ -69,9 +69,9 @@ const Home: FC<HomeProps> = ({
                 <Link
                   key={p.id}
                   to={p.isSmart ? `/playlists/smart/${p.id}` : `/playlists/${p.id}`}
-                  className="flex flex-row items-center gap-3 px-3 py-2 bg-cover rounded-[4px] no-underline text-inherit cursor-pointer hover:brightness-[1.15]"
+                  className="flex flex-row items-center gap-3 px-3 py-2 bg-[var(--theme-cover)] rounded-[4px] no-underline text-inherit cursor-pointer hover:brightness-[1.15]"
                 >
-                  <div className="w-12 h-12 rounded-[3px] bg-back-button flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-12 h-12 rounded-[3px] bg-[var(--theme-back-button)] flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {p.image ? (
                       <img
                         src={p.image}
@@ -108,14 +108,14 @@ const Home: FC<HomeProps> = ({
                         className="w-40 h-40 rounded-[4px] object-cover"
                       />
                     ) : (
-                      <div className="w-40 h-40 rounded-[4px] bg-cover flex items-center justify-center">
+                      <div className="w-40 h-40 rounded-[4px] bg-[var(--theme-cover)] flex items-center justify-center">
                         <TrackIcon width={36} height={36} color="#a4a3a3" />
                       </div>
                     )}
                     <div className="mt-2 text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
                       {a.title}
                     </div>
-                    <div className="mt-[2px] text-xs text-secondary-text overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
+                    <div className="mt-[2px] text-xs text-[var(--theme-secondary-text)] overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
                       {a.artist}
                     </div>
                   </Link>
@@ -142,7 +142,7 @@ const Home: FC<HomeProps> = ({
                         className="w-40 h-40 rounded-[4px] object-cover"
                       />
                     ) : (
-                      <div className="w-40 h-40 rounded-[4px] bg-cover flex items-center justify-center">
+                      <div className="w-40 h-40 rounded-[4px] bg-[var(--theme-cover)] flex items-center justify-center">
                         <TrackIcon width={36} height={36} color="#a4a3a3" />
                       </div>
                     )}
@@ -150,7 +150,7 @@ const Home: FC<HomeProps> = ({
                       {p.name}
                     </div>
                     {p.description ? (
-                      <div className="mt-[2px] text-xs text-secondary-text overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
+                      <div className="mt-[2px] text-xs text-[var(--theme-secondary-text)] overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
                         {p.description}
                       </div>
                     ) : null}
@@ -178,14 +178,14 @@ const Home: FC<HomeProps> = ({
                         className="w-[130px] h-[130px] rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-[130px] h-[130px] rounded-full bg-cover flex items-center justify-center">
+                      <div className="w-[130px] h-[130px] rounded-full bg-[var(--theme-cover)] flex items-center justify-center">
                         <ArtistIcon width={48} height={48} color="#bbb" />
                       </div>
                     )}
                     <div className="mt-2 text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
                       {a.name}
                     </div>
-                    <div className="mt-[2px] text-xs text-secondary-text overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
+                    <div className="mt-[2px] text-xs text-[var(--theme-secondary-text)] overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
                       Artist
                     </div>
                   </Link>
@@ -212,14 +212,14 @@ const Home: FC<HomeProps> = ({
                         className="w-40 h-40 rounded-[4px] object-cover"
                       />
                     ) : (
-                      <div className="w-40 h-40 rounded-[4px] bg-cover flex items-center justify-center">
+                      <div className="w-40 h-40 rounded-[4px] bg-[var(--theme-cover)] flex items-center justify-center">
                         <TrackIcon width={36} height={36} color="#a4a3a3" />
                       </div>
                     )}
                     <div className="mt-2 text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
                       {a.title}
                     </div>
-                    <div className="mt-[2px] text-xs text-secondary-text overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
+                    <div className="mt-[2px] text-xs text-[var(--theme-secondary-text)] overflow-hidden text-ellipsis whitespace-nowrap max-w-[160px]">
                       {a.artist}
                       {a.year ? ` • ${a.year}` : ""}
                     </div>
@@ -230,7 +230,7 @@ const Home: FC<HomeProps> = ({
           )}
 
           {isEmpty && (
-            <div className="p-[30px] text-secondary-text text-sm">
+            <div className="p-[30px] text-[var(--theme-secondary-text)] text-sm">
               Library is empty — wait for the daemon to finish scanning.
             </div>
           )}

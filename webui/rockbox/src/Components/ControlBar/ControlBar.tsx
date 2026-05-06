@@ -50,7 +50,7 @@ const ControlBar: FC<ControlBarProps> = (props) => {
         <div className="flex items-center justify-between flex-row w-[160px]">
           <button
             onClick={onShuffle}
-            className={`bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60${shuffle ? " bg-hover" : ""}`}
+            className={`bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60${shuffle ? " bg-[var(--theme-hover)]" : ""}`}
           >
             <Shuffle color="var(--theme-icon)" />
           </button>
@@ -84,7 +84,7 @@ const ControlBar: FC<ControlBarProps> = (props) => {
           </button>
           <button
             onClick={onRepeat}
-            className={`bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60${repeat ? " bg-hover" : ""}`}
+            className={`bg-transparent cursor-pointer border-0 flex items-center justify-center p-2 rounded-[6px] hover:opacity-60${repeat ? " bg-[var(--theme-hover)]" : ""}`}
           >
             <Repeat color="var(--theme-icon)" />
           </button>

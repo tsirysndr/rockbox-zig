@@ -6,7 +6,7 @@ exports[`Sidebar > should render 1`] = `
     class=""
   >
     <div
-      class="flex flex-col h-screen w-[222px] p-5 bg-surface"
+      class="flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
     >
       <div
         class="flex flex-row items-center justify-between"
@@ -46,7 +46,7 @@ exports[`Sidebar > should render 1`] = `
         </a>
       </div>
       <a
-        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
         href="/"
       >
         <svg
@@ -70,7 +70,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-hover text-text hover:bg-hover hover:text-text"
+        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-[var(--theme-hover)] text-[var(--theme-text)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
         href="/albums"
       >
         <svg
@@ -97,7 +97,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
         href="/artists"
       >
         <svg
@@ -118,7 +118,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
         href="/genres"
       >
         <svg
@@ -142,7 +142,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
         href="/tracks"
       >
         <svg
@@ -162,7 +162,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
         href="/likes"
       >
         <svg
@@ -201,7 +201,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
         href="/files"
       >
         <svg
@@ -246,7 +246,7 @@ exports[`Sidebar > should render 1`] = `
         </div>
       </a>
       <a
-        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+        class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
         href="/playlists"
       >
         <svg

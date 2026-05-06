@@ -34,7 +34,7 @@ exports[`Album > should render 1`] = `
             class="flex flex-row h-[45px]"
           >
             <button
-              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
             >
               <div
                 aria-expanded="false"
@@ -125,19 +125,19 @@ exports[`Album > should render 1`] = `
         href="/albums/1"
       >
         <div
-          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
         >
           The End, So Far
         </div>
       </a>
       <a
-        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
         href="/artists/1"
       >
         Slipknot
       </a>
       <div
-        class="text-secondary-text text-xs font-normal mb-14"
+        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
       >
         2022
       </div>

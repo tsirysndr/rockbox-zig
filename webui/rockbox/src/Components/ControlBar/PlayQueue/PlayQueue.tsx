@@ -99,7 +99,7 @@ const PlayQueue: FC<PlayQueueProps> = ({
           {rowVirtualizer.getVirtualItems().map((virtualItem) => (
             <div
               key={virtualItem.key}
-              className="flex flex-row h-16 items-center pl-4 cursor-pointer hover:bg-hover"
+              className="flex flex-row h-16 items-center pl-4 cursor-pointer hover:bg-[var(--theme-hover)]"
               style={{
                 position: "absolute",
                 top: 0,
@@ -127,7 +127,7 @@ const PlayQueue: FC<PlayQueueProps> = ({
               )}
               {!tracks[virtualItem.index].cover && (
                 <div className="album-cover-container">
-                  <div className="h-12 w-12 rounded-[4px] cursor-pointer bg-cover flex justify-center items-center">
+                  <div className="h-12 w-12 rounded-[4px] cursor-pointer bg-[var(--theme-cover)] flex justify-center items-center">
                     <TrackIcon width={28} height={28} color="#a4a3a3" />
                   </div>
                   <div
@@ -150,7 +150,7 @@ const PlayQueue: FC<PlayQueueProps> = ({
                   to={`/artists/${tracks[virtualItem.index].artistId}`}
                   style={{ textDecoration: "none" }}
                 >
-                  <div className="text-sm text-secondary-text text-ellipsis overflow-hidden whitespace-nowrap">
+                  <div className="text-sm text-[var(--theme-secondary-text)] text-ellipsis overflow-hidden whitespace-nowrap">
                     {tracks[virtualItem.index].artist}
                   </div>
                 </Link>

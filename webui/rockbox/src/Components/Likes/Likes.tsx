@@ -73,7 +73,7 @@ const Likes: FC<TracksProps> = (props) => {
           )}
           {!info.getValue() && (
             <div className="album-cover-container">
-              <div className="h-12 w-12 rounded-[4px] cursor-pointer bg-cover flex justify-center items-center">
+              <div className="h-12 w-12 rounded-[4px] cursor-pointer bg-[var(--theme-cover)] flex justify-center items-center">
                 <TrackIcon width={28} height={28} color="#a4a3a3" />
               </div>
               <div
@@ -122,7 +122,7 @@ const Likes: FC<TracksProps> = (props) => {
           }}
         >
           <RouterLink
-            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            className="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
             to={`/artists/${info.row.original.artistId}`}
           >
             {info.getValue()}
@@ -146,7 +146,7 @@ const Likes: FC<TracksProps> = (props) => {
           }}
         >
           <RouterLink
-            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            className="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
             to={`/albums/${info.row.original.albumId}`}
           >
             {info.getValue()}

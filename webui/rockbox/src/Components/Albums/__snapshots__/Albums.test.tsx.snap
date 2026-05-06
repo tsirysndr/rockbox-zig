@@ -9,7 +9,7 @@ exports[`Albums > should render 1`] = `
       class="flex flex-row w-full h-full"
     >
       <div
-        class="flex flex-col h-screen w-[222px] p-5 bg-surface"
+        class="flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
       >
         <div
           class="flex flex-row items-center justify-between"
@@ -49,7 +49,7 @@ exports[`Albums > should render 1`] = `
           </a>
         </div>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/"
         >
           <svg
@@ -73,7 +73,7 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-hover text-text hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-[var(--theme-hover)] text-[var(--theme-text)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/albums"
         >
           <svg
@@ -100,7 +100,7 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/artists"
         >
           <svg
@@ -121,7 +121,7 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/genres"
         >
           <svg
@@ -145,7 +145,7 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/tracks"
         >
           <svg
@@ -165,7 +165,7 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/likes"
         >
           <svg
@@ -204,7 +204,7 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/files"
         >
           <svg
@@ -249,7 +249,7 @@ exports[`Albums > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/playlists"
         >
           <svg
@@ -274,7 +274,7 @@ exports[`Albums > should render 1`] = `
         </a>
       </div>
       <div
-        class="flex flex-1 flex-col relative w-[calc(100%-240px)] bg-background bg-center bg-no-repeat bg-cover"
+        class="flex flex-1 flex-col relative w-[calc(100%-240px)] bg-[var(--theme-background)] bg-center bg-no-repeat bg-cover"
       >
         <div
           class="h-screen"
@@ -376,10 +376,10 @@ exports[`Albums > should render 1`] = `
               </div>
             </div>
             <div
-              class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-track-border ml-5"
+              class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-[var(--theme-current-track-border)] ml-5"
             >
               <div
-                class="w-[60px] h-[60px] bg-cover flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]"
+                class="w-[60px] h-[60px] bg-[var(--theme-cover)] flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]"
               >
                 <svg
                   height="28"
@@ -561,7 +561,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -652,19 +652,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/1"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           The End, So Far
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/1"
                       >
                         Slipknot
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2022
                       </div>
@@ -702,7 +702,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -793,19 +793,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/2"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           One Cold Night (Live)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/2"
                       >
                         Seether
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2006
                       </div>
@@ -843,7 +843,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -934,19 +934,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/3"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           4Eva N A Day
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/3"
                       >
                         Big K.R.I.T.
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2012
                       </div>
@@ -984,7 +984,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -1075,19 +1075,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/4"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Pluto x Baby Pluto (Deluxe)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/4"
                       >
                         Future, Lil Uzi Vert
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2020
                       </div>
@@ -1125,7 +1125,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -1216,19 +1216,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/5"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           The Acoustic Sessions, Vol. 2
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/5"
                       >
                         Smile Empty Soul
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2020
                       </div>
@@ -1266,7 +1266,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -1357,19 +1357,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/6"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Black Summer
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/6"
                       >
                         Red Hot Chilli Peppers
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2022
                       </div>
@@ -1407,7 +1407,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -1498,19 +1498,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/7"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Californication (Deluxe Edition)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/7"
                       >
                         Red Hot Chilli Peppers
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         1999
                       </div>
@@ -1548,7 +1548,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -1639,19 +1639,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/8"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Ghetto Lenny's Love Songs
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/8"
                       >
                         SAINt JHN
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2019
                       </div>
@@ -1689,7 +1689,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -1780,19 +1780,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/9"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Memphis Zoo
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/9"
                       >
                         Juicy J, Xavier Wulf
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2024
                       </div>
@@ -1830,7 +1830,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -1921,19 +1921,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/10"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Mental Trillness 2
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/10"
                       >
                         Juicy J
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2024
                       </div>
@@ -1971,7 +1971,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -2062,19 +2062,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/11"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Live From The Underground
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/11"
                       >
                         Big K.R.I.T.
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2012
                       </div>
@@ -2112,7 +2112,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -2203,19 +2203,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/12"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           One Foot Out The Door
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/12"
                       >
                         Mike Posner
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2009
                       </div>
@@ -2253,7 +2253,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -2344,19 +2344,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/13"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Rockstar Mentality
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/13"
                       >
                         Shop Boyz
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2007
                       </div>
@@ -2394,7 +2394,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -2485,19 +2485,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/14"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           The L.I.B.R.A.
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/14"
                       >
                         T.I.
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2020
                       </div>
@@ -2535,7 +2535,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -2626,19 +2626,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/15"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Young and Turnt
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/15"
                       >
                         42 Dugg
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2019
                       </div>
@@ -2676,7 +2676,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -2767,19 +2767,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/16"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           4eva Us Neva Them
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/16"
                       >
                         42 Dugg
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2024
                       </div>
@@ -2817,7 +2817,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -2908,19 +2908,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/17"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Post Traumatic
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/undefined"
                       >
                         Tee Grizzley
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2024
                       </div>
@@ -2958,7 +2958,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -3049,19 +3049,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/17"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           King
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/17"
                       >
                         T.I.
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2006
                       </div>
@@ -3099,7 +3099,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -3190,19 +3190,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/18"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Meteora 20th Anniversary Edition
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/18"
                       >
                         Linkin Park
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2023
                       </div>
@@ -3240,7 +3240,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -3331,19 +3331,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/19"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           The Surface Seems So Far
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/19"
                       >
                         Seether
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2024
                       </div>
@@ -3381,7 +3381,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -3472,19 +3472,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/20"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Karma and Effect
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/20"
                       >
                         Seether
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2005
                       </div>
@@ -3522,7 +3522,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -3613,19 +3613,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/21"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Disclaimer
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/21"
                       >
                         Seether
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2002
                       </div>
@@ -3663,7 +3663,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -3754,19 +3754,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/22"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Disclaimer II
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/22"
                       >
                         Seether
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2002
                       </div>
@@ -3804,7 +3804,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -3895,19 +3895,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/23"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Fallen (Deluxe Edition / Remastered 2023)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/23"
                       >
                         Evanesence
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2003
                       </div>
@@ -3945,7 +3945,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -4036,19 +4036,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/24"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Finding Beauty In Negative Spaces (Bonus Track Version)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/24"
                       >
                         Seether
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2007
                       </div>
@@ -4086,7 +4086,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -4177,19 +4177,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/25"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Meteora (Bonus Edition)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/25"
                       >
                         Linkin Park
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2003
                       </div>
@@ -4227,7 +4227,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -4318,19 +4318,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/26"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Hybrid Theory (Deluxe Edition)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/26"
                       >
                         Linkin Park
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2003
                       </div>
@@ -4368,7 +4368,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -4459,19 +4459,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/26"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           T.I. vs T.I.P.
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/26"
                       >
                         T.I.
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2007
                       </div>
@@ -4509,7 +4509,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -4600,19 +4600,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/27"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Paper Trail
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/27"
                       >
                         T.I.
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2008
                       </div>
@@ -4650,7 +4650,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -4741,19 +4741,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/28"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           No Mercy
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/28"
                       >
                         T.I.
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2010
                       </div>
@@ -4791,7 +4791,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -4882,19 +4882,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/29"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Paperwork (Explicit)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/29"
                       >
                         T.I.
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2014
                       </div>
@@ -4932,7 +4932,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -5023,19 +5023,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/30"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Paperwork (Deluxe Explicit)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/30"
                       >
                         T.I.
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2014
                       </div>
@@ -5073,7 +5073,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -5164,19 +5164,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/31"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           The Bluez Brothaz
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/31"
                       >
                         Bluez Brothaz, T-Pain, Young Cash
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2024
                       </div>
@@ -5214,7 +5214,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -5305,19 +5305,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/32"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Pimpalation (Limited Edition)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/32"
                       >
                         Pimp C
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2006
                       </div>
@@ -5355,7 +5355,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -5446,19 +5446,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/33"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Long Live The Pimp
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/33"
                       >
                         Pimp C
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2015
                       </div>
@@ -5496,7 +5496,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -5587,19 +5587,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/34"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           The Naked Soul of Sweet Jones
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/34"
                       >
                         Pimp C
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2010
                       </div>
@@ -5637,7 +5637,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -5728,19 +5728,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/35"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Epiphany (Expanded Edition)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/35"
                       >
                         T-Pain
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2007
                       </div>
@@ -5778,7 +5778,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -5869,19 +5869,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/36"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Mental Trillness
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/36"
                       >
                         Juicy J
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2023
                       </div>
@@ -5919,7 +5919,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -6010,19 +6010,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/37"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Class In Session: The Boyfriend/Girlfriend EP
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/37"
                       >
                         C-Side
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2008
                       </div>
@@ -6060,7 +6060,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -6151,19 +6151,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/38"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           TURQUOiSE TORNADO
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/38"
                       >
                         Riff Raff, Yelawolf
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2021
                       </div>
@@ -6201,7 +6201,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -6292,19 +6292,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/39"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Stay Trippy (Deluxe)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/39"
                       >
                         Juicy J
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2013
                       </div>
@@ -6342,7 +6342,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -6433,19 +6433,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/39"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Rich Slave
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/39"
                       >
                         Young Dolph
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2020
                       </div>
@@ -6483,7 +6483,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -6574,19 +6574,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/40"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           THE HUSTLE CONTINUES
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/40"
                       >
                         Juicy J
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2020
                       </div>
@@ -6624,7 +6624,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -6715,19 +6715,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/41"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Three Ringz (Thr33 Ringz) (Expanded Edition)
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/41"
                       >
                         T-Pain
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2008
                       </div>
@@ -6765,7 +6765,7 @@ exports[`Albums > should render 1`] = `
                             class="flex flex-row h-[45px]"
                           >
                             <button
-                              class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                              class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                             >
                               <div
                                 aria-expanded="false"
@@ -6856,19 +6856,19 @@ exports[`Albums > should render 1`] = `
                         href="/albums/42"
                       >
                         <div
-                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-text"
+                          class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer text-[var(--theme-text)]"
                         >
                           Slumafia
                         </div>
                       </a>
                       <a
-                        class="text-secondary-text text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
+                        class="text-[var(--theme-secondary-text)] text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer no-underline"
                         href="/artists/42"
                       >
                         Yelawolf, DJ Paul
                       </a>
                       <div
-                        class="text-secondary-text text-xs font-normal mb-14"
+                        class="text-[var(--theme-secondary-text)] text-xs font-normal mb-14"
                       >
                         2021
                       </div>

@@ -94,7 +94,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
           }}
         >
           <RouterLink
-            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            className="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
             to={`/artists/${info.row.original.artistId}`}
           >
             {info.getValue()}
@@ -150,7 +150,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
         <ControlBar />
         <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
           <button
-            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[46px] absolute z-[1]"
+            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[46px] absolute z-[1]"
             onClick={onGoBack}
           >
             <div style={{ marginTop: 2 }}>
@@ -166,7 +166,7 @@ const PlaylistDetails: FC<PlaylistDetailsProps> = ({
           {!loading && <div style={{ marginBottom: 100 }}>
             <div className="flex flex-row items-center mb-5 mt-[90px]">
               <div
-                className="h-[240px] w-[240px] rounded-[6px] bg-cover flex items-center justify-center flex-shrink-0"
+                className="h-[240px] w-[240px] rounded-[6px] bg-[var(--theme-cover)] flex items-center justify-center flex-shrink-0"
                 style={playlist?.image ? { backgroundImage: `url(${playlist.image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
               >
                 {!playlist?.image && <Music size={64} color="#bbb" />}

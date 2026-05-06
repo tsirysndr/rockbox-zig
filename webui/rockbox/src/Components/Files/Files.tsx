@@ -94,7 +94,7 @@ const Files: FC<FilesProps> = (props) => {
         <>
           {info.row.original.isDirectory && props.onNavigateDirectory && (
             <Link
-              className="text-text ml-[10px] no-underline font-[RockfordSansRegular] w-[calc(100vw-500px)] max-w-[calc(100vw-500px)] text-ellipsis overflow-hidden whitespace-nowrap block hover:underline"
+              className="text-[var(--theme-text)] ml-[10px] no-underline font-[RockfordSansRegular] w-[calc(100vw-500px)] max-w-[calc(100vw-500px)] text-ellipsis overflow-hidden whitespace-nowrap block hover:underline"
               to="#"
               onClick={(e) => {
                 e.preventDefault();
@@ -106,7 +106,7 @@ const Files: FC<FilesProps> = (props) => {
           )}
           {info.row.original.isDirectory && !props.onNavigateDirectory && (
             <Link
-              className="text-text ml-[10px] no-underline font-[RockfordSansRegular] w-[calc(100vw-500px)] max-w-[calc(100vw-500px)] text-ellipsis overflow-hidden whitespace-nowrap block hover:underline"
+              className="text-[var(--theme-text)] ml-[10px] no-underline font-[RockfordSansRegular] w-[calc(100vw-500px)] max-w-[calc(100vw-500px)] text-ellipsis overflow-hidden whitespace-nowrap block hover:underline"
               to={`/files?q=${info.row.original.path}`}
             >
               {info.getValue()}
@@ -114,7 +114,7 @@ const Files: FC<FilesProps> = (props) => {
           )}
           {!info.row.original.isDirectory && (
             <div
-              className="text-text ml-[10px] no-underline font-[RockfordSansRegular] w-[calc(100vw-500px)] max-w-[calc(100vw-500px)] text-ellipsis overflow-hidden whitespace-nowrap block cursor-pointer hover:underline"
+              className="text-[var(--theme-text)] ml-[10px] no-underline font-[RockfordSansRegular] w-[calc(100vw-500px)] max-w-[calc(100vw-500px)] text-ellipsis overflow-hidden whitespace-nowrap block cursor-pointer hover:underline"
               onClick={() => {
                 const parent = info.row.original.path.split("/").slice(0, -1);
                 props.onPlayTrack(parent.join("/") || "/", info.row.index);
@@ -160,7 +160,7 @@ const Files: FC<FilesProps> = (props) => {
         <div className="overflow-y-auto h-[calc(100vh-100px)] px-5">
           {props.canGoBack && (
             <button
-              className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] left-5 rounded-[15px] bg-back-button mt-[45px] mb-[46px] absolute z-[1]"
+              className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] left-5 rounded-[15px] bg-[var(--theme-back-button)] mt-[45px] mb-[46px] absolute z-[1]"
               onClick={() => props.onGoBack()}
             >
               <div style={{ marginTop: 2 }}>

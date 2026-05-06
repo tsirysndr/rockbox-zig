@@ -66,7 +66,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
           )}
           {!info.getValue() && (
             <div className="album-cover-container">
-              <div className="h-12 w-12 rounded-[4px] cursor-pointer bg-cover flex justify-center items-center">
+              <div className="h-12 w-12 rounded-[4px] cursor-pointer bg-[var(--theme-cover)] flex justify-center items-center">
                 <TrackIcon width={28} height={28} color="#a4a3a3" />
               </div>
               <div
@@ -94,7 +94,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             whiteSpace: "nowrap",
             cursor: "pointer",
           }}
-          className="text-text"
+          className="text-[var(--theme-text)]"
         >
           {info.getValue()}
         </div>
@@ -114,10 +114,10 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             whiteSpace: "nowrap",
             cursor: "pointer",
           }}
-          className="text-text"
+          className="text-[var(--theme-text)]"
         >
           <Link
-            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            className="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
             to={`/artists/${info.row.original.artistId}`}
           >
             {info.getValue()}
@@ -138,10 +138,10 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
             whiteSpace: "nowrap",
             cursor: "pointer",
           }}
-          className="text-text"
+          className="text-[var(--theme-text)]"
         >
           <Link
-            className="text-text no-underline font-[RockfordSansRegular] hover:underline"
+            className="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
             to={`/albums/${info.row.original.albumId}`}
           >
             {info.getValue()}
@@ -184,7 +184,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
         <ControlBar />
         <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
           <button
-            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[46px] absolute z-[1]"
+            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[46px] absolute z-[1]"
             onClick={() => props.onGoBack()}
           >
             <div style={{ marginTop: 2 }}>
@@ -220,7 +220,7 @@ const ArtistDetails: FC<ArtistDetailsProps> = (props) => {
                 alt={props.name}
               />
             ) : (
-              <div className="w-[160px] h-[160px] rounded-full bg-cover flex items-center justify-center flex-shrink-0">
+              <div className="w-[160px] h-[160px] rounded-full bg-[var(--theme-cover)] flex items-center justify-center flex-shrink-0">
                 <ArtistIcon width={64} height={64} color="#bbb" />
               </div>
             )}

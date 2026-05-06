@@ -61,9 +61,9 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
   };
 
   return (
-    <div className="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-track-border ml-5">
+    <div className="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-[var(--theme-current-track-border)] ml-5">
       {!nowPlaying?.cover && (
-        <div className="w-[60px] h-[60px] bg-cover flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]">
+        <div className="w-[60px] h-[60px] bg-[var(--theme-cover)] flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]">
           <Track color="#b1b2b5" height={28} width={28} />
         </div>
       )}
@@ -84,7 +84,7 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
           <>
             <div style={{ display: "flex", flexDirection: "row" }}>
               <div className="w-[60px] flex items-center justify-center mr-[5px] opacity-0 hover:opacity-100" />
-              <div className="text-center text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-20px)] mx-[10px] text-text">
+              <div className="text-center text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-20px)] mx-[10px] text-[var(--theme-text)]">
                 {_.get(nowPlaying, "title.length", 0) > 75
                   ? `${nowPlaying.title?.substring(0, 75)}...`
                   : nowPlaying.title}
@@ -110,10 +110,10 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
                 justifyContent: "space-between",
               }}
             >
-              <div className="text-[10px] text-secondary-text font-[RockfordSansRegular] text-center w-[60px]">
+              <div className="text-[10px] text-[var(--theme-secondary-text)] font-[RockfordSansRegular] text-center w-[60px]">
                 {formatTime(nowPlaying.progress)}
               </div>
-              <div className="text-center text-secondary-text font-[RockfordSansLight] text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-125px)]">
+              <div className="text-center text-[var(--theme-secondary-text)] font-[RockfordSansLight] text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-125px)]">
                 {_.get(nowPlaying, "artist.length", 0) > 40
                   ? `${nowPlaying.artist?.substring(0, 40)}...`
                   : nowPlaying.artist}
@@ -127,7 +127,7 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
                     : nowPlaying.album}
                 </Link>
               </div>
-              <div className="text-[10px] text-secondary-text font-[RockfordSansRegular] text-center w-[60px]">
+              <div className="text-[10px] text-[var(--theme-secondary-text)] font-[RockfordSansRegular] text-center w-[60px]">
                 {formatTime(nowPlaying.duration)}
               </div>
             </div>

@@ -105,7 +105,7 @@ exports[`ControlBar > should render 1`] = `
         </div>
       </div>
       <div
-        class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-track-border ml-5"
+        class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-[var(--theme-current-track-border)] ml-5"
       >
         <img
           alt="Album cover"
@@ -122,7 +122,7 @@ exports[`ControlBar > should render 1`] = `
               class="w-[60px] flex items-center justify-center mr-[5px] opacity-0 hover:opacity-100"
             />
             <div
-              class="text-center text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-20px)] mx-[10px] text-text"
+              class="text-center text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-20px)] mx-[10px] text-[var(--theme-text)]"
             >
               Disco on the Baltic Sea
             </div>
@@ -168,12 +168,12 @@ exports[`ControlBar > should render 1`] = `
             style="display: flex; flex-direction: row; align-items: center; justify-content: space-between;"
           >
             <div
-              class="text-[10px] text-secondary-text font-[RockfordSansRegular] text-center w-[60px]"
+              class="text-[10px] text-[var(--theme-secondary-text)] font-[RockfordSansRegular] text-center w-[60px]"
             >
               02:03
             </div>
             <div
-              class="text-center text-secondary-text font-[RockfordSansLight] text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-125px)]"
+              class="text-center text-[var(--theme-secondary-text)] font-[RockfordSansLight] text-ellipsis overflow-hidden whitespace-nowrap w-[calc(100%-125px)]"
             >
               Waveshaper
               <span
@@ -189,7 +189,7 @@ exports[`ControlBar > should render 1`] = `
               </a>
             </div>
             <div
-              class="text-[10px] text-secondary-text font-[RockfordSansRegular] text-center w-[60px]"
+              class="text-[10px] text-[var(--theme-secondary-text)] font-[RockfordSansRegular] text-center w-[60px]"
             >
               04:15
             </div>

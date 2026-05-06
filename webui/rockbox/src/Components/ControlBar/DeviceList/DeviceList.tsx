@@ -54,7 +54,7 @@ const Artwork: FC<ArtworkProps> = ({ icon, color }) => {
   const c = iconColors[icon ?? ""] ?? "var(--theme-text)";
   return (
     <div
-      className="h-10 w-10 rounded-full flex items-center justify-center bg-cover"
+      className="h-10 w-10 rounded-full flex items-center justify-center bg-[var(--theme-cover)]"
       style={color ? { backgroundColor: color } : undefined}
     >
       {icon === "builtin"     && <HardDrive size={18} color={c} />}

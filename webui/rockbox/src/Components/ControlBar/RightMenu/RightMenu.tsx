@@ -2,7 +2,6 @@ import { FC } from "react";
 import { List } from "@styled-icons/entypo";
 import { StatefulPopover } from "baseui/popover";
 import PlayQueue from "../PlayQueue";
-import _ from "lodash";
 import { Speaker } from "@styled-icons/bootstrap";
 import DeviceList from "../DeviceList";
 import BluetoothList from "../BluetoothList";

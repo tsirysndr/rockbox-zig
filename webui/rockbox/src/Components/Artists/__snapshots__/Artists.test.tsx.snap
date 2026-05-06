@@ -9,7 +9,7 @@ exports[`Artists > should render 1`] = `
       class="flex flex-row w-full h-full"
     >
       <div
-        class="flex flex-col h-screen w-[222px] p-5 bg-surface"
+        class="flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
       >
         <div
           class="flex flex-row items-center justify-between"
@@ -49,7 +49,7 @@ exports[`Artists > should render 1`] = `
           </a>
         </div>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/"
         >
           <svg
@@ -73,7 +73,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/albums"
         >
           <svg
@@ -100,7 +100,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-hover text-text hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-[var(--theme-hover)] text-[var(--theme-text)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/artists"
         >
           <svg
@@ -121,7 +121,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/genres"
         >
           <svg
@@ -145,7 +145,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/tracks"
         >
           <svg
@@ -165,7 +165,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/likes"
         >
           <svg
@@ -204,7 +204,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/files"
         >
           <svg
@@ -249,7 +249,7 @@ exports[`Artists > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/playlists"
         >
           <svg
@@ -274,7 +274,7 @@ exports[`Artists > should render 1`] = `
         </a>
       </div>
       <div
-        class="flex flex-1 flex-col relative w-[calc(100%-240px)] bg-background bg-center bg-no-repeat bg-cover"
+        class="flex flex-1 flex-col relative w-[calc(100%-240px)] bg-[var(--theme-background)] bg-center bg-no-repeat bg-cover"
       >
         <div
           class="h-screen"
@@ -376,10 +376,10 @@ exports[`Artists > should render 1`] = `
               </div>
             </div>
             <div
-              class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-track-border ml-5"
+              class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-[var(--theme-current-track-border)] ml-5"
             >
               <div
-                class="w-[60px] h-[60px] bg-cover flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]"
+                class="w-[60px] h-[60px] bg-[var(--theme-cover)] flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]"
               >
                 <svg
                   height="28"
@@ -541,7 +541,7 @@ exports[`Artists > should render 1`] = `
                         src="https://resources.tidal.com/images/9be9e74c/1b06/479a/a79e/5c62733d74ac/320x320.jpg"
                       />
                       <div
-                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-text"
+                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-[var(--theme-text)]"
                       >
                         Red Hot Chilli Peppers
                       </div>
@@ -559,7 +559,7 @@ exports[`Artists > should render 1`] = `
                         src="https://resources.tidal.com/images/f87d9afc/075e/43f4/bbbc/7770b46cb8aa/320x320.jpg"
                       />
                       <div
-                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-text"
+                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-[var(--theme-text)]"
                       >
                         Daft Punk
                       </div>
@@ -577,7 +577,7 @@ exports[`Artists > should render 1`] = `
                         src="https://resources.tidal.com/images/c3672adf/ca16/4db3/a375/64904d1f7d39/320x320.jpg"
                       />
                       <div
-                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-text"
+                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-[var(--theme-text)]"
                       >
                         Slipknot
                       </div>
@@ -595,7 +595,7 @@ exports[`Artists > should render 1`] = `
                         src="https://resources.tidal.com/images/2021e89d/f4bd/4d41/9af7/da47dc7564e8/320x320.jpg"
                       />
                       <div
-                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-text"
+                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-[var(--theme-text)]"
                       >
                         Big K.R.I.T.
                       </div>
@@ -609,7 +609,7 @@ exports[`Artists > should render 1`] = `
                       style="text-decoration: none;"
                     >
                       <div
-                        class="w-[194px] h-[194px] rounded-[97px] cursor-pointer flex justify-center items-center bg-cover"
+                        class="w-[194px] h-[194px] rounded-[97px] cursor-pointer flex justify-center items-center bg-[var(--theme-cover)]"
                       >
                         <svg
                           height="75"
@@ -624,7 +624,7 @@ exports[`Artists > should render 1`] = `
                         </svg>
                       </div>
                       <div
-                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-text"
+                        class="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-[var(--theme-text)]"
                       >
                         Oasis
                       </div>

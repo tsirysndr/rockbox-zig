@@ -33,7 +33,7 @@ const ContextMenu: FC<ContextMenuProps> = ({
   const [isNewPlaylistModalOpen, setIsNewPlaylistModalOpen] = useState(false);
   return (
     <div className="flex flex-row h-[45px]">
-      <button className="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text">
+      <button className="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]">
         <StatefulPopover
           placement="left"
           autoFocus={false}
@@ -48,12 +48,12 @@ const ContextMenu: FC<ContextMenuProps> = ({
                   <img src={album.cover} className="h-[43px] w-[43px]" />
                 )}
                 {!album.cover && (
-                  <div className="h-[43px] w-[43px] bg-cover flex justify-center items-center">
+                  <div className="h-[43px] w-[43px] bg-[var(--theme-cover)] flex justify-center items-center">
                     <TrackIcon width={24} height={24} color="#a4a3a3" />
                   </div>
                 )}
                 <div className="ml-[10px] overflow-hidden">
-                  <div className="text-sm text-ellipsis whitespace-nowrap overflow-hidden max-w-[125px] text-text">
+                  <div className="text-sm text-ellipsis whitespace-nowrap overflow-hidden max-w-[125px] text-[var(--theme-text)]">
                     {album.title}
                   </div>
                   <div className="text-[rgb(170,170,180)] text-xs text-ellipsis whitespace-nowrap overflow-hidden max-w-[125px]">

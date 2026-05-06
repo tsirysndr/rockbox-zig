@@ -9,7 +9,7 @@ exports[`AlbumDetails > should render 1`] = `
       class="flex flex-row w-full h-full"
     >
       <div
-        class="flex flex-col h-screen w-[222px] p-5 bg-surface"
+        class="flex flex-col h-screen w-[222px] p-5 bg-[var(--theme-surface)]"
       >
         <div
           class="flex flex-row items-center justify-between"
@@ -49,7 +49,7 @@ exports[`AlbumDetails > should render 1`] = `
           </a>
         </div>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/"
         >
           <svg
@@ -73,7 +73,7 @@ exports[`AlbumDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-hover text-text hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg bg-[var(--theme-hover)] text-[var(--theme-text)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/albums"
         >
           <svg
@@ -100,7 +100,7 @@ exports[`AlbumDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/artists"
         >
           <svg
@@ -121,7 +121,7 @@ exports[`AlbumDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/genres"
         >
           <svg
@@ -145,7 +145,7 @@ exports[`AlbumDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/tracks"
         >
           <svg
@@ -165,7 +165,7 @@ exports[`AlbumDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/likes"
         >
           <svg
@@ -204,7 +204,7 @@ exports[`AlbumDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/files"
         >
           <svg
@@ -249,7 +249,7 @@ exports[`AlbumDetails > should render 1`] = `
           </div>
         </a>
         <a
-          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-icon hover:bg-hover hover:text-text"
+          class="flex items-center justify-start flex-row p-[10px] cursor-pointer text-sm no-underline rounded-lg text-[var(--theme-icon)] hover:bg-[var(--theme-hover)] hover:text-[var(--theme-text)]"
           href="/playlists"
         >
           <svg
@@ -274,7 +274,7 @@ exports[`AlbumDetails > should render 1`] = `
         </a>
       </div>
       <div
-        class="flex flex-1 flex-col relative w-[calc(100%-240px)] bg-background bg-center bg-no-repeat bg-cover"
+        class="flex flex-1 flex-col relative w-[calc(100%-240px)] bg-[var(--theme-background)] bg-center bg-no-repeat bg-cover"
       >
         <div
           class="h-screen"
@@ -376,10 +376,10 @@ exports[`AlbumDetails > should render 1`] = `
               </div>
             </div>
             <div
-              class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-track-border ml-5"
+              class="flex flex-row min-w-[400px] flex-1 h-[60px] rounded-[4px] border border-[var(--theme-current-track-border)] ml-5"
             >
               <div
-                class="w-[60px] h-[60px] bg-cover flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]"
+                class="w-[60px] h-[60px] bg-[var(--theme-cover)] flex justify-center items-center rounded-tl-[4px] rounded-bl-[4px]"
               >
                 <svg
                   height="28"
@@ -473,7 +473,7 @@ exports[`AlbumDetails > should render 1`] = `
             class="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]"
           >
             <button
-              class="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[46px] absolute z-[1]"
+              class="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[46px] absolute z-[1]"
             >
               <div
                 style="margin-top: 2px;"
@@ -517,24 +517,24 @@ exports[`AlbumDetails > should render 1`] = `
                     style="display: flex; flex-direction: column; justify-content: center; height: calc(240px - 12px);"
                   >
                     <div
-                      class="text-[32px] font-[RockfordSansBold] text-text"
+                      class="text-[32px] font-[RockfordSansBold] text-[var(--theme-text)]"
                     >
                       One Cold Night (Live)
                     </div>
                     <a
-                      class="text-text no-underline font-[RockfordSansMedium] text-sm mt-2 hover:underline"
+                      class="text-[var(--theme-text)] no-underline font-[RockfordSansMedium] text-sm mt-2 hover:underline"
                       href="/artists/1"
                     >
                       Seether
                     </a>
                     <div
-                      class="mt-[25px] font-normal text-sm text-secondary-text"
+                      class="mt-[25px] font-normal text-sm text-[var(--theme-secondary-text)]"
                     >
                       13
                        TRACKS
                     </div>
                     <div
-                      class="mt-[15px] font-normal text-sm mb-[10px] text-secondary-text"
+                      class="mt-[15px] font-normal text-sm mb-[10px] text-[var(--theme-secondary-text)]"
                     >
                       2006
                     </div>
@@ -672,7 +672,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Gasoline (Live)
@@ -682,11 +682,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -709,7 +709,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -855,7 +855,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Driven Under (Live)
@@ -865,11 +865,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -892,7 +892,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -1038,7 +1038,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Diseased (Live)
@@ -1048,11 +1048,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -1075,7 +1075,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -1221,7 +1221,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Truth (Live)
@@ -1231,11 +1231,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -1258,7 +1258,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -1404,7 +1404,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Immortality (Live)
@@ -1414,11 +1414,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -1441,7 +1441,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -1587,7 +1587,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Tied My Hands (Live)
@@ -1597,11 +1597,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -1624,7 +1624,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -1770,7 +1770,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Sympathetic (Live)
@@ -1780,11 +1780,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -1807,7 +1807,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -1953,7 +1953,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Fine Again (Live)
@@ -1963,11 +1963,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -1990,7 +1990,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -2136,7 +2136,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Broken (Live)
@@ -2146,11 +2146,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -2173,7 +2173,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -2319,7 +2319,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         The Gift (Live)
@@ -2329,11 +2329,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -2356,7 +2356,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -2502,7 +2502,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Remedy (Live)
@@ -2512,11 +2512,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -2539,7 +2539,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -2685,7 +2685,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         Plastic Man (Live)
@@ -2695,11 +2695,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -2722,7 +2722,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -2868,7 +2868,7 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: 300px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer;"
                       >
                         The Gist (Alternate Mix)
@@ -2878,11 +2878,11 @@ exports[`AlbumDetails > should render 1`] = `
                       style="width: 150px; overflow: hidden;"
                     >
                       <div
-                        class="text-text"
+                        class="text-[var(--theme-text)]"
                         style="min-width: 150px; width: calc(100% - 20px); max-width: calc(100vw - 800px); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
                       >
                         <a
-                          class="text-text no-underline font-[RockfordSansRegular] hover:underline"
+                          class="text-[var(--theme-text)] no-underline font-[RockfordSansRegular] hover:underline"
                           href="/artists/undefined"
                         >
                           Seether
@@ -2905,7 +2905,7 @@ exports[`AlbumDetails > should render 1`] = `
                           class="flex flex-row h-[45px]"
                         >
                           <button
-                            class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+                            class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
                           >
                             <div
                               aria-expanded="false"
@@ -3021,7 +3021,7 @@ exports[`AlbumDetails > should render 1`] = `
                 class="flex flex-col gap-1 py-6 pb-8"
               >
                 <div
-                  class="text-xs text-secondary-text"
+                  class="text-xs text-[var(--theme-secondary-text)]"
                 >
                   2006
                 </div>

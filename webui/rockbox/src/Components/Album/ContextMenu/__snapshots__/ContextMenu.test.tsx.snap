@@ -9,7 +9,7 @@ exports[`ContextMenu > should render 1`] = `
       class="flex flex-row h-[45px]"
     >
       <button
-        class="text-icon bg-transparent border-0 cursor-pointer hover:text-text focus:text-text"
+        class="text-[var(--theme-icon)] bg-transparent border-0 cursor-pointer hover:text-[var(--theme-text)] focus:text-[var(--theme-text)]"
       >
         <div
           aria-expanded="false"

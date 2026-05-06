@@ -107,7 +107,7 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
         <ControlBar />
         <div className="pl-[30px] pr-[30px] overflow-y-auto h-[calc(100vh-60px)]">
           <button
-            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-back-button mt-[26px] mb-[18px] absolute z-[1]"
+            className="border-0 cursor-pointer flex items-center justify-center h-[30px] w-[30px] rounded-[15px] bg-[var(--theme-back-button)] mt-[26px] mb-[18px] absolute z-[1]"
             onClick={() => props.onGoBack()}
           >
             <ArrowBack color="var(--theme-icon)" />
@@ -218,7 +218,7 @@ const GenreDetails: FC<GenreDetailsProps> = (props) => {
                         className="w-[100px] h-[100px] rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-[100px] h-[100px] rounded-full bg-cover flex items-center justify-center">
+                      <div className="w-[100px] h-[100px] rounded-full bg-[var(--theme-cover)] flex items-center justify-center">
                         <ArtistIcon width={42} height={42} color="#bbb" />
                       </div>
                     )}

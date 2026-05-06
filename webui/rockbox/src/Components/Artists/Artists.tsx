@@ -69,13 +69,13 @@ const Artists: FC<ArtistsProps> = (props) => {
                         )}
                         {!item.cover && (
                           <div
-                            className="w-[194px] h-[194px] rounded-[97px] cursor-pointer flex justify-center items-center bg-cover"
+                            className="w-[194px] h-[194px] rounded-[97px] cursor-pointer flex justify-center items-center bg-[var(--theme-cover)]"
                             onClick={() => onClickArtist(item)}
                           >
                             <Artist width={75} height={75} color="#a4a3a3" />
                           </div>
                         )}
-                        <div className="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-text">
+                        <div className="text-sm text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer mt-5 mb-[18px] text-center w-[194px] text-[var(--theme-text)]">
                           {item.name}
                         </div>
                       </Link>
