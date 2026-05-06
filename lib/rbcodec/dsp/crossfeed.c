@@ -277,6 +277,10 @@ static void update_process_fn(struct dsp_proc_entry *this,
 
     unsigned int fout = dsp_get_output_frequency(dsp);
 
+    /* DSP not yet initialized; coefs will be recalculated at DSP_SET_OUT_FREQUENCY */
+    if (fout == 0)
+        return;
+
     if (crossfeed_type != CROSSFEED_TYPE_CUSTOM)
     {
         crossfeed_meier_update_filter(state, fout);

@@ -79,6 +79,10 @@ static bool resample_new_delta(struct resample_data *data,
                                struct sample_format *format,
                                unsigned int fout)
 {
+    /* DSP not yet initialized; delta will be recalculated at DSP_SET_OUT_FREQUENCY */
+    if (fout == 0)
+        return false;
+
     unsigned int frequency = format->frequency; /* virtual samplerate */
 
     data->frequency = frequency;

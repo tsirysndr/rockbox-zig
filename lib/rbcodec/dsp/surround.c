@@ -87,6 +87,10 @@ static void dsp_surround_flush(void)
 
 static void surround_update_filter(unsigned int fout)
 {
+    /* DSP not yet initialized; coefs will be recalculated at DSP_SET_OUT_FREQUENCY */
+    if (fout == 0)
+        return;
+
     tcoef1 = fp_div(cutoff_l, fout, 31);
     tcoef2 = fp_div(cutoff_h, fout, 31);
     bcoef  = fp_div(cutoff_l / 2, fout, 31);
