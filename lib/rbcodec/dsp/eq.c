@@ -68,6 +68,10 @@ static void eq_flush(void)
 
 static void update_band_filter(int band, unsigned int fout)
 {
+    /* DSP not yet initialized; coefs will be recalculated at DSP_SET_OUT_FREQUENCY */
+    if (fout == 0)
+        return;
+
     /* Convert user settings to format required by coef generator
        functions */
     typeof (filter_pk_coefs) *coef_gen = filter_pk_coefs;
