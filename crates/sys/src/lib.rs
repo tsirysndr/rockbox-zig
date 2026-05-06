@@ -1144,6 +1144,7 @@ extern "C" {
     fn pcm_play_stop();
     fn pcm_set_frequency(frequency: c_uint);
     fn pcm_is_playing() -> c_uchar;
+    fn pcm_is_initialized() -> bool;
     fn pcm_play_lock();
     fn pcm_play_unlock();
     fn pcm_switch_sink(sink: c_int) -> c_uchar;

@@ -68,6 +68,14 @@ pub extern "C" fn debugfn(args: *const c_char, value: c_int) {
 
 #[no_mangle]
 pub extern "C" fn start_server() {
+    // Wait for pcm_postinit() to complete in the audio thread so that
+    // dsp_get_output_frequency() returns a real sample rate before
+    // load_settings() calls apply_audio_settings()/eq_enable() and
+    // triggers DSP coefficient recalculation (divide-by-zero → SIGFPE).
+    while !rockbox_sys::sound::pcm::is_initialized() {
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+
     match rockbox_settings::load_settings(None) {
         Ok(_) => {}
         Err(e) => {

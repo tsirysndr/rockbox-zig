@@ -43,6 +43,10 @@ pub fn is_playing() -> bool {
     ret != 0
 }
 
+pub fn is_initialized() -> bool {
+    unsafe { crate::pcm_is_initialized() }
+}
+
 pub fn play_lock() {
     unsafe {
         crate::pcm_play_lock();
