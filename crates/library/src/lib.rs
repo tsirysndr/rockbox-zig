@@ -97,10 +97,12 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
         Err(_) => warn!("is_remote column already exists"),
     }
 
+    /*
     pool.execute(include_str!(
         "../migrations/20260501000000_fix_datetime_formats.sql"
     ))
     .await?;
+    */
 
     match pool
         .execute(include_str!(
