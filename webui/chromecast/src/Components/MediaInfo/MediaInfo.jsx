@@ -1,44 +1,18 @@
-import styled from "@emotion/styled";
-
-const Container = styled.div`
-  padding-left: 5vw;
-  padding-right: 5vw;
-  display: flex;
-`;
-
-const Cover = styled.img`
-  height: 30vh;
-  width: 30vh;
-`;
-
-const Artist = styled.div`
-  font-size: 18px;
-`;
-
-const Title = styled.div`
-  font-family: RockfordSansBold;
-  font-size: 2.5em;
-`;
-
-const Metadata = styled.div`
-  padding-left: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: end;
-  height: 30vh;
-`;
-
 const MediaInfo = ({ artist, title, images }) => {
   return (
-    <Container>
-      <Cover src={images.length ? images[0].url : ""} />
-      <Metadata>
+    <div className="px-[5vw] flex">
+      <img
+        src={images.length ? images[0].url : ""}
+        alt={title}
+        className="h-[30vh] w-[30vh]"
+      />
+      <div className="pl-10 flex flex-col justify-end h-[30vh]">
         <div>
-          <Title>{title}</Title>
-          <Artist>{artist}</Artist>
+          <div className="font-rockford-bold text-[2.5em]">{title}</div>
+          <div className="text-[18px]">{artist}</div>
         </div>
-      </Metadata>
-    </Container>
+      </div>
+    </div>
   );
 };
 

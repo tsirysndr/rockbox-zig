@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @font-face {
   font-family: 'RockfordSansLight';
@@ -16,16 +19,15 @@
 
 @font-face {
   font-family: 'RockfordSansBold';
-    font-weight: 900;
-    src: local('RockfordSans'), url(./Assets/fonts/RockfordSans-Bold.otf) format('opentype');
+  font-weight: 900;
+  src: local('RockfordSans'), url(./Assets/fonts/RockfordSans-Bold.otf) format('opentype');
 }
 
 @font-face {
   font-family: 'RockfordSansExtraBold';
-    font-weight: 900;
-    src: local('RockfordSans'), url(./Assets/fonts/RockfordSans-ExtraBold.otf) format('opentype');
+  font-weight: 900;
+  src: local('RockfordSans'), url(./Assets/fonts/RockfordSans-ExtraBold.otf) format('opentype');
 }
-
 
 body {
   margin: 0;
@@ -35,9 +37,4 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #fff;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
 }

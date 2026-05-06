@@ -1,41 +1,13 @@
-import styled from "@emotion/styled";
 import Rockbox from "../../Assets/rockbox-icon.png";
-
-const Container = styled.div`
-  height: 70px;
-  width: 100%;
-  padding-left: 5vw;
-  padding-right: 5vw;
-  display: flex;
-  align-items: center;
-  margin-top: 20px;
-`;
-
-const LogoText = styled.div`
-  font-family: RockfordSansBold;
-  margin-left: 10px;
-`;
-
-const Logo = styled.img`
-  height: 40px;
-  width: 40px;
-`;
-
-const Row = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  height: 70px;
-`;
 
 const Header = () => {
   return (
-    <Container>
-      <Row>
-        <Logo src={Rockbox} />
-        <LogoText>Rockbox</LogoText>
-      </Row>
-    </Container>
+    <div className="h-[70px] w-full px-[5vw] flex items-center mt-5">
+      <div className="flex flex-row items-center h-[70px]">
+        <img src={Rockbox} alt="Rockbox" className="h-10 w-10" />
+        <div className="font-rockford-bold ml-2.5">Rockbox</div>
+      </div>
+    </div>
   );
 };
 

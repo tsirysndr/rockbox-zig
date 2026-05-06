@@ -1,43 +1,12 @@
 import { useContext, useEffect, useState } from "react";
 import { CastContext } from "./CastProvider";
-import styled from "@emotion/styled";
 import Header from "./Components/Header";
 import MediaInfo from "./Components/MediaInfo";
 import Progress from "./Components/Progress";
 import Splash from "./Components/Splash";
 import { BehaviorSubject } from "rxjs";
-import { css } from "@emotion/react";
 
 const cast = window.cast;
-
-const Separator = styled.div`
-  height: calc(100vh - 70px - 54vh);
-  width: 100%;
-`;
-
-const Container = styled.div`
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  height: 100vh;
-  width: 100%;
-  ${(props) =>
-    props.cover &&
-    css`
-      background-image: url(${props.cover});
-    `}
-  ${(props) =>
-    !props.cover &&
-    css`
-      background-color: #080808;
-    `}
-`;
-
-const Blur = styled.div`
-  background: rgba(0, 0, 0, 0.7);
-  /*backdrop-filter: blur(5px);*/
-  height: 100vh;
-`;
 
 const CustomReceiver = () => {
   const [track, setTrack] = useState({
@@ -97,21 +66,26 @@ const CustomReceiver = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const coverUrl = track.images.length ? track.images[0].url : null;
+
   return (
     <>
       {isLoading && <Splash />}
       {!isLoading && (
-        <Container cover={track.images[0].url}>
-          <Blur>
+        <div
+          className="bg-center bg-no-repeat bg-cover h-screen w-full"
+          style={coverUrl ? { backgroundImage: `url(${coverUrl})` } : { backgroundColor: '#080808' }}
+        >
+          <div className="bg-black/70 h-screen">
             <Header />
-            <Separator />
+            <div className="w-full h-[calc(100vh-70px-54vh)]" />
             <MediaInfo {...track} />
             <Progress
               currentTime={currentTime * 1000}
               duration={duration * 1000}
             />
-          </Blur>
-        </Container>
+          </div>
+        </div>
       )}
     </>
   );
