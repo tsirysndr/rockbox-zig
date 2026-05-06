@@ -70,6 +70,17 @@ jobs:
           FLAGS="${{ matrix.rust_flags || '-A warnings' }}"
           echo "RUSTFLAGS=$FLAGS" >> $GITHUB_ENV
 
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Build Web UI
+        run: |
+          cd webui/rockbox
+          deno install
+          deno run build
+
       # ── Step 1-2: Headless firmware + rockbox-server ──────────────────────
       - name: Build headless firmware
         run: bash scripts/build-headless.sh
