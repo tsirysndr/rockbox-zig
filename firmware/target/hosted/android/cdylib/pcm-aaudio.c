@@ -60,6 +60,10 @@ static volatile bool   aa_running      = false;
 static volatile bool   aa_stop         = false;
 static volatile bool   aa_disconnected = false;
 
+/* 512 stereo S16LE frames of silence — written to the stream between tracks
+ * so AAudio never underruns during the inter-track gap. */
+static const int16_t s_silence[512 * 2] = {0};
+
 static void on_error(AAudioStream *s, void *ud, aaudio_result_t err)
 {
     (void)s; (void)ud;
@@ -145,8 +149,17 @@ static void *aa_thread(void *arg)
         pthread_mutex_unlock(&aa_mtx);
 
         if (size == 0) {
-            struct timespec t = { 0, 1000000 };  /* 1 ms */
-            nanosleep(&t, NULL);
+            /* No data yet (startup) or between tracks — write silence so the
+             * stream stays alive and doesn't underrun while the firmware is
+             * switching tracks. */
+            if (aa_stream)
+                AAudioStream_write(aa_stream, s_silence,
+                                   sizeof(s_silence) / BYTES_PER_FRAME,
+                                   200LL * 1000000LL);
+            else {
+                struct timespec t = { 0, 10000000 }; /* 10 ms */
+                nanosleep(&t, NULL);
+            }
             continue;
         }
 
@@ -183,8 +196,12 @@ static void *aa_thread(void *arg)
         pthread_mutex_unlock(&aa_mtx);
 
         if (!got_more) {
-            logf("pcm-aaudio: no more PCM data");
-            break;
+            /* End of track: don't stop — fall into the silence loop above so
+             * the AAudio stream keeps running until sink_dma_start() provides
+             * the next track's data.  This eliminates the pause/requestStart
+             * gap that causes audible cuts between tracks. */
+            logf("pcm-aaudio: no more PCM data, entering silence loop");
+            continue;
         }
         pcm_play_dma_status_callback(PCM_DMAST_STARTED);
     }
@@ -250,21 +267,22 @@ static void sink_dma_start(const void *addr, size_t size)
     pthread_mutex_unlock(&aa_mtx);
 
     if (!aa_running) {
+        /* First start or after a true shutdown — spawn the writer thread. */
         aa_stop    = false;
         aa_running = true;
         pthread_create(&aa_tid, NULL, aa_thread, NULL);
     }
+    /* If aa_running is already true the thread is in the silence loop and
+     * will pick up the new pcm_data on its next iteration — no new thread. */
 }
 
 static void sink_dma_stop(void)
 {
     logf("pcm-aaudio: stop");
-
-    aa_stop = true;
-    if (aa_running) {
-        pthread_join(aa_tid, NULL);
-        aa_running = false;
-    }
+    /* Keep the writer thread alive — it transitions to the silence loop and
+     * keeps the AAudio stream running until sink_dma_start() is called for
+     * the next track.  Only null out the pending data so the thread sees no
+     * new chunk to write. */
     pthread_mutex_lock(&aa_mtx);
     pcm_data = NULL;
     pcm_size = 0;

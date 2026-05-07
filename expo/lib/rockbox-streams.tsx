@@ -11,6 +11,7 @@ import { qk } from "@/lib/queries";
 import {
   RockboxClient,
   type DiscoveredService,
+  type PlaylistSnapshot,
   type StatusSnapshot,
   type TrackSnapshot,
 } from "@/lib/rockbox-client";
@@ -224,7 +225,35 @@ export function RockboxStreams() {
       }),
     );
 
+    // Startup restore: StreamPlaylist (SimpleBroker) only delivers *future*
+    // publishes, so if the firmware already loaded saved state before we
+    // subscribed, we'd never receive the initial queue.  Retry
+    // playlistResume + getPlaylistCurrent up to 10× (5 s) until the queue
+    // is non-empty — the C firmware takes variable time to load saved state
+    // after gRPC binds.
+    let cancelled = false;
+    (async () => {
+      for (let attempt = 0; attempt < 10; attempt++) {
+        if (cancelled) return;
+        if (attempt > 0) {
+          await new Promise((r) => setTimeout(r, 500));
+          if (cancelled) return;
+        }
+        try {
+          await RockboxClient.playlistResume();
+          const snapshot = (await RockboxClient.getPlaylistCurrent()) as PlaylistSnapshot;
+          if (snapshot?.tracks?.length) {
+            qc.setQueryData(qk.playlist(), snapshot);
+            return;
+          }
+        } catch {
+          // server not ready yet — retry
+        }
+      }
+    })();
+
     return () => {
+      cancelled = true;
       for (const u of unsubs) u();
       if (nowPlayingEnabled()) RockboxNowPlaying.clear();
     };

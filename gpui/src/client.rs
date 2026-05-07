@@ -256,7 +256,9 @@ pub async fn search(term: String) -> Result<SearchResults> {
     })
 }
 
-pub async fn fetch_queue(tx: Sender<StateUpdate>) {
+/// Fetch the current queue and send it as a `StateUpdate::Playlist`.
+/// Returns `true` if the queue was non-empty (firmware has restored saved state).
+pub async fn fetch_queue(tx: Sender<StateUpdate>) -> bool {
     match PlaylistServiceClient::connect(url()).await {
         Ok(mut c) => match c.get_current(GetCurrentRequest {}).await {
             Ok(resp) => {
@@ -287,11 +289,19 @@ pub async fn fetch_queue(tx: Sender<StateUpdate>) {
                         album_art: t.album_art.filter(|s| !s.is_empty()),
                     })
                     .collect();
+                let non_empty = !queue.is_empty();
                 let _ = tx.send(StateUpdate::Playlist { queue, current_idx }).await;
+                non_empty
             }
-            Err(e) => log::warn!("fetch_queue: {e}"),
+            Err(e) => {
+                log::warn!("fetch_queue: {e}");
+                false
+            }
         },
-        Err(e) => log::warn!("fetch_queue connect: {e}"),
+        Err(e) => {
+            log::warn!("fetch_queue connect: {e}");
+            false
+        }
     }
 }
 
@@ -624,12 +634,22 @@ async fn playlist_stream_inner(tx: &Sender<StateUpdate>) -> Result<()> {
     // events.  StreamPlaylist uses SimpleBroker which only delivers *future*
     // publishes — without this fetch the queue would stay empty if we connect
     // after the broker's initial publish.
-    {
+    //
+    // Retry loop: the gRPC port accepts connections before the C firmware
+    // finishes loading saved playlist state from disk, so the first
+    // playlist_resume / get_current can legitimately return empty.  Retry with
+    // 500 ms back-off for up to ~5 s; proceed with whatever we have after that.
+    for attempt in 0u32..10 {
+        if attempt > 0 {
+            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        }
         if let Ok(mut c) = PlaylistServiceClient::connect(url()).await {
             let _ = c.playlist_resume(PlaylistResumeRequest {}).await;
         }
+        if fetch_queue(tx.clone()).await || attempt == 9 {
+            break;
+        }
     }
-    fetch_queue(tx.clone()).await;
 
     let mut c = PlaybackServiceClient::connect(url()).await?;
     let resp = c.stream_playlist(StreamPlaylistRequest {}).await?;
