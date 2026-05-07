@@ -7,8 +7,7 @@ const CONNECT_TIMEOUT: Duration = Duration::from_millis(500);
 
 // C ABI from librockboxd.a (built by `cd zig && zig build lib`).
 extern "C" {
-    pub fn rb_daemon_start(music_dir_ptr: *const c_char, device_name_ptr: *const c_char)
-        -> c_int;
+    pub fn rb_daemon_start(music_dir_ptr: *const c_char, device_name_ptr: *const c_char) -> c_int;
     pub fn rb_daemon_stop() -> c_int;
     pub fn rb_daemon_port() -> c_int;
     pub fn rb_daemon_state() -> c_int;
@@ -31,11 +30,12 @@ pub fn is_running() -> bool {
 ///   -110  timeout — firmware did not bind within 30 s
 ///   -114  already starting / running
 pub fn ensure_running() -> i32 {
-    if is_running() {
-        return 6061;
-    }
-    let device_name = b"Rockbox Desktop\0".as_ptr() as *const c_char;
-    let port = unsafe { rb_daemon_start(std::ptr::null(), device_name) };
+    let port = if is_running() {
+        6061
+    } else {
+        let device_name = b"Rockbox Desktop\0".as_ptr() as *const c_char;
+        unsafe { rb_daemon_start(std::ptr::null(), device_name) }
+    };
     if port > 0 {
         wait_for_graphql();
     }

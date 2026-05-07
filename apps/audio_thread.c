@@ -37,6 +37,8 @@
 #include "voice_thread.h"
 #include "talk.h"
 #include "settings.h"
+#include "pcm_mixer.h"
+#include "dsp_misc.h"
 
 /* Macros to enable logf for queues
    logging on SYS_TIMEOUT can be disabled */
@@ -70,6 +72,10 @@ static void NORETURN_ATTR audio_thread(void)
     ev.id = Q_NULL; /* something not in switch below */
 
     pcm_postinit();
+    /* Prime the DSP output frequency so dsp_get_output_frequency() is
+       non-zero before any codec or server thread calls EQ/filter helpers
+       (which divide by the output frequency → SIGFPE if it's 0). */
+    dsp_set_all_output_frequency(mixer_get_frequency());
 
     while (1)
     {

@@ -46,27 +46,16 @@ use rockbox_rpc::api::rockbox::v1alpha1::{
 };
 use rockbox_sys::types::user_settings::UserSettings;
 use sqlx::{Pool, Sqlite};
-use std::{
-    env,
-    sync::{Arc, OnceLock},
-    thread,
-    time::Duration,
-};
+use std::{env, sync::Arc, thread, time::Duration};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
+    runtime::Handle,
     sync::{broadcast, Mutex},
 };
 use tokio_stream::StreamExt;
 use tonic::transport::Channel;
 use tracing::{debug, warn};
-
-static MPD_RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
-
-fn mpd_rt() -> &'static tokio::runtime::Runtime {
-    MPD_RUNTIME
-        .get_or_init(|| tokio::runtime::Runtime::new().expect("failed to create MPD runtime"))
-}
 
 pub mod consts;
 pub mod dir;
@@ -104,11 +93,14 @@ impl MpdServer {
         let addr = format!("0.0.0.0:{}", port);
         let context = setup_context(false, None).await?;
 
-        listen_events(context.clone());
+        // Capture the handle before spawning OS threads so they can reuse the
+        // existing runtime instead of racing to create their own OnceLock runtime.
+        let handle = Handle::current();
+        listen_events(context.clone(), handle.clone());
 
         thread::sleep(Duration::from_millis(200));
 
-        restore_playlist(context.clone())?;
+        restore_playlist(context.clone(), handle)?;
 
         let listener = TcpListener::bind(&addr).await?;
 
@@ -339,27 +331,27 @@ pub async fn setup_context(batch: bool, ctx: Option<Context>) -> Result<Context,
     })
 }
 
-pub fn listen_events(ctx: Context) {
+pub fn listen_events(ctx: Context, handle: Handle) {
     let ctx_clone = ctx.clone();
     let another_ctx = ctx.clone();
     let another_cloned_ctx = ctx.clone();
+    let h1 = handle.clone();
+    let h2 = handle.clone();
+    let h3 = handle.clone();
+    let h4 = handle.clone();
 
-    thread::spawn(move || {
-        let rt = mpd_rt();
-        loop {
-            let mut current_settings = rt.block_on(another_cloned_ctx.current_settings.lock());
-            *current_settings = rockbox_sys::settings::get_global_settings();
-            drop(current_settings);
-            thread::sleep(std::time::Duration::from_millis(800));
-        }
+    thread::spawn(move || loop {
+        let mut current_settings = h1.block_on(another_cloned_ctx.current_settings.lock());
+        *current_settings = rockbox_sys::settings::get_global_settings();
+        drop(current_settings);
+        thread::sleep(std::time::Duration::from_millis(800));
     });
 
     thread::spawn(move || {
         let mut subscription = SimpleBroker::<Track>::subscribe();
-        let rt = mpd_rt();
 
-        while let Some(track) = rt.block_on(subscription.next()) {
-            let mut current_track = rt.block_on(ctx.current_track.lock());
+        while let Some(track) = h2.block_on(subscription.next()) {
+            let mut current_track = h2.block_on(ctx.current_track.lock());
             *current_track = Some(track);
             drop(current_track);
             match ctx.event_sender.send(Subsystem::Player) {
@@ -373,10 +365,9 @@ pub fn listen_events(ctx: Context) {
 
     thread::spawn(move || {
         let mut subscription = SimpleBroker::<Playlist>::subscribe();
-        let rt = mpd_rt();
 
-        while let Some(playlist) = rt.block_on(subscription.next()) {
-            let mut current_playlist = rt.block_on(ctx_clone.current_playlist.lock());
+        while let Some(playlist) = h3.block_on(subscription.next()) {
+            let mut current_playlist = h3.block_on(ctx_clone.current_playlist.lock());
 
             if (current_playlist.is_some()
                 && current_playlist.as_ref().unwrap().index != playlist.index)
@@ -397,10 +388,9 @@ pub fn listen_events(ctx: Context) {
 
     thread::spawn(move || {
         let mut subscription = SimpleBroker::<AudioStatus>::subscribe();
-        let rt = mpd_rt();
 
-        while let Some(status) = rt.block_on(subscription.next()) {
-            let mut playback_status = rt.block_on(another_ctx.playback_status.lock());
+        while let Some(status) = h4.block_on(subscription.next()) {
+            let mut playback_status = h4.block_on(another_ctx.playback_status.lock());
             if playback_status.is_some()
                 && playback_status.as_ref().unwrap().status != status.status
             {
@@ -417,12 +407,11 @@ pub fn listen_events(ctx: Context) {
     });
 }
 
-pub fn restore_playlist(ctx: Context) -> Result<(), Error> {
+pub fn restore_playlist(ctx: Context, handle: Handle) -> Result<(), Error> {
     let ctx_clone = ctx.clone();
     thread::spawn(move || {
         let mut ctx = ctx_clone.clone();
-        let rt = mpd_rt();
-        rt.block_on(async {
+        handle.block_on(async {
             let response = ctx
                 .system
                 .get_global_status(GetGlobalStatusRequest {})
