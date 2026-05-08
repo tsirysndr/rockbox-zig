@@ -108,8 +108,31 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
     .await?;
     */
 
-    // Spawn slow one-time migrations in the background so startup is not blocked.
-    // Each migration checks whether it has already run before doing any work.
+    // dedupe_genres modifies schema (DROP TABLE + RENAME) so it must run
+    // synchronously before we return the pool. The skip guard makes it a
+    // no-op O(1) check on every subsequent startup.
+    let genre_unique: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name='genre' AND sql LIKE '%UNIQUE%')",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap_or(false);
+    if !genre_unique {
+        info!("Applying dedupe_genres migration...");
+        match pool
+            .execute(include_str!(
+                "../migrations/20260504000000_dedupe_genres.sql"
+            ))
+            .await
+        {
+            Ok(_) => info!("dedupe_genres migration applied"),
+            Err(e) => warn!("dedupe_genres migration: {}", e),
+        }
+    }
+
+    // FTS5 index migration: safe to run in the background — triggers keep
+    // it in sync after initial creation, and the skip guard is O(1) on
+    // subsequent startups so the task exits almost immediately then.
     let bg_pool = pool.clone();
     tokio::spawn(async move {
         let fts_exists: bool =
@@ -127,25 +150,6 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
             {
                 Ok(_) => info!("Background: fts5 search migration applied"),
                 Err(e) => warn!("Background: fts5 migration: {}", e),
-            }
-        }
-
-        let genre_unique: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name='genre' AND sql LIKE '%UNIQUE%')",
-        )
-        .fetch_one(&bg_pool)
-        .await
-        .unwrap_or(false);
-        if !genre_unique {
-            info!("Background: applying dedupe_genres migration...");
-            match bg_pool
-                .execute(include_str!(
-                    "../migrations/20260504000000_dedupe_genres.sql"
-                ))
-                .await
-            {
-                Ok(_) => info!("Background: dedupe_genres migration applied"),
-                Err(e) => warn!("Background: dedupe_genres migration: {}", e),
             }
         }
     });

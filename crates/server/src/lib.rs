@@ -68,16 +68,6 @@ pub extern "C" fn debugfn(args: *const c_char, value: c_int) {
 
 #[no_mangle]
 pub extern "C" fn start_server() {
-    // Wait for pcm_postinit() + dsp_set_all_output_frequency() to complete
-    // in the audio thread so that dsp_get_output_frequency() returns a real
-    // sample rate before load_settings() triggers DSP coefficient
-    // recalculation (divide-by-zero → SIGFPE when output frequency is 0).
-    // Must use rb::system::sleep (not std::thread::sleep) — the latter keeps
-    // g_mutex locked on headless builds, starving the audio thread forever.
-    while !rockbox_sys::sound::pcm::is_initialized() {
-        rb::system::sleep(rb::HZ / 10);
-    }
-
     match rockbox_settings::load_settings(None) {
         Ok(_) => {}
         Err(e) => {
