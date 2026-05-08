@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.05.08]
+
+### Fixed
+- DSP compressor divide-by-zero crash on x86_64 (`SIGFPE` in `get_att_rls_coeff`) — added `release > 0` guard in `compressor_update()` mirroring the existing `attack > 0` guard; ARM64 silently returned 0 on integer divide-by-zero while x86_64 faulted; also added function-level guards in `get_att_rls_coeff` and `get_lpf_coeff` for zero `rc`/`fs`/`rc_units` parameters, and an early `fs <= 0` return in `compressor_update` for uninitialised output frequency
+- Startup hang on second+ launch — FTS5 backfill `WHERE NOT EXISTS (SELECT 1 FROM fts_table f WHERE f.id = t.id)` forced an O(N) full scan per row (O(N²) total) because `id` is `UNINDEXED` in FTS5; replaced all four backfill INSERTs with an uncorrelated `WHERE NOT EXISTS (SELECT 1 FROM fts_table)` which SQLite short-circuits at the first row (O(1) for non-empty tables)
+- Library startup blocked indefinitely on repeated runs — SQLx hangs when re-executing `CREATE VIRTUAL TABLE IF NOT EXISTS` on an existing FTS5 virtual table; fixed by checking `sqlite_master` before the migration and skipping it entirely if `track_fts` already exists; same guard added for `dedupe_genres` (checks `UNIQUE` constraint on `genre` table)
+- FTS5 and `dedupe_genres` migrations ran in slow DELETE journal mode — `PRAGMA journal_mode=WAL` was set only after all migrations; moved to `SqliteConnectOptions::journal_mode(Wal)` so WAL is active from the first connection
+- FTS5 index migration moved to a background `tokio::spawn` task so startup is non-blocking; `dedupe_genres` (schema DDL) remains synchronous with an O(1) skip guard
+
 ## [2026.05.05]
 
 ### Added

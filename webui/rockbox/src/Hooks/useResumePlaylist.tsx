@@ -10,8 +10,9 @@ import {
 } from "./GraphQL";
 
 export const useResumePlaylist = () => {
-  const [{ nowPlaying, resumeIndex }, setControlBarState] =
-    useRecoilState(controlBarState);
+  const [{ nowPlaying, resumeIndex }, setControlBarState] = useRecoilState(
+    controlBarState,
+  );
   const { data: globalStatusData } = useGetGlobalStatusQuery();
   const {
     data: currentPlaylistData,
@@ -47,6 +48,10 @@ export const useResumePlaylist = () => {
         })
         .catch((e) => console.error(e));
       if (nowPlaying?.progress || nowPlaying?.duration) {
+        setControlBarState((state) => ({
+          ...state,
+          resumeIndex: globalStatusData.globalStatus.resumeIndex,
+        }));
         return;
       }
     }
@@ -55,49 +60,41 @@ export const useResumePlaylist = () => {
       currentPlaylistData.playlistGetCurrent.tracks.length > 0 &&
       resumeIndex < 0
     ) {
-      const currentSong =
-        currentPlaylistData.playlistGetCurrent.tracks[
-          globalStatusData.globalStatus.resumeIndex
-        ];
+      const currentSong = currentPlaylistData.playlistGetCurrent.tracks[
+        globalStatusData.globalStatus.resumeIndex
+      ];
 
       setControlBarState((state) => ({
         ...state,
         nowPlaying: {
-          album:
-            getPlaybackStatusData?.status === 1
-              ? state.nowPlaying?.album
-              : currentSong?.album,
-          artist:
-            getPlaybackStatusData?.status === 1
-              ? state.nowPlaying?.artist
-              : currentSong?.artist,
-          title:
-            getPlaybackStatusData?.status === 1
-              ? state.nowPlaying?.title
-              : currentSong?.title,
-          cover:
-            getPlaybackStatusData?.status === 1
-              ? state.nowPlaying?.cover
-              : currentSong?.albumArt
-              ? currentSong?.albumArt.startsWith("http")
-                ? currentSong.albumArt
-                : `${location.protocol}//${location.host}/covers/${currentSong?.albumArt}`
-              : "",
-          duration:
-            getPlaybackStatusData?.status === 1
-              ? state.nowPlaying?.duration || 0
-              : currentSong?.length || 0,
-          progress:
-            getPlaybackStatusData?.status === 1
-              ? state.nowPlaying?.progress || 0
-              : globalStatusData.globalStatus.resumeElapsed,
+          album: getPlaybackStatusData?.status === 1
+            ? state.nowPlaying?.album
+            : currentSong?.album,
+          artist: getPlaybackStatusData?.status === 1
+            ? state.nowPlaying?.artist
+            : currentSong?.artist,
+          title: getPlaybackStatusData?.status === 1
+            ? state.nowPlaying?.title
+            : currentSong?.title,
+          cover: getPlaybackStatusData?.status === 1
+            ? state.nowPlaying?.cover
+            : currentSong?.albumArt
+            ? currentSong?.albumArt.startsWith("http")
+              ? currentSong.albumArt
+              : `${location.protocol}//${location.host}/covers/${currentSong?.albumArt}`
+            : "",
+          duration: getPlaybackStatusData?.status === 1
+            ? state.nowPlaying?.duration || 0
+            : currentSong?.length || 0,
+          progress: getPlaybackStatusData?.status === 1
+            ? state.nowPlaying?.progress || 0
+            : globalStatusData.globalStatus.resumeElapsed,
           isPlaying: getPlaybackStatusData?.status === 1,
           albumId: currentSong?.albumId,
         },
-        resumeIndex:
-          getPlaybackStatusData?.status === 1
-            ? -1
-            : globalStatusData.globalStatus.resumeIndex,
+        resumeIndex: getPlaybackStatusData?.status === 1
+          ? -1
+          : globalStatusData.globalStatus.resumeIndex,
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
