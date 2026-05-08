@@ -20,7 +20,7 @@ const RightMenu: FC = () => {
   const bluetoothAvailable = !bluetoothUnavailable;
 
   return (
-    <div className="flex flex-row flex-[0.3] h-[60px] min-w-[160px] items-center justify-end">
+    <div className="flex flex-row flex-[0.3] h-[60px] min-w-[160px] items-center justify-end gap-3">
       {bluetoothAvailable && (
         <StatefulPopover
           placement="bottom"
@@ -40,13 +40,7 @@ const RightMenu: FC = () => {
             },
           }}
         >
-          <button
-            style={{
-              border: "none",
-              backgroundColor: "initial",
-              cursor: "pointer",
-            }}
-          >
+          <button className="bg-transparent cursor-pointer border-0 flex items-center justify-center hover:opacity-60">
             <BluetoothIcon color="var(--theme-icon)" />
           </button>
         </StatefulPopover>
@@ -69,13 +63,7 @@ const RightMenu: FC = () => {
           },
         }}
       >
-        <button
-          style={{
-            border: "none",
-            backgroundColor: "initial",
-            cursor: "pointer",
-          }}
-        >
+        <button className="bg-transparent cursor-pointer border-0 flex items-center justify-center hover:opacity-60">
           <Speaker size={18} color="var(--theme-icon)" />
         </button>
       </StatefulPopover>

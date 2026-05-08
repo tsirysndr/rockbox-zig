@@ -10,20 +10,33 @@ import Heart from "../../Icons/Heart";
 
 const progressbarStyles = {
   Progressbar: {
+    Root: {
+      style: {
+        marginTop: 0,
+        marginBottom: 0,
+      },
+    },
     BarContainer: {
       style: {
         marginLeft: 0,
         marginRight: 0,
+        marginTop: 0,
+        marginBottom: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
       },
     },
     BarProgress: {
       style: () => ({
         backgroundColor: "#6F00FF",
+        borderBottomLeftRadius: "4px",
       }),
     },
     Bar: {
       style: () => ({
         backgroundColor: "rgba(177, 178, 181, 0.218)",
+        borderBottomLeftRadius: "4px",
+        borderBottomRightRadius: "4px",
       }),
     },
   },
@@ -74,7 +87,7 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
           className="h-[60px] w-[60px] rounded-tl-[4px] rounded-bl-[4px]"
         />
       )}
-      <div className="flex flex-col justify-center w-full relative text-sm">
+      <div className="flex flex-col justify-center w-full relative text-sm pb-3">
         {(!nowPlaying || nowPlaying?.duration === 0) && (
           <div style={{ color: "#b1b2b5", textAlign: "center" }}>
             No track playing
@@ -134,7 +147,7 @@ const CurrentTrack: FC<CurrentTrackProps> = ({
             <div
               ref={progressbarRef}
               onClick={handleClick}
-              className={`w-full absolute bottom-[-12px]${nowPlaying!.duration > 0 ? " cursor-pointer" : ""}`}
+              className={`w-full absolute bottom-0${nowPlaying!.duration > 0 ? " cursor-pointer" : ""}`}
             >
               <ProgressBar
                 value={

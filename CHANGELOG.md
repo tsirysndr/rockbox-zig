@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [2026.05.08]
+## [2026.05.09]
 
 ### Fixed
 - DSP compressor divide-by-zero crash on x86_64 (`SIGFPE` in `get_att_rls_coeff`) — added `release > 0` guard in `compressor_update()` mirroring the existing `attack > 0` guard; ARM64 silently returned 0 on integer divide-by-zero while x86_64 faulted; also added function-level guards in `get_att_rls_coeff` and `get_lpf_coeff` for zero `rc`/`fs`/`rc_units` parameters, and an early `fs <= 0` return in `compressor_update` for uninitialised output frequency
@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Library startup blocked indefinitely on repeated runs — SQLx hangs when re-executing `CREATE VIRTUAL TABLE IF NOT EXISTS` on an existing FTS5 virtual table; fixed by checking `sqlite_master` before the migration and skipping it entirely if `track_fts` already exists; same guard added for `dedupe_genres` (checks `UNIQUE` constraint on `genre` table)
 - FTS5 and `dedupe_genres` migrations ran in slow DELETE journal mode — `PRAGMA journal_mode=WAL` was set only after all migrations; moved to `SqliteConnectOptions::journal_mode(Wal)` so WAL is active from the first connection
 - FTS5 index migration moved to a background `tokio::spawn` task so startup is non-blocking; `dedupe_genres` (schema DDL) remains synchronous with an O(1) skip guard
+- cpal PCM sink: audible silence gap at the start of every track on Linux — `sink_dma_start()` previously stored the first chunk in `pcm_data`/`pcm_size` and then called `pthread_create`, leaving the ring empty for the 1–5 ms thread-creation window; fixed by pushing the first chunk synchronously via `pcm_cpal_push()` before spawning the writer thread so the ring is pre-filled when `running=true` is set; the writer thread now picks up from chunk 2 onwards; also added `!r.running` early-exit to the f32 cpal callback (mirrors the existing i16 guard) and reset resampler state (`cur_valid = false`, `phase = 0`) in `pcm_cpal_start()` to prevent interpolation artefacts from the tail of the previous track
 
 ## [2026.05.05]
 

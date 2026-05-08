@@ -289,10 +289,14 @@ fn open_stream(rate: u32) {
         device.build_output_stream(
             &config,
             move |output: &mut [i16], _| {
-                let vol_l = f32::from_bits(VOLUME_L.load(Ordering::Relaxed));
-                let vol_r = f32::from_bits(VOLUME_R.load(Ordering::Relaxed));
                 let (lock, cvar) = ring_ref;
                 let mut r = lock.lock().unwrap();
+                if !r.running {
+                    output.fill(0);
+                    return;
+                }
+                let vol_l = f32::from_bits(VOLUME_L.load(Ordering::Relaxed));
+                let vol_r = f32::from_bits(VOLUME_R.load(Ordering::Relaxed));
                 let need_bytes = output.len() * 2;
                 let have = r.buf.len().min(need_bytes);
                 for (i, chunk) in r
@@ -326,6 +330,10 @@ fn open_stream(rate: u32) {
             move |output: &mut [f32], _| {
                 let (lock, cvar) = ring_ref;
                 let mut r = lock.lock().unwrap();
+                if !r.running {
+                    output.fill(0.0);
+                    return;
+                }
                 let mut rs = rs_ref.lock().unwrap();
 
                 if channels == 2 {
@@ -444,6 +452,13 @@ pub extern "C" fn pcm_cpal_start() {
     // OPEN_STREAM_MTX until it finishes, then sees the stream is ready.
     let rate = *current_rate().lock().unwrap();
     ensure_stream(rate);
+    // Reset resampler so the tail samples of the previous track don't bleed
+    // into the interpolation at the start of the new one.
+    {
+        let mut rs = resampler().lock().unwrap();
+        rs.phase = 0.0;
+        rs.cur_valid = false;
+    }
     let (lock, _cvar) = ring();
     let mut r = lock.lock().unwrap();
     r.running = true;

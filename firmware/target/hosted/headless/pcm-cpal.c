@@ -124,17 +124,35 @@ static void sink_dma_start(const void *addr, size_t size)
 {
     logf("pcm-cpal: start (%p, %zu)", addr, size);
 
-    /* Re-arm the ring so pcm_cpal_push() doesn't silently discard data after
-     * a previous pcm_cpal_stop() set running=false. */
-    pcm_cpal_start();
-
     pthread_mutex_lock(&cpal_mtx);
-    pcm_data    = addr;
-    pcm_size    = size;
-    cpal_stop   = false;
+    cpal_stop    = false;
     cpal_running = true;
+    pcm_data     = NULL;
+    pcm_size     = 0;
     pthread_mutex_unlock(&cpal_mtx);
 
+    /* Re-arm the ring so pcm_cpal_push() accepts new data. */
+    pcm_cpal_start();
+
+    /* Push the first chunk synchronously so the ring is pre-filled before
+     * the writer thread starts.  Without this, thread-creation latency
+     * (~1–5 ms on Linux) left the ring empty and produced an audible
+     * silence gap at the beginning of every track. */
+    pcm_cpal_push(addr, size);
+
+    /* Ask firmware for the next chunk; the thread handles chunks 2+. */
+    pthread_mutex_lock(&cpal_mtx);
+    bool got_more = pcm_play_dma_complete_callback(PCM_DMAST_OK,
+                                                    &pcm_data, &pcm_size);
+    pthread_mutex_unlock(&cpal_mtx);
+
+    if (!got_more) {
+        logf("pcm-cpal: single-chunk track");
+        cpal_running = false;
+        return;
+    }
+
+    pcm_play_dma_status_callback(PCM_DMAST_STARTED);
     pthread_create(&cpal_tid, NULL, cpal_thread, NULL);
 }
 
