@@ -218,6 +218,7 @@ pub fn save_settings(settings: NewGlobalSettings, from_disk: bool) {
         );
         set_str_setting!(settings.player_name, crate::global_settings.player_name, 64);
         set_value_setting!(settings.eq_enabled, crate::global_settings.eq_enabled);
+        set_value_setting!(settings.eq_precut, crate::global_settings.eq_precut);
 
         if let Some(eq_band_settings) = settings.eq_band_settings {
             let mut array = [EqBandSetting {

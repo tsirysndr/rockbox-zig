@@ -7301,6 +7301,8 @@ pub struct SaveSettingsRequest {
     pub replaygain_settings: ::core::option::Option<ReplaygainSettings>,
     #[prost(message, optional, tag = "28")]
     pub compressor_settings: ::core::option::Option<CompressorSettings>,
+    #[prost(uint32, optional, tag = "29")]
+    pub eq_precut: ::core::option::Option<u32>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct SaveSettingsResponse {}

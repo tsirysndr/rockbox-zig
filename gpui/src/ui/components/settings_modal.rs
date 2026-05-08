@@ -513,20 +513,22 @@ impl SettingsModalView {
             cx.notify();
         });
 
-        // API convention (matches web UI): cutoff = gain tenths dB, q = freq Hz, gain = Q factor
+        // Firmware convention: cutoff = center freq (Hz), q = Q factor, gain = gain (tenths dB)
+        // Show only bands with cutoff >= 64 Hz (skip the 32 Hz band at index 0)
         let band_cols: Vec<gpui::AnyElement> = modal
             .eq_bands
             .iter()
             .enumerate()
+            .filter(|(_, band)| band.cutoff >= 64)
             .map(|(i, band)| {
-                let gain_frac = gain_to_fraction(band.cutoff);
-                let gain_db = band.cutoff as f32 / 10.0;
-                let gain_str = if band.cutoff >= 0 {
+                let gain_frac = gain_to_fraction(band.gain);
+                let gain_db = band.gain as f32 / 10.0;
+                let gain_str = if band.gain >= 0 {
                     format!("+{:.1}", gain_db)
                 } else {
                     format!("{:.1}", gain_db)
                 };
-                let freq_hz = band.q;
+                let freq_hz = band.cutoff;
                 let freq_label = if freq_hz >= 1000 {
                     format!("{}k", freq_hz / 1000)
                 } else {
@@ -558,7 +560,7 @@ impl SettingsModalView {
                             if let Some(b) =
                                 cx.global_mut::<SettingsModal>().eq_bands.get_mut(i)
                             {
-                                b.cutoff = gain;
+                                b.gain = gain;
                             }
                             let rt = cx.global::<crate::state::TokioHandle>().0.clone();
                             let bands = cx.global::<SettingsModal>().eq_bands.clone();
@@ -623,9 +625,10 @@ impl SettingsModalView {
                                         px(4.0),
                                     )
                                     .on_seek(move |frac, _, cx| {
-                                        cx.global_mut::<SettingsModal>().eq_precut =
-                                            (frac * 240.0).round() as u32;
-                                        // eq_precut is not in SaveSettingsRequest; persisted on Save
+                                        let new_v = (frac * 240.0).round() as u32;
+                                        cx.global_mut::<SettingsModal>().eq_precut = new_v;
+                                        let rt = cx.global::<crate::state::TokioHandle>().0.clone();
+                                        rt.spawn(crate::client::save_settings_all(save_single(|r| r.eq_precut = Some(new_v))));
                                     }),
                                 ),
                             )

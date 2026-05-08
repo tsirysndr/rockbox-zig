@@ -314,9 +314,9 @@ pub struct EqBandLocal {
 }
 
 pub fn default_eq_bands() -> Vec<EqBandLocal> {
-    // API convention: cutoff = gain (tenths dB), q = center freq (Hz), gain = Q factor
+    // Firmware convention: cutoff = center freq (Hz), q = Q factor, gain = gain (tenths dB)
     const FREQS: [i32; 10] = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
-    FREQS.iter().map(|&f| EqBandLocal { cutoff: 0, q: f, gain: 7 }).collect()
+    FREQS.iter().map(|&f| EqBandLocal { cutoff: f, q: 7, gain: 0 }).collect()
 }
 
 #[derive(Clone)]

@@ -921,6 +921,7 @@ pub mod api {
                     channel_config: self.channel_config,
                     player_name: self.player_name,
                     eq_enabled: self.eq_enabled,
+                    eq_precut: self.eq_precut,
                     eq_band_settings: match self.eq_band_settings.is_empty() {
                         true => None,
                         false => Some(
