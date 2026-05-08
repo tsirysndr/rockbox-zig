@@ -4,24 +4,6 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [2026.05.06]
-
-### Added
-- Embeddable `librockboxd.a` static library — flat C ABI (`rb_*` functions) boots the full headless Rockbox daemon in-process on any desktop application; built with `zig build lib`; public header at `include/rockboxd.h`; versioned platform archives (`.tar.gz` + SHA-256) published as CI release artifacts
-- POSIX pthread cooperative scheduler backend for headless host (`HAVE_POSIX_THREADS`) — replaces the `sigaltstack`-based backend that returns `EPERM` on macOS 12 Monterey; headless builds now select POSIX threads automatically via the `tools/configure` output
-- macOS app: embedded Rockbox daemon (`DaemonManager`) links `librockboxd.a` and boots the daemon in-process at launch — shows a "Starting Rockbox…" UI while the gRPC server binds; entitlements (network, Music folder access) and bridging header wired in Xcode; no external `rockboxd` process is required
-- Per-channel volume control in the CPAL sink
-- Docker image publish workflow — CI builds and pushes a multi-platform image; Dockerfile gains a WebUI build stage (Node 24 base) and bundles Typesense in the final image
-- `*BSD` build support for headless targets — FreeBSD links `libasound`; OpenBSD links `libsndio`; `build-headless.sh` detects CPU count via `hw.ncpu` / `hw.ncpuonline`; NetBSD OSS behaviour documented in `build.zig`
-- macOS Homebrew install instructions added to the README
-- `drain_blocking` helper wakes the firmware broker thread immediately when a command is enqueued from an external caller, removing a one-tick latency on the first play after cold start
-
-### Fixed
-- Ogg symbol conflicts resolved; M4A stream internal APIs renamed to avoid linker collisions when both `libogg` and `libm4a` are linked into the same binary
-- CPAL sink startup: fixed a race that silenced audio on the first play attempt after a sink switch
-- Zig 0.16 build: `addLinkerArg` is now called on `root_module` (the compile step lost the method in 0.16) — resolves a build failure introduced by the Zig upgrade
-- Typesense client: non-2xx responses now return `None` instead of attempting to deserialise the error body, preventing panics on index-not-found and rate-limit responses
-
 ## [2026.05.05]
 
 ### Added

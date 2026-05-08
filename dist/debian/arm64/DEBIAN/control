@@ -1,5 +1,5 @@
 Package: rockbox
-Version:  2026.05.06
+Version:  2026.05.08
 Section: user/multimedia
 Priority: optional
 Architecture: arm64
