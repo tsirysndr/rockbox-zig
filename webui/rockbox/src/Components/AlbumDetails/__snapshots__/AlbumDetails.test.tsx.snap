@@ -394,7 +394,7 @@ exports[`AlbumDetails > should render 1`] = `
                 </svg>
               </div>
               <div
-                class="flex flex-col justify-center w-full relative text-sm"
+                class="flex flex-col justify-center w-full relative text-sm pb-3"
               >
                 <div
                   style="color: rgb(177, 178, 181); text-align: center;"
@@ -404,12 +404,12 @@ exports[`AlbumDetails > should render 1`] = `
               </div>
             </div>
             <div
-              class="flex flex-row flex-[0.3] h-[60px] min-w-[160px] items-center justify-end"
+              class="flex flex-row flex-[0.3] h-[60px] min-w-[160px] items-center justify-end gap-3"
             >
               <button
                 aria-expanded="false"
                 aria-haspopup="true"
-                style="cursor: pointer;"
+                class="bg-transparent cursor-pointer border-0 flex items-center justify-center hover:opacity-60"
               >
                 <svg
                   fill="var(--theme-icon)"
@@ -425,7 +425,7 @@ exports[`AlbumDetails > should render 1`] = `
               <button
                 aria-expanded="false"
                 aria-haspopup="true"
-                style="cursor: pointer;"
+                class="bg-transparent cursor-pointer border-0 flex items-center justify-center hover:opacity-60"
               >
                 <svg
                   aria-hidden="true"

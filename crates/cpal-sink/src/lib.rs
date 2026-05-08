@@ -367,7 +367,7 @@ fn open_stream(rate: u32) {
     }
 
     *stream_cell().lock().unwrap() = Some(StreamHolder(stream));
-    *current_rate().lock().unwrap() = out_rate;
+    *current_rate().lock().unwrap() = rate;
     tracing::info!("pcm-cpal: opened cpal stream at {out_rate} Hz ({fmt:?}, {channels} ch)");
 }
 

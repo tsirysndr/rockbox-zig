@@ -113,7 +113,7 @@ exports[`ControlBar > should render 1`] = `
           src="https://resources.tidal.com/images/5b33d07f/7d28/417d/8f8f/86291d0b6b34/320x320.jpg"
         />
         <div
-          class="flex flex-col justify-center w-full relative text-sm"
+          class="flex flex-col justify-center w-full relative text-sm pb-3"
         >
           <div
             style="display: flex; flex-direction: row;"
@@ -195,25 +195,25 @@ exports[`ControlBar > should render 1`] = `
             </div>
           </div>
           <div
-            class="w-full absolute bottom-[-12px] cursor-pointer"
+            class="w-full absolute bottom-0 cursor-pointer"
           >
             <div
               aria-label="48% Loaded"
               aria-valuemax="100"
               aria-valuemin="0"
               aria-valuenow="48.3219508605943"
-              class="ae"
+              class="ae af ag"
               data-baseweb="progress-bar"
               role="progressbar"
             >
               <div
-                class="af ag ah ai aj"
+                class="ah ai aj af ag ak al"
               >
                 <div
-                  class="ak al am an ao ap aq ar"
+                  class="am an ao ap aq ar as at"
                 >
                   <div
-                    class="ak al am an as at ae au av"
+                    class="am an au ap av aw ae ax ay"
                   />
                 </div>
               </div>
@@ -222,12 +222,12 @@ exports[`ControlBar > should render 1`] = `
         </div>
       </div>
       <div
-        class="flex flex-row flex-[0.3] h-[60px] min-w-[160px] items-center justify-end"
+        class="flex flex-row flex-[0.3] h-[60px] min-w-[160px] items-center justify-end gap-3"
       >
         <button
           aria-expanded="false"
           aria-haspopup="true"
-          style="cursor: pointer;"
+          class="bg-transparent cursor-pointer border-0 flex items-center justify-center hover:opacity-60"
         >
           <svg
             fill="var(--theme-icon)"
@@ -243,7 +243,7 @@ exports[`ControlBar > should render 1`] = `
         <button
           aria-expanded="false"
           aria-haspopup="true"
-          style="cursor: pointer;"
+          class="bg-transparent cursor-pointer border-0 flex items-center justify-center hover:opacity-60"
         >
           <svg
             aria-hidden="true"
