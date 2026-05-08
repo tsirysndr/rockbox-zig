@@ -8,8 +8,7 @@ use crate::{
 };
 
 fn trim_path(s: &str) -> String {
-    let s = s.trim();
-    s.split('#').next().unwrap_or(s).to_string()
+    s.trim().to_string()
 }
 
 #[derive(Default)]

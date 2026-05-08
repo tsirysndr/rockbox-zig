@@ -22,8 +22,7 @@ use crate::{http::AppState, PLAYLIST_DIRTY};
 type HandlerResult = actix_web::Result<HttpResponse>;
 
 fn trim_path(s: String) -> String {
-    let s = s.trim();
-    s.split('#').next().unwrap_or(s).to_string()
+    s.trim().to_string()
 }
 
 /// Populate an Mp3Entry's user-visible metadata from a DB Track record.
