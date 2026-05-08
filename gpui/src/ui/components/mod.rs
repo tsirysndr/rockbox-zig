@@ -314,9 +314,10 @@ pub struct EqBandLocal {
 }
 
 pub fn default_eq_bands() -> Vec<EqBandLocal> {
-    // Firmware convention: cutoff = center freq (Hz), q = Q factor, gain = gain (tenths dB)
-    const FREQS: [i32; 10] = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
-    FREQS.iter().map(|&f| EqBandLocal { cutoff: f, q: 7, gain: 0 }).collect()
+    // Web UI convention: cutoff = user gain (0 = flat), q = display identifier (same values
+    // the web UI uses for band labels), gain = 0 (DSP bands disabled → no noise).
+    const DISPLAY_Q: [i32; 10] = [64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000, 0];
+    DISPLAY_Q.iter().map(|&q| EqBandLocal { cutoff: 0, q, gain: 0 }).collect()
 }
 
 #[derive(Clone)]
@@ -332,6 +333,8 @@ pub struct SettingsModal {
     pub eq_enabled: bool,
     pub eq_precut: u32,
     pub eq_bands: Vec<EqBandLocal>,
+    /// Incremented on every EQ slider move; debounce tasks compare against this to decide whether to save.
+    pub eq_save_gen: std::sync::Arc<std::sync::atomic::AtomicU64>,
     // Playback
     pub shuffle: bool,
     pub crossfade: i32,
@@ -365,6 +368,7 @@ impl Default for SettingsModal {
             eq_enabled: false,
             eq_precut: 0,
             eq_bands: default_eq_bands(),
+            eq_save_gen: std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0)),
             shuffle: false,
             crossfade: 0,
             crossfade_fade_in_delay: 0,

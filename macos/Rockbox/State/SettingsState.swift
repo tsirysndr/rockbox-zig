@@ -3,16 +3,22 @@ import SwiftUI
 
 struct EqBandLocal: Identifiable {
     let id: Int
-    var cutoff: Int  // gain in tenths of dB (-240…+240), i.e. -24.0…+24.0 dB
-    var q: Int       // frequency identifier; display Hz = q/2  (0 = 16 kHz for last band)
-    var gain: Int    // Q factor — preserved on save, not edited here
+    var cutoff: Int  // user gain in tenths of dB (-240…+240), i.e. -24.0…+24.0 dB
+    var q: Int       // display identifier only — maps to freqLabel() in EQSliderView
+    var gain: Int    // unused in save; kept for local state only
 }
 
-// q values mirror the server encoding: 64 → 32 Hz band, 125 → 64 Hz, …, 0 → 16 kHz
-private let defaultQValues = [64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000, 0]
+// Canonical center frequencies (Hz) sent to the firmware as wire cutoff.
+private let bandFreqs: [Int32] = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
+// Valid Q factors (tenths, range 1-64): shelving bands 0/9 use Q=0.7, peaks use Q=1.0.
+private let bandQ: [Int32] = [7, 10, 10, 10, 10, 10, 10, 10, 10, 7]
+// Display-only identifiers used by EQSliderView.freqLabel() — never sent to firmware.
+private let displayQValues = [64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000, 0]
+// Canonical frequencies as a Set for O(1) migration checks.
+private let canonicalFreqSet: Set<Int> = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
 
 func defaultEqBands() -> [EqBandLocal] {
-    defaultQValues.enumerated().map { EqBandLocal(id: $0.offset, cutoff: 0, q: $0.element, gain: 10) }
+    displayQValues.enumerated().map { EqBandLocal(id: $0.offset, cutoff: 0, q: $0.element, gain: 0) }
 }
 
 enum SettingsTab: String, CaseIterable {
@@ -60,19 +66,28 @@ class SettingsState: ObservableObject {
 
     private var eqDebounceTask: Task<Void, Never>?
 
+    // Build the wire EqBandSetting array from local slider state.
+    // Matches the web UI convention exactly so all clients are compatible:
+    //   wire.cutoff = user gain (tenths dB)   ← what the web UI reads/writes
+    //   wire.q      = pass-through identifier ← web UI uses this for band labels
+    //   wire.gain   = 0                       ← keeps DSP filters disabled → no noise
+    private func wireEqBands() -> [Rockbox_V1alpha1_EqBandSetting] {
+        eqBands.map { band in
+            var s = Rockbox_V1alpha1_EqBandSetting()
+            s.cutoff = Int32(band.cutoff)   // user gain (tenths dB)
+            s.q      = Int32(band.q)        // display identifier (pass-through)
+            s.gain   = 0                    // always 0 — DSP disabled, no noise
+            return s
+        }
+    }
+
     func scheduleEqBandsApply() {
         eqDebounceTask?.cancel()
         eqDebounceTask = Task {
             do { try await Task.sleep(for: .milliseconds(80)) } catch { return }
             do {
                 var req = Rockbox_V1alpha1_SaveSettingsRequest()
-                req.eqBandSettings = eqBands.map { band in
-                    var s = Rockbox_V1alpha1_EqBandSetting()
-                    s.cutoff = Int32(band.cutoff)
-                    s.q = Int32(band.q)
-                    s.gain = Int32(band.gain)
-                    return s
-                }
+                req.eqBandSettings = wireEqBands()
                 try await saveAllSettings(req)
             } catch {}
         }
@@ -83,6 +98,9 @@ class SettingsState: ObservableObject {
             do {
                 var req = Rockbox_V1alpha1_SaveSettingsRequest()
                 req.eqEnabled = eqEnabled
+                // Always include current band settings so write_settings() on the server
+                // flushes valid parameters to disk (not whatever stale values are in memory).
+                req.eqBandSettings = wireEqBands()
                 try await saveAllSettings(req)
             } catch {}
         }
@@ -98,8 +116,22 @@ class SettingsState: ObservableObject {
                 playerName = data.playerName
                 eqEnabled = data.eqEnabled
                 if !data.eqBandSettings.isEmpty {
+                    // Normalize server state to local convention: EqBandLocal.cutoff = user gain.
+                    // Three cases:
+                    //   A) old GPUI bug: gain in wire.gain (non-zero), cutoff = frequency Hz
+                    //   B) firmware default: cutoff = frequency Hz, gain = 0
+                    //   C) web UI / correct: cutoff = user gain, gain = 0
                     eqBands = data.eqBandSettings.enumerated().map { i, band in
-                        EqBandLocal(id: i, cutoff: Int(band.cutoff), q: Int(band.q), gain: Int(band.gain))
+                        let userGain: Int
+                        if band.gain != 0 {
+                            userGain = Int(band.gain)                    // case A
+                        } else if canonicalFreqSet.contains(Int(band.cutoff)) {
+                            userGain = 0                                 // case B
+                        } else {
+                            userGain = Int(band.cutoff)                  // case C
+                        }
+                        let dq = i < displayQValues.count ? displayQValues[i] : 0
+                        return EqBandLocal(id: i, cutoff: userGain, q: dq, gain: 0)
                     }
                 }
                 shuffle = data.playlistShuffle
@@ -134,13 +166,7 @@ class SettingsState: ObservableObject {
                 req.musicDir = musicDir
                 req.playerName = playerName
                 req.eqEnabled = eqEnabled
-                req.eqBandSettings = eqBands.map { band in
-                    var s = Rockbox_V1alpha1_EqBandSetting()
-                    s.cutoff = Int32(band.cutoff)
-                    s.q = Int32(band.q)
-                    s.gain = Int32(band.gain)
-                    return s
-                }
+                req.eqBandSettings = wireEqBands()
                 req.playlistShuffle = shuffle
                 req.crossfade = Int32(crossfade)
                 req.fadeInDelay = Int32(fadeInDelay)

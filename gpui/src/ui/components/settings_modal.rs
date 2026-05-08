@@ -43,10 +43,38 @@ pub fn load_settings_for_modal(cx: &mut App) {
             match result {
                 Some(Ok(s)) => {
                     let rg = s.replaygain_settings.as_ref().cloned();
+                    // Normalize server state to web UI convention:
+                    //   wire.cutoff = user gain (tenths dB), wire.q = display id, wire.gain = 0
+                    // Three cases:
+                    //   A) old GPUI bug — gain stored in wire.gain (non-zero)
+                    //   B) firmware default — cutoff holds a center frequency (Hz), gain=0
+                    //   C) web UI / correct — cutoff already holds user gain, gain=0
+                    const CANONICAL_FREQS: [i32; 10] =
+                        [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+                    // Default display-identifier q values (web UI convention).
+                    const DISPLAY_Q: [i32; 10] =
+                        [64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000, 0];
                     let mut bands: Vec<EqBandLocal> = s
                         .eq_band_settings
                         .iter()
-                        .map(|b| EqBandLocal { cutoff: b.cutoff, q: b.q, gain: b.gain })
+                        .enumerate()
+                        .map(|(i, b)| {
+                            let user_gain = if b.gain != 0 {
+                                b.gain // A: gain field had user gain from old GPUI
+                            } else if CANONICAL_FREQS.contains(&b.cutoff) {
+                                0 // B: cutoff holds a firmware frequency, treat as flat
+                            } else {
+                                b.cutoff // C: already web UI convention
+                            };
+                            // Prefer server's q (web UI never overwrites it); fall back to
+                            // the display-identifier default so labels are always visible.
+                            let q = if CANONICAL_FREQS.contains(&b.q) || b.q <= 10 {
+                                DISPLAY_Q[i]
+                            } else {
+                                b.q
+                            };
+                            EqBandLocal { cutoff: user_gain, q, gain: 0 }
+                        })
                         .collect();
                     let defaults = crate::ui::components::default_eq_bands();
                     while bands.len() < defaults.len() {
@@ -168,10 +196,14 @@ fn save_eq_bands(
     bands: &[crate::ui::components::EqBandLocal],
 ) -> crate::api::v1alpha1::SaveSettingsRequest {
     use crate::api::v1alpha1::{EqBandSetting, SaveSettingsRequest};
+    // Web UI convention (never break this):
+    //   wire.cutoff = user gain in tenths dB   (what the web UI reads/writes)
+    //   wire.q      = pass-through identifier  (web UI uses this for band labels)
+    //   wire.gain   = 0 always                 (keeps DSP filters disabled → no noise)
     SaveSettingsRequest {
         eq_band_settings: bands
             .iter()
-            .map(|b| EqBandSetting { cutoff: b.cutoff, q: b.q, gain: b.gain })
+            .map(|b| EqBandSetting { cutoff: b.cutoff, q: b.q, gain: 0 })
             .collect(),
         ..Default::default()
     }
@@ -263,10 +295,11 @@ impl Render for SettingsModalView {
                 player_name: Some(player_name),
                 playlist_shuffle: Some(modal.shuffle),
                 eq_enabled: Some(modal.eq_enabled),
+                // Web UI convention: cutoff=user_gain, q=pass-through, gain=0.
                 eq_band_settings: modal
                     .eq_bands
                     .iter()
-                    .map(|b| EqBandSetting { cutoff: b.cutoff, q: b.q, gain: b.gain })
+                    .map(|b| EqBandSetting { cutoff: b.cutoff, q: b.q, gain: 0 })
                     .collect(),
                 crossfade: Some(modal.crossfade),
                 fade_in_delay: Some(modal.crossfade_fade_in_delay),
@@ -500,9 +533,6 @@ impl SettingsModalView {
         let accent = theme.switcher_active;
 
         let eq_enabled = modal.eq_enabled;
-        let eq_precut = modal.eq_precut;
-        let precut_frac = (eq_precut as f32 / 240.0).clamp(0.0, 1.0);
-        let precut_db = eq_precut as f32 / 10.0;
 
         let eq_toggle_l = cx.listener(|_, _, _, cx| {
             let v = cx.global::<SettingsModal>().eq_enabled;
@@ -513,26 +543,29 @@ impl SettingsModalView {
             cx.notify();
         });
 
-        // Firmware convention: cutoff = center freq (Hz), q = Q factor, gain = gain (tenths dB)
-        // Show only bands with cutoff >= 64 Hz (skip the 32 Hz band at index 0)
+        // Fixed Rockbox EQ band frequencies (indices 0-9).
+        // Skip index 0 (32 Hz) — display bands 1-9: 64 Hz to 16 kHz.
+        const BAND_FREQS: [i32; 10] = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
         let band_cols: Vec<gpui::AnyElement> = modal
             .eq_bands
             .iter()
             .enumerate()
-            .filter(|(_, band)| band.cutoff >= 64)
+            .skip(1)
             .map(|(i, band)| {
-                let gain_frac = gain_to_fraction(band.gain);
-                let gain_db = band.gain as f32 / 10.0;
-                let gain_str = if band.gain >= 0 {
+                // Web UI convention: cutoff stores user gain (tenths dB), gain field stays 0.
+                let gain_tenths = band.cutoff;
+                let gain_frac = gain_to_fraction(gain_tenths);
+                let gain_db = gain_tenths as f32 / 10.0;
+                let gain_str = if gain_tenths >= 0 {
                     format!("+{:.1}", gain_db)
                 } else {
                     format!("{:.1}", gain_db)
                 };
-                let freq_hz = band.cutoff;
+                let freq_hz = BAND_FREQS[i];
                 let freq_label = if freq_hz >= 1000 {
-                    format!("{}k", freq_hz / 1000)
+                    format!("{}kHz", freq_hz / 1000)
                 } else {
-                    format!("{}", freq_hz)
+                    format!("{}Hz", freq_hz)
                 };
                 div()
                     .flex()
@@ -557,14 +590,24 @@ impl SettingsModalView {
                         )
                         .on_change(move |frac, _, cx| {
                             let gain = fraction_to_gain(frac);
-                            if let Some(b) =
-                                cx.global_mut::<SettingsModal>().eq_bands.get_mut(i)
                             {
-                                b.gain = gain;
+                                let m = cx.global_mut::<SettingsModal>();
+                                if let Some(b) = m.eq_bands.get_mut(i) {
+                                    b.cutoff = gain;
+                                }
+                                m.eq_save_gen.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                             }
-                            let rt = cx.global::<crate::state::TokioHandle>().0.clone();
+                            let gen = cx.global::<SettingsModal>().eq_save_gen.load(std::sync::atomic::Ordering::Relaxed);
+                            let gen_arc = cx.global::<SettingsModal>().eq_save_gen.clone();
                             let bands = cx.global::<SettingsModal>().eq_bands.clone();
-                            rt.spawn(crate::client::save_settings_all(save_eq_bands(&bands)));
+                            let rt = cx.global::<crate::state::TokioHandle>().0.clone();
+                            rt.spawn(async move {
+                                tokio::time::sleep(std::time::Duration::from_millis(80)).await;
+                                if gen_arc.load(std::sync::atomic::Ordering::Relaxed) != gen {
+                                    return; // a newer drag event will handle the save
+                                }
+                                let _ = crate::client::save_settings_all(save_eq_bands(&bands)).await;
+                            });
                         }),
                     )
                     .child(
@@ -603,44 +646,7 @@ impl SettingsModalView {
                             )
                             .child(toggle_pill("eq_toggle", eq_enabled, accent, eq_toggle_l)),
                     )
-                    .child(
-                        div()
-                            .flex()
-                            .flex_row()
-                            .items_center()
-                            .gap_3()
-                            .child(
-                                div()
-                                    .text_sm()
-                                    .text_color(text_secondary)
-                                    .child("Precut"),
-                            )
-                            .child(
-                                div().w(px(120.0)).child(
-                                    SeekBar::new(
-                                        "eq_precut_bar",
-                                        precut_frac,
-                                        rgba(0xFFFFFF12),
-                                        accent,
-                                        px(4.0),
-                                    )
-                                    .on_seek(move |frac, _, cx| {
-                                        let new_v = (frac * 240.0).round() as u32;
-                                        cx.global_mut::<SettingsModal>().eq_precut = new_v;
-                                        let rt = cx.global::<crate::state::TokioHandle>().0.clone();
-                                        rt.spawn(crate::client::save_settings_all(save_single(|r| r.eq_precut = Some(new_v))));
-                                    }),
-                                ),
-                            )
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .font_family("JetBrains Mono")
-                                    .text_color(text_secondary)
-                                    .w(px(60.0))
-                                    .child(format!("-{:.1} dB", precut_db)),
-                            ),
-                    ),
+                    ,
             )
             .child(
                 div()
