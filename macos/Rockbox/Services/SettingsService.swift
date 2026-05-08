@@ -34,3 +34,10 @@ func updateRepeatMode(repeatMode: Int32) async throws {
     let _ = try await settings.saveSettings(req)
   }
 }
+
+func saveAllSettings(_ req: Rockbox_V1alpha1_SaveSettingsRequest) async throws {
+  try await withRockboxGRPCClient { grpcClient in
+    let settings = Rockbox_V1alpha1_SettingsService.Client(wrapping: grpcClient)
+    let _ = try await settings.saveSettings(req)
+  }
+}

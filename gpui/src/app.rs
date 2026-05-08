@@ -1,5 +1,5 @@
 use crate::ui::global_keybinds::{Hide, HideOthers, Next, PlayPause, Prev, Quit, Repeat, Shuffle};
-use crate::ui::global_keybinds::{Library, Player, Queue};
+use crate::ui::global_keybinds::{Library, Player, Queue, Settings};
 use crate::ui::startup_gate::StartupGate;
 use crate::ui::{assets::Assets, theme::Theme};
 #[allow(unused_imports)]
@@ -26,6 +26,7 @@ pub fn run() {
             cx.set_global(crate::state::TokioHandle(tokio_handle));
             cx.set_global(crate::ui::components::ServerPickerOpen(false));
             cx.set_global(crate::ui::components::DiscoveredServers::default());
+            cx.set_global(crate::ui::components::SettingsModal::default());
             let bounds = Bounds::centered(None, size(px(1280.0), px(760.0)), cx);
             assets.load_fonts(cx).expect("failed to load fonts");
             // Theme is set as a global inside StartupGate / Rockbox::new.
@@ -59,6 +60,8 @@ pub fn run() {
                     name: "Rockbox".into(),
                     items: vec![
                         MenuItem::os_submenu("Services", SystemMenuType::Services),
+                        MenuItem::separator(),
+                        MenuItem::action("Settings…", Settings),
                         MenuItem::separator(),
                         MenuItem::action("Hide Rockbox", Hide),
                         MenuItem::action("Hide Others", HideOthers),

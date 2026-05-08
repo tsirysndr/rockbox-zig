@@ -11,6 +11,7 @@ struct Sidebar: View {
   @Binding var selection: SidebarItem?
   @EnvironmentObject var searchManager: SearchManager
   @ObservedObject var serverManager = ServerManager.shared
+  @State private var showSettings = false
 
   var body: some View {
     ZStack {
@@ -62,8 +63,24 @@ struct Sidebar: View {
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
 
+        HStack {
+          Button(action: { showSettings = true }) {
+            Image(systemName: "gearshape")
+              .font(.system(size: 14))
+              .foregroundStyle(.secondary)
+          }
+          .buttonStyle(.plain)
+          .padding(.leading, 14)
+          .padding(.vertical, 6)
+          .help("Settings")
+          Spacer()
+        }
+
         ServerPickerView(serverManager: serverManager)
       }
+    }
+    .sheet(isPresented: $showSettings) {
+      SettingsView()
     }
   }
 }

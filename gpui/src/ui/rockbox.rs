@@ -4,6 +4,7 @@ use crate::ui::components::bluetooth_picker::{check_and_set_bluetooth_available,
 use crate::ui::components::controlbar::ControlBar;
 use crate::ui::components::device_picker::{fetch_and_update_devices, DevicePicker};
 use crate::ui::components::pages::{library::LibraryPage, player::PlayerPage, queue::QueuePage};
+use crate::ui::components::settings_modal::SettingsModalView;
 use crate::ui::components::titlebar::Titlebar;
 use crate::ui::components::Page;
 use crate::ui::global_keybinds;
@@ -22,6 +23,7 @@ pub struct Rockbox {
     pub queue_page: Entity<QueuePage>,
     pub device_picker: Entity<DevicePicker>,
     pub bluetooth_picker: Entity<BluetoothPicker>,
+    pub settings_modal: Entity<SettingsModalView>,
 }
 
 impl Rockbox {
@@ -30,6 +32,7 @@ impl Rockbox {
         cx.set_global(Page::Player);
         cx.set_global(DevicesState::default());
         cx.set_global(BluetoothState::default());
+        cx.set_global(crate::ui::components::EqSliderDrag::default());
         global_keybinds::register_keybinds(cx);
         let titlebar = cx.new(|cx| Titlebar::new(cx));
         let controlbar = cx.new(|cx| {
@@ -52,6 +55,7 @@ impl Rockbox {
                 .detach();
             BluetoothPicker
         });
+        let settings_modal = cx.new(|cx| SettingsModalView::new(cx));
         fetch_and_update_devices(cx);
         check_and_set_bluetooth_available(cx);
         Rockbox {
@@ -62,6 +66,7 @@ impl Rockbox {
             queue_page,
             device_picker,
             bluetooth_picker,
+            settings_modal,
         }
     }
 }
@@ -149,5 +154,6 @@ impl Render for Rockbox {
             )
             .child(self.device_picker.clone())
             .child(self.bluetooth_picker.clone())
+            .child(self.settings_modal.clone())
     }
 }

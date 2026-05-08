@@ -1,12 +1,14 @@
 pub mod bluetooth_picker;
 pub mod controlbar;
 pub mod device_picker;
+pub mod eq_slider;
 pub mod icons;
 pub mod miniplayer;
 pub mod navbar;
 pub mod pages;
 pub mod search_input;
 pub mod seek_bar;
+pub mod settings_modal;
 pub mod text_input;
 pub mod titlebar;
 
@@ -282,3 +284,106 @@ pub struct DiscoveredServers {
     pub scanning: bool,
 }
 impl gpui::Global for DiscoveredServers {}
+
+// ── EQ slider drag state ──────────────────────────────────────────────────────
+
+/// Tracks which EQ slider is currently being dragged (by its layout origin_x).
+/// All sliders share the same origin_y (same row), so x is the unique identifier.
+#[derive(Clone, Default)]
+pub struct EqSliderDrag {
+    pub active_origin_x: Option<gpui::Pixels>,
+}
+impl gpui::Global for EqSliderDrag {}
+
+// ── Settings modal ────────────────────────────────────────────────────────────
+
+#[derive(Clone, PartialEq, Default)]
+pub enum SettingsTab {
+    #[default]
+    General,
+    Equalizer,
+    Playback,
+    Sound,
+}
+
+#[derive(Clone, Default)]
+pub struct EqBandLocal {
+    pub cutoff: i32,
+    pub q: i32,
+    pub gain: i32,
+}
+
+pub fn default_eq_bands() -> Vec<EqBandLocal> {
+    // API convention: cutoff = gain (tenths dB), q = center freq (Hz), gain = Q factor
+    const FREQS: [i32; 10] = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+    FREQS.iter().map(|&f| EqBandLocal { cutoff: 0, q: f, gain: 7 }).collect()
+}
+
+#[derive(Clone)]
+pub struct SettingsModal {
+    pub open: bool,
+    pub active_tab: SettingsTab,
+    pub loaded: bool,
+    pub loading: bool,
+    // General
+    pub music_dir: String,
+    pub player_name: String,
+    // Equalizer
+    pub eq_enabled: bool,
+    pub eq_precut: u32,
+    pub eq_bands: Vec<EqBandLocal>,
+    // Playback
+    pub shuffle: bool,
+    pub crossfade: i32,
+    pub crossfade_fade_in_delay: i32,
+    pub crossfade_fade_in_duration: i32,
+    pub crossfade_fade_out_delay: i32,
+    pub crossfade_fade_out_duration: i32,
+    pub crossfade_fade_out_mixmode: i32,
+    pub replaygain_type: i32,
+    pub replaygain_preamp: i32,
+    pub replaygain_noclip: bool,
+    // Sound
+    pub balance: i32,
+    pub bass: i32,
+    pub treble: i32,
+    pub stereo_width: i32,
+    pub channel_config: i32,
+    pub surround_enabled: i32,
+    pub dithering_enabled: bool,
+}
+
+impl Default for SettingsModal {
+    fn default() -> Self {
+        SettingsModal {
+            open: false,
+            active_tab: SettingsTab::General,
+            loaded: false,
+            loading: false,
+            music_dir: String::new(),
+            player_name: String::new(),
+            eq_enabled: false,
+            eq_precut: 0,
+            eq_bands: default_eq_bands(),
+            shuffle: false,
+            crossfade: 0,
+            crossfade_fade_in_delay: 0,
+            crossfade_fade_in_duration: 0,
+            crossfade_fade_out_delay: 0,
+            crossfade_fade_out_duration: 0,
+            crossfade_fade_out_mixmode: 0,
+            replaygain_type: 3,
+            replaygain_preamp: 0,
+            replaygain_noclip: false,
+            balance: 0,
+            bass: 0,
+            treble: 0,
+            stereo_width: 128,
+            channel_config: 0,
+            surround_enabled: 0,
+            dithering_enabled: false,
+        }
+    }
+}
+
+impl gpui::Global for SettingsModal {}

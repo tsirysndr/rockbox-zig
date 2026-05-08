@@ -204,23 +204,32 @@ struct HomeView: View {
             spacing: 8
         ) {
             ForEach(Array(picks), id: \.id) { item in
-                HStack(spacing: 10) {
-                    ZStack {
-                        Color.secondary.opacity(0.18)
-                        Image(systemName: "music.note")
-                            .foregroundStyle(.secondary)
+                Button(action: {
+                    if item.isSmart, let p = smartPlaylists.first(where: { $0.id == item.id }) {
+                        navigation.goToSmartPlaylist(p)
+                    } else if let p = savedPlaylists.first(where: { $0.id == item.id }) {
+                        navigation.goToPlaylist(p)
                     }
-                    .frame(width: 48, height: 48)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                }) {
+                    HStack(spacing: 10) {
+                        ZStack {
+                            Color.secondary.opacity(0.18)
+                            Image(systemName: "music.note")
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
 
-                    Text(item.name)
-                        .font(.system(size: 13, weight: .semibold))
-                        .lineLimit(2)
-                    Spacer()
+                        Text(item.name)
+                            .font(.system(size: 13, weight: .semibold))
+                            .lineLimit(2)
+                        Spacer()
+                    }
+                    .padding(8)
+                    .background(Color.secondary.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
-                .padding(8)
-                .background(Color.secondary.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .buttonStyle(.plain)
             }
         }
     }
@@ -240,32 +249,35 @@ struct HomeView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: 16) {
                 ForEach(items) { playlist in
-                    VStack(alignment: .leading, spacing: 6) {
-                        ZStack {
-                            LinearGradient(
-                                colors: [
-                                    Genre.colorForSeed(playlist.id),
-                                    Genre.colorForSeed(playlist.id).opacity(0.5),
-                                ], startPoint: .topLeading, endPoint: .bottomTrailing
-                            )
-                            Image(systemName: "bolt.fill")
-                                .font(.system(size: 28))
-                                .foregroundStyle(.white)
-                        }
-                        .frame(width: 160, height: 160)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                        Text(playlist.name)
-                            .font(.system(size: 13, weight: .semibold))
-                            .lineLimit(1)
-                            .frame(maxWidth: 160, alignment: .leading)
-                        if let description = playlist.description {
-                            Text(description)
-                                .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
+                    Button(action: { navigation.goToSmartPlaylist(playlist) }) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ZStack {
+                                LinearGradient(
+                                    colors: [
+                                        Genre.colorForSeed(playlist.id),
+                                        Genre.colorForSeed(playlist.id).opacity(0.5),
+                                    ], startPoint: .topLeading, endPoint: .bottomTrailing
+                                )
+                                Image(systemName: "bolt.fill")
+                                    .font(.system(size: 28))
+                                    .foregroundStyle(.white)
+                            }
+                            .frame(width: 160, height: 160)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            Text(playlist.name)
+                                .font(.system(size: 13, weight: .semibold))
+                                .lineLimit(1)
                                 .frame(maxWidth: 160, alignment: .leading)
+                            if let description = playlist.description {
+                                Text(description)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                                    .frame(maxWidth: 160, alignment: .leading)
+                            }
                         }
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 24)

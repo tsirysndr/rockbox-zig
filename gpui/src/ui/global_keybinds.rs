@@ -1,11 +1,12 @@
 use crate::controller::Controller;
 use crate::state::{AppState, PlaybackStatus};
+use crate::ui::components::settings_modal::load_settings_for_modal;
 use crate::ui::components::Page;
 use gpui::{actions, App, Entity, KeyBinding};
 
 actions!(player, [PlayPause, Next, Prev, Shuffle, Repeat]);
 actions!(pages, [CycleNext, CyclePrev, Library, Player, Queue]);
-actions!(app, [Quit, Hide, HideOthers]);
+actions!(app, [Quit, Hide, HideOthers, Settings]);
 
 pub fn register_keybinds(cx: &mut App) {
     cx.bind_keys([
@@ -26,6 +27,7 @@ pub fn register_keybinds(cx: &mut App) {
         KeyBinding::new("cmd-q", Quit, None),
         KeyBinding::new("cmd-h", Hide, None),
         KeyBinding::new("cmd-alt-h", HideOthers, None),
+        KeyBinding::new("cmd-,", Settings, None),
     ]);
 
     cx.on_action(|_: &PlayPause, cx| {
@@ -59,6 +61,15 @@ pub fn register_keybinds(cx: &mut App) {
     cx.on_action(|_: &Quit, cx| cx.quit());
     cx.on_action(|_: &Hide, cx| cx.hide());
     cx.on_action(|_: &HideOthers, cx| cx.hide_other_apps());
+
+    cx.on_action(|_: &Settings, cx| {
+        {
+            let m = cx.global_mut::<crate::ui::components::SettingsModal>();
+            m.open = true;
+            m.active_tab = crate::ui::components::SettingsTab::General;
+        }
+        load_settings_for_modal(cx);
+    });
 
     cx.on_action(|_: &Library, cx| *cx.global_mut::<Page>() = Page::Library);
     cx.on_action(|_: &Player, cx| *cx.global_mut::<Page>() = Page::Player);

@@ -357,6 +357,21 @@ pub async fn get_current_volume() -> Result<i32> {
     Ok(resp.into_inner().value)
 }
 
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+pub async fn get_global_settings(
+) -> Result<crate::api::v1alpha1::GetGlobalSettingsResponse> {
+    let mut c = SettingsServiceClient::connect(url()).await?;
+    let resp = c.get_global_settings(GetGlobalSettingsRequest {}).await?;
+    Ok(resp.into_inner())
+}
+
+pub async fn save_settings_all(req: SaveSettingsRequest) -> Result<()> {
+    let mut c = SettingsServiceClient::connect(url()).await?;
+    c.save_settings(req).await?;
+    Ok(())
+}
+
 // ── Settings (shuffle, repeat) ────────────────────────────────────────────────
 
 pub async fn save_shuffle(enabled: bool) -> Result<()> {

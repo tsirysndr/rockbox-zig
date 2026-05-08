@@ -47,6 +47,10 @@ export const useResumePlaylist = () => {
         })
         .catch((e) => console.error(e));
       if (nowPlaying?.progress || nowPlaying?.duration) {
+        setControlBarState((state) => ({
+          ...state,
+          resumeIndex: globalStatusData.globalStatus.resumeIndex,
+        }));
         return;
       }
     }

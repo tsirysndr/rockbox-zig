@@ -50,7 +50,10 @@ fn tenth_db_to_linear(tenth_db: i32) -> f32 {
     linear.min(1.0) // clamp: we don't boost above unity
 }
 
-const RING_CAPACITY: usize = 512 * 1024;
+// 16 KB ≈ 4 DMA chunks ≈ 93 ms at 44100 Hz stereo 16-bit.  Small enough that
+// leftover audio from a user-initiated skip is imperceptible; large enough to
+// cover the stop→start gap on auto-advance without underrunning.
+const RING_CAPACITY: usize = 16 * 1024;
 
 struct Ring {
     buf: VecDeque<u8>,
@@ -454,7 +457,11 @@ pub extern "C" fn pcm_cpal_stop() {
     let (lock, cvar) = ring();
     let mut r = lock.lock().unwrap();
     r.running = false;
-    r.buf.clear();
+    // Do NOT clear buf: let the audio callback drain remaining audio naturally.
+    // Clearing it caused a silent gap on every track change because the cpal
+    // callback would see an empty ring before the new track's first push arrived.
+    // With RING_CAPACITY at 16 KB the maximum bleed-through is ~93 ms, which is
+    // inaudible for user skips and gives gapless behaviour for auto-advance.
     cvar.notify_all();
 }
 
