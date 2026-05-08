@@ -1,7 +1,10 @@
 use std::env;
 
-use sqlx::{sqlite::SqliteConnectOptions, Error, Executor, Pool, Sqlite, SqlitePool};
-use tracing::{debug, warn};
+use sqlx::{
+    sqlite::{SqliteConnectOptions, SqliteJournalMode},
+    Error, Executor, Pool, Sqlite, SqlitePool,
+};
+use tracing::{debug, info, warn};
 
 pub mod album_art;
 pub mod artists;
@@ -22,6 +25,7 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
     let options = SqliteConnectOptions::new()
         .filename(db_url)
         .create_if_missing(true)
+        .journal_mode(SqliteJournalMode::Wal)
         .busy_timeout(std::time::Duration::from_secs(30));
     let pool = SqlitePool::connect_with(options).await?;
     pool.execute(include_str!(
@@ -104,28 +108,47 @@ pub async fn create_connection_pool() -> Result<Pool<Sqlite>, Error> {
     .await?;
     */
 
-    match pool
-        .execute(include_str!(
-            "../migrations/20260503000000_add_fts5_search.sql"
-        ))
-        .await
-    {
-        Ok(_) => {}
-        Err(e) => warn!("fts5 migration: {}", e),
-    }
+    // Spawn slow one-time migrations in the background so startup is not blocked.
+    // Each migration checks whether it has already run before doing any work.
+    let bg_pool = pool.clone();
+    tokio::spawn(async move {
+        let fts_exists: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name='track_fts')")
+                .fetch_one(&bg_pool)
+                .await
+                .unwrap_or(false);
+        if !fts_exists {
+            info!("Background: applying fts5 search migration...");
+            match bg_pool
+                .execute(include_str!(
+                    "../migrations/20260503000000_add_fts5_search.sql"
+                ))
+                .await
+            {
+                Ok(_) => info!("Background: fts5 search migration applied"),
+                Err(e) => warn!("Background: fts5 migration: {}", e),
+            }
+        }
 
-    match pool
-        .execute(include_str!(
-            "../migrations/20260504000000_dedupe_genres.sql"
-        ))
+        let genre_unique: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name='genre' AND sql LIKE '%UNIQUE%')",
+        )
+        .fetch_one(&bg_pool)
         .await
-    {
-        Ok(_) => {}
-        Err(e) => warn!("dedupe_genres migration: {}", e),
-    }
+        .unwrap_or(false);
+        if !genre_unique {
+            info!("Background: applying dedupe_genres migration...");
+            match bg_pool
+                .execute(include_str!(
+                    "../migrations/20260504000000_dedupe_genres.sql"
+                ))
+                .await
+            {
+                Ok(_) => info!("Background: dedupe_genres migration applied"),
+                Err(e) => warn!("Background: dedupe_genres migration: {}", e),
+            }
+        }
+    });
 
-    sqlx::query("PRAGMA journal_mode=WAL")
-        .execute(&pool)
-        .await?;
     Ok(pool)
 }

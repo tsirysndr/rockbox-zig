@@ -54,7 +54,12 @@ CREATE TRIGGER IF NOT EXISTS track_fts_au AFTER UPDATE ON track BEGIN
     );
 END;
 
--- Backfill any tracks already present (idempotent).
+-- Backfill tracks only when the FTS table is empty (first-run).
+-- Triggers keep it in sync on subsequent runs.
+-- Uses an uncorrelated NOT EXISTS so the check is O(1): SQLite's EXISTS
+-- stops at the first row found, making re-runs instant regardless of
+-- library size. The previous correlated form (WHERE f.id = t.id on an
+-- UNINDEXED FTS5 column) forced an O(N) scan per row, O(N²) total.
 INSERT INTO track_fts(id, title, artist, album, album_artist, composer, genre, path)
 SELECT
     t.id,
@@ -66,7 +71,7 @@ SELECT
     COALESCE(t.genre, ''),
     COALESCE(t.path, '')
 FROM track t
-WHERE NOT EXISTS (SELECT 1 FROM track_fts f WHERE f.id = t.id);
+WHERE NOT EXISTS (SELECT 1 FROM track_fts);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS album_fts USING fts5(
     id UNINDEXED,
@@ -104,7 +109,7 @@ END;
 INSERT INTO album_fts(id, title, artist, label)
 SELECT a.id, COALESCE(a.title, ''), COALESCE(a.artist, ''), COALESCE(a.label, '')
 FROM album a
-WHERE NOT EXISTS (SELECT 1 FROM album_fts f WHERE f.id = a.id);
+WHERE NOT EXISTS (SELECT 1 FROM album_fts);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS artist_fts USING fts5(
     id UNINDEXED,
@@ -131,7 +136,7 @@ END;
 INSERT INTO artist_fts(id, name, bio)
 SELECT a.id, COALESCE(a.name, ''), COALESCE(a.bio, '')
 FROM artist a
-WHERE NOT EXISTS (SELECT 1 FROM artist_fts f WHERE f.id = a.id);
+WHERE NOT EXISTS (SELECT 1 FROM artist_fts);
 
 -- Single FTS table covers both saved_playlists and smart_playlists; the
 -- `is_smart` column tells the query layer which source table to pull
@@ -177,9 +182,9 @@ END;
 INSERT INTO playlist_fts(id, is_smart, name, description)
 SELECT p.id, 0, COALESCE(p.name, ''), COALESCE(p.description, '')
 FROM saved_playlists p
-WHERE NOT EXISTS (SELECT 1 FROM playlist_fts f WHERE f.id = p.id AND f.is_smart = 0);
+WHERE NOT EXISTS (SELECT 1 FROM playlist_fts);
 
 INSERT INTO playlist_fts(id, is_smart, name, description)
 SELECT p.id, 1, COALESCE(p.name, ''), COALESCE(p.description, '')
 FROM smart_playlists p
-WHERE NOT EXISTS (SELECT 1 FROM playlist_fts f WHERE f.id = p.id AND f.is_smart = 1);
+WHERE NOT EXISTS (SELECT 1 FROM playlist_fts);

@@ -97,6 +97,8 @@ static int32_t  delay_read;
 
 int32_t get_lpf_coeff(int32_t rc, int32_t fs, int32_t rc_units)
 {
+    if (rc_units <= 0 || fs <= 0)
+        return UNITY;
     int32_t c = fs*rc;
     c /= rc_units;
     c += 1;
@@ -113,6 +115,8 @@ int32_t get_lpf_coeff(int32_t rc, int32_t fs, int32_t rc_units)
 
 int32_t get_att_rls_coeff(int32_t rc, int32_t fs)
 {
+    if (rc <= 0 || fs <= 0)
+        return UNITY;
     int32_t c = UNITY/fs;
     c *= 1152;              /* 1000 * 10/( 20*log10( 1/e ) ) */
     c /= rc;
@@ -135,11 +139,21 @@ static bool compressor_update(struct dsp_config *dsp,
     int32_t  attack  = settings->attack_time;
 
     /* Compute Attack and Release Coefficients */
-    int32_t fs =   dsp_get_output_frequency(dsp);
+    int32_t fs = dsp_get_output_frequency(dsp);
+    if (fs <= 0)
+        return false;
 
     /* Release */
-    rlsca = get_att_rls_coeff(release, fs);
-    rlscb = UNITY - rlsca ;
+    if(release > 0)
+    {
+        rlsca = get_att_rls_coeff(release, fs);
+        rlscb = UNITY - rlsca;
+    }
+    else
+    {
+        rlsca = UNITY;
+        rlscb = 0;
+    }
 
     /* Attack */
     if(attack > 0)
