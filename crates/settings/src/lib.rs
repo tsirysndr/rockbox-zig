@@ -157,14 +157,57 @@ pub fn load_settings(new_settings: Option<NewGlobalSettings>) -> Result<(), Erro
 
     normalizer::enable(settings.normalize_volume.unwrap_or(false));
 
-    rb::settings::apply_audio_settings();
+    // EQ-only updates (no sound/playback fields changed) skip the full
+    // audio_settings_apply() which calls sound_settings_apply() → sound_set(SOUND_VOLUME, …)
+    // and causes an audible glitch.  Instead, apply just the EQ DSP directly.
+    let eq_only = new_settings
+        .as_ref()
+        .map(is_eq_only_update)
+        .unwrap_or(false);
 
-    let enabled = unsafe { rb::global_settings.eq_enabled };
-    rb::sound::pcmbuf_set_low_latency(true);
-    rb::sound::dsp::eq_enable(enabled);
-    rb::sound::pcmbuf_set_low_latency(false);
+    if eq_only {
+        let enabled = unsafe { rb::global_settings.eq_enabled };
+        rb::sound::dsp::eq_enable(enabled);
+        for i in 0..rb::EQ_NUM_BANDS as i32 {
+            let band = unsafe { rb::global_settings.eq_band_settings[i as usize] };
+            rb::sound::dsp::set_eq_coefs(i, &band);
+        }
+    } else {
+        rb::settings::apply_audio_settings();
+    }
 
     Ok(())
+}
+
+/// Returns true when the request touches only EQ fields (eq_enabled, eq_precut,
+/// eq_band_settings) and nothing else.  In that case we can skip the full
+/// audio_settings_apply() call and apply only the EQ DSP, avoiding the
+/// audible glitch caused by sound_settings_apply() → sound_set(SOUND_VOLUME, …).
+fn is_eq_only_update(s: &NewGlobalSettings) -> bool {
+    s.music_dir.is_none()
+        && s.playlist_shuffle.is_none()
+        && s.repeat_mode.is_none()
+        && s.bass.is_none()
+        && s.treble.is_none()
+        && s.bass_cutoff.is_none()
+        && s.treble_cutoff.is_none()
+        && s.crossfade.is_none()
+        && s.fade_on_stop.is_none()
+        && s.fade_in_delay.is_none()
+        && s.fade_in_duration.is_none()
+        && s.fade_out_delay.is_none()
+        && s.fade_out_duration.is_none()
+        && s.fade_out_mixmode.is_none()
+        && s.balance.is_none()
+        && s.stereo_width.is_none()
+        && s.stereosw_mode.is_none()
+        && s.surround_enabled.is_none()
+        && s.channel_config.is_none()
+        && s.player_name.is_none()
+        && s.replaygain_settings.is_none()
+        && s.compressor_settings.is_none()
+        && s.audio_output.is_none()
+        && s.normalize_volume.is_none()
 }
 
 pub fn write_settings() -> Result<(), Error> {

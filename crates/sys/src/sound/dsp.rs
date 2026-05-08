@@ -9,6 +9,10 @@ pub fn eq_enable(enable: bool) {
     unsafe { crate::dsp_eq_enable(enable) }
 }
 
+pub fn set_eq_coefs(band: i32, setting: &crate::EqBandSetting) {
+    unsafe { crate::dsp_set_eq_coefs(band, setting as *const crate::EqBandSetting) }
+}
+
 pub fn dither_enable(enable: bool) {
     let enable = if enable { 1 } else { 0 };
     unsafe { crate::dsp_dither_enable(enable) }

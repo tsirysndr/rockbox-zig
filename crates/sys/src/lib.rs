@@ -335,7 +335,7 @@ const TAG_COUNT: usize = 32;
 const SEEK_LIST_SIZE: usize = 32;
 const TAGCACHE_MAX_FILTERS: usize = 4;
 const TAGCACHE_MAX_CLAUSES: usize = 32;
-const EQ_NUM_BANDS: usize = 10;
+pub const EQ_NUM_BANDS: usize = 10;
 const QUICKSCREEN_ITEM_COUNT: usize = 4;
 const MAX_FILENAME: usize = 32;
 
@@ -1167,6 +1167,7 @@ extern "C" {
     fn beep_play(frequency: c_uint, duration: c_uint, amplitude: c_uint);
     fn dsp_set_crossfeed_type(r#type: c_int);
     fn dsp_eq_enable(enable: c_uchar);
+    fn dsp_set_eq_coefs(band: c_int, setting: *const EqBandSetting);
     fn dsp_dither_enable(enable: c_uchar);
     fn dsp_get_timestretch() -> c_int;
     fn dsp_set_timestretch(percent: c_int);
