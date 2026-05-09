@@ -61,19 +61,41 @@ FROM typesense/typesense:30.1 AS typesense
 
 FROM debian:bookworm-slim
 
+ARG TARGETARCH
+ARG SNAP_VERSION=0.27.0
+
 RUN apt-get update && apt-get install -y \
   libunwind8 \
   libasound2 \
   libdbus-1-3 \
+  wget \
+  && case "${TARGETARCH}" in \
+       amd64) SNAP_ARCH="amd64" ;; \
+       arm64) SNAP_ARCH="arm64" ;; \
+       *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
+     esac \
+  && wget -q "https://github.com/badaix/snapcast/releases/download/v${SNAP_VERSION}/snapserver_${SNAP_VERSION}-1_${SNAP_ARCH}_bookworm.deb" -O /tmp/snapserver.deb \
+  && apt-get install -y /tmp/snapserver.deb \
+  && rm /tmp/snapserver.deb \
+  && apt-get remove -y wget \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/zig/zig-out/bin/rockboxd /usr/local/bin/rockboxd
 COPY --from=builder /app/target/release/rockbox   /usr/local/bin/rockbox
 COPY --from=typesense /opt/typesense-server        /usr/local/bin/typesense-server
 
+COPY docker/snapserver.conf /etc/snapserver.conf
+COPY docker/entrypoint.sh   /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# rockboxd ports
 EXPOSE 6061
 EXPOSE 6062
 EXPOSE 6063
 EXPOSE 6600
+# snapserver: client protocol, HTTP stream, HTTP JSON API
+EXPOSE 1704
+EXPOSE 1705
+EXPOSE 1780
 
-CMD ["rockboxd"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
