@@ -66,6 +66,31 @@ and Squeezelite.
 
 ## 🚀 Quick Start
 
+### 🐳 Docker
+
+The fastest way to get started — no install, no config file needed:
+
+```sh
+docker run -v $HOME/Music:/root/Music \
+  -p 6062:6062 \
+  -p 1704:1704 \
+  -p 1705:1705 \
+  -p 1780:1780 \
+  tsiry/rockbox
+```
+
+In a second terminal, connect a [Snapcast](https://github.com/badaix/snapcast) client for audio output:
+
+```sh
+snapclient tcp://localhost
+```
+
+Open the web UI at [http://localhost:6062](http://localhost:6062) and start playing!
+
+---
+
+### Manual install
+
 1. **Install** (see [Installation](#-installation) below).
 
 2. **Create `~/.config/rockbox.org/settings.toml`**:

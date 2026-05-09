@@ -46,13 +46,28 @@ about five minutes.
   </Tab>
   <Tab title="Docker">
     ```sh
-    docker run --rm -it \
-      -p 6060-6063:6060-6063 \
-      -p 6600:6600 \
-      -v $HOME/Music:/music \
-      -v $HOME/.config/rockbox.org:/root/.config/rockbox.org \
+    docker run -v $HOME/Music:/root/Music \
+      -p 6062:6062 \
+      -p 1704:1704 \
+      -p 1705:1705 \
+      -p 1780:1780 \
       tsiry/rockbox
     ```
+
+    In a second terminal, connect a [Snapcast](https://github.com/badaix/snapcast) client for audio output:
+
+    ```sh
+    snapclient tcp://localhost
+    ```
+
+    Then open the web UI at [http://localhost:6062](http://localhost:6062) and
+    start playing — no config file needed.
+
+    <Note>
+      Ports `1704` and `1705` are the Snapcast client and control ports.
+      Port `1780` is the Snapcast HTTP management interface.
+      Port `6062` serves the web UI and GraphQL API.
+    </Note>
   </Tab>
 </Tabs>
 
