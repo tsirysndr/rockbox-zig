@@ -81,8 +81,10 @@ docker run --rm -it \
   -p 7878-7881:7878-7881 \
   -p 3483:3483 \
   -p 9999:9999 \
-  -v $HOME/Music:/music \
-  -v $HOME/.config/rockbox.org:/root/.config/rockbox.org \
+  -p 1704:1704 \
+  -p 1705:1705 \
+  -p 1780:1780 \
+  -v $HOME/Music:/root/Music \
   tsiry/rockbox
 ```
 
