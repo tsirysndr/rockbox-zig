@@ -129,6 +129,13 @@ jobs:
           cd zig
           zig build lib -Doptimize=ReleaseFast ${{ matrix.zig_cpu }}
 
+      - name: Clean build artifacts
+        run: |
+          cp zig/zig-out/lib/librockboxd.a /tmp/librockboxd.a
+          rm -rf target build-lib build-headless zig/.zig-cache
+          mkdir -p zig/zig-out/lib
+          mv /tmp/librockboxd.a zig/zig-out/lib/librockboxd.a
+
       # ── Package ───────────────────────────────────────────────────────────
       - name: Resolve version
         id: vars
