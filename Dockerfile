@@ -62,7 +62,7 @@ FROM typesense/typesense:30.1 AS typesense
 FROM debian:bookworm-slim
 
 ARG TARGETARCH
-ARG SNAP_VERSION=0.27.0
+ARG SNAP_VERSION=0.35.0
 
 RUN apt-get update && apt-get install -y \
   libunwind8 \
