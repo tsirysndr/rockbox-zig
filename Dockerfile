@@ -84,9 +84,12 @@ COPY --from=builder /app/zig/zig-out/bin/rockboxd /usr/local/bin/rockboxd
 COPY --from=builder /app/target/release/rockbox   /usr/local/bin/rockbox
 COPY --from=typesense /opt/typesense-server        /usr/local/bin/typesense-server
 
-COPY docker/snapserver.conf /etc/snapserver.conf
-COPY docker/entrypoint.sh   /usr/local/bin/entrypoint.sh
+COPY docker/snapserver.conf                              /etc/snapserver.conf
+COPY docker/entrypoint.sh                               /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+RUN mkdir -p /root/.config/rockbox.org
+COPY docker/settings.toml /root/.config/rockbox.org/settings.toml
 
 # rockboxd ports
 EXPOSE 6061
