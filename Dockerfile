@@ -91,6 +91,8 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN mkdir -p /root/.config/rockbox.org
 COPY docker/settings.toml /root/.config/rockbox.org/settings.toml
 
+RUN mkdir -p /root/Music
+
 # rockboxd ports
 EXPOSE 6061
 EXPOSE 6062
