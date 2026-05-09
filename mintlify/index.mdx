@@ -6,12 +6,12 @@ icon: 'music'
 
 Rockbox Zig is a modern take on the [Rockbox](https://www.rockbox.org) open-source
 audio player firmware. The Rockbox C engine — gapless playback, DSP, 20+ codecs,
-and the tag database — is wrapped in Rust and Zig services that expose **gRPC**,
+and the tag database — in a single binary (rockboxd) that expose **gRPC**,
 **GraphQL**, **HTTP** and **MPD** APIs, add a **Typesense**-backed search engine,
 and stream audio to **AirPlay**, **Snapcast**, **Squeezelite**, **Chromecast**
 and **UPnP** receivers.
 
-Everything ships as a single binary called `rockboxd`.
+Everything ships as a single binary called `rockboxd` (all codecs statically linked).
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
